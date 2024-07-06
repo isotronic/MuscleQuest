@@ -9,7 +9,6 @@
 - Expo Secure Store
 - Tanstack Query
 - Expo Notifications
-- Expo Permissions
 - Expo Image Picker
 - Moment (Date and Time)
 - React Native SQLite Storage

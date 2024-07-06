@@ -7,6 +7,8 @@ import "react-native-reanimated";
 import * as Sentry from "@sentry/react-native";
 import { isRunningInExpoGo } from "expo";
 
+import { useColorScheme } from "@/hooks/useColorScheme";
+
 // Construct a new instrumentation instance. This is needed to communicate between the integration and React
 const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
 
@@ -32,8 +34,6 @@ Sentry.init({
   // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   // enableSpotlight: __DEV__,
 });
-
-import { useColorScheme } from "@/hooks/useColorScheme";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
