@@ -5,7 +5,9 @@
     "moduleResolution": "node",
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "typeRoots": ["node_modules/@types", "node_modules/react-native/types"],
+    "types": ["react"]
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }

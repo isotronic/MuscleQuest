@@ -35,6 +35,14 @@
           "organization": "musclequest",
           "project": "musclequest-react-native"
         }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "node_modules/@expo-google-fonts/inter/Inter_400Regular.ttf"
+          ]
+        }
       ]
     ],
     "experiments": {
