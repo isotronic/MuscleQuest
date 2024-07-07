@@ -11,7 +11,7 @@
 - Expo Notifications
 - Expo Image Picker
 - Moment (Date and Time)
-- React Native SQLite Storage
+- Expo SQLite
 - Sentry
 
 ## Get started
