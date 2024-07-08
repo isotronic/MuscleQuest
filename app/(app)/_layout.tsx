@@ -7,7 +7,9 @@ export default function AppLayout() {
   const { user, initializing } = useContext(AuthContext);
 
   if (initializing) {
-    return <ThemedText>Loading...</ThemedText>;
+import { ActivityIndicator } from 'react-native';
+
+return <ActivityIndicator size="large" color="#0000ff" />;
   }
 
   if (!user) {
