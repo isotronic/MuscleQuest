@@ -1,11 +1,11 @@
+import { Slot, useNavigationContainerRef } from "expo-router";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack, useNavigationContainerRef } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
+import { isRunningInExpoGo } from "expo";
 import { useEffect } from "react";
 import "react-native-reanimated";
+import * as SplashScreen from "expo-splash-screen";
 import * as Sentry from "@sentry/react-native";
-import { isRunningInExpoGo } from "expo";
 
 import {
   Inter_100Thin,
@@ -18,6 +18,7 @@ import {
   Inter_800ExtraBold,
   Inter_900Black,
 } from "@expo-google-fonts/inter";
+import { AuthProvider } from "@/context/AuthProvider";
 
 // Construct a new instrumentation instance. This is needed to communicate between the integration and React
 const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
@@ -79,13 +80,11 @@ function RootLayout() {
   if (!loaded && !error) {
     return null;
   }
-
   return (
     <ThemeProvider value={DarkTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+      <AuthProvider>
+        <Slot screenOptions={{ headerShown: false }} />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
