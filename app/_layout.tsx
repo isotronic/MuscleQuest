@@ -72,7 +72,14 @@ function RootLayout() {
   }, [ref]);
 
   useEffect(() => {
-    if (loaded || error) {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    } else if (error) {
+      // Handle error state explicitly
+      console.error("Error loading fonts:", error);
+      // Optionally, provide feedback to the user or retry logic here
+      SplashScreen.hideAsync();
+    }
       SplashScreen.hideAsync();
     }
   }, [loaded, error]);
