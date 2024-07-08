@@ -13,12 +13,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     return auth().onAuthStateChanged((userState) => {
-          setUser(userState);
-          if (initializing) {
-            setInitializing(false);
-          }
-        });
-
+      setUser(userState);
+      if (initializing) {
+        setInitializing(false);
+      }
+    });
   }, [initializing]);
 
   return (
