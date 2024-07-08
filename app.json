@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "MuscleQuest",
-    "slug": "MuscleQuest",
+    "slug": "musclequest",
     "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -16,11 +16,13 @@
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 1,
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#22222d"
       },
-      "package": "com.isotronic.MuscleQuest"
+      "package": "com.isotronic.musclequest"
     },
     "web": {
       "bundler": "metro",
@@ -28,6 +30,8 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
       "expo-router",
       [
         "@sentry/react-native/expo",

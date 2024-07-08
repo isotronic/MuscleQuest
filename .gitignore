@@ -12,6 +12,9 @@ web-build/
 android
 ios
 
+# Firebase
+google-services.json
+
 # macOS
 .DS_Store
 
