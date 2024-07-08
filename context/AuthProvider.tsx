@@ -7,7 +7,7 @@ export const AuthContext = createContext<AuthContextTypes>({
   initializing: true,
 });
 
-export const AuthProvider = ({ children }: any) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthContextTypes["user"]>(null);
   const [initializing, setInitializing] = useState<boolean>(true);
 
