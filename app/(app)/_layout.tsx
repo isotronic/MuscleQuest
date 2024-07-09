@@ -1,14 +1,9 @@
 import { Redirect, Stack } from "expo-router";
 import { useContext } from "react";
 import { AuthContext } from "@/context/AuthProvider";
-import { ActivityIndicator } from "react-native";
 
 export default function AppLayout() {
-  const { user, initializing } = useContext(AuthContext);
-
-  if (initializing) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
-  }
+  const user = useContext(AuthContext);
 
   if (!user) {
     return <Redirect href="/login" />;

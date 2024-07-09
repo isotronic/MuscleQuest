@@ -14,14 +14,17 @@ export default function LoginScreen() {
 
   async function handleSignIn() {
     try {
-      await GoogleSignin.hasPlayServices({
+      const hasPlayServices = await GoogleSignin.hasPlayServices({
         showPlayServicesUpdateDialog: true,
       });
+      if (!hasPlayServices) {
+        throw new Error("Play services not available");
+      }
       const { idToken } = await GoogleSignin.signIn();
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       return auth().signInWithCredential(googleCredential);
     } catch (error) {
-      console.log(error);
+      console.log("handleSignIn error", error);
     }
   }
   return (
@@ -32,7 +35,8 @@ export default function LoginScreen() {
         size={GoogleSigninButton.Size.Wide}
         color={GoogleSigninButton.Color.Dark}
         onPress={() => {
-          handleSignIn().then(() => {
+          handleSignIn().then((cred) => {
+            console.log("cred", cred);
             router.replace("/");
           });
         }}
