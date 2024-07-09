@@ -22,6 +22,7 @@
     "@react-native-firebase/analytics": "^20.1.0",
     "@react-native-firebase/app": "^20.1.0",
     "@react-native-firebase/auth": "^20.1.0",
+    "@react-native-google-signin/google-signin": "^12.2.1",
     "@react-navigation/native": "^6.0.2",
     "@sentry/react-native": "~5.22.0",
     "@tanstack/react-query": "^5.49.2",
