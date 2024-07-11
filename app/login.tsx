@@ -33,10 +33,10 @@ export default function LoginScreen() {
     >
       <GoogleSigninButton
         size={GoogleSigninButton.Size.Wide}
-        color={GoogleSigninButton.Color.Dark}
+        color={GoogleSigninButton.Color.Light}
+        style={{ height: 70 }}
         onPress={() => {
           handleSignIn().then((cred) => {
-            console.log("cred", cred);
             router.replace("/");
           });
         }}
