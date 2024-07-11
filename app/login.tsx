@@ -6,6 +6,7 @@ import {
 } from "@react-native-google-signin/google-signin";
 import * as googleServices from "../google-services.json";
 import { router } from "expo-router";
+import { StyleSheet } from "react-native";
 
 export default function LoginScreen() {
   GoogleSignin.configure({
@@ -33,10 +34,10 @@ export default function LoginScreen() {
     >
       <GoogleSigninButton
         size={GoogleSigninButton.Size.Wide}
-        color={GoogleSigninButton.Color.Dark}
+        color={GoogleSigninButton.Color.Light}
+        style={styles.button}
         onPress={() => {
           handleSignIn().then((cred) => {
-            console.log("cred", cred);
             router.replace("/");
           });
         }}
@@ -44,3 +45,9 @@ export default function LoginScreen() {
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    height: 70,
+  },
+});

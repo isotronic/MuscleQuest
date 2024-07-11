@@ -19,6 +19,7 @@ import {
   Inter_900Black,
 } from "@expo-google-fonts/inter";
 import { AuthProvider } from "@/context/AuthProvider";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Construct a new instrumentation instance. This is needed to communicate between the integration and React
 const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
@@ -83,7 +84,9 @@ function RootLayout() {
   return (
     <ThemeProvider value={DarkTheme}>
       <AuthProvider>
-        <Slot screenOptions={{ headerShown: false }} />
+        <SafeAreaProvider>
+          <Slot screenOptions={{ headerShown: false }} />
+        </SafeAreaProvider>
       </AuthProvider>
     </ThemeProvider>
   );
