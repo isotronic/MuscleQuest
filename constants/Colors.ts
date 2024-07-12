@@ -21,5 +21,6 @@ export const Colors = {
     icon: "#9BA1A6",
     tabIconDefault: "#9BA1A6",
     tabIconSelected: "#ebaa39",
+    cardBackground: "#3A3A4A",
   },
 };
