@@ -6,11 +6,12 @@
 - React Hook Form
 - Yup
 - React Native Async Storage
+- React Native Firebase
 - Expo Secure Store
 - Tanstack Query
 - Expo Notifications
 - Expo Image Picker
-- Moment (Date and Time)
+- date-fns (Date and Time)
 - Expo SQLite
 - Sentry
 
