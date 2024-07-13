@@ -3,7 +3,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import TrainingPlanCard from "@/components/TrainingPlanCard";
 import { Colors } from "@/constants/Colors";
-import { ScrollView, StyleSheet } from "react-native";
+import { FlatList, ScrollView, StyleSheet } from "react-native";
 import { FAB } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -18,47 +18,35 @@ export default function PlansScreen() {
       >
         <ScreenHeader title="Plans" />
         <ThemedText style={styles.sectionTitle}>Your training plans</ThemedText>
-        <ScrollView
+        <FlatList
           horizontal={true}
           contentContainerStyle={styles.scrollViewContainer}
           snapToInterval={320}
           snapToAlignment={"start"}
-        >
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-        </ScrollView>
+          data={[1, 2, 3, 4, 5, 6]}
+          renderItem={() => <TrainingPlanCard />}
+          keyExtractor={(item: number, index: number) => index.toString()}
+        />
         <ThemedText style={styles.sectionTitle}>Build muscle</ThemedText>
-        <ScrollView
+        <FlatList
           horizontal={true}
           contentContainerStyle={styles.scrollViewContainer}
           snapToInterval={320}
           snapToAlignment={"start"}
-        >
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-        </ScrollView>
+          data={[1, 2, 3, 4, 5, 6]}
+          renderItem={() => <TrainingPlanCard />}
+          keyExtractor={(item: number, index: number) => index.toString()}
+        />
         <ThemedText style={styles.sectionTitle}>Gain strength</ThemedText>
-        <ScrollView
+        <FlatList
           horizontal={true}
           contentContainerStyle={styles.scrollViewContainer}
           snapToInterval={320}
           snapToAlignment={"start"}
-        >
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-          <TrainingPlanCard />
-        </ScrollView>
+          data={[1, 2, 3, 4, 5, 6]}
+          renderItem={() => <TrainingPlanCard />}
+          keyExtractor={(item: number, index: number) => index.toString()}
+        />
 
         <ThemedText style={{ margin: 20, textAlign: "center" }}>
           View all exercises
