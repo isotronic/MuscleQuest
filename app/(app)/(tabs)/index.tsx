@@ -1,11 +1,10 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import ScreenHeader from "@/components/ScreenHeader";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { View } from "react-native";
-import { Button, Card } from "react-native-paper";
+import { Card, Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import WeekDays from "@/components/WeekDays";
 import { useContext } from "react";
@@ -46,15 +45,16 @@ export default function HomeScreen() {
           </ThemedText>
         </View>
         <View style={styles.cardContainer}>
-          <Button
-            mode="contained"
+          <ThemedText type="default" style={styles.sectionTitle}>
+            Today's Workout
+          </ThemedText>
+          <TouchableOpacity
             onPress={() => console.log("Today's workout pressed")}
             style={styles.cardButton}
-            contentStyle={styles.cardContent}
           >
-            <View>
-              <ThemedText style={styles.todayCardTitle}>
-                Today's Workout: Chest and Triceps
+            <View style={styles.cardContent}>
+              <ThemedText type="subtitle" style={styles.todayCardTitle}>
+                Chest and Triceps
               </ThemedText>
               <View style={styles.imageContainer}>
                 <Card.Cover
@@ -65,24 +65,22 @@ export default function HomeScreen() {
                 />
               </View>
             </View>
-          </Button>
+          </TouchableOpacity>
         </View>
         <View style={styles.otherWorkoutsContainer}>
           <ThemedText type="default" style={styles.sectionTitle}>
             Upcoming Workouts
           </ThemedText>
           {dummyWorkouts.map((workout) => (
-            <Button
+            <TouchableOpacity
               key={workout.id}
-              mode="contained"
               onPress={() => console.log(`${workout.title} pressed`)}
               style={styles.smallCardButton}
-              contentStyle={styles.smallCardContent}
             >
               <ThemedText type="subtitle" style={styles.cardTitle}>
                 {workout.title}
               </ThemedText>
-            </Button>
+            </TouchableOpacity>
           ))}
         </View>
         <View style={styles.buttonContainer}>
@@ -133,12 +131,11 @@ const styles = StyleSheet.create({
   cardButton: {
     borderRadius: 15,
     backgroundColor: Colors.dark.cardBackground,
-    padding: 0,
     width: "100%",
   },
   cardContent: {
-    alignItems: "flex-start",
-    width: "100%",
+    alignItems: "center",
+    marginTop: 10,
   },
   imageContainer: {
     width: "100%",
@@ -146,12 +143,13 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   cardImage: {
-    marginTop: 10,
     width: "100%",
+    height: 200,
   },
   todayCardTitle: {
     color: Colors.dark.text,
-    paddingBottom: 10,
+    paddingTop: 5,
+    paddingBottom: 15,
   },
   otherWorkoutsContainer: {
     padding: 20,
@@ -163,13 +161,13 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderRadius: 15,
     backgroundColor: Colors.dark.cardBackground,
-  },
-  smallCardContent: {
-    height: 60,
+    padding: 20,
     justifyContent: "center",
+    textAlign: "center",
   },
   cardTitle: {
     color: Colors.dark.text,
+    textAlign: "center",
   },
   buttonContainer: {
     paddingHorizontal: 20,
