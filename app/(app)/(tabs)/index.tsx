@@ -20,7 +20,9 @@ const dummyWorkouts = [
 export default function HomeScreen() {
   const user = useContext(AuthContext);
   const insets = useSafeAreaInsets();
-  const userName = ", " + user?.displayName?.split(" ")[0] || "";
+  const userName = user?.displayName
+    ? ", " + user.displayName.split(" ")[0]
+    : "";
 
   return (
     <ThemedView>
