@@ -8,7 +8,7 @@
       "@/*": ["./*"]
     },
     "typeRoots": ["node_modules/@types", "node_modules/react-native/types"],
-    "types": ["react"]
+    "types": ["react", "jest"]
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }
