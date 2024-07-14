@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
 import { Divider, Switch } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -12,9 +12,9 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const [keepScreenOn, setKeepScreenOn] = useState(false);
 
-  const toggleKeepScreenOn = () => {
+  const toggleKeepScreenOn = useCallback(() => {
     setKeepScreenOn((prev) => !prev);
-  };
+  }, []);
 
   return (
     <ThemedView>
