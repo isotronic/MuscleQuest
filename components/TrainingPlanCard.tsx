@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -24,6 +24,13 @@ export default function TrainingPlanCard() {
       useNativeDriver: true,
     }).start();
   };
+
+  useEffect(() => {
+    return () => {
+      // Stop the animation if the component unmounts
+      animatedValue.stopAnimation();
+    };
+  }, [animatedValue]);
 
   const cardStyle = {
     transform: [{ scale: animatedValue }],
