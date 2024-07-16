@@ -1,22 +1,18 @@
-import ScreenHeader from "@/components/ScreenHeader";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import TrainingPlanCard from "@/components/TrainingPlanCard";
 import { Colors } from "@/constants/Colors";
+import { router } from "expo-router";
 import { FlatList, ScrollView, StyleSheet } from "react-native";
 import { FAB } from "react-native-paper";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PlansScreen() {
-  const insets = useSafeAreaInsets();
+  const handleCreatePlan = () => {
+    router.push("/(app)/(create-plan)/create");
+  };
   return (
     <ThemedView style={styles.container}>
-      <ScrollView
-        stickyHeaderIndices={[0]}
-        style={{ marginTop: insets.top }}
-        contentContainerStyle={{ paddingBottom: 100 }}
-      >
-        <ScreenHeader title="Plans" />
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <ThemedText style={styles.sectionTitle}>Your training plans</ThemedText>
         <FlatList
           horizontal={true}
@@ -57,7 +53,9 @@ export default function PlansScreen() {
         label="Create plan"
         rippleColor={Colors.dark.tint}
         style={styles.fab}
-        onPress={() => {}}
+        onPress={() => {
+          handleCreatePlan();
+        }}
       />
     </ThemedView>
   );

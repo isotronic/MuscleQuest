@@ -2,14 +2,11 @@ import { useState, useCallback } from "react";
 import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
 import { Divider, Switch } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import ScreenHeader from "@/components/ScreenHeader";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
-  const insets = useSafeAreaInsets();
   const [keepScreenOn, setKeepScreenOn] = useState(false);
 
   const toggleKeepScreenOn = useCallback(() => {
@@ -18,13 +15,7 @@ export default function SettingsScreen() {
 
   return (
     <ThemedView>
-      <ScrollView
-        stickyHeaderIndices={[0]}
-        style={{ marginTop: insets.top }}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      >
-        <ScreenHeader title="Settings" />
-
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>Personal</ThemedText>
           <TouchableOpacity
