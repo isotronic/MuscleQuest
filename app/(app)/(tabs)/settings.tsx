@@ -8,9 +8,14 @@ import { Colors } from "@/constants/Colors";
 
 export default function SettingsScreen() {
   const [keepScreenOn, setKeepScreenOn] = useState(false);
+  const [downloadImages, setDownloadImages] = useState(false);
 
   const toggleKeepScreenOn = useCallback(() => {
     setKeepScreenOn((prev) => !prev);
+  }, []);
+
+  const toggleDownloadImages = useCallback(() => {
+    setDownloadImages((prev) => !prev);
   }, []);
 
   return (
@@ -34,6 +39,25 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="cloud-download"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Download all exercise images
+              </ThemedText>
+            </View>
+            <Switch
+              value={downloadImages}
+              onValueChange={toggleDownloadImages}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
           <TouchableOpacity
             style={styles.item}
             onPress={() => console.log("Weekly goal pressed")}
