@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import * as SplashScreen from "expo-splash-screen";
 import * as Sentry from "@sentry/react-native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import {
   Inter_100Thin,
@@ -20,6 +21,7 @@ import {
 } from "@expo-google-fonts/inter";
 import { AuthProvider } from "@/context/AuthProvider";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { openDatabase } from "@/utils/initAppDataDB";
 
 // Construct a new instrumentation instance. This is needed to communicate between the integration and React
 const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
@@ -50,6 +52,8 @@ Sentry.init({
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+const queryClient = new QueryClient();
+
 function RootLayout() {
   const [loaded, error] = useFonts({
     Inter_100Thin,
@@ -78,17 +82,31 @@ function RootLayout() {
     }
   }, [loaded, error]);
 
+  useEffect(() => {
+    async function initializeDatabase() {
+      try {
+        await openDatabase();
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    initializeDatabase();
+  }, []);
+
   if (!loaded && !error) {
     return null;
   }
   return (
-    <ThemeProvider value={DarkTheme}>
-      <AuthProvider>
-        <SafeAreaProvider>
-          <Slot screenOptions={{ headerShown: false }} />
-        </SafeAreaProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider value={DarkTheme}>
+        <AuthProvider>
+          <SafeAreaProvider>
+            <Slot screenOptions={{ headerShown: false }} />
+          </SafeAreaProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
