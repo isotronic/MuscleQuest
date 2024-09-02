@@ -25,5 +25,17 @@ export const fetchAllRecords = async (
   tableName: string,
 ) => {
   const db = await openDatabase(databaseName);
-  return (await db.getAllAsync(`SELECT * FROM ${tableName}`)) as Exercise[];
+  return await db.getAllAsync(`SELECT * FROM ${tableName}`);
+};
+
+export const insertWorkoutPlan = async (
+  name: string,
+  image_url: string,
+  plan_data: string,
+) => {
+  const db = await openDatabase("userData.db");
+  await db.runAsync(
+    `INSERT INTO user_plans (name, image_url, plan_data) VALUES (?, ?, ?)`,
+    [name, image_url, plan_data],
+  );
 };

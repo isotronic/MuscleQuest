@@ -16,7 +16,7 @@ import DraggableFlatlist, {
 } from "react-native-draggable-flatlist";
 import { router } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { Exercise } from "@/utils/database";
+import { Exercise, insertWorkoutPlan } from "@/utils/database";
 
 export default function CreatePlanScreen() {
   const { workouts, addWorkout, removeWorkout, changeWorkoutName } =
@@ -60,7 +60,20 @@ export default function CreatePlanScreen() {
       return;
     }
 
-    router.back();
+    if (!workouts.length) {
+      Alert.alert("Please add at least one workout");
+      return;
+    }
+
+    const planData = JSON.stringify(workouts);
+
+    try {
+      insertWorkoutPlan(planName, planImageUrl, planData);
+    } catch (error) {
+      console.error("Error inserting plan data:", error);
+    } finally {
+      router.back();
+    }
   };
 
   const renderExerciseItem = ({
