@@ -31,6 +31,25 @@ export default function CreatePlanScreen() {
     addWorkout(newWorkout);
   };
 
+  const handleRemoveWorkout = (index: number) => {
+    Alert.alert(
+      "Remove Workout",
+      "Are you sure you want to remove this workout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Remove",
+          onPress: () => removeWorkout(index),
+          style: "destructive",
+        },
+      ],
+      { cancelable: true },
+    );
+  };
+
   const handleAddExercise = (index: number) => {
     router.push(`/(app)/(create-plan)/exercises?index=${index}`);
   };
@@ -94,7 +113,15 @@ export default function CreatePlanScreen() {
 
     return (
       <Card key={index} style={styles.workoutCard}>
-        <ThemedText style={styles.workoutDay}>Day {index + 1}</ThemedText>
+        <View style={styles.workoutHeader}>
+          <ThemedText style={styles.workoutDay}>Day {index + 1}</ThemedText>
+          <TouchableOpacity
+            style={styles.removeWorkoutButton}
+            onPress={() => handleRemoveWorkout(index)}
+          >
+            <ThemedText style={styles.removeWorkoutButtonText}>x</ThemedText>
+          </TouchableOpacity>
+        </View>
         <TextInput
           style={styles.workoutName}
           placeholder="Workout name"
@@ -212,6 +239,11 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     overflow: "visible",
   },
+  workoutHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   workoutDay: {
     fontSize: 16,
     color: "#8FBCBB",
@@ -244,5 +276,13 @@ const styles = StyleSheet.create({
   exerciseName: {
     color: "#ECEFF4",
     fontSize: 16,
+  },
+  removeWorkoutButton: {
+    padding: 4,
+    borderRadius: 50,
+  },
+  removeWorkoutButtonText: {
+    fontSize: 20,
+    color: "red",
   },
 });
