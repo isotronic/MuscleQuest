@@ -148,10 +148,13 @@ const styles = StyleSheet.create({
   },
   exerciseInfo: {
     marginLeft: 16,
+    flex: 1,
   },
   exerciseName: {
     fontSize: 18,
     color: "#FFFFFF",
+    flexWrap: "wrap",
+    flexShrink: 1,
   },
   exerciseDetails: {
     fontSize: 14,
