@@ -7,13 +7,23 @@ import { useExercises } from "@/hooks/useExercises";
 import { router, useLocalSearchParams } from "expo-router";
 import { Exercise } from "@/utils/database";
 import { useWorkoutStore } from "@/store/store";
+import { Colors } from "@/constants/Colors";
 
 export default function ExercisesScreen() {
   const { data: exercises, isLoading, error } = useExercises();
-  const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
   const addExercise = useWorkoutStore((state) => state.addExercise);
+  const workouts = useWorkoutStore((state) => state.workouts);
   const { index } = useLocalSearchParams();
   const currentWorkoutIndex = Number(index);
+  const currentWorkout = workouts[currentWorkoutIndex];
+
+  const [selectedExercises, setSelectedExercises] = useState<string[]>(() => {
+    return (
+      currentWorkout?.exercises.map((exercise) =>
+        exercise.exercise_id.toString(),
+      ) || []
+    );
+  });
 
   const handleSelectExercise = (exerciseId: string) => {
     setSelectedExercises((prev) =>
@@ -28,7 +38,12 @@ export default function ExercisesScreen() {
       const exercise = exercises?.find(
         (ex) => ex.exercise_id.toString() === exerciseId,
       );
-      if (exercise) {
+      if (
+        exercise &&
+        !currentWorkout?.exercises.some(
+          (e) => e.exercise_id === exercise.exercise_id,
+        )
+      ) {
         addExercise(currentWorkoutIndex, exercise);
       }
     });
@@ -75,7 +90,11 @@ export default function ExercisesScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <TextInput style={styles.searchInput} placeholder="Search" />
+      <TextInput
+        style={styles.searchInput}
+        placeholderTextColor={Colors.dark.text}
+        placeholder="Search"
+      />
       <FlatList
         data={exercises}
         keyExtractor={(item: Exercise) => item.exercise_id.toString()}
