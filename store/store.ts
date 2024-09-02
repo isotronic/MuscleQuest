@@ -1,7 +1,7 @@
 import { Exercise } from "@/utils/database";
 import { create } from "zustand";
 
-interface Workout {
+export interface Workout {
   name: string;
   exercises: Exercise[];
 }
