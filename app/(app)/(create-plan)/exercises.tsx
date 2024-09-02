@@ -10,6 +10,7 @@ import { useWorkoutStore } from "@/store/store";
 import { Colors } from "@/constants/Colors";
 
 export default function ExercisesScreen() {
+  const [searchQuery, setSearchQuery] = useState("");
   const { data: exercises, isLoading, error } = useExercises();
   const addExercise = useWorkoutStore((state) => state.addExercise);
   const workouts = useWorkoutStore((state) => state.workouts);
@@ -50,6 +51,11 @@ export default function ExercisesScreen() {
     router.back();
   };
 
+  const filteredExercises =
+    exercises?.filter((exercise) =>
+      exercise.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    ) || [];
+
   const renderExerciseItem = ({ item }: { item: Exercise }) => (
     <View key={item.exercise_id} style={styles.exerciseItem}>
       <Checkbox
@@ -63,7 +69,7 @@ export default function ExercisesScreen() {
       <View style={styles.exerciseInfo}>
         <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
         <ThemedText style={styles.exerciseDetails}>
-          {item.target_muscle}
+          {item.target_muscle.toUpperCase()}
         </ThemedText>
       </View>
     </View>
@@ -94,9 +100,11 @@ export default function ExercisesScreen() {
         style={styles.searchInput}
         placeholderTextColor={Colors.dark.text}
         placeholder="Search"
+        value={searchQuery}
+        onChangeText={setSearchQuery}
       />
       <FlatList
-        data={exercises}
+        data={filteredExercises}
         keyExtractor={(item: Exercise) => item.exercise_id.toString()}
         renderItem={renderExerciseItem}
         contentContainerStyle={styles.flatListContent}
