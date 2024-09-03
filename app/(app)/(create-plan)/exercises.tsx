@@ -10,11 +10,7 @@ import { useWorkoutStore } from "@/store/store";
 import { Colors } from "@/constants/Colors";
 import storage from "@react-native-firebase/storage";
 import React from "react";
-
-interface LoadedImage {
-  exercise_id: number;
-  imageUrl: string | null;
-}
+import pLimit from "p-limit";
 
 const ExerciseItem = ({
   item,
@@ -58,7 +54,7 @@ export default function ExercisesScreen() {
   const { index } = useLocalSearchParams();
   const currentWorkoutIndex = Number(index);
   const currentWorkout = workouts[currentWorkoutIndex];
-  const [exercisesImageUrls, setExercisesImageUrls] = useState<{
+  const [exerciseImageUrls, setExerciseImageUrls] = useState<{
     [key: number]: string | null;
   }>({});
 
@@ -71,42 +67,63 @@ export default function ExercisesScreen() {
   });
 
   useEffect(() => {
-    const loadExercisesImageUrls = async () => {
-      if (exercises) {
-        const imagePromises = exercises.map(
-          async (exercise): Promise<LoadedImage> => {
-            if (exercise.image_url) {
-              try {
-                const imageUrl = await storage()
-                  .ref(exercise.image_url)
-                  .getDownloadURL();
-                return { exercise_id: exercise.exercise_id, imageUrl };
-              } catch (error) {
-                console.error(
-                  `Error fetching image URL for exercise ${exercise.exercise_id}:`,
-                  error,
-                );
-                return { exercise_id: exercise.exercise_id, imageUrl: null };
+    let isMounted = true; // Track if the component is still mounted
+
+    const loadExerciseImages = async () => {
+      if (exercises && isMounted) {
+        const limit = pLimit(5); // Limit to 5 concurrent requests
+        const batchSize = 20; // Process 20 exercises at a time
+
+        const batchedPromises = [];
+
+        for (let i = 0; i < exercises.length; i += batchSize) {
+          const batch = exercises.slice(i, i + batchSize).map((exercise) =>
+            limit(async () => {
+              if (exercise.image_url && isMounted) {
+                try {
+                  const imageUrl = await storage()
+                    .ref(exercise.image_url)
+                    .getDownloadURL();
+                  return { exercise_id: exercise.exercise_id, imageUrl };
+                } catch (error) {
+                  console.error(
+                    `Error fetching image URL for exercise ${exercise.exercise_id}:`,
+                    error,
+                  );
+                  return { exercise_id: exercise.exercise_id, imageUrl: null };
+                }
               }
-            }
-            return { exercise_id: exercise.exercise_id, imageUrl: null };
-          },
-        );
+              return { exercise_id: exercise.exercise_id, imageUrl: null };
+            }),
+          );
 
-        const loadedImages = await Promise.all(imagePromises);
-        const imagesMap: { [key: number]: string | null } = loadedImages.reduce(
-          (acc, curr) => {
-            acc[curr.exercise_id] = curr.imageUrl;
-            return acc;
-          },
-          {} as { [key: number]: string | null },
-        );
+          batchedPromises.push(Promise.all(batch));
+        }
 
-        setExercisesImageUrls(imagesMap);
+        const results = await Promise.all(batchedPromises);
+        if (isMounted) {
+          const loadedImages = results.flat(); // Flatten the array of arrays
+          const imagesMap: { [key: number]: string | null } =
+            loadedImages.reduce(
+              (acc, curr) => {
+                if (curr.imageUrl !== null) {
+                  acc[curr.exercise_id] = curr.imageUrl;
+                }
+                return acc;
+              },
+              {} as { [key: number]: string | null },
+            );
+
+          setExerciseImageUrls(imagesMap);
+        }
       }
     };
 
-    loadExercisesImageUrls();
+    loadExerciseImages();
+
+    return () => {
+      isMounted = false; // Cleanup to prevent updates if the component is unmounted
+    };
   }, [exercises]);
 
   const handleSelectExercise = useCallback((exerciseId: string) => {
@@ -141,7 +158,7 @@ export default function ExercisesScreen() {
 
   const renderExerciseItem = useCallback(
     ({ item }: { item: Exercise }) => {
-      const imageUrl = exercisesImageUrls[item.exercise_id];
+      const imageUrl = exerciseImageUrls[item.exercise_id];
       return (
         <MemoizedExerciseItem
           item={item}
@@ -151,7 +168,7 @@ export default function ExercisesScreen() {
         />
       );
     },
-    [exercisesImageUrls, selectedExercises, handleSelectExercise],
+    [exerciseImageUrls, selectedExercises, handleSelectExercise],
   );
   if (isLoading) {
     return (
@@ -186,8 +203,9 @@ export default function ExercisesScreen() {
         keyExtractor={(item: Exercise) => item.exercise_id.toString()}
         renderItem={renderExerciseItem}
         contentContainerStyle={styles.flatListContent}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={5}
       />
       <View style={styles.footer}>
         <Button

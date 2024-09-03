@@ -22,6 +22,7 @@
     "@react-native-firebase/analytics": "^20.1.0",
     "@react-native-firebase/app": "^20.1.0",
     "@react-native-firebase/auth": "^20.1.0",
+    "@react-native-firebase/storage": "20.1.0",
     "@react-native-google-signin/google-signin": "^12.2.1",
     "@react-navigation/native": "^6.0.2",
     "@sentry/react-native": "~5.22.0",
@@ -43,6 +44,7 @@
     "expo-status-bar": "~1.12.1",
     "expo-system-ui": "~3.0.7",
     "expo-web-browser": "~13.0.3",
+    "p-limit": "^6.1.0",
     "promise": "^8.3.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -56,8 +58,7 @@
     "react-native-screens": "3.31.1",
     "react-native-web": "~0.19.10",
     "yup": "^1.4.0",
-    "zustand": "^4.5.4",
-    "@react-native-firebase/storage": "20.1.0"
+    "zustand": "^4.5.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
