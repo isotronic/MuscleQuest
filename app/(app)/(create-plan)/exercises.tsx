@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { View, TextInput, FlatList, StyleSheet } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { View, TextInput, FlatList, StyleSheet, Image } from "react-native";
 import { Checkbox, Button } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -8,6 +8,47 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Exercise } from "@/utils/database";
 import { useWorkoutStore } from "@/store/store";
 import { Colors } from "@/constants/Colors";
+import storage from "@react-native-firebase/storage";
+import React from "react";
+
+interface LoadedImage {
+  exercise_id: number;
+  imageUrl: string | null;
+}
+
+const ExerciseItem = ({
+  item,
+  selected,
+  onSelect,
+  imageUrl,
+}: {
+  item: Exercise;
+  selected: boolean;
+  onSelect: (id: string) => void;
+  imageUrl: string | null;
+}) => {
+  return (
+    <View key={item.exercise_id} style={styles.exerciseItem}>
+      <Checkbox
+        status={selected ? "checked" : "unchecked"}
+        onPress={() => onSelect(item.exercise_id.toString())}
+      />
+      {imageUrl ? (
+        <Image source={{ uri: imageUrl }} style={styles.exerciseImage} />
+      ) : (
+        <View style={[styles.exerciseImage, styles.placeholderImage]} />
+      )}
+      <View style={styles.exerciseInfo}>
+        <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
+        <ThemedText style={styles.exerciseDetails}>
+          {item.target_muscle.toUpperCase()}
+        </ThemedText>
+      </View>
+    </View>
+  );
+};
+
+const MemoizedExerciseItem = React.memo(ExerciseItem);
 
 export default function ExercisesScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -17,6 +58,9 @@ export default function ExercisesScreen() {
   const { index } = useLocalSearchParams();
   const currentWorkoutIndex = Number(index);
   const currentWorkout = workouts[currentWorkoutIndex];
+  const [exercisesImageUrls, setExercisesImageUrls] = useState<{
+    [key: number]: string | null;
+  }>({});
 
   const [selectedExercises, setSelectedExercises] = useState<string[]>(() => {
     return (
@@ -26,13 +70,52 @@ export default function ExercisesScreen() {
     );
   });
 
-  const handleSelectExercise = (exerciseId: string) => {
+  useEffect(() => {
+    const loadExercisesImageUrls = async () => {
+      if (exercises) {
+        const imagePromises = exercises.map(
+          async (exercise): Promise<LoadedImage> => {
+            if (exercise.image_url) {
+              try {
+                const imageUrl = await storage()
+                  .ref(exercise.image_url)
+                  .getDownloadURL();
+                return { exercise_id: exercise.exercise_id, imageUrl };
+              } catch (error) {
+                console.error(
+                  `Error fetching image URL for exercise ${exercise.exercise_id}:`,
+                  error,
+                );
+                return { exercise_id: exercise.exercise_id, imageUrl: null };
+              }
+            }
+            return { exercise_id: exercise.exercise_id, imageUrl: null };
+          },
+        );
+
+        const loadedImages = await Promise.all(imagePromises);
+        const imagesMap: { [key: number]: string | null } = loadedImages.reduce(
+          (acc, curr) => {
+            acc[curr.exercise_id] = curr.imageUrl;
+            return acc;
+          },
+          {} as { [key: number]: string | null },
+        );
+
+        setExercisesImageUrls(imagesMap);
+      }
+    };
+
+    loadExercisesImageUrls();
+  }, [exercises]);
+
+  const handleSelectExercise = useCallback((exerciseId: string) => {
     setSelectedExercises((prev) =>
       prev.includes(exerciseId)
         ? prev.filter((id) => id !== exerciseId)
         : [...prev, exerciseId],
     );
-  };
+  }, []);
 
   const handleAddExercise = () => {
     selectedExercises.forEach((exerciseId) => {
@@ -56,25 +139,20 @@ export default function ExercisesScreen() {
       exercise.name.toLowerCase().includes(searchQuery.toLowerCase()),
     ) || [];
 
-  const renderExerciseItem = ({ item }: { item: Exercise }) => (
-    <View key={item.exercise_id} style={styles.exerciseItem}>
-      <Checkbox
-        status={
-          selectedExercises.includes(item.exercise_id.toString())
-            ? "checked"
-            : "unchecked"
-        }
-        onPress={() => handleSelectExercise(item.exercise_id.toString())}
-      />
-      <View style={styles.exerciseInfo}>
-        <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
-        <ThemedText style={styles.exerciseDetails}>
-          {item.target_muscle.toUpperCase()}
-        </ThemedText>
-      </View>
-    </View>
+  const renderExerciseItem = useCallback(
+    ({ item }: { item: Exercise }) => {
+      const imageUrl = exercisesImageUrls[item.exercise_id];
+      return (
+        <MemoizedExerciseItem
+          item={item}
+          selected={selectedExercises.includes(item.exercise_id.toString())}
+          onSelect={handleSelectExercise}
+          imageUrl={imageUrl}
+        />
+      );
+    },
+    [exercisesImageUrls, selectedExercises, handleSelectExercise],
   );
-
   if (isLoading) {
     return (
       <ThemedView style={styles.container}>
@@ -108,6 +186,8 @@ export default function ExercisesScreen() {
         keyExtractor={(item: Exercise) => item.exercise_id.toString()}
         renderItem={renderExerciseItem}
         contentContainerStyle={styles.flatListContent}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
       />
       <View style={styles.footer}>
         <Button
@@ -145,6 +225,15 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     marginVertical: 8,
+  },
+  exerciseImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginLeft: 10,
+  },
+  placeholderImage: {
+    backgroundColor: "#888", // Placeholder color
   },
   exerciseInfo: {
     marginLeft: 16,
