@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { View, TextInput, FlatList, StyleSheet, Image } from "react-native";
+import { View, TextInput, FlatList, StyleSheet } from "react-native";
 import { Checkbox, Button } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -11,6 +11,7 @@ import { Colors } from "@/constants/Colors";
 import storage from "@react-native-firebase/storage";
 import React from "react";
 import pLimit from "p-limit";
+import FastImage from "react-native-fast-image";
 
 const ExerciseItem = ({
   item,
@@ -30,7 +31,14 @@ const ExerciseItem = ({
         onPress={() => onSelect(item.exercise_id.toString())}
       />
       {imageUrl ? (
-        <Image source={{ uri: imageUrl }} style={styles.exerciseImage} />
+        <FastImage
+          style={styles.exerciseImage}
+          source={{
+            uri: imageUrl,
+            priority: FastImage.priority.normal,
+          }}
+          resizeMode={FastImage.resizeMode.contain}
+        />
       ) : (
         <View style={[styles.exerciseImage, styles.placeholderImage]} />
       )}
