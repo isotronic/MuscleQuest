@@ -1,5 +1,11 @@
 import { useCallback, useState } from "react";
-import { View, TextInput, FlatList, StyleSheet } from "react-native";
+import {
+  View,
+  TextInput,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import { Checkbox, Button } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -21,31 +27,41 @@ const ExerciseItem = ({
   onSelect: (id: string) => void;
 }) => {
   const base64Image = `data:image/webp;base64,${btoa(String.fromCharCode(...new Uint8Array(item.image)))}`;
+
+  const handlePress = () => {
+    router.push({
+      pathname: "/exercise-details",
+      params: { exercise: JSON.stringify(item) },
+    });
+  };
+
   return (
-    <View key={item.exercise_id} style={styles.exerciseItem}>
-      <Checkbox
-        status={selected ? "checked" : "unchecked"}
-        onPress={() => onSelect(item.exercise_id.toString())}
-      />
-      {item.image ? (
-        <FastImage
-          style={styles.exerciseImage}
-          source={{
-            uri: base64Image,
-            priority: FastImage.priority.normal,
-          }}
-          resizeMode={FastImage.resizeMode.contain}
+    <TouchableOpacity onPress={handlePress}>
+      <View key={item.exercise_id} style={styles.exerciseItem}>
+        <Checkbox
+          status={selected ? "checked" : "unchecked"}
+          onPress={() => onSelect(item.exercise_id.toString())}
         />
-      ) : (
-        <View style={[styles.exerciseImage, styles.placeholderImage]} />
-      )}
-      <View style={styles.exerciseInfo}>
-        <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
-        <ThemedText style={styles.exerciseDetails}>
-          {item.target_muscle.toUpperCase()}
-        </ThemedText>
+        {item.image ? (
+          <FastImage
+            style={styles.exerciseImage}
+            source={{
+              uri: base64Image,
+              priority: FastImage.priority.normal,
+            }}
+            resizeMode={FastImage.resizeMode.contain}
+          />
+        ) : (
+          <View style={[styles.exerciseImage, styles.placeholderImage]} />
+        )}
+        <View style={styles.exerciseInfo}>
+          <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
+          <ThemedText style={styles.exerciseDetails}>
+            {item.target_muscle.toUpperCase()}
+          </ThemedText>
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
