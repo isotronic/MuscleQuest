@@ -3,8 +3,9 @@ import * as SQLite from "expo-sqlite";
 export interface Exercise {
   exercise_id: number;
   name: string;
-  image: string;
-  image_url: string;
+  image: [];
+  local_animated_uri: string;
+  animated_url: string;
   equipment: string;
   body_part: string;
   target_muscle: string;

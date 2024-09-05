@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { View, TextInput, FlatList, StyleSheet } from "react-native";
 import { Checkbox, Button } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
@@ -8,33 +8,30 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Exercise } from "@/utils/database";
 import { useWorkoutStore } from "@/store/store";
 import { Colors } from "@/constants/Colors";
-import storage from "@react-native-firebase/storage";
 import React from "react";
-import pLimit from "p-limit";
 import FastImage from "react-native-fast-image";
 
 const ExerciseItem = ({
   item,
   selected,
   onSelect,
-  imageUrl,
 }: {
   item: Exercise;
   selected: boolean;
   onSelect: (id: string) => void;
-  imageUrl: string | null;
 }) => {
+  const base64Image = `data:image/webp;base64,${btoa(String.fromCharCode(...new Uint8Array(item.image)))}`;
   return (
     <View key={item.exercise_id} style={styles.exerciseItem}>
       <Checkbox
         status={selected ? "checked" : "unchecked"}
         onPress={() => onSelect(item.exercise_id.toString())}
       />
-      {imageUrl ? (
+      {item.image ? (
         <FastImage
           style={styles.exerciseImage}
           source={{
-            uri: imageUrl,
+            uri: base64Image,
             priority: FastImage.priority.normal,
           }}
           resizeMode={FastImage.resizeMode.contain}
@@ -62,9 +59,6 @@ export default function ExercisesScreen() {
   const { index } = useLocalSearchParams();
   const currentWorkoutIndex = Number(index);
   const currentWorkout = workouts[currentWorkoutIndex];
-  const [exerciseImageUrls, setExerciseImageUrls] = useState<{
-    [key: number]: string | null;
-  }>({});
 
   const [selectedExercises, setSelectedExercises] = useState<string[]>(() => {
     return (
@@ -73,66 +67,6 @@ export default function ExercisesScreen() {
       ) || []
     );
   });
-
-  useEffect(() => {
-    let isMounted = true; // Track if the component is still mounted
-
-    const loadExerciseImages = async () => {
-      if (exercises && isMounted) {
-        const limit = pLimit(5); // Limit to 5 concurrent requests
-        const batchSize = 20; // Process 20 exercises at a time
-
-        const batchedPromises = [];
-
-        for (let i = 0; i < exercises.length; i += batchSize) {
-          const batch = exercises.slice(i, i + batchSize).map((exercise) =>
-            limit(async () => {
-              if (exercise.image_url && isMounted) {
-                try {
-                  const imageUrl = await storage()
-                    .ref(exercise.image_url)
-                    .getDownloadURL();
-                  return { exercise_id: exercise.exercise_id, imageUrl };
-                } catch (error) {
-                  console.error(
-                    `Error fetching image URL for exercise ${exercise.exercise_id}:`,
-                    error,
-                  );
-                  return { exercise_id: exercise.exercise_id, imageUrl: null };
-                }
-              }
-              return { exercise_id: exercise.exercise_id, imageUrl: null };
-            }),
-          );
-
-          batchedPromises.push(Promise.all(batch));
-        }
-
-        const results = await Promise.all(batchedPromises);
-        if (isMounted) {
-          const loadedImages = results.flat(); // Flatten the array of arrays
-          const imagesMap: { [key: number]: string | null } =
-            loadedImages.reduce(
-              (acc, curr) => {
-                if (curr.imageUrl !== null) {
-                  acc[curr.exercise_id] = curr.imageUrl;
-                }
-                return acc;
-              },
-              {} as { [key: number]: string | null },
-            );
-
-          setExerciseImageUrls(imagesMap);
-        }
-      }
-    };
-
-    loadExerciseImages();
-
-    return () => {
-      isMounted = false; // Cleanup to prevent updates if the component is unmounted
-    };
-  }, [exercises]);
 
   const handleSelectExercise = useCallback((exerciseId: string) => {
     setSelectedExercises((prev) =>
@@ -166,17 +100,15 @@ export default function ExercisesScreen() {
 
   const renderExerciseItem = useCallback(
     ({ item }: { item: Exercise }) => {
-      const imageUrl = exerciseImageUrls[item.exercise_id];
       return (
         <MemoizedExerciseItem
           item={item}
           selected={selectedExercises.includes(item.exercise_id.toString())}
           onSelect={handleSelectExercise}
-          imageUrl={imageUrl}
         />
       );
     },
-    [exerciseImageUrls, selectedExercises, handleSelectExercise],
+    [selectedExercises, handleSelectExercise],
   );
   if (isLoading) {
     return (
@@ -211,9 +143,9 @@ export default function ExercisesScreen() {
         keyExtractor={(item: Exercise) => item.exercise_id.toString()}
         renderItem={renderExerciseItem}
         contentContainerStyle={styles.flatListContent}
-        initialNumToRender={5}
-        maxToRenderPerBatch={5}
-        windowSize={5}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={10}
       />
       <View style={styles.footer}>
         <Button
