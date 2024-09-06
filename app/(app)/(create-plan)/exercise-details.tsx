@@ -4,6 +4,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { useLocalSearchParams } from "expo-router";
 import storage from "@react-native-firebase/storage";
 import FastImage from "react-native-fast-image";
+import { Colors } from "@/constants/Colors";
 
 export default function ExerciseDetailsScreen() {
   const { exercise } = useLocalSearchParams();
@@ -99,7 +100,7 @@ export default function ExerciseDetailsScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#2E3440",
+    backgroundColor: Colors.dark.background,
     padding: 16,
     paddingBottom: 40,
   },

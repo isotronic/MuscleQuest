@@ -12,7 +12,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { useExercises } from "@/hooks/useExercises";
 import { router, useLocalSearchParams } from "expo-router";
 import { Exercise } from "@/utils/database";
-import { useWorkoutStore } from "@/store/store";
+import { useWorkoutStore, UserExercise } from "@/store/store";
 import { Colors } from "@/constants/Colors";
 import React from "react";
 import FastImage from "react-native-fast-image";
@@ -22,7 +22,7 @@ const ExerciseItem = ({
   selected,
   onSelect,
 }: {
-  item: Exercise;
+  item: UserExercise;
   selected: boolean;
   onSelect: (id: string) => void;
 }) => {
@@ -103,7 +103,8 @@ export default function ExercisesScreen() {
           (e) => e.exercise_id === exercise.exercise_id,
         )
       ) {
-        addExercise(currentWorkoutIndex, exercise);
+        const exerciseToAdd: UserExercise = { ...exercise, sets: [] };
+        addExercise(currentWorkoutIndex, exerciseToAdd);
       }
     });
     router.back();
@@ -115,7 +116,7 @@ export default function ExercisesScreen() {
     ) || [];
 
   const renderExerciseItem = useCallback(
-    ({ item }: { item: Exercise }) => {
+    ({ item }: { item: UserExercise }) => {
       return (
         <MemoizedExerciseItem
           item={item}
@@ -179,7 +180,7 @@ export default function ExercisesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#2E3440",
+    backgroundColor: Colors.dark.background,
     padding: 16,
   },
   searchInput: {

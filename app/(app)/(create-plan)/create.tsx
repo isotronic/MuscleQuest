@@ -6,17 +6,19 @@ import {
   TouchableOpacity,
   Alert,
   FlatList,
+  Button,
 } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useWorkoutStore, Workout } from "@/store/store";
-import { TextInput, Button, Card, FAB } from "react-native-paper";
+import { useWorkoutStore, Workout, UserExercise } from "@/store/store";
+import { TextInput, Card, FAB } from "react-native-paper";
 import DraggableFlatlist, {
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
 import { router } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { Exercise, insertWorkoutPlan } from "@/utils/database";
+import { insertWorkoutPlan } from "@/utils/database";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function CreatePlanScreen() {
   const { workouts, addWorkout, removeWorkout, changeWorkoutName } =
@@ -80,15 +82,22 @@ export default function CreatePlanScreen() {
     item,
     drag,
     isActive,
+    workoutIndex,
   }: {
-    item: Exercise;
+    item: UserExercise;
     drag: () => void;
     isActive: boolean;
+    workoutIndex: number;
   }) => {
     return (
       <ScaleDecorator>
         <TouchableOpacity
           onLongPress={drag}
+          onPress={() =>
+            router.push(
+              `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}`,
+            )
+          } // Open sets screen on tap
           disabled={isActive}
           style={[
             styles.exerciseItem,
@@ -96,13 +105,19 @@ export default function CreatePlanScreen() {
             isActive && { zIndex: 9999 },
           ]}
         >
+          <MaterialCommunityIcons
+            name="drag"
+            size={24}
+            color="#ECEFF4"
+            style={{ marginRight: 10 }}
+          />
           <ThemedText>{item.name}</ThemedText>
         </TouchableOpacity>
       </ScaleDecorator>
     );
   };
 
-  const handleDragEnd = (index: number, { data }: { data: Exercise[] }) => {
+  const handleDragEnd = (index: number, { data }: { data: UserExercise[] }) => {
     const updatedWorkouts = workouts.map((workout, i) => {
       if (i === index) {
         return { ...workout, exercises: data };
@@ -146,7 +161,9 @@ export default function CreatePlanScreen() {
             containerStyle={{ overflow: "visible" }}
             data={item.exercises}
             keyExtractor={(exercise) => exercise.exercise_id.toString()}
-            renderItem={renderExerciseItem}
+            renderItem={({ item, drag, isActive }) =>
+              renderExerciseItem({ item, drag, isActive, workoutIndex: index })
+            }
             onDragEnd={(result) => handleDragEnd(index, result)}
           />
         ) : (
@@ -154,13 +171,7 @@ export default function CreatePlanScreen() {
             No exercises added yet
           </ThemedText>
         )}
-        <Button
-          mode="contained"
-          onPress={() => handleAddExercise(index)}
-          style={styles.addExercisesButton}
-        >
-          Add exercises
-        </Button>
+        <Button title="Add Exercise" onPress={() => handleAddExercise(index)} />
       </Card>
     );
   };
@@ -180,13 +191,7 @@ export default function CreatePlanScreen() {
           value={planName}
           onChangeText={setPlanName}
         />
-        <Button
-          mode="contained"
-          onPress={handleSavePlan}
-          style={styles.saveButton}
-        >
-          Save Plan
-        </Button>
+        <Button title="Save" onPress={handleSavePlan} />
       </View>
       {workouts.length === 0 ? (
         <ThemedText style={styles.emptyText}>
@@ -218,10 +223,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     overflow: "visible",
   },
-  saveButton: {
-    marginLeft: 10,
-    backgroundColor: "#81A1C1",
-  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -239,6 +240,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#FFFFFF",
+    marginRight: 10,
   },
   emptyText: {
     fontSize: 18,
@@ -276,7 +278,10 @@ const styles = StyleSheet.create({
     bottom: 15,
   },
   exerciseItem: {
-    padding: 10,
+    flex: 1,
+    flexDirection: "row",
+    paddingVertical: 20,
+    paddingHorizontal: 10,
     backgroundColor: "#4C566A",
     marginVertical: 5,
     borderRadius: 8,
