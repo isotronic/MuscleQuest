@@ -59,6 +59,11 @@ export default function PlansScreen() {
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <ThemedText style={styles.sectionTitle}>Your training plans</ThemedText>
+        {plans.length === 0 && (
+          <ThemedText style={styles.noPlansText}>
+            No training plans found
+          </ThemedText>
+        )}
         <FlatList
           horizontal={true}
           contentContainerStyle={styles.scrollViewContainer}
@@ -122,5 +127,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 20,
     bottom: 15,
+  },
+  noPlansText: {
+    textAlign: "center",
+    marginTop: 50,
+    marginBottom: 20,
   },
 });
