@@ -5,6 +5,7 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import { Checkbox, Button } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
@@ -16,6 +17,8 @@ import { useWorkoutStore, UserExercise } from "@/store/store";
 import { Colors } from "@/constants/Colors";
 import React from "react";
 import FastImage from "react-native-fast-image";
+
+const fallbackImage = require("@/assets/images/placeholder.webp");
 
 const ExerciseItem = ({
   item,
@@ -52,7 +55,7 @@ const ExerciseItem = ({
             resizeMode={FastImage.resizeMode.contain}
           />
         ) : (
-          <View style={[styles.exerciseImage, styles.placeholderImage]} />
+          <Image style={styles.exerciseImage} source={fallbackImage} />
         )}
         <View style={styles.exerciseInfo}>
           <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
@@ -206,9 +209,6 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     marginLeft: 10,
-  },
-  placeholderImage: {
-    backgroundColor: "#888", // Placeholder color
   },
   exerciseInfo: {
     marginLeft: 16,
