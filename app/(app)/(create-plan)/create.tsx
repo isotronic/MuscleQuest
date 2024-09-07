@@ -1,32 +1,18 @@
-import { useState } from "react";
-import {
-  StyleSheet,
-  View,
-  Image,
-  TouchableOpacity,
-  Alert,
-  FlatList,
-  Button,
-} from "react-native";
+import { StyleSheet, View, Image, Alert, FlatList, Button } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useWorkoutStore, Workout, UserExercise } from "@/store/store";
-import { TextInput, Card, FAB } from "react-native-paper";
-import DraggableFlatlist, {
-  ScaleDecorator,
-} from "react-native-draggable-flatlist";
+import { useWorkoutStore, Workout } from "@/store/store";
+import { TextInput, FAB } from "react-native-paper";
 import { router } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { insertWorkoutPlan } from "@/utils/database";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useCreatePlan } from "@/hooks/useCreatePlan";
+import WorkoutCard from "@/components/WorkoutCard";
 
 export default function CreatePlanScreen() {
   const { workouts, addWorkout, removeWorkout, changeWorkoutName } =
     useWorkoutStore();
-  const [planName, setPlanName] = useState("");
-  const [planImageUrl, setPlanImageUrl] = useState(
-    "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  );
+  const { planName, setPlanName, planImageUrl, handleSavePlan } =
+    useCreatePlan();
 
   const handleAddWorkout = () => {
     const newWorkout = { name: "", exercises: [] };
@@ -56,126 +42,6 @@ export default function CreatePlanScreen() {
     router.push(`/(app)/(create-plan)/exercises?index=${index}`);
   };
 
-  const handleSavePlan = () => {
-    if (!planName.trim()) {
-      Alert.alert("Please enter a plan name");
-      return;
-    }
-
-    if (!workouts.length) {
-      Alert.alert("Please add at least one workout");
-      return;
-    }
-
-    const planData = JSON.stringify(workouts);
-
-    try {
-      insertWorkoutPlan(planName, planImageUrl, planData);
-    } catch (error) {
-      console.error("Error inserting plan data:", error);
-    } finally {
-      router.back();
-    }
-  };
-
-  const renderExerciseItem = ({
-    item,
-    drag,
-    isActive,
-    workoutIndex,
-  }: {
-    item: UserExercise;
-    drag: () => void;
-    isActive: boolean;
-    workoutIndex: number;
-  }) => {
-    return (
-      <ScaleDecorator>
-        <TouchableOpacity
-          onLongPress={drag}
-          onPress={() =>
-            router.push(
-              `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}`,
-            )
-          } // Open sets screen on tap
-          disabled={isActive}
-          style={[
-            styles.exerciseItem,
-            isActive && styles.activeExerciseItem,
-            isActive && { zIndex: 9999 },
-          ]}
-        >
-          <MaterialCommunityIcons
-            name="drag"
-            size={24}
-            color="#ECEFF4"
-            style={{ marginRight: 10 }}
-          />
-          <ThemedText>{item.name}</ThemedText>
-        </TouchableOpacity>
-      </ScaleDecorator>
-    );
-  };
-
-  const handleDragEnd = (index: number, { data }: { data: UserExercise[] }) => {
-    const updatedWorkouts = workouts.map((workout, i) => {
-      if (i === index) {
-        return { ...workout, exercises: data };
-      }
-      return workout;
-    });
-    useWorkoutStore.setState({ workouts: updatedWorkouts });
-  };
-
-  const renderWorkoutCard = ({
-    item,
-    index,
-  }: {
-    item: Workout;
-    index: number;
-  }) => {
-    if (!item) {
-      console.warn(`Workout at index ${index} is undefined`);
-      return null;
-    }
-
-    return (
-      <Card key={index} style={styles.workoutCard}>
-        <View style={styles.workoutHeader}>
-          <ThemedText style={styles.workoutDay}>Day {index + 1}</ThemedText>
-          <TouchableOpacity
-            style={styles.removeWorkoutButton}
-            onPress={() => handleRemoveWorkout(index)}
-          >
-            <ThemedText style={styles.removeWorkoutButtonText}>x</ThemedText>
-          </TouchableOpacity>
-        </View>
-        <TextInput
-          style={styles.workoutName}
-          placeholder="Workout name"
-          value={item.name}
-          onChangeText={(text: string) => changeWorkoutName(index, text)}
-        />
-        {item.exercises.length > 0 ? (
-          <DraggableFlatlist
-            containerStyle={{ overflow: "visible" }}
-            data={item.exercises}
-            keyExtractor={(exercise) => exercise.exercise_id.toString()}
-            renderItem={({ item, drag, isActive }) =>
-              renderExerciseItem({ item, drag, isActive, workoutIndex: index })
-            }
-            onDragEnd={(result) => handleDragEnd(index, result)}
-          />
-        ) : (
-          <ThemedText style={styles.workoutInstructions}>
-            No exercises added yet
-          </ThemedText>
-        )}
-        <Button title="Add Exercise" onPress={() => handleAddExercise(index)} />
-      </Card>
-    );
-  };
-
   return (
     <ThemedView style={styles.container}>
       <View style={styles.inputContainer}>
@@ -201,7 +67,15 @@ export default function CreatePlanScreen() {
         <FlatList
           contentContainerStyle={{ overflow: "visible" }}
           data={workouts}
-          renderItem={renderWorkoutCard}
+          renderItem={({ item, index }: { item: Workout; index: number }) => (
+            <WorkoutCard
+              workout={item}
+              index={index}
+              onRemove={() => handleRemoveWorkout(index)}
+              onNameChange={changeWorkoutName}
+              onAddExercise={() => handleAddExercise(index)}
+            />
+          )}
           keyExtractor={(_: any, index: number) => index.toString()}
         />
       )}
