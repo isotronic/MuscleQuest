@@ -10,7 +10,7 @@ import {
 import { Checkbox, Button } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { useExercises } from "@/hooks/useExercises";
+import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { router, useLocalSearchParams } from "expo-router";
 import { Exercise } from "@/utils/database";
 import { useWorkoutStore, UserExercise } from "@/store/store";
@@ -72,7 +72,7 @@ const MemoizedExerciseItem = React.memo(ExerciseItem);
 
 export default function ExercisesScreen() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: exercises, isLoading, error } = useExercises();
+  const { data: exercises, isLoading, error } = useExercisesQuery();
   const addExercise = useWorkoutStore((state) => state.addExercise);
   const workouts = useWorkoutStore((state) => state.workouts);
   const { index } = useLocalSearchParams();
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   exerciseImage: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 8,
     marginLeft: 10,
   },
   exerciseInfo: {
