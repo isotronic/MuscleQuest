@@ -3,15 +3,22 @@ import { useFocusEffect } from "@react-navigation/native";
 import { fetchAllRecords } from "@/utils/database";
 import { Workout } from "@/store/store";
 
+export interface Plan {
+  id: number;
+  name: string;
+  image_url: string;
+  plan_data: Workout[];
+}
+
 export const usePlans = () => {
-  const [plans, setPlans] = useState<Workout[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
 
   const fetchPlans = useCallback(async () => {
     try {
       const fetchedPlans = (await fetchAllRecords(
         "userData.db",
         "user_plans",
-      )) as Workout[];
+      )) as Plan[];
       setPlans(fetchedPlans);
     } catch (error) {
       console.error("Error fetching plans", error);
