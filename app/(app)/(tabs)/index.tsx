@@ -1,9 +1,7 @@
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import ScreenHeader from "@/components/ScreenHeader";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ScrollView } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card, Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import WeekDays from "@/components/WeekDays";
@@ -19,19 +17,13 @@ const dummyWorkouts = [
 
 export default function HomeScreen() {
   const user = useContext(AuthContext);
-  const insets = useSafeAreaInsets();
   const userName = user?.displayName
     ? ", " + user.displayName.split(" ")[0]
     : "";
 
   return (
     <ThemedView>
-      <ScrollView
-        stickyHeaderIndices={[0]}
-        style={{ marginTop: insets.top }}
-        contentContainerStyle={{ paddingBottom: 100 }}
-      >
-        <ScreenHeader title="MuscleQuest" />
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={styles.weekContainer}>
           <WeekDays />
         </View>

@@ -34,6 +34,7 @@ module.exports = {
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "expo-router",
+      "expo-asset",
       [
         "@sentry/react-native/expo",
         {

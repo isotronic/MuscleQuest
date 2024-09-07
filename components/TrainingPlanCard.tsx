@@ -8,7 +8,15 @@ import {
 import { Card, Text } from "react-native-paper";
 import { ThemedView } from "./ThemedView";
 
-export default function TrainingPlanCard() {
+export default function TrainingPlanCard({
+  title,
+  imageUrl,
+  onPress,
+}: {
+  title?: string;
+  imageUrl?: string;
+  onPress: () => void;
+}) {
   const animatedValue = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -39,7 +47,7 @@ export default function TrainingPlanCard() {
   return (
     <ThemedView style={styles.container}>
       <TouchableWithoutFeedback
-        onPress={() => console.log("Card pressed")}
+        onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
@@ -48,11 +56,15 @@ export default function TrainingPlanCard() {
             <Card.Cover
               style={{ borderRadius: 10 }}
               source={{
-                uri: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                uri:
+                  imageUrl ||
+                  "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
               }}
             />
             <View style={styles.floatingTitleContainer}>
-              <Text style={styles.floatingTitleText}>Upper Body</Text>
+              <Text style={styles.floatingTitleText}>
+                {title || "Upper Body"}
+              </Text>
             </View>
           </Card>
         </Animated.View>

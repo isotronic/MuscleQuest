@@ -2,29 +2,25 @@ import { useState, useCallback } from "react";
 import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
 import { Divider, Switch } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import ScreenHeader from "@/components/ScreenHeader";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
-  const insets = useSafeAreaInsets();
   const [keepScreenOn, setKeepScreenOn] = useState(false);
+  const [downloadImages, setDownloadImages] = useState(false);
 
   const toggleKeepScreenOn = useCallback(() => {
     setKeepScreenOn((prev) => !prev);
   }, []);
 
+  const toggleDownloadImages = useCallback(() => {
+    setDownloadImages((prev) => !prev);
+  }, []);
+
   return (
     <ThemedView>
-      <ScrollView
-        stickyHeaderIndices={[0]}
-        style={{ marginTop: insets.top }}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      >
-        <ScreenHeader title="Settings" />
-
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>Personal</ThemedText>
           <TouchableOpacity
@@ -43,6 +39,25 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="cloud-download"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Download all exercise images
+              </ThemedText>
+            </View>
+            <Switch
+              value={downloadImages}
+              onValueChange={toggleDownloadImages}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
           <TouchableOpacity
             style={styles.item}
             onPress={() => console.log("Weekly goal pressed")}

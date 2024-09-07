@@ -1,53 +1,47 @@
-import ScreenHeader from "@/components/ScreenHeader";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import TrainingPlanCard from "@/components/TrainingPlanCard";
 import { Colors } from "@/constants/Colors";
-import { FlatList, ScrollView, StyleSheet } from "react-native";
+import { router } from "expo-router";
+import { ScrollView, StyleSheet } from "react-native";
 import { FAB } from "react-native-paper";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { usePlans } from "@/hooks/usePlans";
+import { PlanList } from "@/components/PlanList";
+
+export interface TrainingPlan {
+  plan_data: object;
+  name: string;
+  image_url: string;
+}
 
 export default function PlansScreen() {
-  const insets = useSafeAreaInsets();
+  const plans = usePlans();
+
+  const handleCreatePlan = () => {
+    router.push("/(app)/(create-plan)/create");
+  };
+
+  // const handleEditPlan = () => {
+  //   router.push("/(app)/(create-plan)/edit");
+  // };
+
   return (
     <ThemedView style={styles.container}>
-      <ScrollView
-        stickyHeaderIndices={[0]}
-        style={{ marginTop: insets.top }}
-        contentContainerStyle={{ paddingBottom: 100 }}
-      >
-        <ScreenHeader title="Plans" />
-        <ThemedText style={styles.sectionTitle}>Your training plans</ThemedText>
-        <FlatList
-          horizontal={true}
-          contentContainerStyle={styles.scrollViewContainer}
-          snapToInterval={320}
-          snapToAlignment={"start"}
-          data={[1, 2, 3, 4, 5, 6]}
-          renderItem={() => <TrainingPlanCard />}
-          keyExtractor={(item: number, index: number) => index.toString()}
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        <PlanList
+          title="Your training plans"
+          data={plans}
+          onPressItem={() => {}}
         />
-        <ThemedText style={styles.sectionTitle}>Build muscle</ThemedText>
-        <FlatList
-          horizontal={true}
-          contentContainerStyle={styles.scrollViewContainer}
-          snapToInterval={320}
-          snapToAlignment={"start"}
+        <PlanList
+          title="Build muscle"
           data={[1, 2, 3, 4, 5, 6]}
-          renderItem={() => <TrainingPlanCard />}
-          keyExtractor={(item: number, index: number) => index.toString()}
+          onPressItem={() => {}}
         />
-        <ThemedText style={styles.sectionTitle}>Gain strength</ThemedText>
-        <FlatList
-          horizontal={true}
-          contentContainerStyle={styles.scrollViewContainer}
-          snapToInterval={320}
-          snapToAlignment={"start"}
+        <PlanList
+          title="Gain strength"
           data={[1, 2, 3, 4, 5, 6]}
-          renderItem={() => <TrainingPlanCard />}
-          keyExtractor={(item: number, index: number) => index.toString()}
+          onPressItem={() => {}}
         />
-
         <ThemedText style={{ margin: 20, textAlign: "center" }}>
           View all exercises
         </ThemedText>
@@ -57,7 +51,9 @@ export default function PlansScreen() {
         label="Create plan"
         rippleColor={Colors.dark.tint}
         style={styles.fab}
-        onPress={() => {}}
+        onPress={() => {
+          handleCreatePlan();
+        }}
       />
     </ThemedView>
   );
@@ -66,14 +62,6 @@ export default function PlansScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  sectionTitle: {
-    marginTop: 10,
-    marginLeft: 20,
-  },
-  scrollViewContainer: {
-    justifyContent: "space-between",
-    padding: 10,
   },
   fab: {
     position: "absolute",
