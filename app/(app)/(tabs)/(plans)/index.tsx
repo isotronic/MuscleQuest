@@ -4,20 +4,18 @@ import { Colors } from "@/constants/Colors";
 import { router } from "expo-router";
 import { ScrollView, StyleSheet } from "react-native";
 import { FAB } from "react-native-paper";
-import { usePlans } from "@/hooks/usePlans";
+import { usePlans, Plan } from "@/hooks/usePlans";
 import { PlanList } from "@/components/PlanList";
-
-export interface TrainingPlan {
-  plan_data: object;
-  name: string;
-  image_url: string;
-}
 
 export default function PlansScreen() {
   const plans = usePlans();
 
   const handleCreatePlan = () => {
     router.push("/(app)/(create-plan)/create");
+  };
+
+  const handleViewPlan = (item: Plan) => {
+    router.push(`/overview?planId=${item.id}`);
   };
 
   // const handleEditPlan = () => {
@@ -30,17 +28,17 @@ export default function PlansScreen() {
         <PlanList
           title="Your training plans"
           data={plans}
-          onPressItem={() => {}}
+          onPressItem={handleViewPlan}
         />
         <PlanList
           title="Build muscle"
           data={[1, 2, 3, 4, 5, 6]}
-          onPressItem={() => {}}
+          onPressItem={handleViewPlan}
         />
         <PlanList
           title="Gain strength"
           data={[1, 2, 3, 4, 5, 6]}
-          onPressItem={() => {}}
+          onPressItem={handleViewPlan}
         />
         <ThemedText style={{ margin: 20, textAlign: "center" }}>
           View all exercises
