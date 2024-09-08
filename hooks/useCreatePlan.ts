@@ -1,6 +1,5 @@
 import { useWorkoutStore } from "@/store/store";
 import { insertWorkoutPlan, updateWorkoutPlan } from "@/utils/database";
-import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { Plan } from "./usePlans";
@@ -11,6 +10,7 @@ export const useCreatePlan = (
   existingPlan?: Plan,
 ) => {
   const queryClient = useQueryClient();
+  const [planSaved, setPlanSaved] = useState(false);
   const [planName, setPlanName] = useState("");
   const [planImageUrl, setPlanImageUrl] = useState(
     "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -24,7 +24,7 @@ export const useCreatePlan = (
     }
   }, [existingPlan]);
 
-  const handleSavePlan = (plandId: number | null) => {
+  const handleSavePlan = async (planId: number | null) => {
     if (!planName.trim()) {
       Alert.alert("Please enter a plan name");
       return;
@@ -39,16 +39,17 @@ export const useCreatePlan = (
 
     try {
       if (planId) {
-        updateWorkoutPlan(planId, planName, planImageUrl, planData);
+        await updateWorkoutPlan(planId, planName, planImageUrl, planData);
         queryClient.invalidateQueries({ queryKey: ["plan", planId] });
       } else {
-        insertWorkoutPlan(planName, planImageUrl, planData);
+        await insertWorkoutPlan(planName, planImageUrl, planData);
       }
+
+      setPlanSaved(true);
     } catch (error) {
-      console.error("Error inserting plan data:", error);
+      console.error("Error inserting/updating plan data:", error);
     } finally {
       clearWorkouts();
-      router.back();
     }
   };
 
@@ -57,6 +58,8 @@ export const useCreatePlan = (
     setPlanName,
     planImageUrl,
     setPlanImageUrl,
+    planSaved,
+    setPlanSaved,
     handleSavePlan,
   };
 };
