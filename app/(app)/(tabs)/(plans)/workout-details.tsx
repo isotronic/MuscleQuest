@@ -6,17 +6,9 @@ import { Colors } from "@/constants/Colors";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { UserExercise } from "@/store/store";
 import FastImage from "react-native-fast-image";
+import { byteArrayToBase64 } from "@/utils/utility";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
-
-const byteArrayToBase64 = (byteArray: any) => {
-  const binaryString = Object.keys(byteArray)
-    .map((key) => {
-      return String.fromCharCode(byteArray[key]);
-    })
-    .join("");
-  return btoa(binaryString);
-};
 
 export default function WorkoutDetailsScreen() {
   const { workoutIndex, planId } = useLocalSearchParams();
@@ -27,7 +19,7 @@ export default function WorkoutDetailsScreen() {
   const renderExerciseItem = ({ item }: { item: UserExercise }) => {
     let base64Image: string | null = null;
     if (item.image) {
-      const base64String = byteArrayToBase64(item.image); // Convert byte array to base64
+      const base64String = byteArrayToBase64(item.image);
       base64Image = `data:image/webp;base64,${base64String}`;
     }
 
