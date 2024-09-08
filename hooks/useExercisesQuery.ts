@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchAllRecords } from "@/utils/database";
 import { Exercise } from "@/utils/database";
 
-export const useExercises = () => {
+export const useExercisesQuery = () => {
   return useQuery<Exercise[]>({
     queryKey: ["exercises"],
     queryFn: () =>

@@ -28,8 +28,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="plans"
+        name="(plans)"
         options={{
+          headerShown: false,
           title: "Plans",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon

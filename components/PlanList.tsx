@@ -2,7 +2,7 @@ import React from "react";
 import { FlatList, StyleSheet } from "react-native";
 import TrainingPlanCard from "@/components/TrainingPlanCard";
 import { ThemedText } from "@/components/ThemedText";
-import { TrainingPlan } from "@/app/(app)/(tabs)/plans";
+import { Plan } from "@/hooks/usePlans";
 
 interface PlanListProps {
   title: string;
@@ -28,14 +28,14 @@ export const PlanList: React.FC<PlanListProps> = ({
       snapToInterval={320}
       snapToAlignment="start"
       data={data}
-      renderItem={({ item }: { item: TrainingPlan }) => (
+      renderItem={({ item }: { item: Plan }) => (
         <TrainingPlanCard
           title={item.name}
           imageUrl={item.image_url}
           onPress={() => onPressItem(item)}
         />
       )}
-      keyExtractor={(item: number, index: number) => index.toString()}
+      keyExtractor={(item: any, index: number) => index.toString()}
     />
   </>
 );
