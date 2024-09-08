@@ -118,7 +118,7 @@ export default function PlanOverviewScreen() {
         <Button
           style={styles.button}
           title="Edit Plan"
-          onPress={() => router.push(`/edit-plan?planId=${planId}`)}
+          onPress={() => router.push(`/(create-plan)/create?planId=${planId}`)}
         />
       </View>
     </ThemedView>

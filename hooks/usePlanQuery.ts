@@ -37,10 +37,11 @@ const fetchPlan = async (planId: number) => {
   }
 };
 
-export const usePlanQuery = (planId: number) => {
+export const usePlanQuery = (planId: number | null) => {
   return useQuery<Plan>({
     queryKey: ["plan", planId],
-    queryFn: () => fetchPlan(planId) as Promise<Plan>,
+    queryFn: () => fetchPlan(planId!) as Promise<Plan>,
     staleTime: 5 * 60 * 1000,
+    enabled: !!planId, // Only run the query if planId exists
   });
 };

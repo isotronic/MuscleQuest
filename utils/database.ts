@@ -72,6 +72,19 @@ export const insertWorkoutPlan = async (
   );
 };
 
+export const updateWorkoutPlan = async (
+  id: number,
+  name: string,
+  image_url: string,
+  plan_data: string,
+) => {
+  const db = await openDatabase("userData.db");
+  await db.runAsync(
+    `UPDATE user_plans SET name = ?, image_url = ?, plan_data = ? WHERE id = ?`,
+    [name, image_url, plan_data, id],
+  );
+};
+
 export const deleteWorkoutPlan = async (planId: number) => {
   const db = await openDatabase("userData.db");
   await db.runAsync(`DELETE FROM user_plans WHERE id = ?`, [planId]);

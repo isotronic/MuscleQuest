@@ -1,18 +1,87 @@
+import { useEffect } from "react";
 import { StyleSheet, View, Image, Alert, FlatList, Button } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore, Workout } from "@/store/store";
 import { TextInput, FAB } from "react-native-paper";
-import { router } from "expo-router";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { useCreatePlan } from "@/hooks/useCreatePlan";
 import WorkoutCard from "@/components/WorkoutCard";
+import { usePlanQuery } from "@/hooks/usePlanQuery";
 
 export default function CreatePlanScreen() {
-  const { workouts, addWorkout, removeWorkout, changeWorkoutName } =
-    useWorkoutStore();
-  const { planName, setPlanName, planImageUrl, handleSavePlan } =
-    useCreatePlan();
+  const navigation = useNavigation();
+  const { planId } = useLocalSearchParams();
+  const {
+    workouts,
+    setWorkouts,
+    clearWorkouts,
+    addWorkout,
+    removeWorkout,
+    changeWorkoutName,
+  } = useWorkoutStore();
+  const {
+    planName,
+    setPlanName,
+    planImageUrl,
+    setPlanImageUrl,
+    planSaved,
+    setPlanSaved,
+    handleSavePlan,
+  } = useCreatePlan(Number(planId));
+  const { data: existingPlan } = usePlanQuery(planId ? Number(planId) : null);
+
+  useEffect(() => {
+    if (existingPlan) {
+      setPlanName(existingPlan.name);
+      setWorkouts(existingPlan.plan_data);
+      setPlanImageUrl(existingPlan.image_url);
+    }
+  }, [existingPlan, setPlanName, setWorkouts, setPlanImageUrl]);
+
+  // Listen for back navigation
+  useEffect(() => {
+    // sourcery skip: inline-immediately-returned-variable
+    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      e.preventDefault();
+
+      if (planSaved) {
+        clearWorkouts();
+        setPlanSaved(false);
+        return navigation.dispatch(e.data.action);
+      }
+
+      if (!workouts.length && !planName.trim()) {
+        return navigation.dispatch(e.data.action);
+      }
+
+      Alert.alert(
+        "Discard Changes?",
+        "You have unsaved changes. Are you sure you want to discard them?",
+        [
+          { text: "Cancel", style: "cancel", onPress: () => {} },
+          {
+            text: "Discard",
+            style: "destructive",
+            onPress: () => {
+              clearWorkouts();
+              setPlanSaved(false);
+              navigation.dispatch(e.data.action);
+            },
+          },
+        ],
+      );
+    });
+
+    return unsubscribe;
+  }, [navigation, workouts, planName, clearWorkouts, planSaved, setPlanSaved]);
+
+  useEffect(() => {
+    if (planSaved) {
+      router.back();
+    }
+  }, [planSaved]);
 
   const handleAddWorkout = () => {
     const newWorkout = { name: "", exercises: [] };
@@ -57,7 +126,7 @@ export default function CreatePlanScreen() {
           value={planName}
           onChangeText={setPlanName}
         />
-        <Button title="Save" onPress={handleSavePlan} />
+        <Button title="Save" onPress={() => handleSavePlan(Number(planId))} />
       </View>
       {workouts.length === 0 ? (
         <ThemedText style={styles.emptyText}>
@@ -83,9 +152,7 @@ export default function CreatePlanScreen() {
         icon="plus"
         rippleColor={Colors.dark.tint}
         style={styles.fab}
-        onPress={() => {
-          handleAddWorkout();
-        }}
+        onPress={handleAddWorkout}
       />
     </ThemedView>
   );
@@ -120,61 +187,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#FFFFFF",
   },
-  workoutCard: {
-    width: "100%",
-    backgroundColor: "#3B4252",
-    padding: 16,
-    borderRadius: 8,
-    marginVertical: 8,
-    overflow: "visible",
-  },
-  workoutHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  workoutDay: {
-    fontSize: 16,
-    color: "#8FBCBB",
-  },
-  workoutName: {
-    fontSize: 18,
-    color: "#FFFFFF",
-  },
-  workoutInstructions: {
-    fontSize: 14,
-    color: "#D8DEE9",
-    marginVertical: 8,
-  },
   fab: {
     position: "absolute",
     right: 20,
     bottom: 15,
-  },
-  exerciseItem: {
-    flex: 1,
-    flexDirection: "row",
-    paddingVertical: 20,
-    paddingHorizontal: 10,
-    backgroundColor: "#4C566A",
-    marginVertical: 5,
-    borderRadius: 8,
-    overflow: "visible",
-  },
-  activeExerciseItem: {
-    backgroundColor: "#81A1C1",
-    zIndex: 9999,
-  },
-  exerciseName: {
-    color: "#ECEFF4",
-    fontSize: 16,
-  },
-  removeWorkoutButton: {
-    padding: 4,
-    borderRadius: 50,
-  },
-  removeWorkoutButtonText: {
-    fontSize: 20,
-    color: "red",
   },
 });

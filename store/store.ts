@@ -19,6 +19,8 @@ export interface Workout {
 
 interface WorkoutStore {
   workouts: Workout[];
+  setWorkouts: (workouts: Workout[]) => void;
+  clearWorkouts: () => void;
   addWorkout: (workout: Workout) => void;
   removeWorkout: (index: number) => void;
   changeWorkoutName: (index: number, name: string) => void;
@@ -42,6 +44,8 @@ interface WorkoutStore {
 
 const useWorkoutStore = create<WorkoutStore>((set) => ({
   workouts: [],
+  setWorkouts: (workouts) => set({ workouts }),
+  clearWorkouts: () => set({ workouts: [] }),
   addWorkout: (workout) =>
     set((state) => ({ ...state, workouts: [...state.workouts, workout] })),
   removeWorkout: (index) =>
