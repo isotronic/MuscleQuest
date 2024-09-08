@@ -3,16 +3,70 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore, Workout } from "@/store/store";
 import { TextInput, FAB } from "react-native-paper";
-import { router } from "expo-router";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { useCreatePlan } from "@/hooks/useCreatePlan";
 import WorkoutCard from "@/components/WorkoutCard";
+import { usePlanQuery } from "@/hooks/usePlanQuery";
+import { useEffect } from "react";
 
 export default function CreatePlanScreen() {
-  const { workouts, addWorkout, removeWorkout, changeWorkoutName } =
-    useWorkoutStore();
-  const { planName, setPlanName, planImageUrl, handleSavePlan } =
-    useCreatePlan();
+  const navigation = useNavigation();
+  const { planId } = useLocalSearchParams();
+  const {
+    workouts,
+    setWorkouts,
+    clearWorkouts,
+    addWorkout,
+    removeWorkout,
+    changeWorkoutName,
+  } = useWorkoutStore();
+  const {
+    planName,
+    setPlanName,
+    planImageUrl,
+    setPlanImageUrl,
+    handleSavePlan,
+  } = useCreatePlan(Number(planId));
+  const { data: existingPlan } = usePlanQuery(planId ? Number(planId) : null);
+
+  useEffect(() => {
+    if (existingPlan) {
+      setPlanName(existingPlan.name);
+      setWorkouts(existingPlan.plan_data);
+      setPlanImageUrl(existingPlan.image_url);
+    }
+  }, [existingPlan, setPlanName, setWorkouts, setPlanImageUrl]);
+
+  useEffect(() => {
+    return navigation.addListener("beforeRemove", (e) => {
+      // If no workouts or changes, proceed with navigation
+      if (!workouts.length && !planName.trim()) {
+        clearWorkouts();
+        return;
+      }
+
+      // Prevent default behavior of back button
+      e.preventDefault();
+
+      // Prompt user to confirm discarding changes
+      Alert.alert(
+        "Discard Changes?",
+        "You have unsaved changes. Are you sure you want to discard them?",
+        [
+          { text: "Cancel", style: "cancel", onPress: () => {} },
+          {
+            text: "Discard",
+            style: "destructive",
+            onPress: () => {
+              clearWorkouts();
+              navigation.dispatch(e.data.action); // Continue with the back action
+            },
+          },
+        ],
+      );
+    });
+  }, [navigation, workouts, planName, clearWorkouts]);
 
   const handleAddWorkout = () => {
     const newWorkout = { name: "", exercises: [] };
