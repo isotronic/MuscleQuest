@@ -26,6 +26,16 @@ export const fetchAllRecords = async (
   tableName: string,
 ) => {
   const db = await openDatabase(databaseName);
+  const allowedTables = [
+    "user_plans",
+    "exercises",
+    "muscles",
+    "body_parts",
+    "equipment_list",
+  ];
+  if (!allowedTables.includes(tableName)) {
+    throw new Error("Invalid table name");
+  }
   return await db.getAllAsync(`SELECT * FROM ${tableName}`);
 };
 
@@ -35,7 +45,19 @@ export const fetchRecord = async (
   id: number,
 ) => {
   const db = await openDatabase(databaseName);
-  return await db.getFirstAsync(`SELECT * FROM ${tableName} WHERE id = ${id}`);
+  const allowedTables = [
+    "user_plans",
+    "exercises",
+    "muscles",
+    "body_parts",
+    "equipment_list",
+  ];
+  if (!allowedTables.includes(tableName)) {
+    throw new Error("Invalid table name");
+  }
+  return await db.getFirstAsync(`SELECT * FROM ${tableName} WHERE id = ?`, [
+    id,
+  ]);
 };
 
 export const insertWorkoutPlan = async (
@@ -52,5 +74,5 @@ export const insertWorkoutPlan = async (
 
 export const deleteWorkoutPlan = async (planId: number) => {
   const db = await openDatabase("userData.db");
-  await db.runAsync(`DELETE FROM user_plans WHERE id = ${planId}`);
+  await db.runAsync(`DELETE FROM user_plans WHERE id = ?`, [planId]);
 };
