@@ -2,7 +2,6 @@ import {
   View,
   StyleSheet,
   Image,
-  Button,
   FlatList,
   TouchableOpacity,
   Alert,
@@ -16,7 +15,7 @@ import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useDeletePlanMutation } from "@/hooks/useDeletePlanMutation";
 import { useSetActivePlanMutation } from "@/hooks/useSetActivePlanMutation";
-import { Snackbar } from "react-native-paper";
+import { Snackbar, Button } from "react-native-paper";
 import { useState } from "react";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
@@ -135,18 +134,26 @@ export default function PlanOverviewScreen() {
         renderItem={renderWorkoutCard}
         keyExtractor={(item: any, index: number) => index.toString()}
       />
+
       <View style={styles.buttonContainer}>
         <Button
-          style={styles.button}
-          title="Start Plan"
+          mode="contained"
           onPress={handleStartPlan}
-        />
+          style={styles.paperButton}
+          labelStyle={styles.buttonLabel}
+        >
+          Start Plan
+        </Button>
         <Button
-          style={styles.button}
-          title="Edit Plan"
+          mode="outlined"
           onPress={() => router.push(`/(create-plan)/create?planId=${planId}`)}
-        />
+          style={styles.paperButton}
+          labelStyle={styles.buttonLabel}
+        >
+          Edit Plan
+        </Button>
       </View>
+
       <View style={styles.snackBarContainer}>
         <Snackbar
           visible={snackbarVisible}
@@ -205,9 +212,14 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginTop: 20,
   },
-  button: {
-    width: 100,
+  paperButton: {
+    flex: 1,
+    marginRight: 10,
+  },
+  buttonLabel: {
+    fontSize: 16,
   },
   activeBadge: {
     backgroundColor: "green",
