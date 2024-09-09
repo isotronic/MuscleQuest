@@ -13,7 +13,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { router, useLocalSearchParams } from "expo-router";
 import { Exercise } from "@/utils/database";
-import { useWorkoutStore, UserExercise } from "@/store/store";
+import { useWorkoutStore, UserExercise } from "@/store/workoutStore";
 import { Colors } from "@/constants/Colors";
 import React from "react";
 import FastImage from "react-native-fast-image";

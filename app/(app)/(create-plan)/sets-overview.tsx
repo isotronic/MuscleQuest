@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useLocalSearchParams, router } from "expo-router";
-import { useWorkoutStore } from "@/store/store";
+import { useWorkoutStore } from "@/store/workoutStore";
 import { Colors } from "@/constants/Colors";
 
 export default function SetsOverviewScreen() {

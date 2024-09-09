@@ -4,7 +4,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
-import { UserExercise } from "@/store/store";
+import { UserExercise } from "@/store/workoutStore";
 import FastImage from "react-native-fast-image";
 import { byteArrayToBase64 } from "@/utils/utility";
 

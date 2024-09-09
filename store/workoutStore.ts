@@ -92,30 +92,24 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
       const workouts = state.workouts.map((workout, wIndex) => {
         if (wIndex !== workoutIndex) {
           return workout;
-        } // Return other workouts unchanged
-
+        }
         const exercises = workout.exercises.map((exercise) => {
           if (exercise.exercise_id !== exerciseId) {
             return exercise;
-          } // Return other exercises unchanged
-
-          // Return a new exercise object with a new sets array
+          }
           return {
             ...exercise,
-            sets: [...exercise.sets, newSet], // Create a new array by adding newSet
+            sets: [...exercise.sets, newSet],
           };
         });
-
         return {
           ...workout,
-          exercises, // Replace the exercises array with the new version
+          exercises,
         };
       });
-
-      return { workouts }; // Replace the workouts array with the new version
+      return { workouts };
     });
   },
-
   updateSetInExercise: (
     workoutIndex: number,
     exerciseId: number,
@@ -126,34 +120,28 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
       const workouts = state.workouts.map((workout, wIndex) => {
         if (wIndex !== workoutIndex) {
           return workout;
-        } // Return other workouts unchanged
-
+        }
         const exercises = workout.exercises.map((exercise) => {
           if (exercise.exercise_id !== exerciseId) {
             return exercise;
-          } // Return other exercises unchanged
-
+          }
           const sets = exercise.sets.map((set, sIndex) => {
             if (sIndex !== setIndex) {
               return set;
-            } // Return other sets unchanged
-
-            return updatedSet; // Replace the set at setIndex
+            }
+            return updatedSet;
           });
-
           return {
             ...exercise,
-            sets, // Replace the sets array with the updated version
+            sets,
           };
         });
-
         return {
           ...workout,
-          exercises, // Replace the exercises array with the new version
+          exercises,
         };
       });
-
-      return { workouts }; // Replace the workouts array with the new version
+      return { workouts };
     });
   },
 }));

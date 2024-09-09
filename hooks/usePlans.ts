@@ -1,12 +1,13 @@
 import { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { fetchAllRecords } from "@/utils/database";
-import { Workout } from "@/store/store";
+import { Workout } from "@/store/workoutStore";
 
 export interface Plan {
   id: number;
   name: string;
   image_url: string;
+  is_active: boolean;
   plan_data: Workout[];
 }
 

@@ -10,7 +10,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { Workout } from "@/store/store";
+import { Workout } from "@/store/workoutStore";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Alert } from "react-native";

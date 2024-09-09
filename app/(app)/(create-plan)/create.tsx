@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { StyleSheet, View, Image, Alert, FlatList, Button } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useWorkoutStore, Workout } from "@/store/store";
+import { useWorkoutStore, Workout } from "@/store/workoutStore";
 import { TextInput, FAB } from "react-native-paper";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { Colors } from "@/constants/Colors";
