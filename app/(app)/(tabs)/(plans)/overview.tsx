@@ -15,6 +15,7 @@ import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Alert } from "react-native";
 import { useDeletePlanMutation } from "@/hooks/useDeletePlanMutation";
+import { useSetActivePlanMutation } from "@/hooks/useSetActivePlanMutation";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -22,6 +23,7 @@ export default function PlanOverviewScreen() {
   const { planId } = useLocalSearchParams();
   const { data: plan, isLoading, error } = usePlanQuery(Number(planId));
   const deletePlanMutation = useDeletePlanMutation();
+  const setActivePlanMutation = useSetActivePlanMutation();
 
   const imageSource = plan?.image_url ? { uri: plan.image_url } : fallbackImage;
 
@@ -53,6 +55,17 @@ export default function PlanOverviewScreen() {
     );
   };
 
+  const handleStartPlan = () => {
+    setActivePlanMutation.mutate(Number(planId), {
+      onSuccess: () => {
+        Alert.alert("Plan Started", "The plan has been started.");
+      },
+      onError: (error) => {
+        Alert.alert("Error", `Failed to start plan: ${error.message}`);
+      },
+    });
+  };
+
   const renderWorkoutCard = ({
     item,
     index,
@@ -67,7 +80,7 @@ export default function PlanOverviewScreen() {
       style={styles.workoutCard}
     >
       <ThemedText style={styles.workoutTitle}>
-        {item.name || `Workout ${index + 1}`}
+        {item.name || `Day ${index + 1}`}
       </ThemedText>
       <ThemedText style={styles.workoutInfo}>
         {item.exercises.length} Exercises
@@ -100,6 +113,11 @@ export default function PlanOverviewScreen() {
       <View style={styles.planHeader}>
         <Image source={imageSource} style={styles.planImage} />
         <ThemedText style={styles.planName}>{plan?.name}</ThemedText>
+        {plan?.is_active === 1 && (
+          <View style={styles.activeBadge}>
+            <ThemedText style={styles.activeBadgeText}>Active</ThemedText>
+          </View>
+        )}
       </View>
 
       <FlatList
@@ -111,9 +129,7 @@ export default function PlanOverviewScreen() {
         <Button
           style={styles.button}
           title="Start Plan"
-          onPress={() => {
-            /* Handle start plan */
-          }}
+          onPress={handleStartPlan}
         />
         <Button
           style={styles.button}
@@ -166,5 +182,18 @@ const styles = StyleSheet.create({
   },
   button: {
     width: 100,
+  },
+  activeBadge: {
+    backgroundColor: "green",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    position: "absolute",
+    top: 10,
+    right: 10,
+  },
+  activeBadgeText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
