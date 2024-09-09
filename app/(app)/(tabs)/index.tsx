@@ -1,4 +1,4 @@
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ScrollView } from "react-native";
@@ -9,6 +9,7 @@ import { useContext } from "react";
 import { AuthContext } from "@/context/AuthProvider";
 import { Colors } from "@/constants/Colors";
 import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
+import { router } from "expo-router";
 
 export default function HomeScreen() {
   const user = useContext(AuthContext);
@@ -48,19 +49,10 @@ export default function HomeScreen() {
               </ThemedText>
 
               {activePlan.plan_data.map((workout, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() =>
-                    console.log(
-                      `Start workout: ${workout.name || `Day ${index + 1}`}`,
-                    )
-                  }
-                  style={styles.workoutCardButton}
-                >
+                <View key={index} style={styles.workoutCard}>
                   <View style={styles.workoutCardContent}>
-                    {/* Icon for each workout */}
                     <MaterialCommunityIcons
-                      name="weight-lifter" // You can choose different icons here
+                      name="weight-lifter"
                       size={30}
                       color={Colors.dark.icon}
                     />
@@ -75,8 +67,34 @@ export default function HomeScreen() {
                         {workout.exercises.length} Exercises
                       </ThemedText>
                     </View>
+                    <View style={styles.smallButtonGroup}>
+                      <Button
+                        mode="contained"
+                        onPress={() =>
+                          console.log(
+                            `Start workout: ${workout.name || `Day ${index + 1}`}`,
+                          )
+                        }
+                        style={styles.smallButton}
+                        labelStyle={styles.smallButtonLabel}
+                      >
+                        Start
+                      </Button>
+                      <Button
+                        mode="outlined"
+                        onPress={() =>
+                          router.push(
+                            `/workout-details?planId=${activePlan.id}&workoutIndex=${index}`,
+                          )
+                        }
+                        style={styles.smallButton}
+                        labelStyle={styles.smallButtonLabel}
+                      >
+                        View
+                      </Button>
+                    </View>
                   </View>
-                </TouchableOpacity>
+                </View>
               ))}
             </>
           ) : (
@@ -134,20 +152,20 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginBottom: 10,
   },
-  workoutCardButton: {
+  workoutCard: {
     marginBottom: 15,
     borderRadius: 10,
     backgroundColor: Colors.dark.cardBackground,
-    padding: 10,
-    flexDirection: "row",
-    alignItems: "center",
+    padding: 20,
   },
   workoutCardContent: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
   },
   workoutTextContainer: {
     marginLeft: 10,
+    flex: 1,
   },
   workoutCardTitle: {
     color: Colors.dark.text,
@@ -157,6 +175,19 @@ const styles = StyleSheet.create({
   exerciseInfo: {
     color: Colors.dark.subText,
     fontSize: 14,
+  },
+  smallButtonGroup: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  smallButton: {
+    paddingHorizontal: 8,
+    marginLeft: 8,
+  },
+  smallButtonLabel: {
+    fontSize: 12,
+    paddingVertical: 0,
   },
   buttonContainer: {
     paddingHorizontal: 20,
