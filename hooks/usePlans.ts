@@ -7,7 +7,7 @@ export interface Plan {
   id: number;
   name: string;
   image_url: string;
-  is_active: boolean;
+  is_active: number;
   plan_data: Workout[];
 }
 
