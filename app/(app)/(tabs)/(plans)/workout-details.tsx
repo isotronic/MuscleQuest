@@ -67,6 +67,12 @@ export default function WorkoutDetailsScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <View style={styles.workoutHeader}>
+        <ThemedText style={styles.workoutName}>
+          {workout?.name || `Day ${Number(workoutIndex) + 1}`}
+        </ThemedText>
+      </View>
+
       <FlatList
         data={workout?.exercises}
         renderItem={renderExerciseItem}
@@ -81,6 +87,15 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: Colors.dark.background,
+  },
+  workoutHeader: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  workoutName: {
+    fontSize: 24,
+    color: "#ECEFF4",
+    marginTop: 10,
   },
   exerciseItem: {
     flexDirection: "row",
