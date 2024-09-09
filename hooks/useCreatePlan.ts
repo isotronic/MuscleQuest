@@ -2,7 +2,7 @@ import { useWorkoutStore } from "@/store/workoutStore";
 import { insertWorkoutPlan, updateWorkoutPlan } from "@/utils/database";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
-import { Plan } from "./usePlans";
+import { Plan } from "./useAllPlansQuery";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const useCreatePlan = (

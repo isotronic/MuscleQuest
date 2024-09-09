@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchRecord } from "@/utils/database";
-import { Plan } from "./usePlans";
+import { Plan } from "./useAllPlansQuery";
 
 const fetchPlan = async (planId: number) => {
   try {
