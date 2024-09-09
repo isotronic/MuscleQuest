@@ -17,10 +17,12 @@ export default function HomeScreen() {
     ? ", " + user.displayName.split(" ")[0]
     : "";
 
-  const { data: activePlan, isLoading } = useActivePlanQuery();
+  const { data: activePlan, isLoading, error } = useActivePlanQuery();
 
   if (isLoading) {
     return <ThemedText>Loading...</ThemedText>;
+  } else if (error) {
+    return <ThemedText>Error fetching active plan: {error.message}</ThemedText>;
   }
 
   return (
