@@ -1,5 +1,7 @@
 import { Slot, useNavigationContainerRef } from "expo-router";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
+import { Provider as PaperProvider } from "react-native-paper";
+import { paperTheme } from "@/utils/paperTheme";
 import { useFonts } from "expo-font";
 import { isRunningInExpoGo } from "expo";
 import { useEffect } from "react";
@@ -7,7 +9,6 @@ import "react-native-reanimated";
 import * as SplashScreen from "expo-splash-screen";
 import * as Sentry from "@sentry/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
 import {
   Inter_100Thin,
   Inter_200ExtraLight,
@@ -113,11 +114,13 @@ function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={DarkTheme}>
-        <AuthProvider>
-          <SafeAreaProvider>
-            <Slot screenOptions={{ headerShown: false }} />
-          </SafeAreaProvider>
-        </AuthProvider>
+        <PaperProvider theme={paperTheme}>
+          <AuthProvider>
+            <SafeAreaProvider>
+              <Slot screenOptions={{ headerShown: false }} />
+            </SafeAreaProvider>
+          </AuthProvider>
+        </PaperProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

@@ -1,6 +1,6 @@
 import { StyleSheet, View, TouchableOpacity, Button } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
-import { useWorkoutStore, Workout, UserExercise } from "@/store/store";
+import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
 import { TextInput, Card } from "react-native-paper";
 import DraggableFlatlist, {
   ScaleDecorator,

@@ -2,16 +2,18 @@ import { useEffect } from "react";
 import { StyleSheet, View, Image, Alert, FlatList, Button } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useWorkoutStore, Workout } from "@/store/store";
+import { useWorkoutStore, Workout } from "@/store/workoutStore";
 import { TextInput, FAB } from "react-native-paper";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { useCreatePlan } from "@/hooks/useCreatePlan";
 import WorkoutCard from "@/components/WorkoutCard";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function CreatePlanScreen() {
   const navigation = useNavigation();
+  const queryClient = useQueryClient();
   const { planId } = useLocalSearchParams();
   const {
     workouts,
@@ -47,6 +49,7 @@ export default function CreatePlanScreen() {
       e.preventDefault();
 
       if (planSaved) {
+        queryClient.invalidateQueries({ queryKey: ["plans"] });
         clearWorkouts();
         setPlanSaved(false);
         return navigation.dispatch(e.data.action);
@@ -75,7 +78,15 @@ export default function CreatePlanScreen() {
     });
 
     return unsubscribe;
-  }, [navigation, workouts, planName, clearWorkouts, planSaved, setPlanSaved]);
+  }, [
+    navigation,
+    workouts,
+    planName,
+    clearWorkouts,
+    planSaved,
+    setPlanSaved,
+    queryClient,
+  ]);
 
   useEffect(() => {
     if (planSaved) {

@@ -63,7 +63,7 @@ export default function TrainingPlanCard({
             />
             <View style={styles.floatingTitleContainer}>
               <Text style={styles.floatingTitleText}>
-                {title || "Upper Body"}
+                {title || "Demo Plan"}
               </Text>
             </View>
           </Card>

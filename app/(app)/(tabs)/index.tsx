@@ -1,25 +1,29 @@
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ScrollView } from "react-native";
-import { Card, Button } from "react-native-paper";
+import { Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import WeekDays from "@/components/WeekDays";
 import { useContext } from "react";
 import { AuthContext } from "@/context/AuthProvider";
 import { Colors } from "@/constants/Colors";
-
-const dummyWorkouts = [
-  { id: 1, title: "Legs and Glutes" },
-  { id: 2, title: "Back and Biceps" },
-  { id: 3, title: "Shoulders and Abs" },
-];
+import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
+import { router } from "expo-router";
 
 export default function HomeScreen() {
   const user = useContext(AuthContext);
   const userName = user?.displayName
     ? ", " + user.displayName.split(" ")[0]
     : "";
+
+  const { data: activePlan, isLoading, error } = useActivePlanQuery();
+
+  if (isLoading) {
+    return <ThemedText>Loading...</ThemedText>;
+  } else if (error) {
+    return <ThemedText>Error fetching active plan: {error.message}</ThemedText>;
+  }
 
   return (
     <ThemedView>
@@ -38,52 +42,77 @@ export default function HomeScreen() {
             Your journey to Swoletown begins today!
           </ThemedText>
         </View>
+
         <View style={styles.cardContainer}>
-          <ThemedText type="default" style={styles.sectionTitle}>
-            Today's Workout
-          </ThemedText>
-          <TouchableOpacity
-            onPress={() => console.log("Today's workout pressed")}
-            style={styles.cardButton}
-          >
-            <View style={styles.cardContent}>
-              <ThemedText type="subtitle" style={styles.todayCardTitle}>
-                Chest and Triceps
+          {activePlan ? (
+            <>
+              <ThemedText type="default" style={styles.sectionTitle}>
+                Active Plan: {activePlan.name}
               </ThemedText>
-              <View style={styles.imageContainer}>
-                <Card.Cover
-                  source={{
-                    uri: "https://images.unsplash.com/photo-1652363722833-509b3aac287b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                  }}
-                  style={styles.cardImage}
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
+
+              {activePlan.plan_data.map((workout, index) => (
+                <View key={index} style={styles.workoutCard}>
+                  <View style={styles.workoutCardContent}>
+                    <MaterialCommunityIcons
+                      name="weight-lifter"
+                      size={30}
+                      color={Colors.dark.icon}
+                    />
+                    <View style={styles.workoutTextContainer}>
+                      <ThemedText
+                        type="subtitle"
+                        style={styles.workoutCardTitle}
+                      >
+                        {workout.name || `Day ${index + 1}`}
+                      </ThemedText>
+                      <ThemedText style={styles.exerciseInfo}>
+                        {workout.exercises.length} Exercises
+                      </ThemedText>
+                    </View>
+                    <View style={styles.smallButtonGroup}>
+                      <Button
+                        mode="contained"
+                        onPress={() =>
+                          console.log(
+                            `Start workout: ${workout.name || `Day ${index + 1}`}`,
+                          )
+                        }
+                        style={styles.smallButton}
+                        labelStyle={styles.smallButtonLabel}
+                      >
+                        Start
+                      </Button>
+                      <Button
+                        mode="outlined"
+                        onPress={() =>
+                          router.push(
+                            `/workout-details?planId=${activePlan.id}&workoutIndex=${index}`,
+                          )
+                        }
+                        style={styles.smallButton}
+                        labelStyle={styles.smallButtonLabel}
+                      >
+                        View
+                      </Button>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </>
+          ) : (
+            <ThemedText type="default" style={styles.sectionTitle}>
+              No Active Plan
+            </ThemedText>
+          )}
         </View>
-        <View style={styles.otherWorkoutsContainer}>
-          <ThemedText type="default" style={styles.sectionTitle}>
-            Upcoming Workouts
-          </ThemedText>
-          {dummyWorkouts.map((workout) => (
-            <TouchableOpacity
-              key={workout.id}
-              onPress={() => console.log(`${workout.title} pressed`)}
-              style={styles.smallCardButton}
-            >
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                {workout.title}
-              </ThemedText>
-            </TouchableOpacity>
-          ))}
-        </View>
+
         <View style={styles.buttonContainer}>
           <Button
             mode="outlined"
             textColor={Colors.dark.text}
             icon={() => (
               <MaterialCommunityIcons
-                name="dumbbell"
+                name="arm-flex"
                 size={25}
                 color={Colors.dark.icon}
               />
@@ -122,46 +151,45 @@ const styles = StyleSheet.create({
   cardContainer: {
     padding: 20,
   },
-  cardButton: {
-    borderRadius: 15,
-    backgroundColor: Colors.dark.cardBackground,
-    width: "100%",
-  },
-  cardContent: {
-    alignItems: "center",
-    marginTop: 10,
-  },
-  imageContainer: {
-    width: "100%",
-    borderRadius: 15,
-    overflow: "hidden",
-  },
-  cardImage: {
-    width: "100%",
-    height: 200,
-  },
-  todayCardTitle: {
-    color: Colors.dark.text,
-    paddingTop: 5,
-    paddingBottom: 15,
-  },
-  otherWorkoutsContainer: {
-    padding: 20,
-  },
   sectionTitle: {
     marginBottom: 10,
   },
-  smallCardButton: {
+  workoutCard: {
     marginBottom: 15,
-    borderRadius: 15,
+    borderRadius: 10,
     backgroundColor: Colors.dark.cardBackground,
     padding: 20,
-    justifyContent: "center",
-    textAlign: "center",
   },
-  cardTitle: {
+  workoutCardContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  workoutTextContainer: {
+    marginLeft: 10,
+    flex: 1,
+  },
+  workoutCardTitle: {
     color: Colors.dark.text,
-    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  exerciseInfo: {
+    color: Colors.dark.subText,
+    fontSize: 14,
+  },
+  smallButtonGroup: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  smallButton: {
+    paddingHorizontal: 8,
+    marginLeft: 8,
+  },
+  smallButtonLabel: {
+    fontSize: 12,
+    paddingVertical: 0,
   },
   buttonContainer: {
     paddingHorizontal: 20,

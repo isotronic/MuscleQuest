@@ -2,19 +2,21 @@ import {
   View,
   StyleSheet,
   Image,
-  Button,
   FlatList,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { Workout } from "@/store/store";
+import { Workout } from "@/store/workoutStore";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Alert } from "react-native";
 import { useDeletePlanMutation } from "@/hooks/useDeletePlanMutation";
+import { useSetActivePlanMutation } from "@/hooks/useSetActivePlanMutation";
+import { Snackbar, Button } from "react-native-paper";
+import { useState } from "react";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -22,6 +24,11 @@ export default function PlanOverviewScreen() {
   const { planId } = useLocalSearchParams();
   const { data: plan, isLoading, error } = usePlanQuery(Number(planId));
   const deletePlanMutation = useDeletePlanMutation();
+  const setActivePlanMutation = useSetActivePlanMutation();
+
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarError, setSnackbarError] = useState(false);
 
   const imageSource = plan?.image_url ? { uri: plan.image_url } : fallbackImage;
 
@@ -53,6 +60,21 @@ export default function PlanOverviewScreen() {
     );
   };
 
+  const handleStartPlan = () => {
+    setActivePlanMutation.mutate(Number(planId), {
+      onSuccess: () => {
+        setSnackbarMessage("You activated this plan.");
+        setSnackbarError(false);
+        setSnackbarVisible(true);
+      },
+      onError: (error) => {
+        setSnackbarMessage(`Failed to activate this plan: ${error.message}`);
+        setSnackbarError(true);
+        setSnackbarVisible(true);
+      },
+    });
+  };
+
   const renderWorkoutCard = ({
     item,
     index,
@@ -67,7 +89,7 @@ export default function PlanOverviewScreen() {
       style={styles.workoutCard}
     >
       <ThemedText style={styles.workoutTitle}>
-        {item.name || `Workout ${index + 1}`}
+        {item.name || `Day ${index + 1}`}
       </ThemedText>
       <ThemedText style={styles.workoutInfo}>
         {item.exercises.length} Exercises
@@ -100,6 +122,11 @@ export default function PlanOverviewScreen() {
       <View style={styles.planHeader}>
         <Image source={imageSource} style={styles.planImage} />
         <ThemedText style={styles.planName}>{plan?.name}</ThemedText>
+        {plan?.is_active === 1 && (
+          <View style={styles.activeBadge}>
+            <ThemedText style={styles.activeBadgeText}>Active</ThemedText>
+          </View>
+        )}
       </View>
 
       <FlatList
@@ -107,19 +134,41 @@ export default function PlanOverviewScreen() {
         renderItem={renderWorkoutCard}
         keyExtractor={(item: any, index: number) => index.toString()}
       />
+
       <View style={styles.buttonContainer}>
         <Button
-          style={styles.button}
-          title="Start Plan"
-          onPress={() => {
-            /* Handle start plan */
-          }}
-        />
+          mode="contained"
+          onPress={handleStartPlan}
+          style={styles.paperButton}
+          labelStyle={styles.buttonLabel}
+        >
+          Start Plan
+        </Button>
         <Button
-          style={styles.button}
-          title="Edit Plan"
+          mode="outlined"
           onPress={() => router.push(`/(create-plan)/create?planId=${planId}`)}
-        />
+          style={styles.paperButton}
+          labelStyle={styles.buttonLabel}
+        >
+          Edit Plan
+        </Button>
+      </View>
+
+      <View style={styles.snackBarContainer}>
+        <Snackbar
+          visible={snackbarVisible}
+          onDismiss={() => setSnackbarVisible(false)}
+          duration={2000}
+          style={{ backgroundColor: snackbarError ? "red" : "green" }}
+          action={{
+            label: "DISMISS",
+            onPress: () => {
+              setSnackbarVisible(false);
+            },
+          }}
+        >
+          {snackbarMessage}
+        </Snackbar>
       </View>
     </ThemedView>
   );
@@ -163,8 +212,32 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginTop: 20,
   },
-  button: {
-    width: 100,
+  paperButton: {
+    flex: 1,
+    marginRight: 10,
+  },
+  buttonLabel: {
+    fontSize: 16,
+  },
+  activeBadge: {
+    backgroundColor: "green",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    position: "absolute",
+    top: 10,
+    right: 10,
+  },
+  activeBadgeText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  snackBarContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
 });

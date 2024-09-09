@@ -60,6 +60,23 @@ export const fetchRecord = async (
   ]);
 };
 
+export const fetchActivePlan = async () => {
+  const db = await openDatabase("userData.db");
+  return await db.getFirstAsync(
+    `SELECT * FROM user_plans WHERE is_active = true`,
+  );
+};
+
+export const updateActivePlan = async (id: number) => {
+  const db = await openDatabase("userData.db");
+  await db.runAsync(
+    `UPDATE user_plans SET is_active = false WHERE is_active = true`,
+  );
+  await db.runAsync(`UPDATE user_plans SET is_active = true WHERE id = ?`, [
+    id,
+  ]);
+};
+
 export const insertWorkoutPlan = async (
   name: string,
   image_url: string,
