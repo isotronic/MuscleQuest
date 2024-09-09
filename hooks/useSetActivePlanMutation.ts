@@ -7,7 +7,7 @@ export const useSetActivePlanMutation = () => {
     mutationFn: (planId: number) => updateActivePlan(planId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activePlan"] });
-      queryClient.invalidateQueries({ queryKey: ["plans"] });
+      queryClient.invalidateQueries({ queryKey: ["plan"] });
     },
   });
 };
