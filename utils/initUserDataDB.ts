@@ -12,4 +12,14 @@ export async function initUserDataDB() {
       plan_data TEXT
     );
   `);
+
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS completed_workouts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plan_id INTEGER,
+      date TEXT NOT NULL,
+      workout_data TEXT NOT NULL,
+      FOREIGN KEY(plan_id) REFERENCES user_plans(id)
+    );
+  `);
 }
