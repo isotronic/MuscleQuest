@@ -5,13 +5,15 @@ interface ActiveWorkoutStore {
   workout: Workout | null;
   currentExerciseIndex: number;
   currentSetIndices: { [exerciseIndex: number]: number };
-  completedSets: { [key: number]: number };
+  completedSets: { [exerciseIndex: number]: number };
   timerRunning: boolean;
+  timerExpiry: Date | null; // Store the timer expiry time globally
   setWorkout: (workout: Workout) => void;
-  setCurrentExerciseIndex: (index: number) => void;
   nextSet: () => void;
+  setCurrentExerciseIndex: (index: number) => void;
+  setCurrentSetIndex: (exerciseIndex: number, setIndex: number) => void;
   resetWorkout: () => void;
-  startTimer: () => void;
+  startTimer: (expiry: Date) => void; // Update to accept expiry time
   stopTimer: () => void;
 }
 
@@ -22,6 +24,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
   currentSetIndex: 0,
   completedSets: {},
   timerRunning: false,
+  timerExpiry: null,
 
   setWorkout: (workout) =>
     set({
@@ -29,6 +32,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
       currentExerciseIndex: 0,
       currentSetIndices: {},
       completedSets: {},
+      timerRunning: false,
+      timerExpiry: null,
     }),
 
   setCurrentExerciseIndex: (index: number) =>
@@ -93,9 +98,18 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
       completedSets: {},
     }),
 
-  startTimer: () => set({ timerRunning: true }),
+  setCurrentSetIndex: (exerciseIndex: number, setIndex: number) =>
+    set((state) => ({
+      currentSetIndices: {
+        ...state.currentSetIndices,
+        [exerciseIndex]: setIndex,
+      },
+    })),
 
-  stopTimer: () => set({ timerRunning: false }),
+  startTimer: (expiry: Date) =>
+    set({ timerRunning: true, timerExpiry: expiry }), // Start timer with expiry
+
+  stopTimer: () => set({ timerRunning: false, timerExpiry: null }), // Stop timer and reset expiry
 }));
 
 export { useActiveWorkoutStore };

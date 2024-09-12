@@ -15,9 +15,11 @@ export default function WorkoutSessionScreen() {
     workout,
     currentExerciseIndex,
     currentSetIndices,
-    timerRunning,
-    nextSet,
     setCurrentExerciseIndex,
+    setCurrentSetIndex,
+    nextSet,
+    timerRunning,
+    timerExpiry,
     startTimer,
     stopTimer,
   } = useActiveWorkoutStore();
@@ -31,7 +33,6 @@ export default function WorkoutSessionScreen() {
   useEffect(() => {
     if (workout && selectedExerciseIndex !== undefined) {
       setCurrentExerciseIndex(Number(selectedExerciseIndex)); // Set current exercise
-      stopTimer(); // Stop the timer when switching exercises
       setWeight("0");
       setReps("0");
     }
@@ -60,16 +61,23 @@ export default function WorkoutSessionScreen() {
 
   // Timer hook for rest countdown
   const { seconds, minutes, restart } = useTimer({
-    expiryTimestamp: new Date(),
-    autoStart: false,
+    expiryTimestamp: timerExpiry || new Date(),
+    autoStart: timerRunning, // Auto-start the timer if it was running
     onExpire: () => stopTimer(),
   });
+
+  // Handle restarting the timer when returning to the screen
+  useEffect(() => {
+    if (timerRunning && timerExpiry) {
+      restart(new Date(timerExpiry)); // Restart the timer with the stored expiry
+    }
+  }, [timerRunning, timerExpiry, restart]);
 
   const startRestTimer = (restMinutes: number, restSeconds: number) => {
     const time = new Date();
     time.setSeconds(time.getSeconds() + restMinutes * 60 + restSeconds);
-    startTimer(); // start timer state in Zustand
-    restart(time); // start the countdown timer
+    startTimer(time); // Start the timer globally with expiry
+    restart(time); // Start the countdown timer in the UI
   };
 
   if (!workout) {
@@ -95,7 +103,10 @@ export default function WorkoutSessionScreen() {
       return;
     }
 
-    startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
+    if (currentSet) {
+      startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
+    }
+
     const isLastSet = currentSetIndex === currentExercise.sets.length - 1;
     nextSet();
 
