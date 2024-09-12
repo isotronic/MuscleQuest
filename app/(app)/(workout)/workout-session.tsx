@@ -15,32 +15,36 @@ export default function WorkoutSessionScreen() {
     workout,
     currentExerciseIndex,
     currentSetIndices,
+    weightAndReps, // Access weight and reps from the store
     setCurrentExerciseIndex,
     setCurrentSetIndex,
+    updateWeightAndReps, // Update weight and reps
     nextSet,
     timerRunning,
     timerExpiry,
     startTimer,
     stopTimer,
   } = useActiveWorkoutStore();
-  const [weight, setWeight] = useState("0");
-  const [reps, setReps] = useState("0");
   const [animatedUrl, setAnimatedUrl] = useState<string | null>(null);
 
-  const { selectedExerciseIndex } = useLocalSearchParams(); // Get the selected exercise index
+  const { selectedExerciseIndex } = useLocalSearchParams();
 
   // Fetch the selected exercise from the workout based on the passed index
   useEffect(() => {
     if (workout && selectedExerciseIndex !== undefined) {
-      setCurrentExerciseIndex(Number(selectedExerciseIndex)); // Set current exercise
-      setWeight("0");
-      setReps("0");
+      setCurrentExerciseIndex(Number(selectedExerciseIndex));
     }
-  }, [selectedExerciseIndex, setCurrentExerciseIndex, stopTimer, workout]);
+  }, [selectedExerciseIndex, setCurrentExerciseIndex, workout]);
 
   const currentExercise = workout?.exercises[currentExerciseIndex];
   const currentSetIndex = currentSetIndices[currentExerciseIndex] || 0;
   const currentSet = currentExercise?.sets[currentSetIndex];
+
+  // Retrieve current weight and reps for the current set
+  const weight =
+    weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight || "0";
+  const reps =
+    weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.reps || "0";
 
   // Fetch animated webp image
   useEffect(() => {
@@ -62,22 +66,22 @@ export default function WorkoutSessionScreen() {
   // Timer hook for rest countdown
   const { seconds, minutes, restart } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
-    autoStart: timerRunning, // Auto-start the timer if it was running
+    autoStart: timerRunning,
     onExpire: () => stopTimer(),
   });
 
   // Handle restarting the timer when returning to the screen
   useEffect(() => {
     if (timerRunning && timerExpiry) {
-      restart(new Date(timerExpiry)); // Restart the timer with the stored expiry
+      restart(new Date(timerExpiry));
     }
   }, [timerRunning, timerExpiry, restart]);
 
   const startRestTimer = (restMinutes: number, restSeconds: number) => {
     const time = new Date();
     time.setSeconds(time.getSeconds() + restMinutes * 60 + restSeconds);
-    startTimer(time); // Start the timer globally with expiry
-    restart(time); // Start the countdown timer in the UI
+    startTimer(time);
+    restart(time);
   };
 
   if (!workout) {
@@ -86,16 +90,26 @@ export default function WorkoutSessionScreen() {
 
   // Helper functions to handle plus/minus buttons
   const handleWeightChange = (amount: number) => {
-    setWeight((prevWeight) => {
-      const newWeight = parseFloat(prevWeight) + amount;
-      return Number.isInteger(newWeight)
-        ? newWeight.toString()
-        : newWeight.toFixed(1);
-    });
+    const newWeight = (parseFloat(weight) + amount).toFixed(1);
+    updateWeightAndReps(currentExerciseIndex, currentSetIndex, newWeight, reps);
   };
 
   const handleRepsChange = (amount: number) => {
-    setReps((prevReps) => (parseInt(prevReps) + amount).toString());
+    const newReps = (parseInt(reps) + amount).toString();
+    updateWeightAndReps(currentExerciseIndex, currentSetIndex, weight, newReps);
+  };
+
+  // Handle previous and next set buttons
+  const handlePreviousSet = () => {
+    if (currentSetIndex > 0) {
+      setCurrentSetIndex(currentExerciseIndex, currentSetIndex - 1);
+    }
+  };
+
+  const handleNextSet = () => {
+    if (currentSetIndex < (currentExercise?.sets.length || 0) - 1) {
+      setCurrentSetIndex(currentExerciseIndex, currentSetIndex + 1);
+    }
   };
 
   const handleCompleteSet = () => {
@@ -103,17 +117,13 @@ export default function WorkoutSessionScreen() {
       return;
     }
 
-    if (currentSet) {
-      startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
-    }
+    // Persist the current weight and reps for the current set
+    updateWeightAndReps(currentExerciseIndex, currentSetIndex, weight, reps);
 
-    const isLastSet = currentSetIndex === currentExercise.sets.length - 1;
     nextSet();
 
-    if (isLastSet) {
-      setWeight("0");
-      setReps("0");
-    }
+    // Start rest timer for the current set
+    startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
   };
 
   return (
@@ -132,9 +142,28 @@ export default function WorkoutSessionScreen() {
       )}
 
       <ThemedText style={styles.title}>{currentExercise?.name}</ThemedText>
-      <ThemedText>
-        Set {currentSetIndex + 1} of {currentExercise?.sets.length}
-      </ThemedText>
+      {/* Set Navigation */}
+      <View style={styles.setNavigationContainer}>
+        <IconButton
+          icon="chevron-left"
+          onPress={handlePreviousSet}
+          size={40}
+          disabled={currentSetIndex === 0} // Disable if on the first set
+          iconColor={Colors.dark.text}
+          style={styles.iconButton}
+        />
+        <ThemedText>
+          Set {currentSetIndex + 1} of {currentExercise?.sets.length}
+        </ThemedText>
+        <IconButton
+          icon="chevron-right"
+          onPress={handleNextSet}
+          size={40}
+          disabled={currentSetIndex === currentExercise?.sets.length - 1} // Disable if on the last set
+          iconColor={Colors.dark.text}
+          style={styles.iconButton}
+        />
+      </View>
 
       {/* Weight Input */}
       <View style={styles.centeredLabelContainer}>
@@ -151,24 +180,26 @@ export default function WorkoutSessionScreen() {
         <TextInput
           placeholder="Enter weight"
           placeholderTextColor={Colors.dark.text}
-          value={weight}
+          value={weight} // Use weight from store
           onBlur={() => {
-            setWeight((prevWeight) =>
-              isNaN(parseFloat(prevWeight)) ? "0" : prevWeight,
+            const newWeight = isNaN(parseFloat(weight)) ? "0" : weight;
+            updateWeightAndReps(
+              currentExerciseIndex,
+              currentSetIndex,
+              newWeight,
+              reps,
             );
           }}
           onChangeText={(text: string) => {
-            // If the input is empty, set it to an empty string to trigger the placeholder
-            if (text === "") {
-              setWeight("");
-            } else {
-              const value = text.replace(/[^0-9.]/g, ""); // Keep only numbers and decimal
-              setWeight(
-                Number.isInteger(parseFloat(value))
-                  ? value
-                  : parseFloat(value).toFixed(1),
-              );
-            }
+            const sanitizedValue = text.replace(/[^0-9.]/g, ""); // Keep only numbers and decimal
+            updateWeightAndReps(
+              currentExerciseIndex,
+              currentSetIndex,
+              Number.isInteger(parseFloat(sanitizedValue))
+                ? sanitizedValue
+                : parseFloat(sanitizedValue).toFixed(1),
+              reps,
+            );
           }}
           keyboardType="numeric"
           style={styles.input}
@@ -197,13 +228,24 @@ export default function WorkoutSessionScreen() {
         <TextInput
           placeholder="Enter reps"
           placeholderTextColor={Colors.dark.text}
-          value={reps}
+          value={reps} // Use reps from store
           onBlur={() => {
-            setReps((prevReps) =>
-              isNaN(parseFloat(prevReps)) ? "0" : prevReps,
+            const newReps = isNaN(parseFloat(reps)) ? "0" : reps;
+            updateWeightAndReps(
+              currentExerciseIndex,
+              currentSetIndex,
+              weight,
+              newReps,
             );
           }}
-          onChangeText={setReps}
+          onChangeText={(text: string) =>
+            updateWeightAndReps(
+              currentExerciseIndex,
+              currentSetIndex,
+              weight,
+              text,
+            )
+          }
           keyboardType="numeric"
           style={styles.input}
         />
@@ -245,11 +287,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
   },
   animatedImage: {
     width: "100%",
-    height: 200,
+    height: 150,
     marginBottom: 20,
   },
   centeredLabelContainer: {
@@ -269,6 +310,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     color: Colors.dark.text,
   },
+  setNavigationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
   input: {
     flex: 1,
     padding: 10,
@@ -285,30 +332,30 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: Colors.dark.cardBackground,
     alignItems: "center",
-    justifyContent: "center", // Center everything in the container
+    justifyContent: "center",
     borderRadius: 10,
     marginBottom: 20,
-    marginTop: 20, // Create space above the timer container
+    marginTop: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
-    flexDirection: "column", // Ensure label and timer are stacked vertically
+    flexDirection: "column",
   },
 
   timerLabel: {
     fontSize: 16,
     color: Colors.dark.text,
-    marginBottom: 10, // Add margin below the label to create space between the label and the timer
-    textAlign: "center", // Center the label
+    marginBottom: 10,
+    textAlign: "center",
   },
 
   timerText: {
     fontSize: 48,
     fontWeight: "bold",
     color: Colors.dark.text,
-    textAlign: "center", // Center the timer text
+    textAlign: "center",
     lineHeight: 48,
   },
 
