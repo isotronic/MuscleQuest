@@ -8,14 +8,16 @@ import { useTimer } from "react-timer-hook";
 import storage from "@react-native-firebase/storage";
 import FastImage from "react-native-fast-image";
 import { Colors } from "@/constants/Colors";
+import { useLocalSearchParams } from "expo-router";
 
 export default function WorkoutSessionScreen() {
   const {
     workout,
     currentExerciseIndex,
-    currentSetIndex,
-    nextSet,
+    currentSetIndices,
     timerRunning,
+    nextSet,
+    setCurrentExerciseIndex,
     startTimer,
     stopTimer,
   } = useActiveWorkoutStore();
@@ -23,7 +25,20 @@ export default function WorkoutSessionScreen() {
   const [reps, setReps] = useState("0");
   const [animatedUrl, setAnimatedUrl] = useState<string | null>(null);
 
+  const { selectedExerciseIndex } = useLocalSearchParams(); // Get the selected exercise index
+
+  // Fetch the selected exercise from the workout based on the passed index
+  useEffect(() => {
+    if (workout && selectedExerciseIndex !== undefined) {
+      setCurrentExerciseIndex(Number(selectedExerciseIndex)); // Set current exercise
+      stopTimer(); // Stop the timer when switching exercises
+      setWeight("0");
+      setReps("0");
+    }
+  }, [selectedExerciseIndex, setCurrentExerciseIndex, stopTimer, workout]);
+
   const currentExercise = workout?.exercises[currentExerciseIndex];
+  const currentSetIndex = currentSetIndices[currentExerciseIndex] || 0;
   const currentSet = currentExercise?.sets[currentSetIndex];
 
   // Fetch animated webp image
@@ -81,9 +96,7 @@ export default function WorkoutSessionScreen() {
     }
 
     startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
-
     const isLastSet = currentSetIndex === currentExercise.sets.length - 1;
-
     nextSet();
 
     if (isLastSet) {

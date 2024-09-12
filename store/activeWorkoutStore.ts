@@ -4,9 +4,11 @@ import { Workout } from "./workoutStore";
 interface ActiveWorkoutStore {
   workout: Workout | null;
   currentExerciseIndex: number;
-  currentSetIndex: number;
+  currentSetIndices: { [exerciseIndex: number]: number };
+  completedSets: { [key: number]: number };
   timerRunning: boolean;
   setWorkout: (workout: Workout) => void;
+  setCurrentExerciseIndex: (index: number) => void;
   nextSet: () => void;
   resetWorkout: () => void;
   startTimer: () => void;
@@ -16,41 +18,83 @@ interface ActiveWorkoutStore {
 const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
   workout: null,
   currentExerciseIndex: 0,
+  currentSetIndices: {},
   currentSetIndex: 0,
+  completedSets: {},
   timerRunning: false,
 
   setWorkout: (workout) =>
-    set({ workout, currentExerciseIndex: 0, currentSetIndex: 0 }),
+    set({
+      workout,
+      currentExerciseIndex: 0,
+      currentSetIndices: {},
+      completedSets: {},
+    }),
+
+  setCurrentExerciseIndex: (index: number) =>
+    set((state) => {
+      const currentSetIndex = state.currentSetIndices[index] || 0; // Restore current set index for this exercise
+      return { currentExerciseIndex: index, currentSetIndex };
+    }),
 
   nextSet: () =>
     set((state) => {
-      const { workout, currentExerciseIndex, currentSetIndex } = state;
+      const {
+        workout,
+        currentExerciseIndex,
+        currentSetIndices,
+        completedSets,
+      } = state;
       if (!workout) {
         return state;
       }
 
       const currentExercise = workout.exercises[currentExerciseIndex];
-      const nextSetIndex = currentSetIndex + 1;
-
-      // Check if we have more sets in the current exercise
-      if (nextSetIndex < currentExercise.sets.length) {
-        return { currentSetIndex: nextSetIndex };
-      }
-
-      // Move to the next exercise if available
+      const nextSetIndex = (currentSetIndices[currentExerciseIndex] || 0) + 1;
       const nextExerciseIndex = currentExerciseIndex + 1;
-      if (nextExerciseIndex < workout.exercises.length) {
-        return { currentExerciseIndex: nextExerciseIndex, currentSetIndex: 0 };
-      }
 
-      // If no more exercises, the workout is complete
-      return { workout: null };
+      // Update completed sets for the current exercise
+      const updatedCompletedSets = {
+        ...completedSets,
+        [currentExerciseIndex]: (completedSets[currentExerciseIndex] || 0) + 1,
+      };
+
+      // Update the current set index for this exercise
+      const updatedSetIndices = {
+        ...currentSetIndices,
+        [currentExerciseIndex]: nextSetIndex,
+      };
+
+      if (nextSetIndex < currentExercise.sets.length) {
+        return {
+          currentSetIndices: updatedSetIndices,
+          completedSets: updatedCompletedSets,
+        };
+      } else if (nextExerciseIndex < workout.exercises.length) {
+        return {
+          currentExerciseIndex: nextExerciseIndex,
+          currentSetIndices: updatedSetIndices,
+          completedSets: updatedCompletedSets,
+        };
+      } else {
+        return {
+          workout: null,
+          currentSetIndices: updatedSetIndices,
+          completedSets: updatedCompletedSets,
+        };
+      }
     }),
 
   resetWorkout: () =>
-    set({ workout: null, currentExerciseIndex: 0, currentSetIndex: 0 }),
+    set({
+      workout: null,
+      currentExerciseIndex: 0,
+      currentSetIndices: {},
+      completedSets: {},
+    }),
 
   startTimer: () => set({ timerRunning: true }),
+
   stopTimer: () => set({ timerRunning: false }),
 }));
 
