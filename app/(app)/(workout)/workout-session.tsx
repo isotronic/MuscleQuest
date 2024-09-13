@@ -159,7 +159,9 @@ export default function WorkoutSessionScreen() {
           icon="chevron-right"
           onPress={handleNextSet}
           size={40}
-          disabled={currentSetIndex === currentExercise?.sets.length - 1} // Disable if on the last set
+          disabled={
+            currentSetIndex === (currentExercise?.sets?.length || 0) - 1
+          } // Disable if on the last set
           iconColor={Colors.dark.text}
           style={styles.iconButton}
         />
