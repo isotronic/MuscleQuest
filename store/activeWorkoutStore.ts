@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { Workout } from "./workoutStore";
+import { router } from "expo-router";
 
 interface ActiveWorkoutStore {
   workout: Workout | null;
@@ -141,8 +142,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
           weightAndReps: updatedWeightAndReps,
         };
       } else {
+        router.replace("/(workout)");
         return {
-          workout: null,
           currentSetIndices: updatedSetIndices,
           completedSets: updatedCompletedSets,
         };

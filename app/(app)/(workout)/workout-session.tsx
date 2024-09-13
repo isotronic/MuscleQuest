@@ -90,10 +90,6 @@ export default function WorkoutSessionScreen() {
     restart(time);
   };
 
-  if (!workout) {
-    return <ThemedText>Workout complete!</ThemedText>;
-  }
-
   // Helper functions to handle plus/minus buttons
   const handleWeightChange = (amount: number) => {
     const newWeight = (parseFloat(weight) + amount).toFixed(1);
