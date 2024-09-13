@@ -51,8 +51,28 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
 
   setCurrentExerciseIndex: (index: number) =>
     set((state) => {
-      const currentSetIndex = state.currentSetIndices[index] || 0; // Restore current set index for this exercise
-      return { currentExerciseIndex: index, currentSetIndex };
+      const { currentSetIndices, completedSets, workout } = state;
+
+      if (!workout) {
+        return state;
+      }
+
+      // Get the total number of sets for the selected exercise
+      const totalSets = workout.exercises[index].sets.length;
+
+      // Check if the exercise is completed by comparing completed sets with total sets
+      const isCompleted = completedSets[index] >= totalSets;
+
+      // If completed, reset the set index to 0, otherwise restore or continue
+      const currentSetIndex = isCompleted ? 0 : currentSetIndices[index] || 0;
+
+      return {
+        currentExerciseIndex: index,
+        currentSetIndices: {
+          ...currentSetIndices,
+          [index]: currentSetIndex,
+        },
+      };
     }),
 
   nextSet: () =>
