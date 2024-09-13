@@ -5,14 +5,16 @@ interface ActiveWorkoutStore {
   workout: Workout | null;
   currentExerciseIndex: number;
   currentSetIndices: { [exerciseIndex: number]: number };
-  completedSets: { [exerciseIndex: number]: number };
+  completedSets: {
+    [exerciseIndex: number]: { [setIndex: number]: boolean };
+  }; // Updated to track whether each set is completed
   weightAndReps: {
     [exerciseIndex: number]: {
       [setIndex: number]: { weight: string; reps: string };
     };
-  }; // New field to track weight and reps
+  }; // Track weight and reps
   timerRunning: boolean;
-  timerExpiry: Date | null; // Store the timer expiry time globally
+  timerExpiry: Date | null;
   setWorkout: (workout: Workout) => void;
   nextSet: () => void;
   setCurrentExerciseIndex: (index: number) => void;
@@ -22,9 +24,9 @@ interface ActiveWorkoutStore {
     setIndex: number,
     weight: string,
     reps: string,
-  ) => void; // New function to update weight and reps
+  ) => void;
   resetWorkout: () => void;
-  startTimer: (expiry: Date) => void; // Update to accept expiry time
+  startTimer: (expiry: Date) => void;
   stopTimer: () => void;
 }
 
@@ -32,9 +34,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
   workout: null,
   currentExerciseIndex: 0,
   currentSetIndices: {},
-  currentSetIndex: 0,
-  completedSets: {},
-  weightAndReps: {}, // Initialize empty object
+  completedSets: {}, // Initialize completed sets as empty object
+  weightAndReps: {}, // Initialize weight and reps tracking
   timerRunning: false,
   timerExpiry: null,
 
@@ -43,8 +44,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
       workout,
       currentExerciseIndex: 0,
       currentSetIndices: {},
-      completedSets: {},
-      weightAndReps: {}, // Reset weight and reps tracking
+      completedSets: {}, // Reset completed sets
+      weightAndReps: {}, // Reset weight and reps
       timerRunning: false,
       timerExpiry: null,
     }),
@@ -57,14 +58,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
         return state;
       }
 
-      // Get the total number of sets for the selected exercise
       const totalSets = workout.exercises[index].sets.length;
+      const isExerciseCompleted = completedSets[index]
+        ? Object.keys(completedSets[index]).length === totalSets
+        : false;
 
-      // Check if the exercise is completed by comparing completed sets with total sets
-      const isCompleted = completedSets[index] >= totalSets;
-
-      // If completed, reset the set index to 0, otherwise restore or continue
-      const currentSetIndex = isCompleted ? 0 : currentSetIndices[index] || 0;
+      const currentSetIndex = isExerciseCompleted
+        ? 0
+        : currentSetIndices[index] || 0;
 
       return {
         currentExerciseIndex: index,
@@ -93,26 +94,25 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
       const nextSetIndex = currentSetIndex + 1;
       const nextExerciseIndex = currentExerciseIndex + 1;
 
-      // Carry over weight and reps for the next set
       const currentWeight =
         weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight || "0";
       const currentReps =
         weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.reps || "0";
 
-      // Update completed sets for the current exercise
       const updatedCompletedSets = {
         ...completedSets,
-        [currentExerciseIndex]: (completedSets[currentExerciseIndex] || 0) + 1,
+        [currentExerciseIndex]: {
+          ...(completedSets[currentExerciseIndex] || {}),
+          [currentSetIndex]: true, // Mark current set as completed
+        },
       };
 
-      // Update the current set index for this exercise
       const updatedSetIndices = {
         ...currentSetIndices,
         [currentExerciseIndex]: nextSetIndex,
       };
 
       if (nextSetIndex < currentExercise.sets.length) {
-        // Carry over weight and reps to the next set
         const updatedWeightAndReps = {
           ...weightAndReps,
           [currentExerciseIndex]: {
@@ -127,7 +127,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
           weightAndReps: updatedWeightAndReps,
         };
       } else if (nextExerciseIndex < workout.exercises.length) {
-        // Move to the next exercise, reset weight and reps for the new exercise
         const updatedWeightAndReps = {
           ...weightAndReps,
           [nextExerciseIndex]: {
@@ -142,7 +141,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
           weightAndReps: updatedWeightAndReps,
         };
       } else {
-        // If workout is complete
         return {
           workout: null,
           currentSetIndices: updatedSetIndices,
@@ -151,12 +149,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
       }
     }),
 
-  updateWeightAndReps: (
-    exerciseIndex: number,
-    setIndex: number,
-    weight: string,
-    reps: string,
-  ) =>
+  updateWeightAndReps: (exerciseIndex, setIndex, weight, reps) =>
     set((state) => ({
       weightAndReps: {
         ...state.weightAndReps,
@@ -176,7 +169,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
       weightAndReps: {},
     }),
 
-  setCurrentSetIndex: (exerciseIndex: number, setIndex: number) =>
+  setCurrentSetIndex: (exerciseIndex, setIndex) =>
     set((state) => ({
       currentSetIndices: {
         ...state.currentSetIndices,
@@ -184,10 +177,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
       },
     })),
 
-  startTimer: (expiry: Date) =>
-    set({ timerRunning: true, timerExpiry: expiry }), // Start timer with expiry
+  startTimer: (expiry) => set({ timerRunning: true, timerExpiry: expiry }),
 
-  stopTimer: () => set({ timerRunning: false, timerExpiry: null }), // Stop timer and reset expiry
+  stopTimer: () => set({ timerRunning: false, timerExpiry: null }),
 }));
 
 export { useActiveWorkoutStore };

@@ -16,6 +16,7 @@ export default function WorkoutSessionScreen() {
     currentExerciseIndex,
     currentSetIndices,
     weightAndReps, // Access weight and reps from the store
+    completedSets,
     setCurrentExerciseIndex,
     setCurrentSetIndex,
     updateWeightAndReps, // Update weight and reps
@@ -39,6 +40,11 @@ export default function WorkoutSessionScreen() {
   const currentExercise = workout?.exercises[currentExerciseIndex];
   const currentSetIndex = currentSetIndices[currentExerciseIndex] || 0;
   const currentSet = currentExercise?.sets[currentSetIndex];
+  const currentSetCompleted =
+    completedSets[currentExerciseIndex] &&
+    typeof completedSets[currentExerciseIndex][currentSetIndex] === "boolean"
+      ? completedSets[currentExerciseIndex][currentSetIndex]
+      : false;
 
   // Retrieve current weight and reps for the current set
   const weight =
@@ -263,7 +269,12 @@ export default function WorkoutSessionScreen() {
       <Button
         mode="contained"
         onPress={handleCompleteSet}
-        style={styles.completeButton}
+        style={[
+          styles.completeButton,
+          currentSetCompleted && styles.disabledButton,
+        ]}
+        labelStyle={currentSetCompleted ? styles.disabledButtonText : {}}
+        disabled={currentSetCompleted}
       >
         Complete Set
       </Button>
@@ -329,6 +340,13 @@ const styles = StyleSheet.create({
   },
   completeButton: {
     marginTop: 20,
+  },
+  disabledButton: {
+    backgroundColor: Colors.dark.disabledButtonBackground, // Custom disabled background color
+  },
+  disabledButtonText: {
+    color: Colors.dark.disabledButtonText, // Custom disabled text color
+    opacity: 0.6, // Make the text slightly faded
   },
   timerContainer: {
     padding: 20,

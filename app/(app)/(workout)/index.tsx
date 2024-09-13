@@ -18,7 +18,10 @@ export default function WorkoutOverviewScreen() {
     <ThemedView style={styles.container}>
       <ScrollView>
         {workout.exercises.map((exercise, index) => {
-          const completed = completedSets[index] || 0;
+          const completedSetsForExercise = completedSets[index] || {};
+          const completedCount = Object.values(completedSetsForExercise).filter(
+            (setCompleted) => setCompleted === true,
+          ).length;
           return (
             <TouchableOpacity
               key={exercise.exercise_id}
@@ -44,7 +47,7 @@ export default function WorkoutOverviewScreen() {
                       {exercise.name}
                     </ThemedText>
                     <ThemedText style={styles.setInfo}>
-                      {completed}/{exercise.sets.length} sets completed
+                      {completedCount}/{exercise.sets.length} sets completed
                     </ThemedText>
                   </View>
 
