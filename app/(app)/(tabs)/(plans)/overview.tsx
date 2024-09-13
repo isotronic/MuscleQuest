@@ -113,7 +113,7 @@ export default function PlanOverviewScreen() {
             <MaterialCommunityIcons
               name="trash-can-outline"
               size={24}
-              color={Colors.dark.icon}
+              color={Colors.dark.highlight}
               onPress={handleDeletePlan}
             />
           ),
