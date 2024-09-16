@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Plan } from "./useAllPlansQuery";
 import { fetchActivePlan } from "@/utils/database";
 
-const fetchAndParse = async (): Promise<Plan | undefined> => {
+const fetchAndParse = async (): Promise<Plan | null> => {
   try {
     const activePlan = (await fetchActivePlan()) as Plan | undefined;
 
@@ -11,7 +11,7 @@ const fetchAndParse = async (): Promise<Plan | undefined> => {
       typeof activePlan !== "object" ||
       Object.keys(activePlan).length === 0
     ) {
-      return undefined;
+      return null;
     }
 
     return {
@@ -23,12 +23,12 @@ const fetchAndParse = async (): Promise<Plan | undefined> => {
     };
   } catch (error) {
     console.error("Error fetching or parsing plan", error);
-    return undefined;
+    return null;
   }
 };
 
 export const useActivePlanQuery = () => {
-  return useQuery<Plan | undefined>({
+  return useQuery<Plan | null>({
     queryKey: ["activePlan"],
     queryFn: fetchAndParse,
     staleTime: Infinity,

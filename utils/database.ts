@@ -13,6 +13,22 @@ export interface Exercise {
   description: string;
 }
 
+export interface SavedWorkout {
+  planId: number;
+  workoutName: string;
+  duration: number;
+  totalSetsCompleted: number;
+  exercises: {
+    exercise_id: number;
+    name: string;
+    sets: {
+      set_number: number;
+      weight: number;
+      reps: number;
+    }[];
+  }[];
+}
+
 const openDatabase = async (
   databaseName: string,
 ): Promise<SQLite.SQLiteDatabase> => {
@@ -105,4 +121,70 @@ export const updateWorkoutPlan = async (
 export const deleteWorkoutPlan = async (planId: number) => {
   const db = await openDatabase("userData.db");
   await db.runAsync(`DELETE FROM user_plans WHERE id = ?`, [planId]);
+};
+
+export const saveCompletedWorkout = async (
+  planId: number,
+  workoutName: string,
+  duration: number,
+  totalSetsCompleted: number,
+  exercises: {
+    exercise_id: number;
+    name: string;
+    sets: {
+      set_number: number;
+      weight: number;
+      reps: number;
+    }[];
+  }[],
+) => {
+  const db = await openDatabase("userData.db");
+
+  try {
+    // Begin transaction
+    await db.execAsync("BEGIN TRANSACTION");
+
+    // Insert the completed workout
+    const completedWorkoutResult = await db.runAsync(
+      `INSERT INTO completed_workouts (plan_id, name, date_completed, duration, total_sets_completed) VALUES (?, ?, datetime('now'), ?, ?)`,
+      [planId, workoutName, duration, totalSetsCompleted],
+    );
+
+    const completedWorkoutId = completedWorkoutResult.lastInsertRowId;
+
+    for (const exercise of exercises) {
+      // Insert each completed exercise
+      const completedExerciseResult = await db.runAsync(
+        `INSERT INTO completed_exercises (completed_workout_id, exercise_id, name) VALUES (?, ?, ?)`,
+        [completedWorkoutId, exercise.exercise_id, exercise.name],
+      );
+
+      const completedExerciseId = completedExerciseResult.lastInsertRowId;
+
+      for (const set of exercise.sets) {
+        // Insert each completed set
+        await db.runAsync(
+          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps) VALUES (?, ?, ?, ?)`,
+          [completedExerciseId, set.set_number, set.weight, set.reps],
+        );
+      }
+    }
+
+    // Commit transaction
+    await db.execAsync("COMMIT");
+
+    console.log("Completed workout saved successfully.");
+  } catch (error) {
+    // Rollback transaction
+    try {
+      await db.execAsync("ROLLBACK");
+      console.error("Transaction rolled back due to error.");
+    } catch (rollbackError) {
+      console.error("Error during rollback: ", rollbackError);
+    }
+
+    // Log and re-throw the original error
+    console.error("Error saving completed workout: ", error);
+    throw error;
+  }
 };

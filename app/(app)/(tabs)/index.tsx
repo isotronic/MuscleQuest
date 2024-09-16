@@ -10,6 +10,7 @@ import { AuthContext } from "@/context/AuthProvider";
 import { Colors } from "@/constants/Colors";
 import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
 import { router } from "expo-router";
+import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 
 export default function HomeScreen() {
   const user = useContext(AuthContext);
@@ -72,11 +73,12 @@ export default function HomeScreen() {
                     <View style={styles.smallButtonGroup}>
                       <Button
                         mode="contained"
-                        onPress={() =>
-                          console.log(
-                            `Start workout: ${workout.name || `Day ${index + 1}`}`,
-                          )
-                        }
+                        onPress={() => {
+                          useActiveWorkoutStore
+                            .getState()
+                            .setWorkout(workout, activePlan.id, workout.name);
+                          router.push("/(workout)");
+                        }}
                         style={styles.smallButton}
                         labelStyle={styles.smallButtonLabel}
                       >
