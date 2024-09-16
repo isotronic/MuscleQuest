@@ -141,6 +141,9 @@ export const saveCompletedWorkout = async (
   const db = await openDatabase("userData.db");
 
   try {
+    // Begin transaction
+    await db.execAsync("BEGIN TRANSACTION");
+
     // Insert the completed workout
     const completedWorkoutResult = await db.runAsync(
       `INSERT INTO completed_workouts (plan_id, name, date_completed, duration, total_sets_completed) VALUES (?, ?, datetime('now'), ?, ?)`,
@@ -167,8 +170,21 @@ export const saveCompletedWorkout = async (
       }
     }
 
+    // Commit transaction
+    await db.execAsync("COMMIT");
+
     console.log("Completed workout saved successfully.");
   } catch (error) {
+    // Rollback transaction
+    try {
+      await db.execAsync("ROLLBACK");
+      console.error("Transaction rolled back due to error.");
+    } catch (rollbackError) {
+      console.error("Error during rollback: ", rollbackError);
+    }
+
+    // Log and re-throw the original error
     console.error("Error saving completed workout: ", error);
+    throw error;
   }
 };

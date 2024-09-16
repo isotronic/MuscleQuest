@@ -1,5 +1,11 @@
 import React from "react";
-import { View, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import { IconButton, Card } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
@@ -53,10 +59,12 @@ export default function WorkoutOverviewScreen() {
           exercises,
         );
         console.log("Workout saved successfully!");
-      } catch (error) {
-        console.error("Error saving workout: ", error);
-      } finally {
         router.push("/(tabs)");
+      } catch (error) {
+        Alert.alert("Error", "Failed to save workout. Please try again.", [
+          { text: "OK" },
+        ]);
+        console.error("Error saving workout: ", error);
       }
     }
   };
