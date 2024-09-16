@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useLocalSearchParams } from "expo-router";
-import storage from "@react-native-firebase/storage";
 import FastImage from "react-native-fast-image";
 import { Colors } from "@/constants/Colors";
+import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 
 export default function ExerciseDetailsScreen() {
   const { exercise } = useLocalSearchParams();
@@ -33,23 +32,11 @@ export default function ExerciseDetailsScreen() {
     }
   }
 
-  const [animatedUrl, setAnimatedUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (exerciseData?.animated_url) {
-      const loadAnimatedImage = async () => {
-        try {
-          const url = await storage()
-            .ref(exerciseData.animated_url)
-            .getDownloadURL();
-          setAnimatedUrl(url);
-        } catch (error) {
-          console.error("Failed to load GIF:", error);
-        }
-      };
-      loadAnimatedImage();
-    }
-  }, [exerciseData?.animated_url]);
+  const {
+    data: animatedUrl,
+    error: animatedImageError,
+    isLoading: animatedImageLoading,
+  } = useAnimatedImageQuery(exerciseData?.animated_url);
 
   if (!exerciseData) {
     return (
@@ -61,7 +48,11 @@ export default function ExerciseDetailsScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {animatedUrl ? (
+      {animatedImageLoading ? (
+        <ThemedText style={styles.loadingText}>Loading GIF...</ThemedText>
+      ) : animatedImageError ? (
+        <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
+      ) : animatedUrl ? (
         <FastImage
           style={styles.gifImage}
           source={{
@@ -71,7 +62,7 @@ export default function ExerciseDetailsScreen() {
           resizeMode={FastImage.resizeMode.contain}
         />
       ) : (
-        <ThemedText style={styles.loadingText}>Loading GIF...</ThemedText>
+        <ThemedText style={styles.loadingText}>No GIF available</ThemedText>
       )}
       <ThemedText style={styles.title}>{exerciseData.name}</ThemedText>
       <ThemedText style={styles.infoText}>

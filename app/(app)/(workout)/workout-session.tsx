@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { TextInput, StyleSheet, View } from "react-native";
 import { Button, IconButton } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTimer } from "react-timer-hook";
-import storage from "@react-native-firebase/storage";
 import FastImage from "react-native-fast-image";
 import { Colors } from "@/constants/Colors";
 import { useLocalSearchParams } from "expo-router";
+import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 
 export default function WorkoutSessionScreen() {
   const {
@@ -26,7 +26,6 @@ export default function WorkoutSessionScreen() {
     startTimer,
     stopTimer,
   } = useActiveWorkoutStore();
-  const [animatedUrl, setAnimatedUrl] = useState<string | null>(null);
 
   const { selectedExerciseIndex } = useLocalSearchParams();
 
@@ -52,22 +51,11 @@ export default function WorkoutSessionScreen() {
   const reps =
     weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.reps || "0";
 
-  // Fetch animated webp image
-  useEffect(() => {
-    if (currentExercise?.animated_url) {
-      const loadAnimatedImage = async () => {
-        try {
-          const url = await storage()
-            .ref(currentExercise.animated_url)
-            .getDownloadURL();
-          setAnimatedUrl(url);
-        } catch (error) {
-          console.error("Failed to load WebP:", error);
-        }
-      };
-      loadAnimatedImage();
-    }
-  }, [currentExercise?.animated_url]);
+  const {
+    data: animatedUrl,
+    error: animatedImageError,
+    isLoading: animatedImageLoading,
+  } = useAnimatedImageQuery(currentExercise?.animated_url);
 
   // Timer hook for rest countdown
   const { seconds, minutes, restart } = useTimer({
@@ -130,7 +118,11 @@ export default function WorkoutSessionScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {animatedUrl ? (
+      {animatedImageLoading ? (
+        <ThemedText style={styles.loadingText}>Loading GIF...</ThemedText>
+      ) : animatedImageError ? (
+        <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
+      ) : animatedUrl ? (
         <FastImage
           style={styles.animatedImage}
           source={{
@@ -140,7 +132,7 @@ export default function WorkoutSessionScreen() {
           resizeMode={FastImage.resizeMode.contain}
         />
       ) : (
-        <ThemedText style={styles.loadingText}>Loading GIF...</ThemedText>
+        <ThemedText style={styles.loadingText}>No GIF available</ThemedText>
       )}
 
       <ThemedText style={styles.title}>{currentExercise?.name}</ThemedText>
