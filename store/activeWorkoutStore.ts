@@ -3,20 +3,22 @@ import { Workout } from "./workoutStore";
 import { router } from "expo-router";
 
 interface ActiveWorkoutStore {
+  activeWorkout: { planId: number; name: string } | null;
   workout: Workout | null;
   currentExerciseIndex: number;
   currentSetIndices: { [exerciseIndex: number]: number };
   completedSets: {
     [exerciseIndex: number]: { [setIndex: number]: boolean };
-  }; // Updated to track whether each set is completed
+  };
   weightAndReps: {
     [exerciseIndex: number]: {
       [setIndex: number]: { weight: string; reps: string };
     };
-  }; // Track weight and reps
+  };
+  startTime: Date | null;
   timerRunning: boolean;
   timerExpiry: Date | null;
-  setWorkout: (workout: Workout) => void;
+  setWorkout: (workout: Workout, planId: number, name: string) => void;
   nextSet: () => void;
   setCurrentExerciseIndex: (index: number) => void;
   setCurrentSetIndex: (exerciseIndex: number, setIndex: number) => void;
@@ -32,21 +34,25 @@ interface ActiveWorkoutStore {
 }
 
 const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
+  activeWorkout: null,
   workout: null,
   currentExerciseIndex: 0,
   currentSetIndices: {},
-  completedSets: {}, // Initialize completed sets as empty object
-  weightAndReps: {}, // Initialize weight and reps tracking
+  completedSets: {},
+  weightAndReps: {},
+  startTime: null,
   timerRunning: false,
   timerExpiry: null,
 
-  setWorkout: (workout) =>
+  setWorkout: (workout, planId, name) =>
     set({
+      activeWorkout: { planId, name },
       workout,
       currentExerciseIndex: 0,
       currentSetIndices: {},
-      completedSets: {}, // Reset completed sets
-      weightAndReps: {}, // Reset weight and reps
+      completedSets: {},
+      weightAndReps: {},
+      startTime: new Date(),
       timerRunning: false,
       timerExpiry: null,
     }),
@@ -168,6 +174,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set) => ({
       currentSetIndices: {},
       completedSets: {},
       weightAndReps: {},
+      startTime: null,
     }),
 
   setCurrentSetIndex: (exerciseIndex, setIndex) =>

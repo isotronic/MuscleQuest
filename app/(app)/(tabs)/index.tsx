@@ -74,7 +74,9 @@ export default function HomeScreen() {
                       <Button
                         mode="contained"
                         onPress={() => {
-                          useActiveWorkoutStore.getState().setWorkout(workout);
+                          useActiveWorkoutStore
+                            .getState()
+                            .setWorkout(workout, activePlan.id, workout.name);
                           router.push("/(workout)");
                         }}
                         style={styles.smallButton}
