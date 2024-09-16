@@ -4,11 +4,62 @@ import { IconButton, Card } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { router } from "expo-router"; // Import router from expo-router
+import { router, Stack } from "expo-router";
 import { Colors } from "@/constants/Colors";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { saveCompletedWorkout } from "@/utils/database";
 
 export default function WorkoutOverviewScreen() {
-  const { workout, completedSets } = useActiveWorkoutStore();
+  const { workout, completedSets, weightAndReps, startTime, activeWorkout } =
+    useActiveWorkoutStore();
+
+  const handleSaveWorkout = async () => {
+    const planId = activeWorkout?.planId;
+    const workoutName = activeWorkout?.name;
+    const endTime = new Date();
+    const duration = startTime
+      ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
+      : 0;
+    const totalSetsCompleted = Object.values(completedSets).reduce(
+      (total, exerciseSets) => {
+        // Count the number of true values in the set object
+        const setsCompleted = Object.values(exerciseSets).filter(
+          (setCompleted) => setCompleted === true,
+        ).length;
+        return total + setsCompleted;
+      },
+      0,
+    );
+
+    if (workout && planId && workoutName) {
+      const exercises = workout.exercises.map((exercise, index) => ({
+        exercise_id: exercise.exercise_id,
+        name: exercise.name,
+        sets: Object.entries(weightAndReps[index] || {}).map(
+          ([setIndex, set]) => ({
+            set_number: parseInt(setIndex),
+            weight: parseFloat(set.weight),
+            reps: parseInt(set.reps),
+          }),
+        ),
+      }));
+
+      try {
+        await saveCompletedWorkout(
+          planId,
+          workoutName,
+          duration,
+          totalSetsCompleted,
+          exercises,
+        );
+        console.log("Workout saved successfully!");
+      } catch (error) {
+        console.error("Error saving workout: ", error);
+      } finally {
+        router.push("/(tabs)");
+      }
+    }
+  };
 
   if (!workout) {
     return <ThemedText>No workout available</ThemedText>;
@@ -16,6 +67,19 @@ export default function WorkoutOverviewScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <MaterialCommunityIcons
+              name="content-save-outline"
+              size={35}
+              label="Save"
+              color={Colors.dark.tint}
+              onPress={handleSaveWorkout}
+            />
+          ),
+        }}
+      />
       <ScrollView>
         {workout.exercises.map((exercise, index) => {
           const completedSetsForExercise = completedSets[index] || {};
