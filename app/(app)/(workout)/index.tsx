@@ -13,11 +13,13 @@ import { ThemedView } from "@/components/ThemedView";
 import { router, Stack } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { saveCompletedWorkout } from "@/utils/database";
+import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
 
 export default function WorkoutOverviewScreen() {
   const { workout, completedSets, weightAndReps, startTime, activeWorkout } =
     useActiveWorkoutStore();
+
+  const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation();
 
   const handleSaveWorkout = async () => {
     const planId = activeWorkout?.planId;
@@ -50,22 +52,21 @@ export default function WorkoutOverviewScreen() {
         ),
       }));
 
-      try {
-        await saveCompletedWorkout(
-          planId,
-          workoutName,
-          duration,
-          totalSetsCompleted,
-          exercises,
-        );
-        console.log("Workout saved successfully!");
-        router.push("/(tabs)");
-      } catch (error) {
-        Alert.alert("Error", "Failed to save workout. Please try again.", [
-          { text: "OK" },
-        ]);
-        console.error("Error saving workout: ", error);
-      }
+      saveCompletedWorkoutMutation.mutate(
+        { planId, workoutName, duration, totalSetsCompleted, exercises },
+        {
+          onSuccess: () => {
+            console.log("Workout saved successfully!");
+            router.push("/(tabs)");
+          },
+          onError: (error) => {
+            Alert.alert("Error", "Failed to save workout. Please try again.", [
+              { text: "OK" },
+            ]);
+            console.error("Error saving workout: ", error);
+          },
+        },
+      );
     }
   };
 
