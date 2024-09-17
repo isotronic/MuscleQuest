@@ -188,3 +188,29 @@ export const saveCompletedWorkout = async (
     throw error;
   }
 };
+
+export const fetchCompletedWorkouts = async () => {
+  const db = await openDatabase("userData.db");
+  try {
+    return await db.getAllAsync(`
+          SELECT 
+            cw.id as workout_id, 
+            cw.plan_id, 
+            cw.name as workout_name, 
+            cw.date_completed, 
+            cw.duration, 
+            cw.total_sets_completed, 
+            ce.id as exercise_id, 
+            ce.name as exercise_name, 
+            cs.set_number, 
+            cs.weight, 
+            cs.reps
+          FROM completed_workouts cw
+          JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
+          JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
+          ORDER BY cw.date_completed DESC, ce.id, cs.set_number;
+        `);
+  } catch (error) {
+    console.error("Error fetching completed workouts: ", error);
+  }
+};
