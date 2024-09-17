@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderRadius: 10,
     backgroundColor: Colors.dark.cardBackground,
-    padding: 20,
+    padding: 16,
   },
   workoutCardContent: {
     flexDirection: "row",
