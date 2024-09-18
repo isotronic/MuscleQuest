@@ -45,7 +45,7 @@ export default function WorkoutOverviewScreen() {
         name: exercise.name,
         sets: Object.entries(weightAndReps[index] || {}).map(
           ([setIndex, set]) => ({
-            set_number: parseInt(setIndex),
+            set_number: parseInt(setIndex) + 1,
             weight: parseFloat(set.weight),
             reps: parseInt(set.reps),
           }),
