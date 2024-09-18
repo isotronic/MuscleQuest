@@ -39,64 +39,63 @@ const fetchAndOrganize = async (): Promise<CompletedWorkout[]> => {
     | undefined;
 
   if (results) {
-    const workouts = results.reduce<Record<number, CompletedWorkout>>(
-      (acc, item) => {
-        const {
+    const workoutsMap = new Map<number, CompletedWorkout>();
+    const workoutsArray: CompletedWorkout[] = [];
+
+    results.forEach((item) => {
+      const {
+        workout_id,
+        workout_name,
+        date_completed,
+        duration,
+        total_sets_completed,
+        exercise_id,
+        exercise_name,
+        set_number,
+        weight,
+        reps,
+      } = item;
+
+      let workout = workoutsMap.get(workout_id);
+
+      // If the workout doesn't exist, create and add it to the map and array
+      if (!workout) {
+        workout = {
           workout_id,
           workout_name,
           date_completed,
           duration,
           total_sets_completed,
+          exercises: [],
+        };
+        workoutsMap.set(workout_id, workout);
+        workoutsArray.push(workout);
+      }
+
+      // Find or create the exercise entry
+      let exercise = workout.exercises.find(
+        (ex) => ex.exercise_id === exercise_id,
+      );
+
+      if (!exercise) {
+        exercise = {
           exercise_id,
           exercise_name,
-          set_number,
-          weight,
-          reps,
-        } = item;
+          sets: [],
+        };
+        workout.exercises.push(exercise);
+      }
 
-        // Find or create the workout entry
-        if (!acc[workout_id]) {
-          acc[workout_id] = {
-            workout_id,
-            workout_name,
-            date_completed,
-            duration,
-            total_sets_completed,
-            exercises: [],
-          };
-        }
+      // Add the set to the exercise
+      exercise.sets.push({
+        set_number,
+        weight,
+        reps,
+      });
+    });
 
-        // Find or create the exercise entry
-        const exerciseIndex = acc[workout_id].exercises.findIndex(
-          (ex) => ex.exercise_id === exercise_id,
-        );
-
-        if (exerciseIndex === -1) {
-          acc[workout_id].exercises.push({
-            exercise_id,
-            exercise_name,
-            sets: [],
-          });
-        }
-
-        // Add the set to the exercise
-        const exercise = acc[workout_id].exercises.find(
-          (ex) => ex.exercise_id === exercise_id,
-        );
-
-        exercise?.sets.push({
-          set_number,
-          weight,
-          reps,
-        });
-
-        return acc;
-      },
-      {},
-    );
-
-    // Convert to array format
-    return Object.values(workouts);
+    // Return the array of workouts in the correct order
+    return workoutsArray;
   }
 
   return []; // Return an empty array if results is undefined
