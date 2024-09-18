@@ -6,7 +6,7 @@ import { Colors } from "@/constants/Colors";
 
 interface WorkoutCardProps {
   workout: CompletedWorkout;
-  onPress?: (workout: CompletedWorkout) => void;
+  onPress: (workoutId: number) => void;
 }
 
 export default function WorkoutHistoryCard({
@@ -15,7 +15,7 @@ export default function WorkoutHistoryCard({
 }: WorkoutCardProps) {
   return (
     <TouchableOpacity
-      onPress={() => onPress && onPress(workout)}
+      onPress={() => onPress(workout.workout_id)}
       style={styles.cardContainer}
     >
       <ThemedView style={styles.card}>

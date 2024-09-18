@@ -11,8 +11,10 @@ import {
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { Colors } from "@/constants/Colors";
 import WorkoutHistoryCard from "@/components/WorkoutHistoryCard";
+import { useRouter } from "expo-router";
 
 export default function StatsScreen() {
+  const router = useRouter();
   const { data: completedWorkouts, isLoading: isLoadingWorkouts } =
     useCompletedWorkoutsQuery();
   const { data: exercises, isLoading: isLoadingExercises } =
@@ -115,7 +117,9 @@ export default function StatsScreen() {
     color: chartColors[item.name] || "#c4f",
   }));
 
-  const handleWorkoutPress = (workout: CompletedWorkout) => {};
+  const handleWorkoutPress = (workoutId: number) => {
+    router.push(`/history-details?workoutId=${workoutId}`);
+  };
 
   if (isLoadingWorkouts || isLoadingExercises) {
     return (

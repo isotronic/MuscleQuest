@@ -12,10 +12,10 @@ export default function PlansLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: "Stats" }} />
-      {/* <Stack.Screen
+      <Stack.Screen
         name="history-details"
         options={{ title: "Workout Details" }}
-      /> */}
+      />
     </Stack>
   );
 }
