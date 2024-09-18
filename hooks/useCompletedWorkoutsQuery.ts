@@ -24,6 +24,7 @@ export interface CompletedWorkout {
   exercises: {
     exercise_id: number;
     exercise_name: string;
+    exercise_image?: any;
     sets: {
       set_number: number;
       weight: number;
