@@ -187,15 +187,13 @@ export default function StatsScreen() {
 
         {/* Body Parts Trained */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>
-            Body Parts Trained
-          </ThemedText>
+          <ThemedText style={styles.sectionTitle}>Training Split</ThemedText>
           {chartData.length > 0 ? (
             <>
               <PieChart
                 donut
                 data={chartData}
-                innerRadius={100}
+                innerRadius={110}
                 radius={150}
                 innerCircleColor={Colors.dark.background}
                 centerLabelComponent={() => (
