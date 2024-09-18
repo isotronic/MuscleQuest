@@ -23,10 +23,8 @@ export default function StatsScreen() {
     chest: "#3F51B5", // Indigo
     shoulders: "#009688", // Teal
     neck: "#9E9E9E", // Gray
-    "upper arms": "#43A047", // Green
-    "lower arms": "#66BB6A", // Light Green
-    "upper legs": "#5D4037", // Brown
-    "lower legs": "#8D6E63", // Light Brown
+    arms: "#43A047", // Green
+    legs: "#5D4037", // Brown
     waist: "#FDD835", // Yellow
     cardio: "#8E24AA", // Purple
   };
@@ -77,8 +75,15 @@ export default function StatsScreen() {
 
     completedWorkouts.forEach((workout) => {
       workout.exercises.forEach((exercise) => {
-        const bodyPart = exerciseIdToBodyPartMap[exercise.exercise_id];
+        let bodyPart = exerciseIdToBodyPartMap[exercise.exercise_id];
         if (bodyPart) {
+          // Map upper/lower arms and legs to combined categories
+          if (bodyPart === "upper arms" || bodyPart === "lower arms") {
+            bodyPart = "arms";
+          } else if (bodyPart === "upper legs" || bodyPart === "lower legs") {
+            bodyPart = "legs";
+          }
+
           counts[bodyPart] = (counts[bodyPart] || 0) + 1;
         }
       });
