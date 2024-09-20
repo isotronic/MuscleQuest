@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { ScrollView, StyleSheet, View, FlatList } from "react-native";
-import { ActivityIndicator } from "react-native-paper";
+import { ActivityIndicator, Card } from "react-native-paper";
 import { PieChart } from "react-native-gifted-charts";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -159,10 +159,25 @@ export default function StatsScreen() {
       <ScrollView style={styles.container}>
         {/* Summary Stats */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Summary Stats</ThemedText>
-          <ThemedText>Total Workouts: {totalWorkouts}</ThemedText>
-          <ThemedText>Total Sets: {totalSetsCompleted}</ThemedText>
-          <ThemedText>Total Time: {totalTimeMinutes} minutes</ThemedText>
+          <ThemedText style={styles.sectionTitle}>Summary</ThemedText>
+          <View style={styles.summaryContainer}>
+            <Card style={[styles.summaryCard, { marginRight: 8 }]}>
+              <ThemedText style={styles.statValue}>{totalWorkouts}</ThemedText>
+              <ThemedText style={styles.statLabel}>Workouts</ThemedText>
+            </Card>
+            <Card style={[styles.summaryCard, { marginRight: 8 }]}>
+              <ThemedText style={styles.statValue}>
+                {totalSetsCompleted}
+              </ThemedText>
+              <ThemedText style={styles.statLabel}>Sets</ThemedText>
+            </Card>
+            <Card style={styles.summaryCard}>
+              <ThemedText style={styles.statValue}>
+                {totalTimeMinutes}
+              </ThemedText>
+              <ThemedText style={styles.statLabel}>Minutes</ThemedText>
+            </Card>
+          </View>
         </View>
 
         {/* Workout History */}
@@ -182,10 +197,11 @@ export default function StatsScreen() {
               }
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.flatListContent}
             />
           ) : (
-            <ThemedText>No workouts completed yet.</ThemedText>
+            <ThemedText>
+              No workouts completed yet. Start your first workout!
+            </ThemedText>
           )}
         </View>
 
@@ -226,9 +242,30 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  summaryContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  summaryCard: {
+    flex: 1,
+    padding: 16,
+    alignItems: "center",
+    borderRadius: 8,
+    elevation: 2,
+    backgroundColor: Colors.dark.cardBackground, // Use your theme's primary color
+  },
+  statValue: {
+    fontSize: 24,
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+  statLabel: {
+    fontSize: 14,
+    marginTop: 4,
+  },
   section: {
-    marginBottom: 32,
-    alignItems: "center", // Center the content if desired
+    marginBottom: 16,
+    alignItems: "center",
   },
   sectionTitle: {
     fontSize: 18,
