@@ -52,9 +52,10 @@ export default function TabLayout() {
           ),
         }}
       /> */}
-      {/* <Tabs.Screen
-        name="stats"
+      <Tabs.Screen
+        name="(stats)"
         options={{
+          headerShown: false,
           title: "Stats",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
@@ -63,7 +64,7 @@ export default function TabLayout() {
             />
           ),
         }}
-      /> */}
+      />
       <Tabs.Screen
         name="settings"
         options={{

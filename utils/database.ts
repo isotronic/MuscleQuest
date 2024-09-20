@@ -1,3 +1,4 @@
+import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import * as SQLite from "expo-sqlite";
 
 export interface Exercise {
@@ -185,6 +186,149 @@ export const saveCompletedWorkout = async (
 
     // Log and re-throw the original error
     console.error("Error saving completed workout: ", error);
+    throw error;
+  }
+};
+
+export const fetchCompletedWorkouts = async () => {
+  const db = await openDatabase("userData.db");
+  try {
+    return await db.getAllAsync(`
+          SELECT 
+            cw.id as workout_id, 
+            cw.plan_id, 
+            cw.name as workout_name, 
+            cw.date_completed, 
+            cw.duration, 
+            cw.total_sets_completed, 
+            ce.exercise_id as exercise_id, 
+            ce.name as exercise_name, 
+            cs.set_number, 
+            cs.weight, 
+            cs.reps
+          FROM completed_workouts cw
+          JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
+          JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
+          ORDER BY cw.date_completed DESC, ce.id, cs.set_number;
+        `);
+  } catch (error) {
+    console.error("Error fetching completed workouts: ", error);
+  }
+};
+
+interface CompletedWorkoutRow {
+  workout_id: number;
+  plan_id: number | null;
+  workout_name: string;
+  date_completed: string;
+  duration: number;
+  total_sets_completed: number;
+  exercise_id: number | null;
+  exercise_name: string | null;
+  set_number: number | null;
+  weight: number | null;
+  reps: number | null;
+}
+
+export const fetchCompletedWorkoutById = async (
+  workoutId: number,
+): Promise<CompletedWorkout> => {
+  const db = await openDatabase("userData.db");
+
+  try {
+    const result = (await db.getAllAsync(
+      `
+      SELECT 
+        cw.id as workout_id, 
+        cw.name as workout_name, 
+        cw.date_completed, 
+        cw.duration, 
+        cw.total_sets_completed, 
+        ce.exercise_id as exercise_id, 
+        ce.name as exercise_name, 
+        cs.set_number, 
+        cs.weight, 
+        cs.reps
+      FROM completed_workouts cw
+      LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
+      LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
+      WHERE cw.id = ?
+      ORDER BY ce.id, cs.set_number;
+      `,
+      [workoutId],
+    )) as CompletedWorkoutRow[];
+
+    if (!result || result.length === 0) {
+      throw new Error("No workout found with the provided workoutId.");
+    }
+
+    // Process the result to structure it as needed
+    const workout: CompletedWorkout = {
+      workout_id: workoutId,
+      workout_name: result[0]?.workout_name || "",
+      date_completed: result[0]?.date_completed || "",
+      duration: result[0]?.duration || 0,
+      total_sets_completed: result[0]?.total_sets_completed || 0,
+      exercises: [],
+    };
+
+    const exercisesMap: Record<number, CompletedWorkout["exercises"][0]> = {};
+
+    result.forEach((row: any) => {
+      if (row.exercise_id) {
+        if (!exercisesMap[row.exercise_id]) {
+          exercisesMap[row.exercise_id] = {
+            exercise_id: row.exercise_id,
+            exercise_name: row.exercise_name,
+            sets: [],
+          };
+        }
+
+        if (row.set_number !== null) {
+          exercisesMap[row.exercise_id].sets.push({
+            set_number: row.set_number,
+            weight: row.weight,
+            reps: row.reps,
+          });
+        }
+      }
+    });
+
+    workout.exercises = Object.values(exercisesMap);
+    return workout;
+  } catch (error) {
+    console.error("Error fetching completed workout by ID:", error);
+    throw error;
+  }
+};
+
+export const fetchExerciseImagesByIds = async (
+  exerciseIds: number[],
+): Promise<Record<number, any>> => {
+  if (exerciseIds.length === 0) {
+    return {};
+  }
+
+  const db = await openDatabase("appData.db");
+
+  // Create a comma-separated list of placeholders (?, ?, ...)
+  const placeholders = exerciseIds.map(() => "?").join(",");
+
+  try {
+    const results = await db.getAllAsync(
+      `SELECT exercise_id, image FROM exercises WHERE exercise_id IN (${placeholders});`,
+      exerciseIds,
+    );
+
+    // Map exercise IDs to their images
+    const imagesMap: Record<number, any> = {};
+    results.forEach((row: any) => {
+      imagesMap[row.exercise_id] = row.image;
+    });
+
+    return imagesMap;
+  } catch (error) {
+    console.error("Error fetching exercise images:", error);
     throw error;
   }
 };
