@@ -332,3 +332,42 @@ export const fetchExerciseImagesByIds = async (
     throw error;
   }
 };
+
+interface SQLCountResult {
+  count: number;
+}
+
+export const insertDefaultSettings = async () => {
+  const db = await openDatabase("userData.db");
+
+  // Check if settings already exist
+  const result = (await db.getAllAsync(
+    "SELECT COUNT(*) as count FROM settings",
+  )) as SQLCountResult[];
+
+  const { count } = result[0];
+
+  // If no settings exist, insert default values
+  if (count === 0) {
+    const defaultSettings = [
+      { key: "weeklyGoal", value: "3" },
+      { key: "keepScreenOn", value: "false" },
+      { key: "downloadImages", value: "false" },
+      { key: "weightUnit", value: "Kilograms" },
+      { key: "distanceUnit", value: "Kilometers" },
+      { key: "sizeUnit", value: "Centimeters" },
+      { key: "weightIncrement", value: "2.5" },
+      { key: "defaultSets", value: "3" },
+      { key: "defaultRestTime", value: "60" },
+      { key: "buttonSize", value: "Standard" },
+    ];
+
+    // Insert default settings into the table
+    defaultSettings.forEach(async (setting) => {
+      await db.runAsync("INSERT INTO settings (key, value) VALUES (?, ?)", [
+        setting.key,
+        setting.value,
+      ]);
+    });
+  }
+};

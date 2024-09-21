@@ -45,4 +45,11 @@ export async function initUserDataDB() {
       FOREIGN KEY (completed_exercise_id) REFERENCES completed_exercises(id)
     );
   `);
+
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT
+    );
+  `);
 }
