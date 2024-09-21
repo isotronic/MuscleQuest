@@ -371,3 +371,54 @@ export const insertDefaultSettings = async () => {
     });
   }
 };
+
+interface SettingsResult {
+  key: string;
+  value: string;
+}
+export interface Settings {
+  weeklyGoal: string;
+  keepScreenOn: string;
+  downloadImages: string;
+  weightUnit: string;
+  distanceUnit: string;
+  sizeUnit: string;
+  weightIncrement: string;
+  defaultSets: string;
+  defaultRestTime: string;
+  buttonSize: string;
+}
+
+export const fetchSettings = async (): Promise<Settings> => {
+  try {
+    const db = await openDatabase("userData.db");
+
+    const result = (await db.getAllAsync(
+      "SELECT * FROM settings",
+    )) as SettingsResult[];
+
+    const settings: Partial<Settings> = {};
+
+    result.forEach((row: { key: string; value: string }) => {
+      settings[row.key as keyof Settings] = row.value;
+    });
+
+    return settings as Settings;
+  } catch (error) {
+    console.error("Database fetching error:", error);
+    throw error;
+  }
+};
+
+export const updateSettings = async (key: string, value: string) => {
+  try {
+    const db = await openDatabase("userData.db");
+    await db.runAsync(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      [key, value],
+    );
+  } catch (error) {
+    console.error("Error updating setting:", error);
+    throw error;
+  }
+};
