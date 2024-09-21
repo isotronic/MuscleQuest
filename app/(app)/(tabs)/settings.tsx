@@ -1,26 +1,93 @@
-import { useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
-import { Divider, Switch } from "react-native-paper";
+import { ActivityIndicator, Divider, Switch } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
+import { SettingsModal } from "@/components/SettingsModal";
 
 export default function SettingsScreen() {
-  const [keepScreenOn, setKeepScreenOn] = useState(false);
-  const [downloadImages, setDownloadImages] = useState(false);
+  const { data: settings, isLoading, isError, error } = useSettingsQuery();
+  const { mutate: updateSetting } = useUpdateSettingsMutation();
 
-  const toggleKeepScreenOn = useCallback(() => {
-    setKeepScreenOn((prev) => !prev);
-  }, []);
+  const [overlayVisible, setOverlayVisible] = useState(false);
+  const [currentSettingKey, setCurrentSettingKey] = useState<string | null>(
+    null,
+  );
+  const [inputValue, setInputValue] = useState<string | number>("");
+  const [settingType, setSettingType] = useState<
+    "number" | "radio" | "dropdown" | null
+  >(null);
+  const [options, setOptions] = useState<string[] | undefined>(undefined);
 
-  const toggleDownloadImages = useCallback(() => {
-    setDownloadImages((prev) => !prev);
-  }, []);
+  const showOverlay = (
+    key: string,
+    value: string | number,
+    type: "number" | "radio" | "dropdown",
+    options?: string[],
+  ) => {
+    setCurrentSettingKey(key);
+    setInputValue(value);
+    setSettingType(type);
+    setOptions(options);
+    setOverlayVisible(true);
+  };
+
+  const saveSetting = () => {
+    updateSetting({
+      key: currentSettingKey as string,
+      value: inputValue.toString(),
+    });
+    setOverlayVisible(false);
+  };
+
+  const cancelOverlay = () => {
+    setOverlayVisible(false);
+  };
+
+  const toggleKeepScreenOn = (value: boolean) => {
+    updateSetting({ key: "keepScreenOn", value: value.toString() });
+  };
+
+  const toggleDownloadImages = (value: boolean) => {
+    updateSetting({ key: "downloadImages", value: value.toString() });
+  };
+
+  useEffect(() => {
+    if (isError) {
+      console.error("Error fetching settings:", error);
+    }
+  }, [isError, error]);
+
+  if (isLoading) {
+    return (
+      <ThemedView style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.dark.text} />
+      </ThemedView>
+    );
+  }
+
+  if (isError) {
+    return <ThemedText>Error: {String(error)}</ThemedText>;
+  }
 
   return (
     <ThemedView>
-      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Modal for Overlay */}
+        <SettingsModal
+          visible={overlayVisible}
+          settingKey={currentSettingKey}
+          inputValue={inputValue}
+          onCancel={cancelOverlay}
+          onSave={saveSetting}
+          onChangeValue={setInputValue}
+          settingType={settingType}
+          options={options}
+        />
         <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>Personal</ThemedText>
           <TouchableOpacity
@@ -52,7 +119,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
-              value={downloadImages}
+              value={settings?.downloadImages === "true"}
               onValueChange={toggleDownloadImages}
               color={Colors.dark.tint}
               style={styles.switch}
@@ -60,7 +127,14 @@ export default function SettingsScreen() {
           </View>
           <TouchableOpacity
             style={styles.item}
-            onPress={() => console.log("Weekly goal pressed")}
+            onPress={() =>
+              showOverlay(
+                "weeklyGoal",
+                settings?.weeklyGoal || "",
+                "dropdown",
+                ["1", "2", "3", "4", "5", "6", "7"],
+              )
+            }
           >
             <MaterialCommunityIcons
               name="target"
@@ -71,7 +145,7 @@ export default function SettingsScreen() {
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>Weekly goal</ThemedText>
               <ThemedText style={styles.currentSetting}>
-                5 days per week
+                {settings?.weeklyGoal} days per week
               </ThemedText>
             </View>
           </TouchableOpacity>
@@ -84,7 +158,12 @@ export default function SettingsScreen() {
           </ThemedText>
           <TouchableOpacity
             style={styles.item}
-            onPress={() => console.log("Weight unit pressed")}
+            onPress={() =>
+              showOverlay("weightUnit", settings?.weightUnit || "", "radio", [
+                "Kilograms",
+                "Pounds",
+              ])
+            }
           >
             <MaterialCommunityIcons
               name="scale"
@@ -94,12 +173,21 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>Weight unit</ThemedText>
-              <ThemedText style={styles.currentSetting}>Kilograms</ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.weightUnit}
+              </ThemedText>
             </View>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.item}
-            onPress={() => console.log("Distance unit pressed")}
+            onPress={() =>
+              showOverlay(
+                "distanceUnit",
+                settings?.distanceUnit || "",
+                "radio",
+                ["Kilometers", "Miles"],
+              )
+            }
           >
             <MaterialCommunityIcons
               name="run"
@@ -109,12 +197,19 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>Distance unit</ThemedText>
-              <ThemedText style={styles.currentSetting}>Kilometers</ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.distanceUnit}
+              </ThemedText>
             </View>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.item}
-            onPress={() => console.log("Size unit pressed")}
+            onPress={() =>
+              showOverlay("sizeUnit", settings?.sizeUnit || "", "radio", [
+                "Centimeters",
+                "Inches",
+              ])
+            }
           >
             <MaterialCommunityIcons
               name="tape-measure"
@@ -124,7 +219,9 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>Size unit</ThemedText>
-              <ThemedText style={styles.currentSetting}>Centimeters</ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.sizeUnit}
+              </ThemedText>
             </View>
           </TouchableOpacity>
         </View>
@@ -134,7 +231,13 @@ export default function SettingsScreen() {
           <ThemedText style={styles.sectionHeader}>Workout</ThemedText>
           <TouchableOpacity
             style={styles.item}
-            onPress={() => console.log("Weight increment pressed")}
+            onPress={() =>
+              showOverlay(
+                "weightIncrement",
+                settings?.weightIncrement || "",
+                "number",
+              )
+            }
           >
             <MaterialCommunityIcons
               name="plus"
@@ -144,7 +247,9 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>Weight increment</ThemedText>
-              <ThemedText style={styles.currentSetting}>2.5 kg</ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.weightIncrement} {settings?.weightUnit}
+              </ThemedText>
             </View>
           </TouchableOpacity>
           <View style={styles.item}>
@@ -157,11 +262,11 @@ export default function SettingsScreen() {
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>Keep screen on</ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {keepScreenOn ? "Enabled" : "Disabled"}
+                {settings?.keepScreenOn === "true" ? "Enabled" : "Disabled"}
               </ThemedText>
             </View>
             <Switch
-              value={keepScreenOn}
+              value={settings?.keepScreenOn === "true"}
               onValueChange={toggleKeepScreenOn}
               color={Colors.dark.tint}
               style={styles.switch}
@@ -174,7 +279,9 @@ export default function SettingsScreen() {
           <ThemedText style={styles.sectionHeader}>Exercise</ThemedText>
           <TouchableOpacity
             style={styles.item}
-            onPress={() => console.log("Default sets pressed")}
+            onPress={() =>
+              showOverlay("defaultSets", settings?.defaultSets || "", "number")
+            }
           >
             <MaterialCommunityIcons
               name="numeric"
@@ -184,12 +291,20 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>Default sets</ThemedText>
-              <ThemedText style={styles.currentSetting}>3 sets</ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.defaultSets} sets
+              </ThemedText>
             </View>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.item}
-            onPress={() => console.log("Default rest time pressed")}
+            onPress={() =>
+              showOverlay(
+                "defaultRestTime",
+                settings?.defaultRestTime || "",
+                "number",
+              )
+            }
           >
             <MaterialCommunityIcons
               name="clock"
@@ -199,7 +314,9 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>Default rest time</ThemedText>
-              <ThemedText style={styles.currentSetting}>60 seconds</ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.defaultRestTime} seconds
+              </ThemedText>
             </View>
           </TouchableOpacity>
         </View>
@@ -209,7 +326,12 @@ export default function SettingsScreen() {
           <ThemedText style={styles.sectionHeader}>Appearance</ThemedText>
           <TouchableOpacity
             style={styles.item}
-            onPress={() => console.log("Button size pressed")}
+            onPress={() =>
+              showOverlay("buttonSize", settings?.buttonSize || "", "radio", [
+                "Standard",
+                "Large",
+              ])
+            }
           >
             <MaterialCommunityIcons
               name="resize"
@@ -218,10 +340,10 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>
-                Change button size
+              <ThemedText style={styles.itemText}>Button size</ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.buttonSize}
               </ThemedText>
-              <ThemedText style={styles.currentSetting}>Medium</ThemedText>
             </View>
           </TouchableOpacity>
         </View>
@@ -314,25 +436,27 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+  },
   section: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 16,
   },
   sectionHeader: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 8,
     color: Colors.dark.text,
   },
   item: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 15,
+    paddingVertical: 16,
     justifyContent: "space-between",
   },
   textContainer: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 8,
   },
   itemText: {
     fontSize: 16,
@@ -343,12 +467,12 @@ const styles = StyleSheet.create({
     color: Colors.dark.subText,
   },
   icon: {
-    marginRight: 10,
+    marginRight: 8,
   },
   divider: {
-    marginVertical: 10,
+    marginVertical: 8,
   },
   switch: {
-    marginLeft: "auto", // Push the switch to the right
+    marginLeft: "auto",
   },
 });
