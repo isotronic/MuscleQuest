@@ -11,6 +11,7 @@ import { Colors } from "@/constants/Colors";
 import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
 import { router } from "expo-router";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 export default function HomeScreen() {
   const user = useContext(AuthContext);
@@ -18,12 +19,24 @@ export default function HomeScreen() {
     ? ", " + user.displayName.split(" ")[0]
     : "";
 
-  const { data: activePlan, isLoading, error } = useActivePlanQuery();
+  const {
+    data: activePlan,
+    isLoading: activePlanLoading,
+    error: activePlanError,
+  } = useActivePlanQuery();
+  const {
+    data: settings,
+    isLoading: settingsLoading,
+    error: settingsError,
+  } = useSettingsQuery();
 
-  if (isLoading) {
+  if (activePlanLoading || settingsLoading) {
     return <ThemedText>Loading...</ThemedText>;
-  } else if (error) {
-    return <ThemedText>Error fetching active plan: {error.message}</ThemedText>;
+  } else if (activePlanError || settingsError) {
+    const error = activePlanError || settingsError;
+    return (
+      <ThemedText>Error fetching active plan: {error?.message}</ThemedText>
+    );
   }
 
   return (
@@ -34,7 +47,7 @@ export default function HomeScreen() {
         </View>
         <View style={styles.summaryContainer}>
           <ThemedText style={styles.summaryText}>
-            X / Y days worked out
+            X / {settings?.weeklyGoal} days worked out
           </ThemedText>
         </View>
         <View style={styles.welcomeContainer}>
