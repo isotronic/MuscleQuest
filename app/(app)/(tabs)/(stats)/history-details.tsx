@@ -13,11 +13,18 @@ import {
 import { byteArrayToBase64 } from "@/utils/utility";
 import { parseISO, format } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 export default function HistoryDetailsScreen() {
   const { workoutId } = useLocalSearchParams();
   const [workout, setWorkout] = useState<CompletedWorkout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const {
+    data: settings,
+    isLoading: settingsLoading,
+    error: settingsError,
+  } = useSettingsQuery();
 
   useEffect(() => {
     const fetchWorkout = async () => {
@@ -67,12 +74,16 @@ export default function HistoryDetailsScreen() {
     }, 0);
   }, [workout]);
 
-  if (isLoading || !workout) {
+  if (isLoading || !workout || settingsLoading) {
     return (
       <ThemedView style={styles.container}>
         <ActivityIndicator size="large" color={Colors.dark.text} />
       </ThemedView>
     );
+  }
+
+  if (settingsError) {
+    return <ThemedText>Error: {settingsError.message}</ThemedText>;
   }
 
   const isoDateString = workout.date_completed.replace(" ", "T");
@@ -118,7 +129,9 @@ export default function HistoryDetailsScreen() {
               size={24}
               color={Colors.dark.icon}
             />
-            <ThemedText style={styles.summaryText}>{totalVolume} kg</ThemedText>
+            <ThemedText style={styles.summaryText}>
+              {totalVolume} {settings?.weightUnit}
+            </ThemedText>
           </View>
         </View>
 
@@ -156,7 +169,7 @@ export default function HistoryDetailsScreen() {
                     Set {set.set_number}
                   </ThemedText>
                   <ThemedText style={styles.setText}>
-                    {set.weight} kg | {set.reps} Reps
+                    {set.weight} {settings?.weightUnit} | {set.reps} Reps
                   </ThemedText>
                 </View>
               ))}

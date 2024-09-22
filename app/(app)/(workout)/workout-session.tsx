@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { TextInput, StyleSheet, View } from "react-native";
-import { Button, IconButton } from "react-native-paper";
+import { ActivityIndicator, Button, IconButton } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -9,6 +9,7 @@ import FastImage from "react-native-fast-image";
 import { Colors } from "@/constants/Colors";
 import { useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 export default function WorkoutSessionScreen() {
   const {
@@ -26,6 +27,12 @@ export default function WorkoutSessionScreen() {
     startTimer,
     stopTimer,
   } = useActiveWorkoutStore();
+
+  const {
+    data: settings,
+    isLoading: settingsLoading,
+    error: settingsError,
+  } = useSettingsQuery();
 
   const { selectedExerciseIndex } = useLocalSearchParams();
 
@@ -116,6 +123,20 @@ export default function WorkoutSessionScreen() {
     startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
   };
 
+  const weightIncrement = settings ? parseFloat(settings.weightIncrement) : 2.5;
+
+  if (settingsLoading) {
+    return (
+      <ThemedView style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.dark.text} />
+      </ThemedView>
+    );
+  }
+
+  if (settingsError) {
+    return <ThemedText>Error: {settingsError.message}</ThemedText>;
+  }
+
   return (
     <ThemedView style={styles.container}>
       {animatedImageLoading ? (
@@ -163,12 +184,14 @@ export default function WorkoutSessionScreen() {
 
       {/* Weight Input */}
       <View style={styles.centeredLabelContainer}>
-        <ThemedText style={styles.label}>Weight (kg)</ThemedText>
+        <ThemedText style={styles.label}>
+          Weight ({settings?.weightUnit})
+        </ThemedText>
       </View>
       <View style={styles.inputContainer}>
         <IconButton
           icon="minus"
-          onPress={() => handleWeightChange(-1)}
+          onPress={() => handleWeightChange(-weightIncrement)}
           size={40}
           iconColor={Colors.dark.text}
           style={styles.iconButton}
@@ -202,7 +225,7 @@ export default function WorkoutSessionScreen() {
         />
         <IconButton
           icon="plus"
-          onPress={() => handleWeightChange(1)}
+          onPress={() => handleWeightChange(weightIncrement)}
           size={40}
           iconColor={Colors.dark.text}
           style={styles.iconButton}
