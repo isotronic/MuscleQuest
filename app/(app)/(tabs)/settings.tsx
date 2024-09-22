@@ -17,30 +17,64 @@ export default function SettingsScreen() {
   const [currentSettingKey, setCurrentSettingKey] = useState<string | null>(
     null,
   );
-  const [inputValue, setInputValue] = useState<string | number>("");
+  const [inputValue, setInputValue] = useState<
+    string | number | { minutes: number; seconds: number }
+  >("");
   const [settingType, setSettingType] = useState<
-    "number" | "radio" | "dropdown" | null
+    "number" | "radio" | "dropdown" | "restTime" | null
   >(null);
   const [options, setOptions] = useState<string[] | undefined>(undefined);
+
+  const defaultRestTime = settings
+    ? `${Math.floor(parseInt(settings?.defaultRestTime) / 60)}:${
+        parseInt(settings?.defaultRestTime) % 60
+      } minutes`
+    : "";
 
   const showOverlay = (
     key: string,
     value: string | number,
-    type: "number" | "radio" | "dropdown",
+    type: "number" | "radio" | "dropdown" | "restTime",
     options?: string[],
   ) => {
+    if (key === "defaultRestTime") {
+      const totalSeconds = parseInt(value as string, 10);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      setInputValue({ minutes, seconds });
+      setSettingType("restTime");
+    } else {
+      setInputValue(value);
+      setSettingType(type);
+    }
+
     setCurrentSettingKey(key);
-    setInputValue(value);
-    setSettingType(type);
     setOptions(options);
     setOverlayVisible(true);
   };
 
   const saveSetting = () => {
-    updateSetting({
-      key: currentSettingKey as string,
-      value: inputValue.toString(),
-    });
+    if (currentSettingKey === "defaultRestTime") {
+      // Convert minutes and seconds back to total seconds
+      const { minutes, seconds } = inputValue as {
+        minutes: number;
+        seconds: number;
+      };
+      const totalSeconds = minutes * 60 + seconds;
+
+      // Save the total seconds
+      updateSetting({
+        key: currentSettingKey as string,
+        value: totalSeconds.toString(),
+      });
+    } else {
+      // Save other settings as before
+      updateSetting({
+        key: currentSettingKey as string,
+        value: inputValue.toString(),
+      });
+    }
+
     setOverlayVisible(false);
   };
 
@@ -315,7 +349,7 @@ export default function SettingsScreen() {
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>Default rest time</ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.defaultRestTime} seconds
+                {defaultRestTime}
               </ThemedText>
             </View>
           </TouchableOpacity>

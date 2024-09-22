@@ -23,11 +23,13 @@ const formatSettingKey = (key: string) => {
 interface SettingsModalProps {
   visible: boolean;
   settingKey: string | null;
-  inputValue: string | number;
+  inputValue: string | number | { minutes: number; seconds: number };
   onCancel: () => void;
   onSave: () => void;
-  onChangeValue: (value: string | number) => void;
-  settingType: "number" | "radio" | "dropdown" | null;
+  onChangeValue: (
+    value: string | number | { minutes: number; seconds: number },
+  ) => void;
+  settingType: "number" | "radio" | "dropdown" | "restTime" | null;
   options?: string[]; // For radio buttons and dropdowns
 }
 
@@ -55,15 +57,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {settingKey ? formatSettingKey(settingKey) : ""}
           </ThemedText>
 
-          {/* Render input based on the type */}
           {settingType === "number" && (
-            <TextInput
-              mode="contained"
-              value={inputValue.toString()}
-              onChangeText={(text: string) => onChangeValue(text)}
-              keyboardType="numeric"
-              style={styles.input}
-            />
+            <View style={styles.labeledInput}>
+              <ThemedText style={styles.inputLabel}>Enter Value</ThemedText>
+              <TextInput
+                mode="contained"
+                value={inputValue.toString()}
+                onChangeText={(text: string) => onChangeValue(text)}
+                keyboardType="numeric"
+                style={styles.input}
+              />
+            </View>
           )}
 
           {settingType === "radio" && options && (
@@ -107,6 +111,45 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </View>
           )}
 
+          {settingType === "restTime" && (
+            <View style={styles.timeInputContainer}>
+              <View style={styles.labeledInput}>
+                <ThemedText style={styles.inputLabel}>Minutes</ThemedText>
+                <TextInput
+                  mode="outlined"
+                  value={(
+                    inputValue as { minutes: number; seconds: number }
+                  ).minutes.toString()}
+                  onChangeText={(text: string) =>
+                    onChangeValue({
+                      ...(inputValue as { minutes: number; seconds: number }),
+                      minutes: parseInt(text, 10) || 0,
+                    })
+                  }
+                  keyboardType="numeric"
+                  style={styles.timeInput}
+                />
+              </View>
+              <View style={styles.labeledInput}>
+                <ThemedText style={styles.inputLabel}>Seconds</ThemedText>
+                <TextInput
+                  mode="outlined"
+                  value={(
+                    inputValue as { minutes: number; seconds: number }
+                  ).seconds.toString()}
+                  onChangeText={(text: string) =>
+                    onChangeValue({
+                      ...(inputValue as { minutes: number; seconds: number }),
+                      seconds: parseInt(text, 10) || 0,
+                    })
+                  }
+                  keyboardType="numeric"
+                  style={styles.timeInput}
+                />
+              </View>
+            </View>
+          )}
+
           {/* Save & Cancel Buttons */}
           <Button
             mode="contained"
@@ -146,9 +189,22 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: Colors.dark.text,
   },
-  input: {
+  timeInputContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     width: "100%",
     marginBottom: 16,
+  },
+  labeledInput: {
+    width: "48%",
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: Colors.dark.text,
+    marginBottom: 4,
+  },
+  timeInput: {
+    width: "100%",
   },
   saveButton: {
     width: "100%",
@@ -156,6 +212,10 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     width: "100%",
+  },
+  input: {
+    width: "100%",
+    marginBottom: 16,
   },
   radioItem: {
     flexDirection: "row",
