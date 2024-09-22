@@ -52,9 +52,9 @@ export default function SettingsScreen() {
     updateSetting({ key: "keepScreenOn", value: value.toString() });
   };
 
-  const toggleDownloadImages = (value: boolean) => {
-    updateSetting({ key: "downloadImages", value: value.toString() });
-  };
+  // const toggleDownloadImages = (value: boolean) => {
+  //   updateSetting({ key: "downloadImages", value: value.toString() });
+  // };
 
   useEffect(() => {
     if (isError) {
@@ -106,7 +106,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
-          <View style={styles.item}>
+          {/* <View style={styles.item}>
             <MaterialCommunityIcons
               name="cloud-download"
               size={24}
@@ -124,7 +124,7 @@ export default function SettingsScreen() {
               color={Colors.dark.tint}
               style={styles.switch}
             />
-          </View>
+          </View> */}
           <TouchableOpacity
             style={styles.item}
             onPress={() =>
@@ -178,7 +178,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.item}
             onPress={() =>
               showOverlay(
@@ -201,8 +201,8 @@ export default function SettingsScreen() {
                 {settings?.distanceUnit}
               </ThemedText>
             </View>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </TouchableOpacity> */}
+          {/* <TouchableOpacity
             style={styles.item}
             onPress={() =>
               showOverlay("sizeUnit", settings?.sizeUnit || "", "radio", [
@@ -223,7 +223,7 @@ export default function SettingsScreen() {
                 {settings?.sizeUnit}
               </ThemedText>
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <Divider style={styles.divider} />
 
