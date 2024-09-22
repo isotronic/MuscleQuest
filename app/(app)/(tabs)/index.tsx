@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ScrollView } from "react-native";
-import { Button } from "react-native-paper";
+import { ActivityIndicator, Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import WeekDays from "@/components/WeekDays";
 import { useContext } from "react";
@@ -31,7 +31,11 @@ export default function HomeScreen() {
   } = useSettingsQuery();
 
   if (activePlanLoading || settingsLoading) {
-    return <ThemedText>Loading...</ThemedText>;
+    return (
+      <ThemedView>
+        <ActivityIndicator size="large" color={Colors.dark.text} />
+      </ThemedView>
+    );
   } else if (activePlanError || settingsError) {
     const error = activePlanError || settingsError;
     return (
