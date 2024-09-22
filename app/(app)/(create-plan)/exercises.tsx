@@ -17,6 +17,7 @@ import { useWorkoutStore, UserExercise } from "@/store/workoutStore";
 import { Colors } from "@/constants/Colors";
 import React from "react";
 import FastImage from "react-native-fast-image";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -72,12 +73,25 @@ const MemoizedExerciseItem = React.memo(ExerciseItem);
 
 export default function ExercisesScreen() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: exercises, isLoading, error } = useExercisesQuery();
+  const {
+    data: exercises,
+    isLoading: exercisesLoading,
+    error: exercisesError,
+  } = useExercisesQuery();
   const addExercise = useWorkoutStore((state) => state.addExercise);
   const workouts = useWorkoutStore((state) => state.workouts);
   const { index } = useLocalSearchParams();
   const currentWorkoutIndex = Number(index);
   const currentWorkout = workouts[currentWorkoutIndex];
+
+  const {
+    data: settings,
+    isLoading: settingsLoading,
+    error: settingsError,
+  } = useSettingsQuery();
+
+  const defaultSetNumber = settings ? parseInt(settings?.defaultSets) : 3;
+  const totalSeconds = settings ? parseInt(settings?.defaultRestTime) : 0;
 
   const [selectedExercises, setSelectedExercises] = useState<string[]>(() => {
     return (
@@ -96,6 +110,14 @@ export default function ExercisesScreen() {
   }, []);
 
   const handleAddExercise = () => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const defaultSets: UserExercise["sets"] = Array(defaultSetNumber).fill({
+      repsMin: 8,
+      repsMax: 12,
+      restMinutes: minutes,
+      restSeconds: seconds,
+    });
     selectedExercises.forEach((exerciseId) => {
       const exercise = exercises?.find(
         (ex) => ex.exercise_id.toString() === exerciseId,
@@ -106,7 +128,7 @@ export default function ExercisesScreen() {
           (e) => e.exercise_id === exercise.exercise_id,
         )
       ) {
-        const exerciseToAdd: UserExercise = { ...exercise, sets: [] };
+        const exerciseToAdd: UserExercise = { ...exercise, sets: defaultSets };
         addExercise(currentWorkoutIndex, exerciseToAdd);
       }
     });
@@ -130,7 +152,7 @@ export default function ExercisesScreen() {
     },
     [selectedExercises, handleSelectExercise],
   );
-  if (isLoading) {
+  if (exercisesLoading || settingsLoading) {
     return (
       <ThemedView style={styles.container}>
         <ActivityIndicator size="large" color={Colors.dark.text} />
@@ -138,12 +160,13 @@ export default function ExercisesScreen() {
     );
   }
 
-  if (error) {
+  if (exercisesError || settingsError) {
+    const error = exercisesError || settingsError;
     console.log(error);
     return (
       <ThemedView style={styles.container}>
         <ThemedText style={styles.errorText}>
-          Error loading exercises
+          Error loading exercises: {error?.message}
         </ThemedText>
       </ThemedView>
     );
