@@ -50,6 +50,7 @@ export default function CreatePlanScreen() {
 
       if (planSaved) {
         queryClient.invalidateQueries({ queryKey: ["plans"] });
+        queryClient.invalidateQueries({ queryKey: ["activePlan"] });
         clearWorkouts();
         setPlanSaved(false);
         return navigation.dispatch(e.data.action);
