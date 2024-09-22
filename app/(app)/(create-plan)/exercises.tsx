@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import { Checkbox, Button } from "react-native-paper";
+import { Checkbox, Button, ActivityIndicator } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
@@ -133,7 +133,7 @@ export default function ExercisesScreen() {
   if (isLoading) {
     return (
       <ThemedView style={styles.container}>
-        <ThemedText style={styles.loadingText}>Loading...</ThemedText>
+        <ActivityIndicator size="large" color={Colors.dark.text} />
       </ThemedView>
     );
   }
