@@ -101,7 +101,7 @@ export default function HomeScreen() {
                       >
                         Start
                       </Button>
-                      <Button
+                      {/* <Button
                         mode="outlined"
                         onPress={() =>
                           router.push(
@@ -112,7 +112,7 @@ export default function HomeScreen() {
                         labelStyle={styles.smallButtonLabel}
                       >
                         View
-                      </Button>
+                      </Button> */}
                     </View>
                   </View>
                 </View>
