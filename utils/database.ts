@@ -332,3 +332,93 @@ export const fetchExerciseImagesByIds = async (
     throw error;
   }
 };
+
+interface SQLCountResult {
+  count: number;
+}
+
+export const insertDefaultSettings = async () => {
+  const db = await openDatabase("userData.db");
+
+  // Check if settings already exist
+  const result = (await db.getAllAsync(
+    "SELECT COUNT(*) as count FROM settings",
+  )) as SQLCountResult[];
+
+  const { count } = result[0];
+
+  // If no settings exist, insert default values
+  if (count === 0) {
+    const defaultSettings = [
+      { key: "weeklyGoal", value: "3" },
+      { key: "keepScreenOn", value: "false" },
+      { key: "downloadImages", value: "false" },
+      { key: "weightUnit", value: "Kilograms" },
+      { key: "distanceUnit", value: "Kilometers" },
+      { key: "sizeUnit", value: "Centimeters" },
+      { key: "weightIncrement", value: "2.5" },
+      { key: "defaultSets", value: "3" },
+      { key: "defaultRestTime", value: "60" },
+      { key: "buttonSize", value: "Standard" },
+    ];
+
+    // Insert default settings into the table
+    defaultSettings.forEach(async (setting) => {
+      await db.runAsync("INSERT INTO settings (key, value) VALUES (?, ?)", [
+        setting.key,
+        setting.value,
+      ]);
+    });
+  }
+};
+
+interface SettingsResult {
+  key: string;
+  value: string;
+}
+export interface Settings {
+  weeklyGoal: string;
+  keepScreenOn: string;
+  downloadImages: string;
+  weightUnit: string;
+  distanceUnit: string;
+  sizeUnit: string;
+  weightIncrement: string;
+  defaultSets: string;
+  defaultRestTime: string;
+  buttonSize: string;
+}
+
+export const fetchSettings = async (): Promise<Settings> => {
+  try {
+    const db = await openDatabase("userData.db");
+
+    const result = (await db.getAllAsync(
+      "SELECT * FROM settings",
+    )) as SettingsResult[];
+
+    const settings: Partial<Settings> = {};
+
+    result.forEach((row: { key: string; value: string }) => {
+      settings[row.key as keyof Settings] = row.value;
+    });
+
+    return settings as Settings;
+  } catch (error) {
+    console.error("Database fetching error:", error);
+    throw error;
+  }
+};
+
+export const updateSettings = async (key: string, value: string) => {
+  try {
+    const db = await openDatabase("userData.db");
+    await db.runAsync(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      [key, value],
+    );
+  } catch (error) {
+    console.error("Error updating setting:", error);
+    throw error;
+  }
+};

@@ -1,4 +1,3 @@
-import React from "react";
 import {
   View,
   ScrollView,
@@ -14,12 +13,15 @@ import { router, Stack } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
+import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 
 export default function WorkoutOverviewScreen() {
   const { workout, completedSets, weightAndReps, startTime, activeWorkout } =
     useActiveWorkoutStore();
 
   const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation();
+
+  useKeepScreenOn();
 
   const handleSaveWorkout = async () => {
     const planId = activeWorkout?.planId;

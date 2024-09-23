@@ -1,8 +1,8 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, ScrollView } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { ScrollView } from "react-native";
-import { Button } from "react-native-paper";
+import { startOfWeek, endOfWeek } from "date-fns";
+import { ActivityIndicator, Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import WeekDays from "@/components/WeekDays";
 import { useContext } from "react";
@@ -11,6 +11,8 @@ import { Colors } from "@/constants/Colors";
 import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
 import { router } from "expo-router";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useCompletedWorkoutsQuery } from "@/hooks/useCompletedWorkoutsQuery";
 
 export default function HomeScreen() {
   const user = useContext(AuthContext);
@@ -18,29 +20,75 @@ export default function HomeScreen() {
     ? ", " + user.displayName.split(" ")[0]
     : "";
 
-  const { data: activePlan, isLoading, error } = useActivePlanQuery();
+  const {
+    data: activePlan,
+    isLoading: activePlanLoading,
+    error: activePlanError,
+  } = useActivePlanQuery();
+  const {
+    data: settings,
+    isLoading: settingsLoading,
+    error: settingsError,
+  } = useSettingsQuery();
+  const {
+    data: completedWorkouts,
+    isLoading: completedWorkoutsLoading,
+    error: completedWorkoutsError,
+  } = useCompletedWorkoutsQuery();
 
-  if (isLoading) {
-    return <ThemedText>Loading...</ThemedText>;
-  } else if (error) {
-    return <ThemedText>Error fetching active plan: {error.message}</ThemedText>;
+  const today = new Date();
+  const startOfWeekDate = startOfWeek(today, { weekStartsOn: 1 });
+  const endOfWeekDate = endOfWeek(today, { weekStartsOn: 1 });
+
+  // Filter workouts completed this week
+  const completedWorkoutsThisWeek = completedWorkouts?.filter(
+    (workout) =>
+      new Date(workout.date_completed) >= startOfWeekDate &&
+      new Date(workout.date_completed) <= endOfWeekDate,
+  );
+
+  if (activePlanLoading || settingsLoading || completedWorkoutsLoading) {
+    return (
+      <ThemedView>
+        <ActivityIndicator size="large" color={Colors.dark.text} />
+      </ThemedView>
+    );
+  } else if (activePlanError || settingsError || completedWorkoutsError) {
+    const error = activePlanError || settingsError || completedWorkoutsError;
+    return (
+      <ThemedText>
+        Error fetching{" "}
+        {activePlanError
+          ? "active plan"
+          : settingsError
+            ? "settings"
+            : "completed workouts"}
+        : {error?.message}
+      </ThemedText>
+    );
   }
 
   return (
     <ThemedView>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={styles.weekContainer}>
-          <WeekDays />
+          <WeekDays completedWorkoutsThisWeek={completedWorkoutsThisWeek} />
         </View>
         <View style={styles.summaryContainer}>
           <ThemedText style={styles.summaryText}>
-            X / Y days worked out
+            {completedWorkoutsThisWeek?.length} / {settings?.weeklyGoal} days
+            worked out
           </ThemedText>
         </View>
         <View style={styles.welcomeContainer}>
-          <ThemedText type="subtitle">Welcome{userName}</ThemedText>
+          <ThemedText type="subtitle">
+            Welcome{activePlan && " back"}
+            {userName}
+          </ThemedText>
           <ThemedText type="default">
-            Your journey to Swoletown begins today!
+            {!activePlan
+              ? "Your journey to Swoletown begins today!"
+              : "Make sure to track your progress!"}
           </ThemedText>
         </View>
 
@@ -84,7 +132,7 @@ export default function HomeScreen() {
                       >
                         Start
                       </Button>
-                      <Button
+                      {/* <Button
                         mode="outlined"
                         onPress={() =>
                           router.push(
@@ -95,20 +143,33 @@ export default function HomeScreen() {
                         labelStyle={styles.smallButtonLabel}
                       >
                         View
-                      </Button>
+                      </Button> */}
                     </View>
                   </View>
                 </View>
               ))}
             </>
           ) : (
-            <ThemedText type="default" style={styles.sectionTitle}>
-              No Active Plan
-            </ThemedText>
+            <View>
+              <ThemedText type="default" style={styles.sectionTitle}>
+                No Active Plan.
+              </ThemedText>
+              <ThemedText type="default" style={styles.sectionTitle}>
+                Create or choose one now.
+              </ThemedText>
+              <View style={styles.buttonContainer}>
+                <Button
+                  mode="contained"
+                  onPress={() => router.push("/(plans)")}
+                >
+                  Go to Plans
+                </Button>
+              </View>
+            </View>
           )}
         </View>
 
-        <View style={styles.buttonContainer}>
+        {/* <View style={styles.buttonContainer}>
           <Button
             mode="outlined"
             textColor={Colors.dark.text}
@@ -125,7 +186,7 @@ export default function HomeScreen() {
           >
             Quickstart workout
           </Button>
-        </View>
+        </View> */}
       </ScrollView>
     </ThemedView>
   );

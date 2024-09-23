@@ -24,6 +24,7 @@ import { AuthProvider } from "@/context/AuthProvider";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { openDatabase } from "@/utils/initAppDataDB";
 import { initUserDataDB } from "@/utils/initUserDataDB";
+import { insertDefaultSettings } from "@/utils/database";
 
 // Construct a new instrumentation instance. This is needed to communicate between the integration and React
 const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
@@ -102,6 +103,12 @@ function RootLayout() {
         await initUserDataDB();
       } catch (error) {
         console.log(error);
+      }
+
+      try {
+        await insertDefaultSettings();
+      } catch (error) {
+        console.error(error);
       }
     }
 
