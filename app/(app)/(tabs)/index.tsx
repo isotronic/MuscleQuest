@@ -81,9 +81,14 @@ export default function HomeScreen() {
           </ThemedText>
         </View>
         <View style={styles.welcomeContainer}>
-          <ThemedText type="subtitle">Welcome{userName}</ThemedText>
+          <ThemedText type="subtitle">
+            Welcome{activePlan && " back"}
+            {userName}
+          </ThemedText>
           <ThemedText type="default">
-            Your journey to Swoletown begins today!
+            {!activePlan
+              ? "Your journey to Swoletown begins today!"
+              : "Make sure to track your progress!"}
           </ThemedText>
         </View>
 
@@ -145,9 +150,22 @@ export default function HomeScreen() {
               ))}
             </>
           ) : (
-            <ThemedText type="default" style={styles.sectionTitle}>
-              No Active Plan
-            </ThemedText>
+            <View>
+              <ThemedText type="default" style={styles.sectionTitle}>
+                No Active Plan.
+              </ThemedText>
+              <ThemedText type="default" style={styles.sectionTitle}>
+                Create or choose one now.
+              </ThemedText>
+              <View style={styles.buttonContainer}>
+                <Button
+                  mode="contained"
+                  onPress={() => router.push("/(plans)")}
+                >
+                  Go to Plans
+                </Button>
+              </View>
+            </View>
           )}
         </View>
 
