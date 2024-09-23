@@ -151,7 +151,7 @@ export default function HomeScreen() {
           )}
         </View>
 
-        <View style={styles.buttonContainer}>
+        {/* <View style={styles.buttonContainer}>
           <Button
             mode="outlined"
             textColor={Colors.dark.text}
@@ -168,7 +168,7 @@ export default function HomeScreen() {
           >
             Quickstart workout
           </Button>
-        </View>
+        </View> */}
       </ScrollView>
     </ThemedView>
   );
