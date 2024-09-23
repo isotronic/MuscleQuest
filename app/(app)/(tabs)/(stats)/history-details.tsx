@@ -110,7 +110,7 @@ export default function HistoryDetailsScreen() {
               color={Colors.dark.icon}
             />
             <ThemedText style={styles.summaryText}>
-              {workout.duration} mins
+              {Math.round(workout.duration / 60)} mins
             </ThemedText>
           </View>
           <View style={styles.summaryItem}>
