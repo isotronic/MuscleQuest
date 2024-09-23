@@ -10,7 +10,7 @@ import { Colors } from "@/constants/Colors";
 import { useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
-import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
+import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 
 export default function WorkoutSessionScreen() {
   const {
@@ -65,21 +65,7 @@ export default function WorkoutSessionScreen() {
     isLoading: animatedImageLoading,
   } = useAnimatedImageQuery(currentExercise?.animated_url);
 
-  useEffect(() => {
-    let keepAwakeActive = false;
-
-    if (settings?.keepScreenOn === "true") {
-      activateKeepAwakeAsync().then(() => {
-        keepAwakeActive = true;
-      });
-    }
-
-    return () => {
-      if (keepAwakeActive) {
-        deactivateKeepAwake();
-      }
-    };
-  }, [settings?.keepScreenOn]);
+  useKeepScreenOn();
 
   // Timer hook for rest countdown
   const { seconds, minutes, restart } = useTimer({
