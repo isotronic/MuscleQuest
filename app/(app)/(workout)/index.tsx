@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   ScrollView,
@@ -11,15 +11,34 @@ import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack } from "expo-router";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { Colors } from "@/constants/Colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 export default function WorkoutOverviewScreen() {
   const { workout, completedSets, weightAndReps, startTime, activeWorkout } =
     useActiveWorkoutStore();
 
   const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation();
+  const { data: settings } = useSettingsQuery();
+
+  useEffect(() => {
+    let keepAwakeActive = false;
+
+    if (settings?.keepScreenOn === "true") {
+      activateKeepAwakeAsync().then(() => {
+        keepAwakeActive = true;
+      });
+    }
+
+    return () => {
+      if (keepAwakeActive) {
+        deactivateKeepAwake();
+      }
+    };
+  }, [settings?.keepScreenOn]);
 
   const handleSaveWorkout = async () => {
     const planId = activeWorkout?.planId;

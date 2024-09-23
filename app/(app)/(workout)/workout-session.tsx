@@ -10,6 +10,7 @@ import { Colors } from "@/constants/Colors";
 import { useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 
 export default function WorkoutSessionScreen() {
   const {
@@ -63,6 +64,22 @@ export default function WorkoutSessionScreen() {
     error: animatedImageError,
     isLoading: animatedImageLoading,
   } = useAnimatedImageQuery(currentExercise?.animated_url);
+
+  useEffect(() => {
+    let keepAwakeActive = false;
+
+    if (settings?.keepScreenOn === "true") {
+      activateKeepAwakeAsync().then(() => {
+        keepAwakeActive = true;
+      });
+    }
+
+    return () => {
+      if (keepAwakeActive) {
+        deactivateKeepAwake();
+      }
+    };
+  }, [settings?.keepScreenOn]);
 
   // Timer hook for rest countdown
   const { seconds, minutes, restart } = useTimer({
@@ -124,6 +141,13 @@ export default function WorkoutSessionScreen() {
   };
 
   const weightIncrement = settings ? parseFloat(settings.weightIncrement) : 2.5;
+  const buttonSize = settings
+    ? settings.buttonSize === "Standard"
+      ? 40
+      : settings.buttonSize === "Large"
+        ? 60
+        : 80
+    : 40;
 
   if (settingsLoading) {
     return (
@@ -162,7 +186,7 @@ export default function WorkoutSessionScreen() {
         <IconButton
           icon="chevron-left"
           onPress={handlePreviousSet}
-          size={40}
+          size={buttonSize}
           disabled={currentSetIndex === 0} // Disable if on the first set
           iconColor={Colors.dark.text}
           style={styles.iconButton}
@@ -173,7 +197,7 @@ export default function WorkoutSessionScreen() {
         <IconButton
           icon="chevron-right"
           onPress={handleNextSet}
-          size={40}
+          size={buttonSize}
           disabled={
             currentSetIndex === (currentExercise?.sets?.length || 0) - 1
           } // Disable if on the last set
@@ -192,7 +216,7 @@ export default function WorkoutSessionScreen() {
         <IconButton
           icon="minus"
           onPress={() => handleWeightChange(-weightIncrement)}
-          size={40}
+          size={buttonSize}
           iconColor={Colors.dark.text}
           style={styles.iconButton}
         />
@@ -226,7 +250,7 @@ export default function WorkoutSessionScreen() {
         <IconButton
           icon="plus"
           onPress={() => handleWeightChange(weightIncrement)}
-          size={40}
+          size={buttonSize}
           iconColor={Colors.dark.text}
           style={styles.iconButton}
         />
@@ -240,7 +264,7 @@ export default function WorkoutSessionScreen() {
         <IconButton
           icon="minus"
           onPress={() => handleRepsChange(-1)}
-          size={40}
+          size={buttonSize}
           iconColor={Colors.dark.text}
           style={styles.iconButton}
         />
@@ -271,7 +295,7 @@ export default function WorkoutSessionScreen() {
         <IconButton
           icon="plus"
           onPress={() => handleRepsChange(1)}
-          size={40}
+          size={buttonSize}
           iconColor={Colors.dark.text}
           style={styles.iconButton}
         />
@@ -283,8 +307,20 @@ export default function WorkoutSessionScreen() {
         style={[
           styles.completeButton,
           currentSetCompleted && styles.disabledButton,
+          settings?.buttonSize === "Standard"
+            ? {}
+            : settings?.buttonSize === "Large"
+              ? { height: 50 }
+              : { height: 60 },
         ]}
-        labelStyle={currentSetCompleted ? styles.disabledButtonText : {}}
+        labelStyle={[
+          currentSetCompleted ? styles.disabledButtonText : {},
+          settings?.buttonSize === "Standard"
+            ? {}
+            : settings?.buttonSize === "Large"
+              ? { fontSize: 20, lineHeight: 25 }
+              : { fontSize: 24, lineHeight: 35 },
+        ]}
         disabled={currentSetCompleted}
       >
         Complete Set
