@@ -364,6 +364,7 @@ export default function SettingsScreen() {
               showOverlay("buttonSize", settings?.buttonSize || "", "radio", [
                 "Standard",
                 "Large",
+                "XLarge",
               ])
             }
           >
