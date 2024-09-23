@@ -2,8 +2,13 @@ import { View, StyleSheet } from "react-native";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { ThemedText } from "./ThemedText";
 import { Colors } from "@/constants/Colors";
+import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 
-export default function WeekDays() {
+interface WeekDaysProps {
+  completedWorkoutsThisWeek?: CompletedWorkout[];
+}
+
+export default function WeekDays({ completedWorkoutsThisWeek }: WeekDaysProps) {
   const today = new Date();
   const start = startOfWeek(today, { weekStartsOn: 1 });
   const days = Array.from({ length: 7 }).map((_, i) => addDays(start, i));
@@ -12,6 +17,10 @@ export default function WeekDays() {
     <View style={styles.container}>
       {days.map((day, index) => {
         const isToday = isSameDay(day, today);
+        const isWorkoutCompleted = completedWorkoutsThisWeek?.some((workout) =>
+          isSameDay(new Date(workout.date_completed), day),
+        );
+
         return (
           <View key={index} style={styles.dayContainer}>
             <ThemedText
@@ -19,7 +28,13 @@ export default function WeekDays() {
             >
               {format(day, "EEE")}
             </ThemedText>
-            <View style={[styles.circle, isToday && styles.todayCircle]}>
+            <View
+              style={[
+                styles.circle,
+                isToday && styles.todayCircle,
+                isWorkoutCompleted && styles.workoutCompletedCircle,
+              ]}
+            >
               <ThemedText style={styles.dayNumber}>
                 {format(day, "d")}
               </ThemedText>
@@ -61,6 +76,9 @@ const styles = StyleSheet.create({
   todayCircle: {
     borderColor: Colors.dark.highlight,
     borderWidth: 2,
+  },
+  workoutCompletedCircle: {
+    borderColor: Colors.dark.tint,
   },
   dayNumber: {
     fontSize: 16,

@@ -1,7 +1,7 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, ScrollView } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { ScrollView } from "react-native";
+import { startOfWeek, endOfWeek } from "date-fns";
 import { ActivityIndicator, Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import WeekDays from "@/components/WeekDays";
@@ -12,6 +12,7 @@ import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
 import { router } from "expo-router";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useCompletedWorkoutsQuery } from "@/hooks/useCompletedWorkoutsQuery";
 
 export default function HomeScreen() {
   const user = useContext(AuthContext);
@@ -29,17 +30,41 @@ export default function HomeScreen() {
     isLoading: settingsLoading,
     error: settingsError,
   } = useSettingsQuery();
+  const {
+    data: completedWorkouts,
+    isLoading: completedWorkoutsLoading,
+    error: completedWorkoutsError,
+  } = useCompletedWorkoutsQuery();
 
-  if (activePlanLoading || settingsLoading) {
+  const today = new Date();
+  const startOfWeekDate = startOfWeek(today, { weekStartsOn: 1 });
+  const endOfWeekDate = endOfWeek(today, { weekStartsOn: 1 });
+
+  // Filter workouts completed this week
+  const completedWorkoutsThisWeek = completedWorkouts?.filter(
+    (workout) =>
+      new Date(workout.date_completed) >= startOfWeekDate &&
+      new Date(workout.date_completed) <= endOfWeekDate,
+  );
+
+  if (activePlanLoading || settingsLoading || completedWorkoutsLoading) {
     return (
       <ThemedView>
         <ActivityIndicator size="large" color={Colors.dark.text} />
       </ThemedView>
     );
-  } else if (activePlanError || settingsError) {
-    const error = activePlanError || settingsError;
+  } else if (activePlanError || settingsError || completedWorkoutsError) {
+    const error = activePlanError || settingsError || completedWorkoutsError;
     return (
-      <ThemedText>Error fetching active plan: {error?.message}</ThemedText>
+      <ThemedText>
+        Error fetching{" "}
+        {activePlanError
+          ? "active plan"
+          : settingsError
+            ? "settings"
+            : "completed workouts"}
+        : {error?.message}
+      </ThemedText>
     );
   }
 
@@ -47,11 +72,12 @@ export default function HomeScreen() {
     <ThemedView>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={styles.weekContainer}>
-          <WeekDays />
+          <WeekDays completedWorkoutsThisWeek={completedWorkoutsThisWeek} />
         </View>
         <View style={styles.summaryContainer}>
           <ThemedText style={styles.summaryText}>
-            X / {settings?.weeklyGoal} days worked out
+            {completedWorkoutsThisWeek?.length} / {settings?.weeklyGoal} days
+            worked out
           </ThemedText>
         </View>
         <View style={styles.welcomeContainer}>
