@@ -2,7 +2,7 @@ module.exports = {
   expo: {
     name: "MuscleQuest",
     slug: "musclequest",
-    version: "0.0.11",
+    version: "0.0.12",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",
@@ -16,7 +16,7 @@ module.exports = {
       supportsTablet: true,
     },
     android: {
-      versionCode: 1,
+      versionCode: 11,
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       adaptiveIcon: {
         foregroundImage: "./assets/images/icon.png",
