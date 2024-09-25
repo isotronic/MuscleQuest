@@ -42,11 +42,11 @@ Sentry.init({
   ],
   // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
   // We recommend adjusting this value in production.
-  tracesSampleRate: 0,
+  tracesSampleRate: 1.0,
   _experiments: {
     // profilesSampleRate is relative to tracesSampleRate.
     // Here, we'll capture profiles for 100% of transactions.
-    profilesSampleRate: 0,
+    profilesSampleRate: 1.0,
   },
   // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   // enableSpotlight: __DEV__,
