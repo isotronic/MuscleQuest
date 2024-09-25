@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
-import {
-  ActivityIndicator,
-  Divider,
-  Snackbar,
-  Switch,
-} from "react-native-paper";
+import { ActivityIndicator, Divider, Switch } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -31,7 +26,6 @@ export default function SettingsScreen() {
     "number" | "radio" | "dropdown" | "restTime" | null
   >(null);
   const [options, setOptions] = useState<string[] | undefined>(undefined);
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
 
   const defaultRestTime = settings
     ? `${Math.floor(parseInt(settings?.defaultRestTime) / 60)}:${
@@ -101,7 +95,6 @@ export default function SettingsScreen() {
   const handleClearDatabase = async () => {
     try {
       await clearDatabaseAndReinitialize();
-      setSnackbarVisible(true); // Show success message
     } catch (error) {
       console.error("Error clearing database:", error);
     }
@@ -152,7 +145,7 @@ export default function SettingsScreen() {
         />
         <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>Personal</ThemedText>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.item}
             onPress={() => console.log("Backup and restore pressed")}
           >
@@ -167,7 +160,7 @@ export default function SettingsScreen() {
                 Backup and restore
               </ThemedText>
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           {/* <View style={styles.item}>
             <MaterialCommunityIcons
               name="cloud-download"
@@ -511,14 +504,6 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
         </View>
-        {/* Snackbar to show the success message */}
-        <Snackbar
-          visible={snackbarVisible}
-          onDismiss={() => setSnackbarVisible(false)}
-          duration={3000}
-        >
-          User data cleared successfully!
-        </Snackbar>
       </ScrollView>
     </ThemedView>
   );
