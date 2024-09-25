@@ -1,6 +1,5 @@
 import * as FileSystem from "expo-file-system";
-import { initUserDataDB } from "./initUserDataDB";
-import { insertDefaultSettings } from "./database";
+import * as Updates from "expo-updates";
 
 export const clearDatabaseAndReinitialize = async () => {
   const dbPath = `${FileSystem.documentDirectory}SQLite/userData.db`;
@@ -15,10 +14,8 @@ export const clearDatabaseAndReinitialize = async () => {
     }
 
     // Reinitialize the database
-    console.log("Reinitializing the database...");
-    await initUserDataDB();
-    await insertDefaultSettings();
-    console.log("Database reinitialized successfully.");
+    console.log("Restarting the app...");
+    await Updates.reloadAsync();
   } catch (error) {
     console.error("Error clearing and reinitializing the database:", error);
   }

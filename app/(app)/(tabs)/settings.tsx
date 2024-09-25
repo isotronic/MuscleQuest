@@ -110,7 +110,7 @@ export default function SettingsScreen() {
   const confirmClearDatabase = () => {
     Alert.alert(
       "Clear App Data",
-      "Are you sure you want to clear all app data? This action cannot be undone.",
+      "Are you sure you want to clear all app data? This action cannot be undone. The app will reload after clearing.",
       [
         { text: "Cancel", style: "cancel" },
         { text: "Clear", onPress: handleClearDatabase },
