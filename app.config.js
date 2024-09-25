@@ -24,6 +24,10 @@ module.exports = {
       },
       package: "com.isotronic.musclequest",
     },
+    androidNavigationBar: {
+      backgroundColor: "#22222d",
+      barStyle: "dark-content",
+    },
     web: {
       bundler: "metro",
       output: "static",
@@ -40,6 +44,8 @@ module.exports = {
         {
           organization: "musclequest",
           project: "musclequest-react-native",
+          url: "https://sentry.io/",
+          note: "Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.",
         },
       ],
       [
