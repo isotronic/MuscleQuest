@@ -28,9 +28,11 @@ export default function SettingsScreen() {
   const [options, setOptions] = useState<string[] | undefined>(undefined);
 
   const defaultRestTime = settings
-    ? `${Math.floor(parseInt(settings?.defaultRestTime) / 60)}:${
+    ? `${Math.floor(parseInt(settings?.defaultRestTime) / 60)}:${(
         parseInt(settings?.defaultRestTime) % 60
-      } minutes`
+      )
+        .toString()
+        .padStart(2, "0")} minutes`
     : "";
 
   const showOverlay = (
