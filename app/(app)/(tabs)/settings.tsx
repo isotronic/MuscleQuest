@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
-import { ActivityIndicator, Divider, Switch } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Divider,
+  Snackbar,
+  Switch,
+} from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -8,6 +13,8 @@ import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import { SettingsModal } from "@/components/SettingsModal";
+import { Alert } from "react-native";
+import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 
 export default function SettingsScreen() {
   const { data: settings, isLoading, isError, error } = useSettingsQuery();
@@ -24,6 +31,7 @@ export default function SettingsScreen() {
     "number" | "radio" | "dropdown" | "restTime" | null
   >(null);
   const [options, setOptions] = useState<string[] | undefined>(undefined);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
 
   const defaultRestTime = settings
     ? `${Math.floor(parseInt(settings?.defaultRestTime) / 60)}:${
@@ -89,6 +97,26 @@ export default function SettingsScreen() {
   // const toggleDownloadImages = (value: boolean) => {
   //   updateSetting({ key: "downloadImages", value: value.toString() });
   // };
+
+  const handleClearDatabase = async () => {
+    try {
+      await clearDatabaseAndReinitialize();
+      setSnackbarVisible(true); // Show success message
+    } catch (error) {
+      console.error("Error clearing database:", error);
+    }
+  };
+
+  const confirmClearDatabase = () => {
+    Alert.alert(
+      "Clear App Data",
+      "Are you sure you want to clear all app data? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Clear", onPress: handleClearDatabase },
+      ],
+    );
+  };
 
   useEffect(() => {
     if (isError) {
@@ -385,6 +413,24 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
+          <ThemedText style={styles.sectionHeader}>Manage Data</ThemedText>
+          <TouchableOpacity style={styles.item} onPress={confirmClearDatabase}>
+            <MaterialCommunityIcons
+              name="delete"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Clear all user data
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+        </View>
+        <Divider style={styles.divider} />
+
+        <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>About</ThemedText>
           <TouchableOpacity
             style={styles.item}
@@ -465,6 +511,14 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
         </View>
+        {/* Snackbar to show the success message */}
+        <Snackbar
+          visible={snackbarVisible}
+          onDismiss={() => setSnackbarVisible(false)}
+          duration={3000}
+        >
+          User data cleared successfully!
+        </Snackbar>
       </ScrollView>
     </ThemedView>
   );
