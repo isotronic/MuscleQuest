@@ -2,7 +2,7 @@ module.exports = {
   expo: {
     name: "MuscleQuest",
     slug: "musclequest",
-    version: "0.0.12",
+    version: "0.1.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",
