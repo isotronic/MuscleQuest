@@ -14,6 +14,7 @@ export default function CreatePlanLayout() {
         }}
       >
         <Stack.Screen name="create" options={{ title: "Create Plan" }} />
+        <Stack.Screen name="image-search" options={{ title: "Image Search" }} />
         <Stack.Screen name="exercises" options={{ title: "Exercises" }} />
         <Stack.Screen
           name="exercise-details"
