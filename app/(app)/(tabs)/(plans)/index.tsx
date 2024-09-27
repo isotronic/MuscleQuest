@@ -37,12 +37,12 @@ export default function PlansScreen() {
         <PlanList title="Build muscle" data={[]} onPressItem={handleViewPlan} />
         <PlanList
           title="Gain strength"
-          data={[1, 2, 3, 4, 5, 6]}
+          data={[]}
           onPressItem={handleViewPlan}
         />
-        <ThemedText style={{ margin: 20, textAlign: "center" }}>
+        {/* <ThemedText style={{ margin: 20, textAlign: "center" }}>
           View all exercises
-        </ThemedText>
+        </ThemedText> */}
       </ScrollView>
       <FAB
         icon="plus"

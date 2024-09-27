@@ -28,6 +28,7 @@ export const PlanList: React.FC<PlanListProps> = ({
       snapToInterval={320}
       snapToAlignment="start"
       data={data}
+      showsHorizontalScrollIndicator={false}
       renderItem={({ item }: { item: Plan }) => (
         <TrainingPlanCard
           title={item.name}

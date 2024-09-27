@@ -4,7 +4,7 @@ import {
   GoogleSignin,
   GoogleSigninButton,
 } from "@react-native-google-signin/google-signin";
-import * as googleServices from "../google-services.json";
+import * as googleServices from "@/google-services.json";
 import { router } from "expo-router";
 import { StyleSheet } from "react-native";
 

@@ -15,7 +15,7 @@ ios
 # *.db
 
 # Firebase
-google-services.json
+# google-services.json
 
 credentials.json
 credentials/

@@ -8,6 +8,8 @@ import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import { SettingsModal } from "@/components/SettingsModal";
+import { Alert } from "react-native";
+import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 
 export default function SettingsScreen() {
   const { data: settings, isLoading, isError, error } = useSettingsQuery();
@@ -26,9 +28,11 @@ export default function SettingsScreen() {
   const [options, setOptions] = useState<string[] | undefined>(undefined);
 
   const defaultRestTime = settings
-    ? `${Math.floor(parseInt(settings?.defaultRestTime) / 60)}:${
+    ? `${Math.floor(parseInt(settings?.defaultRestTime) / 60)}:${(
         parseInt(settings?.defaultRestTime) % 60
-      } minutes`
+      )
+        .toString()
+        .padStart(2, "0")} minutes`
     : "";
 
   const showOverlay = (
@@ -90,6 +94,26 @@ export default function SettingsScreen() {
   //   updateSetting({ key: "downloadImages", value: value.toString() });
   // };
 
+  const handleClearDatabase = async () => {
+    try {
+      await clearDatabaseAndReinitialize();
+    } catch (error) {
+      console.error("Error clearing database:", error);
+      Alert.alert("Error", "Failed to clear database. Please try again.");
+    }
+  };
+
+  const confirmClearDatabase = () => {
+    Alert.alert(
+      "Clear App Data",
+      "Are you sure you want to clear all app data? This action cannot be undone. The app will reload after clearing.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Clear", onPress: handleClearDatabase },
+      ],
+    );
+  };
+
   useEffect(() => {
     if (isError) {
       console.error("Error fetching settings:", error);
@@ -124,7 +148,7 @@ export default function SettingsScreen() {
         />
         <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>Personal</ThemedText>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.item}
             onPress={() => console.log("Backup and restore pressed")}
           >
@@ -139,7 +163,7 @@ export default function SettingsScreen() {
                 Backup and restore
               </ThemedText>
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           {/* <View style={styles.item}>
             <MaterialCommunityIcons
               name="cloud-download"
@@ -378,6 +402,24 @@ export default function SettingsScreen() {
               <ThemedText style={styles.itemText}>Button size</ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {settings?.buttonSize}
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+        </View>
+        <Divider style={styles.divider} />
+
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionHeader}>Manage Data</ThemedText>
+          <TouchableOpacity style={styles.item} onPress={confirmClearDatabase}>
+            <MaterialCommunityIcons
+              name="delete"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Clear all user data
               </ThemedText>
             </View>
           </TouchableOpacity>
