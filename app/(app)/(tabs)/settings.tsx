@@ -99,6 +99,7 @@ export default function SettingsScreen() {
       await clearDatabaseAndReinitialize();
     } catch (error) {
       console.error("Error clearing database:", error);
+      Alert.alert("Error", "Failed to clear database. Please try again.");
     }
   };
 
