@@ -14,7 +14,7 @@ MuscleQuest is a mobile workout tracker app built to help users plan, track, and
 
 ## Screenshots
 
-> Screenshot coming soon
+_Screenshots will be added as the project progresses._
 
 ## Tech Stack
 
@@ -51,6 +51,8 @@ npx expo start
 ```
 
 ## User Data Database Structure
+
+The following TypeScript interfaces represent the structure of the database:
 
 ### Plan
 
