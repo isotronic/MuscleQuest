@@ -1,13 +1,13 @@
-import { Redirect, Stack } from "expo-router";
-import { useContext } from "react";
-import { AuthContext } from "@/context/AuthProvider";
+import { Stack } from "expo-router";
+// import { useContext } from "react";
+// import { AuthContext } from "@/context/AuthProvider";
 
 export default function AppLayout() {
-  const user = useContext(AuthContext);
+  // const user = useContext(AuthContext);
 
-  if (!user) {
-    return <Redirect href="/login" />;
-  }
+  // if (!user) {
+  //   return <Redirect href="/login" />;
+  // }
 
   return (
     <Stack>
