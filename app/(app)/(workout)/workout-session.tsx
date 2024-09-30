@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { TextInput, StyleSheet, View } from "react-native";
+import { TextInput, StyleSheet, View, ScrollView } from "react-native";
 import { ActivityIndicator, Button, IconButton } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
@@ -149,177 +149,179 @@ export default function WorkoutSessionScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {animatedImageLoading ? (
-        <ThemedText style={styles.loadingText}>Loading GIF...</ThemedText>
-      ) : animatedImageError ? (
-        <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
-      ) : animatedUrl ? (
-        <FastImage
-          style={styles.animatedImage}
-          source={{
-            uri: animatedUrl,
-            priority: FastImage.priority.normal,
-          }}
-          resizeMode={FastImage.resizeMode.contain}
-        />
-      ) : (
-        <ThemedText style={styles.loadingText}>No GIF available</ThemedText>
-      )}
+      <ScrollView>
+        {animatedImageLoading ? (
+          <ThemedText style={styles.loadingText}>Loading GIF...</ThemedText>
+        ) : animatedImageError ? (
+          <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
+        ) : animatedUrl ? (
+          <FastImage
+            style={styles.animatedImage}
+            source={{
+              uri: animatedUrl,
+              priority: FastImage.priority.normal,
+            }}
+            resizeMode={FastImage.resizeMode.contain}
+          />
+        ) : (
+          <ThemedText style={styles.loadingText}>No GIF available</ThemedText>
+        )}
 
-      <ThemedText style={styles.title}>{currentExercise?.name}</ThemedText>
-      {/* Set Navigation */}
-      <View style={styles.setNavigationContainer}>
-        <IconButton
-          icon="chevron-left"
-          onPress={handlePreviousSet}
-          size={buttonSize}
-          disabled={currentSetIndex === 0} // Disable if on the first set
-          iconColor={Colors.dark.text}
-          style={styles.iconButton}
-        />
-        <ThemedText>
-          Set {currentSetIndex + 1} of {currentExercise?.sets.length}
-        </ThemedText>
-        <IconButton
-          icon="chevron-right"
-          onPress={handleNextSet}
-          size={buttonSize}
-          disabled={
-            currentSetIndex === (currentExercise?.sets?.length || 0) - 1
-          } // Disable if on the last set
-          iconColor={Colors.dark.text}
-          style={styles.iconButton}
-        />
-      </View>
-
-      {/* Weight Input */}
-      <View style={styles.centeredLabelContainer}>
-        <ThemedText style={styles.label}>
-          Weight ({settings?.weightUnit})
-        </ThemedText>
-      </View>
-      <View style={styles.inputContainer}>
-        <IconButton
-          icon="minus"
-          onPress={() => handleWeightChange(-weightIncrement)}
-          size={buttonSize}
-          iconColor={Colors.dark.text}
-          style={styles.iconButton}
-        />
-        <TextInput
-          placeholder="Enter weight"
-          placeholderTextColor={Colors.dark.text}
-          value={weight} // Use weight from store
-          onBlur={() => {
-            const newWeight = isNaN(parseFloat(weight)) ? "0" : weight;
-            updateWeightAndReps(
-              currentExerciseIndex,
-              currentSetIndex,
-              newWeight,
-              reps,
-            );
-          }}
-          onChangeText={(text: string) => {
-            const sanitizedValue = text.replace(/[^0-9.]/g, ""); // Keep only numbers and decimal
-            updateWeightAndReps(
-              currentExerciseIndex,
-              currentSetIndex,
-              Number.isInteger(parseFloat(sanitizedValue))
-                ? sanitizedValue
-                : parseFloat(sanitizedValue).toFixed(1),
-              reps,
-            );
-          }}
-          keyboardType="numeric"
-          style={styles.input}
-        />
-        <IconButton
-          icon="plus"
-          onPress={() => handleWeightChange(weightIncrement)}
-          size={buttonSize}
-          iconColor={Colors.dark.text}
-          style={styles.iconButton}
-        />
-      </View>
-
-      {/* Reps Input */}
-      <View style={styles.centeredLabelContainer}>
-        <ThemedText style={styles.label}>Reps</ThemedText>
-      </View>
-      <View style={styles.inputContainer}>
-        <IconButton
-          icon="minus"
-          onPress={() => handleRepsChange(-1)}
-          size={buttonSize}
-          iconColor={Colors.dark.text}
-          style={styles.iconButton}
-        />
-        <TextInput
-          placeholder="Enter reps"
-          placeholderTextColor={Colors.dark.text}
-          value={reps} // Use reps from store
-          onBlur={() => {
-            const newReps = isNaN(parseFloat(reps)) ? "0" : reps;
-            updateWeightAndReps(
-              currentExerciseIndex,
-              currentSetIndex,
-              weight,
-              newReps,
-            );
-          }}
-          onChangeText={(text: string) =>
-            updateWeightAndReps(
-              currentExerciseIndex,
-              currentSetIndex,
-              weight,
-              text,
-            )
-          }
-          keyboardType="numeric"
-          style={styles.input}
-        />
-        <IconButton
-          icon="plus"
-          onPress={() => handleRepsChange(1)}
-          size={buttonSize}
-          iconColor={Colors.dark.text}
-          style={styles.iconButton}
-        />
-      </View>
-
-      <Button
-        mode="contained"
-        onPress={handleCompleteSet}
-        style={[
-          styles.completeButton,
-          currentSetCompleted && styles.disabledButton,
-          settings?.buttonSize === "Standard"
-            ? {}
-            : settings?.buttonSize === "Large"
-              ? { height: 50 }
-              : { height: 60 },
-        ]}
-        labelStyle={[
-          currentSetCompleted ? styles.disabledButtonText : {},
-          settings?.buttonSize === "Standard"
-            ? {}
-            : settings?.buttonSize === "Large"
-              ? { fontSize: 20, lineHeight: 25 }
-              : { fontSize: 24, lineHeight: 35 },
-        ]}
-        disabled={currentSetCompleted}
-      >
-        Complete Set
-      </Button>
-
-      {timerRunning && (
-        <ThemedView style={styles.timerContainer}>
-          <ThemedText style={styles.timerLabel}>Rest Time Left:</ThemedText>
-          <ThemedText style={styles.timerText}>
-            {minutes}:{seconds.toString().padStart(2, "0")}
+        <ThemedText style={styles.title}>{currentExercise?.name}</ThemedText>
+        {/* Set Navigation */}
+        <View style={styles.setNavigationContainer}>
+          <IconButton
+            icon="chevron-left"
+            onPress={handlePreviousSet}
+            size={buttonSize}
+            disabled={currentSetIndex === 0} // Disable if on the first set
+            iconColor={Colors.dark.text}
+            style={styles.iconButton}
+          />
+          <ThemedText>
+            Set {currentSetIndex + 1} of {currentExercise?.sets.length}
           </ThemedText>
-        </ThemedView>
-      )}
+          <IconButton
+            icon="chevron-right"
+            onPress={handleNextSet}
+            size={buttonSize}
+            disabled={
+              currentSetIndex === (currentExercise?.sets?.length || 0) - 1
+            } // Disable if on the last set
+            iconColor={Colors.dark.text}
+            style={styles.iconButton}
+          />
+        </View>
+
+        {/* Weight Input */}
+        <View style={styles.centeredLabelContainer}>
+          <ThemedText style={styles.label}>
+            Weight ({settings?.weightUnit})
+          </ThemedText>
+        </View>
+        <View style={styles.inputContainer}>
+          <IconButton
+            icon="minus"
+            onPress={() => handleWeightChange(-weightIncrement)}
+            size={buttonSize}
+            iconColor={Colors.dark.text}
+            style={styles.iconButton}
+          />
+          <TextInput
+            placeholder="Enter weight"
+            placeholderTextColor={Colors.dark.text}
+            value={weight} // Use weight from store
+            onBlur={() => {
+              const newWeight = isNaN(parseFloat(weight)) ? "0" : weight;
+              updateWeightAndReps(
+                currentExerciseIndex,
+                currentSetIndex,
+                newWeight,
+                reps,
+              );
+            }}
+            onChangeText={(text: string) => {
+              const sanitizedValue = text.replace(/[^0-9.]/g, ""); // Keep only numbers and decimal
+              updateWeightAndReps(
+                currentExerciseIndex,
+                currentSetIndex,
+                Number.isInteger(parseFloat(sanitizedValue))
+                  ? sanitizedValue
+                  : parseFloat(sanitizedValue).toFixed(1),
+                reps,
+              );
+            }}
+            keyboardType="numeric"
+            style={styles.input}
+          />
+          <IconButton
+            icon="plus"
+            onPress={() => handleWeightChange(weightIncrement)}
+            size={buttonSize}
+            iconColor={Colors.dark.text}
+            style={styles.iconButton}
+          />
+        </View>
+
+        {/* Reps Input */}
+        <View style={styles.centeredLabelContainer}>
+          <ThemedText style={styles.label}>Reps</ThemedText>
+        </View>
+        <View style={styles.inputContainer}>
+          <IconButton
+            icon="minus"
+            onPress={() => handleRepsChange(-1)}
+            size={buttonSize}
+            iconColor={Colors.dark.text}
+            style={styles.iconButton}
+          />
+          <TextInput
+            placeholder="Enter reps"
+            placeholderTextColor={Colors.dark.text}
+            value={reps} // Use reps from store
+            onBlur={() => {
+              const newReps = isNaN(parseFloat(reps)) ? "0" : reps;
+              updateWeightAndReps(
+                currentExerciseIndex,
+                currentSetIndex,
+                weight,
+                newReps,
+              );
+            }}
+            onChangeText={(text: string) =>
+              updateWeightAndReps(
+                currentExerciseIndex,
+                currentSetIndex,
+                weight,
+                text,
+              )
+            }
+            keyboardType="numeric"
+            style={styles.input}
+          />
+          <IconButton
+            icon="plus"
+            onPress={() => handleRepsChange(1)}
+            size={buttonSize}
+            iconColor={Colors.dark.text}
+            style={styles.iconButton}
+          />
+        </View>
+
+        <Button
+          mode="contained"
+          onPress={handleCompleteSet}
+          style={[
+            styles.completeButton,
+            currentSetCompleted && styles.disabledButton,
+            settings?.buttonSize === "Standard"
+              ? {}
+              : settings?.buttonSize === "Large"
+                ? { height: 50 }
+                : { height: 60 },
+          ]}
+          labelStyle={[
+            currentSetCompleted ? styles.disabledButtonText : {},
+            settings?.buttonSize === "Standard"
+              ? {}
+              : settings?.buttonSize === "Large"
+                ? { fontSize: 20, lineHeight: 25 }
+                : { fontSize: 24, lineHeight: 35 },
+          ]}
+          disabled={currentSetCompleted}
+        >
+          Complete Set
+        </Button>
+
+        {timerRunning && (
+          <ThemedView style={styles.timerContainer}>
+            <ThemedText style={styles.timerLabel}>Rest Time Left:</ThemedText>
+            <ThemedText style={styles.timerText}>
+              {minutes}:{seconds.toString().padStart(2, "0")}
+            </ThemedText>
+          </ThemedView>
+        )}
+      </ScrollView>
     </ThemedView>
   );
 }
