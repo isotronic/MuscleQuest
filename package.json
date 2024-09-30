@@ -62,7 +62,9 @@
     "react-native-svg": "15.2.0",
     "react-native-web": "~0.19.10",
     "react-timer-hook": "^3.0.7",
-    "zustand": "^4.5.4"
+    "unsplash-js": "^7.0.19",
+    "zustand": "^4.5.4",
+    "expo-insights": "~0.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

@@ -1,5 +1,13 @@
 import { useEffect } from "react";
-import { StyleSheet, View, Image, Alert, FlatList, Button } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Image,
+  Alert,
+  FlatList,
+  Button,
+  TouchableOpacity,
+} from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore, Workout } from "@/store/workoutStore";
@@ -17,21 +25,16 @@ export default function CreatePlanScreen() {
   const { planId } = useLocalSearchParams();
   const {
     workouts,
+    planImageUrl,
+    setPlanImageUrl,
     setWorkouts,
     clearWorkouts,
     addWorkout,
     removeWorkout,
     changeWorkoutName,
   } = useWorkoutStore();
-  const {
-    planName,
-    setPlanName,
-    planImageUrl,
-    setPlanImageUrl,
-    planSaved,
-    setPlanSaved,
-    handleSavePlan,
-  } = useCreatePlan(Number(planId));
+  const { planName, setPlanName, planSaved, setPlanSaved, handleSavePlan } =
+    useCreatePlan(Number(planId));
   const { data: existingPlan } = usePlanQuery(planId ? Number(planId) : null);
 
   useEffect(() => {
@@ -119,6 +122,10 @@ export default function CreatePlanScreen() {
     );
   };
 
+  const handleImageSearch = () => {
+    router.push(`/(app)/image-search`);
+  };
+
   const handleAddExercise = (index: number) => {
     router.push(`/(app)/(create-plan)/exercises?index=${index}`);
   };
@@ -126,12 +133,14 @@ export default function CreatePlanScreen() {
   return (
     <ThemedView style={styles.container}>
       <View style={styles.inputContainer}>
-        <Image
-          source={{
-            uri: planImageUrl,
-          }}
-          style={styles.image}
-        />
+        <TouchableOpacity onPress={handleImageSearch}>
+          <Image
+            source={{
+              uri: planImageUrl,
+            }}
+            style={styles.image}
+          />
+        </TouchableOpacity>
         <TextInput
           style={styles.input}
           placeholder="Training Plan Name"

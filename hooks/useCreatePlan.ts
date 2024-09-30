@@ -12,17 +12,16 @@ export const useCreatePlan = (
   const queryClient = useQueryClient();
   const [planSaved, setPlanSaved] = useState(false);
   const [planName, setPlanName] = useState("");
-  const [planImageUrl, setPlanImageUrl] = useState(
-    "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  );
-  const { workouts, clearWorkouts } = useWorkoutStore();
+
+  const { workouts, clearWorkouts, planImageUrl, setPlanImageUrl } =
+    useWorkoutStore();
 
   useEffect(() => {
     if (existingPlan) {
       setPlanName(existingPlan.name);
       setPlanImageUrl(existingPlan.image_url);
     }
-  }, [existingPlan]);
+  }, [existingPlan, setPlanImageUrl]);
 
   const handleSavePlan = async (planId: number | null) => {
     if (!planName.trim()) {
