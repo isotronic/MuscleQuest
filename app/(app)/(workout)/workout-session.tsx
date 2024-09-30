@@ -150,24 +150,36 @@ export default function WorkoutSessionScreen() {
   return (
     <ThemedView style={styles.container}>
       <ScrollView>
-        {animatedImageLoading ? (
-          <ThemedText style={styles.loadingText}>Loading GIF...</ThemedText>
-        ) : animatedImageError ? (
-          <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
-        ) : animatedUrl ? (
-          <FastImage
-            style={styles.animatedImage}
-            source={{
-              uri: animatedUrl,
-              priority: FastImage.priority.normal,
-            }}
-            resizeMode={FastImage.resizeMode.contain}
-          />
-        ) : (
-          <ThemedText style={styles.loadingText}>No GIF available</ThemedText>
-        )}
+        <View style={styles.headerContainer}>
+          {animatedImageLoading ? (
+            <ThemedText style={styles.loadingText}>Loading GIF...</ThemedText>
+          ) : animatedImageError ? (
+            <ThemedText style={styles.loadingText}>
+              Failed to load GIF
+            </ThemedText>
+          ) : animatedUrl ? (
+            <FastImage
+              style={styles.animatedImage}
+              source={{
+                uri: animatedUrl,
+                priority: FastImage.priority.normal,
+              }}
+              resizeMode={FastImage.resizeMode.contain}
+            />
+          ) : (
+            <ThemedText style={styles.loadingText}>No GIF available</ThemedText>
+          )}
 
-        <ThemedText style={styles.title}>{currentExercise?.name}</ThemedText>
+          <View style={styles.titleContainer}>
+            <ThemedText style={styles.title}>
+              {currentExercise?.name}
+            </ThemedText>
+            <ThemedText style={styles.restTime}>
+              Rest Time: {currentSet?.restMinutes} min {currentSet?.restSeconds}{" "}
+              sec
+            </ThemedText>
+          </View>
+        </View>
         {/* Set Navigation */}
         <View style={styles.setNavigationContainer}>
           <IconButton
@@ -303,7 +315,7 @@ export default function WorkoutSessionScreen() {
           labelStyle={[
             currentSetCompleted ? styles.disabledButtonText : {},
             settings?.buttonSize === "Standard"
-              ? {}
+              ? styles.completeButtonLabel
               : settings?.buttonSize === "Large"
                 ? { fontSize: 20, lineHeight: 25 }
                 : { fontSize: 24, lineHeight: 35 },
@@ -332,14 +344,27 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
   },
   animatedImage: {
-    width: "100%",
-    height: 150,
-    marginBottom: 20,
+    width: 70, // smaller width
+    height: 70, // smaller height
+    borderRadius: 10, // rounded corners
+    marginRight: 15, // space between image and title
+  },
+  titleContainer: {
+    flexShrink: 1, // Allow the container to shrink if necessary
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  restTime: {
+    fontSize: 14, // Smaller font size for rest time
+    color: Colors.dark.subText, // Optional: a lighter color if desired
   },
   centeredLabelContainer: {
     alignItems: "center",
@@ -375,6 +400,9 @@ const styles = StyleSheet.create({
   },
   completeButton: {
     marginTop: 20,
+  },
+  completeButtonLabel: {
+    fontSize: 16,
   },
   disabledButton: {
     backgroundColor: Colors.dark.disabledButtonBackground, // Custom disabled background color
