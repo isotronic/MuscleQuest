@@ -44,6 +44,7 @@ const ExerciseItem = ({
       <View key={item.exercise_id} style={styles.exerciseItem}>
         <Checkbox
           status={selected ? "checked" : "unchecked"}
+          uncheckedColor={Colors.dark.subText}
           onPress={() => onSelect(item.exercise_id.toString())}
         />
         {item.image ? (
@@ -194,7 +195,7 @@ export default function ExercisesScreen() {
         <Button
           mode="contained"
           onPress={handleAddExercise}
-          style={styles.addButton}
+          labelStyle={styles.addButtonLabel}
         >
           Add exercises ({selectedExercises.length})
         </Button>
@@ -210,10 +211,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   searchInput: {
-    backgroundColor: "#3B4252",
-    color: "#FFFFFF",
-    padding: 8,
-    borderRadius: 4,
+    padding: 10,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
     marginVertical: 16,
   },
   flatListContent: {
@@ -253,8 +255,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 16,
   },
-  addButton: {
-    backgroundColor: "#81A1C1",
+  addButtonLabel: {
+    fontSize: 16,
   },
   loadingText: {
     fontSize: 18,

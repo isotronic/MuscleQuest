@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   smallButtonLabel: {
-    fontSize: 12,
+    fontSize: 16,
     paddingVertical: 0,
   },
   buttonContainer: {

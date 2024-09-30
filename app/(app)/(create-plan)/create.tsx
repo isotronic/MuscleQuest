@@ -4,16 +4,16 @@ import {
   View,
   Image,
   Alert,
-  Button,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  TextInput,
 } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
-import { TextInput, FAB } from "react-native-paper";
+import { FAB, Button } from "react-native-paper";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { useCreatePlan } from "@/hooks/useCreatePlan";
@@ -149,11 +149,15 @@ export default function CreatePlanScreen() {
               placeholder="Training Plan Name"
               value={planName}
               onChangeText={setPlanName}
+              dense
             />
             <Button
-              title="Save"
+              mode="contained"
+              labelStyle={styles.buttonLabel}
               onPress={() => handleSavePlan(Number(planId))}
-            />
+            >
+              Save
+            </Button>
           </View>
           {workouts.length === 0 ? (
             <ThemedText style={styles.emptyText}>
@@ -202,15 +206,21 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    padding: 10,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
     fontSize: 18,
-    color: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#FFFFFF",
     marginRight: 10,
+    height: 40,
   },
   emptyText: {
     fontSize: 18,
-    color: "#FFFFFF",
+    color: Colors.dark.text,
+  },
+  buttonLabel: {
+    fontSize: 16,
   },
   fab: {
     position: "absolute",

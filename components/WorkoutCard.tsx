@@ -1,12 +1,13 @@
-import { StyleSheet, View, TouchableOpacity, Button } from "react-native";
+import { StyleSheet, View, TouchableOpacity, TextInput } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
-import { TextInput, Card } from "react-native-paper";
+import { Card, Button } from "react-native-paper";
 import DraggableFlatlist, {
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -85,8 +86,8 @@ export default function WorkoutCard({
         </TouchableOpacity>
       </View>
       <TextInput
-        style={styles.workoutName}
         placeholder="Workout name"
+        style={styles.input}
         value={workout.name}
         onChangeText={(text: string) => onNameChange(index, text)}
       />
@@ -106,7 +107,13 @@ export default function WorkoutCard({
           No exercises added yet
         </ThemedText>
       )}
-      <Button title="Add Exercise" onPress={() => onAddExercise(index)} />
+      <Button
+        mode="outlined"
+        labelStyle={styles.buttonLabel}
+        onPress={() => onAddExercise(index)}
+      >
+        Add Exercise
+      </Button>
     </Card>
   );
 }
@@ -122,27 +129,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
+  input: {
+    flex: 1,
+    padding: 10,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
+    marginVertical: 10,
+    height: 40,
+  },
+  buttonLabel: {
+    fontSize: 16,
+  },
   image: {
     width: 60,
     height: 60,
     borderRadius: 20,
     marginRight: 10,
   },
-  input: {
-    flex: 1,
-    fontSize: 18,
-    color: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#FFFFFF",
-    marginRight: 10,
-  },
   emptyText: {
     fontSize: 18,
-    color: "#FFFFFF",
+    color: Colors.dark.text,
   },
   workoutCard: {
     width: "100%",
-    backgroundColor: "#3B4252",
+    backgroundColor: Colors.dark.cardBackground,
     padding: 16,
     borderRadius: 8,
     marginVertical: 8,
@@ -155,7 +167,6 @@ const styles = StyleSheet.create({
   },
   workoutDay: {
     fontSize: 16,
-    color: "#8FBCBB",
   },
   workoutName: {
     fontSize: 18,
