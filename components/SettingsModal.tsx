@@ -1,14 +1,7 @@
-import {
-  Portal,
-  Modal,
-  Button,
-  RadioButton,
-  TextInput,
-  Menu,
-} from "react-native-paper";
+import { Portal, Modal, Button, RadioButton, Menu } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { StyleSheet, View, TouchableOpacity } from "react-native";
+import { StyleSheet, View, TouchableOpacity, TextInput } from "react-native";
 import { useState } from "react";
 
 // Utility function to format setting keys
@@ -61,7 +54,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <View style={styles.labeledInput}>
               <ThemedText style={styles.inputLabel}>Enter Value</ThemedText>
               <TextInput
-                mode="contained"
                 value={inputValue.toString()}
                 onChangeText={(text: string) => onChangeValue(text)}
                 keyboardType="numeric"
@@ -77,7 +69,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             >
               {options.map((option) => (
                 <View key={option} style={styles.radioItem}>
-                  <RadioButton value={option} color={Colors.dark.tint} />
+                  <RadioButton
+                    value={option}
+                    color={Colors.dark.tint}
+                    uncheckedColor={Colors.dark.icon}
+                  />
                   <ThemedText>{option}</ThemedText>
                 </View>
               ))}
@@ -85,7 +81,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           )}
 
           {settingType === "dropdown" && options && (
-            <View>
+            <View style={styles.menu}>
               <TouchableOpacity
                 onPress={() => setMenuVisible(true)}
                 style={styles.dropdown}
@@ -116,7 +112,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <View style={styles.labeledInput}>
                 <ThemedText style={styles.inputLabel}>Minutes</ThemedText>
                 <TextInput
-                  mode="outlined"
                   value={(
                     inputValue as { minutes: number; seconds: number }
                   ).minutes.toString()}
@@ -127,13 +122,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     })
                   }
                   keyboardType="numeric"
-                  style={styles.timeInput}
+                  style={styles.input}
                 />
               </View>
               <View style={styles.labeledInput}>
                 <ThemedText style={styles.inputLabel}>Seconds</ThemedText>
                 <TextInput
-                  mode="outlined"
                   value={(
                     inputValue as { minutes: number; seconds: number }
                   ).seconds.toString()}
@@ -144,29 +138,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     })
                   }
                   keyboardType="numeric"
-                  style={styles.timeInput}
+                  style={styles.input}
                 />
               </View>
             </View>
           )}
 
           {/* Save & Cancel Buttons */}
-          <Button
-            mode="contained"
-            onPress={onSave}
-            style={styles.saveButton}
-            color={Colors.dark.tint}
-          >
-            Save
-          </Button>
-          <Button
-            mode="outlined"
-            onPress={onCancel}
-            style={styles.cancelButton}
-            color={Colors.dark.text}
-          >
-            Cancel
-          </Button>
+          <View style={styles.buttonContainer}>
+            <Button
+              mode="outlined"
+              onPress={onCancel}
+              labelStyle={styles.buttonLabel}
+              style={styles.cancelButton}
+            >
+              Cancel
+            </Button>
+            <Button
+              mode="contained"
+              onPress={onSave}
+              labelStyle={styles.buttonLabel}
+              style={styles.saveButton}
+            >
+              Save
+            </Button>
+          </View>
         </View>
       </Modal>
     </Portal>
@@ -203,19 +199,28 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     marginBottom: 4,
   },
-  timeInput: {
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     width: "100%",
+  },
+  buttonLabel: {
+    fontSize: 16,
   },
   saveButton: {
-    width: "100%",
-    marginBottom: 8,
+    width: "48%",
   },
   cancelButton: {
-    width: "100%",
+    width: "48%",
   },
   input: {
-    width: "100%",
+    padding: 10,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
     marginBottom: 16,
+    textAlign: "center",
   },
   radioItem: {
     flexDirection: "row",
@@ -225,9 +230,11 @@ const styles = StyleSheet.create({
   dropdown: {
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderColor: Colors.dark.tint,
+    borderColor: Colors.dark.text,
     borderWidth: 1,
-    borderRadius: 4,
+    borderRadius: 8,
+  },
+  menu: {
     marginBottom: 16,
   },
 });
