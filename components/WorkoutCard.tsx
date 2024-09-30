@@ -92,6 +92,7 @@ export default function WorkoutCard({
       />
       {workout.exercises.length > 0 ? (
         <DraggableFlatlist
+          scrollEnabled={false}
           containerStyle={{ overflow: "visible" }}
           data={workout.exercises}
           keyExtractor={(exercise) => exercise.exercise_id.toString()}
