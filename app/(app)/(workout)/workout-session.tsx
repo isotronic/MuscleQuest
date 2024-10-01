@@ -1,11 +1,12 @@
-import React, { useEffect } from "react";
-import { TextInput, StyleSheet, View, ScrollView } from "react-native";
-import { ActivityIndicator, Button, IconButton } from "react-native-paper";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Easing, StyleSheet, View, Dimensions } from "react-native";
+import { ActivityIndicator } from "react-native-paper";
+import { PanGestureHandler, State } from "react-native-gesture-handler";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import SessionSetInfo from "@/components/SessionSetInfo";
 import { useTimer } from "react-timer-hook";
-import FastImage from "react-native-fast-image";
 import { Colors } from "@/constants/Colors";
 import { useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
@@ -13,15 +14,20 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 
 export default function WorkoutSessionScreen() {
+  const screenWidth = Dimensions.get("window").width; // Get the screen width
+  const translateX = useRef(new Animated.Value(0)).current;
+
+  const [isAnimating, setIsAnimating] = useState(false);
+
   const {
     workout,
     currentExerciseIndex,
     currentSetIndices,
-    weightAndReps, // Access weight and reps from the store
+    weightAndReps,
     completedSets,
     setCurrentExerciseIndex,
     setCurrentSetIndex,
-    updateWeightAndReps, // Update weight and reps
+    updateWeightAndReps,
     nextSet,
     timerRunning,
     timerExpiry,
@@ -37,7 +43,6 @@ export default function WorkoutSessionScreen() {
 
   const { selectedExerciseIndex } = useLocalSearchParams();
 
-  // Fetch the selected exercise from the workout based on the passed index
   useEffect(() => {
     if (workout && selectedExerciseIndex !== undefined) {
       setCurrentExerciseIndex(Number(selectedExerciseIndex));
@@ -53,11 +58,31 @@ export default function WorkoutSessionScreen() {
       ? completedSets[currentExerciseIndex][currentSetIndex]
       : false;
 
-  // Retrieve current weight and reps for the current set
+  const nextSetIndex =
+    currentSetIndex + 1 < currentExercise!.sets.length
+      ? currentSetIndex + 1
+      : null;
+  const previousSetIndex =
+    currentSetIndex - 1 >= 0 ? currentSetIndex - 1 : null;
+
+  const upcomingSet =
+    nextSetIndex !== null ? currentExercise?.sets[nextSetIndex] : null;
+  const previousSet =
+    previousSetIndex !== null ? currentExercise?.sets[previousSetIndex] : null;
+
   const weight =
     weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight || "0";
   const reps =
     weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.reps || "0";
+
+  const nextWeight =
+    nextSetIndex !== null
+      ? weightAndReps[currentExerciseIndex]?.[nextSetIndex]?.weight || "0"
+      : null;
+  const nextReps =
+    nextSetIndex !== null
+      ? weightAndReps[currentExerciseIndex]?.[nextSetIndex]?.reps || "0"
+      : null;
 
   const {
     data: animatedUrl,
@@ -67,14 +92,12 @@ export default function WorkoutSessionScreen() {
 
   useKeepScreenOn();
 
-  // Timer hook for rest countdown
   const { seconds, minutes, restart } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
     onExpire: () => stopTimer(),
   });
 
-  // Handle restarting the timer when returning to the screen
   useEffect(() => {
     if (timerRunning && timerExpiry) {
       restart(new Date(timerExpiry));
@@ -88,7 +111,6 @@ export default function WorkoutSessionScreen() {
     restart(time);
   };
 
-  // Helper functions to handle plus/minus buttons
   const handleWeightChange = (amount: number) => {
     const newWeight = (parseFloat(weight) + amount).toFixed(1);
     updateWeightAndReps(currentExerciseIndex, currentSetIndex, newWeight, reps);
@@ -99,17 +121,68 @@ export default function WorkoutSessionScreen() {
     updateWeightAndReps(currentExerciseIndex, currentSetIndex, weight, newReps);
   };
 
-  // Handle previous and next set buttons
   const handlePreviousSet = () => {
-    if (currentSetIndex > 0) {
-      setCurrentSetIndex(currentExerciseIndex, currentSetIndex - 1);
+    if (previousSetIndex !== null) {
+      setCurrentSetIndex(currentExerciseIndex, previousSetIndex);
     }
   };
 
   const handleNextSet = () => {
-    if (currentSetIndex < (currentExercise?.sets.length || 0) - 1) {
-      setCurrentSetIndex(currentExerciseIndex, currentSetIndex + 1);
+    if (nextSetIndex !== null) {
+      setCurrentSetIndex(currentExerciseIndex, nextSetIndex);
     }
+  };
+
+  const handleSwipeGesture = ({ nativeEvent }: any) => {
+    const { translationX, state } = nativeEvent;
+    const swipeThreshold = 50;
+
+    // Prevent swipe if there's no previous or next set
+    if (
+      (translationX > 0 && previousSetIndex === null) ||
+      (translationX < 0 && nextSetIndex === null)
+    ) {
+      resetSwipe(); // Reset position immediately if no valid set to swipe to
+      return;
+    }
+
+    if (state === State.ACTIVE && !isAnimating) {
+      translateX.setValue(translationX);
+    }
+
+    if (state === State.END && !isAnimating) {
+      if (translationX > swipeThreshold && previousSetIndex !== null) {
+        // Swiping right to go to previous set
+        animateSets(screenWidth, handlePreviousSet);
+      } else if (translationX < -swipeThreshold && nextSetIndex !== null) {
+        // Swiping left to go to next set
+        animateSets(-screenWidth, handleNextSet);
+      } else {
+        resetSwipe();
+      }
+    }
+  };
+
+  const animateSets = (direction: number, callback: () => void) => {
+    setIsAnimating(true);
+
+    Animated.timing(translateX, {
+      toValue: direction,
+      duration: 250,
+      easing: Easing.linear,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsAnimating(false);
+      translateX.setValue(0);
+      callback();
+    });
+  };
+
+  const resetSwipe = () => {
+    Animated.spring(translateX, {
+      toValue: 0,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handleCompleteSet = () => {
@@ -117,12 +190,8 @@ export default function WorkoutSessionScreen() {
       return;
     }
 
-    // Persist the current weight and reps for the current set
     updateWeightAndReps(currentExerciseIndex, currentSetIndex, weight, reps);
-
     nextSet();
-
-    // Start rest timer for the current set
     startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
   };
 
@@ -149,191 +218,132 @@ export default function WorkoutSessionScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView>
-        <View style={styles.headerContainer}>
-          {animatedImageLoading ? (
-            <ThemedText style={styles.loadingText}>Loading GIF...</ThemedText>
-          ) : animatedImageError ? (
-            <ThemedText style={styles.loadingText}>
-              Failed to load GIF
-            </ThemedText>
-          ) : animatedUrl ? (
-            <FastImage
-              style={styles.animatedImage}
-              source={{
-                uri: animatedUrl,
-                priority: FastImage.priority.normal,
-              }}
-              resizeMode={FastImage.resizeMode.contain}
+      <PanGestureHandler
+        onGestureEvent={handleSwipeGesture}
+        onHandlerStateChange={handleSwipeGesture}
+      >
+        <View>
+          {/* Current set */}
+          <Animated.View
+            style={{
+              transform: [{ translateX: translateX }],
+              position: "absolute",
+              width: "100%",
+            }}
+          >
+            <SessionSetInfo
+              exerciseName={currentExercise?.name || ""}
+              animatedUrl={animatedUrl}
+              animatedImageLoading={animatedImageLoading}
+              animatedImageError={animatedImageError}
+              currentSetIndex={currentSetIndex}
+              totalSets={currentExercise?.sets.length || 0}
+              weight={weight}
+              reps={reps}
+              weightIncrement={weightIncrement}
+              buttonSize={buttonSize}
+              weightUnit={settings?.weightUnit || "kg"}
+              restMinutes={currentSet?.restMinutes || 0}
+              restSeconds={currentSet?.restSeconds || 0}
+              timerRunning={timerRunning}
+              seconds={seconds}
+              minutes={minutes}
+              currentSetCompleted={currentSetCompleted}
+              handleWeightChange={handleWeightChange}
+              handleRepsChange={handleRepsChange}
+              handlePreviousSet={handlePreviousSet}
+              handleNextSet={handleNextSet}
+              handleCompleteSet={handleCompleteSet}
             />
-          ) : (
-            <ThemedText style={styles.loadingText}>No GIF available</ThemedText>
+          </Animated.View>
+
+          {/* Next set - initially off-screen */}
+          {nextSetIndex !== null && (
+            <Animated.View
+              style={{
+                transform: [
+                  {
+                    translateX: Animated.add(
+                      translateX,
+                      new Animated.Value(screenWidth),
+                    ),
+                  },
+                ],
+                position: "absolute",
+                width: "100%",
+              }}
+            >
+              <SessionSetInfo
+                exerciseName={currentExercise?.name || ""}
+                animatedUrl={animatedUrl}
+                animatedImageLoading={animatedImageLoading}
+                animatedImageError={animatedImageError}
+                currentSetIndex={nextSetIndex}
+                totalSets={currentExercise?.sets.length || 0}
+                weight={nextWeight || "0"}
+                reps={nextReps || "0"}
+                weightIncrement={weightIncrement}
+                buttonSize={buttonSize}
+                weightUnit={settings?.weightUnit || "kg"}
+                restMinutes={upcomingSet?.restMinutes || 0}
+                restSeconds={upcomingSet?.restSeconds || 0}
+                timerRunning={false} // Timer should only be running for the current set
+                seconds={0}
+                minutes={0}
+                currentSetCompleted={false}
+                handleWeightChange={() => {}}
+                handleRepsChange={() => {}}
+                handlePreviousSet={() => {}}
+                handleNextSet={() => {}}
+                handleCompleteSet={() => {}}
+              />
+            </Animated.View>
           )}
 
-          <View style={styles.titleContainer}>
-            <ThemedText style={styles.title}>
-              {currentExercise?.name}
-            </ThemedText>
-            <ThemedText style={styles.restTime}>
-              Rest Time: {currentSet?.restMinutes} min {currentSet?.restSeconds}{" "}
-              sec
-            </ThemedText>
-          </View>
+          {/* Previous set - initially off-screen */}
+          {previousSetIndex !== null && (
+            <Animated.View
+              style={{
+                transform: [
+                  {
+                    translateX: Animated.add(
+                      translateX,
+                      new Animated.Value(-screenWidth),
+                    ),
+                  },
+                ],
+                position: "absolute",
+                width: "100%",
+              }}
+            >
+              <SessionSetInfo
+                exerciseName={currentExercise?.name || ""}
+                animatedUrl={animatedUrl}
+                animatedImageLoading={animatedImageLoading}
+                animatedImageError={animatedImageError}
+                currentSetIndex={previousSetIndex}
+                totalSets={currentExercise?.sets.length || 0}
+                weight={nextWeight || "0"}
+                reps={nextReps || "0"}
+                weightIncrement={weightIncrement}
+                buttonSize={buttonSize}
+                weightUnit={settings?.weightUnit || "kg"}
+                restMinutes={previousSet?.restMinutes || 0}
+                restSeconds={previousSet?.restSeconds || 0}
+                timerRunning={false} // Timer should only be running for the current set
+                seconds={0}
+                minutes={0}
+                currentSetCompleted={false}
+                handleWeightChange={() => {}}
+                handleRepsChange={() => {}}
+                handlePreviousSet={() => {}}
+                handleNextSet={() => {}}
+                handleCompleteSet={() => {}}
+              />
+            </Animated.View>
+          )}
         </View>
-        {/* Set Navigation */}
-        <View style={styles.setNavigationContainer}>
-          <IconButton
-            icon="chevron-left"
-            onPress={handlePreviousSet}
-            size={buttonSize}
-            disabled={currentSetIndex === 0} // Disable if on the first set
-            iconColor={Colors.dark.text}
-            style={styles.iconButton}
-          />
-          <ThemedText>
-            Set {currentSetIndex + 1} of {currentExercise?.sets.length}
-          </ThemedText>
-          <IconButton
-            icon="chevron-right"
-            onPress={handleNextSet}
-            size={buttonSize}
-            disabled={
-              currentSetIndex === (currentExercise?.sets?.length || 0) - 1
-            } // Disable if on the last set
-            iconColor={Colors.dark.text}
-            style={styles.iconButton}
-          />
-        </View>
-
-        {/* Weight Input */}
-        <View style={styles.centeredLabelContainer}>
-          <ThemedText style={styles.label}>
-            Weight ({settings?.weightUnit})
-          </ThemedText>
-        </View>
-        <View style={styles.inputContainer}>
-          <IconButton
-            icon="minus"
-            onPress={() => handleWeightChange(-weightIncrement)}
-            size={buttonSize}
-            iconColor={Colors.dark.text}
-            style={styles.iconButton}
-          />
-          <TextInput
-            placeholder="Enter weight"
-            placeholderTextColor={Colors.dark.text}
-            value={weight} // Use weight from store
-            onBlur={() => {
-              const newWeight = isNaN(parseFloat(weight)) ? "0" : weight;
-              updateWeightAndReps(
-                currentExerciseIndex,
-                currentSetIndex,
-                newWeight,
-                reps,
-              );
-            }}
-            onChangeText={(text: string) => {
-              const sanitizedValue = text.replace(/[^0-9.]/g, ""); // Keep only numbers and decimal
-              updateWeightAndReps(
-                currentExerciseIndex,
-                currentSetIndex,
-                Number.isInteger(parseFloat(sanitizedValue))
-                  ? sanitizedValue
-                  : parseFloat(sanitizedValue).toFixed(1),
-                reps,
-              );
-            }}
-            keyboardType="numeric"
-            style={styles.input}
-          />
-          <IconButton
-            icon="plus"
-            onPress={() => handleWeightChange(weightIncrement)}
-            size={buttonSize}
-            iconColor={Colors.dark.text}
-            style={styles.iconButton}
-          />
-        </View>
-
-        {/* Reps Input */}
-        <View style={styles.centeredLabelContainer}>
-          <ThemedText style={styles.label}>Reps</ThemedText>
-        </View>
-        <View style={styles.inputContainer}>
-          <IconButton
-            icon="minus"
-            onPress={() => handleRepsChange(-1)}
-            size={buttonSize}
-            iconColor={Colors.dark.text}
-            style={styles.iconButton}
-          />
-          <TextInput
-            placeholder="Enter reps"
-            placeholderTextColor={Colors.dark.text}
-            value={reps} // Use reps from store
-            onBlur={() => {
-              const newReps = isNaN(parseFloat(reps)) ? "0" : reps;
-              updateWeightAndReps(
-                currentExerciseIndex,
-                currentSetIndex,
-                weight,
-                newReps,
-              );
-            }}
-            onChangeText={(text: string) =>
-              updateWeightAndReps(
-                currentExerciseIndex,
-                currentSetIndex,
-                weight,
-                text,
-              )
-            }
-            keyboardType="numeric"
-            style={styles.input}
-          />
-          <IconButton
-            icon="plus"
-            onPress={() => handleRepsChange(1)}
-            size={buttonSize}
-            iconColor={Colors.dark.text}
-            style={styles.iconButton}
-          />
-        </View>
-
-        <Button
-          mode="contained"
-          onPress={handleCompleteSet}
-          style={[
-            styles.completeButton,
-            currentSetCompleted && styles.disabledButton,
-            settings?.buttonSize === "Standard"
-              ? {}
-              : settings?.buttonSize === "Large"
-                ? { height: 50 }
-                : { height: 60 },
-          ]}
-          labelStyle={[
-            currentSetCompleted ? styles.disabledButtonText : {},
-            settings?.buttonSize === "Standard"
-              ? styles.completeButtonLabel
-              : settings?.buttonSize === "Large"
-                ? { fontSize: 20, lineHeight: 25 }
-                : { fontSize: 24, lineHeight: 35 },
-          ]}
-          disabled={currentSetCompleted}
-        >
-          Complete Set
-        </Button>
-
-        {timerRunning && (
-          <ThemedView style={styles.timerContainer}>
-            <ThemedText style={styles.timerLabel}>Rest Time Left:</ThemedText>
-            <ThemedText style={styles.timerText}>
-              {minutes}:{seconds.toString().padStart(2, "0")}
-            </ThemedText>
-          </ThemedView>
-        )}
-      </ScrollView>
+      </PanGestureHandler>
     </ThemedView>
   );
 }
@@ -343,107 +353,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-between",
     padding: 20,
-  },
-  headerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  animatedImage: {
-    width: 70, // smaller width
-    height: 70, // smaller height
-    borderRadius: 10, // rounded corners
-    marginRight: 15, // space between image and title
-  },
-  titleContainer: {
-    flexShrink: 1, // Allow the container to shrink if necessary
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  restTime: {
-    fontSize: 14, // Smaller font size for rest time
-    color: Colors.dark.subText, // Optional: a lighter color if desired
-  },
-  centeredLabelContainer: {
-    alignItems: "center",
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  iconButton: {
-    marginHorizontal: 5,
-    color: Colors.dark.text,
-  },
-  setNavigationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-  input: {
-    flex: 1,
-    padding: 10,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 8,
-    textAlign: "center",
-    color: Colors.dark.text,
-  },
-  completeButton: {
-    marginTop: 20,
-  },
-  completeButtonLabel: {
-    fontSize: 16,
-  },
-  disabledButton: {
-    backgroundColor: Colors.dark.disabledButtonBackground, // Custom disabled background color
-  },
-  disabledButtonText: {
-    color: Colors.dark.disabledButtonText, // Custom disabled text color
-    opacity: 0.6, // Make the text slightly faded
-  },
-  timerContainer: {
-    padding: 20,
-    backgroundColor: Colors.dark.cardBackground,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 10,
-    marginBottom: 20,
-    marginTop: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-    flexDirection: "column",
-  },
-
-  timerLabel: {
-    fontSize: 16,
-    color: Colors.dark.text,
-    marginBottom: 10,
-    textAlign: "center",
-  },
-
-  timerText: {
-    fontSize: 48,
-    fontWeight: "bold",
-    color: Colors.dark.text,
-    textAlign: "center",
-    lineHeight: 48,
-  },
-
-  loadingText: {
-    fontSize: 18,
-    color: Colors.dark.text,
   },
 });

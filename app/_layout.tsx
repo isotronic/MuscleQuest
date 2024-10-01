@@ -26,6 +26,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { openDatabase } from "@/utils/initAppDataDB";
 import { initUserDataDB } from "@/utils/initUserDataDB";
 import { insertDefaultSettings } from "@/utils/database";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Construct a new instrumentation instance. This is needed to communicate between the integration and React
 const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
@@ -126,7 +127,9 @@ function RootLayout() {
         <PaperProvider theme={paperTheme}>
           <AuthProvider>
             <SafeAreaProvider>
-              <Slot screenOptions={{ headerShown: false }} />
+              <GestureHandlerRootView>
+                <Slot screenOptions={{ headerShown: false }} />
+              </GestureHandlerRootView>
             </SafeAreaProvider>
           </AuthProvider>
         </PaperProvider>
