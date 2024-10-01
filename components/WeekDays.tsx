@@ -31,8 +31,8 @@ export default function WeekDays({ completedWorkoutsThisWeek }: WeekDaysProps) {
             <View
               style={[
                 styles.circle,
-                isToday && styles.todayCircle,
                 isWorkoutCompleted && styles.workoutCompletedCircle,
+                isToday && styles.todayCircle,
               ]}
             >
               <ThemedText style={styles.dayNumber}>
@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
   },
   workoutCompletedCircle: {
     borderColor: Colors.dark.tint,
+    backgroundColor: Colors.dark.tint,
   },
   dayNumber: {
     fontSize: 16,
