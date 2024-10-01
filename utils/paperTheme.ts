@@ -7,7 +7,10 @@ export const paperTheme = {
   colors: {
     ...DefaultTheme.colors,
     primary: Colors.dark.tint,
+    primaryContainer: Colors.dark.tint,
     accent: Colors.dark.highlight,
+    onPrimary: Colors.dark.background,
+    onPrimaryContainer: Colors.dark.background,
     // Customize other colors as needed
   },
 };

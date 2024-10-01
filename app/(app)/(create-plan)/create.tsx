@@ -13,7 +13,7 @@ import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
-import { FAB, Button } from "react-native-paper";
+import { FAB, Button, ActivityIndicator } from "react-native-paper";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { useCreatePlan } from "@/hooks/useCreatePlan";
@@ -37,7 +37,9 @@ export default function CreatePlanScreen() {
   } = useWorkoutStore();
   const { planName, setPlanName, planSaved, setPlanSaved, handleSavePlan } =
     useCreatePlan(Number(planId));
-  const { data: existingPlan } = usePlanQuery(planId ? Number(planId) : null);
+  const { data: existingPlan, isLoading } = usePlanQuery(
+    planId ? Number(planId) : null,
+  );
 
   useEffect(() => {
     if (existingPlan) {
@@ -139,49 +141,51 @@ export default function CreatePlanScreen() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
       <NestableScrollContainer contentContainerStyle={{ flexGrow: 1 }}>
-        <ThemedView style={styles.container}>
-          <View style={styles.inputContainer}>
-            <TouchableOpacity onPress={handleImageSearch}>
-              <Image source={{ uri: planImageUrl }} style={styles.image} />
-            </TouchableOpacity>
-            <TextInput
-              style={styles.input}
-              placeholder="Training Plan Name"
-              value={planName}
-              onChangeText={setPlanName}
-              dense
-            />
-            <Button
-              mode="contained"
-              labelStyle={styles.buttonLabel}
-              onPress={() => handleSavePlan(Number(planId))}
-            >
-              Save
-            </Button>
-          </View>
-          {workouts.length === 0 ? (
-            <ThemedText style={styles.emptyText}>
-              Tap + to add a workout to your plan
-            </ThemedText>
-          ) : (
-            workouts.map((workout, index) => (
-              <WorkoutCard
-                key={index}
-                workout={workout}
-                index={index}
-                onRemove={() => handleRemoveWorkout(index)}
-                onNameChange={changeWorkoutName}
-                onAddExercise={() => handleAddExercise(index)}
+        {isLoading ? (
+          <ThemedView style={styles.container}>
+            <ActivityIndicator size="large" />
+          </ThemedView>
+        ) : (
+          <ThemedView style={styles.container}>
+            <View style={styles.inputContainer}>
+              <TouchableOpacity onPress={handleImageSearch}>
+                <Image source={{ uri: planImageUrl }} style={styles.image} />
+              </TouchableOpacity>
+              <TextInput
+                style={styles.input}
+                placeholderTextColor={Colors.dark.subText}
+                placeholder="Training Plan Name"
+                value={planName}
+                onChangeText={setPlanName}
+                dense
               />
-            ))
-          )}
-          <FAB
-            icon="plus"
-            rippleColor={Colors.dark.tint}
-            style={styles.fab}
-            onPress={handleAddWorkout}
-          />
-        </ThemedView>
+              <Button
+                mode="contained"
+                labelStyle={styles.buttonLabel}
+                onPress={() => handleSavePlan(Number(planId))}
+              >
+                Save
+              </Button>
+            </View>
+            {workouts.length === 0 ? (
+              <ThemedText style={styles.emptyText}>
+                Tap + to add a workout to your plan
+              </ThemedText>
+            ) : (
+              workouts.map((workout, index) => (
+                <WorkoutCard
+                  key={index}
+                  workout={workout}
+                  index={index}
+                  onRemove={() => handleRemoveWorkout(index)}
+                  onNameChange={changeWorkoutName}
+                  onAddExercise={() => handleAddExercise(index)}
+                />
+              ))
+            )}
+            <FAB icon="plus" style={styles.fab} onPress={handleAddWorkout} />
+          </ThemedView>
+        )}
       </NestableScrollContainer>
     </KeyboardAvoidingView>
   );
@@ -191,6 +195,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 8,
     overflow: "visible",
   },
   inputContainer: {

@@ -17,6 +17,8 @@ export const Colors = {
     text: "#ECEDEE",
     subText: "#9BA1A6",
     background: "#22222d",
+    screenBackground: "#2a2a36",
+    completed: "#4CAF50",
     highlight: "#e74043",
     tint: "#ebaa39",
     icon: "#9BA1A6",

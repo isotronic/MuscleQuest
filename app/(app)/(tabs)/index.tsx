@@ -196,12 +196,12 @@ const styles = StyleSheet.create({
   weekContainer: {
     flexDirection: "column",
     alignItems: "center",
+    backgroundColor: Colors.dark.background,
   },
   summaryContainer: {
     paddingHorizontal: 20,
     paddingBottom: 10,
-    borderBottomColor: "black",
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.dark.background,
   },
   summaryText: {
     fontSize: 16,

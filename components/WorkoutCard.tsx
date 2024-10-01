@@ -88,6 +88,7 @@ export default function WorkoutCard({
       </View>
       <TextInput
         placeholder="Workout name"
+        placeholderTextColor={Colors.dark.subText}
         style={styles.input}
         value={workout.name}
         onChangeText={(text: string) => onNameChange(index, text)}
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
   },
   workoutName: {
     fontSize: 18,
-    color: "#FFFFFF",
+    color: Colors.dark.text,
   },
   fab: {
     position: "absolute",
