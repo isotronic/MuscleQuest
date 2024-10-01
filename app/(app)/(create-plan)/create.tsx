@@ -142,8 +142,8 @@ export default function CreatePlanScreen() {
     >
       <NestableScrollContainer contentContainerStyle={{ flexGrow: 1 }}>
         {isLoading ? (
-          <ThemedView style={styles.container}>
-            <ActivityIndicator size="large" />
+          <ThemedView style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.dark.text} />
           </ThemedView>
         ) : (
           <ThemedView style={styles.container}>
@@ -196,6 +196,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     overflow: "visible",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   inputContainer: {
     flexDirection: "row",
