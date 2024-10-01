@@ -194,8 +194,7 @@ export default function CreatePlanScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 8,
+    padding: 16,
     overflow: "visible",
   },
   inputContainer: {

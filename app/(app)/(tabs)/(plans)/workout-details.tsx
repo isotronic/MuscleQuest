@@ -88,12 +88,11 @@ const styles = StyleSheet.create({
   },
   workoutHeader: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   workoutName: {
     fontSize: 24,
     color: "#ECEFF4",
-    marginTop: 10,
   },
   exerciseItem: {
     flexDirection: "row",

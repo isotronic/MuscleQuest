@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.background,
   },
   summaryContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 10,
     backgroundColor: Colors.dark.background,
   },
@@ -208,11 +208,10 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   welcomeContainer: {
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    padding: 16,
   },
   cardContainer: {
-    padding: 20,
+    padding: 16,
   },
   sectionTitle: {
     marginBottom: 10,
@@ -255,8 +254,7 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   buttonContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    padding: 16,
   },
   startWorkoutButton: {
     borderRadius: 15,
