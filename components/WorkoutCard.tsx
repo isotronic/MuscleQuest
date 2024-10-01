@@ -2,8 +2,9 @@ import { StyleSheet, View, TouchableOpacity, TextInput } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
 import { Card, Button } from "react-native-paper";
-import DraggableFlatlist, {
-  ScaleDecorator,
+import {
+  ShadowDecorator,
+  NestableDraggableFlatList,
 } from "react-native-draggable-flatlist";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -38,9 +39,8 @@ export default function WorkoutCard({
     workoutIndex: number;
   }) => {
     return (
-      <ScaleDecorator>
+      <ShadowDecorator>
         <TouchableOpacity
-          onLongPress={drag}
           onPress={() =>
             router.push(
               `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}`,
@@ -55,13 +55,14 @@ export default function WorkoutCard({
         >
           <MaterialCommunityIcons
             name="drag"
+            onLongPress={drag}
             size={24}
             color="#ECEFF4"
             style={{ marginRight: 10 }}
           />
           <ThemedText>{item.name}</ThemedText>
         </TouchableOpacity>
-      </ScaleDecorator>
+      </ShadowDecorator>
     );
   };
 
@@ -92,7 +93,7 @@ export default function WorkoutCard({
         onChangeText={(text: string) => onNameChange(index, text)}
       />
       {workout.exercises.length > 0 ? (
-        <DraggableFlatlist
+        <NestableDraggableFlatList
           scrollEnabled={false}
           containerStyle={{ overflow: "visible" }}
           data={workout.exercises}
@@ -109,7 +110,8 @@ export default function WorkoutCard({
       )}
       <Button
         mode="outlined"
-        labelStyle={styles.buttonLabel}
+        style={styles.saveButton}
+        labelStyle={styles.saveButtonLabel}
         onPress={() => onAddExercise(index)}
       >
         Add Exercise
@@ -139,7 +141,10 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     height: 40,
   },
-  buttonLabel: {
+  saveButton: {
+    marginTop: 8,
+  },
+  saveButtonLabel: {
     fontSize: 16,
   },
   image: {
@@ -171,11 +176,6 @@ const styles = StyleSheet.create({
   workoutName: {
     fontSize: 18,
     color: "#FFFFFF",
-  },
-  workoutInstructions: {
-    fontSize: 14,
-    color: "#D8DEE9",
-    marginVertical: 8,
   },
   fab: {
     position: "absolute",

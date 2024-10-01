@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   TextInput,
 } from "react-native";
+import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
@@ -138,7 +138,7 @@ export default function CreatePlanScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <NestableScrollContainer contentContainerStyle={{ flexGrow: 1 }}>
         <ThemedView style={styles.container}>
           <View style={styles.inputContainer}>
             <TouchableOpacity onPress={handleImageSearch}>
@@ -182,7 +182,7 @@ export default function CreatePlanScreen() {
             onPress={handleAddWorkout}
           />
         </ThemedView>
-      </ScrollView>
+      </NestableScrollContainer>
     </KeyboardAvoidingView>
   );
 }
