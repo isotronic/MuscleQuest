@@ -84,10 +84,10 @@ const styles = StyleSheet.create({
   },
   floatingTitleContainer: {
     position: "absolute",
-    top: "40%", // Center the title vertically
+    bottom: 0,
     width: "100%",
     paddingVertical: 5,
-    backgroundColor: "rgba(0, 0, 0, 0.4)", // Semi-transparent black banner background
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
   },
