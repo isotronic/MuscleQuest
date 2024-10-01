@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { View, StyleSheet, TextInput, Button } from "react-native";
+import { StyleSheet, TextInput } from "react-native";
+import { Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router } from "expo-router";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { Colors } from "@/constants/Colors";
@@ -41,7 +43,7 @@ export default function EditSetScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <ThemedText style={styles.label}>Min Reps</ThemedText>
       <TextInput
         style={styles.input}
@@ -74,8 +76,10 @@ export default function EditSetScreen() {
         keyboardType="numeric"
       />
 
-      <Button title="Save Set" onPress={handleSaveSet} />
-    </View>
+      <Button style={styles.button} onPress={handleSaveSet} mode="contained">
+        Save Set
+      </Button>
+    </ThemedView>
   );
 }
 
@@ -83,19 +87,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: Colors.dark.background,
   },
   label: {
     fontSize: 16,
-    color: "#ECEFF4",
-    marginBottom: 8,
+    color: Colors.dark.text,
   },
   input: {
-    backgroundColor: "#3B4252",
-    color: "#FFFFFF",
-    borderRadius: 4,
-    padding: 8,
+    padding: 10,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
+    fontSize: 18,
     marginBottom: 16,
-    textAlign: "center",
+  },
+  button: {
+    marginTop: 16,
   },
 });

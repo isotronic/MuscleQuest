@@ -1,12 +1,8 @@
 import React from "react";
-import {
-  View,
-  StyleSheet,
-  Button,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
+import { StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router } from "expo-router";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { Colors } from "@/constants/Colors";
@@ -57,15 +53,17 @@ export default function SetsOverviewScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <FlatList
         data={sets}
         renderItem={renderSetItem}
         keyExtractor={(_: any, index: number) => index.toString()}
         contentContainerStyle={styles.flatListContent}
       />
-      <Button title="Add Set" onPress={handleAddSet} />
-    </View>
+      <Button mode="contained" onPress={handleAddSet}>
+        Add Set
+      </Button>
+    </ThemedView>
   );
 }
 
@@ -73,22 +71,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: Colors.dark.background,
   },
   setItem: {
-    backgroundColor: "#4C566A",
+    backgroundColor: Colors.dark.cardBackground,
     padding: 16,
     marginBottom: 10,
     borderRadius: 8,
   },
   setTitle: {
     fontSize: 18,
-    color: "#ECEFF4",
+    color: Colors.dark.text,
     fontWeight: "bold",
   },
   setInfo: {
     fontSize: 16,
-    color: "#ECEFF4",
+    color: Colors.dark.text,
     marginTop: 5,
   },
   flatListContent: {
