@@ -121,7 +121,7 @@ export default function ImageSearchScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    padding: 16,
   },
   searchInput: {
     borderBottomWidth: 1,

@@ -2,7 +2,6 @@ import { View, StyleSheet, FlatList, Image } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams } from "expo-router";
-import { Colors } from "@/constants/Colors";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { UserExercise } from "@/store/workoutStore";
 import FastImage from "react-native-fast-image";
@@ -86,16 +85,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: Colors.dark.background,
   },
   workoutHeader: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   workoutName: {
     fontSize: 24,
     color: "#ECEFF4",
-    marginTop: 10,
   },
   exerciseItem: {
     flexDirection: "row",

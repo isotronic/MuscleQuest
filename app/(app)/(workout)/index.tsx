@@ -9,19 +9,45 @@ import { IconButton, Card } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { router, Stack } from "expo-router";
+import { router, Stack, useNavigation } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
+import { useEffect } from "react";
 
 export default function WorkoutOverviewScreen() {
+  const navigation = useNavigation();
   const { workout, completedSets, weightAndReps, startTime, activeWorkout } =
     useActiveWorkoutStore();
 
   const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation();
 
   useKeepScreenOn();
+
+  useEffect(() => {
+    // sourcery skip: inline-immediately-returned-variable
+    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      e.preventDefault();
+
+      Alert.alert(
+        "Discard Workout?",
+        "Do you really want to quit your current workout without saving?",
+        [
+          { text: "Cancel", style: "cancel", onPress: () => {} },
+          {
+            text: "Discard",
+            style: "destructive",
+            onPress: () => {
+              navigation.dispatch(e.data.action);
+            },
+          },
+        ],
+      );
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const handleSaveWorkout = async () => {
     const planId = activeWorkout?.planId;
@@ -147,7 +173,7 @@ export default function WorkoutOverviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
   card: {
     marginBottom: 15,

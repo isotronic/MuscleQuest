@@ -178,7 +178,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: Colors.dark.background,
   },
   planHeader: {
     alignItems: "center",
@@ -195,7 +194,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   workoutCard: {
-    backgroundColor: "#4C566A",
+    backgroundColor: Colors.dark.cardBackground,
     padding: 16,
     marginBottom: 10,
     borderRadius: 8,

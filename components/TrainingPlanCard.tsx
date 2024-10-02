@@ -56,14 +56,12 @@ export default function TrainingPlanCard({
             <Card.Cover
               style={{ borderRadius: 10 }}
               source={{
-                uri:
-                  imageUrl ||
-                  "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                uri: imageUrl,
               }}
             />
             <View style={styles.floatingTitleContainer}>
               <Text style={styles.floatingTitleText}>
-                {title || "Demo Plan"}
+                {title || "Training Plan"}
               </Text>
             </View>
           </Card>
@@ -86,19 +84,20 @@ const styles = StyleSheet.create({
   },
   floatingTitleContainer: {
     position: "absolute",
-    display: "flex",
+    bottom: 0,
+    width: "100%",
+    paddingVertical: 5,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
-    width: "100%",
-    height: "100%",
   },
   floatingTitleText: {
-    fontSize: 20,
+    fontSize: 22,
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
     textShadowColor: "rgba(0, 0, 0, 0.75)",
-    textShadowRadius: 1,
+    textShadowRadius: 4,
     textShadowOffset: { width: 2, height: 2 },
   },
 });

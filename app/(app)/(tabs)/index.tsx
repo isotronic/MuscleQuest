@@ -49,14 +49,14 @@ export default function HomeScreen() {
 
   if (activePlanLoading || settingsLoading || completedWorkoutsLoading) {
     return (
-      <ThemedView>
+      <ThemedView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.dark.text} />
       </ThemedView>
     );
   } else if (activePlanError || settingsError || completedWorkoutsError) {
     const error = activePlanError || settingsError || completedWorkoutsError;
     return (
-      <ThemedText>
+      <ThemedText style={styles.loadingContainer}>
         Error fetching{" "}
         {activePlanError
           ? "active plan"
@@ -193,26 +193,30 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   weekContainer: {
     flexDirection: "column",
     alignItems: "center",
+    backgroundColor: Colors.dark.background,
   },
   summaryContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 10,
-    borderBottomColor: "black",
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.dark.background,
   },
   summaryText: {
     fontSize: 16,
     textAlign: "right",
   },
   welcomeContainer: {
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    padding: 16,
   },
   cardContainer: {
-    padding: 20,
+    padding: 16,
   },
   sectionTitle: {
     marginBottom: 10,
@@ -251,12 +255,11 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   smallButtonLabel: {
-    fontSize: 12,
+    fontSize: 16,
     paddingVertical: 0,
   },
   buttonContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    padding: 16,
   },
   startWorkoutButton: {
     borderRadius: 15,

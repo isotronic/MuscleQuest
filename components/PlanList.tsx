@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContainer: {
     justifyContent: "space-between",
-    padding: 10,
+    padding: 8,
   },
   noPlansText: {
     textAlign: "center",

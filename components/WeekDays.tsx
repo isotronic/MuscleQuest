@@ -31,11 +31,13 @@ export default function WeekDays({ completedWorkoutsThisWeek }: WeekDaysProps) {
             <View
               style={[
                 styles.circle,
-                isToday && styles.todayCircle,
                 isWorkoutCompleted && styles.workoutCompletedCircle,
+                isToday && styles.todayCircle,
               ]}
             >
-              <ThemedText style={styles.dayNumber}>
+              <ThemedText
+                style={[styles.dayNumber, isToday && styles.todayDayNumber]}
+              >
                 {format(day, "d")}
               </ThemedText>
             </View>
@@ -50,8 +52,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
   dayContainer: {
     flex: 1,
@@ -60,9 +62,11 @@ const styles = StyleSheet.create({
   dayName: {
     fontSize: 16,
     marginBottom: 4,
+    color: Colors.dark.subText,
   },
   todayDayName: {
     fontWeight: "900",
+    color: Colors.dark.text,
   },
   circle: {
     width: 45,
@@ -73,14 +77,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderColor: Colors.dark.text,
   },
-  todayCircle: {
-    borderColor: Colors.dark.highlight,
-    borderWidth: 2,
-  },
+  todayCircle: {},
   workoutCompletedCircle: {
-    borderColor: Colors.dark.tint,
+    borderColor: Colors.dark.completed,
   },
   dayNumber: {
     fontSize: 16,
+  },
+  todayDayNumber: {
+    fontWeight: "900",
   },
 });

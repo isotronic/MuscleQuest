@@ -4,14 +4,16 @@ import {
   View,
   Image,
   Alert,
-  FlatList,
-  Button,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  TextInput,
 } from "react-native";
+import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useWorkoutStore, Workout } from "@/store/workoutStore";
-import { TextInput, FAB } from "react-native-paper";
+import { useWorkoutStore } from "@/store/workoutStore";
+import { FAB, Button, ActivityIndicator } from "react-native-paper";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { useCreatePlan } from "@/hooks/useCreatePlan";
@@ -35,7 +37,9 @@ export default function CreatePlanScreen() {
   } = useWorkoutStore();
   const { planName, setPlanName, planSaved, setPlanSaved, handleSavePlan } =
     useCreatePlan(Number(planId));
-  const { data: existingPlan } = usePlanQuery(planId ? Number(planId) : null);
+  const { data: existingPlan, isLoading } = usePlanQuery(
+    planId ? Number(planId) : null,
+  );
 
   useEffect(() => {
     if (existingPlan) {
@@ -131,59 +135,72 @@ export default function CreatePlanScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.inputContainer}>
-        <TouchableOpacity onPress={handleImageSearch}>
-          <Image
-            source={{
-              uri: planImageUrl,
-            }}
-            style={styles.image}
-          />
-        </TouchableOpacity>
-        <TextInput
-          style={styles.input}
-          placeholder="Training Plan Name"
-          value={planName}
-          onChangeText={setPlanName}
-        />
-        <Button title="Save" onPress={() => handleSavePlan(Number(planId))} />
-      </View>
-      {workouts.length === 0 ? (
-        <ThemedText style={styles.emptyText}>
-          Tap + to add a workout to your plan
-        </ThemedText>
-      ) : (
-        <FlatList
-          contentContainerStyle={{ overflow: "visible" }}
-          data={workouts}
-          renderItem={({ item, index }: { item: Workout; index: number }) => (
-            <WorkoutCard
-              workout={item}
-              index={index}
-              onRemove={() => handleRemoveWorkout(index)}
-              onNameChange={changeWorkoutName}
-              onAddExercise={() => handleAddExercise(index)}
-            />
-          )}
-          keyExtractor={(_: any, index: number) => index.toString()}
-        />
-      )}
-      <FAB
-        icon="plus"
-        rippleColor={Colors.dark.tint}
-        style={styles.fab}
-        onPress={handleAddWorkout}
-      />
-    </ThemedView>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+    >
+      <NestableScrollContainer contentContainerStyle={{ flexGrow: 1 }}>
+        {isLoading ? (
+          <ThemedView style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.dark.text} />
+          </ThemedView>
+        ) : (
+          <ThemedView style={styles.container}>
+            <View style={styles.inputContainer}>
+              <TouchableOpacity onPress={handleImageSearch}>
+                <Image source={{ uri: planImageUrl }} style={styles.image} />
+              </TouchableOpacity>
+              <TextInput
+                style={styles.input}
+                placeholderTextColor={Colors.dark.subText}
+                placeholder="Training Plan Name"
+                value={planName}
+                onChangeText={setPlanName}
+                dense
+              />
+              <Button
+                mode="contained"
+                labelStyle={styles.buttonLabel}
+                onPress={() => handleSavePlan(Number(planId))}
+              >
+                Save
+              </Button>
+            </View>
+            {workouts.length === 0 ? (
+              <ThemedText style={styles.emptyText}>
+                Tap + to add a workout to your plan
+              </ThemedText>
+            ) : (
+              workouts.map((workout, index) => (
+                <WorkoutCard
+                  key={index}
+                  workout={workout}
+                  index={index}
+                  onRemove={() => handleRemoveWorkout(index)}
+                  onNameChange={changeWorkoutName}
+                  onAddExercise={() => handleAddExercise(index)}
+                />
+              ))
+            )}
+            <FAB icon="plus" style={styles.fab} onPress={handleAddWorkout} />
+          </ThemedView>
+        )}
+      </NestableScrollContainer>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
+    padding: 16,
     overflow: "visible",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   inputContainer: {
     flexDirection: "row",
@@ -198,15 +215,21 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    padding: 10,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
     fontSize: 18,
-    color: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#FFFFFF",
     marginRight: 10,
+    height: 40,
   },
   emptyText: {
     fontSize: 18,
-    color: "#FFFFFF",
+    color: Colors.dark.text,
+  },
+  buttonLabel: {
+    fontSize: 16,
   },
   fab: {
     position: "absolute",

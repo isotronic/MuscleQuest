@@ -1,12 +1,14 @@
-import { StyleSheet, View, TouchableOpacity, Button } from "react-native";
+import { StyleSheet, View, TouchableOpacity, TextInput } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
-import { TextInput, Card } from "react-native-paper";
-import DraggableFlatlist, {
-  ScaleDecorator,
+import { Card, Button } from "react-native-paper";
+import {
+  ShadowDecorator,
+  NestableDraggableFlatList,
 } from "react-native-draggable-flatlist";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -37,9 +39,8 @@ export default function WorkoutCard({
     workoutIndex: number;
   }) => {
     return (
-      <ScaleDecorator>
+      <ShadowDecorator>
         <TouchableOpacity
-          onLongPress={drag}
           onPress={() =>
             router.push(
               `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}`,
@@ -54,13 +55,14 @@ export default function WorkoutCard({
         >
           <MaterialCommunityIcons
             name="drag"
+            onLongPress={drag}
             size={24}
             color="#ECEFF4"
             style={{ marginRight: 10 }}
           />
           <ThemedText>{item.name}</ThemedText>
         </TouchableOpacity>
-      </ScaleDecorator>
+      </ShadowDecorator>
     );
   };
 
@@ -85,13 +87,15 @@ export default function WorkoutCard({
         </TouchableOpacity>
       </View>
       <TextInput
-        style={styles.workoutName}
         placeholder="Workout name"
+        placeholderTextColor={Colors.dark.subText}
+        style={styles.input}
         value={workout.name}
         onChangeText={(text: string) => onNameChange(index, text)}
       />
       {workout.exercises.length > 0 ? (
-        <DraggableFlatlist
+        <NestableDraggableFlatList
+          scrollEnabled={false}
           containerStyle={{ overflow: "visible" }}
           data={workout.exercises}
           keyExtractor={(exercise) => exercise.exercise_id.toString()}
@@ -105,7 +109,14 @@ export default function WorkoutCard({
           No exercises added yet
         </ThemedText>
       )}
-      <Button title="Add Exercise" onPress={() => onAddExercise(index)} />
+      <Button
+        mode="outlined"
+        style={styles.saveButton}
+        labelStyle={styles.saveButtonLabel}
+        onPress={() => onAddExercise(index)}
+      >
+        Add Exercise
+      </Button>
     </Card>
   );
 }
@@ -113,7 +124,7 @@ export default function WorkoutCard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     overflow: "visible",
   },
   inputContainer: {
@@ -121,27 +132,35 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
+  input: {
+    flex: 1,
+    padding: 10,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
+    marginVertical: 10,
+    height: 40,
+  },
+  saveButton: {
+    marginTop: 8,
+  },
+  saveButtonLabel: {
+    fontSize: 16,
+  },
   image: {
     width: 60,
     height: 60,
     borderRadius: 20,
     marginRight: 10,
   },
-  input: {
-    flex: 1,
-    fontSize: 18,
-    color: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#FFFFFF",
-    marginRight: 10,
-  },
   emptyText: {
     fontSize: 18,
-    color: "#FFFFFF",
+    color: Colors.dark.text,
   },
   workoutCard: {
     width: "100%",
-    backgroundColor: "#3B4252",
+    backgroundColor: Colors.dark.cardBackground,
     padding: 16,
     borderRadius: 8,
     marginVertical: 8,
@@ -154,16 +173,10 @@ const styles = StyleSheet.create({
   },
   workoutDay: {
     fontSize: 16,
-    color: "#8FBCBB",
   },
   workoutName: {
     fontSize: 18,
-    color: "#FFFFFF",
-  },
-  workoutInstructions: {
-    fontSize: 14,
-    color: "#D8DEE9",
-    marginVertical: 8,
+    color: Colors.dark.text,
   },
   fab: {
     position: "absolute",

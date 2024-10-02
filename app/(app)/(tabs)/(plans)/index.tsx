@@ -47,7 +47,7 @@ export default function PlansScreen() {
       <FAB
         icon="plus"
         label="Create plan"
-        rippleColor={Colors.dark.tint}
+        theme={{ colors: { primary: Colors.dark.tint } }}
         style={styles.fab}
         onPress={() => {
           handleCreatePlan();
