@@ -22,7 +22,6 @@ export default function CreatePlanLayout() {
         options={{ title: "Exercise Details" }}
       />
       <Stack.Screen name="sets-overview" options={{ title: "Sets Overview" }} />
-      <Stack.Screen name="edit-set" options={{ title: "Edit Set" }} />
     </Stack>
   );
 }
