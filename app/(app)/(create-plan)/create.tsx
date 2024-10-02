@@ -183,10 +183,10 @@ export default function CreatePlanScreen() {
                 />
               ))
             )}
-            <FAB icon="plus" style={styles.fab} onPress={handleAddWorkout} />
           </ThemedView>
         )}
       </NestableScrollContainer>
+      <FAB icon="plus" style={styles.fab} onPress={handleAddWorkout} />
     </KeyboardAvoidingView>
   );
 }

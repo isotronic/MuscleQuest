@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   View,
   ScrollView,
@@ -13,14 +14,18 @@ import { router, Stack, useNavigation } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
+import { useCompletedWorkoutsQuery } from "@/hooks/useCompletedWorkoutsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
-import { useEffect } from "react";
 
 export default function WorkoutOverviewScreen() {
   const navigation = useNavigation();
   const { workout, completedSets, weightAndReps, startTime, activeWorkout } =
     useActiveWorkoutStore();
 
+  const { data: completedWorkouts } = useCompletedWorkoutsQuery();
+  const currentWorkoutHistory = completedWorkouts?.find(
+    (completedWorkout) => completedWorkout.workout_name === activeWorkout?.name,
+  );
   const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation();
 
   useKeepScreenOn();
@@ -48,6 +53,20 @@ export default function WorkoutOverviewScreen() {
 
     return unsubscribe;
   }, [navigation]);
+
+  const handleExercisePress = (index: number) => {
+    const historyString = currentWorkoutHistory
+      ? JSON.stringify(currentWorkoutHistory)
+      : undefined;
+
+    router.push({
+      pathname: "workout-session",
+      params: {
+        selectedExerciseIndex: index,
+        workoutHistory: historyString,
+      },
+    });
+  };
 
   const handleSaveWorkout = async () => {
     const planId = activeWorkout?.planId;
@@ -126,12 +145,7 @@ export default function WorkoutOverviewScreen() {
           return (
             <TouchableOpacity
               key={exercise.exercise_id}
-              onPress={() =>
-                router.push({
-                  pathname: "workout-session",
-                  params: { selectedExerciseIndex: index },
-                })
-              }
+              onPress={() => handleExercisePress(index)}
             >
               <Card style={styles.card}>
                 <Card.Content style={styles.cardContent}>
