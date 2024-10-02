@@ -12,6 +12,7 @@ import { useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
+import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 
 export default function WorkoutSessionScreen() {
   const screenWidth = Dimensions.get("window").width; // Get the screen width
@@ -28,6 +29,7 @@ export default function WorkoutSessionScreen() {
     setCurrentExerciseIndex,
     setCurrentSetIndex,
     updateWeightAndReps,
+    initializeWeightAndReps,
     nextSet,
     timerRunning,
     timerExpiry,
@@ -41,7 +43,16 @@ export default function WorkoutSessionScreen() {
     error: settingsError,
   } = useSettingsQuery();
 
-  const { selectedExerciseIndex } = useLocalSearchParams();
+  const { selectedExerciseIndex, workoutHistory } = useLocalSearchParams();
+
+  useEffect(() => {
+    if (workoutHistory) {
+      const previousWorkoutData: CompletedWorkout = JSON.parse(
+        workoutHistory as string,
+      );
+      initializeWeightAndReps(previousWorkoutData);
+    }
+  }, [workoutHistory, initializeWeightAndReps]);
 
   useEffect(() => {
     if (workout && selectedExerciseIndex !== undefined) {
