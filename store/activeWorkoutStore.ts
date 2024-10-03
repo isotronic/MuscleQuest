@@ -160,7 +160,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
         };
       } else {
         // Workout completed
-        router.replace("/(workout)");
+        router.back();
         return {
           currentSetIndices: updatedSetIndices,
           completedSets: updatedCompletedSets,
