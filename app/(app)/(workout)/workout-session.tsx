@@ -69,32 +69,12 @@ export default function WorkoutSessionScreen() {
       ? completedSets[currentExerciseIndex][currentSetIndex]
       : false;
 
-  const nextSetIndex =
-    currentSetIndex + 1 < currentExercise!.sets.length
-      ? currentSetIndex + 1
-      : null;
-  const previousSetIndex =
-    currentSetIndex - 1 >= 0 ? currentSetIndex - 1 : null;
-
-  const upcomingSet =
-    nextSetIndex !== null ? currentExercise?.sets[nextSetIndex] : null;
-  const previousSet =
-    previousSetIndex !== null ? currentExercise?.sets[previousSetIndex] : null;
-
   const weight =
     weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight || "0";
   const reps =
     weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.reps || "0";
 
-  const nextWeight =
-    nextSetIndex !== null
-      ? weightAndReps[currentExerciseIndex]?.[nextSetIndex]?.weight || "0"
-      : null;
-  const nextReps =
-    nextSetIndex !== null
-      ? weightAndReps[currentExerciseIndex]?.[nextSetIndex]?.reps || "0"
-      : null;
-
+  // Fetch animated image for current exercise
   const {
     data: animatedUrl,
     error: animatedImageError,
@@ -132,15 +112,108 @@ export default function WorkoutSessionScreen() {
     updateWeightAndReps(currentExerciseIndex, currentSetIndex, weight, newReps);
   };
 
+  // Compute next set index and exercise index
+  let nextExerciseIndex = currentExerciseIndex;
+  let nextSetIndex = currentSetIndex + 1;
+
+  if (currentExercise && nextSetIndex >= currentExercise.sets.length) {
+    // Move to first set of next exercise
+    nextExerciseIndex = currentExerciseIndex + 1;
+    nextSetIndex = 0;
+  }
+
+  const hasNextSet =
+    workout &&
+    nextExerciseIndex < workout.exercises.length &&
+    workout.exercises[nextExerciseIndex].sets[nextSetIndex];
+
+  // Compute previous set index and exercise index
+  let previousExerciseIndex: number | null = currentExerciseIndex;
+  let previousSetIndex: number | null = currentSetIndex - 1;
+
+  if (previousSetIndex < 0) {
+    // Move to last set of previous exercise
+    previousExerciseIndex = currentExerciseIndex - 1;
+    if (previousExerciseIndex >= 0) {
+      const prevExercise = workout?.exercises[previousExerciseIndex];
+      previousSetIndex = prevExercise!.sets.length - 1;
+    } else {
+      previousSetIndex = null;
+      previousExerciseIndex = null;
+    }
+  }
+
+  const hasPreviousSet =
+    previousExerciseIndex !== null &&
+    previousSetIndex !== null &&
+    previousExerciseIndex >= 0 &&
+    previousSetIndex >= 0 &&
+    workout &&
+    workout.exercises[previousExerciseIndex].sets[previousSetIndex];
+
+  // Next set data
+  const nextExercise = hasNextSet ? workout.exercises[nextExerciseIndex] : null;
+  const upcomingSet = nextExercise ? nextExercise.sets[nextSetIndex] : null;
+  const nextExerciseName = nextExercise?.name || "";
+  const {
+    data: nextAnimatedUrl,
+    error: nextAnimatedImageError,
+    isLoading: nextAnimatedImageLoading,
+  } = useAnimatedImageQuery(nextExercise?.animated_url);
+
+  const nextWeight =
+    weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.weight || "0";
+  const nextReps =
+    weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.reps || "0";
+
+  // Previous set data
+  const previousExercise =
+    hasPreviousSet && previousExerciseIndex !== null
+      ? workout.exercises[previousExerciseIndex]
+      : null;
+  const previousSet =
+    previousExercise && previousSetIndex !== null
+      ? previousExercise.sets[previousSetIndex]
+      : null;
+  const previousExerciseName = previousExercise?.name || "";
+  const {
+    data: previousAnimatedUrl,
+    error: previousAnimatedImageError,
+    isLoading: previousAnimatedImageLoading,
+  } = useAnimatedImageQuery(previousExercise?.animated_url);
+
+  const previousWeight =
+    previousExerciseIndex !== null && previousSetIndex !== null
+      ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.weight
+      : "0";
+  const previousReps =
+    previousExerciseIndex !== null && previousSetIndex !== null
+      ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.reps
+      : "0";
+
   const handlePreviousSet = () => {
-    if (previousSetIndex !== null) {
-      setCurrentSetIndex(currentExerciseIndex, previousSetIndex);
+    if (
+      hasPreviousSet &&
+      !isAnimating &&
+      previousExerciseIndex !== null &&
+      previousSetIndex !== null
+    ) {
+      animateSets(screenWidth, () => {
+        setCurrentExerciseIndex(previousExerciseIndex as number);
+        setCurrentSetIndex(
+          previousExerciseIndex as number,
+          previousSetIndex as number,
+        );
+      });
     }
   };
 
   const handleNextSet = () => {
-    if (nextSetIndex !== null) {
-      setCurrentSetIndex(currentExerciseIndex, nextSetIndex);
+    if (hasNextSet && !isAnimating) {
+      animateSets(-screenWidth, () => {
+        setCurrentExerciseIndex(nextExerciseIndex);
+        setCurrentSetIndex(nextExerciseIndex, nextSetIndex);
+      });
     }
   };
 
@@ -148,26 +221,28 @@ export default function WorkoutSessionScreen() {
     const { translationX, state } = nativeEvent;
     const swipeThreshold = 50;
 
-    // Prevent swipe if there's no previous or next set
-    if (
-      (translationX > 0 && previousSetIndex === null) ||
-      (translationX < 0 && nextSetIndex === null)
-    ) {
-      resetSwipe(); // Reset position immediately if no valid set to swipe to
-      return;
-    }
-
     if (state === State.ACTIVE && !isAnimating) {
       translateX.setValue(translationX);
     }
 
     if (state === State.END && !isAnimating) {
-      if (translationX > swipeThreshold && previousSetIndex !== null) {
+      if (
+        translationX > swipeThreshold &&
+        hasPreviousSet &&
+        previousExerciseIndex !== null &&
+        previousSetIndex !== null
+      ) {
         // Swiping right to go to previous set
-        animateSets(screenWidth, handlePreviousSet);
-      } else if (translationX < -swipeThreshold && nextSetIndex !== null) {
+        animateSets(screenWidth, () => {
+          setCurrentExerciseIndex(previousExerciseIndex);
+          setCurrentSetIndex(previousExerciseIndex, previousSetIndex);
+        });
+      } else if (translationX < -swipeThreshold && hasNextSet) {
         // Swiping left to go to next set
-        animateSets(-screenWidth, handleNextSet);
+        animateSets(-screenWidth, () => {
+          setCurrentExerciseIndex(nextExerciseIndex);
+          setCurrentSetIndex(nextExerciseIndex, nextSetIndex);
+        });
       } else {
         resetSwipe();
       }
@@ -201,9 +276,25 @@ export default function WorkoutSessionScreen() {
       return;
     }
 
+    // Prevent action if already animating
+    if (isAnimating) {
+      return;
+    }
+
     updateWeightAndReps(currentExerciseIndex, currentSetIndex, weight, reps);
-    nextSet();
-    startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
+
+    if (hasNextSet) {
+      // Trigger the same animation as swiping to next set
+      animateSets(-screenWidth, () => {
+        // After animation completes
+        nextSet();
+        startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
+      });
+    } else {
+      // No next set, workout completed
+      nextSet();
+      // Optionally navigate to a summary screen or perform other actions
+    }
   };
 
   const weightIncrement = settings ? parseFloat(settings.weightIncrement) : 2.5;
@@ -269,7 +360,7 @@ export default function WorkoutSessionScreen() {
           </Animated.View>
 
           {/* Next set - initially off-screen */}
-          {nextSetIndex !== null && (
+          {hasNextSet && (
             <Animated.View
               style={{
                 transform: [
@@ -285,14 +376,14 @@ export default function WorkoutSessionScreen() {
               }}
             >
               <SessionSetInfo
-                exerciseName={currentExercise?.name || ""}
-                animatedUrl={animatedUrl}
-                animatedImageLoading={animatedImageLoading}
-                animatedImageError={animatedImageError}
+                exerciseName={nextExerciseName}
+                animatedUrl={nextAnimatedUrl}
+                animatedImageLoading={nextAnimatedImageLoading}
+                animatedImageError={nextAnimatedImageError}
                 currentSetIndex={nextSetIndex}
-                totalSets={currentExercise?.sets.length || 0}
-                weight={nextWeight || "0"}
-                reps={nextReps || "0"}
+                totalSets={nextExercise?.sets.length || 0}
+                weight={nextWeight}
+                reps={nextReps}
                 weightIncrement={weightIncrement}
                 buttonSize={buttonSize}
                 weightUnit={settings?.weightUnit || "kg"}
@@ -312,47 +403,49 @@ export default function WorkoutSessionScreen() {
           )}
 
           {/* Previous set - initially off-screen */}
-          {previousSetIndex !== null && (
-            <Animated.View
-              style={{
-                transform: [
-                  {
-                    translateX: Animated.add(
-                      translateX,
-                      new Animated.Value(-screenWidth),
-                    ),
-                  },
-                ],
-                position: "absolute",
-                width: "100%",
-              }}
-            >
-              <SessionSetInfo
-                exerciseName={currentExercise?.name || ""}
-                animatedUrl={animatedUrl}
-                animatedImageLoading={animatedImageLoading}
-                animatedImageError={animatedImageError}
-                currentSetIndex={previousSetIndex}
-                totalSets={currentExercise?.sets.length || 0}
-                weight={nextWeight || "0"}
-                reps={nextReps || "0"}
-                weightIncrement={weightIncrement}
-                buttonSize={buttonSize}
-                weightUnit={settings?.weightUnit || "kg"}
-                restMinutes={previousSet?.restMinutes || 0}
-                restSeconds={previousSet?.restSeconds || 0}
-                timerRunning={false} // Timer should only be running for the current set
-                seconds={0}
-                minutes={0}
-                currentSetCompleted={false}
-                handleWeightChange={() => {}}
-                handleRepsChange={() => {}}
-                handlePreviousSet={() => {}}
-                handleNextSet={() => {}}
-                handleCompleteSet={() => {}}
-              />
-            </Animated.View>
-          )}
+          {hasPreviousSet &&
+            previousExerciseIndex !== null &&
+            previousSetIndex !== null && (
+              <Animated.View
+                style={{
+                  transform: [
+                    {
+                      translateX: Animated.add(
+                        translateX,
+                        new Animated.Value(-screenWidth),
+                      ),
+                    },
+                  ],
+                  position: "absolute",
+                  width: "100%",
+                }}
+              >
+                <SessionSetInfo
+                  exerciseName={previousExerciseName}
+                  animatedUrl={previousAnimatedUrl}
+                  animatedImageLoading={previousAnimatedImageLoading}
+                  animatedImageError={previousAnimatedImageError}
+                  currentSetIndex={previousSetIndex}
+                  totalSets={previousExercise?.sets.length || 0}
+                  weight={previousWeight}
+                  reps={previousReps}
+                  weightIncrement={weightIncrement}
+                  buttonSize={buttonSize}
+                  weightUnit={settings?.weightUnit || "kg"}
+                  restMinutes={previousSet?.restMinutes || 0}
+                  restSeconds={previousSet?.restSeconds || 0}
+                  timerRunning={false} // Timer should only be running for the current set
+                  seconds={0}
+                  minutes={0}
+                  currentSetCompleted={false}
+                  handleWeightChange={() => {}}
+                  handleRepsChange={() => {}}
+                  handlePreviousSet={() => {}}
+                  handleNextSet={() => {}}
+                  handleCompleteSet={() => {}}
+                />
+              </Animated.View>
+            )}
         </View>
       </PanGestureHandler>
     </ThemedView>
