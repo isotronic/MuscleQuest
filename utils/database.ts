@@ -77,6 +77,17 @@ export const fetchRecord = async (
   ]);
 };
 
+export const insertAnimatedImageUri = async (
+  exercise_id: number,
+  local_animated_uri: string,
+) => {
+  const db = await openDatabase("appData.db");
+  await db.runAsync(
+    `UPDATE exercises SET local_animated_uri = ? WHERE exercise_id = ?`,
+    [local_animated_uri, exercise_id],
+  );
+};
+
 export const fetchActivePlan = async () => {
   const db = await openDatabase("userData.db");
   return await db.getFirstAsync(

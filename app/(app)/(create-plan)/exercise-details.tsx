@@ -36,7 +36,11 @@ export default function ExerciseDetailsScreen() {
     data: animatedUrl,
     error: animatedImageError,
     isLoading: animatedImageLoading,
-  } = useAnimatedImageQuery(exerciseData?.animated_url);
+  } = useAnimatedImageQuery(
+    exerciseData?.exercise_id,
+    exerciseData?.animated_url,
+    exerciseData?.local_animated_uri,
+  );
 
   if (!exerciseData) {
     return (

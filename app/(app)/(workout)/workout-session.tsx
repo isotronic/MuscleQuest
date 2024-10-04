@@ -79,7 +79,11 @@ export default function WorkoutSessionScreen() {
     data: animatedUrl,
     error: animatedImageError,
     isLoading: animatedImageLoading,
-  } = useAnimatedImageQuery(currentExercise?.animated_url);
+  } = useAnimatedImageQuery(
+    currentExercise?.exercise_id || 0,
+    currentExercise?.animated_url || "",
+    currentExercise?.local_animated_uri,
+  );
 
   useKeepScreenOn();
 
@@ -159,7 +163,11 @@ export default function WorkoutSessionScreen() {
     data: nextAnimatedUrl,
     error: nextAnimatedImageError,
     isLoading: nextAnimatedImageLoading,
-  } = useAnimatedImageQuery(nextExercise?.animated_url);
+  } = useAnimatedImageQuery(
+    nextExercise?.exercise_id || 0,
+    nextExercise?.animated_url || "",
+    nextExercise?.local_animated_uri,
+  );
 
   const nextWeight =
     weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.weight || "0";
@@ -180,7 +188,11 @@ export default function WorkoutSessionScreen() {
     data: previousAnimatedUrl,
     error: previousAnimatedImageError,
     isLoading: previousAnimatedImageLoading,
-  } = useAnimatedImageQuery(previousExercise?.animated_url);
+  } = useAnimatedImageQuery(
+    previousExercise?.exercise_id || 0,
+    previousExercise?.animated_url || "",
+    previousExercise?.local_animated_uri,
+  );
 
   const previousWeight =
     previousExerciseIndex !== null && previousSetIndex !== null
