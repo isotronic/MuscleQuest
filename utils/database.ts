@@ -88,6 +88,18 @@ export const insertAnimatedImageUri = async (
   );
 };
 
+interface ExerciseWithoutLocalAnimatedUriRow {
+  exercise_id: number;
+  animated_url: string;
+}
+
+export const fetchExercisesWithoutLocalAnimatedUri = async () => {
+  const db = await openDatabase("appData.db");
+  return (await db.getAllAsync(
+    `SELECT exercise_id, animated_url FROM exercises WHERE animated_url IS NOT NULL AND animated_url != '' AND (local_animated_uri IS NULL OR local_animated_uri = '')`,
+  )) as ExerciseWithoutLocalAnimatedUriRow[];
+};
+
 export const fetchActivePlan = async () => {
   const db = await openDatabase("userData.db");
   return await db.getFirstAsync(
