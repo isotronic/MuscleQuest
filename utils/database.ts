@@ -77,6 +77,46 @@ export const fetchRecord = async (
   ]);
 };
 
+export const insertAnimatedImageUri = async (
+  exercise_id: number,
+  local_animated_uri: string,
+) => {
+  const db = await openDatabase("appData.db");
+  await db.runAsync(
+    `UPDATE exercises SET local_animated_uri = ? WHERE exercise_id = ?`,
+    [local_animated_uri, exercise_id],
+  );
+};
+
+export interface ExerciseWithoutLocalAnimatedUriRow {
+  exercise_id: number;
+  animated_url: string;
+}
+
+export const fetchExercisesWithoutLocalAnimatedUri = async () => {
+  const db = await openDatabase("appData.db");
+  return (await db.getAllAsync(
+    `SELECT exercise_id, animated_url FROM exercises WHERE animated_url IS NOT NULL AND animated_url != '' AND (local_animated_uri IS NULL OR local_animated_uri = '')`,
+  )) as ExerciseWithoutLocalAnimatedUriRow[];
+};
+
+export interface ExerciseWithLocalAnimatedUriRow {
+  exercise_id: number;
+  local_animated_uri: string;
+}
+
+export const fetchExercisesWithLocalAnimatedUri = async () => {
+  const db = await openDatabase("appData.db");
+  return (await db.getAllAsync(
+    `SELECT exercise_id, local_animated_uri FROM exercises WHERE local_animated_uri IS NOT NULL AND local_animated_uri != ''`,
+  )) as ExerciseWithLocalAnimatedUriRow[];
+};
+
+export const clearAllLocalAnimatedUri = async () => {
+  const db = await openDatabase("appData.db");
+  await db.runAsync(`UPDATE exercises SET local_animated_uri = NULL`);
+};
+
 export const fetchActivePlan = async () => {
   const db = await openDatabase("userData.db");
   return await db.getFirstAsync(

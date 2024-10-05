@@ -1,4 +1,5 @@
 import { View, StyleSheet, ScrollView } from "react-native";
+import { ActivityIndicator } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { useLocalSearchParams } from "expo-router";
 import FastImage from "react-native-fast-image";
@@ -36,7 +37,11 @@ export default function ExerciseDetailsScreen() {
     data: animatedUrl,
     error: animatedImageError,
     isLoading: animatedImageLoading,
-  } = useAnimatedImageQuery(exerciseData?.animated_url);
+  } = useAnimatedImageQuery(
+    exerciseData?.exercise_id,
+    exerciseData?.animated_url,
+    exerciseData?.local_animated_uri,
+  );
 
   if (!exerciseData) {
     return (
@@ -49,7 +54,9 @@ export default function ExerciseDetailsScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {animatedImageLoading ? (
-        <ThemedText style={styles.loadingText}>Loading GIF...</ThemedText>
+        <View style={styles.loadingText}>
+          <ActivityIndicator size="large" />
+        </View>
       ) : animatedImageError ? (
         <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
       ) : animatedUrl ? (
@@ -135,10 +142,14 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 18,
+    textAlign: "center",
+    marginVertical: 32,
     color: "#888",
   },
   errorText: {
     fontSize: 18,
+    textAlign: "center",
+    marginVertical: 32,
     color: "#FF6F61",
   },
 });

@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
-import { ActivityIndicator, Divider, Switch } from "react-native-paper";
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import {
+  ActivityIndicator,
+  Divider,
+  Switch,
+  ProgressBar,
+} from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -8,12 +19,15 @@ import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import { SettingsModal } from "@/components/SettingsModal";
-import { Alert } from "react-native";
 import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
+import { useImageManagement } from "@/hooks/useImageManagement";
 
 export default function SettingsScreen() {
   const { data: settings, isLoading, isError, error } = useSettingsQuery();
   const { mutate: updateSetting } = useUpdateSettingsMutation();
+
+  const { isDownloading, isDeleting, progress, toggleDownloadImages } =
+    useImageManagement(updateSetting);
 
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [currentSettingKey, setCurrentSettingKey] = useState<string | null>(
@@ -90,10 +104,6 @@ export default function SettingsScreen() {
     updateSetting({ key: "keepScreenOn", value: value.toString() });
   };
 
-  // const toggleDownloadImages = (value: boolean) => {
-  //   updateSetting({ key: "downloadImages", value: value.toString() });
-  // };
-
   const handleClearDatabase = async () => {
     try {
       await clearDatabaseAndReinitialize();
@@ -148,41 +158,6 @@ export default function SettingsScreen() {
         />
         <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>Personal</ThemedText>
-          {/* <TouchableOpacity
-            style={styles.item}
-            onPress={() => console.log("Backup and restore pressed")}
-          >
-            <MaterialCommunityIcons
-              name="backup-restore"
-              size={24}
-              color={Colors.dark.icon}
-              style={styles.icon}
-            />
-            <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>
-                Backup and restore
-              </ThemedText>
-            </View>
-          </TouchableOpacity> */}
-          {/* <View style={styles.item}>
-            <MaterialCommunityIcons
-              name="cloud-download"
-              size={24}
-              color={Colors.dark.icon}
-              style={styles.icon}
-            />
-            <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>
-                Download all exercise images
-              </ThemedText>
-            </View>
-            <Switch
-              value={settings?.downloadImages === "true"}
-              onValueChange={toggleDownloadImages}
-              color={Colors.dark.tint}
-              style={styles.switch}
-            />
-          </View> */}
           <TouchableOpacity
             style={styles.item}
             onPress={() =>
@@ -207,6 +182,54 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          {/* <TouchableOpacity
+            style={styles.item}
+            onPress={() => console.log("Backup and restore pressed")}
+          >
+            <MaterialCommunityIcons
+              name="backup-restore"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Backup and restore
+              </ThemedText>
+            </View>
+          </TouchableOpacity> */}
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="cloud-download"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Download all exercise images
+              </ThemedText>
+            </View>
+            <Switch
+              value={settings?.downloadImages === "true"}
+              onValueChange={toggleDownloadImages}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
+          {(isDownloading || isDeleting) && (
+            <View style={styles.progressContainer}>
+              <ThemedText style={styles.progressText}>
+                {isDownloading
+                  ? "Downloading. Please wait..."
+                  : "Deleting. Please wait..."}
+              </ThemedText>
+              <ProgressBar
+                animatedValue={progress}
+                color={isDownloading ? Colors.dark.tint : Colors.dark.highlight}
+              />
+            </View>
+          )}
         </View>
         <Divider style={styles.divider} />
 
@@ -552,4 +575,8 @@ const styles = StyleSheet.create({
   switch: {
     marginLeft: "auto",
   },
+  progressBar: {
+    marginVertical: 16,
+  },
+  progressBarText: {},
 });
