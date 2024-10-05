@@ -88,7 +88,7 @@ export const insertAnimatedImageUri = async (
   );
 };
 
-interface ExerciseWithoutLocalAnimatedUriRow {
+export interface ExerciseWithoutLocalAnimatedUriRow {
   exercise_id: number;
   animated_url: string;
 }

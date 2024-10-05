@@ -103,7 +103,7 @@ export default function SettingsScreen() {
     if (value === true) {
       Alert.alert(
         "Download Images",
-        "Are you sure you want to download all images? This may take a while.",
+        "Are you sure you want to download all animated images? This may take a while.",
         [
           { text: "Cancel", style: "cancel" },
           {
@@ -115,7 +115,7 @@ export default function SettingsScreen() {
     } else {
       Alert.alert(
         "Download Images",
-        "Are you sure you want to delete all images? Single images will be re-downloaded when needed.",
+        "Are you sure you want to delete all animated images? Single images will be automatically re-downloaded when viewed.",
         [
           { text: "Cancel", style: "cancel" },
           {
@@ -134,15 +134,26 @@ export default function SettingsScreen() {
     updateSetting({ key: "downloadImages", value: "true" });
 
     try {
-      await downloadAllAnimatedImages((currentProgress) => {
-        setProgress(currentProgress);
-      });
-      Alert.alert("Success", "All images downloaded successfully!");
-    } catch (error) {
-      Alert.alert(
-        "Error",
-        "An error occurred while downloading images. Please try again.",
+      const { success, failedDownloads } = await downloadAllAnimatedImages(
+        (currentProgress) => {
+          setProgress(currentProgress);
+        },
       );
+
+      if (success) {
+        Alert.alert("Success", "All images downloaded successfully!");
+      } else {
+        Alert.alert(
+          "Download Complete",
+          `Some images failed to download after retries. Failed exercise IDs: ${failedDownloads.join(", ")}`,
+        );
+        console.error(
+          "Some images failed to download after retries:",
+          failedDownloads,
+        );
+      }
+    } catch (error) {
+      Alert.alert("Error", "An error occurred while downloading images.");
       console.error("Error downloading images:", error);
     } finally {
       setIsDownloading(false);
