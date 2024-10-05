@@ -7,30 +7,56 @@ const fetchAnimatedImageUrl = async (
   exerciseId: number,
   animatedUrlPath: string,
   localPath?: string,
+  maxRetries = 3,
 ): Promise<string> => {
   if (localPath && localPath !== "") {
     return localPath;
   } else {
-    try {
-      const downloadUrl = await storage().ref(animatedUrlPath).getDownloadURL();
-      const localUri = `${FileSystem.documentDirectory}exercise_${exerciseId}.webp`;
-      const downloadResumable = FileSystem.createDownloadResumable(
-        downloadUrl,
-        localUri,
-      );
-      await downloadResumable.downloadAsync();
+    let attempt = 0;
+    let lastError;
+    const localUri = `${FileSystem.documentDirectory}exercise_${exerciseId}.webp`;
 
+    while (attempt < maxRetries) {
       try {
-        await insertAnimatedImageUri(exerciseId, localUri);
-        return localUri;
+        const downloadUrl = await storage()
+          .ref(animatedUrlPath)
+          .getDownloadURL();
+
+        const downloadResumable = FileSystem.createDownloadResumable(
+          downloadUrl,
+          localUri,
+        );
+
+        const downloadResult = await downloadResumable.downloadAsync();
+
+        if (downloadResult && downloadResult.uri) {
+          try {
+            await insertAnimatedImageUri(exerciseId, localUri);
+            return localUri;
+          } catch (error) {
+            console.error("Error inserting animated image URI:", error);
+            throw error;
+          }
+        } else {
+          throw new Error("Failed to download image.");
+        }
       } catch (error) {
-        console.error("Error inserting animated image URI:", error);
-        throw error;
+        attempt++;
+        console.error(
+          `Attempt ${attempt} - Error fetching or saving image:`,
+          error,
+        );
+        lastError = error;
+
+        if (attempt < maxRetries) {
+          const delayTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+          await new Promise((resolve) => setTimeout(resolve, delayTime));
+        } else {
+          throw lastError;
+        }
       }
-    } catch (error) {
-      console.error("Error fetching or saving image:", error);
-      throw error;
     }
+    throw new Error("Unexpected error in fetchAnimatedImageUrl.");
   }
 };
 
