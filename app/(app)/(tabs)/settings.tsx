@@ -16,12 +16,14 @@ import { SettingsModal } from "@/components/SettingsModal";
 import { Alert } from "react-native";
 import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 import { downloadAllAnimatedImages } from "@/utils/downloadAllAnimatedImages";
+import { deleteAllAnimatedImages } from "@/utils/deleteAllAnimatedImaged";
 
 export default function SettingsScreen() {
   const { data: settings, isLoading, isError, error } = useSettingsQuery();
   const { mutate: updateSetting } = useUpdateSettingsMutation();
 
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [progress, setProgress] = useState(0);
 
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -108,7 +110,7 @@ export default function SettingsScreen() {
           { text: "Cancel", style: "cancel" },
           {
             text: "Download",
-            onPress: () => handleDownloadImages(),
+            onPress: () => handleDownloadAllImages(),
           },
         ],
       );
@@ -120,17 +122,16 @@ export default function SettingsScreen() {
           { text: "Cancel", style: "cancel" },
           {
             text: "Delete",
-            onPress: () =>
-              updateSetting({ key: "downloadImages", value: "false" }),
+            onPress: () => handleDeleteAllImages(),
           },
         ],
       );
     }
   };
 
-  const handleDownloadImages = async () => {
-    setIsDownloading(true);
+  const handleDownloadAllImages = async () => {
     setProgress(0);
+    setIsDownloading(true);
     updateSetting({ key: "downloadImages", value: "true" });
 
     try {
@@ -157,6 +158,35 @@ export default function SettingsScreen() {
       console.error("Error downloading images:", error);
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleDeleteAllImages = async () => {
+    setProgress(0);
+    setIsDeleting(true);
+    updateSetting({ key: "downloadImages", value: "false" });
+    // Confirm with the user before deleting
+    try {
+      const { success, failedDeletes } = await deleteAllAnimatedImages(
+        (currentProgress) => {
+          setProgress(currentProgress);
+        },
+      );
+
+      if (success) {
+        Alert.alert("Success", "All images deleted successfully!");
+      } else {
+        Alert.alert(
+          "Delete Complete",
+          `Some images failed to delete. Failed exercise IDs: ${failedDeletes.join(", ")}`,
+        );
+        console.error("Some images failed to delete:", failedDeletes);
+      }
+    } catch (error) {
+      Alert.alert("Error", "An error occurred while deleting images.");
+      console.error("Error deleting images:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -273,12 +303,18 @@ export default function SettingsScreen() {
               style={styles.switch}
             />
           </View>
-          {isDownloading && (
-            <ProgressBar
-              animatedValue={progress}
-              color={Colors.dark.tint}
-              style={styles.progressBar}
-            />
+          {(isDownloading || isDeleting) && (
+            <View style={styles.progressContainer}>
+              <ThemedText style={styles.progressText}>
+                {isDownloading
+                  ? "Downloading. Please wait..."
+                  : "Deleting. Please wait..."}
+              </ThemedText>
+              <ProgressBar
+                animatedValue={progress}
+                color={isDownloading ? Colors.dark.tint : Colors.dark.highlight}
+              />
+            </View>
           )}
         </View>
         <Divider style={styles.divider} />
@@ -626,6 +662,7 @@ const styles = StyleSheet.create({
     marginLeft: "auto",
   },
   progressBar: {
-    marginBottom: 16,
+    marginVertical: 16,
   },
+  progressBarText: {},
 });
