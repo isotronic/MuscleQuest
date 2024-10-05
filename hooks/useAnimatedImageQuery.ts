@@ -8,7 +8,7 @@ const fetchAnimatedImageUrl = async (
   animatedUrlPath: string,
   localPath?: string,
 ): Promise<string> => {
-  if (localPath) {
+  if (localPath && localPath !== "") {
     return localPath;
   } else {
     try {
