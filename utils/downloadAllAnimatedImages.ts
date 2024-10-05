@@ -6,6 +6,11 @@ import {
 } from "@/utils/database";
 import { fetchExercisesWithoutLocalAnimatedUri } from "@/utils/database";
 
+interface DownloadAllImagesResult {
+  success: boolean;
+  failedDownloads: number[];
+}
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const downloadExerciseImage = async (
@@ -59,43 +64,62 @@ const downloadExerciseImage = async (
 export const downloadAllAnimatedImages = async (
   onProgress?: (progress: number) => void,
   maxRetries = 3,
-) => {
+): Promise<DownloadAllImagesResult> => {
   try {
     const exercises = await fetchExercisesWithoutLocalAnimatedUri();
 
     const totalExercises = exercises.length;
     let completed = 0;
     const concurrencyLimit = 25;
-    const downloadQueue = [...exercises];
     const failedDownloads: number[] = [];
 
-    const downloadNext = async () => {
-      while (downloadQueue.length > 0) {
-        const exercise = downloadQueue.shift()!;
-        try {
-          await downloadExerciseImage(exercise, maxRetries);
-        } catch (error) {
-          console.error(error);
-          failedDownloads.push(exercise.exercise_id);
-        } finally {
-          // Update progress
-          completed++;
-          if (onProgress) {
-            const progress = completed / totalExercises;
-            onProgress(progress);
-          }
+    // Index to keep track of the next exercise to process
+    let currentIndex = 0;
+    let activeCount = 0;
+
+    return new Promise((resolve, reject) => {
+      const startNext = () => {
+        while (
+          activeCount < concurrencyLimit &&
+          currentIndex < totalExercises
+        ) {
+          const exercise = exercises[currentIndex++];
+          activeCount++;
+
+          // Start the download
+          downloadExerciseImage(exercise, maxRetries)
+            .then(() => {
+              // Download successful
+            })
+            .catch((error) => {
+              console.error(error);
+              failedDownloads.push(exercise.exercise_id);
+            })
+            .finally(() => {
+              activeCount--;
+              completed++;
+              if (onProgress) {
+                const progress = completed / totalExercises;
+                onProgress(progress);
+              }
+
+              if (completed === totalExercises) {
+                // All downloads are complete
+                resolve({
+                  success: failedDownloads.length === 0,
+                  failedDownloads,
+                });
+              } else {
+                // Start the next download
+                startNext();
+              }
+            });
         }
-      }
-    };
+      };
 
-    const downloadPromises = [];
-    for (let i = 0; i < concurrencyLimit; i++) {
-      downloadPromises.push(downloadNext());
-    }
-
-    await Promise.all(downloadPromises);
-
-    return { success: failedDownloads.length === 0, failedDownloads };
+      // Start initial downloads
+      startNext();
+    });
   } catch (error) {
     console.error("Error downloading all images:", error);
     throw error;
