@@ -100,6 +100,23 @@ export const fetchExercisesWithoutLocalAnimatedUri = async () => {
   )) as ExerciseWithoutLocalAnimatedUriRow[];
 };
 
+export interface ExerciseWithLocalAnimatedUriRow {
+  exercise_id: number;
+  local_animated_uri: string;
+}
+
+export const fetchExercisesWithLocalAnimatedUri = async () => {
+  const db = await openDatabase("appData.db");
+  return (await db.getAllAsync(
+    `SELECT exercise_id, local_animated_uri FROM exercises WHERE local_animated_uri IS NOT NULL AND local_animated_uri != ''`,
+  )) as ExerciseWithLocalAnimatedUriRow[];
+};
+
+export const clearAllLocalAnimatedUri = async () => {
+  const db = await openDatabase("appData.db");
+  await db.runAsync(`UPDATE exercises SET local_animated_uri = NULL`);
+};
+
 export const fetchActivePlan = async () => {
   const db = await openDatabase("userData.db");
   return await db.getFirstAsync(
