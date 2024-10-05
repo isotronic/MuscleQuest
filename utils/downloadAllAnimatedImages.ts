@@ -81,7 +81,7 @@ export const downloadAllAnimatedImages = async (
           // Update progress
           completed++;
           if (onProgress) {
-            const progress = (completed / totalExercises) * 100;
+            const progress = completed / totalExercises;
             onProgress(progress);
           }
         }
