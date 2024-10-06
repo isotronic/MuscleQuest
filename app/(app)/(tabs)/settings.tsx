@@ -21,8 +21,10 @@ import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import { SettingsModal } from "@/components/SettingsModal";
 import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 import { useImageManagement } from "@/hooks/useImageManagement";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function SettingsScreen() {
+  const queryClient = useQueryClient();
   const { data: settings, isLoading, isError, error } = useSettingsQuery();
   const { mutate: updateSetting } = useUpdateSettingsMutation();
 
@@ -48,6 +50,11 @@ export default function SettingsScreen() {
         .toString()
         .padStart(2, "0")} minutes`
     : "";
+
+  useEffect(() => {
+    // When weightUnit changes, refetch completed workouts
+    queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+  }, [settings?.weightUnit, queryClient]);
 
   const showOverlay = (
     key: string,
@@ -241,8 +248,8 @@ export default function SettingsScreen() {
             style={styles.item}
             onPress={() =>
               showOverlay("weightUnit", settings?.weightUnit || "", "radio", [
-                "Kilograms",
-                "Pounds",
+                "kg",
+                "lbs",
               ])
             }
           >
