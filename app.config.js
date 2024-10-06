@@ -19,7 +19,7 @@ module.exports = {
       versionCode: 11,
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       adaptiveIcon: {
-        foregroundImage: "./assets/images/icon.png",
+        foregroundImage: "./assets/images/ic_launcher_foreground.png",
         backgroundColor: "#22222d",
       },
       package: "com.isotronic.musclequest",
