@@ -5,7 +5,7 @@ const saveCompletedWorkoutWithConversion = async (
   completedWorkoutData: SavedWorkout,
   weightUnit: string,
 ) => {
-  const conversionFactor = weightUnit === "lbs" ? 0.453592 : 1; // lbs to kg
+  const conversionFactor = weightUnit === "lbs" ? 0.45359237 : 1; // lbs to kg
 
   // Deep copy to avoid mutating the original data
   const workoutDataInKg = {
@@ -14,7 +14,7 @@ const saveCompletedWorkoutWithConversion = async (
       ...exercise,
       sets: exercise.sets.map((set) => ({
         ...set,
-        weight: parseFloat((set.weight * conversionFactor).toFixed(1)),
+        weight: set.weight * conversionFactor,
       })),
     })),
   };

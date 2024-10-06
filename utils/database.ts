@@ -303,7 +303,7 @@ export const fetchCompletedWorkoutById = async (
       throw new Error("No workout found with the provided workoutId.");
     }
 
-    const conversionFactor = weightUnit === "lbs" ? 2.20462 : 1;
+    const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
 
     // Process the result to structure it as needed
     const workout: CompletedWorkout = {

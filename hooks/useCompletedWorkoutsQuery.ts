@@ -44,7 +44,7 @@ const fetchAndOrganize = async (
     const workoutsMap = new Map<number, CompletedWorkout>();
     const workoutsArray: CompletedWorkout[] = [];
 
-    const conversionFactor = weightUnit === "lbs" ? 2.20462 : 1;
+    const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
 
     results.forEach((item) => {
       const {
