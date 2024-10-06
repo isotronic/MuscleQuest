@@ -30,11 +30,13 @@ export default function HomeScreen() {
     isLoading: settingsLoading,
     error: settingsError,
   } = useSettingsQuery();
+
+  const weightUnit = settings?.weightUnit || "kg";
   const {
     data: completedWorkouts,
     isLoading: completedWorkoutsLoading,
     error: completedWorkoutsError,
-  } = useCompletedWorkoutsQuery();
+  } = useCompletedWorkoutsQuery(weightUnit);
 
   const today = new Date();
   const startOfWeekDate = startOfWeek(today, { weekStartsOn: 1 });

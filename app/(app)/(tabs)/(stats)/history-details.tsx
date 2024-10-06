@@ -26,10 +26,15 @@ export default function HistoryDetailsScreen() {
     error: settingsError,
   } = useSettingsQuery();
 
+  const weightUnit = settings?.weightUnit || "kg";
+
   useEffect(() => {
     const fetchWorkout = async () => {
       try {
-        const data = await fetchCompletedWorkoutById(Number(workoutId));
+        const data = await fetchCompletedWorkoutById(
+          Number(workoutId),
+          weightUnit,
+        );
 
         // Collect unique exercise IDs
         const exerciseIds = data.exercises.map(
@@ -58,7 +63,7 @@ export default function HistoryDetailsScreen() {
     };
 
     fetchWorkout();
-  }, [workoutId]);
+  }, [workoutId, weightUnit]);
 
   // Calculate total volume
   const totalVolume = useMemo(() => {
@@ -70,7 +75,7 @@ export default function HistoryDetailsScreen() {
       const exerciseVolume = exercise.sets.reduce((setAcc, set) => {
         return setAcc + set.weight * set.reps;
       }, 0);
-      return exerciseAcc + exerciseVolume;
+      return parseFloat((exerciseAcc + exerciseVolume).toFixed(1));
     }, 0);
   }, [workout]);
 
