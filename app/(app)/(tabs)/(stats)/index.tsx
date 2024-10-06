@@ -12,11 +12,15 @@ import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { Colors } from "@/constants/Colors";
 import WorkoutHistoryCard from "@/components/WorkoutHistoryCard";
 import { useRouter } from "expo-router";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 export default function StatsScreen() {
   const router = useRouter();
+
+  const { data: settings } = useSettingsQuery();
+  const weightUnit = settings?.weightUnit || "kg";
   const { data: completedWorkouts, isLoading: isLoadingWorkouts } =
-    useCompletedWorkoutsQuery();
+    useCompletedWorkoutsQuery(weightUnit);
   const { data: exercises, isLoading: isLoadingExercises } =
     useExercisesQuery();
 

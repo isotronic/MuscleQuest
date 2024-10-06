@@ -16,17 +16,21 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
 import { useCompletedWorkoutsQuery } from "@/hooks/useCompletedWorkoutsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 export default function WorkoutOverviewScreen() {
   const navigation = useNavigation();
+  const { data: settings } = useSettingsQuery();
   const { workout, completedSets, weightAndReps, startTime, activeWorkout } =
     useActiveWorkoutStore();
 
-  const { data: completedWorkouts } = useCompletedWorkoutsQuery();
+  const weightUnit = settings?.weightUnit || "kg";
+  const { data: completedWorkouts } = useCompletedWorkoutsQuery(weightUnit);
   const currentWorkoutHistory = completedWorkouts?.find(
     (completedWorkout) => completedWorkout.workout_name === activeWorkout?.name,
   );
-  const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation();
+  const saveCompletedWorkoutMutation =
+    useSaveCompletedWorkoutMutation(weightUnit);
 
   useKeepScreenOn();
 

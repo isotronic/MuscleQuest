@@ -33,7 +33,9 @@ export interface CompletedWorkout {
   }[];
 }
 
-const fetchAndOrganize = async (): Promise<CompletedWorkout[]> => {
+const fetchAndOrganize = async (
+  weightUnit: string,
+): Promise<CompletedWorkout[]> => {
   const results = (await fetchCompletedWorkouts()) as
     | WorkoutResult[]
     | undefined;
@@ -41,6 +43,8 @@ const fetchAndOrganize = async (): Promise<CompletedWorkout[]> => {
   if (results) {
     const workoutsMap = new Map<number, CompletedWorkout>();
     const workoutsArray: CompletedWorkout[] = [];
+
+    const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
 
     results.forEach((item) => {
       const {
@@ -86,10 +90,14 @@ const fetchAndOrganize = async (): Promise<CompletedWorkout[]> => {
         workout.exercises.push(exercise);
       }
 
+      const convertedWeight = parseFloat(
+        (weight * conversionFactor).toFixed(1),
+      );
+
       // Add the set to the exercise
       exercise.sets.push({
         set_number,
-        weight,
+        weight: convertedWeight,
         reps,
       });
     });
@@ -101,10 +109,10 @@ const fetchAndOrganize = async (): Promise<CompletedWorkout[]> => {
   return []; // Return an empty array if results is undefined
 };
 
-export const useCompletedWorkoutsQuery = () => {
+export const useCompletedWorkoutsQuery = (weightUnit: string) => {
   return useQuery<CompletedWorkout[]>({
-    queryKey: ["completedWorkouts"],
-    queryFn: fetchAndOrganize,
+    queryKey: ["completedWorkouts", weightUnit],
+    queryFn: () => fetchAndOrganize(weightUnit),
     staleTime: Infinity,
   });
 };

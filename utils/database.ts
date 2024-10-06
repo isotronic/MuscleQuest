@@ -272,6 +272,7 @@ interface CompletedWorkoutRow {
 
 export const fetchCompletedWorkoutById = async (
   workoutId: number,
+  weightUnit: string = "kg",
 ): Promise<CompletedWorkout> => {
   const db = await openDatabase("userData.db");
 
@@ -302,6 +303,8 @@ export const fetchCompletedWorkoutById = async (
       throw new Error("No workout found with the provided workoutId.");
     }
 
+    const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
+
     // Process the result to structure it as needed
     const workout: CompletedWorkout = {
       workout_id: workoutId,
@@ -325,10 +328,16 @@ export const fetchCompletedWorkoutById = async (
         }
 
         if (row.set_number !== null) {
+          // Convert weight from kg to user's unit
+          const weightInKg = parseFloat(row.weight?.toString() || "0");
+          const convertedWeight = parseFloat(
+            (weightInKg * conversionFactor).toFixed(1),
+          );
+
           exercisesMap[row.exercise_id].sets.push({
             set_number: row.set_number,
-            weight: row.weight,
-            reps: row.reps,
+            weight: convertedWeight,
+            reps: row.reps || 0,
           });
         }
       }

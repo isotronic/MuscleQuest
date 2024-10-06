@@ -24,7 +24,9 @@ interface SessionSetInfoProps {
   seconds: number;
   minutes: number;
   currentSetCompleted: boolean;
+  handleWeightInputChange: (text: string) => void;
   handleWeightChange: (amount: number) => void;
+  handleRepsInputChange: (text: string) => void;
   handleRepsChange: (amount: number) => void;
   handlePreviousSet: () => void;
   handleNextSet: () => void;
@@ -49,7 +51,9 @@ export default function SessionSetInfo({
   seconds,
   minutes,
   currentSetCompleted,
+  handleWeightInputChange,
   handleWeightChange,
+  handleRepsInputChange,
   handleRepsChange,
   handlePreviousSet,
   handleNextSet,
@@ -122,8 +126,9 @@ export default function SessionSetInfo({
           placeholder="Enter weight"
           placeholderTextColor={Colors.dark.text}
           value={weight}
-          onChangeText={(text: string) => handleWeightChange(parseFloat(text))}
+          onChangeText={(text: string) => handleWeightInputChange(text)}
           keyboardType="numeric"
+          selectTextOnFocus={true}
           style={styles.input}
         />
         <IconButton
@@ -151,8 +156,9 @@ export default function SessionSetInfo({
           placeholder="Enter reps"
           placeholderTextColor={Colors.dark.text}
           value={reps}
-          onChangeText={(text: string) => handleRepsChange(parseInt(text))}
+          onChangeText={(text: string) => handleRepsInputChange(text)}
           keyboardType="numeric"
+          selectTextOnFocus={true}
           style={styles.input}
         />
         <IconButton
