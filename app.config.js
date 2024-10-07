@@ -1,8 +1,10 @@
-module.exports = {
+const IS_DEV = process.env.APP_VARIANT === "development";
+
+export default {
   expo: {
-    name: "MuscleQuest",
+    name: IS_DEV ? "MuscleQuest (Dev)" : "MuscleQuest",
     slug: "musclequest",
-    version: "0.1.0",
+    version: "0.1.4",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",
@@ -22,7 +24,9 @@ module.exports = {
         foregroundImage: "./assets/images/ic_launcher_foreground.png",
         backgroundColor: "#22222d",
       },
-      package: "com.isotronic.musclequest",
+      package: IS_DEV
+        ? "com.isotronic.musclequest.dev"
+        : "com.isotronic.musclequest",
     },
     androidNavigationBar: {
       backgroundColor: "#22222d",
