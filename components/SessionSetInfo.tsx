@@ -123,7 +123,6 @@ export default function SessionSetInfo({
           style={styles.iconButton}
         />
         <TextInput
-          placeholder="Enter weight"
           placeholderTextColor={Colors.dark.text}
           value={weight}
           onChangeText={(text: string) => handleWeightInputChange(text)}
@@ -153,7 +152,6 @@ export default function SessionSetInfo({
           style={styles.iconButton}
         />
         <TextInput
-          placeholder="Enter reps"
           placeholderTextColor={Colors.dark.text}
           value={reps}
           onChangeText={(text: string) => handleRepsInputChange(text)}
