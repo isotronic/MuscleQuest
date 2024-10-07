@@ -163,6 +163,7 @@ export default function CreatePlanScreen() {
                 mode="contained"
                 labelStyle={styles.buttonLabel}
                 onPress={() => handleSavePlan(Number(planId))}
+                disabled={!planName.trim() || workouts.length === 0}
               >
                 Save
               </Button>
