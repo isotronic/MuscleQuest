@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { Exercise } from "@/utils/database";
-import uuid from "react-native-uuid";
 
 interface Set {
   repsMin: number;
@@ -14,7 +13,6 @@ export interface UserExercise extends Exercise {
 }
 
 export interface Workout {
-  id: string;
   name: string;
   exercises: UserExercise[];
 }
@@ -46,11 +44,6 @@ interface WorkoutStore {
   ) => void;
 }
 
-const generateUuidString = (): string => {
-  const id = uuid.v4();
-  return Array.isArray(id) ? id.join("") : id; // Convert number[] to a string
-};
-
 const useWorkoutStore = create<WorkoutStore>((set) => ({
   workouts: [],
   planImageUrl:
@@ -59,10 +52,7 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
   setWorkouts: (workouts) => set({ workouts }),
   clearWorkouts: () => set({ workouts: [] }),
   addWorkout: (workout) =>
-    set((state) => ({
-      ...state,
-      workouts: [...state.workouts, { ...workout, id: generateUuidString() }],
-    })),
+    set((state) => ({ ...state, workouts: [...state.workouts, workout] })),
   removeWorkout: (index) =>
     set((state) => ({
       ...state,
