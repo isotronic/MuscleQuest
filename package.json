@@ -1,9 +1,13 @@
 {
   "name": "musclequest",
   "main": "expo-router/entry",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "scripts": {
     "start": "expo start",
+    "dev": "APP_VARIANT=development npx expo start",
+    "build-dev": "npx eas build --profile development --platform android",
+    "build-preview": "npx eas build --profile preview --platform android",
+    "build": "npx eas build --profile production --platform android",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
