@@ -127,12 +127,14 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleWeightChange = (amount: number) => {
-    const newWeight = (parseFloat(weight) + amount).toFixed(1);
+    const currentWeight = isNaN(parseFloat(weight)) ? 0 : parseFloat(weight);
+    const newWeight = (currentWeight + amount).toFixed(1);
     updateWeightAndReps(currentExerciseIndex, currentSetIndex, newWeight, reps);
   };
 
   const handleRepsChange = (amount: number) => {
-    const newReps = (parseInt(reps) + amount).toString();
+    const currentReps = isNaN(parseInt(reps)) ? 0 : parseInt(reps);
+    const newReps = (currentReps + amount).toString();
     updateWeightAndReps(currentExerciseIndex, currentSetIndex, weight, newReps);
   };
 
