@@ -1,4 +1,4 @@
-import { Button, RadioButton, Menu } from "react-native-paper";
+import { Button, RadioButton, Menu, PaperProvider } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import {
@@ -10,6 +10,7 @@ import {
   Modal,
 } from "react-native";
 import { useState } from "react";
+import { paperTheme } from "@/utils/paperTheme";
 
 // Utility function to format setting keys
 const formatSettingKey = (key: string) => {
@@ -47,137 +48,142 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <Modal visible={visible} transparent={true} animationType="slide">
-      <TouchableWithoutFeedback onPress={onCancel}>
-        <View style={styles.modalContainer}>
-          <TouchableWithoutFeedback>
-            <View style={styles.modalContent}>
-              <ThemedText style={styles.modalHeader}>
-                {settingKey ? formatSettingKey(settingKey) : ""}
-              </ThemedText>
+      <PaperProvider theme={paperTheme}>
+        <TouchableWithoutFeedback onPress={onCancel}>
+          <View style={styles.modalContainer}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <ThemedText style={styles.modalHeader}>
+                  {settingKey ? formatSettingKey(settingKey) : ""}
+                </ThemedText>
 
-              {settingType === "number" && (
-                <View style={styles.labeledInput}>
-                  <ThemedText style={styles.inputLabel}>Enter Value</ThemedText>
-                  <TextInput
-                    value={inputValue.toString()}
-                    onChangeText={(text: string) => onChangeValue(text)}
-                    keyboardType="numeric"
-                    style={styles.input}
-                  />
-                </View>
-              )}
+                {settingType === "number" && (
+                  <View style={styles.labeledInput}>
+                    <ThemedText style={styles.inputLabel}>
+                      Enter Value
+                    </ThemedText>
+                    <TextInput
+                      value={inputValue.toString()}
+                      onChangeText={(text: string) => onChangeValue(text)}
+                      keyboardType="numeric"
+                      style={styles.input}
+                    />
+                  </View>
+                )}
 
-              {settingType === "radio" && options && (
-                <RadioButton.Group
-                  onValueChange={(newValue) => onChangeValue(newValue)}
-                  value={inputValue as string}
-                >
-                  {options.map((option) => (
-                    <View key={option} style={styles.radioItem}>
-                      <RadioButton
-                        value={option}
-                        color={Colors.dark.tint}
-                        uncheckedColor={Colors.dark.icon}
-                      />
-                      <ThemedText>{option}</ThemedText>
-                    </View>
-                  ))}
-                </RadioButton.Group>
-              )}
-
-              {settingType === "dropdown" && options && (
-                <View style={styles.menu}>
-                  <TouchableOpacity
-                    onPress={() => setMenuVisible(true)}
-                    style={styles.dropdown}
-                  >
-                    <ThemedText>{inputValue}</ThemedText>
-                  </TouchableOpacity>
-                  <Menu
-                    visible={menuVisible}
-                    onDismiss={() => setMenuVisible(false)}
-                    anchor={<ThemedText>Select Value</ThemedText>}
+                {settingType === "radio" && options && (
+                  <RadioButton.Group
+                    onValueChange={(newValue) => onChangeValue(newValue)}
+                    value={inputValue as string}
                   >
                     {options.map((option) => (
-                      <Menu.Item
-                        key={option}
-                        onPress={() => {
-                          onChangeValue(option);
-                          setMenuVisible(false);
-                        }}
-                        title={option}
-                      />
+                      <View key={option} style={styles.radioItem}>
+                        <RadioButton
+                          value={option}
+                          color={Colors.dark.tint}
+                          uncheckedColor={Colors.dark.icon}
+                        />
+                        <ThemedText>{option}</ThemedText>
+                      </View>
                     ))}
-                  </Menu>
-                </View>
-              )}
+                  </RadioButton.Group>
+                )}
 
-              {settingType === "restTime" && (
-                <View style={styles.timeInputContainer}>
-                  <View style={styles.labeledInput}>
-                    <ThemedText style={styles.inputLabel}>Minutes</ThemedText>
-                    <TextInput
-                      value={(
-                        inputValue as { minutes: number; seconds: number }
-                      ).minutes.toString()}
-                      onChangeText={(text: string) =>
-                        onChangeValue({
-                          ...(inputValue as {
-                            minutes: number;
-                            seconds: number;
-                          }),
-                          minutes: parseInt(text, 10) || 0,
-                        })
-                      }
-                      keyboardType="numeric"
-                      style={styles.input}
-                    />
+                {settingType === "dropdown" && options && (
+                  <View style={styles.menu}>
+                    <TouchableOpacity
+                      onPress={() => setMenuVisible(true)}
+                      style={styles.dropdown}
+                    >
+                      <ThemedText>{inputValue}</ThemedText>
+                    </TouchableOpacity>
+                    <Menu
+                      visible={menuVisible}
+                      style={styles.dropdownMenu}
+                      onDismiss={() => setMenuVisible(false)}
+                      anchor={<ThemedText>Select Value</ThemedText>}
+                    >
+                      {options.map((option) => (
+                        <Menu.Item
+                          key={option}
+                          onPress={() => {
+                            onChangeValue(option);
+                            setMenuVisible(false);
+                          }}
+                          title={option}
+                        />
+                      ))}
+                    </Menu>
                   </View>
-                  <View style={styles.labeledInput}>
-                    <ThemedText style={styles.inputLabel}>Seconds</ThemedText>
-                    <TextInput
-                      value={(
-                        inputValue as { minutes: number; seconds: number }
-                      ).seconds.toString()}
-                      onChangeText={(text: string) =>
-                        onChangeValue({
-                          ...(inputValue as {
-                            minutes: number;
-                            seconds: number;
-                          }),
-                          seconds: parseInt(text, 10) || 0,
-                        })
-                      }
-                      keyboardType="numeric"
-                      style={styles.input}
-                    />
-                  </View>
-                </View>
-              )}
+                )}
 
-              {/* Save & Cancel Buttons */}
-              <View style={styles.buttonContainer}>
-                <Button
-                  mode="outlined"
-                  onPress={onCancel}
-                  labelStyle={styles.buttonLabel}
-                  style={styles.cancelButton}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  mode="contained"
-                  onPress={onSave}
-                  labelStyle={styles.buttonLabel}
-                  style={styles.saveButton}
-                >
-                  Save
-                </Button>
+                {settingType === "restTime" && (
+                  <View style={styles.timeInputContainer}>
+                    <View style={styles.labeledInput}>
+                      <ThemedText style={styles.inputLabel}>Minutes</ThemedText>
+                      <TextInput
+                        value={(
+                          inputValue as { minutes: number; seconds: number }
+                        ).minutes.toString()}
+                        onChangeText={(text: string) =>
+                          onChangeValue({
+                            ...(inputValue as {
+                              minutes: number;
+                              seconds: number;
+                            }),
+                            minutes: parseInt(text, 10) || 0,
+                          })
+                        }
+                        keyboardType="numeric"
+                        style={styles.input}
+                      />
+                    </View>
+                    <View style={styles.labeledInput}>
+                      <ThemedText style={styles.inputLabel}>Seconds</ThemedText>
+                      <TextInput
+                        value={(
+                          inputValue as { minutes: number; seconds: number }
+                        ).seconds.toString()}
+                        onChangeText={(text: string) =>
+                          onChangeValue({
+                            ...(inputValue as {
+                              minutes: number;
+                              seconds: number;
+                            }),
+                            seconds: parseInt(text, 10) || 0,
+                          })
+                        }
+                        keyboardType="numeric"
+                        style={styles.input}
+                      />
+                    </View>
+                  </View>
+                )}
+
+                {/* Save & Cancel Buttons */}
+                <View style={styles.buttonContainer}>
+                  <Button
+                    mode="outlined"
+                    onPress={onCancel}
+                    labelStyle={styles.buttonLabel}
+                    style={styles.cancelButton}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    mode="contained"
+                    onPress={onSave}
+                    labelStyle={styles.buttonLabel}
+                    style={styles.saveButton}
+                  >
+                    Save
+                  </Button>
+                </View>
               </View>
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </PaperProvider>
     </Modal>
   );
 };
@@ -253,5 +259,8 @@ const styles = StyleSheet.create({
   },
   menu: {
     marginBottom: 16,
+  },
+  dropdownMenu: {
+    zIndex: 100,
   },
 });
