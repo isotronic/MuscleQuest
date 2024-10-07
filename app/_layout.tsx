@@ -4,7 +4,7 @@ import { Provider as PaperProvider } from "react-native-paper";
 import { paperTheme } from "@/utils/paperTheme";
 import { useFonts } from "expo-font";
 import { isRunningInExpoGo } from "expo";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import * as SplashScreen from "expo-splash-screen";
 import * as Sentry from "@sentry/react-native";
@@ -61,6 +61,8 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayout() {
+  const [isDatabaseInitialized, setIsDatabaseInitialized] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [loaded, error] = useFonts({
     Inter_100Thin,
     Inter_200ExtraLight,
@@ -83,17 +85,17 @@ function RootLayout() {
   }, [ref]);
 
   useEffect(() => {
-    if (loaded || error) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded, error]);
-
-  useEffect(() => {
     async function initializeDatabase() {
       try {
         await openDatabase();
+        await initUserDataDB();
+        await insertDefaultSettings();
+        // Set the database initialization state to true after setup is complete
+        setIsDatabaseInitialized(true);
       } catch (error) {
-        console.log(error);
+        console.error("Database initialization error:", error);
+      } finally {
+        setIsInitializing(false);
       }
     }
 
@@ -101,26 +103,15 @@ function RootLayout() {
   }, []);
 
   useEffect(() => {
-    async function initializeUserDataDB() {
-      try {
-        await initUserDataDB();
-      } catch (error) {
-        console.log(error);
-      }
-
-      try {
-        await insertDefaultSettings();
-      } catch (error) {
-        console.error(error);
-      }
+    if (loaded && !error && isDatabaseInitialized && !isInitializing) {
+      SplashScreen.hideAsync();
     }
+  }, [loaded, error, isDatabaseInitialized, isInitializing]);
 
-    initializeUserDataDB();
-  }, []);
-
-  if (!loaded && !error) {
+  if (isInitializing) {
     return null;
   }
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={DarkTheme}>
@@ -138,4 +129,5 @@ function RootLayout() {
   );
 }
 
-export default Sentry.wrap(RootLayout);
+export default RootLayout;
+//export default Sentry.wrap(RootLayout);

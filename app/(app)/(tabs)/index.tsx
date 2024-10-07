@@ -49,6 +49,16 @@ export default function HomeScreen() {
       new Date(workout.date_completed) <= endOfWeekDate,
   );
 
+  // Create a Set to track unique workout dates
+  const uniqueWorkoutDays = new Set(
+    completedWorkoutsThisWeek?.map((workout) =>
+      new Date(workout.date_completed).toDateString(),
+    ),
+  );
+
+  // Get the number of unique days worked out
+  const uniqueWorkoutDaysCount = uniqueWorkoutDays.size;
+
   if (activePlanLoading || settingsLoading || completedWorkoutsLoading) {
     return (
       <ThemedView style={styles.loadingContainer}>
@@ -78,8 +88,7 @@ export default function HomeScreen() {
         </View>
         <View style={styles.summaryContainer}>
           <ThemedText style={styles.summaryText}>
-            {completedWorkoutsThisWeek?.length} / {settings?.weeklyGoal} days
-            worked out
+            {uniqueWorkoutDaysCount} / {settings?.weeklyGoal} days worked out
           </ThemedText>
         </View>
         <View style={styles.welcomeContainer}>

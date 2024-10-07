@@ -11,6 +11,8 @@ export const paperTheme = {
     accent: Colors.dark.highlight,
     onPrimary: Colors.dark.background,
     onPrimaryContainer: Colors.dark.background,
+    surfaceDisabled: Colors.dark.cardBackground,
+    onSurfaceDisabled: Colors.dark.subText,
     // Customize other colors as needed
   },
 };
