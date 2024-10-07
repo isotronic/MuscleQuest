@@ -99,7 +99,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </TouchableOpacity>
                     <Menu
                       visible={menuVisible}
-                      style={styles.dropdownMenu}
                       onDismiss={() => setMenuVisible(false)}
                       anchor={<ThemedText>Select Value</ThemedText>}
                     >
@@ -259,8 +258,5 @@ const styles = StyleSheet.create({
   },
   menu: {
     marginBottom: 16,
-  },
-  dropdownMenu: {
-    zIndex: 100,
   },
 });
