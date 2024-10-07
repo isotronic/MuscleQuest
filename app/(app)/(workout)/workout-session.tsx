@@ -328,7 +328,7 @@ export default function WorkoutSessionScreen() {
     const repsNum = parseInt(repsStr);
     const validRepsNum = isNaN(repsNum) ? 0 : repsNum;
 
-    // Update the weightAndReps with valid values
+    // Update the weightAndReps with valid values for the current set
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
@@ -337,7 +337,40 @@ export default function WorkoutSessionScreen() {
     );
 
     if (hasNextSet) {
-      // Trigger the same animation as swiping to next set
+      // Update weightAndReps for the next set before starting the animation
+      if (nextExerciseIndex === currentExerciseIndex) {
+        // Next set is within the same exercise
+        const nextSetIndex = currentSetIndex + 1;
+        const updatedNextSetWeightAndReps = {
+          weight: validWeightInKg.toString(), // Update weight to current weight
+          reps:
+            weightAndReps[currentExerciseIndex]?.[nextSetIndex]?.reps ??
+            validRepsNum.toString(), // Keep existing reps or use current reps
+        };
+        updateWeightAndReps(
+          currentExerciseIndex,
+          nextSetIndex,
+          updatedNextSetWeightAndReps.weight,
+          updatedNextSetWeightAndReps.reps,
+        );
+      } else {
+        // Next set is in the next exercise
+        const nextSetIndex = 0;
+        const updatedNextSetWeightAndReps = {
+          weight: validWeightInKg.toString(), // Update weight to current weight
+          reps:
+            weightAndReps[nextExerciseIndex]?.[0]?.reps ??
+            validRepsNum.toString(), // Keep existing reps or use current reps
+        };
+        updateWeightAndReps(
+          nextExerciseIndex,
+          nextSetIndex,
+          updatedNextSetWeightAndReps.weight,
+          updatedNextSetWeightAndReps.reps,
+        );
+      }
+
+      // Trigger the animation to the next set
       animateSets(-screenWidth, () => {
         // After animation completes
         nextSet();
