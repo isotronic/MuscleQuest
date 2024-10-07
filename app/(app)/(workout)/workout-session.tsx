@@ -341,12 +341,18 @@ export default function WorkoutSessionScreen() {
       if (nextExerciseIndex === currentExerciseIndex) {
         // Next set is within the same exercise
         const nextSetIndex = currentSetIndex + 1;
+
+        const existingNextSetReps =
+          weightAndReps[currentExerciseIndex]?.[nextSetIndex]?.reps;
+
         const updatedNextSetWeightAndReps = {
           weight: validWeightInKg.toString(), // Update weight to current weight
           reps:
-            weightAndReps[currentExerciseIndex]?.[nextSetIndex]?.reps ??
-            validRepsNum.toString(), // Keep existing reps or use current reps
+            existingNextSetReps === undefined || existingNextSetReps === "0"
+              ? validRepsNum.toString() // Carry over current reps
+              : existingNextSetReps, // Keep existing reps if available
         };
+
         updateWeightAndReps(
           currentExerciseIndex,
           nextSetIndex,
@@ -356,12 +362,18 @@ export default function WorkoutSessionScreen() {
       } else {
         // Next set is in the next exercise
         const nextSetIndex = 0;
+
+        const existingNextSetReps =
+          weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.reps;
+
         const updatedNextSetWeightAndReps = {
           weight: validWeightInKg.toString(), // Update weight to current weight
           reps:
-            weightAndReps[nextExerciseIndex]?.[0]?.reps ??
-            validRepsNum.toString(), // Keep existing reps or use current reps
+            existingNextSetReps === undefined || existingNextSetReps === "0"
+              ? validRepsNum.toString() // Carry over current reps
+              : existingNextSetReps, // Keep existing reps if available
         };
+
         updateWeightAndReps(
           nextExerciseIndex,
           nextSetIndex,
