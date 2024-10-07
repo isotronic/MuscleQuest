@@ -3,7 +3,6 @@ import { View, TextInput, StyleSheet } from "react-native";
 import { IconButton, ActivityIndicator, Button } from "react-native-paper";
 import FastImage from "react-native-fast-image";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 
 interface SessionSetInfoProps {
@@ -20,9 +19,6 @@ interface SessionSetInfoProps {
   weightUnit: string;
   restMinutes: number;
   restSeconds: number;
-  timerRunning: boolean;
-  seconds: number;
-  minutes: number;
   currentSetCompleted: boolean;
   handleWeightInputChange: (text: string) => void;
   handleWeightChange: (amount: number) => void;
@@ -47,9 +43,6 @@ export default function SessionSetInfo({
   weightUnit,
   restMinutes,
   restSeconds,
-  timerRunning,
-  seconds,
-  minutes,
   currentSetCompleted,
   handleWeightInputChange,
   handleWeightChange,
@@ -179,15 +172,6 @@ export default function SessionSetInfo({
       >
         Complete Set
       </Button>
-
-      {timerRunning && (
-        <ThemedView style={styles.timerContainer}>
-          <ThemedText style={styles.timerLabel}>Rest Time Left:</ThemedText>
-          <ThemedText style={styles.timerText}>
-            {minutes}:{seconds.toString().padStart(2, "0")}
-          </ThemedText>
-        </ThemedView>
-      )}
     </View>
   );
 }
@@ -252,34 +236,6 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     backgroundColor: Colors.dark.disabledButtonBackground,
-  },
-  timerContainer: {
-    padding: 20,
-    backgroundColor: Colors.dark.cardBackground,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 10,
-    marginBottom: 20,
-    marginTop: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-    flexDirection: "column",
-  },
-  timerLabel: {
-    fontSize: 16,
-    color: Colors.dark.text,
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  timerText: {
-    fontSize: 48,
-    fontWeight: "bold",
-    color: Colors.dark.text,
-    textAlign: "center",
-    lineHeight: 48,
   },
   loadingText: {
     fontSize: 18,

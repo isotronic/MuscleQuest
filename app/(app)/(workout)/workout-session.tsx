@@ -13,8 +13,10 @@ import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function WorkoutSessionScreen() {
+  const insets = useSafeAreaInsets();
   const screenWidth = Dimensions.get("window").width; // Get the screen width
   const translateX = useRef(new Animated.Value(0)).current;
 
@@ -398,9 +400,6 @@ export default function WorkoutSessionScreen() {
               weightUnit={settings?.weightUnit || "kg"}
               restMinutes={currentSet?.restMinutes || 0}
               restSeconds={currentSet?.restSeconds || 0}
-              timerRunning={timerRunning}
-              seconds={seconds}
-              minutes={minutes}
               currentSetCompleted={currentSetCompleted}
               handleWeightInputChange={handleWeightInputChange}
               handleWeightChange={handleWeightChange}
@@ -442,9 +441,6 @@ export default function WorkoutSessionScreen() {
                 weightUnit={settings?.weightUnit || "kg"}
                 restMinutes={upcomingSet?.restMinutes || 0}
                 restSeconds={upcomingSet?.restSeconds || 0}
-                timerRunning={false} // Timer should only be running for the current set
-                seconds={0}
-                minutes={0}
                 currentSetCompleted={false}
                 handleWeightInputChange={() => {}}
                 handleWeightChange={() => {}}
@@ -489,9 +485,6 @@ export default function WorkoutSessionScreen() {
                   weightUnit={settings?.weightUnit || "kg"}
                   restMinutes={previousSet?.restMinutes || 0}
                   restSeconds={previousSet?.restSeconds || 0}
-                  timerRunning={false} // Timer should only be running for the current set
-                  seconds={0}
-                  minutes={0}
                   currentSetCompleted={false}
                   handleWeightInputChange={() => {}}
                   handleWeightChange={() => {}}
@@ -505,6 +498,16 @@ export default function WorkoutSessionScreen() {
             )}
         </View>
       </PanGestureHandler>
+      {timerRunning && (
+        <ThemedView
+          style={[styles.timerContainer, { paddingBottom: insets.bottom }]}
+        >
+          <ThemedText style={styles.timerLabel}>Rest Time Left:</ThemedText>
+          <ThemedText style={styles.timerText}>
+            {minutes}:{seconds.toString().padStart(2, "0")}
+          </ThemedText>
+        </ThemedView>
+      )}
     </ThemedView>
   );
 }
@@ -514,5 +517,37 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-between",
     padding: 16,
+  },
+  timerContainer: {
+    position: "absolute",
+    bottom: 0,
+    right: 16,
+    left: 16,
+    width: "100%",
+    height: 70,
+    backgroundColor: Colors.dark.cardBackground,
+    alignItems: "center",
+    justifyContent: "center",
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    marginBottom: 0,
+  },
+  timerLabel: {
+    fontSize: 14,
+    color: Colors.dark.text,
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  timerText: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: Colors.dark.text,
+    textAlign: "center",
+    lineHeight: 32,
   },
 });
