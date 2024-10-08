@@ -13,6 +13,7 @@ export interface UserExercise extends Exercise {
 }
 
 export interface Workout {
+  id: number;
   name: string;
   exercises: UserExercise[];
 }

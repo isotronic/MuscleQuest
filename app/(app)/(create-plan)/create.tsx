@@ -106,7 +106,7 @@ export default function CreatePlanScreen() {
   }, [planSaved]);
 
   const handleAddWorkout = () => {
-    const newWorkout = { name: "", exercises: [] };
+    const newWorkout = { id: 0, name: "", exercises: [] };
     addWorkout(newWorkout);
   };
 
