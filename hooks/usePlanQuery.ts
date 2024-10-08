@@ -35,7 +35,7 @@ const parseWorkouts = (workouts: WorkoutRecord[]) => {
     }));
   } catch (error) {
     console.error("Error parsing workout data:", error);
-    return [];
+    throw new Error(`Failed to parse workout data: ${error}`);
   }
 };
 
