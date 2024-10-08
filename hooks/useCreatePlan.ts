@@ -34,14 +34,12 @@ export const useCreatePlan = (
       return;
     }
 
-    const planData = JSON.stringify(workouts);
-
     try {
       if (planId) {
-        await updateWorkoutPlan(planId, planName, planImageUrl, planData);
+        await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
         queryClient.invalidateQueries({ queryKey: ["plan", planId] });
       } else {
-        await insertWorkoutPlan(planName, planImageUrl, planData);
+        await insertWorkoutPlan(planName, planImageUrl, workouts);
       }
 
       setPlanSaved(true);
