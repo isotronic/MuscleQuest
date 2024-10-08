@@ -10,7 +10,7 @@ export interface Plan {
   workouts: Workout[];
 }
 
-interface RawPlan {
+export interface RawPlan {
   id: number;
   name: string;
   image_url: string;
