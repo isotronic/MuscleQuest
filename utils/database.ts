@@ -1,4 +1,5 @@
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import { Workout } from "@/store/workoutStore";
 import * as SQLite from "expo-sqlite";
 
 export interface Exercise {
@@ -30,7 +31,7 @@ export interface SavedWorkout {
   }[];
 }
 
-const openDatabase = async (
+export const openDatabase = async (
   databaseName: string,
 ): Promise<SQLite.SQLiteDatabase> => {
   return await SQLite.openDatabaseAsync(databaseName, {
@@ -137,26 +138,50 @@ export const updateActivePlan = async (id: number) => {
 export const insertWorkoutPlan = async (
   name: string,
   image_url: string,
-  plan_data: string,
+  workouts: Workout[],
 ) => {
   const db = await openDatabase("userData.db");
-  await db.runAsync(
-    `INSERT INTO user_plans (name, image_url, plan_data) VALUES (?, ?, ?)`,
-    [name, image_url, plan_data],
+  const result = await db.runAsync(
+    `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
+    [name, image_url],
   );
+
+  const planId = result.lastInsertRowId;
+
+  await insertWorkouts(planId, workouts);
+};
+
+export const insertWorkouts = async (planId: number, workouts: Workout[]) => {
+  const db = await openDatabase("userData.db");
+
+  const workoutPromises = workouts.map((workout) => {
+    const workoutData = JSON.stringify(workout.exercises);
+    return db.runAsync(
+      `INSERT INTO user_workouts (plan_id, name, workout_data) VALUES (?, ?, ?)`,
+      [planId, workout.name, workoutData],
+    );
+  });
+
+  await Promise.all(workoutPromises);
 };
 
 export const updateWorkoutPlan = async (
   id: number,
   name: string,
   image_url: string,
-  plan_data: string,
+  workouts: Workout[],
 ) => {
   const db = await openDatabase("userData.db");
   await db.runAsync(
-    `UPDATE user_plans SET name = ?, image_url = ?, plan_data = ? WHERE id = ?`,
-    [name, image_url, plan_data, id],
+    `UPDATE user_plans SET name = ?, image_url = ? WHERE id = ?`,
+    [name, image_url, id],
   );
+
+  // Clear existing workouts for the plan
+  await db.runAsync(`DELETE FROM user_workouts WHERE plan_id = ?`, [id]);
+
+  // Insert updated workouts
+  await insertWorkouts(id, workouts);
 };
 
 export const deleteWorkoutPlan = async (planId: number) => {
