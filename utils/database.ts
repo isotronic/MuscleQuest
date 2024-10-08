@@ -285,7 +285,7 @@ export const fetchCompletedWorkouts = async () => {
 
 interface CompletedWorkoutRow {
   workout_id: number;
-  plan_id: number | null;
+  plan_id: number;
   workout_name: string;
   date_completed: string;
   duration: number;
@@ -308,6 +308,7 @@ export const fetchCompletedWorkoutById = async (
       `
       SELECT 
         cw.id as workout_id, 
+        cw.plan_id as plan_id,
         cw.name as workout_name, 
         cw.date_completed, 
         cw.duration, 
@@ -335,6 +336,7 @@ export const fetchCompletedWorkoutById = async (
     // Process the result to structure it as needed
     const workout: CompletedWorkout = {
       workout_id: workoutId,
+      plan_id: result[0].plan_id,
       workout_name: result[0]?.workout_name || "",
       date_completed: result[0]?.date_completed || "",
       duration: result[0]?.duration || 0,
