@@ -8,8 +8,17 @@ export async function initUserDataDB() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       image_url TEXT,
-      is_active BOOLEAN DEFAULT FALSE,
-      plan_data TEXT
+      is_active BOOLEAN DEFAULT FALSE
+    );
+  `);
+
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS user_workouts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plan_id INTEGER,
+      name TEXT NOT NULL,
+      workout_data TEXT,
+      FOREIGN KEY (plan_id) REFERENCES user_plans(id)
     );
   `);
 
