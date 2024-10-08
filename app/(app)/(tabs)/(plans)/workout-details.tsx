@@ -13,7 +13,7 @@ export default function WorkoutDetailsScreen() {
   const { workoutIndex, planId } = useLocalSearchParams();
   const { data: plan, isLoading, error } = usePlanQuery(Number(planId));
 
-  const workout = plan?.plan_data[Number(workoutIndex)];
+  const workout = plan?.workouts[Number(workoutIndex)];
 
   const renderExerciseItem = ({ item }: { item: UserExercise }) => {
     let base64Image: string | null = null;

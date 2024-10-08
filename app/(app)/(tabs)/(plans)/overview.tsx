@@ -130,7 +130,7 @@ export default function PlanOverviewScreen() {
       </View>
 
       <FlatList
-        data={plan?.plan_data}
+        data={plan?.workouts}
         renderItem={renderWorkoutCard}
         keyExtractor={(item: any, index: number) => index.toString()}
       />

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Plan } from "./useAllPlansQuery";
-import { fetchActivePlan } from "@/utils/database";
+import { fetchActivePlan, openDatabase } from "@/utils/database";
+import { WorkoutRecord } from "./usePlanQuery";
 
 const fetchAndParse = async (): Promise<Plan | null> => {
   try {
@@ -14,12 +15,23 @@ const fetchAndParse = async (): Promise<Plan | null> => {
       return null;
     }
 
+    const db = await openDatabase("userData.db");
+
+    // Fetch workouts associated with the active plan
+    const workouts = (await db.getAllAsync(
+      `SELECT * FROM user_workouts WHERE plan_id = ?`,
+      [activePlan.id],
+    )) as WorkoutRecord[];
+
+    // Parse the workout data from JSON strings
+    const parsedWorkouts = workouts.map((workout) => ({
+      ...workout,
+      exercises: JSON.parse(workout.workout_data),
+    }));
+
     return {
       ...activePlan,
-      plan_data:
-        typeof activePlan.plan_data === "string"
-          ? JSON.parse(activePlan.plan_data)
-          : activePlan.plan_data,
+      workouts: parsedWorkouts,
     };
   } catch (error) {
     console.error("Error fetching or parsing plan", error);

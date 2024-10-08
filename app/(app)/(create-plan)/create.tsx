@@ -44,14 +44,17 @@ export default function CreatePlanScreen() {
   useEffect(() => {
     if (existingPlan) {
       setPlanName(existingPlan.name);
-      setWorkouts(existingPlan.plan_data);
       setPlanImageUrl(existingPlan.image_url);
+
+      // Load workouts from the existing plan
+      if (existingPlan.workouts) {
+        setWorkouts(existingPlan.workouts);
+      }
     }
   }, [existingPlan, setPlanName, setWorkouts, setPlanImageUrl]);
 
   // Listen for back navigation
   useEffect(() => {
-    // sourcery skip: inline-immediately-returned-variable
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       e.preventDefault();
 
