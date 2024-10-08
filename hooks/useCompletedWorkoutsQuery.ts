@@ -17,6 +17,7 @@ interface WorkoutResult {
 
 export interface CompletedWorkout {
   workout_id: number;
+  plan_id: number;
   workout_name: string;
   date_completed: string;
   duration: number;
@@ -49,6 +50,7 @@ const fetchAndOrganize = async (
     results.forEach((item) => {
       const {
         workout_id,
+        plan_id,
         workout_name,
         date_completed,
         duration,
@@ -66,6 +68,7 @@ const fetchAndOrganize = async (
       if (!workout) {
         workout = {
           workout_id,
+          plan_id,
           workout_name,
           date_completed,
           duration,
