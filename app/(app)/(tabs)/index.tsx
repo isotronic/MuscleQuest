@@ -80,6 +80,38 @@ export default function HomeScreen() {
     );
   }
 
+  // Initialize variables
+  let completedWorkoutsThisPlanThisWeek = [];
+  let completedWorkoutsCount = 0;
+  let nextWorkoutIndex = 0;
+  let workoutsToDisplay = [];
+
+  if (activePlan) {
+    // Sort workouts based on a defined order property or id
+    const sortedWorkouts = [...activePlan.workouts].sort((a, b) => a.id - b.id);
+
+    // Use sortedWorkouts in place of activePlan.workouts from here on
+    // ...
+
+    // Update computations to use sortedWorkouts
+    completedWorkoutsThisPlanThisWeek =
+      completedWorkoutsThisWeek?.filter(
+        (workout) => String(workout.plan_id) === String(activePlan.id),
+      ) || [];
+
+    completedWorkoutsCount = completedWorkoutsThisPlanThisWeek.length;
+
+    // Correct the calculation of nextWorkoutIndex
+    nextWorkoutIndex = completedWorkoutsCount % sortedWorkouts.length;
+
+    // Rearrange workouts
+    workoutsToDisplay = [];
+    for (let i = 0; i < sortedWorkouts.length; i++) {
+      const index = (nextWorkoutIndex + i) % sortedWorkouts.length;
+      workoutsToDisplay.push(sortedWorkouts[index]);
+    }
+  }
+
   return (
     <ThemedView>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
@@ -110,7 +142,7 @@ export default function HomeScreen() {
                 Active Plan: {activePlan.name}
               </ThemedText>
 
-              {activePlan.workouts.map((workout, index) => (
+              {workoutsToDisplay.map((workout, index) => (
                 <View key={index} style={styles.workoutCard}>
                   <View style={styles.workoutCardContent}>
                     <MaterialCommunityIcons
