@@ -20,11 +20,35 @@ export interface RawPlan {
   workout_data: string | null;
 }
 
+const transformRawPlans = (rawPlans: RawPlan[]): Plan[] => {
+  return rawPlans.reduce((plans, rawPlan) => {
+    const plan = plans.find((p) => p.id === rawPlan.id) || {
+      id: rawPlan.id,
+      name: rawPlan.name,
+      image_url: rawPlan.image_url,
+      is_active: rawPlan.is_active,
+      workouts: [],
+    };
+
+    if (rawPlan.workout_id && rawPlan.workout_name && rawPlan.workout_data) {
+      plan.workouts.push({
+        id: rawPlan.workout_id,
+        name: rawPlan.workout_name,
+        exercises: JSON.parse(rawPlan.workout_data),
+      });
+    }
+
+    if (!plans.find((p) => p.id === rawPlan.id)) {
+      plans.push(plan);
+    }
+
+    return plans;
+  }, [] as Plan[]);
+};
+
 const fetchPlans = async (): Promise<Plan[]> => {
   try {
     const db = await openDatabase("userData.db");
-
-    // Perform a LEFT JOIN to get plans and their associated workouts
     const rawPlans = (await db.getAllAsync(`
       SELECT 
         user_plans.id, 
@@ -37,35 +61,7 @@ const fetchPlans = async (): Promise<Plan[]> => {
       FROM user_plans
       LEFT JOIN user_workouts ON user_workouts.plan_id = user_plans.id
     `)) as RawPlan[];
-
-    // Transform the raw data into the desired structure
-    const plansMap = new Map<number, Plan>();
-
-    rawPlans.forEach((rawPlan) => {
-      // Get or create the plan entry in the map
-      if (!plansMap.has(rawPlan.id)) {
-        plansMap.set(rawPlan.id, {
-          id: rawPlan.id,
-          name: rawPlan.name,
-          image_url: rawPlan.image_url,
-          is_active: rawPlan.is_active,
-          workouts: [],
-        });
-      }
-
-      // If there's workout data, add the workout to the plan's workouts array
-      if (rawPlan.workout_id && rawPlan.workout_name && rawPlan.workout_data) {
-        const plan = plansMap.get(rawPlan.id)!;
-        plan.workouts.push({
-          id: rawPlan.workout_id,
-          name: rawPlan.workout_name,
-          exercises: JSON.parse(rawPlan.workout_data),
-        });
-      }
-    });
-
-    // Convert the map values back to an array
-    return Array.from(plansMap.values());
+    return transformRawPlans(rawPlans);
   } catch (error) {
     console.error("Error fetching plans", error);
     throw new Error("Failed to fetch plans");
