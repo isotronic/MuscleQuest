@@ -154,15 +154,17 @@ export const insertWorkoutPlan = async (
 export const insertWorkouts = async (planId: number, workouts: Workout[]) => {
   const db = await openDatabase("userData.db");
 
-  const workoutPromises = workouts.map((workout) => {
-    const workoutData = JSON.stringify(workout.exercises);
-    return db.runAsync(
-      `INSERT INTO user_workouts (plan_id, name, workout_data) VALUES (?, ?, ?)`,
-      [planId, workout.name, workoutData],
-    );
-  });
+  // Use withExclusiveTransactionAsync to wrap all inserts in an exclusive transaction
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    for (const workout of workouts) {
+      const workoutData = JSON.stringify(workout.exercises);
 
-  await Promise.all(workoutPromises);
+      await txn.runAsync(
+        `INSERT INTO user_workouts (plan_id, name, workout_data) VALUES (?, ?, ?)`,
+        [planId, workout.name, workoutData],
+      );
+    }
+  });
 };
 
 export const updateWorkoutPlan = async (
