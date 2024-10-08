@@ -9,41 +9,47 @@ export interface WorkoutRecord {
   workout_data: string;
 }
 
+const fetchPlanData = async (planId: number): Promise<Plan | null> => {
+  return (await fetchRecord(
+    "userData.db",
+    "user_plans",
+    Number(planId),
+  )) as Plan | null;
+};
+
+const fetchWorkoutsForPlan = async (
+  planId: number,
+): Promise<WorkoutRecord[]> => {
+  const db = await openDatabase("userData.db");
+  return (await db.getAllAsync(
+    `SELECT * FROM user_workouts WHERE plan_id = ?`,
+    [planId],
+  )) as WorkoutRecord[];
+};
+
+const parseWorkouts = (workouts: WorkoutRecord[]) => {
+  return workouts.map((workout) => ({
+    ...workout,
+    exercises: JSON.parse(workout.workout_data),
+  }));
+};
+
 const fetchPlan = async (planId: number): Promise<Plan | null> => {
   try {
-    // Fetch the plan data from the `user_plans` table
-    const selectedPlan = (await fetchRecord(
-      "userData.db",
-      "user_plans",
-      Number(planId),
-    )) as Plan | null;
+    const [planData, workouts] = await Promise.all([
+      fetchPlanData(planId),
+      fetchWorkoutsForPlan(planId),
+    ]);
 
-    if (
-      selectedPlan &&
-      typeof selectedPlan === "object" &&
-      Object.keys(selectedPlan).length > 0
-    ) {
-      // Fetch the workouts associated with the plan
-      const db = await openDatabase("userData.db");
-      const workouts = (await db.getAllAsync(
-        `SELECT * FROM user_workouts WHERE plan_id = ?`,
-        [planId],
-      )) as WorkoutRecord[];
-
-      // Parse the workout data from JSON strings
-      const parsedWorkouts = workouts.map((workout) => ({
-        ...workout,
-        exercises: JSON.parse(workout.workout_data),
-      }));
-
-      // Return the plan with the parsed workouts
-      return {
-        ...selectedPlan,
-        workouts: parsedWorkouts,
-      };
-    } else {
+    if (!planData) {
       return null;
     }
+
+    const parsedWorkouts = parseWorkouts(workouts);
+    return {
+      ...planData,
+      workouts: parsedWorkouts,
+    };
   } catch (error) {
     console.error("Error fetching plan", error);
     return null;
