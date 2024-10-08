@@ -36,8 +36,12 @@ export const useCreatePlan = (
 
     try {
       if (planId) {
-        await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
-        queryClient.invalidateQueries({ queryKey: ["plan", planId] });
+        if (workouts) {
+          await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
+          queryClient.invalidateQueries({ queryKey: ["plan", planId] });
+        } else {
+          throw new Error("Workouts are undefined");
+        }
       } else {
         await insertWorkoutPlan(planName, planImageUrl, workouts);
       }
