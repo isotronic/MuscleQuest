@@ -28,10 +28,15 @@ const fetchWorkoutsForPlan = async (
 };
 
 const parseWorkouts = (workouts: WorkoutRecord[]) => {
-  return workouts.map((workout) => ({
-    ...workout,
-    exercises: JSON.parse(workout.workout_data),
-  }));
+  try {
+    return workouts.map((workout) => ({
+      ...workout,
+      exercises: JSON.parse(workout.workout_data),
+    }));
+  } catch (error) {
+    console.error("Error parsing workout data:", error);
+    return [];
+  }
 };
 
 const fetchPlan = async (planId: number): Promise<Plan | null> => {
