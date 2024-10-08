@@ -34,14 +34,16 @@ export const useCreatePlan = (
       return;
     }
 
-    const planData = JSON.stringify(workouts);
-
     try {
       if (planId) {
-        await updateWorkoutPlan(planId, planName, planImageUrl, planData);
-        queryClient.invalidateQueries({ queryKey: ["plan", planId] });
+        if (workouts) {
+          await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
+          queryClient.invalidateQueries({ queryKey: ["plan", planId] });
+        } else {
+          throw new Error("Workouts are undefined");
+        }
       } else {
-        await insertWorkoutPlan(planName, planImageUrl, planData);
+        await insertWorkoutPlan(planName, planImageUrl, workouts);
       }
 
       setPlanSaved(true);

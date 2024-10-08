@@ -110,7 +110,7 @@ export default function HomeScreen() {
                 Active Plan: {activePlan.name}
               </ThemedText>
 
-              {activePlan.plan_data.map((workout, index) => (
+              {activePlan.workouts.map((workout, index) => (
                 <View key={index} style={styles.workoutCard}>
                   <View style={styles.workoutCardContent}>
                     <MaterialCommunityIcons
