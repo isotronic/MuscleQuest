@@ -43,29 +43,31 @@ export async function initUserDataDB() {
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS completed_workouts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      plan_id INTEGER, -- Foreign key to the user_plans table
-      name TEXT, -- Name of the workout
+      plan_id INTEGER, -- Reference to the user's plan
+      workout_id INTEGER, -- Reference to the original workout from user_workouts
       date_completed DATETIME NOT NULL, -- When the workout was completed
       duration INTEGER, -- Duration of the workout in seconds
       total_sets_completed INTEGER, -- Total number of sets completed in this workout
-      FOREIGN KEY (plan_id) REFERENCES user_plans(id)
+      notes TEXT, -- Any notes specific to the completion of this workout (e.g., adjustments)
+      FOREIGN KEY (plan_id) REFERENCES user_plans(id),
+      FOREIGN KEY (workout_id) REFERENCES user_workouts(id)
     );
   `);
 
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS completed_exercises (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      completed_workout_id INTEGER, -- Foreign key to the completed_workouts table
-      exercise_id INTEGER, -- ID of the exercise (reference to the exercises data)
-      name TEXT, -- Name of the exercise
-      FOREIGN KEY (completed_workout_id) REFERENCES completed_workouts(id)
+      completed_workout_id INTEGER, -- Reference to the completed_workouts table
+      exercise_id INTEGER, -- Reference to the original exercise from user_workout_exercises
+      FOREIGN KEY (completed_workout_id) REFERENCES completed_workouts(id),
+      FOREIGN KEY (exercise_id) REFERENCES user_workout_exercises(id)
     );
   `);
 
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS completed_sets (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      completed_exercise_id INTEGER, -- Foreign key to the completed_exercises table
+      completed_exercise_id INTEGER, -- Reference to the completed_exercise
       set_number INTEGER, -- Set number (1, 2, 3, etc.)
       weight REAL, -- Weight used in this set
       reps INTEGER, -- Number of reps in this set
