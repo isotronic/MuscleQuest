@@ -36,9 +36,10 @@ export interface CompletedWorkout {
 }
 
 const fetchCompletedWorkouts = async (): Promise<WorkoutResult[]> => {
-  const db = await openDatabase("userData.db");
-  const results = await db.getAllAsync(
-    `
+  try {
+    const db = await openDatabase("userData.db");
+    const results = await db.getAllAsync(
+      `
     SELECT 
       completed_workouts.plan_id,
       completed_workouts.workout_id,
@@ -59,9 +60,13 @@ const fetchCompletedWorkouts = async (): Promise<WorkoutResult[]> => {
     LEFT JOIN user_workouts ON user_workouts.id = completed_workouts.workout_id
     ORDER BY completed_workouts.date_completed DESC, completed_exercises.id, completed_sets.set_number;
     `,
-  );
+    );
 
-  return results as WorkoutResult[];
+    return results as WorkoutResult[];
+  } catch (error) {
+    console.error("Error fetching completed workouts:", error);
+    throw new Error("Failed to fetch completed workouts");
+  }
 };
 
 const fetchAndOrganize = async (
