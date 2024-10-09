@@ -17,12 +17,12 @@ export interface Exercise {
 
 export interface SavedWorkout {
   planId: number;
-  workoutName: string;
+  workoutId: number; // Reference to the user_workouts entry
   duration: number;
   totalSetsCompleted: number;
+  notes: string | null; // Optional notes field
   exercises: {
     exercise_id: number;
-    name: string;
     sets: {
       set_number: number;
       weight: number;
@@ -252,12 +252,12 @@ export const deleteWorkoutPlan = async (planId: number) => {
 
 export const saveCompletedWorkout = async (
   planId: number,
-  workoutName: string,
+  workoutId: number,
   duration: number,
   totalSetsCompleted: number,
+  notes: string | null, // Optional field for notes
   exercises: {
     exercise_id: number;
-    name: string;
     sets: {
       set_number: number;
       weight: number;
@@ -273,8 +273,8 @@ export const saveCompletedWorkout = async (
 
     // Insert the completed workout
     const completedWorkoutResult = await db.runAsync(
-      `INSERT INTO completed_workouts (plan_id, name, date_completed, duration, total_sets_completed) VALUES (?, ?, datetime('now'), ?, ?)`,
-      [planId, workoutName, duration, totalSetsCompleted],
+      `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed, notes) VALUES (?, ?, datetime('now'), ?, ?, ?)`,
+      [planId, workoutId, duration, totalSetsCompleted, notes],
     );
 
     const completedWorkoutId = completedWorkoutResult.lastInsertRowId;
@@ -282,8 +282,8 @@ export const saveCompletedWorkout = async (
     for (const exercise of exercises) {
       // Insert each completed exercise
       const completedExerciseResult = await db.runAsync(
-        `INSERT INTO completed_exercises (completed_workout_id, exercise_id, name) VALUES (?, ?, ?)`,
-        [completedWorkoutId, exercise.exercise_id, exercise.name],
+        `INSERT INTO completed_exercises (completed_workout_id, exercise_id) VALUES (?, ?)`,
+        [completedWorkoutId, exercise.exercise_id],
       );
 
       const completedExerciseId = completedExerciseResult.lastInsertRowId;
@@ -351,6 +351,7 @@ interface CompletedWorkoutRow {
   total_sets_completed: number;
   exercise_id: number | null;
   exercise_name: string | null;
+  exercise_image: Uint8Array | null;
   set_number: number | null;
   weight: number | null;
   reps: number | null;
@@ -368,20 +369,23 @@ export const fetchCompletedWorkoutById = async (
       SELECT 
         cw.id as workout_id, 
         cw.plan_id as plan_id,
-        cw.name as workout_name, 
+        uw.name as workout_name, 
         cw.date_completed, 
         cw.duration, 
         cw.total_sets_completed, 
-        ce.exercise_id as exercise_id, 
-        ce.name as exercise_name, 
+        uex.id as exercise_id, 
+        uex.name as exercise_name, 
+        uex.image as exercise_image, 
         cs.set_number, 
         cs.weight, 
         cs.reps
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
+      LEFT JOIN user_workout_exercises uex ON uex.id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
+      LEFT JOIN user_workouts uw ON uw.id = cw.workout_id
       WHERE cw.id = ?
-      ORDER BY ce.id, cs.set_number;
+      ORDER BY uex.id, cs.set_number;
       `,
       [workoutId],
     )) as CompletedWorkoutRow[];
@@ -405,12 +409,15 @@ export const fetchCompletedWorkoutById = async (
 
     const exercisesMap: Record<number, CompletedWorkout["exercises"][0]> = {};
 
-    result.forEach((row: any) => {
+    result.forEach((row) => {
       if (row.exercise_id) {
         if (!exercisesMap[row.exercise_id]) {
           exercisesMap[row.exercise_id] = {
             exercise_id: row.exercise_id,
-            exercise_name: row.exercise_name,
+            exercise_name: row.exercise_name || "",
+            exercise_image: row.exercise_image
+              ? Array.from(row.exercise_image)
+              : undefined,
             sets: [],
           };
         }
