@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 
 interface ActiveWorkoutStore {
-  activeWorkout: { planId: number; name: string } | null;
+  activeWorkout: { planId: number; workoutId: number; name: string } | null;
   workout: Workout | null;
   currentExerciseIndex: number;
   currentSetIndices: { [exerciseIndex: number]: number };
@@ -19,7 +19,12 @@ interface ActiveWorkoutStore {
   startTime: Date | null;
   timerRunning: boolean;
   timerExpiry: Date | null;
-  setWorkout: (workout: Workout, planId: number, name: string) => void;
+  setWorkout: (
+    workout: Workout,
+    planId: number,
+    workoutId: number,
+    name: string,
+  ) => void;
   nextSet: () => void;
   setCurrentExerciseIndex: (index: number) => void;
   setCurrentSetIndex: (exerciseIndex: number, setIndex: number) => void;
@@ -46,9 +51,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
   timerRunning: false,
   timerExpiry: null,
 
-  setWorkout: (workout, planId, name) =>
+  setWorkout: (workout, planId, workoutId, name) =>
     set({
-      activeWorkout: { planId, name },
+      activeWorkout: { planId, workoutId, name },
       workout,
       currentExerciseIndex: 0,
       currentSetIndices: {},
@@ -127,9 +132,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
         const nextSetWeightAndReps =
           weightAndReps[currentExerciseIndex]?.[nextSetIndex];
 
-        // Update next set's weight to current weight, regardless of historical data
-        // For reps, use historical data if it exists, otherwise carry over from current set
-
         const updatedNextSetWeightAndReps = {
           weight: currentWeightAndReps.weight, // Always update weight to current weight
           reps:
@@ -152,14 +154,12 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
           weightAndReps: updatedWeightAndReps,
         };
       } else if (nextExerciseIndex < workout.exercises.length) {
-        // Move to next exercise without altering weightAndReps
         return {
           currentExerciseIndex: nextExerciseIndex,
           currentSetIndices: updatedSetIndices,
           completedSets: updatedCompletedSets,
         };
       } else {
-        // Workout completed
         router.back();
         return {
           currentSetIndices: updatedSetIndices,
@@ -207,7 +207,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
           previousExercise.sets.length,
         );
 
-        // Prefill sets with corresponding data from previous workout
         for (let setIndex = 0; setIndex < setsToPrefill; setIndex++) {
           const prevSet = previousExercise.sets[setIndex];
           weightAndReps[exerciseIndex][setIndex] = {
@@ -216,7 +215,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
           };
         }
 
-        // Handle additional sets if current workout has more sets
         for (
           let setIndex = setsToPrefill;
           setIndex < currentExercise.sets.length;
@@ -236,7 +234,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
           };
         }
       } else {
-        // If no previous data, initialize with "0"
         for (
           let setIndex = 0;
           setIndex < currentExercise.sets.length;
