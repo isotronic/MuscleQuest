@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchCompletedWorkouts } from "@/utils/database";
+import { openDatabase } from "@/utils/database";
 
 interface WorkoutResult {
   plan_id: number;
@@ -10,6 +10,7 @@ interface WorkoutResult {
   total_sets_completed: number;
   exercise_id: number;
   exercise_name: string;
+  exercise_image: Uint8Array | null;
   set_number: number;
   weight: number;
   reps: number;
@@ -25,7 +26,7 @@ export interface CompletedWorkout {
   exercises: {
     exercise_id: number;
     exercise_name: string;
-    exercise_image?: any;
+    exercise_image?: number[];
     sets: {
       set_number: number;
       weight: number;
@@ -34,12 +35,39 @@ export interface CompletedWorkout {
   }[];
 }
 
+const fetchCompletedWorkouts = async (): Promise<WorkoutResult[]> => {
+  const db = await openDatabase("userData.db");
+  const results = await db.getAllAsync(
+    `
+    SELECT 
+      completed_workouts.plan_id,
+      completed_workouts.workout_id,
+      user_workouts.name AS workout_name,
+      completed_workouts.date_completed,
+      completed_workouts.duration,
+      completed_workouts.total_sets_completed,
+      completed_exercises.exercise_id,
+      user_workout_exercises.name AS exercise_name,
+      user_workout_exercises.image AS exercise_image,
+      completed_sets.set_number,
+      completed_sets.weight,
+      completed_sets.reps
+    FROM completed_workouts
+    LEFT JOIN completed_exercises ON completed_exercises.completed_workout_id = completed_workouts.id
+    LEFT JOIN user_workout_exercises ON user_workout_exercises.id = completed_exercises.exercise_id
+    LEFT JOIN completed_sets ON completed_sets.completed_exercise_id = completed_exercises.id
+    LEFT JOIN user_workouts ON user_workouts.id = completed_workouts.workout_id
+    ORDER BY completed_workouts.date_completed DESC, completed_exercises.id, completed_sets.set_number;
+    `,
+  );
+
+  return results as WorkoutResult[];
+};
+
 const fetchAndOrganize = async (
   weightUnit: string,
 ): Promise<CompletedWorkout[]> => {
-  const results = (await fetchCompletedWorkouts()) as
-    | WorkoutResult[]
-    | undefined;
+  const results = await fetchCompletedWorkouts();
 
   if (results) {
     const workoutsMap = new Map<number, CompletedWorkout>();
@@ -57,6 +85,7 @@ const fetchAndOrganize = async (
         total_sets_completed,
         exercise_id,
         exercise_name,
+        exercise_image,
         set_number,
         weight,
         reps,
@@ -88,6 +117,9 @@ const fetchAndOrganize = async (
         exercise = {
           exercise_id,
           exercise_name,
+          exercise_image: exercise_image
+            ? Array.from(exercise_image)
+            : undefined,
           sets: [],
         };
         workout.exercises.push(exercise);
