@@ -161,7 +161,12 @@ export default function HomeScreen() {
                         onPress={() => {
                           useActiveWorkoutStore
                             .getState()
-                            .setWorkout(workout, activePlan.id, workout.name);
+                            .setWorkout(
+                              workout,
+                              activePlan.id,
+                              workout.id,
+                              workout.name || `Day ${index + 1}`,
+                            );
                           router.push("/(workout)");
                         }}
                         style={styles.smallButton}
