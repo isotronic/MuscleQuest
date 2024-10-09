@@ -5,7 +5,7 @@ const saveCompletedWorkoutWithConversion = async (
   completedWorkoutData: SavedWorkout,
   weightUnit: string,
 ) => {
-  const conversionFactor = weightUnit === "lbs" ? 0.45359237 : 1; // lbs to kg
+  const conversionFactor = weightUnit === "lbs" ? 0.45359237 : 1;
 
   // Deep copy to avoid mutating the original data
   const workoutDataInKg = {
@@ -21,9 +21,10 @@ const saveCompletedWorkoutWithConversion = async (
 
   return saveCompletedWorkout(
     workoutDataInKg.planId,
-    workoutDataInKg.workoutName,
+    workoutDataInKg.workoutId,
     workoutDataInKg.duration,
     workoutDataInKg.totalSetsCompleted,
+    workoutDataInKg.notes,
     workoutDataInKg.exercises,
   );
 };

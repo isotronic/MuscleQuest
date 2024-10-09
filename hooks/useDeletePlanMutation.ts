@@ -8,6 +8,7 @@ export function useDeletePlanMutation() {
     mutationFn: (planId: number) => deleteWorkoutPlan(planId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["plans"] });
+      queryClient.invalidateQueries({ queryKey: ["activePlan"] });
     },
     onError: (error: Error) => {
       console.error("Failed to delete plan:", error);

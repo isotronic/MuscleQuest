@@ -6,7 +6,41 @@ export interface WorkoutRecord {
   id: number;
   plan_id: number;
   name: string;
-  workout_data: string;
+  exercises: {
+    exercise_id: number;
+    name: string;
+    description: string;
+    image: number[];
+    local_animated_uri: string;
+    animated_url: string;
+    equipment: string;
+    body_part: string;
+    target_muscle: string;
+    secondary_muscles: string[];
+    sets: {
+      repsMin: number;
+      repsMax: number;
+      restMinutes: number;
+      restSeconds: number;
+    }[];
+  }[];
+}
+
+export interface RawWorkoutRecord {
+  id: number;
+  plan_id: number;
+  name: string;
+  exercise_id: number | null;
+  exercise_name: string | null;
+  description: string | null;
+  image: Uint8Array | null;
+  local_animated_uri: string | null;
+  animated_url: string | null;
+  equipment: string | null;
+  body_part: string | null;
+  target_muscle: string | null;
+  secondary_muscles: string | null;
+  sets: string | null;
 }
 
 const fetchPlanData = async (planId: number): Promise<Plan | null> => {
@@ -19,29 +53,71 @@ const fetchPlanData = async (planId: number): Promise<Plan | null> => {
 
 const fetchWorkoutsForPlan = async (
   planId: number,
-): Promise<WorkoutRecord[]> => {
+): Promise<RawWorkoutRecord[]> => {
   const db = await openDatabase("userData.db");
   return (await db.getAllAsync(
-    `SELECT * FROM user_workouts WHERE plan_id = ?`,
+    `
+    SELECT 
+      user_workouts.id,
+      user_workouts.plan_id,
+      user_workouts.name,
+      user_workout_exercises.id AS exercise_id,
+      user_workout_exercises.name AS exercise_name,
+      user_workout_exercises.description,
+      user_workout_exercises.image,
+      user_workout_exercises.local_animated_uri,
+      user_workout_exercises.animated_url,
+      user_workout_exercises.equipment,
+      user_workout_exercises.body_part,
+      user_workout_exercises.target_muscle,
+      user_workout_exercises.secondary_muscles,
+      user_workout_exercises.sets
+    FROM user_workouts
+    LEFT JOIN user_workout_exercises ON user_workout_exercises.workout_id = user_workouts.id
+    WHERE user_workouts.plan_id = ?
+    `,
     [planId],
-  )) as WorkoutRecord[];
+  )) as RawWorkoutRecord[];
 };
 
-const parseWorkouts = (workouts: WorkoutRecord[]) => {
-  try {
-    return workouts.map((workout) => ({
-      ...workout,
-      exercises: JSON.parse(workout.workout_data),
-    }));
-  } catch (error) {
-    console.error("Error parsing workout data:", error);
-    throw new Error(`Failed to parse workout data: ${error}`);
-  }
+const parseWorkouts = (rawWorkouts: RawWorkoutRecord[]) => {
+  return rawWorkouts.reduce((workouts, rawWorkout) => {
+    let workout = workouts.find((w) => w.id === rawWorkout.id);
+    if (!workout) {
+      workout = {
+        id: rawWorkout.id,
+        plan_id: rawWorkout.plan_id,
+        name: rawWorkout.name,
+        exercises: [],
+      };
+      workouts.push(workout);
+    }
+
+    if (rawWorkout.exercise_id && rawWorkout.exercise_name) {
+      workout.exercises.push({
+        exercise_id: rawWorkout.exercise_id,
+        name: rawWorkout.exercise_name,
+        description: rawWorkout.description || "",
+        image: rawWorkout.image ? Array.from(rawWorkout.image) : [],
+        local_animated_uri: rawWorkout.local_animated_uri || "",
+        animated_url: rawWorkout.animated_url || "",
+        equipment: rawWorkout.equipment || "",
+        body_part: rawWorkout.body_part || "",
+        target_muscle: rawWorkout.target_muscle || "",
+        secondary_muscles: rawWorkout.secondary_muscles
+          ? JSON.parse(rawWorkout.secondary_muscles)
+          : [],
+        sets: rawWorkout.sets ? JSON.parse(rawWorkout.sets) : [],
+      });
+    }
+
+    return workouts;
+  }, [] as WorkoutRecord[]);
 };
 
 const fetchPlan = async (planId: number): Promise<Plan | null> => {
   try {
-    const [planData, workouts] = await Promise.all([
+    const [planData, rawWorkouts] = await Promise.all([
       fetchPlanData(planId),
       fetchWorkoutsForPlan(planId),
     ]);
@@ -50,7 +126,7 @@ const fetchPlan = async (planId: number): Promise<Plan | null> => {
       return null;
     }
 
-    const parsedWorkouts = parseWorkouts(workouts);
+    const parsedWorkouts = parseWorkouts(rawWorkouts);
     return {
       ...planData,
       workouts: parsedWorkouts,

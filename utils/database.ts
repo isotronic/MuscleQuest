@@ -5,7 +5,7 @@ import * as SQLite from "expo-sqlite";
 export interface Exercise {
   exercise_id: number;
   name: string;
-  image: [];
+  image: number[];
   local_animated_uri: string;
   animated_url: string;
   equipment: string;
@@ -17,12 +17,12 @@ export interface Exercise {
 
 export interface SavedWorkout {
   planId: number;
-  workoutName: string;
+  workoutId: number; // Reference to the user_workouts entry
   duration: number;
   totalSetsCompleted: number;
+  notes: string | null; // Optional notes field
   exercises: {
     exercise_id: number;
-    name: string;
     sets: {
       set_number: number;
       weight: number;
@@ -154,15 +154,57 @@ export const insertWorkoutPlan = async (
 export const insertWorkouts = async (planId: number, workouts: Workout[]) => {
   const db = await openDatabase("userData.db");
 
-  // Use withExclusiveTransactionAsync to wrap all inserts in an exclusive transaction
   await db.withExclusiveTransactionAsync(async (txn) => {
     for (const workout of workouts) {
-      const workoutData = JSON.stringify(workout.exercises);
+      const { exercises, name } = workout;
 
-      await txn.runAsync(
-        `INSERT INTO user_workouts (plan_id, name, workout_data) VALUES (?, ?, ?)`,
-        [planId, workout.name, workoutData],
+      // Insert the workout and get the inserted workout ID
+      const result = await txn.runAsync(
+        `INSERT INTO user_workouts (plan_id, name) VALUES (?, ?)`,
+        [planId, name],
       );
+
+      const workoutId = result.lastInsertRowId;
+
+      // Insert each exercise related to this workout
+      for (const exercise of exercises) {
+        const {
+          exercise_id,
+          name,
+          description,
+          image,
+          local_animated_uri,
+          animated_url,
+          equipment,
+          body_part,
+          target_muscle,
+          secondary_muscles,
+          sets,
+        } = exercise;
+
+        const imageBuffer = new Uint8Array(Object.values(image));
+
+        await txn.runAsync(
+          `INSERT INTO user_workout_exercises (
+            workout_id, exercise_id, name, description, image, local_animated_uri, animated_url,
+            equipment, body_part, target_muscle, secondary_muscles, sets
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            workoutId,
+            exercise_id,
+            name,
+            description,
+            imageBuffer,
+            local_animated_uri,
+            animated_url,
+            equipment,
+            body_part,
+            target_muscle,
+            JSON.stringify(secondary_muscles),
+            JSON.stringify(sets),
+          ],
+        );
+      }
     }
   });
 };
@@ -188,17 +230,34 @@ export const updateWorkoutPlan = async (
 
 export const deleteWorkoutPlan = async (planId: number) => {
   const db = await openDatabase("userData.db");
-  await db.runAsync(`DELETE FROM user_plans WHERE id = ?`, [planId]);
+
+  // Start an exclusive transaction to ensure that all deletions are executed together
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    // Delete exercises associated with workouts under the plan
+    await txn.runAsync(
+      `DELETE FROM user_workout_exercises 
+       WHERE workout_id IN (
+         SELECT id FROM user_workouts WHERE plan_id = ?
+       )`,
+      [planId],
+    );
+
+    // Delete workouts associated with the plan
+    await txn.runAsync(`DELETE FROM user_workouts WHERE plan_id = ?`, [planId]);
+
+    // Finally, delete the plan itself
+    await txn.runAsync(`DELETE FROM user_plans WHERE id = ?`, [planId]);
+  });
 };
 
 export const saveCompletedWorkout = async (
   planId: number,
-  workoutName: string,
+  workoutId: number,
   duration: number,
   totalSetsCompleted: number,
+  notes: string | null, // Optional field for notes
   exercises: {
     exercise_id: number;
-    name: string;
     sets: {
       set_number: number;
       weight: number;
@@ -214,8 +273,8 @@ export const saveCompletedWorkout = async (
 
     // Insert the completed workout
     const completedWorkoutResult = await db.runAsync(
-      `INSERT INTO completed_workouts (plan_id, name, date_completed, duration, total_sets_completed) VALUES (?, ?, datetime('now'), ?, ?)`,
-      [planId, workoutName, duration, totalSetsCompleted],
+      `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed, notes) VALUES (?, ?, datetime('now'), ?, ?, ?)`,
+      [planId, workoutId, duration, totalSetsCompleted, notes],
     );
 
     const completedWorkoutId = completedWorkoutResult.lastInsertRowId;
@@ -223,8 +282,8 @@ export const saveCompletedWorkout = async (
     for (const exercise of exercises) {
       // Insert each completed exercise
       const completedExerciseResult = await db.runAsync(
-        `INSERT INTO completed_exercises (completed_workout_id, exercise_id, name) VALUES (?, ?, ?)`,
-        [completedWorkoutId, exercise.exercise_id, exercise.name],
+        `INSERT INTO completed_exercises (completed_workout_id, exercise_id) VALUES (?, ?)`,
+        [completedWorkoutId, exercise.exercise_id],
       );
 
       const completedExerciseId = completedExerciseResult.lastInsertRowId;
@@ -257,32 +316,6 @@ export const saveCompletedWorkout = async (
   }
 };
 
-export const fetchCompletedWorkouts = async () => {
-  const db = await openDatabase("userData.db");
-  try {
-    return await db.getAllAsync(`
-          SELECT 
-            cw.id as workout_id, 
-            cw.plan_id, 
-            cw.name as workout_name, 
-            cw.date_completed, 
-            cw.duration, 
-            cw.total_sets_completed, 
-            ce.exercise_id as exercise_id, 
-            ce.name as exercise_name, 
-            cs.set_number, 
-            cs.weight, 
-            cs.reps
-          FROM completed_workouts cw
-          JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
-          JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
-          ORDER BY cw.date_completed DESC, ce.id, cs.set_number;
-        `);
-  } catch (error) {
-    console.error("Error fetching completed workouts: ", error);
-  }
-};
-
 interface CompletedWorkoutRow {
   workout_id: number;
   plan_id: number;
@@ -292,6 +325,7 @@ interface CompletedWorkoutRow {
   total_sets_completed: number;
   exercise_id: number | null;
   exercise_name: string | null;
+  exercise_image: Uint8Array | null;
   set_number: number | null;
   weight: number | null;
   reps: number | null;
@@ -309,20 +343,23 @@ export const fetchCompletedWorkoutById = async (
       SELECT 
         cw.id as workout_id, 
         cw.plan_id as plan_id,
-        cw.name as workout_name, 
+        uw.name as workout_name, 
         cw.date_completed, 
         cw.duration, 
         cw.total_sets_completed, 
-        ce.exercise_id as exercise_id, 
-        ce.name as exercise_name, 
+        uex.id as exercise_id, 
+        uex.name as exercise_name, 
+        uex.image as exercise_image, 
         cs.set_number, 
         cs.weight, 
         cs.reps
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
+      LEFT JOIN user_workout_exercises uex ON uex.id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
+      LEFT JOIN user_workouts uw ON uw.id = cw.workout_id
       WHERE cw.id = ?
-      ORDER BY ce.id, cs.set_number;
+      ORDER BY uex.id, cs.set_number;
       `,
       [workoutId],
     )) as CompletedWorkoutRow[];
@@ -346,12 +383,15 @@ export const fetchCompletedWorkoutById = async (
 
     const exercisesMap: Record<number, CompletedWorkout["exercises"][0]> = {};
 
-    result.forEach((row: any) => {
+    result.forEach((row) => {
       if (row.exercise_id) {
         if (!exercisesMap[row.exercise_id]) {
           exercisesMap[row.exercise_id] = {
             exercise_id: row.exercise_id,
-            exercise_name: row.exercise_name,
+            exercise_name: row.exercise_name || "",
+            exercise_image: row.exercise_image
+              ? Array.from(row.exercise_image)
+              : undefined,
             sets: [],
           };
         }
