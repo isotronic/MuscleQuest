@@ -5,7 +5,7 @@ import * as SQLite from "expo-sqlite";
 export interface Exercise {
   exercise_id: number;
   name: string;
-  image: [];
+  image: number[];
   local_animated_uri: string;
   animated_url: string;
   equipment: string;
@@ -154,15 +154,57 @@ export const insertWorkoutPlan = async (
 export const insertWorkouts = async (planId: number, workouts: Workout[]) => {
   const db = await openDatabase("userData.db");
 
-  // Use withExclusiveTransactionAsync to wrap all inserts in an exclusive transaction
   await db.withExclusiveTransactionAsync(async (txn) => {
     for (const workout of workouts) {
-      const workoutData = JSON.stringify(workout.exercises);
+      const { exercises, name } = workout;
 
-      await txn.runAsync(
-        `INSERT INTO user_workouts (plan_id, name, workout_data) VALUES (?, ?, ?)`,
-        [planId, workout.name, workoutData],
+      // Insert the workout and get the inserted workout ID
+      const result = await txn.runAsync(
+        `INSERT INTO user_workouts (plan_id, name) VALUES (?, ?)`,
+        [planId, name],
       );
+
+      const workoutId = result.lastInsertRowId;
+
+      // Insert each exercise related to this workout
+      for (const exercise of exercises) {
+        const {
+          exercise_id,
+          name,
+          description,
+          image,
+          local_animated_uri,
+          animated_url,
+          equipment,
+          body_part,
+          target_muscle,
+          secondary_muscles,
+          sets,
+        } = exercise;
+
+        const imageBuffer = new Uint8Array(Object.values(image));
+
+        await txn.runAsync(
+          `INSERT INTO user_workout_exercises (
+            workout_id, exercise_id, name, description, image, local_animated_uri, animated_url,
+            equipment, body_part, target_muscle, secondary_muscles, sets
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            workoutId,
+            exercise_id,
+            name,
+            description,
+            imageBuffer,
+            local_animated_uri,
+            animated_url,
+            equipment,
+            body_part,
+            target_muscle,
+            JSON.stringify(secondary_muscles),
+            JSON.stringify(sets),
+          ],
+        );
+      }
     }
   });
 };
