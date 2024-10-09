@@ -17,8 +17,26 @@ export async function initUserDataDB() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       plan_id INTEGER,
       name TEXT NOT NULL,
-      workout_data TEXT,
       FOREIGN KEY (plan_id) REFERENCES user_plans(id)
+    );
+  `);
+
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS user_workout_exercises (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      workout_id INTEGER, -- Foreign key to user_workouts table
+      exercise_id INTEGER, -- Reference to the exercise
+      name TEXT NOT NULL,
+      description TEXT,
+      image BLOB,
+      local_animated_uri TEXT,
+      animated_url TEXT,
+      equipment TEXT,
+      body_part TEXT,
+      target_muscle TEXT,
+      secondary_muscles TEXT, -- JSON array as a string
+      sets TEXT, -- JSON array as a string representing the sets
+      FOREIGN KEY (workout_id) REFERENCES user_workouts(id)
     );
   `);
 
@@ -38,7 +56,7 @@ export async function initUserDataDB() {
     CREATE TABLE IF NOT EXISTS completed_exercises (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       completed_workout_id INTEGER, -- Foreign key to the completed_workouts table
-      exercise_id INTEGER, -- ID of the exercise (reference to your exercises data)
+      exercise_id INTEGER, -- ID of the exercise (reference to the exercises data)
       name TEXT, -- Name of the exercise
       FOREIGN KEY (completed_workout_id) REFERENCES completed_workouts(id)
     );
