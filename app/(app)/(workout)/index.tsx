@@ -35,7 +35,6 @@ export default function WorkoutOverviewScreen() {
   useKeepScreenOn();
 
   useEffect(() => {
-    // sourcery skip: inline-immediately-returned-variable
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       e.preventDefault();
 
@@ -74,7 +73,7 @@ export default function WorkoutOverviewScreen() {
 
   const handleSaveWorkout = async () => {
     const planId = activeWorkout?.planId;
-    const workoutName = activeWorkout?.name;
+    const workoutId = activeWorkout?.workoutId;
     const endTime = new Date();
     const duration = startTime
       ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
@@ -89,7 +88,7 @@ export default function WorkoutOverviewScreen() {
       0,
     );
 
-    if (workout && planId && workoutName) {
+    if (workout && planId && workoutId) {
       const exercises = workout.exercises
         .map((exercise, index) => {
           const completedSetIndices = Object.entries(completedSets[index] || {})
@@ -112,7 +111,6 @@ export default function WorkoutOverviewScreen() {
 
           return {
             exercise_id: exercise.exercise_id,
-            name: exercise.name,
             sets,
           };
         })
@@ -120,7 +118,14 @@ export default function WorkoutOverviewScreen() {
 
       if (exercises.length > 0) {
         saveCompletedWorkoutMutation.mutate(
-          { planId, workoutName, duration, totalSetsCompleted, exercises },
+          {
+            planId,
+            workoutId,
+            duration,
+            totalSetsCompleted,
+            exercises,
+            notes: null,
+          },
           {
             onSuccess: () => {
               console.log("Workout saved successfully!");
