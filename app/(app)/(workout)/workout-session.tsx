@@ -360,10 +360,11 @@ export default function WorkoutSessionScreen() {
         );
       }
 
+      startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
+
       // Trigger the animation to the next set
       animateSets(-screenWidth, () => {
         nextSet();
-        startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
       });
     } else {
       // No next set, workout completed
