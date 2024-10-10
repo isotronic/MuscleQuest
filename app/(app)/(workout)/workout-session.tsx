@@ -226,6 +226,14 @@ export default function WorkoutSessionScreen() {
       ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.reps
       : "";
 
+  const previousSetCompleted =
+    previousExerciseIndex !== null &&
+    previousSetIndex !== null &&
+    completedSets[previousExerciseIndex] &&
+    typeof completedSets[previousExerciseIndex][previousSetIndex] === "boolean"
+      ? completedSets[previousExerciseIndex][previousSetIndex]
+      : false;
+
   const handlePreviousSet = () => {
     if (
       hasPreviousSet &&
@@ -507,7 +515,7 @@ export default function WorkoutSessionScreen() {
                   weightUnit={settings?.weightUnit || "kg"}
                   restMinutes={previousSet?.restMinutes || 0}
                   restSeconds={previousSet?.restSeconds || 0}
-                  currentSetCompleted={false}
+                  currentSetCompleted={previousSetCompleted}
                   handleWeightInputChange={() => {}}
                   handleWeightChange={() => {}}
                   handleRepsInputChange={() => {}}
