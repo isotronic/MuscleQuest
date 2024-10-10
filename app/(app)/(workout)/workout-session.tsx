@@ -430,6 +430,8 @@ export default function WorkoutSessionScreen() {
               weightUnit={settings?.weightUnit || "kg"}
               restMinutes={currentSet?.restMinutes || 0}
               restSeconds={currentSet?.restSeconds || 0}
+              repsMin={currentSet?.repsMin || 0}
+              repsMax={currentSet?.repsMax || 0}
               currentSetCompleted={currentSetCompleted}
               handleWeightInputChange={handleWeightInputChange}
               handleWeightChange={handleWeightChange}
@@ -471,6 +473,8 @@ export default function WorkoutSessionScreen() {
                 weightUnit={settings?.weightUnit || "kg"}
                 restMinutes={upcomingSet?.restMinutes || 0}
                 restSeconds={upcomingSet?.restSeconds || 0}
+                repsMin={upcomingSet?.repsMin || 0}
+                repsMax={upcomingSet?.repsMax || 0}
                 currentSetCompleted={false}
                 handleWeightInputChange={() => {}}
                 handleWeightChange={() => {}}
@@ -515,6 +519,8 @@ export default function WorkoutSessionScreen() {
                   weightUnit={settings?.weightUnit || "kg"}
                   restMinutes={previousSet?.restMinutes || 0}
                   restSeconds={previousSet?.restSeconds || 0}
+                  repsMin={previousSet?.repsMin || 0}
+                  repsMax={previousSet?.repsMax || 0}
                   currentSetCompleted={previousSetCompleted}
                   handleWeightInputChange={() => {}}
                   handleWeightChange={() => {}}
