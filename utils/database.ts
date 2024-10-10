@@ -157,11 +157,12 @@ export const insertWorkouts = async (planId: number, workouts: Workout[]) => {
   await db.withExclusiveTransactionAsync(async (txn) => {
     for (const workout of workouts) {
       const { exercises, name } = workout;
+      const workoutName = name || `Workout ${workouts.indexOf(workout) + 1}`;
 
       // Insert the workout and get the inserted workout ID
       const result = await txn.runAsync(
         `INSERT INTO user_workouts (plan_id, name) VALUES (?, ?)`,
-        [planId, name],
+        [planId, workoutName],
       );
 
       const workoutId = result.lastInsertRowId;

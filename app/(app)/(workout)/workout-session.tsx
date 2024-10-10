@@ -226,6 +226,14 @@ export default function WorkoutSessionScreen() {
       ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.reps
       : "";
 
+  const previousSetCompleted =
+    previousExerciseIndex !== null &&
+    previousSetIndex !== null &&
+    completedSets[previousExerciseIndex] &&
+    typeof completedSets[previousExerciseIndex][previousSetIndex] === "boolean"
+      ? completedSets[previousExerciseIndex][previousSetIndex]
+      : false;
+
   const handlePreviousSet = () => {
     if (
       hasPreviousSet &&
@@ -339,7 +347,6 @@ export default function WorkoutSessionScreen() {
     if (hasNextSet) {
       // Update weightAndReps for the next set before starting the animation
       if (nextExerciseIndex === currentExerciseIndex) {
-        // Next set is within the same exercise
         const nextSetIndex = currentSetIndex + 1;
 
         const existingNextSetReps =
@@ -359,39 +366,17 @@ export default function WorkoutSessionScreen() {
           updatedNextSetWeightAndReps.weight,
           updatedNextSetWeightAndReps.reps,
         );
-      } else {
-        // Next set is in the next exercise
-        const nextSetIndex = 0;
-
-        const existingNextSetReps =
-          weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.reps;
-
-        const updatedNextSetWeightAndReps = {
-          weight: validWeightInKg.toString(), // Update weight to current weight
-          reps:
-            existingNextSetReps === undefined || existingNextSetReps === "0"
-              ? validRepsNum.toString() // Carry over current reps
-              : existingNextSetReps, // Keep existing reps if available
-        };
-
-        updateWeightAndReps(
-          nextExerciseIndex,
-          nextSetIndex,
-          updatedNextSetWeightAndReps.weight,
-          updatedNextSetWeightAndReps.reps,
-        );
       }
+
+      startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
 
       // Trigger the animation to the next set
       animateSets(-screenWidth, () => {
-        // After animation completes
         nextSet();
-        startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
       });
     } else {
       // No next set, workout completed
       nextSet();
-      // Optionally navigate to a summary screen or perform other actions
     }
   };
 
@@ -445,6 +430,8 @@ export default function WorkoutSessionScreen() {
               weightUnit={settings?.weightUnit || "kg"}
               restMinutes={currentSet?.restMinutes || 0}
               restSeconds={currentSet?.restSeconds || 0}
+              repsMin={currentSet?.repsMin || 0}
+              repsMax={currentSet?.repsMax || 0}
               currentSetCompleted={currentSetCompleted}
               handleWeightInputChange={handleWeightInputChange}
               handleWeightChange={handleWeightChange}
@@ -486,6 +473,8 @@ export default function WorkoutSessionScreen() {
                 weightUnit={settings?.weightUnit || "kg"}
                 restMinutes={upcomingSet?.restMinutes || 0}
                 restSeconds={upcomingSet?.restSeconds || 0}
+                repsMin={upcomingSet?.repsMin || 0}
+                repsMax={upcomingSet?.repsMax || 0}
                 currentSetCompleted={false}
                 handleWeightInputChange={() => {}}
                 handleWeightChange={() => {}}
@@ -530,7 +519,9 @@ export default function WorkoutSessionScreen() {
                   weightUnit={settings?.weightUnit || "kg"}
                   restMinutes={previousSet?.restMinutes || 0}
                   restSeconds={previousSet?.restSeconds || 0}
-                  currentSetCompleted={false}
+                  repsMin={previousSet?.repsMin || 0}
+                  repsMax={previousSet?.repsMax || 0}
+                  currentSetCompleted={previousSetCompleted}
                   handleWeightInputChange={() => {}}
                   handleWeightChange={() => {}}
                   handleRepsInputChange={() => {}}

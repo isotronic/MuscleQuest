@@ -19,6 +19,8 @@ interface SessionSetInfoProps {
   weightUnit: string;
   restMinutes: number;
   restSeconds: number;
+  repsMin: number;
+  repsMax: number;
   currentSetCompleted: boolean;
   handleWeightInputChange: (text: string) => void;
   handleWeightChange: (amount: number) => void;
@@ -43,6 +45,8 @@ export default function SessionSetInfo({
   weightUnit,
   restMinutes,
   restSeconds,
+  repsMin,
+  repsMax,
   currentSetCompleted,
   handleWeightInputChange,
   handleWeightChange,
@@ -74,8 +78,11 @@ export default function SessionSetInfo({
 
         <View style={styles.titleContainer}>
           <ThemedText style={styles.title}>{exerciseName}</ThemedText>
-          <ThemedText style={styles.restTime}>
-            Rest Time: {restMinutes} min {restSeconds} sec
+          <ThemedText style={styles.headerText}>
+            Rep Range: {repsMin} - {repsMax}
+          </ThemedText>
+          <ThemedText style={styles.headerText}>
+            Rest Time: {restMinutes}:{String(restSeconds).padStart(2, "0")}
           </ThemedText>
         </View>
       </View>
@@ -195,9 +202,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
   },
-  restTime: {
+  headerText: {
     fontSize: 14,
     color: Colors.dark.subText,
+    marginBottom: -5,
   },
   centeredLabelContainer: {
     alignItems: "center",
