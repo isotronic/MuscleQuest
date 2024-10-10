@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   View,
   ScrollView,
@@ -33,6 +33,13 @@ export default function WorkoutOverviewScreen() {
     useSaveCompletedWorkoutMutation(weightUnit);
 
   useKeepScreenOn();
+
+  // Calculate if any sets are completed
+  const hasCompletedSets = useMemo(() => {
+    return Object.values(completedSets).some((exerciseSets) =>
+      Object.values(exerciseSets).some((setCompleted) => setCompleted === true),
+    );
+  }, [completedSets]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
@@ -160,8 +167,12 @@ export default function WorkoutOverviewScreen() {
               name="content-save-outline"
               size={35}
               label="Save"
-              color={Colors.dark.tint}
-              onPress={handleSaveWorkout}
+              color={
+                hasCompletedSets
+                  ? Colors.dark.tint
+                  : Colors.dark.disabledButtonBackground
+              }
+              onPress={hasCompletedSets ? handleSaveWorkout : undefined}
             />
           ),
         }}
