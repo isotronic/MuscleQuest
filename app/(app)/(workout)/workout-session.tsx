@@ -339,7 +339,6 @@ export default function WorkoutSessionScreen() {
     if (hasNextSet) {
       // Update weightAndReps for the next set before starting the animation
       if (nextExerciseIndex === currentExerciseIndex) {
-        // Next set is within the same exercise
         const nextSetIndex = currentSetIndex + 1;
 
         const existingNextSetReps =
@@ -359,39 +358,16 @@ export default function WorkoutSessionScreen() {
           updatedNextSetWeightAndReps.weight,
           updatedNextSetWeightAndReps.reps,
         );
-      } else {
-        // Next set is in the next exercise
-        const nextSetIndex = 0;
-
-        const existingNextSetReps =
-          weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.reps;
-
-        const updatedNextSetWeightAndReps = {
-          weight: validWeightInKg.toString(), // Update weight to current weight
-          reps:
-            existingNextSetReps === undefined || existingNextSetReps === "0"
-              ? validRepsNum.toString() // Carry over current reps
-              : existingNextSetReps, // Keep existing reps if available
-        };
-
-        updateWeightAndReps(
-          nextExerciseIndex,
-          nextSetIndex,
-          updatedNextSetWeightAndReps.weight,
-          updatedNextSetWeightAndReps.reps,
-        );
       }
 
       // Trigger the animation to the next set
       animateSets(-screenWidth, () => {
-        // After animation completes
         nextSet();
         startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
       });
     } else {
       // No next set, workout completed
       nextSet();
-      // Optionally navigate to a summary screen or perform other actions
     }
   };
 
