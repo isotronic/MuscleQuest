@@ -137,9 +137,12 @@ export default function ExercisesScreen() {
   };
 
   const filteredExercises =
-    exercises?.filter((exercise) =>
-      exercise.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    ) || [];
+    exercises?.filter((exercise) => {
+      const queryWords = searchQuery.toLowerCase().split(" ");
+      return queryWords.every((word) =>
+        exercise.name.toLowerCase().includes(word),
+      );
+    }) || [];
 
   const renderExerciseItem = useCallback(
     ({ item }: { item: UserExercise }) => {
