@@ -268,7 +268,6 @@ export default function ExercisesScreen() {
                     mode="outlined"
                     onPress={() => setEquipmentMenuVisible(true)}
                     style={styles.modalButton}
-                    labelStyle={styles.filterButtonText}
                   >
                     {selectedEquipment
                       ? capitalizeWords(selectedEquipment)
@@ -305,7 +304,6 @@ export default function ExercisesScreen() {
                     mode="outlined"
                     onPress={() => setBodyPartMenuVisible(true)}
                     style={styles.modalButton}
-                    labelStyle={styles.filterButtonText}
                   >
                     {selectedBodyPart
                       ? capitalizeWords(selectedBodyPart)
@@ -342,7 +340,6 @@ export default function ExercisesScreen() {
                     mode="outlined"
                     onPress={() => setTargetMuscleMenuVisible(true)}
                     style={styles.modalButton}
-                    labelStyle={styles.filterButtonText}
                   >
                     {selectedTargetMuscle
                       ? capitalizeWords(selectedTargetMuscle)
@@ -371,14 +368,28 @@ export default function ExercisesScreen() {
                 ))}
               </Menu>
 
-              <Button
-                mode="contained"
-                onPress={() => setFilterModalVisible(false)}
-                style={styles.applyButton}
-                labelStyle={styles.filterButtonText}
-              >
-                Apply Filters
-              </Button>
+              <View style={styles.buttonRow}>
+                <Button
+                  mode="outlined"
+                  onPress={() => {
+                    setSelectedEquipment(null);
+                    setSelectedBodyPart(null);
+                    setSelectedTargetMuscle(null);
+                    setFilterModalVisible(false);
+                  }}
+                  style={styles.clearButton}
+                >
+                  Clear Filters
+                </Button>
+
+                <Button
+                  mode="contained"
+                  onPress={() => setFilterModalVisible(false)}
+                  style={styles.applyButton}
+                >
+                  Apply Filters
+                </Button>
+              </View>
             </View>
           </View>
         </PaperProvider>
@@ -438,9 +449,19 @@ const styles = StyleSheet.create({
     width: "100%",
     marginBottom: 16,
   },
-  applyButton: {
-    marginTop: 16,
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     width: "100%",
+    marginTop: 16,
+  },
+  clearButton: {
+    flex: 1,
+    marginRight: 8,
+  },
+  applyButton: {
+    flex: 1,
+    marginLeft: 8,
   },
   filterButton: {
     marginBottom: 8,
