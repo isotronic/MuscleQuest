@@ -19,7 +19,7 @@ import {
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Exercise } from "@/utils/database";
 import { useWorkoutStore, UserExercise } from "@/store/workoutStore";
 import { Colors } from "@/constants/Colors";
@@ -220,6 +220,20 @@ export default function ExercisesScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <Button
+              mode={selectedExercises.length > 0 ? "contained" : "outlined"}
+              compact
+              onPress={handleAddExercise}
+              labelStyle={styles.addButtonLabel}
+            >
+              Add Exercises ({selectedExercises.length})
+            </Button>
+          ),
+        }}
+      />
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -377,15 +391,6 @@ export default function ExercisesScreen() {
         maxToRenderPerBatch={10}
         windowSize={10}
       />
-      <View style={styles.footer}>
-        <Button
-          mode="contained"
-          onPress={handleAddExercise}
-          labelStyle={styles.addButtonLabel}
-        >
-          Add exercises ({selectedExercises.length})
-        </Button>
-      </View>
     </ThemedView>
   );
 }
@@ -394,7 +399,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.dark.screenBackground,
-    padding: 16,
+    paddingTop: 16,
+    paddingHorizontal: 16,
   },
   searchContainer: {
     flexDirection: "row",
@@ -468,15 +474,6 @@ const styles = StyleSheet.create({
   exerciseDetails: {
     fontSize: 14,
     color: "#D8DEE9",
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 16,
-  },
-  addButtonLabel: {
-    fontSize: 16,
   },
   loadingText: {
     fontSize: 18,
