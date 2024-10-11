@@ -6,8 +6,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Modal,
 } from "react-native";
-import { Checkbox, Button, ActivityIndicator } from "react-native-paper";
+import {
+  Checkbox,
+  Button,
+  ActivityIndicator,
+  Menu,
+  PaperProvider,
+  IconButton,
+} from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
@@ -18,6 +26,7 @@ import { Colors } from "@/constants/Colors";
 import React from "react";
 import FastImage from "react-native-fast-image";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { paperTheme } from "@/utils/paperTheme";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -74,6 +83,17 @@ const MemoizedExerciseItem = React.memo(ExerciseItem);
 
 export default function ExercisesScreen() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
+    null,
+  );
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
+  const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
+    string | null
+  >(null);
+  const [equipmentMenuVisible, setEquipmentMenuVisible] = useState(false);
+  const [bodyPartMenuVisible, setBodyPartMenuVisible] = useState(false);
+  const [targetMuscleMenuVisible, setTargetMuscleMenuVisible] = useState(false);
   const {
     data: exercises,
     isLoading: exercisesLoading,
@@ -139,10 +159,32 @@ export default function ExercisesScreen() {
   const filteredExercises =
     exercises?.filter((exercise) => {
       const queryWords = searchQuery.toLowerCase().split(" ");
-      return queryWords.every((word) =>
+      const matchesSearch = queryWords.every((word) =>
         exercise.name.toLowerCase().includes(word),
       );
+
+      const matchesEquipment =
+        !selectedEquipment || exercise.equipment === selectedEquipment;
+      const matchesBodyPart =
+        !selectedBodyPart || exercise.body_part === selectedBodyPart;
+      const matchesTargetMuscle =
+        !selectedTargetMuscle ||
+        exercise.target_muscle === selectedTargetMuscle;
+
+      return (
+        matchesSearch &&
+        matchesEquipment &&
+        matchesBodyPart &&
+        matchesTargetMuscle
+      );
     }) || [];
+
+  const capitalizeWords = (str: string) => {
+    return str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
 
   const renderExerciseItem = useCallback(
     ({ item }: { item: UserExercise }) => {
@@ -178,13 +220,154 @@ export default function ExercisesScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <TextInput
-        style={styles.searchInput}
-        placeholderTextColor={Colors.dark.text}
-        placeholder="Search"
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholderTextColor={Colors.dark.text}
+          placeholder="Search"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        <IconButton
+          icon="filter-variant"
+          iconColor={Colors.dark.text}
+          size={24}
+          onPress={() => setFilterModalVisible(true)}
+          style={styles.filterIconButton}
+        />
+      </View>
+      <Modal
+        visible={filterModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setFilterModalVisible(false)}
+      >
+        <PaperProvider theme={paperTheme}>
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <Menu
+                visible={equipmentMenuVisible}
+                onDismiss={() => setEquipmentMenuVisible(false)}
+                anchor={
+                  <Button
+                    mode="outlined"
+                    onPress={() => setEquipmentMenuVisible(true)}
+                    style={styles.modalButton}
+                    labelStyle={styles.filterButtonText}
+                  >
+                    {selectedEquipment
+                      ? capitalizeWords(selectedEquipment)
+                      : "Select Equipment"}
+                  </Button>
+                }
+              >
+                <Menu.Item
+                  onPress={() => {
+                    setSelectedEquipment(null);
+                    setEquipmentMenuVisible(false);
+                  }}
+                  title="All Equipment"
+                />
+                {Array.from(new Set(exercises?.map((ex) => ex.equipment))).map(
+                  (equipment) => (
+                    <Menu.Item
+                      key={equipment}
+                      onPress={() => {
+                        setSelectedEquipment(equipment);
+                        setEquipmentMenuVisible(false);
+                      }}
+                      title={capitalizeWords(equipment)}
+                    />
+                  ),
+                )}
+              </Menu>
+
+              <Menu
+                visible={bodyPartMenuVisible}
+                onDismiss={() => setBodyPartMenuVisible(false)}
+                anchor={
+                  <Button
+                    mode="outlined"
+                    onPress={() => setBodyPartMenuVisible(true)}
+                    style={styles.modalButton}
+                    labelStyle={styles.filterButtonText}
+                  >
+                    {selectedBodyPart
+                      ? capitalizeWords(selectedBodyPart)
+                      : "Select Body Part"}
+                  </Button>
+                }
+              >
+                <Menu.Item
+                  onPress={() => {
+                    setSelectedBodyPart(null);
+                    setBodyPartMenuVisible(false);
+                  }}
+                  title="All Body Parts"
+                />
+                {Array.from(new Set(exercises?.map((ex) => ex.body_part))).map(
+                  (bodyPart) => (
+                    <Menu.Item
+                      key={bodyPart}
+                      onPress={() => {
+                        setSelectedBodyPart(bodyPart);
+                        setBodyPartMenuVisible(false);
+                      }}
+                      title={capitalizeWords(bodyPart)}
+                    />
+                  ),
+                )}
+              </Menu>
+
+              <Menu
+                visible={targetMuscleMenuVisible}
+                onDismiss={() => setTargetMuscleMenuVisible(false)}
+                anchor={
+                  <Button
+                    mode="outlined"
+                    onPress={() => setTargetMuscleMenuVisible(true)}
+                    style={styles.modalButton}
+                    labelStyle={styles.filterButtonText}
+                  >
+                    {selectedTargetMuscle
+                      ? capitalizeWords(selectedTargetMuscle)
+                      : "Select Target Muscle"}
+                  </Button>
+                }
+              >
+                <Menu.Item
+                  onPress={() => {
+                    setSelectedTargetMuscle(null);
+                    setTargetMuscleMenuVisible(false);
+                  }}
+                  title="All Target Muscles"
+                />
+                {Array.from(
+                  new Set(exercises?.map((ex) => ex.target_muscle)),
+                ).map((muscle) => (
+                  <Menu.Item
+                    key={muscle}
+                    onPress={() => {
+                      setSelectedTargetMuscle(muscle);
+                      setTargetMuscleMenuVisible(false);
+                    }}
+                    title={capitalizeWords(muscle)}
+                  />
+                ))}
+              </Menu>
+
+              <Button
+                mode="contained"
+                onPress={() => setFilterModalVisible(false)}
+                style={styles.applyButton}
+                labelStyle={styles.filterButtonText}
+              >
+                Apply Filters
+              </Button>
+            </View>
+          </View>
+        </PaperProvider>
+      </Modal>
       <FlatList
         data={filteredExercises}
         keyExtractor={(item: Exercise) => item.exercise_id.toString()}
@@ -210,16 +393,50 @@ export default function ExercisesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
+    backgroundColor: Colors.dark.screenBackground,
     padding: 16,
   },
-  searchInput: {
-    padding: 10,
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
     borderColor: Colors.dark.text,
     borderWidth: 1,
     borderRadius: 8,
+    backgroundColor: Colors.dark.screenBackground,
+    paddingRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    padding: 10,
     color: Colors.dark.text,
-    marginVertical: 16,
+  },
+  filterIconButton: {
+    margin: 0,
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: Colors.dark.cardBackground,
+    padding: 16,
+    borderRadius: 10,
+    width: "90%",
+    alignItems: "center",
+  },
+  modalButton: {
+    width: "100%",
+    marginBottom: 16,
+  },
+  applyButton: {
+    marginTop: 16,
+    width: "100%",
+  },
+  filterButton: {
+    marginBottom: 8,
   },
   flatListContent: {
     flexGrow: 1,
