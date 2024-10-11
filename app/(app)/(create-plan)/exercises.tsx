@@ -30,6 +30,13 @@ import { paperTheme } from "@/utils/paperTheme";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
+const capitalizeWords = (str: string) => {
+  return str
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 const ExerciseItem = ({
   item,
   selected,
@@ -71,7 +78,8 @@ const ExerciseItem = ({
         <View style={styles.exerciseInfo}>
           <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
           <ThemedText style={styles.exerciseDetails}>
-            {item.target_muscle.toUpperCase()}
+            {capitalizeWords(item.body_part)} |{" "}
+            {capitalizeWords(item.equipment)}
           </ThemedText>
         </View>
       </View>
@@ -178,13 +186,6 @@ export default function ExercisesScreen() {
         matchesTargetMuscle
       );
     }) || [];
-
-  const capitalizeWords = (str: string) => {
-    return str
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
 
   const renderExerciseItem = useCallback(
     ({ item }: { item: UserExercise }) => {
