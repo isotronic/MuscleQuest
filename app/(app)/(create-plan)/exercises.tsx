@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   TextInput,
@@ -164,28 +164,29 @@ export default function ExercisesScreen() {
     router.back();
   };
 
-  const filteredExercises =
-    exercises?.filter((exercise) => {
-      const queryWords = searchQuery.toLowerCase().split(" ");
-      const matchesSearch = queryWords.every((word) =>
-        exercise.name.toLowerCase().includes(word),
-      );
-
-      const matchesEquipment =
-        !selectedEquipment || exercise.equipment === selectedEquipment;
-      const matchesBodyPart =
-        !selectedBodyPart || exercise.body_part === selectedBodyPart;
-      const matchesTargetMuscle =
-        !selectedTargetMuscle ||
-        exercise.target_muscle === selectedTargetMuscle;
-
-      return (
-        matchesSearch &&
-        matchesEquipment &&
-        matchesBodyPart &&
-        matchesTargetMuscle
-      );
-    }) || [];
+  const filteredExercises = useMemo(
+    () =>
+      exercises?.filter((exercise) => {
+        const queryWords = searchQuery.toLowerCase().split(" ");
+        const matchesSearch = queryWords.every((word) =>
+          exercise.name.toLowerCase().includes(word),
+        );
+        return (
+          matchesSearch &&
+          (!selectedEquipment || exercise.equipment === selectedEquipment) &&
+          (!selectedBodyPart || exercise.body_part === selectedBodyPart) &&
+          (!selectedTargetMuscle ||
+            exercise.target_muscle === selectedTargetMuscle)
+        );
+      }) || [],
+    [
+      exercises,
+      searchQuery,
+      selectedEquipment,
+      selectedBodyPart,
+      selectedTargetMuscle,
+    ],
+  );
 
   const renderExerciseItem = useCallback(
     ({ item }: { item: UserExercise }) => {
