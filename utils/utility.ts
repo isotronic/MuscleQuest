@@ -40,3 +40,11 @@ export function convertToTotalSeconds(formattedTime: string): number {
   const [minutes, seconds] = formattedTime.split(":").map(Number);
   return minutes * 60 + (seconds || 0);
 }
+
+// Capitalize the first letter of each word in a string
+export const capitalizeWords = (str: string) => {
+  return str
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
