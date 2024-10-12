@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   TextInput,
@@ -7,17 +7,24 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import { Checkbox, Button, ActivityIndicator } from "react-native-paper";
+import {
+  Checkbox,
+  Button,
+  ActivityIndicator,
+  IconButton,
+} from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Exercise } from "@/utils/database";
 import { useWorkoutStore, UserExercise } from "@/store/workoutStore";
 import { Colors } from "@/constants/Colors";
 import React from "react";
 import FastImage from "react-native-fast-image";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { capitalizeWords } from "@/utils/utility";
+import FilterModal from "@/components/FilterModal";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -62,7 +69,8 @@ const ExerciseItem = ({
         <View style={styles.exerciseInfo}>
           <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
           <ThemedText style={styles.exerciseDetails}>
-            {item.target_muscle.toUpperCase()}
+            {capitalizeWords(item.body_part)} |{" "}
+            {capitalizeWords(item.equipment)}
           </ThemedText>
         </View>
       </View>
@@ -74,6 +82,15 @@ const MemoizedExerciseItem = React.memo(ExerciseItem);
 
 export default function ExercisesScreen() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
+    null,
+  );
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
+  const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
+    string | null
+  >(null);
+
   const {
     data: exercises,
     isLoading: exercisesLoading,
@@ -136,10 +153,29 @@ export default function ExercisesScreen() {
     router.back();
   };
 
-  const filteredExercises =
-    exercises?.filter((exercise) =>
-      exercise.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    ) || [];
+  const filteredExercises = useMemo(
+    () =>
+      exercises?.filter((exercise) => {
+        const queryWords = searchQuery.toLowerCase().split(" ");
+        const matchesSearch = queryWords.every((word) =>
+          exercise.name.toLowerCase().includes(word),
+        );
+        return (
+          matchesSearch &&
+          (!selectedEquipment || exercise.equipment === selectedEquipment) &&
+          (!selectedBodyPart || exercise.body_part === selectedBodyPart) &&
+          (!selectedTargetMuscle ||
+            exercise.target_muscle === selectedTargetMuscle)
+        );
+      }) || [],
+    [
+      exercises,
+      searchQuery,
+      selectedEquipment,
+      selectedBodyPart,
+      selectedTargetMuscle,
+    ],
+  );
 
   const renderExerciseItem = useCallback(
     ({ item }: { item: UserExercise }) => {
@@ -175,12 +211,46 @@ export default function ExercisesScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <TextInput
-        style={styles.searchInput}
-        placeholderTextColor={Colors.dark.text}
-        placeholder="Search"
-        value={searchQuery}
-        onChangeText={setSearchQuery}
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <Button
+              mode={selectedExercises.length > 0 ? "contained" : "outlined"}
+              compact
+              onPress={handleAddExercise}
+              labelStyle={styles.addButtonLabel}
+            >
+              Add Exercises ({selectedExercises.length})
+            </Button>
+          ),
+        }}
+      />
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholderTextColor={Colors.dark.text}
+          placeholder="Search"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        <IconButton
+          icon="filter-variant"
+          iconColor={Colors.dark.text}
+          size={24}
+          onPress={() => setFilterModalVisible(true)}
+          style={styles.filterIconButton}
+        />
+      </View>
+      <FilterModal
+        visible={filterModalVisible}
+        onClose={() => setFilterModalVisible(false)}
+        selectedEquipment={selectedEquipment}
+        setSelectedEquipment={setSelectedEquipment}
+        selectedBodyPart={selectedBodyPart}
+        setSelectedBodyPart={setSelectedBodyPart}
+        selectedTargetMuscle={selectedTargetMuscle}
+        setSelectedTargetMuscle={setSelectedTargetMuscle}
+        exercises={exercises}
       />
       <FlatList
         data={filteredExercises}
@@ -191,15 +261,6 @@ export default function ExercisesScreen() {
         maxToRenderPerBatch={10}
         windowSize={10}
       />
-      <View style={styles.footer}>
-        <Button
-          mode="contained"
-          onPress={handleAddExercise}
-          labelStyle={styles.addButtonLabel}
-        >
-          Add exercises ({selectedExercises.length})
-        </Button>
-      </View>
     </ThemedView>
   );
 }
@@ -207,16 +268,27 @@ export default function ExercisesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
-    padding: 16,
+    backgroundColor: Colors.dark.screenBackground,
+    paddingTop: 16,
+    paddingHorizontal: 16,
   },
-  searchInput: {
-    padding: 10,
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
     borderColor: Colors.dark.text,
     borderWidth: 1,
     borderRadius: 8,
+    backgroundColor: Colors.dark.screenBackground,
+    paddingRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    padding: 10,
     color: Colors.dark.text,
-    marginVertical: 16,
+  },
+  filterIconButton: {
+    margin: 0,
   },
   flatListContent: {
     flexGrow: 1,
@@ -248,15 +320,6 @@ const styles = StyleSheet.create({
   exerciseDetails: {
     fontSize: 14,
     color: "#D8DEE9",
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 16,
-  },
-  addButtonLabel: {
-    fontSize: 16,
   },
   loadingText: {
     fontSize: 18,

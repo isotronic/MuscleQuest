@@ -2,9 +2,9 @@ const IS_DEV = process.env.APP_VARIANT === "development";
 
 export default {
   expo: {
-    name: IS_DEV ? "MuscleQuest (Dev)" : "MuscleQuest",
+    name: IS_DEV ? "Muscle Quest (Dev)" : "Muscle Quest",
     slug: "musclequest",
-    version: "0.1.4",
+    version: "0.1.5",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",
