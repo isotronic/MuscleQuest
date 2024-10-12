@@ -6,14 +6,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Modal,
 } from "react-native";
 import {
   Checkbox,
   Button,
   ActivityIndicator,
-  Menu,
-  PaperProvider,
   IconButton,
 } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
@@ -26,16 +23,10 @@ import { Colors } from "@/constants/Colors";
 import React from "react";
 import FastImage from "react-native-fast-image";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
-import { paperTheme } from "@/utils/paperTheme";
+import { capitalizeWords } from "@/utils/utility";
+import FilterModal from "@/components/FilterModal";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
-
-const capitalizeWords = (str: string) => {
-  return str
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
 
 const ExerciseItem = ({
   item,
@@ -99,9 +90,7 @@ export default function ExercisesScreen() {
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
   >(null);
-  const [equipmentMenuVisible, setEquipmentMenuVisible] = useState(false);
-  const [bodyPartMenuVisible, setBodyPartMenuVisible] = useState(false);
-  const [targetMuscleMenuVisible, setTargetMuscleMenuVisible] = useState(false);
+
   const {
     data: exercises,
     isLoading: exercisesLoading,
@@ -252,149 +241,17 @@ export default function ExercisesScreen() {
           style={styles.filterIconButton}
         />
       </View>
-      <Modal
+      <FilterModal
         visible={filterModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setFilterModalVisible(false)}
-      >
-        <PaperProvider theme={paperTheme}>
-          <View style={styles.modalBackground}>
-            <View style={styles.modalContent}>
-              <Menu
-                visible={equipmentMenuVisible}
-                onDismiss={() => setEquipmentMenuVisible(false)}
-                anchor={
-                  <Button
-                    mode="outlined"
-                    onPress={() => setEquipmentMenuVisible(true)}
-                    style={styles.modalButton}
-                  >
-                    {selectedEquipment
-                      ? capitalizeWords(selectedEquipment)
-                      : "Select Equipment"}
-                  </Button>
-                }
-              >
-                <Menu.Item
-                  onPress={() => {
-                    setSelectedEquipment(null);
-                    setEquipmentMenuVisible(false);
-                  }}
-                  title="All Equipment"
-                />
-                {Array.from(new Set(exercises?.map((ex) => ex.equipment))).map(
-                  (equipment) => (
-                    <Menu.Item
-                      key={equipment}
-                      onPress={() => {
-                        setSelectedEquipment(equipment);
-                        setEquipmentMenuVisible(false);
-                      }}
-                      title={capitalizeWords(equipment)}
-                    />
-                  ),
-                )}
-              </Menu>
-
-              <Menu
-                visible={bodyPartMenuVisible}
-                onDismiss={() => setBodyPartMenuVisible(false)}
-                anchor={
-                  <Button
-                    mode="outlined"
-                    onPress={() => setBodyPartMenuVisible(true)}
-                    style={styles.modalButton}
-                  >
-                    {selectedBodyPart
-                      ? capitalizeWords(selectedBodyPart)
-                      : "Select Body Part"}
-                  </Button>
-                }
-              >
-                <Menu.Item
-                  onPress={() => {
-                    setSelectedBodyPart(null);
-                    setBodyPartMenuVisible(false);
-                  }}
-                  title="All Body Parts"
-                />
-                {Array.from(new Set(exercises?.map((ex) => ex.body_part))).map(
-                  (bodyPart) => (
-                    <Menu.Item
-                      key={bodyPart}
-                      onPress={() => {
-                        setSelectedBodyPart(bodyPart);
-                        setBodyPartMenuVisible(false);
-                      }}
-                      title={capitalizeWords(bodyPart)}
-                    />
-                  ),
-                )}
-              </Menu>
-
-              <Menu
-                visible={targetMuscleMenuVisible}
-                onDismiss={() => setTargetMuscleMenuVisible(false)}
-                anchor={
-                  <Button
-                    mode="outlined"
-                    onPress={() => setTargetMuscleMenuVisible(true)}
-                    style={styles.modalButton}
-                  >
-                    {selectedTargetMuscle
-                      ? capitalizeWords(selectedTargetMuscle)
-                      : "Select Target Muscle"}
-                  </Button>
-                }
-              >
-                <Menu.Item
-                  onPress={() => {
-                    setSelectedTargetMuscle(null);
-                    setTargetMuscleMenuVisible(false);
-                  }}
-                  title="All Target Muscles"
-                />
-                {Array.from(
-                  new Set(exercises?.map((ex) => ex.target_muscle)),
-                ).map((muscle) => (
-                  <Menu.Item
-                    key={muscle}
-                    onPress={() => {
-                      setSelectedTargetMuscle(muscle);
-                      setTargetMuscleMenuVisible(false);
-                    }}
-                    title={capitalizeWords(muscle)}
-                  />
-                ))}
-              </Menu>
-
-              <View style={styles.buttonRow}>
-                <Button
-                  mode="outlined"
-                  onPress={() => {
-                    setSelectedEquipment(null);
-                    setSelectedBodyPart(null);
-                    setSelectedTargetMuscle(null);
-                    setFilterModalVisible(false);
-                  }}
-                  style={styles.clearButton}
-                >
-                  Clear Filters
-                </Button>
-
-                <Button
-                  mode="contained"
-                  onPress={() => setFilterModalVisible(false)}
-                  style={styles.applyButton}
-                >
-                  Apply Filters
-                </Button>
-              </View>
-            </View>
-          </View>
-        </PaperProvider>
-      </Modal>
+        onClose={() => setFilterModalVisible(false)}
+        selectedEquipment={selectedEquipment}
+        setSelectedEquipment={setSelectedEquipment}
+        selectedBodyPart={selectedBodyPart}
+        setSelectedBodyPart={setSelectedBodyPart}
+        selectedTargetMuscle={selectedTargetMuscle}
+        setSelectedTargetMuscle={setSelectedTargetMuscle}
+        exercises={exercises}
+      />
       <FlatList
         data={filteredExercises}
         keyExtractor={(item: Exercise) => item.exercise_id.toString()}
@@ -432,40 +289,6 @@ const styles = StyleSheet.create({
   },
   filterIconButton: {
     margin: 0,
-  },
-  modalBackground: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: Colors.dark.cardBackground,
-    padding: 16,
-    borderRadius: 10,
-    width: "90%",
-    alignItems: "center",
-  },
-  modalButton: {
-    width: "100%",
-    marginBottom: 16,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    marginTop: 16,
-  },
-  clearButton: {
-    flex: 1,
-    marginRight: 8,
-  },
-  applyButton: {
-    flex: 1,
-    marginLeft: 8,
-  },
-  filterButton: {
-    marginBottom: 8,
   },
   flatListContent: {
     flexGrow: 1,
