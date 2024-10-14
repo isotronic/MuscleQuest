@@ -16,6 +16,7 @@ ios
 
 # Firebase
 # google-services.json
+# serviceAccountKey.json
 
 credentials.json
 credentials/
