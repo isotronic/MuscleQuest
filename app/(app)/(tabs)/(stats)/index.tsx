@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { ScrollView, StyleSheet, View, FlatList } from "react-native";
-import { ActivityIndicator, Card } from "react-native-paper";
+import { ActivityIndicator, Button, Card } from "react-native-paper";
 import { PieChart } from "react-native-gifted-charts";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -13,6 +13,8 @@ import { Colors } from "@/constants/Colors";
 import WorkoutHistoryCard from "@/components/WorkoutHistoryCard";
 import { useRouter } from "expo-router";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useTrackedExercisesQuery } from "@/hooks/useTrackedExercisesQuery";
+import { ExerciseProgressionChart } from "@/components/ExerciseProgressionChart";
 
 export default function StatsScreen() {
   const router = useRouter();
@@ -23,6 +25,8 @@ export default function StatsScreen() {
     useCompletedWorkoutsQuery(weightUnit);
   const { data: exercises, isLoading: isLoadingExercises } =
     useExercisesQuery();
+  const { data: trackedExercises, isLoading: isLoadingTrackedExercises } =
+    useTrackedExercisesQuery();
 
   const chartColors: Record<string, string> = {
     back: "#FF5722", // Deep Orange
@@ -125,7 +129,18 @@ export default function StatsScreen() {
     router.push(`/history-details?workoutId=${workoutId}`);
   };
 
-  if (isLoadingWorkouts || isLoadingExercises) {
+  const handleAddExercisesPress = () => {
+    router.push({
+      pathname: "/(app)/(tabs)/(stats)/exercises", // Adjust based on your routing structure
+      params: {
+        selectedExercises: JSON.stringify(
+          trackedExercises?.map((te) => te.exercise_id),
+        ),
+      },
+    });
+  };
+
+  if (isLoadingWorkouts || isLoadingExercises || isLoadingTrackedExercises) {
     return (
       <ThemedView style={styles.container}>
         <ActivityIndicator size="large" color={Colors.dark.text} />
@@ -236,6 +251,29 @@ export default function StatsScreen() {
             <ThemedText>No data available.</ThemedText>
           )}
         </View>
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>Exercises Tracked</ThemedText>
+          {/* Render Line Charts for Each Tracked Exercise */}
+          {trackedExercises && trackedExercises.length > 0 ? (
+            trackedExercises.map((exercise) => (
+              <ExerciseProgressionChart
+                key={exercise.exercise_id}
+                exercise={exercise}
+              />
+            ))
+          ) : (
+            <ThemedText>
+              No exercises tracked yet. Add some exercises!
+            </ThemedText>
+          )}
+          <Button
+            style={{ marginTop: 16 }}
+            mode="contained"
+            onPress={handleAddExercisesPress}
+          >
+            Add Exercises to Track
+          </Button>
+        </View>
       </ScrollView>
     </ThemedView>
   );
@@ -244,7 +282,8 @@ export default function StatsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   summaryContainer: {
     flexDirection: "row",
@@ -255,8 +294,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "center",
     borderRadius: 8,
-    elevation: 2,
-    backgroundColor: Colors.dark.cardBackground, // Use your theme's primary color
+    backgroundColor: Colors.dark.cardBackground,
   },
   statValue: {
     fontSize: 24,
@@ -268,7 +306,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   section: {
-    marginBottom: 16,
+    marginBottom: 32,
     alignItems: "center",
   },
   sectionTitle: {
