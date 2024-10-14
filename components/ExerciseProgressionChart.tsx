@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
-import { LineChart } from "react-native-gifted-charts"; // Assuming you're using this library
+import { LineChart } from "react-native-gifted-charts"; // Ensure you're using this library
 import { Colors } from "@/constants/Colors";
 import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
 
@@ -18,13 +18,41 @@ export const ExerciseProgressionChart: React.FC<
     label: new Date(set.date_completed).toLocaleDateString(),
   }));
 
+  const latestSet = exercise.completed_sets[exercise.completed_sets.length - 1];
+
   return (
     <Card style={styles.card}>
-      <View style={styles.cardContent}>
+      <View>
         <ThemedText style={styles.exerciseName}>
-          {exercise.name} Progression
+          {exercise.name} (1RM)
         </ThemedText>
-        <LineChart data={chartData} />
+        {latestSet && (
+          <>
+            <ThemedText style={styles.latestOneRepMax}>
+              Latest 1RM: {latestSet.oneRepMax} kg
+            </ThemedText>
+
+            {/* Additional Info: weight x reps (date completed) */}
+            <ThemedText style={styles.additionalInfo}>
+              {latestSet.weight}kg x {latestSet.reps} reps (
+              {new Date(latestSet.date_completed).toLocaleDateString()})
+            </ThemedText>
+          </>
+        )}
+        <LineChart
+          data={chartData}
+          spacing={35}
+          thickness={5}
+          isAnimated
+          areaChart
+          rulesType="solid"
+          width={250}
+          yAxisColor={Colors.dark.text}
+          yAxisTextStyle={styles.yAxisLabel}
+          xAxisLabelTextStyle={styles.xAxisLabel}
+          xAxisColor={Colors.dark.text}
+          dataPointsColor={Colors.dark.highlight}
+        />
       </View>
     </Card>
   );
@@ -33,16 +61,33 @@ export const ExerciseProgressionChart: React.FC<
 const styles = StyleSheet.create({
   card: {
     width: "100%",
+    marginVertical: 8,
     padding: 16,
-    borderRadius: 8,
     backgroundColor: Colors.dark.cardBackground,
   },
-  cardContent: {
-    alignItems: "center",
-  },
   exerciseName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  latestOneRepMax: {
     fontSize: 16,
     fontWeight: "bold",
+    marginBottom: 4,
+    color: Colors.dark.text,
+  },
+  additionalInfo: {
+    fontSize: 12,
+    color: Colors.dark.subText,
     marginBottom: 16,
+  },
+  yAxisLabel: {
+    fontSize: 12,
+    color: Colors.dark.text,
+  },
+  xAxisLabel: {
+    fontSize: 10,
+    color: Colors.dark.text,
+    marginTop: 4,
   },
 });
