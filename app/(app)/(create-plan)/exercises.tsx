@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import { Button, ActivityIndicator, IconButton } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
@@ -42,13 +42,17 @@ export default function ExercisesScreen() {
   const defaultSetNumber = settings ? parseInt(settings?.defaultSets) : 3;
   const totalSeconds = settings ? parseInt(settings?.defaultRestTime) : 0;
 
-  const [selectedExercises, setSelectedExercises] = useState<string[]>(() => {
-    return (
-      currentWorkout?.exercises.map((exercise) =>
-        exercise.exercise_id.toString(),
-      ) || []
-    );
-  });
+  const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (currentWorkout?.exercises) {
+      setSelectedExercises(
+        currentWorkout.exercises.map((exercise) =>
+          exercise.exercise_id.toString(),
+        ),
+      );
+    }
+  }, [currentWorkout]);
 
   const handleSelectExercise = useCallback((exerciseId: string) => {
     setSelectedExercises((prev) =>
