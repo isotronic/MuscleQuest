@@ -1,84 +1,15 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  View,
-  TextInput,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-} from "react-native";
-import {
-  Checkbox,
-  Button,
-  ActivityIndicator,
-  IconButton,
-} from "react-native-paper";
+import { View, TextInput, StyleSheet } from "react-native";
+import { Button, ActivityIndicator, IconButton } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { Exercise } from "@/utils/database";
-import { useWorkoutStore, UserExercise } from "@/store/workoutStore";
+import { useWorkoutStore } from "@/store/workoutStore";
 import { Colors } from "@/constants/Colors";
-import React from "react";
-import FastImage from "react-native-fast-image";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
-import { capitalizeWords } from "@/utils/utility";
 import FilterModal from "@/components/FilterModal";
-
-const fallbackImage = require("@/assets/images/placeholder.webp");
-
-const ExerciseItem = ({
-  item,
-  selected,
-  onSelect,
-}: {
-  item: UserExercise;
-  selected: boolean;
-  onSelect: (id: string) => void;
-}) => {
-  const base64Image = `data:image/webp;base64,${btoa(String.fromCharCode(...new Uint8Array(item.image)))}`;
-
-  const handlePress = () => {
-    router.push({
-      pathname: "/exercise-details",
-      params: { exercise: JSON.stringify(item) },
-    });
-  };
-
-  return (
-    <TouchableOpacity onPress={handlePress}>
-      <View key={item.exercise_id} style={styles.exerciseItem}>
-        <Checkbox
-          status={selected ? "checked" : "unchecked"}
-          uncheckedColor={Colors.dark.subText}
-          onPress={() => onSelect(item.exercise_id.toString())}
-        />
-        {item.image ? (
-          <FastImage
-            style={styles.exerciseImage}
-            source={{
-              uri: base64Image,
-              priority: FastImage.priority.normal,
-            }}
-            resizeMode={FastImage.resizeMode.contain}
-          />
-        ) : (
-          <Image style={styles.exerciseImage} source={fallbackImage} />
-        )}
-        <View style={styles.exerciseInfo}>
-          <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
-          <ThemedText style={styles.exerciseDetails}>
-            {capitalizeWords(item.body_part)} |{" "}
-            {capitalizeWords(item.equipment)}
-          </ThemedText>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-const MemoizedExerciseItem = React.memo(ExerciseItem);
+import ExerciseList from "@/components/ExerciseList";
 
 export default function ExercisesScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,7 +61,7 @@ export default function ExercisesScreen() {
   const handleAddExercise = () => {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    const defaultSets: UserExercise["sets"] = Array(defaultSetNumber).fill({
+    const defaultSets = Array(defaultSetNumber).fill({
       repsMin: 8,
       repsMax: 12,
       restMinutes: minutes,
@@ -146,7 +77,7 @@ export default function ExercisesScreen() {
           (e) => e.exercise_id === exercise.exercise_id,
         )
       ) {
-        const exerciseToAdd: UserExercise = { ...exercise, sets: defaultSets };
+        const exerciseToAdd = { ...exercise, sets: defaultSets };
         addExercise(currentWorkoutIndex, exerciseToAdd);
       }
     });
@@ -177,18 +108,6 @@ export default function ExercisesScreen() {
     ],
   );
 
-  const renderExerciseItem = useCallback(
-    ({ item }: { item: UserExercise }) => {
-      return (
-        <MemoizedExerciseItem
-          item={item}
-          selected={selectedExercises.includes(item.exercise_id.toString())}
-          onSelect={handleSelectExercise}
-        />
-      );
-    },
-    [selectedExercises, handleSelectExercise],
-  );
   if (exercisesLoading || settingsLoading) {
     return (
       <ThemedView style={styles.container}>
@@ -252,14 +171,16 @@ export default function ExercisesScreen() {
         setSelectedTargetMuscle={setSelectedTargetMuscle}
         exercises={exercises}
       />
-      <FlatList
-        data={filteredExercises}
-        keyExtractor={(item: Exercise) => item.exercise_id.toString()}
-        renderItem={renderExerciseItem}
-        contentContainerStyle={styles.flatListContent}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={10}
+      <ExerciseList
+        exercises={filteredExercises}
+        selectedExercises={selectedExercises}
+        onSelect={handleSelectExercise}
+        onPressItem={(item) => {
+          router.push({
+            pathname: "/(app)/exercise-details",
+            params: { exercise: JSON.stringify(item) },
+          });
+        }}
       />
     </ThemedView>
   );
@@ -290,40 +211,9 @@ const styles = StyleSheet.create({
   filterIconButton: {
     margin: 0,
   },
-  flatListContent: {
-    flexGrow: 1,
-  },
-  exerciseItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#3B4252",
-    padding: 16,
-    borderRadius: 8,
-    marginVertical: 8,
-  },
-  exerciseImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
-    marginLeft: 10,
-  },
-  exerciseInfo: {
-    marginLeft: 16,
-    flex: 1,
-  },
-  exerciseName: {
-    fontSize: 18,
-    color: "#FFFFFF",
-    flexWrap: "wrap",
-    flexShrink: 1,
-  },
-  exerciseDetails: {
+  addButtonLabel: {
     fontSize: 14,
-    color: "#D8DEE9",
-  },
-  loadingText: {
-    fontSize: 18,
-    color: "#FFFFFF",
+    fontWeight: "bold",
   },
   errorText: {
     fontSize: 18,
