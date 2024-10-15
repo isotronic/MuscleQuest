@@ -200,37 +200,41 @@ export default function StatsScreen() {
 
   return (
     <ThemedView>
-      <View style={styles.timeRangeContainer}>
-        <Button
-          mode={selectedTimeRange === timeRanges.allTime ? "outlined" : "text"}
-          onPress={() => handleTimeRangeChange(timeRanges.allTime)}
-        >
-          All Time
-        </Button>
-        <Button
-          mode={
-            selectedTimeRange === timeRanges.thirtyDays ? "outlined" : "text"
-          }
-          onPress={() => handleTimeRangeChange(timeRanges.thirtyDays)}
-        >
-          30 Days
-        </Button>
-        <Button
-          mode={
-            selectedTimeRange === timeRanges.ninetyDays ? "outlined" : "text"
-          }
-          onPress={() => handleTimeRangeChange(timeRanges.ninetyDays)}
-        >
-          90 Days
-        </Button>
-        <Button
-          mode={selectedTimeRange === timeRanges.oneYear ? "outlined" : "text"}
-          onPress={() => handleTimeRangeChange(timeRanges.oneYear)}
-        >
-          1 Year
-        </Button>
-      </View>
       <ScrollView style={styles.container}>
+        <View style={styles.timeRangeContainer}>
+          <Button
+            mode={
+              selectedTimeRange === timeRanges.allTime ? "outlined" : "text"
+            }
+            onPress={() => handleTimeRangeChange(timeRanges.allTime)}
+          >
+            All Time
+          </Button>
+          <Button
+            mode={
+              selectedTimeRange === timeRanges.thirtyDays ? "outlined" : "text"
+            }
+            onPress={() => handleTimeRangeChange(timeRanges.thirtyDays)}
+          >
+            30 Days
+          </Button>
+          <Button
+            mode={
+              selectedTimeRange === timeRanges.ninetyDays ? "outlined" : "text"
+            }
+            onPress={() => handleTimeRangeChange(timeRanges.ninetyDays)}
+          >
+            90 Days
+          </Button>
+          <Button
+            mode={
+              selectedTimeRange === timeRanges.oneYear ? "outlined" : "text"
+            }
+            onPress={() => handleTimeRangeChange(timeRanges.oneYear)}
+          >
+            1 Year
+          </Button>
+        </View>
         {/* Summary Stats */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Summary</ThemedText>
@@ -341,7 +345,7 @@ const styles = StyleSheet.create({
   timeRangeContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginBottom: 16,
+    marginBottom: 8,
   },
   summaryContainer: {
     flexDirection: "row",
@@ -370,7 +374,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginBottom: 16,
   },
   legendContainer: {
     flexDirection: "row",

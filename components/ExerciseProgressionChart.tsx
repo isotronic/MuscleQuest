@@ -69,7 +69,7 @@ export const ExerciseProgressionChart: React.FC<
 const styles = StyleSheet.create({
   card: {
     width: "100%",
-    marginVertical: 8,
+    marginBottom: 8,
     padding: 16,
     backgroundColor: Colors.dark.cardBackground,
   },
