@@ -13,12 +13,14 @@ interface ExerciseProgressionChartProps {
 export const ExerciseProgressionChart: React.FC<
   ExerciseProgressionChartProps
 > = ({ exercise }) => {
-  const chartData = exercise.completed_sets.map((set) => ({
-    value: set.oneRepMax, // Using one-rep-max for progression
-    label: new Date(set.date_completed).toLocaleDateString(),
-  }));
+  const chartData = exercise.completed_sets
+    .map((set) => ({
+      value: set.oneRepMax, // Using one-rep-max for progression
+      label: new Date(set.date_completed).toLocaleDateString(),
+    }))
+    .reverse();
 
-  const latestSet = exercise.completed_sets[exercise.completed_sets.length - 1];
+  const latestSet = exercise.completed_sets[0];
 
   return (
     <Card style={styles.card}>
