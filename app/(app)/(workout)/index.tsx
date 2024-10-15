@@ -183,6 +183,8 @@ export default function WorkoutOverviewScreen() {
           const completedCount = Object.values(completedSetsForExercise).filter(
             (setCompleted) => setCompleted === true,
           ).length;
+          const totalSets = exercise.sets.length;
+          const allSetsCompleted = completedCount === totalSets;
           return (
             <TouchableOpacity
               key={exercise.exercise_id}
@@ -190,11 +192,24 @@ export default function WorkoutOverviewScreen() {
             >
               <Card style={styles.card}>
                 <Card.Content style={styles.cardContent}>
-                  {/* Circle with the number */}
-                  <View style={styles.numberContainer}>
-                    <ThemedText style={styles.numberText}>
-                      {index + 1}
-                    </ThemedText>
+                  {/* Circle with the number or checkmark */}
+                  <View
+                    style={[
+                      styles.numberContainer,
+                      allSetsCompleted && styles.numberContainerCompleted,
+                    ]}
+                  >
+                    {allSetsCompleted ? (
+                      <MaterialCommunityIcons
+                        name="check"
+                        size={24}
+                        color="white"
+                      />
+                    ) : (
+                      <ThemedText style={styles.numberText}>
+                        {index + 1}
+                      </ThemedText>
+                    )}
                   </View>
 
                   {/* Exercise Info */}
@@ -248,6 +263,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
+  },
+  numberContainerCompleted: {
+    backgroundColor: "green",
+    borderColor: "green",
   },
   numberText: {
     fontSize: 18,
