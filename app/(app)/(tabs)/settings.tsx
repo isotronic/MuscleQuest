@@ -99,7 +99,7 @@ export default function SettingsScreen() {
         value: inputValue.toString(),
       });
     }
-
+    queryClient.invalidateQueries({ queryKey: ["settings"] });
     setOverlayVisible(false);
   };
 
