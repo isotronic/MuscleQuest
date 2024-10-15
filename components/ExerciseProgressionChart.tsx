@@ -16,7 +16,10 @@ export const ExerciseProgressionChart: React.FC<
   const chartData = exercise.completed_sets
     .map((set) => ({
       value: set.oneRepMax, // Using one-rep-max for progression
-      label: new Date(set.date_completed).toLocaleDateString(),
+      label: new Date(set.date_completed).toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "numeric",
+      }),
     }))
     .reverse();
 
@@ -45,10 +48,13 @@ export const ExerciseProgressionChart: React.FC<
           data={chartData}
           spacing={35}
           thickness={5}
+          color={Colors.dark.highlight}
           isAnimated
           areaChart
           rulesType="solid"
           width={250}
+          startFillColor="rgba(235, 170, 57, 0.5)" // Light blue gradient start
+          endFillColor="rgba(235, 170, 57, 0)" // Transparent gradient end
           yAxisColor={Colors.dark.text}
           yAxisTextStyle={styles.yAxisLabel}
           xAxisLabelTextStyle={styles.xAxisLabel}
