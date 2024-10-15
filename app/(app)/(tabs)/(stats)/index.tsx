@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View, FlatList } from "react-native";
 import { ActivityIndicator, Button, Card } from "react-native-paper";
 import { PieChart } from "react-native-gifted-charts";
@@ -15,18 +15,31 @@ import { useRouter } from "expo-router";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useTrackedExercisesQuery } from "@/hooks/useTrackedExercisesQuery";
 import { ExerciseProgressionChart } from "@/components/ExerciseProgressionChart";
+import { updateSettings } from "@/utils/database";
+import { useQueryClient } from "@tanstack/react-query";
+
+const timeRanges = {
+  allTime: "0",
+  thirtyDays: "30",
+  ninetyDays: "90",
+  oneYear: "365",
+};
 
 export default function StatsScreen() {
   const router = useRouter();
-
+  const queryClient = useQueryClient();
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit || "kg";
-  const { data: completedWorkouts, isLoading: isLoadingWorkouts } =
-    useCompletedWorkoutsQuery(weightUnit);
+  const [selectedTimeRange, setSelectedTimeRange] = useState<string>(
+    settings?.timeRange || timeRanges.allTime,
+  );
   const { data: exercises, isLoading: isLoadingExercises } =
     useExercisesQuery();
   const { data: trackedExercises, isLoading: isLoadingTrackedExercises } =
     useTrackedExercisesQuery();
+
+  const { data: completedWorkouts, isLoading: isLoadingWorkouts } =
+    useCompletedWorkoutsQuery(weightUnit, parseInt(selectedTimeRange));
 
   const chartColors: Record<string, string> = {
     back: "#FF5722", // Deep Orange
@@ -125,6 +138,18 @@ export default function StatsScreen() {
     color: chartColors[item.name] || "#c4f",
   }));
 
+  // Function to update the selected time range
+  const handleTimeRangeChange = async (range: string) => {
+    setSelectedTimeRange(range);
+    try {
+      await updateSettings("timeRange", range);
+    } catch (error) {
+      console.error("Error updating time range:", error);
+    } finally {
+      queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+    }
+  };
+
   const handleWorkoutPress = (id: number) => {
     router.push(`/history-details?id=${id}`);
   };
@@ -175,6 +200,36 @@ export default function StatsScreen() {
 
   return (
     <ThemedView>
+      <View style={styles.timeRangeContainer}>
+        <Button
+          mode={selectedTimeRange === timeRanges.allTime ? "outlined" : "text"}
+          onPress={() => handleTimeRangeChange(timeRanges.allTime)}
+        >
+          All Time
+        </Button>
+        <Button
+          mode={
+            selectedTimeRange === timeRanges.thirtyDays ? "outlined" : "text"
+          }
+          onPress={() => handleTimeRangeChange(timeRanges.thirtyDays)}
+        >
+          30 Days
+        </Button>
+        <Button
+          mode={
+            selectedTimeRange === timeRanges.ninetyDays ? "outlined" : "text"
+          }
+          onPress={() => handleTimeRangeChange(timeRanges.ninetyDays)}
+        >
+          90 Days
+        </Button>
+        <Button
+          mode={selectedTimeRange === timeRanges.oneYear ? "outlined" : "text"}
+          onPress={() => handleTimeRangeChange(timeRanges.oneYear)}
+        >
+          1 Year
+        </Button>
+      </View>
       <ScrollView style={styles.container}>
         {/* Summary Stats */}
         <View style={styles.section}>
@@ -282,6 +337,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 8,
+  },
+  timeRangeContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 16,
   },
   summaryContainer: {
     flexDirection: "row",

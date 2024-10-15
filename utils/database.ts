@@ -480,6 +480,7 @@ export const insertDefaultSettings = async () => {
       { key: "defaultSets", value: "3" },
       { key: "defaultRestTime", value: "60" },
       { key: "buttonSize", value: "Standard" },
+      { key: "timeRange", value: "30" },
     ];
 
     // Insert default settings into the table
@@ -507,6 +508,7 @@ export interface Settings {
   defaultSets: string;
   defaultRestTime: string;
   buttonSize: string;
+  timeRange: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
