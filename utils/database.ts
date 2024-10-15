@@ -300,8 +300,6 @@ export const saveCompletedWorkout = async (
 
     // Commit transaction
     await db.execAsync("COMMIT");
-
-    console.log("Completed workout saved successfully.");
   } catch (error) {
     // Rollback transaction
     try {
@@ -318,8 +316,9 @@ export const saveCompletedWorkout = async (
 };
 
 interface CompletedWorkoutRow {
-  workout_id: number;
+  id: number;
   plan_id: number;
+  workout_id: number;
   workout_name: string;
   date_completed: string;
   duration: number;
@@ -333,7 +332,7 @@ interface CompletedWorkoutRow {
 }
 
 export const fetchCompletedWorkoutById = async (
-  workoutId: number,
+  id: number,
   weightUnit: string = "kg",
 ): Promise<CompletedWorkout> => {
   const db = await openDatabase("userData.db");
@@ -342,8 +341,9 @@ export const fetchCompletedWorkoutById = async (
     const result = (await db.getAllAsync(
       `
       SELECT 
-        cw.id as workout_id, 
+        cw.id, 
         cw.plan_id as plan_id,
+        cw.workout_id as workout_id,
         uw.name as workout_name, 
         cw.date_completed, 
         cw.duration, 
@@ -362,7 +362,7 @@ export const fetchCompletedWorkoutById = async (
       WHERE cw.id = ?
       ORDER BY uex.id, cs.set_number;
       `,
-      [workoutId],
+      [id],
     )) as CompletedWorkoutRow[];
 
     if (!result || result.length === 0) {
@@ -373,7 +373,8 @@ export const fetchCompletedWorkoutById = async (
 
     // Process the result to structure it as needed
     const workout: CompletedWorkout = {
-      workout_id: workoutId,
+      id: result[0].id,
+      workout_id: result[0].workout_id,
       plan_id: result[0].plan_id,
       workout_name: result[0]?.workout_name || "",
       date_completed: result[0]?.date_completed || "",

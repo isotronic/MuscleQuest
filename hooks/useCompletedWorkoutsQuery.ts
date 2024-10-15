@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 
 interface WorkoutResult {
+  id: number;
   plan_id: number;
   workout_id: number;
   workout_name: string;
@@ -17,6 +18,7 @@ interface WorkoutResult {
 }
 
 export interface CompletedWorkout {
+  id: number;
   workout_id: number;
   plan_id: number;
   workout_name: string;
@@ -41,6 +43,7 @@ const fetchCompletedWorkouts = async (): Promise<WorkoutResult[]> => {
     const results = await db.getAllAsync(
       `
     SELECT 
+      completed_workouts.id,
       completed_workouts.plan_id,
       completed_workouts.workout_id,
       user_workouts.name AS workout_name,
@@ -82,6 +85,7 @@ const fetchAndOrganize = async (
 
     results.forEach((item) => {
       const {
+        id,
         workout_id,
         plan_id,
         workout_name,
@@ -96,11 +100,12 @@ const fetchAndOrganize = async (
         reps,
       } = item;
 
-      let workout = workoutsMap.get(workout_id);
+      let workout = workoutsMap.get(id);
 
       // If the workout doesn't exist, create and add it to the map and array
       if (!workout) {
         workout = {
+          id,
           workout_id,
           plan_id,
           workout_name,
@@ -109,7 +114,7 @@ const fetchAndOrganize = async (
           total_sets_completed,
           exercises: [],
         };
-        workoutsMap.set(workout_id, workout);
+        workoutsMap.set(id, workout);
         workoutsArray.push(workout);
       }
 

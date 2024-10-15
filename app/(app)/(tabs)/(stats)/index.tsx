@@ -125,8 +125,8 @@ export default function StatsScreen() {
     color: chartColors[item.name] || "#c4f",
   }));
 
-  const handleWorkoutPress = (workoutId: number) => {
-    router.push(`/history-details?workoutId=${workoutId}`);
+  const handleWorkoutPress = (id: number) => {
+    router.push(`/history-details?id=${id}`);
   };
 
   const handleAddExercisesPress = () => {
@@ -208,12 +208,10 @@ export default function StatsScreen() {
               renderItem={({ item }: { item: CompletedWorkout }) => (
                 <WorkoutHistoryCard
                   workout={item}
-                  onPress={handleWorkoutPress}
+                  onPress={() => handleWorkoutPress(item.id)}
                 />
               )}
-              keyExtractor={(item: CompletedWorkout) =>
-                item.workout_id.toString()
-              }
+              keyExtractor={(item: CompletedWorkout) => item.id.toString()}
               horizontal
               showsHorizontalScrollIndicator={false}
             />
