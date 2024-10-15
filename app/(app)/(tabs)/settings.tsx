@@ -5,6 +5,7 @@ import {
   View,
   TouchableOpacity,
   Alert,
+  Linking,
 } from "react-native";
 import {
   ActivityIndicator,
@@ -99,7 +100,6 @@ export default function SettingsScreen() {
         value: inputValue.toString(),
       });
     }
-    queryClient.invalidateQueries({ queryKey: ["settings"] });
     setOverlayVisible(false);
   };
 
@@ -460,7 +460,7 @@ export default function SettingsScreen() {
           <ThemedText style={styles.sectionHeader}>About</ThemedText>
           <TouchableOpacity
             style={styles.item}
-            onPress={() => console.log("MuscleQuest.app pressed")}
+            onPress={() => Linking.openURL("https://musclequest.app")}
           >
             <MaterialCommunityIcons
               name="web"
@@ -472,7 +472,7 @@ export default function SettingsScreen() {
               <ThemedText style={styles.itemText}>MuscleQuest.app</ThemedText>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.item}
             onPress={() =>
               console.log("Follow MuscleQuest on Instagram pressed")
@@ -489,26 +489,10 @@ export default function SettingsScreen() {
                 Follow MuscleQuest on Instagram
               </ThemedText>
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity
             style={styles.item}
-            onPress={() => console.log("Follow MuscleQuest on Twitter pressed")}
-          >
-            <MaterialCommunityIcons
-              name="twitter"
-              size={24}
-              color={Colors.dark.icon}
-              style={styles.icon}
-            />
-            <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>
-                Follow MuscleQuest on Twitter
-              </ThemedText>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.item}
-            onPress={() => console.log("About the developer pressed")}
+            onPress={() => Linking.openURL("https://joseph.bouqdib.com")}
           >
             <MaterialCommunityIcons
               name="account"
@@ -524,7 +508,9 @@ export default function SettingsScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.item}
-            onPress={() => console.log("Privacy policy pressed")}
+            onPress={() =>
+              Linking.openURL("https://musclequest.app/privacy-policy")
+            }
           >
             <MaterialCommunityIcons
               name="shield-lock"
