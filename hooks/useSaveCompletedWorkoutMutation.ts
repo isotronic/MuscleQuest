@@ -39,8 +39,8 @@ export const useSaveCompletedWorkoutMutation = (weightUnit: string) => {
       );
     },
     onSuccess: () => {
-      // Invalidate the 'completedWorkouts' query to refetch the data
       queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+      queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
     },
   });
 };
