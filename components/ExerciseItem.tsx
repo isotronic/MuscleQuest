@@ -12,7 +12,7 @@ const fallbackImage = require("@/assets/images/placeholder.webp");
 interface ExerciseItemProps {
   item: Exercise;
   selected: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (id: number) => void;
   onPress: (item: Exercise) => void;
 }
 
@@ -30,7 +30,7 @@ const ExerciseItem = ({
         <Checkbox
           status={selected ? "checked" : "unchecked"}
           uncheckedColor={Colors.dark.subText}
-          onPress={() => onSelect(item.exercise_id.toString())}
+          onPress={() => onSelect(item.exercise_id)}
         />
         {item.image ? (
           <FastImage

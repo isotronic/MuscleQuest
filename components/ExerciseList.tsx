@@ -5,8 +5,8 @@ import { Exercise } from "@/utils/database";
 
 interface ExerciseListProps {
   exercises: Exercise[];
-  selectedExercises: string[];
-  onSelect: (exerciseId: string) => void;
+  selectedExercises: number[];
+  onSelect: (exerciseId: number) => void;
   onPressItem: (item: Exercise) => void;
 }
 
@@ -20,7 +20,7 @@ const ExerciseList = ({
     ({ item }: { item: Exercise }) => (
       <ExerciseItem
         item={item}
-        selected={selectedExercises.includes(item.exercise_id.toString())}
+        selected={selectedExercises.includes(item.exercise_id)}
         onSelect={onSelect}
         onPress={onPressItem}
       />

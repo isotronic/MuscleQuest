@@ -37,17 +37,17 @@ export default function ExercisesScreen() {
     error: exercisesError,
   } = useExercisesQuery();
 
-  const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+  const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
 
   useEffect(() => {
     if (initialSelectedExercises.length > 0) {
       setSelectedExercises(
-        initialSelectedExercises.map((id: number) => id.toString()),
+        initialSelectedExercises.map((id: number | string) => Number(id)),
       );
     }
   }, [initialSelectedExercises]);
 
-  const handleSelectExercise = useCallback((exerciseId: string) => {
+  const handleSelectExercise = useCallback((exerciseId: number) => {
     setSelectedExercises((prev) =>
       prev.includes(exerciseId)
         ? prev.filter((id) => id !== exerciseId)
@@ -60,11 +60,11 @@ export default function ExercisesScreen() {
       const db = await openDatabase("userData.db");
       // Fetch already tracked exercises
       const trackedExercises = (await db.getAllAsync(`
-      SELECT exercise_id FROM tracked_exercises
-    `)) as { exercise_id: string }[];
+        SELECT exercise_id FROM tracked_exercises
+      `)) as { exercise_id: number }[];
 
-      const trackedExerciseIds = trackedExercises.map(
-        (exercise) => exercise.exercise_id,
+      const trackedExerciseIds = trackedExercises.map((exercise) =>
+        Number(exercise.exercise_id),
       );
 
       // Find exercises that are newly selected (need to be added)
@@ -81,9 +81,9 @@ export default function ExercisesScreen() {
       for (const exerciseId of newExercises) {
         await db.runAsync(
           `
-        INSERT INTO tracked_exercises (exercise_id)
-        VALUES (?)
-      `,
+          INSERT INTO tracked_exercises (exercise_id)
+          VALUES (?)
+        `,
           [exerciseId],
         );
       }
@@ -92,8 +92,8 @@ export default function ExercisesScreen() {
       for (const exerciseId of removedExercises) {
         await db.runAsync(
           `
-        DELETE FROM tracked_exercises WHERE exercise_id = ?
-      `,
+          DELETE FROM tracked_exercises WHERE exercise_id = ?
+        `,
           [exerciseId],
         );
       }
