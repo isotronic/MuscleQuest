@@ -167,7 +167,7 @@ const fetchAndOrganize = async (
 
 export const useCompletedWorkoutsQuery = (
   weightUnit: string,
-  timeRange: number,
+  timeRange = 0,
 ) => {
   return useQuery<CompletedWorkout[]>({
     queryKey: ["completedWorkouts", weightUnit],
