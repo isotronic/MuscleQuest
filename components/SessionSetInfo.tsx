@@ -97,7 +97,7 @@ export default function SessionSetInfo({
           iconColor={Colors.dark.text}
           style={styles.iconButton}
         />
-        <ThemedText>
+        <ThemedText style={styles.setNavigationText}>
           Set {currentSetIndex + 1} of {totalSets}
         </ThemedText>
         <IconButton
@@ -230,6 +230,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 20,
   },
+  setNavigationText: {
+    fontSize: 18,
+  },
   input: {
     flex: 1,
     padding: 10,
@@ -237,6 +240,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     textAlign: "center",
+    fontSize: 26,
     color: Colors.dark.text,
   },
   completeButton: {
