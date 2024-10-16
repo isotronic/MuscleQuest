@@ -50,7 +50,6 @@ export const ExerciseProgressionChart: React.FC<
           color={Colors.dark.highlight}
           isAnimated
           areaChart
-          rulesType="solid"
           width={250}
           startFillColor="rgba(235, 170, 57, 0.5)"
           endFillColor="rgba(235, 170, 57, 0)"
