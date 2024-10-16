@@ -246,7 +246,6 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 14,
-    marginTop: 4,
   },
   section: {
     marginBottom: 32,
@@ -256,20 +255,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 16,
-  },
-  legendContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    marginTop: 8,
-  },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-    marginRight: 8,
-  },
-  legendText: {
-    fontSize: 12,
   },
 });
