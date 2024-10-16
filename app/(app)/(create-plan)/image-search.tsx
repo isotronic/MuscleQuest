@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import {
   FlatList,
-  Image,
   TouchableOpacity,
   StyleSheet,
   View,
   Linking,
 } from "react-native";
+import { Image } from "expo-image";
 import { TextInput, Button } from "react-native-paper";
 import { createApi } from "unsplash-js";
 import { useNavigation } from "expo-router";

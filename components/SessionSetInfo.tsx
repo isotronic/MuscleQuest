@@ -1,7 +1,7 @@
 import React from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import { IconButton, ActivityIndicator, Button } from "react-native-paper";
-import FastImage from "react-native-fast-image";
+import { Image } from "expo-image";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 
@@ -64,13 +64,11 @@ export default function SessionSetInfo({
         ) : animatedImageError ? (
           <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
         ) : animatedUrl ? (
-          <FastImage
+          <Image
             style={styles.animatedImage}
             source={{
               uri: animatedUrl,
-              priority: FastImage.priority.normal,
             }}
-            resizeMode={FastImage.resizeMode.contain}
           />
         ) : (
           <ThemedText style={styles.loadingText}>No GIF available</ThemedText>

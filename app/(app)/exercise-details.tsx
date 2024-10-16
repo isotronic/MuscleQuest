@@ -2,7 +2,7 @@ import { View, StyleSheet, ScrollView } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { useLocalSearchParams } from "expo-router";
-import FastImage from "react-native-fast-image";
+import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 
@@ -60,13 +60,11 @@ export default function ExerciseDetailsScreen() {
       ) : animatedImageError ? (
         <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
       ) : animatedUrl ? (
-        <FastImage
+        <Image
           style={styles.gifImage}
           source={{
             uri: animatedUrl,
-            priority: FastImage.priority.normal,
           }}
-          resizeMode={FastImage.resizeMode.contain}
         />
       ) : (
         <ThemedText style={styles.loadingText}>No GIF available</ThemedText>
