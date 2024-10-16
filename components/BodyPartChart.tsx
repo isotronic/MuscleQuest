@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 import { ThemedText } from "@/components/ThemedText";
@@ -6,6 +6,7 @@ import { Colors } from "@/constants/Colors";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Exercise } from "@/utils/database";
 import { Card } from "react-native-paper";
+import { capitalizeWords } from "@/utils/utility";
 
 // Define the props for the component
 interface BodyPartChartProps {
@@ -17,6 +18,11 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
   completedWorkouts,
   exercises,
 }) => {
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
+  const [selectedPercentage, setSelectedPercentage] = useState<number | null>(
+    null,
+  );
+
   const chartColors: Record<string, string> = {
     back: "#FF5722", // Deep Orange
     chest: "#3F51B5", // Indigo
@@ -42,7 +48,7 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
     );
   }, [exercises]);
 
-  // Calculate body part counts
+  // Calculate body part counts based on completed sets
   const bodyPartCounts = useMemo(() => {
     if (!completedWorkouts || !exerciseIdToBodyPartMap) {
       return {};
@@ -61,7 +67,9 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
             bodyPart = "legs";
           }
 
-          counts[bodyPart] = (counts[bodyPart] || 0) + 1;
+          // Count the number of sets for this exercise
+          const completedSets = exercise.sets.length;
+          counts[bodyPart] = (counts[bodyPart] || 0) + completedSets;
         }
       });
     });
@@ -82,7 +90,7 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
     return Object.entries(bodyPartCounts).map(([bodyPart, count]) => ({
       name: bodyPart,
       count,
-      percentage: ((count / total) * 100).toFixed(2),
+      percentage: ((count / total) * 100).toFixed(1),
     }));
   }, [bodyPartCounts]);
 
@@ -90,15 +98,30 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
     text: item.name,
     value: parseFloat(item.percentage),
     color: chartColors[item.name] || "#c4f",
+    focused: item.name === selectedBodyPart,
   }));
 
+  const handleChartPress = (
+    item: { text: string; value: number },
+    index: number,
+  ) => {
+    if (item.text !== selectedBodyPart) {
+      setSelectedBodyPart(item.text);
+      setSelectedPercentage(item.value);
+    } else {
+      // If the same section is pressed, set state to null to unfocus
+      setSelectedBodyPart(null);
+      setSelectedPercentage(null);
+    }
+  };
+
   // Function to render the colored dot
-  const renderDot = (color: string) => (
+  const renderDot = (color: string, isSelected: boolean) => (
     <View
       style={{
-        height: 8,
-        width: 8,
-        borderRadius: 5,
+        height: isSelected ? 12 : 8,
+        width: isSelected ? 12 : 8,
+        borderRadius: isSelected ? 10 : 5,
         backgroundColor: color,
         marginRight: 4,
       }}
@@ -108,12 +131,22 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
   // Function to render the legend component
   const renderLegendComponent = () => (
     <View style={styles.legendContainer}>
-      {chartData.map((item) => (
-        <View key={item.text} style={styles.legendItem}>
-          {renderDot(item.color)}
-          <ThemedText style={styles.legendText}>{`${item.text}`}</ThemedText>
-        </View>
-      ))}
+      {chartData.map((item) => {
+        const isSelected = item.text === selectedBodyPart;
+        return (
+          <View key={item.text} style={styles.legendItem}>
+            {renderDot(item.color, isSelected)}
+            <ThemedText
+              style={[
+                styles.legendText,
+                isSelected && styles.selectedLegendText,
+              ]}
+            >
+              {`${item.text}`}
+            </ThemedText>
+          </View>
+        );
+      })}
     </View>
   );
 
@@ -125,14 +158,29 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
             <PieChart
               donut
               data={chartData}
-              innerRadius={110}
               radius={150}
+              innerRadius={110}
+              onPress={handleChartPress}
+              sectionAutoFocus
               innerCircleColor={Colors.dark.cardBackground}
               centerLabelComponent={() => (
-                <View style={styles.pieChartCenterLabelContainer}>
-                  <ThemedText style={styles.pieChartCenterLabel}>
-                    Body Parts Trained
-                  </ThemedText>
+                <View
+                  style={{ justifyContent: "center", alignItems: "center" }}
+                >
+                  {selectedBodyPart ? (
+                    <>
+                      <ThemedText style={{ fontSize: 18, fontWeight: "bold" }}>
+                        {`${selectedPercentage}%`}
+                      </ThemedText>
+                      <ThemedText style={{ fontSize: 18 }}>
+                        {capitalizeWords(selectedBodyPart)}
+                      </ThemedText>
+                    </>
+                  ) : (
+                    <ThemedText style={{ fontSize: 18, fontWeight: "bold" }}>
+                      Body Parts
+                    </ThemedText>
+                  )}
                 </View>
               )}
             />
@@ -178,5 +226,9 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
+  },
+  selectedLegendText: {
+    fontSize: 14,
+    fontWeight: "bold",
   },
 });
