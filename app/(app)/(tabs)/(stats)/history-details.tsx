@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import { View, StyleSheet, ScrollView, Image } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
+import { Image } from "expo-image";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { ActivityIndicator, Card } from "react-native-paper";
@@ -218,10 +219,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingBottom: 8,
     elevation: 2, // For Android
-    shadowColor: "#000", // For iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)", // For iOS
     backgroundColor: Colors.dark.cardBackground,
   },
   exerciseHeader: {
