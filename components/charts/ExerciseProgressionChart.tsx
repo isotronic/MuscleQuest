@@ -1,27 +1,69 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { LineChart } from "react-native-gifted-charts";
 import { Colors } from "@/constants/Colors";
-import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
+import {
+  TrackedExerciseWithSets,
+  CompletedSet,
+} from "@/hooks/useTrackedExercisesQuery";
 
 interface ExerciseProgressionChartProps {
   exercise: TrackedExerciseWithSets;
+  timeRange: string;
 }
+
+const groupSetsByTime = (completedSets: CompletedSet[], timeRange: string) => {
+  const groupedSets: Record<string, { oneRepMax: number }> = {};
+
+  completedSets.forEach((set) => {
+    const setDate = new Date(set.date_completed);
+    let groupKey: string;
+
+    if (timeRange === "90") {
+      // Group by week: label in "30 Sep" or "7 Oct" format
+      const weekStart = new Date(setDate);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of the week
+      const day = weekStart.getDate();
+      const month = weekStart.toLocaleString(undefined, { month: "short" });
+      groupKey = `${day} ${month}`;
+    } else if (timeRange === "365" || timeRange === "0") {
+      // Group by month: label in the first three letters of the month
+      const month = setDate.toLocaleString(undefined, { month: "short" });
+      groupKey = `${month}`;
+    } else {
+      // Default: leave the data as it is (for 30 days)
+      groupKey = setDate.toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "numeric",
+      });
+    }
+
+    // Store the highest oneRepMax for each group (week or month)
+    if (
+      !groupedSets[groupKey] ||
+      set.oneRepMax > groupedSets[groupKey].oneRepMax
+    ) {
+      groupedSets[groupKey] = { oneRepMax: set.oneRepMax };
+    }
+  });
+
+  return groupedSets;
+};
 
 export const ExerciseProgressionChart: React.FC<
   ExerciseProgressionChartProps
-> = ({ exercise }) => {
-  const chartData = exercise.completed_sets
-    .map((set) => ({
-      value: set.oneRepMax, // Using one-rep-max for progression
-      label: new Date(set.date_completed).toLocaleDateString(undefined, {
-        day: "numeric",
-        month: "numeric",
-      }),
-    }))
-    .reverse();
+> = ({ exercise, timeRange }) => {
+  const chartData = useMemo(() => {
+    const groupedSets = groupSetsByTime(exercise.completed_sets, timeRange);
+    return Object.keys(groupedSets)
+      .map((key) => ({
+        label: key,
+        value: groupedSets[key].oneRepMax,
+      }))
+      .reverse();
+  }, [exercise.completed_sets, timeRange]);
 
   const latestSet = exercise.completed_sets[0];
 
@@ -50,7 +92,6 @@ export const ExerciseProgressionChart: React.FC<
           color={Colors.dark.highlight}
           isAnimated
           areaChart
-          hideDataPoints
           width={250}
           startFillColor="rgba(231, 64, 67, 0.5)"
           endFillColor="rgba(231, 64, 67, 0)"
