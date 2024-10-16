@@ -81,4 +81,12 @@ export async function initUserDataDB() {
       value TEXT
     );
   `);
+
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS tracked_exercises (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      exercise_id INTEGER NOT NULL UNIQUE, -- References the exercise being tracked
+      date_added DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP -- When this exercise was added for tracking
+    );
+  `);
 }

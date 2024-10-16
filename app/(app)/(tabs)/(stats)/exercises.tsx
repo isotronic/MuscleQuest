@@ -1,17 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocalSearchParams } from "expo-router";
 import { View, TextInput, StyleSheet } from "react-native";
 import { Button, ActivityIndicator, IconButton } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
-import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useWorkoutStore } from "@/store/workoutStore";
+import { router, Stack } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import FilterModal from "@/components/FilterModal";
 import ExerciseList from "@/components/ExerciseList";
+import { openDatabase } from "@/utils/database";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ExercisesScreen() {
+  const queryclient = useQueryClient();
+  const { selectedExercises: selectedExercisesParam } = useLocalSearchParams();
+  const initialSelectedExercises = useMemo(() => {
+    if (Array.isArray(selectedExercisesParam)) {
+      return JSON.parse(selectedExercisesParam[0] || "[]");
+    }
+    return selectedExercisesParam ? JSON.parse(selectedExercisesParam) : [];
+  }, [selectedExercisesParam]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
@@ -27,34 +36,18 @@ export default function ExercisesScreen() {
     isLoading: exercisesLoading,
     error: exercisesError,
   } = useExercisesQuery();
-  const addExercise = useWorkoutStore((state) => state.addExercise);
-  const workouts = useWorkoutStore((state) => state.workouts);
-  const { index } = useLocalSearchParams();
-  const currentWorkoutIndex = Number(index);
-  const currentWorkout = workouts[currentWorkoutIndex];
 
-  const {
-    data: settings,
-    isLoading: settingsLoading,
-    error: settingsError,
-  } = useSettingsQuery();
-
-  const defaultSetNumber = settings ? parseInt(settings?.defaultSets) : 3;
-  const totalSeconds = settings ? parseInt(settings?.defaultRestTime) : 0;
-
-  const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+  const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
 
   useEffect(() => {
-    if (currentWorkout?.exercises) {
+    if (initialSelectedExercises.length > 0) {
       setSelectedExercises(
-        currentWorkout.exercises.map((exercise) =>
-          exercise.exercise_id.toString(),
-        ),
+        initialSelectedExercises.map((id: number | string) => Number(id)),
       );
     }
-  }, [currentWorkout]);
+  }, [initialSelectedExercises]);
 
-  const handleSelectExercise = useCallback((exerciseId: string) => {
+  const handleSelectExercise = useCallback((exerciseId: number) => {
     setSelectedExercises((prev) =>
       prev.includes(exerciseId)
         ? prev.filter((id) => id !== exerciseId)
@@ -62,30 +55,54 @@ export default function ExercisesScreen() {
     );
   }, []);
 
-  const handleAddExercise = () => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    const defaultSets = Array(defaultSetNumber).fill({
-      repsMin: 8,
-      repsMax: 12,
-      restMinutes: minutes,
-      restSeconds: seconds,
-    });
-    selectedExercises.forEach((exerciseId) => {
-      const exercise = exercises?.find(
-        (ex) => ex.exercise_id.toString() === exerciseId,
+  const handleAddExercise = async () => {
+    try {
+      const db = await openDatabase("userData.db");
+      // Fetch already tracked exercises
+      const trackedExercises = (await db.getAllAsync(`
+        SELECT exercise_id FROM tracked_exercises
+      `)) as { exercise_id: number }[];
+
+      const trackedExerciseIds = trackedExercises.map((exercise) =>
+        Number(exercise.exercise_id),
       );
-      if (
-        exercise &&
-        !currentWorkout?.exercises.some(
-          (e) => e.exercise_id === exercise.exercise_id,
-        )
-      ) {
-        const exerciseToAdd = { ...exercise, sets: defaultSets };
-        addExercise(currentWorkoutIndex, exerciseToAdd);
+
+      // Find exercises that are newly selected (need to be added)
+      const newExercises = selectedExercises.filter(
+        (exerciseId) => !trackedExerciseIds.includes(exerciseId),
+      );
+
+      // Find exercises that are unselected (need to be removed)
+      const removedExercises = trackedExerciseIds.filter(
+        (exerciseId) => !selectedExercises.includes(exerciseId),
+      );
+
+      // Insert new exercises into the tracked_exercises table
+      for (const exerciseId of newExercises) {
+        await db.runAsync(
+          `
+          INSERT INTO tracked_exercises (exercise_id)
+          VALUES (?)
+        `,
+          [exerciseId],
+        );
       }
-    });
-    router.back();
+
+      // Delete unselected exercises from the tracked_exercises table
+      for (const exerciseId of removedExercises) {
+        await db.runAsync(
+          `
+          DELETE FROM tracked_exercises WHERE exercise_id = ?
+        `,
+          [exerciseId],
+        );
+      }
+
+      queryclient.invalidateQueries({ queryKey: ["trackedExercises"] });
+      router.back();
+    } catch (error) {
+      console.error("Error saving exercises for tracking:", error);
+    }
   };
 
   const filteredExercises = useMemo(
@@ -112,7 +129,7 @@ export default function ExercisesScreen() {
     ],
   );
 
-  if (exercisesLoading || settingsLoading) {
+  if (exercisesLoading) {
     return (
       <ThemedView style={styles.container}>
         <ActivityIndicator size="large" color={Colors.dark.text} />
@@ -120,13 +137,12 @@ export default function ExercisesScreen() {
     );
   }
 
-  if (exercisesError || settingsError) {
-    const error = exercisesError || settingsError;
-    console.log(error);
+  if (exercisesError) {
+    console.error("Error loading exercises:", exercisesError);
     return (
       <ThemedView style={styles.container}>
         <ThemedText style={styles.errorText}>
-          Error loading exercises: {error?.message}
+          Error loading exercises: {exercisesError?.message}
         </ThemedText>
       </ThemedView>
     );
@@ -143,7 +159,7 @@ export default function ExercisesScreen() {
               onPress={handleAddExercise}
               labelStyle={styles.addButtonLabel}
             >
-              Add Exercises ({selectedExercises.length})
+              Track Exercises ({selectedExercises.length})
             </Button>
           ),
         }}

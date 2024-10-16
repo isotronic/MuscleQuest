@@ -98,7 +98,7 @@ export default function ExerciseDetailsScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.dark.background,
+    backgroundColor: Colors.dark.screenBackground,
     padding: 16,
     paddingBottom: 40,
   },

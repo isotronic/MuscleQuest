@@ -16,7 +16,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 export default function HistoryDetailsScreen() {
-  const { workoutId } = useLocalSearchParams();
+  const { id } = useLocalSearchParams();
   const [workout, setWorkout] = useState<CompletedWorkout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,10 +31,7 @@ export default function HistoryDetailsScreen() {
   useEffect(() => {
     const fetchWorkout = async () => {
       try {
-        const data = await fetchCompletedWorkoutById(
-          Number(workoutId),
-          weightUnit,
-        );
+        const data = await fetchCompletedWorkoutById(Number(id), weightUnit);
 
         // Collect unique exercise IDs
         const exerciseIds = data.exercises.map(
@@ -63,7 +60,7 @@ export default function HistoryDetailsScreen() {
     };
 
     fetchWorkout();
-  }, [workoutId, weightUnit]);
+  }, [id, weightUnit]);
 
   // Calculate total volume
   const totalVolume = useMemo(() => {

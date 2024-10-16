@@ -61,7 +61,7 @@ const fetchWorkoutsForPlan = async (
       user_workouts.id,
       user_workouts.plan_id,
       user_workouts.name,
-      user_workout_exercises.id AS exercise_id,
+      user_workout_exercises.exercise_id AS exercise_id,
       user_workout_exercises.name AS exercise_name,
       user_workout_exercises.description,
       user_workout_exercises.image,
