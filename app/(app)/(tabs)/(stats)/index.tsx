@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { ScrollView, StyleSheet, View, FlatList } from "react-native";
 import { ActivityIndicator, Button, Card } from "react-native-paper";
-import { PieChart } from "react-native-gifted-charts";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import {
@@ -17,6 +16,7 @@ import { useTrackedExercisesQuery } from "@/hooks/useTrackedExercisesQuery";
 import { ExerciseProgressionChart } from "@/components/ExerciseProgressionChart";
 import { updateSettings } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
+import BodyPartChart from "@/components/BodyPartChart";
 
 const timeRanges = {
   allTime: "0",
@@ -41,17 +41,6 @@ export default function StatsScreen() {
   const { data: completedWorkouts, isLoading: isLoadingWorkouts } =
     useCompletedWorkoutsQuery(weightUnit, parseInt(selectedTimeRange));
 
-  const chartColors: Record<string, string> = {
-    back: "#FF5722", // Deep Orange
-    chest: "#3F51B5", // Indigo
-    shoulders: "#009688", // Teal
-    neck: "#9E9E9E", // Gray
-    arms: "#43A047", // Green
-    legs: "#5D4037", // Brown
-    waist: "#FDD835", // Yellow
-    cardio: "#8E24AA", // Purple
-  };
-
   // Calculate total workouts
   const totalWorkouts = completedWorkouts ? completedWorkouts.length : 0;
 
@@ -73,70 +62,6 @@ export default function StatsScreen() {
     ? completedWorkouts.reduce((acc, workout) => acc + workout.duration, 0)
     : 0;
   const totalTimeMinutes = Math.round(totalTimeSpent / 60);
-
-  // Map exercise_id to body_part
-  const exerciseIdToBodyPartMap = useMemo(() => {
-    if (!exercises) {
-      return {};
-    }
-    return exercises.reduce(
-      (acc, exercise) => {
-        acc[exercise.exercise_id] = exercise.body_part;
-        return acc;
-      },
-      {} as Record<number, string>,
-    );
-  }, [exercises]);
-
-  // Calculate body part counts
-  const bodyPartCounts = useMemo(() => {
-    if (!completedWorkouts || !exerciseIdToBodyPartMap) {
-      return {};
-    }
-
-    const counts: Record<string, number> = {};
-
-    completedWorkouts.forEach((workout) => {
-      workout.exercises.forEach((exercise) => {
-        let bodyPart = exerciseIdToBodyPartMap[exercise.exercise_id];
-        if (bodyPart) {
-          // Map upper/lower arms and legs to combined categories
-          if (bodyPart === "upper arms" || bodyPart === "lower arms") {
-            bodyPart = "arms";
-          } else if (bodyPart === "upper legs" || bodyPart === "lower legs") {
-            bodyPart = "legs";
-          }
-
-          counts[bodyPart] = (counts[bodyPart] || 0) + 1;
-        }
-      });
-    });
-
-    return counts;
-  }, [completedWorkouts, exerciseIdToBodyPartMap]);
-
-  // Calculate body part percentages
-  const bodyPartPercentages = useMemo(() => {
-    const total = Object.values(bodyPartCounts).reduce(
-      (acc, count) => acc + count,
-      0,
-    );
-    if (total === 0) {
-      return [];
-    }
-
-    return Object.entries(bodyPartCounts).map(([bodyPart, count]) => ({
-      name: bodyPart,
-      count,
-      percentage: ((count / total) * 100).toFixed(2),
-    }));
-  }, [bodyPartCounts]);
-
-  const chartData = bodyPartPercentages.map((item) => ({
-    text: item.name,
-    value: parseFloat(item.percentage),
-    color: chartColors[item.name] || "#c4f",
-  }));
 
   // Function to update the selected time range
   const handleTimeRangeChange = async (range: string) => {
@@ -172,31 +97,6 @@ export default function StatsScreen() {
       </ThemedView>
     );
   }
-
-  // Function to render the colored dot
-  const renderDot = (color: string) => (
-    <View
-      style={{
-        height: 8,
-        width: 8,
-        borderRadius: 5,
-        backgroundColor: color,
-        marginRight: 4,
-      }}
-    />
-  );
-
-  // Function to render the legend component
-  const renderLegendComponent = () => (
-    <View style={styles.legendContainer}>
-      {chartData.map((item) => (
-        <View key={item.text} style={styles.legendItem}>
-          {renderDot(item.color)}
-          <ThemedText style={styles.legendText}>{`${item.text}`}</ThemedText>
-        </View>
-      ))}
-    </View>
-  );
 
   return (
     <ThemedView>
@@ -284,29 +184,10 @@ export default function StatsScreen() {
         {/* Body Parts Trained */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Training Split</ThemedText>
-          {chartData.length > 0 ? (
-            <>
-              <PieChart
-                donut
-                data={chartData}
-                innerRadius={110}
-                radius={150}
-                innerCircleColor={Colors.dark.background}
-                centerLabelComponent={() => (
-                  <View
-                    style={{ justifyContent: "center", alignItems: "center" }}
-                  >
-                    <ThemedText style={{ fontSize: 18, fontWeight: "bold" }}>
-                      Body Parts
-                    </ThemedText>
-                  </View>
-                )}
-              />
-              {renderLegendComponent()}
-            </>
-          ) : (
-            <ThemedText>No data available.</ThemedText>
-          )}
+          <BodyPartChart
+            completedWorkouts={completedWorkouts}
+            exercises={exercises}
+          />
         </View>
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Exercises Tracked</ThemedText>
