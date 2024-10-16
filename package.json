@@ -1,7 +1,7 @@
 {
   "name": "musclequest",
   "main": "expo-router/entry",
-  "version": "0.1.5",
+  "version": "0.2.1",
   "scripts": {
     "start": "expo start",
     "dev": "APP_VARIANT=development npx expo start",
