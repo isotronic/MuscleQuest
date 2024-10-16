@@ -32,12 +32,12 @@ export default function StatsScreen() {
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit || "kg";
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>(
-    settings?.timeRange || timeRanges.allTime,
+    settings?.timeRange || timeRanges.thirtyDays,
   );
   const { data: exercises, isLoading: isLoadingExercises } =
     useExercisesQuery();
   const { data: trackedExercises, isLoading: isLoadingTrackedExercises } =
-    useTrackedExercisesQuery();
+    useTrackedExercisesQuery(selectedTimeRange);
 
   const { data: completedWorkouts, isLoading: isLoadingWorkouts } =
     useCompletedWorkoutsQuery(weightUnit, parseInt(selectedTimeRange));
@@ -75,6 +75,7 @@ export default function StatsScreen() {
       // TODO: Implement user-facing error message
     } finally {
       queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+      queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
     }
   };
 
@@ -217,6 +218,7 @@ export default function StatsScreen() {
               <ExerciseProgressionChart
                 key={exercise.exercise_id}
                 exercise={exercise}
+                timeRange={selectedTimeRange}
               />
             ))
           ) : (
