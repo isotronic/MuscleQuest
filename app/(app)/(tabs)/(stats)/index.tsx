@@ -13,10 +13,10 @@ import WorkoutHistoryCard from "@/components/WorkoutHistoryCard";
 import { useRouter } from "expo-router";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useTrackedExercisesQuery } from "@/hooks/useTrackedExercisesQuery";
-import { ExerciseProgressionChart } from "@/components/ExerciseProgressionChart";
+import { ExerciseProgressionChart } from "@/components/charts/ExerciseProgressionChart";
 import { updateSettings } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
-import BodyPartChart from "@/components/BodyPartChart";
+import BodyPartChart from "@/components/charts/BodyPartChart";
 
 const timeRanges = {
   allTime: "0",
