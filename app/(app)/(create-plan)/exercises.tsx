@@ -42,19 +42,17 @@ export default function ExercisesScreen() {
   const defaultSetNumber = settings ? parseInt(settings?.defaultSets) : 3;
   const totalSeconds = settings ? parseInt(settings?.defaultRestTime) : 0;
 
-  const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+  const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
 
   useEffect(() => {
     if (currentWorkout?.exercises) {
       setSelectedExercises(
-        currentWorkout.exercises.map((exercise) =>
-          exercise.exercise_id.toString(),
-        ),
+        currentWorkout.exercises.map((exercise) => exercise.exercise_id),
       );
     }
   }, [currentWorkout]);
 
-  const handleSelectExercise = useCallback((exerciseId: string) => {
+  const handleSelectExercise = useCallback((exerciseId: number) => {
     setSelectedExercises((prev) =>
       prev.includes(exerciseId)
         ? prev.filter((id) => id !== exerciseId)
@@ -72,9 +70,7 @@ export default function ExercisesScreen() {
       restSeconds: seconds,
     });
     selectedExercises.forEach((exerciseId) => {
-      const exercise = exercises?.find(
-        (ex) => ex.exercise_id.toString() === exerciseId,
-      );
+      const exercise = exercises?.find((ex) => ex.exercise_id === exerciseId);
       if (
         exercise &&
         !currentWorkout?.exercises.some(
