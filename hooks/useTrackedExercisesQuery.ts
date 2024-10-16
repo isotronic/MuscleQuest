@@ -7,7 +7,7 @@ interface TrackedExercise {
   date_added: string;
 }
 
-interface CompletedSet {
+export interface CompletedSet {
   set_number: number;
   weight: number;
   reps: number;
@@ -20,11 +20,13 @@ export interface TrackedExerciseWithSets extends TrackedExercise {
   completed_sets: CompletedSet[];
 }
 
-const fetchTrackedExercises = async (): Promise<TrackedExerciseWithSets[]> => {
+const fetchTrackedExercises = async (
+  timeRange: string,
+): Promise<TrackedExerciseWithSets[]> => {
   try {
     const db = await openDatabase("userData.db");
 
-    const trackedExercises = await db.getAllAsync(`
+    let query = `
       SELECT 
         te.*,
         uwe.name, -- Fetch the name of the exercise
@@ -36,11 +38,15 @@ const fetchTrackedExercises = async (): Promise<TrackedExerciseWithSets[]> => {
       LEFT JOIN user_workout_exercises uwe ON te.exercise_id = uwe.exercise_id -- Join to get exercise name
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
-      LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-      WHERE cw.date_completed > DATETIME('now', '-30 days')
-      GROUP BY cw.id, te.exercise_id -- Group by workout and exercise to get one max set per workout
-      ORDER BY cw.date_completed DESC -- Optional: Order by the workout date if needed
-    `);
+      LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id      
+    `;
+    if (timeRange !== "0") {
+      query += `WHERE cw.date_completed > DATETIME('now', '-${timeRange} days')`;
+    }
+    query += `GROUP BY cw.id, te.exercise_id -- Group by workout and exercise to get one max set per workout
+      ORDER BY cw.date_completed DESC -- Optional: Order by the workout date if needed`;
+
+    const trackedExercises = await db.getAllAsync(query);
 
     // Group the sets by the exercise
     const groupedExercises: Record<number, TrackedExerciseWithSets> = {};
@@ -77,10 +83,10 @@ const fetchTrackedExercises = async (): Promise<TrackedExerciseWithSets[]> => {
   }
 };
 
-export const useTrackedExercisesQuery = () => {
+export const useTrackedExercisesQuery = (timeRange: string) => {
   return useQuery<TrackedExerciseWithSets[], Error>({
     queryKey: ["trackedExercises"],
-    queryFn: fetchTrackedExercises,
+    queryFn: () => fetchTrackedExercises(timeRange),
     staleTime: Infinity,
   });
 };
