@@ -17,6 +17,7 @@ import { ExerciseProgressionChart } from "@/components/charts/ExerciseProgressio
 import { updateSettings } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
 import BodyPartChart from "@/components/charts/BodyPartChart";
+import { WorkoutBarChart } from "@/components/charts/WorkoutBarChart";
 
 const timeRanges = {
   allTime: "0",
@@ -173,6 +174,23 @@ export default function StatsScreen() {
               keyExtractor={(item: CompletedWorkout) => item.id.toString()}
               horizontal
               showsHorizontalScrollIndicator={false}
+            />
+          ) : (
+            <ThemedText>
+              No workouts completed yet. Start your first workout!
+            </ThemedText>
+          )}
+        </View>
+
+        {/* Workout Bar Chart */}
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>
+            Workouts Over Time
+          </ThemedText>
+          {completedWorkouts && completedWorkouts.length > 0 ? (
+            <WorkoutBarChart
+              completedWorkouts={completedWorkouts}
+              timeRange={selectedTimeRange}
             />
           ) : (
             <ThemedText>
