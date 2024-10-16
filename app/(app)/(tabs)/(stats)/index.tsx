@@ -70,7 +70,9 @@ export default function StatsScreen() {
     try {
       await updateSettings("timeRange", range);
     } catch (error) {
-      console.error("Error updating time range:", error);
+      console.error("Failed to update time range:", error);
+      setSelectedTimeRange((prevRange) => prevRange);
+      // TODO: Implement user-facing error message
     } finally {
       queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
     }
