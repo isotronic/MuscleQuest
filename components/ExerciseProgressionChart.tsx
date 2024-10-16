@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
-import { LineChart } from "react-native-gifted-charts"; // Ensure you're using this library
+import { LineChart } from "react-native-gifted-charts";
 import { Colors } from "@/constants/Colors";
 import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
 
@@ -37,7 +37,6 @@ export const ExerciseProgressionChart: React.FC<
               Latest 1RM: {latestSet.oneRepMax} kg
             </ThemedText>
 
-            {/* Additional Info: weight x reps (date completed) */}
             <ThemedText style={styles.additionalInfo}>
               {latestSet.weight}kg x {latestSet.reps} reps (
               {new Date(latestSet.date_completed).toLocaleDateString()})
@@ -53,8 +52,8 @@ export const ExerciseProgressionChart: React.FC<
           areaChart
           rulesType="solid"
           width={250}
-          startFillColor="rgba(235, 170, 57, 0.5)" // Light blue gradient start
-          endFillColor="rgba(235, 170, 57, 0)" // Transparent gradient end
+          startFillColor="rgba(235, 170, 57, 0.5)"
+          endFillColor="rgba(235, 170, 57, 0)"
           yAxisColor={Colors.dark.text}
           yAxisTextStyle={styles.yAxisLabel}
           xAxisLabelTextStyle={styles.xAxisLabel}
