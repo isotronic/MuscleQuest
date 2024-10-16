@@ -15,8 +15,7 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true,
-      "serviceAccountKeyPath": "./serviceAccountKey.json"
+      "autoIncrement": true
     }
   },
   "submit": {
