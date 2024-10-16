@@ -70,7 +70,7 @@ export default function WorkoutOverviewScreen() {
       : undefined;
 
     router.push({
-      pathname: "workout-session",
+      pathname: "/(app)/(workout)/workout-session",
       params: {
         selectedExerciseIndex: index,
         workoutHistory: historyString,
