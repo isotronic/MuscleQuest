@@ -50,9 +50,10 @@ export const ExerciseProgressionChart: React.FC<
           color={Colors.dark.highlight}
           isAnimated
           areaChart
+          hideDataPoints
           width={250}
-          startFillColor="rgba(235, 170, 57, 0.5)"
-          endFillColor="rgba(235, 170, 57, 0)"
+          startFillColor="rgba(231, 64, 67, 0.5)"
+          endFillColor="rgba(231, 64, 67, 0)"
           yAxisColor={Colors.dark.text}
           yAxisTextStyle={styles.yAxisLabel}
           xAxisLabelTextStyle={styles.xAxisLabel}
