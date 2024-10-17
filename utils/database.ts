@@ -168,7 +168,7 @@ export const insertWorkouts = async (planId: number, workouts: Workout[]) => {
       const workoutId = result.lastInsertRowId;
 
       // Insert each exercise related to this workout
-      for (const exercise of exercises) {
+      for (const [exerciseOrder, exercise] of exercises.entries()) {
         const {
           exercise_id,
           name,
@@ -183,13 +183,13 @@ export const insertWorkouts = async (planId: number, workouts: Workout[]) => {
           sets,
         } = exercise;
 
-        const imageBuffer = new Uint8Array(Object.values(image));
+        const imageBuffer = image ? new Uint8Array(Object.values(image)) : null;
 
         await txn.runAsync(
           `INSERT INTO user_workout_exercises (
             workout_id, exercise_id, name, description, image, local_animated_uri, animated_url,
-            equipment, body_part, target_muscle, secondary_muscles, sets
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            equipment, body_part, target_muscle, secondary_muscles, sets, exercise_order
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             workoutId,
             exercise_id,
@@ -203,6 +203,7 @@ export const insertWorkouts = async (planId: number, workouts: Workout[]) => {
             target_muscle,
             JSON.stringify(secondary_muscles),
             JSON.stringify(sets),
+            exerciseOrder, // Include the exercise order here
           ],
         );
       }
@@ -222,11 +223,23 @@ export const updateWorkoutPlan = async (
     [name, image_url, id],
   );
 
-  // Clear existing workouts for the plan
-  await db.runAsync(`DELETE FROM user_workouts WHERE plan_id = ?`, [id]);
+  // Clear existing workouts and exercises for the plan
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    // Delete exercises associated with workouts under the plan
+    await txn.runAsync(
+      `DELETE FROM user_workout_exercises 
+       WHERE workout_id IN (
+         SELECT id FROM user_workouts WHERE plan_id = ?
+       )`,
+      [id],
+    );
 
-  // Insert updated workouts
-  await insertWorkouts(id, workouts);
+    // Delete workouts associated with the plan
+    await txn.runAsync(`DELETE FROM user_workouts WHERE plan_id = ?`, [id]);
+
+    // Insert updated workouts
+    await insertWorkouts(id, workouts);
+  });
 };
 
 export const deleteWorkoutPlan = async (planId: number) => {
