@@ -28,19 +28,25 @@ export interface RawPlan {
   target_muscle: string | null;
   secondary_muscles: string | null;
   sets: string | null;
+  exercise_order: number | null;
 }
 
 const transformRawPlans = (rawPlans: RawPlan[]): Plan[] => {
-  return rawPlans.reduce((plans, rawPlan) => {
-    const plan = plans.find((p) => p.id === rawPlan.id) || {
-      id: rawPlan.id,
-      name: rawPlan.name,
-      image_url: rawPlan.image_url,
-      is_active: rawPlan.is_active,
-      workouts: [],
-    };
+  const plansMap = new Map<number, Plan>();
 
-    // Find or create the workout in the plan
+  for (const rawPlan of rawPlans) {
+    let plan = plansMap.get(rawPlan.id);
+    if (!plan) {
+      plan = {
+        id: rawPlan.id,
+        name: rawPlan.name,
+        image_url: rawPlan.image_url,
+        is_active: rawPlan.is_active,
+        workouts: [],
+      };
+      plansMap.set(rawPlan.id, plan);
+    }
+
     let workout = plan.workouts.find((w) => w.id === rawPlan.workout_id);
     if (!workout && rawPlan.workout_id && rawPlan.workout_name) {
       workout = {
@@ -51,7 +57,6 @@ const transformRawPlans = (rawPlans: RawPlan[]): Plan[] => {
       plan.workouts.push(workout);
     }
 
-    // Add exercise data to the workout
     if (workout && rawPlan.exercise_id && rawPlan.exercise_name) {
       workout.exercises.push({
         exercise_id: rawPlan.exercise_id,
@@ -69,14 +74,10 @@ const transformRawPlans = (rawPlans: RawPlan[]): Plan[] => {
         sets: rawPlan.sets ? JSON.parse(rawPlan.sets) : [],
       });
     }
+  }
 
-    // Ensure the plan is added to the list if not already present
-    if (!plans.find((p) => p.id === rawPlan.id)) {
-      plans.push(plan);
-    }
-
-    return plans;
-  }, [] as Plan[]);
+  // Convert Map to array
+  return Array.from(plansMap.values());
 };
 
 const fetchPlans = async (): Promise<Plan[]> => {
@@ -100,10 +101,12 @@ const fetchPlans = async (): Promise<Plan[]> => {
         user_workout_exercises.body_part,
         user_workout_exercises.target_muscle,
         user_workout_exercises.secondary_muscles,
-        user_workout_exercises.sets
+        user_workout_exercises.sets,
+        user_workout_exercises.exercise_order
       FROM user_plans
       LEFT JOIN user_workouts ON user_workouts.plan_id = user_plans.id
       LEFT JOIN user_workout_exercises ON user_workout_exercises.workout_id = user_workouts.id
+      ORDER BY user_plans.id, user_workouts.id, user_workout_exercises.exercise_order ASC
     `)) as RawPlan[];
     return transformRawPlans(rawPlans);
   } catch (error) {
