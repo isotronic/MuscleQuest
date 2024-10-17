@@ -36,6 +36,7 @@ export async function initUserDataDB() {
       target_muscle TEXT,
       secondary_muscles TEXT, -- JSON array as a string
       sets TEXT, -- JSON array as a string representing the sets
+      exercise_order INTEGER, -- The order of the exercise within the workout
       FOREIGN KEY (workout_id) REFERENCES user_workouts(id)
     );
   `);
