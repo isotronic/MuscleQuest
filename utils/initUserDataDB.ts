@@ -4,6 +4,42 @@ export async function initUserDataDB() {
   const db = await SQLite.openDatabaseAsync("userData.db");
 
   await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS muscles (
+      muscle TEXT PRIMARY KEY
+    );
+  `);
+
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS body_parts (
+      body_part TEXT PRIMARY KEY
+    );
+  `);
+
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS equipment_list (
+      equipment TEXT PRIMARY KEY
+    );
+  `);
+
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS exercises (
+      exercise_id INTEGER PRIMARY KEY AUTOINCREMENT, 
+      name TEXT, 
+      image BLOB,
+      local_animated_uri TEXT, 
+      animated_url TEXT,
+      equipment TEXT, 
+      body_part TEXT, 
+      target_muscle TEXT, 
+      secondary_muscles TEXT, 
+      description TEXT,
+      FOREIGN KEY (target_muscle) REFERENCES muscles(muscle),
+      FOREIGN KEY (body_part) REFERENCES body_parts(body_part),
+      FOREIGN KEY (equipment) REFERENCES equipment_list(equipment)
+    );
+  `);
+
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS user_plans (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -49,7 +85,6 @@ export async function initUserDataDB() {
       date_completed DATETIME NOT NULL, -- When the workout was completed
       duration INTEGER, -- Duration of the workout in seconds
       total_sets_completed INTEGER, -- Total number of sets completed in this workout
-      notes TEXT, -- Any notes specific to the completion of this workout (e.g., adjustments)
       FOREIGN KEY (plan_id) REFERENCES user_plans(id),
       FOREIGN KEY (workout_id) REFERENCES user_workouts(id)
     );
