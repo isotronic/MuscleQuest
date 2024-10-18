@@ -385,22 +385,33 @@ export const updateWorkoutPlan = async (
 export const deleteWorkoutPlan = async (planId: number) => {
   const db = await openDatabase("userData.db");
 
-  // Start an exclusive transaction to ensure that all deletions are executed together
+  // Start an exclusive transaction to ensure that all updates are executed together
   await db.withExclusiveTransactionAsync(async (txn) => {
-    // Delete exercises associated with workouts under the plan
+    // Mark exercises associated with workouts under the plan as deleted
     await txn.runAsync(
-      `DELETE FROM user_workout_exercises 
+      `UPDATE user_workout_exercises 
+       SET is_deleted = TRUE 
        WHERE workout_id IN (
          SELECT id FROM user_workouts WHERE plan_id = ?
        )`,
       [planId],
     );
 
-    // Delete workouts associated with the plan
-    await txn.runAsync(`DELETE FROM user_workouts WHERE plan_id = ?`, [planId]);
+    // Mark workouts associated with the plan as deleted
+    await txn.runAsync(
+      `UPDATE user_workouts 
+       SET is_deleted = TRUE 
+       WHERE plan_id = ?`,
+      [planId],
+    );
 
-    // Finally, delete the plan itself
-    await txn.runAsync(`DELETE FROM user_plans WHERE id = ?`, [planId]);
+    // Finally, mark the plan itself as deleted
+    await txn.runAsync(
+      `UPDATE user_plans 
+       SET is_deleted = TRUE 
+       WHERE id = ?`,
+      [planId],
+    );
   });
 };
 
