@@ -1,6 +1,9 @@
 import { Slot, useNavigationContainerRef } from "expo-router";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
-import { Provider as PaperProvider } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Provider as PaperProvider,
+} from "react-native-paper";
 import { paperTheme } from "@/utils/paperTheme";
 import { useFonts } from "expo-font";
 import { isRunningInExpoGo } from "expo";
@@ -23,37 +26,49 @@ import {
 } from "@expo-google-fonts/inter";
 import { AuthProvider } from "@/context/AuthProvider";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { openDatabase } from "@/utils/initAppDataDB";
+import { initializeAppData } from "@/utils/initAppDataDB";
 import { initUserDataDB } from "@/utils/initUserDataDB";
-import { insertDefaultSettings } from "@/utils/database";
+import {
+  copyDataFromAppDataToUserData,
+  insertDefaultSettings,
+} from "@/utils/database";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
+import Constants from "expo-constants";
 
-// Construct a new instrumentation instance. This is needed to communicate between the integration and React
-const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
+const IS_DEV = Constants.expoConfig?.extra?.appVariant === "development";
 
-Sentry.init({
-  dsn: "https://106113c86913cb234e3edd6e12387955@o4507527980974080.ingest.de.sentry.io/4507527986151504",
-  debug: false, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
-  integrations: [
-    captureConsoleIntegration({ levels: ["log", "info", "warn", "error"] }),
-    new Sentry.ReactNativeTracing({
-      // Pass instrumentation to be used as `routingInstrumentation`
-      routingInstrumentation,
-      enableNativeFramesTracking: !isRunningInExpoGo(),
-      // ...
-    }),
-  ],
-  // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-  // We recommend adjusting this value in production.
-  tracesSampleRate: 1.0,
-  _experiments: {
-    // profilesSampleRate is relative to tracesSampleRate.
-    // Here, we'll capture profiles for 100% of transactions.
-    profilesSampleRate: 1.0,
-  },
-  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-  // enableSpotlight: __DEV__,
-});
+let routingInstrumentation: Sentry.ReactNavigationInstrumentation;
+
+if (!IS_DEV) {
+  // Construct a new instrumentation instance. This is needed to communicate between the integration and React
+  routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
+
+  Sentry.init({
+    dsn: "https://106113c86913cb234e3edd6e12387955@o4507527980974080.ingest.de.sentry.io/4507527986151504",
+    debug: false, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
+    integrations: [
+      captureConsoleIntegration({ levels: ["log", "info", "warn", "error"] }),
+      new Sentry.ReactNativeTracing({
+        // Pass instrumentation to be used as `routingInstrumentation`
+        routingInstrumentation,
+        enableNativeFramesTracking: !isRunningInExpoGo(),
+        // ...
+      }),
+    ],
+    // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
+    // We recommend adjusting this value in production.
+    tracesSampleRate: 1.0,
+    _experiments: {
+      // profilesSampleRate is relative to tracesSampleRate.
+      // Here, we'll capture profiles for 100% of transactions.
+      profilesSampleRate: 1.0,
+    },
+    // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+    // enableSpotlight: __DEV__,
+  });
+}
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -79,7 +94,7 @@ function RootLayout() {
   const ref = useNavigationContainerRef();
 
   useEffect(() => {
-    if (ref) {
+    if (ref && routingInstrumentation.registerNavigationContainer) {
       routingInstrumentation.registerNavigationContainer(ref);
     }
   }, [ref]);
@@ -87,8 +102,9 @@ function RootLayout() {
   useEffect(() => {
     async function initializeDatabase() {
       try {
-        await openDatabase();
+        await initializeAppData();
         await initUserDataDB();
+        await copyDataFromAppDataToUserData();
         await insertDefaultSettings();
         // Set the database initialization state to true after setup is complete
         setIsDatabaseInitialized(true);
@@ -109,7 +125,14 @@ function RootLayout() {
   }, [loaded, error, isDatabaseInitialized, isInitializing]);
 
   if (isInitializing) {
-    return null;
+    return (
+      <ThemedView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <ActivityIndicator size="large" />
+        <ThemedText>Loading data, please wait...</ThemedText>
+      </ThemedView>
+    );
   }
 
   return (
@@ -129,5 +152,4 @@ function RootLayout() {
   );
 }
 
-export default RootLayout;
-//export default Sentry.wrap(RootLayout);
+export default IS_DEV ? RootLayout : Sentry.wrap(RootLayout);

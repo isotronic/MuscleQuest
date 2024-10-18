@@ -76,6 +76,7 @@ export default {
       router: {
         origin: false,
       },
+      appVariant: process.env.APP_VARIANT || "production",
       eas: {
         projectId: "4f7b2a94-f0e0-44df-a5e5-1b7dc95a019a",
       },
