@@ -39,36 +39,32 @@ import Constants from "expo-constants";
 
 const IS_DEV = Constants.expoConfig?.extra?.appVariant === "development";
 
-let routingInstrumentation: Sentry.ReactNavigationInstrumentation;
+// Construct a new instrumentation instance. This is needed to communicate between the integration and React
+const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
 
-if (!IS_DEV) {
-  // Construct a new instrumentation instance. This is needed to communicate between the integration and React
-  routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
-
-  Sentry.init({
-    dsn: "https://106113c86913cb234e3edd6e12387955@o4507527980974080.ingest.de.sentry.io/4507527986151504",
-    debug: false, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
-    integrations: [
-      captureConsoleIntegration({ levels: ["log", "info", "warn", "error"] }),
-      new Sentry.ReactNativeTracing({
-        // Pass instrumentation to be used as `routingInstrumentation`
-        routingInstrumentation,
-        enableNativeFramesTracking: !isRunningInExpoGo(),
-        // ...
-      }),
-    ],
-    // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-    // We recommend adjusting this value in production.
-    tracesSampleRate: 1.0,
-    _experiments: {
-      // profilesSampleRate is relative to tracesSampleRate.
-      // Here, we'll capture profiles for 100% of transactions.
-      profilesSampleRate: 1.0,
-    },
-    // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-    // enableSpotlight: __DEV__,
-  });
-}
+Sentry.init({
+  dsn: "https://106113c86913cb234e3edd6e12387955@o4507527980974080.ingest.de.sentry.io/4507527986151504",
+  debug: false, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
+  integrations: [
+    captureConsoleIntegration({ levels: ["log", "info", "warn", "error"] }),
+    new Sentry.ReactNativeTracing({
+      // Pass instrumentation to be used as `routingInstrumentation`
+      routingInstrumentation,
+      enableNativeFramesTracking: !isRunningInExpoGo(),
+      // ...
+    }),
+  ],
+  // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
+  // We recommend adjusting this value in production.
+  tracesSampleRate: 1.0,
+  _experiments: {
+    // profilesSampleRate is relative to tracesSampleRate.
+    // Here, we'll capture profiles for 100% of transactions.
+    profilesSampleRate: 1.0,
+  },
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // enableSpotlight: __DEV__,
+});
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -94,7 +90,7 @@ function RootLayout() {
   const ref = useNavigationContainerRef();
 
   useEffect(() => {
-    if (ref && routingInstrumentation.registerNavigationContainer) {
+    if (ref) {
       routingInstrumentation.registerNavigationContainer(ref);
     }
   }, [ref]);
