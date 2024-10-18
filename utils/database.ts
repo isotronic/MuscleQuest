@@ -272,58 +272,46 @@ export const insertWorkouts = async (planId: number, workouts: Workout[]) => {
   const db = await openDatabase("userData.db");
 
   await db.withExclusiveTransactionAsync(async (txn) => {
-    for (const workout of workouts) {
-      const { exercises, name } = workout;
-      const workoutName = name || `Workout ${workouts.indexOf(workout) + 1}`;
+    try {
+      for (const workout of workouts) {
+        const { exercises, name } = workout;
+        const workoutName = name || `Workout ${workouts.indexOf(workout) + 1}`;
 
-      // Insert the workout and get the inserted workout ID
-      const result = await txn.runAsync(
-        `INSERT INTO user_workouts (plan_id, name) VALUES (?, ?)`,
-        [planId, workoutName],
-      );
-
-      const workoutId = result.lastInsertRowId;
-
-      // Insert each exercise related to this workout
-      for (const [exerciseOrder, exercise] of exercises.entries()) {
-        const {
-          exercise_id,
-          name,
-          description,
-          image,
-          local_animated_uri,
-          animated_url,
-          equipment,
-          body_part,
-          target_muscle,
-          secondary_muscles,
-          sets,
-        } = exercise;
-
-        const imageBuffer = image ? new Uint8Array(Object.values(image)) : null;
-
-        await txn.runAsync(
-          `INSERT INTO user_workout_exercises (
-            workout_id, exercise_id, name, description, image, local_animated_uri, animated_url,
-            equipment, body_part, target_muscle, secondary_muscles, sets, exercise_order
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            workoutId,
-            exercise_id,
-            name,
-            description,
-            imageBuffer,
-            local_animated_uri,
-            animated_url,
-            equipment,
-            body_part,
-            target_muscle,
-            JSON.stringify(secondary_muscles),
-            JSON.stringify(sets),
-            exerciseOrder, // Include the exercise order here
-          ],
+        // Insert the workout and get the inserted workout ID
+        const result = await txn.runAsync(
+          `INSERT INTO user_workouts (plan_id, name) VALUES (?, ?)`,
+          [planId, workoutName],
         );
+
+        const workoutId = result.lastInsertRowId;
+
+        // Insert each exercise related to this workout
+        for (const [exerciseOrder, exercise] of exercises.entries()) {
+          const { exercise_id, sets } = exercise;
+
+          if (!exercise_id) {
+            throw new Error(
+              `Exercise ID is missing for exercise at order ${exerciseOrder + 1}`,
+            );
+          }
+
+          // Insert into user_workout_exercises
+          await txn.runAsync(
+            `INSERT INTO user_workout_exercises (
+              workout_id, exercise_id, sets, exercise_order
+            ) VALUES (?, ?, ?, ?)`,
+            [
+              workoutId,
+              exercise_id,
+              JSON.stringify(sets),
+              exerciseOrder, // Include the exercise order here
+            ],
+          );
+        }
       }
+    } catch (error) {
+      console.error("Error inserting workouts:", error);
+      throw error; // Rethrow to rollback the transaction
     }
   });
 };
