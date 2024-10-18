@@ -39,6 +39,123 @@ export const openDatabase = async (
   });
 };
 
+interface SQLiteRow {
+  [key: string]: any; // This allows dynamic keys, where each key is a column name
+}
+interface SettingsEntry {
+  value: string;
+}
+
+export const copyDataFromAppDataToUserData = async (): Promise<void> => {
+  const appDataDB = await openDatabase("appData.db");
+  const userDataDB = await openDatabase("userData.db");
+
+  // Check if data has already been copied or if there’s an update
+  const dataVersionEntry: SettingsEntry | null =
+    await userDataDB.getFirstAsync<SettingsEntry>(
+      "SELECT value FROM settings WHERE key = 'dataVersion'",
+    );
+
+  const dataVersion = dataVersionEntry?.value || null;
+
+  if (dataVersion === "1") {
+    console.log("Data has already been copied or this is the first version.");
+    return; // Data is already copied for version 1, nothing to do.
+  }
+
+  // Helper function to copy a table using transactions
+  const copyTableData = async (
+    tableName: string,
+    columns: string[],
+    checkColumn: string,
+    checkExisting: boolean = false,
+    excludeId: boolean = false,
+  ): Promise<void> => {
+    try {
+      // Get all data from the appData table
+      const result: SQLiteRow[] = await appDataDB.getAllAsync(
+        `SELECT ${columns.join(", ")} FROM ${tableName}`,
+      );
+
+      console.log(`Copying ${result.length} rows into ${tableName}`);
+
+      if (result.length > 0) {
+        // Begin transaction
+        await userDataDB.execAsync("BEGIN TRANSACTION");
+
+        // Prepare insert statement
+        const insertColumns = excludeId
+          ? columns.filter((col) => col !== "exercise_id")
+          : columns;
+        const placeholders = insertColumns.map(() => "?").join(", ");
+        const insertStatement = `INSERT INTO ${tableName} (${insertColumns.join(", ")}) VALUES (${placeholders})`;
+
+        for (const row of result) {
+          let shouldInsert = true;
+
+          // If we need to check if the data already exists (for updates)
+          if (checkExisting) {
+            const existingEntry = await userDataDB.getFirstAsync(
+              `SELECT 1 FROM ${tableName} WHERE ${checkColumn} = ? LIMIT 1`,
+              [row[checkColumn]],
+            );
+            if (existingEntry) {
+              shouldInsert = false; // Skip if it already exists
+              continue; // Skip to next iteration
+            }
+          }
+
+          if (shouldInsert) {
+            const values = insertColumns.map((col) => row[col]);
+            await userDataDB.runAsync(insertStatement, values);
+          }
+        }
+
+        // Commit transaction
+        await userDataDB.execAsync("COMMIT");
+      }
+    } catch (error) {
+      console.error(`Error copying table ${tableName}:`, error);
+      // Rollback transaction in case of error
+      await userDataDB.execAsync("ROLLBACK");
+    }
+  };
+
+  // Copy muscles, equipment_list, body_parts (check uniqueness by primary key)
+  await copyTableData("muscles", ["muscle"], "muscle", true); // Check if muscles exist
+  await copyTableData("equipment_list", ["equipment"], "equipment", true); // Check if equipment exists
+  await copyTableData("body_parts", ["body_part"], "body_part", true); // Check if body parts exist
+
+  // Copy exercises but exclude exercise_id
+  await copyTableData(
+    "exercises",
+    [
+      "exercise_id",
+      "name",
+      "image",
+      "local_animated_uri",
+      "animated_url",
+      "equipment",
+      "body_part",
+      "target_muscle",
+      "secondary_muscles",
+      "description",
+    ],
+    "name",
+    true,
+    true,
+  ); // Check if the exercise exists by name and exclude exercise_id
+
+  // Update the data version to 1 after copying is done
+  console.log("Updating data version to 1...");
+  await userDataDB.runAsync(
+    "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+    ["dataVersion", "1"],
+  );
+
+  console.log("Data copy completed and version updated.");
+};
+
 export const fetchAllRecords = async (
   databaseName: string,
   tableName: string,
@@ -466,43 +583,38 @@ export const fetchExerciseImagesByIds = async (
   }
 };
 
-interface SQLCountResult {
-  count: number;
-}
-
 export const insertDefaultSettings = async () => {
   const db = await openDatabase("userData.db");
 
-  // Check if settings already exist
-  const result = (await db.getAllAsync(
-    "SELECT COUNT(*) as count FROM settings",
-  )) as SQLCountResult[];
+  const defaultSettings = [
+    { key: "weeklyGoal", value: "3" },
+    { key: "keepScreenOn", value: "false" },
+    { key: "downloadImages", value: "false" },
+    { key: "weightUnit", value: "kg" },
+    { key: "distanceUnit", value: "km" },
+    { key: "sizeUnit", value: "cm" },
+    { key: "weightIncrement", value: "1" },
+    { key: "defaultSets", value: "3" },
+    { key: "defaultRestTime", value: "60" },
+    { key: "buttonSize", value: "Standard" },
+    { key: "timeRange", value: "30" },
+  ];
 
-  const { count } = result[0];
+  // Loop through each default setting
+  for (const setting of defaultSettings) {
+    // Check if the setting already exists in the database
+    const existingSetting = await db.getFirstAsync(
+      "SELECT value FROM settings WHERE key = ?",
+      [setting.key],
+    );
 
-  // If no settings exist, insert default values
-  if (count === 0) {
-    const defaultSettings = [
-      { key: "weeklyGoal", value: "3" },
-      { key: "keepScreenOn", value: "false" },
-      { key: "downloadImages", value: "false" },
-      { key: "weightUnit", value: "kg" },
-      { key: "distanceUnit", value: "km" },
-      { key: "sizeUnit", value: "cm" },
-      { key: "weightIncrement", value: "1" },
-      { key: "defaultSets", value: "3" },
-      { key: "defaultRestTime", value: "60" },
-      { key: "buttonSize", value: "Standard" },
-      { key: "timeRange", value: "30" },
-    ];
-
-    // Insert default settings into the table
-    defaultSettings.forEach(async (setting) => {
+    // If the setting doesn't exist, insert it
+    if (!existingSetting) {
       await db.runAsync("INSERT INTO settings (key, value) VALUES (?, ?)", [
         setting.key,
         setting.value,
       ]);
-    });
+    }
   }
 };
 
@@ -522,6 +634,7 @@ export interface Settings {
   defaultRestTime: string;
   buttonSize: string;
   timeRange: string;
+  dataVersion: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
