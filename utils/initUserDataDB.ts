@@ -34,6 +34,7 @@ export async function initUserDataDB() {
       target_muscle TEXT, 
       secondary_muscles TEXT, 
       description TEXT,
+      is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (target_muscle) REFERENCES muscles(muscle),
       FOREIGN KEY (body_part) REFERENCES body_parts(body_part),
       FOREIGN KEY (equipment) REFERENCES equipment_list(equipment)
@@ -45,7 +46,8 @@ export async function initUserDataDB() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       image_url TEXT,
-      is_active BOOLEAN DEFAULT FALSE
+      is_active BOOLEAN DEFAULT FALSE,
+      is_deleted BOOLEAN DEFAULT FALSE
     );
   `);
 
@@ -54,6 +56,7 @@ export async function initUserDataDB() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       plan_id INTEGER,
       name TEXT NOT NULL,
+      is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (plan_id) REFERENCES user_plans(id)
     );
   `);
@@ -65,6 +68,7 @@ export async function initUserDataDB() {
       exercise_id INTEGER NOT NULL, -- Foreign key to exercises table
       sets TEXT,                    -- JSON array as a string representing the sets
       exercise_order INTEGER,       -- The order of the exercise within the workout
+      is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (workout_id) REFERENCES user_workouts(id),
       FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id)
     );
@@ -78,6 +82,7 @@ export async function initUserDataDB() {
       date_completed DATETIME NOT NULL, -- When the workout was completed
       duration INTEGER, -- Duration of the workout in seconds
       total_sets_completed INTEGER, -- Total number of sets completed in this workout
+      is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (plan_id) REFERENCES user_plans(id),
       FOREIGN KEY (workout_id) REFERENCES user_workouts(id)
     );
@@ -88,6 +93,7 @@ export async function initUserDataDB() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       completed_workout_id INTEGER, -- Reference to the completed_workouts table
       exercise_id INTEGER, -- Reference to the original exercise from user_workout_exercises
+      is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (completed_workout_id) REFERENCES completed_workouts(id),
       FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id)
     );
@@ -100,6 +106,7 @@ export async function initUserDataDB() {
       set_number INTEGER, -- Set number (1, 2, 3, etc.)
       weight REAL, -- Weight used in this set
       reps INTEGER, -- Number of reps in this set
+      is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (completed_exercise_id) REFERENCES completed_exercises(id)
     );
   `);
