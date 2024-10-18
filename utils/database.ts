@@ -54,7 +54,13 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
   const appDataDB = await openDatabase("appData.db");
   const userDataDB = await openDatabase("userData.db");
 
-  // Check if data has already been copied or if there’s an update
+  interface ExerciseCheckResult {
+    app_exercise_id: number | null;
+    name: string;
+    image: Uint8Array | null;
+    description: string | null;
+  }
+
   const dataVersionEntry: SettingsEntry | null =
     await userDataDB.getFirstAsync<SettingsEntry>(
       "SELECT value FROM settings WHERE key = 'dataVersion'",
@@ -64,19 +70,15 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
   if (dataVersion === "1") {
     console.log("Data has already been copied or this is the first version.");
-    return; // Data is already copied for version 1, nothing to do.
+    return;
   }
 
-  // Helper function to copy a table using transactions
   const copyTableData = async (
     tableName: string,
     columns: string[],
-    checkColumn: string,
-    checkExisting: boolean = false,
     excludeId: boolean = false,
   ): Promise<void> => {
     try {
-      // Get all data from the appData table
       const result: SQLiteRow[] = await appDataDB.getAllAsync(
         `SELECT ${columns.join(", ")} FROM ${tableName}`,
       );
@@ -84,57 +86,84 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
       console.log(`Copying ${result.length} rows into ${tableName}`);
 
       if (result.length > 0) {
-        // Begin transaction
         await userDataDB.execAsync("BEGIN TRANSACTION");
 
-        // Prepare insert statement
         const insertColumns = excludeId
           ? columns.filter((col) => col !== "exercise_id")
           : columns;
         const placeholders = insertColumns.map(() => "?").join(", ");
         const insertStatement = `INSERT INTO ${tableName} (${insertColumns.join(", ")}) VALUES (${placeholders})`;
 
-        for (const row of result) {
-          let shouldInsert = true;
+        const updateColumns = insertColumns.filter(
+          (col) => col !== "exercise_id",
+        );
+        const updatePlaceholders = updateColumns
+          .map((col) => `${col} = ?`)
+          .join(", ");
+        const updateStatement = `UPDATE ${tableName} SET ${updatePlaceholders} WHERE app_exercise_id = ?`;
 
-          // If we need to check if the data already exists (for updates)
-          if (checkExisting) {
-            const existingEntry = await userDataDB.getFirstAsync(
-              `SELECT 1 FROM ${tableName} WHERE ${checkColumn} = ? LIMIT 1`,
-              [row[checkColumn]],
-            );
+        for (const row of result) {
+          let shouldInsertOrUpdate = true;
+
+          if (tableName === "exercises") {
+            const existingEntry =
+              await userDataDB.getFirstAsync<ExerciseCheckResult>(
+                `SELECT * FROM ${tableName} WHERE app_exercise_id = ? LIMIT 1`,
+                [row["exercise_id"]],
+              );
+
             if (existingEntry) {
-              shouldInsert = false; // Skip if it already exists
-              continue; // Skip to next iteration
+              const fieldsToUpdate = insertColumns.filter((col) => {
+                switch (col) {
+                  case "app_exercise_id":
+                    return row[col] !== existingEntry.app_exercise_id;
+                  case "name":
+                    return row[col] !== existingEntry.name;
+                  case "image":
+                    return row[col] !== existingEntry.image;
+                  case "description":
+                    return row[col] !== existingEntry.description;
+                  // Add other fields as needed
+                  default:
+                    return false;
+                }
+              });
+
+              if (fieldsToUpdate.length > 0) {
+                console.log(
+                  `Updating exercise: ${row["name"]} with changed fields: ${fieldsToUpdate.join(", ")}`,
+                );
+                const values = updateColumns.map((col) => row[col]);
+                values.push(row["exercise_id"]);
+                await userDataDB.runAsync(updateStatement, values);
+              }
+
+              shouldInsertOrUpdate = false;
             }
           }
 
-          if (shouldInsert) {
+          if (shouldInsertOrUpdate) {
             const values = insertColumns.map((col) => row[col]);
             await userDataDB.runAsync(insertStatement, values);
           }
         }
 
-        // Commit transaction
         await userDataDB.execAsync("COMMIT");
       }
     } catch (error) {
       console.error(`Error copying table ${tableName}:`, error);
-      // Rollback transaction in case of error
       await userDataDB.execAsync("ROLLBACK");
     }
   };
 
-  // Copy muscles, equipment_list, body_parts (check uniqueness by primary key)
-  await copyTableData("muscles", ["muscle"], "muscle", true); // Check if muscles exist
-  await copyTableData("equipment_list", ["equipment"], "equipment", true); // Check if equipment exists
-  await copyTableData("body_parts", ["body_part"], "body_part", true); // Check if body parts exist
+  await copyTableData("muscles", ["muscle"]);
+  await copyTableData("equipment_list", ["equipment"]);
+  await copyTableData("body_parts", ["body_part"]);
 
-  // Copy exercises but exclude exercise_id
   await copyTableData(
     "exercises",
     [
-      "exercise_id",
+      "exercise_id", // Copy exercise_id to userData's app_exercise_id field later
       "name",
       "image",
       "local_animated_uri",
@@ -145,12 +174,9 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
       "secondary_muscles",
       "description",
     ],
-    "name",
-    true,
-    true,
-  ); // Check if the exercise exists by name and exclude exercise_id
+    true, // Exclude the auto-incremented exercise_id for userData
+  );
 
-  // Update the data version to 1 after copying is done
   console.log("Updating data version to 1...");
   await userDataDB.runAsync(
     "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
