@@ -33,6 +33,9 @@ const fetchActivePlanData = async (): Promise<Plan | null> => {
       LEFT JOIN user_workout_exercises ON user_workout_exercises.workout_id = user_workouts.id
       LEFT JOIN exercises ON exercises.exercise_id = user_workout_exercises.exercise_id
       WHERE user_plans.is_active = 1
+        AND user_plans.is_deleted = FALSE
+        AND (user_workouts.is_deleted = FALSE OR user_workouts.is_deleted IS NULL)
+        AND (user_workout_exercises.is_deleted = FALSE OR user_workout_exercises.is_deleted IS NULL)
       ORDER BY user_workouts.id, user_workout_exercises.exercise_order ASC
       `,
     )) as RawPlan[] | null;

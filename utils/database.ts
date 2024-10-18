@@ -201,7 +201,19 @@ export const fetchAllRecords = async (
   if (!allowedTables.includes(tableName)) {
     throw new Error("Invalid table name");
   }
-  return await db.getAllAsync(`SELECT * FROM ${tableName}`);
+
+  // Check if the table contains an is_deleted field
+  const tableInfo = await db.getAllAsync(`PRAGMA table_info(${tableName});`);
+  const hasIsDeletedField = tableInfo.some(
+    (column: any) => column.name === "is_deleted",
+  );
+
+  // Build the query accordingly
+  const query = hasIsDeletedField
+    ? `SELECT * FROM ${tableName} WHERE is_deleted = FALSE`
+    : `SELECT * FROM ${tableName}`;
+
+  return await db.getAllAsync(query);
 };
 
 export const fetchRecord = async (
