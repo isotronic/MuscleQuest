@@ -10,10 +10,11 @@ interface Set {
 
 export interface UserExercise extends Exercise {
   sets: Set[];
+  exercise_order?: number;
 }
 
 export interface Workout {
-  id: number;
+  id?: number;
   name: string;
   exercises: UserExercise[];
 }

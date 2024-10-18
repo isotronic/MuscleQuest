@@ -369,24 +369,104 @@ export const updateWorkoutPlan = async (
   // Start the transaction for the entire update process
   await db.withExclusiveTransactionAsync(async (txn) => {
     try {
-      // Update the workout plan
+      // Update the workout plan details
       await txn.runAsync(
         `UPDATE user_plans SET name = ?, image_url = ? WHERE id = ?`,
         [name, image_url, id],
       );
 
-      // Clear existing workouts and exercises for the plan
-      await txn.runAsync(
-        `DELETE FROM user_workout_exercises WHERE workout_id IN (
-          SELECT id FROM user_workouts WHERE plan_id = ?
-        )`,
+      // Fetch existing workouts for the plan
+      const existingWorkouts: { id: number }[] = await txn.getAllAsync(
+        `SELECT id FROM user_workouts WHERE plan_id = ? AND is_deleted = FALSE`,
         [id],
       );
 
-      await txn.runAsync(`DELETE FROM user_workouts WHERE plan_id = ?`, [id]);
+      // Find and mark workouts for deletion that are not in the new workout list
+      const workoutIdsToKeep = workouts.map((w) => w.id).filter(Boolean); // Filter out new workouts (no ID)
+      const workoutsToDelete = existingWorkouts.filter(
+        (w) => !workoutIdsToKeep.includes(w.id),
+      );
 
-      // Insert updated workouts using the same transaction
-      await insertWorkouts(txn, id, workouts);
+      for (const workout of workoutsToDelete) {
+        await txn.runAsync(
+          `UPDATE user_workouts SET is_deleted = TRUE WHERE id = ?`,
+          [workout.id],
+        );
+        await txn.runAsync(
+          `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE workout_id = ?`,
+          [workout.id],
+        );
+      }
+
+      // Iterate through new or updated workouts
+      for (const workout of workouts) {
+        let workoutId = workout.id;
+        const workoutName =
+          workout.name || `Workout ${workouts.indexOf(workout) + 1}`;
+
+        if (!workoutId) {
+          // Insert new workout
+          const result = await txn.runAsync(
+            `INSERT INTO user_workouts (plan_id, name) VALUES (?, ?)`,
+            [id, workoutName],
+          );
+          workoutId = result.lastInsertRowId;
+        } else {
+          // Update existing workout
+          await txn.runAsync(`UPDATE user_workouts SET name = ? WHERE id = ?`, [
+            workoutName,
+            workoutId,
+          ]);
+        }
+
+        // Fetch existing exercises for the workout
+        const existingExercises: { id: number; exercise_id: number }[] =
+          await txn.getAllAsync(
+            `SELECT id, exercise_id FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+            [workoutId],
+          );
+        const existingExerciseIds = existingExercises.map((e) => e.exercise_id);
+
+        // Find and mark exercises for deletion that are not in the updated workout
+        const exerciseIdsToKeep = workout.exercises.map((e) => e.exercise_id);
+        const exercisesToDelete = existingExercises.filter(
+          (e) => !exerciseIdsToKeep.includes(e.exercise_id),
+        );
+
+        for (const exercise of exercisesToDelete) {
+          await txn.runAsync(
+            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
+            [exercise.id],
+          );
+        }
+
+        // Insert or update exercises and sets
+        for (const exercise of workout.exercises) {
+          if (!existingExerciseIds.includes(exercise.exercise_id)) {
+            // Insert new exercise
+            await txn.runAsync(
+              `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order) VALUES (?, ?, ?, ?)`,
+              [
+                workoutId,
+                exercise.exercise_id,
+                JSON.stringify(exercise.sets),
+                exercise.exercise_order!,
+              ],
+            );
+          } else {
+            // Update existing exercise
+            await txn.runAsync(
+              `UPDATE user_workout_exercises SET sets = ?, exercise_order = ? WHERE workout_id = ? AND exercise_id = ?`,
+              [
+                JSON.stringify(exercise.sets),
+                exercise.exercise_order!,
+                workoutId,
+                exercise.exercise_id,
+              ],
+            );
+          }
+        }
+      }
     } catch (error) {
       console.error("Error updating workout plan:", error);
       throw error;
