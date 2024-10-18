@@ -20,7 +20,6 @@ export interface SavedWorkout {
   workoutId: number; // Reference to the user_workouts entry
   duration: number;
   totalSetsCompleted: number;
-  notes: string | null; // Optional notes field
   exercises: {
     exercise_id: number;
     sets: {
@@ -34,13 +33,18 @@ export interface SavedWorkout {
 export const openDatabase = async (
   databaseName: string,
 ): Promise<SQLite.SQLiteDatabase> => {
-  return await SQLite.openDatabaseAsync(databaseName, {
+  const db = await SQLite.openDatabaseAsync(databaseName, {
     useNewConnection: true,
   });
+
+  // Set a busy timeout to handle database locking issues globally
+  await db.execAsync("PRAGMA busy_timeout = 3000;");
+
+  return db;
 };
 
 interface SQLiteRow {
-  [key: string]: any; // This allows dynamic keys, where each key is a column name
+  [key: string]: any;
 }
 interface SettingsEntry {
   value: string;
@@ -257,63 +261,63 @@ export const insertWorkoutPlan = async (
   image_url: string,
   workouts: Workout[],
 ) => {
-  const db = await openDatabase("userData.db");
-  const result = await db.runAsync(
-    `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
-    [name, image_url],
-  );
+  const db = await openDatabase("userData.db"); // Open database once
 
-  const planId = result.lastInsertRowId;
-
-  await insertWorkouts(planId, workouts);
-};
-
-export const insertWorkouts = async (planId: number, workouts: Workout[]) => {
-  const db = await openDatabase("userData.db");
-
+  // Start the transaction
   await db.withExclusiveTransactionAsync(async (txn) => {
     try {
-      for (const workout of workouts) {
-        const { exercises, name } = workout;
-        const workoutName = name || `Workout ${workouts.indexOf(workout) + 1}`;
+      // Insert the plan
+      const result = await txn.runAsync(
+        `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
+        [name, image_url],
+      );
 
-        // Insert the workout and get the inserted workout ID
-        const result = await txn.runAsync(
-          `INSERT INTO user_workouts (plan_id, name) VALUES (?, ?)`,
-          [planId, workoutName],
-        );
+      const planId = result.lastInsertRowId;
 
-        const workoutId = result.lastInsertRowId;
-
-        // Insert each exercise related to this workout
-        for (const [exerciseOrder, exercise] of exercises.entries()) {
-          const { exercise_id, sets } = exercise;
-
-          if (!exercise_id) {
-            throw new Error(
-              `Exercise ID is missing for exercise at order ${exerciseOrder + 1}`,
-            );
-          }
-
-          // Insert into user_workout_exercises
-          await txn.runAsync(
-            `INSERT INTO user_workout_exercises (
-              workout_id, exercise_id, sets, exercise_order
-            ) VALUES (?, ?, ?, ?)`,
-            [
-              workoutId,
-              exercise_id,
-              JSON.stringify(sets),
-              exerciseOrder, // Include the exercise order here
-            ],
-          );
-        }
-      }
+      // Insert the workouts associated with this plan
+      await insertWorkouts(txn, planId, workouts);
     } catch (error) {
-      console.error("Error inserting workouts:", error);
-      throw error; // Rethrow to rollback the transaction
+      console.error("Error inserting workout plan:", error);
+      throw error;
     }
   });
+};
+
+export const insertWorkouts = async (
+  txn: SQLite.SQLiteDatabase, // Pass transaction to avoid nested transactions
+  planId: number,
+  workouts: Workout[],
+) => {
+  try {
+    for (const workout of workouts) {
+      const { exercises, name } = workout;
+      const workoutName = name || `Workout ${workouts.indexOf(workout) + 1}`;
+
+      // Insert the workout and get the inserted workout ID
+      const result = await txn.runAsync(
+        `INSERT INTO user_workouts (plan_id, name) VALUES (?, ?)`,
+        [planId, workoutName],
+      );
+
+      const workoutId = result.lastInsertRowId;
+
+      // Insert exercises related to this workout
+      for (const [exerciseOrder, exercise] of exercises.entries()) {
+        const { exercise_id, sets } = exercise;
+
+        // Insert into user_workout_exercises
+        await txn.runAsync(
+          `INSERT INTO user_workout_exercises (
+            workout_id, exercise_id, sets, exercise_order
+          ) VALUES (?, ?, ?, ?)`,
+          [workoutId, exercise_id, JSON.stringify(sets), exerciseOrder],
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Error inserting workouts:", error);
+    throw error; // Re-throw the error to trigger transaction rollback
+  }
 };
 
 export const updateWorkoutPlan = async (
@@ -323,27 +327,32 @@ export const updateWorkoutPlan = async (
   workouts: Workout[],
 ) => {
   const db = await openDatabase("userData.db");
-  await db.runAsync(
-    `UPDATE user_plans SET name = ?, image_url = ? WHERE id = ?`,
-    [name, image_url, id],
-  );
 
-  // Clear existing workouts and exercises for the plan
+  // Start the transaction for the entire update process
   await db.withExclusiveTransactionAsync(async (txn) => {
-    // Delete exercises associated with workouts under the plan
-    await txn.runAsync(
-      `DELETE FROM user_workout_exercises 
-       WHERE workout_id IN (
-         SELECT id FROM user_workouts WHERE plan_id = ?
-       )`,
-      [id],
-    );
+    try {
+      // Update the workout plan
+      await txn.runAsync(
+        `UPDATE user_plans SET name = ?, image_url = ? WHERE id = ?`,
+        [name, image_url, id],
+      );
 
-    // Delete workouts associated with the plan
-    await txn.runAsync(`DELETE FROM user_workouts WHERE plan_id = ?`, [id]);
+      // Clear existing workouts and exercises for the plan
+      await txn.runAsync(
+        `DELETE FROM user_workout_exercises WHERE workout_id IN (
+          SELECT id FROM user_workouts WHERE plan_id = ?
+        )`,
+        [id],
+      );
 
-    // Insert updated workouts
-    await insertWorkouts(id, workouts);
+      await txn.runAsync(`DELETE FROM user_workouts WHERE plan_id = ?`, [id]);
+
+      // Insert updated workouts using the same transaction
+      await insertWorkouts(txn, id, workouts);
+    } catch (error) {
+      console.error("Error updating workout plan:", error);
+      throw error;
+    }
   });
 };
 
@@ -374,7 +383,6 @@ export const saveCompletedWorkout = async (
   workoutId: number,
   duration: number,
   totalSetsCompleted: number,
-  notes: string | null, // Optional field for notes
   exercises: {
     exercise_id: number;
     sets: {
@@ -392,8 +400,8 @@ export const saveCompletedWorkout = async (
 
     // Insert the completed workout
     const completedWorkoutResult = await db.runAsync(
-      `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed, notes) VALUES (?, ?, datetime('now'), ?, ?, ?)`,
-      [planId, workoutId, duration, totalSetsCompleted, notes],
+      `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed) VALUES (?, ?, datetime('now'), ?, ?)`,
+      [planId, workoutId, duration, totalSetsCompleted],
     );
 
     const completedWorkoutId = completedWorkoutResult.lastInsertRowId;
@@ -466,19 +474,19 @@ export const fetchCompletedWorkoutById = async (
         cw.date_completed, 
         cw.duration, 
         cw.total_sets_completed, 
-        uex.id as exercise_id, 
-        uex.name as exercise_name, 
-        uex.image as exercise_image, 
+        e.exercise_id as exercise_id, 
+        e.name as exercise_name, 
+        e.image as exercise_image, 
         cs.set_number, 
         cs.weight, 
         cs.reps
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
-      LEFT JOIN user_workout_exercises uex ON uex.id = ce.exercise_id
+      LEFT JOIN exercises e ON e.exercise_id = ce.exercise_id -- Join exercises table for exercise details
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN user_workouts uw ON uw.id = cw.workout_id
       WHERE cw.id = ?
-      ORDER BY uex.id, cs.set_number;
+      ORDER BY e.exercise_id, cs.set_number;
       `,
       [id],
     )) as CompletedWorkoutRow[];
@@ -489,7 +497,7 @@ export const fetchCompletedWorkoutById = async (
 
     const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
 
-    // Process the result to structure it as needed
+    // Initialize the completed workout object
     const workout: CompletedWorkout = {
       id: result[0].id,
       workout_id: result[0].workout_id,
@@ -517,7 +525,7 @@ export const fetchCompletedWorkoutById = async (
         }
 
         if (row.set_number !== null) {
-          // Convert weight from kg to user's unit
+          // Convert weight from kg to the user's unit
           const weightInKg = parseFloat(row.weight?.toString() || "0");
           const convertedWeight = parseFloat(
             (weightInKg * conversionFactor).toFixed(1),
@@ -532,6 +540,7 @@ export const fetchCompletedWorkoutById = async (
       }
     });
 
+    // Assign the exercises map to the workout's exercises
     workout.exercises = Object.values(exercisesMap);
     return workout;
   } catch (error) {
@@ -547,7 +556,7 @@ export const fetchExerciseImagesByIds = async (
     return {};
   }
 
-  const db = await openDatabase("appData.db");
+  const db = await openDatabase("userData.db");
 
   // Create a comma-separated list of placeholders (?, ?, ...)
   const placeholders = exerciseIds.map(() => "?").join(",");
