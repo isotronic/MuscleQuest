@@ -24,6 +24,7 @@ export async function initUserDataDB() {
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS exercises (
       exercise_id INTEGER PRIMARY KEY AUTOINCREMENT, 
+      app_exercise_id INTEGER NULL, -- NULL for custom exercises, non-NULL for copied exercises
       name TEXT, 
       image BLOB,
       local_animated_uri TEXT, 
