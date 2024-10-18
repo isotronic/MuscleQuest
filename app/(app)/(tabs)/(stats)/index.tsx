@@ -231,7 +231,9 @@ export default function StatsScreen() {
             mode="contained"
             onPress={handleAddExercisesPress}
           >
-            Add Exercises to Track
+            Add{" "}
+            {trackedExercises && trackedExercises.length > 0 ? "/ Remove " : ""}
+            Exercises to Track
           </Button>
         </View>
       </ScrollView>
