@@ -29,22 +29,24 @@ const fetchTrackedExercises = async (
     let query = `
       SELECT 
         te.*,
-        uwe.name, -- Fetch the name of the exercise
+        e.name, -- Fetch the name of the exercise from exercises table
         MAX(cs.weight) AS max_weight, -- Get the max weight for the exercise in each workout
         cs.reps,
         cs.set_number,
         cw.date_completed
       FROM tracked_exercises te
-      LEFT JOIN user_workout_exercises uwe ON te.exercise_id = uwe.exercise_id -- Join to get exercise name
+      LEFT JOIN exercises e ON te.exercise_id = e.exercise_id -- Join to get exercise name
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
-      LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id      
+      LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
     `;
+
     if (timeRange !== "0") {
-      query += `WHERE cw.date_completed > DATETIME('now', '-${timeRange} days')`;
+      query += `WHERE cw.date_completed > DATETIME('now', '-${timeRange} days') `;
     }
+
     query += `GROUP BY cw.id, te.exercise_id -- Group by workout and exercise to get one max set per workout
-      ORDER BY cw.date_completed DESC -- Optional: Order by the workout date if needed`;
+      ORDER BY cw.date_completed DESC`;
 
     const trackedExercises = await db.getAllAsync(query);
 

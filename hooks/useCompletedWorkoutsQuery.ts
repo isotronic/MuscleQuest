@@ -52,14 +52,14 @@ const fetchCompletedWorkouts = async (
         completed_workouts.duration,
         completed_workouts.total_sets_completed,
         completed_exercises.exercise_id,
-        user_workout_exercises.name AS exercise_name,
-        user_workout_exercises.image AS exercise_image,
+        exercises.name AS exercise_name,
+        exercises.image AS exercise_image,
         completed_sets.set_number,
         completed_sets.weight,
         completed_sets.reps
       FROM completed_workouts
       LEFT JOIN completed_exercises ON completed_exercises.completed_workout_id = completed_workouts.id
-      LEFT JOIN user_workout_exercises ON user_workout_exercises.id = completed_exercises.exercise_id
+      LEFT JOIN exercises ON exercises.exercise_id = completed_exercises.exercise_id -- Fetch exercise details from exercises table
       LEFT JOIN completed_sets ON completed_sets.completed_exercise_id = completed_exercises.id
       LEFT JOIN user_workouts ON user_workouts.id = completed_workouts.workout_id
     `;
