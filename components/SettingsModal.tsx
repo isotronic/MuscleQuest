@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, RadioButton, Menu, PaperProvider } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import {
   StyleSheet,
@@ -103,16 +104,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 {settingType === "number" && (
                   <View style={styles.labeledInput}>
-                    <ThemedText style={styles.inputLabel}>
-                      Enter Value
-                    </ThemedText>
-                    <TextInput
-                      value={inputValue.toString()}
-                      onChangeText={(text: string) => onChangeValue(text)}
-                      keyboardType="numeric"
-                      style={styles.input}
-                      selectTextOnFocus={true}
-                    />
+                    <View style={styles.inputRow}>
+                      <MaterialCommunityIcons
+                        name="minus"
+                        size={32}
+                        color={Colors.dark.text}
+                        onPress={() =>
+                          onChangeValue(Math.max(Number(inputValue) - 1, 0))
+                        } // Decrement, ensure no negative values
+                      />
+                      <TextInput
+                        value={inputValue.toString()}
+                        onChangeText={(text: string) => onChangeValue(text)}
+                        keyboardType="numeric"
+                        style={styles.numberInput}
+                        selectTextOnFocus={true}
+                      />
+                      <MaterialCommunityIcons
+                        name="plus"
+                        size={32}
+                        color={Colors.dark.text}
+                        onPress={() => onChangeValue(Number(inputValue) + 1)} // Increment value
+                      />
+                    </View>
                   </View>
                 )}
 
@@ -164,7 +178,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {settingType === "restTime" && (
                   <View style={styles.labeledInput}>
                     <ThemedText style={styles.inputLabel}>
-                      Rest Time (Minutes:Seconds)
+                      Minutes:Seconds
                     </ThemedText>
                     <TextInput
                       value={restTime}
@@ -176,7 +190,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </View>
                 )}
 
-                {/* Save & Cancel Buttons */}
                 <View style={styles.buttonContainer}>
                   <Button
                     mode="outlined"
@@ -234,6 +247,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.dark.text,
     marginBottom: 4,
+    textAlign: "center",
   },
   input: {
     padding: 10,
@@ -242,6 +256,24 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     color: Colors.dark.text,
     textAlign: "center",
+    fontSize: 18,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  numberInput: {
+    flex: 1, // Ensure the input takes up the remaining space between the buttons
+    padding: 10,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
+    textAlign: "center",
+    fontSize: 18,
+    marginHorizontal: 8, // Spacing between input and icons
   },
   buttonContainer: {
     flexDirection: "row",
