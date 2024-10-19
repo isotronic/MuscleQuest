@@ -1,16 +1,21 @@
+import React, { useState, useEffect } from "react";
 import { Button, RadioButton, Menu, PaperProvider } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import {
   StyleSheet,
   View,
-  TouchableOpacity,
   TextInput,
   TouchableWithoutFeedback,
   Modal,
+  TouchableOpacity,
 } from "react-native";
-import { useState } from "react";
 import { paperTheme } from "@/utils/paperTheme";
+import {
+  formatTimeInput,
+  formatFromTotalSeconds,
+  convertToTotalSeconds,
+} from "@/utils/utility";
 
 // Utility function to format setting keys
 const formatSettingKey = (key: string) => {
@@ -26,12 +31,14 @@ interface SettingsModalProps {
   settingKey: string | null;
   inputValue: string | number | { minutes: number; seconds: number };
   onCancel: () => void;
-  onSave: () => void;
+  onSave: (
+    value: string | number | { minutes: number; seconds: number },
+  ) => void;
   onChangeValue: (
     value: string | number | { minutes: number; seconds: number },
   ) => void;
   settingType: "number" | "radio" | "dropdown" | "restTime" | null;
-  options?: string[]; // For radio buttons and dropdowns
+  options?: string[];
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -45,6 +52,43 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   options,
 }) => {
   const [menuVisible, setMenuVisible] = useState(false);
+
+  // State to hold the formatted rest time (minutes:seconds)
+  const [restTime, setRestTime] = useState<string>(
+    formatFromTotalSeconds(
+      (inputValue as { minutes: number; seconds: number }).minutes * 60 +
+        (inputValue as { minutes: number; seconds: number }).seconds,
+    ),
+  );
+
+  // Update the state when inputValue changes (e.g., when the modal is reopened)
+  useEffect(() => {
+    if (settingType === "restTime") {
+      const totalSeconds =
+        (inputValue as { minutes: number; seconds: number }).minutes * 60 +
+        (inputValue as { minutes: number; seconds: number }).seconds;
+      setRestTime(formatFromTotalSeconds(totalSeconds));
+    }
+  }, [inputValue, settingType]);
+
+  // Handle rest time input change and format the time as "minutes:seconds"
+  const handleRestTimeChange = (value: string) => {
+    setRestTime(formatTimeInput(value));
+    const totalSeconds = convertToTotalSeconds(value);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    onChangeValue({ minutes, seconds });
+  };
+
+  // Handle Save button - convert formatted restTime back to minutes and seconds
+  const handleSaveRestTime = () => {
+    const totalSeconds = convertToTotalSeconds(restTime);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    onSave({ minutes, seconds });
+  };
 
   return (
     <Modal visible={visible} transparent={true} animationType="slide">
@@ -118,47 +162,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 )}
 
                 {settingType === "restTime" && (
-                  <View style={styles.timeInputContainer}>
-                    <View style={styles.labeledInput}>
-                      <ThemedText style={styles.inputLabel}>Minutes</ThemedText>
-                      <TextInput
-                        value={(
-                          inputValue as { minutes: number; seconds: number }
-                        ).minutes.toString()}
-                        onChangeText={(text: string) =>
-                          onChangeValue({
-                            ...(inputValue as {
-                              minutes: number;
-                              seconds: number;
-                            }),
-                            minutes: parseInt(text, 10) || 0,
-                          })
-                        }
-                        keyboardType="numeric"
-                        style={styles.input}
-                        selectTextOnFocus={true}
-                      />
-                    </View>
-                    <View style={styles.labeledInput}>
-                      <ThemedText style={styles.inputLabel}>Seconds</ThemedText>
-                      <TextInput
-                        value={(
-                          inputValue as { minutes: number; seconds: number }
-                        ).seconds.toString()}
-                        onChangeText={(text: string) =>
-                          onChangeValue({
-                            ...(inputValue as {
-                              minutes: number;
-                              seconds: number;
-                            }),
-                            seconds: parseInt(text, 10) || 0,
-                          })
-                        }
-                        keyboardType="numeric"
-                        style={styles.input}
-                        selectTextOnFocus={true}
-                      />
-                    </View>
+                  <View style={styles.labeledInput}>
+                    <ThemedText style={styles.inputLabel}>
+                      Rest Time (Minutes:Seconds)
+                    </ThemedText>
+                    <TextInput
+                      value={restTime}
+                      onChangeText={handleRestTimeChange}
+                      keyboardType="numeric"
+                      style={styles.input}
+                      selectTextOnFocus={true}
+                    />
                   </View>
                 )}
 
@@ -174,7 +188,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </Button>
                   <Button
                     mode="contained"
-                    onPress={onSave}
+                    onPress={
+                      settingType === "restTime" ? handleSaveRestTime : onSave
+                    }
                     labelStyle={styles.buttonLabel}
                     style={styles.saveButton}
                   >
@@ -210,19 +226,22 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: Colors.dark.text,
   },
-  timeInputContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  labeledInput: {
     width: "100%",
     marginBottom: 16,
-  },
-  labeledInput: {
-    width: "48%",
   },
   inputLabel: {
     fontSize: 14,
     color: Colors.dark.text,
     marginBottom: 4,
+  },
+  input: {
+    padding: 10,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
+    textAlign: "center",
   },
   buttonContainer: {
     flexDirection: "row",
@@ -237,15 +256,6 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     width: "48%",
-  },
-  input: {
-    padding: 10,
-    borderColor: Colors.dark.text,
-    borderWidth: 1,
-    borderRadius: 8,
-    color: Colors.dark.text,
-    marginBottom: 16,
-    textAlign: "center",
   },
   radioItem: {
     flexDirection: "row",

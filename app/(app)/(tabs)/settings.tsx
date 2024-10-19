@@ -81,25 +81,23 @@ export default function SettingsScreen() {
 
   const saveSetting = () => {
     if (currentSettingKey === "defaultRestTime") {
-      // Convert minutes and seconds back to total seconds
       const { minutes, seconds } = inputValue as {
         minutes: number;
         seconds: number;
       };
       const totalSeconds = minutes * 60 + seconds;
 
-      // Save the total seconds
       updateSetting({
         key: currentSettingKey as string,
         value: totalSeconds.toString(),
       });
     } else {
-      // Save other settings as before
       updateSetting({
         key: currentSettingKey as string,
         value: inputValue.toString(),
       });
     }
+
     setOverlayVisible(false);
   };
 
