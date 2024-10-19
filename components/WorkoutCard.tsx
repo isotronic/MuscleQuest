@@ -1,4 +1,10 @@
-import { StyleSheet, View, TouchableOpacity, TextInput } from "react-native";
+import {
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+} from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
 import { Card, Button } from "react-native-paper";
@@ -38,6 +44,28 @@ export default function WorkoutCard({
     isActive: boolean;
     workoutIndex: number;
   }) => {
+    const removeExercise = (exerciseId: number) => {
+      Alert.alert(
+        "Remove Exercise",
+        `Are you sure you want to remove ${item.name}?`,
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Remove",
+            style: "destructive",
+            onPress: () => {
+              useWorkoutStore
+                .getState()
+                .removeExercise(workoutIndex, exerciseId);
+            },
+          },
+        ],
+      );
+    };
+
     return (
       <ShadowDecorator>
         <TouchableOpacity
@@ -61,6 +89,13 @@ export default function WorkoutCard({
             style={{ marginRight: 10 }}
           />
           <ThemedText>{item.name}</ThemedText>
+          <MaterialCommunityIcons
+            name="close"
+            onPress={() => removeExercise(item.exercise_id)}
+            size={24}
+            color={Colors.dark.text}
+            style={{ marginLeft: "auto" }}
+          />
         </TouchableOpacity>
       </ShadowDecorator>
     );
@@ -79,12 +114,13 @@ export default function WorkoutCard({
     <Card style={styles.workoutCard}>
       <View style={styles.workoutHeader}>
         <ThemedText style={styles.workoutDay}>Day {index + 1}</ThemedText>
-        <TouchableOpacity
-          style={styles.removeWorkoutButton}
+        <MaterialCommunityIcons
+          name="close"
           onPress={() => onRemove(index)}
-        >
-          <ThemedText style={styles.removeWorkoutButtonText}>x</ThemedText>
-        </TouchableOpacity>
+          size={24}
+          color={Colors.dark.text}
+          style={styles.removeWorkoutButton}
+        />
       </View>
       <TextInput
         placeholder="Workout name"

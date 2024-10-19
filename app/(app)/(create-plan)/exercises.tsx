@@ -151,6 +151,7 @@ export default function ExercisesScreen() {
           placeholder="Search"
           value={searchQuery}
           onChangeText={setSearchQuery}
+          selectTextOnFocus={true}
         />
         <IconButton
           icon="filter-variant"

@@ -94,8 +94,8 @@ export default function HistoryDetailsScreen() {
   const formattedDate = format(parsedDate, "dd/MM/yyyy 'at' HH:mm");
 
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView>
+    <ThemedView>
+      <ScrollView style={styles.container}>
         {/* Top Section */}
         <View style={styles.topSection}>
           <ThemedText style={styles.workoutName}>

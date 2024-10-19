@@ -1,16 +1,22 @@
+import React, { useState, useEffect } from "react";
 import { Button, RadioButton, Menu, PaperProvider } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import {
   StyleSheet,
   View,
-  TouchableOpacity,
   TextInput,
   TouchableWithoutFeedback,
   Modal,
+  TouchableOpacity,
 } from "react-native";
-import { useState } from "react";
 import { paperTheme } from "@/utils/paperTheme";
+import {
+  formatTimeInput,
+  formatFromTotalSeconds,
+  convertToTotalSeconds,
+} from "@/utils/utility";
 
 // Utility function to format setting keys
 const formatSettingKey = (key: string) => {
@@ -26,12 +32,14 @@ interface SettingsModalProps {
   settingKey: string | null;
   inputValue: string | number | { minutes: number; seconds: number };
   onCancel: () => void;
-  onSave: () => void;
+  onSave: (
+    value: string | number | { minutes: number; seconds: number },
+  ) => void;
   onChangeValue: (
     value: string | number | { minutes: number; seconds: number },
   ) => void;
   settingType: "number" | "radio" | "dropdown" | "restTime" | null;
-  options?: string[]; // For radio buttons and dropdowns
+  options?: string[];
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -46,6 +54,45 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const [menuVisible, setMenuVisible] = useState(false);
 
+  // State to hold the formatted rest time (minutes:seconds)
+  const [restTime, setRestTime] = useState<string>(
+    formatFromTotalSeconds(
+      (inputValue as { minutes: number; seconds: number }).minutes * 60 +
+        (inputValue as { minutes: number; seconds: number }).seconds,
+    ),
+  );
+
+  // Update the state when inputValue changes (e.g., when the modal is reopened)
+  useEffect(() => {
+    if (settingType === "restTime") {
+      const totalSeconds =
+        (inputValue as { minutes: number; seconds: number }).minutes * 60 +
+        (inputValue as { minutes: number; seconds: number }).seconds;
+
+      setRestTime(formatFromTotalSeconds(totalSeconds));
+    }
+  }, [inputValue, settingType]);
+
+  // Handle rest time input change and format the time as "minutes:seconds"
+  const handleRestTimeChange = (value: string) => {
+    setRestTime(formatTimeInput(value));
+
+    const totalSeconds = convertToTotalSeconds(formatTimeInput(value));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    onChangeValue({ minutes, seconds });
+  };
+
+  // Handle Save button - convert formatted restTime back to minutes and seconds
+  const handleSaveRestTime = () => {
+    const totalSeconds = convertToTotalSeconds(restTime);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    onSave({ minutes, seconds });
+  };
+
   return (
     <Modal visible={visible} transparent={true} animationType="slide">
       <PaperProvider theme={paperTheme}>
@@ -59,15 +106,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 {settingType === "number" && (
                   <View style={styles.labeledInput}>
-                    <ThemedText style={styles.inputLabel}>
-                      Enter Value
-                    </ThemedText>
-                    <TextInput
-                      value={inputValue.toString()}
-                      onChangeText={(text: string) => onChangeValue(text)}
-                      keyboardType="numeric"
-                      style={styles.input}
-                    />
+                    <View style={styles.inputRow}>
+                      <MaterialCommunityIcons
+                        name="minus"
+                        size={32}
+                        color={Colors.dark.text}
+                        onPress={() =>
+                          onChangeValue(Math.max(Number(inputValue) - 1, 0))
+                        } // Decrement, ensure no negative values
+                      />
+                      <TextInput
+                        value={inputValue.toString()}
+                        onChangeText={(text: string) => onChangeValue(text)}
+                        keyboardType="numeric"
+                        style={styles.numberInput}
+                        selectTextOnFocus={true}
+                        onSubmitEditing={onSave}
+                      />
+                      <MaterialCommunityIcons
+                        name="plus"
+                        size={32}
+                        color={Colors.dark.text}
+                        onPress={() => onChangeValue(Number(inputValue) + 1)} // Increment value
+                      />
+                    </View>
                   </View>
                 )}
 
@@ -117,49 +179,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 )}
 
                 {settingType === "restTime" && (
-                  <View style={styles.timeInputContainer}>
-                    <View style={styles.labeledInput}>
-                      <ThemedText style={styles.inputLabel}>Minutes</ThemedText>
-                      <TextInput
-                        value={(
-                          inputValue as { minutes: number; seconds: number }
-                        ).minutes.toString()}
-                        onChangeText={(text: string) =>
-                          onChangeValue({
-                            ...(inputValue as {
-                              minutes: number;
-                              seconds: number;
-                            }),
-                            minutes: parseInt(text, 10) || 0,
-                          })
-                        }
-                        keyboardType="numeric"
-                        style={styles.input}
-                      />
-                    </View>
-                    <View style={styles.labeledInput}>
-                      <ThemedText style={styles.inputLabel}>Seconds</ThemedText>
-                      <TextInput
-                        value={(
-                          inputValue as { minutes: number; seconds: number }
-                        ).seconds.toString()}
-                        onChangeText={(text: string) =>
-                          onChangeValue({
-                            ...(inputValue as {
-                              minutes: number;
-                              seconds: number;
-                            }),
-                            seconds: parseInt(text, 10) || 0,
-                          })
-                        }
-                        keyboardType="numeric"
-                        style={styles.input}
-                      />
-                    </View>
+                  <View style={styles.labeledInput}>
+                    <ThemedText style={styles.inputLabel}>
+                      Minutes:Seconds
+                    </ThemedText>
+                    <TextInput
+                      value={restTime}
+                      onChangeText={handleRestTimeChange}
+                      keyboardType="numeric"
+                      style={styles.input}
+                      selectTextOnFocus={true}
+                      onSubmitEditing={handleSaveRestTime}
+                    />
                   </View>
                 )}
 
-                {/* Save & Cancel Buttons */}
                 <View style={styles.buttonContainer}>
                   <Button
                     mode="outlined"
@@ -171,7 +205,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </Button>
                   <Button
                     mode="contained"
-                    onPress={onSave}
+                    onPress={
+                      settingType === "restTime" ? handleSaveRestTime : onSave
+                    }
                     labelStyle={styles.buttonLabel}
                     style={styles.saveButton}
                   >
@@ -207,19 +243,41 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: Colors.dark.text,
   },
-  timeInputContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  labeledInput: {
     width: "100%",
     marginBottom: 16,
-  },
-  labeledInput: {
-    width: "48%",
   },
   inputLabel: {
     fontSize: 14,
     color: Colors.dark.text,
     marginBottom: 4,
+    textAlign: "center",
+  },
+  input: {
+    padding: 10,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
+    textAlign: "center",
+    fontSize: 18,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  numberInput: {
+    flex: 1, // Ensure the input takes up the remaining space between the buttons
+    padding: 10,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
+    textAlign: "center",
+    fontSize: 18,
+    marginHorizontal: 8, // Spacing between input and icons
   },
   buttonContainer: {
     flexDirection: "row",
@@ -234,15 +292,6 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     width: "48%",
-  },
-  input: {
-    padding: 10,
-    borderColor: Colors.dark.text,
-    borderWidth: 1,
-    borderRadius: 8,
-    color: Colors.dark.text,
-    marginBottom: 16,
-    textAlign: "center",
   },
   radioItem: {
     flexDirection: "row",
