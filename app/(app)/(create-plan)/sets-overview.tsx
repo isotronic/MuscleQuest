@@ -3,7 +3,7 @@ import { StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
@@ -54,6 +54,11 @@ export default function SetsOverviewScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <Stack.Screen
+        options={{
+          title: exercise?.name,
+        }}
+      />
       <FlatList
         data={sets}
         renderItem={renderSetItem}
