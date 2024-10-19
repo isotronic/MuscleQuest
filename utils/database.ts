@@ -441,7 +441,7 @@ export const updateWorkoutPlan = async (
         }
 
         // Insert or update exercises and sets
-        for (const exercise of workout.exercises) {
+        for (const [exerciseOrder, exercise] of workout.exercises.entries()) {
           if (!existingExerciseIds.includes(exercise.exercise_id)) {
             // Insert new exercise
             await txn.runAsync(
@@ -450,7 +450,7 @@ export const updateWorkoutPlan = async (
                 workoutId,
                 exercise.exercise_id,
                 JSON.stringify(exercise.sets),
-                exercise.exercise_order!,
+                exerciseOrder,
               ],
             );
           } else {
@@ -459,7 +459,7 @@ export const updateWorkoutPlan = async (
               `UPDATE user_workout_exercises SET sets = ?, exercise_order = ? WHERE workout_id = ? AND exercise_id = ?`,
               [
                 JSON.stringify(exercise.sets),
-                exercise.exercise_order!,
+                exerciseOrder,
                 workoutId,
                 exercise.exercise_id,
               ],
