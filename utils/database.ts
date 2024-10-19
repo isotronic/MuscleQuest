@@ -37,8 +37,8 @@ export const openDatabase = async (
     useNewConnection: true,
   });
 
-  // Set a busy timeout to handle database locking issues globally
   await db.execAsync("PRAGMA busy_timeout = 3000;");
+  await db.execAsync("PRAGMA journal_mode = WAL;");
 
   return db;
 };
