@@ -5,15 +5,18 @@ import {
   StyleSheet,
   View,
   Linking,
+  TextInput,
 } from "react-native";
 import { Image } from "expo-image";
-import { TextInput, Button } from "react-native-paper";
+import { Button } from "react-native-paper";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { createApi } from "unsplash-js";
 import { useNavigation } from "expo-router";
 import { Basic } from "unsplash-js/dist/methods/photos/types";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { ThemedText } from "@/components/ThemedText";
+import { Colors } from "@/constants/Colors";
 
 const unsplash = createApi({
   accessKey: process.env.EXPO_PUBLIC_UNSPLASH_ACCESS_KEY || "",
@@ -75,14 +78,24 @@ export default function ImageSearchScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <TextInput
-        placeholder="Search for images"
-        value={query}
-        onChangeText={setQuery}
-        style={styles.searchInput}
-        selectTextOnFocus={true}
-      />
-      <Button onPress={handleSearch}>Search</Button>
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Search for images"
+          value={query}
+          onChangeText={setQuery}
+          style={styles.searchInput}
+          selectTextOnFocus={true}
+          onSubmitEditing={handleSearch}
+          placeholderTextColor={Colors.dark.subText}
+        />
+        <TouchableOpacity onPress={handleSearch} style={styles.iconButton}>
+          <MaterialCommunityIcons
+            name="magnify"
+            size={24}
+            color={Colors.dark.text}
+          />
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={photos}
         keyExtractor={(item: Basic) => item.id}
@@ -124,9 +137,24 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
   },
+  searchContainer: {
+    position: "relative",
+    marginBottom: 16,
+  },
   searchInput: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#FFFFFF",
+    padding: 10,
+    borderColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
+    fontSize: 18,
+    paddingRight: 40,
+  },
+  iconButton: {
+    position: "absolute",
+    right: 10,
+    top: "50%",
+    transform: [{ translateY: -12 }],
   },
   imageContainer: {
     position: "relative",
