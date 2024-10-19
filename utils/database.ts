@@ -581,6 +581,7 @@ interface CompletedWorkoutRow {
   exercise_id: number | null;
   exercise_name: string | null;
   exercise_image: Uint8Array | null;
+  exercise_order: number;
   set_number: number | null;
   weight: number | null;
   reps: number | null;
@@ -608,14 +609,16 @@ export const fetchCompletedWorkoutById = async (
         e.image as exercise_image, 
         cs.set_number, 
         cs.weight, 
-        cs.reps
+        cs.reps,
+        uwe.exercise_order -- Include exercise order from user_workout_exercises
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
       LEFT JOIN exercises e ON e.exercise_id = ce.exercise_id -- Join exercises table for exercise details
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN user_workouts uw ON uw.id = cw.workout_id
+      LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id AND uwe.exercise_id = ce.exercise_id -- Join user_workout_exercises to get exercise order
       WHERE cw.id = ?
-      ORDER BY e.exercise_id, cs.set_number;
+      ORDER BY uwe.exercise_order, cs.set_number; -- Order by exercise_order and then set_number
       `,
       [id],
     )) as CompletedWorkoutRow[];
@@ -638,7 +641,12 @@ export const fetchCompletedWorkoutById = async (
       exercises: [],
     };
 
-    const exercisesMap: Record<number, CompletedWorkout["exercises"][0]> = {};
+    // Temporary map to store exercises with their order
+    const exercisesMap: {
+      [exercise_id: number]: CompletedWorkout["exercises"][0] & {
+        exercise_order: number;
+      };
+    } = {};
 
     result.forEach((row) => {
       if (row.exercise_id) {
@@ -650,6 +658,7 @@ export const fetchCompletedWorkoutById = async (
               ? Array.from(row.exercise_image)
               : undefined,
             sets: [],
+            exercise_order: row.exercise_order, // Track exercise order
           };
         }
 
@@ -669,8 +678,11 @@ export const fetchCompletedWorkoutById = async (
       }
     });
 
-    // Assign the exercises map to the workout's exercises
-    workout.exercises = Object.values(exercisesMap);
+    // Sort exercises by exercise_order and assign them to the workout's exercises
+    workout.exercises = Object.values(exercisesMap)
+      .sort((a, b) => a.exercise_order - b.exercise_order)
+      .map(({ exercise_order, ...rest }) => rest); // Remove exercise_order from the final output
+
     return workout;
   } catch (error) {
     console.error("Error fetching completed workout by ID:", error);
