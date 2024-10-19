@@ -1,8 +1,8 @@
 import React from "react";
-import { TouchableOpacity, View, StyleSheet, Image } from "react-native";
+import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { Checkbox } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
-import FastImage from "react-native-fast-image";
+import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
 import { capitalizeWords } from "@/utils/utility";
 import { Exercise } from "@/utils/database";
@@ -33,13 +33,11 @@ const ExerciseItem = ({
           onPress={() => onSelect(item.exercise_id)}
         />
         {item.image ? (
-          <FastImage
+          <Image
             style={styles.exerciseImage}
             source={{
               uri: base64Image,
-              priority: FastImage.priority.normal,
             }}
-            resizeMode={FastImage.resizeMode.contain}
           />
         ) : (
           <Image style={styles.exerciseImage} source={fallbackImage} />

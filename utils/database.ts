@@ -20,7 +20,6 @@ export interface SavedWorkout {
   workoutId: number; // Reference to the user_workouts entry
   duration: number;
   totalSetsCompleted: number;
-  notes: string | null; // Optional notes field
   exercises: {
     exercise_id: number;
     sets: {
@@ -34,9 +33,157 @@ export interface SavedWorkout {
 export const openDatabase = async (
   databaseName: string,
 ): Promise<SQLite.SQLiteDatabase> => {
-  return await SQLite.openDatabaseAsync(databaseName, {
+  const db = await SQLite.openDatabaseAsync(databaseName, {
     useNewConnection: true,
   });
+
+  await db.execAsync("PRAGMA busy_timeout = 3000;");
+  await db.execAsync("PRAGMA journal_mode = WAL;");
+
+  return db;
+};
+
+interface SQLiteRow {
+  [key: string]: any;
+}
+interface SettingsEntry {
+  value: string;
+}
+
+export const copyDataFromAppDataToUserData = async (): Promise<void> => {
+  const appDataDB = await openDatabase("appData.db");
+  const userDataDB = await openDatabase("userData.db");
+
+  interface ExerciseCheckResult {
+    app_exercise_id: number | null;
+    name: string;
+    image: Uint8Array | null;
+    description: string | null;
+  }
+
+  const dataVersionEntry: SettingsEntry | null =
+    await userDataDB.getFirstAsync<SettingsEntry>(
+      "SELECT value FROM settings WHERE key = 'dataVersion'",
+    );
+
+  const dataVersion = dataVersionEntry?.value || null;
+
+  if (dataVersion === "1") {
+    console.log("Data has already been copied or this is the first version.");
+    return;
+  }
+
+  const copyTableData = async (
+    tableName: string,
+    columns: string[],
+    excludeId: boolean = false,
+  ): Promise<void> => {
+    try {
+      const result: SQLiteRow[] = await appDataDB.getAllAsync(
+        `SELECT ${columns.join(", ")} FROM ${tableName}`,
+      );
+
+      console.log(`Copying ${result.length} rows into ${tableName}`);
+
+      if (result.length > 0) {
+        await userDataDB.execAsync("BEGIN TRANSACTION");
+
+        const insertColumns = excludeId
+          ? columns.filter((col) => col !== "exercise_id")
+          : columns;
+        const placeholders = insertColumns.map(() => "?").join(", ");
+        const insertStatement = `INSERT INTO ${tableName} (${insertColumns.join(", ")}) VALUES (${placeholders})`;
+
+        const updateColumns = insertColumns.filter(
+          (col) => col !== "exercise_id",
+        );
+        const updatePlaceholders = updateColumns
+          .map((col) => `${col} = ?`)
+          .join(", ");
+        const updateStatement = `UPDATE ${tableName} SET ${updatePlaceholders} WHERE app_exercise_id = ?`;
+
+        for (const row of result) {
+          let shouldInsertOrUpdate = true;
+
+          if (tableName === "exercises") {
+            const existingEntry =
+              await userDataDB.getFirstAsync<ExerciseCheckResult>(
+                `SELECT * FROM ${tableName} WHERE app_exercise_id = ? LIMIT 1`,
+                [row["exercise_id"]],
+              );
+
+            if (existingEntry) {
+              const fieldsToUpdate = insertColumns.filter((col) => {
+                switch (col) {
+                  case "app_exercise_id":
+                    return row[col] !== existingEntry.app_exercise_id;
+                  case "name":
+                    return row[col] !== existingEntry.name;
+                  case "image":
+                    return row[col] !== existingEntry.image;
+                  case "description":
+                    return row[col] !== existingEntry.description;
+                  // Add other fields as needed
+                  default:
+                    return false;
+                }
+              });
+
+              if (fieldsToUpdate.length > 0) {
+                console.log(
+                  `Updating exercise: ${row["name"]} with changed fields: ${fieldsToUpdate.join(", ")}`,
+                );
+                const values = updateColumns.map((col) => row[col]);
+                values.push(row["exercise_id"]);
+                await userDataDB.runAsync(updateStatement, values);
+              }
+
+              shouldInsertOrUpdate = false;
+            }
+          }
+
+          if (shouldInsertOrUpdate) {
+            const values = insertColumns.map((col) => row[col]);
+            await userDataDB.runAsync(insertStatement, values);
+          }
+        }
+
+        await userDataDB.execAsync("COMMIT");
+      }
+    } catch (error) {
+      console.error(`Error copying table ${tableName}:`, error);
+      await userDataDB.execAsync("ROLLBACK");
+    }
+  };
+
+  await copyTableData("muscles", ["muscle"]);
+  await copyTableData("equipment_list", ["equipment"]);
+  await copyTableData("body_parts", ["body_part"]);
+
+  await copyTableData(
+    "exercises",
+    [
+      "exercise_id", // Copy exercise_id to userData's app_exercise_id field later
+      "name",
+      "image",
+      "local_animated_uri",
+      "animated_url",
+      "equipment",
+      "body_part",
+      "target_muscle",
+      "secondary_muscles",
+      "description",
+    ],
+    true, // Exclude the auto-incremented exercise_id for userData
+  );
+
+  console.log("Updating data version to 1...");
+  await userDataDB.runAsync(
+    "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+    ["dataVersion", "1"],
+  );
+
+  console.log("Data copy completed and version updated.");
 };
 
 export const fetchAllRecords = async (
@@ -54,7 +201,19 @@ export const fetchAllRecords = async (
   if (!allowedTables.includes(tableName)) {
     throw new Error("Invalid table name");
   }
-  return await db.getAllAsync(`SELECT * FROM ${tableName}`);
+
+  // Check if the table contains an is_deleted field
+  const tableInfo = await db.getAllAsync(`PRAGMA table_info(${tableName});`);
+  const hasIsDeletedField = tableInfo.some(
+    (column: any) => column.name === "is_deleted",
+  );
+
+  // Build the query accordingly
+  const query = hasIsDeletedField
+    ? `SELECT * FROM ${tableName} WHERE is_deleted = FALSE`
+    : `SELECT * FROM ${tableName}`;
+
+  return await db.getAllAsync(query);
 };
 
 export const fetchRecord = async (
@@ -82,7 +241,7 @@ export const insertAnimatedImageUri = async (
   exercise_id: number,
   local_animated_uri: string,
 ) => {
-  const db = await openDatabase("appData.db");
+  const db = await openDatabase("userData.db");
   await db.runAsync(
     `UPDATE exercises SET local_animated_uri = ? WHERE exercise_id = ?`,
     [local_animated_uri, exercise_id],
@@ -95,7 +254,7 @@ export interface ExerciseWithoutLocalAnimatedUriRow {
 }
 
 export const fetchExercisesWithoutLocalAnimatedUri = async () => {
-  const db = await openDatabase("appData.db");
+  const db = await openDatabase("userData.db");
   return (await db.getAllAsync(
     `SELECT exercise_id, animated_url FROM exercises WHERE animated_url IS NOT NULL AND animated_url != '' AND (local_animated_uri IS NULL OR local_animated_uri = '')`,
   )) as ExerciseWithoutLocalAnimatedUriRow[];
@@ -107,14 +266,14 @@ export interface ExerciseWithLocalAnimatedUriRow {
 }
 
 export const fetchExercisesWithLocalAnimatedUri = async () => {
-  const db = await openDatabase("appData.db");
+  const db = await openDatabase("userData.db");
   return (await db.getAllAsync(
     `SELECT exercise_id, local_animated_uri FROM exercises WHERE local_animated_uri IS NOT NULL AND local_animated_uri != ''`,
   )) as ExerciseWithLocalAnimatedUriRow[];
 };
 
 export const clearAllLocalAnimatedUri = async () => {
-  const db = await openDatabase("appData.db");
+  const db = await openDatabase("userData.db");
   await db.runAsync(`UPDATE exercises SET local_animated_uri = NULL`);
 };
 
@@ -140,21 +299,34 @@ export const insertWorkoutPlan = async (
   image_url: string,
   workouts: Workout[],
 ) => {
-  const db = await openDatabase("userData.db");
-  const result = await db.runAsync(
-    `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
-    [name, image_url],
-  );
+  const db = await openDatabase("userData.db"); // Open database once
 
-  const planId = result.lastInsertRowId;
+  // Start the transaction
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    try {
+      // Insert the plan
+      const result = await txn.runAsync(
+        `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
+        [name, image_url],
+      );
 
-  await insertWorkouts(planId, workouts);
+      const planId = result.lastInsertRowId;
+
+      // Insert the workouts associated with this plan
+      await insertWorkouts(txn, planId, workouts);
+    } catch (error) {
+      console.error("Error inserting workout plan:", error);
+      throw error;
+    }
+  });
 };
 
-export const insertWorkouts = async (planId: number, workouts: Workout[]) => {
-  const db = await openDatabase("userData.db");
-
-  await db.withExclusiveTransactionAsync(async (txn) => {
+export const insertWorkouts = async (
+  txn: SQLite.SQLiteDatabase, // Pass transaction to avoid nested transactions
+  planId: number,
+  workouts: Workout[],
+) => {
+  try {
     for (const workout of workouts) {
       const { exercises, name } = workout;
       const workoutName = name || `Workout ${workouts.indexOf(workout) + 1}`;
@@ -167,47 +339,23 @@ export const insertWorkouts = async (planId: number, workouts: Workout[]) => {
 
       const workoutId = result.lastInsertRowId;
 
-      // Insert each exercise related to this workout
-      for (const exercise of exercises) {
-        const {
-          exercise_id,
-          name,
-          description,
-          image,
-          local_animated_uri,
-          animated_url,
-          equipment,
-          body_part,
-          target_muscle,
-          secondary_muscles,
-          sets,
-        } = exercise;
+      // Insert exercises related to this workout
+      for (const [exerciseOrder, exercise] of exercises.entries()) {
+        const { exercise_id, sets } = exercise;
 
-        const imageBuffer = new Uint8Array(Object.values(image));
-
+        // Insert into user_workout_exercises
         await txn.runAsync(
           `INSERT INTO user_workout_exercises (
-            workout_id, exercise_id, name, description, image, local_animated_uri, animated_url,
-            equipment, body_part, target_muscle, secondary_muscles, sets
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            workoutId,
-            exercise_id,
-            name,
-            description,
-            imageBuffer,
-            local_animated_uri,
-            animated_url,
-            equipment,
-            body_part,
-            target_muscle,
-            JSON.stringify(secondary_muscles),
-            JSON.stringify(sets),
-          ],
+            workout_id, exercise_id, sets, exercise_order
+          ) VALUES (?, ?, ?, ?)`,
+          [workoutId, exercise_id, JSON.stringify(sets), exerciseOrder],
         );
       }
     }
-  });
+  } catch (error) {
+    console.error("Error inserting workouts:", error);
+    throw error; // Re-throw the error to trigger transaction rollback
+  }
 };
 
 export const updateWorkoutPlan = async (
@@ -217,37 +365,145 @@ export const updateWorkoutPlan = async (
   workouts: Workout[],
 ) => {
   const db = await openDatabase("userData.db");
-  await db.runAsync(
-    `UPDATE user_plans SET name = ?, image_url = ? WHERE id = ?`,
-    [name, image_url, id],
-  );
 
-  // Clear existing workouts for the plan
-  await db.runAsync(`DELETE FROM user_workouts WHERE plan_id = ?`, [id]);
+  // Start the transaction for the entire update process
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    try {
+      // Update the workout plan details
+      await txn.runAsync(
+        `UPDATE user_plans SET name = ?, image_url = ? WHERE id = ?`,
+        [name, image_url, id],
+      );
 
-  // Insert updated workouts
-  await insertWorkouts(id, workouts);
+      // Fetch existing workouts for the plan
+      const existingWorkouts: { id: number }[] = await txn.getAllAsync(
+        `SELECT id FROM user_workouts WHERE plan_id = ? AND is_deleted = FALSE`,
+        [id],
+      );
+
+      // Find and mark workouts for deletion that are not in the new workout list
+      const workoutIdsToKeep = workouts.map((w) => w.id).filter(Boolean); // Filter out new workouts (no ID)
+      const workoutsToDelete = existingWorkouts.filter(
+        (w) => !workoutIdsToKeep.includes(w.id),
+      );
+
+      for (const workout of workoutsToDelete) {
+        await txn.runAsync(
+          `UPDATE user_workouts SET is_deleted = TRUE WHERE id = ?`,
+          [workout.id],
+        );
+        await txn.runAsync(
+          `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE workout_id = ?`,
+          [workout.id],
+        );
+      }
+
+      // Iterate through new or updated workouts
+      for (const workout of workouts) {
+        let workoutId = workout.id;
+        const workoutName =
+          workout.name || `Workout ${workouts.indexOf(workout) + 1}`;
+
+        if (!workoutId) {
+          // Insert new workout
+          const result = await txn.runAsync(
+            `INSERT INTO user_workouts (plan_id, name) VALUES (?, ?)`,
+            [id, workoutName],
+          );
+          workoutId = result.lastInsertRowId;
+        } else {
+          // Update existing workout
+          await txn.runAsync(`UPDATE user_workouts SET name = ? WHERE id = ?`, [
+            workoutName,
+            workoutId,
+          ]);
+        }
+
+        // Fetch existing exercises for the workout
+        const existingExercises: { id: number; exercise_id: number }[] =
+          await txn.getAllAsync(
+            `SELECT id, exercise_id FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+            [workoutId],
+          );
+        const existingExerciseIds = existingExercises.map((e) => e.exercise_id);
+
+        // Find and mark exercises for deletion that are not in the updated workout
+        const exerciseIdsToKeep = workout.exercises.map((e) => e.exercise_id);
+        const exercisesToDelete = existingExercises.filter(
+          (e) => !exerciseIdsToKeep.includes(e.exercise_id),
+        );
+
+        for (const exercise of exercisesToDelete) {
+          await txn.runAsync(
+            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
+            [exercise.id],
+          );
+        }
+
+        // Insert or update exercises and sets
+        for (const exercise of workout.exercises) {
+          if (!existingExerciseIds.includes(exercise.exercise_id)) {
+            // Insert new exercise
+            await txn.runAsync(
+              `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order) VALUES (?, ?, ?, ?)`,
+              [
+                workoutId,
+                exercise.exercise_id,
+                JSON.stringify(exercise.sets),
+                exercise.exercise_order!,
+              ],
+            );
+          } else {
+            // Update existing exercise
+            await txn.runAsync(
+              `UPDATE user_workout_exercises SET sets = ?, exercise_order = ? WHERE workout_id = ? AND exercise_id = ?`,
+              [
+                JSON.stringify(exercise.sets),
+                exercise.exercise_order!,
+                workoutId,
+                exercise.exercise_id,
+              ],
+            );
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error updating workout plan:", error);
+      throw error;
+    }
+  });
 };
 
 export const deleteWorkoutPlan = async (planId: number) => {
   const db = await openDatabase("userData.db");
 
-  // Start an exclusive transaction to ensure that all deletions are executed together
+  // Start an exclusive transaction to ensure that all updates are executed together
   await db.withExclusiveTransactionAsync(async (txn) => {
-    // Delete exercises associated with workouts under the plan
+    // Mark exercises associated with workouts under the plan as deleted
     await txn.runAsync(
-      `DELETE FROM user_workout_exercises 
+      `UPDATE user_workout_exercises 
+       SET is_deleted = TRUE 
        WHERE workout_id IN (
          SELECT id FROM user_workouts WHERE plan_id = ?
        )`,
       [planId],
     );
 
-    // Delete workouts associated with the plan
-    await txn.runAsync(`DELETE FROM user_workouts WHERE plan_id = ?`, [planId]);
+    // Mark workouts associated with the plan as deleted
+    await txn.runAsync(
+      `UPDATE user_workouts 
+       SET is_deleted = TRUE 
+       WHERE plan_id = ?`,
+      [planId],
+    );
 
-    // Finally, delete the plan itself
-    await txn.runAsync(`DELETE FROM user_plans WHERE id = ?`, [planId]);
+    // Finally, mark the plan itself as deleted
+    await txn.runAsync(
+      `UPDATE user_plans 
+       SET is_deleted = TRUE 
+       WHERE id = ?`,
+      [planId],
+    );
   });
 };
 
@@ -256,7 +512,6 @@ export const saveCompletedWorkout = async (
   workoutId: number,
   duration: number,
   totalSetsCompleted: number,
-  notes: string | null, // Optional field for notes
   exercises: {
     exercise_id: number;
     sets: {
@@ -274,8 +529,8 @@ export const saveCompletedWorkout = async (
 
     // Insert the completed workout
     const completedWorkoutResult = await db.runAsync(
-      `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed, notes) VALUES (?, ?, datetime('now'), ?, ?, ?)`,
-      [planId, workoutId, duration, totalSetsCompleted, notes],
+      `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed) VALUES (?, ?, datetime('now'), ?, ?)`,
+      [planId, workoutId, duration, totalSetsCompleted],
     );
 
     const completedWorkoutId = completedWorkoutResult.lastInsertRowId;
@@ -348,19 +603,19 @@ export const fetchCompletedWorkoutById = async (
         cw.date_completed, 
         cw.duration, 
         cw.total_sets_completed, 
-        uex.id as exercise_id, 
-        uex.name as exercise_name, 
-        uex.image as exercise_image, 
+        e.exercise_id as exercise_id, 
+        e.name as exercise_name, 
+        e.image as exercise_image, 
         cs.set_number, 
         cs.weight, 
         cs.reps
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
-      LEFT JOIN user_workout_exercises uex ON uex.id = ce.exercise_id
+      LEFT JOIN exercises e ON e.exercise_id = ce.exercise_id -- Join exercises table for exercise details
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN user_workouts uw ON uw.id = cw.workout_id
       WHERE cw.id = ?
-      ORDER BY uex.id, cs.set_number;
+      ORDER BY e.exercise_id, cs.set_number;
       `,
       [id],
     )) as CompletedWorkoutRow[];
@@ -371,7 +626,7 @@ export const fetchCompletedWorkoutById = async (
 
     const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
 
-    // Process the result to structure it as needed
+    // Initialize the completed workout object
     const workout: CompletedWorkout = {
       id: result[0].id,
       workout_id: result[0].workout_id,
@@ -399,7 +654,7 @@ export const fetchCompletedWorkoutById = async (
         }
 
         if (row.set_number !== null) {
-          // Convert weight from kg to user's unit
+          // Convert weight from kg to the user's unit
           const weightInKg = parseFloat(row.weight?.toString() || "0");
           const convertedWeight = parseFloat(
             (weightInKg * conversionFactor).toFixed(1),
@@ -414,6 +669,7 @@ export const fetchCompletedWorkoutById = async (
       }
     });
 
+    // Assign the exercises map to the workout's exercises
     workout.exercises = Object.values(exercisesMap);
     return workout;
   } catch (error) {
@@ -429,7 +685,7 @@ export const fetchExerciseImagesByIds = async (
     return {};
   }
 
-  const db = await openDatabase("appData.db");
+  const db = await openDatabase("userData.db");
 
   // Create a comma-separated list of placeholders (?, ?, ...)
   const placeholders = exerciseIds.map(() => "?").join(",");
@@ -453,43 +709,38 @@ export const fetchExerciseImagesByIds = async (
   }
 };
 
-interface SQLCountResult {
-  count: number;
-}
-
 export const insertDefaultSettings = async () => {
   const db = await openDatabase("userData.db");
 
-  // Check if settings already exist
-  const result = (await db.getAllAsync(
-    "SELECT COUNT(*) as count FROM settings",
-  )) as SQLCountResult[];
+  const defaultSettings = [
+    { key: "weeklyGoal", value: "3" },
+    { key: "keepScreenOn", value: "false" },
+    { key: "downloadImages", value: "false" },
+    { key: "weightUnit", value: "kg" },
+    { key: "distanceUnit", value: "km" },
+    { key: "sizeUnit", value: "cm" },
+    { key: "weightIncrement", value: "1" },
+    { key: "defaultSets", value: "3" },
+    { key: "defaultRestTime", value: "60" },
+    { key: "buttonSize", value: "Standard" },
+    { key: "timeRange", value: "30" },
+  ];
 
-  const { count } = result[0];
+  // Loop through each default setting
+  for (const setting of defaultSettings) {
+    // Check if the setting already exists in the database
+    const existingSetting = await db.getFirstAsync(
+      "SELECT value FROM settings WHERE key = ?",
+      [setting.key],
+    );
 
-  // If no settings exist, insert default values
-  if (count === 0) {
-    const defaultSettings = [
-      { key: "weeklyGoal", value: "3" },
-      { key: "keepScreenOn", value: "false" },
-      { key: "downloadImages", value: "false" },
-      { key: "weightUnit", value: "kg" },
-      { key: "distanceUnit", value: "km" },
-      { key: "sizeUnit", value: "cm" },
-      { key: "weightIncrement", value: "1" },
-      { key: "defaultSets", value: "3" },
-      { key: "defaultRestTime", value: "60" },
-      { key: "buttonSize", value: "Standard" },
-      { key: "timeRange", value: "30" },
-    ];
-
-    // Insert default settings into the table
-    defaultSettings.forEach(async (setting) => {
+    // If the setting doesn't exist, insert it
+    if (!existingSetting) {
       await db.runAsync("INSERT INTO settings (key, value) VALUES (?, ?)", [
         setting.key,
         setting.value,
       ]);
-    });
+    }
   }
 };
 
@@ -509,6 +760,7 @@ export interface Settings {
   defaultRestTime: string;
   buttonSize: string;
   timeRange: string;
+  dataVersion: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

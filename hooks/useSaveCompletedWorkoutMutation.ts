@@ -24,7 +24,6 @@ const saveCompletedWorkoutWithConversion = async (
     workoutDataInKg.workoutId,
     workoutDataInKg.duration,
     workoutDataInKg.totalSetsCompleted,
-    workoutDataInKg.notes,
     workoutDataInKg.exercises,
   );
 };

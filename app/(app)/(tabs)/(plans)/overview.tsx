@@ -1,11 +1,11 @@
 import {
   View,
   StyleSheet,
-  Image,
   FlatList,
   TouchableOpacity,
   Alert,
 } from "react-native";
+import { Image } from "expo-image";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";

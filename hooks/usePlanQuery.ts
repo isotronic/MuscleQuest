@@ -41,6 +41,7 @@ export interface RawWorkoutRecord {
   target_muscle: string | null;
   secondary_muscles: string | null;
   sets: string | null;
+  exercise_order: number | null;
 }
 
 const fetchPlanData = async (planId: number): Promise<Plan | null> => {
@@ -62,27 +63,34 @@ const fetchWorkoutsForPlan = async (
       user_workouts.plan_id,
       user_workouts.name,
       user_workout_exercises.exercise_id AS exercise_id,
-      user_workout_exercises.name AS exercise_name,
-      user_workout_exercises.description,
-      user_workout_exercises.image,
-      user_workout_exercises.local_animated_uri,
-      user_workout_exercises.animated_url,
-      user_workout_exercises.equipment,
-      user_workout_exercises.body_part,
-      user_workout_exercises.target_muscle,
-      user_workout_exercises.secondary_muscles,
-      user_workout_exercises.sets
+      exercises.name AS exercise_name,
+      exercises.description,
+      exercises.image,
+      exercises.local_animated_uri,
+      exercises.animated_url,
+      exercises.equipment,
+      exercises.body_part,
+      exercises.target_muscle,
+      exercises.secondary_muscles,
+      user_workout_exercises.sets,
+      user_workout_exercises.exercise_order
     FROM user_workouts
     LEFT JOIN user_workout_exercises ON user_workout_exercises.workout_id = user_workouts.id
+    LEFT JOIN exercises ON exercises.exercise_id = user_workout_exercises.exercise_id
     WHERE user_workouts.plan_id = ?
+      AND user_workouts.is_deleted = FALSE
+      AND (user_workout_exercises.is_deleted = FALSE OR user_workout_exercises.is_deleted IS NULL)
+    ORDER BY user_workouts.id, user_workout_exercises.exercise_order ASC
     `,
     [planId],
   )) as RawWorkoutRecord[];
 };
 
 const parseWorkouts = (rawWorkouts: RawWorkoutRecord[]) => {
-  return rawWorkouts.reduce((workouts, rawWorkout) => {
-    let workout = workouts.find((w) => w.id === rawWorkout.id);
+  const workoutsMap = new Map<number, WorkoutRecord>();
+
+  for (const rawWorkout of rawWorkouts) {
+    let workout = workoutsMap.get(rawWorkout.id);
     if (!workout) {
       workout = {
         id: rawWorkout.id,
@@ -90,7 +98,7 @@ const parseWorkouts = (rawWorkouts: RawWorkoutRecord[]) => {
         name: rawWorkout.name,
         exercises: [],
       };
-      workouts.push(workout);
+      workoutsMap.set(rawWorkout.id, workout);
     }
 
     if (rawWorkout.exercise_id && rawWorkout.exercise_name) {
@@ -110,9 +118,10 @@ const parseWorkouts = (rawWorkouts: RawWorkoutRecord[]) => {
         sets: rawWorkout.sets ? JSON.parse(rawWorkout.sets) : [],
       });
     }
+  }
 
-    return workouts;
-  }, [] as WorkoutRecord[]);
+  // Convert Map to array and ensure exercises are ordered
+  return Array.from(workoutsMap.values());
 };
 
 const fetchPlan = async (planId: number): Promise<Plan | null> => {

@@ -22,9 +22,9 @@ const copyDatabase = async (): Promise<string> => {
   return dbPath;
 };
 
-const openDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
+const initializeAppData = async (): Promise<SQLite.SQLiteDatabase> => {
   await copyDatabase();
   return await SQLite.openDatabaseAsync(DATABASE_NAME);
 };
 
-export { openDatabase };
+export { initializeAppData };

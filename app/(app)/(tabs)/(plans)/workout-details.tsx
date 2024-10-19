@@ -1,10 +1,10 @@
-import { View, StyleSheet, FlatList, Image } from "react-native";
+import { View, StyleSheet, FlatList } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams } from "expo-router";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { UserExercise } from "@/store/workoutStore";
-import FastImage from "react-native-fast-image";
+import { Image } from "expo-image";
 import { byteArrayToBase64 } from "@/utils/utility";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
@@ -16,7 +16,7 @@ export default function WorkoutDetailsScreen() {
   const workout = plan?.workouts[Number(workoutIndex)];
 
   const renderExerciseItem = ({ item }: { item: UserExercise }) => {
-    let base64Image: string | null = null;
+    let base64Image: string | undefined;
     if (item.image) {
       const base64String = byteArrayToBase64(item.image);
       base64Image = `data:image/webp;base64,${base64String}`;
@@ -28,13 +28,11 @@ export default function WorkoutDetailsScreen() {
     return (
       <View style={styles.exerciseItem}>
         {item.image ? (
-          <FastImage
+          <Image
             style={styles.exerciseImage}
             source={{
               uri: base64Image,
-              priority: FastImage.priority.normal,
             }}
-            resizeMode={FastImage.resizeMode.contain}
           />
         ) : (
           <Image style={styles.exerciseImage} source={fallbackImage} />

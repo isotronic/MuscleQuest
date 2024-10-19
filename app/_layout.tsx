@@ -1,6 +1,9 @@
 import { Slot, useNavigationContainerRef } from "expo-router";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
-import { Provider as PaperProvider } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Provider as PaperProvider,
+} from "react-native-paper";
 import { paperTheme } from "@/utils/paperTheme";
 import { useFonts } from "expo-font";
 import { isRunningInExpoGo } from "expo";
@@ -23,10 +26,18 @@ import {
 } from "@expo-google-fonts/inter";
 import { AuthProvider } from "@/context/AuthProvider";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { openDatabase } from "@/utils/initAppDataDB";
+import { initializeAppData } from "@/utils/initAppDataDB";
 import { initUserDataDB } from "@/utils/initUserDataDB";
-import { insertDefaultSettings } from "@/utils/database";
+import {
+  copyDataFromAppDataToUserData,
+  insertDefaultSettings,
+} from "@/utils/database";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
+import Constants from "expo-constants";
+
+const IS_DEV = Constants.expoConfig?.extra?.appVariant === "development";
 
 // Construct a new instrumentation instance. This is needed to communicate between the integration and React
 const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
@@ -87,8 +98,9 @@ function RootLayout() {
   useEffect(() => {
     async function initializeDatabase() {
       try {
-        await openDatabase();
+        await initializeAppData();
         await initUserDataDB();
+        await copyDataFromAppDataToUserData();
         await insertDefaultSettings();
         // Set the database initialization state to true after setup is complete
         setIsDatabaseInitialized(true);
@@ -109,7 +121,14 @@ function RootLayout() {
   }, [loaded, error, isDatabaseInitialized, isInitializing]);
 
   if (isInitializing) {
-    return null;
+    return (
+      <ThemedView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <ActivityIndicator size="large" />
+        <ThemedText>Loading data, please wait...</ThemedText>
+      </ThemedView>
+    );
   }
 
   return (
@@ -129,5 +148,4 @@ function RootLayout() {
   );
 }
 
-export default RootLayout;
-//export default Sentry.wrap(RootLayout);
+export default IS_DEV ? RootLayout : Sentry.wrap(RootLayout);

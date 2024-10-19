@@ -12,6 +12,7 @@ export const useCreatePlan = (
   const queryClient = useQueryClient();
   const [planSaved, setPlanSaved] = useState(false);
   const [planName, setPlanName] = useState("");
+  const [isError, setIsError] = useState(false);
 
   const { workouts, clearWorkouts, planImageUrl, setPlanImageUrl } =
     useWorkoutStore();
@@ -45,12 +46,14 @@ export const useCreatePlan = (
       } else {
         await insertWorkoutPlan(planName, planImageUrl, workouts);
       }
-
       setPlanSaved(true);
     } catch (error) {
       console.error("Error inserting/updating plan data:", error);
+      setIsError(true);
     } finally {
-      clearWorkouts();
+      if (!isError && planSaved) {
+        clearWorkouts();
+      }
     }
   };
 

@@ -41,8 +41,6 @@ export default function CreatePlanScreen() {
     planId ? Number(planId) : null,
   );
 
-  let workoutIdCounter = 1;
-
   useEffect(() => {
     if (existingPlan) {
       setPlanName(existingPlan.name);
@@ -108,7 +106,7 @@ export default function CreatePlanScreen() {
   }, [planSaved]);
 
   const handleAddWorkout = () => {
-    const newWorkout = { id: workoutIdCounter++, name: "", exercises: [] };
+    const newWorkout = { name: "", exercises: [] };
     addWorkout(newWorkout);
   };
 

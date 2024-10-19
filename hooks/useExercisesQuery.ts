@@ -6,7 +6,7 @@ export const useExercisesQuery = () => {
   return useQuery<Exercise[]>({
     queryKey: ["exercises"],
     queryFn: () =>
-      fetchAllRecords("appData.db", "exercises") as Promise<Exercise[]>,
+      fetchAllRecords("userData.db", "exercises") as Promise<Exercise[]>,
     staleTime: 5 * 60 * 1000,
   });
 };
