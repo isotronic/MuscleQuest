@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import { useWorkoutStore } from "@/store/workoutStore";
 import {
@@ -108,51 +109,86 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
           <TouchableWithoutFeedback>
             <View style={styles.modalContent}>
               <ThemedText style={styles.label}>Min Reps</ThemedText>
-              <TextInput
-                style={styles.input}
-                value={repsMin}
-                onChangeText={setRepsMin}
-                keyboardType="numeric"
-                selectTextOnFocus={true}
-              />
+              <View style={styles.inputRow}>
+                <MaterialCommunityIcons
+                  name="minus"
+                  size={32}
+                  color={Colors.dark.text}
+                  onPress={() =>
+                    setRepsMin((prev) => String(Math.max(Number(prev) - 1, 0)))
+                  }
+                />
+                <TextInput
+                  style={styles.input}
+                  value={repsMin}
+                  onChangeText={setRepsMin}
+                  keyboardType="numeric"
+                  selectTextOnFocus={true}
+                />
+                <MaterialCommunityIcons
+                  name="plus"
+                  size={32}
+                  color={Colors.dark.text}
+                  onPress={() => setRepsMin((prev) => String(Number(prev) + 1))}
+                />
+              </View>
 
               <ThemedText style={styles.label}>Max Reps</ThemedText>
-              <TextInput
-                style={styles.input}
-                value={repsMax}
-                onChangeText={setRepsMax}
-                keyboardType="numeric"
-                selectTextOnFocus={true}
-              />
+              <View style={styles.inputRow}>
+                <MaterialCommunityIcons
+                  name="minus"
+                  size={32}
+                  color={Colors.dark.text}
+                  onPress={() =>
+                    setRepsMax((prev) => String(Math.max(Number(prev) - 1, 0)))
+                  }
+                />
+                <TextInput
+                  style={styles.input}
+                  value={repsMax}
+                  onChangeText={setRepsMax}
+                  keyboardType="numeric"
+                  selectTextOnFocus={true}
+                />
+                <MaterialCommunityIcons
+                  name="plus"
+                  size={32}
+                  color={Colors.dark.text}
+                  onPress={() => setRepsMax((prev) => String(Number(prev) + 1))}
+                />
+              </View>
 
               <ThemedText style={styles.label}>
                 Rest Time (Minutes:Seconds)
               </ThemedText>
-              <TextInput
-                style={styles.input}
-                value={restTime}
-                onChangeText={handleRestTimeChange}
-                keyboardType="numeric"
-                selectTextOnFocus={true}
-              />
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.input}
+                  value={restTime}
+                  onChangeText={handleRestTimeChange}
+                  keyboardType="numeric"
+                  selectTextOnFocus={true}
+                />
+              </View>
 
-              <Button
-                style={styles.button}
-                labelStyle={styles.buttonLabel}
-                onPress={handleSaveSet}
-                mode="contained"
-              >
-                Save Set
-              </Button>
-
-              <Button
-                style={styles.cancelButton}
-                labelStyle={styles.buttonLabel}
-                onPress={onClose}
-                mode="outlined"
-              >
-                Cancel
-              </Button>
+              <View style={styles.inputRow}>
+                <Button
+                  style={styles.button}
+                  labelStyle={styles.buttonLabel}
+                  onPress={onClose}
+                  mode="outlined"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  style={styles.button}
+                  labelStyle={styles.buttonLabel}
+                  onPress={handleSaveSet}
+                  mode="contained"
+                >
+                  Save Set
+                </Button>
+              </View>
             </View>
           </TouchableWithoutFeedback>
         </View>
@@ -177,21 +213,30 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     color: Colors.dark.text,
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
   },
   input: {
+    flex: 1,
     padding: 10,
     borderColor: Colors.dark.text,
     borderWidth: 1,
     borderRadius: 8,
     color: Colors.dark.text,
     fontSize: 18,
-    marginBottom: 16,
+    marginHorizontal: 8,
+    textAlign: "center",
   },
   button: {
     marginTop: 16,
-  },
-  cancelButton: {
-    marginTop: 10,
+    flex: 1,
+    marginHorizontal: 8,
   },
   buttonLabel: {
     fontSize: 16,
