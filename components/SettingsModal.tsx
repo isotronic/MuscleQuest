@@ -67,6 +67,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       onChangeText={(text: string) => onChangeValue(text)}
                       keyboardType="numeric"
                       style={styles.input}
+                      selectTextOnFocus={true}
                     />
                   </View>
                 )}
@@ -135,6 +136,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         }
                         keyboardType="numeric"
                         style={styles.input}
+                        selectTextOnFocus={true}
                       />
                     </View>
                     <View style={styles.labeledInput}>
@@ -154,6 +156,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         }
                         keyboardType="numeric"
                         style={styles.input}
+                        selectTextOnFocus={true}
                       />
                     </View>
                   </View>

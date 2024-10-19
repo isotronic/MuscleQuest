@@ -80,6 +80,7 @@ export default function ImageSearchScreen() {
         value={query}
         onChangeText={setQuery}
         style={styles.searchInput}
+        selectTextOnFocus={true}
       />
       <Button onPress={handleSearch}>Search</Button>
       <FlatList

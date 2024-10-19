@@ -113,6 +113,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                 value={repsMin}
                 onChangeText={setRepsMin}
                 keyboardType="numeric"
+                selectTextOnFocus={true}
               />
 
               <ThemedText style={styles.label}>Max Reps</ThemedText>
@@ -121,6 +122,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                 value={repsMax}
                 onChangeText={setRepsMax}
                 keyboardType="numeric"
+                selectTextOnFocus={true}
               />
 
               <ThemedText style={styles.label}>
@@ -131,6 +133,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                 value={restTime}
                 onChangeText={handleRestTimeChange}
                 keyboardType="numeric"
+                selectTextOnFocus={true}
               />
 
               <Button
