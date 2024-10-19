@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   FlatList,
   TouchableOpacity,
@@ -24,18 +24,19 @@ const unsplash = createApi({
 
 export default function ImageSearchScreen() {
   const [query, setQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("bodybuilding gym");
   const [photos, setPhotos] = useState<React.SetStateAction<Basic[]>>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const { setPlanImageUrl } = useWorkoutStore();
   const navigation = useNavigation();
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     setPage(1); // Reset page when doing a new search
     setLoading(true);
     try {
       const response = await unsplash.search.getPhotos({
-        query,
+        query: searchQuery,
         page: 1,
         perPage: 20,
         orientation: "landscape",
@@ -46,14 +47,18 @@ export default function ImageSearchScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery]); // Depend on searchQuery
+
+  useEffect(() => {
+    handleSearch();
+  }, [handleSearch]);
 
   const handleLoadMore = async () => {
     setLoading(true);
     const nextPage = page + 1;
     try {
       const response = await unsplash.search.getPhotos({
-        query,
+        query: searchQuery,
         page: nextPage,
         perPage: 20,
       });
@@ -76,6 +81,10 @@ export default function ImageSearchScreen() {
     Linking.openURL(`${url}?utm_source=MuscleQuest&utm_medium=referral`);
   };
 
+  const handleSearchSubmit = () => {
+    setSearchQuery(query); // Use the text input value for the search query
+  };
+
   return (
     <ThemedView style={styles.container}>
       <View style={styles.searchContainer}>
@@ -85,16 +94,16 @@ export default function ImageSearchScreen() {
           onChangeText={setQuery}
           style={styles.searchInput}
           selectTextOnFocus={true}
-          onSubmitEditing={handleSearch}
+          onSubmitEditing={handleSearchSubmit}
           placeholderTextColor={Colors.dark.subText}
         />
-        <TouchableOpacity onPress={handleSearch} style={styles.iconButton}>
-          <MaterialCommunityIcons
-            name="magnify"
-            size={24}
-            color={Colors.dark.text}
-          />
-        </TouchableOpacity>
+        <MaterialCommunityIcons
+          name="magnify"
+          size={24}
+          color={Colors.dark.text}
+          style={styles.iconButton}
+          onPress={handleSearchSubmit}
+        />
       </View>
       <FlatList
         data={photos}
