@@ -87,7 +87,9 @@ export default function HomeScreen() {
 
   if (activePlan) {
     // Sort workouts based on a defined order property or id
-    const sortedWorkouts = [...activePlan.workouts].sort((a, b) => a.id - b.id);
+    const sortedWorkouts = [...activePlan.workouts].sort(
+      (a, b) => a.id! - b.id!,
+    );
 
     completedWorkoutsThisPlanThisWeek =
       completedWorkoutsThisWeek?.filter(
@@ -149,7 +151,7 @@ export default function HomeScreen() {
                         type="subtitle"
                         style={styles.workoutCardTitle}
                       >
-                        {workout.name || `Day ${index + 1}`}
+                        {workout.name}
                       </ThemedText>
                       <ThemedText style={styles.exerciseInfo}>
                         {workout.exercises.length} Exercises
@@ -157,14 +159,14 @@ export default function HomeScreen() {
                     </View>
                     <View style={styles.smallButtonGroup}>
                       <Button
-                        mode="contained"
+                        mode={index === 0 ? "contained" : "outlined"}
                         onPress={() => {
                           useActiveWorkoutStore
                             .getState()
                             .setWorkout(
                               workout,
                               activePlan.id,
-                              workout.id,
+                              workout.id!,
                               workout.name || `Day ${index + 1}`,
                             );
                           router.push("/(workout)");
