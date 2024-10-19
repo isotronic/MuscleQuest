@@ -88,7 +88,7 @@ export default function HomeScreen() {
   if (activePlan) {
     // Sort workouts based on a defined order property or id
     const sortedWorkouts = [...activePlan.workouts].sort(
-      (a, b) => a.id! - b.id!,
+      (a, b) => (a.id ?? 0) - (b.id ?? 0),
     );
 
     completedWorkoutsThisPlanThisWeek =
