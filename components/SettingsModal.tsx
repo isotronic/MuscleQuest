@@ -68,6 +68,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       const totalSeconds =
         (inputValue as { minutes: number; seconds: number }).minutes * 60 +
         (inputValue as { minutes: number; seconds: number }).seconds;
+
       setRestTime(formatFromTotalSeconds(totalSeconds));
     }
   }, [inputValue, settingType]);
@@ -75,7 +76,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   // Handle rest time input change and format the time as "minutes:seconds"
   const handleRestTimeChange = (value: string) => {
     setRestTime(formatTimeInput(value));
-    const totalSeconds = convertToTotalSeconds(value);
+
+    const totalSeconds = convertToTotalSeconds(formatTimeInput(value));
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
 
@@ -119,6 +121,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         keyboardType="numeric"
                         style={styles.numberInput}
                         selectTextOnFocus={true}
+                        onSubmitEditing={onSave}
                       />
                       <MaterialCommunityIcons
                         name="plus"
@@ -186,6 +189,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       keyboardType="numeric"
                       style={styles.input}
                       selectTextOnFocus={true}
+                      onSubmitEditing={handleSaveRestTime}
                     />
                   </View>
                 )}
