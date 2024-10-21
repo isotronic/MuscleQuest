@@ -30,8 +30,12 @@ const fetchAndSortExercises = async (
     return exercises.sort((a, b) => {
       const aIsActive = activeExerciseIds.includes(a.exercise_id);
       const bIsActive = activeExerciseIds.includes(b.exercise_id);
-      if (aIsActive && !bIsActive) return -1;
-      if (!aIsActive && bIsActive) return 1;
+      if (aIsActive && !bIsActive) {
+        return -1;
+      }
+      if (!aIsActive && bIsActive) {
+        return 1;
+      }
       return a.exercise_id - b.exercise_id;
     });
   }
