@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.cardBackground,
     padding: 16,
     borderRadius: 8,
-    marginVertical: 8,
+    marginBottom: 16,
     overflow: "visible",
   },
   workoutHeader: {
@@ -246,10 +246,10 @@ const styles = StyleSheet.create({
   exerciseItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 20,
+    paddingVertical: 12,
     paddingHorizontal: 10,
     backgroundColor: Colors.dark.cardBackground2,
-    marginVertical: 5,
+    marginBottom: 8,
     borderRadius: 8,
     overflow: "visible",
   },
