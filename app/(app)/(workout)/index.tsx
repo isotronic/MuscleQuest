@@ -264,8 +264,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   numberContainerCompleted: {
-    backgroundColor: "green",
-    borderColor: "green",
+    backgroundColor: Colors.dark.completed,
+    borderColor: Colors.dark.completed,
   },
   numberText: {
     fontSize: 18,
