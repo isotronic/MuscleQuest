@@ -50,10 +50,19 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
   const set = setIndex !== null ? exercise?.sets[setIndex] : null;
 
   const [repsMin, setRepsMin] = useState(
-    String(set?.repsMin || defaultRepsMin),
+    set?.repsMin !== undefined && set?.repsMin !== null
+      ? String(set.repsMin)
+      : defaultRepsMin !== undefined && defaultRepsMin !== null
+        ? String(defaultRepsMin)
+        : "",
   );
+
   const [repsMax, setRepsMax] = useState(
-    String(set?.repsMax || defaultRepsMax),
+    set?.repsMax !== undefined && set?.repsMax !== null
+      ? String(set.repsMax)
+      : defaultRepsMax !== undefined && defaultRepsMax !== null
+        ? String(defaultRepsMax)
+        : "",
   );
 
   const [restTime, setRestTime] = useState(
@@ -62,24 +71,42 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
 
   useEffect(() => {
     if (setIndex !== null && set) {
-      setRepsMin(String(set.repsMin));
-      setRepsMax(String(set.repsMax));
+      setRepsMin(
+        set.repsMin !== undefined && set.repsMin !== null
+          ? String(set.repsMin)
+          : "",
+      );
+      setRepsMax(
+        set.repsMax !== undefined && set.repsMax !== null
+          ? String(set.repsMax)
+          : "",
+      );
       setRestTime(
         formatFromTotalSeconds(set.restMinutes * 60 + set.restSeconds),
       );
     } else {
-      setRepsMin(String(defaultRepsMin));
-      setRepsMax(String(defaultRepsMax));
+      setRepsMin(
+        defaultRepsMin !== undefined && defaultRepsMin !== null
+          ? String(defaultRepsMin)
+          : "",
+      );
+      setRepsMax(
+        defaultRepsMax !== undefined && defaultRepsMax !== null
+          ? String(defaultRepsMax)
+          : "",
+      );
       setRestTime(formatFromTotalSeconds(defaultTotalSeconds));
     }
   }, [setIndex, set, defaultRepsMin, defaultRepsMax, defaultTotalSeconds]);
 
   const handleSaveSet = () => {
     const totalSeconds = convertToTotalSeconds(restTime);
+    const minReps = repsMin === "" ? undefined : Number(repsMin);
+    const maxReps = repsMax === "" ? undefined : Number(repsMax);
 
     const updatedSet = {
-      repsMin: Number(repsMin),
-      repsMax: Number(repsMax),
+      repsMin: minReps,
+      repsMax: maxReps,
       restMinutes: Math.floor(totalSeconds / 60),
       restSeconds: totalSeconds % 60,
     };
@@ -120,7 +147,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                 />
                 <TextInput
                   style={styles.input}
-                  value={repsMin}
+                  value={repsMin ? repsMin : ""}
                   onChangeText={setRepsMin}
                   keyboardType="numeric"
                   selectTextOnFocus={true}
@@ -145,7 +172,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                 />
                 <TextInput
                   style={styles.input}
-                  value={repsMax}
+                  value={repsMax ? repsMax : ""}
                   onChangeText={setRepsMax}
                   keyboardType="numeric"
                   selectTextOnFocus={true}

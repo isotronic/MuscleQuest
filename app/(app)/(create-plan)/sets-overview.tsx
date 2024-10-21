@@ -39,18 +39,27 @@ export default function SetsOverviewScreen() {
     setModalVisible(true);
   };
 
-  const renderSetItem = ({ item, index }: { item: any; index: number }) => (
-    <TouchableOpacity
-      onPress={() => handleEditSet(index)}
-      style={styles.setItem}
-    >
-      <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
-      <ThemedText style={styles.setInfo}>
-        {item.repsMin} - {item.repsMax} reps, Rest: {item.restMinutes}m{" "}
-        {item.restSeconds}s
-      </ThemedText>
-    </TouchableOpacity>
-  );
+  const renderSetItem = ({ item, index }: { item: any; index: number }) => {
+    const repRange =
+      item.repsMin === item.repsMax
+        ? item.repsMin
+        : !item.repsMin
+          ? item.repsMax
+          : item.repsMax
+            ? `${item.repsMin} - ${item.repsMax}`
+            : item.repsMin;
+    return (
+      <TouchableOpacity
+        onPress={() => handleEditSet(index)}
+        style={styles.setItem}
+      >
+        <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
+        <ThemedText style={styles.setInfo}>
+          {repRange} reps, Rest: {item.restMinutes}m {item.restSeconds}s
+        </ThemedText>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <ThemedView style={styles.container}>

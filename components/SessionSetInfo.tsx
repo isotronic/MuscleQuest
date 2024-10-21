@@ -56,6 +56,14 @@ export default function SessionSetInfo({
   handleNextSet,
   handleCompleteSet,
 }: SessionSetInfoProps) {
+  const repRange =
+    repsMin === repsMax
+      ? repsMin
+      : !repsMin
+        ? repsMax
+        : repsMax
+          ? `${repsMin} - ${repsMax}`
+          : repsMin;
   return (
     <View>
       <View style={styles.headerContainer}>
@@ -76,9 +84,7 @@ export default function SessionSetInfo({
 
         <View style={styles.titleContainer}>
           <ThemedText style={styles.title}>{exerciseName}</ThemedText>
-          <ThemedText style={styles.headerText}>
-            Rep Range: {repsMin} - {repsMax}
-          </ThemedText>
+          <ThemedText style={styles.headerText}>Reps: {repRange}</ThemedText>
           <ThemedText style={styles.headerText}>
             Rest Time: {restMinutes}:{String(restSeconds).padStart(2, "0")}
           </ThemedText>

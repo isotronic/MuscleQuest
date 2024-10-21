@@ -2,8 +2,8 @@ import { create } from "zustand";
 import { Exercise } from "@/utils/database";
 
 interface Set {
-  repsMin: number;
-  repsMax: number;
+  repsMin: number | undefined;
+  repsMax: number | undefined;
   restMinutes: number;
   restSeconds: number;
 }
