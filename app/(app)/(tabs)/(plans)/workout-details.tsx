@@ -1,11 +1,12 @@
 import { View, StyleSheet, FlatList } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { UserExercise } from "@/store/workoutStore";
 import { Image } from "expo-image";
 import { byteArrayToBase64 } from "@/utils/utility";
+import { TouchableOpacity } from "react-native";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -38,32 +39,43 @@ export default function WorkoutDetailsScreen() {
       repRange = `${minReps} - ${maxReps}`; // Show range if both are defined
     }
 
+    const exerciseItem = { ...item, image: undefined };
+
     return (
-      <View style={styles.exerciseItem}>
-        {item.image ? (
-          <Image
-            style={styles.exerciseImage}
-            source={{
-              uri: base64Image,
-            }}
-          />
-        ) : (
-          <Image style={styles.exerciseImage} source={fallbackImage} />
-        )}
-        <View style={styles.exerciseInfo}>
-          <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
-          <ThemedText style={styles.exerciseSets}>
-            {item?.sets?.length
-              ? `${item.sets.length} Sets`
-              : "No Sets Available"}
-          </ThemedText>
-          {repRange && (
-            <ThemedText style={styles.exerciseReps}>
-              Reps: {repRange}
-            </ThemedText>
+      <TouchableOpacity
+        onPress={() => {
+          router.push({
+            pathname: "/(app)/exercise-details",
+            params: { exercise: JSON.stringify(exerciseItem) },
+          });
+        }}
+      >
+        <View style={styles.exerciseItem}>
+          {item.image ? (
+            <Image
+              style={styles.exerciseImage}
+              source={{
+                uri: base64Image,
+              }}
+            />
+          ) : (
+            <Image style={styles.exerciseImage} source={fallbackImage} />
           )}
+          <View style={styles.exerciseInfo}>
+            <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
+            <ThemedText style={styles.exerciseSets}>
+              {item?.sets?.length
+                ? `${item.sets.length} Sets`
+                : "No Sets Available"}
+            </ThemedText>
+            {repRange && (
+              <ThemedText style={styles.exerciseReps}>
+                Reps: {repRange}
+              </ThemedText>
+            )}
+          </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -76,14 +88,15 @@ export default function WorkoutDetailsScreen() {
   }
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.workoutHeader}>
-        <ThemedText style={styles.workoutName}>
-          {workout?.name || `Day ${Number(workoutIndex) + 1}`}
-        </ThemedText>
-      </View>
+    <ThemedView>
+      <Stack.Screen
+        options={{
+          title: workout?.name,
+        }}
+      />
 
       <FlatList
+        style={styles.container}
         data={workout?.exercises}
         renderItem={renderExerciseItem}
         keyExtractor={(item: any, index: number) => index.toString()}
