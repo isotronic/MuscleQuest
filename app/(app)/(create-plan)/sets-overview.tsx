@@ -71,7 +71,8 @@ export default function SetsOverviewScreen() {
               <ThemedText style={styles.setInfo}>
                 {item.isWarmup ? "Warm-up, " : ""}
                 {repRange !== undefined ? `${repRange} Reps, ` : ""}
-                {item.restMinutes}m {item.restSeconds}s Rest
+                {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
+                Rest
               </ThemedText>
             </ThemedView>
           </TouchableOpacity>
