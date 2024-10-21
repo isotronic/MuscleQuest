@@ -6,7 +6,7 @@ import {
   View,
   TouchableWithoutFeedback,
 } from "react-native";
-import { Button } from "react-native-paper";
+import { Button, Checkbox } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
@@ -49,11 +49,23 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
   );
   const set = setIndex !== null ? exercise?.sets[setIndex] : null;
 
+  const [applyToAllSets, setApplyToAllSets] = useState(false);
+  const [isWarmup, setIsWarmup] = useState(set?.isWarmup ?? false);
+
   const [repsMin, setRepsMin] = useState(
-    String(set?.repsMin || defaultRepsMin),
+    set?.repsMin !== undefined && set?.repsMin !== null
+      ? String(set.repsMin)
+      : defaultRepsMin !== undefined && defaultRepsMin !== null
+        ? String(defaultRepsMin)
+        : "",
   );
+
   const [repsMax, setRepsMax] = useState(
-    String(set?.repsMax || defaultRepsMax),
+    set?.repsMax !== undefined && set?.repsMax !== null
+      ? String(set.repsMax)
+      : defaultRepsMax !== undefined && defaultRepsMax !== null
+        ? String(defaultRepsMax)
+        : "",
   );
 
   const [restTime, setRestTime] = useState(
@@ -62,34 +74,62 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
 
   useEffect(() => {
     if (setIndex !== null && set) {
-      setRepsMin(String(set.repsMin));
-      setRepsMax(String(set.repsMax));
+      setRepsMin(
+        set.repsMin !== undefined && set.repsMin !== null
+          ? String(set.repsMin)
+          : "",
+      );
+      setRepsMax(
+        set.repsMax !== undefined && set.repsMax !== null
+          ? String(set.repsMax)
+          : "",
+      );
       setRestTime(
         formatFromTotalSeconds(set.restMinutes * 60 + set.restSeconds),
       );
+      setIsWarmup(set?.isWarmup ?? false);
     } else {
-      setRepsMin(String(defaultRepsMin));
-      setRepsMax(String(defaultRepsMax));
+      setRepsMin(
+        defaultRepsMin !== undefined && defaultRepsMin !== null
+          ? String(defaultRepsMin)
+          : "",
+      );
+      setRepsMax(
+        defaultRepsMax !== undefined && defaultRepsMax !== null
+          ? String(defaultRepsMax)
+          : "",
+      );
       setRestTime(formatFromTotalSeconds(defaultTotalSeconds));
     }
   }, [setIndex, set, defaultRepsMin, defaultRepsMax, defaultTotalSeconds]);
 
   const handleSaveSet = () => {
     const totalSeconds = convertToTotalSeconds(restTime);
+    const minReps = repsMin === "" ? undefined : Number(repsMin);
+    const maxReps = repsMax === "" ? undefined : Number(repsMax);
 
     const updatedSet = {
-      repsMin: Number(repsMin),
-      repsMax: Number(repsMax),
+      repsMin: minReps,
+      repsMax: maxReps,
       restMinutes: Math.floor(totalSeconds / 60),
       restSeconds: totalSeconds % 60,
+      isWarmup,
     };
 
-    if (setIndex !== null) {
+    if (applyToAllSets) {
+      // Update all sets in the current exercise
+      exercise?.sets.forEach((_, sIndex) => {
+        updateSetInExercise(workoutIndex, exerciseId, sIndex, updatedSet);
+      });
+    } else if (setIndex !== null) {
+      // Update only the selected set
       updateSetInExercise(workoutIndex, exerciseId, setIndex, updatedSet);
     } else {
+      // Add a new set
       addSetToExercise(workoutIndex, exerciseId, updatedSet);
     }
 
+    setApplyToAllSets(false);
     onClose();
   };
 
@@ -120,7 +160,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                 />
                 <TextInput
                   style={styles.input}
-                  value={repsMin}
+                  value={repsMin ? repsMin : ""}
                   onChangeText={setRepsMin}
                   keyboardType="numeric"
                   selectTextOnFocus={true}
@@ -145,7 +185,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                 />
                 <TextInput
                   style={styles.input}
-                  value={repsMax}
+                  value={repsMax ? repsMax : ""}
                   onChangeText={setRepsMax}
                   keyboardType="numeric"
                   selectTextOnFocus={true}
@@ -169,6 +209,30 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                   keyboardType="numeric"
                   selectTextOnFocus={true}
                 />
+              </View>
+
+              <View style={styles.checkboxContainer}>
+                <Checkbox
+                  status={isWarmup ? "checked" : "unchecked"}
+                  uncheckedColor={Colors.dark.subText}
+                  onPress={() => setIsWarmup(!isWarmup)}
+                />
+                <ThemedText style={styles.checkboxLabel}>
+                  Warm-up Set
+                </ThemedText>
+              </View>
+
+              <View style={styles.checkboxContainer}>
+                <Checkbox
+                  status={applyToAllSets ? "checked" : "unchecked"}
+                  uncheckedColor={Colors.dark.subText}
+                  onPress={() => {
+                    setApplyToAllSets(!applyToAllSets);
+                  }}
+                />
+                <ThemedText style={styles.checkboxLabel}>
+                  Apply to all sets
+                </ThemedText>
               </View>
 
               <View style={styles.inputRow}>
@@ -232,6 +296,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginHorizontal: 8,
     textAlign: "center",
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    color: Colors.dark.text,
   },
   button: {
     marginTop: 16,

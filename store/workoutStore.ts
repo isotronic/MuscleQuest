@@ -2,10 +2,11 @@ import { create } from "zustand";
 import { Exercise } from "@/utils/database";
 
 interface Set {
-  repsMin: number;
-  repsMax: number;
+  repsMin: number | undefined;
+  repsMax: number | undefined;
   restMinutes: number;
   restSeconds: number;
+  isWarmup?: boolean;
 }
 
 export interface UserExercise extends Exercise {
@@ -43,6 +44,11 @@ interface WorkoutStore {
     exerciseId: number,
     setIndex: number,
     set: Set,
+  ) => void;
+  removeSetFromExercise: (
+    workoutIndex: number,
+    exerciseId: number,
+    setIndex: number,
   ) => void;
 }
 
@@ -138,6 +144,34 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
             }
             return updatedSet;
           });
+          return {
+            ...exercise,
+            sets,
+          };
+        });
+        return {
+          ...workout,
+          exercises,
+        };
+      });
+      return { workouts };
+    });
+  },
+  removeSetFromExercise: (
+    workoutIndex: number,
+    exerciseId: number,
+    setIndex: number,
+  ) => {
+    set((state) => {
+      const workouts = state.workouts.map((workout, wIndex) => {
+        if (wIndex !== workoutIndex) {
+          return workout;
+        }
+        const exercises = workout.exercises.map((exercise) => {
+          if (exercise.exercise_id !== exerciseId) {
+            return exercise;
+          }
+          const sets = exercise.sets.filter((_, sIndex) => sIndex !== setIndex);
           return {
             ...exercise,
             sets,

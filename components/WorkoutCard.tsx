@@ -66,6 +66,23 @@ export default function WorkoutCard({
       );
     };
 
+    // Calculate min and max reps
+    const minReps = Math.min(
+      ...item.sets.map((set) => set.repsMin ?? Infinity),
+    );
+    const maxReps = Math.max(
+      ...item.sets.map((set) => set.repsMax ?? -Infinity),
+    );
+
+    let repRange;
+    if (minReps === Infinity && maxReps !== -Infinity) {
+      repRange = `${maxReps}`; // Only show maxReps if minReps is undefined
+    } else if (maxReps === -Infinity && minReps !== Infinity) {
+      repRange = `${minReps}`; // Only show minReps if maxReps is undefined
+    } else if (minReps !== Infinity && maxReps !== -Infinity) {
+      repRange = `${minReps} - ${maxReps}`; // Show range if both are defined
+    }
+
     return (
       <ShadowDecorator>
         <TouchableOpacity
@@ -86,21 +103,28 @@ export default function WorkoutCard({
             onLongPress={drag}
             size={24}
             color="#ECEFF4"
-            style={{ marginRight: 10 }}
+            style={styles.dragIcon}
           />
-          <ThemedText>{item.name}</ThemedText>
+          <View style={styles.exerciseInfo}>
+            <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
+            <ThemedText style={styles.setsAndReps}>
+              {item?.sets?.length
+                ? `${item.sets.length} Sets`
+                : "No Sets Available"}
+              {repRange && ` | ${repRange} Reps`}
+            </ThemedText>
+          </View>
           <MaterialCommunityIcons
             name="close"
             onPress={() => removeExercise(item.exercise_id)}
             size={24}
             color={Colors.dark.text}
-            style={{ marginLeft: "auto" }}
+            style={styles.closeIcon}
           />
         </TouchableOpacity>
       </ShadowDecorator>
     );
   };
-
   const handleDragEnd = (index: number, { data }: { data: UserExercise[] }) => {
     const updatedWorkouts = workouts.map((workout, i) => {
       if (i === index) {
@@ -199,7 +223,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.cardBackground,
     padding: 16,
     borderRadius: 8,
-    marginVertical: 8,
+    marginBottom: 16,
     overflow: "visible",
   },
   workoutHeader: {
@@ -220,17 +244,17 @@ const styles = StyleSheet.create({
     bottom: 15,
   },
   exerciseItem: {
-    flex: 1,
     flexDirection: "row",
-    paddingVertical: 20,
+    alignItems: "center",
+    paddingVertical: 12,
     paddingHorizontal: 10,
-    backgroundColor: "#4C566A",
-    marginVertical: 5,
+    backgroundColor: Colors.dark.cardBackground2,
+    marginBottom: 8,
     borderRadius: 8,
     overflow: "visible",
   },
   activeExerciseItem: {
-    backgroundColor: "#81A1C1",
+    backgroundColor: Colors.dark.activeCardBackground,
     zIndex: 9999,
   },
   exerciseName: {
@@ -241,8 +265,17 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 50,
   },
-  removeWorkoutButtonText: {
-    fontSize: 20,
-    color: "red",
+  dragIcon: {
+    marginRight: 10,
+  },
+  exerciseInfo: {
+    flex: 1,
+  },
+  setsAndReps: {
+    fontSize: 14, // Smaller font size for sets and reps
+    color: "#D8DEE9",
+  },
+  closeIcon: {
+    marginLeft: "auto",
   },
 });

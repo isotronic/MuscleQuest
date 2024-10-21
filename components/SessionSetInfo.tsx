@@ -19,9 +19,10 @@ interface SessionSetInfoProps {
   weightUnit: string;
   restMinutes: number;
   restSeconds: number;
-  repsMin: number;
-  repsMax: number;
+  repsMin: number | undefined;
+  repsMax: number | undefined;
   currentSetCompleted: boolean;
+  isWarmup: boolean;
   handleWeightInputChange: (text: string) => void;
   handleWeightChange: (amount: number) => void;
   handleRepsInputChange: (text: string) => void;
@@ -48,6 +49,7 @@ export default function SessionSetInfo({
   repsMin,
   repsMax,
   currentSetCompleted,
+  isWarmup,
   handleWeightInputChange,
   handleWeightChange,
   handleRepsInputChange,
@@ -56,6 +58,14 @@ export default function SessionSetInfo({
   handleNextSet,
   handleCompleteSet,
 }: SessionSetInfoProps) {
+  const repRange =
+    repsMin === repsMax
+      ? repsMin
+      : !repsMin
+        ? repsMax
+        : repsMax
+          ? `${repsMin} - ${repsMax}`
+          : repsMin;
   return (
     <View>
       <View style={styles.headerContainer}>
@@ -76,9 +86,11 @@ export default function SessionSetInfo({
 
         <View style={styles.titleContainer}>
           <ThemedText style={styles.title}>{exerciseName}</ThemedText>
-          <ThemedText style={styles.headerText}>
-            Rep Range: {repsMin} - {repsMax}
-          </ThemedText>
+
+          {repRange && (
+            <ThemedText style={styles.headerText}>Reps: {repRange}</ThemedText>
+          )}
+
           <ThemedText style={styles.headerText}>
             Rest Time: {restMinutes}:{String(restSeconds).padStart(2, "0")}
           </ThemedText>
@@ -107,6 +119,12 @@ export default function SessionSetInfo({
           style={styles.iconButton}
         />
       </View>
+
+      {isWarmup && (
+        <View style={styles.centeredLabelContainer}>
+          <ThemedText style={styles.warmupLabel}>Warm-up</ThemedText>
+        </View>
+      )}
 
       {/* Weight Input */}
       <View style={styles.centeredLabelContainer}>
@@ -207,6 +225,10 @@ const styles = StyleSheet.create({
   },
   centeredLabelContainer: {
     alignItems: "center",
+  },
+  warmupLabel: {
+    fontSize: 20,
+    marginBottom: 16,
   },
   label: {
     fontSize: 16,

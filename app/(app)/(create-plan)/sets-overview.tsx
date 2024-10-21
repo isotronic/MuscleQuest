@@ -8,6 +8,8 @@ import { useWorkoutStore } from "@/store/workoutStore";
 import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { EditSetModal } from "@/components/EditSetModal";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 
 export default function SetsOverviewScreen() {
   const { exerciseId, workoutIndex } = useLocalSearchParams();
@@ -39,18 +41,52 @@ export default function SetsOverviewScreen() {
     setModalVisible(true);
   };
 
-  const renderSetItem = ({ item, index }: { item: any; index: number }) => (
-    <TouchableOpacity
-      onPress={() => handleEditSet(index)}
-      style={styles.setItem}
-    >
-      <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
-      <ThemedText style={styles.setInfo}>
-        {item.repsMin} - {item.repsMax} reps, Rest: {item.restMinutes}m{" "}
-        {item.restSeconds}s
-      </ThemedText>
-    </TouchableOpacity>
-  );
+  const handleDeleteSet = (index: number) => {
+    useWorkoutStore
+      .getState()
+      .removeSetFromExercise(Number(workoutIndex), Number(exerciseId), index);
+  };
+
+  const renderSetItem = ({ item, index }: { item: any; index: number }) => {
+    const repRange =
+      item.repsMin === item.repsMax
+        ? item.repsMin
+        : !item.repsMin
+          ? item.repsMax
+          : item.repsMax
+            ? `${item.repsMin} - ${item.repsMax}`
+            : item.repsMin;
+    return (
+      <Swipeable
+        onSwipeableOpen={() => handleDeleteSet(index)}
+        rightThreshold={150}
+      >
+        <ThemedView style={styles.setItem}>
+          <TouchableOpacity
+            onPress={() => handleEditSet(index)}
+            style={styles.setContent}
+          >
+            <ThemedView style={styles.setTextContainer}>
+              <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
+              <ThemedText style={styles.setInfo}>
+                {item.isWarmup ? "Warm-up, " : ""}
+                {repRange !== undefined ? `${repRange} Reps, ` : ""}
+                {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
+                Rest
+              </ThemedText>
+            </ThemedView>
+          </TouchableOpacity>
+          <MaterialCommunityIcons
+            name="close"
+            size={24}
+            color={Colors.dark.text}
+            onPress={() => handleDeleteSet(index)}
+            style={styles.deleteIcon}
+          />
+        </ThemedView>
+      </Swipeable>
+    );
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -96,6 +132,16 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 10,
     borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  setContent: {
+    flex: 1,
+  },
+  setTextContainer: {
+    flex: 1,
+    backgroundColor: Colors.dark.cardBackground,
   },
   setTitle: {
     fontSize: 18,
@@ -106,6 +152,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.dark.text,
     marginTop: 5,
+  },
+  deleteIcon: {
+    paddingLeft: 16,
   },
   flatListContent: {
     paddingBottom: 16,
