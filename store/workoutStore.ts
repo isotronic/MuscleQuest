@@ -6,6 +6,7 @@ interface Set {
   repsMax: number | undefined;
   restMinutes: number;
   restSeconds: number;
+  isWarmup?: boolean;
 }
 
 export interface UserExercise extends Exercise {

@@ -22,6 +22,7 @@ interface SessionSetInfoProps {
   repsMin: number;
   repsMax: number;
   currentSetCompleted: boolean;
+  isWarmup: boolean;
   handleWeightInputChange: (text: string) => void;
   handleWeightChange: (amount: number) => void;
   handleRepsInputChange: (text: string) => void;
@@ -48,6 +49,7 @@ export default function SessionSetInfo({
   repsMin,
   repsMax,
   currentSetCompleted,
+  isWarmup,
   handleWeightInputChange,
   handleWeightChange,
   handleRepsInputChange,
@@ -113,6 +115,12 @@ export default function SessionSetInfo({
           style={styles.iconButton}
         />
       </View>
+
+      {isWarmup && (
+        <View style={styles.centeredLabelContainer}>
+          <ThemedText style={styles.warmupLabel}>Warm-up</ThemedText>
+        </View>
+      )}
 
       {/* Weight Input */}
       <View style={styles.centeredLabelContainer}>
@@ -213,6 +221,10 @@ const styles = StyleSheet.create({
   },
   centeredLabelContainer: {
     alignItems: "center",
+  },
+  warmupLabel: {
+    fontSize: 20,
+    marginBottom: 16,
   },
   label: {
     fontSize: 16,

@@ -50,6 +50,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
   const set = setIndex !== null ? exercise?.sets[setIndex] : null;
 
   const [applyToAllSets, setApplyToAllSets] = useState(false);
+  const [isWarmup, setIsWarmup] = useState(set?.isWarmup ?? false);
 
   const [repsMin, setRepsMin] = useState(
     set?.repsMin !== undefined && set?.repsMin !== null
@@ -86,6 +87,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
       setRestTime(
         formatFromTotalSeconds(set.restMinutes * 60 + set.restSeconds),
       );
+      setIsWarmup(set?.isWarmup ?? false);
     } else {
       setRepsMin(
         defaultRepsMin !== undefined && defaultRepsMin !== null
@@ -111,6 +113,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
       repsMax: maxReps,
       restMinutes: Math.floor(totalSeconds / 60),
       restSeconds: totalSeconds % 60,
+      isWarmup,
     };
 
     if (applyToAllSets) {
@@ -206,6 +209,17 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                   keyboardType="numeric"
                   selectTextOnFocus={true}
                 />
+              </View>
+
+              <View style={styles.checkboxContainer}>
+                <Checkbox
+                  status={isWarmup ? "checked" : "unchecked"}
+                  uncheckedColor={Colors.dark.subText}
+                  onPress={() => setIsWarmup(!isWarmup)}
+                />
+                <ThemedText style={styles.checkboxLabel}>
+                  Warm-up Set
+                </ThemedText>
               </View>
 
               <View style={styles.checkboxContainer}>

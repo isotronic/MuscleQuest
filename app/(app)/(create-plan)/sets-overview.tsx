@@ -55,7 +55,8 @@ export default function SetsOverviewScreen() {
       >
         <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
         <ThemedText style={styles.setInfo}>
-          {repRange} reps, Rest: {item.restMinutes}m {item.restSeconds}s
+          {item.isWarmup ? "Warm-up, " : ""}
+          {repRange} Reps, {item.restMinutes}m {item.restSeconds}s Rest
         </ThemedText>
       </TouchableOpacity>
     );
