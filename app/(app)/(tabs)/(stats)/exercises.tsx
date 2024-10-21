@@ -35,7 +35,7 @@ export default function ExercisesScreen() {
     data: exercises,
     isLoading: exercisesLoading,
     error: exercisesError,
-  } = useExercisesQuery();
+  } = useExercisesQuery(true);
 
   const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
 

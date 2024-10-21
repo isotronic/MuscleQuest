@@ -42,10 +42,10 @@ const fetchTrackedExercises = async (
     `;
 
     if (timeRange !== "0") {
-      query += `WHERE cw.date_completed > DATETIME('now', '-${timeRange} days') `;
+      query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) `;
     }
 
-    query += `GROUP BY cw.id, te.exercise_id -- Group by workout and exercise to get one max set per workout
+    query += `GROUP BY te.id, te.exercise_id -- Group by tracked exercise and exercise ID
       ORDER BY cw.date_completed DESC`;
 
     const trackedExercises = await db.getAllAsync(query);
@@ -64,18 +64,21 @@ const fetchTrackedExercises = async (
         };
       }
 
-      const { max_weight, reps } = row;
+      // Only add completed sets if there are any
+      if (row.max_weight !== null && row.reps !== null) {
+        const { max_weight, reps } = row;
 
-      // Calculate the one-rep-max (1RM) using the Epley formula
-      const oneRepMax = Math.round(max_weight * (1 + reps / 30) * 10) / 10;
+        // Calculate the one-rep-max (1RM) using the Epley formula
+        const oneRepMax = Math.round(max_weight * (1 + reps / 30) * 10) / 10;
 
-      groupedExercises[row.exercise_id].completed_sets.push({
-        set_number: row.set_number,
-        weight: row.max_weight, // Use the max weight from the query
-        reps: row.reps,
-        date_completed: row.date_completed,
-        oneRepMax,
-      });
+        groupedExercises[row.exercise_id].completed_sets.push({
+          set_number: row.set_number,
+          weight: row.max_weight, // Use the max weight from the query
+          reps: row.reps,
+          date_completed: row.date_completed,
+          oneRepMax,
+        });
+      }
     });
 
     return Object.values(groupedExercises);
