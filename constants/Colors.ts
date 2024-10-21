@@ -25,6 +25,8 @@ export const Colors = {
     tabIconDefault: "#9BA1A6",
     tabIconSelected: "#ebaa39",
     cardBackground: "#3A3A4A",
+    cardBackground2: "#4C566A",
+    activeCardBackground: "#81A1C1",
     disabledButtonBackground: "#4d4d59",
     disabledButtonText: "#a6a6b0",
   },
