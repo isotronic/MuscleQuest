@@ -6,7 +6,7 @@ import {
   View,
   TouchableWithoutFeedback,
 } from "react-native";
-import { Button } from "react-native-paper";
+import { Button, Checkbox } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
@@ -48,6 +48,8 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
     (ex) => ex.exercise_id === Number(exerciseId),
   );
   const set = setIndex !== null ? exercise?.sets[setIndex] : null;
+
+  const [applyToAllSets, setApplyToAllSets] = useState(false);
 
   const [repsMin, setRepsMin] = useState(
     set?.repsMin !== undefined && set?.repsMin !== null
@@ -111,12 +113,20 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
       restSeconds: totalSeconds % 60,
     };
 
-    if (setIndex !== null) {
+    if (applyToAllSets) {
+      // Update all sets in the current exercise
+      exercise?.sets.forEach((_, sIndex) => {
+        updateSetInExercise(workoutIndex, exerciseId, sIndex, updatedSet);
+      });
+    } else if (setIndex !== null) {
+      // Update only the selected set
       updateSetInExercise(workoutIndex, exerciseId, setIndex, updatedSet);
     } else {
+      // Add a new set
       addSetToExercise(workoutIndex, exerciseId, updatedSet);
     }
 
+    setApplyToAllSets(false);
     onClose();
   };
 
@@ -198,6 +208,19 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                 />
               </View>
 
+              <View style={styles.checkboxContainer}>
+                <Checkbox
+                  status={applyToAllSets ? "checked" : "unchecked"}
+                  uncheckedColor={Colors.dark.subText}
+                  onPress={() => {
+                    setApplyToAllSets(!applyToAllSets);
+                  }}
+                />
+                <ThemedText style={styles.checkboxLabel}>
+                  Apply to all sets
+                </ThemedText>
+              </View>
+
               <View style={styles.inputRow}>
                 <Button
                   style={styles.button}
@@ -259,6 +282,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginHorizontal: 8,
     textAlign: "center",
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    color: Colors.dark.text,
   },
   button: {
     marginTop: 16,
