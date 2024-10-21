@@ -45,6 +45,11 @@ interface WorkoutStore {
     setIndex: number,
     set: Set,
   ) => void;
+  removeSetFromExercise: (
+    workoutIndex: number,
+    exerciseId: number,
+    setIndex: number,
+  ) => void;
 }
 
 const useWorkoutStore = create<WorkoutStore>((set) => ({
@@ -139,6 +144,34 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
             }
             return updatedSet;
           });
+          return {
+            ...exercise,
+            sets,
+          };
+        });
+        return {
+          ...workout,
+          exercises,
+        };
+      });
+      return { workouts };
+    });
+  },
+  removeSetFromExercise: (
+    workoutIndex: number,
+    exerciseId: number,
+    setIndex: number,
+  ) => {
+    set((state) => {
+      const workouts = state.workouts.map((workout, wIndex) => {
+        if (wIndex !== workoutIndex) {
+          return workout;
+        }
+        const exercises = workout.exercises.map((exercise) => {
+          if (exercise.exercise_id !== exerciseId) {
+            return exercise;
+          }
+          const sets = exercise.sets.filter((_, sIndex) => sIndex !== setIndex);
           return {
             ...exercise,
             sets,
