@@ -22,8 +22,21 @@ export default function WorkoutDetailsScreen() {
       base64Image = `data:image/webp;base64,${base64String}`;
     }
 
-    const minReps = Math.min(...item.sets.map((set) => set.repsMin));
-    const maxReps = Math.max(...item.sets.map((set) => set.repsMax));
+    const minReps = Math.min(
+      ...item.sets.map((set) => set.repsMin ?? Infinity),
+    );
+    const maxReps = Math.max(
+      ...item.sets.map((set) => set.repsMax ?? -Infinity),
+    );
+
+    let repRange;
+    if (minReps === Infinity && maxReps !== -Infinity) {
+      repRange = `${maxReps}`; // Only show maxReps if minReps is undefined
+    } else if (maxReps === -Infinity && minReps !== Infinity) {
+      repRange = `${minReps}`; // Only show minReps if maxReps is undefined
+    } else if (minReps !== Infinity && maxReps !== -Infinity) {
+      repRange = `${minReps} - ${maxReps}`; // Show range if both are defined
+    }
 
     return (
       <View style={styles.exerciseItem}>
@@ -44,11 +57,11 @@ export default function WorkoutDetailsScreen() {
               ? `${item.sets.length} Sets`
               : "No Sets Available"}
           </ThemedText>
-          <ThemedText style={styles.exerciseReps}>
-            {item?.sets?.length
-              ? `Reps: ${minReps} - ${maxReps}`
-              : "No Reps Available"}
-          </ThemedText>
+          {repRange && (
+            <ThemedText style={styles.exerciseReps}>
+              Reps: {repRange}
+            </ThemedText>
+          )}
         </View>
       </View>
     );

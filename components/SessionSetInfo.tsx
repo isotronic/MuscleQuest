@@ -19,8 +19,8 @@ interface SessionSetInfoProps {
   weightUnit: string;
   restMinutes: number;
   restSeconds: number;
-  repsMin: number;
-  repsMax: number;
+  repsMin: number | undefined;
+  repsMax: number | undefined;
   currentSetCompleted: boolean;
   isWarmup: boolean;
   handleWeightInputChange: (text: string) => void;
@@ -86,7 +86,11 @@ export default function SessionSetInfo({
 
         <View style={styles.titleContainer}>
           <ThemedText style={styles.title}>{exerciseName}</ThemedText>
-          <ThemedText style={styles.headerText}>Reps: {repRange}</ThemedText>
+
+          {repRange && (
+            <ThemedText style={styles.headerText}>Reps: {repRange}</ThemedText>
+          )}
+
           <ThemedText style={styles.headerText}>
             Rest Time: {restMinutes}:{String(restSeconds).padStart(2, "0")}
           </ThemedText>
