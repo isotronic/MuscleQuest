@@ -99,6 +99,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
         weightAndReps,
         completedSets,
       } = state;
+
       if (!workout) {
         return state;
       }
@@ -106,20 +107,13 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
       const currentExercise = workout.exercises[currentExerciseIndex];
       const currentSetIndex = currentSetIndices[currentExerciseIndex] || 0;
       const nextSetIndex = currentSetIndex + 1;
-      const nextExerciseIndex = currentExerciseIndex + 1;
 
-      const currentWeightAndReps = weightAndReps[currentExerciseIndex]?.[
-        currentSetIndex
-      ] || {
-        weight: "0",
-        reps: "0",
-      };
-
+      // Mark current set as completed
       const updatedCompletedSets = {
         ...completedSets,
         [currentExerciseIndex]: {
           ...(completedSets[currentExerciseIndex] || {}),
-          [currentSetIndex]: true, // Mark current set as completed
+          [currentSetIndex]: true,
         },
       };
 
@@ -128,16 +122,25 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
         [currentExerciseIndex]: nextSetIndex,
       };
 
+      // Update weight and reps for the next set
+      const currentWeightAndReps = weightAndReps[currentExerciseIndex]?.[
+        currentSetIndex
+      ] || {
+        weight: "0",
+        reps: "0",
+      };
+
       if (nextSetIndex < currentExercise.sets.length) {
+        // If there are more sets in the current exercise
         const nextSetWeightAndReps =
           weightAndReps[currentExerciseIndex]?.[nextSetIndex];
 
         const updatedNextSetWeightAndReps = {
-          weight: currentWeightAndReps.weight, // Always update weight to current weight
+          weight: currentWeightAndReps.weight, // Carry over weight
           reps:
             nextSetWeightAndReps?.reps !== undefined
-              ? nextSetWeightAndReps.reps // Keep existing reps (historical data)
-              : currentWeightAndReps.reps, // No historical data, carry over from current set
+              ? nextSetWeightAndReps.reps // Use historical data if available
+              : currentWeightAndReps.reps, // Carry over reps from current set
         };
 
         const updatedWeightAndReps = {
@@ -153,19 +156,34 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
           completedSets: updatedCompletedSets,
           weightAndReps: updatedWeightAndReps,
         };
-      } else if (nextExerciseIndex < workout.exercises.length) {
-        return {
-          currentExerciseIndex: nextExerciseIndex,
-          currentSetIndices: updatedSetIndices,
-          completedSets: updatedCompletedSets,
-        };
-      } else {
-        router.back();
-        return {
-          currentSetIndices: updatedSetIndices,
-          completedSets: updatedCompletedSets,
-        };
       }
+
+      // If no more sets, move to next exercise, skipping completed exercises
+      let nextExerciseIndex = currentExerciseIndex + 1;
+      while (nextExerciseIndex < workout.exercises.length) {
+        const totalSets = workout.exercises[nextExerciseIndex].sets.length;
+        const isExerciseCompleted =
+          updatedCompletedSets[nextExerciseIndex] &&
+          Object.keys(updatedCompletedSets[nextExerciseIndex]).length ===
+            totalSets;
+
+        if (!isExerciseCompleted) {
+          // Found the next uncompleted exercise
+          return {
+            currentExerciseIndex: nextExerciseIndex,
+            currentSetIndices: updatedSetIndices,
+            completedSets: updatedCompletedSets,
+          };
+        }
+        nextExerciseIndex++;
+      }
+
+      // If all exercises are completed, return to previous screen
+      router.back();
+      return {
+        currentSetIndices: updatedSetIndices,
+        completedSets: updatedCompletedSets,
+      };
     }),
 
   updateWeightAndReps: (exerciseIndex, setIndex, weight, reps) =>
