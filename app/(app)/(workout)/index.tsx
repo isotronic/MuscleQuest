@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   ScrollView,
@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { IconButton, Card } from "react-native-paper";
+import { IconButton, Card, Menu } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -21,8 +21,14 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 export default function WorkoutOverviewScreen() {
   const navigation = useNavigation();
   const { data: settings } = useSettingsQuery();
-  const { workout, completedSets, weightAndReps, startTime, activeWorkout } =
-    useActiveWorkoutStore();
+  const {
+    workout,
+    completedSets,
+    weightAndReps,
+    startTime,
+    activeWorkout,
+    deleteExercise,
+  } = useActiveWorkoutStore();
 
   const weightUnit = settings?.weightUnit || "kg";
   const { data: completedWorkouts } = useCompletedWorkoutsQuery(weightUnit);
@@ -33,6 +39,10 @@ export default function WorkoutOverviewScreen() {
     useSaveCompletedWorkoutMutation(weightUnit);
 
   useKeepScreenOn();
+
+  const [menuVisible, setMenuVisible] = useState<{ [key: number]: boolean }>(
+    {},
+  );
 
   // Calculate if any sets are completed
   const hasCompletedSets = useMemo(() => {
@@ -63,6 +73,39 @@ export default function WorkoutOverviewScreen() {
 
     return unsubscribe;
   }, [navigation]);
+
+  const handleMenuOpen = (index: number) => {
+    setMenuVisible((prev) => ({ ...prev, [index]: true }));
+  };
+
+  const handleMenuClose = (index: number) => {
+    setMenuVisible((prev) => ({ ...prev, [index]: false }));
+  };
+
+  const handleDeleteExercise = (index: number) => {
+    Alert.alert(
+      "Delete Exercise",
+      "Are you sure you want to delete this exercise?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            deleteExercise(index);
+          },
+        },
+      ],
+    );
+  };
+
+  const handleReplaceExercise = (index: number) => {
+    // Navigate to the exercises screen for replacing
+    router.push({
+      pathname: "/(app)/(workout)/exercises",
+      params: { replaceExerciseIndex: index },
+    });
+  };
 
   const handleExercisePress = (index: number) => {
     const historyString = currentWorkoutHistory
@@ -221,14 +264,35 @@ export default function WorkoutOverviewScreen() {
                     </ThemedText>
                   </View>
 
-                  {/* Three-dot options */}
-                  <IconButton
-                    icon="dots-vertical"
-                    size={24}
-                    onPress={() => console.log("Options pressed")}
-                    style={styles.optionsButton}
-                    iconColor={Colors.dark.text}
-                  />
+                  {/* Options Menu */}
+                  <Menu
+                    visible={menuVisible[index]}
+                    onDismiss={() => handleMenuClose(index)}
+                    anchor={
+                      <IconButton
+                        icon="dots-vertical"
+                        size={24}
+                        onPress={() => handleMenuOpen(index)}
+                        style={styles.optionsButton}
+                        iconColor={Colors.dark.text}
+                      />
+                    }
+                  >
+                    <Menu.Item
+                      onPress={() => {
+                        handleMenuClose(index);
+                        handleDeleteExercise(index);
+                      }}
+                      title="Delete"
+                    />
+                    <Menu.Item
+                      onPress={() => {
+                        handleMenuClose(index);
+                        handleReplaceExercise(index);
+                      }}
+                      title="Replace"
+                    />
+                  </Menu>
                 </Card.Content>
               </Card>
             </TouchableOpacity>
@@ -245,7 +309,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    marginBottom: 15,
+    marginBottom: 12,
     backgroundColor: Colors.dark.cardBackground,
     borderRadius: 10,
   },
@@ -261,7 +325,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.dark.text,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
+    marginRight: 12,
   },
   numberContainerCompleted: {
     backgroundColor: Colors.dark.completed,
@@ -277,7 +341,6 @@ const styles = StyleSheet.create({
   exerciseName: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 5,
     color: Colors.dark.text,
   },
   setInfo: {
@@ -286,5 +349,6 @@ const styles = StyleSheet.create({
   },
   optionsButton: {
     padding: 0,
+    marginRight: 0,
   },
 });

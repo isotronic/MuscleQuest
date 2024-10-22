@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Workout } from "./workoutStore";
+import { UserExercise, Workout } from "./workoutStore";
 import { router } from "expo-router";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 
@@ -35,6 +35,8 @@ interface ActiveWorkoutStore {
     reps: string,
   ) => void;
   initializeWeightAndReps: (previousWorkoutData: CompletedWorkout) => void;
+  replaceExercise: (index: number, newExercise: UserExercise) => void;
+  deleteExercise: (index: number) => void;
   resetWorkout: () => void;
   startTimer: (expiry: Date) => void;
   stopTimer: () => void;
@@ -266,6 +268,114 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
     });
 
     set({ weightAndReps });
+  },
+
+  replaceExercise: (index, newExercise) => {
+    set((state) => {
+      const { workout, currentSetIndices } = state;
+      if (!workout) {
+        return state;
+      }
+
+      const oldExerciseSets = workout.exercises[index].sets;
+      const newExerciseWithSets = { ...newExercise, sets: oldExerciseSets };
+
+      // Reset weight and reps to "0" for each set of the new exercise
+      const resetWeightAndReps = oldExerciseSets.reduce(
+        (acc: any, _set: any, setIndex: number) => {
+          acc[setIndex] = { weight: "0", reps: "0" };
+          return acc;
+        },
+        {},
+      );
+
+      // Reset completed sets: All sets are marked as not completed
+      const resetCompletedSets = oldExerciseSets.reduce(
+        (acc: any, _set: any, setIndex: number) => {
+          acc[setIndex] = false; // Set all sets as not completed
+          return acc;
+        },
+        {},
+      );
+
+      // Replace the exercise at the given index with the new exercise
+      const updatedExercises = [...workout.exercises];
+      updatedExercises[index] = newExerciseWithSets;
+
+      return {
+        workout: { ...workout, exercises: updatedExercises },
+        completedSets: {
+          ...state.completedSets,
+          [index]: resetCompletedSets, // Reset all sets to not completed
+        },
+        weightAndReps: {
+          ...state.weightAndReps,
+          [index]: resetWeightAndReps, // Reset weight and reps to 0
+        },
+        currentSetIndices: {
+          ...currentSetIndices,
+          [index]: 0, // Reset the current set index to 0
+        },
+      };
+    });
+  },
+
+  deleteExercise: (index) => {
+    set((state) => {
+      const { workout, completedSets, weightAndReps, currentSetIndices } =
+        state;
+      if (!workout) {
+        return state;
+      }
+
+      // Remove the exercise at the specified index
+      const updatedExercises = workout.exercises.filter(
+        (_, exerciseIndex) => exerciseIndex !== index,
+      );
+
+      // Remove the corresponding completed sets, weight/reps, and set index
+      const { [index]: _, ...updatedCompletedSets } = completedSets;
+      const { [index]: __, ...updatedWeightAndReps } = weightAndReps;
+      const { [index]: ___, ...updatedSetIndices } = currentSetIndices;
+
+      // Adjust indices for remaining sets and exercises, if necessary
+      const adjustedCompletedSets = Object.keys(updatedCompletedSets).reduce(
+        (acc, key) => {
+          const parsedKey = parseInt(key, 10);
+          acc[parsedKey > index ? parsedKey - 1 : parsedKey] =
+            updatedCompletedSets[parsedKey];
+          return acc;
+        },
+        {} as typeof updatedCompletedSets,
+      );
+
+      const adjustedWeightAndReps = Object.keys(updatedWeightAndReps).reduce(
+        (acc, key) => {
+          const parsedKey = parseInt(key, 10);
+          acc[parsedKey > index ? parsedKey - 1 : parsedKey] =
+            updatedWeightAndReps[parsedKey];
+          return acc;
+        },
+        {} as typeof updatedWeightAndReps,
+      );
+
+      const adjustedSetIndices = Object.keys(updatedSetIndices).reduce(
+        (acc, key) => {
+          const parsedKey = parseInt(key, 10);
+          acc[parsedKey > index ? parsedKey - 1 : parsedKey] =
+            updatedSetIndices[parsedKey];
+          return acc;
+        },
+        {} as typeof updatedSetIndices,
+      );
+
+      return {
+        workout: { ...workout, exercises: updatedExercises },
+        completedSets: adjustedCompletedSets, // Remove and adjust completed sets
+        weightAndReps: adjustedWeightAndReps, // Remove and adjust weight/reps
+        currentSetIndices: adjustedSetIndices, // Adjust set indices
+      };
+    });
   },
 
   resetWorkout: () =>
