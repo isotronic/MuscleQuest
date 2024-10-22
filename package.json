@@ -1,7 +1,7 @@
 {
   "name": "musclequest",
   "main": "expo-router/entry",
-  "version": "0.4.1",
+  "version": "0.7",
   "scripts": {
     "start": "expo start",
     "dev": "APP_VARIANT=development npx expo start",
@@ -68,7 +68,8 @@
     "react-native-web": "~0.19.10",
     "react-timer-hook": "^3.0.7",
     "unsplash-js": "^7.0.19",
-    "zustand": "^4.5.4"
+    "zustand": "^4.5.4",
+    "expo-av": "~14.0.7"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

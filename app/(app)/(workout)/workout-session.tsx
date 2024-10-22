@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, View, Dimensions } from "react-native";
+import {
+  Animated,
+  Easing,
+  StyleSheet,
+  View,
+  Dimensions,
+  Alert,
+} from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
@@ -14,6 +21,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSoundAndVibration } from "@/hooks/useSoundAndVibration";
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
@@ -37,6 +45,8 @@ export default function WorkoutSessionScreen() {
     timerExpiry,
     startTimer,
     stopTimer,
+    removeSet,
+    addSet,
   } = useActiveWorkoutStore();
 
   const {
@@ -89,10 +99,25 @@ export default function WorkoutSessionScreen() {
 
   useKeepScreenOn();
 
+  const { playSoundAndVibrate, triggerVibration, playSound } =
+    useSoundAndVibration(require("@/assets/sounds/boxing-bell.mp3"));
+
   const { seconds, minutes, restart } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
-    onExpire: () => stopTimer(),
+    onExpire: () => {
+      stopTimer();
+      if (
+        settings?.restTimerVibration === "true" &&
+        settings?.restTimerSound === "true"
+      ) {
+        playSoundAndVibrate(); // Play both sound and vibration
+      } else if (settings?.restTimerVibration === "true") {
+        triggerVibration(); // Only vibrate
+      } else if (settings?.restTimerSound === "true") {
+        playSound(); // Only play sound
+      }
+    },
   });
 
   useEffect(() => {
@@ -138,6 +163,19 @@ export default function WorkoutSessionScreen() {
     const currentReps = isNaN(parseInt(reps)) ? 0 : parseInt(reps);
     const newReps = (currentReps + amount).toString();
     updateWeightAndReps(currentExerciseIndex, currentSetIndex, weight, newReps);
+  };
+
+  const handleRemoveSet = (index: number) => {
+    Alert.alert("Delete Set", "Are you sure you want to delete this set?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          removeSet(index);
+        },
+      },
+    ]);
   };
 
   // Compute next set index and exercise index
@@ -441,6 +479,8 @@ export default function WorkoutSessionScreen() {
               handlePreviousSet={handlePreviousSet}
               handleNextSet={handleNextSet}
               handleCompleteSet={handleCompleteSet}
+              removeSet={handleRemoveSet}
+              addSet={addSet}
             />
           </Animated.View>
 
@@ -485,6 +525,8 @@ export default function WorkoutSessionScreen() {
                 handlePreviousSet={() => {}}
                 handleNextSet={() => {}}
                 handleCompleteSet={() => {}}
+                removeSet={() => {}}
+                addSet={() => {}}
               />
             </Animated.View>
           )}
@@ -532,6 +574,8 @@ export default function WorkoutSessionScreen() {
                   handlePreviousSet={() => {}}
                   handleNextSet={() => {}}
                   handleCompleteSet={() => {}}
+                  removeSet={() => {}}
+                  addSet={() => {}}
                 />
               </Animated.View>
             )}

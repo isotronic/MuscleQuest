@@ -736,6 +736,8 @@ export const insertDefaultSettings = async () => {
     { key: "defaultRestTime", value: "60" },
     { key: "buttonSize", value: "Standard" },
     { key: "timeRange", value: "30" },
+    { key: "restTimerVibration", value: "false" },
+    { key: "restTimerSound", value: "false" },
   ];
 
   // Loop through each default setting
@@ -773,6 +775,8 @@ export interface Settings {
   buttonSize: string;
   timeRange: string;
   dataVersion: string;
+  restTimerVibration: string;
+  restTimerSound: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
