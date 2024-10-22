@@ -90,16 +90,24 @@ export default function WorkoutSessionScreen() {
 
   useKeepScreenOn();
 
-  const { playSoundAndVibrate } = useSoundAndVibration(
-    require("@/assets/sounds/boxing-bell.mp3"),
-  );
+  const { playSoundAndVibrate, triggerVibration, playSound } =
+    useSoundAndVibration(require("@/assets/sounds/boxing-bell.mp3"));
 
   const { seconds, minutes, restart } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
     onExpire: () => {
       stopTimer();
-      playSoundAndVibrate([0, 500, 200, 500]);
+      if (
+        settings?.restTimerVibration === "true" &&
+        settings?.restTimerSound === "true"
+      ) {
+        playSoundAndVibrate(); // Play both sound and vibration
+      } else if (settings?.restTimerVibration === "true") {
+        triggerVibration(); // Only vibrate
+      } else if (settings?.restTimerSound === "true") {
+        playSound(); // Only play sound
+      }
     },
   });
 
