@@ -27,11 +27,6 @@ const ExerciseItem = ({
   return (
     <TouchableOpacity onPress={() => onPress(item)}>
       <View key={item.exercise_id} style={styles.exerciseItem}>
-        <Checkbox
-          status={selected ? "checked" : "unchecked"}
-          uncheckedColor={Colors.dark.subText}
-          onPress={() => onSelect(item.exercise_id)}
-        />
         {item.image ? (
           <Image
             style={styles.exerciseImage}
@@ -49,6 +44,11 @@ const ExerciseItem = ({
             {capitalizeWords(item.equipment)}
           </ThemedText>
         </View>
+        <Checkbox
+          status={selected ? "checked" : "unchecked"}
+          uncheckedColor={Colors.dark.subText}
+          onPress={() => onSelect(item.exercise_id)}
+        />
       </View>
     </TouchableOpacity>
   );
