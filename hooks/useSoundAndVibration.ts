@@ -31,13 +31,17 @@ export const useSoundAndVibration = (soundFile: any) => {
       }
     };
 
-    loadSound();
+    requestAnimationFrame(() => {
+      loadSound(); // Ensure the sound is loaded on the main thread
+    });
   }, [soundFile]);
 
   useEffect(() => {
     return () => {
       if (sound) {
-        sound.unloadAsync();
+        requestAnimationFrame(() => {
+          sound.unloadAsync(); // Ensure unloading happens on the main thread
+        });
       }
     };
   }, [sound]);
