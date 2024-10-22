@@ -245,9 +245,8 @@ const styles = StyleSheet.create({
     marginBottom: -5,
   },
   closeButton: {
-    position: "absolute",
-    top: 0,
-    right: 0,
+    marginLeft: "auto",
+    marginBottom: "auto",
   },
   centeredLabelContainer: {
     alignItems: "center",
