@@ -109,6 +109,14 @@ export default function SettingsScreen() {
     updateSetting({ key: "keepScreenOn", value: value.toString() });
   };
 
+  const toggleVibration = (value: boolean) => {
+    updateSetting({ key: "restTimerVibration", value: value.toString() });
+  };
+
+  const toggleSound = (value: boolean) => {
+    updateSetting({ key: "restTimerSound", value: value.toString() });
+  };
+
   const handleClearDatabase = async () => {
     try {
       await clearDatabaseAndReinitialize();
@@ -340,13 +348,61 @@ export default function SettingsScreen() {
           </TouchableOpacity>
           <View style={styles.item}>
             <MaterialCommunityIcons
+              name="vibrate"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Vibrate after rest
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.restTimerVibration === "true"
+                  ? "Enabled"
+                  : "Disabled"}
+              </ThemedText>
+            </View>
+            <Switch
+              value={settings?.restTimerVibration === "true"}
+              onValueChange={toggleVibration}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="volume-high"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Play sound after rest
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.restTimerSound === "true" ? "Enabled" : "Disabled"}
+              </ThemedText>
+            </View>
+            <Switch
+              value={settings?.restTimerSound === "true"}
+              onValueChange={toggleSound}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
               name="cellphone"
               size={24}
               color={Colors.dark.icon}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Keep screen on</ThemedText>
+              <ThemedText style={styles.itemText}>
+                Keep screen on during workout
+              </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {settings?.keepScreenOn === "true" ? "Enabled" : "Disabled"}
               </ThemedText>
