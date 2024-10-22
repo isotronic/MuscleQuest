@@ -1,54 +1,46 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Vibration } from "react-native";
-import { Audio } from "expo-av";
+import { Audio, AVPlaybackStatus, AVPlaybackStatusSuccess } from "expo-av";
 
 export const useSoundAndVibration = (soundFile: any) => {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const hasLoadedSound = useRef(false);
 
   useEffect(() => {
-    const setAudioMode = async () => {
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-        shouldDuckAndroid: false,
-        playThroughEarpieceAndroid: false,
-        staysActiveInBackground: true,
-      });
-    };
-
     const loadSound = async () => {
       try {
-        if (!hasLoadedSound.current) {
-          await setAudioMode();
-          const { sound } = await Audio.Sound.createAsync(soundFile);
-          setSound(sound);
-          hasLoadedSound.current = true;
-        }
+        const { sound } = await Audio.Sound.createAsync(soundFile);
+        setSound(sound);
       } catch (error) {
         console.error("Failed to load sound:", error);
       }
     };
 
-    requestAnimationFrame(() => {
-      loadSound();
-    });
-  }, [soundFile]);
+    loadSound();
 
-  useEffect(() => {
     return () => {
       if (sound) {
-        requestAnimationFrame(() => {
-          sound.unloadAsync();
-        });
+        sound.unloadAsync(); // Unload sound when the component unmounts
       }
     };
-  }, [sound]);
+  }, [soundFile]);
 
   const playSound = async () => {
     if (sound) {
       try {
         await sound.playAsync();
+        sound.setOnPlaybackStatusUpdate(async (status: AVPlaybackStatus) => {
+          if (
+            status.isLoaded &&
+            !(status as AVPlaybackStatusSuccess).isBuffering
+          ) {
+            const playbackStatus = status as AVPlaybackStatusSuccess;
+
+            if (playbackStatus.didJustFinish) {
+              // Once the sound finishes, unload it
+              await sound.unloadAsync();
+            }
+          }
+        });
       } catch (error) {
         console.error("Error playing sound:", error);
       }
@@ -56,13 +48,13 @@ export const useSoundAndVibration = (soundFile: any) => {
   };
 
   const triggerVibration = (
-    pattern: number | number[] = [0, 200, 100, 200, 100, 400],
+    pattern: number | number[] = [0, 200, 100, 300, 100, 400],
   ) => {
     Vibration.vibrate(pattern);
   };
 
   const playSoundAndVibrate = (
-    vibrationPattern: number | number[] = [0, 200, 100, 200, 100, 400],
+    vibrationPattern: number | number[] = [0, 200, 100, 300, 100, 400],
   ) => {
     playSound();
     triggerVibration(vibrationPattern);
