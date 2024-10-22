@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -25,6 +25,7 @@ export default function CreatePlanScreen() {
   const navigation = useNavigation();
   const queryClient = useQueryClient();
   const { planId } = useLocalSearchParams();
+  const [dataLoaded, setDataLoaded] = useState(!planId);
   const {
     workouts,
     planImageUrl,
@@ -37,9 +38,7 @@ export default function CreatePlanScreen() {
   } = useWorkoutStore();
   const { planName, setPlanName, planSaved, setPlanSaved, handleSavePlan } =
     useCreatePlan(Number(planId));
-  const { data: existingPlan, isLoading } = usePlanQuery(
-    planId ? Number(planId) : null,
-  );
+  const { data: existingPlan } = usePlanQuery(planId ? Number(planId) : null);
 
   useEffect(() => {
     if (existingPlan) {
@@ -50,6 +49,8 @@ export default function CreatePlanScreen() {
       if (existingPlan.workouts) {
         setWorkouts(existingPlan.workouts);
       }
+
+      setDataLoaded(true);
     }
   }, [existingPlan, setPlanName, setWorkouts, setPlanImageUrl]);
 
@@ -144,7 +145,7 @@ export default function CreatePlanScreen() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
       <NestableScrollContainer contentContainerStyle={{ flexGrow: 1 }}>
-        {isLoading ? (
+        {!dataLoaded ? (
           <ThemedView style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.dark.text} />
           </ThemedView>

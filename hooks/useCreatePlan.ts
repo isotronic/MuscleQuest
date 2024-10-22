@@ -53,6 +53,7 @@ export const useCreatePlan = (
     } finally {
       if (!isError && planSaved) {
         clearWorkouts();
+        queryClient.invalidateQueries({ queryKey: ["plans"] });
       }
     }
   };

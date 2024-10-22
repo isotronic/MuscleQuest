@@ -86,7 +86,7 @@ export default function ImageSearchScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView>
       <View style={styles.searchContainer}>
         <TextInput
           placeholder="Search for images"
@@ -143,12 +143,10 @@ export default function ImageSearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
   searchContainer: {
     position: "relative",
     marginBottom: 16,
+    padding: 16,
   },
   searchInput: {
     padding: 10,
@@ -161,13 +159,12 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     position: "absolute",
-    right: 10,
-    top: "50%",
-    transform: [{ translateY: -12 }],
+    right: 24,
+    top: "58%",
   },
   imageContainer: {
     position: "relative",
-    margin: 2,
+    margin: 4,
     overflow: "hidden",
   },
   image: {

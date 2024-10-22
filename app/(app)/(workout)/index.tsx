@@ -131,7 +131,6 @@ export default function WorkoutOverviewScreen() {
             duration,
             totalSetsCompleted,
             exercises,
-            notes: null,
           },
           {
             onSuccess: () => {
@@ -159,7 +158,7 @@ export default function WorkoutOverviewScreen() {
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView>
       <Stack.Screen
         options={{
           headerRight: () => (
@@ -177,7 +176,7 @@ export default function WorkoutOverviewScreen() {
           ),
         }}
       />
-      <ScrollView>
+      <ScrollView style={styles.container}>
         {workout.exercises.map((exercise, index) => {
           const completedSetsForExercise = completedSets[index] || {};
           const completedCount = Object.values(completedSetsForExercise).filter(
@@ -265,8 +264,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   numberContainerCompleted: {
-    backgroundColor: "green",
-    borderColor: "green",
+    backgroundColor: Colors.dark.completed,
+    borderColor: Colors.dark.completed,
   },
   numberText: {
     fontSize: 18,
