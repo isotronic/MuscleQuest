@@ -27,6 +27,7 @@ export default {
       package: IS_DEV
         ? "com.isotronic.musclequest.dev"
         : "com.isotronic.musclequest",
+      permissions: ["VIBRATE"],
     },
     androidNavigationBar: {
       backgroundColor: "#22222d",
