@@ -12,7 +12,10 @@ import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
 import { router } from "expo-router";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
-import { useCompletedWorkoutsQuery } from "@/hooks/useCompletedWorkoutsQuery";
+import {
+  CompletedWorkout,
+  useCompletedWorkoutsQuery,
+} from "@/hooks/useCompletedWorkoutsQuery";
 
 export default function HomeScreen() {
   const user = useContext(AuthContext);
@@ -80,7 +83,7 @@ export default function HomeScreen() {
     );
   }
 
-  let completedWorkoutsThisPlanThisWeek = [];
+  let completedWorkoutsThisPlanThisWeek: CompletedWorkout[] = [];
   let completedWorkoutsCount = 0;
   let nextWorkoutIndex = 0;
   let workoutsToDisplay = [];
@@ -132,51 +135,71 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.cardContainer}>
-          {activePlan ? (
+          {activePlan && settings ? (
             <>
               <ThemedText type="default" style={styles.sectionTitle}>
                 Active Plan: {activePlan.name}
               </ThemedText>
 
-              {workoutsToDisplay.map((workout, index) => (
-                <View key={index} style={styles.workoutCard}>
-                  <View style={styles.workoutCardContent}>
-                    <MaterialCommunityIcons
-                      name="weight-lifter"
-                      size={30}
-                      color={Colors.dark.icon}
-                    />
-                    <View style={styles.workoutTextContainer}>
-                      <ThemedText
-                        type="subtitle"
-                        style={styles.workoutCardTitle}
-                      >
-                        {workout.name}
-                      </ThemedText>
-                      <ThemedText style={styles.exerciseInfo}>
-                        {workout.exercises.length} Exercises
-                      </ThemedText>
-                    </View>
-                    <View style={styles.smallButtonGroup}>
-                      <Button
-                        mode={index === 0 ? "contained" : "outlined"}
-                        onPress={() => {
-                          useActiveWorkoutStore
-                            .getState()
-                            .setWorkout(
-                              JSON.parse(JSON.stringify(workout)),
-                              activePlan.id,
-                              workout.id!,
-                              workout.name || `Day ${index + 1}`,
-                            );
-                          router.push("/(workout)");
-                        }}
-                        style={styles.smallButton}
-                        labelStyle={styles.smallButtonLabel}
-                      >
-                        Start
-                      </Button>
-                      {/* <Button
+              {workoutsToDisplay.map((workout, index) => {
+                const weeklyGoal = parseInt(settings.weeklyGoal);
+                const workoutsToComplete =
+                  activePlan.workouts.length < weeklyGoal
+                    ? Math.ceil(weeklyGoal / activePlan.workouts.length)
+                    : 1;
+
+                // Filter to check how many times this specific workout has been completed this week
+                const completedTimes =
+                  completedWorkoutsThisPlanThisWeek?.filter(
+                    (completedWorkout) =>
+                      completedWorkout.workout_id === workout.id,
+                  ).length;
+
+                // Condition to check if the workout is completed enough times
+                const workoutCompleted = completedTimes >= workoutsToComplete;
+                return (
+                  <View key={index} style={styles.workoutCard}>
+                    <View style={styles.workoutCardContent}>
+                      <MaterialCommunityIcons
+                        name={workoutCompleted ? "check" : "weight-lifter"}
+                        size={30}
+                        color={
+                          workoutCompleted
+                            ? Colors.dark.completed
+                            : Colors.dark.icon
+                        }
+                      />
+                      <View style={styles.workoutTextContainer}>
+                        <ThemedText
+                          type="subtitle"
+                          style={styles.workoutCardTitle}
+                        >
+                          {workout.name}
+                        </ThemedText>
+                        <ThemedText style={styles.exerciseInfo}>
+                          {workout.exercises.length} Exercises
+                        </ThemedText>
+                      </View>
+                      <View style={styles.smallButtonGroup}>
+                        <Button
+                          mode={index === 0 ? "contained" : "outlined"}
+                          onPress={() => {
+                            useActiveWorkoutStore
+                              .getState()
+                              .setWorkout(
+                                JSON.parse(JSON.stringify(workout)),
+                                activePlan.id,
+                                workout.id!,
+                                workout.name || `Day ${index + 1}`,
+                              );
+                            router.push("/(workout)");
+                          }}
+                          style={styles.smallButton}
+                          labelStyle={styles.smallButtonLabel}
+                        >
+                          Start
+                        </Button>
+                        {/* <Button
                         mode="outlined"
                         onPress={() =>
                           router.push(
@@ -188,10 +211,11 @@ export default function HomeScreen() {
                       >
                         View
                       </Button> */}
+                      </View>
                     </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </>
           ) : (
             <View>
