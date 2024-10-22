@@ -10,7 +10,7 @@ export const useSoundAndVibration = (soundFile: any) => {
     const setAudioMode = async () => {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
-        playsInSilentModeIOS: true, // Ensures sound plays even in silent mode on iOS
+        playsInSilentModeIOS: true,
         shouldDuckAndroid: false,
         playThroughEarpieceAndroid: false,
         staysActiveInBackground: true,
@@ -20,11 +20,10 @@ export const useSoundAndVibration = (soundFile: any) => {
     const loadSound = async () => {
       try {
         if (!hasLoadedSound.current) {
-          await setAudioMode(); // Set audio mode before loading sound
+          await setAudioMode();
           const { sound } = await Audio.Sound.createAsync(soundFile);
           setSound(sound);
-          hasLoadedSound.current = true; // Mark as loaded
-          console.log("Sound loaded");
+          hasLoadedSound.current = true;
         }
       } catch (error) {
         console.error("Failed to load sound:", error);
@@ -32,7 +31,7 @@ export const useSoundAndVibration = (soundFile: any) => {
     };
 
     requestAnimationFrame(() => {
-      loadSound(); // Ensure the sound is loaded on the main thread
+      loadSound();
     });
   }, [soundFile]);
 
@@ -40,7 +39,7 @@ export const useSoundAndVibration = (soundFile: any) => {
     return () => {
       if (sound) {
         requestAnimationFrame(() => {
-          sound.unloadAsync(); // Ensure unloading happens on the main thread
+          sound.unloadAsync();
         });
       }
     };
@@ -49,19 +48,22 @@ export const useSoundAndVibration = (soundFile: any) => {
   const playSound = async () => {
     if (sound) {
       try {
-        const status = await sound.playAsync();
-        console.log("Sound status:", status);
+        await sound.playAsync();
       } catch (error) {
         console.error("Error playing sound:", error);
       }
     }
   };
 
-  const triggerVibration = (pattern: number | number[] = 500) => {
+  const triggerVibration = (
+    pattern: number | number[] = [0, 200, 100, 200, 100, 400],
+  ) => {
     Vibration.vibrate(pattern);
   };
 
-  const playSoundAndVibrate = (vibrationPattern: number | number[] = 500) => {
+  const playSoundAndVibrate = (
+    vibrationPattern: number | number[] = [0, 200, 100, 200, 100, 400],
+  ) => {
     playSound();
     triggerVibration(vibrationPattern);
   };
