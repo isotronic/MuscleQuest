@@ -38,6 +38,8 @@ export default function WorkoutSessionScreen() {
     timerExpiry,
     startTimer,
     stopTimer,
+    removeSet,
+    addSet,
   } = useActiveWorkoutStore();
 
   const {
@@ -457,6 +459,8 @@ export default function WorkoutSessionScreen() {
               handlePreviousSet={handlePreviousSet}
               handleNextSet={handleNextSet}
               handleCompleteSet={handleCompleteSet}
+              removeSet={removeSet}
+              addSet={addSet}
             />
           </Animated.View>
 
@@ -501,6 +505,8 @@ export default function WorkoutSessionScreen() {
                 handlePreviousSet={() => {}}
                 handleNextSet={() => {}}
                 handleCompleteSet={() => {}}
+                removeSet={() => {}}
+                addSet={() => {}}
               />
             </Animated.View>
           )}
@@ -548,6 +554,8 @@ export default function WorkoutSessionScreen() {
                   handlePreviousSet={() => {}}
                   handleNextSet={() => {}}
                   handleCompleteSet={() => {}}
+                  removeSet={() => {}}
+                  addSet={() => {}}
                 />
               </Animated.View>
             )}

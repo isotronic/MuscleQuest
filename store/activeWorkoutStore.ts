@@ -6,6 +6,7 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 interface ActiveWorkoutStore {
   activeWorkout: { planId: number; workoutId: number; name: string } | null;
   workout: Workout | null;
+  originalWorkout: Workout | null;
   currentExerciseIndex: number;
   currentSetIndices: { [exerciseIndex: number]: number };
   completedSets: {
@@ -28,6 +29,8 @@ interface ActiveWorkoutStore {
   nextSet: () => void;
   setCurrentExerciseIndex: (index: number) => void;
   setCurrentSetIndex: (exerciseIndex: number, setIndex: number) => void;
+  addSet: () => void;
+  removeSet: (setIndex: number) => void;
   updateWeightAndReps: (
     exerciseIndex: number,
     setIndex: number,
@@ -45,6 +48,7 @@ interface ActiveWorkoutStore {
 const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
   activeWorkout: null,
   workout: null,
+  originalWorkout: null,
   currentExerciseIndex: 0,
   currentSetIndices: {},
   completedSets: {},
@@ -56,7 +60,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
   setWorkout: (workout, planId, workoutId, name) =>
     set({
       activeWorkout: { planId, workoutId, name },
-      workout,
+      workout: JSON.parse(JSON.stringify(workout)),
+      originalWorkout: JSON.parse(JSON.stringify(workout)),
       currentExerciseIndex: 0,
       currentSetIndices: {},
       completedSets: {},
@@ -187,6 +192,94 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>((set, get) => ({
         completedSets: updatedCompletedSets,
       };
     }),
+
+  addSet: () =>
+    set((state) => {
+      const { workout, weightAndReps, completedSets, currentExerciseIndex } =
+        state;
+      if (!workout) {
+        return state;
+      }
+
+      const currentExercise = workout.exercises[currentExerciseIndex];
+      const lastSetIndex = currentExercise.sets.length - 1;
+      const lastSet = currentExercise.sets[lastSetIndex];
+
+      // Create a new set by copying the last set
+      const newSet = { ...lastSet }; // Copy the last set
+
+      // Add the new set to the workout's sets array
+      const updatedExercises = [...workout.exercises];
+      updatedExercises[currentExerciseIndex].sets.push(newSet);
+
+      // Copy the last set's weight and reps to the new set
+      return {
+        workout: { ...workout, exercises: updatedExercises },
+        weightAndReps: {
+          ...weightAndReps,
+          [currentExerciseIndex]: {
+            ...weightAndReps[currentExerciseIndex],
+            [updatedExercises[currentExerciseIndex].sets.length - 1]: {
+              weight: weightAndReps[currentExerciseIndex][lastSetIndex].weight,
+              reps: weightAndReps[currentExerciseIndex][lastSetIndex].reps,
+            },
+          },
+        },
+        completedSets: {
+          ...completedSets,
+          [currentExerciseIndex]: {
+            ...completedSets[currentExerciseIndex],
+            [updatedExercises[currentExerciseIndex].sets.length - 1]: false,
+          },
+        },
+      };
+    }),
+
+  // Remove a set from the current exercise
+  removeSet: (setIndex) => {
+    set((state) => {
+      const {
+        workout,
+        weightAndReps,
+        completedSets,
+        currentSetIndices,
+        currentExerciseIndex,
+      } = state;
+      if (
+        !workout ||
+        workout.exercises[currentExerciseIndex].sets.length <= 1
+      ) {
+        return state;
+      }
+
+      const updatedExercises = [...workout.exercises];
+      updatedExercises[currentExerciseIndex].sets.splice(setIndex, 1);
+
+      // Update weightAndReps and completedSets state
+      const updatedWeightAndReps = { ...weightAndReps };
+      if (updatedWeightAndReps[currentExerciseIndex]) {
+        delete updatedWeightAndReps[currentExerciseIndex][setIndex];
+      }
+
+      const updatedCompletedSets = { ...completedSets };
+      if (updatedCompletedSets[currentExerciseIndex]) {
+        delete updatedCompletedSets[currentExerciseIndex][setIndex];
+      }
+
+      // Adjust currentSetIndices if the removed set was before or at the current set
+      const updatedSetIndices = { ...currentSetIndices };
+      if (updatedSetIndices[currentExerciseIndex] > setIndex) {
+        updatedSetIndices[currentExerciseIndex]--;
+      }
+
+      return {
+        workout: { ...workout, exercises: updatedExercises },
+        weightAndReps: updatedWeightAndReps,
+        completedSets: updatedCompletedSets,
+        currentSetIndices: updatedSetIndices,
+      };
+    });
+  },
 
   updateWeightAndReps: (exerciseIndex, setIndex, weight, reps) =>
     set((state) => {

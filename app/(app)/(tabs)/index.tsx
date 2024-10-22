@@ -164,7 +164,7 @@ export default function HomeScreen() {
                           useActiveWorkoutStore
                             .getState()
                             .setWorkout(
-                              workout,
+                              JSON.parse(JSON.stringify(workout)),
                               activePlan.id,
                               workout.id!,
                               workout.name || `Day ${index + 1}`,

@@ -30,6 +30,8 @@ interface SessionSetInfoProps {
   handlePreviousSet: () => void;
   handleNextSet: () => void;
   handleCompleteSet: () => void;
+  removeSet: (currentSetIndex: number) => void;
+  addSet: () => void;
 }
 
 export default function SessionSetInfo({
@@ -57,6 +59,8 @@ export default function SessionSetInfo({
   handlePreviousSet,
   handleNextSet,
   handleCompleteSet,
+  removeSet,
+  addSet,
 }: SessionSetInfoProps) {
   const repRange =
     repsMin === repsMax
@@ -66,6 +70,8 @@ export default function SessionSetInfo({
         : repsMax
           ? `${repsMin} - ${repsMax}`
           : repsMin;
+
+  const isLastSet = currentSetIndex === totalSets - 1;
   return (
     <View>
       <View style={styles.headerContainer}>
@@ -95,6 +101,15 @@ export default function SessionSetInfo({
             Rest Time: {restMinutes}:{String(restSeconds).padStart(2, "0")}
           </ThemedText>
         </View>
+
+        {/* Add Close Button to remove set */}
+        <IconButton
+          icon="close"
+          onPress={() => removeSet(currentSetIndex)} // Remove the set
+          size={24} // Small size for close button
+          iconColor={Colors.dark.text}
+          style={styles.closeButton}
+        />
       </View>
 
       {/* Set Navigation */}
@@ -195,6 +210,12 @@ export default function SessionSetInfo({
       >
         Complete Set
       </Button>
+      {/* Conditionally render the Add Set button */}
+      {isLastSet && (
+        <Button mode="outlined" onPress={addSet} style={styles.addSetButton}>
+          Add Set
+        </Button>
+      )}
     </View>
   );
 }
@@ -203,13 +224,13 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   animatedImage: {
     width: 70,
     height: 70,
     borderRadius: 10,
-    marginRight: 15,
+    marginRight: 16,
   },
   titleContainer: {
     flexShrink: 1,
@@ -222,6 +243,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.dark.subText,
     marginBottom: -5,
+  },
+  closeButton: {
+    position: "absolute",
+    top: 0,
+    right: 0,
   },
   centeredLabelContainer: {
     alignItems: "center",
@@ -238,7 +264,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   iconButton: {
     marginHorizontal: 5,
@@ -248,7 +274,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   setNavigationText: {
     fontSize: 18,
@@ -264,10 +290,13 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
   },
   completeButton: {
-    marginTop: 20,
+    marginTop: 16,
   },
   disabledButton: {
     backgroundColor: Colors.dark.disabledButtonBackground,
+  },
+  addSetButton: {
+    marginTop: 8,
   },
   loadingText: {
     fontSize: 18,
