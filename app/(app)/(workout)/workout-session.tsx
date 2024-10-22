@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, View, Dimensions } from "react-native";
+import {
+  Animated,
+  Easing,
+  StyleSheet,
+  View,
+  Dimensions,
+  Alert,
+} from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
@@ -156,6 +163,19 @@ export default function WorkoutSessionScreen() {
     const currentReps = isNaN(parseInt(reps)) ? 0 : parseInt(reps);
     const newReps = (currentReps + amount).toString();
     updateWeightAndReps(currentExerciseIndex, currentSetIndex, weight, newReps);
+  };
+
+  const handleRemoveSet = (index: number) => {
+    Alert.alert("Delete Set", "Are you sure you want to delete this set?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          removeSet(index);
+        },
+      },
+    ]);
   };
 
   // Compute next set index and exercise index
@@ -459,7 +479,7 @@ export default function WorkoutSessionScreen() {
               handlePreviousSet={handlePreviousSet}
               handleNextSet={handleNextSet}
               handleCompleteSet={handleCompleteSet}
-              removeSet={removeSet}
+              removeSet={handleRemoveSet}
               addSet={addSet}
             />
           </Animated.View>
