@@ -14,6 +14,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSoundAndVibration } from "@/hooks/useSoundAndVibration";
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
@@ -89,10 +90,17 @@ export default function WorkoutSessionScreen() {
 
   useKeepScreenOn();
 
+  const { playSoundAndVibrate } = useSoundAndVibration(
+    require("@/assets/sounds/boxing-bell.mp3"),
+  );
+
   const { seconds, minutes, restart } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
-    onExpire: () => stopTimer(),
+    onExpire: () => {
+      stopTimer();
+      playSoundAndVibrate([0, 500, 200, 500]);
+    },
   });
 
   useEffect(() => {
