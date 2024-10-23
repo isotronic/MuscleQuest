@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
-import { Button, ActivityIndicator, IconButton } from "react-native-paper";
+import { Button, ActivityIndicator, IconButton, FAB } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
@@ -27,8 +27,8 @@ export default function ExercisesScreen() {
     isLoading: exercisesLoading,
     error: exercisesError,
   } = useExercisesQuery();
-  const addExercise = useWorkoutStore((state) => state.addExercise);
-  const workouts = useWorkoutStore((state) => state.workouts);
+  const { workouts, addExercise, newExerciseId, setNewExerciseId } =
+    useWorkoutStore();
   const { index } = useLocalSearchParams();
   const currentWorkoutIndex = Number(index);
   const currentWorkout = workouts[currentWorkoutIndex];
@@ -46,11 +46,23 @@ export default function ExercisesScreen() {
 
   useEffect(() => {
     if (currentWorkout?.exercises) {
-      setSelectedExercises(
-        currentWorkout.exercises.map((exercise) => exercise.exercise_id),
+      const existingExerciseIds = currentWorkout.exercises.map(
+        (exercise) => exercise.exercise_id,
       );
+      // If there is a newExerciseId, select it in addition to the existing exercises
+      if (newExerciseId) {
+        setSelectedExercises((prev) => [...prev, newExerciseId]);
+      } else {
+        setSelectedExercises((prev) => {
+          const newIds = existingExerciseIds.filter((id) => !prev.includes(id)); // Filter out duplicates
+          return [...prev, ...newIds]; // Add only new IDs
+        });
+      }
+
+      // Clear the newExerciseId after it's used
+      setNewExerciseId(null);
     }
-  }, [currentWorkout]);
+  }, [currentWorkout, newExerciseId, setNewExerciseId]);
 
   const handleSelectExercise = useCallback((exerciseId: number) => {
     setSelectedExercises((prev) =>
@@ -183,6 +195,15 @@ export default function ExercisesScreen() {
           });
         }}
       />
+      <FAB
+        icon="plus"
+        label="Create Custom Exercise"
+        theme={{ colors: { primary: Colors.dark.tint } }}
+        style={styles.fab}
+        onPress={() => {
+          router.push("/(app)/custom-exercise");
+        }}
+      />
     </ThemedView>
   );
 }
@@ -219,5 +240,10 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     color: "#FF6F61",
+  },
+  fab: {
+    position: "absolute",
+    right: 20,
+    bottom: 15,
   },
 });

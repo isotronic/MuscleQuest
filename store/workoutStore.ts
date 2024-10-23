@@ -22,6 +22,8 @@ export interface Workout {
 
 interface WorkoutStore {
   workouts: Workout[];
+  newExerciseId: number | null;
+  setNewExerciseId: (id: number | null) => void;
   planImageUrl: string;
   setPlanImageUrl: (url: string) => void;
   setWorkouts: (workouts: Workout[]) => void;
@@ -54,6 +56,8 @@ interface WorkoutStore {
 
 const useWorkoutStore = create<WorkoutStore>((set) => ({
   workouts: [],
+  newExerciseId: null,
+  setNewExerciseId: (id) => set((state) => ({ ...state, newExerciseId: id })),
   planImageUrl:
     "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // Default image URL
   setPlanImageUrl: (url) => set({ planImageUrl: url }),
