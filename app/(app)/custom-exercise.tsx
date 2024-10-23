@@ -122,6 +122,11 @@ export default function AddCustomExerciseScreen() {
         });
       } catch (error) {
         console.error("Error saving image to filesystem:", error);
+        Alert.alert(
+          "Image Save Error",
+          "Failed to save the image. Please try again.",
+          [{ text: "OK" }],
+        );
       }
     }
 
