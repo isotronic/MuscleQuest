@@ -5,6 +5,9 @@ import { useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
+import { ThemedView } from "@/components/ThemedView";
+
+const fallbackImage = require("@/assets/images/placeholder.webp");
 
 export default function ExerciseDetailsScreen() {
   const { exercise } = useLocalSearchParams();
@@ -52,45 +55,54 @@ export default function ExerciseDetailsScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {animatedImageLoading ? (
-        <View style={styles.loadingText}>
-          <ActivityIndicator size="large" />
-        </View>
-      ) : animatedImageError ? (
-        <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
-      ) : animatedUrl ? (
-        <Image
-          style={styles.gifImage}
-          source={{
-            uri: animatedUrl,
-          }}
-        />
-      ) : (
-        <ThemedText style={styles.loadingText}>No GIF available</ThemedText>
-      )}
-      <ThemedText style={styles.title}>{exerciseData.name}</ThemedText>
-      <ThemedText style={styles.infoText}>
-        Target Muscle: {exerciseData.target_muscle}
-      </ThemedText>
-      <ThemedText style={styles.infoText}>
-        Secondary Muscles: {exerciseData.secondary_muscles.join(", ")}
-      </ThemedText>
-      <ThemedText style={styles.infoText}>
-        Body Part: {exerciseData.body_part}
-      </ThemedText>
-      <ThemedText style={styles.infoText}>
-        Equipment: {exerciseData.equipment}
-      </ThemedText>
-      <ThemedText style={styles.descriptionTitle}>Description:</ThemedText>
-      {exerciseData.description &&
-        exerciseData.description.map((item: string, index: number) => (
-          <View key={index} style={styles.bulletItem}>
-            <ThemedText style={styles.bulletPoint}>•</ThemedText>
-            <ThemedText style={styles.bulletText}>{item}</ThemedText>
+    <ThemedView style={{ backgroundColor: Colors.dark.screenBackground }}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {animatedImageLoading ? (
+          <View style={styles.loadingText}>
+            <ActivityIndicator size="large" />
           </View>
-        ))}
-    </ScrollView>
+        ) : animatedImageError ? (
+          <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
+        ) : animatedUrl ? (
+          <Image
+            style={styles.gifImage}
+            source={{
+              uri: animatedUrl,
+            }}
+          />
+        ) : exerciseData.local_animated_uri ? (
+          <Image
+            style={styles.image}
+            source={{
+              uri: exerciseData.local_animated_uri,
+            }}
+          />
+        ) : (
+          <Image style={styles.image} source={fallbackImage} />
+        )}
+        <ThemedText style={styles.title}>{exerciseData.name}</ThemedText>
+        <ThemedText style={styles.infoText}>
+          Target Muscle: {exerciseData.target_muscle}
+        </ThemedText>
+        <ThemedText style={styles.infoText}>
+          Secondary Muscles: {exerciseData.secondary_muscles.join(", ")}
+        </ThemedText>
+        <ThemedText style={styles.infoText}>
+          Body Part: {exerciseData.body_part}
+        </ThemedText>
+        <ThemedText style={styles.infoText}>
+          Equipment: {exerciseData.equipment}
+        </ThemedText>
+        <ThemedText style={styles.descriptionTitle}>Description:</ThemedText>
+        {exerciseData &&
+          exerciseData.description.map((item: string, index: number) => (
+            <View key={index} style={styles.bulletItem}>
+              <ThemedText style={styles.bulletPoint}>•</ThemedText>
+              <ThemedText style={styles.bulletText}>{item}</ThemedText>
+            </View>
+          ))}
+      </ScrollView>
+    </ThemedView>
   );
 }
 
@@ -137,6 +149,12 @@ const styles = StyleSheet.create({
     height: 300,
     marginBottom: 20,
     alignSelf: "center",
+  },
+  image: {
+    width: "100%",
+    height: 300,
+    alignSelf: "center",
+    marginBottom: 20,
   },
   loadingText: {
     fontSize: 18,
