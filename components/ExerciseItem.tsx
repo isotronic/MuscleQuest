@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3B4252",
     padding: 12,
     borderRadius: 8,
-    marginVertical: 8,
+    marginBottom: 12,
   },
   exerciseImage: {
     width: 60,

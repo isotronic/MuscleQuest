@@ -30,10 +30,16 @@ export default function ExercisesScreen() {
     data: exercises,
     isLoading: exercisesLoading,
     error: exercisesError,
-  } = useExercisesQuery(true);
+  } = useExercisesQuery(false, true);
+
+  const allExercises = [
+    ...(exercises?.activePlanExercises || []),
+    ...(exercises?.favoriteExercises || []),
+    ...(exercises?.otherExercises || []),
+  ];
 
   const handleReplaceExercise = (exerciseId: number) => {
-    const exercise = exercises?.find((ex) => ex.exercise_id === exerciseId);
+    const exercise = allExercises?.find((ex) => ex.exercise_id === exerciseId);
 
     if (exercise) {
       // Check if the selected exercise already exists in the workout
@@ -59,29 +65,36 @@ export default function ExercisesScreen() {
     }
   };
 
-  const filteredExercises = useMemo(
-    () =>
-      exercises?.filter((exercise) => {
-        const queryWords = searchQuery.toLowerCase().split(" ");
-        const matchesSearch = queryWords.every((word) =>
-          exercise.name.toLowerCase().includes(word),
-        );
-        return (
-          matchesSearch &&
-          (!selectedEquipment || exercise.equipment === selectedEquipment) &&
-          (!selectedBodyPart || exercise.body_part === selectedBodyPart) &&
-          (!selectedTargetMuscle ||
-            exercise.target_muscle === selectedTargetMuscle)
-        );
-      }) || [],
-    [
-      exercises,
-      searchQuery,
-      selectedEquipment,
-      selectedBodyPart,
-      selectedTargetMuscle,
-    ],
-  );
+  const filteredExercises = useMemo(() => {
+    const filterByQueryAndSelection = (exercise: any) => {
+      const queryWords = searchQuery.toLowerCase().split(" ");
+      const matchesSearch = queryWords.every((word) =>
+        exercise.name.toLowerCase().includes(word),
+      );
+      return (
+        matchesSearch &&
+        (!selectedEquipment || exercise.equipment === selectedEquipment) &&
+        (!selectedBodyPart || exercise.body_part === selectedBodyPart) &&
+        (!selectedTargetMuscle ||
+          exercise.target_muscle === selectedTargetMuscle)
+      );
+    };
+
+    return {
+      activePlanExercises:
+        exercises?.activePlanExercises?.filter(filterByQueryAndSelection) || [],
+      favoriteExercises:
+        exercises?.favoriteExercises?.filter(filterByQueryAndSelection) || [],
+      otherExercises:
+        exercises?.otherExercises.filter(filterByQueryAndSelection) || [],
+    };
+  }, [
+    exercises,
+    searchQuery,
+    selectedEquipment,
+    selectedBodyPart,
+    selectedTargetMuscle,
+  ]);
 
   if (exercisesLoading) {
     return (
@@ -130,7 +143,7 @@ export default function ExercisesScreen() {
         setSelectedBodyPart={setSelectedBodyPart}
         selectedTargetMuscle={selectedTargetMuscle}
         setSelectedTargetMuscle={setSelectedTargetMuscle}
-        exercises={exercises}
+        exercises={allExercises}
       />
       <ExerciseList
         exercises={filteredExercises}
@@ -157,7 +170,6 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
     borderColor: Colors.dark.text,
     borderWidth: 1,
     borderRadius: 8,

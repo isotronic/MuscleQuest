@@ -2,15 +2,31 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchAllRecords, openDatabase } from "@/utils/database";
 import { Exercise } from "@/utils/database";
 
+interface ExercisesResult {
+  activePlanExercises?: Exercise[];
+  otherExercises: Exercise[];
+  favoriteExercises?: Exercise[]; // Optional, only if favorites are included
+}
+
 const fetchAndSortExercises = async (
-  sortByActivePlan?: boolean,
-): Promise<Exercise[]> => {
+  includeActivePlan?: boolean,
+  includeFavorites?: boolean,
+): Promise<ExercisesResult> => {
   const exercises = (await fetchAllRecords(
     "userData.db",
     "exercises",
   )) as Exercise[];
 
-  if (sortByActivePlan) {
+  const result: ExercisesResult = {
+    activePlanExercises: [],
+    favoriteExercises: [],
+    otherExercises: [],
+  };
+
+  let remainingExercises = exercises;
+
+  // Handle active plan exercises if includeActivePlan is true
+  if (includeActivePlan) {
     const db = await openDatabase("userData.db");
 
     // Fetch exercise IDs linked to the active plan's workouts
@@ -26,27 +42,46 @@ const fetchAndSortExercises = async (
       (record) => record.exercise_id,
     );
 
-    // Sort exercises: active plan exercises first, then others by id
-    return exercises.sort((a, b) => {
-      const aIsActive = activeExerciseIds.includes(a.exercise_id);
-      const bIsActive = activeExerciseIds.includes(b.exercise_id);
-      if (aIsActive && !bIsActive) {
-        return -1;
-      }
-      if (!aIsActive && bIsActive) {
-        return 1;
-      }
-      return a.exercise_id - b.exercise_id;
-    });
+    // Filter active plan exercises
+    result.activePlanExercises = exercises.filter((exercise) =>
+      activeExerciseIds.includes(exercise.exercise_id),
+    );
+
+    // Remove active plan exercises from the remaining exercises
+    remainingExercises = remainingExercises.filter(
+      (exercise) => !activeExerciseIds.includes(exercise.exercise_id),
+    );
   }
 
-  return exercises;
+  // Handle favorite exercises if includeFavorites is true
+  if (includeFavorites) {
+    result.favoriteExercises = remainingExercises.filter(
+      (exercise) => exercise.favorite === 1,
+    );
+
+    // Remove favorite exercises from the remaining exercises
+    remainingExercises = remainingExercises.filter(
+      (exercise) => exercise.favorite !== 1,
+    );
+  }
+
+  // Assign the remaining exercises to otherExercises
+  result.otherExercises = remainingExercises;
+
+  return result;
 };
 
-export const useExercisesQuery = (sortByActivePlan?: boolean) => {
-  return useQuery<Exercise[]>({
-    queryKey: ["exercises", sortByActivePlan ? "sortByActivePlan" : "default"],
-    queryFn: () => fetchAndSortExercises(sortByActivePlan),
+export const useExercisesQuery = (
+  includeActivePlan?: boolean,
+  includeFavorites?: boolean,
+) => {
+  return useQuery<ExercisesResult>({
+    queryKey: [
+      "exercises",
+      includeActivePlan ? "includeActivePlan" : "",
+      includeFavorites ? "includeFavorite" : "",
+    ],
+    queryFn: () => fetchAndSortExercises(includeActivePlan, includeFavorites),
     staleTime: 5 * 60 * 1000,
   });
 };
