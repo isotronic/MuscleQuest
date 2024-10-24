@@ -191,7 +191,7 @@ export default function ExercisesScreen() {
         onPressItem={(item) => {
           router.push({
             pathname: "/(app)/exercise-details",
-            params: { exercise: JSON.stringify(item) },
+            params: { exercise_id: item.exercise_id.toString() },
           });
         }}
       />
