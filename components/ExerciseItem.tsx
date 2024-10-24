@@ -59,18 +59,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#3B4252",
-    padding: 16,
+    padding: 12,
     borderRadius: 8,
     marginVertical: 8,
   },
   exerciseImage: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     borderRadius: 8,
-    marginLeft: 10,
   },
   exerciseInfo: {
-    marginLeft: 16,
+    marginLeft: 12,
     flex: 1,
   },
   exerciseName: {
