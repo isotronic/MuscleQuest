@@ -6,53 +6,73 @@ import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { ThemedView } from "@/components/ThemedView";
+import { useExerciseDetailsQuery } from "@/hooks/useExerciseDetailsQuery";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
 export default function ExerciseDetailsScreen() {
-  const { exercise } = useLocalSearchParams();
+  const { exercise_id } = useLocalSearchParams();
 
-  const exerciseData = exercise
-    ? JSON.parse(typeof exercise === "string" ? exercise : exercise[0])
-    : null;
-
-  if (exerciseData) {
-    if (typeof exerciseData.secondary_muscles === "string") {
-      try {
-        exerciseData.secondary_muscles = JSON.parse(
-          exerciseData.secondary_muscles,
-        );
-      } catch (error) {
-        console.error("Error parsing secondary_muscles:", error);
-      }
-    }
-
-    if (typeof exerciseData.description === "string") {
-      try {
-        exerciseData.description = JSON.parse(exerciseData.description);
-      } catch (error) {
-        console.error("Error parsing description:", error);
-      }
-    }
-  }
+  const {
+    data: exerciseData,
+    error: exerciseError,
+    isLoading: exerciseLoading,
+  } = useExerciseDetailsQuery(Number(exercise_id));
 
   const {
     data: animatedUrl,
     error: animatedImageError,
     isLoading: animatedImageLoading,
   } = useAnimatedImageQuery(
-    exerciseData?.exercise_id,
-    exerciseData?.animated_url,
+    Number(exercise_id),
+    exerciseData?.animated_url ?? "",
     exerciseData?.local_animated_uri,
   );
 
-  if (!exerciseData) {
+  let secondaryMuscles: string[] = [];
+  if (exerciseData?.secondary_muscles) {
+    try {
+      secondaryMuscles =
+        typeof exerciseData.secondary_muscles === "string"
+          ? JSON.parse(exerciseData.secondary_muscles)
+          : exerciseData.secondary_muscles;
+    } catch (error) {
+      console.error("Error parsing secondary_muscles:", error);
+      secondaryMuscles = [];
+    }
+  }
+
+  let description: string[] = [];
+  if (exerciseData?.description) {
+    try {
+      description =
+        typeof exerciseData.description === "string"
+          ? JSON.parse(exerciseData.description)
+          : exerciseData.description;
+    } catch (error) {
+      console.error("Error parsing description:", error);
+      description = [];
+    }
+  }
+
+  if (exerciseLoading) {
     return (
       <View style={styles.container}>
-        <ThemedText style={styles.errorText}>Invalid exercise data</ThemedText>
+        <ActivityIndicator size="large" />
       </View>
     );
   }
+
+  if (exerciseError || !exerciseData) {
+    return (
+      <View style={styles.container}>
+        <ThemedText style={styles.errorText}>
+          Error loading exercise details
+        </ThemedText>
+      </View>
+    );
+  }
+  console.log(exerciseData);
 
   return (
     <ThemedView style={{ backgroundColor: Colors.dark.screenBackground }}>
@@ -85,7 +105,7 @@ export default function ExerciseDetailsScreen() {
           Target Muscle: {exerciseData.target_muscle}
         </ThemedText>
         <ThemedText style={styles.infoText}>
-          Secondary Muscles: {exerciseData.secondary_muscles.join(", ")}
+          Secondary Muscles: {secondaryMuscles.join(", ")}
         </ThemedText>
         <ThemedText style={styles.infoText}>
           Body Part: {exerciseData.body_part}
@@ -95,7 +115,7 @@ export default function ExerciseDetailsScreen() {
         </ThemedText>
         <ThemedText style={styles.descriptionTitle}>Description:</ThemedText>
         {exerciseData &&
-          exerciseData.description.map((item: string, index: number) => (
+          description.map((item: string, index: number) => (
             <View key={index} style={styles.bulletItem}>
               <ThemedText style={styles.bulletPoint}>•</ThemedText>
               <ThemedText style={styles.bulletText}>{item}</ThemedText>
