@@ -232,9 +232,17 @@ export const fetchRecord = async (
   if (!allowedTables.includes(tableName)) {
     throw new Error("Invalid table name");
   }
-  return await db.getFirstAsync(`SELECT * FROM ${tableName} WHERE id = ?`, [
-    id,
-  ]);
+  const fieldName = tableName === "exercises" ? "exercise_id" : "id";
+  try {
+    const result = await db.getFirstAsync(
+      `SELECT * FROM ${tableName} WHERE ${fieldName} = ?`,
+      [id],
+    );
+    return result;
+  } catch (error) {
+    console.error("Error fetching record:", error);
+    throw new Error("Error fetching record");
+  }
 };
 
 export const insertAnimatedImageUri = async (
