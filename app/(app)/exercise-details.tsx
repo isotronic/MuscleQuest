@@ -72,7 +72,6 @@ export default function ExerciseDetailsScreen() {
       </View>
     );
   }
-  console.log(exerciseData);
 
   return (
     <ThemedView style={{ backgroundColor: Colors.dark.screenBackground }}>
