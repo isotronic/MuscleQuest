@@ -1,12 +1,13 @@
 import { View, StyleSheet, ScrollView } from "react-native";
-import { ActivityIndicator } from "react-native-paper";
+import { ActivityIndicator, IconButton } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { ThemedView } from "@/components/ThemedView";
 import { useExerciseDetailsQuery } from "@/hooks/useExerciseDetailsQuery";
+import { useToggleFavoriteExerciseMutation } from "@/hooks/useToggleFavoriteExerciseMutation";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -18,6 +19,8 @@ export default function ExerciseDetailsScreen() {
     error: exerciseError,
     isLoading: exerciseLoading,
   } = useExerciseDetailsQuery(Number(exercise_id));
+
+  const { mutate: toggleFavorite } = useToggleFavoriteExerciseMutation();
 
   const {
     data: animatedUrl,
@@ -73,8 +76,30 @@ export default function ExerciseDetailsScreen() {
     );
   }
 
+  const handleToggleFavorite = () => {
+    toggleFavorite({
+      exerciseId: exerciseData.exercise_id,
+      currentStatus: exerciseData.favorite,
+    });
+  };
+
   return (
     <ThemedView style={{ backgroundColor: Colors.dark.screenBackground }}>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <IconButton
+              icon={exerciseData.favorite ? "star" : "star-outline"}
+              iconColor={
+                exerciseData.favorite ? Colors.dark.tint : Colors.dark.text
+              }
+              size={30}
+              onPress={handleToggleFavorite}
+              style={styles.favoriteIcon}
+            />
+          ),
+        }}
+      />
       <ScrollView contentContainerStyle={styles.container}>
         {animatedImageLoading ? (
           <View style={styles.loadingText}>
