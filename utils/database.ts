@@ -239,10 +239,10 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
     true, // Exclude the auto-incremented exercise_id for userData
   );
 
-  console.log("Updating data version to 1...");
+  console.log("Updating data version to 1.1...");
   await userDataDB.runAsync(
     "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-    ["dataVersion", "1"],
+    ["dataVersion", "1.1"],
   );
 
   console.log("Data copy completed and version updated.");
