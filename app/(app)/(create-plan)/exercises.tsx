@@ -210,7 +210,7 @@ export default function ExercisesScreen() {
       />
       <FAB
         icon="plus"
-        label="Create Custom Exercise"
+        label="Create"
         theme={{ colors: { primary: Colors.dark.tint } }}
         style={styles.fab}
         onPress={() => {
