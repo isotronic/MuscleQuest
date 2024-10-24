@@ -50,6 +50,60 @@ interface SettingsEntry {
   value: string;
 }
 
+export const updateAppExerciseIds = async (): Promise<void> => {
+  const userDataDB = await openDatabase("userData.db");
+  try {
+    // Check the current dataVersion
+    const versionResult = await userDataDB.getFirstAsync<{ value: string }>(
+      `SELECT value FROM settings WHERE key = ? LIMIT 1`,
+      ["dataVersion"],
+    );
+
+    const dataVersion = versionResult?.value;
+
+    if (dataVersion === "1") {
+      console.log(
+        "Data version is 1. Updating app_exercise_id for exercises...",
+      );
+
+      // Find all exercises where app_exercise_id is NULL
+      const nullAppExerciseIds: SQLiteRow[] = await userDataDB.getAllAsync(
+        `SELECT exercise_id FROM exercises WHERE app_exercise_id IS NULL`,
+      );
+
+      if (nullAppExerciseIds.length > 0) {
+        await userDataDB.execAsync("BEGIN TRANSACTION");
+
+        for (const row of nullAppExerciseIds) {
+          // Set the app_exercise_id to the value of exercise_id
+          await userDataDB.runAsync(
+            `UPDATE exercises SET app_exercise_id = ? WHERE exercise_id = ?`,
+            [row.exercise_id, row.exercise_id],
+          );
+        }
+
+        await userDataDB.execAsync("COMMIT");
+
+        console.log(`Updated ${nullAppExerciseIds.length} exercises.`);
+
+        // Update the dataVersion to 1.1
+        await userDataDB.runAsync(
+          "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+          ["dataVersion", "1.1"],
+        );
+        console.log("Updated data version to 1.1...");
+      } else {
+        console.log("No exercises with NULL app_exercise_id found.");
+      }
+    } else {
+      console.log("Data version is not 1. No update needed.");
+    }
+  } catch (error) {
+    console.error("Error updating app_exercise_id:", error);
+    await userDataDB.execAsync("ROLLBACK");
+  }
+};
+
 export const copyDataFromAppDataToUserData = async (): Promise<void> => {
   const appDataDB = await openDatabase("appData.db");
   const userDataDB = await openDatabase("userData.db");
@@ -68,7 +122,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
   const dataVersion = dataVersionEntry?.value || null;
 
-  if (dataVersion === "1") {
+  if (dataVersion === "1" || dataVersion === "1.1") {
     console.log("Data has already been copied.");
     return;
   }

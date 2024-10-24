@@ -31,6 +31,7 @@ import { initUserDataDB } from "@/utils/initUserDataDB";
 import {
   copyDataFromAppDataToUserData,
   insertDefaultSettings,
+  updateAppExerciseIds,
 } from "@/utils/database";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ThemedView } from "@/components/ThemedView";
@@ -101,6 +102,7 @@ function RootLayout() {
         await initializeAppData();
         await initUserDataDB();
         await copyDataFromAppDataToUserData();
+        await updateAppExerciseIds();
         await insertDefaultSettings();
         // Set the database initialization state to true after setup is complete
         setIsDatabaseInitialized(true);
