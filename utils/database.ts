@@ -69,7 +69,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
   const dataVersion = dataVersionEntry?.value || null;
 
   if (dataVersion === "1") {
-    console.log("Data has already been copied or this is the first version.");
+    console.log("Data has already been copied.");
     return;
   }
 
@@ -91,6 +91,11 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
         const insertColumns = excludeId
           ? columns.filter((col) => col !== "exercise_id")
           : columns;
+
+        if (tableName === "exercises") {
+          insertColumns.push("app_exercise_id");
+        }
+
         const placeholders = insertColumns.map(() => "?").join(", ");
         const insertStatement = `INSERT INTO ${tableName} (${insertColumns.join(", ")}) VALUES (${placeholders})`;
 
@@ -143,7 +148,9 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
           }
 
           if (shouldInsertOrUpdate) {
-            const values = insertColumns.map((col) => row[col]);
+            const values = insertColumns.map((col) =>
+              col === "app_exercise_id" ? row["exercise_id"] : row[col],
+            );
             await userDataDB.runAsync(insertStatement, values);
           }
         }
