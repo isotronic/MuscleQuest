@@ -4,10 +4,10 @@ import { openDatabase } from "@/utils/database";
 // Function to toggle favorite status in the database
 const toggleFavoriteStatus = async (
   exerciseId: number,
-  currentStatus: boolean,
+  currentStatus: number,
 ) => {
   const db = await openDatabase("userData.db");
-  const newStatus = !currentStatus;
+  const newStatus = currentStatus === 0 ? 1 : 0;
 
   await db.runAsync(`
     UPDATE exercises 
@@ -26,7 +26,7 @@ export const useToggleFavoriteExerciseMutation = () => {
       currentStatus,
     }: {
       exerciseId: number;
-      currentStatus: boolean;
+      currentStatus: number;
     }) => {
       return toggleFavoriteStatus(exerciseId, currentStatus);
     },
