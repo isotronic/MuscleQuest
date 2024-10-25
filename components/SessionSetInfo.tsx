@@ -102,11 +102,10 @@ export default function SessionSetInfo({
           </ThemedText>
         </View>
 
-        {/* Add Close Button to remove set */}
         <IconButton
           icon="close"
-          onPress={() => removeSet(currentSetIndex)} // Remove the set
-          size={24} // Small size for close button
+          onPress={() => removeSet(currentSetIndex)}
+          size={24}
           iconColor={Colors.dark.text}
           style={styles.closeButton}
         />
@@ -210,7 +209,7 @@ export default function SessionSetInfo({
       >
         Complete Set
       </Button>
-      {/* Conditionally render the Add Set button */}
+
       {isLastSet && (
         <Button mode="outlined" onPress={addSet} style={styles.addSetButton}>
           Add Set

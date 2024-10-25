@@ -7,6 +7,7 @@ import { UserExercise } from "@/store/workoutStore";
 import { Image } from "expo-image";
 import { byteArrayToBase64 } from "@/utils/utility";
 import { TouchableOpacity } from "react-native";
+import { Colors } from "@/constants/Colors";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -46,17 +47,22 @@ export default function WorkoutDetailsScreen() {
         onPress={() => {
           router.push({
             pathname: "/(app)/exercise-details",
-            params: { exercise: JSON.stringify(exerciseItem) },
+            params: { exercise_id: exerciseItem.exercise_id.toString() },
           });
         }}
       >
         <View style={styles.exerciseItem}>
-          {item.image ? (
+          {item.image.length > 0 ? (
             <Image
               style={styles.exerciseImage}
               source={{
                 uri: base64Image,
               }}
+            />
+          ) : item.local_animated_uri ? (
+            <Image
+              style={styles.exerciseImage}
+              source={item.local_animated_uri}
             />
           ) : (
             <Image style={styles.exerciseImage} source={fallbackImage} />
@@ -67,12 +73,8 @@ export default function WorkoutDetailsScreen() {
               {item?.sets?.length
                 ? `${item.sets.length} Sets`
                 : "No Sets Available"}
+              {repRange ? ` | ${repRange} Reps` : ""}
             </ThemedText>
-            {repRange && (
-              <ThemedText style={styles.exerciseReps}>
-                Reps: {repRange}
-              </ThemedText>
-            )}
           </View>
         </View>
       </TouchableOpacity>
@@ -116,12 +118,12 @@ const styles = StyleSheet.create({
   },
   workoutName: {
     fontSize: 24,
-    color: "#ECEFF4",
+    color: Colors.dark.text,
   },
   exerciseItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#4C566A",
+    backgroundColor: Colors.dark.cardBackground,
     padding: 16,
     marginBottom: 10,
     borderRadius: 8,
@@ -137,14 +139,10 @@ const styles = StyleSheet.create({
   },
   exerciseName: {
     fontSize: 18,
-    color: "#ECEFF4",
+    color: Colors.dark.text,
   },
   exerciseSets: {
     fontSize: 14,
-    color: "#D8DEE9",
-  },
-  exerciseReps: {
-    fontSize: 14,
-    color: "#D8DEE9",
+    color: Colors.dark.text,
   },
 });

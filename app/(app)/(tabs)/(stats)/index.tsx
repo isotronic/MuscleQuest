@@ -207,7 +207,7 @@ export default function StatsScreen() {
           <ThemedText style={styles.sectionTitle}>Training Split</ThemedText>
           <BodyPartChart
             completedWorkouts={completedWorkouts}
-            exercises={exercises}
+            exercises={exercises?.otherExercises}
           />
         </View>
         <View style={styles.section}>
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    padding: 16,
+    padding: 20,
     alignItems: "center",
     borderRadius: 8,
     backgroundColor: Colors.dark.cardBackground,

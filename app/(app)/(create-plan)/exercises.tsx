@@ -26,7 +26,7 @@ export default function ExercisesScreen() {
     data: exercises,
     isLoading: exercisesLoading,
     error: exercisesError,
-  } = useExercisesQuery();
+  } = useExercisesQuery(false, true);
   const { workouts, addExercise, newExerciseId, setNewExerciseId } =
     useWorkoutStore();
   const { index } = useLocalSearchParams();
@@ -41,6 +41,11 @@ export default function ExercisesScreen() {
 
   const defaultSetNumber = settings ? parseInt(settings?.defaultSets) : 3;
   const totalSeconds = settings ? parseInt(settings?.defaultRestTime) : 0;
+  const allExercises = [
+    ...(exercises?.activePlanExercises || []),
+    ...(exercises?.favoriteExercises || []),
+    ...(exercises?.otherExercises || []),
+  ];
 
   const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
 
@@ -81,8 +86,9 @@ export default function ExercisesScreen() {
       restMinutes: minutes,
       restSeconds: seconds,
     });
+
     selectedExercises.forEach((exerciseId) => {
-      const exercise = exercises?.find((ex) => ex.exercise_id === exerciseId);
+      const exercise = allExercises.find((ex) => ex.exercise_id === exerciseId);
       if (
         exercise &&
         !currentWorkout?.exercises.some(
@@ -96,29 +102,36 @@ export default function ExercisesScreen() {
     router.back();
   };
 
-  const filteredExercises = useMemo(
-    () =>
-      exercises?.filter((exercise) => {
-        const queryWords = searchQuery.toLowerCase().split(" ");
-        const matchesSearch = queryWords.every((word) =>
-          exercise.name.toLowerCase().includes(word),
-        );
-        return (
-          matchesSearch &&
-          (!selectedEquipment || exercise.equipment === selectedEquipment) &&
-          (!selectedBodyPart || exercise.body_part === selectedBodyPart) &&
-          (!selectedTargetMuscle ||
-            exercise.target_muscle === selectedTargetMuscle)
-        );
-      }) || [],
-    [
-      exercises,
-      searchQuery,
-      selectedEquipment,
-      selectedBodyPart,
-      selectedTargetMuscle,
-    ],
-  );
+  const filteredExercises = useMemo(() => {
+    const filterByQueryAndSelection = (exercise: any) => {
+      const queryWords = searchQuery.toLowerCase().split(" ");
+      const matchesSearch = queryWords.every((word) =>
+        exercise.name.toLowerCase().includes(word),
+      );
+      return (
+        matchesSearch &&
+        (!selectedEquipment || exercise.equipment === selectedEquipment) &&
+        (!selectedBodyPart || exercise.body_part === selectedBodyPart) &&
+        (!selectedTargetMuscle ||
+          exercise.target_muscle === selectedTargetMuscle)
+      );
+    };
+
+    return {
+      activePlanExercises:
+        exercises?.activePlanExercises?.filter(filterByQueryAndSelection) || [],
+      favoriteExercises:
+        exercises?.favoriteExercises?.filter(filterByQueryAndSelection) || [],
+      otherExercises:
+        exercises?.otherExercises.filter(filterByQueryAndSelection) || [],
+    };
+  }, [
+    exercises,
+    searchQuery,
+    selectedEquipment,
+    selectedBodyPart,
+    selectedTargetMuscle,
+  ]);
 
   if (exercisesLoading || settingsLoading) {
     return (
@@ -182,7 +195,7 @@ export default function ExercisesScreen() {
         setSelectedBodyPart={setSelectedBodyPart}
         selectedTargetMuscle={selectedTargetMuscle}
         setSelectedTargetMuscle={setSelectedTargetMuscle}
-        exercises={exercises}
+        exercises={allExercises}
       />
       <ExerciseList
         exercises={filteredExercises}
@@ -191,13 +204,13 @@ export default function ExercisesScreen() {
         onPressItem={(item) => {
           router.push({
             pathname: "/(app)/exercise-details",
-            params: { exercise: JSON.stringify(item) },
+            params: { exercise_id: item.exercise_id.toString() },
           });
         }}
       />
       <FAB
         icon="plus"
-        label="Create Custom Exercise"
+        label="Create"
         theme={{ colors: { primary: Colors.dark.tint } }}
         style={styles.fab}
         onPress={() => {
@@ -218,7 +231,6 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
     borderColor: Colors.dark.text,
     borderWidth: 1,
     borderRadius: 8,

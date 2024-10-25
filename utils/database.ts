@@ -4,6 +4,7 @@ import * as SQLite from "expo-sqlite";
 
 export interface Exercise {
   exercise_id: number;
+  app_exercise_id?: number;
   name: string;
   image: number[];
   local_animated_uri: string;
@@ -13,6 +14,7 @@ export interface Exercise {
   target_muscle: string;
   secondary_muscles: string[];
   description: string;
+  favorite?: number;
 }
 
 export interface SavedWorkout {
@@ -50,6 +52,60 @@ interface SettingsEntry {
   value: string;
 }
 
+export const updateAppExerciseIds = async (): Promise<void> => {
+  const userDataDB = await openDatabase("userData.db");
+  try {
+    // Check the current dataVersion
+    const versionResult = await userDataDB.getFirstAsync<{ value: string }>(
+      `SELECT value FROM settings WHERE key = ? LIMIT 1`,
+      ["dataVersion"],
+    );
+
+    const dataVersion = versionResult?.value;
+
+    if (dataVersion === "1") {
+      console.log(
+        "Data version is 1. Updating app_exercise_id for exercises...",
+      );
+
+      // Find all exercises where app_exercise_id is NULL
+      const nullAppExerciseIds: SQLiteRow[] = await userDataDB.getAllAsync(
+        `SELECT exercise_id FROM exercises WHERE app_exercise_id IS NULL`,
+      );
+
+      if (nullAppExerciseIds.length > 0) {
+        await userDataDB.execAsync("BEGIN TRANSACTION");
+
+        for (const row of nullAppExerciseIds) {
+          // Set the app_exercise_id to the value of exercise_id
+          await userDataDB.runAsync(
+            `UPDATE exercises SET app_exercise_id = ? WHERE exercise_id = ?`,
+            [row.exercise_id, row.exercise_id],
+          );
+        }
+
+        await userDataDB.execAsync("COMMIT");
+
+        console.log(`Updated ${nullAppExerciseIds.length} exercises.`);
+
+        // Update the dataVersion to 1.1
+        await userDataDB.runAsync(
+          "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+          ["dataVersion", "1.1"],
+        );
+        console.log("Updated data version to 1.1...");
+      } else {
+        console.log("No exercises with NULL app_exercise_id found.");
+      }
+    } else {
+      console.log("Data version is not 1. No update needed.");
+    }
+  } catch (error) {
+    console.error("Error updating app_exercise_id:", error);
+    await userDataDB.execAsync("ROLLBACK");
+  }
+};
+
 export const copyDataFromAppDataToUserData = async (): Promise<void> => {
   const appDataDB = await openDatabase("appData.db");
   const userDataDB = await openDatabase("userData.db");
@@ -68,8 +124,8 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
   const dataVersion = dataVersionEntry?.value || null;
 
-  if (dataVersion === "1") {
-    console.log("Data has already been copied or this is the first version.");
+  if (dataVersion === "1" || dataVersion === "1.1") {
+    console.log("Data has already been copied.");
     return;
   }
 
@@ -91,6 +147,11 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
         const insertColumns = excludeId
           ? columns.filter((col) => col !== "exercise_id")
           : columns;
+
+        if (tableName === "exercises") {
+          insertColumns.push("app_exercise_id");
+        }
+
         const placeholders = insertColumns.map(() => "?").join(", ");
         const insertStatement = `INSERT INTO ${tableName} (${insertColumns.join(", ")}) VALUES (${placeholders})`;
 
@@ -143,7 +204,9 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
           }
 
           if (shouldInsertOrUpdate) {
-            const values = insertColumns.map((col) => row[col]);
+            const values = insertColumns.map((col) =>
+              col === "app_exercise_id" ? row["exercise_id"] : row[col],
+            );
             await userDataDB.runAsync(insertStatement, values);
           }
         }
@@ -177,10 +240,10 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
     true, // Exclude the auto-incremented exercise_id for userData
   );
 
-  console.log("Updating data version to 1...");
+  console.log("Updating data version to 1.1...");
   await userDataDB.runAsync(
     "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-    ["dataVersion", "1"],
+    ["dataVersion", "1.1"],
   );
 
   console.log("Data copy completed and version updated.");
@@ -232,9 +295,16 @@ export const fetchRecord = async (
   if (!allowedTables.includes(tableName)) {
     throw new Error("Invalid table name");
   }
-  return await db.getFirstAsync(`SELECT * FROM ${tableName} WHERE id = ?`, [
-    id,
-  ]);
+  const fieldName = tableName === "exercises" ? "exercise_id" : "id";
+  try {
+    return await db.getFirstAsync(
+      `SELECT * FROM ${tableName} WHERE ${fieldName} = ?`,
+      [id],
+    );
+  } catch (error) {
+    console.error("Error fetching record:", error);
+    throw new Error("Error fetching record");
+  }
 };
 
 export const insertAnimatedImageUri = async (

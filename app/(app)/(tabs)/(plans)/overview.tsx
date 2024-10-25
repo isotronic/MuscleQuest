@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   planName: {
     fontSize: 24,
-    color: "#ECEFF4",
+    color: Colors.dark.text,
     marginTop: 10,
   },
   workoutCard: {
@@ -201,12 +201,12 @@ const styles = StyleSheet.create({
   },
   workoutTitle: {
     fontSize: 18,
-    color: "#ECEFF4",
+    color: Colors.dark.text,
     fontWeight: "bold",
   },
   workoutInfo: {
     fontSize: 16,
-    color: "#ECEFF4",
+    color: Colors.dark.text,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   activeBadge: {
-    backgroundColor: "green",
+    backgroundColor: Colors.dark.completed,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     right: 10,
   },
   activeBadgeText: {
-    color: "white",
+    color: Colors.dark.text,
     fontWeight: "bold",
   },
   snackBarContainer: {

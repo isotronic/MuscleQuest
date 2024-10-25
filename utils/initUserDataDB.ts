@@ -34,6 +34,7 @@ export async function initUserDataDB() {
       target_muscle TEXT, 
       secondary_muscles TEXT, 
       description TEXT,
+      favorite BOOLEAN DEFAULT FALSE,
       is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (target_muscle) REFERENCES muscles(muscle),
       FOREIGN KEY (body_part) REFERENCES body_parts(body_part),
@@ -125,4 +126,18 @@ export async function initUserDataDB() {
       date_added DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP -- When this exercise was added for tracking
     );
   `);
+
+  // Check if the favorite column already exists
+  const result = await db.getAllAsync(`
+    PRAGMA table_info(exercises);
+  `);
+
+  const columnExists = result.some((column: any) => column.name === "favorite");
+
+  // If the column does not exist, add it
+  if (!columnExists) {
+    await db.execAsync(`
+      ALTER TABLE exercises ADD COLUMN favorite BOOLEAN DEFAULT FALSE;
+    `);
+  }
 }

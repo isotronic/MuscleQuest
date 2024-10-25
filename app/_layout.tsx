@@ -7,6 +7,7 @@ import {
 import { paperTheme } from "@/utils/paperTheme";
 import { useFonts } from "expo-font";
 import { isRunningInExpoGo } from "expo";
+import * as Updates from "expo-updates";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import * as SplashScreen from "expo-splash-screen";
@@ -31,6 +32,7 @@ import { initUserDataDB } from "@/utils/initUserDataDB";
 import {
   copyDataFromAppDataToUserData,
   insertDefaultSettings,
+  updateAppExerciseIds,
 } from "@/utils/database";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ThemedView } from "@/components/ThemedView";
@@ -101,11 +103,13 @@ function RootLayout() {
         await initializeAppData();
         await initUserDataDB();
         await copyDataFromAppDataToUserData();
+        await updateAppExerciseIds();
         await insertDefaultSettings();
         // Set the database initialization state to true after setup is complete
         setIsDatabaseInitialized(true);
       } catch (error) {
         console.error("Database initialization error:", error);
+        await Updates.reloadAsync();
       } finally {
         setIsInitializing(false);
       }
