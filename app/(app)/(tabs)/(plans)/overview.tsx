@@ -11,10 +11,9 @@ import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useDeletePlanMutation } from "@/hooks/useDeletePlanMutation";
 import { useSetActivePlanMutation } from "@/hooks/useSetActivePlanMutation";
-import { Snackbar, Button } from "react-native-paper";
+import { Snackbar, Button, IconButton } from "react-native-paper";
 import { useState } from "react";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
@@ -87,10 +86,11 @@ export default function PlanOverviewScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <MaterialCommunityIcons
-              name="trash-can-outline"
-              size={24}
-              color={Colors.dark.highlight}
+            <IconButton
+              icon="trash-can-outline"
+              size={25}
+              style={{ marginRight: 0 }}
+              iconColor={Colors.dark.highlight}
               onPress={handleDeletePlan}
             />
           ),

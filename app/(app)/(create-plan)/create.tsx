@@ -13,7 +13,7 @@ import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
-import { FAB, ActivityIndicator } from "react-native-paper";
+import { FAB, ActivityIndicator, IconButton } from "react-native-paper";
 import {
   router,
   Stack,
@@ -25,7 +25,6 @@ import { useCreatePlan } from "@/hooks/useCreatePlan";
 import WorkoutCard from "@/components/WorkoutCard";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { useQueryClient } from "@tanstack/react-query";
-import { FontAwesome6 } from "@expo/vector-icons";
 
 export default function CreatePlanScreen() {
   const navigation = useNavigation();
@@ -155,17 +154,13 @@ export default function CreatePlanScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <FontAwesome6
-              name="save"
+            <IconButton
+              icon="content-save-outline"
               size={35}
-              color={
-                !saveDisabled
-                  ? Colors.dark.tint
-                  : Colors.dark.disabledButtonBackground
-              }
-              onPress={
-                saveDisabled ? undefined : () => handleSavePlan(Number(planId))
-              }
+              style={{ marginRight: 0 }}
+              disabled={saveDisabled}
+              iconColor={Colors.dark.tint}
+              onPress={() => handleSavePlan(Number(planId))}
             />
           ),
         }}
