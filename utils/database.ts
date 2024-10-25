@@ -4,6 +4,7 @@ import * as SQLite from "expo-sqlite";
 
 export interface Exercise {
   exercise_id: number;
+  app_exercise_id?: number;
   name: string;
   image: number[];
   local_animated_uri: string;

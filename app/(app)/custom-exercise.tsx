@@ -12,17 +12,20 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { ThemedText } from "@/components/ThemedText";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
-import { fetchAllRecords, openDatabase } from "@/utils/database";
+import { Exercise, fetchAllRecords, openDatabase } from "@/utils/database";
 import { capitalizeWords } from "@/utils/utility";
 import { Colors } from "@/constants/Colors";
 import { ThemedView } from "@/components/ThemedView";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWorkoutStore } from "@/store/workoutStore";
 
 export default function AddCustomExerciseScreen() {
   const queryClient = useQueryClient();
   const { setNewExerciseId } = useWorkoutStore();
+  const { exercise_id } = useLocalSearchParams(); // Retrieve exercise_id param for edit mode
+  const isEditing = !!exercise_id;
+
   // States to control the open/close of each dropdown
   const [bodyPartOpen, setBodyPartOpen] = useState(false);
   const [targetMuscleOpen, setTargetMuscleOpen] = useState(false);
@@ -92,6 +95,39 @@ export default function AddCustomExerciseScreen() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (isEditing) {
+      const fetchExerciseData = async () => {
+        try {
+          const db = await openDatabase("userData.db");
+          const existingData = (await db.getFirstAsync(
+            `SELECT * FROM exercises WHERE exercise_id = ?`,
+            [Number(exercise_id)],
+          )) as Exercise;
+
+          if (existingData) {
+            setName(existingData.name);
+            setDescription(JSON.parse(existingData.description)[0]);
+            setImage(existingData.local_animated_uri);
+            setBodyPart(existingData.body_part);
+            setTargetMuscle(existingData.target_muscle);
+            setEquipment(existingData.equipment);
+            setSecondaryMuscles(
+              Array.isArray(existingData.secondary_muscles)
+                ? existingData.secondary_muscles
+                : JSON.parse(existingData.secondary_muscles) || [],
+            );
+          }
+        } catch (error) {
+          console.error("Error fetching exercise data for editing:", error);
+          Alert.alert("Error", "Failed to load exercise details.");
+        }
+      };
+
+      fetchExerciseData();
+    }
+  }, [exercise_id, isEditing]);
+
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -132,26 +168,48 @@ export default function AddCustomExerciseScreen() {
 
     try {
       const db = await openDatabase("userData.db");
-      await db.runAsync(
-        `INSERT INTO exercises (app_exercise_id, name, description, local_animated_uri, body_part, target_muscle, equipment, secondary_muscles) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          name,
-          JSON.stringify([description]),
-          newImageUri,
-          bodyPart,
-          targetMuscle,
-          equipment,
-          JSON.stringify(secondaryMuscles),
-        ],
-      );
 
-      const result = (await db.getFirstAsync(
-        `SELECT exercise_id FROM exercises ORDER BY exercise_id DESC LIMIT 1`,
-      )) as { exercise_id: number };
-      const newExerciseId = result?.exercise_id;
-      setNewExerciseId(newExerciseId);
+      if (isEditing) {
+        // Update existing exercise
+        await db.runAsync(
+          `UPDATE exercises SET name = ?, description = ?, local_animated_uri = ?, body_part = ?, target_muscle = ?, equipment = ?, secondary_muscles = ? WHERE exercise_id = ?`,
+          [
+            name,
+            JSON.stringify([description]),
+            newImageUri,
+            bodyPart,
+            targetMuscle,
+            equipment,
+            JSON.stringify(secondaryMuscles),
+            Number(exercise_id),
+          ],
+        );
+      } else {
+        await db.runAsync(
+          `INSERT INTO exercises (app_exercise_id, name, description, local_animated_uri, body_part, target_muscle, equipment, secondary_muscles) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            name,
+            JSON.stringify([description]),
+            newImageUri,
+            bodyPart,
+            targetMuscle,
+            equipment,
+            JSON.stringify(secondaryMuscles),
+          ],
+        );
 
+        const result = (await db.getFirstAsync(
+          `SELECT exercise_id FROM exercises ORDER BY exercise_id DESC LIMIT 1`,
+        )) as { exercise_id: number };
+        const newExerciseId = result?.exercise_id;
+        setNewExerciseId(newExerciseId);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["plan"] });
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
+      queryClient.invalidateQueries({
+        queryKey: ["exercise-details", Number(exercise_id)],
+      });
       router.back();
     } catch (error) {
       Alert.alert("Error", "Failed to save custom exercise. Please try again.");
@@ -325,7 +383,7 @@ export default function AddCustomExerciseScreen() {
 
           {/* Submit Button */}
           <Button mode="contained" onPress={handleSubmit}>
-            Save and Select
+            {isEditing ? "Save" : "Save and select"}
           </Button>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -1,7 +1,7 @@
 import { View, StyleSheet, ScrollView } from "react-native";
-import { ActivityIndicator, IconButton } from "react-native-paper";
+import { ActivityIndicator, IconButton, Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
@@ -153,6 +153,20 @@ export default function ExerciseDetailsScreen() {
               ))}
           </View>
         )}
+        {exerciseData && exerciseData.app_exercise_id === null && (
+          <Button
+            mode="outlined"
+            style={styles.editButton}
+            onPress={() => {
+              router.push({
+                pathname: "/(app)/custom-exercise",
+                params: { exercise_id: exerciseData.exercise_id.toString() },
+              });
+            }}
+          >
+            Edit exercise
+          </Button>
+        )}
       </ScrollView>
     </ThemedView>
   );
@@ -219,5 +233,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginVertical: 32,
     color: "#FF6F61",
+  },
+  editButton: {
+    marginTop: 20,
   },
 });
