@@ -7,6 +7,7 @@ import {
 import { paperTheme } from "@/utils/paperTheme";
 import { useFonts } from "expo-font";
 import { isRunningInExpoGo } from "expo";
+import * as Updates from "expo-updates";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import * as SplashScreen from "expo-splash-screen";
@@ -108,6 +109,7 @@ function RootLayout() {
         setIsDatabaseInitialized(true);
       } catch (error) {
         console.error("Database initialization error:", error);
+        await Updates.reloadAsync();
       } finally {
         setIsInitializing(false);
       }
