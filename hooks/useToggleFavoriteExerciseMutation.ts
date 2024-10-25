@@ -6,14 +6,19 @@ const toggleFavoriteStatus = async (
   exerciseId: number,
   currentStatus: number,
 ) => {
-  const db = await openDatabase("userData.db");
-  const newStatus = currentStatus === 0 ? 1 : 0;
+  try {
+    const db = await openDatabase("userData.db");
+    const newStatus = currentStatus === 0 ? 1 : 0;
 
-  await db.runAsync(`
+    await db.runAsync(`
     UPDATE exercises 
     SET favorite = ${newStatus} 
     WHERE exercise_id = ${exerciseId};
   `);
+  } catch (error) {
+    console.error("Error toggling favorite status:", error);
+    throw new Error(`Failed to toggle favorite status: ${error}`);
+  }
 };
 
 // Custom hook to toggle favorite status
