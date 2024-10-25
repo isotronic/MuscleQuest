@@ -209,7 +209,7 @@ export default function WorkoutOverviewScreen() {
               icon="content-save-outline"
               size={35}
               style={{ marginRight: 0 }}
-              disabled={hasCompletedSets}
+              disabled={!hasCompletedSets}
               iconColor={Colors.dark.tint}
               onPress={handleSaveWorkout}
             />
