@@ -455,6 +455,7 @@ export default function WorkoutSessionScreen() {
             }}
           >
             <SessionSetInfo
+              exercise_id={currentExercise?.exercise_id || 0}
               exerciseName={currentExercise?.name || ""}
               animatedUrl={animatedUrl}
               animatedImageLoading={animatedImageLoading}
@@ -501,6 +502,7 @@ export default function WorkoutSessionScreen() {
               }}
             >
               <SessionSetInfo
+                exercise_id={nextExercise?.exercise_id || 0}
                 exerciseName={nextExerciseName}
                 animatedUrl={nextAnimatedUrl}
                 animatedImageLoading={nextAnimatedImageLoading}
@@ -550,6 +552,7 @@ export default function WorkoutSessionScreen() {
                 }}
               >
                 <SessionSetInfo
+                  exercise_id={previousExercise?.exercise_id || 0}
                   exerciseName={previousExerciseName}
                   animatedUrl={previousAnimatedUrl}
                   animatedImageLoading={previousAnimatedImageLoading}
