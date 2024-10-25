@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     margin: 0,
   },
   addButtonLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "bold",
   },
   errorText: {
