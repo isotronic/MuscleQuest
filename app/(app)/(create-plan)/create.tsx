@@ -13,13 +13,19 @@ import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
-import { FAB, Button, ActivityIndicator } from "react-native-paper";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import { FAB, ActivityIndicator } from "react-native-paper";
+import {
+  router,
+  Stack,
+  useLocalSearchParams,
+  useNavigation,
+} from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { useCreatePlan } from "@/hooks/useCreatePlan";
 import WorkoutCard from "@/components/WorkoutCard";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { useQueryClient } from "@tanstack/react-query";
+import { FontAwesome6 } from "@expo/vector-icons";
 
 export default function CreatePlanScreen() {
   const navigation = useNavigation();
@@ -138,12 +144,32 @@ export default function CreatePlanScreen() {
     router.push(`/(app)/(create-plan)/exercises?index=${index}`);
   };
 
+  const saveDisabled = !planName.trim() || workouts.length === 0;
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <FontAwesome6
+              name="save"
+              size={35}
+              color={
+                !saveDisabled
+                  ? Colors.dark.tint
+                  : Colors.dark.disabledButtonBackground
+              }
+              onPress={
+                saveDisabled ? undefined : () => handleSavePlan(Number(planId))
+              }
+            />
+          ),
+        }}
+      />
       <NestableScrollContainer contentContainerStyle={{ flexGrow: 1 }}>
         {!dataLoaded ? (
           <ThemedView style={styles.loadingContainer}>
@@ -163,14 +189,6 @@ export default function CreatePlanScreen() {
                 onChangeText={setPlanName}
                 dense
               />
-              <Button
-                mode="contained"
-                labelStyle={styles.buttonLabel}
-                onPress={() => handleSavePlan(Number(planId))}
-                disabled={!planName.trim() || workouts.length === 0}
-              >
-                Save
-              </Button>
             </View>
             {workouts.length === 0 ? (
               <ThemedText style={styles.emptyText}>
@@ -220,7 +238,7 @@ const styles = StyleSheet.create({
   image: {
     width: 60,
     height: 60,
-    borderRadius: 20,
+    borderRadius: 10,
     marginRight: 10,
   },
   input: {
@@ -231,7 +249,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     color: Colors.dark.text,
     fontSize: 18,
-    marginRight: 10,
     height: 40,
   },
   emptyText: {
