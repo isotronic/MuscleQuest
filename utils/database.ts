@@ -13,7 +13,7 @@ export interface Exercise {
   target_muscle: string;
   secondary_muscles: string[];
   description: string;
-  favorite: number;
+  favorite?: number;
 }
 
 export interface SavedWorkout {
