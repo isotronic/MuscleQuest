@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    marginBottom: 12,
+    marginBottom: 10,
     backgroundColor: Colors.dark.cardBackground,
     borderRadius: 10,
   },

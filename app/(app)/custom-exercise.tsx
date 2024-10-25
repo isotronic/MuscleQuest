@@ -149,7 +149,6 @@ export default function AddCustomExerciseScreen() {
         `SELECT exercise_id FROM exercises ORDER BY exercise_id DESC LIMIT 1`,
       )) as { exercise_id: number };
       const newExerciseId = result?.exercise_id;
-      console.log(newExerciseId);
       setNewExerciseId(newExerciseId);
 
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
@@ -337,7 +336,7 @@ export default function AddCustomExerciseScreen() {
 const styles = StyleSheet.create({
   input: {
     padding: 10,
-    borderColor: Colors.dark.text,
+    borderColor: Colors.dark.subText,
     borderWidth: 1,
     borderRadius: 8,
     color: Colors.dark.text,
@@ -349,7 +348,7 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     backgroundColor: Colors.dark.screenBackground,
-    borderColor: Colors.dark.text,
+    borderColor: Colors.dark.subText,
     marginBottom: 16,
   },
   dropdownContainer: {
@@ -357,7 +356,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.dark.text,
   },
   dropdownPlaceholder: {
-    color: Colors.dark.text,
+    color: Colors.dark.subText,
     fontSize: 18,
   },
 });

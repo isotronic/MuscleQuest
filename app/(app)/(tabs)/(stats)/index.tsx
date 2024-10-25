@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    padding: 16,
+    padding: 20,
     alignItems: "center",
     borderRadius: 8,
     backgroundColor: Colors.dark.cardBackground,

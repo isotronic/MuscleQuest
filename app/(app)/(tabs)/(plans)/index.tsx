@@ -34,9 +34,8 @@ export default function PlansScreen() {
           data={plans}
           onPressItem={handleViewPlan}
         />
-        <PlanList title="Build muscle" data={[]} onPressItem={handleViewPlan} />
         <PlanList
-          title="Gain strength"
+          title="Pre-made plans"
           data={[]}
           onPressItem={handleViewPlan}
         />
