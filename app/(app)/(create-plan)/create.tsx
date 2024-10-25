@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     padding: 10,
-    borderColor: Colors.dark.text,
+    borderColor: Colors.dark.subText,
     borderWidth: 1,
     borderRadius: 8,
     color: Colors.dark.text,
