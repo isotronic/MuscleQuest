@@ -12,7 +12,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useNavigation } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { FontAwesome6, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
 import { useCompletedWorkoutsQuery } from "@/hooks/useCompletedWorkoutsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
@@ -205,10 +205,9 @@ export default function WorkoutOverviewScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <MaterialCommunityIcons
-              name="content-save-outline"
+            <FontAwesome6
+              name="save"
               size={35}
-              label="Save"
               color={
                 hasCompletedSets
                   ? Colors.dark.tint
