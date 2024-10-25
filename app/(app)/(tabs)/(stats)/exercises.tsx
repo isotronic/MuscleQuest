@@ -212,7 +212,7 @@ export default function ExercisesScreen() {
         onPressItem={(item) => {
           router.push({
             pathname: "/(app)/exercise-details",
-            params: { exercise: JSON.stringify(item) },
+            params: { exercise_id: item.exercise_id.toString() },
           });
         }}
       />
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     margin: 0,
   },
   addButtonLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "bold",
   },
   errorText: {
