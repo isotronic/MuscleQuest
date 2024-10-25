@@ -297,11 +297,10 @@ export const fetchRecord = async (
   }
   const fieldName = tableName === "exercises" ? "exercise_id" : "id";
   try {
-    const result = await db.getFirstAsync(
+    return await db.getFirstAsync(
       `SELECT * FROM ${tableName} WHERE ${fieldName} = ?`,
       [id],
     );
-    return result;
   } catch (error) {
     console.error("Error fetching record:", error);
     throw new Error("Error fetching record");
