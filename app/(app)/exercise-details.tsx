@@ -157,6 +157,7 @@ export default function ExerciseDetailsScreen() {
           <Button
             mode="outlined"
             style={styles.editButton}
+            labelStyle={styles.buttonLabel}
             onPress={() => {
               router.push({
                 pathname: "/(app)/custom-exercise",
@@ -236,5 +237,8 @@ const styles = StyleSheet.create({
   },
   editButton: {
     marginTop: 20,
+  },
+  buttonLabel: {
+    fontSize: 16,
   },
 });

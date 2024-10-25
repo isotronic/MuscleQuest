@@ -228,6 +228,7 @@ export default function StatsScreen() {
           <Button
             style={{ marginTop: 16 }}
             mode="contained"
+            labelStyle={styles.buttonLabel}
             onPress={handleAddExercisesPress}
           >
             Add{" "}
@@ -279,5 +280,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 16,
+  },
+  buttonLabel: {
+    fontSize: 16,
   },
 });

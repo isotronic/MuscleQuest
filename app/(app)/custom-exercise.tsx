@@ -382,7 +382,11 @@ export default function AddCustomExerciseScreen() {
           />
 
           {/* Submit Button */}
-          <Button mode="contained" onPress={handleSubmit}>
+          <Button
+            mode="contained"
+            labelStyle={styles.buttonLabel}
+            onPress={handleSubmit}
+          >
             {isEditing ? "Save" : "Save and select"}
           </Button>
         </ScrollView>
@@ -416,5 +420,8 @@ const styles = StyleSheet.create({
   dropdownPlaceholder: {
     color: Colors.dark.subText,
     fontSize: 18,
+  },
+  buttonLabel: {
+    fontSize: 16,
   },
 });
