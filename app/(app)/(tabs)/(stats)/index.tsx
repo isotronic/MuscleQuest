@@ -18,6 +18,7 @@ import { updateSettings } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
 import BodyPartChart from "@/components/charts/BodyPartChart";
 import { WorkoutBarChart } from "@/components/charts/WorkoutBarChart";
+import { formatToHoursMinutes } from "@/utils/utility";
 
 const timeRanges = {
   allTime: "0",
@@ -62,7 +63,7 @@ export default function StatsScreen() {
   const totalTimeSpent = completedWorkouts
     ? completedWorkouts.reduce((acc, workout) => acc + workout.duration, 0)
     : 0;
-  const totalTimeMinutes = Math.round(totalTimeSpent / 60);
+  const totalTime = formatToHoursMinutes(totalTimeSpent);
 
   // Function to update the selected time range
   const handleTimeRangeChange = async (range: string) => {
@@ -154,10 +155,8 @@ export default function StatsScreen() {
               <ThemedText style={styles.statLabel}>Sets</ThemedText>
             </Card>
             <Card style={styles.summaryCard}>
-              <ThemedText style={styles.statValue}>
-                {totalTimeMinutes}
-              </ThemedText>
-              <ThemedText style={styles.statLabel}>Minutes</ThemedText>
+              <ThemedText style={styles.statValue}>{totalTime}</ThemedText>
+              <ThemedText style={styles.statLabel}>Time</ThemedText>
             </Card>
           </View>
         </View>
@@ -270,6 +269,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 14,
+    textAlign: "center",
   },
   section: {
     marginBottom: 32,
