@@ -218,8 +218,12 @@ export default function SessionSetInfo({
       <Button
         mode="contained"
         onPress={handleCompleteSet}
+        labelStyle={
+          buttonSize === 40 ? styles.buttonLabel : styles.largeButtonLabel
+        }
         style={[
           styles.completeButton,
+          buttonSize === 40 ? "" : styles.largeButton,
           currentSetCompleted && styles.disabledButton,
         ]}
         disabled={currentSetCompleted}
@@ -228,7 +232,17 @@ export default function SessionSetInfo({
       </Button>
 
       {isLastSet && (
-        <Button mode="outlined" onPress={addSet} style={styles.addSetButton}>
+        <Button
+          mode="outlined"
+          onPress={addSet}
+          labelStyle={
+            buttonSize === 40 ? styles.buttonLabel : styles.largeButtonLabel
+          }
+          style={[
+            styles.addSetButton,
+            buttonSize === 40 ? "" : styles.largeButton,
+          ]}
+        >
           Add Set
         </Button>
       )}
@@ -307,11 +321,21 @@ const styles = StyleSheet.create({
   completeButton: {
     marginTop: 16,
   },
+  largeButton: {
+    height: 55,
+  },
   disabledButton: {
     backgroundColor: Colors.dark.disabledButtonBackground,
   },
   addSetButton: {
     marginTop: 8,
+  },
+  buttonLabel: {
+    fontSize: 16,
+  },
+  largeButtonLabel: {
+    fontSize: 24,
+    lineHeight: 31,
   },
   loadingText: {
     fontSize: 18,
