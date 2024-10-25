@@ -79,7 +79,7 @@ export default function ExerciseDetailsScreen() {
   const handleToggleFavorite = () => {
     toggleFavorite({
       exerciseId: exerciseData.exercise_id,
-      currentStatus: exerciseData.favorite,
+      currentStatus: exerciseData.favorite || 0,
     });
   };
 
@@ -128,23 +128,31 @@ export default function ExerciseDetailsScreen() {
         <ThemedText style={styles.infoText}>
           Target Muscle: {exerciseData.target_muscle}
         </ThemedText>
-        <ThemedText style={styles.infoText}>
-          Secondary Muscles: {secondaryMuscles.join(", ")}
-        </ThemedText>
+        {secondaryMuscles.length > 0 && (
+          <ThemedText style={styles.infoText}>
+            Secondary Muscles: {secondaryMuscles.join(", ")}
+          </ThemedText>
+        )}
         <ThemedText style={styles.infoText}>
           Body Part: {exerciseData.body_part}
         </ThemedText>
         <ThemedText style={styles.infoText}>
           Equipment: {exerciseData.equipment}
         </ThemedText>
-        <ThemedText style={styles.descriptionTitle}>Description:</ThemedText>
-        {exerciseData &&
-          description.map((item: string, index: number) => (
-            <View key={index} style={styles.bulletItem}>
-              <ThemedText style={styles.bulletPoint}>•</ThemedText>
-              <ThemedText style={styles.bulletText}>{item}</ThemedText>
-            </View>
-          ))}
+        {description.length > 0 && description[0] !== "" && (
+          <View>
+            <ThemedText style={styles.descriptionTitle}>
+              Description:
+            </ThemedText>
+            {exerciseData &&
+              description.map((item: string, index: number) => (
+                <View key={index} style={styles.bulletItem}>
+                  <ThemedText style={styles.bulletPoint}>•</ThemedText>
+                  <ThemedText style={styles.bulletText}>{item}</ThemedText>
+                </View>
+              ))}
+          </View>
+        )}
       </ScrollView>
     </ThemedView>
   );
