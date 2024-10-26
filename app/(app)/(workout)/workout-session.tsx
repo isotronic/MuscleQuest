@@ -127,10 +127,12 @@ export default function WorkoutSessionScreen() {
   }, [timerRunning, timerExpiry, restart]);
 
   const startRestTimer = (restMinutes: number, restSeconds: number) => {
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + restMinutes * 60 + restSeconds);
-    startTimer(time);
-    restart(time);
+    if (restMinutes > 0 || restSeconds > 0) {
+      const time = new Date();
+      time.setSeconds(time.getSeconds() + restMinutes * 60 + restSeconds);
+      startTimer(time);
+      restart(time);
+    }
   };
 
   const handleWeightInputChange = (inputValue: string) => {
