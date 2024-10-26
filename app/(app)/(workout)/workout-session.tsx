@@ -15,13 +15,14 @@ import { ThemedView } from "@/components/ThemedView";
 import SessionSetInfo from "@/components/SessionSetInfo";
 import { useTimer } from "react-timer-hook";
 import { Colors } from "@/constants/Colors";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSoundAndVibration } from "@/hooks/useSoundAndVibration";
+import WorkoutTimer from "@/components/WorkoutTimer";
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
@@ -443,6 +444,11 @@ export default function WorkoutSessionScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerRight: () => <WorkoutTimer />,
+        }}
+      />
       <PanGestureHandler
         onGestureEvent={handleSwipeGesture}
         onHandlerStateChange={handleSwipeGesture}
