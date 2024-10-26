@@ -84,7 +84,7 @@ export default function ExerciseDetailsScreen() {
   };
 
   return (
-    <ThemedView style={{ backgroundColor: Colors.dark.screenBackground }}>
+    <ThemedView>
       <Stack.Screen
         options={{
           headerRight: () => (
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.dark.screenBackground,
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 50,
   },
   title: {
     fontSize: 24,

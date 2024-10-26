@@ -117,7 +117,7 @@ export default function HomeScreen() {
 
   return (
     <ThemedView>
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
         <View style={styles.weekContainer}>
           <WeekDays completedWorkoutsThisWeek={completedWorkoutsThisWeek} />
         </View>

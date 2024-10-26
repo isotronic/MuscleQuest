@@ -110,7 +110,9 @@ export default function WorkoutDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    paddingTop: 16,
+    paddingBottom: 50,
+    paddingHorizontal: 16,
   },
   workoutHeader: {
     alignItems: "center",

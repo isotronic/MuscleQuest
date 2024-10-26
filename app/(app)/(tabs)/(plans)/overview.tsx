@@ -167,7 +167,9 @@ export default function PlanOverviewScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    paddingTop: 16,
+    paddingBottom: 50,
+    paddingHorizontal: 16,
   },
   planHeader: {
     alignItems: "center",

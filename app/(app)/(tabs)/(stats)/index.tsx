@@ -245,7 +245,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingTop: 8,
+    paddingBottom: 50,
   },
   timeRangeContainer: {
     flexDirection: "row",

@@ -147,7 +147,7 @@ export default function CreatePlanScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: Colors.dark.screenBackground }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
@@ -165,7 +165,9 @@ export default function CreatePlanScreen() {
           ),
         }}
       />
-      <NestableScrollContainer contentContainerStyle={{ flexGrow: 1 }}>
+      <NestableScrollContainer
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 50 }}
+      >
         {!dataLoaded ? (
           <ThemedView style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.dark.text} />

@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
   flatListContent: {
     flexGrow: 1,
     marginTop: 12,
+    paddingBottom: 50,
   },
   titleContainer: {
     paddingBottom: 8,
