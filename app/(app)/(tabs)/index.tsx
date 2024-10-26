@@ -66,6 +66,9 @@ export default function HomeScreen() {
   // Get the number of unique days worked out
   const uniqueWorkoutDaysCount = uniqueWorkoutDays.size;
 
+  const weeklyGoalReached =
+    uniqueWorkoutDaysCount === Number(settings?.weeklyGoal);
+
   if (activePlanLoading || settingsLoading || completedWorkoutsLoading) {
     return (
       <ThemedView style={styles.loadingContainer}>
@@ -186,7 +189,11 @@ export default function HomeScreen() {
                       </View>
                       <View style={styles.smallButtonGroup}>
                         <Button
-                          mode={index === 0 ? "contained" : "outlined"}
+                          mode={
+                            index === 0 && !weeklyGoalReached
+                              ? "contained"
+                              : "outlined"
+                          }
                           onPress={() => {
                             const activeWorkoutStore =
                               useActiveWorkoutStore.getState();
