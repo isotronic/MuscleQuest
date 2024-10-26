@@ -126,15 +126,15 @@ export default function ExerciseDetailsScreen() {
         )}
         <ThemedText style={styles.title}>{exerciseData.name}</ThemedText>
         <ThemedText style={styles.infoText}>
-          Target Muscle: {exerciseData.target_muscle}
+          Target muscle: {exerciseData.target_muscle}
         </ThemedText>
         {secondaryMuscles.length > 0 && (
           <ThemedText style={styles.infoText}>
-            Secondary Muscles: {secondaryMuscles.join(", ")}
+            Secondary muscles: {secondaryMuscles.join(", ")}
           </ThemedText>
         )}
         <ThemedText style={styles.infoText}>
-          Body Part: {exerciseData.body_part}
+          Body part: {exerciseData.body_part}
         </ThemedText>
         <ThemedText style={styles.infoText}>
           Equipment: {exerciseData.equipment}
@@ -147,7 +147,6 @@ export default function ExerciseDetailsScreen() {
             {exerciseData &&
               description.map((item: string, index: number) => (
                 <View key={index} style={styles.bulletItem}>
-                  <ThemedText style={styles.bulletPoint}>•</ThemedText>
                   <ThemedText style={styles.bulletText}>{item}</ThemedText>
                 </View>
               ))}
@@ -165,7 +164,7 @@ export default function ExerciseDetailsScreen() {
               });
             }}
           >
-            Edit exercise
+            Edit Exercise
           </Button>
         )}
       </ScrollView>
@@ -190,7 +189,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   descriptionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
     marginBottom: 10,
   },
@@ -201,11 +200,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     marginBottom: 5,
-  },
-  bulletPoint: {
-    marginRight: 10,
-    fontSize: 18,
-    lineHeight: 20,
   },
   bulletText: {
     fontSize: 16,

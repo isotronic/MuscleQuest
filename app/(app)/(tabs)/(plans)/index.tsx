@@ -45,7 +45,7 @@ export default function PlansScreen() {
       </ScrollView>
       <FAB
         icon="plus"
-        label="Create plan"
+        label="Create Plan"
         theme={{ colors: { primary: Colors.dark.tint } }}
         style={styles.fab}
         onPress={() => {
