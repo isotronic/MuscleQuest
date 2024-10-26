@@ -13,8 +13,13 @@ import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
-import { FAB, Button, ActivityIndicator } from "react-native-paper";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import { FAB, ActivityIndicator, IconButton } from "react-native-paper";
+import {
+  router,
+  Stack,
+  useLocalSearchParams,
+  useNavigation,
+} from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { useCreatePlan } from "@/hooks/useCreatePlan";
 import WorkoutCard from "@/components/WorkoutCard";
@@ -138,13 +143,31 @@ export default function CreatePlanScreen() {
     router.push(`/(app)/(create-plan)/exercises?index=${index}`);
   };
 
+  const saveDisabled = !planName.trim() || workouts.length === 0;
+
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: Colors.dark.screenBackground }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
-      <NestableScrollContainer contentContainerStyle={{ flexGrow: 1 }}>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <IconButton
+              icon="content-save-outline"
+              size={35}
+              style={{ marginRight: 0 }}
+              disabled={saveDisabled}
+              iconColor={Colors.dark.tint}
+              onPress={() => handleSavePlan(Number(planId))}
+            />
+          ),
+        }}
+      />
+      <NestableScrollContainer
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 50 }}
+      >
         {!dataLoaded ? (
           <ThemedView style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.dark.text} />
@@ -163,14 +186,6 @@ export default function CreatePlanScreen() {
                 onChangeText={setPlanName}
                 dense
               />
-              <Button
-                mode="contained"
-                labelStyle={styles.buttonLabel}
-                onPress={() => handleSavePlan(Number(planId))}
-                disabled={!planName.trim() || workouts.length === 0}
-              >
-                Save
-              </Button>
             </View>
             {workouts.length === 0 ? (
               <ThemedText style={styles.emptyText}>
@@ -220,18 +235,17 @@ const styles = StyleSheet.create({
   image: {
     width: 60,
     height: 60,
-    borderRadius: 20,
+    borderRadius: 10,
     marginRight: 10,
   },
   input: {
     flex: 1,
     padding: 10,
-    borderColor: Colors.dark.text,
+    borderColor: Colors.dark.subText,
     borderWidth: 1,
     borderRadius: 8,
     color: Colors.dark.text,
     fontSize: 18,
-    marginRight: 10,
     height: 40,
   },
   emptyText: {

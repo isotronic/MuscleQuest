@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
   },
   flatListContent: {
-    paddingBottom: 16,
+    paddingBottom: 50,
   },
   buttonLabel: {
     fontSize: 16,

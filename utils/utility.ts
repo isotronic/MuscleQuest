@@ -41,6 +41,18 @@ export function convertToTotalSeconds(formattedTime: string): number {
   return minutes * 60 + (seconds || 0);
 }
 
+// Format total seconds into hours:minutes string
+export const formatToHoursMinutes = (totalSeconds: number): string => {
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  const formattedHours = hours > 0 ? hours.toString().padStart(2, "0") : "00";
+  const formattedMinutes = minutes.toString().padStart(2, "0");
+
+  return `${formattedHours}:${formattedMinutes}`;
+};
+
 // Capitalize the first letter of each word in a string
 export const capitalizeWords = (str: string) => {
   return str

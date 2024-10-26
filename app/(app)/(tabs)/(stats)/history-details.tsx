@@ -187,7 +187,9 @@ export default function HistoryDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    paddingTop: 16,
+    paddingBottom: 50,
+    paddingHorizontal: 16,
   },
   topSection: {
     marginBottom: 24,

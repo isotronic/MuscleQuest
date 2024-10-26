@@ -1,14 +1,24 @@
 import { useEffect, useState } from "react";
 import { Vibration } from "react-native";
-import { Audio, AVPlaybackStatus, AVPlaybackStatusSuccess } from "expo-av";
+import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from "expo-av";
 
-export const useSoundAndVibration = (soundFile: any) => {
+export const useSoundAndVibration = () => {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
 
   useEffect(() => {
     const loadSound = async () => {
       try {
-        const { sound } = await Audio.Sound.createAsync(soundFile);
+        Audio.setAudioModeAsync({
+          staysActiveInBackground: true,
+          playsInSilentModeIOS: true,
+          interruptionModeIOS: InterruptionModeIOS.DuckOthers,
+          interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: true,
+        });
+        const { sound } = await Audio.Sound.createAsync(
+          require("@/assets/sounds/boxing-bell.mp3"),
+        );
         setSound(sound);
       } catch (error) {
         console.error("Failed to load sound:", error);
@@ -17,32 +27,25 @@ export const useSoundAndVibration = (soundFile: any) => {
 
     loadSound();
 
-    return () => {
-      if (sound) {
-        sound.unloadAsync(); // Unload sound when the component unmounts
-      }
-    };
-  }, [soundFile]);
+    return () => {};
+  }, []);
 
   const playSound = async () => {
     if (sound) {
       try {
         await sound.playAsync();
-        sound.setOnPlaybackStatusUpdate(async (status: AVPlaybackStatus) => {
-          if (
-            status.isLoaded &&
-            !(status as AVPlaybackStatusSuccess).isBuffering
-          ) {
-            const playbackStatus = status as AVPlaybackStatusSuccess;
-
-            if (playbackStatus.didJustFinish) {
-              // Once the sound finishes, unload it
-              await sound.unloadAsync();
-            }
-          }
-        });
       } catch (error) {
         console.error("Error playing sound:", error);
+      }
+    }
+  };
+
+  const unloadSound = async () => {
+    if (sound) {
+      try {
+        await sound.unloadAsync();
+      } catch (error) {
+        console.error("Failed to unload sound:", error);
       }
     }
   };
@@ -62,6 +65,7 @@ export const useSoundAndVibration = (soundFile: any) => {
 
   return {
     playSound,
+    unloadSound,
     triggerVibration,
     playSoundAndVibrate,
   };

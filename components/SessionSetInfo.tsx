@@ -4,8 +4,13 @@ import { IconButton, ActivityIndicator, Button } from "react-native-paper";
 import { Image } from "expo-image";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
+import { TouchableOpacity } from "react-native";
+import { router } from "expo-router";
+
+const fallbackImage = require("@/assets/images/placeholder.webp");
 
 interface SessionSetInfoProps {
+  exercise_id: number;
   exerciseName: string;
   animatedUrl: string | undefined;
   animatedImageLoading: boolean;
@@ -35,6 +40,7 @@ interface SessionSetInfoProps {
 }
 
 export default function SessionSetInfo({
+  exercise_id,
   exerciseName,
   animatedUrl,
   animatedImageLoading,
@@ -72,6 +78,13 @@ export default function SessionSetInfo({
           : repsMin;
 
   const isLastSet = currentSetIndex === totalSets - 1;
+
+  const handleImagePress = () => {
+    router.push({
+      pathname: "/(app)/exercise-details",
+      params: { exercise_id: exercise_id.toString() },
+    });
+  };
   return (
     <View>
       <View style={styles.headerContainer}>
@@ -80,14 +93,18 @@ export default function SessionSetInfo({
         ) : animatedImageError ? (
           <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
         ) : animatedUrl ? (
-          <Image
-            style={styles.animatedImage}
-            source={{
-              uri: animatedUrl,
-            }}
-          />
+          <TouchableOpacity onPress={handleImagePress}>
+            <Image
+              style={styles.animatedImage}
+              source={{
+                uri: animatedUrl,
+              }}
+            />
+          </TouchableOpacity>
         ) : (
-          <ThemedText style={styles.loadingText}>No GIF available</ThemedText>
+          <TouchableOpacity onPress={handleImagePress}>
+            <Image style={styles.animatedImage} source={fallbackImage} />
+          </TouchableOpacity>
         )}
 
         <View style={styles.titleContainer}>
@@ -201,8 +218,12 @@ export default function SessionSetInfo({
       <Button
         mode="contained"
         onPress={handleCompleteSet}
+        labelStyle={
+          buttonSize === 40 ? styles.buttonLabel : styles.largeButtonLabel
+        }
         style={[
           styles.completeButton,
+          buttonSize === 40 ? "" : styles.largeButton,
           currentSetCompleted && styles.disabledButton,
         ]}
         disabled={currentSetCompleted}
@@ -211,7 +232,17 @@ export default function SessionSetInfo({
       </Button>
 
       {isLastSet && (
-        <Button mode="outlined" onPress={addSet} style={styles.addSetButton}>
+        <Button
+          mode="outlined"
+          onPress={addSet}
+          labelStyle={
+            buttonSize === 40 ? styles.buttonLabel : styles.largeButtonLabel
+          }
+          style={[
+            styles.addSetButton,
+            buttonSize === 40 ? "" : styles.largeButton,
+          ]}
+        >
           Add Set
         </Button>
       )}
@@ -290,11 +321,21 @@ const styles = StyleSheet.create({
   completeButton: {
     marginTop: 16,
   },
+  largeButton: {
+    height: 55,
+  },
   disabledButton: {
     backgroundColor: Colors.dark.disabledButtonBackground,
   },
   addSetButton: {
     marginTop: 8,
+  },
+  buttonLabel: {
+    fontSize: 16,
+  },
+  largeButtonLabel: {
+    fontSize: 24,
+    lineHeight: 31,
   },
   loadingText: {
     fontSize: 18,

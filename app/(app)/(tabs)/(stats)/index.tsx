@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, View, FlatList } from "react-native";
-import { ActivityIndicator, Button, Card } from "react-native-paper";
+import { ActivityIndicator, Button, Card, Divider } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import {
@@ -18,6 +18,7 @@ import { updateSettings } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
 import BodyPartChart from "@/components/charts/BodyPartChart";
 import { WorkoutBarChart } from "@/components/charts/WorkoutBarChart";
+import { formatToHoursMinutes } from "@/utils/utility";
 
 const timeRanges = {
   allTime: "0",
@@ -62,7 +63,7 @@ export default function StatsScreen() {
   const totalTimeSpent = completedWorkouts
     ? completedWorkouts.reduce((acc, workout) => acc + workout.duration, 0)
     : 0;
-  const totalTimeMinutes = Math.round(totalTimeSpent / 60);
+  const totalTime = formatToHoursMinutes(totalTimeSpent);
 
   // Function to update the selected time range
   const handleTimeRangeChange = async (range: string) => {
@@ -107,38 +108,55 @@ export default function StatsScreen() {
       <ScrollView style={styles.container}>
         <View style={styles.timeRangeContainer}>
           <Button
-            mode={
-              selectedTimeRange === timeRanges.allTime ? "outlined" : "text"
-            }
+            mode="text"
+            labelStyle={{
+              color:
+                selectedTimeRange === timeRanges.allTime
+                  ? Colors.dark.tint
+                  : Colors.dark.text,
+            }}
             onPress={() => handleTimeRangeChange(timeRanges.allTime)}
           >
             All Time
           </Button>
           <Button
-            mode={
-              selectedTimeRange === timeRanges.thirtyDays ? "outlined" : "text"
-            }
+            mode="text"
+            labelStyle={{
+              color:
+                selectedTimeRange === timeRanges.thirtyDays
+                  ? Colors.dark.tint
+                  : Colors.dark.text,
+            }}
             onPress={() => handleTimeRangeChange(timeRanges.thirtyDays)}
           >
             30 Days
           </Button>
           <Button
-            mode={
-              selectedTimeRange === timeRanges.ninetyDays ? "outlined" : "text"
-            }
+            mode="text"
+            labelStyle={{
+              color:
+                selectedTimeRange === timeRanges.ninetyDays
+                  ? Colors.dark.tint
+                  : Colors.dark.text,
+            }}
             onPress={() => handleTimeRangeChange(timeRanges.ninetyDays)}
           >
             90 Days
           </Button>
           <Button
-            mode={
-              selectedTimeRange === timeRanges.oneYear ? "outlined" : "text"
-            }
+            mode="text"
+            labelStyle={{
+              color:
+                selectedTimeRange === timeRanges.oneYear
+                  ? Colors.dark.tint
+                  : Colors.dark.text,
+            }}
             onPress={() => handleTimeRangeChange(timeRanges.oneYear)}
           >
             1 Year
           </Button>
         </View>
+        <Divider style={{ marginBottom: 16, marginTop: -8 }} />
         {/* Summary Stats */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Summary</ThemedText>
@@ -154,10 +172,8 @@ export default function StatsScreen() {
               <ThemedText style={styles.statLabel}>Sets</ThemedText>
             </Card>
             <Card style={styles.summaryCard}>
-              <ThemedText style={styles.statValue}>
-                {totalTimeMinutes}
-              </ThemedText>
-              <ThemedText style={styles.statLabel}>Minutes</ThemedText>
+              <ThemedText style={styles.statValue}>{totalTime}</ThemedText>
+              <ThemedText style={styles.statLabel}>Time</ThemedText>
             </Card>
           </View>
         </View>
@@ -229,6 +245,7 @@ export default function StatsScreen() {
           <Button
             style={{ marginTop: 16 }}
             mode="contained"
+            labelStyle={styles.buttonLabel}
             onPress={handleAddExercisesPress}
           >
             Add{" "}
@@ -245,7 +262,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingTop: 8,
+    paddingBottom: 50,
   },
   timeRangeContainer: {
     flexDirection: "row",
@@ -270,6 +288,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 14,
+    textAlign: "center",
   },
   section: {
     marginBottom: 32,
@@ -279,5 +298,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 16,
+  },
+  buttonLabel: {
+    fontSize: 16,
   },
 });

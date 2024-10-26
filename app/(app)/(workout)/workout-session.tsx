@@ -15,13 +15,14 @@ import { ThemedView } from "@/components/ThemedView";
 import SessionSetInfo from "@/components/SessionSetInfo";
 import { useTimer } from "react-timer-hook";
 import { Colors } from "@/constants/Colors";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSoundAndVibration } from "@/hooks/useSoundAndVibration";
+import WorkoutTimer from "@/components/WorkoutTimer";
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
@@ -100,7 +101,7 @@ export default function WorkoutSessionScreen() {
   useKeepScreenOn();
 
   const { playSoundAndVibrate, triggerVibration, playSound } =
-    useSoundAndVibration(require("@/assets/sounds/boxing-bell.mp3"));
+    useSoundAndVibration();
 
   const { seconds, minutes, restart } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
@@ -127,10 +128,12 @@ export default function WorkoutSessionScreen() {
   }, [timerRunning, timerExpiry, restart]);
 
   const startRestTimer = (restMinutes: number, restSeconds: number) => {
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + restMinutes * 60 + restSeconds);
-    startTimer(time);
-    restart(time);
+    if (restMinutes > 0 || restSeconds > 0) {
+      const time = new Date();
+      time.setSeconds(time.getSeconds() + restMinutes * 60 + restSeconds);
+      startTimer(time);
+      restart(time);
+    }
   };
 
   const handleWeightInputChange = (inputValue: string) => {
@@ -441,6 +444,11 @@ export default function WorkoutSessionScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerRight: () => <WorkoutTimer />,
+        }}
+      />
       <PanGestureHandler
         onGestureEvent={handleSwipeGesture}
         onHandlerStateChange={handleSwipeGesture}
@@ -455,6 +463,7 @@ export default function WorkoutSessionScreen() {
             }}
           >
             <SessionSetInfo
+              exercise_id={currentExercise?.exercise_id || 0}
               exerciseName={currentExercise?.name || ""}
               animatedUrl={animatedUrl}
               animatedImageLoading={animatedImageLoading}
@@ -501,6 +510,7 @@ export default function WorkoutSessionScreen() {
               }}
             >
               <SessionSetInfo
+                exercise_id={nextExercise?.exercise_id || 0}
                 exerciseName={nextExerciseName}
                 animatedUrl={nextAnimatedUrl}
                 animatedImageLoading={nextAnimatedImageLoading}
@@ -550,6 +560,7 @@ export default function WorkoutSessionScreen() {
                 }}
               >
                 <SessionSetInfo
+                  exercise_id={previousExercise?.exercise_id || 0}
                   exerciseName={previousExerciseName}
                   animatedUrl={previousAnimatedUrl}
                   animatedImageLoading={previousAnimatedImageLoading}

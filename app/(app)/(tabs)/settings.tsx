@@ -483,7 +483,9 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Button size</ThemedText>
+              <ThemedText style={styles.itemText}>
+                Button size during workout
+              </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {settings?.buttonSize}
               </ThemedText>

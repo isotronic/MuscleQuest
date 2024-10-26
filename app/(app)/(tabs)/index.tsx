@@ -41,6 +41,10 @@ export default function HomeScreen() {
     error: completedWorkoutsError,
   } = useCompletedWorkoutsQuery(weightUnit);
 
+  const activeWorkoutId = useActiveWorkoutStore((state) =>
+    state.getActiveWorkoutId(),
+  );
+
   const today = new Date();
   const startOfWeekDate = startOfWeek(today, { weekStartsOn: 1 });
   const endOfWeekDate = endOfWeek(today, { weekStartsOn: 1 });
@@ -61,6 +65,9 @@ export default function HomeScreen() {
 
   // Get the number of unique days worked out
   const uniqueWorkoutDaysCount = uniqueWorkoutDays.size;
+
+  const weeklyGoalReached =
+    uniqueWorkoutDaysCount === Number(settings?.weeklyGoal);
 
   if (activePlanLoading || settingsLoading || completedWorkoutsLoading) {
     return (
@@ -113,7 +120,7 @@ export default function HomeScreen() {
 
   return (
     <ThemedView>
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
         <View style={styles.weekContainer}>
           <WeekDays completedWorkoutsThisWeek={completedWorkoutsThisWeek} />
         </View>
@@ -182,22 +189,36 @@ export default function HomeScreen() {
                       </View>
                       <View style={styles.smallButtonGroup}>
                         <Button
-                          mode={index === 0 ? "contained" : "outlined"}
+                          mode={
+                            index === 0 && !weeklyGoalReached
+                              ? "contained"
+                              : "outlined"
+                          }
                           onPress={() => {
-                            useActiveWorkoutStore
-                              .getState()
-                              .setWorkout(
+                            const activeWorkoutStore =
+                              useActiveWorkoutStore.getState();
+
+                            if (
+                              activeWorkoutStore.isWorkoutInProgress() &&
+                              activeWorkoutId === workout.id
+                            ) {
+                              // Resume the persisted workout
+                              activeWorkoutStore.resumeWorkout();
+                            } else {
+                              // Start a new workout if it's not the persisted one
+                              activeWorkoutStore.setWorkout(
                                 JSON.parse(JSON.stringify(workout)),
                                 activePlan.id,
                                 workout.id!,
                                 workout.name || `Day ${index + 1}`,
                               );
+                            }
+
                             router.push("/(workout)");
                           }}
-                          style={styles.smallButton}
                           labelStyle={styles.smallButtonLabel}
                         >
-                          Start
+                          {activeWorkoutId === workout.id ? "Resume" : "Start"}
                         </Button>
                         {/* <Button
                         mode="outlined"
@@ -206,7 +227,6 @@ export default function HomeScreen() {
                             `/workout-details?planId=${activePlan.id}&workoutIndex=${index}`,
                           )
                         }
-                        style={styles.smallButton}
                         labelStyle={styles.smallButtonLabel}
                       >
                         View
@@ -317,10 +337,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-  },
-  smallButton: {
-    paddingHorizontal: 8,
-    marginLeft: 8,
   },
   smallButtonLabel: {
     fontSize: 16,
