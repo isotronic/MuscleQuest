@@ -101,7 +101,7 @@ export default function WorkoutSessionScreen() {
   useKeepScreenOn();
 
   const { playSoundAndVibrate, triggerVibration, playSound } =
-    useSoundAndVibration(require("@/assets/sounds/boxing-bell.mp3"));
+    useSoundAndVibration();
 
   const { seconds, minutes, restart } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
