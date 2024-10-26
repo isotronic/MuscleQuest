@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   View,
   ScrollView,
@@ -10,7 +10,7 @@ import { IconButton, Card, Menu } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { router, Stack, useNavigation } from "expo-router";
+import { router, Stack } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
@@ -19,7 +19,6 @@ import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 export default function WorkoutOverviewScreen() {
-  const navigation = useNavigation();
   const { data: settings } = useSettingsQuery();
   const {
     workout,
@@ -28,6 +27,8 @@ export default function WorkoutOverviewScreen() {
     startTime,
     activeWorkout,
     deleteExercise,
+    clearPersistedStore,
+    restartWorkout,
   } = useActiveWorkoutStore();
 
   const weightUnit = settings?.weightUnit || "kg";
@@ -50,29 +51,6 @@ export default function WorkoutOverviewScreen() {
       Object.values(exerciseSets).some((setCompleted) => setCompleted === true),
     );
   }, [completedSets]);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
-      e.preventDefault();
-
-      Alert.alert(
-        "Discard Workout?",
-        "Do you really want to quit your current workout without saving?",
-        [
-          { text: "Cancel", style: "cancel", onPress: () => {} },
-          {
-            text: "Discard",
-            style: "destructive",
-            onPress: () => {
-              navigation.dispatch(e.data.action);
-            },
-          },
-        ],
-      );
-    });
-
-    return unsubscribe;
-  }, [navigation]);
 
   const handleMenuOpen = (index: number) => {
     setMenuVisible((prev) => ({ ...prev, [index]: true }));
@@ -178,6 +156,7 @@ export default function WorkoutOverviewScreen() {
           {
             onSuccess: () => {
               console.log("Workout saved successfully!");
+              clearPersistedStore();
               router.push("/(tabs)");
             },
             onError: (error) => {
@@ -196,6 +175,42 @@ export default function WorkoutOverviewScreen() {
     }
   };
 
+  const handleCancelWorkout = () => {
+    Alert.alert(
+      "Cancel Workout",
+      "Are you sure you want to cancel and delete this workout?",
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes",
+          style: "destructive",
+          onPress: () => {
+            clearPersistedStore();
+            // Navigate back to the main screen or home screen
+            router.push("/(tabs)");
+          },
+        },
+      ],
+    );
+  };
+
+  const handleRestartWorkout = () => {
+    Alert.alert(
+      "Restart Workout",
+      "Are you sure you want to restart this workout?",
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes",
+          style: "destructive",
+          onPress: () => {
+            restartWorkout();
+          },
+        },
+      ],
+    );
+  };
+
   if (!workout) {
     return <ThemedText>No workout available</ThemedText>;
   }
@@ -205,14 +220,44 @@ export default function WorkoutOverviewScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <IconButton
-              icon="content-save-outline"
-              size={35}
-              style={{ marginRight: 0 }}
-              disabled={!hasCompletedSets}
-              iconColor={Colors.dark.tint}
-              onPress={handleSaveWorkout}
-            />
+            <View style={styles.headerRight}>
+              <IconButton
+                icon="content-save-outline"
+                size={35}
+                style={{ marginRight: 0 }}
+                disabled={!hasCompletedSets}
+                iconColor={Colors.dark.tint}
+                onPress={handleSaveWorkout}
+              />
+              <Menu
+                visible={menuVisible[69420]}
+                onDismiss={() => handleMenuClose(69420)}
+                anchor={
+                  <IconButton
+                    icon="dots-vertical"
+                    size={24}
+                    onPress={() => handleMenuOpen(69420)}
+                    style={styles.optionsButton}
+                    iconColor={Colors.dark.text}
+                  />
+                }
+              >
+                <Menu.Item
+                  onPress={() => {
+                    handleMenuClose(69420);
+                    handleRestartWorkout();
+                  }}
+                  title="Restart"
+                />
+                <Menu.Item
+                  onPress={() => {
+                    handleMenuClose(69420);
+                    handleCancelWorkout();
+                  }}
+                  title="Cancel"
+                />
+              </Menu>
+            </View>
           ),
         }}
       />
@@ -301,6 +346,10 @@ export default function WorkoutOverviewScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   container: {
     flex: 1,
     padding: 16,
