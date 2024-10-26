@@ -544,18 +544,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         if (activeWorkout && workout) {
           return;
         }
-
-        // If no active workout, reset or do nothing (depending on initial state).
-        set((state) => ({
-          ...state,
-          currentExerciseIndex: state.currentExerciseIndex,
-          currentSetIndices: state.currentSetIndices,
-          completedSets: state.completedSets,
-          weightAndReps: state.weightAndReps,
-          startTime: state.startTime,
-          timerRunning: state.timerRunning,
-          timerExpiry: state.timerExpiry,
-        }));
       },
       isWorkoutInProgress: () => {
         const { activeWorkout, workout } = get();
