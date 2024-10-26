@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, View, FlatList } from "react-native";
-import { ActivityIndicator, Button, Card } from "react-native-paper";
+import { ActivityIndicator, Button, Card, Divider } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import {
@@ -108,38 +108,55 @@ export default function StatsScreen() {
       <ScrollView style={styles.container}>
         <View style={styles.timeRangeContainer}>
           <Button
-            mode={
-              selectedTimeRange === timeRanges.allTime ? "outlined" : "text"
-            }
+            mode="text"
+            labelStyle={{
+              color:
+                selectedTimeRange === timeRanges.allTime
+                  ? Colors.dark.tint
+                  : Colors.dark.text,
+            }}
             onPress={() => handleTimeRangeChange(timeRanges.allTime)}
           >
             All Time
           </Button>
           <Button
-            mode={
-              selectedTimeRange === timeRanges.thirtyDays ? "outlined" : "text"
-            }
+            mode="text"
+            labelStyle={{
+              color:
+                selectedTimeRange === timeRanges.thirtyDays
+                  ? Colors.dark.tint
+                  : Colors.dark.text,
+            }}
             onPress={() => handleTimeRangeChange(timeRanges.thirtyDays)}
           >
             30 Days
           </Button>
           <Button
-            mode={
-              selectedTimeRange === timeRanges.ninetyDays ? "outlined" : "text"
-            }
+            mode="text"
+            labelStyle={{
+              color:
+                selectedTimeRange === timeRanges.ninetyDays
+                  ? Colors.dark.tint
+                  : Colors.dark.text,
+            }}
             onPress={() => handleTimeRangeChange(timeRanges.ninetyDays)}
           >
             90 Days
           </Button>
           <Button
-            mode={
-              selectedTimeRange === timeRanges.oneYear ? "outlined" : "text"
-            }
+            mode="text"
+            labelStyle={{
+              color:
+                selectedTimeRange === timeRanges.oneYear
+                  ? Colors.dark.tint
+                  : Colors.dark.text,
+            }}
             onPress={() => handleTimeRangeChange(timeRanges.oneYear)}
           >
             1 Year
           </Button>
         </View>
+        <Divider style={{ marginBottom: 16, marginTop: -8 }} />
         {/* Summary Stats */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Summary</ThemedText>
