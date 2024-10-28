@@ -11,7 +11,7 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: Colors.dark.background,
         },
-        tabBarActiveTintColor: Colors["dark"].tint,
+        tabBarActiveTintColor: Colors.dark.tint,
         headerStyle: {
           backgroundColor: Colors.dark.background,
         },
@@ -21,7 +21,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "MuscleQuest",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? "home" : "home-outline"}
