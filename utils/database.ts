@@ -115,6 +115,8 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
     name: string;
     image: Uint8Array | null;
     description: string | null;
+    animated_url: string | null;
+    is_deleted: number;
   }
 
   const dataVersionEntry: SettingsEntry | null =
@@ -122,9 +124,9 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
       "SELECT value FROM settings WHERE key = 'dataVersion'",
     );
 
-  const dataVersion = dataVersionEntry?.value || null;
+  const dataVersion = Number(dataVersionEntry?.value) || null;
 
-  if (dataVersion === "1" || dataVersion === "1.1") {
+  if (dataVersion && dataVersion >= 1.2) {
     console.log("Data has already been copied.");
     return;
   }
@@ -166,7 +168,25 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
         for (const row of result) {
           let shouldInsertOrUpdate = true;
 
-          if (tableName === "exercises") {
+          if (["muscles", "equipment_list", "body_parts"].includes(tableName)) {
+            // Define unique column for each of these tables
+            const uniqueColumn =
+              tableName === "muscles"
+                ? "muscle"
+                : tableName === "equipment_list"
+                  ? "equipment"
+                  : "body_part";
+
+            const existingEntry = await userDataDB.getFirstAsync(
+              `SELECT * FROM ${tableName} WHERE ${uniqueColumn} = ? LIMIT 1`,
+              [row[uniqueColumn]],
+            );
+
+            // Skip insertion if entry already exists
+            if (existingEntry) {
+              shouldInsertOrUpdate = false;
+            }
+          } else if (tableName === "exercises") {
             const existingEntry =
               await userDataDB.getFirstAsync<ExerciseCheckResult>(
                 `SELECT * FROM ${tableName} WHERE app_exercise_id = ? LIMIT 1`,
@@ -176,15 +196,18 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
             if (existingEntry) {
               const fieldsToUpdate = insertColumns.filter((col) => {
                 switch (col) {
-                  case "app_exercise_id":
-                    return row[col] !== existingEntry.app_exercise_id;
+                  // case "app_exercise_id":
+                  //   return row[col] !== existingEntry.app_exercise_id;
                   case "name":
                     return row[col] !== existingEntry.name;
                   case "image":
                     return row[col] !== existingEntry.image;
                   case "description":
                     return row[col] !== existingEntry.description;
-                  // Add other fields as needed
+                  case "animated_url":
+                    return row[col] !== existingEntry.animated_url;
+                  case "is_deleted":
+                    return row[col] !== existingEntry.is_deleted;
                   default:
                     return false;
                 }
@@ -236,14 +259,15 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
       "target_muscle",
       "secondary_muscles",
       "description",
+      "is_deleted",
     ],
     true, // Exclude the auto-incremented exercise_id for userData
   );
 
-  console.log("Updating data version to 1.1...");
+  console.log("Updating data version to 1.2...");
   await userDataDB.runAsync(
     "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-    ["dataVersion", "1.1"],
+    ["dataVersion", "1.2"],
   );
 
   console.log("Data copy completed and version updated.");

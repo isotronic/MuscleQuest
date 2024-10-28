@@ -132,12 +132,22 @@ export async function initUserDataDB() {
     PRAGMA table_info(exercises);
   `);
 
-  const columnExists = result.some((column: any) => column.name === "favorite");
+  const favoriteExists = result.some(
+    (column: any) => column.name === "favorite",
+  );
+  const is_deletedExists = result.some(
+    (column: any) => column.name === "is_deleted",
+  );
 
   // If the column does not exist, add it
-  if (!columnExists) {
+  if (!favoriteExists) {
     await db.execAsync(`
       ALTER TABLE exercises ADD COLUMN favorite BOOLEAN DEFAULT FALSE;
+    `);
+  }
+  if (!is_deletedExists) {
+    await db.execAsync(`
+      ALTER TABLE exercises ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE;
     `);
   }
 }
