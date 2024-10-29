@@ -17,11 +17,14 @@ export interface WorkoutRecord {
     body_part: string;
     target_muscle: string;
     secondary_muscles: string[];
+    tracking_type: string;
     sets: {
       repsMin: number;
       repsMax: number;
       restMinutes: number;
       restSeconds: number;
+      time: number;
+      isWarmup: boolean;
     }[];
   }[];
 }
@@ -40,6 +43,7 @@ export interface RawWorkoutRecord {
   body_part: string | null;
   target_muscle: string | null;
   secondary_muscles: string | null;
+  tracking_type: string | null;
   sets: string | null;
   exercise_order: number | null;
 }
@@ -72,6 +76,7 @@ const fetchWorkoutsForPlan = async (
       exercises.body_part,
       exercises.target_muscle,
       exercises.secondary_muscles,
+      exercises.tracking_type,
       user_workout_exercises.sets,
       user_workout_exercises.exercise_order
     FROM user_workouts
@@ -115,6 +120,7 @@ const parseWorkouts = (rawWorkouts: RawWorkoutRecord[]) => {
         secondary_muscles: rawWorkout.secondary_muscles
           ? JSON.parse(rawWorkout.secondary_muscles)
           : [],
+        tracking_type: rawWorkout.tracking_type || "",
         sets: rawWorkout.sets ? JSON.parse(rawWorkout.sets) : [],
       });
     }

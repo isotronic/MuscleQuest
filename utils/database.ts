@@ -27,8 +27,9 @@ export interface SavedWorkout {
     exercise_id: number;
     sets: {
       set_number: number;
-      weight: number;
-      reps: number;
+      weight: number | null;
+      reps: number | null;
+      time: number | null;
     }[];
   }[];
 }
@@ -618,8 +619,9 @@ export const saveCompletedWorkout = async (
     exercise_id: number;
     sets: {
       set_number: number;
-      weight: number;
-      reps: number;
+      weight: number | null;
+      reps: number | null;
+      time: number | null;
     }[];
   }[],
 ) => {
@@ -687,6 +689,7 @@ interface CompletedWorkoutRow {
   set_number: number | null;
   weight: number | null;
   reps: number | null;
+  time: number | null;
 }
 
 export const fetchCompletedWorkoutById = async (
@@ -712,6 +715,7 @@ export const fetchCompletedWorkoutById = async (
         cs.set_number, 
         cs.weight, 
         cs.reps,
+        cs.time,
         uwe.exercise_order -- Include exercise order from user_workout_exercises
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
@@ -773,8 +777,9 @@ export const fetchCompletedWorkoutById = async (
 
           exercisesMap[row.exercise_id].sets.push({
             set_number: row.set_number,
-            weight: convertedWeight,
-            reps: row.reps || 0,
+            weight: convertedWeight || null,
+            reps: row.reps || null,
+            time: row.time || null,
           });
         }
       }

@@ -88,7 +88,7 @@ export default function WorkoutCard({
         <TouchableOpacity
           onPress={() =>
             router.push(
-              `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}`,
+              `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}&trackingType=${item.tracking_type}`,
             )
           } // Open sets screen on tap
           disabled={isActive}

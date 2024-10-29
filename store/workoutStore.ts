@@ -6,6 +6,7 @@ interface Set {
   repsMax: number | undefined;
   restMinutes: number;
   restSeconds: number;
+  time: number;
   isWarmup?: boolean;
 }
 

@@ -139,6 +139,9 @@ export default function ExerciseDetailsScreen() {
         <ThemedText style={styles.infoText}>
           Equipment: {exerciseData.equipment}
         </ThemedText>
+        <ThemedText style={styles.infoText}>
+          Tracking type: {exerciseData.tracking_type || "weight"}
+        </ThemedText>
         {description.length > 0 && description[0] !== "" && (
           <View>
             <ThemedText style={styles.descriptionTitle}>

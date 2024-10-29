@@ -12,7 +12,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 
 export default function SetsOverviewScreen() {
-  const { exerciseId, workoutIndex } = useLocalSearchParams();
+  const { exerciseId, workoutIndex, trackingType } = useLocalSearchParams();
   const workouts = useWorkoutStore((state) => state.workouts);
 
   const { data: settings } = useSettingsQuery();
@@ -20,6 +20,7 @@ export default function SetsOverviewScreen() {
   const totalSeconds = settings ? parseInt(settings?.defaultRestTime) : 0;
   const defaultRepsMin = 8;
   const defaultRepsMax = 12;
+  const defaultTime = 60;
   const defaultTotalSeconds = totalSeconds;
 
   const exercise = workouts[Number(workoutIndex)]?.exercises.find(
@@ -70,7 +71,13 @@ export default function SetsOverviewScreen() {
               <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
               <ThemedText style={styles.setInfo}>
                 {item.isWarmup ? "Warm-up, " : ""}
-                {repRange !== undefined ? `${repRange} Reps, ` : ""}
+                {trackingType === "time"
+                  ? item.time
+                    ? `${item.time} Seconds, `
+                    : `${defaultTime} Seconds, `
+                  : repRange !== undefined
+                    ? `${repRange} Reps, `
+                    : ""}
                 {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
                 Rest
               </ThemedText>
@@ -117,6 +124,8 @@ export default function SetsOverviewScreen() {
         defaultRepsMin={defaultRepsMin}
         defaultRepsMax={defaultRepsMax}
         defaultTotalSeconds={defaultTotalSeconds}
+        defaultTime={defaultTime}
+        trackingType={trackingType?.toString() || "weight"}
       />
     </ThemedView>
   );

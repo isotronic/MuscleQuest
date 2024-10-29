@@ -40,6 +40,20 @@ export default function WorkoutDetailsScreen() {
       repRange = `${minReps} - ${maxReps}`; // Show range if both are defined
     }
 
+    const minTime = Math.min(...item.sets.map((set) => set.time ?? Infinity));
+    const maxTime = Math.max(...item.sets.map((set) => set.time ?? -Infinity));
+
+    let timeRange;
+    if (minTime === Infinity && maxTime !== -Infinity) {
+      timeRange = `${maxTime}`; // Only show maxTime if minTime is undefined
+    } else if (maxTime === -Infinity && minTime !== Infinity) {
+      timeRange = `${minTime}`; // Only show minTime if maxTime is undefined
+    } else if (minTime === maxTime) {
+      timeRange = `${minTime}`; //Only show minTime if both are the same
+    } else if (minTime !== Infinity && maxTime !== -Infinity) {
+      timeRange = `${minTime} - ${maxTime}`; // Show range if both are defined
+    }
+
     const exerciseItem = { ...item, image: undefined };
 
     return (
@@ -73,7 +87,13 @@ export default function WorkoutDetailsScreen() {
               {item?.sets?.length
                 ? `${item.sets.length} Sets`
                 : "No Sets Available"}
-              {repRange ? ` | ${repRange} Reps` : ""}
+              {item.tracking_type === "time"
+                ? timeRange
+                  ? ` | ${timeRange} Seconds`
+                  : ""
+                : repRange
+                  ? ` | ${repRange} Reps`
+                  : ""}
             </ThemedText>
           </View>
         </View>

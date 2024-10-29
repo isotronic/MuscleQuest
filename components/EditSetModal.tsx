@@ -26,6 +26,8 @@ interface EditSetModalProps {
   defaultRepsMin: number;
   defaultRepsMax: number;
   defaultTotalSeconds: number;
+  defaultTime: number;
+  trackingType: string;
 }
 
 export const EditSetModal: React.FC<EditSetModalProps> = ({
@@ -37,6 +39,8 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
   defaultRepsMin,
   defaultRepsMax,
   defaultTotalSeconds,
+  defaultTime,
+  trackingType,
 }) => {
   const updateSetInExercise = useWorkoutStore(
     (state) => state.updateSetInExercise,
@@ -72,6 +76,8 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
     formatFromTotalSeconds(defaultTotalSeconds),
   );
 
+  const [time, setTime] = useState(formatFromTotalSeconds(defaultTime));
+
   useEffect(() => {
     if (setIndex !== null && set) {
       setRepsMin(
@@ -87,32 +93,48 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
       setRestTime(
         formatFromTotalSeconds(set.restMinutes * 60 + set.restSeconds),
       );
+      setTime(formatFromTotalSeconds(set.time));
       setIsWarmup(set?.isWarmup ?? false);
     } else {
-      setRepsMin(
-        defaultRepsMin !== undefined && defaultRepsMin !== null
-          ? String(defaultRepsMin)
-          : "",
-      );
-      setRepsMax(
-        defaultRepsMax !== undefined && defaultRepsMax !== null
-          ? String(defaultRepsMax)
-          : "",
-      );
+      if (trackingType === "time") {
+        setTime(formatFromTotalSeconds(defaultTime));
+      } else {
+        setRepsMin(
+          defaultRepsMin !== undefined && defaultRepsMin !== null
+            ? String(defaultRepsMin)
+            : "",
+        );
+        setRepsMax(
+          defaultRepsMax !== undefined && defaultRepsMax !== null
+            ? String(defaultRepsMax)
+            : "",
+        );
+      }
+
       setRestTime(formatFromTotalSeconds(defaultTotalSeconds));
     }
-  }, [setIndex, set, defaultRepsMin, defaultRepsMax, defaultTotalSeconds]);
+  }, [
+    setIndex,
+    set,
+    defaultRepsMin,
+    defaultRepsMax,
+    defaultTotalSeconds,
+    defaultTime,
+    trackingType,
+  ]);
 
   const handleSaveSet = () => {
     const totalSeconds = convertToTotalSeconds(restTime);
     const minReps = repsMin === "" ? undefined : Number(repsMin);
     const maxReps = repsMax === "" ? undefined : Number(repsMax);
+    const timeToSave = convertToTotalSeconds(time || "00:00");
 
     const updatedSet = {
       repsMin: minReps,
       repsMax: maxReps,
       restMinutes: Math.floor(totalSeconds / 60),
       restSeconds: totalSeconds % 60,
+      time: timeToSave,
       isWarmup,
     };
 
@@ -137,6 +159,10 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
     setRestTime(formatTimeInput(value));
   };
 
+  const handleTimeChange = (value: string) => {
+    setTime(formatTimeInput(value));
+  };
+
   return (
     <Modal
       visible={visible}
@@ -148,55 +174,82 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
         <View style={styles.modalContainer}>
           <TouchableWithoutFeedback>
             <View style={styles.modalContent}>
-              <ThemedText style={styles.label}>Min Reps</ThemedText>
-              <View style={styles.inputRow}>
-                <MaterialCommunityIcons
-                  name="minus"
-                  size={32}
-                  color={Colors.dark.text}
-                  onPress={() =>
-                    setRepsMin((prev) => String(Math.max(Number(prev) - 1, 0)))
-                  }
-                />
-                <TextInput
-                  style={styles.input}
-                  value={repsMin ? repsMin : ""}
-                  onChangeText={setRepsMin}
-                  keyboardType="numeric"
-                  selectTextOnFocus={true}
-                />
-                <MaterialCommunityIcons
-                  name="plus"
-                  size={32}
-                  color={Colors.dark.text}
-                  onPress={() => setRepsMin((prev) => String(Number(prev) + 1))}
-                />
-              </View>
+              {trackingType === "time" ? (
+                <View>
+                  <ThemedText style={styles.label}>
+                    Time (Minutes:Seconds)
+                  </ThemedText>
+                  <View style={styles.inputRow}>
+                    <TextInput
+                      style={styles.input}
+                      value={restTime}
+                      onChangeText={handleTimeChange}
+                      keyboardType="numeric"
+                      selectTextOnFocus={true}
+                    />
+                  </View>
+                </View>
+              ) : (
+                <View>
+                  <ThemedText style={styles.label}>Min Reps</ThemedText>
+                  <View style={styles.inputRow}>
+                    <MaterialCommunityIcons
+                      name="minus"
+                      size={32}
+                      color={Colors.dark.text}
+                      onPress={() =>
+                        setRepsMin((prev) =>
+                          String(Math.max(Number(prev) - 1, 0)),
+                        )
+                      }
+                    />
+                    <TextInput
+                      style={styles.input}
+                      value={repsMin ? repsMin : ""}
+                      onChangeText={setRepsMin}
+                      keyboardType="numeric"
+                      selectTextOnFocus={true}
+                    />
+                    <MaterialCommunityIcons
+                      name="plus"
+                      size={32}
+                      color={Colors.dark.text}
+                      onPress={() =>
+                        setRepsMin((prev) => String(Number(prev) + 1))
+                      }
+                    />
+                  </View>
 
-              <ThemedText style={styles.label}>Max Reps</ThemedText>
-              <View style={styles.inputRow}>
-                <MaterialCommunityIcons
-                  name="minus"
-                  size={32}
-                  color={Colors.dark.text}
-                  onPress={() =>
-                    setRepsMax((prev) => String(Math.max(Number(prev) - 1, 0)))
-                  }
-                />
-                <TextInput
-                  style={styles.input}
-                  value={repsMax ? repsMax : ""}
-                  onChangeText={setRepsMax}
-                  keyboardType="numeric"
-                  selectTextOnFocus={true}
-                />
-                <MaterialCommunityIcons
-                  name="plus"
-                  size={32}
-                  color={Colors.dark.text}
-                  onPress={() => setRepsMax((prev) => String(Number(prev) + 1))}
-                />
-              </View>
+                  <ThemedText style={styles.label}>Max Reps</ThemedText>
+                  <View style={styles.inputRow}>
+                    <MaterialCommunityIcons
+                      name="minus"
+                      size={32}
+                      color={Colors.dark.text}
+                      onPress={() =>
+                        setRepsMax((prev) =>
+                          String(Math.max(Number(prev) - 1, 0)),
+                        )
+                      }
+                    />
+                    <TextInput
+                      style={styles.input}
+                      value={repsMax ? repsMax : ""}
+                      onChangeText={setRepsMax}
+                      keyboardType="numeric"
+                      selectTextOnFocus={true}
+                    />
+                    <MaterialCommunityIcons
+                      name="plus"
+                      size={32}
+                      color={Colors.dark.text}
+                      onPress={() =>
+                        setRepsMax((prev) => String(Number(prev) + 1))
+                      }
+                    />
+                  </View>
+                </View>
+              )}
 
               <ThemedText style={styles.label}>
                 Rest Time (Minutes:Seconds)

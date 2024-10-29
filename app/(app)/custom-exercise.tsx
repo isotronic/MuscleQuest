@@ -31,6 +31,7 @@ export default function AddCustomExerciseScreen() {
   const [targetMuscleOpen, setTargetMuscleOpen] = useState(false);
   const [equipmentOpen, setEquipmentOpen] = useState(false);
   const [secondaryMusclesOpen, setSecondaryMusclesOpen] = useState(false);
+  const [trackingTypeOpen, setTrackingTypeOpen] = useState(false);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -40,6 +41,7 @@ export default function AddCustomExerciseScreen() {
   const [targetMuscle, setTargetMuscle] = useState<string>("");
   const [equipment, setEquipment] = useState<string>("");
   const [secondaryMuscles, setSecondaryMuscles] = useState<string[]>([]);
+  const [trackingType, setTrackingType] = useState<string>("");
 
   const [bodyPartOptions, setBodyPartOptions] = useState<
     { label: string; value: string }[]
@@ -50,6 +52,12 @@ export default function AddCustomExerciseScreen() {
   const [equipmentOptions, setEquipmentOptions] = useState<
     { label: string; value: string }[]
   >([]);
+  const [trackingTypeOptions, setTrackingTypeOptions] = useState([
+    { label: "Weight/Reps", value: "weight" },
+    { label: "Assistance/Reps", value: "assisted" },
+    { label: "Reps", value: "reps" },
+    { label: "Time", value: "time" },
+  ]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -140,7 +148,7 @@ export default function AddCustomExerciseScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!name || !bodyPart || !targetMuscle || !equipment) {
+    if (!name || !bodyPart || !targetMuscle || !equipment || !trackingType) {
       Alert.alert("Please fill all required fields.");
       return;
     }
@@ -186,7 +194,7 @@ export default function AddCustomExerciseScreen() {
         );
       } else {
         await db.runAsync(
-          `INSERT INTO exercises (app_exercise_id, name, description, local_animated_uri, body_part, target_muscle, equipment, secondary_muscles) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO exercises (app_exercise_id, name, description, local_animated_uri, body_part, target_muscle, equipment, secondary_muscles, tracking_type) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             name,
             JSON.stringify([description]),
@@ -195,6 +203,7 @@ export default function AddCustomExerciseScreen() {
             targetMuscle,
             equipment,
             JSON.stringify(secondaryMuscles),
+            trackingType,
           ],
         );
 
@@ -330,6 +339,36 @@ export default function AddCustomExerciseScreen() {
             setValue={setEquipment}
             setItems={setEquipmentOptions}
             placeholder="Select equipment*"
+            placeholderStyle={styles.dropdownPlaceholder}
+            style={styles.dropdown}
+            textStyle={{
+              color: Colors.dark.text,
+              fontSize: 18,
+            }}
+            dropDownContainerStyle={styles.dropdownContainer}
+            arrowIconStyle={{ tintColor: Colors.dark.text }}
+            tickIconStyle={{ tintColor: Colors.dark.text }}
+            listItemLabelStyle={{
+              color: Colors.dark.text,
+            }}
+            selectedItemLabelStyle={{
+              color: Colors.dark.text,
+            }}
+          />
+
+          {/* Tracking type Dropdown */}
+          <DropDownPicker
+            zIndex={2000}
+            zIndexInverse={5000}
+            listMode="SCROLLVIEW"
+            dropDownDirection="TOP"
+            open={trackingTypeOpen}
+            value={trackingType}
+            items={trackingTypeOptions}
+            setOpen={setTrackingTypeOpen}
+            setValue={setTrackingType}
+            setItems={setTrackingTypeOptions}
+            placeholder="Select tracking type*"
             placeholderStyle={styles.dropdownPlaceholder}
             style={styles.dropdown}
             textStyle={{

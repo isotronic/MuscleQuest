@@ -71,7 +71,7 @@ export default function HistoryDetailsScreen() {
 
     return workout.exercises.reduce((exerciseAcc, exercise) => {
       const exerciseVolume = exercise.sets.reduce((setAcc, set) => {
-        return setAcc + set.weight * set.reps;
+        return setAcc + (set.weight || 0) * (set.reps || 0);
       }, 0);
       return parseFloat((exerciseAcc + exerciseVolume).toFixed(1));
     }, 0);
