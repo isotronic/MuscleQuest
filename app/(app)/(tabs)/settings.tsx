@@ -23,6 +23,7 @@ import { SettingsModal } from "@/components/SettingsModal";
 import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 import { useImageManagement } from "@/hooks/useImageManagement";
 import { useQueryClient } from "@tanstack/react-query";
+import { openDatabase } from "@/utils/database";
 
 export default function SettingsScreen() {
   const queryClient = useQueryClient();
@@ -79,7 +80,7 @@ export default function SettingsScreen() {
     setOverlayVisible(true);
   };
 
-  const saveSetting = () => {
+  const saveSetting = async () => {
     if (currentSettingKey === "defaultRestTime") {
       const { minutes, seconds } = inputValue as {
         minutes: number;
@@ -90,6 +91,23 @@ export default function SettingsScreen() {
       updateSetting({
         key: currentSettingKey as string,
         value: totalSeconds.toString(),
+      });
+    } else if (currentSettingKey === "bodyWeight") {
+      try {
+        const db = await openDatabase("userData.db");
+        await db.runAsync(
+          `INSERT INTO body_measurements (date, body_weight) VALUES (datetime('now'), ?)`,
+          [inputValue as number],
+        );
+      } catch (error) {
+        console.error(
+          "Error saving body weight into body_measurements:",
+          error,
+        );
+      }
+      updateSetting({
+        key: currentSettingKey as string,
+        value: inputValue as string,
       });
     } else {
       updateSetting({
