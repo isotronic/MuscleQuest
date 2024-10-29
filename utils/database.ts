@@ -14,6 +14,7 @@ export interface Exercise {
   target_muscle: string;
   secondary_muscles: string[];
   description: string;
+  tracking_type?: string;
   favorite?: number;
 }
 

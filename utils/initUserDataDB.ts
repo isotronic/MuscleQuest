@@ -34,6 +34,7 @@ export async function initUserDataDB() {
       target_muscle TEXT, 
       secondary_muscles TEXT, 
       description TEXT,
+      tracking_type TEXT,
       favorite BOOLEAN DEFAULT FALSE,
       is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (target_muscle) REFERENCES muscles(muscle),
@@ -127,7 +128,7 @@ export async function initUserDataDB() {
     );
   `);
 
-  // Check if the favorite column already exists
+  // Check if columns already exist
   const result = await db.getAllAsync(`
     PRAGMA table_info(exercises);
   `);
@@ -137,6 +138,9 @@ export async function initUserDataDB() {
   );
   const is_deletedExists = result.some(
     (column: any) => column.name === "is_deleted",
+  );
+  const tracking_typeExists = result.some(
+    (column: any) => column.name === "tracking_type",
   );
 
   // If the column does not exist, add it
@@ -148,6 +152,11 @@ export async function initUserDataDB() {
   if (!is_deletedExists) {
     await db.execAsync(`
       ALTER TABLE exercises ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE;
+    `);
+  }
+  if (!tracking_typeExists) {
+    await db.execAsync(`
+      ALTER TABLE exercises ADD COLUMN tracking_type TEXT;
     `);
   }
 }
