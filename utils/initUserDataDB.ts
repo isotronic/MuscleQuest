@@ -129,6 +129,14 @@ export async function initUserDataDB() {
     );
   `);
 
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS body_measurements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      body_weight REAL,
+    );
+  `);
+
   // Check if columns already exist
   const exercisesResult = await db.getAllAsync(`
     PRAGMA table_info(exercises);
