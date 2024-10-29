@@ -16,6 +16,8 @@ import { parseISO, format } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
+const fallbackImage = require("@/assets/images/placeholder.webp");
+
 export default function HistoryDetailsScreen() {
   const { id } = useLocalSearchParams();
   const [workout, setWorkout] = useState<CompletedWorkout | null>(null);
@@ -157,9 +159,7 @@ export default function HistoryDetailsScreen() {
                     style={styles.exerciseImage}
                   />
                 ) : (
-                  <View style={[styles.exerciseImage, styles.placeholderImage]}>
-                    <ThemedText>No Image</ThemedText>
-                  </View>
+                  <Image source={fallbackImage} style={styles.exerciseImage} />
                 )}
                 <ThemedText style={styles.exerciseName}>
                   {exercise.exercise_name}
