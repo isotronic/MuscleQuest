@@ -195,6 +195,26 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() =>
+              showOverlay("bodyWeight", settings?.bodyWeight || "", "number")
+            }
+          >
+            <MaterialCommunityIcons
+              name="scale-bathroom"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>Body weight</ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.bodyWeight} {settings?.weightUnit} (used for assisted
+                exercises)
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
           {/* <TouchableOpacity
             style={styles.item}
             onPress={() => console.log("Backup and restore pressed")}
@@ -211,38 +231,6 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity> */}
-          <View style={styles.item}>
-            <MaterialCommunityIcons
-              name="cloud-download"
-              size={24}
-              color={Colors.dark.icon}
-              style={styles.icon}
-            />
-            <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>
-                Download all exercise images
-              </ThemedText>
-            </View>
-            <Switch
-              value={settings?.downloadImages === "true"}
-              onValueChange={toggleDownloadImages}
-              color={Colors.dark.tint}
-              style={styles.switch}
-            />
-          </View>
-          {(isDownloading || isDeleting) && (
-            <View style={styles.progressContainer}>
-              <ThemedText style={styles.progressText}>
-                {isDownloading
-                  ? "Downloading. Please wait..."
-                  : "Deleting. Please wait..."}
-              </ThemedText>
-              <ProgressBar
-                animatedValue={progress}
-                color={isDownloading ? Colors.dark.tint : Colors.dark.highlight}
-              />
-            </View>
-          )}
         </View>
         <Divider style={styles.divider} />
 
@@ -260,7 +248,7 @@ export default function SettingsScreen() {
             }
           >
             <MaterialCommunityIcons
-              name="scale"
+              name="weight"
               size={24}
               color={Colors.dark.icon}
               style={styles.icon}
@@ -461,6 +449,38 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="cloud-download"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Download all exercise images
+              </ThemedText>
+            </View>
+            <Switch
+              value={settings?.downloadImages === "true"}
+              onValueChange={toggleDownloadImages}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
+          {(isDownloading || isDeleting) && (
+            <View style={styles.progressContainer}>
+              <ThemedText style={styles.progressText}>
+                {isDownloading
+                  ? "Downloading. Please wait..."
+                  : "Deleting. Please wait..."}
+              </ThemedText>
+              <ProgressBar
+                animatedValue={progress}
+                color={isDownloading ? Colors.dark.tint : Colors.dark.highlight}
+              />
+            </View>
+          )}
         </View>
         <Divider style={styles.divider} />
 

@@ -872,6 +872,7 @@ export interface Settings {
   dataVersion: string;
   restTimerVibration: string;
   restTimerSound: string;
+  bodyWeight: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
