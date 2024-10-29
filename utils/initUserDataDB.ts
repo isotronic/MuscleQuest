@@ -133,7 +133,7 @@ export async function initUserDataDB() {
     CREATE TABLE IF NOT EXISTS body_measurements (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      body_weight REAL,
+      body_weight REAL
     );
   `);
 
