@@ -14,16 +14,22 @@ const copyDatabase = async (): Promise<string> => {
 
   const dbFileExists = await FileSystem.getInfoAsync(dbPath);
 
-  // Check the current dataVersion
-  const versionResult = await userDataDB.getFirstAsync<{ value: string }>(
-    `SELECT value FROM settings WHERE key = ? LIMIT 1`,
-    ["dataVersion"],
-  );
+  let dataVersion: number | null = null;
+  try {
+    // Attempt to retrieve the data version
+    const versionResult = await userDataDB.getFirstAsync<{ value: string }>(
+      `SELECT value FROM settings WHERE key = ? LIMIT 1`,
+      ["dataVersion"],
+    );
+    dataVersion = Number(versionResult?.value);
+    console.log("Data version:", dataVersion);
+  } catch (error) {
+    console.log(
+      "Settings table does not exist. Proceeding to copy database...",
+    );
+  }
 
-  const dataVersion = Number(versionResult?.value);
-  console.log("Data version:", dataVersion);
-
-  if (!dbFileExists.exists || dataVersion < 1.2) {
+  if (!dbFileExists.exists || dataVersion === null || dataVersion < 1.3) {
     console.log("Copying appData.db ...");
     const asset = Asset.fromModule(require(`../assets/db/${DATABASE_NAME}`));
     await asset.downloadAsync();

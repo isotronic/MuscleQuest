@@ -117,6 +117,8 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
     image: Uint8Array | null;
     description: string | null;
     animated_url: string | null;
+    equipment: string | null;
+    tracking_type: string | null;
     is_deleted: number;
   }
 
@@ -127,7 +129,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
   const dataVersion = Number(dataVersionEntry?.value) || null;
 
-  if (dataVersion && dataVersion >= 1.2) {
+  if (dataVersion && dataVersion >= 1.3) {
     console.log("Data has already been copied.");
     return;
   }
@@ -201,14 +203,18 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
                   //   return row[col] !== existingEntry.app_exercise_id;
                   case "name":
                     return row[col] !== existingEntry.name;
-                  case "image":
-                    return row[col] !== existingEntry.image;
+                  // case "image":
+                  //   return row[col] !== existingEntry.image;
                   case "description":
                     return row[col] !== existingEntry.description;
                   case "animated_url":
                     return row[col] !== existingEntry.animated_url;
                   case "is_deleted":
                     return row[col] !== existingEntry.is_deleted;
+                  case "tracking_type":
+                    return row[col] !== existingEntry.tracking_type;
+                  case "equipment":
+                    return row[col] !== existingEntry.equipment;
                   default:
                     return false;
                 }
@@ -261,14 +267,15 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
       "secondary_muscles",
       "description",
       "is_deleted",
+      "tracking_type",
     ],
     true, // Exclude the auto-incremented exercise_id for userData
   );
 
-  console.log("Updating data version to 1.2...");
+  console.log("Updating data version to 1.3...");
   await userDataDB.runAsync(
     "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-    ["dataVersion", "1.2"],
+    ["dataVersion", "1.3"],
   );
 
   console.log("Data copy completed and version updated.");
