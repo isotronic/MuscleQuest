@@ -9,12 +9,10 @@ export const useSoundAndVibration = () => {
     const loadSound = async () => {
       try {
         Audio.setAudioModeAsync({
-          staysActiveInBackground: true,
           playsInSilentModeIOS: true,
           interruptionModeIOS: InterruptionModeIOS.DuckOthers,
           interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
           shouldDuckAndroid: true,
-          playThroughEarpieceAndroid: true,
         });
         const { sound } = await Audio.Sound.createAsync(
           require("@/assets/sounds/boxing-bell.mp3"),
