@@ -108,6 +108,7 @@ export async function initUserDataDB() {
       set_number INTEGER, -- Set number (1, 2, 3, etc.)
       weight REAL, -- Weight used in this set
       reps INTEGER, -- Number of reps in this set
+      time INTEGER, -- Duration in seconds of this set
       is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (completed_exercise_id) REFERENCES completed_exercises(id)
     );
@@ -129,18 +130,24 @@ export async function initUserDataDB() {
   `);
 
   // Check if columns already exist
-  const result = await db.getAllAsync(`
+  const exercisesResult = await db.getAllAsync(`
     PRAGMA table_info(exercises);
   `);
+  const completed_setsResult = await db.getAllAsync(`
+    PRAGMA table_info(completed_sets);
+  `);
 
-  const favoriteExists = result.some(
+  const favoriteExists = exercisesResult.some(
     (column: any) => column.name === "favorite",
   );
-  const is_deletedExists = result.some(
+  const is_deletedExists = exercisesResult.some(
     (column: any) => column.name === "is_deleted",
   );
-  const tracking_typeExists = result.some(
+  const tracking_typeExists = exercisesResult.some(
     (column: any) => column.name === "tracking_type",
+  );
+  const timeExists = completed_setsResult.some(
+    (column: any) => column.name === "time",
   );
 
   // If the column does not exist, add it
@@ -157,6 +164,11 @@ export async function initUserDataDB() {
   if (!tracking_typeExists) {
     await db.execAsync(`
       ALTER TABLE exercises ADD COLUMN tracking_type TEXT;
+    `);
+  }
+  if (!timeExists) {
+    await db.execAsync(`
+      ALTER TABLE completed_sets ADD COLUMN time INTEGER;
     `);
   }
 }
