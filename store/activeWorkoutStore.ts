@@ -149,7 +149,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
           const nextSetValues =
             weightAndReps[currentExerciseIndex]?.[nextSetIndex] || {};
-          console.log(currentSetValues, nextSetValues);
 
           // Determine the values to carry over based on `tracking_type`
           const updatedNextSetValues = {
