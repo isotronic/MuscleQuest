@@ -1,27 +1,31 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { Image } from "expo-image";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { ActivityIndicator, Card } from "react-native-paper";
+import { ActivityIndicator, Card, IconButton } from "react-native-paper";
 import { Colors } from "@/constants/Colors";
-import { useLocalSearchParams } from "expo-router";
-import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import {
-  fetchCompletedWorkoutById,
-  fetchExerciseImagesByIds,
-} from "@/utils/database";
+  router,
+  Stack,
+  useLocalSearchParams,
+  useFocusEffect,
+} from "expo-router";
+import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import { fetchExerciseImagesByIds } from "@/utils/database";
 import { byteArrayToBase64 } from "@/utils/utility";
 import { parseISO, format } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
+import { useQueryClient } from "@tanstack/react-query";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
 export default function HistoryDetailsScreen() {
   const { id } = useLocalSearchParams();
   const [workout, setWorkout] = useState<CompletedWorkout | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   const {
     data: settings,
@@ -32,39 +36,48 @@ export default function HistoryDetailsScreen() {
   const weightUnit = settings?.weightUnit || "kg";
   const bodyWeight = parseFloat(settings?.bodyWeight || "70");
 
+  const { data: workoutData, isLoading: isWorkoutLoading } =
+    useCompletedWorkoutByIdQuery(Number(id), weightUnit);
+
   useEffect(() => {
-    const fetchWorkout = async () => {
-      try {
-        const data = await fetchCompletedWorkoutById(Number(id), weightUnit);
+    if (workoutData) {
+      // Collect unique exercise IDs
+      const exerciseIds = workoutData.exercises.map(
+        (exercise) => exercise.exercise_id,
+      );
 
-        // Collect unique exercise IDs
-        const exerciseIds = data.exercises.map(
-          (exercise) => exercise.exercise_id,
-        );
+      // Fetch images for these exercise IDs and attach them to the exercises
+      const fetchImages = async () => {
+        try {
+          const imagesMap = await fetchExerciseImagesByIds(exerciseIds);
 
-        // Fetch images for these exercise IDs
-        const imagesMap = await fetchExerciseImagesByIds(exerciseIds);
+          // Attach images to exercises
+          const exercisesWithImages = workoutData.exercises.map((exercise) => ({
+            ...exercise,
+            exercise_image: imagesMap[exercise.exercise_id],
+          }));
 
-        // Attach images to exercises
-        const exercisesWithImages = data.exercises.map((exercise) => ({
-          ...exercise,
-          exercise_image: imagesMap[exercise.exercise_id],
-        }));
+          // Update workout data with exercises including images
+          setWorkout({
+            ...workoutData,
+            exercises: exercisesWithImages,
+          });
+        } catch (error) {
+          console.error("Error fetching exercise images:", error);
+        }
+      };
 
-        // Update workout data with exercises including images
-        setWorkout({
-          ...data,
-          exercises: exercisesWithImages,
-        });
-      } catch (error) {
-        console.error("Error fetching workout:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      fetchImages();
+    }
+  }, [workoutData]);
 
-    fetchWorkout();
-  }, [id, weightUnit]);
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries({
+        queryKey: ["completedWorkout", Number(id)],
+      });
+    }, [id]),
+  );
 
   // Calculate total volume
   const totalVolume = useMemo(() => {
@@ -87,7 +100,7 @@ export default function HistoryDetailsScreen() {
     }, 0);
   }, [workout, bodyWeight]);
 
-  if (isLoading || !workout || settingsLoading) {
+  if (isWorkoutLoading || !workout || settingsLoading) {
     return (
       <ThemedView style={styles.container}>
         <ActivityIndicator size="large" color={Colors.dark.text} />
@@ -105,6 +118,26 @@ export default function HistoryDetailsScreen() {
 
   return (
     <ThemedView>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <IconButton
+                icon="file-document-edit-outline"
+                size={30}
+                style={{ marginRight: 0 }}
+                iconColor={Colors.dark.text}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(stats)/edit-history",
+                    params: { id },
+                  })
+                }
+              />
+            </View>
+          ),
+        }}
+      />
       <ScrollView style={styles.container}>
         {/* Top Section */}
         <View style={styles.topSection}>

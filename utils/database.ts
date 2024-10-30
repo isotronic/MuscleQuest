@@ -687,6 +687,7 @@ interface CompletedWorkoutRow {
   exercise_image: Uint8Array | null;
   exercise_order: number;
   exercise_tracking_type: string | null;
+  set_id: number;
   set_number: number | null;
   weight: number | null;
   reps: number | null;
@@ -714,6 +715,7 @@ export const fetchCompletedWorkoutById = async (
         e.name as exercise_name, 
         e.image as exercise_image, 
         e.tracking_type as exercise_tracking_type,
+        cs.id as set_id,
         cs.set_number, 
         cs.weight, 
         cs.reps,
@@ -780,6 +782,7 @@ export const fetchCompletedWorkoutById = async (
           );
 
           exercisesMap[row.exercise_id].sets.push({
+            set_id: row.set_id,
             set_number: row.set_number,
             weight: convertedWeight || null,
             reps: row.reps || null,

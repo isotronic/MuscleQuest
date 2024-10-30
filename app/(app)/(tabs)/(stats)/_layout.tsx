@@ -17,6 +17,7 @@ export default function PlansLayout() {
         options={{ title: "Workout Details" }}
       />
       <Stack.Screen name="exercises" options={{ title: "Exercises" }} />
+      <Stack.Screen name="edit-history" options={{ title: "Edit Workout" }} />
     </Stack>
   );
 }
