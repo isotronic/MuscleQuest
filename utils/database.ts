@@ -651,8 +651,8 @@ export const saveCompletedWorkout = async (
       for (const set of exercise.sets) {
         // Insert each completed set
         await db.runAsync(
-          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps) VALUES (?, ?, ?, ?)`,
-          [completedExerciseId, set.set_number, set.weight, set.reps],
+          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time) VALUES (?, ?, ?, ?, ?)`,
+          [completedExerciseId, set.set_number, set.weight, set.reps, set.time],
         );
       }
     }
@@ -686,6 +686,7 @@ interface CompletedWorkoutRow {
   exercise_name: string | null;
   exercise_image: Uint8Array | null;
   exercise_order: number;
+  exercise_tracking_type: string | null;
   set_number: number | null;
   weight: number | null;
   reps: number | null;
@@ -712,6 +713,7 @@ export const fetchCompletedWorkoutById = async (
         e.exercise_id as exercise_id, 
         e.name as exercise_name, 
         e.image as exercise_image, 
+        e.tracking_type as exercise_tracking_type,
         cs.set_number, 
         cs.weight, 
         cs.reps,
@@ -751,6 +753,7 @@ export const fetchCompletedWorkoutById = async (
     const exercisesMap: {
       [exercise_id: number]: CompletedWorkout["exercises"][0] & {
         exercise_order: number;
+        exercise_tracking_type: string;
       };
     } = {};
 
@@ -763,6 +766,7 @@ export const fetchCompletedWorkoutById = async (
             exercise_image: row.exercise_image
               ? Array.from(row.exercise_image)
               : undefined,
+            exercise_tracking_type: row.exercise_tracking_type || "weight",
             sets: [],
             exercise_order: row.exercise_order, // Track exercise order
           };
@@ -845,6 +849,7 @@ export const insertDefaultSettings = async () => {
     { key: "timeRange", value: "30" },
     { key: "restTimerVibration", value: "false" },
     { key: "restTimerSound", value: "false" },
+    { key: "bodyWeight", value: "70" },
   ];
 
   // Loop through each default setting

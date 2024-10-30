@@ -4,7 +4,7 @@ import { Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useWorkoutStore } from "@/store/workoutStore";
+import { useWorkoutStore, Set } from "@/store/workoutStore";
 import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { EditSetModal } from "@/components/EditSetModal";
@@ -48,7 +48,7 @@ export default function SetsOverviewScreen() {
       .removeSetFromExercise(Number(workoutIndex), Number(exerciseId), index);
   };
 
-  const renderSetItem = ({ item, index }: { item: any; index: number }) => {
+  const renderSetItem = ({ item, index }: { item: Set; index: number }) => {
     const repRange =
       item.repsMin === item.repsMax
         ? item.repsMin

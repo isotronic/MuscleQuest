@@ -30,6 +30,7 @@ export default function HistoryDetailsScreen() {
   } = useSettingsQuery();
 
   const weightUnit = settings?.weightUnit || "kg";
+  const bodyWeight = parseFloat(settings?.bodyWeight || "70");
 
   useEffect(() => {
     const fetchWorkout = async () => {
@@ -73,11 +74,18 @@ export default function HistoryDetailsScreen() {
 
     return workout.exercises.reduce((exerciseAcc, exercise) => {
       const exerciseVolume = exercise.sets.reduce((setAcc, set) => {
-        return setAcc + (set.weight || 0) * (set.reps || 0);
+        // Check if the tracking type is "assistance" and apply custom calculation
+        const weight =
+          exercise.exercise_tracking_type === "assisted"
+            ? bodyWeight - (set.weight || 0)
+            : set.weight || 0;
+
+        return setAcc + weight * (set.reps || 0);
       }, 0);
+
       return parseFloat((exerciseAcc + exerciseVolume).toFixed(1));
     }, 0);
-  }, [workout]);
+  }, [workout, bodyWeight]);
 
   if (isLoading || !workout || settingsLoading) {
     return (
@@ -141,44 +149,65 @@ export default function HistoryDetailsScreen() {
         </View>
 
         {/* Exercise List */}
-        {workout.exercises.map((exercise) => {
-          // Check if the image exists
-          let imageUri = "";
-          if (exercise.exercise_image) {
-            // Convert the image blob to Base64
-            const base64Image = byteArrayToBase64(exercise.exercise_image);
-            imageUri = `data:image/webp;base64,${base64Image}`;
-          }
+        <View style={styles.exerciseList}>
+          {workout.exercises.map((exercise) => {
+            // Check if the image exists
+            let imageUri = "";
+            if (exercise.exercise_image) {
+              // Convert the image blob to Base64
+              const base64Image = byteArrayToBase64(exercise.exercise_image);
+              imageUri = `data:image/webp;base64,${base64Image}`;
+            }
 
-          return (
-            <Card key={exercise.exercise_id} style={styles.exerciseCard}>
-              <View style={styles.exerciseHeader}>
-                {imageUri ? (
-                  <Image
-                    source={{ uri: imageUri }}
-                    style={styles.exerciseImage}
-                  />
-                ) : (
-                  <Image source={fallbackImage} style={styles.exerciseImage} />
-                )}
-                <ThemedText style={styles.exerciseName}>
-                  {exercise.exercise_name}
-                </ThemedText>
-              </View>
-              {/* Sets List */}
-              {exercise.sets.map((set, index) => (
-                <View key={index} style={styles.setRow}>
-                  <ThemedText style={styles.setText}>
-                    Set {set.set_number}
-                  </ThemedText>
-                  <ThemedText style={styles.setText}>
-                    {set.weight} {settings?.weightUnit} | {set.reps} Reps
+            return (
+              <Card key={exercise.exercise_id} style={styles.exerciseCard}>
+                <View style={styles.exerciseHeader}>
+                  {imageUri ? (
+                    <Image
+                      source={{ uri: imageUri }}
+                      style={styles.exerciseImage}
+                    />
+                  ) : (
+                    <Image
+                      source={fallbackImage}
+                      style={styles.exerciseImage}
+                    />
+                  )}
+                  <ThemedText style={styles.exerciseName}>
+                    {exercise.exercise_name}
                   </ThemedText>
                 </View>
-              ))}
-            </Card>
-          );
-        })}
+                {/* Sets List */}
+                {exercise.sets.map((set, index) => (
+                  <View key={index} style={styles.setRow}>
+                    <ThemedText style={styles.setText}>
+                      Set {set.set_number}
+                    </ThemedText>
+                    {exercise.exercise_tracking_type === "time" ? (
+                      <ThemedText style={styles.setText}>
+                        {set.time} Seconds
+                      </ThemedText>
+                    ) : exercise.exercise_tracking_type === "reps" ? (
+                      <ThemedText style={styles.setText}>
+                        {set.reps} Reps
+                      </ThemedText>
+                    ) : exercise.exercise_tracking_type === "weight" ? (
+                      <ThemedText style={styles.setText}>
+                        {set.weight} {settings?.weightUnit} | {set.reps} Reps
+                      </ThemedText>
+                    ) : (
+                      <ThemedText style={styles.setText}>
+                        Assist {set.weight} {settings?.weightUnit} | Resist{" "}
+                        {bodyWeight - (set.weight || 0)} {settings?.weightUnit}{" "}
+                        | {set.reps} Reps
+                      </ThemedText>
+                    )}
+                  </View>
+                ))}
+              </Card>
+            );
+          })}
+        </View>
       </ScrollView>
     </ThemedView>
   );
@@ -187,9 +216,7 @@ export default function HistoryDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 16,
-    paddingBottom: 50,
-    paddingHorizontal: 16,
+    padding: 16,
   },
   topSection: {
     marginBottom: 24,
@@ -215,6 +242,9 @@ const styles = StyleSheet.create({
   summaryText: {
     fontSize: 16,
     marginTop: 4,
+  },
+  exerciseList: {
+    marginBottom: 50,
   },
   exerciseCard: {
     marginBottom: 16,

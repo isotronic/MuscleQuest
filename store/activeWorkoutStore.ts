@@ -16,7 +16,7 @@ interface ActiveWorkoutStore {
   };
   weightAndReps: {
     [exerciseIndex: number]: {
-      [setIndex: number]: { weight: string; reps: string };
+      [setIndex: number]: { weight?: string; reps?: string; time?: string };
     };
   };
   startTime: Date | null;
@@ -38,6 +38,7 @@ interface ActiveWorkoutStore {
     setIndex: number,
     weight: string,
     reps: string,
+    time: string,
   ) => void;
   initializeWeightAndReps: (previousWorkoutData: CompletedWorkout) => void;
   replaceExercise: (index: number, newExercise: UserExercise) => void;
@@ -120,10 +121,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           }
 
           const currentExercise = workout.exercises[currentExerciseIndex];
+          const trackingType = currentExercise.tracking_type || "weight";
           const currentSetIndex = currentSetIndices[currentExerciseIndex] || 0;
           const nextSetIndex = currentSetIndex + 1;
 
-          // Mark current set as completed
+          // Mark the current set as completed
           const updatedCompletedSets = {
             ...completedSets,
             [currentExerciseIndex]: {
@@ -132,40 +134,67 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             },
           };
 
+          // Update the set index for the current exercise
           const updatedSetIndices = {
             ...currentSetIndices,
             [currentExerciseIndex]: nextSetIndex,
           };
 
-          // Update weight and reps for the next set
-          const currentWeightAndReps = weightAndReps[currentExerciseIndex]?.[
-            currentSetIndex
-          ] || {
-            weight: "0",
-            reps: "0",
+          // Retrieve values from the current set and historical data for the next set
+          const currentSetValues =
+            weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
+          const nextSetValues =
+            weightAndReps[currentExerciseIndex]?.[nextSetIndex] || {};
+
+          // Determine the values to carry over based on `tracking_type`
+          const updatedNextSetValues = {
+            ...(trackingType === "weight" || trackingType === ""
+              ? {
+                  weight: currentSetValues.weight,
+                  reps:
+                    nextSetValues.reps !== undefined
+                      ? nextSetValues.reps
+                      : currentSetValues.reps,
+                }
+              : {}),
+            ...(trackingType === "assisted"
+              ? {
+                  weight: currentSetValues.weight,
+                  reps:
+                    nextSetValues.reps !== undefined
+                      ? nextSetValues.reps
+                      : currentSetValues.reps,
+                }
+              : {}),
+            ...(trackingType === "reps"
+              ? {
+                  reps:
+                    nextSetValues.reps !== undefined
+                      ? nextSetValues.reps
+                      : currentSetValues.reps,
+                }
+              : {}),
+            ...(trackingType === "time"
+              ? {
+                  time:
+                    nextSetValues.time !== undefined
+                      ? nextSetValues.time
+                      : currentSetValues.time,
+                }
+              : {}),
           };
 
+          // Update the weightAndReps with the new values for the next set
+          const updatedWeightAndReps = {
+            ...weightAndReps,
+            [currentExerciseIndex]: {
+              ...(weightAndReps[currentExerciseIndex] || {}),
+              [nextSetIndex]: updatedNextSetValues,
+            },
+          };
+
+          // If there are more sets in the current exercise, update the store accordingly
           if (nextSetIndex < currentExercise.sets.length) {
-            // If there are more sets in the current exercise
-            const nextSetWeightAndReps =
-              weightAndReps[currentExerciseIndex]?.[nextSetIndex];
-
-            const updatedNextSetWeightAndReps = {
-              weight: currentWeightAndReps.weight, // Carry over weight
-              reps:
-                nextSetWeightAndReps?.reps !== undefined
-                  ? nextSetWeightAndReps.reps // Use historical data if available
-                  : currentWeightAndReps.reps, // Carry over reps from current set
-            };
-
-            const updatedWeightAndReps = {
-              ...weightAndReps,
-              [currentExerciseIndex]: {
-                ...(weightAndReps[currentExerciseIndex] || {}),
-                [nextSetIndex]: updatedNextSetWeightAndReps,
-              },
-            };
-
             return {
               currentSetIndices: updatedSetIndices,
               completedSets: updatedCompletedSets,
@@ -173,7 +202,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             };
           }
 
-          // If no more sets, move to next exercise, skipping completed exercises
+          // Move to the next exercise if all sets are complete in the current exercise
           let nextExerciseIndex = currentExerciseIndex + 1;
           while (nextExerciseIndex < workout.exercises.length) {
             const totalSets = workout.exercises[nextExerciseIndex].sets.length;
@@ -193,7 +222,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             nextExerciseIndex++;
           }
 
-          // If all exercises are completed, return to previous screen
+          // If all exercises are completed, navigate back
           router.back();
           return {
             currentSetIndices: updatedSetIndices,
@@ -209,6 +238,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             completedSets,
             currentExerciseIndex,
           } = state;
+
           if (!workout) {
             return state;
           }
@@ -216,32 +246,44 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           const currentExercise = workout.exercises[currentExerciseIndex];
           const lastSetIndex = currentExercise.sets.length - 1;
           const lastSet = currentExercise.sets[lastSetIndex];
+          const trackingType = currentExercise.tracking_type || "weight";
 
           // Create a new set by copying the last set
-          const newSet = { ...lastSet }; // Copy the last set
+          const newSet = { ...lastSet };
 
           // Add the new set to the workout's sets array
           const updatedExercises = [...workout.exercises];
           updatedExercises[currentExerciseIndex].sets.push(newSet);
 
-          // Copy the last set's weight and reps to the new set
+          // Set default values for weight, reps, or time based on tracking_type
+          const lastSetValues =
+            weightAndReps[currentExerciseIndex]?.[lastSetIndex] || {};
+          const newSetValues = {
+            ...(trackingType === "weight" || trackingType === ""
+              ? { weight: lastSetValues.weight, reps: lastSetValues.reps }
+              : {}),
+            ...(trackingType === "assisted"
+              ? { weight: lastSetValues.weight, reps: lastSetValues.reps }
+              : {}),
+            ...(trackingType === "reps" ? { reps: lastSetValues.reps } : {}),
+            ...(trackingType === "time" ? { time: lastSetValues.time } : {}),
+          };
+
+          // Update the store with the new set in weightAndReps and completedSets
           return {
             workout: { ...workout, exercises: updatedExercises },
             weightAndReps: {
               ...weightAndReps,
               [currentExerciseIndex]: {
-                ...weightAndReps[currentExerciseIndex],
-                [updatedExercises[currentExerciseIndex].sets.length - 1]: {
-                  weight:
-                    weightAndReps[currentExerciseIndex][lastSetIndex].weight,
-                  reps: weightAndReps[currentExerciseIndex][lastSetIndex].reps,
-                },
+                ...(weightAndReps[currentExerciseIndex] || {}),
+                [updatedExercises[currentExerciseIndex].sets.length - 1]:
+                  newSetValues,
               },
             },
             completedSets: {
               ...completedSets,
               [currentExerciseIndex]: {
-                ...completedSets[currentExerciseIndex],
+                ...(completedSets[currentExerciseIndex] || {}),
                 [updatedExercises[currentExerciseIndex].sets.length - 1]: false,
               },
             },
@@ -294,21 +336,48 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         });
       },
 
-      updateWeightAndReps: (exerciseIndex, setIndex, weight, reps) =>
+      updateWeightAndReps: (
+        exerciseIndex: number,
+        setIndex: number,
+        weight: string,
+        reps: string,
+        time: string,
+      ) =>
         set((state) => {
           const exerciseData = state.weightAndReps[exerciseIndex] || {};
+          const trackingType =
+            state.workout?.exercises[exerciseIndex].tracking_type || "weight";
+
+          const updatedValues: {
+            weight?: string;
+            reps?: string;
+            time?: string;
+          } = {};
+
+          if (trackingType === "weight" || trackingType === "") {
+            updatedValues.weight = weight;
+            updatedValues.reps = reps;
+          } else if (trackingType === "assisted") {
+            updatedValues.weight = weight;
+            updatedValues.reps = reps;
+          } else if (trackingType === "reps") {
+            updatedValues.reps = reps;
+          } else if (trackingType === "time") {
+            updatedValues.time = time;
+          }
+
           return {
             weightAndReps: {
               ...state.weightAndReps,
               [exerciseIndex]: {
                 ...exerciseData,
-                [setIndex]: { weight, reps },
+                [setIndex]: updatedValues,
               },
             },
           };
         }),
 
-      initializeWeightAndReps: (previousWorkoutData) => {
+      initializeWeightAndReps: (previousWorkoutData: CompletedWorkout) => {
         const { workout } = get();
         if (!workout) {
           return;
@@ -316,7 +385,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
 
         const weightAndReps: {
           [exerciseIndex: number]: {
-            [setIndex: number]: { weight: string; reps: string };
+            [setIndex: number]: {
+              weight?: string;
+              reps?: string;
+              time?: string;
+            };
           };
         } = {};
 
@@ -327,48 +400,47 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
 
           weightAndReps[exerciseIndex] = {};
 
+          const trackingType = currentExercise.tracking_type || "weight";
+
           if (previousExercise) {
-            const setsToPrefill = Math.min(
-              currentExercise.sets.length,
-              previousExercise.sets.length,
-            );
-
-            for (let setIndex = 0; setIndex < setsToPrefill; setIndex++) {
-              const prevSet = previousExercise.sets[setIndex];
-              weightAndReps[exerciseIndex][setIndex] = {
-                weight: prevSet.weight.toString(),
-                reps: prevSet.reps.toString(),
-              };
-            }
-
-            for (
-              let setIndex = setsToPrefill;
-              setIndex < currentExercise.sets.length;
-              setIndex++
-            ) {
-              const lastKnownWeight =
-                previousExercise.sets[
-                  previousExercise.sets.length - 1
-                ].weight.toString();
-              const lastKnownReps =
-                previousExercise.sets[
-                  previousExercise.sets.length - 1
-                ].reps.toString();
-              weightAndReps[exerciseIndex][setIndex] = {
-                weight: lastKnownWeight,
-                reps: lastKnownReps,
-              };
-            }
+            previousExercise.sets.forEach((prevSet, setIndex) => {
+              weightAndReps[exerciseIndex][setIndex] = {};
+              if (trackingType === "weight" || trackingType === "") {
+                weightAndReps[exerciseIndex][setIndex].weight =
+                  prevSet.weight?.toString();
+                weightAndReps[exerciseIndex][setIndex].reps =
+                  prevSet.reps?.toString();
+              } else if (trackingType === "assisted") {
+                weightAndReps[exerciseIndex][setIndex].weight =
+                  prevSet.weight?.toString();
+                weightAndReps[exerciseIndex][setIndex].reps =
+                  prevSet.reps?.toString();
+              } else if (trackingType === "reps") {
+                weightAndReps[exerciseIndex][setIndex].reps =
+                  prevSet.reps?.toString();
+              } else if (trackingType === "time") {
+                weightAndReps[exerciseIndex][setIndex].time =
+                  prevSet.time?.toString();
+              }
+            });
           } else {
             for (
               let setIndex = 0;
               setIndex < currentExercise.sets.length;
               setIndex++
             ) {
-              weightAndReps[exerciseIndex][setIndex] = {
-                weight: "0",
-                reps: "0",
-              };
+              weightAndReps[exerciseIndex][setIndex] = {};
+              if (trackingType === "weight" || trackingType === "") {
+                weightAndReps[exerciseIndex][setIndex].weight = "0";
+                weightAndReps[exerciseIndex][setIndex].reps = "0";
+              } else if (trackingType === "assisted") {
+                weightAndReps[exerciseIndex][setIndex].weight = "0";
+                weightAndReps[exerciseIndex][setIndex].reps = "0";
+              } else if (trackingType === "reps") {
+                weightAndReps[exerciseIndex][setIndex].reps = "0";
+              } else if (trackingType === "time") {
+                weightAndReps[exerciseIndex][setIndex].time = "0";
+              }
             }
           }
         });

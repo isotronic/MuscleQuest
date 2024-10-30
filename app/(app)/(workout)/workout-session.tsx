@@ -86,6 +86,8 @@ export default function WorkoutSessionScreen() {
     weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight || "";
   const reps =
     weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.reps || "";
+  const time =
+    weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.time || "";
 
   // Fetch animated image for current exercise
   const {
@@ -143,6 +145,7 @@ export default function WorkoutSessionScreen() {
       currentSetIndex,
       sanitizedInput,
       reps,
+      time,
     );
   };
 
@@ -153,19 +156,43 @@ export default function WorkoutSessionScreen() {
       currentSetIndex,
       weight,
       sanitizedInput,
+      time,
+    );
+  };
+
+  const handleTimeInputChange = (inputValue: string) => {
+    const sanitizedInput = inputValue.replace(/[^0-9.]/g, "");
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      weight,
+      reps,
+      sanitizedInput,
     );
   };
 
   const handleWeightChange = (amount: number) => {
     const currentWeight = isNaN(parseFloat(weight)) ? 0 : parseFloat(weight);
     const newWeight = (currentWeight + amount).toFixed(1);
-    updateWeightAndReps(currentExerciseIndex, currentSetIndex, newWeight, reps);
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      newWeight,
+      reps,
+      time,
+    );
   };
 
   const handleRepsChange = (amount: number) => {
     const currentReps = isNaN(parseInt(reps)) ? 0 : parseInt(reps);
     const newReps = (currentReps + amount).toString();
-    updateWeightAndReps(currentExerciseIndex, currentSetIndex, weight, newReps);
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      weight,
+      newReps,
+      time,
+    );
   };
 
   const handleRemoveSet = (index: number) => {
@@ -237,6 +264,7 @@ export default function WorkoutSessionScreen() {
   const nextWeight =
     weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.weight || "";
   const nextReps = weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.reps || "";
+  const nextTime = weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.time || "";
 
   // Previous set data
   const previousExercise =
@@ -265,6 +293,10 @@ export default function WorkoutSessionScreen() {
   const previousReps =
     previousExerciseIndex !== null && previousSetIndex !== null
       ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.reps
+      : "";
+  const previousTime =
+    previousExerciseIndex !== null && previousSetIndex !== null
+      ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.time
       : "";
 
   const previousSetCompleted =
@@ -370,6 +402,8 @@ export default function WorkoutSessionScreen() {
       weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight ?? "";
     const repsStr =
       weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.reps ?? "";
+    const timeStr =
+      weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.time ?? "";
 
     const weightInKg = parseFloat(weightStr);
     const validWeightInKg = isNaN(weightInKg) ? 0 : weightInKg;
@@ -377,12 +411,16 @@ export default function WorkoutSessionScreen() {
     const repsNum = parseInt(repsStr);
     const validRepsNum = isNaN(repsNum) ? 0 : repsNum;
 
+    const timeNum = parseInt(timeStr);
+    const validTimeNum = isNaN(timeNum) ? 0 : timeNum;
+
     // Update the weightAndReps with valid values for the current set
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
       validWeightInKg.toString(),
       validRepsNum.toString(),
+      validTimeNum.toString(),
     );
 
     if (hasNextSet) {
@@ -399,6 +437,7 @@ export default function WorkoutSessionScreen() {
             existingNextSetReps === undefined || existingNextSetReps === "0"
               ? validRepsNum.toString() // Carry over current reps
               : existingNextSetReps, // Keep existing reps if available
+          time: validTimeNum.toString(),
         };
 
         updateWeightAndReps(
@@ -406,6 +445,7 @@ export default function WorkoutSessionScreen() {
           nextSetIndex,
           updatedNextSetWeightAndReps.weight,
           updatedNextSetWeightAndReps.reps,
+          updatedNextSetWeightAndReps.time,
         );
       }
 
@@ -472,19 +512,23 @@ export default function WorkoutSessionScreen() {
               totalSets={currentExercise?.sets.length || 0}
               weight={weight}
               reps={reps}
+              time={time}
               weightIncrement={weightIncrement}
               buttonSize={buttonSize}
               weightUnit={settings?.weightUnit || "kg"}
               restMinutes={currentSet?.restMinutes || 0}
               restSeconds={currentSet?.restSeconds || 0}
-              repsMin={currentSet?.repsMin}
-              repsMax={currentSet?.repsMax}
+              repsMin={currentSet?.repsMin || 0}
+              repsMax={currentSet?.repsMax || 0}
+              timeMin={currentSet?.time || 0}
               currentSetCompleted={currentSetCompleted}
               isWarmup={currentSet?.isWarmup || false}
+              trackingType={currentExercise?.tracking_type || "weight"}
               handleWeightInputChange={handleWeightInputChange}
               handleWeightChange={handleWeightChange}
               handleRepsInputChange={handleRepsInputChange}
               handleRepsChange={handleRepsChange}
+              handleTimeInputChange={handleTimeInputChange}
               handlePreviousSet={handlePreviousSet}
               handleNextSet={handleNextSet}
               handleCompleteSet={handleCompleteSet}
@@ -519,19 +563,23 @@ export default function WorkoutSessionScreen() {
                 totalSets={nextExercise?.sets.length || 0}
                 weight={nextWeight}
                 reps={nextReps}
+                time={nextTime}
                 weightIncrement={weightIncrement}
                 buttonSize={buttonSize}
                 weightUnit={settings?.weightUnit || "kg"}
                 restMinutes={upcomingSet?.restMinutes || 0}
                 restSeconds={upcomingSet?.restSeconds || 0}
-                repsMin={upcomingSet?.repsMin}
-                repsMax={upcomingSet?.repsMax}
+                repsMin={upcomingSet?.repsMin || 0}
+                repsMax={upcomingSet?.repsMax || 0}
+                timeMin={upcomingSet?.time || 0}
                 currentSetCompleted={false}
                 isWarmup={upcomingSet?.isWarmup || false}
+                trackingType={nextExercise?.tracking_type || "weight"}
                 handleWeightInputChange={() => {}}
                 handleWeightChange={() => {}}
                 handleRepsInputChange={() => {}}
                 handleRepsChange={() => {}}
+                handleTimeInputChange={() => {}}
                 handlePreviousSet={() => {}}
                 handleNextSet={() => {}}
                 handleCompleteSet={() => {}}
@@ -567,21 +615,25 @@ export default function WorkoutSessionScreen() {
                   animatedImageError={previousAnimatedImageError}
                   currentSetIndex={previousSetIndex}
                   totalSets={previousExercise?.sets.length || 0}
-                  weight={previousWeight}
-                  reps={previousReps}
+                  weight={previousWeight || ""}
+                  reps={previousReps || ""}
+                  time={previousTime || ""}
                   weightIncrement={weightIncrement}
                   buttonSize={buttonSize}
                   weightUnit={settings?.weightUnit || "kg"}
                   restMinutes={previousSet?.restMinutes || 0}
                   restSeconds={previousSet?.restSeconds || 0}
-                  repsMin={previousSet?.repsMin}
-                  repsMax={previousSet?.repsMax}
+                  repsMin={previousSet?.repsMin || 0}
+                  repsMax={previousSet?.repsMax || 0}
+                  timeMin={previousSet?.time || 0}
                   currentSetCompleted={previousSetCompleted}
                   isWarmup={previousSet?.isWarmup || false}
+                  trackingType={previousExercise?.tracking_type || "weight"}
                   handleWeightInputChange={() => {}}
                   handleWeightChange={() => {}}
                   handleRepsInputChange={() => {}}
                   handleRepsChange={() => {}}
+                  handleTimeInputChange={() => {}}
                   handlePreviousSet={() => {}}
                   handleNextSet={() => {}}
                   handleCompleteSet={() => {}}

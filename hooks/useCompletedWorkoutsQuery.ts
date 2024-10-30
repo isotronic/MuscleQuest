@@ -12,6 +12,7 @@ interface WorkoutResult {
   exercise_id: number;
   exercise_name: string;
   exercise_image: Uint8Array | null;
+  exercise_tracking_type: string;
   set_number: number;
   weight: number | null;
   reps: number | null;
@@ -30,6 +31,7 @@ export interface CompletedWorkout {
     exercise_id: number;
     exercise_name: string;
     exercise_image?: number[];
+    exercise_tracking_type: string;
     sets: {
       set_number: number;
       weight: number | null;
@@ -110,6 +112,7 @@ const fetchAndOrganize = async (
         exercise_id,
         exercise_name,
         exercise_image,
+        exercise_tracking_type,
         set_number,
         weight,
         reps,
@@ -146,6 +149,7 @@ const fetchAndOrganize = async (
           exercise_image: exercise_image
             ? Array.from(exercise_image)
             : undefined,
+          exercise_tracking_type,
           sets: [],
         };
         workout.exercises.push(exercise);

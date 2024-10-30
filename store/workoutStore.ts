@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { Exercise } from "@/utils/database";
 
-interface Set {
+export interface Set {
   repsMin: number | undefined;
   repsMax: number | undefined;
   restMinutes: number;
   restSeconds: number;
-  time: number;
+  time: number | undefined;
   isWarmup?: boolean;
 }
 

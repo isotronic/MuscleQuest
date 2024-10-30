@@ -93,7 +93,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
       setRestTime(
         formatFromTotalSeconds(set.restMinutes * 60 + set.restSeconds),
       );
-      setTime(formatFromTotalSeconds(set.time));
+      setTime(set.time ? formatFromTotalSeconds(set.time) : "00:00");
       setIsWarmup(set?.isWarmup ?? false);
     } else {
       if (trackingType === "time") {
@@ -182,7 +182,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                   <View style={styles.inputRow}>
                     <TextInput
                       style={styles.input}
-                      value={restTime}
+                      value={time}
                       onChangeText={handleTimeChange}
                       keyboardType="numeric"
                       selectTextOnFocus={true}
