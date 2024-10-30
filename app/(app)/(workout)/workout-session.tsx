@@ -424,20 +424,31 @@ export default function WorkoutSessionScreen() {
     );
 
     if (hasNextSet) {
+      const isWarmup = currentSet.isWarmup || false;
       // Update weightAndReps for the next set before starting the animation
       if (nextExerciseIndex === currentExerciseIndex) {
         const nextSetIndex = currentSetIndex + 1;
 
         const existingNextSetReps =
           weightAndReps[currentExerciseIndex]?.[nextSetIndex]?.reps;
+        const existingNextSetWeight =
+          weightAndReps[currentExerciseIndex]?.[nextSetIndex]?.weight;
+        const existingNextSetTime =
+          weightAndReps[currentExerciseIndex]?.[nextSetIndex]?.time;
 
         const updatedNextSetWeightAndReps = {
-          weight: validWeightInKg.toString(), // Update weight to current weight
+          weight:
+            !isWarmup || existingNextSetWeight === undefined
+              ? validWeightInKg.toString() // Update weight to current weight
+              : existingNextSetWeight,
           reps:
             existingNextSetReps === undefined || existingNextSetReps === "0"
               ? validRepsNum.toString() // Carry over current reps
               : existingNextSetReps, // Keep existing reps if available
-          time: validTimeNum.toString(),
+          time:
+            existingNextSetTime === undefined || existingNextSetTime === "0"
+              ? validTimeNum.toString() // Carry over current time
+              : existingNextSetTime, // Keep existing time if available
         };
 
         updateWeightAndReps(

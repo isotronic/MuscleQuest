@@ -134,6 +134,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             },
           };
 
+          // Check if current set is warm-up
+          const isWarmup =
+            currentExercise.sets[currentSetIndex]?.isWarmup || false;
+
           // Update the set index for the current exercise
           const updatedSetIndices = {
             ...currentSetIndices,
@@ -145,12 +149,15 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
           const nextSetValues =
             weightAndReps[currentExerciseIndex]?.[nextSetIndex] || {};
+          console.log(currentSetValues, nextSetValues);
 
           // Determine the values to carry over based on `tracking_type`
           const updatedNextSetValues = {
             ...(trackingType === "weight" || trackingType === ""
               ? {
-                  weight: currentSetValues.weight,
+                  weight: isWarmup
+                    ? nextSetValues.weight
+                    : currentSetValues.weight,
                   reps:
                     nextSetValues.reps !== undefined
                       ? nextSetValues.reps
@@ -159,7 +166,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               : {}),
             ...(trackingType === "assisted"
               ? {
-                  weight: currentSetValues.weight,
+                  weight: isWarmup
+                    ? nextSetValues.weight
+                    : currentSetValues.weight,
                   reps:
                     nextSetValues.reps !== undefined
                       ? nextSetValues.reps
