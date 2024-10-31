@@ -97,6 +97,7 @@ export default function EditCompletedWorkoutScreen() {
                         placeholder="Weight"
                         value={String(set.weight || "")}
                         placeholderTextColor={Colors.dark.subText}
+                        selectTextOnFocus={true}
                         onChangeText={(value: string) => {
                           setExercises((prev) => {
                             const updated = [...prev];
@@ -114,6 +115,7 @@ export default function EditCompletedWorkoutScreen() {
                         placeholder="Reps"
                         value={String(set.reps || "")}
                         placeholderTextColor={Colors.dark.subText}
+                        selectTextOnFocus={true}
                         onChangeText={(value: string) => {
                           setExercises((prev) => {
                             const updated = [...prev];
@@ -133,6 +135,7 @@ export default function EditCompletedWorkoutScreen() {
                       placeholder="Time"
                       value={String(set.time || "")}
                       placeholderTextColor={Colors.dark.subText}
+                      selectTextOnFocus={true}
                       onChangeText={(value: string) => {
                         setExercises((prev) => {
                           const updated = [...prev];
@@ -151,6 +154,7 @@ export default function EditCompletedWorkoutScreen() {
                       placeholder="Reps"
                       value={String(set.reps || "")}
                       placeholderTextColor={Colors.dark.subText}
+                      selectTextOnFocus={true}
                       onChangeText={(value: string) => {
                         setExercises((prev) => {
                           const updated = [...prev];
