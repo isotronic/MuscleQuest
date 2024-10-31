@@ -16,7 +16,6 @@ import {
   CompletedWorkout,
   useCompletedWorkoutsQuery,
 } from "@/hooks/useCompletedWorkoutsQuery";
-import { Workout } from "@/store/workoutStore";
 
 export default function HomeScreen() {
   const user = useContext(AuthContext);
@@ -92,45 +91,32 @@ export default function HomeScreen() {
   }
 
   let completedWorkoutsThisPlanThisWeek: CompletedWorkout[] = [];
-  let workoutsToDisplay: Workout[] = [];
+  let completedWorkoutsCount = 0;
+  let nextWorkoutIndex = 0;
+  let workoutsToDisplay = [];
 
   if (activePlan) {
-    // Sort workouts by order or ID
+    // Sort workouts based on a defined order property or id
     const sortedWorkouts = [...activePlan.workouts].sort(
       (a, b) => (a.id ?? 0) - (b.id ?? 0),
     );
 
-    // Filter completed workouts for this active plan this week
     completedWorkoutsThisPlanThisWeek =
       completedWorkoutsThisWeek?.filter(
         (workout) => String(workout.plan_id) === String(activePlan.id),
       ) || [];
 
-    // Find the last completed workout in this plan
-    const lastCompletedWorkout = completedWorkoutsThisPlanThisWeek.slice(-1)[0];
+    completedWorkoutsCount = completedWorkoutsThisPlanThisWeek.length;
 
-    if (lastCompletedWorkout) {
-      // Locate index of the last completed workout in the sorted workouts list
-      const completedWorkoutIndex = sortedWorkouts.findIndex(
-        (workout) => workout.id === lastCompletedWorkout.workout_id,
-      );
+    nextWorkoutIndex = completedWorkoutsCount % sortedWorkouts.length;
 
-      // Split workouts into those before and after the completed workout
-      const beforeCompleted = sortedWorkouts.slice(0, completedWorkoutIndex);
-      const afterCompleted = sortedWorkouts.slice(completedWorkoutIndex + 1);
-
-      // Combine: workouts after the completed workout + workouts before + the completed workout
-      workoutsToDisplay = [
-        ...afterCompleted,
-        ...beforeCompleted,
-        sortedWorkouts[completedWorkoutIndex],
-      ];
-    } else {
-      // If no workout is completed, display workouts as originally sorted
-      workoutsToDisplay = sortedWorkouts;
+    // Rearrange workouts
+    workoutsToDisplay = [];
+    for (let i = 0; i < sortedWorkouts.length; i++) {
+      const index = (nextWorkoutIndex + i) % sortedWorkouts.length;
+      workoutsToDisplay.push(sortedWorkouts[index]);
     }
   }
-
   return (
     <ThemedView>
       <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
