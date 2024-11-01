@@ -19,6 +19,7 @@ interface ActiveWorkoutStore {
       [setIndex: number]: { weight?: string; reps?: string; time?: string };
     };
   };
+  previousWorkoutData: CompletedWorkout | null;
   startTime: Date | null;
   timerRunning: boolean;
   timerExpiry: Date | null;
@@ -36,9 +37,9 @@ interface ActiveWorkoutStore {
   updateWeightAndReps: (
     exerciseIndex: number,
     setIndex: number,
-    weight: string,
-    reps: string,
-    time: string,
+    weight?: string,
+    reps?: string,
+    time?: string,
   ) => void;
   initializeWeightAndReps: (previousWorkoutData: CompletedWorkout) => void;
   replaceExercise: (index: number, newExercise: UserExercise) => void;
@@ -62,6 +63,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       currentSetIndices: {},
       completedSets: {},
       weightAndReps: {},
+      previousWorkoutData: null,
       startTime: null,
       timerRunning: false,
       timerExpiry: null,
@@ -75,6 +77,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           currentSetIndices: {},
           completedSets: {},
           weightAndReps: {},
+          previousWorkoutData: null,
           startTime: new Date(),
           timerRunning: false,
           timerExpiry: null,
@@ -114,6 +117,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentSetIndices,
             weightAndReps,
             completedSets,
+            previousWorkoutData,
           } = state;
 
           if (!workout) {
@@ -144,49 +148,56 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             [currentExerciseIndex]: nextSetIndex,
           };
 
+          // Retrieve historical data for the next set
+          const previousExerciseData = previousWorkoutData?.exercises.find(
+            (prevEx) => prevEx.exercise_id === currentExercise.exercise_id,
+          );
+
           // Retrieve values from the current set and historical data for the next set
           const currentSetValues =
             weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
           const nextSetValues =
-            weightAndReps[currentExerciseIndex]?.[nextSetIndex] || {};
+            previousExerciseData?.sets[nextSetIndex] || undefined;
 
           // Determine the values to carry over based on `tracking_type`
           const updatedNextSetValues = {
             ...(trackingType === "weight" || trackingType === ""
               ? {
-                  weight: isWarmup
-                    ? nextSetValues.weight
-                    : currentSetValues.weight,
+                  weight:
+                    isWarmup && nextSetValues?.weight
+                      ? nextSetValues.weight.toString()
+                      : currentSetValues.weight,
                   reps:
-                    nextSetValues.reps !== undefined
-                      ? nextSetValues.reps
+                    nextSetValues?.reps !== undefined
+                      ? nextSetValues.reps?.toString()
                       : currentSetValues.reps,
                 }
               : {}),
             ...(trackingType === "assisted"
               ? {
-                  weight: isWarmup
-                    ? nextSetValues.weight
-                    : currentSetValues.weight,
+                  weight:
+                    isWarmup && nextSetValues?.weight
+                      ? nextSetValues.weight.toString()
+                      : currentSetValues.weight,
                   reps:
-                    nextSetValues.reps !== undefined
-                      ? nextSetValues.reps
+                    nextSetValues?.reps !== undefined
+                      ? nextSetValues.reps?.toString()
                       : currentSetValues.reps,
                 }
               : {}),
             ...(trackingType === "reps"
               ? {
                   reps:
-                    nextSetValues.reps !== undefined
-                      ? nextSetValues.reps
+                    nextSetValues?.reps !== undefined
+                      ? nextSetValues.reps?.toString()
                       : currentSetValues.reps,
                 }
               : {}),
             ...(trackingType === "time"
               ? {
                   time:
-                    nextSetValues.time !== undefined
-                      ? nextSetValues.time
+                    nextSetValues?.time !== undefined
+                      ? nextSetValues.time?.toString()
                       : currentSetValues.time,
                 }
               : {}),
@@ -347,9 +358,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       updateWeightAndReps: (
         exerciseIndex: number,
         setIndex: number,
-        weight: string,
-        reps: string,
-        time: string,
+        weight?: string,
+        reps?: string,
+        time?: string,
       ) =>
         set((state) => {
           const exerciseData = state.weightAndReps[exerciseIndex] || {};
@@ -391,69 +402,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           return;
         }
 
-        const weightAndReps: {
-          [exerciseIndex: number]: {
-            [setIndex: number]: {
-              weight?: string;
-              reps?: string;
-              time?: string;
-            };
-          };
-        } = {};
-
-        workout.exercises.forEach((currentExercise, exerciseIndex) => {
-          const previousExercise = previousWorkoutData.exercises.find(
-            (prevEx) => prevEx.exercise_id === currentExercise.exercise_id,
-          );
-
-          weightAndReps[exerciseIndex] = {};
-
-          const trackingType = currentExercise.tracking_type || "weight";
-
-          if (previousExercise) {
-            previousExercise.sets.forEach((prevSet, setIndex) => {
-              weightAndReps[exerciseIndex][setIndex] = {};
-              if (trackingType === "weight" || trackingType === "") {
-                weightAndReps[exerciseIndex][setIndex].weight =
-                  prevSet.weight?.toString();
-                weightAndReps[exerciseIndex][setIndex].reps =
-                  prevSet.reps?.toString();
-              } else if (trackingType === "assisted") {
-                weightAndReps[exerciseIndex][setIndex].weight =
-                  prevSet.weight?.toString();
-                weightAndReps[exerciseIndex][setIndex].reps =
-                  prevSet.reps?.toString();
-              } else if (trackingType === "reps") {
-                weightAndReps[exerciseIndex][setIndex].reps =
-                  prevSet.reps?.toString();
-              } else if (trackingType === "time") {
-                weightAndReps[exerciseIndex][setIndex].time =
-                  prevSet.time?.toString();
-              }
-            });
-          } else {
-            for (
-              let setIndex = 0;
-              setIndex < currentExercise.sets.length;
-              setIndex++
-            ) {
-              weightAndReps[exerciseIndex][setIndex] = {};
-              if (trackingType === "weight" || trackingType === "") {
-                weightAndReps[exerciseIndex][setIndex].weight = "0";
-                weightAndReps[exerciseIndex][setIndex].reps = "0";
-              } else if (trackingType === "assisted") {
-                weightAndReps[exerciseIndex][setIndex].weight = "0";
-                weightAndReps[exerciseIndex][setIndex].reps = "0";
-              } else if (trackingType === "reps") {
-                weightAndReps[exerciseIndex][setIndex].reps = "0";
-              } else if (trackingType === "time") {
-                weightAndReps[exerciseIndex][setIndex].time = "0";
-              }
-            }
-          }
-        });
-
-        set({ weightAndReps });
+        set({ previousWorkoutData });
       },
 
       replaceExercise: (index, newExercise) => {
