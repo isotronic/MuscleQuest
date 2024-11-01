@@ -16,6 +16,7 @@ import {
   CompletedWorkout,
   useCompletedWorkoutsQuery,
 } from "@/hooks/useCompletedWorkoutsQuery";
+import { Workout } from "@/store/workoutStore";
 
 export default function HomeScreen() {
   const user = useContext(AuthContext);
@@ -91,31 +92,54 @@ export default function HomeScreen() {
   }
 
   let completedWorkoutsThisPlanThisWeek: CompletedWorkout[] = [];
-  let completedWorkoutsCount = 0;
-  let nextWorkoutIndex = 0;
-  let workoutsToDisplay = [];
+  let workoutsToDisplay: Workout[] = [];
 
   if (activePlan) {
-    // Sort workouts based on a defined order property or id
+    // Sort workouts based on their id to maintain a consistent order
     const sortedWorkouts = [...activePlan.workouts].sort(
       (a, b) => (a.id ?? 0) - (b.id ?? 0),
     );
 
+    // Filter completed workouts for the active plan this week
     completedWorkoutsThisPlanThisWeek =
       completedWorkoutsThisWeek?.filter(
         (workout) => String(workout.plan_id) === String(activePlan.id),
       ) || [];
 
-    completedWorkoutsCount = completedWorkoutsThisPlanThisWeek.length;
+    // Create a map to count how many times each workout has been completed
+    const completedWorkoutCounts = new Map<number, number>();
 
-    nextWorkoutIndex = completedWorkoutsCount % sortedWorkouts.length;
+    completedWorkoutsThisPlanThisWeek.forEach((completedWorkout) => {
+      const count =
+        completedWorkoutCounts.get(completedWorkout.workout_id) || 0;
+      completedWorkoutCounts.set(completedWorkout.workout_id, count + 1);
+    });
 
-    // Rearrange workouts
-    workoutsToDisplay = [];
-    for (let i = 0; i < sortedWorkouts.length; i++) {
-      const index = (nextWorkoutIndex + i) % sortedWorkouts.length;
-      workoutsToDisplay.push(sortedWorkouts[index]);
-    }
+    // Separate workouts into uncompleted and completed arrays
+    const uncompletedWorkouts: Workout[] = [];
+    const completedWorkoutsList: Workout[] = [];
+
+    sortedWorkouts.forEach((workout) => {
+      // Determine if the workout is completed enough times
+      const weeklyGoal = Number(settings?.weeklyGoal);
+      const workoutsToComplete =
+        activePlan.workouts.length < weeklyGoal
+          ? Math.ceil(weeklyGoal / activePlan.workouts.length)
+          : 1;
+
+      const completedTimes = completedWorkoutCounts.get(workout.id!) || 0;
+
+      const workoutCompleted = completedTimes >= workoutsToComplete;
+
+      if (workoutCompleted) {
+        completedWorkoutsList.push(workout);
+      } else {
+        uncompletedWorkouts.push(workout);
+      }
+    });
+
+    // Combine uncompleted and completed workouts
+    workoutsToDisplay = [...uncompletedWorkouts, ...completedWorkoutsList];
   }
   return (
     <ThemedView>
