@@ -42,16 +42,17 @@ export const useEditCompletedWorkoutMutation = (
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (completedWorkoutData: CompletedWorkout["exercises"]) => {
-      return saveCompletedWorkoutWithConversion(
+    mutationFn: async (completedWorkoutData: CompletedWorkout["exercises"]) => {
+      return await saveCompletedWorkoutWithConversion(
         completedWorkoutData,
         weightUnit,
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["completedWorkout", id] });
-      queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
-      queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
+    onSuccess: async () => {
+      await queryClient.fetchQuery({ queryKey: ["completedWorkout", id] });
+
+      await queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+      await queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
     },
     onError: (error) => {
       console.error("Error saving edited workout:", error);
@@ -59,6 +60,13 @@ export const useEditCompletedWorkoutMutation = (
         "Error",
         "An error occurred while saving your edited workout. Please try again.",
       );
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["completedWorkout", id],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+      await queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
     },
   });
 };

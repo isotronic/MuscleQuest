@@ -18,14 +18,12 @@ import { parseISO, format } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
-import { useQueryClient } from "@tanstack/react-query";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
 export default function HistoryDetailsScreen() {
   const { id } = useLocalSearchParams();
   const [workout, setWorkout] = useState<CompletedWorkout | null>(null);
-  const queryClient = useQueryClient();
 
   const {
     data: settings,
@@ -36,8 +34,11 @@ export default function HistoryDetailsScreen() {
   const weightUnit = settings?.weightUnit || "kg";
   const bodyWeight = parseFloat(settings?.bodyWeight || "70");
 
-  const { data: workoutData, isLoading: isWorkoutLoading } =
-    useCompletedWorkoutByIdQuery(Number(id), weightUnit);
+  const {
+    data: workoutData,
+    isLoading: isWorkoutLoading,
+    refetch,
+  } = useCompletedWorkoutByIdQuery(Number(id), weightUnit);
 
   useEffect(() => {
     if (workoutData) {
@@ -73,10 +74,8 @@ export default function HistoryDetailsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      queryClient.invalidateQueries({
-        queryKey: ["completedWorkout", Number(id)],
-      });
-    }, [id]),
+      refetch();
+    }, [refetch]),
   );
 
   // Calculate total volume

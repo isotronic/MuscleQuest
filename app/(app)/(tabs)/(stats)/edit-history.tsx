@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ScrollView, TextInput, StyleSheet, View } from "react-native";
 import { Divider, IconButton } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
@@ -23,6 +23,10 @@ export default function EditCompletedWorkoutScreen() {
   const weightUnit = settings?.weightUnit || "kg";
 
   const [exercises, setExercises] = useState<CompletedWorkout["exercises"]>([]);
+  const [weightInputs, setWeightInputs] = useState<{ [key: string]: string }>(
+    {},
+  );
+  const weightInputRefs = useRef<{ [key: string]: any }>({});
 
   const { data: workoutData, isLoading: isWorkoutLoading } =
     useCompletedWorkoutByIdQuery(Number(id), weightUnit);
@@ -36,9 +40,27 @@ export default function EditCompletedWorkoutScreen() {
     }
   }, [workoutData]);
 
+  useEffect(() => {
+    const initialWeightInputs: { [key: string]: string } = {};
+    exercises.forEach((exercise, exerciseIndex) => {
+      exercise.sets.forEach((set, setIndex) => {
+        const key = `${exerciseIndex}-${setIndex}`;
+        initialWeightInputs[key] =
+          set.weight !== null ? String(set.weight) : "";
+      });
+    });
+    setWeightInputs(initialWeightInputs);
+  }, [exercises]);
+
   const handleSave = () => {
-    editWorkout.mutate(exercises);
-    router.back();
+    // Blur each input to ensure all onBlur events are fired
+    Object.values(weightInputRefs.current).forEach((input) => input?.blur());
+
+    // Delay mutation slightly to ensure onBlur updates finish
+    setTimeout(() => {
+      editWorkout.mutate(exercises);
+      router.back();
+    }, 50);
   };
 
   if (isWorkoutLoading || !exercises || settingsLoading) {
@@ -90,19 +112,43 @@ export default function EditCompletedWorkoutScreen() {
                   <View>
                     <View style={styles.inputContainer}>
                       <ThemedText style={styles.label}>
-                        Weight ({weightUnit})
+                        {exercise.exercise_tracking_type === "weight"
+                          ? "Weight"
+                          : "Assist"}{" "}
+                        ({weightUnit})
                       </ThemedText>
                       <TextInput
+                        ref={(ref: any) =>
+                          (weightInputRefs.current[
+                            `${exerciseIndex}-${setIndex}`
+                          ] = ref)
+                        }
                         style={styles.input}
                         placeholder="Weight"
-                        value={String(set.weight || "")}
+                        value={
+                          weightInputs[`${exerciseIndex}-${setIndex}`] || ""
+                        }
                         placeholderTextColor={Colors.dark.subText}
                         selectTextOnFocus={true}
+                        keyboardType="numeric"
                         onChangeText={(value: string) => {
+                          // Update temporary weightInputs state
+                          if (/^\d*\.?\d*$/.test(value)) {
+                            setWeightInputs((prev) => ({
+                              ...prev,
+                              [`${exerciseIndex}-${setIndex}`]: value,
+                            }));
+                          }
+                        }}
+                        onBlur={() => {
+                          const parsedWeight = parseFloat(
+                            weightInputs[`${exerciseIndex}-${setIndex}`] || "0",
+                          );
+
                           setExercises((prev) => {
                             const updated = [...prev];
                             updated[exerciseIndex].sets[setIndex].weight =
-                              Number(value);
+                              isNaN(parsedWeight) ? null : parsedWeight;
                             return updated;
                           });
                         }}
@@ -116,6 +162,7 @@ export default function EditCompletedWorkoutScreen() {
                         value={String(set.reps || "")}
                         placeholderTextColor={Colors.dark.subText}
                         selectTextOnFocus={true}
+                        keyboardType="numeric"
                         onChangeText={(value: string) => {
                           setExercises((prev) => {
                             const updated = [...prev];
@@ -136,6 +183,7 @@ export default function EditCompletedWorkoutScreen() {
                       value={String(set.time || "")}
                       placeholderTextColor={Colors.dark.subText}
                       selectTextOnFocus={true}
+                      keyboardType="numeric"
                       onChangeText={(value: string) => {
                         setExercises((prev) => {
                           const updated = [...prev];
@@ -155,6 +203,7 @@ export default function EditCompletedWorkoutScreen() {
                       value={String(set.reps || "")}
                       placeholderTextColor={Colors.dark.subText}
                       selectTextOnFocus={true}
+                      keyboardType="numeric"
                       onChangeText={(value: string) => {
                         setExercises((prev) => {
                           const updated = [...prev];
