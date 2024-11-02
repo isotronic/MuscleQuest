@@ -1,12 +1,9 @@
 import { ThemedView } from "@/components/ThemedView";
 import auth from "@react-native-firebase/auth";
-import {
-  GoogleSignin,
-  GoogleSigninButton,
-} from "@react-native-google-signin/google-signin";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as googleServices from "@/google-services.json";
 import { openDatabase } from "@/utils/database";
-import { Alert, StyleSheet } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { Button } from "react-native-paper";
@@ -82,16 +79,20 @@ export default function LoginScreen() {
         skip it now.
       </ThemedText>
 
-      <GoogleSigninButton
-        size={GoogleSigninButton.Size.Wide}
-        color={GoogleSigninButton.Color.Light}
-        style={styles.loginButton}
-        onPress={handleSignIn}
-      />
+      <View style={styles.buttonRow}>
+        <Button style={styles.skipButton} mode="outlined" onPress={handleSkip}>
+          Skip login
+        </Button>
 
-      <Button style={styles.skipButton} mode="outlined" onPress={handleSkip}>
-        Skip login
-      </Button>
+        <Button
+          style={styles.loginButton}
+          mode="contained"
+          onPress={handleSignIn}
+          accessibilityLabel="Login"
+        >
+          Sign in with Google
+        </Button>
+      </View>
     </ThemedView>
   );
 }
@@ -126,12 +127,11 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginVertical: 5,
   },
-  loginButton: {
-    height: 60,
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginVertical: 20,
-    width: "100%",
   },
-  skipButton: {
-    marginHorizontal: 3,
-  },
+  loginButton: {},
+  skipButton: {},
 });
