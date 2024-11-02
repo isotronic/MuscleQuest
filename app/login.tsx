@@ -6,7 +6,7 @@ import {
 } from "@react-native-google-signin/google-signin";
 import * as googleServices from "@/google-services.json";
 import { openDatabase } from "@/utils/database";
-import { StyleSheet } from "react-native";
+import { Alert, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { Button } from "react-native-paper";
@@ -47,7 +47,8 @@ export default function LoginScreen() {
       await saveLoginShown(); // Save setting to avoid showing login again
       router.replace("/");
     } catch (error) {
-      console.log("handleSignIn error", error);
+      console.error("handleSignIn error", error);
+      Alert.alert("Error", "Failed to sign in. Please try again.");
     }
   }
 
