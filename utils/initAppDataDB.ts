@@ -1,5 +1,4 @@
 import * as FileSystem from "expo-file-system";
-import * as SQLite from "expo-sqlite";
 import { Asset } from "expo-asset";
 import { openDatabase } from "./database";
 
@@ -29,7 +28,7 @@ const copyDatabase = async (): Promise<string> => {
     );
   }
 
-  if (!dbFileExists.exists || dataVersion === null || dataVersion < 1.3) {
+  if (!dbFileExists.exists || dataVersion === null || dataVersion < 1.4) {
     console.log("Copying appData.db ...");
     const asset = Asset.fromModule(require(`../assets/db/${DATABASE_NAME}`));
     await asset.downloadAsync();
@@ -40,9 +39,8 @@ const copyDatabase = async (): Promise<string> => {
   return dbPath;
 };
 
-const initializeAppData = async (): Promise<SQLite.SQLiteDatabase> => {
+const initializeAppData = async () => {
   await copyDatabase();
-  return await SQLite.openDatabaseAsync(DATABASE_NAME);
 };
 
 export { initializeAppData };

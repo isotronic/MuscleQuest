@@ -130,10 +130,12 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
   const dataVersion = Number(dataVersionEntry?.value) || null;
 
-  if (dataVersion && dataVersion >= 1.3) {
+  if (dataVersion && dataVersion >= 1.4) {
     console.log("Data has already been copied.");
     return;
   }
+
+  let shouldUpdateDataVersion = false;
 
   const copyTableData = async (
     tableName: string,
@@ -244,6 +246,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
         await userDataDB.execAsync("COMMIT");
       }
+      shouldUpdateDataVersion = true;
     } catch (error) {
       console.error(`Error copying table ${tableName}:`, error);
       await userDataDB.execAsync("ROLLBACK");
@@ -273,13 +276,15 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
     true, // Exclude the auto-incremented exercise_id for userData
   );
 
-  console.log("Updating data version to 1.3...");
-  await userDataDB.runAsync(
-    "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-    ["dataVersion", "1.3"],
-  );
+  if (shouldUpdateDataVersion) {
+    console.log("Updating data version to 1.4...");
+    await userDataDB.runAsync(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      ["dataVersion", "1.4"],
+    );
 
-  console.log("Data copy completed and version updated.");
+    console.log("Data copy completed and version updated.");
+  }
 };
 
 export const fetchAllRecords = async (
