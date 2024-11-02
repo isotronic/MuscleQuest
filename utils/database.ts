@@ -65,14 +65,14 @@ export const updateAppExerciseIds = async (): Promise<void> => {
 
     const dataVersion = versionResult?.value;
 
-    if (dataVersion === "1") {
+    if (dataVersion === "1.1") {
       console.log(
         "Data version is 1. Updating app_exercise_id for exercises...",
       );
 
       // Find all exercises where app_exercise_id is NULL
       const nullAppExerciseIds: SQLiteRow[] = await userDataDB.getAllAsync(
-        `SELECT exercise_id FROM exercises WHERE app_exercise_id IS NULL`,
+        `SELECT exercise_id FROM exercises WHERE app_exercise_id IS NULL AND exercise_id BETWEEN 0 AND 779`,
       );
 
       if (nullAppExerciseIds.length > 0) {
@@ -90,12 +90,11 @@ export const updateAppExerciseIds = async (): Promise<void> => {
 
         console.log(`Updated ${nullAppExerciseIds.length} exercises.`);
 
-        // Update the dataVersion to 1.1
         await userDataDB.runAsync(
           "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-          ["dataVersion", "1.1"],
+          ["dataVersion", "1.2"],
         );
-        console.log("Updated data version to 1.1...");
+        console.log("Updated data version to 1.2...");
       } else {
         console.log("No exercises with NULL app_exercise_id found.");
       }
@@ -109,7 +108,7 @@ export const updateAppExerciseIds = async (): Promise<void> => {
 };
 
 export const copyDataFromAppDataToUserData = async (): Promise<void> => {
-  const appDataDB = await openDatabase("appData.db");
+  const appDataDB = await openDatabase("appData1.db");
   const userDataDB = await openDatabase("userData.db");
 
   interface ExerciseCheckResult {
@@ -130,7 +129,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
   const dataVersion = Number(dataVersionEntry?.value) || null;
 
-  if (dataVersion && dataVersion >= 1.4) {
+  if (dataVersion && dataVersion >= 1.1) {
     console.log("Data has already been copied.");
     return;
   }
@@ -277,10 +276,10 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
   );
 
   if (shouldUpdateDataVersion) {
-    console.log("Updating data version to 1.4...");
+    console.log("Updating data version to 1.1...");
     await userDataDB.runAsync(
       "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-      ["dataVersion", "1.4"],
+      ["dataVersion", "1.1"],
     );
 
     console.log("Data copy completed and version updated.");
