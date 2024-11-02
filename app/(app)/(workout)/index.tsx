@@ -136,8 +136,9 @@ export default function WorkoutOverviewScreen() {
             )
             .map(([setIndex, set]) => ({
               set_number: parseInt(setIndex) + 1,
-              weight: parseFloat(set.weight),
-              reps: parseInt(set.reps),
+              weight: set.weight ? parseFloat(set.weight) : null,
+              reps: set.reps ? parseInt(set.reps) : null,
+              time: set.time ? parseInt(set.time) : null,
             }));
 
           return {

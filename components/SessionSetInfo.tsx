@@ -19,6 +19,7 @@ interface SessionSetInfoProps {
   totalSets: number;
   weight: string;
   reps: string;
+  time: string;
   weightIncrement: number;
   buttonSize: number;
   weightUnit: string;
@@ -26,12 +27,15 @@ interface SessionSetInfoProps {
   restSeconds: number;
   repsMin: number | undefined;
   repsMax: number | undefined;
+  timeMin: number | undefined;
   currentSetCompleted: boolean;
   isWarmup: boolean;
+  trackingType: string;
   handleWeightInputChange: (text: string) => void;
   handleWeightChange: (amount: number) => void;
   handleRepsInputChange: (text: string) => void;
   handleRepsChange: (amount: number) => void;
+  handleTimeInputChange: (text: string) => void;
   handlePreviousSet: () => void;
   handleNextSet: () => void;
   handleCompleteSet: () => void;
@@ -49,6 +53,7 @@ export default function SessionSetInfo({
   totalSets,
   weight,
   reps,
+  time,
   weightIncrement,
   buttonSize,
   weightUnit,
@@ -56,12 +61,15 @@ export default function SessionSetInfo({
   restSeconds,
   repsMin,
   repsMax,
+  timeMin,
   currentSetCompleted,
   isWarmup,
+  trackingType,
   handleWeightInputChange,
   handleWeightChange,
   handleRepsInputChange,
   handleRepsChange,
+  handleTimeInputChange,
   handlePreviousSet,
   handleNextSet,
   handleCompleteSet,
@@ -110,8 +118,13 @@ export default function SessionSetInfo({
         <View style={styles.titleContainer}>
           <ThemedText style={styles.title}>{exerciseName}</ThemedText>
 
-          {repRange && (
+          {trackingType !== "time" && repRange && (
             <ThemedText style={styles.headerText}>Reps: {repRange}</ThemedText>
+          )}
+          {trackingType === "time" && timeMin && (
+            <ThemedText style={styles.headerText}>
+              Time: {timeMin} Seconds
+            </ThemedText>
           )}
 
           <ThemedText style={styles.headerText}>
@@ -157,63 +170,91 @@ export default function SessionSetInfo({
         </View>
       )}
 
-      {/* Weight Input */}
-      <View style={styles.centeredLabelContainer}>
-        <ThemedText style={styles.label}>Weight ({weightUnit})</ThemedText>
-      </View>
-      <View style={styles.inputContainer}>
-        <IconButton
-          icon="minus"
-          onPress={() => handleWeightChange(-weightIncrement)}
-          size={buttonSize}
-          iconColor={Colors.dark.text}
-          style={styles.iconButton}
-        />
-        <TextInput
-          placeholderTextColor={Colors.dark.text}
-          value={weight}
-          onChangeText={(text: string) => handleWeightInputChange(text)}
-          keyboardType="numeric"
-          selectTextOnFocus={true}
-          style={styles.input}
-        />
-        <IconButton
-          icon="plus"
-          onPress={() => handleWeightChange(weightIncrement)}
-          size={buttonSize}
-          iconColor={Colors.dark.text}
-          style={styles.iconButton}
-        />
-      </View>
-
-      {/* Reps Input */}
-      <View style={styles.centeredLabelContainer}>
-        <ThemedText style={styles.label}>Reps</ThemedText>
-      </View>
-      <View style={styles.inputContainer}>
-        <IconButton
-          icon="minus"
-          onPress={() => handleRepsChange(-1)}
-          size={buttonSize}
-          iconColor={Colors.dark.text}
-          style={styles.iconButton}
-        />
-        <TextInput
-          placeholderTextColor={Colors.dark.text}
-          value={reps}
-          onChangeText={(text: string) => handleRepsInputChange(text)}
-          keyboardType="numeric"
-          selectTextOnFocus={true}
-          style={styles.input}
-        />
-        <IconButton
-          icon="plus"
-          onPress={() => handleRepsChange(1)}
-          size={buttonSize}
-          iconColor={Colors.dark.text}
-          style={styles.iconButton}
-        />
-      </View>
+      {/* Conditionally Render Weight/Assistance, Reps, or Time Input Fields */}
+      {trackingType === "weight" ||
+      trackingType === "assisted" ||
+      trackingType === "" ||
+      !trackingType ? (
+        <>
+          <View style={styles.centeredLabelContainer}>
+            <ThemedText style={styles.label}>
+              {trackingType === "weight" ? "Weight" : "Assistance"} (
+              {weightUnit})
+            </ThemedText>
+          </View>
+          <View style={styles.inputContainer}>
+            <IconButton
+              icon="minus"
+              onPress={() => handleWeightChange(-weightIncrement)}
+              size={buttonSize}
+              iconColor={Colors.dark.text}
+              style={styles.iconButton}
+            />
+            <TextInput
+              placeholderTextColor={Colors.dark.text}
+              value={weight}
+              onChangeText={(text: string) => handleWeightInputChange(text)}
+              keyboardType="numeric"
+              selectTextOnFocus
+              style={styles.input}
+            />
+            <IconButton
+              icon="plus"
+              onPress={() => handleWeightChange(weightIncrement)}
+              size={buttonSize}
+              iconColor={Colors.dark.text}
+              style={styles.iconButton}
+            />
+          </View>
+        </>
+      ) : null}
+      {trackingType !== "time" ? (
+        <>
+          <View style={styles.centeredLabelContainer}>
+            <ThemedText style={styles.label}>Reps</ThemedText>
+          </View>
+          <View style={styles.inputContainer}>
+            <IconButton
+              icon="minus"
+              onPress={() => handleRepsChange(-1)}
+              size={buttonSize}
+              iconColor={Colors.dark.text}
+              style={styles.iconButton}
+            />
+            <TextInput
+              placeholderTextColor={Colors.dark.text}
+              value={reps}
+              onChangeText={(text: string) => handleRepsInputChange(text)}
+              keyboardType="numeric"
+              selectTextOnFocus
+              style={styles.input}
+            />
+            <IconButton
+              icon="plus"
+              onPress={() => handleRepsChange(1)}
+              size={buttonSize}
+              iconColor={Colors.dark.text}
+              style={styles.iconButton}
+            />
+          </View>
+        </>
+      ) : trackingType === "time" ? (
+        <>
+          <View style={styles.centeredLabelContainer}>
+            <ThemedText style={styles.label}>Time (seconds)</ThemedText>
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              placeholderTextColor={Colors.dark.text}
+              value={time}
+              onChangeText={(text: string) => handleTimeInputChange(text)}
+              keyboardType="numeric"
+              selectTextOnFocus
+              style={styles.input}
+            />
+          </View>
+        </>
+      ) : null}
 
       <Button
         mode="contained"
@@ -331,7 +372,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buttonLabel: {
-    fontSize: 16,
+    fontSize: 18,
   },
   largeButtonLabel: {
     fontSize: 24,

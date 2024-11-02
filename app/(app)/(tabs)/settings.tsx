@@ -23,6 +23,7 @@ import { SettingsModal } from "@/components/SettingsModal";
 import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 import { useImageManagement } from "@/hooks/useImageManagement";
 import { useQueryClient } from "@tanstack/react-query";
+import { openDatabase } from "@/utils/database";
 
 export default function SettingsScreen() {
   const queryClient = useQueryClient();
@@ -79,7 +80,7 @@ export default function SettingsScreen() {
     setOverlayVisible(true);
   };
 
-  const saveSetting = () => {
+  const saveSetting = async () => {
     if (currentSettingKey === "defaultRestTime") {
       const { minutes, seconds } = inputValue as {
         minutes: number;
@@ -90,6 +91,23 @@ export default function SettingsScreen() {
       updateSetting({
         key: currentSettingKey as string,
         value: totalSeconds.toString(),
+      });
+    } else if (currentSettingKey === "bodyWeight") {
+      try {
+        const db = await openDatabase("userData.db");
+        await db.runAsync(
+          `INSERT INTO body_measurements (date, body_weight) VALUES (datetime('now'), ?)`,
+          [inputValue as number],
+        );
+      } catch (error) {
+        console.error(
+          "Error saving body weight into body_measurements:",
+          error,
+        );
+      }
+      updateSetting({
+        key: currentSettingKey as string,
+        value: inputValue as string,
       });
     } else {
       updateSetting({
@@ -113,9 +131,9 @@ export default function SettingsScreen() {
     updateSetting({ key: "restTimerVibration", value: value.toString() });
   };
 
-  const toggleSound = (value: boolean) => {
-    updateSetting({ key: "restTimerSound", value: value.toString() });
-  };
+  // const toggleSound = (value: boolean) => {
+  //   updateSetting({ key: "restTimerSound", value: value.toString() });
+  // };
 
   const handleClearDatabase = async () => {
     try {
@@ -195,6 +213,26 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() =>
+              showOverlay("bodyWeight", settings?.bodyWeight || "", "number")
+            }
+          >
+            <MaterialCommunityIcons
+              name="scale-bathroom"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>Body weight</ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.bodyWeight} {settings?.weightUnit} (used for assisted
+                exercises)
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
           {/* <TouchableOpacity
             style={styles.item}
             onPress={() => console.log("Backup and restore pressed")}
@@ -211,38 +249,6 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity> */}
-          <View style={styles.item}>
-            <MaterialCommunityIcons
-              name="cloud-download"
-              size={24}
-              color={Colors.dark.icon}
-              style={styles.icon}
-            />
-            <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>
-                Download all exercise images
-              </ThemedText>
-            </View>
-            <Switch
-              value={settings?.downloadImages === "true"}
-              onValueChange={toggleDownloadImages}
-              color={Colors.dark.tint}
-              style={styles.switch}
-            />
-          </View>
-          {(isDownloading || isDeleting) && (
-            <View style={styles.progressContainer}>
-              <ThemedText style={styles.progressText}>
-                {isDownloading
-                  ? "Downloading. Please wait..."
-                  : "Deleting. Please wait..."}
-              </ThemedText>
-              <ProgressBar
-                animatedValue={progress}
-                color={isDownloading ? Colors.dark.tint : Colors.dark.highlight}
-              />
-            </View>
-          )}
         </View>
         <Divider style={styles.divider} />
 
@@ -260,7 +266,7 @@ export default function SettingsScreen() {
             }
           >
             <MaterialCommunityIcons
-              name="scale"
+              name="weight"
               size={24}
               color={Colors.dark.icon}
               style={styles.icon}
@@ -370,7 +376,7 @@ export default function SettingsScreen() {
               style={styles.switch}
             />
           </View>
-          <View style={styles.item}>
+          {/* <View style={styles.item}>
             <MaterialCommunityIcons
               name="volume-high"
               size={24}
@@ -391,7 +397,7 @@ export default function SettingsScreen() {
               color={Colors.dark.tint}
               style={styles.switch}
             />
-          </View>
+          </View> */}
           <View style={styles.item}>
             <MaterialCommunityIcons
               name="cellphone"
@@ -461,6 +467,38 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="cloud-download"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Download all exercise images
+              </ThemedText>
+            </View>
+            <Switch
+              value={settings?.downloadImages === "true"}
+              onValueChange={toggleDownloadImages}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
+          {(isDownloading || isDeleting) && (
+            <View style={styles.progressContainer}>
+              <ThemedText style={styles.progressText}>
+                {isDownloading
+                  ? "Downloading. Please wait..."
+                  : "Deleting. Please wait..."}
+              </ThemedText>
+              <ProgressBar
+                animatedValue={progress}
+                color={isDownloading ? Colors.dark.tint : Colors.dark.highlight}
+              />
+            </View>
+          )}
         </View>
         <Divider style={styles.divider} />
 

@@ -34,6 +34,7 @@ export async function initUserDataDB() {
       target_muscle TEXT, 
       secondary_muscles TEXT, 
       description TEXT,
+      tracking_type TEXT,
       favorite BOOLEAN DEFAULT FALSE,
       is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (target_muscle) REFERENCES muscles(muscle),
@@ -107,6 +108,7 @@ export async function initUserDataDB() {
       set_number INTEGER, -- Set number (1, 2, 3, etc.)
       weight REAL, -- Weight used in this set
       reps INTEGER, -- Number of reps in this set
+      time INTEGER, -- Duration in seconds of this set
       is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (completed_exercise_id) REFERENCES completed_exercises(id)
     );
@@ -127,17 +129,54 @@ export async function initUserDataDB() {
     );
   `);
 
-  // Check if the favorite column already exists
-  const result = await db.getAllAsync(`
-    PRAGMA table_info(exercises);
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS body_measurements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      body_weight REAL
+    );
   `);
 
-  const columnExists = result.some((column: any) => column.name === "favorite");
+  // Check if columns already exist
+  const exercisesResult = await db.getAllAsync(`
+    PRAGMA table_info(exercises);
+  `);
+  const completed_setsResult = await db.getAllAsync(`
+    PRAGMA table_info(completed_sets);
+  `);
+
+  const favoriteExists = exercisesResult.some(
+    (column: any) => column.name === "favorite",
+  );
+  const is_deletedExists = exercisesResult.some(
+    (column: any) => column.name === "is_deleted",
+  );
+  const tracking_typeExists = exercisesResult.some(
+    (column: any) => column.name === "tracking_type",
+  );
+  const timeExists = completed_setsResult.some(
+    (column: any) => column.name === "time",
+  );
 
   // If the column does not exist, add it
-  if (!columnExists) {
+  if (!favoriteExists) {
     await db.execAsync(`
       ALTER TABLE exercises ADD COLUMN favorite BOOLEAN DEFAULT FALSE;
+    `);
+  }
+  if (!is_deletedExists) {
+    await db.execAsync(`
+      ALTER TABLE exercises ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE;
+    `);
+  }
+  if (!tracking_typeExists) {
+    await db.execAsync(`
+      ALTER TABLE exercises ADD COLUMN tracking_type TEXT;
+    `);
+  }
+  if (!timeExists) {
+    await db.execAsync(`
+      ALTER TABLE completed_sets ADD COLUMN time INTEGER;
     `);
   }
 }

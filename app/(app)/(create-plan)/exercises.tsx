@@ -86,6 +86,11 @@ export default function ExercisesScreen() {
       restMinutes: minutes,
       restSeconds: seconds,
     });
+    const defaultTimeSets = Array(defaultSetNumber).fill({
+      restMinutes: minutes,
+      restSeconds: seconds,
+      time: 30,
+    });
 
     selectedExercises.forEach((exerciseId) => {
       const exercise = allExercises.find((ex) => ex.exercise_id === exerciseId);
@@ -95,7 +100,11 @@ export default function ExercisesScreen() {
           (e) => e.exercise_id === exercise.exercise_id,
         )
       ) {
-        const exerciseToAdd = { ...exercise, sets: defaultSets };
+        const exerciseToAdd = {
+          ...exercise,
+          sets:
+            exercise.tracking_type === "time" ? defaultTimeSets : defaultSets,
+        };
         addExercise(currentWorkoutIndex, exerciseToAdd);
       }
     });

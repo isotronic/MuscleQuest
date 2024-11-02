@@ -26,6 +26,7 @@ const fetchActivePlanData = async (): Promise<Plan | null> => {
         exercises.body_part,
         exercises.target_muscle,
         exercises.secondary_muscles,
+        exercises.tracking_type,
         user_workout_exercises.sets,
         user_workout_exercises.exercise_order
       FROM user_plans
@@ -71,6 +72,7 @@ const fetchActivePlanData = async (): Promise<Plan | null> => {
           secondary_muscles: row.secondary_muscles
             ? JSON.parse(row.secondary_muscles)
             : [],
+          tracking_type: row.tracking_type || "",
           sets: row.sets ? JSON.parse(row.sets) : [],
         });
       }

@@ -63,7 +63,7 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
   return (
     <Card style={styles.card}>
       <BarChart
-        data={barData}
+        data={barData.reverse()}
         barWidth={barWidth}
         spacing={35}
         isAnimated

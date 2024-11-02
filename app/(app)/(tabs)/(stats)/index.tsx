@@ -173,7 +173,7 @@ export default function StatsScreen() {
             </Card>
             <Card style={styles.summaryCard}>
               <ThemedText style={styles.statValue}>{totalTime}</ThemedText>
-              <ThemedText style={styles.statLabel}>Time</ThemedText>
+              <ThemedText style={styles.statLabel}>Time (h:m)</ThemedText>
             </Card>
           </View>
         </View>

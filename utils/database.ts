@@ -14,6 +14,7 @@ export interface Exercise {
   target_muscle: string;
   secondary_muscles: string[];
   description: string;
+  tracking_type?: string;
   favorite?: number;
 }
 
@@ -26,8 +27,9 @@ export interface SavedWorkout {
     exercise_id: number;
     sets: {
       set_number: number;
-      weight: number;
-      reps: number;
+      weight: number | null;
+      reps: number | null;
+      time: number | null;
     }[];
   }[];
 }
@@ -115,6 +117,10 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
     name: string;
     image: Uint8Array | null;
     description: string | null;
+    animated_url: string | null;
+    equipment: string | null;
+    tracking_type: string | null;
+    is_deleted: number;
   }
 
   const dataVersionEntry: SettingsEntry | null =
@@ -122,12 +128,14 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
       "SELECT value FROM settings WHERE key = 'dataVersion'",
     );
 
-  const dataVersion = dataVersionEntry?.value || null;
+  const dataVersion = Number(dataVersionEntry?.value) || null;
 
-  if (dataVersion === "1" || dataVersion === "1.1") {
+  if (dataVersion && dataVersion >= 1.4) {
     console.log("Data has already been copied.");
     return;
   }
+
+  let shouldUpdateDataVersion = false;
 
   const copyTableData = async (
     tableName: string,
@@ -166,7 +174,25 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
         for (const row of result) {
           let shouldInsertOrUpdate = true;
 
-          if (tableName === "exercises") {
+          if (["muscles", "equipment_list", "body_parts"].includes(tableName)) {
+            // Define unique column for each of these tables
+            const uniqueColumn =
+              tableName === "muscles"
+                ? "muscle"
+                : tableName === "equipment_list"
+                  ? "equipment"
+                  : "body_part";
+
+            const existingEntry = await userDataDB.getFirstAsync(
+              `SELECT * FROM ${tableName} WHERE ${uniqueColumn} = ? LIMIT 1`,
+              [row[uniqueColumn]],
+            );
+
+            // Skip insertion if entry already exists
+            if (existingEntry) {
+              shouldInsertOrUpdate = false;
+            }
+          } else if (tableName === "exercises") {
             const existingEntry =
               await userDataDB.getFirstAsync<ExerciseCheckResult>(
                 `SELECT * FROM ${tableName} WHERE app_exercise_id = ? LIMIT 1`,
@@ -176,15 +202,22 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
             if (existingEntry) {
               const fieldsToUpdate = insertColumns.filter((col) => {
                 switch (col) {
-                  case "app_exercise_id":
-                    return row[col] !== existingEntry.app_exercise_id;
+                  // case "app_exercise_id":
+                  //   return row[col] !== existingEntry.app_exercise_id;
                   case "name":
                     return row[col] !== existingEntry.name;
-                  case "image":
-                    return row[col] !== existingEntry.image;
+                  // case "image":
+                  //   return row[col] !== existingEntry.image;
                   case "description":
                     return row[col] !== existingEntry.description;
-                  // Add other fields as needed
+                  case "animated_url":
+                    return row[col] !== existingEntry.animated_url;
+                  case "is_deleted":
+                    return row[col] !== existingEntry.is_deleted;
+                  case "tracking_type":
+                    return row[col] !== existingEntry.tracking_type;
+                  case "equipment":
+                    return row[col] !== existingEntry.equipment;
                   default:
                     return false;
                 }
@@ -213,6 +246,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
         await userDataDB.execAsync("COMMIT");
       }
+      shouldUpdateDataVersion = true;
     } catch (error) {
       console.error(`Error copying table ${tableName}:`, error);
       await userDataDB.execAsync("ROLLBACK");
@@ -236,17 +270,21 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
       "target_muscle",
       "secondary_muscles",
       "description",
+      "is_deleted",
+      "tracking_type",
     ],
     true, // Exclude the auto-incremented exercise_id for userData
   );
 
-  console.log("Updating data version to 1.1...");
-  await userDataDB.runAsync(
-    "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-    ["dataVersion", "1.1"],
-  );
+  if (shouldUpdateDataVersion) {
+    console.log("Updating data version to 1.4...");
+    await userDataDB.runAsync(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      ["dataVersion", "1.4"],
+    );
 
-  console.log("Data copy completed and version updated.");
+    console.log("Data copy completed and version updated.");
+  }
 };
 
 export const fetchAllRecords = async (
@@ -586,8 +624,9 @@ export const saveCompletedWorkout = async (
     exercise_id: number;
     sets: {
       set_number: number;
-      weight: number;
-      reps: number;
+      weight: number | null;
+      reps: number | null;
+      time: number | null;
     }[];
   }[],
 ) => {
@@ -617,8 +656,8 @@ export const saveCompletedWorkout = async (
       for (const set of exercise.sets) {
         // Insert each completed set
         await db.runAsync(
-          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps) VALUES (?, ?, ?, ?)`,
-          [completedExerciseId, set.set_number, set.weight, set.reps],
+          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time) VALUES (?, ?, ?, ?, ?)`,
+          [completedExerciseId, set.set_number, set.weight, set.reps, set.time],
         );
       }
     }
@@ -652,9 +691,12 @@ interface CompletedWorkoutRow {
   exercise_name: string | null;
   exercise_image: Uint8Array | null;
   exercise_order: number;
+  exercise_tracking_type: string | null;
+  set_id: number;
   set_number: number | null;
   weight: number | null;
   reps: number | null;
+  time: number | null;
 }
 
 export const fetchCompletedWorkoutById = async (
@@ -677,9 +719,12 @@ export const fetchCompletedWorkoutById = async (
         e.exercise_id as exercise_id, 
         e.name as exercise_name, 
         e.image as exercise_image, 
+        e.tracking_type as exercise_tracking_type,
+        cs.id as set_id,
         cs.set_number, 
         cs.weight, 
         cs.reps,
+        cs.time,
         uwe.exercise_order -- Include exercise order from user_workout_exercises
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
@@ -715,6 +760,7 @@ export const fetchCompletedWorkoutById = async (
     const exercisesMap: {
       [exercise_id: number]: CompletedWorkout["exercises"][0] & {
         exercise_order: number;
+        exercise_tracking_type: string;
       };
     } = {};
 
@@ -727,6 +773,7 @@ export const fetchCompletedWorkoutById = async (
             exercise_image: row.exercise_image
               ? Array.from(row.exercise_image)
               : undefined,
+            exercise_tracking_type: row.exercise_tracking_type || "weight",
             sets: [],
             exercise_order: row.exercise_order, // Track exercise order
           };
@@ -740,9 +787,11 @@ export const fetchCompletedWorkoutById = async (
           );
 
           exercisesMap[row.exercise_id].sets.push({
+            set_id: row.set_id,
             set_number: row.set_number,
-            weight: convertedWeight,
-            reps: row.reps || 0,
+            weight: convertedWeight || null,
+            reps: row.reps || null,
+            time: row.time || null,
           });
         }
       }
@@ -808,6 +857,7 @@ export const insertDefaultSettings = async () => {
     { key: "timeRange", value: "30" },
     { key: "restTimerVibration", value: "false" },
     { key: "restTimerSound", value: "false" },
+    { key: "bodyWeight", value: "70" },
   ];
 
   // Loop through each default setting
@@ -847,6 +897,7 @@ export interface Settings {
   dataVersion: string;
   restTimerVibration: string;
   restTimerSound: string;
+  bodyWeight: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

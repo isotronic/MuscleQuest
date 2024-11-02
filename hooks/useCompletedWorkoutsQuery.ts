@@ -12,9 +12,12 @@ interface WorkoutResult {
   exercise_id: number;
   exercise_name: string;
   exercise_image: Uint8Array | null;
+  exercise_tracking_type: string;
+  set_id: number;
   set_number: number;
-  weight: number;
-  reps: number;
+  weight: number | null;
+  reps: number | null;
+  time: number | null;
 }
 
 export interface CompletedWorkout {
@@ -29,10 +32,13 @@ export interface CompletedWorkout {
     exercise_id: number;
     exercise_name: string;
     exercise_image?: number[];
+    exercise_tracking_type: string;
     sets: {
+      set_id: number;
       set_number: number;
-      weight: number;
-      reps: number;
+      weight: number | null;
+      reps: number | null;
+      time: number | null;
     }[];
   }[];
 }
@@ -54,9 +60,12 @@ const fetchCompletedWorkouts = async (
         completed_exercises.exercise_id,
         exercises.name AS exercise_name,
         exercises.image AS exercise_image,
+        exercises.tracking_type AS exercise_tracking_type,
+        completed_sets.id AS set_id,
         completed_sets.set_number,
         completed_sets.weight,
-        completed_sets.reps
+        completed_sets.reps,
+        completed_sets.time
       FROM completed_workouts
       LEFT JOIN completed_exercises ON completed_exercises.completed_workout_id = completed_workouts.id
       LEFT JOIN exercises ON exercises.exercise_id = completed_exercises.exercise_id -- Fetch exercise details from exercises table
@@ -106,9 +115,12 @@ const fetchAndOrganize = async (
         exercise_id,
         exercise_name,
         exercise_image,
+        exercise_tracking_type,
+        set_id,
         set_number,
         weight,
         reps,
+        time,
       } = item;
 
       let workout = workoutsMap.get(id);
@@ -141,20 +153,23 @@ const fetchAndOrganize = async (
           exercise_image: exercise_image
             ? Array.from(exercise_image)
             : undefined,
+          exercise_tracking_type,
           sets: [],
         };
         workout.exercises.push(exercise);
       }
 
-      const convertedWeight = parseFloat(
-        (weight * conversionFactor).toFixed(1),
-      );
+      const convertedWeight = weight
+        ? parseFloat((weight * conversionFactor).toFixed(1))
+        : null;
 
       // Add the set to the exercise
       exercise.sets.push({
+        set_id,
         set_number,
         weight: convertedWeight,
         reps,
+        time,
       });
     });
 

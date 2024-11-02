@@ -27,6 +27,7 @@ export interface RawPlan {
   body_part: string | null;
   target_muscle: string | null;
   secondary_muscles: string | null;
+  tracking_type: string | null;
   sets: string | null;
   exercise_order: number | null;
 }
@@ -71,6 +72,7 @@ const transformRawPlans = (rawPlans: RawPlan[]): Plan[] => {
         secondary_muscles: rawPlan.secondary_muscles
           ? JSON.parse(rawPlan.secondary_muscles)
           : [],
+        tracking_type: rawPlan.tracking_type || "",
         sets: rawPlan.sets ? JSON.parse(rawPlan.sets) : [],
       });
     }
@@ -101,6 +103,7 @@ const fetchPlans = async (): Promise<Plan[]> => {
         exercises.body_part,
         exercises.target_muscle,
         exercises.secondary_muscles,
+        exercises.tracking_type,
         user_workout_exercises.sets,
         user_workout_exercises.exercise_order
       FROM user_plans

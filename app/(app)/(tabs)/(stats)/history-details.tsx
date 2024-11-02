@@ -1,25 +1,29 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { Image } from "expo-image";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { ActivityIndicator, Card } from "react-native-paper";
+import { ActivityIndicator, Card, IconButton } from "react-native-paper";
 import { Colors } from "@/constants/Colors";
-import { useLocalSearchParams } from "expo-router";
-import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import {
-  fetchCompletedWorkoutById,
-  fetchExerciseImagesByIds,
-} from "@/utils/database";
+  router,
+  Stack,
+  useLocalSearchParams,
+  useFocusEffect,
+} from "expo-router";
+import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import { fetchExerciseImagesByIds } from "@/utils/database";
 import { byteArrayToBase64 } from "@/utils/utility";
 import { parseISO, format } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
+
+const fallbackImage = require("@/assets/images/placeholder.webp");
 
 export default function HistoryDetailsScreen() {
   const { id } = useLocalSearchParams();
   const [workout, setWorkout] = useState<CompletedWorkout | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   const {
     data: settings,
@@ -28,40 +32,51 @@ export default function HistoryDetailsScreen() {
   } = useSettingsQuery();
 
   const weightUnit = settings?.weightUnit || "kg";
+  const bodyWeight = parseFloat(settings?.bodyWeight || "70");
+
+  const {
+    data: workoutData,
+    isLoading: isWorkoutLoading,
+    refetch,
+  } = useCompletedWorkoutByIdQuery(Number(id), weightUnit);
 
   useEffect(() => {
-    const fetchWorkout = async () => {
-      try {
-        const data = await fetchCompletedWorkoutById(Number(id), weightUnit);
+    if (workoutData) {
+      // Collect unique exercise IDs
+      const exerciseIds = workoutData.exercises.map(
+        (exercise) => exercise.exercise_id,
+      );
 
-        // Collect unique exercise IDs
-        const exerciseIds = data.exercises.map(
-          (exercise) => exercise.exercise_id,
-        );
+      // Fetch images for these exercise IDs and attach them to the exercises
+      const fetchImages = async () => {
+        try {
+          const imagesMap = await fetchExerciseImagesByIds(exerciseIds);
 
-        // Fetch images for these exercise IDs
-        const imagesMap = await fetchExerciseImagesByIds(exerciseIds);
+          // Attach images to exercises
+          const exercisesWithImages = workoutData.exercises.map((exercise) => ({
+            ...exercise,
+            exercise_image: imagesMap[exercise.exercise_id],
+          }));
 
-        // Attach images to exercises
-        const exercisesWithImages = data.exercises.map((exercise) => ({
-          ...exercise,
-          exercise_image: imagesMap[exercise.exercise_id],
-        }));
+          // Update workout data with exercises including images
+          setWorkout({
+            ...workoutData,
+            exercises: exercisesWithImages,
+          });
+        } catch (error) {
+          console.error("Error fetching exercise images:", error);
+        }
+      };
 
-        // Update workout data with exercises including images
-        setWorkout({
-          ...data,
-          exercises: exercisesWithImages,
-        });
-      } catch (error) {
-        console.error("Error fetching workout:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      fetchImages();
+    }
+  }, [workoutData]);
 
-    fetchWorkout();
-  }, [id, weightUnit]);
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   // Calculate total volume
   const totalVolume = useMemo(() => {
@@ -71,13 +86,20 @@ export default function HistoryDetailsScreen() {
 
     return workout.exercises.reduce((exerciseAcc, exercise) => {
       const exerciseVolume = exercise.sets.reduce((setAcc, set) => {
-        return setAcc + set.weight * set.reps;
+        // Check if the tracking type is "assistance" and apply custom calculation
+        const weight =
+          exercise.exercise_tracking_type === "assisted"
+            ? bodyWeight - (set.weight || 0)
+            : set.weight || 0;
+
+        return setAcc + weight * (set.reps || 0);
       }, 0);
+
       return parseFloat((exerciseAcc + exerciseVolume).toFixed(1));
     }, 0);
-  }, [workout]);
+  }, [workout, bodyWeight]);
 
-  if (isLoading || !workout || settingsLoading) {
+  if (isWorkoutLoading || !workout || settingsLoading) {
     return (
       <ThemedView style={styles.container}>
         <ActivityIndicator size="large" color={Colors.dark.text} />
@@ -95,6 +117,26 @@ export default function HistoryDetailsScreen() {
 
   return (
     <ThemedView>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <IconButton
+                icon="file-document-edit-outline"
+                size={30}
+                style={{ marginRight: 0 }}
+                iconColor={Colors.dark.text}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(stats)/edit-history",
+                    params: { id },
+                  })
+                }
+              />
+            </View>
+          ),
+        }}
+      />
       <ScrollView style={styles.container}>
         {/* Top Section */}
         <View style={styles.topSection}>
@@ -139,46 +181,65 @@ export default function HistoryDetailsScreen() {
         </View>
 
         {/* Exercise List */}
-        {workout.exercises.map((exercise) => {
-          // Check if the image exists
-          let imageUri = "";
-          if (exercise.exercise_image) {
-            // Convert the image blob to Base64
-            const base64Image = byteArrayToBase64(exercise.exercise_image);
-            imageUri = `data:image/webp;base64,${base64Image}`;
-          }
+        <View style={styles.exerciseList}>
+          {workout.exercises.map((exercise) => {
+            // Check if the image exists
+            let imageUri = "";
+            if (exercise.exercise_image) {
+              // Convert the image blob to Base64
+              const base64Image = byteArrayToBase64(exercise.exercise_image);
+              imageUri = `data:image/webp;base64,${base64Image}`;
+            }
 
-          return (
-            <Card key={exercise.exercise_id} style={styles.exerciseCard}>
-              <View style={styles.exerciseHeader}>
-                {imageUri ? (
-                  <Image
-                    source={{ uri: imageUri }}
-                    style={styles.exerciseImage}
-                  />
-                ) : (
-                  <View style={[styles.exerciseImage, styles.placeholderImage]}>
-                    <ThemedText>No Image</ThemedText>
-                  </View>
-                )}
-                <ThemedText style={styles.exerciseName}>
-                  {exercise.exercise_name}
-                </ThemedText>
-              </View>
-              {/* Sets List */}
-              {exercise.sets.map((set, index) => (
-                <View key={index} style={styles.setRow}>
-                  <ThemedText style={styles.setText}>
-                    Set {set.set_number}
-                  </ThemedText>
-                  <ThemedText style={styles.setText}>
-                    {set.weight} {settings?.weightUnit} | {set.reps} Reps
+            return (
+              <Card key={exercise.exercise_id} style={styles.exerciseCard}>
+                <View style={styles.exerciseHeader}>
+                  {imageUri ? (
+                    <Image
+                      source={{ uri: imageUri }}
+                      style={styles.exerciseImage}
+                    />
+                  ) : (
+                    <Image
+                      source={fallbackImage}
+                      style={styles.exerciseImage}
+                    />
+                  )}
+                  <ThemedText style={styles.exerciseName}>
+                    {exercise.exercise_name}
                   </ThemedText>
                 </View>
-              ))}
-            </Card>
-          );
-        })}
+                {/* Sets List */}
+                {exercise.sets.map((set, index) => (
+                  <View key={index} style={styles.setRow}>
+                    <ThemedText style={styles.setText}>
+                      Set {set.set_number}
+                    </ThemedText>
+                    {exercise.exercise_tracking_type === "time" ? (
+                      <ThemedText style={styles.setText}>
+                        {set.time} Seconds
+                      </ThemedText>
+                    ) : exercise.exercise_tracking_type === "reps" ? (
+                      <ThemedText style={styles.setText}>
+                        {set.reps} Reps
+                      </ThemedText>
+                    ) : exercise.exercise_tracking_type === "weight" ? (
+                      <ThemedText style={styles.setText}>
+                        {set.weight} {settings?.weightUnit} | {set.reps} Reps
+                      </ThemedText>
+                    ) : (
+                      <ThemedText style={styles.setText}>
+                        Assist {set.weight} {settings?.weightUnit} | Resist{" "}
+                        {bodyWeight - (set.weight || 0)} {settings?.weightUnit}{" "}
+                        | {set.reps} Reps
+                      </ThemedText>
+                    )}
+                  </View>
+                ))}
+              </Card>
+            );
+          })}
+        </View>
       </ScrollView>
     </ThemedView>
   );
@@ -187,9 +248,7 @@ export default function HistoryDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 16,
-    paddingBottom: 50,
-    paddingHorizontal: 16,
+    padding: 16,
   },
   topSection: {
     marginBottom: 24,
@@ -215,6 +274,9 @@ const styles = StyleSheet.create({
   summaryText: {
     fontSize: 16,
     marginTop: 4,
+  },
+  exerciseList: {
+    marginBottom: 50,
   },
   exerciseCard: {
     marginBottom: 16,
