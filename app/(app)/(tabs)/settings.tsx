@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -12,6 +12,7 @@ import {
   Divider,
   Switch,
   ProgressBar,
+  Button,
 } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
@@ -24,8 +25,11 @@ import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 import { useImageManagement } from "@/hooks/useImageManagement";
 import { useQueryClient } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
+import { AuthContext } from "@/context/AuthProvider";
+import { signInWithGoogle } from "@/utils/auth";
 
 export default function SettingsScreen() {
+  const user = useContext(AuthContext);
   const queryClient = useQueryClient();
   const { data: settings, isLoading, isError, error } = useSettingsQuery();
   const { mutate: updateSetting } = useUpdateSettingsMutation();
@@ -199,6 +203,35 @@ export default function SettingsScreen() {
         />
         <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>Personal</ThemedText>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="account"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            {!user ? (
+              <>
+                <View style={styles.textContainer}>
+                  <ThemedText style={styles.itemText}>
+                    Sign in with Google
+                  </ThemedText>
+                  <ThemedText style={styles.currentSetting}>
+                    Log in to secure your data
+                  </ThemedText>
+                </View>
+                <Button mode="outlined" onPress={signInWithGoogle}>
+                  Sign in
+                </Button>
+              </>
+            ) : (
+              <View style={styles.textContainer}>
+                <ThemedText style={styles.itemText}>
+                  Signed in as {user.displayName || user.email}
+                </ThemedText>
+              </View>
+            )}
+          </View>
           <TouchableOpacity
             style={styles.item}
             onPress={() =>
