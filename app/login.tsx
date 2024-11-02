@@ -11,6 +11,10 @@ import { router } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { Button } from "react-native-paper";
 import { useQueryClient } from "@tanstack/react-query";
+import { Image } from "expo-image";
+import { Colors } from "@/constants/Colors";
+
+const logo = require("@/assets/images/icon.png");
 
 export default function LoginScreen() {
   const queryClient = useQueryClient();
@@ -54,22 +58,23 @@ export default function LoginScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <Image source={logo} style={styles.logo} />
       <ThemedText style={styles.welcomeText}>
         Welcome to MuscleQuest!
       </ThemedText>
       <ThemedText style={styles.benefitsText}>
         Benefits of logging in:
       </ThemedText>
-      <ThemedText style={styles.benefit}>
-        • Sync your data across devices
-      </ThemedText>
       <ThemedText style={styles.benefit}>• Backup and restore data</ThemedText>
       <ThemedText style={styles.benefit}>
-        • Share training plans with others (in development)
+        • Sync your data across devices automatically *
       </ThemedText>
       <ThemedText style={styles.benefit}>
-        • Challenges and badges (in development)
+        • Share your training plans with others *
       </ThemedText>
+      <ThemedText style={styles.benefit}>• Challenges and badges *</ThemedText>
+
+      <ThemedText style={styles.info}>* in development</ThemedText>
 
       <ThemedText style={styles.info}>
         You can login at any time from the settings screen, if you choose to
@@ -91,16 +96,41 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 40 },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: Colors.dark.background,
+  },
+  logo: {
+    width: 200,
+    height: 200,
+    alignSelf: "center",
+    marginBottom: 20,
+  },
   welcomeText: {
     fontSize: 26,
     lineHeight: 26,
     fontWeight: "bold",
     marginBottom: 20,
   },
-  benefitsText: { fontWeight: "bold", marginBottom: 10 },
-  benefit: { marginBottom: 5 },
-  info: { fontStyle: "italic", marginVertical: 5 },
-  loginButton: { height: 60, marginVertical: 20 },
-  skipButton: { marginHorizontal: 3 },
+  benefitsText: {
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  benefit: {
+    marginBottom: 5,
+  },
+  info: {
+    fontStyle: "italic",
+    marginVertical: 5,
+  },
+  loginButton: {
+    height: 60,
+    marginVertical: 20,
+    width: "100%",
+  },
+  skipButton: {
+    marginHorizontal: 3,
+  },
 });
