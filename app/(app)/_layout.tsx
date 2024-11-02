@@ -1,14 +1,18 @@
 import { Colors } from "@/constants/Colors";
-import { Stack } from "expo-router";
-// import { useContext } from "react";
-// import { AuthContext } from "@/context/AuthProvider";
+import { Redirect, Stack } from "expo-router";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { ThemedView } from "@/components/ThemedView";
 
 export default function AppLayout() {
-  // const user = useContext(AuthContext);
+  const { data: settings, isLoading: settingsLoading } = useSettingsQuery();
 
-  // if (!user) {
-  //   return <Redirect href="/login" />;
-  // }
+  if (settingsLoading) {
+    return <ThemedView style={{ flex: 1 }}></ThemedView>;
+  }
+
+  if (settings && !settings.loginShown) {
+    return <Redirect href="/login" />;
+  }
 
   return (
     <Stack
