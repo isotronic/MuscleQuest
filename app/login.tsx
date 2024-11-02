@@ -1,7 +1,6 @@
 import { ThemedView } from "@/components/ThemedView";
 import auth from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import * as googleServices from "@/google-services.json";
 import { openDatabase } from "@/utils/database";
 import { Alert, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
@@ -15,9 +14,6 @@ const logo = require("@/assets/images/icon.png");
 
 export default function LoginScreen() {
   const queryClient = useQueryClient();
-  GoogleSignin.configure({
-    webClientId: googleServices.client[0].oauth_client[1].client_id,
-  });
 
   async function saveLoginShown() {
     const db = await openDatabase("userData.db");

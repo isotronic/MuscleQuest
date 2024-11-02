@@ -35,6 +35,8 @@ import {
   updateAppExerciseIds,
 } from "@/utils/database";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import * as googleServices from "@/google-services.json";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import Constants from "expo-constants";
@@ -72,6 +74,10 @@ Sentry.init({
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
+
+GoogleSignin.configure({
+  webClientId: googleServices.client[0].oauth_client[1].client_id,
+});
 
 function RootLayout() {
   const [isDatabaseInitialized, setIsDatabaseInitialized] = useState(false);
