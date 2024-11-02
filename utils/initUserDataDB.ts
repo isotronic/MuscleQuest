@@ -24,7 +24,7 @@ export async function initUserDataDB() {
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS exercises (
       exercise_id INTEGER PRIMARY KEY AUTOINCREMENT, 
-      app_exercise_id INTEGER NULL, -- NULL for custom exercises, non-NULL for copied exercises
+      app_exercise_id INTEGER DEFAULT NULL, -- NULL for custom exercises, non-NULL for copied exercises
       name TEXT, 
       image BLOB,
       local_animated_uri TEXT, 
@@ -145,6 +145,9 @@ export async function initUserDataDB() {
     PRAGMA table_info(completed_sets);
   `);
 
+  const app_exercise_idExists = exercisesResult.some(
+    (column: any) => column.name === "app_exercise_id",
+  );
   const favoriteExists = exercisesResult.some(
     (column: any) => column.name === "favorite",
   );
@@ -159,6 +162,11 @@ export async function initUserDataDB() {
   );
 
   // If the column does not exist, add it
+  if (!app_exercise_idExists) {
+    await db.execAsync(`
+      ALTER TABLE exercises ADD COLUMN app_exercise_id INTEGER DEFAULT NULL;
+    `);
+  }
   if (!favoriteExists) {
     await db.execAsync(`
       ALTER TABLE exercises ADD COLUMN favorite BOOLEAN DEFAULT FALSE;

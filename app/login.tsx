@@ -1,17 +1,30 @@
 import { ThemedView } from "@/components/ThemedView";
 import auth from "@react-native-firebase/auth";
-import {
-  GoogleSignin,
-  GoogleSigninButton,
-} from "@react-native-google-signin/google-signin";
-import * as googleServices from "@/google-services.json";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { openDatabase } from "@/utils/database";
+import { Alert, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import { StyleSheet } from "react-native";
+import { ThemedText } from "@/components/ThemedText";
+import { Button } from "react-native-paper";
+import { useQueryClient } from "@tanstack/react-query";
+import { Image } from "expo-image";
+import { Colors } from "@/constants/Colors";
+
+const logo = require("@/assets/images/icon.png");
 
 export default function LoginScreen() {
-  GoogleSignin.configure({
-    webClientId: googleServices.client[0].oauth_client[1].client_id,
-  });
+  const queryClient = useQueryClient();
+
+  async function saveLoginShown() {
+    const db = await openDatabase("userData.db");
+
+    await db.runAsync(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      ["loginShown", "true"],
+    );
+    await queryClient.invalidateQueries({ queryKey: ["settings"] });
+    await queryClient.refetchQueries({ queryKey: ["settings"] });
+  }
 
   async function handleSignIn() {
     try {
@@ -23,31 +36,98 @@ export default function LoginScreen() {
       }
       const { idToken } = await GoogleSignin.signIn();
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      return auth().signInWithCredential(googleCredential);
+      await auth().signInWithCredential(googleCredential);
+      await saveLoginShown(); // Save setting to avoid showing login again
+      router.replace("/");
     } catch (error) {
-      console.log("handleSignIn error", error);
+      console.error("handleSignIn error", error);
+      Alert.alert("Error", "Failed to sign in. Please try again.");
     }
   }
+
+  async function handleSkip() {
+    await saveLoginShown(); // Save setting to skip login in the future
+    router.replace("/");
+  }
+
   return (
-    <ThemedView
-      style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-    >
-      <GoogleSigninButton
-        size={GoogleSigninButton.Size.Wide}
-        color={GoogleSigninButton.Color.Light}
-        style={styles.button}
-        onPress={() => {
-          handleSignIn().then((cred) => {
-            router.replace("/");
-          });
-        }}
-      />
+    <ThemedView style={styles.container}>
+      <Image source={logo} style={styles.logo} />
+      <ThemedText style={styles.welcomeText}>
+        Welcome to MuscleQuest!
+      </ThemedText>
+      <ThemedText style={styles.benefitsText}>
+        Benefits of logging in:
+      </ThemedText>
+      <ThemedText style={styles.benefit}>• Backup and restore data</ThemedText>
+      <ThemedText style={styles.benefit}>
+        • Sync your data across devices automatically *
+      </ThemedText>
+      <ThemedText style={styles.benefit}>
+        • Share your training plans with others *
+      </ThemedText>
+      <ThemedText style={styles.benefit}>• Challenges and badges *</ThemedText>
+
+      <ThemedText style={styles.info}>* in development</ThemedText>
+
+      <ThemedText style={styles.info}>
+        You can login at any time from the settings screen, if you choose to
+        skip it now.
+      </ThemedText>
+
+      <View style={styles.buttonRow}>
+        <Button style={styles.skipButton} mode="outlined" onPress={handleSkip}>
+          Skip login
+        </Button>
+
+        <Button
+          style={styles.loginButton}
+          mode="contained"
+          onPress={handleSignIn}
+          accessibilityLabel="Login"
+        >
+          Sign in with Google
+        </Button>
+      </View>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
-    height: 70,
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: Colors.dark.background,
   },
+  logo: {
+    width: 200,
+    height: 200,
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+  welcomeText: {
+    fontSize: 26,
+    lineHeight: 26,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  benefitsText: {
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  benefit: {
+    marginBottom: 5,
+  },
+  info: {
+    fontStyle: "italic",
+    marginVertical: 5,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 20,
+  },
+  loginButton: {},
+  skipButton: {},
 });

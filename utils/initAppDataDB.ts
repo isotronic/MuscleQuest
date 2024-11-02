@@ -2,16 +2,18 @@ import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
 import { openDatabase } from "./database";
 
-const DATABASE_NAME = "appData.db";
+const DATABASE_NAME = "appData1.db";
 
 const copyDatabase = async (): Promise<string> => {
   const dbFolder = `${FileSystem.documentDirectory}SQLite`;
   const dbPath = `${dbFolder}/${DATABASE_NAME}`;
+  const oldDbPath = `${dbFolder}/appData.db`;
   const userDataDB = await openDatabase("userData.db");
 
   await FileSystem.makeDirectoryAsync(dbFolder, { intermediates: true });
 
-  const dbFileExists = await FileSystem.getInfoAsync(dbPath);
+  const dbFile = await FileSystem.getInfoAsync(dbPath);
+  const oldDbFile = await FileSystem.getInfoAsync(oldDbPath);
 
   let dataVersion: number | null = null;
   try {
@@ -28,12 +30,17 @@ const copyDatabase = async (): Promise<string> => {
     );
   }
 
-  if (!dbFileExists.exists || dataVersion === null || dataVersion < 1.4) {
-    console.log("Copying appData.db ...");
+  if (!dbFile.exists || dataVersion === null || dataVersion < 1.1) {
+    console.log("Copying appData1.db ...");
     const asset = Asset.fromModule(require(`../assets/db/${DATABASE_NAME}`));
     await asset.downloadAsync();
 
     await FileSystem.copyAsync({ from: asset.localUri!, to: dbPath });
+  }
+
+  if (oldDbFile.exists) {
+    console.log("Removing outdated appData.db ...");
+    await FileSystem.deleteAsync(oldDbPath);
   }
 
   return dbPath;
