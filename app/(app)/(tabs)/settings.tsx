@@ -155,6 +155,16 @@ export default function SettingsScreen() {
     );
   };
 
+  const resetLoginShownSetting = async () => {
+    try {
+      const db = await openDatabase("userData.db");
+      await db.runAsync("DELETE FROM settings WHERE key = ?", ["loginShown"]);
+      console.log("loginShown setting has been reset.");
+    } catch (error) {
+      console.error("Error resetting loginShown setting:", error);
+    }
+  };
+
   useEffect(() => {
     if (isError) {
       console.error("Error fetching settings:", error);
@@ -544,6 +554,22 @@ export default function SettingsScreen() {
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
                 Clear all user data
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={resetLoginShownSetting}
+          >
+            <MaterialCommunityIcons
+              name="delete"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Reset "loginShown" setting
               </ThemedText>
             </View>
           </TouchableOpacity>
