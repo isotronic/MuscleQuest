@@ -5,13 +5,29 @@ import {
   GoogleSigninButton,
 } from "@react-native-google-signin/google-signin";
 import * as googleServices from "@/google-services.json";
-import { router } from "expo-router";
+import { openDatabase } from "@/utils/database";
 import { StyleSheet } from "react-native";
+import { router } from "expo-router";
+import { ThemedText } from "@/components/ThemedText";
+import { Button } from "react-native-paper";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function LoginScreen() {
+  const queryClient = useQueryClient();
   GoogleSignin.configure({
     webClientId: googleServices.client[0].oauth_client[1].client_id,
   });
+
+  async function saveLoginShown() {
+    const db = await openDatabase("userData.db");
+
+    await db.runAsync(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      ["loginShown", "true"],
+    );
+    await queryClient.invalidateQueries({ queryKey: ["settings"] });
+    await queryClient.refetchQueries({ queryKey: ["settings"] });
+  }
 
   async function handleSignIn() {
     try {
@@ -23,31 +39,68 @@ export default function LoginScreen() {
       }
       const { idToken } = await GoogleSignin.signIn();
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      return auth().signInWithCredential(googleCredential);
+      await auth().signInWithCredential(googleCredential);
+      await saveLoginShown(); // Save setting to avoid showing login again
+      router.replace("/");
     } catch (error) {
       console.log("handleSignIn error", error);
     }
   }
+
+  async function handleSkip() {
+    await saveLoginShown(); // Save setting to skip login in the future
+    router.replace("/");
+  }
+
   return (
-    <ThemedView
-      style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-    >
+    <ThemedView style={styles.container}>
+      <ThemedText style={styles.welcomeText}>
+        Welcome to MuscleQuest!
+      </ThemedText>
+      <ThemedText style={styles.benefitsText}>
+        Benefits of logging in:
+      </ThemedText>
+      <ThemedText style={styles.benefit}>
+        • Sync your data across devices
+      </ThemedText>
+      <ThemedText style={styles.benefit}>• Backup and restore data</ThemedText>
+      <ThemedText style={styles.benefit}>
+        • Share training plans with others (in development)
+      </ThemedText>
+      <ThemedText style={styles.benefit}>
+        • Challenges and badges (in development)
+      </ThemedText>
+
+      <ThemedText style={styles.info}>
+        You can login at any time from the settings screen, if you choose to
+        skip it now.
+      </ThemedText>
+
       <GoogleSigninButton
         size={GoogleSigninButton.Size.Wide}
         color={GoogleSigninButton.Color.Light}
-        style={styles.button}
-        onPress={() => {
-          handleSignIn().then((cred) => {
-            router.replace("/");
-          });
-        }}
+        style={styles.loginButton}
+        onPress={handleSignIn}
       />
+
+      <Button style={styles.skipButton} mode="outlined" onPress={handleSkip}>
+        Skip login
+      </Button>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
-    height: 70,
+  container: { flex: 1, justifyContent: "center", padding: 40 },
+  welcomeText: {
+    fontSize: 26,
+    lineHeight: 26,
+    fontWeight: "bold",
+    marginBottom: 20,
   },
+  benefitsText: { fontWeight: "bold", marginBottom: 10 },
+  benefit: { marginBottom: 5 },
+  info: { fontStyle: "italic", marginVertical: 5 },
+  loginButton: { height: 60, marginVertical: 20 },
+  skipButton: { marginHorizontal: 3 },
 });
