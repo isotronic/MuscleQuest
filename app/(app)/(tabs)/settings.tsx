@@ -131,9 +131,9 @@ export default function SettingsScreen() {
     updateSetting({ key: "restTimerVibration", value: value.toString() });
   };
 
-  const toggleSound = (value: boolean) => {
-    updateSetting({ key: "restTimerSound", value: value.toString() });
-  };
+  // const toggleSound = (value: boolean) => {
+  //   updateSetting({ key: "restTimerSound", value: value.toString() });
+  // };
 
   const handleClearDatabase = async () => {
     try {
@@ -376,7 +376,7 @@ export default function SettingsScreen() {
               style={styles.switch}
             />
           </View>
-          <View style={styles.item}>
+          {/* <View style={styles.item}>
             <MaterialCommunityIcons
               name="volume-high"
               size={24}
@@ -397,7 +397,7 @@ export default function SettingsScreen() {
               color={Colors.dark.tint}
               style={styles.switch}
             />
-          </View>
+          </View> */}
           <View style={styles.item}>
             <MaterialCommunityIcons
               name="cellphone"

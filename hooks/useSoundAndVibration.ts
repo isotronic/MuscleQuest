@@ -23,7 +23,7 @@ export const useSoundAndVibration = () => {
       }
     };
 
-    loadSound();
+    //loadSound();
 
     return () => {};
   }, []);
@@ -49,13 +49,13 @@ export const useSoundAndVibration = () => {
   };
 
   const triggerVibration = (
-    pattern: number | number[] = [0, 200, 100, 300, 100, 400],
+    pattern: number | number[] = [0, 400, 100, 400, 100, 600],
   ) => {
     Vibration.vibrate(pattern);
   };
 
   const playSoundAndVibrate = (
-    vibrationPattern: number | number[] = [0, 200, 100, 300, 100, 400],
+    vibrationPattern: number | number[] = [0, 400, 100, 400, 100, 600],
   ) => {
     playSound();
     triggerVibration(vibrationPattern);
