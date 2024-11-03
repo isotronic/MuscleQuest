@@ -461,11 +461,19 @@ export default function WorkoutSessionScreen() {
       const currentSetValues =
         weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
 
+      const { isWarmup, isDropSet } =
+        workout.exercises[currentExerciseIndex].sets[currentSetIndex];
+
+      const isNextDropSet =
+        workout.exercises[currentExerciseIndex].sets[tempNextSetIndex]
+          .isDropSet;
+
       const nextSetValues = {
         weight:
-          currentSetValues.weight ||
-          previousWorkoutNextSetData?.weight?.toString() ||
-          "",
+          (isWarmup || isDropSet || isNextDropSet) &&
+          previousWorkoutNextSetData?.weight
+            ? previousWorkoutNextSetData?.weight?.toString()
+            : currentSetValues.weight || "",
         reps: previousWorkoutNextSetData?.reps?.toString() || "",
         time: previousWorkoutNextSetData?.time?.toString() || "",
       };
