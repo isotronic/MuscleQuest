@@ -7,6 +7,8 @@ export interface Plan {
   name: string;
   image_url: string;
   is_active: number;
+  app_plan_id?: number | null;
+  is_deleted?: boolean;
   workouts: Workout[];
 }
 
@@ -15,6 +17,7 @@ export interface RawPlan {
   name: string;
   image_url: string;
   is_active: number;
+  app_plan_id: number | null;
   workout_id: number | null;
   workout_name: string | null;
   exercise_id: number | null;
@@ -32,10 +35,16 @@ export interface RawPlan {
   exercise_order: number | null;
 }
 
-const transformRawPlans = (rawPlans: RawPlan[]): Plan[] => {
-  const plansMap = new Map<number, Plan>();
+const transformRawPlans = (
+  rawPlans: RawPlan[],
+): { userPlans: Plan[]; appPlans: Plan[] } => {
+  const userPlansMap = new Map<number, Plan>();
+  const appPlansMap = new Map<number, Plan>();
 
   for (const rawPlan of rawPlans) {
+    // Determine which map to use based on `app_plan_id`
+    const plansMap = rawPlan.app_plan_id ? appPlansMap : userPlansMap;
+
     let plan = plansMap.get(rawPlan.id);
     if (!plan) {
       plan = {
@@ -43,6 +52,7 @@ const transformRawPlans = (rawPlans: RawPlan[]): Plan[] => {
         name: rawPlan.name,
         image_url: rawPlan.image_url,
         is_active: rawPlan.is_active,
+        app_plan_id: rawPlan.app_plan_id,
         workouts: [],
       };
       plansMap.set(rawPlan.id, plan);
@@ -78,11 +88,17 @@ const transformRawPlans = (rawPlans: RawPlan[]): Plan[] => {
     }
   }
 
-  // Convert Map to array
-  return Array.from(plansMap.values());
+  // Convert Maps to arrays
+  return {
+    userPlans: Array.from(userPlansMap.values()),
+    appPlans: Array.from(appPlansMap.values()),
+  };
 };
 
-const fetchPlans = async (): Promise<Plan[]> => {
+const fetchPlans = async (): Promise<{
+  userPlans: Plan[];
+  appPlans: Plan[];
+}> => {
   try {
     const db = await openDatabase("userData.db");
     const rawPlans = (await db.getAllAsync(`
@@ -91,6 +107,7 @@ const fetchPlans = async (): Promise<Plan[]> => {
         user_plans.name, 
         user_plans.image_url, 
         user_plans.is_active, 
+        user_plans.app_plan_id,
         user_workouts.id AS workout_id, 
         user_workouts.name AS workout_name, 
         user_workout_exercises.id AS exercise_id,
@@ -115,6 +132,7 @@ const fetchPlans = async (): Promise<Plan[]> => {
         AND (user_workout_exercises.is_deleted = FALSE OR user_workout_exercises.is_deleted IS NULL)
       ORDER BY user_plans.id, user_workouts.id, user_workout_exercises.exercise_order ASC
     `)) as RawPlan[];
+
     return transformRawPlans(rawPlans);
   } catch (error) {
     console.error("Error fetching plans", error);
@@ -123,7 +141,7 @@ const fetchPlans = async (): Promise<Plan[]> => {
 };
 
 export const useAllPlansQuery = () => {
-  return useQuery<Plan[], Error>({
+  return useQuery<{ userPlans: Plan[]; appPlans: Plan[] }, Error>({
     queryKey: ["plans"],
     queryFn: fetchPlans,
     staleTime: Infinity,
