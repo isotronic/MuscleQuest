@@ -71,6 +71,7 @@ export default function SetsOverviewScreen() {
               <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
               <ThemedText style={styles.setInfo}>
                 {item.isWarmup ? "Warm-up, " : ""}
+                {item.isDropSet ? "Drop set, " : ""}
                 {trackingType === "time"
                   ? item.time
                     ? `${item.time} Seconds, `

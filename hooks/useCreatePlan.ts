@@ -54,6 +54,7 @@ export const useCreatePlan = (
       if (!isError && planSaved) {
         clearWorkouts();
         queryClient.invalidateQueries({ queryKey: ["plans"] });
+        queryClient.invalidateQueries({ queryKey: ["activePlan"] });
       }
     }
   };

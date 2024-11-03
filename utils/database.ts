@@ -67,7 +67,7 @@ export const updateAppExerciseIds = async (): Promise<void> => {
 
     if (dataVersion === "1.1") {
       console.log(
-        "Data version is 1. Updating app_exercise_id for exercises...",
+        "Data version is 1.1. Updating app_exercise_id for exercises...",
       );
 
       // Find all exercises where app_exercise_id is NULL
@@ -97,9 +97,14 @@ export const updateAppExerciseIds = async (): Promise<void> => {
         console.log("Updated data version to 1.2...");
       } else {
         console.log("No exercises with NULL app_exercise_id found.");
+        await userDataDB.runAsync(
+          "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+          ["dataVersion", "1.2"],
+        );
+        console.log("Updated data version to 1.2...");
       }
     } else {
-      console.log("Data version is not 1. No update needed.");
+      console.log("Data version is not 1.1. No update needed.");
     }
   } catch (error) {
     console.error("Error updating app_exercise_id:", error);

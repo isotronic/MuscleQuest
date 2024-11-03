@@ -6,6 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -30,6 +31,7 @@ interface SessionSetInfoProps {
   timeMin: number | undefined;
   currentSetCompleted: boolean;
   isWarmup: boolean;
+  isDropSet: boolean;
   trackingType: string;
   handleWeightInputChange: (text: string) => void;
   handleWeightChange: (amount: number) => void;
@@ -64,6 +66,7 @@ export default function SessionSetInfo({
   timeMin,
   currentSetCompleted,
   isWarmup,
+  isDropSet,
   trackingType,
   handleWeightInputChange,
   handleWeightChange,
@@ -165,8 +168,25 @@ export default function SessionSetInfo({
       </View>
 
       {isWarmup && (
-        <View style={styles.centeredLabelContainer}>
-          <ThemedText style={styles.warmupLabel}>Warm-up</ThemedText>
+        <View style={styles.setTypeLabelContainer}>
+          <MaterialCommunityIcons
+            name="speedometer-slow"
+            size={24}
+            color={Colors.dark.text}
+            style={styles.setIcon}
+          />
+          <ThemedText style={styles.setTypeLabel}>Warm-up</ThemedText>
+        </View>
+      )}
+      {isDropSet && (
+        <View style={styles.setTypeLabelContainer}>
+          <MaterialCommunityIcons
+            name="arrow-down-bold"
+            size={24}
+            color={Colors.dark.text}
+            style={styles.setIcon}
+          />
+          <ThemedText style={styles.setTypeLabel}>Drop set</ThemedText>
         </View>
       )}
 
@@ -322,9 +342,17 @@ const styles = StyleSheet.create({
   centeredLabelContainer: {
     alignItems: "center",
   },
-  warmupLabel: {
+  setTypeLabelContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  setTypeLabel: {
     fontSize: 20,
     marginBottom: 16,
+  },
+  setIcon: {
+    marginRight: 8,
   },
   label: {
     fontSize: 16,
@@ -372,7 +400,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buttonLabel: {
-    fontSize: 18,
+    fontSize: 16,
   },
   largeButtonLabel: {
     fontSize: 24,

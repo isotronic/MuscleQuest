@@ -461,11 +461,19 @@ export default function WorkoutSessionScreen() {
       const currentSetValues =
         weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
 
+      const { isWarmup, isDropSet } =
+        workout.exercises[currentExerciseIndex].sets[currentSetIndex];
+
+      const isNextDropSet =
+        workout.exercises[currentExerciseIndex].sets[tempNextSetIndex]
+          .isDropSet;
+
       const nextSetValues = {
         weight:
-          currentSetValues.weight ||
-          previousWorkoutNextSetData?.weight?.toString() ||
-          "",
+          (isWarmup || isDropSet || isNextDropSet) &&
+          previousWorkoutNextSetData?.weight
+            ? previousWorkoutNextSetData?.weight?.toString()
+            : currentSetValues.weight || "",
         reps: previousWorkoutNextSetData?.reps?.toString() || "",
         time: previousWorkoutNextSetData?.time?.toString() || "",
       };
@@ -604,6 +612,7 @@ export default function WorkoutSessionScreen() {
               timeMin={currentSet?.time || 0}
               currentSetCompleted={currentSetCompleted}
               isWarmup={currentSet?.isWarmup || false}
+              isDropSet={currentSet?.isDropSet || false}
               trackingType={currentExercise?.tracking_type || "weight"}
               handleWeightInputChange={handleWeightInputChange}
               handleWeightChange={handleWeightChange}
@@ -655,6 +664,7 @@ export default function WorkoutSessionScreen() {
                 timeMin={upcomingSet?.time || 0}
                 currentSetCompleted={false}
                 isWarmup={upcomingSet?.isWarmup || false}
+                isDropSet={upcomingSet?.isDropSet || false}
                 trackingType={nextExercise?.tracking_type || "weight"}
                 handleWeightInputChange={() => {}}
                 handleWeightChange={() => {}}
@@ -709,6 +719,7 @@ export default function WorkoutSessionScreen() {
                   timeMin={previousSet?.time || 0}
                   currentSetCompleted={previousSetCompleted}
                   isWarmup={previousSet?.isWarmup || false}
+                  isDropSet={previousSet?.isDropSet || false}
                   trackingType={previousExercise?.tracking_type || "weight"}
                   handleWeightInputChange={() => {}}
                   handleWeightChange={() => {}}

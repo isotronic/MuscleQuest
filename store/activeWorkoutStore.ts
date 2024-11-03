@@ -142,6 +142,15 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           const isWarmup =
             currentExercise.sets[currentSetIndex]?.isWarmup || false;
 
+          // Check if current set is a drop set
+          const isDropSet =
+            currentExercise.sets[currentSetIndex]?.isDropSet || false;
+
+          // Check if next set is drop set
+          const isNextDropSet =
+            nextSetIndex < currentExercise.sets.length &&
+            currentExercise.sets[nextSetIndex]?.isDropSet;
+
           // Update the set index for the current exercise
           const updatedSetIndices = {
             ...currentSetIndices,
@@ -164,7 +173,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             ...(trackingType === "weight" || trackingType === ""
               ? {
                   weight:
-                    isWarmup && nextSetValues?.weight
+                    (isWarmup || isDropSet || isNextDropSet) &&
+                    nextSetValues?.weight
                       ? nextSetValues.weight.toString()
                       : currentSetValues.weight,
                   reps:
@@ -176,7 +186,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             ...(trackingType === "assisted"
               ? {
                   weight:
-                    isWarmup && nextSetValues?.weight
+                    (isWarmup || isDropSet || isNextDropSet) &&
+                    nextSetValues?.weight
                       ? nextSetValues.weight.toString()
                       : currentSetValues.weight,
                   reps:
