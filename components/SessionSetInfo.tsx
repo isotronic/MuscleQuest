@@ -168,7 +168,7 @@ export default function SessionSetInfo({
       </View>
 
       {isWarmup && (
-        <View style={styles.centeredLabelContainer}>
+        <View style={styles.setTypeLabelContainer}>
           <MaterialCommunityIcons
             name="speedometer-slow"
             size={24}
@@ -179,7 +179,7 @@ export default function SessionSetInfo({
         </View>
       )}
       {isDropSet && (
-        <View style={styles.centeredLabelContainer}>
+        <View style={styles.setTypeLabelContainer}>
           <MaterialCommunityIcons
             name="arrow-down-bold"
             size={24}
@@ -340,8 +340,12 @@ const styles = StyleSheet.create({
     marginBottom: "auto",
   },
   centeredLabelContainer: {
+    alignItems: "center",
+  },
+  setTypeLabelContainer: {
     flexDirection: "row",
     justifyContent: "center",
+    marginBottom: 16,
   },
   setTypeLabel: {
     fontSize: 20,
