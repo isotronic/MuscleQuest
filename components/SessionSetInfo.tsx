@@ -30,6 +30,7 @@ interface SessionSetInfoProps {
   timeMin: number | undefined;
   currentSetCompleted: boolean;
   isWarmup: boolean;
+  isDropSet: boolean;
   trackingType: string;
   handleWeightInputChange: (text: string) => void;
   handleWeightChange: (amount: number) => void;
@@ -64,6 +65,7 @@ export default function SessionSetInfo({
   timeMin,
   currentSetCompleted,
   isWarmup,
+  isDropSet,
   trackingType,
   handleWeightInputChange,
   handleWeightChange,
@@ -167,6 +169,11 @@ export default function SessionSetInfo({
       {isWarmup && (
         <View style={styles.centeredLabelContainer}>
           <ThemedText style={styles.warmupLabel}>Warm-up</ThemedText>
+        </View>
+      )}
+      {isDropSet && (
+        <View style={styles.centeredLabelContainer}>
+          <ThemedText style={styles.warmupLabel}>Drop set</ThemedText>
         </View>
       )}
 
