@@ -31,12 +31,12 @@ export default function PlansScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <PlanList
           title="Your training plans"
-          data={plans}
+          data={plans?.userPlans}
           onPressItem={handleViewPlan}
         />
         <PlanList
-          title="Pre-made plans"
-          data={[]}
+          title="Premade plans"
+          data={plans?.appPlans}
           onPressItem={handleViewPlan}
         />
         {/* <ThemedText style={{ margin: 20, textAlign: "center" }}>
