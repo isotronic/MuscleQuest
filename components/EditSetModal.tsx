@@ -55,6 +55,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
 
   const [applyToAllSets, setApplyToAllSets] = useState(false);
   const [isWarmup, setIsWarmup] = useState(set?.isWarmup ?? false);
+  const [isDropSet, setIsDropSet] = useState(set?.isDropSet ?? false);
 
   const [repsMin, setRepsMin] = useState(
     set?.repsMin !== undefined && set?.repsMin !== null
@@ -95,6 +96,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
       );
       setTime(set.time ? formatFromTotalSeconds(set.time) : "00:00");
       setIsWarmup(set?.isWarmup ?? false);
+      setIsDropSet(set?.isDropSet ?? false);
     } else {
       if (trackingType === "time") {
         setTime(formatFromTotalSeconds(defaultTime));
@@ -136,6 +138,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
       restSeconds: totalSeconds % 60,
       time: timeToSave,
       isWarmup,
+      isDropSet,
     };
 
     if (applyToAllSets) {
@@ -271,8 +274,17 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                   onPress={() => setIsWarmup(!isWarmup)}
                 />
                 <ThemedText style={styles.checkboxLabel}>
-                  Warm-up Set
+                  Warm-up set
                 </ThemedText>
+              </View>
+
+              <View style={styles.checkboxContainer}>
+                <Checkbox
+                  status={isDropSet ? "checked" : "unchecked"}
+                  uncheckedColor={Colors.dark.subText}
+                  onPress={() => setIsDropSet(!isDropSet)}
+                />
+                <ThemedText style={styles.checkboxLabel}>Drop set</ThemedText>
               </View>
 
               <View style={styles.checkboxContainer}>
