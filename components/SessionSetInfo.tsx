@@ -6,6 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -168,12 +169,24 @@ export default function SessionSetInfo({
 
       {isWarmup && (
         <View style={styles.centeredLabelContainer}>
-          <ThemedText style={styles.warmupLabel}>Warm-up</ThemedText>
+          <MaterialCommunityIcons
+            name="speedometer-slow"
+            size={24}
+            color={Colors.dark.text}
+            style={styles.setIcon}
+          />
+          <ThemedText style={styles.setTypeLabel}>Warm-up</ThemedText>
         </View>
       )}
       {isDropSet && (
         <View style={styles.centeredLabelContainer}>
-          <ThemedText style={styles.warmupLabel}>Drop set</ThemedText>
+          <MaterialCommunityIcons
+            name="arrow-down-bold"
+            size={24}
+            color={Colors.dark.text}
+            style={styles.setIcon}
+          />
+          <ThemedText style={styles.setTypeLabel}>Drop set</ThemedText>
         </View>
       )}
 
@@ -327,11 +340,15 @@ const styles = StyleSheet.create({
     marginBottom: "auto",
   },
   centeredLabelContainer: {
-    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
   },
-  warmupLabel: {
+  setTypeLabel: {
     fontSize: 20,
     marginBottom: 16,
+  },
+  setIcon: {
+    marginRight: 8,
   },
   label: {
     fontSize: 16,
