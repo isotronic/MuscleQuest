@@ -5,18 +5,25 @@ import { Alert } from "react-native";
 
 export const useImageManagement = (
   updateSetting: ({ key, value }: { key: string; value: string }) => void,
+  toggleValue?: string,
 ) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isToggled, setIsToggled] = useState(toggleValue);
 
   const toggleDownloadImages = (value: boolean) => {
+    setIsToggled(value.toString());
     if (value === true) {
       Alert.alert(
         "Download Images",
         "Are you sure you want to download all animated images? This may take a while.",
         [
-          { text: "Cancel", style: "cancel" },
+          {
+            text: "Cancel",
+            style: "cancel",
+            onPress: () => setIsToggled("false"),
+          },
           {
             text: "Download",
             onPress: () => handleDownloadAllImages(),
@@ -28,7 +35,11 @@ export const useImageManagement = (
         "Download Images",
         "Are you sure you want to delete all animated images? Single images will be automatically re-downloaded when viewed.",
         [
-          { text: "Cancel", style: "cancel" },
+          {
+            text: "Cancel",
+            style: "cancel",
+            onPress: () => setIsToggled("true"),
+          },
           {
             text: "Delete",
             onPress: () => handleDeleteAllImages(),
@@ -100,6 +111,7 @@ export const useImageManagement = (
   };
 
   return {
+    isToggled,
     isDownloading,
     isDeleting,
     progress,

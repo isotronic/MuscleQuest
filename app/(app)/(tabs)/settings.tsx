@@ -34,8 +34,13 @@ export default function SettingsScreen() {
   const { data: settings, isLoading, isError, error } = useSettingsQuery();
   const { mutate: updateSetting } = useUpdateSettingsMutation();
 
-  const { isDownloading, isDeleting, progress, toggleDownloadImages } =
-    useImageManagement(updateSetting);
+  const {
+    isToggled: isDownloadToggled,
+    isDownloading,
+    isDeleting,
+    progress,
+    toggleDownloadImages,
+  } = useImageManagement(updateSetting, settings?.downloadImages);
 
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [currentSettingKey, setCurrentSettingKey] = useState<string | null>(
@@ -49,6 +54,12 @@ export default function SettingsScreen() {
   >(null);
   const [options, setOptions] = useState<string[] | undefined>(undefined);
 
+  const [toggleValues, setToggleValues] = useState({
+    keepScreenOn: settings?.keepScreenOn,
+    restTimerVibration: settings?.restTimerVibration,
+    // restTimerSound: settings?.restTimerSound,
+  });
+
   const defaultRestTime = settings
     ? `${Math.floor(parseInt(settings?.defaultRestTime) / 60)}:${(
         parseInt(settings?.defaultRestTime) % 60
@@ -57,10 +68,21 @@ export default function SettingsScreen() {
         .padStart(2, "0")} minutes`
     : "";
 
+  // When weightUnit changes, refetch completed workouts
   useEffect(() => {
-    // When weightUnit changes, refetch completed workouts
     queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
   }, [settings?.weightUnit, queryClient]);
+
+  // Sync local states with fetched settings data on load
+  useEffect(() => {
+    if (settings) {
+      setToggleValues({
+        keepScreenOn: settings?.keepScreenOn,
+        restTimerVibration: settings?.restTimerVibration,
+        // restTimerSound: settings?.restTimerSound,
+      });
+    }
+  }, [settings]);
 
   const showOverlay = (
     key: string,
@@ -128,10 +150,12 @@ export default function SettingsScreen() {
   };
 
   const toggleKeepScreenOn = (value: boolean) => {
+    setToggleValues({ ...toggleValues, keepScreenOn: value.toString() });
     updateSetting({ key: "keepScreenOn", value: value.toString() });
   };
 
   const toggleVibration = (value: boolean) => {
+    setToggleValues({ ...toggleValues, restTimerVibration: value.toString() });
     updateSetting({ key: "restTimerVibration", value: value.toString() });
   };
 
@@ -407,13 +431,13 @@ export default function SettingsScreen() {
                 Vibrate after rest
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.restTimerVibration === "true"
+                {toggleValues.restTimerVibration === "true"
                   ? "Enabled"
                   : "Disabled"}
               </ThemedText>
             </View>
             <Switch
-              value={settings?.restTimerVibration === "true"}
+              value={toggleValues.restTimerVibration === "true"}
               onValueChange={toggleVibration}
               color={Colors.dark.tint}
               style={styles.switch}
@@ -453,11 +477,11 @@ export default function SettingsScreen() {
                 Keep screen on during workout
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.keepScreenOn === "true" ? "Enabled" : "Disabled"}
+                {toggleValues.keepScreenOn === "true" ? "Enabled" : "Disabled"}
               </ThemedText>
             </View>
             <Switch
-              value={settings?.keepScreenOn === "true"}
+              value={toggleValues.keepScreenOn === "true"}
               onValueChange={toggleKeepScreenOn}
               color={Colors.dark.tint}
               style={styles.switch}
@@ -519,11 +543,11 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Download all exercise images
+                Download all exercise animations
               </ThemedText>
             </View>
             <Switch
-              value={settings?.downloadImages === "true"}
+              value={isDownloadToggled === "true"}
               onValueChange={toggleDownloadImages}
               color={Colors.dark.tint}
               style={styles.switch}
