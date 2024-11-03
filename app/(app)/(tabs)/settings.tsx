@@ -34,8 +34,13 @@ export default function SettingsScreen() {
   const { data: settings, isLoading, isError, error } = useSettingsQuery();
   const { mutate: updateSetting } = useUpdateSettingsMutation();
 
-  const { isDownloading, isDeleting, progress, toggleDownloadImages } =
-    useImageManagement(updateSetting);
+  const {
+    isToggled: isDownloadToggled,
+    isDownloading,
+    isDeleting,
+    progress,
+    toggleDownloadImages,
+  } = useImageManagement(updateSetting, settings?.downloadImages);
 
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [currentSettingKey, setCurrentSettingKey] = useState<string | null>(
@@ -542,7 +547,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
-              value={settings?.downloadImages === "true"}
+              value={isDownloadToggled === "true"}
               onValueChange={toggleDownloadImages}
               color={Colors.dark.tint}
               style={styles.switch}
