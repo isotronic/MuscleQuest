@@ -8,6 +8,7 @@ export interface Set {
   restSeconds: number;
   time: number | undefined;
   isWarmup?: boolean;
+  isDropSet?: boolean;
 }
 
 export interface UserExercise extends Exercise {
