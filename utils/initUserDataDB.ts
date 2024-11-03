@@ -46,6 +46,7 @@ export async function initUserDataDB() {
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS user_plans (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      app_plan_id INTEGER DEFAULT NULL,
       name TEXT NOT NULL,
       image_url TEXT,
       is_active BOOLEAN DEFAULT FALSE,
@@ -144,6 +145,9 @@ export async function initUserDataDB() {
   const completed_setsResult = await db.getAllAsync(`
     PRAGMA table_info(completed_sets);
   `);
+  const user_plansResult = await db.getAllAsync(`
+    PRAGMA table_info(user_plans);
+  `);
 
   const app_exercise_idExists = exercisesResult.some(
     (column: any) => column.name === "app_exercise_id",
@@ -159,6 +163,9 @@ export async function initUserDataDB() {
   );
   const timeExists = completed_setsResult.some(
     (column: any) => column.name === "time",
+  );
+  const app_plan_idExists = user_plansResult.some(
+    (column: any) => column.name === "app_plan_id",
   );
 
   // If the column does not exist, add it
@@ -185,6 +192,11 @@ export async function initUserDataDB() {
   if (!timeExists) {
     await db.execAsync(`
       ALTER TABLE completed_sets ADD COLUMN time INTEGER;
+    `);
+  }
+  if (!app_plan_idExists) {
+    await db.execAsync(`
+      ALTER TABLE user_plans ADD COLUMN app_plan_id INTEGER DEFAULT NULL;
     `);
   }
 }
