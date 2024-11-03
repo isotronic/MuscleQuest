@@ -538,7 +538,7 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Download all exercise images
+                Download all exercise animations
               </ThemedText>
             </View>
             <Switch
