@@ -40,6 +40,7 @@ import * as googleServices from "@/google-services.json";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import Constants from "expo-constants";
+import { loadPremadePlans } from "@/utils/loadPremadePlans";
 
 const IS_DEV = Constants.expoConfig?.extra?.appVariant === "development";
 
@@ -111,6 +112,7 @@ function RootLayout() {
         await copyDataFromAppDataToUserData();
         await updateAppExerciseIds();
         await insertDefaultSettings();
+        await loadPremadePlans();
         // Set the database initialization state to true after setup is complete
         setIsDatabaseInitialized(true);
       } catch (error) {
