@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buttonLabel: {
-    fontSize: 18,
+    fontSize: 16,
   },
   largeButtonLabel: {
     fontSize: 24,
