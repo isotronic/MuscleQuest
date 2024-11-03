@@ -11,6 +11,7 @@ export interface CompletedSet {
   set_number: number;
   weight: number;
   reps: number;
+  time: number;
   date_completed: string;
   oneRepMax: number;
 }
@@ -32,8 +33,9 @@ const fetchTrackedExercises = async (
         e.name, -- Fetch the name of the exercise from exercises table
         MAX(cs.weight) AS max_weight, -- Get the max weight for the exercise in each workout
         cs.reps,
+        cs.time,
         cs.set_number,
-        cw.date_completed
+        DATE(cw.date_completed) AS date_completed
       FROM tracked_exercises te
       LEFT JOIN exercises e ON te.exercise_id = e.exercise_id -- Join to get exercise name
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
@@ -45,8 +47,10 @@ const fetchTrackedExercises = async (
       query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) `;
     }
 
-    query += `GROUP BY te.id, te.exercise_id -- Group by tracked exercise and exercise ID
-      ORDER BY cw.date_completed DESC`;
+    query += `
+      GROUP BY te.exercise_id, DATE(cw.date_completed)
+      ORDER BY cw.date_completed DESC
+    `;
 
     const trackedExercises = await db.getAllAsync(query);
 
@@ -75,6 +79,7 @@ const fetchTrackedExercises = async (
           set_number: row.set_number,
           weight: row.max_weight, // Use the max weight from the query
           reps: row.reps,
+          time: row.time,
           date_completed: row.date_completed,
           oneRepMax,
         });

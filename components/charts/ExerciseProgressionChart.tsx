@@ -99,7 +99,7 @@ export const ExerciseProgressionChart: React.FC<
           yAxisTextStyle={styles.yAxisLabel}
           xAxisLabelTextStyle={styles.xAxisLabel}
           xAxisColor={Colors.dark.text}
-          dataPointsColor={Colors.dark.highlight}
+          dataPointsColor={Colors.dark.tint}
         />
       </View>
     </Card>
