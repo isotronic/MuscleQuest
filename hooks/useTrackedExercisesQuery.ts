@@ -33,7 +33,7 @@ const fetchTrackedExercises = async (
         MAX(cs.weight) AS max_weight, -- Get the max weight for the exercise in each workout
         cs.reps,
         cs.set_number,
-        cw.date_completed
+        DATE(cw.date_completed) AS date_completed
       FROM tracked_exercises te
       LEFT JOIN exercises e ON te.exercise_id = e.exercise_id -- Join to get exercise name
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
@@ -45,8 +45,10 @@ const fetchTrackedExercises = async (
       query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) `;
     }
 
-    query += `GROUP BY te.id, te.exercise_id -- Group by tracked exercise and exercise ID
-      ORDER BY cw.date_completed DESC`;
+    query += `
+      GROUP BY te.exercise_id, DATE(cw.date_completed)
+      ORDER BY cw.date_completed DESC
+    `;
 
     const trackedExercises = await db.getAllAsync(query);
 
