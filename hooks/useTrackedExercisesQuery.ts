@@ -11,6 +11,7 @@ export interface CompletedSet {
   set_number: number;
   weight: number;
   reps: number;
+  time: number;
   date_completed: string;
   oneRepMax: number;
 }
@@ -32,6 +33,7 @@ const fetchTrackedExercises = async (
         e.name, -- Fetch the name of the exercise from exercises table
         MAX(cs.weight) AS max_weight, -- Get the max weight for the exercise in each workout
         cs.reps,
+        cs.time,
         cs.set_number,
         DATE(cw.date_completed) AS date_completed
       FROM tracked_exercises te
@@ -77,6 +79,7 @@ const fetchTrackedExercises = async (
           set_number: row.set_number,
           weight: row.max_weight, // Use the max weight from the query
           reps: row.reps,
+          time: row.time,
           date_completed: row.date_completed,
           oneRepMax,
         });
