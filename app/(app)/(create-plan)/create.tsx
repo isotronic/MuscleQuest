@@ -138,6 +138,30 @@ export default function CreatePlanScreen() {
     router.push(`/(app)/(create-plan)/exercises?index=${index}`);
   };
 
+  const handleSaveAndNavigate = async () => {
+    try {
+      const newPlanId = await handleSavePlan(
+        Number(planId),
+        existingPlan?.app_plan_id,
+      );
+
+      // Invalidate relevant queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["plans"] }),
+        queryClient.invalidateQueries({ queryKey: ["activePlan"] }),
+      ]);
+
+      // Handle navigation based on result
+      if (newPlanId) {
+        router.push("/(plans)");
+      } else {
+        router.back();
+      }
+    } catch (error) {
+      console.error("Error in handleSaveAndNavigate:", error);
+    }
+  };
+
   const saveDisabled = !planName.trim() || workouts.length === 0;
 
   return (
@@ -155,26 +179,7 @@ export default function CreatePlanScreen() {
               style={{ marginRight: 0 }}
               disabled={saveDisabled}
               iconColor={Colors.dark.tint}
-              onPress={() =>
-                handleSavePlan(Number(planId), existingPlan?.app_plan_id)
-                  .then((newPlanId) => {
-                    if (newPlanId) {
-                      queryClient.invalidateQueries({ queryKey: ["plans"] });
-                      queryClient.invalidateQueries({
-                        queryKey: ["activePlan"],
-                      });
-                      router.push(`/(plans)`);
-                      // router.push(
-                      //   `/(app)/(tabs)/(plans)/overview?planId=${newPlanId}`,
-                      // );
-                    } else {
-                      router.back();
-                    }
-                  })
-                  .catch((error) => {
-                    console.error("Error in handleSavePlan:", error);
-                  })
-              }
+              onPress={handleSaveAndNavigate}
             />
           ),
         }}
