@@ -5,10 +5,7 @@ import { Alert } from "react-native";
 import { Plan } from "./useAllPlansQuery";
 import { useQueryClient } from "@tanstack/react-query";
 
-export const useCreatePlan = (
-  planId: number | null = null,
-  existingPlan?: Plan,
-) => {
+export const useCreatePlan = (existingPlan?: Plan) => {
   const queryClient = useQueryClient();
   const [planSaved, setPlanSaved] = useState(false);
   const [planName, setPlanName] = useState("");
@@ -24,7 +21,10 @@ export const useCreatePlan = (
     }
   }, [existingPlan, setPlanImageUrl]);
 
-  const handleSavePlan = async (planId: number | null) => {
+  const handleSavePlan = async (
+    planId: number | null,
+    appPlanId?: number | null,
+  ): Promise<number | void> => {
     if (!planName.trim()) {
       Alert.alert("Please enter a plan name");
       return;
@@ -36,17 +36,15 @@ export const useCreatePlan = (
     }
 
     try {
-      if (planId) {
-        if (workouts) {
-          await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
-          queryClient.invalidateQueries({ queryKey: ["plan", planId] });
-        } else {
-          throw new Error("Workouts are undefined");
-        }
+      let newPlanId: number | null = null;
+      if (appPlanId || !planId) {
+        newPlanId = await insertWorkoutPlan(planName, planImageUrl, workouts);
       } else {
-        await insertWorkoutPlan(planName, planImageUrl, workouts);
+        await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
+        queryClient.invalidateQueries({ queryKey: ["plan", planId] });
       }
       setPlanSaved(true);
+      return newPlanId ?? undefined;
     } catch (error) {
       console.error("Error inserting/updating plan data:", error);
       setIsError(true);
