@@ -410,8 +410,9 @@ export const insertWorkoutPlan = async (
   name: string,
   image_url: string,
   workouts: Workout[],
-) => {
+): Promise<number | null> => {
   const db = await openDatabase("userData.db"); // Open database once
+  let newPlanId: number | null = null;
 
   // Start the transaction
   await db.withExclusiveTransactionAsync(async (txn) => {
@@ -422,15 +423,17 @@ export const insertWorkoutPlan = async (
         [name, image_url],
       );
 
-      const planId = result.lastInsertRowId;
+      newPlanId = result.lastInsertRowId;
 
       // Insert the workouts associated with this plan
-      await insertWorkouts(txn, planId, workouts);
+      await insertWorkouts(txn, newPlanId, workouts);
     } catch (error) {
       console.error("Error inserting workout plan:", error);
       throw error;
     }
   });
+
+  return newPlanId;
 };
 
 export const insertWorkouts = async (

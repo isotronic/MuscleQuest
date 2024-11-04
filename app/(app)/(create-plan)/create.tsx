@@ -15,7 +15,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { FAB, ActivityIndicator, IconButton } from "react-native-paper";
 import {
-  router,
+  useRouter,
   Stack,
   useLocalSearchParams,
   useNavigation,
@@ -28,6 +28,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 export default function CreatePlanScreen() {
   const navigation = useNavigation();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { planId } = useLocalSearchParams();
   const [dataLoaded, setDataLoaded] = useState(!planId);
@@ -42,7 +43,7 @@ export default function CreatePlanScreen() {
     changeWorkoutName,
   } = useWorkoutStore();
   const { planName, setPlanName, planSaved, setPlanSaved, handleSavePlan } =
-    useCreatePlan(Number(planId));
+    useCreatePlan();
   const { data: existingPlan } = usePlanQuery(planId ? Number(planId) : null);
 
   useEffect(() => {
@@ -105,12 +106,6 @@ export default function CreatePlanScreen() {
     queryClient,
   ]);
 
-  useEffect(() => {
-    if (planSaved) {
-      router.back();
-    }
-  }, [planSaved]);
-
   const handleAddWorkout = () => {
     const newWorkout = { name: "", exercises: [] };
     addWorkout(newWorkout);
@@ -143,6 +138,30 @@ export default function CreatePlanScreen() {
     router.push(`/(app)/(create-plan)/exercises?index=${index}`);
   };
 
+  const handleSaveAndNavigate = async () => {
+    try {
+      const newPlanId = await handleSavePlan(
+        Number(planId),
+        existingPlan?.app_plan_id,
+      );
+
+      // Invalidate relevant queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["plans"] }),
+        queryClient.invalidateQueries({ queryKey: ["activePlan"] }),
+      ]);
+
+      // Handle navigation based on result
+      if (newPlanId) {
+        router.push("/(plans)");
+      } else {
+        router.back();
+      }
+    } catch (error) {
+      console.error("Error in handleSaveAndNavigate:", error);
+    }
+  };
+
   const saveDisabled = !planName.trim() || workouts.length === 0;
 
   return (
@@ -160,7 +179,7 @@ export default function CreatePlanScreen() {
               style={{ marginRight: 0 }}
               disabled={saveDisabled}
               iconColor={Colors.dark.tint}
-              onPress={() => handleSavePlan(Number(planId))}
+              onPress={handleSaveAndNavigate}
             />
           ),
         }}

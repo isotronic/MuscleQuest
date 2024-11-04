@@ -22,6 +22,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "MuscleQuest",
+          tabBarLabel: "Home",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? "home" : "home-outline"}

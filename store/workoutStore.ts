@@ -14,11 +14,13 @@ export interface Set {
 export interface UserExercise extends Exercise {
   sets: Set[];
   exercise_order?: number;
+  is_deleted?: boolean;
 }
 
 export interface Workout {
   id?: number;
   name: string;
+  is_deleted?: boolean;
   exercises: UserExercise[];
 }
 

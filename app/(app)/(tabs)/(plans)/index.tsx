@@ -3,7 +3,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { router } from "expo-router";
 import { ScrollView, StyleSheet } from "react-native";
-import { FAB } from "react-native-paper";
+import { ActivityIndicator, FAB } from "react-native-paper";
 import { useAllPlansQuery, Plan } from "@/hooks/useAllPlansQuery";
 import { PlanList } from "@/components/PlanList";
 
@@ -19,7 +19,11 @@ export default function PlansScreen() {
   };
 
   if (isLoading) {
-    return <ThemedText>Loading plans...</ThemedText>;
+    return (
+      <ThemedView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.dark.text} />
+      </ThemedView>
+    );
   }
 
   if (isError) {
@@ -31,12 +35,12 @@ export default function PlansScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <PlanList
           title="Your training plans"
-          data={plans}
+          data={plans?.userPlans}
           onPressItem={handleViewPlan}
         />
         <PlanList
-          title="Pre-made plans"
-          data={[]}
+          title="Premade plans"
+          data={plans?.appPlans}
           onPressItem={handleViewPlan}
         />
         {/* <ThemedText style={{ margin: 20, textAlign: "center" }}>
@@ -59,6 +63,11 @@ export default function PlansScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   fab: {
     position: "absolute",
