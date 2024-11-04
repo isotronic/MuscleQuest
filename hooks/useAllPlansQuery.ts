@@ -90,7 +90,7 @@ const transformRawPlans = (
 
   // Convert Maps to arrays
   return {
-    userPlans: Array.from(userPlansMap.values()),
+    userPlans: Array.from(userPlansMap.values()).reverse(),
     appPlans: Array.from(appPlansMap.values()),
   };
 };
