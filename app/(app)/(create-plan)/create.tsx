@@ -159,6 +159,10 @@ export default function CreatePlanScreen() {
                 handleSavePlan(Number(planId), existingPlan?.app_plan_id)
                   .then((newPlanId) => {
                     if (newPlanId) {
+                      queryClient.invalidateQueries({ queryKey: ["plans"] });
+                      queryClient.invalidateQueries({
+                        queryKey: ["activePlan"],
+                      });
                       router.push(`/(plans)`);
                       // router.push(
                       //   `/(app)/(tabs)/(plans)/overview?planId=${newPlanId}`,
