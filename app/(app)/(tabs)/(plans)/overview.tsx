@@ -83,19 +83,21 @@ export default function PlanOverviewScreen() {
 
   return (
     <ThemedView>
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <IconButton
-              icon="trash-can-outline"
-              size={25}
-              style={{ marginRight: 0 }}
-              iconColor={Colors.dark.highlight}
-              onPress={handleDeletePlan}
-            />
-          ),
-        }}
-      />
+      {!plan?.app_plan_id && (
+        <Stack.Screen
+          options={{
+            headerRight: () => (
+              <IconButton
+                icon="trash-can-outline"
+                size={25}
+                style={{ marginRight: 0 }}
+                iconColor={Colors.dark.highlight}
+                onPress={handleDeletePlan}
+              />
+            ),
+          }}
+        />
+      )}
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.planHeader}>
           <Image source={imageSource} style={styles.planImage} />
@@ -142,7 +144,7 @@ export default function PlanOverviewScreen() {
           style={styles.paperButton}
           labelStyle={styles.buttonLabel}
         >
-          Edit Plan
+          {plan?.app_plan_id ? "Customise" : "Edit"} Plan
         </Button>
       </View>
       <Snackbar
