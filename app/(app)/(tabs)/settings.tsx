@@ -27,6 +27,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import { AuthContext } from "@/context/AuthProvider";
 import { signInWithGoogle } from "@/utils/auth";
+import Bugsnag from "@bugsnag/expo";
 
 export default function SettingsScreen() {
   const user = useContext(AuthContext);
@@ -630,7 +631,10 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.item} onPress={() => {}}>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => Bugsnag.notify(new Error("Settings test error"))}
+          >
             <MaterialCommunityIcons
               name="bug"
               size={24}
