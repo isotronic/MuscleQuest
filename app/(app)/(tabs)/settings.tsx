@@ -630,6 +630,19 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.item} onPress={() => {}}>
+            <MaterialCommunityIcons
+              name="bug"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Send test error to Sentry
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
         </View>
         <Divider style={styles.divider} />
 

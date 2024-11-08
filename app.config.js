@@ -45,15 +45,6 @@ export default {
       "expo-router",
       "expo-asset",
       [
-        "@sentry/react-native/expo",
-        {
-          organization: "musclequest",
-          project: "musclequest-react-native",
-          url: "https://sentry.io/",
-          note: "Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.",
-        },
-      ],
-      [
         "expo-font",
         {
           fonts: [
