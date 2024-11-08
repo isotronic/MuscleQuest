@@ -1,14 +1,15 @@
 import Bugsnag from "@bugsnag/expo";
+import React, { useEffect, useState } from "react";
 import { Slot } from "expo-router";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import {
   ActivityIndicator,
+  Button,
   Provider as PaperProvider,
 } from "react-native-paper";
 import { paperTheme } from "@/utils/paperTheme";
 import { useFonts } from "expo-font";
 import * as Updates from "expo-updates";
-import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import * as SplashScreen from "expo-splash-screen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -39,7 +40,25 @@ import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
 
+// Initialize Bugsnag
 Bugsnag.start();
+
+const ErrorBoundary = Bugsnag.getPlugin("react").createErrorBoundary(React);
+
+const ErrorView = ({ clearError }: { clearError: () => void }) => {
+  return (
+    <ThemedView
+      style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+    >
+      <ThemedText>
+        A render error has occurred. Press the button to reload.
+      </ThemedText>
+      <Button onPress={clearError} mode="contained">
+        Reload
+      </Button>
+    </ThemedView>
+  );
+};
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -121,4 +140,10 @@ function RootLayout() {
   );
 }
 
-export default RootLayout;
+export default function App() {
+  return (
+    <ErrorBoundary FallbackComponent={ErrorView}>
+      <RootLayout />
+    </ErrorBoundary>
+  );
+}
