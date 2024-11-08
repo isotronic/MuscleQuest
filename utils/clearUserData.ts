@@ -1,3 +1,4 @@
+import Bugsnag from "@bugsnag/expo";
 import * as FileSystem from "expo-file-system";
 import * as Updates from "expo-updates";
 
@@ -16,7 +17,8 @@ export const clearDatabaseAndReinitialize = async () => {
     // Reinitialize the database
     console.log("Restarting the app...");
     await Updates.reloadAsync();
-  } catch (error) {
+  } catch (error: any) {
+    Bugsnag.notify(error);
     console.error("Error clearing and reinitializing the database:", error);
   }
 };

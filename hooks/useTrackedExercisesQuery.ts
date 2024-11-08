@@ -1,4 +1,5 @@
 import { openDatabase } from "@/utils/database";
+import Bugsnag from "@bugsnag/expo";
 import { useQuery } from "@tanstack/react-query";
 
 interface TrackedExercise {
@@ -87,8 +88,9 @@ const fetchTrackedExercises = async (
     });
 
     return Object.values(groupedExercises);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching tracked exercises:", error);
+    Bugsnag.notify(error);
     return [];
   }
 };

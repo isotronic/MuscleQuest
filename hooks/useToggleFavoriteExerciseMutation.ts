@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
+import Bugsnag from "@bugsnag/expo";
 
 // Function to toggle favorite status in the database
 const toggleFavoriteStatus = async (
@@ -15,8 +16,9 @@ const toggleFavoriteStatus = async (
     SET favorite = ${newStatus} 
     WHERE exercise_id = ${exerciseId};
   `);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error toggling favorite status:", error);
+    Bugsnag.notify(error);
     throw new Error(`Failed to toggle favorite status: ${error}`);
   }
 };

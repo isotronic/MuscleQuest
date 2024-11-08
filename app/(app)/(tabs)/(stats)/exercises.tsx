@@ -11,6 +11,7 @@ import FilterModal from "@/components/FilterModal";
 import ExerciseList from "@/components/ExerciseList";
 import { openDatabase } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
+import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
   const queryclient = useQueryClient();
@@ -106,8 +107,9 @@ export default function ExercisesScreen() {
 
       queryclient.invalidateQueries({ queryKey: ["trackedExercises"] });
       router.back();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving exercises for tracking:", error);
+      Bugsnag.notify(error);
     }
   };
 
@@ -152,6 +154,7 @@ export default function ExercisesScreen() {
 
   if (exercisesError) {
     console.error("Error loading exercises:", exercisesError);
+    Bugsnag.notify(exercisesError);
     return (
       <ThemedView style={styles.container}>
         <ThemedText style={styles.errorText}>

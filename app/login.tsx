@@ -9,6 +9,7 @@ import { Button } from "react-native-paper";
 import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
+import Bugsnag from "@bugsnag/expo";
 
 const logo = require("@/assets/images/icon.png");
 
@@ -16,14 +17,18 @@ export default function LoginScreen() {
   const queryClient = useQueryClient();
 
   async function saveLoginShown() {
-    const db = await openDatabase("userData.db");
+    try {
+      const db = await openDatabase("userData.db");
 
-    await db.runAsync(
-      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-      ["loginShown", "true"],
-    );
-    await queryClient.invalidateQueries({ queryKey: ["settings"] });
-    await queryClient.refetchQueries({ queryKey: ["settings"] });
+      await db.runAsync(
+        "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+        ["loginShown", "true"],
+      );
+      await queryClient.invalidateQueries({ queryKey: ["settings"] });
+      await queryClient.refetchQueries({ queryKey: ["settings"] });
+    } catch (error: any) {
+      Bugsnag.notify(error);
+    }
   }
 
   async function handleSignIn() {
@@ -39,9 +44,12 @@ export default function LoginScreen() {
       await auth().signInWithCredential(googleCredential);
       await saveLoginShown(); // Save setting to avoid showing login again
       router.replace("/");
-    } catch (error) {
+    } catch (error: any) {
       console.error("handleSignIn error", error);
-      Alert.alert("Error", "Failed to sign in. Please try again.");
+      Bugsnag.notify(error);
+      Alert.alert("Error", "Failed to sign in. Please try again.", [
+        { text: "OK" },
+      ]);
     }
   }
 

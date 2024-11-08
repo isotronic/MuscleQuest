@@ -102,7 +102,9 @@ export default function SessionSetInfo({
         {animatedImageLoading ? (
           <ActivityIndicator size="small" color={Colors.dark.text} />
         ) : animatedImageError ? (
-          <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
+          <TouchableOpacity onPress={handleImagePress}>
+            <Image style={styles.animatedImage} source={fallbackImage} />
+          </TouchableOpacity>
         ) : animatedUrl ? (
           <TouchableOpacity onPress={handleImagePress}>
             <Image

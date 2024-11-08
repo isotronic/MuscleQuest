@@ -10,6 +10,7 @@ import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import FilterModal from "@/components/FilterModal";
 import ExerciseList from "@/components/ExerciseList";
+import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -152,7 +153,10 @@ export default function ExercisesScreen() {
 
   if (exercisesError || settingsError) {
     const error = exercisesError || settingsError;
-    console.log(error);
+    if (error !== null) {
+      console.log(error);
+      Bugsnag.notify(error);
+    }
     return (
       <ThemedView style={styles.container}>
         <ThemedText style={styles.errorText}>

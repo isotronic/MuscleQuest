@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Plan, RawPlan } from "./useAllPlansQuery";
 import { openDatabase } from "@/utils/database";
 import { Workout } from "@/store/workoutStore";
+import Bugsnag from "@bugsnag/expo";
 
 const fetchActivePlanData = async (): Promise<Plan | null> => {
   try {
@@ -87,8 +88,9 @@ const fetchActivePlanData = async (): Promise<Plan | null> => {
       is_active: rawResult[0].is_active,
       workouts,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching or parsing active plan", error);
+    Bugsnag.notify(error);
     return null;
   }
 };

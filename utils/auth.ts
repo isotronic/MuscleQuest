@@ -1,3 +1,4 @@
+import Bugsnag from "@bugsnag/expo";
 import auth from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { Alert } from "react-native";
@@ -13,7 +14,7 @@ export const signInWithGoogle = async () => {
     const { idToken } = await GoogleSignin.signIn();
     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
     await auth().signInWithCredential(googleCredential);
-  } catch (error) {
+  } catch (error: any) {
     const typedError = error as { code?: string };
 
     // Code 12501 means user cancelled sign in
@@ -22,6 +23,7 @@ export const signInWithGoogle = async () => {
       Alert.alert("Error", "Failed to sign in. Please try again.");
     }
 
+    Bugsnag.notify(error);
     throw error;
   }
 };

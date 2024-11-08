@@ -126,7 +126,8 @@ export default function SettingsScreen() {
           `INSERT INTO body_measurements (date, body_weight) VALUES (datetime('now'), ?)`,
           [inputValue as number],
         );
-      } catch (error) {
+      } catch (error: any) {
+        Bugsnag.notify(error);
         console.error(
           "Error saving body weight into body_measurements:",
           error,
@@ -189,7 +190,8 @@ export default function SettingsScreen() {
       const db = await openDatabase("userData.db");
       await db.runAsync("DELETE FROM settings WHERE key = ?", ["loginShown"]);
       console.log("loginShown setting has been reset.");
-    } catch (error) {
+    } catch (error: any) {
+      Bugsnag.notify(error);
       console.error("Error resetting loginShown setting:", error);
     }
   };
@@ -197,6 +199,7 @@ export default function SettingsScreen() {
   useEffect(() => {
     if (isError) {
       console.error("Error fetching settings:", error);
+      Bugsnag.notify(error);
     }
   }, [isError, error]);
 
@@ -209,7 +212,7 @@ export default function SettingsScreen() {
   }
 
   if (isError) {
-    return <ThemedText>Error: {String(error)}</ThemedText>;
+    return <ThemedText>Error: {error.message}</ThemedText>;
   }
 
   return (

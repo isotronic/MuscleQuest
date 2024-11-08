@@ -15,6 +15,7 @@ import { useDeletePlanMutation } from "@/hooks/useDeletePlanMutation";
 import { useSetActivePlanMutation } from "@/hooks/useSetActivePlanMutation";
 import { Snackbar, Button, IconButton } from "react-native-paper";
 import { useState } from "react";
+import Bugsnag from "@bugsnag/expo";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -49,6 +50,7 @@ export default function PlanOverviewScreen() {
               },
               onError: (error) => {
                 Alert.alert("Error", `Failed to delete plan: ${error.message}`);
+                Bugsnag.notify(error);
               },
             });
           },
@@ -69,6 +71,7 @@ export default function PlanOverviewScreen() {
         setSnackbarMessage(`Failed to activate this plan: ${error.message}`);
         setSnackbarError(true);
         setSnackbarVisible(true);
+        Bugsnag.notify(error);
       },
     });
   };

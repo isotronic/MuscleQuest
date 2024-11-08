@@ -17,6 +17,7 @@ import {
   useCompletedWorkoutsQuery,
 } from "@/hooks/useCompletedWorkoutsQuery";
 import { Workout } from "@/store/workoutStore";
+import Bugsnag from "@bugsnag/expo";
 
 export default function HomeScreen() {
   const user = useContext(AuthContext);
@@ -78,6 +79,10 @@ export default function HomeScreen() {
     );
   } else if (activePlanError || settingsError || completedWorkoutsError) {
     const error = activePlanError || settingsError || completedWorkoutsError;
+
+    if (error) {
+      Bugsnag.notify(error);
+    }
     return (
       <ThemedText style={styles.loadingContainer}>
         Error fetching{" "}

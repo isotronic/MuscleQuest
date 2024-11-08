@@ -1,6 +1,7 @@
 import { Plan } from "@/hooks/useAllPlansQuery";
 import { openDatabase } from "./database";
 import { SQLiteDatabase } from "expo-sqlite";
+import Bugsnag from "@bugsnag/expo";
 
 const insertPlans = async (db: SQLiteDatabase, plans: Plan[]) => {
   const plansToInsert: Plan[] = [];
@@ -97,7 +98,8 @@ export const loadPremadePlans = async () => {
         ["dataVersion", "1.6"],
       );
     }
-  } catch (error) {
+  } catch (error: any) {
+    Bugsnag.notify(error);
     console.error("Error loading and inserting premade plans:", error);
     throw error;
   }

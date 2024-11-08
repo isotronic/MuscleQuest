@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CompletedWorkout } from "./useCompletedWorkoutsQuery";
 import { Alert } from "react-native";
 import { openDatabase } from "@/utils/database";
+import Bugsnag from "@bugsnag/expo";
 
 const saveCompletedWorkoutWithConversion = async (
   completedWorkoutData: CompletedWorkout["exercises"],
@@ -30,8 +31,9 @@ const saveCompletedWorkoutWithConversion = async (
         );
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error saving edited workout:", error);
+    Bugsnag.notify(error);
     throw error;
   }
 };
@@ -56,6 +58,7 @@ export const useEditCompletedWorkoutMutation = (
     },
     onError: (error) => {
       console.error("Error saving edited workout:", error);
+      Bugsnag.notify(error);
       Alert.alert(
         "Error",
         "An error occurred while saving your edited workout. Please try again.",

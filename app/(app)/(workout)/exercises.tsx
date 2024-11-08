@@ -11,6 +11,7 @@ import FilterModal from "@/components/FilterModal";
 import ExerciseList from "@/components/ExerciseList";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { UserExercise } from "@/store/workoutStore";
+import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
   const { replaceExerciseIndex } = useLocalSearchParams();
@@ -106,6 +107,7 @@ export default function ExercisesScreen() {
 
   if (exercisesError) {
     console.error("Error loading exercises:", exercisesError);
+    Bugsnag.notify(exercisesError);
     return (
       <ThemedView style={styles.container}>
         <ThemedText style={styles.errorText}>

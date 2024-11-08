@@ -19,6 +19,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import BodyPartChart from "@/components/charts/BodyPartChart";
 import { WorkoutBarChart } from "@/components/charts/WorkoutBarChart";
 import { formatToHoursMinutes } from "@/utils/utility";
+import Bugsnag from "@bugsnag/expo";
 
 const timeRanges = {
   allTime: "0",
@@ -35,13 +36,22 @@ export default function StatsScreen() {
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>(
     settings?.timeRange || timeRanges.thirtyDays,
   );
-  const { data: exercises, isLoading: isLoadingExercises } =
-    useExercisesQuery();
-  const { data: trackedExercises, isLoading: isLoadingTrackedExercises } =
-    useTrackedExercisesQuery(selectedTimeRange);
+  const {
+    data: exercises,
+    isLoading: isLoadingExercises,
+    error: exercisesError,
+  } = useExercisesQuery();
+  const {
+    data: trackedExercises,
+    isLoading: isLoadingTrackedExercises,
+    error: trackedExercisesError,
+  } = useTrackedExercisesQuery(selectedTimeRange);
 
-  const { data: completedWorkouts, isLoading: isLoadingWorkouts } =
-    useCompletedWorkoutsQuery(weightUnit, parseInt(selectedTimeRange));
+  const {
+    data: completedWorkouts,
+    isLoading: isLoadingWorkouts,
+    error: completedWorkoutsError,
+  } = useCompletedWorkoutsQuery(weightUnit, parseInt(selectedTimeRange));
 
   // Calculate total workouts
   const totalWorkouts = completedWorkouts ? completedWorkouts.length : 0;
@@ -70,7 +80,8 @@ export default function StatsScreen() {
     setSelectedTimeRange(range);
     try {
       await updateSettings("timeRange", range);
-    } catch (error) {
+    } catch (error: any) {
+      Bugsnag.notify(error);
       console.error("Failed to update time range:", error);
       setSelectedTimeRange((prevRange) => prevRange);
       // TODO: Implement user-facing error message
@@ -86,7 +97,7 @@ export default function StatsScreen() {
 
   const handleAddExercisesPress = () => {
     router.push({
-      pathname: "/(app)/(tabs)/(stats)/exercises", // Adjust based on your routing structure
+      pathname: "/(app)/(tabs)/(stats)/exercises",
       params: {
         selectedExercises: JSON.stringify(
           trackedExercises?.map((te) => te.exercise_id),
@@ -101,6 +112,20 @@ export default function StatsScreen() {
         <ActivityIndicator size="large" color={Colors.dark.text} />
       </ThemedView>
     );
+  }
+
+  if (completedWorkoutsError || exercisesError || trackedExercisesError) {
+    const error =
+      completedWorkoutsError || exercisesError || trackedExercisesError;
+
+    if (error instanceof Error) {
+      Bugsnag.notify(error);
+      return (
+        <ThemedView style={styles.container}>
+          <ThemedText>Error loading data: {error.message}</ThemedText>
+        </ThemedView>
+      );
+    }
   }
 
   return (

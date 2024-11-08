@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
+import Bugsnag from "@bugsnag/expo";
 
 interface WorkoutResult {
   id: number;
@@ -85,8 +86,9 @@ const fetchCompletedWorkouts = async (
     const results = await db.getAllAsync(query);
 
     return results as WorkoutResult[];
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching completed workouts:", error);
+    Bugsnag.notify(error);
     throw new Error("Failed to fetch completed workouts");
   }
 };

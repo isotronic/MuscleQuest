@@ -8,6 +8,7 @@ import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { ThemedView } from "@/components/ThemedView";
 import { useExerciseDetailsQuery } from "@/hooks/useExerciseDetailsQuery";
 import { useToggleFavoriteExerciseMutation } from "@/hooks/useToggleFavoriteExerciseMutation";
+import Bugsnag from "@bugsnag/expo";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -39,8 +40,9 @@ export default function ExerciseDetailsScreen() {
         typeof exerciseData.secondary_muscles === "string"
           ? JSON.parse(exerciseData.secondary_muscles)
           : exerciseData.secondary_muscles;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error parsing secondary_muscles:", error);
+      Bugsnag.notify(error);
       secondaryMuscles = [];
     }
   }
@@ -52,8 +54,9 @@ export default function ExerciseDetailsScreen() {
         typeof exerciseData.description === "string"
           ? JSON.parse(exerciseData.description)
           : exerciseData.description;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error parsing description:", error);
+      Bugsnag.notify(error);
       description = [];
     }
   }
@@ -67,6 +70,9 @@ export default function ExerciseDetailsScreen() {
   }
 
   if (exerciseError || !exerciseData) {
+    if (exerciseError) {
+      Bugsnag.notify(exerciseError);
+    }
     return (
       <View style={styles.container}>
         <ThemedText style={styles.errorText}>

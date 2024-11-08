@@ -5,6 +5,7 @@ import {
   insertAnimatedImageUri,
 } from "@/utils/database";
 import { fetchExercisesWithoutLocalAnimatedUri } from "@/utils/database";
+import Bugsnag from "@bugsnag/expo";
 
 interface DownloadAllImagesResult {
   success: boolean;
@@ -120,7 +121,8 @@ export const downloadAllAnimatedImages = async (
       // Start initial downloads
       startNext();
     });
-  } catch (error) {
+  } catch (error: any) {
+    Bugsnag.notify(error);
     console.error("Error downloading all images:", error);
     throw error;
   }
