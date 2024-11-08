@@ -39,6 +39,7 @@ export default {
       favicon: "./assets/images/favicon.png",
     },
     plugins: [
+      "@bugsnag/plugin-expo-eas-sourcemaps",
       "@react-native-google-signin/google-signin",
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
@@ -71,6 +72,9 @@ export default {
       appVariant: process.env.APP_VARIANT || "production",
       eas: {
         projectId: "4f7b2a94-f0e0-44df-a5e5-1b7dc95a019a",
+      },
+      bugsnag: {
+        apiKey: "f3e22acd99f43ed227cbddb1e8734e80",
       },
     },
   },

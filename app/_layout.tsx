@@ -1,3 +1,4 @@
+import Bugsnag from "@bugsnag/expo";
 import { Slot } from "expo-router";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import {
@@ -37,6 +38,8 @@ import * as googleServices from "@/google-services.json";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
+
+Bugsnag.start();
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
