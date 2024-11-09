@@ -21,6 +21,8 @@ interface SessionSetInfoProps {
   animatedUrl: string | undefined;
   animatedImageLoading: boolean;
   animatedImageError: Error | null;
+  isLastSetOfLastExercise: boolean | null | undefined;
+  isFirstSetOfFirstExercise: boolean | null | undefined;
   currentSetIndex: number;
   totalSets: number;
   weight: string;
@@ -56,6 +58,8 @@ export default function SessionSetInfo({
   animatedUrl,
   animatedImageLoading,
   animatedImageError,
+  isLastSetOfLastExercise,
+  isFirstSetOfFirstExercise,
   currentSetIndex,
   totalSets,
   weight,
@@ -182,7 +186,7 @@ export default function SessionSetInfo({
           icon="chevron-left"
           onPress={handlePreviousSet}
           size={buttonSize}
-          disabled={currentSetIndex === 0}
+          disabled={isFirstSetOfFirstExercise}
           iconColor={Colors.dark.text}
           style={styles.iconButton}
         />
@@ -222,7 +226,7 @@ export default function SessionSetInfo({
           icon="chevron-right"
           onPress={handleNextSet}
           size={buttonSize}
-          disabled={currentSetIndex === totalSets - 1}
+          disabled={isLastSetOfLastExercise}
           iconColor={Colors.dark.text}
           style={styles.iconButton}
         />
