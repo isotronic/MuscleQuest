@@ -4,7 +4,7 @@ export default {
   expo: {
     name: IS_DEV ? "Muscle Quest (Dev)" : "Muscle Quest",
     slug: "musclequest",
-    version: "0.8.4",
+    version: "0.8.5",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",
@@ -18,7 +18,7 @@ export default {
       supportsTablet: true,
     },
     android: {
-      versionCode: 28,
+      versionCode: 29,
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       adaptiveIcon: {
         foregroundImage: "./assets/images/ic_launcher_foreground.png",
@@ -39,20 +39,12 @@ export default {
       favicon: "./assets/images/favicon.png",
     },
     plugins: [
+      "@bugsnag/plugin-expo-eas-sourcemaps",
       "@react-native-google-signin/google-signin",
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "expo-router",
       "expo-asset",
-      [
-        "@sentry/react-native/expo",
-        {
-          organization: "musclequest",
-          project: "musclequest-react-native",
-          url: "https://sentry.io/",
-          note: "Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.",
-        },
-      ],
       [
         "expo-font",
         {
@@ -80,6 +72,9 @@ export default {
       appVariant: process.env.APP_VARIANT || "production",
       eas: {
         projectId: "4f7b2a94-f0e0-44df-a5e5-1b7dc95a019a",
+      },
+      bugsnag: {
+        apiKey: "f3e22acd99f43ed227cbddb1e8734e80",
       },
     },
   },

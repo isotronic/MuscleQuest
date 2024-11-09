@@ -23,6 +23,7 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSoundAndVibration } from "@/hooks/useSoundAndVibration";
 import WorkoutTimer from "@/components/WorkoutTimer";
+import Bugsnag from "@bugsnag/expo";
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
@@ -568,7 +569,12 @@ export default function WorkoutSessionScreen() {
   }
 
   if (settingsError) {
-    return <ThemedText>Error: {settingsError.message}</ThemedText>;
+    Bugsnag.notify(settingsError);
+    return (
+      <ThemedView style={styles.container}>
+        <ThemedText>Error: {settingsError.message}</ThemedText>
+      </ThemedView>
+    );
   }
 
   return (

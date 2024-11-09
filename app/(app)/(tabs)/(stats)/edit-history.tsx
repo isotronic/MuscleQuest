@@ -10,6 +10,7 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useEditCompletedWorkoutMutation } from "@/hooks/useEditCompletedWorkoutMutation";
 import { ActivityIndicator } from "react-native-paper";
 import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
+import Bugsnag from "@bugsnag/expo";
 
 export default function EditCompletedWorkoutScreen() {
   const { id } = useLocalSearchParams();
@@ -28,8 +29,11 @@ export default function EditCompletedWorkoutScreen() {
   );
   const weightInputRefs = useRef<{ [key: string]: any }>({});
 
-  const { data: workoutData, isLoading: isWorkoutLoading } =
-    useCompletedWorkoutByIdQuery(Number(id), weightUnit);
+  const {
+    data: workoutData,
+    isLoading: isWorkoutLoading,
+    error: workoutError,
+  } = useCompletedWorkoutByIdQuery(Number(id), weightUnit);
 
   const editWorkout = useEditCompletedWorkoutMutation(Number(id), weightUnit);
 
@@ -71,8 +75,12 @@ export default function EditCompletedWorkoutScreen() {
     );
   }
 
-  if (settingsError) {
-    return <ThemedText>Error: {settingsError.message}</ThemedText>;
+  if (settingsError || workoutError) {
+    const error = settingsError || workoutError;
+    if (error instanceof Error) {
+      Bugsnag.notify(error);
+      return <ThemedText>Error: {error.message}</ThemedText>;
+    }
   }
 
   return (

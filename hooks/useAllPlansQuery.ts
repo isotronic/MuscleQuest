@@ -1,6 +1,7 @@
 import { openDatabase } from "@/utils/database";
 import { Workout } from "@/store/workoutStore";
 import { useQuery } from "@tanstack/react-query";
+import Bugsnag from "@bugsnag/expo";
 
 export interface Plan {
   id: number;
@@ -134,8 +135,9 @@ const fetchPlans = async (): Promise<{
     `)) as RawPlan[];
 
     return transformRawPlans(rawPlans);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching plans", error);
+    Bugsnag.notify(error);
     throw new Error("Failed to fetch plans");
   }
 };

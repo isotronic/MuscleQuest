@@ -2,6 +2,7 @@ import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import storage from "@react-native-firebase/storage";
 import * as FileSystem from "expo-file-system";
 import { insertAnimatedImageUri } from "@/utils/database";
+import Bugsnag from "@bugsnag/expo";
 
 const fetchAnimatedImageUrl = async (
   exerciseId: number,
@@ -40,7 +41,7 @@ const fetchAnimatedImageUrl = async (
         } else {
           throw new Error("Failed to download image.");
         }
-      } catch (error) {
+      } catch (error: any) {
         attempt++;
         console.error(
           `Attempt ${attempt} - Error fetching or saving image:`,
@@ -52,10 +53,12 @@ const fetchAnimatedImageUrl = async (
           const delayTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
           await new Promise((resolve) => setTimeout(resolve, delayTime));
         } else {
+          Bugsnag.notify(lastError);
           throw lastError;
         }
       }
     }
+    Bugsnag.notify(new Error("Unexpected error in fetchAnimatedImageUrl."));
     throw new Error("Unexpected error in fetchAnimatedImageUrl.");
   }
 };

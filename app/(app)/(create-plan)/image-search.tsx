@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
+  Alert,
   FlatList,
   TouchableOpacity,
   StyleSheet,
@@ -17,6 +18,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
+import Bugsnag from "@bugsnag/expo";
 
 const unsplash = createApi({
   accessKey: process.env.EXPO_PUBLIC_UNSPLASH_ACCESS_KEY || "",
@@ -42,8 +44,14 @@ export default function ImageSearchScreen() {
         orientation: "landscape",
       });
       setPhotos(response.response?.results || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching images from Unsplash:", error);
+      Bugsnag.notify(error);
+      Alert.alert(
+        "Error",
+        "Failed to fetch images from Unsplash. Please try again.",
+        [{ text: "OK" }],
+      );
     } finally {
       setLoading(false);
     }
@@ -65,8 +73,9 @@ export default function ImageSearchScreen() {
       const newPhotos = response.response?.results || [];
       setPhotos((prevPhotos: Basic[]) => [...prevPhotos, ...newPhotos]);
       setPage(nextPage);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading more images:", error);
+      Bugsnag.notify(error);
     } finally {
       setLoading(false);
     }

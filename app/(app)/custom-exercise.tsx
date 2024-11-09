@@ -19,6 +19,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { router, useLocalSearchParams } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWorkoutStore } from "@/store/workoutStore";
+import Bugsnag from "@bugsnag/expo";
 
 export default function AddCustomExerciseScreen() {
   const queryClient = useQueryClient();
@@ -94,9 +95,12 @@ export default function AddCustomExerciseScreen() {
         setBodyPartOptions(newBodyPartOptions);
         setMuscleOptions(newMuscleOptions);
         setEquipmentOptions(newEquipmentOptions);
-      } catch (error) {
-        Alert.alert("Error", "Failed to fetch data. Please try again.");
+      } catch (error: any) {
+        Alert.alert("Error", "Failed to fetch data. Please try again.", [
+          { text: "OK" },
+        ]);
         console.error("Error fetching data:", error);
+        Bugsnag.notify(error);
       }
     };
 
@@ -126,9 +130,12 @@ export default function AddCustomExerciseScreen() {
                 : JSON.parse(existingData.secondary_muscles) || [],
             );
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error fetching exercise data for editing:", error);
-          Alert.alert("Error", "Failed to load exercise details.");
+          Bugsnag.notify(error);
+          Alert.alert("Error", "Failed to load exercise details.", [
+            { text: "OK" },
+          ]);
         }
       };
 
@@ -164,8 +171,9 @@ export default function AddCustomExerciseScreen() {
           from: image,
           to: newImageUri,
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error saving image to filesystem:", error);
+        Bugsnag.notify(error);
         Alert.alert(
           "Image Save Error",
           "Failed to save the image. Please try again.",
@@ -220,9 +228,14 @@ export default function AddCustomExerciseScreen() {
         queryKey: ["exercise-details", Number(exercise_id)],
       });
       router.back();
-    } catch (error) {
-      Alert.alert("Error", "Failed to save custom exercise. Please try again.");
+    } catch (error: any) {
+      Alert.alert(
+        "Error",
+        "Failed to save custom exercise. Please try again.",
+        [{ text: "OK" }],
+      );
       console.error("Error saving data:", error);
+      Bugsnag.notify(error);
     }
   };
 

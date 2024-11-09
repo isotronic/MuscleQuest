@@ -25,6 +25,7 @@ import { useCreatePlan } from "@/hooks/useCreatePlan";
 import WorkoutCard from "@/components/WorkoutCard";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { useQueryClient } from "@tanstack/react-query";
+import Bugsnag from "@bugsnag/expo";
 
 export default function CreatePlanScreen() {
   const navigation = useNavigation();
@@ -157,8 +158,9 @@ export default function CreatePlanScreen() {
       } else {
         router.back();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in handleSaveAndNavigate:", error);
+      Bugsnag.notify(error);
     }
   };
 

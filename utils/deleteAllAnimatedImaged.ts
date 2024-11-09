@@ -3,6 +3,7 @@ import {
   fetchExercisesWithLocalAnimatedUri,
   clearAllLocalAnimatedUri,
 } from "@/utils/database";
+import Bugsnag from "@bugsnag/expo";
 
 export const deleteAllAnimatedImages = async (
   onProgress?: (progress: number) => void,
@@ -20,7 +21,8 @@ export const deleteAllAnimatedImages = async (
       try {
         // Delete the local file
         await FileSystem.deleteAsync(local_animated_uri, { idempotent: true });
-      } catch (error) {
+      } catch (error: any) {
+        Bugsnag.notify(error);
         console.error(
           `Error deleting image for exercise ${exercise_id}:`,
           error,
@@ -40,8 +42,9 @@ export const deleteAllAnimatedImages = async (
     await clearAllLocalAnimatedUri();
 
     return { success: failedDeletes.length === 0, failedDeletes };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting all images:", error);
+    Bugsnag.notify(error);
     throw error;
   }
 };

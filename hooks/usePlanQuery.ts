@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchRecord, openDatabase } from "@/utils/database";
 import { Plan } from "./useAllPlansQuery";
+import Bugsnag from "@bugsnag/expo";
 
 export interface WorkoutRecord {
   id: number;
@@ -60,35 +61,44 @@ const fetchWorkoutsForPlan = async (
   planId: number,
 ): Promise<RawWorkoutRecord[]> => {
   const db = await openDatabase("userData.db");
-  return (await db.getAllAsync(
-    `
-    SELECT 
-      user_workouts.id,
-      user_workouts.plan_id,
-      user_workouts.name,
-      user_workout_exercises.exercise_id AS exercise_id,
-      exercises.name AS exercise_name,
-      exercises.description,
-      exercises.image,
-      exercises.local_animated_uri,
-      exercises.animated_url,
-      exercises.equipment,
-      exercises.body_part,
-      exercises.target_muscle,
-      exercises.secondary_muscles,
-      exercises.tracking_type,
-      user_workout_exercises.sets,
-      user_workout_exercises.exercise_order
-    FROM user_workouts
-    LEFT JOIN user_workout_exercises ON user_workout_exercises.workout_id = user_workouts.id
-    LEFT JOIN exercises ON exercises.exercise_id = user_workout_exercises.exercise_id
-    WHERE user_workouts.plan_id = ?
-      AND user_workouts.is_deleted = FALSE
-      AND (user_workout_exercises.is_deleted = FALSE OR user_workout_exercises.is_deleted IS NULL)
-    ORDER BY user_workouts.id, user_workout_exercises.exercise_order ASC
-    `,
-    [planId],
-  )) as RawWorkoutRecord[];
+
+  try {
+    const rawWorkouts = (await db.getAllAsync(
+      `
+      SELECT 
+        user_workouts.id,
+        user_workouts.plan_id,
+        user_workouts.name,
+        user_workout_exercises.exercise_id AS exercise_id,
+        exercises.name AS exercise_name,
+        exercises.description,
+        exercises.image,
+        exercises.local_animated_uri,
+        exercises.animated_url,
+        exercises.equipment,
+        exercises.body_part,
+        exercises.target_muscle,
+        exercises.secondary_muscles,
+        exercises.tracking_type,
+        user_workout_exercises.sets,
+        user_workout_exercises.exercise_order
+      FROM user_workouts
+      LEFT JOIN user_workout_exercises ON user_workout_exercises.workout_id = user_workouts.id
+      LEFT JOIN exercises ON exercises.exercise_id = user_workout_exercises.exercise_id
+      WHERE user_workouts.plan_id = ?
+        AND user_workouts.is_deleted = FALSE
+        AND (user_workout_exercises.is_deleted = FALSE OR user_workout_exercises.is_deleted IS NULL)
+      ORDER BY user_workouts.id, user_workout_exercises.exercise_order ASC
+      `,
+      [planId],
+    )) as RawWorkoutRecord[];
+
+    return rawWorkouts;
+  } catch (error: any) {
+    console.error("Error fetching workouts for plan", error);
+    Bugsnag.notify(error);
+    throw new Error("Failed to fetch workouts for plan");
+  }
 };
 
 const parseWorkouts = (rawWorkouts: RawWorkoutRecord[]) => {
@@ -146,8 +156,9 @@ const fetchPlan = async (planId: number): Promise<Plan | null> => {
       ...planData,
       workouts: parsedWorkouts,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching plan", error);
+    Bugsnag.notify(error);
     return null;
   }
 };

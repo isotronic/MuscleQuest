@@ -1,18 +1,17 @@
-import { Slot, useNavigationContainerRef } from "expo-router";
+import Bugsnag from "@bugsnag/expo";
+import React, { useEffect, useState } from "react";
+import { Slot } from "expo-router";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import {
   ActivityIndicator,
+  Button,
   Provider as PaperProvider,
 } from "react-native-paper";
 import { paperTheme } from "@/utils/paperTheme";
 import { useFonts } from "expo-font";
-import { isRunningInExpoGo } from "expo";
 import * as Updates from "expo-updates";
-import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import * as SplashScreen from "expo-splash-screen";
-import * as Sentry from "@sentry/react-native";
-import { captureConsoleIntegration } from "@sentry/integrations";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Inter_100Thin,
@@ -39,37 +38,27 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as googleServices from "@/google-services.json";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import Constants from "expo-constants";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
 
-const IS_DEV = Constants.expoConfig?.extra?.appVariant === "development";
+// Initialize Bugsnag
+Bugsnag.start();
 
-// Construct a new instrumentation instance. This is needed to communicate between the integration and React
-const routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
+const ErrorBoundary = Bugsnag.getPlugin("react").createErrorBoundary(React);
 
-Sentry.init({
-  dsn: "https://106113c86913cb234e3edd6e12387955@o4507527980974080.ingest.de.sentry.io/4507527986151504",
-  debug: false, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
-  integrations: [
-    captureConsoleIntegration({ levels: ["log", "info", "warn", "error"] }),
-    new Sentry.ReactNativeTracing({
-      // Pass instrumentation to be used as `routingInstrumentation`
-      routingInstrumentation,
-      enableNativeFramesTracking: !isRunningInExpoGo(),
-      // ...
-    }),
-  ],
-  // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-  // We recommend adjusting this value in production.
-  tracesSampleRate: 1.0,
-  _experiments: {
-    // profilesSampleRate is relative to tracesSampleRate.
-    // Here, we'll capture profiles for 100% of transactions.
-    profilesSampleRate: 1.0,
-  },
-  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-  // enableSpotlight: __DEV__,
-});
+const ErrorView = ({ clearError }: { clearError: () => void }) => {
+  return (
+    <ThemedView
+      style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+    >
+      <ThemedText>
+        A render error has occurred. Press the button to reload.
+      </ThemedText>
+      <Button onPress={clearError} mode="contained">
+        Reload
+      </Button>
+    </ThemedView>
+  );
+};
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -94,15 +83,6 @@ function RootLayout() {
     Inter_800ExtraBold,
     Inter_900Black,
   });
-
-  // Capture the NavigationContainer ref and register it with the instrumentation.
-  const ref = useNavigationContainerRef();
-
-  useEffect(() => {
-    if (ref) {
-      routingInstrumentation.registerNavigationContainer(ref);
-    }
-  }, [ref]);
 
   useEffect(() => {
     async function initializeDatabase() {
@@ -160,4 +140,10 @@ function RootLayout() {
   );
 }
 
-export default IS_DEV ? RootLayout : Sentry.wrap(RootLayout);
+export default function App() {
+  return (
+    <ErrorBoundary FallbackComponent={ErrorView}>
+      <RootLayout />
+    </ErrorBoundary>
+  );
+}

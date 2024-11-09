@@ -1,5 +1,6 @@
 import { deleteAllAnimatedImages } from "@/utils/deleteAllAnimatedImaged";
 import { downloadAllAnimatedImages } from "@/utils/downloadAllAnimatedImages";
+import Bugsnag from "@bugsnag/expo";
 import { useState } from "react";
 import { Alert } from "react-native";
 
@@ -73,9 +74,10 @@ export const useImageManagement = (
           failedDownloads,
         );
       }
-    } catch (error) {
+    } catch (error: any) {
       Alert.alert("Error", "An error occurred while downloading images.");
       console.error("Error downloading images:", error);
+      Bugsnag.notify(error);
     } finally {
       setIsDownloading(false);
     }

@@ -1,5 +1,6 @@
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Workout } from "@/store/workoutStore";
+import Bugsnag from "@bugsnag/expo";
 import * as SQLite from "expo-sqlite";
 
 export interface Exercise {
@@ -106,8 +107,9 @@ export const updateAppExerciseIds = async (): Promise<void> => {
     } else {
       console.log("Data version is not 1.1. No update needed.");
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating app_exercise_id:", error);
+    Bugsnag.notify(error);
     await userDataDB.execAsync("ROLLBACK");
   }
 };
@@ -251,8 +253,9 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
         await userDataDB.execAsync("COMMIT");
       }
       shouldUpdateDataVersion = true;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error copying table ${tableName}:`, error);
+      Bugsnag.notify(error);
       await userDataDB.execAsync("ROLLBACK");
     }
   };
@@ -304,6 +307,7 @@ export const fetchAllRecords = async (
     "equipment_list",
   ];
   if (!allowedTables.includes(tableName)) {
+    Bugsnag.notify(new Error("Invalid table name"));
     throw new Error("Invalid table name");
   }
 
@@ -335,6 +339,7 @@ export const fetchRecord = async (
     "equipment_list",
   ];
   if (!allowedTables.includes(tableName)) {
+    Bugsnag.notify(new Error("Invalid table name"));
     throw new Error("Invalid table name");
   }
   const fieldName = tableName === "exercises" ? "exercise_id" : "id";
@@ -343,8 +348,9 @@ export const fetchRecord = async (
       `SELECT * FROM ${tableName} WHERE ${fieldName} = ?`,
       [id],
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching record:", error);
+    Bugsnag.notify(error);
     throw new Error("Error fetching record");
   }
 };
@@ -427,8 +433,9 @@ export const insertWorkoutPlan = async (
 
       // Insert the workouts associated with this plan
       await insertWorkouts(txn, newPlanId, workouts);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error inserting workout plan:", error);
+      Bugsnag.notify(error);
       throw error;
     }
   });
@@ -467,8 +474,9 @@ export const insertWorkouts = async (
         );
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error inserting workouts:", error);
+    Bugsnag.notify(error);
     throw error; // Re-throw the error to trigger transaction rollback
   }
 };
@@ -582,8 +590,9 @@ export const updateWorkoutPlan = async (
           }
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating workout plan:", error);
+      Bugsnag.notify(error);
       throw error;
     }
   });
@@ -671,17 +680,19 @@ export const saveCompletedWorkout = async (
 
     // Commit transaction
     await db.execAsync("COMMIT");
-  } catch (error) {
+  } catch (error: any) {
     // Rollback transaction
     try {
       await db.execAsync("ROLLBACK");
       console.error("Transaction rolled back due to error.");
-    } catch (rollbackError) {
+    } catch (rollbackError: any) {
+      Bugsnag.notify(rollbackError);
       console.error("Error during rollback: ", rollbackError);
     }
 
     // Log and re-throw the original error
     console.error("Error saving completed workout: ", error);
+    Bugsnag.notify(error);
     throw error;
   }
 };
@@ -810,8 +821,9 @@ export const fetchCompletedWorkoutById = async (
       .map(({ exercise_order, ...rest }) => rest); // Remove exercise_order from the final output
 
     return workout;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching completed workout by ID:", error);
+    Bugsnag.notify(error);
     throw error;
   }
 };
@@ -841,8 +853,9 @@ export const fetchExerciseImagesByIds = async (
     });
 
     return imagesMap;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching exercise images:", error);
+    Bugsnag.notify(error);
     throw error;
   }
 };
@@ -923,8 +936,9 @@ export const fetchSettings = async (): Promise<Settings> => {
     });
 
     return settings as Settings;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Database fetching error:", error);
+    Bugsnag.notify(error);
     throw error;
   }
 };
@@ -936,8 +950,9 @@ export const updateSettings = async (key: string, value: string) => {
       "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
       [key, value],
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating setting:", error);
+    Bugsnag.notify(error);
     throw error;
   }
 };

@@ -3,8 +3,10 @@ import { StyleSheet } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import Bugsnag from "@bugsnag/expo";
 
 export default function NotFoundScreen() {
+  Bugsnag.notify(new Error("404 - Screen not found"));
   return (
     <>
       <Stack.Screen options={{ title: "Oops!" }} />

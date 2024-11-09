@@ -8,6 +8,7 @@ import { Image } from "expo-image";
 import { byteArrayToBase64 } from "@/utils/utility";
 import { TouchableOpacity } from "react-native";
 import { Colors } from "@/constants/Colors";
+import Bugsnag from "@bugsnag/expo";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -106,6 +107,7 @@ export default function WorkoutDetailsScreen() {
   }
 
   if (error) {
+    Bugsnag.notify(error);
     return <ThemedText>Error: {error.message}</ThemedText>;
   }
 

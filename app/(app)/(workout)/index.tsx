@@ -18,6 +18,7 @@ import { useCompletedWorkoutsQuery } from "@/hooks/useCompletedWorkoutsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useSoundAndVibration } from "@/hooks/useSoundAndVibration";
+import Bugsnag from "@bugsnag/expo";
 
 export default function WorkoutOverviewScreen() {
   const { data: settings } = useSettingsQuery();
@@ -33,7 +34,8 @@ export default function WorkoutOverviewScreen() {
   } = useActiveWorkoutStore();
 
   const weightUnit = settings?.weightUnit || "kg";
-  const { data: completedWorkouts } = useCompletedWorkoutsQuery(weightUnit);
+  const { data: completedWorkouts, error: completedWorkoutsError } =
+    useCompletedWorkoutsQuery(weightUnit);
   const currentWorkoutHistory = completedWorkouts?.find(
     (completedWorkout) => completedWorkout.workout_name === activeWorkout?.name,
   );
@@ -170,6 +172,7 @@ export default function WorkoutOverviewScreen() {
                 "Failed to save workout. Please try again.",
                 [{ text: "OK" }],
               );
+              Bugsnag.notify(error);
               console.error("Error saving workout: ", error);
             },
           },
@@ -217,7 +220,22 @@ export default function WorkoutOverviewScreen() {
   };
 
   if (!workout) {
-    return <ThemedText>No workout available</ThemedText>;
+    return (
+      <ThemedView>
+        <ThemedText>No workout available</ThemedText>
+      </ThemedView>
+    );
+  }
+
+  if (completedWorkoutsError) {
+    Bugsnag.notify(completedWorkoutsError);
+    return (
+      <ThemedView>
+        <ThemedText>
+          Error loading completed workouts: {completedWorkoutsError.message}
+        </ThemedText>
+      </ThemedView>
+    );
   }
 
   return (

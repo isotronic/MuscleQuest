@@ -6,9 +6,10 @@ import { ScrollView, StyleSheet } from "react-native";
 import { ActivityIndicator, FAB } from "react-native-paper";
 import { useAllPlansQuery, Plan } from "@/hooks/useAllPlansQuery";
 import { PlanList } from "@/components/PlanList";
+import Bugsnag from "@bugsnag/expo";
 
 export default function PlansScreen() {
-  const { data: plans, isLoading, isError } = useAllPlansQuery();
+  const { data: plans, isLoading, isError, error } = useAllPlansQuery();
 
   const handleCreatePlan = () => {
     router.push("/(app)/(create-plan)/create");
@@ -27,6 +28,7 @@ export default function PlansScreen() {
   }
 
   if (isError) {
+    Bugsnag.notify(error);
     return <ThemedText>Error loading plans</ThemedText>;
   }
 

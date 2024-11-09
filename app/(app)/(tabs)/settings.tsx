@@ -27,6 +27,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import { AuthContext } from "@/context/AuthProvider";
 import { signInWithGoogle } from "@/utils/auth";
+import Bugsnag from "@bugsnag/expo";
 
 export default function SettingsScreen() {
   const user = useContext(AuthContext);
@@ -125,7 +126,8 @@ export default function SettingsScreen() {
           `INSERT INTO body_measurements (date, body_weight) VALUES (datetime('now'), ?)`,
           [inputValue as number],
         );
-      } catch (error) {
+      } catch (error: any) {
+        Bugsnag.notify(error);
         console.error(
           "Error saving body weight into body_measurements:",
           error,
@@ -188,7 +190,8 @@ export default function SettingsScreen() {
       const db = await openDatabase("userData.db");
       await db.runAsync("DELETE FROM settings WHERE key = ?", ["loginShown"]);
       console.log("loginShown setting has been reset.");
-    } catch (error) {
+    } catch (error: any) {
+      Bugsnag.notify(error);
       console.error("Error resetting loginShown setting:", error);
     }
   };
@@ -196,6 +199,7 @@ export default function SettingsScreen() {
   useEffect(() => {
     if (isError) {
       console.error("Error fetching settings:", error);
+      Bugsnag.notify(error);
     }
   }, [isError, error]);
 
@@ -208,7 +212,7 @@ export default function SettingsScreen() {
   }
 
   if (isError) {
-    return <ThemedText>Error: {String(error)}</ThemedText>;
+    return <ThemedText>Error: {error.message}</ThemedText>;
   }
 
   return (
@@ -627,6 +631,22 @@ export default function SettingsScreen() {
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
                 Reset "loginShown" setting
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => Bugsnag.notify(new Error("Settings test error"))}
+          >
+            <MaterialCommunityIcons
+              name="bug"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Send test error to Sentry
               </ThemedText>
             </View>
           </TouchableOpacity>

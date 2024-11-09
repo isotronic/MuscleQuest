@@ -18,6 +18,7 @@ import { parseISO, format } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
+import Bugsnag from "@bugsnag/expo";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -37,6 +38,7 @@ export default function HistoryDetailsScreen() {
   const {
     data: workoutData,
     isLoading: isWorkoutLoading,
+    error: workoutError,
     refetch,
   } = useCompletedWorkoutByIdQuery(Number(id), weightUnit);
 
@@ -63,8 +65,9 @@ export default function HistoryDetailsScreen() {
             ...workoutData,
             exercises: exercisesWithImages,
           });
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error fetching exercise images:", error);
+          Bugsnag.notify(error);
         }
       };
 
@@ -107,8 +110,12 @@ export default function HistoryDetailsScreen() {
     );
   }
 
-  if (settingsError) {
-    return <ThemedText>Error: {settingsError.message}</ThemedText>;
+  if (settingsError || workoutError) {
+    const error = settingsError || workoutError;
+    if (error instanceof Error) {
+      Bugsnag.notify(error);
+      return <ThemedText>Error: {error.message}</ThemedText>;
+    }
   }
 
   const isoDateString = workout.date_completed.replace(" ", "T");

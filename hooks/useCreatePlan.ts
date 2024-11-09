@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { Plan } from "./useAllPlansQuery";
 import { useQueryClient } from "@tanstack/react-query";
+import Bugsnag from "@bugsnag/expo";
 
 export const useCreatePlan = (existingPlan?: Plan) => {
   const queryClient = useQueryClient();
@@ -45,8 +46,9 @@ export const useCreatePlan = (existingPlan?: Plan) => {
       }
       setPlanSaved(true);
       return newPlanId ?? undefined;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error inserting/updating plan data:", error);
+      Bugsnag.notify(error);
       setIsError(true);
     } finally {
       if (!isError && planSaved) {
