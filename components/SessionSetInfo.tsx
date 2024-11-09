@@ -188,7 +188,6 @@ export default function SessionSetInfo({
           size={buttonSize}
           disabled={isFirstSetOfFirstExercise}
           iconColor={Colors.dark.text}
-          style={styles.iconButton}
         />
 
         {isWarmup || isDropSet ? (
@@ -228,7 +227,6 @@ export default function SessionSetInfo({
           size={buttonSize}
           disabled={isLastSetOfLastExercise}
           iconColor={Colors.dark.text}
-          style={styles.iconButton}
         />
       </View>
 
@@ -377,10 +375,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
-  },
-  iconButton: {
-    marginHorizontal: 5,
-    color: Colors.dark.text,
   },
   setNavigationContainer: {
     flexDirection: "row",
