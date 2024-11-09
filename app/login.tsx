@@ -67,7 +67,9 @@ export default function LoginScreen() {
       <ThemedText style={styles.benefitsText}>
         Benefits of logging in:
       </ThemedText>
-      <ThemedText style={styles.benefit}>• Backup and restore data</ThemedText>
+      <ThemedText style={styles.benefit}>
+        • Backup and restore data *
+      </ThemedText>
       <ThemedText style={styles.benefit}>
         • Sync your data across devices automatically *
       </ThemedText>
