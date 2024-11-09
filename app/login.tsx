@@ -67,7 +67,9 @@ export default function LoginScreen() {
       <ThemedText style={styles.benefitsText}>
         Benefits of logging in:
       </ThemedText>
-      <ThemedText style={styles.benefit}>• Backup and restore data</ThemedText>
+      <ThemedText style={styles.benefit}>
+        • Backup and restore data *
+      </ThemedText>
       <ThemedText style={styles.benefit}>
         • Sync your data across devices automatically *
       </ThemedText>
@@ -76,7 +78,7 @@ export default function LoginScreen() {
       </ThemedText>
       <ThemedText style={styles.benefit}>• Challenges and badges *</ThemedText>
 
-      <ThemedText style={styles.info}>* in development</ThemedText>
+      <ThemedText style={styles.info}>* features in development</ThemedText>
 
       <ThemedText style={styles.info}>
         You can login at any time from the settings screen, if you choose to
