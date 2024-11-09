@@ -78,7 +78,7 @@ export default function LoginScreen() {
       </ThemedText>
       <ThemedText style={styles.benefit}>• Challenges and badges *</ThemedText>
 
-      <ThemedText style={styles.info}>* in development</ThemedText>
+      <ThemedText style={styles.info}>* features in development</ThemedText>
 
       <ThemedText style={styles.info}>
         You can login at any time from the settings screen, if you choose to
