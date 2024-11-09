@@ -112,7 +112,7 @@ export default function ExerciseDetailsScreen() {
             <ActivityIndicator size="large" />
           </View>
         ) : animatedImageError ? (
-          <ThemedText style={styles.loadingText}>Failed to load GIF</ThemedText>
+          <Image style={styles.image} source={fallbackImage} />
         ) : animatedUrl ? (
           <Image
             style={styles.gifImage}
