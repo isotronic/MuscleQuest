@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
-import { IconButton, ActivityIndicator, Button } from "react-native-paper";
+import {
+  IconButton,
+  ActivityIndicator,
+  Button,
+  Menu,
+} from "react-native-paper";
 import { Image } from "expo-image";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
@@ -79,6 +84,11 @@ export default function SessionSetInfo({
   removeSet,
   addSet,
 }: SessionSetInfoProps) {
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const openMenu = () => setMenuVisible(true);
+  const closeMenu = () => setMenuVisible(false);
+
   const repRange =
     repsMin === repsMax
       ? repsMin
@@ -87,8 +97,6 @@ export default function SessionSetInfo({
         : repsMax
           ? `${repsMin} - ${repsMax}`
           : repsMin;
-
-  const isLastSet = currentSetIndex === totalSets - 1;
 
   const handleImagePress = () => {
     router.push({
@@ -137,13 +145,35 @@ export default function SessionSetInfo({
           </ThemedText>
         </View>
 
-        <IconButton
-          icon="close"
-          onPress={() => removeSet(currentSetIndex)}
-          size={24}
-          iconColor={Colors.dark.text}
-          style={styles.closeButton}
-        />
+        {/* Menu Button */}
+        <Menu
+          visible={menuVisible}
+          onDismiss={closeMenu}
+          anchor={
+            <IconButton
+              icon="dots-vertical"
+              onPress={openMenu}
+              size={30}
+              iconColor={Colors.dark.text}
+              style={styles.menuButton}
+            />
+          }
+        >
+          <Menu.Item
+            onPress={() => {
+              removeSet(currentSetIndex);
+              closeMenu();
+            }}
+            title="Delete Set"
+          />
+          <Menu.Item
+            onPress={() => {
+              addSet();
+              closeMenu();
+            }}
+            title="Add Set"
+          />
+        </Menu>
       </View>
 
       {/* Set Navigation */}
@@ -156,9 +186,38 @@ export default function SessionSetInfo({
           iconColor={Colors.dark.text}
           style={styles.iconButton}
         />
+
+        {isWarmup || isDropSet ? (
+          <View style={styles.setTypeContainer}>
+            {isWarmup && (
+              <>
+                <MaterialCommunityIcons
+                  name="speedometer-slow"
+                  size={24}
+                  color={Colors.dark.text}
+                  style={styles.setIcon}
+                />
+                <ThemedText style={styles.setTypeLabel}>Warm-up</ThemedText>
+              </>
+            )}
+            {isDropSet && (
+              <>
+                <MaterialCommunityIcons
+                  name="arrow-down-bold"
+                  size={24}
+                  color={Colors.dark.text}
+                  style={styles.setIcon}
+                />
+                <ThemedText style={styles.setTypeLabel}>Drop</ThemedText>
+              </>
+            )}
+          </View>
+        ) : null}
+
         <ThemedText style={styles.setNavigationText}>
           Set {currentSetIndex + 1} of {totalSets}
         </ThemedText>
+
         <IconButton
           icon="chevron-right"
           onPress={handleNextSet}
@@ -168,29 +227,6 @@ export default function SessionSetInfo({
           style={styles.iconButton}
         />
       </View>
-
-      {isWarmup && (
-        <View style={styles.setTypeLabelContainer}>
-          <MaterialCommunityIcons
-            name="speedometer-slow"
-            size={24}
-            color={Colors.dark.text}
-            style={styles.setIcon}
-          />
-          <ThemedText style={styles.setTypeLabel}>Warm-up</ThemedText>
-        </View>
-      )}
-      {isDropSet && (
-        <View style={styles.setTypeLabelContainer}>
-          <MaterialCommunityIcons
-            name="arrow-down-bold"
-            size={24}
-            color={Colors.dark.text}
-            style={styles.setIcon}
-          />
-          <ThemedText style={styles.setTypeLabel}>Drop set</ThemedText>
-        </View>
-      )}
 
       {/* Conditionally Render Weight/Assistance, Reps, or Time Input Fields */}
       {trackingType === "weight" ||
@@ -293,22 +329,6 @@ export default function SessionSetInfo({
       >
         Complete Set
       </Button>
-
-      {isLastSet && (
-        <Button
-          mode="outlined"
-          onPress={addSet}
-          labelStyle={
-            buttonSize === 40 ? styles.buttonLabel : styles.largeButtonLabel
-          }
-          style={[
-            styles.addSetButton,
-            buttonSize === 40 ? "" : styles.largeButton,
-          ]}
-        >
-          Add Set
-        </Button>
-      )}
     </View>
   );
 }
@@ -337,24 +357,12 @@ const styles = StyleSheet.create({
     color: Colors.dark.subText,
     marginBottom: -5,
   },
-  closeButton: {
-    marginLeft: "auto",
-    marginBottom: "auto",
+  menuButton: {
+    top: 0,
+    right: 0,
   },
   centeredLabelContainer: {
     alignItems: "center",
-  },
-  setTypeLabelContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-  setTypeLabel: {
-    fontSize: 20,
-    marginBottom: 16,
-  },
-  setIcon: {
-    marginRight: 8,
   },
   label: {
     fontSize: 16,
@@ -373,11 +381,22 @@ const styles = StyleSheet.create({
   setNavigationContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
     marginBottom: 16,
+  },
+  setTypeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  setTypeLabel: {
+    fontSize: 18,
+  },
+  setIcon: {
+    marginRight: 8,
   },
   setNavigationText: {
     fontSize: 18,
+    marginHorizontal: 8,
   },
   input: {
     flex: 1,
@@ -398,11 +417,9 @@ const styles = StyleSheet.create({
   disabledButton: {
     backgroundColor: Colors.dark.disabledButtonBackground,
   },
-  addSetButton: {
-    marginTop: 8,
-  },
   buttonLabel: {
-    fontSize: 16,
+    fontSize: 18,
+    lineHeight: 25,
   },
   largeButtonLabel: {
     fontSize: 24,
