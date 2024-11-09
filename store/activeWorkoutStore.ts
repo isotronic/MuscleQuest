@@ -330,11 +330,12 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentSetIndices,
             currentExerciseIndex,
           } = state;
+
           if (
             !workout ||
             workout.exercises[currentExerciseIndex].sets.length <= 1
           ) {
-            return state;
+            return state; // Prevent deletion if it's the only set left
           }
 
           const updatedExercises = [...workout.exercises];
@@ -351,10 +352,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             delete updatedCompletedSets[currentExerciseIndex][setIndex];
           }
 
-          // Adjust currentSetIndices if the removed set was before or at the current set
+          // Adjust currentSetIndices if the removed set was the last set
           const updatedSetIndices = { ...currentSetIndices };
-          if (updatedSetIndices[currentExerciseIndex] > setIndex) {
-            updatedSetIndices[currentExerciseIndex]--;
+          if (
+            updatedSetIndices[currentExerciseIndex] >=
+            updatedExercises[currentExerciseIndex].sets.length
+          ) {
+            updatedSetIndices[currentExerciseIndex] =
+              updatedExercises[currentExerciseIndex].sets.length - 1;
           }
 
           return {

@@ -358,6 +358,39 @@ export default function WorkoutSessionScreen() {
       ? completedSets[previousExerciseIndex][previousSetIndex]
       : false;
 
+  const currentIsLastSetOfLastExercise =
+    workout &&
+    currentExercise &&
+    currentExerciseIndex === workout.exercises.length - 1 &&
+    currentSetIndex === currentExercise.sets.length - 1;
+
+  const currentIsFirstSetOfFirstExercise =
+    workout &&
+    currentExercise &&
+    currentExerciseIndex === 0 &&
+    currentSetIndex === 0;
+
+  const nextIsLastSetOfLastExercise =
+    workout &&
+    nextExercise &&
+    nextExerciseIndex === workout.exercises.length - 1 &&
+    nextSetIndex === nextExercise.sets.length - 1;
+
+  const nextIsFirstSetOfFirstExercise =
+    workout && nextExercise && nextExerciseIndex === 0 && nextSetIndex === 0;
+
+  const previousIsLastSetOfLastExercise =
+    workout &&
+    previousExercise &&
+    previousExerciseIndex === workout.exercises.length - 1 &&
+    previousSetIndex === previousExercise.sets.length - 1;
+
+  const previousIsFirstSetOfFirstExercise =
+    workout &&
+    previousExercise &&
+    previousExerciseIndex === 0 &&
+    previousSetIndex === 0;
+
   const handlePreviousSet = () => {
     if (
       hasPreviousSet &&
@@ -604,6 +637,8 @@ export default function WorkoutSessionScreen() {
               animatedImageLoading={animatedImageLoading}
               animatedImageError={animatedImageError}
               currentSetIndex={currentSetIndex}
+              isLastSetOfLastExercise={currentIsLastSetOfLastExercise}
+              isFirstSetOfFirstExercise={currentIsFirstSetOfFirstExercise}
               totalSets={currentExercise?.sets.length || 0}
               weight={weight}
               reps={reps}
@@ -655,6 +690,8 @@ export default function WorkoutSessionScreen() {
                 animatedUrl={nextAnimatedUrl}
                 animatedImageLoading={nextAnimatedImageLoading}
                 animatedImageError={nextAnimatedImageError}
+                isLastSetOfLastExercise={nextIsLastSetOfLastExercise}
+                isFirstSetOfFirstExercise={nextIsFirstSetOfFirstExercise}
                 currentSetIndex={nextSetIndex}
                 totalSets={nextExercise?.sets.length || 0}
                 weight={nextSetData.weight || nextWeight}
@@ -710,6 +747,8 @@ export default function WorkoutSessionScreen() {
                   animatedUrl={previousAnimatedUrl}
                   animatedImageLoading={previousAnimatedImageLoading}
                   animatedImageError={previousAnimatedImageError}
+                  isLastSetOfLastExercise={previousIsLastSetOfLastExercise}
+                  isFirstSetOfFirstExercise={previousIsFirstSetOfFirstExercise}
                   currentSetIndex={previousSetIndex}
                   totalSets={previousExercise?.sets.length || 0}
                   weight={previousWeight || ""}
