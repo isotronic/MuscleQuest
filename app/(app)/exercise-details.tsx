@@ -191,7 +191,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
-    textAlign: "center",
   },
   infoText: {
     fontSize: 16,
@@ -215,16 +214,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gifImage: {
-    width: 300,
-    height: 300,
-    marginBottom: 20,
+    width: "100%",
+    height: 350,
+    marginBottom: 25,
     alignSelf: "center",
   },
   image: {
     width: "100%",
     height: 300,
     alignSelf: "center",
-    marginBottom: 20,
+    marginBottom: 25,
   },
   loadingText: {
     fontSize: 18,
