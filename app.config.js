@@ -4,7 +4,7 @@ export default {
   expo: {
     name: IS_DEV ? "Muscle Quest (Dev)" : "Muscle Quest",
     slug: "musclequest",
-    version: "0.8.5",
+    version: "0.8.7",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",
@@ -18,7 +18,7 @@ export default {
       supportsTablet: true,
     },
     android: {
-      versionCode: 29,
+      versionCode: 31,
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       adaptiveIcon: {
         foregroundImage: "./assets/images/ic_launcher_foreground.png",
@@ -28,6 +28,10 @@ export default {
         ? "com.isotronic.musclequest.dev"
         : "com.isotronic.musclequest",
       permissions: ["VIBRATE"],
+      blockedPermissions: [
+        "com.google.android.gms.permission.AD_ID",
+        "android.permission.READ_MEDIA_VIDEO",
+      ],
     },
     androidNavigationBar: {
       backgroundColor: "#22222d",
@@ -45,6 +49,13 @@ export default {
       "@react-native-firebase/auth",
       "expo-router",
       "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          photosPermission:
+            "The app accesses your photos to let you add an image to your custom exercise.",
+        },
+      ],
       [
         "expo-font",
         {
@@ -74,7 +85,7 @@ export default {
         projectId: "4f7b2a94-f0e0-44df-a5e5-1b7dc95a019a",
       },
       bugsnag: {
-        apiKey: "f3e22acd99f43ed227cbddb1e8734e80",
+        apiKey: process.env.EXPO_PUBLIC_BUGSNAG_API_KEY,
       },
     },
   },
