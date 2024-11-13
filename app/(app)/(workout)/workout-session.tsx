@@ -622,7 +622,6 @@ export default function WorkoutSessionScreen() {
         onHandlerStateChange={handleSwipeGesture}
       >
         <View>
-          {/* Current set */}
           <Animated.View
             style={{
               transform: [{ translateX: translateX }],
@@ -668,8 +667,7 @@ export default function WorkoutSessionScreen() {
             />
           </Animated.View>
 
-          {/* Next set - initially off-screen */}
-          {hasNextSet && (
+          {!!hasNextSet && (
             <Animated.View
               style={{
                 transform: [
@@ -723,8 +721,7 @@ export default function WorkoutSessionScreen() {
             </Animated.View>
           )}
 
-          {/* Previous set - initially off-screen */}
-          {hasPreviousSet &&
+          {!!hasPreviousSet &&
             previousExerciseIndex !== null &&
             previousSetIndex !== null && (
               <Animated.View
@@ -781,7 +778,7 @@ export default function WorkoutSessionScreen() {
             )}
         </View>
       </PanGestureHandler>
-      {timerRunning && (
+      {timerRunning ? (
         <ThemedView
           style={[styles.timerContainer, { paddingBottom: insets.bottom }]}
         >
@@ -790,7 +787,7 @@ export default function WorkoutSessionScreen() {
             {minutes}:{seconds.toString().padStart(2, "0")}
           </ThemedText>
         </ThemedView>
-      )}
+      ) : null}
     </ThemedView>
   );
 }
