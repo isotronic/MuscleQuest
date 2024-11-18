@@ -22,6 +22,8 @@ serviceAccountKey.json
 credentials.json
 credentials/
 
+eas.json
+
 # macOS
 .DS_Store
 

@@ -131,14 +131,13 @@ export default function SessionSetInfo({
             <Image style={styles.animatedImage} source={fallbackImage} />
           </TouchableOpacity>
         )}
-
         <View style={styles.titleContainer}>
           <ThemedText style={styles.title}>{exerciseName}</ThemedText>
 
-          {trackingType !== "time" && repRange && (
+          {trackingType !== "time" && !!repRange && (
             <ThemedText style={styles.headerText}>Reps: {repRange}</ThemedText>
           )}
-          {trackingType === "time" && timeMin && (
+          {trackingType === "time" && !!timeMin && (
             <ThemedText style={styles.headerText}>
               Time: {timeMin} Seconds
             </ThemedText>
@@ -148,7 +147,6 @@ export default function SessionSetInfo({
             Rest Time: {restMinutes}:{String(restSeconds).padStart(2, "0")}
           </ThemedText>
         </View>
-
         {/* Menu Button */}
         <Menu
           visible={menuVisible}
@@ -179,7 +177,6 @@ export default function SessionSetInfo({
           />
         </Menu>
       </View>
-
       {/* Set Navigation */}
       <View style={styles.setNavigationContainer}>
         <IconButton
@@ -189,38 +186,36 @@ export default function SessionSetInfo({
           disabled={isFirstSetOfFirstExercise}
           iconColor={Colors.dark.text}
         />
-
-        {isWarmup || isDropSet ? (
-          <View style={styles.setTypeContainer}>
-            {isWarmup && (
-              <>
-                <MaterialCommunityIcons
-                  name="speedometer-slow"
-                  size={24}
-                  color={Colors.dark.text}
-                  style={styles.setIcon}
-                />
-                <ThemedText style={styles.setTypeLabel}>Warm-up</ThemedText>
-              </>
-            )}
-            {isDropSet && (
-              <>
-                <MaterialCommunityIcons
-                  name="arrow-down-bold"
-                  size={24}
-                  color={Colors.dark.text}
-                  style={styles.setIcon}
-                />
-                <ThemedText style={styles.setTypeLabel}>Drop</ThemedText>
-              </>
-            )}
-          </View>
-        ) : null}
-
+        {!!isWarmup ||
+          (!!isDropSet && (
+            <View style={styles.setTypeContainer}>
+              {!!isWarmup && (
+                <>
+                  <MaterialCommunityIcons
+                    name="speedometer-slow"
+                    size={24}
+                    color={Colors.dark.text}
+                    style={styles.setIcon}
+                  />
+                  <ThemedText style={styles.setTypeLabel}>Warm-up</ThemedText>
+                </>
+              )}
+              {!!isDropSet && (
+                <>
+                  <MaterialCommunityIcons
+                    name="arrow-down-bold"
+                    size={24}
+                    color={Colors.dark.text}
+                    style={styles.setIcon}
+                  />
+                  <ThemedText style={styles.setTypeLabel}>Drop</ThemedText>
+                </>
+              )}
+            </View>
+          ))}
         <ThemedText style={styles.setNavigationText}>
           Set {currentSetIndex + 1} of {totalSets}
         </ThemedText>
-
         <IconButton
           icon="chevron-right"
           onPress={handleNextSet}
@@ -229,7 +224,6 @@ export default function SessionSetInfo({
           iconColor={Colors.dark.text}
         />
       </View>
-
       {/* Conditionally Render Weight/Assistance, Reps, or Time Input Fields */}
       {trackingType === "weight" ||
       trackingType === "assisted" ||
@@ -315,7 +309,6 @@ export default function SessionSetInfo({
           </View>
         </>
       ) : null}
-
       <Button
         mode="contained"
         onPress={handleCompleteSet}
