@@ -4,7 +4,6 @@ import {
   StyleSheet,
   View,
   TouchableOpacity,
-  Alert,
   Linking,
 } from "react-native";
 import {
@@ -21,7 +20,7 @@ import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import { SettingsModal } from "@/components/SettingsModal";
-import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
+// import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 import { useImageManagement } from "@/hooks/useImageManagement";
 import { useQueryClient } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
@@ -165,36 +164,36 @@ export default function SettingsScreen() {
   //   updateSetting({ key: "restTimerSound", value: value.toString() });
   // };
 
-  const handleClearDatabase = async () => {
-    try {
-      await clearDatabaseAndReinitialize();
-    } catch (error) {
-      console.error("Error clearing database:", error);
-      Alert.alert("Error", "Failed to clear database. Please try again.");
-    }
-  };
+  // const handleClearDatabase = async () => {
+  //   try {
+  //     await clearDatabaseAndReinitialize();
+  //   } catch (error) {
+  //     console.error("Error clearing database:", error);
+  //     Alert.alert("Error", "Failed to clear database. Please try again.");
+  //   }
+  // };
 
-  const confirmClearDatabase = () => {
-    Alert.alert(
-      "Clear App Data",
-      "Are you sure you want to clear all app data? This action cannot be undone. The app will reload after clearing.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Clear", onPress: handleClearDatabase },
-      ],
-    );
-  };
+  // const confirmClearDatabase = () => {
+  //   Alert.alert(
+  //     "Clear App Data",
+  //     "Are you sure you want to clear all app data? This action cannot be undone. The app will reload after clearing.",
+  //     [
+  //       { text: "Cancel", style: "cancel" },
+  //       { text: "Clear", onPress: handleClearDatabase },
+  //     ],
+  //   );
+  // };
 
-  const resetLoginShownSetting = async () => {
-    try {
-      const db = await openDatabase("userData.db");
-      await db.runAsync("DELETE FROM settings WHERE key = ?", ["loginShown"]);
-      console.log("loginShown setting has been reset.");
-    } catch (error: any) {
-      Bugsnag.notify(error);
-      console.error("Error resetting loginShown setting:", error);
-    }
-  };
+  // const resetLoginShownSetting = async () => {
+  //   try {
+  //     const db = await openDatabase("userData.db");
+  //     await db.runAsync("DELETE FROM settings WHERE key = ?", ["loginShown"]);
+  //     console.log("loginShown setting has been reset.");
+  //   } catch (error: any) {
+  //     Bugsnag.notify(error);
+  //     console.error("Error resetting loginShown setting:", error);
+  //   }
+  // };
 
   useEffect(() => {
     if (isError) {
@@ -603,7 +602,7 @@ export default function SettingsScreen() {
         </View>
         <Divider style={styles.divider} />
 
-        <View style={styles.section}>
+        {/* <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>Manage Data</ThemedText>
           <TouchableOpacity style={styles.item} onPress={confirmClearDatabase}>
             <MaterialCommunityIcons
@@ -646,12 +645,12 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Send test error to Sentry
+                Send test error
               </ThemedText>
             </View>
           </TouchableOpacity>
         </View>
-        <Divider style={styles.divider} />
+        <Divider style={styles.divider} /> */}
 
         <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>About</ThemedText>

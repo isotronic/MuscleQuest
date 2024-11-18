@@ -111,41 +111,45 @@ export default function SessionSetInfo({
   return (
     <View>
       <View style={styles.headerContainer}>
-        {animatedImageLoading ? (
-          <ActivityIndicator size="small" color={Colors.dark.text} />
-        ) : animatedImageError ? (
-          <TouchableOpacity onPress={handleImagePress}>
-            <Image style={styles.animatedImage} source={fallbackImage} />
-          </TouchableOpacity>
-        ) : animatedUrl ? (
-          <TouchableOpacity onPress={handleImagePress}>
-            <Image
-              style={styles.animatedImage}
-              source={{
-                uri: animatedUrl,
-              }}
-            />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity onPress={handleImagePress}>
-            <Image style={styles.animatedImage} source={fallbackImage} />
-          </TouchableOpacity>
-        )}
-        <View style={styles.titleContainer}>
-          <ThemedText style={styles.title}>{exerciseName}</ThemedText>
-
-          {trackingType !== "time" && !!repRange && (
-            <ThemedText style={styles.headerText}>Reps: {repRange}</ThemedText>
+        <View style={styles.headerContent}>
+          {animatedImageLoading ? (
+            <ActivityIndicator size="small" color={Colors.dark.text} />
+          ) : animatedImageError ? (
+            <TouchableOpacity onPress={handleImagePress}>
+              <Image style={styles.animatedImage} source={fallbackImage} />
+            </TouchableOpacity>
+          ) : animatedUrl ? (
+            <TouchableOpacity onPress={handleImagePress}>
+              <Image
+                style={styles.animatedImage}
+                source={{
+                  uri: animatedUrl,
+                }}
+              />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={handleImagePress}>
+              <Image style={styles.animatedImage} source={fallbackImage} />
+            </TouchableOpacity>
           )}
-          {trackingType === "time" && !!timeMin && (
+          <View style={styles.titleContainer}>
+            <ThemedText style={styles.title}>{exerciseName}</ThemedText>
+
+            {trackingType !== "time" && !!repRange && (
+              <ThemedText style={styles.headerText}>
+                Reps: {repRange}
+              </ThemedText>
+            )}
+            {trackingType === "time" && !!timeMin && (
+              <ThemedText style={styles.headerText}>
+                Time: {timeMin} Seconds
+              </ThemedText>
+            )}
+
             <ThemedText style={styles.headerText}>
-              Time: {timeMin} Seconds
+              Rest Time: {restMinutes}:{String(restSeconds).padStart(2, "0")}
             </ThemedText>
-          )}
-
-          <ThemedText style={styles.headerText}>
-            Rest Time: {restMinutes}:{String(restSeconds).padStart(2, "0")}
-          </ThemedText>
+          </View>
         </View>
         {/* Menu Button */}
         <Menu
@@ -331,8 +335,13 @@ export default function SessionSetInfo({
 const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: "row",
-    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 16,
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
   },
   animatedImage: {
     width: 70,
@@ -353,8 +362,7 @@ const styles = StyleSheet.create({
     marginBottom: -5,
   },
   menuButton: {
-    top: 0,
-    right: 0,
+    marginLeft: "auto",
   },
   centeredLabelContainer: {
     alignItems: "center",
