@@ -115,7 +115,7 @@ export const updateAppExerciseIds = async (): Promise<void> => {
 };
 
 export const copyDataFromAppDataToUserData = async (): Promise<void> => {
-  const appDataDB = await openDatabase("appData1.db");
+  const appDataDB = await openDatabase("appData2.db");
   const userDataDB = await openDatabase("userData.db");
 
   interface ExerciseCheckResult {
@@ -136,7 +136,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
   const dataVersion = Number(dataVersionEntry?.value) || null;
 
-  if (dataVersion && dataVersion >= 1.1) {
+  if (dataVersion && dataVersion >= 1.7) {
     console.log("Data has already been copied.");
     return;
   }
@@ -284,10 +284,10 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
   );
 
   if (shouldUpdateDataVersion) {
-    console.log("Updating data version to 1.1...");
+    console.log("Updating data version to 1.7...");
     await userDataDB.runAsync(
       "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-      ["dataVersion", "1.1"],
+      ["dataVersion", "1.7"],
     );
 
     console.log("Data copy completed and version updated.");
