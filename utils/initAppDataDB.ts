@@ -2,12 +2,12 @@ import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
 import { openDatabase } from "./database";
 
-const DATABASE_NAME = "appData1.db";
+const DATABASE_NAME = "appData2.db";
 
 const copyDatabase = async (): Promise<string> => {
   const dbFolder = `${FileSystem.documentDirectory}SQLite`;
   const dbPath = `${dbFolder}/${DATABASE_NAME}`;
-  const oldDbPath = `${dbFolder}/appData.db`;
+  const oldDbPath = `${dbFolder}/appData1.db`;
   const userDataDB = await openDatabase("userData.db");
 
   await FileSystem.makeDirectoryAsync(dbFolder, { intermediates: true });
@@ -30,8 +30,8 @@ const copyDatabase = async (): Promise<string> => {
     );
   }
 
-  if (!dbFile.exists || dataVersion === null || dataVersion < 1.1) {
-    console.log("Copying appData1.db ...");
+  if (!dbFile.exists || dataVersion === null || dataVersion < 1.7) {
+    console.log("Copying appData2.db ...");
     const asset = Asset.fromModule(require(`../assets/db/${DATABASE_NAME}`));
     await asset.downloadAsync();
 
@@ -39,7 +39,7 @@ const copyDatabase = async (): Promise<string> => {
   }
 
   if (oldDbFile.exists) {
-    console.log("Removing outdated appData.db ...");
+    console.log("Removing outdated appData1.db ...");
     await FileSystem.deleteAsync(oldDbPath);
   }
 
