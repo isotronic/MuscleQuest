@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { IconButton, Card, Menu } from "react-native-paper";
+import { IconButton, Card, Menu, Button } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -244,14 +244,15 @@ export default function WorkoutOverviewScreen() {
         options={{
           headerRight: () => (
             <View style={styles.headerRight}>
-              <IconButton
+              <Button
+                mode="contained"
                 icon="content-save-outline"
-                size={35}
                 style={{ marginRight: 0 }}
                 disabled={!hasCompletedSets}
-                iconColor={Colors.dark.tint}
                 onPress={handleSaveWorkout}
-              />
+              >
+                Save
+              </Button>
               <Menu
                 visible={menuVisible[69420]}
                 onDismiss={() => handleMenuClose(69420)}
