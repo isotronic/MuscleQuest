@@ -3,7 +3,6 @@ import {
   StyleSheet,
   View,
   Alert,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   TextInput,
@@ -197,22 +196,20 @@ export default function CreatePlanScreen() {
         ) : (
           <ThemedView style={styles.container}>
             <View style={styles.inputContainer}>
-              <TouchableOpacity onPress={handleImageSearch}>
-                <View style={styles.imageContainer}>
-                  <ImageBackground
-                    source={{ uri: planImageUrl }}
-                    style={styles.image}
-                  >
-                    <IconButton
-                      icon="pen"
-                      size={20}
-                      iconColor={Colors.dark.tint}
-                      style={styles.overlayIcon}
-                      onPress={handleImageSearch}
-                    />
-                  </ImageBackground>
-                </View>
-              </TouchableOpacity>
+              <View style={styles.imageContainer}>
+                <ImageBackground
+                  source={{ uri: planImageUrl }}
+                  style={styles.image}
+                >
+                  <IconButton
+                    icon="pen"
+                    size={20}
+                    iconColor={Colors.dark.tint}
+                    style={styles.overlayIcon}
+                    onPress={handleImageSearch}
+                  />
+                </ImageBackground>
+              </View>
               <TextInput
                 style={styles.input}
                 placeholderTextColor={Colors.dark.subText}
