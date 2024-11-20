@@ -25,6 +25,7 @@ import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 import { ImageBackground } from "expo-image";
+import SaveIcon from "@/components/SaveIcon";
 
 export default function CreatePlanScreen() {
   const navigation = useNavigation();
@@ -175,8 +176,8 @@ export default function CreatePlanScreen() {
         options={{
           headerRight: () => (
             <Button
-              mode="contained"
-              icon="content-save-outline"
+              mode="text"
+              icon={SaveIcon}
               style={{ marginRight: 0 }}
               disabled={saveDisabled}
               onPress={handleSaveAndNavigate}
