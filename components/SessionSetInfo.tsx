@@ -190,33 +190,32 @@ export default function SessionSetInfo({
           disabled={isFirstSetOfFirstExercise}
           iconColor={Colors.dark.text}
         />
-        {!!isWarmup ||
-          (!!isDropSet && (
-            <View style={styles.setTypeContainer}>
-              {!!isWarmup && (
-                <>
-                  <MaterialCommunityIcons
-                    name="speedometer-slow"
-                    size={24}
-                    color={Colors.dark.text}
-                    style={styles.setIcon}
-                  />
-                  <ThemedText style={styles.setTypeLabel}>Warm-up</ThemedText>
-                </>
-              )}
-              {!!isDropSet && (
-                <>
-                  <MaterialCommunityIcons
-                    name="arrow-down-bold"
-                    size={24}
-                    color={Colors.dark.text}
-                    style={styles.setIcon}
-                  />
-                  <ThemedText style={styles.setTypeLabel}>Drop</ThemedText>
-                </>
-              )}
-            </View>
-          ))}
+        {(isWarmup || isDropSet) && (
+          <View style={styles.setTypeContainer}>
+            {isWarmup && (
+              <>
+                <MaterialCommunityIcons
+                  name="speedometer-slow"
+                  size={24}
+                  color={Colors.dark.text}
+                  style={styles.setIcon}
+                />
+                <ThemedText style={styles.setTypeLabel}>Warm-up</ThemedText>
+              </>
+            )}
+            {isDropSet && (
+              <>
+                <MaterialCommunityIcons
+                  name="arrow-down-bold"
+                  size={24}
+                  color={Colors.dark.text}
+                  style={styles.setIcon}
+                />
+                <ThemedText style={styles.setTypeLabel}>Drop</ThemedText>
+              </>
+            )}
+          </View>
+        )}
         <ThemedText style={styles.setNavigationText}>
           Set {currentSetIndex + 1} of {totalSets}
         </ThemedText>
