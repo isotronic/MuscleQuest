@@ -206,7 +206,7 @@ export default function CreatePlanScreen() {
                     <IconButton
                       icon="pen"
                       size={20}
-                      iconColor={Colors.dark.text}
+                      iconColor={Colors.dark.tint}
                       style={styles.overlayIcon}
                       onPress={handleImageSearch}
                     />
