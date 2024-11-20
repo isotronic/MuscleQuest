@@ -188,6 +188,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.dark.screenBackground,
     padding: 16,
+    paddingBottom: 50,
   },
   imageContainer: {
     alignItems: "center",
