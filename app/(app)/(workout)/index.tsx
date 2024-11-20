@@ -19,6 +19,7 @@ import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useSoundAndVibration } from "@/hooks/useSoundAndVibration";
 import Bugsnag from "@bugsnag/expo";
+import { IconProps } from "react-native-paper/lib/typescript/components/MaterialCommunityIcon";
 
 export default function WorkoutOverviewScreen() {
   const { data: settings } = useSettingsQuery();
@@ -219,6 +220,10 @@ export default function WorkoutOverviewScreen() {
     );
   };
 
+  const SaveIcon = (props: IconProps) => (
+    <MaterialCommunityIcons {...props} size={25} name="content-save-outline" />
+  );
+
   if (!workout) {
     return (
       <ThemedView>
@@ -245,9 +250,10 @@ export default function WorkoutOverviewScreen() {
           headerRight: () => (
             <View style={styles.headerRight}>
               <Button
-                mode="contained"
-                icon="content-save-outline"
+                mode="text"
+                icon={SaveIcon}
                 style={{ marginRight: 0 }}
+                labelStyle={styles.buttonLabel}
                 disabled={!hasCompletedSets}
                 onPress={handleSaveWorkout}
               >
@@ -373,6 +379,9 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  buttonLabel: {
+    fontSize: 16,
   },
   container: {
     flex: 1,
