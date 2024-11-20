@@ -172,6 +172,7 @@ export default function ExercisesScreen() {
             <Button
               mode={selectedExercises.length > 0 ? "contained" : "outlined"}
               compact
+              disabled={selectedExercises.length === 0}
               onPress={handleAddExercise}
               labelStyle={styles.addButtonLabel}
             >
