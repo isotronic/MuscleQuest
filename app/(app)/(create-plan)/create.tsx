@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
-  Image,
   Alert,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   TextInput,
@@ -13,7 +11,7 @@ import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
-import { FAB, ActivityIndicator, Button } from "react-native-paper";
+import { FAB, ActivityIndicator, Button, IconButton } from "react-native-paper";
 import {
   useRouter,
   Stack,
@@ -26,6 +24,7 @@ import WorkoutCard from "@/components/WorkoutCard";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
+import { ImageBackground } from "expo-image";
 
 export default function CreatePlanScreen() {
   const navigation = useNavigation();
@@ -197,9 +196,20 @@ export default function CreatePlanScreen() {
         ) : (
           <ThemedView style={styles.container}>
             <View style={styles.inputContainer}>
-              <TouchableOpacity onPress={handleImageSearch}>
-                <Image source={{ uri: planImageUrl }} style={styles.image} />
-              </TouchableOpacity>
+              <View style={styles.imageContainer}>
+                <ImageBackground
+                  source={{ uri: planImageUrl }}
+                  style={styles.image}
+                >
+                  <IconButton
+                    icon="pen"
+                    size={20}
+                    iconColor={Colors.dark.tint}
+                    style={styles.overlayIcon}
+                    onPress={handleImageSearch}
+                  />
+                </ImageBackground>
+              </View>
               <TextInput
                 style={styles.input}
                 placeholderTextColor={Colors.dark.subText}
@@ -254,11 +264,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  image: {
+  imageContainer: {
+    position: "relative",
     width: 60,
     height: 60,
-    borderRadius: 10,
     marginRight: 10,
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  overlayIcon: {
+    position: "absolute",
+    top: 5,
+    right: 5,
   },
   input: {
     flex: 1,
