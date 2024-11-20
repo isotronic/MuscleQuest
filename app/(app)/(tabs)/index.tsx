@@ -268,7 +268,7 @@ export default function HomeScreen() {
           ) : (
             <View>
               <ThemedText type="default" style={styles.sectionTitle}>
-                No Active Plan.
+                No Active Training Plan.
               </ThemedText>
               <ThemedText type="default" style={styles.sectionTitle}>
                 Create or choose one now.
