@@ -9,6 +9,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { useExerciseDetailsQuery } from "@/hooks/useExerciseDetailsQuery";
 import { useToggleFavoriteExerciseMutation } from "@/hooks/useToggleFavoriteExerciseMutation";
 import Bugsnag from "@bugsnag/expo";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -23,15 +24,12 @@ export default function ExerciseDetailsScreen() {
 
   const { mutate: toggleFavorite } = useToggleFavoriteExerciseMutation();
 
-  const {
-    data: animatedUrl,
-    error: animatedImageError,
-    isLoading: animatedImageLoading,
-  } = useAnimatedImageQuery(
-    Number(exercise_id),
-    exerciseData?.animated_url ?? "",
-    exerciseData?.local_animated_uri,
-  );
+  const { data: animatedUrl, isLoading: animatedImageLoading } =
+    useAnimatedImageQuery(
+      Number(exercise_id),
+      exerciseData?.animated_url ?? "",
+      exerciseData?.local_animated_uri,
+    );
 
   let secondaryMuscles: string[] = [];
   if (exerciseData?.secondary_muscles) {
@@ -107,75 +105,80 @@ export default function ExerciseDetailsScreen() {
         }}
       />
       <ScrollView contentContainerStyle={styles.container}>
-        {animatedImageLoading ? (
-          <View style={styles.loadingText}>
+        <View style={styles.imageContainer}>
+          {animatedImageLoading ? (
             <ActivityIndicator size="large" />
-          </View>
-        ) : animatedImageError ? (
-          <Image style={styles.image} source={fallbackImage} />
-        ) : animatedUrl ? (
-          <Image
-            style={styles.gifImage}
-            source={{
-              uri: animatedUrl,
-            }}
-          />
-        ) : exerciseData.local_animated_uri ? (
-          <Image
-            style={styles.image}
-            source={{
-              uri: exerciseData.local_animated_uri,
-            }}
-          />
-        ) : (
-          <Image style={styles.image} source={fallbackImage} />
-        )}
-        <ThemedText style={styles.title}>{exerciseData.name}</ThemedText>
-        <ThemedText style={styles.infoText}>
-          Target muscle: {exerciseData.target_muscle}
-        </ThemedText>
-        {secondaryMuscles.length > 0 && (
-          <ThemedText style={styles.infoText}>
-            Secondary muscles: {secondaryMuscles.join(", ")}
-          </ThemedText>
-        )}
-        <ThemedText style={styles.infoText}>
-          Body part: {exerciseData.body_part}
-        </ThemedText>
-        <ThemedText style={styles.infoText}>
-          Equipment: {exerciseData.equipment}
-        </ThemedText>
-        <ThemedText style={styles.infoText}>
-          Tracking type: {exerciseData.tracking_type || "weight"}
-        </ThemedText>
-        {description.length > 0 && description[0] !== "" && (
-          <View>
-            <ThemedText style={styles.descriptionTitle}>
-              Description:
+          ) : (
+            <Image
+              style={styles.image}
+              source={animatedUrl ? { uri: animatedUrl } : fallbackImage}
+            />
+          )}
+        </View>
+
+        <View style={styles.detailsContainer}>
+          <ThemedText style={styles.title}>{exerciseData.name}</ThemedText>
+
+          <View style={styles.infoRow}>
+            <MaterialCommunityIcons
+              name="target"
+              size={20}
+              style={styles.icon}
+            />
+            <ThemedText style={styles.infoText}>
+              Target muscle: {exerciseData.target_muscle}
             </ThemedText>
-            {exerciseData &&
-              description.map((item: string, index: number) => (
-                <View key={index} style={styles.bulletItem}>
-                  <ThemedText style={styles.bulletText}>{item}</ThemedText>
-                </View>
-              ))}
           </View>
-        )}
-        {exerciseData && exerciseData.app_exercise_id === null && (
-          <Button
-            mode="outlined"
-            style={styles.editButton}
-            labelStyle={styles.buttonLabel}
-            onPress={() => {
-              router.push({
-                pathname: "/(app)/custom-exercise",
-                params: { exercise_id: exerciseData.exercise_id.toString() },
-              });
-            }}
-          >
-            Edit Exercise
-          </Button>
-        )}
+
+          {secondaryMuscles.length > 0 && (
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons
+                name="plus"
+                size={20}
+                style={styles.icon}
+              />
+              <ThemedText style={styles.infoText}>
+                Secondary muscles: {secondaryMuscles.join(", ")}
+              </ThemedText>
+            </View>
+          )}
+
+          <View style={styles.infoRow}>
+            <MaterialCommunityIcons
+              name="dumbbell"
+              size={20}
+              style={styles.icon}
+            />
+            <ThemedText style={styles.infoText}>
+              Equipment: {exerciseData.equipment}
+            </ThemedText>
+          </View>
+
+          {description.length > 0 && (
+            <View>
+              <ThemedText style={styles.sectionTitle}>Description:</ThemedText>
+              <ThemedText style={styles.descriptionText}>
+                {description.join("\n")}
+              </ThemedText>
+            </View>
+          )}
+
+          {exerciseData.app_exercise_id === null && (
+            <Button
+              mode="outlined"
+              style={styles.editButton}
+              labelStyle={styles.buttonLabel}
+              onPress={() => {
+                router.push({
+                  pathname: "/(app)/custom-exercise",
+                  params: { exercise_id: exerciseData.exercise_id.toString() },
+                });
+              }}
+            >
+              Edit Exercise
+            </Button>
+          )}
+        </View>
       </ScrollView>
     </ThemedView>
   );
@@ -187,55 +190,46 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 50,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
+  imageContainer: {
+    alignItems: "center",
     marginBottom: 20,
-  },
-  infoText: {
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  descriptionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  descriptionList: {
-    paddingBottom: 20,
-  },
-  bulletItem: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 5,
-  },
-  bulletText: {
-    fontSize: 16,
-    flex: 1,
-  },
-  gifImage: {
-    width: "100%",
-    height: 350,
-    marginBottom: 25,
-    alignSelf: "center",
   },
   image: {
     width: "100%",
-    height: 300,
-    alignSelf: "center",
-    marginBottom: 25,
+    height: 325,
+    borderRadius: 12,
   },
-  loadingText: {
-    fontSize: 18,
-    textAlign: "center",
-    marginVertical: 32,
-    color: "#888",
+  detailsContainer: {
+    padding: 16,
+    backgroundColor: Colors.dark.cardBackground,
+    borderRadius: 12,
   },
-  errorText: {
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  infoText: {
+    fontSize: 16,
+    marginHorizontal: 8,
+  },
+  sectionTitle: {
     fontSize: 18,
-    textAlign: "center",
-    marginVertical: 32,
-    color: "#FF6F61",
+    fontWeight: "bold",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  descriptionText: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  icon: {
+    color: Colors.dark.text,
   },
   editButton: {
     marginTop: 20,
