@@ -19,7 +19,7 @@ import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useSoundAndVibration } from "@/hooks/useSoundAndVibration";
 import Bugsnag from "@bugsnag/expo";
-import { IconProps } from "react-native-paper/lib/typescript/components/MaterialCommunityIcon";
+import SaveIcon from "@/components/SaveIcon";
 
 export default function WorkoutOverviewScreen() {
   const { data: settings } = useSettingsQuery();
@@ -219,10 +219,6 @@ export default function WorkoutOverviewScreen() {
       ],
     );
   };
-
-  const SaveIcon = (props: IconProps) => (
-    <MaterialCommunityIcons {...props} size={25} name="content-save-outline" />
-  );
 
   if (!workout) {
     return (

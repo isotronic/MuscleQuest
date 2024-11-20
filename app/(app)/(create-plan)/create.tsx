@@ -25,8 +25,7 @@ import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 import { ImageBackground } from "expo-image";
-import { IconProps } from "react-native-paper/lib/typescript/components/MaterialCommunityIcon";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import SaveIcon from "@/components/SaveIcon";
 
 export default function CreatePlanScreen() {
   const navigation = useNavigation();
@@ -164,10 +163,6 @@ export default function CreatePlanScreen() {
       Bugsnag.notify(error);
     }
   };
-
-  const SaveIcon = (props: IconProps) => (
-    <MaterialCommunityIcons {...props} size={25} name="content-save-outline" />
-  );
 
   const saveDisabled = !planName.trim() || workouts.length === 0;
 
