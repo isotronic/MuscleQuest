@@ -13,7 +13,7 @@ import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
-import { FAB, ActivityIndicator, IconButton } from "react-native-paper";
+import { FAB, ActivityIndicator, Button } from "react-native-paper";
 import {
   useRouter,
   Stack,
@@ -175,14 +175,15 @@ export default function CreatePlanScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <IconButton
+            <Button
+              mode="contained"
               icon="content-save-outline"
-              size={35}
               style={{ marginRight: 0 }}
               disabled={saveDisabled}
-              iconColor={Colors.dark.tint}
               onPress={handleSaveAndNavigate}
-            />
+            >
+              Save
+            </Button>
           ),
         }}
       />
