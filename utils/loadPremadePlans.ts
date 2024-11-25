@@ -69,7 +69,7 @@ const insertPlans = async (db: SQLiteDatabase, plans: Plan[]) => {
         }
       }
     } catch (error) {
-      console.error("Error loading premade plans:", error);
+      console.error("Error inserting premade plan:", error);
       throw error;
     }
   });
@@ -86,7 +86,7 @@ export const loadPremadePlans = async () => {
     dataVersion = Number(versionResult?.value);
 
     if (dataVersion === null || dataVersion < 1.6) {
-      const data = require("@/assets/data/premadePlans.json");
+      const data = require("@/assets/data/3-day-full-body.json");
       const plansArray = Array.isArray(data) ? data : [data];
 
       // Insert the plans into the database
@@ -98,9 +98,22 @@ export const loadPremadePlans = async () => {
         ["dataVersion", "1.6"],
       );
     }
+    if (dataVersion === null || dataVersion < 1.8) {
+      const data = require("@/assets/data/4-day-split.json");
+      const plansArray = Array.isArray(data) ? data : [data];
+
+      // Insert the plans into the database
+      await insertPlans(db, plansArray);
+
+      console.log("Updating data version to 1.8...");
+      await db.runAsync(
+        "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+        ["dataVersion", "1.8"],
+      );
+    }
   } catch (error: any) {
     Bugsnag.notify(error);
-    console.error("Error loading and inserting premade plans:", error);
+    console.error("Error loading or inserting premade plans:", error);
     throw error;
   }
 };
