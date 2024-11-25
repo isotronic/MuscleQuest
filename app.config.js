@@ -18,7 +18,7 @@ export default {
       supportsTablet: true,
     },
     android: {
-      versionCode: 32,
+      versionCode: 33,
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       adaptiveIcon: {
         foregroundImage: "./assets/images/ic_launcher_foreground.png",
