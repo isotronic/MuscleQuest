@@ -1,0 +1,23 @@
+name: Pull Request Title Lint
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  lint-pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Pull Request Title
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prTitle = context.payload.pull_request.title;
+            const conventionalCommitRegex = /^(feat|fix|docs|style|refactor|test|chore|perf|build|ci|revert)(\([^)]+\))?:\s.{1,72}$/;
+
+            if (!conventionalCommitRegex.test(prTitle)) {
+              throw new Error(
+                `Invalid PR title: "${prTitle}". PR titles must follow Conventional Commit rules.`
+              );
+            }
