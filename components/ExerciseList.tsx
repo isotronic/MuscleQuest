@@ -107,7 +107,7 @@ const ExerciseList = ({
 const styles = StyleSheet.create({
   flatListContent: {
     flexGrow: 1,
-    marginTop: 12,
+    marginTop: 8,
     paddingBottom: 50,
   },
   titleContainer: {

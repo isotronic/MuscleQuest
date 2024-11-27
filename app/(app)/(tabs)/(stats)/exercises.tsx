@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { View, TextInput, StyleSheet } from "react-native";
-import { Button, ActivityIndicator, IconButton } from "react-native-paper";
+import { Button, ActivityIndicator } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { router, Stack } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import FilterModal from "@/components/FilterModal";
+import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
 import { openDatabase } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
@@ -23,7 +23,7 @@ export default function ExercisesScreen() {
     return selectedExercisesParam ? JSON.parse(selectedExercisesParam) : [];
   }, [selectedExercisesParam]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterModalVisible, setFilterModalVisible] = useState(false);
+
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
     null,
   );
@@ -37,12 +37,6 @@ export default function ExercisesScreen() {
     isLoading: exercisesLoading,
     error: exercisesError,
   } = useExercisesQuery(true, false);
-
-  const allExercises = [
-    ...(exercises?.activePlanExercises || []),
-    ...(exercises?.favoriteExercises || []),
-    ...(exercises?.otherExercises || []),
-  ];
 
   const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
 
@@ -121,9 +115,14 @@ export default function ExercisesScreen() {
       );
       return (
         matchesSearch &&
-        (!selectedEquipment || exercise.equipment === selectedEquipment) &&
-        (!selectedBodyPart || exercise.body_part === selectedBodyPart) &&
+        (!selectedEquipment ||
+          selectedEquipment === "all" ||
+          exercise.equipment === selectedEquipment) &&
+        (!selectedBodyPart ||
+          selectedBodyPart === "all" ||
+          exercise.body_part === selectedBodyPart) &&
         (!selectedTargetMuscle ||
+          selectedTargetMuscle === "all" ||
           exercise.target_muscle === selectedTargetMuscle)
       );
     };
@@ -190,24 +189,14 @@ export default function ExercisesScreen() {
           onChangeText={setSearchQuery}
           selectTextOnFocus={true}
         />
-        <IconButton
-          icon="filter-variant"
-          iconColor={Colors.dark.text}
-          size={24}
-          onPress={() => setFilterModalVisible(true)}
-          style={styles.filterIconButton}
-        />
       </View>
-      <FilterModal
-        visible={filterModalVisible}
-        onClose={() => setFilterModalVisible(false)}
+      <FilterRow
         selectedEquipment={selectedEquipment}
         setSelectedEquipment={setSelectedEquipment}
         selectedBodyPart={selectedBodyPart}
         setSelectedBodyPart={setSelectedBodyPart}
         selectedTargetMuscle={selectedTargetMuscle}
         setSelectedTargetMuscle={setSelectedTargetMuscle}
-        exercises={allExercises}
       />
       <ExerciseList
         exercises={filteredExercises}
@@ -239,6 +228,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: Colors.dark.screenBackground,
     paddingRight: 8,
+    marginBottom: 4,
   },
   searchInput: {
     flex: 1,
