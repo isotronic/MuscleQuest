@@ -136,6 +136,8 @@ function FilterRow({
     <View style={styles.row}>
       <View style={styles.dropdownContainer}>
         <DropDownPicker
+          zIndex={3000}
+          zIndexInverse={1000}
           open={equipmentOpen}
           value={selectedEquipment}
           items={equipmentOptions}
@@ -153,6 +155,8 @@ function FilterRow({
       </View>
       <View style={styles.dropdownContainer}>
         <DropDownPicker
+          zIndex={2000}
+          zIndexInverse={2000}
           open={bodyPartOpen}
           value={selectedBodyPart}
           items={bodyPartOptions}
@@ -170,6 +174,8 @@ function FilterRow({
       </View>
       <View style={styles.dropdownContainerNoMargin}>
         <DropDownPicker
+          zIndex={1000}
+          zIndexInverse={3000}
           open={targetMuscleOpen}
           value={selectedTargetMuscle}
           items={muscleOptions}
@@ -193,7 +199,13 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 4,
+    paddingBottom: 8,
+    backgroundColor: Colors.dark.screenBackground,
+    marginHorizontal: -16,
+    paddingHorizontal: 16,
+    position: "relative",
+    zIndex: 1,
+    elevation: 10,
   },
   dropdownContainer: {
     flex: 1,
