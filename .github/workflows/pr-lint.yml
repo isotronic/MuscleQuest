@@ -13,7 +13,6 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const { context } = require('@actions/github');
             const prTitle = context.payload.pull_request.title;
             const conventionalCommitRegex = /^(feat|fix|docs|style|refactor|test|chore|perf|build|ci|revert)(\([^)]+\))?:\s.{1,72}$/;
 
