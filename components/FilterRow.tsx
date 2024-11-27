@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   },
   dropdownListContainer: {
     backgroundColor: Colors.dark.cardBackground,
-    borderColor: Colors.dark.subText,
+    borderColor: Colors.dark.text,
     borderWidth: 1,
     borderRadius: 8,
     padding: 4,
