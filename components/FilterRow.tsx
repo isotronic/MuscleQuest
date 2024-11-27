@@ -1,11 +1,16 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { View, StyleSheet, Alert, TouchableOpacity, Text } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
+import { View, StyleSheet, Alert, Text } from "react-native";
+import { Dropdown } from "react-native-element-dropdown";
 import { Colors } from "@/constants/Colors";
 import { capitalizeWords } from "@/utils/utility";
 import { fetchAllRecords } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+
+interface OptionItem {
+  label: string;
+  value: string;
+}
 
 interface FilterRowProps {
   selectedEquipment: string | null;
@@ -24,19 +29,9 @@ function FilterRow({
   selectedTargetMuscle,
   setSelectedTargetMuscle,
 }: FilterRowProps) {
-  const [equipmentOpen, setEquipmentOpen] = useState(false);
-  const [bodyPartOpen, setBodyPartOpen] = useState(false);
-  const [targetMuscleOpen, setTargetMuscleOpen] = useState(false);
-
-  const [bodyPartOptions, setBodyPartOptions] = useState<
-    { label: string; value: string; key: string }[]
-  >([]);
-  const [muscleOptions, setMuscleOptions] = useState<
-    { label: string; value: string; key: string }[]
-  >([]);
-  const [equipmentOptions, setEquipmentOptions] = useState<
-    { label: string; value: string; key: string }[]
-  >([]);
+  const [bodyPartOptions, setBodyPartOptions] = useState<OptionItem[]>([]);
+  const [muscleOptions, setMuscleOptions] = useState<OptionItem[]>([]);
+  const [equipmentOptions, setEquipmentOptions] = useState<OptionItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -58,27 +53,24 @@ function FilterRow({
         )) as { equipment: string }[];
 
         const bodyPartOptions = [
-          { label: "All body parts", value: "all", key: "all_body_parts" },
+          { label: "All body parts", value: "all" },
           ...bodyParts.map((bodyPart) => ({
             label: capitalizeWords(bodyPart.body_part),
             value: bodyPart.body_part,
-            key: `body_part_${bodyPart.body_part}`,
           })),
         ];
         const muscleOptions = [
-          { label: "All target muscles", value: "all", key: "all_muscles" },
+          { label: "All target muscles", value: "all" },
           ...muscles.map((muscle) => ({
             label: capitalizeWords(muscle.muscle),
             value: muscle.muscle,
-            key: `muscle_${muscle.muscle}`,
           })),
         ];
         const equipmentOptions = [
-          { label: "All equipment", value: "all", key: "all_equipment" },
+          { label: "All equipment", value: "all" },
           ...equipmentList.map((equipment) => ({
             label: capitalizeWords(equipment.equipment),
             value: equipment.equipment,
-            key: `equipment_${equipment.equipment}`,
           })),
         ];
 
@@ -108,19 +100,16 @@ function FilterRow({
     [loading],
   );
 
-  const renderListItem = (itemProps: any) => {
-    const { item, isSelected, onPress, label } = itemProps;
-
+  const renderListItem = (item: OptionItem, selected?: boolean) => {
     return (
-      <TouchableOpacity
-        onPress={() => onPress(item)}
+      <View
         style={[
           styles.customItemContainer,
-          isSelected && styles.selectedItemContainer,
+          selected && styles.selectedItemContainer,
         ]}
       >
-        <Text style={styles.customItemText}>{label}</Text>
-        {isSelected && item.value !== "all" && (
+        <Text style={styles.customItemText}>{item.label}</Text>
+        {selected && item.value !== "all" && (
           <MaterialCommunityIcons
             name="check"
             size={18}
@@ -128,67 +117,58 @@ function FilterRow({
             style={styles.checkmark}
           />
         )}
-      </TouchableOpacity>
+      </View>
     );
   };
 
   return (
     <View style={styles.row}>
       <View style={styles.dropdownContainer}>
-        <DropDownPicker
-          zIndex={3000}
-          zIndexInverse={1000}
-          open={equipmentOpen}
-          value={selectedEquipment}
-          items={equipmentOptions}
-          setOpen={setEquipmentOpen}
-          setValue={setSelectedEquipment}
+        <Dropdown<OptionItem>
+          data={equipmentOptions}
+          labelField="label"
+          valueField="value"
           placeholder={dropdownPlaceholders.equipment}
           placeholderStyle={styles.placeholder}
           style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownListContainer}
-          textStyle={styles.text}
-          disabled={loading}
-          arrowIconStyle={{ tintColor: Colors.dark.text }}
-          renderListItem={renderListItem}
+          containerStyle={styles.dropdownListContainer}
+          selectedTextStyle={styles.text}
+          value={selectedEquipment}
+          onChange={(item) => setSelectedEquipment(item.value)}
+          renderItem={renderListItem}
+          flatListProps={{ nestedScrollEnabled: true }}
         />
       </View>
       <View style={styles.dropdownContainer}>
-        <DropDownPicker
-          zIndex={2000}
-          zIndexInverse={2000}
-          open={bodyPartOpen}
-          value={selectedBodyPart}
-          items={bodyPartOptions}
-          setOpen={setBodyPartOpen}
-          setValue={setSelectedBodyPart}
+        <Dropdown<OptionItem>
+          data={bodyPartOptions}
+          labelField="label"
+          valueField="value"
           placeholder={dropdownPlaceholders.bodyPart}
           placeholderStyle={styles.placeholder}
           style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownListContainer}
-          textStyle={styles.text}
-          disabled={loading}
-          arrowIconStyle={{ tintColor: Colors.dark.text }}
-          renderListItem={renderListItem}
+          containerStyle={styles.dropdownListContainer}
+          selectedTextStyle={styles.text}
+          value={selectedBodyPart}
+          onChange={(item) => setSelectedBodyPart(item.value)}
+          renderItem={renderListItem}
+          flatListProps={{ nestedScrollEnabled: true }}
         />
       </View>
       <View style={styles.dropdownContainerNoMargin}>
-        <DropDownPicker
-          zIndex={1000}
-          zIndexInverse={3000}
-          open={targetMuscleOpen}
-          value={selectedTargetMuscle}
-          items={muscleOptions}
-          setOpen={setTargetMuscleOpen}
-          setValue={setSelectedTargetMuscle}
+        <Dropdown<OptionItem>
+          data={muscleOptions}
+          labelField="label"
+          valueField="value"
           placeholder={dropdownPlaceholders.targetMuscle}
           placeholderStyle={styles.placeholder}
           style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownListContainer}
-          textStyle={styles.text}
-          disabled={loading}
-          arrowIconStyle={{ tintColor: Colors.dark.text }}
-          renderListItem={renderListItem}
+          containerStyle={styles.dropdownListContainer}
+          selectedTextStyle={styles.text}
+          value={selectedTargetMuscle}
+          onChange={(item) => setSelectedTargetMuscle(item.value)}
+          renderItem={renderListItem}
+          flatListProps={{ nestedScrollEnabled: true }}
         />
       </View>
     </View>
@@ -203,9 +183,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.screenBackground,
     marginHorizontal: -16,
     paddingHorizontal: 16,
-    position: "relative",
-    zIndex: 1,
-    elevation: 10,
   },
   dropdownContainer: {
     flex: 1,
@@ -217,16 +194,16 @@ const styles = StyleSheet.create({
   dropdown: {
     backgroundColor: Colors.dark.screenBackground,
     borderColor: Colors.dark.text,
-    width: "100%",
+    borderWidth: 1,
+    borderRadius: 8,
     height: 50,
+    paddingHorizontal: 8,
   },
   dropdownListContainer: {
     backgroundColor: Colors.dark.screenBackground,
     borderColor: Colors.dark.text,
-  },
-  listItemContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.dark.text,
+    borderWidth: 1,
+    borderRadius: 8,
   },
   placeholder: {
     color: Colors.dark.text,
@@ -244,6 +221,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderBottomWidth: 1,
     borderBottomColor: Colors.dark.text,
+  },
+  selectedItemContainer: {
+    backgroundColor: Colors.dark.subText,
   },
   customItemText: {
     color: Colors.dark.text,
