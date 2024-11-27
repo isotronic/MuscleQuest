@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Alert, Text } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { Colors } from "@/constants/Colors";
@@ -32,11 +32,9 @@ function FilterRow({
   const [bodyPartOptions, setBodyPartOptions] = useState<OptionItem[]>([]);
   const [muscleOptions, setMuscleOptions] = useState<OptionItem[]>([]);
   const [equipmentOptions, setEquipmentOptions] = useState<OptionItem[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
         const bodyParts = (await fetchAllRecords(
           "userData.db",
@@ -83,22 +81,17 @@ function FilterRow({
         ]);
         console.error("Error fetching data:", error);
         Bugsnag.notify(error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchData();
   }, []);
 
-  const dropdownPlaceholders = useMemo(
-    () => ({
-      equipment: loading ? "Loading..." : "All equipment",
-      bodyPart: loading ? "Loading..." : "All body parts",
-      targetMuscle: loading ? "Loading..." : "All target muscles",
-    }),
-    [loading],
-  );
+  const dropdownPlaceholders = {
+    equipment: "All equipment",
+    bodyPart: "All body parts",
+    targetMuscle: "All target muscles",
+  };
 
   const renderListItem = (item: OptionItem, selected?: boolean) => {
     return (
@@ -125,6 +118,7 @@ function FilterRow({
     <View style={styles.row}>
       <View style={styles.dropdownContainer}>
         <Dropdown<OptionItem>
+          autoScroll={false}
           data={equipmentOptions}
           labelField="label"
           valueField="value"
@@ -132,7 +126,7 @@ function FilterRow({
           placeholderStyle={styles.placeholder}
           style={styles.dropdown}
           containerStyle={styles.dropdownListContainer}
-          selectedTextStyle={styles.text}
+          selectedTextStyle={styles.selectedText}
           value={selectedEquipment}
           onChange={(item) => setSelectedEquipment(item.value)}
           renderItem={renderListItem}
@@ -141,6 +135,7 @@ function FilterRow({
       </View>
       <View style={styles.dropdownContainer}>
         <Dropdown<OptionItem>
+          autoScroll={false}
           data={bodyPartOptions}
           labelField="label"
           valueField="value"
@@ -157,6 +152,7 @@ function FilterRow({
       </View>
       <View style={styles.dropdownContainerNoMargin}>
         <Dropdown<OptionItem>
+          autoScroll={false}
           data={muscleOptions}
           labelField="label"
           valueField="value"
@@ -183,6 +179,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.screenBackground,
     marginHorizontal: -16,
     paddingHorizontal: 16,
+    elevation: 10,
   },
   dropdownContainer: {
     flex: 1,
@@ -200,16 +197,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   dropdownListContainer: {
-    backgroundColor: Colors.dark.screenBackground,
-    borderColor: Colors.dark.text,
+    backgroundColor: Colors.dark.cardBackground,
+    borderColor: Colors.dark.subText,
     borderWidth: 1,
     borderRadius: 8,
+    padding: 4,
+    elevation: 4,
   },
   placeholder: {
     color: Colors.dark.text,
     fontSize: 14,
   },
   text: {
+    color: Colors.dark.text,
+    fontSize: 14,
+  },
+  selectedText: {
+    backgroundColor: Colors.dark.screenBackground,
     color: Colors.dark.text,
     fontSize: 14,
   },
@@ -220,10 +224,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.dark.text,
+    borderBottomColor: Colors.dark.subText,
   },
   selectedItemContainer: {
-    backgroundColor: Colors.dark.subText,
+    backgroundColor: Colors.dark.cardBackground,
   },
   customItemText: {
     color: Colors.dark.text,
