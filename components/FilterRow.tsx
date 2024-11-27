@@ -193,6 +193,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 4,
   },
   dropdownContainer: {
     flex: 1,
