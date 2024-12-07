@@ -290,7 +290,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     color: Colors.dark.text,
     fontSize: 18,
-    height: 40,
+    lineHeight: 24,
+    height: 45,
   },
   emptyText: {
     fontSize: 18,
