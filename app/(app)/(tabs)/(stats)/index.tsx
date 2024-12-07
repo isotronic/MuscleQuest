@@ -301,13 +301,14 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    padding: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
     alignItems: "center",
     borderRadius: 8,
     backgroundColor: Colors.dark.cardBackground,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 20,
     textAlign: "center",
     fontWeight: "bold",
   },
@@ -325,6 +326,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   buttonLabel: {
-    fontSize: 16,
+    paddingVertical: 0,
   },
 });
