@@ -27,11 +27,18 @@ export default function ExercisesScreen() {
     isLoading: exercisesLoading,
     error: exercisesError,
   } = useExercisesQuery(false, true);
-  const { workouts, addExercise, newExerciseId, setNewExerciseId } =
-    useWorkoutStore();
-  const { index } = useLocalSearchParams();
+  const {
+    workouts,
+    addExercise,
+    newExerciseId,
+    setNewExerciseId,
+    replaceExercise,
+  } = useWorkoutStore();
+  const { index, replaceExerciseIndex } = useLocalSearchParams();
   const currentWorkoutIndex = Number(index);
   const currentWorkout = workouts[currentWorkoutIndex];
+  const replacing = typeof replaceExerciseIndex !== "undefined";
+  console.log(replaceExerciseIndex);
 
   const {
     data: settings,
@@ -41,16 +48,19 @@ export default function ExercisesScreen() {
 
   const defaultSetNumber = settings ? parseInt(settings?.defaultSets) : 3;
   const totalSeconds = settings ? parseInt(settings?.defaultRestTime) : 0;
-  const allExercises = [
-    ...(exercises?.activePlanExercises || []),
-    ...(exercises?.favoriteExercises || []),
-    ...(exercises?.otherExercises || []),
-  ];
+  const allExercises = useMemo(
+    () => [
+      ...(exercises?.activePlanExercises || []),
+      ...(exercises?.favoriteExercises || []),
+      ...(exercises?.otherExercises || []),
+    ],
+    [exercises],
+  );
 
   const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
 
   useEffect(() => {
-    if (currentWorkout?.exercises) {
+    if (currentWorkout?.exercises && !replacing) {
       const existingExerciseIds = currentWorkout.exercises.map(
         (exercise) => exercise.exercise_id,
       );
@@ -67,31 +77,63 @@ export default function ExercisesScreen() {
       // Clear the newExerciseId after it's used
       setNewExerciseId(null);
     }
-  }, [currentWorkout, newExerciseId, setNewExerciseId]);
+  }, [currentWorkout, newExerciseId, replacing, setNewExerciseId]);
 
-  const handleSelectExercise = useCallback((exerciseId: number) => {
-    setSelectedExercises((prev) =>
-      prev.includes(exerciseId)
-        ? prev.filter((id) => id !== exerciseId)
-        : [...prev, exerciseId],
-    );
-  }, []);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const defaultSets = Array(defaultSetNumber).fill({
+    repsMin: 8,
+    repsMax: 12,
+    restMinutes: minutes,
+    restSeconds: seconds,
+  });
+  const defaultTimeSets = Array(defaultSetNumber).fill({
+    restMinutes: minutes,
+    restSeconds: seconds,
+    time: 30,
+  });
+
+  const handleSelectExercise = useCallback(
+    (exerciseId: number) => {
+      if (replacing) {
+        // Immediately replace the existing exercise with the selected one
+        const exercise = allExercises.find(
+          (ex) => ex.exercise_id === exerciseId,
+        );
+        if (exercise && replaceExerciseIndex !== undefined) {
+          const replacement = {
+            ...exercise,
+            sets:
+              exercise.tracking_type === "time" ? defaultTimeSets : defaultSets,
+          };
+          replaceExercise(
+            currentWorkoutIndex,
+            Number(replaceExerciseIndex),
+            replacement,
+          );
+          router.back(); // Return immediately after replacement
+        }
+      } else {
+        // Normal add mode - allow multiple selections
+        setSelectedExercises((prev) =>
+          prev.includes(exerciseId)
+            ? prev.filter((id) => id !== exerciseId)
+            : [...prev, exerciseId],
+        );
+      }
+    },
+    [
+      replacing,
+      allExercises,
+      replaceExerciseIndex,
+      defaultTimeSets,
+      defaultSets,
+      replaceExercise,
+      currentWorkoutIndex,
+    ],
+  );
 
   const handleAddExercise = () => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    const defaultSets = Array(defaultSetNumber).fill({
-      repsMin: 8,
-      repsMax: 12,
-      restMinutes: minutes,
-      restSeconds: seconds,
-    });
-    const defaultTimeSets = Array(defaultSetNumber).fill({
-      restMinutes: minutes,
-      restSeconds: seconds,
-      time: 30,
-    });
-
     selectedExercises.forEach((exerciseId) => {
       const exercise = allExercises.find((ex) => ex.exercise_id === exerciseId);
       if (
@@ -172,21 +214,23 @@ export default function ExercisesScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <Button
-              mode={selectedExercises.length > 0 ? "contained" : "outlined"}
-              compact
-              disabled={selectedExercises.length === 0}
-              onPress={handleAddExercise}
-              labelStyle={styles.addButtonLabel}
-            >
-              Add Exercises ({selectedExercises.length})
-            </Button>
-          ),
-        }}
-      />
+      {!replacing && (
+        <Stack.Screen
+          options={{
+            headerRight: () => (
+              <Button
+                mode={selectedExercises.length > 0 ? "contained" : "outlined"}
+                compact
+                disabled={selectedExercises.length === 0}
+                onPress={handleAddExercise}
+                labelStyle={styles.addButtonLabel}
+              >
+                Add Exercises ({selectedExercises.length})
+              </Button>
+            ),
+          }}
+        />
+      )}
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -216,15 +260,17 @@ export default function ExercisesScreen() {
           });
         }}
       />
-      <FAB
-        icon="plus"
-        label="Create"
-        theme={{ colors: { primary: Colors.dark.tint } }}
-        style={styles.fab}
-        onPress={() => {
-          router.push("/(app)/custom-exercise");
-        }}
-      />
+      {!replacing && (
+        <FAB
+          icon="plus"
+          label="Create"
+          theme={{ colors: { primary: Colors.dark.tint } }}
+          style={styles.fab}
+          onPress={() => {
+            router.push("/(app)/custom-exercise");
+          }}
+        />
+      )}
     </ThemedView>
   );
 }
