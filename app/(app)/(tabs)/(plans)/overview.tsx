@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   buttonLabel: {
-    fontSize: 16,
+    paddingVertical: 0,
   },
   activeBadge: {
     backgroundColor: Colors.dark.completed,

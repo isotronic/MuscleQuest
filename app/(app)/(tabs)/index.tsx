@@ -367,7 +367,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   smallButtonLabel: {
-    fontSize: 16,
     paddingVertical: 0,
   },
   buttonContainer: {
