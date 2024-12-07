@@ -40,6 +40,13 @@ interface WorkoutStore {
     index: number,
     exerciseId: UserExercise["exercise_id"],
   ) => void;
+  replaceExercise: (
+    workoutIndex: number,
+    exerciseIndex: number,
+    newExercise: UserExercise,
+    defaultSets: Set[],
+    defaultTimeSets: Set[],
+  ) => void;
   addSetToExercise: (
     workoutIndex: number,
     exerciseId: number,
@@ -108,6 +115,55 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
         return w;
       }),
     })),
+  replaceExercise: (
+    workoutIndex,
+    exerciseIndex,
+    newExercise,
+    defaultSets,
+    defaultTimeSets,
+  ) => {
+    set((state) => {
+      const updatedWorkouts = [...state.workouts];
+      const workout = updatedWorkouts[workoutIndex];
+
+      if (!workout || !workout.exercises[exerciseIndex]) {
+        return { workouts: updatedWorkouts };
+      }
+
+      const oldExercise = workout.exercises[exerciseIndex];
+      let oldTrackingType = oldExercise.tracking_type;
+      let newTrackingType = newExercise.tracking_type;
+      if (oldTrackingType === "" || oldTrackingType === null) {
+        oldTrackingType = "weight";
+      }
+      if (newTrackingType === "" || newTrackingType === null) {
+        newTrackingType = "weight";
+      }
+
+      if (oldTrackingType === newTrackingType) {
+        // Same tracking type: carry over old sets
+        newExercise.sets = oldExercise.sets;
+      } else if (newTrackingType === "time") {
+        newExercise.sets = defaultTimeSets;
+      } else if (
+        (newTrackingType === "assisted" && oldTrackingType === "weight") ||
+        (newTrackingType === "weight" && oldTrackingType === "assisted")
+      ) {
+        newExercise.sets = oldExercise.sets;
+      } else {
+        newExercise.sets = defaultSets;
+      }
+
+      const updatedExercises = [...workout.exercises];
+      updatedExercises[exerciseIndex] = newExercise;
+      updatedWorkouts[workoutIndex] = {
+        ...workout,
+        exercises: updatedExercises,
+      };
+
+      return { workouts: updatedWorkouts };
+    });
+  },
   addSetToExercise: (workoutIndex: number, exerciseId: number, newSet: Set) => {
     set((state) => {
       const workouts = state.workouts.map((workout, wIndex) => {
