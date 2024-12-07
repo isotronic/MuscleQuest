@@ -191,8 +191,7 @@ export default function WorkoutCard({
       )}
       <Button
         mode="outlined"
-        style={styles.saveButton}
-        labelStyle={styles.saveButtonLabel}
+        style={styles.addButton}
         onPress={() => onAddExercise(index)}
       >
         Add Exercise
@@ -220,13 +219,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     color: Colors.dark.text,
     marginVertical: 10,
+    fontSize: 14,
+    lineHeight: 18,
     height: 40,
   },
-  saveButton: {
+  addButton: {
     marginTop: 8,
-  },
-  saveButtonLabel: {
-    fontSize: 16,
   },
   image: {
     width: 60,

@@ -65,7 +65,7 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
       <BarChart
         data={barData.reverse()}
         barWidth={barWidth}
-        spacing={35}
+        spacing={20}
         isAnimated
         frontColor={Colors.dark.highlight}
         yAxisTextStyle={styles.yAxisLabel}
