@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { View, TextInput, StyleSheet } from "react-native";
+import { View, TextInput, StyleSheet, Alert } from "react-native";
 import { Button, ActivityIndicator, FAB } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -38,7 +38,6 @@ export default function ExercisesScreen() {
   const currentWorkoutIndex = Number(index);
   const currentWorkout = workouts[currentWorkoutIndex];
   const replacing = typeof replaceExerciseIndex !== "undefined";
-  console.log(replaceExerciseIndex);
 
   const {
     data: settings,
@@ -96,6 +95,20 @@ export default function ExercisesScreen() {
   const handleSelectExercise = useCallback(
     (exerciseId: number) => {
       if (replacing) {
+        // Check if this exercise already exists in the current workout
+        const workout = workouts[currentWorkoutIndex];
+        const exerciseAlreadyExists = workout.exercises.some(
+          (e) => e.exercise_id === exerciseId,
+        );
+
+        if (exerciseAlreadyExists) {
+          Alert.alert(
+            "Exercise Already Added",
+            "This exercise is already in your workout. Please choose a different one.",
+            [{ text: "OK" }],
+          );
+          return;
+        }
         // Immediately replace the existing exercise with the selected one
         const exercise = allExercises.find(
           (ex) => ex.exercise_id === exerciseId,
@@ -130,6 +143,7 @@ export default function ExercisesScreen() {
       defaultSets,
       replaceExercise,
       currentWorkoutIndex,
+      workouts, // Make sure 'workouts' is included in dependencies
     ],
   );
 
