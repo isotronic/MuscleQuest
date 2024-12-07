@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -7,10 +8,11 @@ import {
 } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
-import { Card, Button } from "react-native-paper";
+import { Card, Button, Menu, IconButton } from "react-native-paper";
 import {
   ShadowDecorator,
   NestableDraggableFlatList,
+  RenderItemParams,
 } from "react-native-draggable-flatlist";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -32,40 +34,61 @@ export default function WorkoutCard({
   onAddExercise,
 }: WorkoutCardProps) {
   const { workouts } = useWorkoutStore();
+  const [menuVisible, setMenuVisible] = useState<number | null>(null);
+
+  const openMenu = (exerciseId: number) => setMenuVisible(exerciseId);
+  const closeMenu = () => setMenuVisible(null);
+
+  const removeExercise = (workoutIndex: number, exerciseId: number) => {
+    const exercise = workout.exercises.find(
+      (ex) => ex.exercise_id === exerciseId,
+    );
+    if (!exercise) {
+      return;
+    }
+    Alert.alert(
+      "Remove Exercise",
+      `Are you sure you want to remove ${exercise.name}?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: () => {
+            useWorkoutStore.getState().removeExercise(workoutIndex, exerciseId);
+          },
+        },
+      ],
+    );
+  };
+
+  const handleReplace = (workoutIndex: number, exerciseIndex: number) => {
+    // Navigate to the exercises screen to select a replacement
+    router.push({
+      pathname: "/(app)/(create-plan)/exercises",
+      params: {
+        index: workoutIndex,
+        replaceExerciseIndex: exerciseIndex,
+      },
+    });
+  };
 
   const renderExerciseItem = ({
     item,
     drag,
     isActive,
     workoutIndex,
+    exerciseIndex,
   }: {
     item: UserExercise;
     drag: () => void;
     isActive: boolean;
     workoutIndex: number;
+    exerciseIndex: number;
   }) => {
-    const removeExercise = (exerciseId: number) => {
-      Alert.alert(
-        "Remove Exercise",
-        `Are you sure you want to remove ${item.name}?`,
-        [
-          {
-            text: "Cancel",
-            style: "cancel",
-          },
-          {
-            text: "Remove",
-            style: "destructive",
-            onPress: () => {
-              useWorkoutStore
-                .getState()
-                .removeExercise(workoutIndex, exerciseId);
-            },
-          },
-        ],
-      );
-    };
-
     // Calculate min and max reps
     const minReps = Math.min(
       ...item.sets.map((set) => set.repsMin ?? Infinity),
@@ -96,6 +119,8 @@ export default function WorkoutCard({
     } else if (minTime !== Infinity && maxTime !== -Infinity) {
       timeRange = `${minTime} - ${maxTime}`; // Show range if both are defined
     }
+
+    const isMenuOpen = menuVisible === item.exercise_id;
 
     return (
       <ShadowDecorator>
@@ -134,13 +159,33 @@ export default function WorkoutCard({
                   : ""}
             </ThemedText>
           </View>
-          <MaterialCommunityIcons
-            name="close"
-            onPress={() => removeExercise(item.exercise_id)}
-            size={24}
-            color={Colors.dark.text}
-            style={styles.closeIcon}
-          />
+          <Menu
+            visible={isMenuOpen}
+            onDismiss={closeMenu}
+            anchor={
+              <IconButton
+                icon="dots-vertical"
+                size={24}
+                onPress={() => openMenu(item.exercise_id)}
+                iconColor={Colors.dark.text}
+              />
+            }
+          >
+            <Menu.Item
+              onPress={() => {
+                closeMenu();
+                removeExercise(workoutIndex, item.exercise_id);
+              }}
+              title="Delete"
+            />
+            <Menu.Item
+              onPress={() => {
+                closeMenu();
+                handleReplace(workoutIndex, exerciseIndex);
+              }}
+              title="Replace"
+            />
+          </Menu>
         </TouchableOpacity>
       </ShadowDecorator>
     );
@@ -174,14 +219,27 @@ export default function WorkoutCard({
         onChangeText={(text: string) => onNameChange(index, text)}
       />
       {workout.exercises.length > 0 ? (
-        <NestableDraggableFlatList
+        <NestableDraggableFlatList<UserExercise>
           scrollEnabled={false}
           containerStyle={{ overflow: "visible" }}
           data={workout.exercises}
           keyExtractor={(exercise) => exercise.exercise_id.toString()}
-          renderItem={({ item, drag, isActive }) =>
-            renderExerciseItem({ item, drag, isActive, workoutIndex: index })
-          }
+          renderItem={({
+            item,
+            drag,
+            isActive,
+          }: RenderItemParams<UserExercise>) => {
+            const exerciseIndex = workout.exercises.findIndex(
+              (e) => e.exercise_id === item.exercise_id,
+            );
+            return renderExerciseItem({
+              item,
+              drag,
+              isActive,
+              workoutIndex: index,
+              exerciseIndex,
+            });
+          }}
           onDragEnd={(result) => handleDragEnd(index, result)}
         />
       ) : (
