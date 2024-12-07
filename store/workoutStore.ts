@@ -44,6 +44,8 @@ interface WorkoutStore {
     workoutIndex: number,
     exerciseIndex: number,
     newExercise: UserExercise,
+    defaultSets: Set[],
+    defaultTimeSets: Set[],
   ) => void;
   addSetToExercise: (
     workoutIndex: number,
@@ -113,20 +115,44 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
         return w;
       }),
     })),
-  replaceExercise: (workoutIndex, exerciseIndex, newExercise) => {
+  replaceExercise: (
+    workoutIndex,
+    exerciseIndex,
+    newExercise,
+    defaultSets,
+    defaultTimeSets,
+  ) => {
     set((state) => {
       const updatedWorkouts = [...state.workouts];
       const workout = updatedWorkouts[workoutIndex];
 
       if (!workout || !workout.exercises[exerciseIndex]) {
-        return { workouts: updatedWorkouts }; // No valid exercise at that index
+        return { workouts: updatedWorkouts };
       }
 
-      // Get the old sets from the exercise being replaced
-      const oldSets = workout.exercises[exerciseIndex].sets;
+      const oldExercise = workout.exercises[exerciseIndex];
+      let oldTrackingType = oldExercise.tracking_type;
+      let newTrackingType = newExercise.tracking_type;
+      if (oldTrackingType === "" || oldTrackingType === null) {
+        oldTrackingType = "weight";
+      }
+      if (newTrackingType === "" || newTrackingType === null) {
+        newTrackingType = "weight";
+      }
 
-      // Assign old sets to the new exercise
-      newExercise.sets = oldSets;
+      if (oldTrackingType === newTrackingType) {
+        // Same tracking type: carry over old sets
+        newExercise.sets = oldExercise.sets;
+      } else if (newTrackingType === "time") {
+        newExercise.sets = defaultTimeSets;
+      } else if (
+        (newTrackingType === "assisted" && oldTrackingType === "weight") ||
+        (newTrackingType === "weight" && oldTrackingType === "assisted")
+      ) {
+        newExercise.sets = oldExercise.sets;
+      } else {
+        newExercise.sets = defaultSets;
+      }
 
       const updatedExercises = [...workout.exercises];
       updatedExercises[exerciseIndex] = newExercise;

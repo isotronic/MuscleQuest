@@ -123,6 +123,8 @@ export default function ExercisesScreen() {
             currentWorkoutIndex,
             Number(replaceExerciseIndex),
             replacement,
+            defaultSets,
+            defaultTimeSets,
           );
           router.back(); // Return immediately after replacement
         }
