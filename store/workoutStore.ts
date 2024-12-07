@@ -40,6 +40,11 @@ interface WorkoutStore {
     index: number,
     exerciseId: UserExercise["exercise_id"],
   ) => void;
+  replaceExercise: (
+    workoutIndex: number,
+    exerciseIndex: number,
+    newExercise: UserExercise,
+  ) => void;
   addSetToExercise: (
     workoutIndex: number,
     exerciseId: number,
@@ -108,6 +113,31 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
         return w;
       }),
     })),
+  replaceExercise: (workoutIndex, exerciseIndex, newExercise) => {
+    set((state) => {
+      const updatedWorkouts = [...state.workouts];
+      const workout = updatedWorkouts[workoutIndex];
+
+      if (!workout || !workout.exercises[exerciseIndex]) {
+        return { workouts: updatedWorkouts }; // No valid exercise at that index
+      }
+
+      // Get the old sets from the exercise being replaced
+      const oldSets = workout.exercises[exerciseIndex].sets;
+
+      // Assign old sets to the new exercise
+      newExercise.sets = oldSets;
+
+      const updatedExercises = [...workout.exercises];
+      updatedExercises[exerciseIndex] = newExercise;
+      updatedWorkouts[workoutIndex] = {
+        ...workout,
+        exercises: updatedExercises,
+      };
+
+      return { workouts: updatedWorkouts };
+    });
+  },
   addSetToExercise: (workoutIndex: number, exerciseId: number, newSet: Set) => {
     set((state) => {
       const workouts = state.workouts.map((workout, wIndex) => {
