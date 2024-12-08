@@ -12,12 +12,14 @@ import {
 interface ExerciseProgressionChartProps {
   exercise: TrackedExerciseWithSets;
   timeRange: string;
+  weightUnit: string;
 }
 
 const groupSetsByTime = (
   completedSets: CompletedSet[],
   timeRange: string,
-  trackingType: string,
+  trackingType: string | null,
+  conversionFactor: number,
 ) => {
   const groupedSets: Record<string, { progressionMetric: number }> = {};
 
@@ -33,19 +35,27 @@ const groupSetsByTime = (
       const month = weekStart.toLocaleString(undefined, { month: "short" });
       groupKey = `${day} ${month}`;
     } else if (timeRange === "365" || timeRange === "0") {
-      // Group by month: label in the first three letters of the month
+      // Group by month
       const month = setDate.toLocaleString(undefined, { month: "short" });
       groupKey = `${month}`;
     } else {
-      // Default: leave the data as it is (for 30 days)
+      // Default: daily
       groupKey = setDate.toLocaleDateString(undefined, {
         day: "numeric",
         month: "numeric",
       });
     }
 
-    // Store the highest progressionMetric for each group
-    const metric = set.progressionMetric;
+    // Convert progressionMetric if needed
+    // If tracking_type is null or weight or assistance, apply conversion; otherwise, no conversion
+    const isWeightType =
+      trackingType === null ||
+      trackingType === "weight" ||
+      trackingType === "assisted";
+
+    const metric = isWeightType
+      ? set.progressionMetric * conversionFactor
+      : set.progressionMetric;
 
     if (
       !groupedSets[groupKey] ||
@@ -60,12 +70,16 @@ const groupSetsByTime = (
 
 export const ExerciseProgressionChart: React.FC<
   ExerciseProgressionChartProps
-> = ({ exercise, timeRange }) => {
+> = ({ exercise, timeRange, weightUnit }) => {
+  // Determine conversion factor
+  const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
+
   const chartData = useMemo(() => {
     const groupedSets = groupSetsByTime(
       exercise.completed_sets,
       timeRange,
       exercise.tracking_type,
+      conversionFactor,
     );
     return Object.keys(groupedSets)
       .map((key) => ({
@@ -73,24 +87,44 @@ export const ExerciseProgressionChart: React.FC<
         value: groupedSets[key].progressionMetric,
       }))
       .reverse();
-  }, [exercise.completed_sets, timeRange, exercise.tracking_type]);
+  }, [
+    exercise.completed_sets,
+    timeRange,
+    exercise.tracking_type,
+    conversionFactor,
+  ]);
 
   const latestSet = exercise.completed_sets[0];
+
+  // Determine correct label based on tracking type and units
+  const isWeightType =
+    exercise.tracking_type === null ||
+    exercise.tracking_type === "weight" ||
+    exercise.tracking_type === "assisted";
+
+  const weightUnitLabel = weightUnit === "lbs" ? "lbs" : "kg";
+
   const metricLabel =
     exercise.tracking_type === "time"
       ? "Time (s)"
       : exercise.tracking_type === "reps"
         ? "Reps"
-        : "1RM (kg)";
+        : `1RM (${weightUnitLabel})`; // For null or "weight"
 
+  // Convert latest metrics if applicable
   const latestMetric =
     exercise.tracking_type === "reps"
       ? latestSet?.reps
       : exercise.tracking_type === "time"
         ? latestSet?.time
-        : latestSet?.oneRepMax;
+        : latestSet?.oneRepMax !== undefined
+          ? latestSet.oneRepMax * conversionFactor
+          : undefined;
 
-  console.log(latestMetric);
+  const latestWeight =
+    latestSet?.weight !== undefined && isWeightType
+      ? latestSet.weight * conversionFactor
+      : latestSet?.weight;
 
   return (
     <Card style={styles.card}>
@@ -101,13 +135,16 @@ export const ExerciseProgressionChart: React.FC<
         {latestSet && (
           <>
             <ThemedText style={styles.latestMetric}>
-              Latest {metricLabel}: {latestMetric}
+              Latest {metricLabel}:{" "}
+              {latestMetric !== undefined ? latestMetric.toFixed(1) : "N/A"}
             </ThemedText>
 
             <ThemedText style={styles.additionalInfo}>
-              {latestSet.weight !== undefined && `${latestSet.weight}kg `}
+              {latestWeight !== undefined &&
+                `${latestWeight.toFixed(1)}${weightUnitLabel} `}
+              {exercise.tracking_type === "assisted" && "assistance "}
               {latestSet.reps !== undefined && `x ${latestSet.reps} reps `}
-              {latestSet.time !== undefined && `${latestSet.time}s `}(
+              {latestSet.time !== undefined && `for ${latestSet.time}s `}(
               {new Date(latestSet.date_completed).toLocaleDateString()})
             </ThemedText>
           </>

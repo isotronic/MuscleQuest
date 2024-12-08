@@ -260,6 +260,7 @@ export default function StatsScreen() {
                 key={exercise.exercise_id}
                 exercise={exercise}
                 timeRange={selectedTimeRange}
+                weightUnit={weightUnit}
               />
             ))
           ) : (
