@@ -50,11 +50,10 @@ export const useEditCompletedWorkoutMutation = (
         weightUnit,
       );
     },
-    onSuccess: async () => {
-      await queryClient.fetchQuery({ queryKey: ["completedWorkout", id] });
-
-      await queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
-      await queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["completedWorkout", id] });
+      queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+      queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
     },
     onError: (error) => {
       console.error("Error saving edited workout:", error);

@@ -9,7 +9,7 @@ export const useCompletedWorkoutByIdQuery = (
   return useQuery<CompletedWorkout>({
     queryKey: ["completedWorkout", id],
     queryFn: () => fetchCompletedWorkoutById(id, weightUnit),
-    refetchOnWindowFocus: "always",
-    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 };
