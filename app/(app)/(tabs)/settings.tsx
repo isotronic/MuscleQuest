@@ -107,43 +107,52 @@ export default function SettingsScreen() {
   };
 
   const saveSetting = async () => {
-    if (currentSettingKey === "defaultRestTime") {
-      const { minutes, seconds } = inputValue as {
-        minutes: number;
-        seconds: number;
-      };
-      const totalSeconds = minutes * 60 + seconds;
+    try {
+      if (currentSettingKey === "defaultRestTime") {
+        const { minutes, seconds } = inputValue as {
+          minutes: number;
+          seconds: number;
+        };
+        const totalSeconds = minutes * 60 + seconds;
 
-      updateSetting({
-        key: currentSettingKey as string,
-        value: totalSeconds.toString(),
-      });
-    } else if (currentSettingKey === "bodyWeight") {
-      try {
+        updateSetting({
+          key: currentSettingKey as string,
+          value: totalSeconds.toString(),
+        });
+      } else if (currentSettingKey === "bodyWeight") {
+        // Convert to kg if the unit is lbs
         const db = await openDatabase("userData.db");
+        let bodyWeightInKg = inputValue as number;
+
+        if (settings?.weightUnit === "lbs") {
+          bodyWeightInKg = Number(
+            ((inputValue as number) / 2.2046226).toFixed(1),
+          ); // Convert lbs to kg
+        }
+
+        // Save body weight to body_measurements table
         await db.runAsync(
           `INSERT INTO body_measurements (date, body_weight) VALUES (datetime('now'), ?)`,
-          [inputValue as number],
+          [bodyWeightInKg],
         );
-      } catch (error: any) {
-        Bugsnag.notify(error);
-        console.error(
-          "Error saving body weight into body_measurements:",
-          error,
-        );
-      }
-      updateSetting({
-        key: currentSettingKey as string,
-        value: inputValue as string,
-      });
-    } else {
-      updateSetting({
-        key: currentSettingKey as string,
-        value: inputValue.toString(),
-      });
-    }
 
-    setOverlayVisible(false);
+        // Save the body weight setting
+        updateSetting({
+          key: currentSettingKey as string,
+          value: bodyWeightInKg.toString(), // Save in kg
+        });
+      } else {
+        updateSetting({
+          key: currentSettingKey as string,
+          value: inputValue.toString(),
+        });
+      }
+    } catch (error: any) {
+      Bugsnag.notify(error);
+      console.error("Error saving setting:", error);
+    } finally {
+      setOverlayVisible(false);
+    }
   };
 
   const cancelOverlay = () => {

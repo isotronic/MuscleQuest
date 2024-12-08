@@ -935,6 +935,13 @@ export const fetchSettings = async (): Promise<Settings> => {
       settings[row.key as keyof Settings] = row.value;
     });
 
+    // Convert bodyWeight to lbs if the unit setting is 'lbs'
+    if (settings.bodyWeight && settings.weightUnit === "lbs") {
+      settings.bodyWeight = (Number(settings.bodyWeight) * 2.2046226).toFixed(
+        1,
+      ); // Convert kg to lbs
+    }
+
     return settings as Settings;
   } catch (error: any) {
     console.error("Database fetching error:", error);
