@@ -14,11 +14,13 @@ export interface CompletedSet {
   reps: number;
   time: number;
   date_completed: string;
-  oneRepMax: number;
+  oneRepMax: number | undefined;
+  progressionMetric: number;
 }
 
 export interface TrackedExerciseWithSets extends TrackedExercise {
   name: string;
+  tracking_type: string;
   completed_sets: CompletedSet[];
 }
 
@@ -31,13 +33,22 @@ const fetchTrackedExercises = async (
     let query = `
       SELECT 
         te.*,
-        e.name, 
+        e.name,
+        e.tracking_type, -- Include tracking type
         cs.weight,
         cs.reps,
         cs.time,
         cs.set_number,
         DATE(cw.date_completed) AS date_completed,
-        MAX(cs.weight * (1 + cs.reps / 30.0)) AS max_one_rep_max -- Calculate 1RM using Epley formula
+        MAX(
+        CASE e.tracking_type
+          WHEN 'weight' THEN cs.weight * (1 + cs.reps / 30.0)
+          WHEN 'assistance' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
+          WHEN 'reps' THEN cs.reps
+          WHEN 'time' THEN cs.time
+          ELSE cs.weight * (1 + cs.reps / 30.0)
+        END
+      ) AS progression_metric
       FROM tracked_exercises te
       LEFT JOIN exercises e ON te.exercise_id = e.exercise_id
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
@@ -50,8 +61,8 @@ const fetchTrackedExercises = async (
     }
 
     query += `
-      GROUP BY te.exercise_id, DATE(cw.date_completed), cs.set_number
-      ORDER BY cw.date_completed DESC, max_one_rep_max DESC
+      GROUP BY te.exercise_id, DATE(cw.date_completed)
+      ORDER BY cw.date_completed DESC, progression_metric DESC
     `;
 
     const trackedExercises = await db.getAllAsync(query);
@@ -67,20 +78,38 @@ const fetchTrackedExercises = async (
           date_added: row.date_added,
           completed_sets: [],
           name: row.name,
+          tracking_type: row.tracking_type,
         };
       }
 
-      if (row.max_one_rep_max !== null) {
+      if (row.progression_metric !== null) {
         groupedExercises[row.exercise_id].completed_sets.push({
           set_number: row.set_number,
-          weight: row.weight,
-          reps: row.reps,
-          time: row.time,
+          weight:
+            row.tracking_type === "weight" ||
+            row.tracking_type === "assistance" ||
+            row.tracking_type === null
+              ? row.weight
+              : undefined,
+          reps:
+            row.tracking_type === "reps" ||
+            row.tracking_type === "weight" ||
+            row.tracking_type === "assistance" ||
+            row.tracking_type === null
+              ? row.reps
+              : undefined,
+          time: row.tracking_type === "time" ? row.time : undefined,
           date_completed: row.date_completed,
-          oneRepMax: Math.round(row.max_one_rep_max * 10) / 10, // Round to 1 decimal place
+          oneRepMax:
+            row.tracking_type === "weight" || row.tracking_type === "assistance"
+              ? Math.round(row.progression_metric * 10) / 10
+              : undefined,
+          progressionMetric: row.progression_metric, // Save progression metric for the graph
         });
       }
     });
+
+    console.log(groupedExercises);
 
     return Object.values(groupedExercises);
   } catch (error: any) {

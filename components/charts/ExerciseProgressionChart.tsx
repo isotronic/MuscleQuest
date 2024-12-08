@@ -14,8 +14,12 @@ interface ExerciseProgressionChartProps {
   timeRange: string;
 }
 
-const groupSetsByTime = (completedSets: CompletedSet[], timeRange: string) => {
-  const groupedSets: Record<string, { oneRepMax: number }> = {};
+const groupSetsByTime = (
+  completedSets: CompletedSet[],
+  timeRange: string,
+  trackingType: string,
+) => {
+  const groupedSets: Record<string, { progressionMetric: number }> = {};
 
   completedSets.forEach((set) => {
     const setDate = new Date(set.date_completed);
@@ -24,7 +28,7 @@ const groupSetsByTime = (completedSets: CompletedSet[], timeRange: string) => {
     if (timeRange === "90") {
       // Group by week: label in "30 Sep" or "7 Oct" format
       const weekStart = new Date(setDate);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of the week
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
       const day = weekStart.getDate();
       const month = weekStart.toLocaleString(undefined, { month: "short" });
       groupKey = `${day} ${month}`;
@@ -40,12 +44,14 @@ const groupSetsByTime = (completedSets: CompletedSet[], timeRange: string) => {
       });
     }
 
-    // Store the highest oneRepMax for each group (week or month)
+    // Store the highest progressionMetric for each group
+    const metric = set.progressionMetric;
+
     if (
       !groupedSets[groupKey] ||
-      set.oneRepMax > groupedSets[groupKey].oneRepMax
+      metric > groupedSets[groupKey].progressionMetric
     ) {
-      groupedSets[groupKey] = { oneRepMax: set.oneRepMax };
+      groupedSets[groupKey] = { progressionMetric: metric };
     }
   });
 
@@ -56,31 +62,52 @@ export const ExerciseProgressionChart: React.FC<
   ExerciseProgressionChartProps
 > = ({ exercise, timeRange }) => {
   const chartData = useMemo(() => {
-    const groupedSets = groupSetsByTime(exercise.completed_sets, timeRange);
+    const groupedSets = groupSetsByTime(
+      exercise.completed_sets,
+      timeRange,
+      exercise.tracking_type,
+    );
     return Object.keys(groupedSets)
       .map((key) => ({
         label: key,
-        value: groupedSets[key].oneRepMax,
+        value: groupedSets[key].progressionMetric,
       }))
       .reverse();
-  }, [exercise.completed_sets, timeRange]);
+  }, [exercise.completed_sets, timeRange, exercise.tracking_type]);
 
   const latestSet = exercise.completed_sets[0];
+  const metricLabel =
+    exercise.tracking_type === "time"
+      ? "Time (s)"
+      : exercise.tracking_type === "assistance"
+        ? "Assistance (kg)"
+        : exercise.tracking_type === "reps"
+          ? "Reps"
+          : "1RM (kg)";
+
+  const latestMetric =
+    exercise.tracking_type === "reps"
+      ? latestSet?.reps
+      : exercise.tracking_type === "time"
+        ? latestSet?.time
+        : latestSet?.oneRepMax;
 
   return (
     <Card style={styles.card}>
       <View>
         <ThemedText style={styles.exerciseName}>
-          {exercise.name} (1RM)
+          {exercise.name} ({metricLabel})
         </ThemedText>
         {latestSet && (
           <>
-            <ThemedText style={styles.latestOneRepMax}>
-              Latest 1RM: {latestSet.oneRepMax} kg
+            <ThemedText style={styles.latestMetric}>
+              Latest {metricLabel}: {latestMetric}
             </ThemedText>
 
             <ThemedText style={styles.additionalInfo}>
-              {latestSet.weight}kg x {latestSet.reps} reps (
+              {latestSet.weight !== undefined && `${latestSet.weight}kg `}
+              {latestSet.reps !== undefined && `x ${latestSet.reps} reps `}
+              {latestSet.time !== undefined && `for ${latestSet.time}s `}(
               {new Date(latestSet.date_completed).toLocaleDateString()})
             </ThemedText>
           </>
@@ -118,7 +145,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 8,
   },
-  latestOneRepMax: {
+  latestMetric: {
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 4,
