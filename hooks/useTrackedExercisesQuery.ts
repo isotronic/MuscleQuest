@@ -31,14 +31,15 @@ const fetchTrackedExercises = async (
     let query = `
       SELECT 
         te.*,
-        e.name, -- Fetch the name of the exercise from exercises table
-        MAX(cs.weight) AS max_weight, -- Get the max weight for the exercise in each workout
+        e.name, 
+        cs.weight,
         cs.reps,
         cs.time,
         cs.set_number,
-        DATE(cw.date_completed) AS date_completed
+        DATE(cw.date_completed) AS date_completed,
+        MAX(cs.weight * (1 + cs.reps / 30.0)) AS max_one_rep_max -- Calculate 1RM using Epley formula
       FROM tracked_exercises te
-      LEFT JOIN exercises e ON te.exercise_id = e.exercise_id -- Join to get exercise name
+      LEFT JOIN exercises e ON te.exercise_id = e.exercise_id
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
@@ -49,8 +50,8 @@ const fetchTrackedExercises = async (
     }
 
     query += `
-      GROUP BY te.exercise_id, DATE(cw.date_completed)
-      ORDER BY cw.date_completed DESC
+      GROUP BY te.exercise_id, DATE(cw.date_completed), cs.set_number
+      ORDER BY cw.date_completed DESC, max_one_rep_max DESC
     `;
 
     const trackedExercises = await db.getAllAsync(query);
@@ -69,20 +70,14 @@ const fetchTrackedExercises = async (
         };
       }
 
-      // Only add completed sets if there are any
-      if (row.max_weight !== null && row.reps !== null) {
-        const { max_weight, reps } = row;
-
-        // Calculate the one-rep-max (1RM) using the Epley formula
-        const oneRepMax = Math.round(max_weight * (1 + reps / 30) * 10) / 10;
-
+      if (row.max_one_rep_max !== null) {
         groupedExercises[row.exercise_id].completed_sets.push({
           set_number: row.set_number,
-          weight: row.max_weight, // Use the max weight from the query
+          weight: row.weight,
           reps: row.reps,
           time: row.time,
           date_completed: row.date_completed,
-          oneRepMax,
+          oneRepMax: Math.round(row.max_one_rep_max * 10) / 10, // Round to 1 decimal place
         });
       }
     });
