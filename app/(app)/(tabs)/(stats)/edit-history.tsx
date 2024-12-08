@@ -60,11 +60,11 @@ export default function EditCompletedWorkoutScreen() {
     // Blur each input to ensure all onBlur events are fired
     Object.values(weightInputRefs.current).forEach((input) => input?.blur());
 
-    // Delay mutation slightly to ensure onBlur updates finish
-    setTimeout(() => {
-      editWorkout.mutate(exercises);
-      router.back();
-    }, 50);
+    editWorkout.mutate(exercises, {
+      onSuccess: () => {
+        router.back();
+      },
+    });
   };
 
   if (isWorkoutLoading || !exercises || settingsLoading) {
