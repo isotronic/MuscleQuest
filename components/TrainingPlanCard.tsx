@@ -7,15 +7,18 @@ import {
 } from "react-native";
 import { Card, Text } from "react-native-paper";
 import { ThemedView } from "./ThemedView";
+import { Colors } from "@/constants/Colors";
 
 export default function TrainingPlanCard({
   title,
   imageUrl,
   onPress,
+  isActive,
 }: {
   title?: string;
   imageUrl?: string;
   onPress: () => void;
+  isActive: boolean;
 }) {
   const animatedValue = useRef(new Animated.Value(1)).current;
 
@@ -64,6 +67,11 @@ export default function TrainingPlanCard({
                 {title || "Training Plan"}
               </Text>
             </View>
+            {isActive && (
+              <View style={styles.activeBadge}>
+                <Text style={styles.activeBadgeText}>Active</Text>
+              </View>
+            )}
           </Card>
         </Animated.View>
       </TouchableWithoutFeedback>
@@ -97,5 +105,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     textShadow: "2px 2px 4px rgba(0, 0, 0, 0.75)",
+  },
+  activeBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: Colors.dark.completed,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  activeBadgeText: {
+    color: Colors.dark.text,
+    fontWeight: "bold",
   },
 });

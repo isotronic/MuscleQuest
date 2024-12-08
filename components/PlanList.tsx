@@ -34,6 +34,7 @@ export const PlanList: React.FC<PlanListProps> = ({
           title={item.name}
           imageUrl={item.image_url}
           onPress={() => onPressItem(item)}
+          isActive={item.is_active === 1}
         />
       )}
       keyExtractor={(item: any, index: number) => index.toString()}
