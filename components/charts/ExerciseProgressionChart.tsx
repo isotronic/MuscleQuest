@@ -79,11 +79,9 @@ export const ExerciseProgressionChart: React.FC<
   const metricLabel =
     exercise.tracking_type === "time"
       ? "Time (s)"
-      : exercise.tracking_type === "assistance"
-        ? "Assistance (kg)"
-        : exercise.tracking_type === "reps"
-          ? "Reps"
-          : "1RM (kg)";
+      : exercise.tracking_type === "reps"
+        ? "Reps"
+        : "1RM (kg)";
 
   const latestMetric =
     exercise.tracking_type === "reps"
@@ -91,6 +89,8 @@ export const ExerciseProgressionChart: React.FC<
       : exercise.tracking_type === "time"
         ? latestSet?.time
         : latestSet?.oneRepMax;
+
+  console.log(latestMetric);
 
   return (
     <Card style={styles.card}>
@@ -107,7 +107,7 @@ export const ExerciseProgressionChart: React.FC<
             <ThemedText style={styles.additionalInfo}>
               {latestSet.weight !== undefined && `${latestSet.weight}kg `}
               {latestSet.reps !== undefined && `x ${latestSet.reps} reps `}
-              {latestSet.time !== undefined && `for ${latestSet.time}s `}(
+              {latestSet.time !== undefined && `${latestSet.time}s `}(
               {new Date(latestSet.date_completed).toLocaleDateString()})
             </ThemedText>
           </>
