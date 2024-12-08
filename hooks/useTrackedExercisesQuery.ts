@@ -43,7 +43,7 @@ const fetchTrackedExercises = async (
         MAX(
         CASE e.tracking_type
           WHEN 'weight' THEN cs.weight * (1 + cs.reps / 30.0)
-          WHEN 'assistance' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
+          WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
           WHEN 'reps' THEN cs.reps
           WHEN 'time' THEN cs.time
           ELSE cs.weight * (1 + cs.reps / 30.0)
@@ -87,29 +87,29 @@ const fetchTrackedExercises = async (
           set_number: row.set_number,
           weight:
             row.tracking_type === "weight" ||
-            row.tracking_type === "assistance" ||
+            row.tracking_type === "assisted" ||
             row.tracking_type === null
               ? row.weight
               : undefined,
           reps:
             row.tracking_type === "reps" ||
             row.tracking_type === "weight" ||
-            row.tracking_type === "assistance" ||
+            row.tracking_type === "assisted" ||
             row.tracking_type === null
               ? row.reps
               : undefined,
           time: row.tracking_type === "time" ? row.time : undefined,
           date_completed: row.date_completed,
           oneRepMax:
-            row.tracking_type === "weight" || row.tracking_type === "assistance"
+            row.tracking_type === "weight" ||
+            row.tracking_type === "assisted" ||
+            row.tracking_type === null
               ? Math.round(row.progression_metric * 10) / 10
               : undefined,
           progressionMetric: row.progression_metric, // Save progression metric for the graph
         });
       }
     });
-
-    console.log(groupedExercises);
 
     return Object.values(groupedExercises);
   } catch (error: any) {
