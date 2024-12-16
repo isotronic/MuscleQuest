@@ -19,7 +19,7 @@ export default {
     },
     android: {
       versionCode: 34,
-      googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
+      googleServicesFile: "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/images/ic_launcher_foreground.png",
         backgroundColor: "#22222d",
