@@ -5,7 +5,7 @@ import { startOfWeek, endOfWeek } from "date-fns";
 import { ActivityIndicator, Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import WeekDays from "@/components/WeekDays";
-import { useContext } from "react";
+import React, { useContext } from "react";
 import { AuthContext } from "@/context/AuthProvider";
 import { Colors } from "@/constants/Colors";
 import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
@@ -18,6 +18,7 @@ import {
 } from "@/hooks/useCompletedWorkoutsQuery";
 import { Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
+import Onboarding from "@/components/Onboarding";
 
 export default function HomeScreen() {
   const user = useContext(AuthContext);
@@ -266,22 +267,7 @@ export default function HomeScreen() {
               })}
             </>
           ) : (
-            <View>
-              <ThemedText type="default" style={styles.sectionTitle}>
-                No Active Training Plan.
-              </ThemedText>
-              <ThemedText type="default" style={styles.sectionTitle}>
-                Create or choose one now.
-              </ThemedText>
-              <View style={styles.buttonContainer}>
-                <Button
-                  mode="contained"
-                  onPress={() => router.push("/(plans)")}
-                >
-                  Go to Plans
-                </Button>
-              </View>
-            </View>
+            <Onboarding />
           )}
         </View>
 
