@@ -73,9 +73,6 @@ export default function LoginScreen() {
           • Backup and restore data *
         </ThemedText>
         <ThemedText style={styles.benefit}>
-          • Sync your data across devices automatically *
-        </ThemedText>
-        <ThemedText style={styles.benefit}>
           • Share your training plans with others *
         </ThemedText>
         <ThemedText style={styles.benefit}>
@@ -104,7 +101,7 @@ export default function LoginScreen() {
             onPress={handleSignIn}
             accessibilityLabel="Login"
           >
-            Sign in
+            Google sign in
           </Button>
         </View>
       </ScrollView>
