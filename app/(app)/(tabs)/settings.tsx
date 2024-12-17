@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -27,6 +27,7 @@ import { openDatabase } from "@/utils/database";
 import { AuthContext } from "@/context/AuthProvider";
 import { signInWithGoogle } from "@/utils/auth";
 import Bugsnag from "@bugsnag/expo";
+import { clearActivePlanStatus } from "@/utils/clearUserData";
 
 export default function SettingsScreen() {
   const user = useContext(AuthContext);
@@ -613,7 +614,10 @@ export default function SettingsScreen() {
 
         {/* <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>Manage Data</ThemedText>
-          <TouchableOpacity style={styles.item} onPress={confirmClearDatabase}>
+          <TouchableOpacity
+            style={styles.item}
+            // onPress={confirmClearDatabase}
+          >
             <MaterialCommunityIcons
               name="delete"
               size={24}
@@ -628,7 +632,7 @@ export default function SettingsScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.item}
-            onPress={resetLoginShownSetting}
+            // onPress={resetLoginShownSetting}
           >
             <MaterialCommunityIcons
               name="delete"
@@ -653,8 +657,19 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>Send test error</ThemedText>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.item} onPress={clearActivePlanStatus}>
+            <MaterialCommunityIcons
+              name="bug"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Send test error
+                Clear Active Plan Status
               </ThemedText>
             </View>
           </TouchableOpacity>
