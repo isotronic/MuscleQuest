@@ -41,7 +41,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
 
 // Initialize Bugsnag
-Bugsnag.start();
+Bugsnag.start(process.env.EXPO_PUBLIC_BUGSNAG_API_KEY);
 
 const ErrorBoundary = Bugsnag.getPlugin("react").createErrorBoundary(React);
 

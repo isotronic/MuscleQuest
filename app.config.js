@@ -4,7 +4,7 @@ export default {
   expo: {
     name: IS_DEV ? "Muscle Quest (Dev)" : "Muscle Quest",
     slug: "musclequest",
-    version: "0.8.9",
+    version: "0.8.11",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",
@@ -18,8 +18,8 @@ export default {
       supportsTablet: true,
     },
     android: {
-      versionCode: 33,
-      googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
+      versionCode: 34,
+      googleServicesFile: "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/images/ic_launcher_foreground.png",
         backgroundColor: "#22222d",

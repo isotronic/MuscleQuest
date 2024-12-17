@@ -85,18 +85,12 @@ export const loadPremadePlans = async () => {
     );
     dataVersion = Number(versionResult?.value);
 
-    if (dataVersion === null || dataVersion < 1.6) {
+    if (dataVersion === null || dataVersion < 1.8) {
       const data = require("@/assets/data/3-day-full-body.json");
       const plansArray = Array.isArray(data) ? data : [data];
 
       // Insert the plans into the database
       await insertPlans(db, plansArray);
-
-      console.log("Updating data version to 1.6...");
-      await db.runAsync(
-        "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-        ["dataVersion", "1.6"],
-      );
     }
     if (dataVersion === null || dataVersion < 1.8) {
       const data = require("@/assets/data/4-day-split.json");

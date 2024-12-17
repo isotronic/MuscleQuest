@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
 import Bugsnag from "@bugsnag/expo";
+import { ScrollView } from "react-native";
 
 const logo = require("@/assets/images/icon.png");
 
@@ -60,45 +61,50 @@ export default function LoginScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Image source={logo} style={styles.logo} />
-      <ThemedText style={styles.welcomeText}>
-        Welcome to MuscleQuest!
-      </ThemedText>
-      <ThemedText style={styles.benefitsText}>
-        Benefits of logging in:
-      </ThemedText>
-      <ThemedText style={styles.benefit}>
-        • Backup and restore data *
-      </ThemedText>
-      <ThemedText style={styles.benefit}>
-        • Sync your data across devices automatically *
-      </ThemedText>
-      <ThemedText style={styles.benefit}>
-        • Share your training plans with others *
-      </ThemedText>
-      <ThemedText style={styles.benefit}>• Challenges and badges *</ThemedText>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        <Image source={logo} style={styles.logo} />
+        <ThemedText style={styles.welcomeText}>
+          Welcome to MuscleQuest!
+        </ThemedText>
+        <ThemedText style={styles.benefitsText}>
+          Benefits of logging in:
+        </ThemedText>
+        <ThemedText style={styles.benefit}>
+          • Backup and restore data *
+        </ThemedText>
+        <ThemedText style={styles.benefit}>
+          • Share your training plans with others *
+        </ThemedText>
+        <ThemedText style={styles.benefit}>
+          • Challenges and badges *
+        </ThemedText>
 
-      <ThemedText style={styles.info}>* features in development</ThemedText>
+        <ThemedText style={styles.info}>* features in development</ThemedText>
 
-      <ThemedText style={styles.info}>
-        You can login at any time from the settings screen, if you choose to
-        skip it now.
-      </ThemedText>
+        <ThemedText style={styles.info}>
+          You can login at any time from the settings screen, if you choose to
+          skip it now.
+        </ThemedText>
 
-      <View style={styles.buttonRow}>
-        <Button style={styles.skipButton} mode="outlined" onPress={handleSkip}>
-          Skip login
-        </Button>
+        <View style={styles.buttonRow}>
+          <Button
+            style={styles.skipButton}
+            mode="outlined"
+            onPress={handleSkip}
+          >
+            Skip login
+          </Button>
 
-        <Button
-          style={styles.loginButton}
-          mode="contained"
-          onPress={handleSignIn}
-          accessibilityLabel="Login"
-        >
-          Sign in with Google
-        </Button>
-      </View>
+          <Button
+            style={styles.loginButton}
+            mode="contained"
+            onPress={handleSignIn}
+            accessibilityLabel="Login"
+          >
+            Google sign in
+          </Button>
+        </View>
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -139,5 +145,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   loginButton: {},
-  skipButton: {},
+  skipButton: {
+    marginRight: 10,
+  },
 });
