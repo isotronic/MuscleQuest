@@ -81,7 +81,9 @@ const Onboarding = () => {
         pagingEnabled
         snapToAlignment="center"
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(item: any, index: number) => index.toString()}
+        keyExtractor={(item: (typeof onboardingData)[0], index: number) =>
+          index.toString()
+        }
         renderItem={renderCard}
         onScroll={(e: {
           nativeEvent: {
