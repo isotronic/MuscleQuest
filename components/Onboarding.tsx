@@ -113,10 +113,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   card: {
-    width: 310,
+    width: 320,
     marginRight: 16,
     paddingVertical: 24,
     backgroundColor: Colors.dark.cardBackground,
+    borderRadius: 8,
+    elevation: 5,
   },
   title: {
     textAlign: "center",
