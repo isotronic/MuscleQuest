@@ -47,3 +47,24 @@ export const uploadDatabaseBackup = async (
     setBackupProgress(1);
   }
 };
+
+export const fetchLastBackupDate = async (): Promise<Date | null> => {
+  try {
+    const userId = 1; // Replace with auth().currentUser?.uid logic
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const storageRef = storage().ref(`backups/${userId}/userData.db`);
+    const metadata = await storageRef.getMetadata();
+
+    if (metadata.updated) {
+      return new Date(metadata.updated); // Parse the "updated" timestamp into a Date object
+    }
+
+    return null; // Return null if no updated timestamp is available
+  } catch (error) {
+    console.error("Error fetching last backup date:", error);
+    return null;
+  }
+};
