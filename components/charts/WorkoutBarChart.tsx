@@ -22,13 +22,20 @@ const groupWorkoutsByTime = (
     // Determine the group key based on the selected time range
     let groupKey: string;
 
-    if (timeRange === "30" || timeRange === "90") {
-      // Group by week: label in "30 Sep" or "7 Oct" format
+    if (timeRange === "30") {
+      // Group by week: label in "30 Sep" format
       const weekStart = new Date(workoutDate);
       weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of the week
       const day = weekStart.getDate();
       const month = weekStart.toLocaleString(undefined, { month: "short" });
       groupKey = `${day} ${month}`;
+    } else if (timeRange === "90") {
+      // Group by week: label in "18.12." (day.month.) format
+      const weekStart = new Date(workoutDate);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of the week
+      const day = weekStart.getDate().toString().padStart(2, "0"); // Add leading zero
+      const month = (weekStart.getMonth() + 1).toString().padStart(2, "0"); // Add leading zero
+      groupKey = `${day}.${month}.`;
     } else {
       // Group by month: label in the first three letters of the month
       const month = workoutDate.toLocaleString(undefined, { month: "short" });
@@ -59,20 +66,21 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
   }));
 
   const barWidth = timeRange === "30" ? 35 : 15;
+  const barSpacing = timeRange === "30" ? 30 : timeRange === "90" ? 17 : 6;
 
   return (
     <Card style={styles.card}>
       <BarChart
         data={barData.reverse()}
         barWidth={barWidth}
-        spacing={20}
+        spacing={barSpacing}
         isAnimated
         frontColor={Colors.dark.highlight}
         yAxisTextStyle={styles.yAxisLabel}
         xAxisLabelTextStyle={styles.xAxisLabel}
         yAxisColor={Colors.dark.text}
         xAxisColor={Colors.dark.text}
-        width={250}
+        width={270}
         noOfSections={Math.max(...Object.values(groupedWorkouts))}
         initialSpacing={10}
         maxValue={Math.max(...Object.values(groupedWorkouts))}
@@ -85,7 +93,8 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     marginBottom: 8,
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
     backgroundColor: Colors.dark.cardBackground,
   },
   yAxisLabel: {
