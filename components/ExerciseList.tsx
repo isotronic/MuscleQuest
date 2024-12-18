@@ -109,6 +109,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     marginTop: 8,
     paddingBottom: 50,
+    paddingHorizontal: 16,
   },
   titleContainer: {
     paddingBottom: 8,

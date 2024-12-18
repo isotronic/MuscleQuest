@@ -161,7 +161,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.dark.screenBackground,
     paddingTop: 16,
-    paddingHorizontal: 16,
   },
   searchContainer: {
     flexDirection: "row",
@@ -172,6 +171,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.screenBackground,
     paddingRight: 8,
     marginBottom: 4,
+    marginHorizontal: 16,
   },
   searchInput: {
     flex: 1,
