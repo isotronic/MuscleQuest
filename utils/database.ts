@@ -2,6 +2,7 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import * as SQLite from "expo-sqlite";
+import { getActiveDatabaseName } from "./asyncStorage";
 
 export interface Exercise {
   exercise_id: number;
@@ -38,7 +39,12 @@ export interface SavedWorkout {
 export const openDatabase = async (
   databaseName: string,
 ): Promise<SQLite.SQLiteDatabase> => {
-  const db = await SQLite.openDatabaseAsync(databaseName, {
+  let dbName = databaseName;
+  if (dbName === "userData.db") {
+    dbName = await getActiveDatabaseName();
+  }
+
+  const db = await SQLite.openDatabaseAsync(dbName, {
     useNewConnection: true,
   });
 

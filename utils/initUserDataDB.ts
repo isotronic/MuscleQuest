@@ -1,7 +1,7 @@
-import * as SQLite from "expo-sqlite";
+import { openDatabase } from "./database";
 
 export async function initUserDataDB() {
-  const db = await SQLite.openDatabaseAsync("userData.db");
+  const db = await openDatabase("userData.db");
 
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS muscles (
