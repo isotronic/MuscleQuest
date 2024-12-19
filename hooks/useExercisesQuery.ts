@@ -97,6 +97,5 @@ export const useExercisesQuery = (
       includeFavorites ? "includeFavorite" : "",
     ],
     queryFn: () => fetchAndSortExercises(includeActivePlan, includeFavorites),
-    staleTime: 5 * 60 * 1000,
   });
 };

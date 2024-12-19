@@ -167,7 +167,6 @@ export const usePlanQuery = (planId: number | null) => {
   return useQuery<Plan | null>({
     queryKey: ["plan", planId],
     queryFn: () => fetchPlan(planId!) as Promise<Plan | null>,
-    staleTime: 5 * 60 * 1000,
     enabled: !!planId, // Only run the query if planId exists
   });
 };

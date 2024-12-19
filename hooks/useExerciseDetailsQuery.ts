@@ -10,6 +10,5 @@ export const useExerciseDetailsQuery = (exercise_id: number) => {
         "exercises",
         exercise_id,
       ) as unknown as Exercise,
-    staleTime: Infinity,
   });
 };
