@@ -1,9 +1,12 @@
 import * as FileSystem from "expo-file-system";
+import { reloadAsync } from "expo-updates";
 import storage from "@react-native-firebase/storage";
 import auth from "@react-native-firebase/auth";
+import { getActiveDatabaseName, setActiveDatabaseName } from "./asyncStorage";
 
-const getDatabasePath = () => {
-  return `${FileSystem.documentDirectory}SQLite/userData.db`;
+const getDatabasePath = async () => {
+  const dbName = await getActiveDatabaseName();
+  return `${FileSystem.documentDirectory}SQLite/${dbName}`;
 };
 
 export const uploadDatabaseBackup = async (
@@ -18,8 +21,10 @@ export const uploadDatabaseBackup = async (
       throw new Error("User not authenticated");
     }
 
-    const storageRef = storage().ref(`backups/${userId}/userData.db`);
-    const dbPath = getDatabasePath();
+    const dbName = await getActiveDatabaseName();
+
+    const storageRef = storage().ref(`backups/${userId}/${dbName}`);
+    const dbPath = await getDatabasePath();
     const fileStat = await FileSystem.getInfoAsync(dbPath);
 
     // Check if the file exists
@@ -55,7 +60,9 @@ export const fetchLastBackupDate = async (): Promise<Date | null> => {
       throw new Error("User not authenticated");
     }
 
-    const storageRef = storage().ref(`backups/${userId}/userData.db`);
+    const dbName = await getActiveDatabaseName();
+
+    const storageRef = storage().ref(`backups/${userId}/${dbName}`);
     const metadata = await storageRef.getMetadata();
 
     if (metadata.updated) {
@@ -66,5 +73,55 @@ export const fetchLastBackupDate = async (): Promise<Date | null> => {
   } catch (error) {
     console.error("Error fetching last backup date:", error);
     return null;
+  }
+};
+
+export const restoreDatabaseBackup = async (
+  setRestoreProgress: (progress: number) => void,
+  setIsRestoreLoading: (loading: boolean) => void,
+) => {
+  try {
+    setIsRestoreLoading(true);
+
+    const userId = 1; // Replace with auth().currentUser?.uid logic
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const oldDbName = await getActiveDatabaseName();
+
+    const storageRef = storage().ref(`backups/${userId}/${oldDbName}`);
+    const downloadUrl = await storageRef.getDownloadURL();
+
+    const newDbName = `userData_${Date.now()}.db`;
+    const newDbPath = `${FileSystem.documentDirectory}SQLite/${newDbName}`;
+
+    // Download the backup file
+    const downloadResumable = FileSystem.createDownloadResumable(
+      downloadUrl,
+      newDbPath,
+      undefined,
+      (downloadProgress) => {
+        const progress =
+          downloadProgress.totalBytesWritten /
+          downloadProgress.totalBytesExpectedToWrite;
+        setRestoreProgress(progress);
+      },
+    );
+
+    await downloadResumable.downloadAsync();
+    console.log(`Database restored as: ${newDbName}`);
+
+    // Update active database name in AsyncStorage
+    await setActiveDatabaseName(newDbName);
+
+    console.log("Active database updated successfully.");
+  } catch (error) {
+    console.error("Error restoring database:", error);
+    throw error;
+  } finally {
+    setIsRestoreLoading(false);
+    setRestoreProgress(1);
+    await reloadAsync();
   }
 };
