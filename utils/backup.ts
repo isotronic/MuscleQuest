@@ -21,7 +21,7 @@ export const uploadDatabaseBackup = async (
   try {
     setIsBackupLoading(true); // Start the loading state
 
-    const userId = 1; // Replace with auth().currentUser?.uid logic
+    const userId = auth().currentUser?.uid;
     if (!userId) {
       throw new Error("User not authenticated");
     }
@@ -62,7 +62,7 @@ export const uploadDatabaseBackup = async (
 
 export const fetchLastBackupDate = async (): Promise<Date | null> => {
   try {
-    const userId = 1; // Replace with auth().currentUser?.uid logic
+    const userId = auth().currentUser?.uid;
     if (!userId) {
       throw new Error("User not authenticated");
     }
@@ -89,7 +89,7 @@ export const restoreDatabaseBackup = async (
   try {
     setIsRestoreLoading(true);
 
-    const userId = 1; // Replace with auth().currentUser?.uid logic
+    const userId = auth().currentUser?.uid;
     if (!userId) {
       throw new Error("User not authenticated");
     }
