@@ -57,12 +57,14 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     const getBackupDate = async () => {
-      const date = await fetchLastBackupDate();
-      setLastBackupDate(date);
+      if (user) {
+        const date = await fetchLastBackupDate();
+        setLastBackupDate(date);
+      }
     };
 
     getBackupDate();
-  }, [isBackupLoading]);
+  }, [isBackupLoading, user]);
 
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [currentSettingKey, setCurrentSettingKey] = useState<string | null>(
