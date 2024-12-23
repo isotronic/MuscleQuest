@@ -39,7 +39,7 @@ export const openDatabase = async (
   databaseName: string,
 ): Promise<SQLite.SQLiteDatabase> => {
   const db = await SQLite.openDatabaseAsync(databaseName, {
-    useNewConnection: true,
+    useNewConnection: false,
   });
 
   await db.execAsync("PRAGMA busy_timeout = 3000;");
