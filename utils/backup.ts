@@ -1,9 +1,13 @@
 import * as FileSystem from "expo-file-system";
+import { reloadAsync } from "expo-updates";
 import storage from "@react-native-firebase/storage";
 import auth from "@react-native-firebase/auth";
+import { openDatabase } from "./database";
 
-const getDatabasePath = () => {
-  return `${FileSystem.documentDirectory}SQLite/userData.db`;
+const dbName = "userData.db";
+
+const getDatabasePath = async () => {
+  return `${FileSystem.documentDirectory}SQLite/${dbName}`;
 };
 
 export const uploadDatabaseBackup = async (
@@ -18,14 +22,18 @@ export const uploadDatabaseBackup = async (
       throw new Error("User not authenticated");
     }
 
-    const storageRef = storage().ref(`backups/${userId}/userData.db`);
-    const dbPath = getDatabasePath();
+    const storageRef = storage().ref(`backups/${userId}/${dbName}`);
+    const dbPath = await getDatabasePath();
     const fileStat = await FileSystem.getInfoAsync(dbPath);
 
     // Check if the file exists
     if (!fileStat.exists) {
       throw new Error("Database file does not exist");
     }
+
+    const db = await openDatabase("userData.db");
+    await db.execAsync("PRAGMA wal_checkpoint(FULL);");
+    await db.closeAsync();
 
     // Upload file to Firebase Storage
     const task = storageRef.putFile(dbPath);
@@ -55,7 +63,7 @@ export const fetchLastBackupDate = async (): Promise<Date | null> => {
       throw new Error("User not authenticated");
     }
 
-    const storageRef = storage().ref(`backups/${userId}/userData.db`);
+    const storageRef = storage().ref(`backups/${userId}/${dbName}`);
     const metadata = await storageRef.getMetadata();
 
     if (metadata.updated) {
