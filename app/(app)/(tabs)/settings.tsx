@@ -27,7 +27,12 @@ import { openDatabase } from "@/utils/database";
 import { AuthContext } from "@/context/AuthProvider";
 import { signInWithGoogle } from "@/utils/auth";
 import Bugsnag from "@bugsnag/expo";
-import { clearActivePlanStatus } from "@/utils/clearUserData";
+import {
+  fetchLastBackupDate,
+  restoreDatabaseBackup,
+  uploadDatabaseBackup,
+} from "@/utils/backup";
+// import { clearActivePlanStatus } from "@/utils/clearUserData";
 
 export default function SettingsScreen() {
   const user = useContext(AuthContext);
@@ -42,6 +47,22 @@ export default function SettingsScreen() {
     progress,
     toggleDownloadImages,
   } = useImageManagement(updateSetting, settings?.downloadImages);
+
+  const [isBackupLoading, setIsBackupLoading] = useState(false);
+  const [isRestoreLoading, setIsRestoreLoading] = useState(false);
+  const [backupProgress, setBackupProgress] = useState(1);
+  const [restoreProgress, setRestoreProgress] = useState(1);
+
+  const [lastBackupDate, setLastBackupDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const getBackupDate = async () => {
+      const date = await fetchLastBackupDate();
+      setLastBackupDate(date);
+    };
+
+    getBackupDate();
+  }, [isBackupLoading]);
 
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [currentSettingKey, setCurrentSettingKey] = useState<string | null>(
@@ -257,7 +278,7 @@ export default function SettingsScreen() {
                     Log in to secure your data
                   </ThemedText>
                 </View>
-                <Button mode="outlined" onPress={signInWithGoogle}>
+                <Button mode="outlined" compact onPress={signInWithGoogle}>
                   Sign in
                 </Button>
               </>
@@ -313,12 +334,9 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
-          {/* <TouchableOpacity
-            style={styles.item}
-            onPress={() => console.log("Backup and restore pressed")}
-          >
+          <View style={styles.item}>
             <MaterialCommunityIcons
-              name="backup-restore"
+              name="cloud-upload"
               size={24}
               color={Colors.dark.icon}
               style={styles.icon}
@@ -327,8 +345,57 @@ export default function SettingsScreen() {
               <ThemedText style={styles.itemText}>
                 Backup and restore
               </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {!user
+                  ? "You need to sign in to use this feature"
+                  : lastBackupDate
+                    ? `Last backup: ${lastBackupDate.toLocaleDateString()}`
+                    : "No backups found"}
+              </ThemedText>
             </View>
-          </TouchableOpacity> */}
+            {user && (
+              <>
+                <Button
+                  style={styles.backupButton}
+                  mode="outlined"
+                  compact
+                  onPress={() =>
+                    uploadDatabaseBackup(setBackupProgress, setIsBackupLoading)
+                  }
+                >
+                  Backup
+                </Button>
+                <Button
+                  mode="outlined"
+                  compact
+                  onPress={() =>
+                    restoreDatabaseBackup(
+                      setRestoreProgress,
+                      setIsRestoreLoading,
+                      queryClient,
+                    )
+                  }
+                >
+                  Restore
+                </Button>
+              </>
+            )}
+          </View>
+          {(isBackupLoading || isRestoreLoading) && (
+            <View style={styles.progressContainer}>
+              <ThemedText style={styles.progressText}>
+                {isBackupLoading
+                  ? "Uploading. Please wait..."
+                  : "Restoring. Please wait..."}
+              </ThemedText>
+              <ProgressBar
+                animatedValue={
+                  isBackupLoading ? backupProgress / 100 : restoreProgress / 100
+                }
+                color={Colors.dark.tint}
+              />
+            </View>
+          )}
         </View>
         <Divider style={styles.divider} />
 
@@ -792,4 +859,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   progressBarText: {},
+  backupButton: {
+    marginRight: 4,
+  },
 });
