@@ -39,6 +39,10 @@ import * as googleServices from "@/google-services.json";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
+import {
+  getAsyncStorageItem,
+  removeAsyncStorageItem,
+} from "@/utils/asyncStorage";
 
 // Initialize Bugsnag
 Bugsnag.start(process.env.EXPO_PUBLIC_BUGSNAG_API_KEY);
@@ -86,6 +90,14 @@ function RootLayout() {
 
   useEffect(() => {
     async function initializeDatabase() {
+      const databaseRestored = await getAsyncStorageItem("databaseRestored");
+      console.log("Restore complete:", databaseRestored);
+      if (databaseRestored === "true") {
+        setIsDatabaseInitialized(true);
+        setIsInitializing(false);
+        return;
+      }
+
       try {
         await initializeAppData();
         await initUserDataDB();
@@ -104,6 +116,7 @@ function RootLayout() {
     }
 
     initializeDatabase();
+    removeAsyncStorageItem("databaseRestored");
   }, []);
 
   useEffect(() => {
