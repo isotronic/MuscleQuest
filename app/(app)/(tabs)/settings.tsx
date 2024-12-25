@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   View,
@@ -228,6 +229,25 @@ export default function SettingsScreen() {
   //   }
   // };
 
+  const confirmRestoreBackup = async () => {
+    Alert.alert(
+      "Restore Backup",
+      "Are you sure you want to restore the backup?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Restore",
+          onPress: () =>
+            restoreDatabaseBackup(
+              setRestoreProgress,
+              setIsRestoreLoading,
+              queryClient,
+            ),
+        },
+      ],
+    );
+  };
+
   useEffect(() => {
     if (isError) {
       console.error("Error fetching settings:", error);
@@ -367,17 +387,7 @@ export default function SettingsScreen() {
                 >
                   Backup
                 </Button>
-                <Button
-                  mode="outlined"
-                  compact
-                  onPress={() =>
-                    restoreDatabaseBackup(
-                      setRestoreProgress,
-                      setIsRestoreLoading,
-                      queryClient,
-                    )
-                  }
-                >
+                <Button mode="outlined" compact onPress={confirmRestoreBackup}>
                   Restore
                 </Button>
               </>
