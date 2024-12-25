@@ -1,14 +1,11 @@
 import * as FileSystem from "expo-file-system";
-import * as SQLite from "expo-sqlite";
 import { reloadAsync } from "expo-updates";
 import storage from "@react-native-firebase/storage";
 import auth from "@react-native-firebase/auth";
-import { openDatabase } from "./database";
 import { QueryClient } from "@tanstack/react-query";
 import { setAsyncStorageItem } from "./asyncStorage";
 
 const dbName = "userData.db";
-let db: SQLite.SQLiteDatabase | null = null;
 
 const getDatabasePath = async () => {
   return `${FileSystem.documentDirectory}SQLite/${dbName}`;
@@ -26,32 +23,63 @@ export const uploadDatabaseBackup = async (
       throw new Error("User not authenticated");
     }
 
-    const storageRef = storage().ref(`backups/${userId}/${dbName}`);
     const dbPath = await getDatabasePath();
-    const fileStat = await FileSystem.getInfoAsync(dbPath);
+    const walPath = `${dbPath}-wal`; // Path to WAL file
+    const shmPath = `${dbPath}-shm`; // Path to SHM file
 
-    // Check if the file exists
-    if (!fileStat.exists) {
+    // Check if database, WAL, and SHM files exist
+    const dbFileExists = await FileSystem.getInfoAsync(dbPath);
+    const walFileExists = await FileSystem.getInfoAsync(walPath);
+    const shmFileExists = await FileSystem.getInfoAsync(shmPath);
+
+    if (!dbFileExists.exists) {
       throw new Error("Database file does not exist");
     }
+    if (!walFileExists.exists) {
+      throw new Error("WAL file does not exist");
+    }
+    if (!shmFileExists.exists) {
+      throw new Error("SHM file does not exist");
+    }
 
-    const db = await openDatabase("userData.db");
-    await db.execAsync("PRAGMA wal_checkpoint(FULL);");
-    await db.closeAsync();
+    // Storage references
+    const dbStorageRef = storage().ref(`backups/${userId}/${dbName}`);
+    const walStorageRef = storage().ref(`backups/${userId}/${dbName}-wal`);
+    const shmStorageRef = storage().ref(`backups/${userId}/${dbName}-shm`);
 
-    // Upload file to Firebase Storage
-    const task = storageRef.putFile(dbPath);
+    // List of files to upload
+    const files = [
+      { path: dbPath, ref: dbStorageRef },
+      { path: walPath, ref: walStorageRef },
+      { path: shmPath, ref: shmStorageRef },
+    ];
 
-    // Monitor upload progress
-    task.on("state_changed", (taskSnapshot) => {
-      const progress =
-        (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) * 100;
-      setBackupProgress(progress); // Update the progress bar
-      console.log(`${progress.toFixed(2)}% uploaded`);
-    });
+    let completedFiles = 0;
 
-    await task;
-    console.log("Database backup uploaded successfully");
+    for (const { path, ref } of files) {
+      const task = ref.putFile(path);
+
+      await new Promise<void>((resolve, reject) => {
+        task.on(
+          "state_changed",
+          (snapshot) => {
+            const fileProgress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) *
+              (1 / files.length); // Fractional progress for this file
+            const overallProgress =
+              (completedFiles / files.length + fileProgress) * 100;
+            setBackupProgress(overallProgress);
+          },
+          (error) => reject(error),
+          () => {
+            completedFiles += 1;
+            resolve();
+          },
+        );
+      });
+    }
+
+    console.log("All files uploaded successfully.");
   } catch (error) {
     console.error("Error uploading backup:", error);
   } finally {
@@ -94,52 +122,54 @@ export const restoreDatabaseBackup = async (
       throw new Error("User not authenticated");
     }
 
-    const storageRef = storage().ref(`backups/${userId}/userData.db`);
-    const downloadUrl = await storageRef.getDownloadURL();
-
     const sqlitePath = `${FileSystem.documentDirectory}SQLite/`;
     const dbPath = `${sqlitePath}userData.db`;
     const walPath = `${sqlitePath}userData.db-wal`;
     const shmPath = `${sqlitePath}userData.db-shm`;
 
-    db = await openDatabase("userData.db");
-    await db.execAsync("PRAGMA wal_checkpoint(FULL);");
+    // Define storage references
+    const dbStorageRef = storage().ref(`backups/${userId}/userData.db`);
+    const walStorageRef = storage().ref(`backups/${userId}/userData.db-wal`);
+    const shmStorageRef = storage().ref(`backups/${userId}/userData.db-shm`);
 
-    // Close SQLite connection to ensure changes are written to disk
-    if (db) {
-      await db.closeAsync();
-      db = null;
-      console.log("Database connection closed.");
+    const files = [
+      { ref: dbStorageRef, path: dbPath },
+      { ref: walStorageRef, path: walPath },
+      { ref: shmStorageRef, path: shmPath },
+    ];
+
+    let completedFiles = 0;
+
+    for (const { ref, path } of files) {
+      const downloadUrl = await ref.getDownloadURL();
+
+      await new Promise<void>((resolve, reject) => {
+        const downloadResumable = FileSystem.createDownloadResumable(
+          downloadUrl,
+          path,
+          undefined,
+          (downloadProgress) => {
+            const fileProgress =
+              (downloadProgress.totalBytesWritten /
+                downloadProgress.totalBytesExpectedToWrite) *
+              (1 / files.length); // Fractional progress for this file
+            const overallProgress =
+              (completedFiles / files.length + fileProgress) * 100;
+            setRestoreProgress(overallProgress);
+          },
+        );
+
+        downloadResumable
+          .downloadAsync()
+          .then(() => {
+            completedFiles += 1;
+            resolve();
+          })
+          .catch(reject);
+      });
     }
 
-    // Delete existing WAL and SHM files
-    const walInfo = await FileSystem.getInfoAsync(walPath);
-    if (walInfo.exists) {
-      await FileSystem.deleteAsync(walPath);
-      console.log("WAL file deleted.");
-    }
-
-    const shmInfo = await FileSystem.getInfoAsync(shmPath);
-    if (shmInfo.exists) {
-      await FileSystem.deleteAsync(shmPath);
-      console.log("SHM file deleted.");
-    }
-
-    // Download the backup file and overwrite the database file
-    const downloadResumable = FileSystem.createDownloadResumable(
-      downloadUrl,
-      dbPath,
-      undefined,
-      (downloadProgress) => {
-        const progress =
-          downloadProgress.totalBytesWritten /
-          downloadProgress.totalBytesExpectedToWrite;
-        setRestoreProgress(progress);
-      },
-    );
-
-    await downloadResumable.downloadAsync();
-    console.log("Database restored successfully.");
+    console.log("All files restored successfully.");
   } catch (error) {
     console.error("Error restoring database:", error);
     throw error;
@@ -147,6 +177,7 @@ export const restoreDatabaseBackup = async (
     setIsRestoreLoading(false);
     setRestoreProgress(1);
 
+    // Mark the database as restored and reload the app
     await setAsyncStorageItem("databaseRestored", "true");
     await reloadAsync();
   }
