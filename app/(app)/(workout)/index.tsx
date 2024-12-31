@@ -194,7 +194,10 @@ export default function WorkoutOverviewScreen() {
       }
     } catch (error: any) {
       Bugsnag.notify(error);
-      Alert.alert("Error saving workout", error.message);
+      Alert.alert(
+        "Error saving workout",
+        "Unable to save your workout. Please try again later.",
+      );
     }
   };
 
