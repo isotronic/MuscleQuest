@@ -106,81 +106,95 @@ export default function WorkoutOverviewScreen() {
   };
 
   const handleSaveWorkout = async () => {
-    const planId = activeWorkout?.planId;
-    const workoutId = activeWorkout?.workoutId;
-    const endTime = new Date();
-    const duration = startTime
-      ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
-      : 0;
-    const totalSetsCompleted = Object.values(completedSets).reduce(
-      (total, exerciseSets) => {
-        const setsCompleted = Object.values(exerciseSets).filter(
-          (setCompleted) => setCompleted === true,
-        ).length;
-        return total + setsCompleted;
-      },
-      0,
-    );
+    try {
+      const planId = activeWorkout?.planId;
+      const workoutId = activeWorkout?.workoutId;
+      const endTime = new Date();
+      const duration = startTime
+        ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
+        : 0;
 
-    if (workout && planId && workoutId) {
-      const exercises = workout.exercises
-        .map((exercise, index) => {
-          const completedSetIndices = Object.entries(completedSets[index] || {})
-            .filter(([, isCompleted]) => isCompleted)
-            .map(([setIndex]) => parseInt(setIndex));
-
-          if (completedSetIndices.length === 0) {
-            return null; // Exclude exercises with no completed sets
+      // Ensure `completedSets` is initialized and properly formatted
+      const totalSetsCompleted = Object.values(completedSets || {}).reduce(
+        (total, exerciseSets) => {
+          if (!exerciseSets || typeof exerciseSets !== "object") {
+            return total;
           }
+          const setsCompleted = Object.values(exerciseSets).filter(
+            (setCompleted) => setCompleted === true,
+          ).length;
+          return total + setsCompleted;
+        },
+        0,
+      );
 
-          const sets = Object.entries(weightAndReps[index] || {})
-            .filter(([setIndex]) =>
-              completedSetIndices.includes(parseInt(setIndex)),
+      if (workout && planId && workoutId) {
+        const exercises = workout.exercises
+          .map((exercise, index) => {
+            const completedSetIndices = Object.entries(
+              completedSets[index] || {},
             )
-            .map(([setIndex, set]) => ({
-              set_number: parseInt(setIndex) + 1,
-              weight: set.weight ? parseFloat(set.weight) : null,
-              reps: set.reps ? parseInt(set.reps) : null,
-              time: set.time ? parseInt(set.time) : null,
-            }));
+              .filter(([, isCompleted]) => isCompleted)
+              .map(([setIndex]) => parseInt(setIndex));
 
-          return {
-            exercise_id: exercise.exercise_id,
-            sets,
-          };
-        })
-        .filter((exercise) => exercise !== null); // Remove null values from exercises
+            if (completedSetIndices.length === 0) {
+              return null; // Exclude exercises with no completed sets
+            }
 
-      if (exercises.length > 0) {
-        saveCompletedWorkoutMutation.mutate(
-          {
-            planId,
-            workoutId,
-            duration,
-            totalSetsCompleted,
-            exercises,
-          },
-          {
-            onSuccess: () => {
-              console.log("Workout saved successfully!");
-              unloadSound();
-              clearPersistedStore();
-              router.push("/(tabs)");
+            const sets = Object.entries(weightAndReps[index] || {})
+              .filter(([setIndex]) =>
+                completedSetIndices.includes(parseInt(setIndex)),
+              )
+              .map(([setIndex, set]) => ({
+                set_number: parseInt(setIndex) + 1,
+                weight: set.weight ? parseFloat(set.weight) : null,
+                reps: set.reps ? parseInt(set.reps) : null,
+                time: set.time ? parseInt(set.time) : null,
+              }));
+
+            return {
+              exercise_id: exercise.exercise_id,
+              sets,
+            };
+          })
+          .filter((exercise) => exercise !== null); // Remove null values from exercises
+
+        if (exercises.length > 0) {
+          saveCompletedWorkoutMutation.mutate(
+            {
+              planId,
+              workoutId,
+              duration,
+              totalSetsCompleted,
+              exercises,
             },
-            onError: (error) => {
-              Alert.alert(
-                "Error",
-                "Failed to save workout. Please try again.",
-                [{ text: "OK" }],
-              );
-              Bugsnag.notify(error);
-              console.error("Error saving workout: ", error);
+            {
+              onSuccess: () => {
+                console.log("Workout saved successfully!");
+                unloadSound();
+                clearPersistedStore();
+                router.push("/(tabs)");
+              },
+              onError: (error) => {
+                Alert.alert(
+                  "Error",
+                  "Failed to save workout. Please try again.",
+                  [{ text: "OK" }],
+                );
+                Bugsnag.notify(error);
+                console.error("Error saving workout: ", error);
+              },
             },
-          },
-        );
+          );
+        } else {
+          console.warn("No completed exercises to save.");
+        }
       } else {
-        console.warn("No completed exercises to save.");
+        console.warn("Workout, plan ID, or workout ID is missing.");
       }
+    } catch (error: any) {
+      Bugsnag.notify(error);
+      Alert.alert("Error saving workout", error.message);
     }
   };
 
