@@ -66,7 +66,7 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
   }));
 
   const barWidth = timeRange === "30" ? 35 : 15;
-  const barSpacing = timeRange === "30" ? 30 : timeRange === "90" ? 17 : 6;
+  const barSpacing = timeRange === "30" ? 20 : timeRange === "90" ? 15 : 6;
 
   return (
     <Card style={styles.card}>
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
   },
   xAxisLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: Colors.dark.text,
     marginTop: 4,
   },
