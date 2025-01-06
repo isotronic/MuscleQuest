@@ -123,5 +123,6 @@ export const useTrackedExercisesQuery = (timeRange: string) => {
   return useQuery<TrackedExerciseWithSets[], Error>({
     queryKey: ["trackedExercises"],
     queryFn: () => fetchTrackedExercises(timeRange),
+    staleTime: 5 * 60 * 1000,
   });
 };
