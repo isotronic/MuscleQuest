@@ -189,6 +189,6 @@ export const useCompletedWorkoutsQuery = (
   return useQuery<CompletedWorkout[]>({
     queryKey: ["completedWorkouts", weightUnit],
     queryFn: () => fetchAndOrganize(weightUnit, timeRange),
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000,
   });
 };

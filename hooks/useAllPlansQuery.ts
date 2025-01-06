@@ -146,6 +146,6 @@ export const useAllPlansQuery = () => {
   return useQuery<{ userPlans: Plan[]; appPlans: Plan[] }, Error>({
     queryKey: ["plans"],
     queryFn: fetchPlans,
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000,
   });
 };

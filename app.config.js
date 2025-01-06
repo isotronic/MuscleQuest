@@ -4,7 +4,7 @@ export default {
   expo: {
     name: IS_DEV ? "Muscle Quest (Dev)" : "Muscle Quest",
     slug: "musclequest",
-    version: "0.8.13",
+    version: "0.8.14",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",

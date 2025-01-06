@@ -99,6 +99,6 @@ export const useActivePlanQuery = () => {
   return useQuery<Plan | null>({
     queryKey: ["activePlan"],
     queryFn: fetchActivePlanData,
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000,
   });
 };

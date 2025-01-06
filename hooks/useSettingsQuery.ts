@@ -5,6 +5,6 @@ export const useSettingsQuery = () => {
   return useQuery({
     queryKey: ["settings"],
     queryFn: fetchSettings,
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };

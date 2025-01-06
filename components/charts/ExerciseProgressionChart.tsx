@@ -151,7 +151,7 @@ export const ExerciseProgressionChart: React.FC<
         )}
         <LineChart
           data={chartData}
-          spacing={35}
+          spacing={30}
           thickness={5}
           color={Colors.dark.highlight}
           isAnimated
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
   },
   xAxisLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: Colors.dark.text,
     marginTop: 4,
   },
