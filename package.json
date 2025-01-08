@@ -1,7 +1,7 @@
 {
   "name": "musclequest",
   "main": "expo-router/entry",
-  "version": "0.8.14",
+  "version": "0.8.15",
   "scripts": {
     "dev": "APP_VARIANT=development npx expo start",
     "build-dev": "npx eas build --profile development --platform android",
@@ -74,7 +74,8 @@
     "react-native-web": "~0.19.10",
     "react-timer-hook": "^3.0.7",
     "unsplash-js": "^7.0.19",
-    "zustand": "^4.5.4"
+    "zustand": "^4.5.4",
+    "@shopify/flash-list": "1.6.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
