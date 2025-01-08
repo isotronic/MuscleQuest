@@ -1,5 +1,6 @@
 import React, { useCallback } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { ThemedText } from "./ThemedText";
 import ExerciseItem from "./ExerciseItem";
 import { Exercise } from "@/utils/database";
@@ -88,7 +89,7 @@ const ExerciseList = ({
   );
 
   return (
-    <FlatList
+    <FlashList
       data={listData}
       keyExtractor={(item: any, index: number) =>
         item.type === "title"
@@ -97,9 +98,7 @@ const ExerciseList = ({
       }
       renderItem={renderExerciseItem}
       contentContainerStyle={styles.flatListContent}
-      initialNumToRender={10}
-      maxToRenderPerBatch={10}
-      windowSize={10}
+      estimatedItemSize={84}
     />
   );
 };
