@@ -41,7 +41,7 @@ const downloadExerciseImage = async (
 
       // Download successful, exit the loop
       return;
-    } catch (error) {
+    } catch (error: any) {
       attempt++;
       console.error(
         `Attempt ${attempt} - Error downloading image for exercise ${exercise_id}:`,
@@ -49,6 +49,7 @@ const downloadExerciseImage = async (
       );
 
       if (attempt >= maxRetries) {
+        Bugsnag.notify(error);
         // Throw error after max retries exceeded
         throw new Error(
           `Failed to download image for exercise ${exercise_id} after ${maxRetries} attempts`,
@@ -80,6 +81,10 @@ export const downloadAllAnimatedImages = async (
 
     return new Promise((resolve, reject) => {
       const startNext = () => {
+        if (totalExercises === 0) {
+          resolve({ success: true, failedDownloads: [] });
+          return;
+        }
         while (
           activeCount < concurrencyLimit &&
           currentIndex < totalExercises
