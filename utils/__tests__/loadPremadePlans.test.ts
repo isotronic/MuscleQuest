@@ -45,6 +45,20 @@ it("should insert plans and update data version if dataVersion is null", async (
   );
 });
 
+it("should handle database errors when inserting plans", async () => {
+  mockGetFirstAsync.mockResolvedValue(null); // No dataVersion exists
+  const dbError = new Error("Database insertion failed");
+  mockRunAsync.mockRejectedValue(dbError); // Simulate database error
+
+  await expect(loadPremadePlans()).rejects.toThrow("Database insertion failed");
+
+  // Verify attempt was made to insert plans
+  expect(mockRunAsync).toHaveBeenCalledWith(
+    expect.stringContaining("INSERT INTO user_plans"),
+    expect.any(Array),
+  );
+});
+
 it("should skip inserting plans if dataVersion is 1.8 or higher", async () => {
   mockGetFirstAsync.mockResolvedValue({ value: "1.8" }); // Already up-to-date
 
