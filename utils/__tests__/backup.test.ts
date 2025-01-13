@@ -154,7 +154,11 @@ describe("uploadDatabaseBackup", () => {
     // Simulate an error during putFile
     mockStorageRef.putFile.mockImplementation(() => {
       return {
-        on: (event, onProgress, onError) => {
+        on: (
+          event: string,
+          onProgress: any,
+          onError: (arg0: Error) => void,
+        ) => {
           if (event === "state_changed") {
             // Immediately trigger error
             onError(new Error("Simulated upload failure"));
