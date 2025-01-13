@@ -7,8 +7,6 @@ const mockDatabase = {
   getFirstAsync: jest.fn(),
 };
 
-// jest.mock("../assets/db/appData2.db", () => "mockDatabaseFileUri");
-
 describe("initializeAppData", () => {
   beforeEach(() => {
     jest.clearAllMocks();
