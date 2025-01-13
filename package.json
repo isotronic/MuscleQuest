@@ -29,7 +29,7 @@
       "node_modules/(?!(jest-)?@?react-native|@react-navigation|expo(nent)?|@expo(nent)?/.*|react-native|@react-native(-community)?/.*)"
     ],
     "moduleNameMapper": {
-      "\\.db$": "<rootDir>/__mocks__/fileMock.js"
+      "\\.db$": "<rootDir>/__mocks__/fileMocks.js"
     }
   },
   "dependencies": {
