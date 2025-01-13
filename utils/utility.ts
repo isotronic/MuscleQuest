@@ -37,6 +37,13 @@ export function formatFromTotalSeconds(totalSeconds: number): string {
 
 // Convert a formatted string (minutes:seconds) back to total seconds
 export function convertToTotalSeconds(formattedTime: string): number {
+  const parts = formattedTime.split(":").map(Number);
+
+  // Validate input
+  if (parts.length !== 2 || parts.some((part) => isNaN(part) || part < 0)) {
+    throw new Error(`Invalid time format: "${formattedTime}"`);
+  }
+
   const [minutes, seconds] = formattedTime.split(":").map(Number);
   return minutes * 60 + (seconds || 0);
 }

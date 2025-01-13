@@ -1,4 +1,4 @@
-import { deleteAllAnimatedImages } from "@/utils/deleteAllAnimatedImaged";
+import { deleteAllAnimatedImages } from "@/utils/deleteAllAnimatedImages";
 import { downloadAllAnimatedImages } from "@/utils/downloadAllAnimatedImages";
 import Bugsnag from "@bugsnag/expo";
 import { useState } from "react";

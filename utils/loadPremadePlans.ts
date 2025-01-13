@@ -83,21 +83,19 @@ export const loadPremadePlans = async () => {
       `SELECT value FROM settings WHERE key = ? LIMIT 1`,
       ["dataVersion"],
     );
-    dataVersion = Number(versionResult?.value);
+    dataVersion = versionResult ? Number(versionResult.value) : null;
 
     if (dataVersion === null || dataVersion < 1.8) {
-      const data = require("@/assets/data/3-day-full-body.json");
-      const plansArray = Array.isArray(data) ? data : [data];
-
-      // Insert the plans into the database
-      await insertPlans(db, plansArray);
-    }
-    if (dataVersion === null || dataVersion < 1.8) {
-      const data = require("@/assets/data/4-day-split.json");
-      const plansArray = Array.isArray(data) ? data : [data];
-
-      // Insert the plans into the database
-      await insertPlans(db, plansArray);
+      console.log("Condition met: Updating data version...");
+      const planFiles = [
+        "@/assets/data/3-day-full-body.json",
+        "@/assets/data/4-day-split.json",
+      ];
+      for (const file of planFiles) {
+        const data = require(file);
+        const plansArray = Array.isArray(data) ? data : [data];
+        await insertPlans(db, plansArray);
+      }
 
       console.log("Updating data version to 1.8...");
       await db.runAsync(

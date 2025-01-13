@@ -10,12 +10,27 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test": "jest --watchAll",
+    "test": "jest",
+    "test-watchAll": "jest --watchAll",
     "lint": "expo lint",
     "eas-build-on-success": "npx bugsnag-eas-build-on-success"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "setupFiles": [
+      "./jestSetupFile.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/android/",
+      "/ios/"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(jest-)?@?react-native|@react-navigation|expo(nent)?|@expo(nent)?/.*|react-native|@react-native(-community)?/.*)"
+    ],
+    "moduleNameMapper": {
+      "\\.db$": "<rootDir>/__mocks__/fileMocks.js"
+    }
   },
   "dependencies": {
     "@bugsnag/expo": "^51.0.0",

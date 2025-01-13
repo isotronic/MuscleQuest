@@ -82,6 +82,7 @@ export const uploadDatabaseBackup = async (
     console.log("All files uploaded successfully.");
   } catch (error) {
     console.error("Error uploading backup:", error);
+    throw error;
   } finally {
     setIsBackupLoading(false); // End the loading state
     setBackupProgress(1);
