@@ -146,7 +146,36 @@ describe("uploadDatabaseBackup", () => {
     ).rejects.toThrow("Database file does not exist");
   });
 
-  // Add additional tests for WAL or SHM not existing as needed...
+  it("should handle upload failure and throw an error", async () => {
+    const { getInfoAsync } = require("expo-file-system");
+    // Pretend all files exist
+    getInfoAsync.mockResolvedValue({ exists: true });
+
+    // Simulate an error during putFile
+    mockStorageRef.putFile.mockImplementation(() => {
+      return {
+        on: (event, onProgress, onError) => {
+          if (event === "state_changed") {
+            // Immediately trigger error
+            onError(new Error("Simulated upload failure"));
+          }
+        },
+      };
+    });
+
+    await expect(
+      uploadDatabaseBackup(setBackupProgressMock, setIsBackupLoadingMock),
+    ).rejects.toThrow("Simulated upload failure");
+
+    // Ensure loading states were toggled
+    expect(setIsBackupLoadingMock).toHaveBeenCalledWith(true);
+    expect(setIsBackupLoadingMock).toHaveBeenCalledWith(false);
+
+    // Because the upload failed, we should still have called putFile once
+    // (it fails on the first file),
+    // but subsequent files shouldn't have started.
+    expect(mockStorageRef.putFile).toHaveBeenCalledTimes(1);
+  });
 });
 
 /**
