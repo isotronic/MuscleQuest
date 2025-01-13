@@ -58,7 +58,7 @@ jest.mock("expo-file-system", () => ({
   createDownloadResumable: jest.fn(() => ({
     downloadAsync: jest.fn(() => Promise.resolve()),
   })),
-  deleteAsync: jest.fn(),
+  deleteAsync: jest.fn().mockResolvedValue(undefined),
   makeDirectoryAsync: jest.fn().mockResolvedValue(undefined),
   copyAsync: jest.fn().mockResolvedValue(undefined),
 }));
@@ -67,7 +67,7 @@ jest.mock("expo-file-system", () => ({
 jest.mock("expo-asset", () => ({
   Asset: {
     fromModule: jest.fn(() => ({
-      localUri: "mockLocalUri",
+      localUri: "mockDatabaseFileUri",
       downloadAsync: jest.fn().mockResolvedValue(undefined),
     })),
   },
