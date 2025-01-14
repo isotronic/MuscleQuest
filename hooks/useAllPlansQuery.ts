@@ -36,7 +36,7 @@ export interface RawPlan {
   exercise_order: number | null;
 }
 
-const transformRawPlans = (
+export const transformRawPlans = (
   rawPlans: RawPlan[],
 ): { userPlans: Plan[]; appPlans: Plan[] } => {
   const userPlansMap = new Map<number, Plan>();
@@ -96,7 +96,7 @@ const transformRawPlans = (
   };
 };
 
-const fetchPlans = async (): Promise<{
+export const fetchPlans = async (): Promise<{
   userPlans: Plan[];
   appPlans: Plan[];
 }> => {
