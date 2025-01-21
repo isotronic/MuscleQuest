@@ -4,7 +4,7 @@ import * as FileSystem from "expo-file-system";
 import { insertAnimatedImageUri } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
 
-const fetchAnimatedImageUrl = async (
+export const fetchAnimatedImageUrl = async (
   exerciseId: number,
   animatedUrlPath: string,
   localPath?: string,
