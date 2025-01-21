@@ -56,7 +56,9 @@ jest.mock("expo-file-system", () => ({
     }),
   ),
   createDownloadResumable: jest.fn(() => ({
-    downloadAsync: jest.fn(() => Promise.resolve()),
+    downloadAsync: jest.fn(() =>
+      Promise.resolve({ uri: "/default/mock/path.webp" }),
+    ),
   })),
   deleteAsync: jest.fn().mockResolvedValue(undefined),
   makeDirectoryAsync: jest.fn().mockResolvedValue(undefined),

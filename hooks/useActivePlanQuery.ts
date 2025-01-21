@@ -4,7 +4,7 @@ import { openDatabase } from "@/utils/database";
 import { Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 
-const fetchActivePlanData = async (): Promise<Plan | null> => {
+export const fetchActivePlanData = async (): Promise<Plan | null> => {
   try {
     const db = await openDatabase("userData.db");
 
