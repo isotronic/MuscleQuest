@@ -4,7 +4,7 @@ import {
 } from "../useAnimatedImageQuery";
 import storage from "@react-native-firebase/storage";
 import * as FileSystem from "expo-file-system";
-// import { insertAnimatedImageUri } from "@/utils/database";
+import { insertAnimatedImageUri } from "@/utils/database";
 import { useQuery } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 
@@ -28,7 +28,7 @@ const mockFileSystem = {
 (FileSystem as any).createDownloadResumable =
   mockFileSystem.createDownloadResumable;
 
-// const mockInsertAnimatedImageUri = insertAnimatedImageUri as jest.Mock;
+const mockInsertAnimatedImageUri = insertAnimatedImageUri as jest.Mock;
 
 describe("useAnimatedImageQuery Tests", () => {
   //
@@ -72,31 +72,31 @@ describe("useAnimatedImageQuery Tests", () => {
       expect(result).toBe(localPath);
     });
 
-    // it("should download the image and return the local path", async () => {
-    //   const exerciseId = 1;
-    //   const animatedUrlPath = "path/to/image";
-    //   const localUri = `${FileSystem.documentDirectory}exercise_${exerciseId}.webp`;
+    it("should download the image and return the local path", async () => {
+      const exerciseId = 1;
+      const animatedUrlPath = "path/to/image";
+      const localUri = `${FileSystem.documentDirectory}exercise_${exerciseId}.webp`;
 
-    //   // Mock success behavior
-    //   mockStorage.getDownloadURL.mockResolvedValueOnce(
-    //     "https://example.com/image.webp",
-    //   );
-    //   mockFileSystem.createDownloadResumable.mockReturnValue({
-    //     downloadAsync: jest.fn().mockResolvedValue({ uri: localUri }),
-    //   });
-    //   mockInsertAnimatedImageUri.mockResolvedValueOnce(undefined);
+      // Mock success behavior
+      mockStorage.getDownloadURL.mockResolvedValueOnce(
+        "https://example.com/image.webp",
+      );
+      mockFileSystem.createDownloadResumable.mockReturnValue({
+        downloadAsync: jest.fn().mockResolvedValue({ uri: localUri }),
+      });
+      mockInsertAnimatedImageUri.mockResolvedValueOnce(undefined);
 
-    //   // Call the function under test
-    //   const result = await fetchAnimatedImageUrl(exerciseId, animatedUrlPath);
+      // Call the function under test
+      const result = await fetchAnimatedImageUrl(exerciseId, animatedUrlPath);
 
-    //   // Assertions
-    //   expect(result).toBe(localUri);
-    //   expect(mockStorage.ref).toHaveBeenCalledWith(animatedUrlPath);
-    //   expect(mockInsertAnimatedImageUri).toHaveBeenCalledWith(
-    //     exerciseId,
-    //     localUri,
-    //   );
-    // });
+      // Assertions
+      expect(result).toBe(localUri);
+      expect(mockStorage.ref).toHaveBeenCalledWith(animatedUrlPath);
+      expect(mockInsertAnimatedImageUri).toHaveBeenCalledWith(
+        exerciseId,
+        localUri,
+      );
+    });
 
     it("should retry on failure and notify Bugsnag if all retries fail", async () => {
       const exerciseId = 1;
