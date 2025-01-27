@@ -192,7 +192,7 @@ export default function WorkoutSessionScreen() {
 
   const handleWeightChange = (amount: number) => {
     const currentWeight = isNaN(parseFloat(weight)) ? 0 : parseFloat(weight);
-    const newWeight = (currentWeight + amount).toString();
+    const newWeight = (currentWeight + amount).toFixed(1);
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
