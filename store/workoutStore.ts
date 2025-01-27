@@ -18,7 +18,7 @@ export interface UserExercise extends Exercise {
 }
 
 export interface Workout {
-  id?: number;
+  id?: number | null;
   name: string;
   is_deleted?: boolean;
   exercises: UserExercise[];

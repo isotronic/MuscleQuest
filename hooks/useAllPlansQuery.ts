@@ -4,10 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 
 export interface Plan {
-  id: number;
+  id: number | null;
   name: string;
   image_url: string;
-  is_active: number;
+  is_active: number | boolean;
   app_plan_id?: number | null;
   is_deleted?: boolean;
   workouts: Workout[];

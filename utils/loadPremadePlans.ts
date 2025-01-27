@@ -87,13 +87,11 @@ export const loadPremadePlans = async () => {
 
     if (dataVersion === null || dataVersion < 1.8) {
       console.log("Condition met: Updating data version...");
-      const planFiles = [
-        "@/assets/data/3-day-full-body.json",
-        "@/assets/data/4-day-split.json",
-      ];
+      const plan1 = require("@/assets/data/3-day-full-body.json");
+      const plan2 = require("@/assets/data/4-day-split.json");
+      const planFiles = [plan1, plan2];
       for (const file of planFiles) {
-        const data = require(file);
-        const plansArray = Array.isArray(data) ? data : [data];
+        const plansArray = Array.isArray(file) ? file : [file];
         await insertPlans(db, plansArray);
       }
 
