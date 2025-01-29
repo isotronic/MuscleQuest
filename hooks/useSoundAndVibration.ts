@@ -23,9 +23,11 @@ export const useSoundAndVibration = () => {
       }
     };
 
-    //loadSound();
+    loadSound();
 
-    return () => {};
+    return () => {
+      unloadSound();
+    };
   }, []);
 
   const playSound = async () => {
