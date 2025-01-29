@@ -15,7 +15,7 @@ export const useSoundAndVibration = () => {
           shouldDuckAndroid: true,
         });
         const { sound } = await Audio.Sound.createAsync(
-          require("@/assets/sounds/boxing-bell.mp3"),
+          require("@/assets/sounds/boxing_bell.mp3"),
         );
         setSound(sound);
       } catch (error) {

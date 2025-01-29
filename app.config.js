@@ -76,7 +76,7 @@ export default {
       [
         "expo-notifications",
         {
-          sounds: ["./assets/sounds/boxing-bell.mp3"],
+          sounds: ["./assets/sounds/boxing_bell.mp3"],
         },
       ],
     ],

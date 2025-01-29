@@ -14,7 +14,7 @@ export const requestNotificationPermission = async () => {
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 400, 100, 400, 100, 600],
       lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-      sound: "boxing-bell.mp3",
+      sound: "boxing_bell.mp3",
     });
   }
 };
