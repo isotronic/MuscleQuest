@@ -24,6 +24,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSoundAndVibration } from "@/hooks/useSoundAndVibration";
 import WorkoutTimer from "@/components/WorkoutTimer";
 import Bugsnag from "@bugsnag/expo";
+import {
+  cancelRestNotifications,
+  scheduleRestNotification,
+} from "@/utils/restNotification";
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
@@ -121,26 +125,39 @@ export default function WorkoutSessionScreen() {
 
   useKeepScreenOn();
 
-  const { playSoundAndVibrate, triggerVibration, playSound } =
-    useSoundAndVibration();
-
+  const expiryTimestampRef = useRef<Date | null>(null);
+  const { playSound, triggerVibration } = useSoundAndVibration();
   const { seconds, minutes, restart } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
     onExpire: () => {
       stopTimer();
-      if (
-        settings?.restTimerVibration === "true" &&
-        settings?.restTimerSound === "true"
-      ) {
-        playSoundAndVibrate(); // Play both sound and vibration
-      } else if (settings?.restTimerVibration === "true") {
-        triggerVibration(); // Only vibrate
-      } else if (settings?.restTimerSound === "true") {
-        playSound(); // Only play sound
-      }
+
+      handleExpire();
     },
   });
+
+  async function handleExpire() {
+    if (!expiryTimestampRef.current) {
+      return;
+    }
+
+    const now = new Date();
+    const diffMs = now.getTime() - expiryTimestampRef.current.getTime();
+
+    // If we're more than 2 seconds late, assume background notification already played
+    if (diffMs < 2000) {
+      // user is in the foreground at the actual expiry
+      if (settings?.restTimerSound === "true") {
+        await playSound();
+      }
+      if (settings?.restTimerVibration === "true") {
+        triggerVibration();
+      }
+      // Cancel the local notification so it won't show
+      cancelRestNotifications();
+    }
+  }
 
   useEffect(() => {
     if (timerRunning && timerExpiry) {
@@ -150,8 +167,19 @@ export default function WorkoutSessionScreen() {
 
   const startRestTimer = (restMinutes: number, restSeconds: number) => {
     if (restMinutes > 0 || restSeconds > 0) {
+      const totalSeconds = restMinutes * 60 + restSeconds;
+      cancelRestNotifications();
+
+      scheduleRestNotification(
+        totalSeconds,
+        "Rest Timer Finished!",
+        "Time to do your next set!",
+        "rest-timer",
+      );
+
       const time = new Date();
-      time.setSeconds(time.getSeconds() + restMinutes * 60 + restSeconds);
+      time.setSeconds(time.getSeconds() + totalSeconds);
+      expiryTimestampRef.current = time;
       startTimer(time);
       restart(time);
     }
