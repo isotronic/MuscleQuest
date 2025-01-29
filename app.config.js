@@ -4,7 +4,7 @@ export default {
   expo: {
     name: IS_DEV ? "Muscle Quest (Dev)" : "Muscle Quest",
     slug: "musclequest",
-    version: "0.8.15",
+    version: "0.8.16",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",
@@ -16,9 +16,10 @@ export default {
     },
     ios: {
       supportsTablet: true,
+      bundleIdentifier: "com.isotronic.musclequest",
     },
     android: {
-      versionCode: 37,
+      versionCode: 38,
       googleServicesFile: "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/images/ic_launcher_foreground.png",
@@ -27,7 +28,7 @@ export default {
       package: IS_DEV
         ? "com.isotronic.musclequest.dev"
         : "com.isotronic.musclequest",
-      permissions: ["VIBRATE"],
+      permissions: ["VIBRATE", "WAKE_LOCK", "SCHEDULE_EXACT_ALARM"],
       blockedPermissions: [
         "com.google.android.gms.permission.AD_ID",
         "android.permission.READ_MEDIA_VIDEO",
@@ -70,6 +71,12 @@ export default {
             "node_modules/@expo-google-fonts/inter/Inter_800ExtraBold.ttf",
             "node_modules/@expo-google-fonts/inter/Inter_900Black.ttf",
           ],
+        },
+      ],
+      [
+        "expo-notifications",
+        {
+          sounds: ["./assets/sounds/boxing-bell.mp3"],
         },
       ],
     ],
