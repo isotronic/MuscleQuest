@@ -270,7 +270,7 @@ export default function WorkoutOverviewScreen() {
                 disabled={!hasCompletedSets}
                 onPress={handleSaveWorkout}
               >
-                Save
+                Finish
               </Button>
               <Menu
                 visible={menuVisible[69420]}
