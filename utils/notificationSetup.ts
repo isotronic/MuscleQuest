@@ -9,12 +9,14 @@ export const requestNotificationPermission = async () => {
   }
 
   if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("rest-timer", {
+    await Notifications.setNotificationChannelAsync("rest-timer1", {
       name: "Rest Timer Notifications",
-      importance: Notifications.AndroidImportance.HIGH,
+      importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 400, 100, 400, 100, 600],
       lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-      sound: "boxing_bell.mp3",
+      sound: "default",
+      enableVibrate: true,
+      enableLights: true,
     });
   }
 };

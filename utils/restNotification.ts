@@ -11,7 +11,7 @@ export async function scheduleRestNotification(
   secondsFromNow: number,
   title: string,
   body: string,
-  channelId: string = "rest-timer",
+  channelId: string = "rest-timer1",
 ) {
   // If the user tries to schedule for 0 or negative, ignore or handle.
   if (secondsFromNow <= 0) {
@@ -23,15 +23,13 @@ export async function scheduleRestNotification(
       content: {
         title,
         body,
-        sound: "default",
-        // If you had a custom sound in your channel, you could reference it by name here
+        // sound: "boxing_bell.mp3",
       },
       trigger: {
         seconds: secondsFromNow,
         channelId, // important on Android to match the channel created
       },
     });
-    console.log(`Scheduled notification in ${secondsFromNow} seconds`);
   } catch (error) {
     console.error("Failed to schedule notification:", error);
   }
