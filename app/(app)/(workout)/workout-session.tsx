@@ -174,7 +174,7 @@ export default function WorkoutSessionScreen() {
         totalSeconds,
         "Rest Timer Finished!",
         "Time to do your next set!",
-        "rest-timer",
+        "rest-timer1",
       );
 
       const time = new Date();
