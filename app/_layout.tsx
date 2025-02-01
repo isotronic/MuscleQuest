@@ -43,6 +43,7 @@ import {
   getAsyncStorageItem,
   removeAsyncStorageItem,
 } from "@/utils/asyncStorage";
+import { requestNotificationPermission } from "@/utils/notificationSetup";
 
 // Initialize Bugsnag
 Bugsnag.start(process.env.EXPO_PUBLIC_BUGSNAG_API_KEY);
@@ -124,6 +125,10 @@ function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded, error, isDatabaseInitialized, isInitializing]);
+
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
 
   if (isInitializing) {
     return (

@@ -1,7 +1,7 @@
 {
   "name": "musclequest",
   "main": "expo-router/entry",
-  "version": "0.8.15",
+  "version": "0.8.17",
   "scripts": {
     "dev": "APP_VARIANT=development npx expo start",
     "build-dev": "npx eas build --profile development --platform android",
@@ -45,6 +45,7 @@
     "@react-native-firebase/storage": "20.1.0",
     "@react-native-google-signin/google-signin": "^12.2.1",
     "@react-navigation/native": "^6.0.2",
+    "@shopify/flash-list": "1.6.4",
     "@tanstack/react-query": "^5.51.21",
     "date-fns": "^3.6.0",
     "expo": "~51.0.38",
@@ -90,8 +91,7 @@
     "react-native-web": "~0.19.10",
     "react-timer-hook": "^3.0.7",
     "unsplash-js": "^7.0.19",
-    "zustand": "^4.5.4",
-    "@shopify/flash-list": "1.6.4"
+    "zustand": "^4.5.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
