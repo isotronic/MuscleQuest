@@ -14,7 +14,7 @@ export const requestNotificationPermission = async () => {
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 400, 100, 400, 100, 600],
       lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-      sound: "default",
+      sound: "boxing_bell.mp3",
       enableVibrate: true,
       enableLights: true,
     });
