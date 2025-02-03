@@ -330,7 +330,7 @@ export default function WorkoutSessionScreen() {
   );
 
   const previousWorkoutNextSetData = findLastAvailableSetData(
-    currentExercise?.exercise_id || 0,
+    nextExercise?.exercise_id || 0,
     nextSetIndex,
   );
 
