@@ -19,7 +19,7 @@ interface ActiveWorkoutStore {
       [setIndex: number]: { weight?: string; reps?: string; time?: string };
     };
   };
-  previousWorkoutData: CompletedWorkout | null;
+  previousWorkoutData: CompletedWorkout[] | null;
   startTime: Date | null;
   timerRunning: boolean;
   timerExpiry: Date | null;
@@ -41,7 +41,7 @@ interface ActiveWorkoutStore {
     reps?: string,
     time?: string,
   ) => void;
-  initializeWeightAndReps: (previousWorkoutData: CompletedWorkout) => void;
+  initializeWeightAndReps: (completedWorkouts: CompletedWorkout[]) => void;
   replaceExercise: (index: number, newExercise: UserExercise) => void;
   deleteExercise: (index: number) => void;
   restartWorkout: () => void;
@@ -158,9 +158,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           };
 
           // Retrieve historical data for the next set
-          const previousExerciseData = previousWorkoutData?.exercises.find(
-            (prevEx) => prevEx.exercise_id === currentExercise.exercise_id,
-          );
+          const previousExerciseData = previousWorkoutData
+            ?.flatMap((workout) => workout.exercises)
+            .find(
+              (prevEx) => prevEx.exercise_id === currentExercise.exercise_id,
+            );
 
           // Retrieve values from the current set and historical data for the next set
           const currentSetValues =
@@ -412,13 +414,20 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           };
         }),
 
-      initializeWeightAndReps: (previousWorkoutData: CompletedWorkout) => {
+      initializeWeightAndReps: (completedWorkouts: CompletedWorkout[]) => {
         const { workout } = get();
         if (!workout) {
           return;
         }
 
-        set({ previousWorkoutData });
+        // Sort completed workouts by date (most recent first)
+        const sortedWorkouts = [...completedWorkouts].sort(
+          (a, b) =>
+            new Date(b.date_completed).getTime() -
+            new Date(a.date_completed).getTime(),
+        );
+
+        set({ previousWorkoutData: sortedWorkouts });
       },
 
       replaceExercise: (index, newExercise) => {

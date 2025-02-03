@@ -37,7 +37,7 @@ export default function WorkoutOverviewScreen() {
   const weightUnit = settings?.weightUnit || "kg";
   const { data: completedWorkouts, error: completedWorkoutsError } =
     useCompletedWorkoutsQuery(weightUnit);
-  const currentWorkoutHistory = completedWorkouts?.find(
+  const currentWorkoutHistory = completedWorkouts?.filter(
     (completedWorkout) => completedWorkout.workout_name === activeWorkout?.name,
   );
   const saveCompletedWorkoutMutation =
@@ -92,7 +92,7 @@ export default function WorkoutOverviewScreen() {
   };
 
   const handleExercisePress = (index: number) => {
-    const historyString = currentWorkoutHistory
+    const historyString = currentWorkoutHistory?.length
       ? JSON.stringify(currentWorkoutHistory)
       : undefined;
 

@@ -71,7 +71,7 @@ export default function WorkoutSessionScreen() {
 
   useEffect(() => {
     if (workoutHistory) {
-      const previousWorkoutData: CompletedWorkout = JSON.parse(
+      const previousWorkoutData: CompletedWorkout[] = JSON.parse(
         workoutHistory as string,
       );
       initializeWeightAndReps(previousWorkoutData);
@@ -93,9 +93,28 @@ export default function WorkoutSessionScreen() {
       ? completedSets[currentExerciseIndex][currentSetIndex]
       : false;
 
-  const previousWorkoutSetData = previousWorkoutData?.exercises.find(
-    (prevEx) => prevEx.exercise_id === currentExercise?.exercise_id,
-  )?.sets[currentSetIndex];
+  const findLastAvailableSetData = (exerciseId: number, setIndex: number) => {
+    if (!previousWorkoutData) {
+      return null;
+    }
+
+    for (const workout of previousWorkoutData) {
+      const exerciseData = workout.exercises.find(
+        (prevEx) => prevEx.exercise_id === exerciseId,
+      );
+
+      if (exerciseData && exerciseData.sets[setIndex]) {
+        return exerciseData.sets[setIndex]; // Return the first non-null data found
+      }
+    }
+
+    return null; // No data found in any past workout
+  };
+
+  const previousWorkoutSetData = findLastAvailableSetData(
+    currentExercise?.exercise_id || 0,
+    currentSetIndex,
+  );
 
   const weight =
     weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight ??
@@ -310,9 +329,10 @@ export default function WorkoutSessionScreen() {
     nextExercise?.local_animated_uri,
   );
 
-  const previousWorkoutNextSetData = previousWorkoutData?.exercises.find(
-    (prevEx) => prevEx.exercise_id === nextExercise?.exercise_id,
-  )?.sets[nextSetIndex];
+  const previousWorkoutNextSetData = findLastAvailableSetData(
+    nextExercise?.exercise_id || 0,
+    nextSetIndex,
+  );
 
   const nextWeight =
     weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.weight ??
@@ -349,9 +369,10 @@ export default function WorkoutSessionScreen() {
     previousExercise?.local_animated_uri,
   );
 
-  const previousExerciseData = previousWorkoutData?.exercises.find(
-    (prevEx) => prevEx.exercise_id === previousExercise?.exercise_id,
-  );
+  const previousExerciseData = previousWorkoutData
+    ?.map((workout) => workout.exercises)
+    .flat()
+    .find((prevEx) => prevEx.exercise_id === previousExercise?.exercise_id);
 
   let previousSetData = null;
 
@@ -517,9 +538,11 @@ export default function WorkoutSessionScreen() {
       workout.exercises[tempNextExerciseIndex].sets[tempNextSetIndex]
     ) {
       const nextExercise = workout.exercises[tempNextExerciseIndex];
-      const previousWorkoutNextSetData = previousWorkoutData?.exercises.find(
-        (prevEx) => prevEx.exercise_id === nextExercise?.exercise_id,
-      )?.sets[tempNextSetIndex];
+      const previousWorkoutNextSetData = previousWorkoutData
+        ?.map((workout) => workout.exercises)
+        .flat()
+        .find((prevEx) => prevEx.exercise_id === nextExercise?.exercise_id)
+        ?.sets[tempNextSetIndex];
 
       // Logic to carry over weight/reps from current set
       const currentSetValues =
