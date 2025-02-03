@@ -1,13 +1,7 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
-export const requestNotificationPermission = async () => {
-  const { status } = await Notifications.requestPermissionsAsync();
-
-  if (status !== "granted") {
-    console.warn("Notification permission not granted!");
-  }
-
+export const setupNotificationChannel = async () => {
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("rest-timer1", {
       name: "Rest Timer Notifications",
