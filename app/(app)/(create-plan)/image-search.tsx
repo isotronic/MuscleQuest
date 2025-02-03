@@ -1,5 +1,11 @@
 import React from "react";
-import { FlatList, TouchableOpacity, StyleSheet, View } from "react-native";
+import {
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  View,
+  Alert,
+} from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
 import { ThemedView } from "@/components/ThemedView";
@@ -7,6 +13,7 @@ import { useWorkoutStore } from "@/store/workoutStore";
 import { PlanImages } from "@/constants/PlanImages";
 import * as ImagePicker from "expo-image-picker";
 import { Button } from "react-native-paper";
+import Bugsnag from "@bugsnag/expo";
 
 export default function ImageSearchScreen() {
   const { setPlanImageUrl } = useWorkoutStore();
@@ -18,15 +25,22 @@ export default function ImageSearchScreen() {
   };
 
   const handlePickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
 
-    if (!result.canceled && result.assets.length > 0) {
-      setPlanImageUrl(result.assets[0].uri);
-      navigation.goBack();
+      if (!result.canceled && result.assets.length > 0) {
+        setPlanImageUrl(result.assets[0].uri);
+        navigation.goBack();
+      }
+    } catch (error) {
+      Bugsnag.notify(error as Error);
+      Alert.alert("Error", "Failed to pick image. Please try again.", [
+        { text: "OK" },
+      ]);
     }
   };
 
