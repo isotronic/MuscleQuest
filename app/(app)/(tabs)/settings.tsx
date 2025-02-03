@@ -14,7 +14,7 @@ import {
   ProgressBar,
   Button,
 } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
@@ -33,6 +33,7 @@ import {
   restoreDatabaseBackup,
   uploadDatabaseBackup,
 } from "@/utils/backup";
+import * as Notifications from "expo-notifications";
 // import { clearActivePlanStatus } from "@/utils/clearUserData";
 
 export default function SettingsScreen() {
@@ -82,7 +83,8 @@ export default function SettingsScreen() {
   const [toggleValues, setToggleValues] = useState({
     keepScreenOn: settings?.keepScreenOn,
     restTimerVibration: settings?.restTimerVibration,
-    // restTimerSound: settings?.restTimerSound,
+    restTimerSound: settings?.restTimerSound,
+    restTimerNotification: settings?.restTimerNotification,
   });
 
   const defaultRestTime = settings
@@ -104,7 +106,8 @@ export default function SettingsScreen() {
       setToggleValues({
         keepScreenOn: settings?.keepScreenOn,
         restTimerVibration: settings?.restTimerVibration,
-        // restTimerSound: settings?.restTimerSound,
+        restTimerSound: settings?.restTimerSound,
+        restTimerNotification: settings?.restTimerNotification,
       });
     }
   }, [settings]);
@@ -195,7 +198,33 @@ export default function SettingsScreen() {
   };
 
   const toggleSound = (value: boolean) => {
+    setToggleValues({ ...toggleValues, restTimerSound: value.toString() });
     updateSetting({ key: "restTimerSound", value: value.toString() });
+  };
+
+  const toggleNotification = async (value: boolean) => {
+    setToggleValues({
+      ...toggleValues,
+      restTimerNotification: value.toString(),
+    });
+
+    if (value) {
+      const { status } = await Notifications.requestPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "To enable rest timer notifications, grant notification permissions in your device settings.",
+        );
+        updateSetting({
+          key: "restTimerNotification",
+          value: false.toString(),
+        });
+        return;
+      }
+    }
+
+    updateSetting({ key: "restTimerNotification", value: value.toString() });
   };
 
   // const handleClearDatabase = async () => {
@@ -553,6 +582,30 @@ export default function SettingsScreen() {
             <Switch
               value={settings?.restTimerSound === "true"}
               onValueChange={toggleSound}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
+          <View style={styles.item}>
+            <MaterialIcons
+              name="notifications-active"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Send notification in background after rest
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.restTimerNotification === "true"
+                  ? "Enabled"
+                  : "Disabled"}
+              </ThemedText>
+            </View>
+            <Switch
+              value={settings?.restTimerNotification === "true"}
+              onValueChange={toggleNotification}
               color={Colors.dark.tint}
               style={styles.switch}
             />
