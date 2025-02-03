@@ -122,13 +122,10 @@ function RootLayout() {
 
   useEffect(() => {
     if (loaded && !error && isDatabaseInitialized && !isInitializing) {
+      setupNotificationChannel();
       SplashScreen.hideAsync();
     }
   }, [loaded, error, isDatabaseInitialized, isInitializing]);
-
-  useEffect(() => {
-    setupNotificationChannel();
-  }, []);
 
   if (isInitializing) {
     return (
