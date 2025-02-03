@@ -5,6 +5,8 @@ import { useNavigation } from "expo-router";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { PlanImages } from "@/constants/PlanImages";
+import * as ImagePicker from "expo-image-picker";
+import { Button } from "react-native-paper";
 
 export default function ImageSearchScreen() {
   const { setPlanImageUrl } = useWorkoutStore();
@@ -13,6 +15,19 @@ export default function ImageSearchScreen() {
   const handleImageSelect = (url: string) => {
     setPlanImageUrl(`${url}?utm_source=MuscleQuest&utm_medium=referral`);
     navigation.goBack();
+  };
+
+  const handlePickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setPlanImageUrl(result.assets[0].uri);
+      navigation.goBack();
+    }
   };
 
   const photoArray = Object.entries(PlanImages).map(([key, url]) => ({
@@ -34,6 +49,13 @@ export default function ImageSearchScreen() {
           </View>
         )}
         contentContainerStyle={styles.grid}
+        ListFooterComponent={
+          <View style={styles.footer}>
+            <Button mode="contained" onPress={handlePickImage}>
+              Choose from Device
+            </Button>
+          </View>
+        }
       />
     </ThemedView>
   );
@@ -51,6 +73,11 @@ const styles = StyleSheet.create({
   },
   grid: {
     justifyContent: "center",
+    alignItems: "center",
+  },
+  footer: {
+    marginTop: 16,
+    marginBottom: 32,
     alignItems: "center",
   },
 });
