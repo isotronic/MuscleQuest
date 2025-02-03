@@ -170,12 +170,14 @@ export default function WorkoutSessionScreen() {
       const totalSeconds = restMinutes * 60 + restSeconds;
       cancelRestNotifications();
 
-      scheduleRestNotification(
-        totalSeconds,
-        "Rest Timer Finished!",
-        "Time to do your next set!",
-        "rest-timer1",
-      );
+      if (settings?.restTimerNotification === "true") {
+        scheduleRestNotification(
+          totalSeconds,
+          "Rest Timer Finished!",
+          "Time to do your next set!",
+          "rest-timer1",
+        );
+      }
 
       const time = new Date();
       time.setSeconds(time.getSeconds() + totalSeconds);
