@@ -842,10 +842,10 @@ export default function SettingsScreen() {
               <ThemedText style={styles.itemText}>MuscleQuest.app</ThemedText>
             </View>
           </TouchableOpacity>
-          {/* <TouchableOpacity
+          <TouchableOpacity
             style={styles.item}
             onPress={() =>
-              console.log("Follow MuscleQuest on Instagram pressed")
+              Linking.openURL("https://www.instagram.com/musclequest.app/")
             }
           >
             <MaterialCommunityIcons
@@ -859,7 +859,7 @@ export default function SettingsScreen() {
                 Follow MuscleQuest on Instagram
               </ThemedText>
             </View>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.item}
             onPress={() => Linking.openURL("https://joseph.bouqdib.com")}
