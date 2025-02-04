@@ -41,6 +41,13 @@ const onboardingData = [
     buttonLabel: "Create a Plan",
     route: "/(create-plan)/create",
   },
+  {
+    title: "Hide / Show Onboarding",
+    description:
+      "You can hide this onboarding screen at any time from the settings page in the appearance section. If you ever want to revisit the onboarding, you can enable it again from the same settings page.",
+    buttonLabel: "Go to Settings",
+    route: "/settings",
+  },
 ];
 
 const Onboarding = () => {
