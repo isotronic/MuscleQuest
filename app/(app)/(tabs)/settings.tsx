@@ -85,6 +85,7 @@ export default function SettingsScreen() {
     restTimerVibration: settings?.restTimerVibration,
     restTimerSound: settings?.restTimerSound,
     restTimerNotification: settings?.restTimerNotification,
+    showOnboarding: settings?.showOnboarding,
   });
 
   const defaultRestTime = settings
@@ -108,6 +109,7 @@ export default function SettingsScreen() {
         restTimerVibration: settings?.restTimerVibration,
         restTimerSound: settings?.restTimerSound,
         restTimerNotification: settings?.restTimerNotification,
+        showOnboarding: settings?.showOnboarding,
       });
     }
   }, [settings]);
@@ -185,6 +187,11 @@ export default function SettingsScreen() {
 
   const cancelOverlay = () => {
     setOverlayVisible(false);
+  };
+
+  const toggleOnboarding = (value: boolean) => {
+    setToggleValues({ ...toggleValues, showOnboarding: value.toString() });
+    updateSetting({ key: "showOnboarding", value: value.toString() });
   };
 
   const toggleKeepScreenOn = (value: boolean) => {
@@ -716,6 +723,28 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>Appearance</ThemedText>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="view-dashboard"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Show onboarding on home screen
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.showOnboarding === "true" ? "Enabled" : "Disabled"}
+              </ThemedText>
+            </View>
+            <Switch
+              value={settings?.showOnboarding === "true"}
+              onValueChange={toggleOnboarding}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
           <TouchableOpacity
             style={styles.item}
             onPress={() =>

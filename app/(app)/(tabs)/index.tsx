@@ -173,6 +173,7 @@ export default function HomeScreen() {
         <View style={styles.cardContainer}>
           {activePlan && settings ? (
             <>
+              {settings.showOnboarding === "true" && <Onboarding />}
               <ThemedText type="default" style={styles.sectionTitle}>
                 Active Plan: {activePlan.name}
               </ThemedText>
