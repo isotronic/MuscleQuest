@@ -238,7 +238,7 @@ export default function HomeScreen() {
                               // Start a new workout if it's not the persisted one
                               activeWorkoutStore.setWorkout(
                                 JSON.parse(JSON.stringify(workout)),
-                                activePlan.id,
+                                activePlan.id!,
                                 workout.id!,
                                 workout.name || `Day ${index + 1}`,
                               );

@@ -24,7 +24,7 @@ const copyDatabase = async (): Promise<string> => {
     );
     dataVersion = Number(versionResult?.value);
     console.log("Data version:", dataVersion);
-  } catch (error) {
+  } catch {
     console.log(
       "Settings table does not exist. Proceeding to copy database...",
     );
