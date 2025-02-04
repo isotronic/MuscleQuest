@@ -812,6 +812,24 @@ export default function SettingsScreen() {
           <ThemedText style={styles.sectionHeader}>About</ThemedText>
           <TouchableOpacity
             style={styles.item}
+            onPress={() =>
+              Linking.openURL("https://www.featurize.io/p/musclequest")
+            }
+          >
+            <MaterialCommunityIcons
+              name="vote"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Request or vote for new features
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
             onPress={() => Linking.openURL("https://musclequest.app")}
           >
             <MaterialCommunityIcons
