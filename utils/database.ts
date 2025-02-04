@@ -874,6 +874,7 @@ export const insertDefaultSettings = async () => {
     { key: "restTimerSound", value: "false" },
     { key: "restTimerNotification", value: "false" },
     { key: "loginShown", value: "false" },
+    { key: "showOnboarding", value: "true" },
     { key: "bodyWeight", value: "70" },
   ];
 
@@ -917,6 +918,7 @@ export interface Settings {
   restTimerNotification: string;
   bodyWeight: string;
   loginShown: string;
+  showOnboarding: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
