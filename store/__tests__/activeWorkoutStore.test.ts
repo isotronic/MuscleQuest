@@ -608,12 +608,20 @@ describe("useActiveWorkoutStore", () => {
   });
 
   it("initializeWeightAndReps should store the previous workout data in the store", () => {
-    const mockPreviousData = {
-      workout_id: 123,
-      workout_name: "Previous Completed Workout",
-      date: new Date().toISOString(),
-      exercises: [],
-    };
+    const mockPreviousData = [
+      {
+        workout_id: 1,
+        workout_name: "Previous Completed Workout",
+        date: new Date().toISOString(),
+        exercises: [],
+      },
+      {
+        workout_id: 2,
+        workout_name: "Previous Completed Workout",
+        date: new Date().toISOString(),
+        exercises: [],
+      },
+    ];
 
     act(() => {
       // Provide a current workout so the store won't early-return
@@ -631,7 +639,8 @@ describe("useActiveWorkoutStore", () => {
     });
 
     const { previousWorkoutData } = useActiveWorkoutStore.getState();
-    expect(previousWorkoutData?.workout_name).toBe(
+    expect(previousWorkoutData).not.toBeNull();
+    expect(previousWorkoutData![0].workout_name).toBe(
       "Previous Completed Workout",
     );
   });
