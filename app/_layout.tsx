@@ -1,3 +1,12 @@
+/**
+ * MuscleQuest
+ * Copyright (c) 2025 Joseph Bouqdib
+ *
+ * Licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+ * You may not use, modify, distribute, or publish this software without explicit permission.
+ * See the LICENSE file for more details.
+ */
+
 import Bugsnag from "@bugsnag/expo";
 import React, { useEffect, useState } from "react";
 import { Slot } from "expo-router";
