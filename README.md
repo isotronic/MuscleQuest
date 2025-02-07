@@ -2,6 +2,13 @@
 
 MuscleQuest is a mobile workout tracker app built to help users plan, track, and optimize their workout routines. With local-first data storage, MuscleQuest ensures smooth performance without requiring a constant internet connection. The app provides an intuitive interface to manage workout plans, log exercises, and track progress over time.
 
+## Why MuscleQuest?
+
+✅ **Offline-First** – All data is stored locally for instant access.  
+✅ **Custom Workout Plans** – Build and modify routines to fit your goals.  
+✅ **Detailed Stats** – Track progress, view history, and analyze performance.  
+✅ **Intuitive UI** – Simple, modern design for an efficient workout experience.
+
 ## Features
 
 - **Create and Manage Workout Plans**: Users can build custom workout plans and easily switch between different routines.
@@ -12,9 +19,22 @@ MuscleQuest is a mobile workout tracker app built to help users plan, track, and
 - **Offline-First Architecture**: All data is stored locally on the user's device, ensuring quick access and reliability even without an internet connection.
 - **Firebase Authentication**: Secure login with Firebase.
 
+## Download
+
+<p align="left">
+  <a href="https://play.google.com/store/apps/details?id=com.musclequest">
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="200px"/>
+  </a>
+</p>
+
 ## Screenshots
 
-_Screenshots will be added as the project progresses._
+<p align="left">
+  <img src="https://musclequest.app/static/screenshot1-home-b437e7a2fb79c8c381a279fe739ba693.png" width="24%" />
+  <img src="https://musclequest.app/static/screenshot5-exercises-77140d0bac1340b355cba39164ea6ab4.png" width="24%" />
+  <img src="https://musclequest.app/static/screenshot4-create-plan-dc6a934cba538ac35c16242d712984e1.png" width="24%" />
+  <img src="https://musclequest.app/static/screenshot2-stats-945c051cf02ce4e1f433f9eeef3b4e97.png" width="24%" />
+</p>
 
 ## Tech Stack
 
@@ -23,87 +43,6 @@ _Screenshots will be added as the project progresses._
 - **Data Management**: [SQLite](https://docs.expo.dev/versions/latest/sdk/sqlite/), [Tanstack Query](https://tanstack.com/query/latest)
 - **Backend**: [Firebase Authentication](https://firebase.google.com/products/auth)
 - **UI Library**: [React Native Paper](https://reactnativepaper.com/)
-
-## Installation
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/isotronic/MuscleQuest.git
-cd MuscleQuest
-```
-
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Set up Firebase:
-
-   - Create a project on [Firebase](https://console.firebase.google.com/).
-   - Copy your google-services.json into the project folder and add it to an `.env` file.
-
-4. Run the app on an iOS or Android emulator:
-
-```bash
-npx expo start
-```
-
-## User Data Database Structure
-
-The following TypeScript interfaces represent the structure of the database:
-
-### Plan
-
-```ts
-{
-  plan_id: number;
-  name: string;
-  exercises: Exercise[];
-  is_active: 0 | 1;
-}
-```
-
-### Exercise
-
-```ts
-{
-  exercise_id: number;
-  name: string;
-  image: string[];
-  local_animated_uri: string;
-  animated_url: string;
-  equipment: string;
-  body_part: string;
-  target_muscle: string;
-  secondary_muscles: string[];
-  description: string;
-}
-```
-
-### Completed Workout
-
-```ts
-{
-  workout_id: number;
-  workout_name: string;
-  date_completed: string;
-  duration: number;
-  total_sets_completed: number;
-  exercises: {
-    exercise_id: number;
-    exercise_name: string;
-    sets: {
-      set_number: number;
-      weight: number;
-      reps: number;
-    }
-    [];
-  }
-  [];
-}
-```
 
 ## Contributing
 
@@ -114,6 +53,21 @@ You are most welcome to contribute to MuscleQuest! To contribute:
 3. Commit your changes (`git commit -am 'Add new feature'`)
 4. Push to the branch (`git push origin feature/your-feature`)
 5. Create a new Pull Request
+
+## License
+
+This work is licensed under the [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+
+You are **free to:**
+
+- View and learn from the source code.
+
+You **may NOT:**
+
+- Use this code for commercial purposes.
+- Modify, distribute, or publish this app or any derivative works without permission.
+
+For permissions beyond this scope, please contact me.
 
 ## Contact
 
