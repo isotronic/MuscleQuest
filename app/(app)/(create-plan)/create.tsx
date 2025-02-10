@@ -8,7 +8,6 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
-import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
@@ -219,7 +218,7 @@ export default function CreatePlanScreen() {
           ),
         }}
       />
-      <NestableScrollContainer
+      <ScrollView
         ref={scrollRef}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 50 }}
       >
@@ -271,7 +270,7 @@ export default function CreatePlanScreen() {
             )}
           </ThemedView>
         )}
-      </NestableScrollContainer>
+      </ScrollView>
       <FAB
         icon="plus"
         label="Add Workout"
