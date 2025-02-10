@@ -12,6 +12,8 @@ import {
   Menu,
   Button,
   ActivityIndicator,
+  Portal,
+  Modal,
 } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
@@ -53,6 +55,7 @@ export default function WorkoutOverviewScreen() {
 
   const { unloadSound } = useSoundAndVibration();
 
+  const [isSaving, setIsSaving] = useState(false);
   const [loadingExerciseIndex, setLoadingExerciseIndex] = useState<
     number | null
   >(null);
@@ -130,6 +133,7 @@ export default function WorkoutOverviewScreen() {
   };
 
   const handleSaveWorkout = async () => {
+    setIsSaving(true);
     try {
       const planId = activeWorkout?.planId;
       const workoutId = activeWorkout?.workoutId;
@@ -183,6 +187,8 @@ export default function WorkoutOverviewScreen() {
           })
           .filter((exercise) => exercise !== null); // Remove null values from exercises
 
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
         if (exercises.length > 0) {
           saveCompletedWorkoutMutation.mutate(
             {
@@ -222,6 +228,10 @@ export default function WorkoutOverviewScreen() {
         "Error saving workout",
         "Unable to save your workout. Please try again later.",
       );
+    } finally {
+      setTimeout(() => {
+        setIsSaving(false); // Hide loading overlay
+      }, 500);
     }
   };
 
@@ -282,6 +292,18 @@ export default function WorkoutOverviewScreen() {
 
   return (
     <ThemedView>
+      {isSaving && (
+        <Portal>
+          <Modal visible={isSaving} dismissable={false}>
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color="white" />
+              <ThemedText style={styles.loadingText}>
+                Saving Workout...
+              </ThemedText>
+            </View>
+          </Modal>
+        </Portal>
+      )}
       <Stack.Screen
         options={{
           headerRight: () => (
@@ -291,7 +313,7 @@ export default function WorkoutOverviewScreen() {
                 icon={SaveIcon}
                 style={{ marginRight: 0 }}
                 labelStyle={styles.buttonLabel}
-                disabled={!hasCompletedSets}
+                disabled={!hasCompletedSets || isSaving}
                 onPress={handleSaveWorkout}
               >
                 Finish
@@ -471,5 +493,19 @@ const styles = StyleSheet.create({
   optionsButton: {
     padding: 0,
     marginRight: 0,
+  },
+  loadingOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark transparent overlay
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 18,
+    color: "white",
   },
 });
