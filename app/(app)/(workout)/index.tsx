@@ -6,7 +6,15 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { IconButton, Card, Menu, Button } from "react-native-paper";
+import {
+  IconButton,
+  Card,
+  Menu,
+  Button,
+  ActivityIndicator,
+  Portal,
+  Modal,
+} from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -47,6 +55,11 @@ export default function WorkoutOverviewScreen() {
 
   const { unloadSound } = useSoundAndVibration();
 
+  const [isSaving, setIsSaving] = useState(false);
+  const [loadingExerciseIndex, setLoadingExerciseIndex] = useState<
+    number | null
+  >(null);
+  const [isNavigating, setIsNavigating] = useState(false);
   const [menuVisible, setMenuVisible] = useState<{ [key: number]: boolean }>(
     {},
   );
@@ -91,21 +104,36 @@ export default function WorkoutOverviewScreen() {
     });
   };
 
-  const handleExercisePress = (index: number) => {
-    const historyString = currentWorkoutHistory?.length
-      ? JSON.stringify(currentWorkoutHistory)
-      : undefined;
+  const handleExercisePress = async (index: number) => {
+    if (isNavigating) return; // Block all taps if a navigation is in progress
 
-    router.push({
-      pathname: "/(app)/(workout)/workout-session",
-      params: {
-        selectedExerciseIndex: index,
-        workoutHistory: historyString,
-      },
-    });
+    setLoadingExerciseIndex(index);
+    setIsNavigating(true);
+
+    try {
+      const historyString = currentWorkoutHistory?.length
+        ? JSON.stringify(currentWorkoutHistory)
+        : undefined;
+
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Small delay to show loading indicator
+
+      router.push({
+        pathname: "/(app)/(workout)/workout-session",
+        params: {
+          selectedExerciseIndex: index,
+          workoutHistory: historyString,
+        },
+      });
+    } finally {
+      setTimeout(() => {
+        setLoadingExerciseIndex(null);
+        setIsNavigating(false);
+      }, 500); // Delay to prevent multiple taps
+    }
   };
 
   const handleSaveWorkout = async () => {
+    setIsSaving(true);
     try {
       const planId = activeWorkout?.planId;
       const workoutId = activeWorkout?.workoutId;
@@ -159,6 +187,8 @@ export default function WorkoutOverviewScreen() {
           })
           .filter((exercise) => exercise !== null); // Remove null values from exercises
 
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
         if (exercises.length > 0) {
           saveCompletedWorkoutMutation.mutate(
             {
@@ -198,6 +228,10 @@ export default function WorkoutOverviewScreen() {
         "Error saving workout",
         "Unable to save your workout. Please try again later.",
       );
+    } finally {
+      setTimeout(() => {
+        setIsSaving(false); // Hide loading overlay
+      }, 500);
     }
   };
 
@@ -258,6 +292,18 @@ export default function WorkoutOverviewScreen() {
 
   return (
     <ThemedView>
+      {isSaving && (
+        <Portal>
+          <Modal visible={isSaving} dismissable={false}>
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color="white" />
+              <ThemedText style={styles.loadingText}>
+                Saving Workout...
+              </ThemedText>
+            </View>
+          </Modal>
+        </Portal>
+      )}
       <Stack.Screen
         options={{
           headerRight: () => (
@@ -267,7 +313,7 @@ export default function WorkoutOverviewScreen() {
                 icon={SaveIcon}
                 style={{ marginRight: 0 }}
                 labelStyle={styles.buttonLabel}
-                disabled={!hasCompletedSets}
+                disabled={!hasCompletedSets || isSaving}
                 onPress={handleSaveWorkout}
               >
                 Finish
@@ -312,10 +358,13 @@ export default function WorkoutOverviewScreen() {
           ).length;
           const totalSets = exercise.sets.length;
           const allSetsCompleted = completedCount === totalSets;
+          const isLoading = loadingExerciseIndex === index;
           return (
             <TouchableOpacity
               key={exercise.exercise_id}
-              onPress={() => handleExercisePress(index)}
+              onPress={() => {
+                handleExercisePress(index);
+              }}
             >
               <Card style={styles.card}>
                 <Card.Content style={styles.cardContent}>
@@ -326,7 +375,9 @@ export default function WorkoutOverviewScreen() {
                       allSetsCompleted && styles.numberContainerCompleted,
                     ]}
                   >
-                    {allSetsCompleted ? (
+                    {isLoading ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : allSetsCompleted ? (
                       <MaterialCommunityIcons
                         name="check"
                         size={24}
@@ -442,5 +493,19 @@ const styles = StyleSheet.create({
   optionsButton: {
     padding: 0,
     marginRight: 0,
+  },
+  loadingOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark transparent overlay
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 18,
+    color: "white",
   },
 });

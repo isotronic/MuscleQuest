@@ -13,7 +13,14 @@ import { Colors } from "@/constants/Colors";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { useDeletePlanMutation } from "@/hooks/useDeletePlanMutation";
 import { useSetActivePlanMutation } from "@/hooks/useSetActivePlanMutation";
-import { Snackbar, Button, IconButton } from "react-native-paper";
+import {
+  Snackbar,
+  Button,
+  IconButton,
+  Portal,
+  Modal,
+  ActivityIndicator,
+} from "react-native-paper";
 import { useState } from "react";
 import Bugsnag from "@bugsnag/expo";
 
@@ -28,6 +35,8 @@ export default function PlanOverviewScreen() {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarError, setSnackbarError] = useState(false);
+
+  const [isEditing, setIsEditing] = useState(false);
 
   const imageSource = plan?.image_url ? { uri: plan.image_url } : fallbackImage;
 
@@ -86,6 +95,18 @@ export default function PlanOverviewScreen() {
 
   return (
     <ThemedView>
+      {isEditing && (
+        <Portal>
+          <Modal visible={isEditing} dismissable={false}>
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color="white" />
+              <ThemedText style={styles.loadingText}>
+                Loading Plan...
+              </ThemedText>
+            </View>
+          </Modal>
+        </Portal>
+      )}
       {!plan?.app_plan_id && (
         <Stack.Screen
           options={{
@@ -143,9 +164,21 @@ export default function PlanOverviewScreen() {
         </Button>
         <Button
           mode="outlined"
-          onPress={() => router.push(`/(create-plan)/create?planId=${planId}`)}
+          onPress={async () => {
+            if (isEditing) return; // Prevent multiple taps
+
+            setIsEditing(true);
+
+            try {
+              await new Promise((resolve) => setTimeout(resolve, 50)); // Small delay for UX
+              router.push(`/(create-plan)/create?planId=${planId}`);
+            } finally {
+              setTimeout(() => setIsEditing(false), 500); // Prevent flickering
+            }
+          }}
           style={styles.paperButton}
           labelStyle={styles.buttonLabel}
+          disabled={isEditing}
         >
           {plan?.app_plan_id ? "Customise" : "Edit"} Plan
         </Button>
@@ -230,5 +263,19 @@ const styles = StyleSheet.create({
   activeBadgeText: {
     color: Colors.dark.text,
     fontWeight: "bold",
+  },
+  loadingOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark transparent overlay
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 18,
+    color: "white",
   },
 });

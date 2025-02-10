@@ -11,7 +11,14 @@ import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
-import { FAB, ActivityIndicator, Button, IconButton } from "react-native-paper";
+import {
+  FAB,
+  ActivityIndicator,
+  Button,
+  IconButton,
+  Portal,
+  Modal,
+} from "react-native-paper";
 import {
   useRouter,
   Stack,
@@ -33,6 +40,7 @@ export default function CreatePlanScreen() {
   const queryClient = useQueryClient();
   const { planId } = useLocalSearchParams();
   const [dataLoaded, setDataLoaded] = useState(!planId);
+  const [isSaving, setIsSaving] = useState(false);
   const {
     workouts,
     planImageUrl,
@@ -140,19 +148,21 @@ export default function CreatePlanScreen() {
   };
 
   const handleSaveAndNavigate = async () => {
+    setIsSaving(true);
+
     try {
       const newPlanId = await handleSavePlan(
         Number(planId),
         existingPlan?.app_plan_id,
       );
 
-      // Invalidate relevant queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["plans"] }),
         queryClient.invalidateQueries({ queryKey: ["activePlan"] }),
       ]);
 
-      // Handle navigation based on result
+      await new Promise((resolve) => setTimeout(resolve, 50)); // Small delay for smooth UX
+
       if (newPlanId) {
         router.push("/(plans)");
       } else {
@@ -161,6 +171,8 @@ export default function CreatePlanScreen() {
     } catch (error: any) {
       console.error("Error in handleSaveAndNavigate:", error);
       Bugsnag.notify(error);
+    } finally {
+      setTimeout(() => setIsSaving(false), 500); // Prevent flickering
     }
   };
 
@@ -172,6 +184,16 @@ export default function CreatePlanScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
+      {isSaving && (
+        <Portal>
+          <Modal visible={isSaving} dismissable={false}>
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color="white" />
+              <ThemedText style={styles.loadingText}>Saving Plan...</ThemedText>
+            </View>
+          </Modal>
+        </Portal>
+      )}
       <Stack.Screen
         options={{
           headerRight: () => (
@@ -179,7 +201,7 @@ export default function CreatePlanScreen() {
               mode="text"
               icon={SaveIcon}
               style={{ marginRight: 0 }}
-              disabled={saveDisabled}
+              disabled={saveDisabled || isSaving}
               onPress={handleSaveAndNavigate}
             >
               Save
@@ -304,5 +326,19 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 20,
     bottom: 15,
+  },
+  loadingOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark transparent overlay
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 18,
+    color: "white",
   },
 });

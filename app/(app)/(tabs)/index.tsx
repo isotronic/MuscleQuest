@@ -2,10 +2,10 @@ import { StyleSheet, View, ScrollView } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { startOfWeek, endOfWeek } from "date-fns";
-import { ActivityIndicator, Button } from "react-native-paper";
+import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import WeekDays from "@/components/WeekDays";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { AuthContext } from "@/context/AuthProvider";
 import { Colors } from "@/constants/Colors";
 import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
@@ -21,6 +21,7 @@ import Bugsnag from "@bugsnag/expo";
 import Onboarding from "@/components/Onboarding";
 
 export default function HomeScreen() {
+  const [isStartingWorkout, setIsStartingWorkout] = useState(false);
   const user = useContext(AuthContext);
   const userName = user?.displayName
     ? ", " + user.displayName.split(" ")[0]
@@ -149,6 +150,18 @@ export default function HomeScreen() {
   }
   return (
     <ThemedView>
+      {isStartingWorkout && (
+        <Portal>
+          <Modal visible={isStartingWorkout} dismissable={false}>
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color="white" />
+              <ThemedText style={styles.loadingText}>
+                Starting Workout...
+              </ThemedText>
+            </View>
+          </Modal>
+        </Portal>
+      )}
       <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
         <View style={styles.weekContainer}>
           <WeekDays completedWorkoutsThisWeek={completedWorkoutsThisWeek} />
@@ -224,29 +237,42 @@ export default function HomeScreen() {
                               ? "contained"
                               : "outlined"
                           }
-                          onPress={() => {
-                            const activeWorkoutStore =
-                              useActiveWorkoutStore.getState();
+                          onPress={async () => {
+                            if (isStartingWorkout) return; // Prevent multiple taps
 
-                            if (
-                              activeWorkoutStore.isWorkoutInProgress() &&
-                              activeWorkoutId === workout.id
-                            ) {
-                              // Resume the persisted workout
-                              activeWorkoutStore.resumeWorkout();
-                            } else {
-                              // Start a new workout if it's not the persisted one
-                              activeWorkoutStore.setWorkout(
-                                JSON.parse(JSON.stringify(workout)),
-                                activePlan.id!,
-                                workout.id!,
-                                workout.name || `Day ${index + 1}`,
-                              );
+                            setIsStartingWorkout(true);
+                            await new Promise((resolve) =>
+                              setTimeout(resolve, 50),
+                            ); // Small delay for UX
+
+                            try {
+                              const activeWorkoutStore =
+                                useActiveWorkoutStore.getState();
+
+                              if (
+                                activeWorkoutStore.isWorkoutInProgress() &&
+                                activeWorkoutId === workout.id
+                              ) {
+                                activeWorkoutStore.resumeWorkout();
+                              } else {
+                                activeWorkoutStore.setWorkout(
+                                  JSON.parse(JSON.stringify(workout)),
+                                  activePlan.id!,
+                                  workout.id!,
+                                  workout.name || `Day ${index + 1}`,
+                                );
+                              }
+
+                              router.push("/(workout)");
+                            } finally {
+                              setTimeout(
+                                () => setIsStartingWorkout(false),
+                                500,
+                              ); // Prevent flickering
                             }
-
-                            router.push("/(workout)");
                           }}
                           labelStyle={styles.smallButtonLabel}
+                          disabled={isStartingWorkout}
                         >
                           {activeWorkoutId === workout.id ? "Resume" : "Start"}
                         </Button>
@@ -300,6 +326,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  loadingOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark transparent overlay
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 18,
+    color: "white",
   },
   weekContainer: {
     flexDirection: "column",
