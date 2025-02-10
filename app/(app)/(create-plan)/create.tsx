@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   TextInput,
+  ScrollView,
 } from "react-native";
 import { NestableScrollContainer } from "react-native-draggable-flatlist";
 import { ThemedText } from "@/components/ThemedText";
@@ -34,6 +35,8 @@ import Bugsnag from "@bugsnag/expo";
 import { ImageBackground } from "expo-image";
 import SaveIcon from "@/components/SaveIcon";
 
+type ScrollViewType = typeof ScrollView;
+
 export default function CreatePlanScreen() {
   const navigation = useNavigation();
   const router = useRouter();
@@ -41,6 +44,7 @@ export default function CreatePlanScreen() {
   const { planId } = useLocalSearchParams();
   const [dataLoaded, setDataLoaded] = useState(!planId);
   const [isSaving, setIsSaving] = useState(false);
+  const scrollRef = useRef<ScrollViewType>(null);
   const {
     workouts,
     planImageUrl,
@@ -118,6 +122,12 @@ export default function CreatePlanScreen() {
   const handleAddWorkout = () => {
     const newWorkout = { name: "", exercises: [] };
     addWorkout(newWorkout);
+
+    setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollToEnd({ animated: true });
+      }
+    }, 100);
   };
 
   const handleRemoveWorkout = (index: number) => {
@@ -210,6 +220,7 @@ export default function CreatePlanScreen() {
         }}
       />
       <NestableScrollContainer
+        ref={scrollRef}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 50 }}
       >
         {!dataLoaded ? (
