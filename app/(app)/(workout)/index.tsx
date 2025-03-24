@@ -138,7 +138,7 @@ export default function WorkoutOverviewScreen() {
       const planId = activeWorkout?.planId;
       const workoutId = activeWorkout?.workoutId;
       const endTime = new Date();
-      const duration = startTime
+      const duration = new Date(startTime)
         ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
         : 0;
 

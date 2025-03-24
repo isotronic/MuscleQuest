@@ -15,6 +15,7 @@ ios
 .env
 assets/db/
 assets/data/
+.vscode/
 
 # Firebase
 google-services.json
