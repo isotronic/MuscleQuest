@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export type NoteType = "exercise" | "workout_exercise" | "workout" | "plan";
 
-export const useNote = (noteType: NoteType, referenceId: number) => {
+export const useNotes = (noteType: NoteType, referenceId: number) => {
   const queryClient = useQueryClient();
 
   const queryKey = ["note", noteType, referenceId];
