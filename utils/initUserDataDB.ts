@@ -140,6 +140,17 @@ export async function initUserDataDB() {
     );
   `);
 
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      note TEXT NOT NULL,
+      type TEXT NOT NULL CHECK(type IN ('exercise', 'workout_exercise', 'workout', 'plan')),
+      reference_id INTEGER NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (type, reference_id)
+    );
+  `);
+
   // Check if columns already exist
   const exercisesResult = await db.getAllAsync(`
     PRAGMA table_info(exercises);
