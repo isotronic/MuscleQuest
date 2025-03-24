@@ -20,7 +20,7 @@ interface ActiveWorkoutStore {
     };
   };
   previousWorkoutData: CompletedWorkout[] | null;
-  startTime: Date | null;
+  startTime: Date;
   timerRunning: boolean;
   timerExpiry: Date | null;
   setWorkout: (
@@ -64,7 +64,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       completedSets: {},
       weightAndReps: {},
       previousWorkoutData: null,
-      startTime: null,
+      startTime: new Date(),
       timerRunning: false,
       timerExpiry: null,
 
@@ -583,7 +583,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           currentSetIndices: {},
           completedSets: {},
           weightAndReps: {},
-          startTime: null,
+          startTime: new Date(),
           timerRunning: false,
           timerExpiry: null,
         });
