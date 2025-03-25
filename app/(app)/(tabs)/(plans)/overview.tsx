@@ -23,6 +23,7 @@ import {
 } from "react-native-paper";
 import { useState } from "react";
 import Bugsnag from "@bugsnag/expo";
+import { Notes } from "@/components/Notes";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -111,13 +112,20 @@ export default function PlanOverviewScreen() {
         <Stack.Screen
           options={{
             headerRight: () => (
-              <IconButton
-                icon="trash-can-outline"
-                size={25}
-                style={{ marginRight: 0 }}
-                iconColor={Colors.dark.highlight}
-                onPress={handleDeletePlan}
-              />
+              <>
+                <Notes
+                  noteType="plan"
+                  referenceId={Number(planId)}
+                  buttonType="icon"
+                />
+                <IconButton
+                  icon="trash-can-outline"
+                  size={25}
+                  style={{ marginRight: 0 }}
+                  iconColor={Colors.dark.highlight}
+                  onPress={handleDeletePlan}
+                />
+              </>
             ),
           }}
         />

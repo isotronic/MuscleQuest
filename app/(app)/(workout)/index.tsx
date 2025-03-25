@@ -28,6 +28,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useSoundAndVibration } from "@/hooks/useSoundAndVibration";
 import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
+import { Notes } from "@/components/Notes";
 
 export default function WorkoutOverviewScreen() {
   const { data: settings } = useSettingsQuery();
@@ -351,6 +352,11 @@ export default function WorkoutOverviewScreen() {
         }}
       />
       <ScrollView style={styles.container}>
+        <Notes
+          noteType="workout"
+          referenceId={workout?.id || 0}
+          buttonType="button"
+        />
         {workout.exercises.map((exercise, index) => {
           const completedSetsForExercise = completedSets[index] || {};
           const completedCount = Object.values(completedSetsForExercise).filter(

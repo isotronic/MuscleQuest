@@ -10,6 +10,7 @@ import { useExerciseDetailsQuery } from "@/hooks/useExerciseDetailsQuery";
 import { useToggleFavoriteExerciseMutation } from "@/hooks/useToggleFavoriteExerciseMutation";
 import Bugsnag from "@bugsnag/expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Notes } from "@/components/Notes";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -92,15 +93,21 @@ export default function ExerciseDetailsScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <IconButton
-              icon={exerciseData.favorite ? "star" : "star-outline"}
-              iconColor={
-                exerciseData.favorite ? Colors.dark.tint : Colors.dark.text
-              }
-              size={30}
-              onPress={handleToggleFavorite}
-              style={styles.favoriteIcon}
-            />
+            <>
+              <Notes
+                noteType="exercise"
+                referenceId={exerciseData.exercise_id}
+                buttonType="icon"
+              />
+              <IconButton
+                icon={exerciseData.favorite ? "star" : "star-outline"}
+                iconColor={
+                  exerciseData.favorite ? Colors.dark.tint : Colors.dark.text
+                }
+                size={25}
+                onPress={handleToggleFavorite}
+              />
+            </>
           ),
         }}
       />
