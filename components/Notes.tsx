@@ -70,8 +70,9 @@ export const Notes: React.FC<NotesProps> = ({
           onPress={handleOpen}
           mode="outlined"
           compact
+          style={{ marginBottom: 16 }}
         >
-          {note.trim() ? "Edit" : "Add"} Note
+          {note.trim() ? "View/Edit" : "Add"} Note
         </Button>
       )}
 
