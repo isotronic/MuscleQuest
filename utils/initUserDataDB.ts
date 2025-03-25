@@ -146,8 +146,9 @@ export async function initUserDataDB() {
       note TEXT NOT NULL,
       type TEXT NOT NULL CHECK(type IN ('exercise', 'workout_exercise', 'workout', 'plan')),
       reference_id INTEGER NOT NULL,
+      secondary_reference_id INTEGER DEFAULT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE (type, reference_id)
+      UNIQUE (type, reference_id, secondary_reference_id)
     );
   `);
 

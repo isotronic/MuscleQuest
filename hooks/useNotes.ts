@@ -3,10 +3,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export type NoteType = "exercise" | "workout_exercise" | "workout" | "plan";
 
-export const useNotes = (noteType: NoteType, referenceId: number) => {
+export const useNotes = (
+  noteType: NoteType,
+  referenceId: number,
+  secondaryReferenceId?: number,
+) => {
   const queryClient = useQueryClient();
 
-  const queryKey = ["note", noteType, referenceId];
+  const queryKey = ["note", noteType, referenceId, secondaryReferenceId];
 
   const {
     data: note = "",
@@ -14,19 +18,22 @@ export const useNotes = (noteType: NoteType, referenceId: number) => {
     isError,
   } = useQuery({
     queryKey,
-    queryFn: () => fetchNote(referenceId, noteType),
+    queryFn: () =>
+      fetchNote(referenceId, secondaryReferenceId ?? null, noteType),
     staleTime: Infinity,
   });
 
   const saveMutation = useMutation({
-    mutationFn: (newNote: string) => saveNote(referenceId, newNote, noteType),
+    mutationFn: (newNote: string) =>
+      saveNote(referenceId, secondaryReferenceId ?? null, newNote, noteType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => deleteNote(referenceId, noteType),
+    mutationFn: () =>
+      deleteNote(referenceId, secondaryReferenceId ?? null, noteType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
     },
