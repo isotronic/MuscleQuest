@@ -919,6 +919,7 @@ export interface Settings {
   bodyWeight: string;
   loginShown: string;
   showOnboarding: string;
+  lastSeenVersion: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
