@@ -671,9 +671,8 @@ export default function WorkoutSessionScreen() {
           headerRight: () => (
             <>
               <Notes
-                noteType="workout_exercise"
-                referenceId={workout?.id || 0}
-                secondaryReferenceId={currentExercise?.exercise_id || 0}
+                noteType="exercise"
+                referenceId={currentExercise?.exercise_id || 0}
                 buttonType="icon"
               />
               <WorkoutTimer />

@@ -106,7 +106,7 @@ export const Notes: React.FC<NotesProps> = ({
               color: Colors.dark.text,
             }}
           >
-            Note
+            Notes
           </ThemedText>
         </View>
         <Divider style={{ marginTop: 8, marginBottom: 16 }} />
