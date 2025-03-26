@@ -28,6 +28,7 @@ import {
   cancelRestNotifications,
   scheduleRestNotification,
 } from "@/utils/restNotification";
+import { Notes } from "@/components/Notes";
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
@@ -667,7 +668,16 @@ export default function WorkoutSessionScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen
         options={{
-          headerRight: () => <WorkoutTimer />,
+          headerRight: () => (
+            <>
+              <Notes
+                noteType="exercise"
+                referenceId={currentExercise?.exercise_id || 0}
+                buttonType="icon"
+              />
+              <WorkoutTimer />
+            </>
+          ),
         }}
       />
       <PanGestureHandler

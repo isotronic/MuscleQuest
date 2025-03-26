@@ -9,6 +9,7 @@ import { byteArrayToBase64 } from "@/utils/utility";
 import { TouchableOpacity } from "react-native";
 import { Colors } from "@/constants/Colors";
 import Bugsnag from "@bugsnag/expo";
+import { Notes } from "@/components/Notes";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -116,6 +117,13 @@ export default function WorkoutDetailsScreen() {
       <Stack.Screen
         options={{
           title: workout?.name,
+          headerRight: () => (
+            <Notes
+              noteType="workout"
+              referenceId={workout?.id || 0}
+              buttonType="icon"
+            />
+          ),
         }}
       />
 

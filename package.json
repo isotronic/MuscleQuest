@@ -90,7 +90,8 @@
     "react-native-web": "~0.19.10",
     "react-timer-hook": "^3.0.7",
     "unsplash-js": "^7.0.19",
-    "zustand": "^4.5.4"
+    "zustand": "^4.5.4",
+    "@gorhom/bottom-sheet": "4.4.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

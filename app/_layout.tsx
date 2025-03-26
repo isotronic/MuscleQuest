@@ -53,6 +53,7 @@ import {
   removeAsyncStorageItem,
 } from "@/utils/asyncStorage";
 import { setupNotificationChannel } from "@/utils/notificationSetup";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 // Initialize Bugsnag
 Bugsnag.start(process.env.EXPO_PUBLIC_BUGSNAG_API_KEY);
@@ -154,7 +155,9 @@ function RootLayout() {
           <AuthProvider>
             <SafeAreaProvider>
               <GestureHandlerRootView>
-                <Slot screenOptions={{ headerShown: false }} />
+                <BottomSheetModalProvider>
+                  <Slot screenOptions={{ headerShown: false }} />
+                </BottomSheetModalProvider>
               </GestureHandlerRootView>
             </SafeAreaProvider>
           </AuthProvider>

@@ -46,7 +46,7 @@ export const WorkoutTimer: React.FC = () => {
 
   return (
     <View>
-      <ThemedText style={{ fontSize: 16, textAlign: "center" }}>
+      <ThemedText style={{ fontSize: 16, textAlign: "center", marginLeft: 8 }}>
         {hours}:{minutes < 10 ? `0${minutes}` : minutes}:
         {seconds < 10 ? `0${seconds}` : seconds}
       </ThemedText>
