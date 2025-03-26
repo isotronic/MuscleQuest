@@ -28,11 +28,11 @@ const onboardingData = [
     route: "/(stats)",
   },
   {
-    title: "Explore Ready-Made Plans",
+    title: "Add Personal Notes",
     description:
-      "Jumpstart your fitness journey with professionally designed training plans. Choose from a variety of options tailored to different goals and experience levels. ",
-    buttonLabel: "Explore Plans",
-    route: "/(plans)",
+      "Capture important cues, reminders, and personal insights for your exercises, workouts, and training plans. Stay focused and refine your technique with custom notes throughout your fitness journey.",
+    buttonLabel: null,
+    route: null,
   },
   {
     title: "Create a Custom Plan",
@@ -40,6 +40,13 @@ const onboardingData = [
       "Take full control of your training by designing your own personalised plan. Select exercises, set rep ranges, rest times, and more to create a plan that aligns perfectly with your fitness goals.",
     buttonLabel: "Create a Plan",
     route: "/(create-plan)/create",
+  },
+  {
+    title: "Explore Ready-Made Plans",
+    description:
+      "Jumpstart your fitness journey with professionally designed training plans. Choose from a variety of options tailored to different goals and experience levels. ",
+    buttonLabel: "Explore Plans",
+    route: "/(plans)",
   },
   {
     title: "Hide / Show Onboarding",

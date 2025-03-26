@@ -70,7 +70,7 @@ export default function LoginScreen() {
           Benefits of logging in:
         </ThemedText>
         <ThemedText style={styles.benefit}>
-          • Backup and restore data *
+          • Backup and restore data
         </ThemedText>
         <ThemedText style={styles.benefit}>
           • Share your training plans with others *
