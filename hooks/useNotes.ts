@@ -1,4 +1,4 @@
-import { deleteNote, fetchNote, saveNote } from "@/utils/database";
+import { fetchNote, saveNote } from "@/utils/database";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export type NoteType = "exercise" | "workout_exercise" | "workout" | "plan";
@@ -31,21 +31,11 @@ export const useNotes = (
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: () =>
-      deleteNote(referenceId, secondaryReferenceId ?? null, noteType),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey });
-    },
-  });
-
   return {
     note,
     isLoading,
     isError,
     saveNote: saveMutation.mutate,
-    deleteNote: deleteMutation.mutate,
     isSaving: saveMutation.isPending,
-    isDeleting: deleteMutation.isPending,
   };
 };

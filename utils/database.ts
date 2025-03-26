@@ -1072,21 +1072,3 @@ export const fetchNote = async (
     throw error;
   }
 };
-
-export const deleteNote = async (
-  referenceId: number,
-  secondaryReferenceId: number | null,
-  noteType: string,
-) => {
-  try {
-    const db = await openDatabase("userData.db");
-    await db.runAsync(
-      `DELETE FROM notes WHERE type = ? AND reference_id = ? AND secondary_reference_id = ?`,
-      [noteType, referenceId, secondaryReferenceId],
-    );
-  } catch (error: any) {
-    console.error("Error deleting note:", error);
-    Bugsnag.notify(error);
-    throw error;
-  }
-};
