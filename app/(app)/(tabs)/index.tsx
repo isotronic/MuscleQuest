@@ -19,6 +19,7 @@ import {
 import { Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import Onboarding from "@/components/Onboarding";
+import { WhatsNewModal } from "@/components/WhatsNewModal";
 
 export default function HomeScreen() {
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
@@ -150,6 +151,7 @@ export default function HomeScreen() {
   }
   return (
     <ThemedView>
+      <WhatsNewModal />
       {isStartingWorkout && (
         <Portal>
           <Modal visible={isStartingWorkout} dismissable={false}>
