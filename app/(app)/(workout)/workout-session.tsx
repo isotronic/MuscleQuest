@@ -622,7 +622,6 @@ export default function WorkoutSessionScreen() {
         validTimeNum = minutes * 60 + seconds;
       }
     }
-    console.log(validTimeNum);
 
     // Update the weightAndReps with valid values for the current set
     updateWeightAndReps(
