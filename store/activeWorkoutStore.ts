@@ -4,6 +4,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { UserExercise, Workout } from "./workoutStore";
 import { router } from "expo-router";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import { formatFromTotalSeconds } from "@/utils/utility";
 
 interface ActiveWorkoutStore {
   activeWorkout: { planId: number; workoutId: number; name: string } | null;
@@ -210,11 +211,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               ? {
                   time:
                     nextSetValues?.time !== undefined
-                      ? // Convert stored seconds back to display format (e.g., 360 -> "600")
-                        Math.floor((nextSetValues.time ?? 0) / 60).toString() +
-                        ((nextSetValues.time ?? 0) % 60)
-                          .toString()
-                          .padStart(2, "0")
+                      ? formatFromTotalSeconds(nextSetValues.time ?? 0)
                       : currentSetValues.time,
                 }
               : {}),
