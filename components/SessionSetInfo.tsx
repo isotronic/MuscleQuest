@@ -13,6 +13,7 @@ import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatFromTotalSeconds, formatTimeInput } from "@/utils/utility";
+import { TimeInput } from "./TimeInput";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -96,13 +97,6 @@ export default function SessionSetInfo({
   useEffect(() => {
     setTimeInput(time);
   }, [time]);
-
-  const handleLocalTimeInputChange = (value: string) => {
-    // Only allow numbers
-    const sanitizedInput = value.replace(/[^0-9]/g, "");
-    setTimeInput(sanitizedInput);
-    handleTimeInputChange(sanitizedInput);
-  };
 
   // Format display value - now always formatted
   const displayValue = formatTimeInput(timeInput);
@@ -318,12 +312,9 @@ export default function SessionSetInfo({
             <ThemedText style={styles.label}>Time (Min:Sec)</ThemedText>
           </View>
           <View style={styles.inputContainer}>
-            <TextInput
-              placeholderTextColor={Colors.dark.text}
+            <TimeInput
               value={displayValue}
-              onChangeText={handleLocalTimeInputChange}
-              keyboardType="numeric"
-              selectTextOnFocus
+              onChange={handleTimeInputChange}
               style={styles.input}
             />
           </View>

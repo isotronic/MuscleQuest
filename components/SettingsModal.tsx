@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { paperTheme } from "@/utils/paperTheme";
 import { formatTimeInput } from "@/utils/utility";
+import { TimeInput } from "./TimeInput";
 
 // Utility function to format setting keys
 const formatSettingKey = (key: string) => {
@@ -54,9 +55,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   // Initialize timeInput when modal opens
   useEffect(() => {
     if (settingType === "restTime" && typeof inputValue === "object") {
-      const initialDigits =
-        inputValue.minutes.toString() + inputValue.seconds.toString();
-      setTimeInput(formatTimeInput(initialDigits));
+      const minutes = inputValue.minutes.toString().padStart(1, "0");
+      const seconds = inputValue.seconds.toString().padStart(2, "0");
+      setTimeInput(`${minutes}:${seconds}`);
     }
   }, [inputValue, settingType]);
 
@@ -181,12 +182,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <ThemedText style={styles.inputLabel}>
                       Time (Min:Sec)
                     </ThemedText>
-                    <TextInput
+                    <TimeInput
                       value={timeInput}
-                      onChangeText={handleTimeInputChange}
-                      keyboardType="numeric"
+                      onChange={handleTimeInputChange}
                       style={styles.input}
-                      selectTextOnFocus={true}
                     />
                   </View>
                 )}

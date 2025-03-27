@@ -16,6 +16,7 @@ import {
   formatFromTotalSeconds,
   convertToTotalSeconds,
 } from "@/utils/utility";
+import { TimeInput } from "./TimeInput";
 
 interface EditSetModalProps {
   visible: boolean;
@@ -183,12 +184,10 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                     Time (Minutes:Seconds)
                   </ThemedText>
                   <View style={styles.inputRow}>
-                    <TextInput
+                    <TimeInput
                       style={styles.input}
                       value={time}
-                      onChangeText={handleTimeChange}
-                      keyboardType="numeric"
-                      selectTextOnFocus={true}
+                      onChange={handleTimeChange}
                     />
                   </View>
                 </View>
@@ -258,12 +257,10 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                 Rest Time (Minutes:Seconds)
               </ThemedText>
               <View style={styles.inputRow}>
-                <TextInput
+                <TimeInput
                   style={styles.input}
                   value={restTime}
-                  onChangeText={handleRestTimeChange}
-                  keyboardType="numeric"
-                  selectTextOnFocus={true}
+                  onChange={handleRestTimeChange}
                 />
               </View>
 
