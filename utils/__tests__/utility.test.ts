@@ -31,6 +31,10 @@ describe("Utility Functions", () => {
       expect(formatTimeInput("12345")).toBe("123:45");
     });
 
+    it("should format input with leading zeros when minutes are less than 100", () => {
+      expect(formatTimeInput("00123")).toBe("1:23");
+    });
+
     it("should format an empty string as 0:00", () => {
       expect(formatTimeInput("")).toBe("0:00");
     });
