@@ -54,9 +54,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   // Initialize timeInput when modal opens
   useEffect(() => {
     if (settingType === "restTime" && typeof inputValue === "object") {
-      const minutes = inputValue.minutes.toString().padStart(1, "0");
-      const seconds = inputValue.seconds.toString().padStart(2, "0");
-      setTimeInput(`${minutes}:${seconds}`);
+      const initialDigits =
+        inputValue.minutes.toString() + inputValue.seconds.toString();
+      setTimeInput(formatTimeInput(initialDigits));
     }
   }, [inputValue, settingType]);
 
