@@ -29,6 +29,7 @@ import {
   scheduleRestNotification,
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
+import { convertTimeStrToSeconds } from "@/utils/utility";
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
@@ -611,17 +612,7 @@ export default function WorkoutSessionScreen() {
     const validRepsNum = isNaN(repsNum) ? 0 : repsNum;
 
     // Convert time from MM:SS format to total seconds
-    let validTimeNum = 0;
-    if (timeStr.length > 0) {
-      if (timeStr.length <= 2) {
-        validTimeNum = parseInt(timeStr) || 0;
-      } else {
-        // Convert from display format (e.g., "600" for 6:00) to seconds
-        const minutes = parseInt(timeStr.slice(0, -2)) || 0;
-        const seconds = parseInt(timeStr.slice(-2)) || 0;
-        validTimeNum = minutes * 60 + seconds;
-      }
-    }
+    const validTimeNum = convertTimeStrToSeconds(timeStr);
 
     // Update the weightAndReps with valid values for the current set
     updateWeightAndReps(

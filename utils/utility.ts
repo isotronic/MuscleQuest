@@ -60,6 +60,21 @@ export const formatToHoursMinutes = (totalSeconds: number): string => {
   return `${formattedHours}:${formattedMinutes}`;
 };
 
+export function convertTimeStrToSeconds(timeStr: string): number {
+  let totalSeconds = 0;
+  if (timeStr.length > 0) {
+    if (timeStr.length <= 2) {
+      totalSeconds = parseInt(timeStr) || 0;
+    } else {
+      // Convert from display format (e.g., "600" for 6:00) to seconds
+      const minutes = parseInt(timeStr.slice(0, -2)) || 0;
+      const seconds = parseInt(timeStr.slice(-2)) || 0;
+      totalSeconds = minutes * 60 + seconds;
+    }
+  }
+  return totalSeconds;
+}
+
 // Capitalize the first letter of each word in a string
 export const capitalizeWords = (str: string) => {
   return str
