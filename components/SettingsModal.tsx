@@ -12,11 +12,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { paperTheme } from "@/utils/paperTheme";
-import {
-  formatTimeInput,
-  formatFromTotalSeconds,
-  convertToTotalSeconds,
-} from "@/utils/utility";
+import { formatTimeInput } from "@/utils/utility";
+import { TimeInput } from "./TimeInput";
 
 // Utility function to format setting keys
 const formatSettingKey = (key: string) => {
@@ -53,44 +50,46 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   options,
 }) => {
   const [menuVisible, setMenuVisible] = useState(false);
+  const [timeInput, setTimeInput] = useState("");
 
-  // State to hold the formatted rest time (minutes:seconds)
-  const [restTime, setRestTime] = useState<string>(
-    formatFromTotalSeconds(
-      (inputValue as { minutes: number; seconds: number }).minutes * 60 +
-        (inputValue as { minutes: number; seconds: number }).seconds,
-    ),
-  );
-
-  // Update the state when inputValue changes (e.g., when the modal is reopened)
+  // Initialize timeInput when modal opens
   useEffect(() => {
-    if (settingType === "restTime") {
-      const totalSeconds =
-        (inputValue as { minutes: number; seconds: number }).minutes * 60 +
-        (inputValue as { minutes: number; seconds: number }).seconds;
-
-      setRestTime(formatFromTotalSeconds(totalSeconds));
+    if (settingType === "restTime" && typeof inputValue === "object") {
+      const minutes = inputValue.minutes.toString().padStart(1, "0");
+      const seconds = inputValue.seconds.toString().padStart(2, "0");
+      setTimeInput(`${minutes}:${seconds}`);
     }
   }, [inputValue, settingType]);
 
-  // Handle rest time input change and format the time as "minutes:seconds"
-  const handleRestTimeChange = (value: string) => {
-    setRestTime(formatTimeInput(value));
+  // Handle time input change - only format with colon
+  const handleTimeInputChange = (value: string) => {
+    // Only allow numbers
+    const sanitizedInput = value.replace(/[^0-9]/g, "");
+    const formattedValue = formatTimeInput(sanitizedInput);
+    setTimeInput(formattedValue);
 
-    const totalSeconds = convertToTotalSeconds(formatTimeInput(value));
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
+    // Split the formatted value into minutes and seconds
+    const [minutes, seconds] = formattedValue
+      .split(":")
+      .map((num) => parseInt(num || "0"));
 
-    onChangeValue({ minutes, seconds });
+    // Update the parent component with the new minutes/seconds object
+    onChangeValue({
+      minutes: minutes || 0,
+      seconds: seconds || 0,
+    });
   };
 
-  // Handle Save button - convert formatted restTime back to minutes and seconds
+  // Handle Save button
   const handleSaveRestTime = () => {
-    const totalSeconds = convertToTotalSeconds(restTime);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-
-    onSave({ minutes, seconds });
+    // Split the time input into minutes and seconds
+    const [minutes, seconds] = timeInput
+      .split(":")
+      .map((num) => parseInt(num || "0"));
+    onSave({
+      minutes: minutes || 0,
+      seconds: seconds || 0,
+    });
   };
 
   return (
@@ -181,15 +180,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {settingType === "restTime" && (
                   <View style={styles.labeledInput}>
                     <ThemedText style={styles.inputLabel}>
-                      Minutes:Seconds
+                      Time (Min:Sec)
                     </ThemedText>
-                    <TextInput
-                      value={restTime}
-                      onChangeText={handleRestTimeChange}
-                      keyboardType="numeric"
+                    <TimeInput
+                      value={timeInput}
+                      onChange={handleTimeInputChange}
                       style={styles.input}
-                      selectTextOnFocus={true}
-                      onSubmitEditing={handleSaveRestTime}
                     />
                   </View>
                 )}

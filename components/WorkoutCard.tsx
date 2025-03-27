@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import Sortable from "react-native-sortables";
 import type { SortableGridRenderItem } from "react-native-sortables";
+import { formatFromTotalSeconds } from "@/utils/utility";
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -106,13 +107,13 @@ export default function WorkoutCard({
 
       let timeRange;
       if (minTime === Infinity && maxTime !== -Infinity) {
-        timeRange = `${maxTime}`;
+        timeRange = formatFromTotalSeconds(maxTime);
       } else if (maxTime === -Infinity && minTime !== Infinity) {
-        timeRange = `${minTime}`;
+        timeRange = formatFromTotalSeconds(minTime);
       } else if (minTime === maxTime) {
-        timeRange = `${minTime}`;
+        timeRange = formatFromTotalSeconds(minTime);
       } else if (minTime !== Infinity && maxTime !== -Infinity) {
-        timeRange = `${minTime} - ${maxTime}`;
+        timeRange = `${formatFromTotalSeconds(minTime)} - ${formatFromTotalSeconds(maxTime)}`;
       }
 
       const isMenuOpen = menuVisible === item.exercise_id;
@@ -140,7 +141,7 @@ export default function WorkoutCard({
                 : "No Sets Available"}
               {item.tracking_type === "time"
                 ? timeRange
-                  ? ` | ${timeRange} Seconds`
+                  ? ` | ${timeRange}`
                   : ""
                 : repRange
                   ? ` | ${repRange} Reps`

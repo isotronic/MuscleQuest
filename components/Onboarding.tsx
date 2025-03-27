@@ -30,7 +30,7 @@ const onboardingData = [
   {
     title: "Add Personal Notes",
     description:
-      "Capture important cues, reminders, and personal insights for your exercises, workouts, and training plans. Stay focused and refine your technique with custom notes throughout your fitness journey.",
+      "Capture important cues, reminders, and personal insights for your exercises, workouts, and training plans. Stay focused and refine your technique with custom notes throughout your fitness journey. Notes save automatically when you're done editing.",
     buttonLabel: null,
     route: null,
   },

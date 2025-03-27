@@ -23,6 +23,18 @@ describe("Utility Functions", () => {
   });
 
   describe("formatTimeInput", () => {
+    it("should handle invalid input", () => {
+      expect(formatTimeInput("abc")).toBe("0:00");
+    });
+
+    it("should handle input with more than 4 digits", () => {
+      expect(formatTimeInput("12345")).toBe("123:45");
+    });
+
+    it("should format input with leading zeros when minutes are less than 100", () => {
+      expect(formatTimeInput("00123")).toBe("1:23");
+    });
+
     it("should format an empty string as 0:00", () => {
       expect(formatTimeInput("")).toBe("0:00");
     });

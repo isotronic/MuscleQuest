@@ -10,6 +10,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { EditSetModal } from "@/components/EditSetModal";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import { formatFromTotalSeconds } from "@/utils/utility";
 
 export default function SetsOverviewScreen() {
   const { exerciseId, workoutIndex, trackingType } = useLocalSearchParams();
@@ -57,6 +58,11 @@ export default function SetsOverviewScreen() {
           : item.repsMax
             ? `${item.repsMin} - ${item.repsMax}`
             : item.repsMin;
+
+    const formattedTime = item.time
+      ? formatFromTotalSeconds(item.time)
+      : formatFromTotalSeconds(defaultTime);
+
     return (
       <Swipeable
         onSwipeableOpen={() => handleDeleteSet(index)}
@@ -73,9 +79,7 @@ export default function SetsOverviewScreen() {
                 {item.isWarmup ? "Warm-up, " : ""}
                 {item.isDropSet ? "Drop set, " : ""}
                 {trackingType === "time"
-                  ? item.time
-                    ? `${item.time} Seconds, `
-                    : `${defaultTime} Seconds, `
+                  ? `${formattedTime}, `
                   : repRange !== undefined
                     ? `${repRange} Reps, `
                     : ""}

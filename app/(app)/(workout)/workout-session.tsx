@@ -29,6 +29,7 @@ import {
   scheduleRestNotification,
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
+import { convertTimeStrToSeconds } from "@/utils/utility";
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
@@ -230,7 +231,8 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleTimeInputChange = (inputValue: string) => {
-    const sanitizedInput = inputValue.replace(/[^0-9.]/g, "");
+    // Remove any non-digits first
+    const sanitizedInput = inputValue.replace(/[^0-9]/g, "");
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
@@ -563,7 +565,10 @@ export default function WorkoutSessionScreen() {
             ? previousWorkoutNextSetData?.weight?.toString()
             : currentSetValues.weight || "",
         reps: previousWorkoutNextSetData?.reps?.toString() || "",
-        time: previousWorkoutNextSetData?.time?.toString() || "",
+        time: previousWorkoutNextSetData?.time
+          ? // Convert stored seconds back to display format (e.g., 360 -> "600")
+            previousWorkoutNextSetData.time.toString().padStart(2, "0")
+          : "",
       };
 
       return {
@@ -606,8 +611,8 @@ export default function WorkoutSessionScreen() {
     const repsNum = parseInt(repsStr);
     const validRepsNum = isNaN(repsNum) ? 0 : repsNum;
 
-    const timeNum = parseInt(timeStr);
-    const validTimeNum = isNaN(timeNum) ? 0 : timeNum;
+    // Convert time from MM:SS format to total seconds
+    const validTimeNum = convertTimeStrToSeconds(timeStr);
 
     // Update the weightAndReps with valid values for the current set
     updateWeightAndReps(
@@ -615,7 +620,7 @@ export default function WorkoutSessionScreen() {
       currentSetIndex,
       validWeightInKg.toString(),
       validRepsNum.toString(),
-      validTimeNum.toString(),
+      validTimeNum.toString(), // Store as seconds
     );
 
     if (hasNextSet) {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import {
   IconButton,
@@ -12,6 +12,8 @@ import { Colors } from "@/constants/Colors";
 import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { formatFromTotalSeconds, formatTimeInput } from "@/utils/utility";
+import { TimeInput } from "./TimeInput";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -89,6 +91,15 @@ export default function SessionSetInfo({
   addSet,
 }: SessionSetInfoProps) {
   const [menuVisible, setMenuVisible] = useState(false);
+  const [timeInput, setTimeInput] = useState(time);
+
+  // Update timeInput when time prop changes
+  useEffect(() => {
+    setTimeInput(time);
+  }, [time]);
+
+  // Format display value - now always formatted
+  const displayValue = formatTimeInput(timeInput);
 
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
@@ -142,7 +153,7 @@ export default function SessionSetInfo({
             )}
             {trackingType === "time" && !!timeMin && (
               <ThemedText style={styles.headerText}>
-                Time: {timeMin} Seconds
+                Time: {formatFromTotalSeconds(timeMin)}
               </ThemedText>
             )}
 
@@ -298,15 +309,12 @@ export default function SessionSetInfo({
       ) : trackingType === "time" ? (
         <>
           <View style={styles.centeredLabelContainer}>
-            <ThemedText style={styles.label}>Time (seconds)</ThemedText>
+            <ThemedText style={styles.label}>Time (Min:Sec)</ThemedText>
           </View>
           <View style={styles.inputContainer}>
-            <TextInput
-              placeholderTextColor={Colors.dark.text}
-              value={time}
-              onChangeText={(text: string) => handleTimeInputChange(text)}
-              keyboardType="numeric"
-              selectTextOnFocus
+            <TimeInput
+              value={displayValue}
+              onChange={handleTimeInputChange}
               style={styles.input}
             />
           </View>
