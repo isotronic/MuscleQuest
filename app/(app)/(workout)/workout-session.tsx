@@ -230,7 +230,8 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleTimeInputChange = (inputValue: string) => {
-    const sanitizedInput = inputValue.replace(/[^0-9.]/g, "");
+    // Remove any non-digits first
+    const sanitizedInput = inputValue.replace(/[^0-9]/g, "");
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
@@ -563,7 +564,10 @@ export default function WorkoutSessionScreen() {
             ? previousWorkoutNextSetData?.weight?.toString()
             : currentSetValues.weight || "",
         reps: previousWorkoutNextSetData?.reps?.toString() || "",
-        time: previousWorkoutNextSetData?.time?.toString() || "",
+        time: previousWorkoutNextSetData?.time
+          ? // Convert stored seconds back to display format (e.g., 360 -> "600")
+            previousWorkoutNextSetData.time.toString().padStart(2, "0")
+          : "",
       };
 
       return {
@@ -606,8 +610,19 @@ export default function WorkoutSessionScreen() {
     const repsNum = parseInt(repsStr);
     const validRepsNum = isNaN(repsNum) ? 0 : repsNum;
 
-    const timeNum = parseInt(timeStr);
-    const validTimeNum = isNaN(timeNum) ? 0 : timeNum;
+    // Convert time from MM:SS format to total seconds
+    let validTimeNum = 0;
+    if (timeStr.length > 0) {
+      if (timeStr.length <= 2) {
+        validTimeNum = parseInt(timeStr) || 0;
+      } else {
+        // Convert from display format (e.g., "600" for 6:00) to seconds
+        const minutes = parseInt(timeStr.slice(0, -2)) || 0;
+        const seconds = parseInt(timeStr.slice(-2)) || 0;
+        validTimeNum = minutes * 60 + seconds;
+      }
+    }
+    console.log(validTimeNum);
 
     // Update the weightAndReps with valid values for the current set
     updateWeightAndReps(
@@ -615,7 +630,7 @@ export default function WorkoutSessionScreen() {
       currentSetIndex,
       validWeightInKg.toString(),
       validRepsNum.toString(),
-      validTimeNum.toString(),
+      validTimeNum.toString(), // Store as seconds
     );
 
     if (hasNextSet) {

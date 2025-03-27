@@ -210,7 +210,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               ? {
                   time:
                     nextSetValues?.time !== undefined
-                      ? nextSetValues.time?.toString()
+                      ? // Convert stored seconds back to display format (e.g., 360 -> "600")
+                        Math.floor((nextSetValues.time ?? 0) / 60).toString() +
+                        ((nextSetValues.time ?? 0) % 60)
+                          .toString()
+                          .padStart(2, "0")
                       : currentSetValues.time,
                 }
               : {}),
