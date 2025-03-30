@@ -1,3 +1,14 @@
+import Bugsnag from "@bugsnag/expo";
+
+// Report an error to Bugsnag
+export function reportError(error: unknown): void {
+  if (error instanceof Error) {
+    Bugsnag.notify(error);
+  } else {
+    Bugsnag.notify(new Error(String(error)));
+  }
+}
+
 // Convert a byte array to a base64 string
 export const byteArrayToBase64 = (byteArray: any) => {
   const binaryString = Object.keys(byteArray)

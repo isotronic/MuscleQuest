@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { Vibration, AppState } from "react-native";
 import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from "expo-av";
 import Bugsnag from "@bugsnag/expo";
+import { reportError } from "@/utils/utility";
 
 export const useSoundAndVibration = () => {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
@@ -41,11 +42,7 @@ export const useSoundAndVibration = () => {
       }
     } catch (error) {
       console.error("Failed to load sound:", error);
-      if (error instanceof Error) {
-        Bugsnag.notify(error);
-      } else {
-        Bugsnag.notify(new Error(String(error)));
-      }
+      reportError(error);
       if (isMounted.current) {
         setIsLoaded(false);
       }
@@ -81,11 +78,7 @@ export const useSoundAndVibration = () => {
       }
     } catch (error) {
       console.error("Error playing sound:", error);
-      if (error instanceof Error) {
-        Bugsnag.notify(error);
-      } else {
-        Bugsnag.notify(new Error(String(error)));
-      }
+      reportError(error);
       // If playing fails, try one reload attempt
       try {
         await loadSound();
@@ -94,11 +87,7 @@ export const useSoundAndVibration = () => {
         }
       } catch (retryError) {
         console.error("Retry failed:", retryError);
-        if (retryError instanceof Error) {
-          Bugsnag.notify(retryError);
-        } else {
-          Bugsnag.notify(new Error(String(retryError)));
-        }
+        reportError(retryError);
       }
     }
   }, [isLoaded, loadSound, sound]);
@@ -113,11 +102,7 @@ export const useSoundAndVibration = () => {
         }
       } catch (error) {
         console.error("Failed to unload sound:", error);
-        if (error instanceof Error) {
-          Bugsnag.notify(error);
-        } else {
-          Bugsnag.notify(new Error(String(error)));
-        }
+        reportError(error);
       }
     }
   }, [sound]);
