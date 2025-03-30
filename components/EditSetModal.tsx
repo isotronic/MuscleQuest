@@ -112,18 +112,16 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
     }
   };
 
+  const parseReps = (toFailure: boolean, reps: string): number | undefined => {
+    if (toFailure) return undefined;
+    if (reps === "") return undefined;
+    return Number(reps);
+  };
+
   const handleSaveSet = () => {
     const totalSeconds = convertToTotalSeconds(restTime);
-    const minReps = isToFailure
-      ? undefined
-      : repsMin === ""
-        ? undefined
-        : Number(repsMin);
-    const maxReps = isToFailure
-      ? undefined
-      : repsMax === ""
-        ? undefined
-        : Number(repsMax);
+    const minReps = parseReps(isToFailure, repsMin);
+    const maxReps = parseReps(isToFailure, repsMax);
     const timeToSave = convertToTotalSeconds(time || "00:00");
 
     const updatedSet = {
