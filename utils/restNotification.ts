@@ -2,6 +2,7 @@ import * as Notifications from "expo-notifications";
 
 /**
  * Schedules a local notification to fire in `secondsFromNow`.
+ * Cancels any existing notifications before scheduling the new one.
  * @param secondsFromNow how many seconds in the future the notification should fire
  * @param title notification title
  * @param body notification body
@@ -19,10 +20,16 @@ export async function scheduleRestNotification(
   }
 
   try {
+    // Cancel any existing notifications first
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await Notifications.dismissAllNotificationsAsync(); // This removes notifications from the notification drawer
+
+    // Schedule the new notification
     await Notifications.scheduleNotificationAsync({
       content: {
         title,
         body,
+        // We handle sound separately through the sound hook
         // sound: "boxing_bell.mp3",
       },
       trigger: {
@@ -38,6 +45,7 @@ export async function scheduleRestNotification(
 export async function cancelRestNotifications() {
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
+    await Notifications.dismissAllNotificationsAsync(); // Also clear any visible notifications
   } catch (error) {
     console.error("Failed to cancel notifications:", error);
   }
