@@ -116,6 +116,8 @@ export default function WorkoutCard({
         timeRange = `${formatFromTotalSeconds(minTime)} - ${formatFromTotalSeconds(maxTime)}`;
       }
 
+      const isToFailure = item.sets.some((set) => set.isToFailure);
+
       const isMenuOpen = menuVisible === item.exercise_id;
 
       return (
@@ -141,10 +143,10 @@ export default function WorkoutCard({
                 : "No Sets Available"}
               {item.tracking_type === "time"
                 ? timeRange
-                  ? ` | ${timeRange}`
+                  ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
                   : ""
                 : repRange
-                  ? ` | ${repRange} Reps`
+                  ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
                   : ""}
             </ThemedText>
           </View>

@@ -41,6 +41,7 @@ interface SessionSetInfoProps {
   currentSetCompleted: boolean;
   isWarmup: boolean;
   isDropSet: boolean;
+  isToFailure: boolean;
   trackingType: string;
   handleWeightInputChange: (text: string) => void;
   handleWeightChange: (amount: number) => void;
@@ -78,6 +79,7 @@ export default function SessionSetInfo({
   currentSetCompleted,
   isWarmup,
   isDropSet,
+  isToFailure,
   trackingType,
   handleWeightInputChange,
   handleWeightChange,
@@ -201,7 +203,7 @@ export default function SessionSetInfo({
           disabled={isFirstSetOfFirstExercise}
           iconColor={Colors.dark.text}
         />
-        {(isWarmup || isDropSet) && (
+        {(isWarmup || isDropSet || isToFailure) && (
           <View style={styles.setTypeContainer}>
             {isWarmup && (
               <>
@@ -223,6 +225,17 @@ export default function SessionSetInfo({
                   style={styles.setIcon}
                 />
                 <ThemedText style={styles.setTypeLabel}>Drop</ThemedText>
+              </>
+            )}
+            {isToFailure && (
+              <>
+                <MaterialCommunityIcons
+                  name="fire"
+                  size={24}
+                  color={Colors.dark.text}
+                  style={styles.setIcon}
+                />
+                <ThemedText style={styles.setTypeLabel}>To Failure</ThemedText>
               </>
             )}
           </View>

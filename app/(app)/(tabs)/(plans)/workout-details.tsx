@@ -5,7 +5,7 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { UserExercise } from "@/store/workoutStore";
 import { Image } from "expo-image";
-import { byteArrayToBase64 } from "@/utils/utility";
+import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
 import { TouchableOpacity } from "react-native";
 import { Colors } from "@/constants/Colors";
 import Bugsnag from "@bugsnag/expo";
@@ -47,14 +47,16 @@ export default function WorkoutDetailsScreen() {
 
     let timeRange;
     if (minTime === Infinity && maxTime !== -Infinity) {
-      timeRange = `${maxTime}`; // Only show maxTime if minTime is undefined
+      timeRange = `${formatFromTotalSeconds(maxTime)}`; // Only show maxTime if minTime is undefined
     } else if (maxTime === -Infinity && minTime !== Infinity) {
-      timeRange = `${minTime}`; // Only show minTime if maxTime is undefined
+      timeRange = `${formatFromTotalSeconds(minTime)}`; // Only show minTime if maxTime is undefined
     } else if (minTime === maxTime) {
-      timeRange = `${minTime}`; //Only show minTime if both are the same
+      timeRange = `${formatFromTotalSeconds(minTime)}`; //Only show minTime if both are the same
     } else if (minTime !== Infinity && maxTime !== -Infinity) {
-      timeRange = `${minTime} - ${maxTime}`; // Show range if both are defined
+      timeRange = `${formatFromTotalSeconds(minTime)} - ${formatFromTotalSeconds(maxTime)}`; // Show range if both are defined
     }
+
+    const isToFailure = item.sets.some((set) => set.isToFailure);
 
     const exerciseItem = { ...item, image: undefined };
 
@@ -91,10 +93,10 @@ export default function WorkoutDetailsScreen() {
                 : "No Sets Available"}
               {item.tracking_type === "time"
                 ? timeRange
-                  ? ` | ${timeRange} Seconds`
+                  ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
                   : ""
                 : repRange
-                  ? ` | ${repRange} Reps`
+                  ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
                   : ""}
             </ThemedText>
           </View>

@@ -78,6 +78,7 @@ export default function SetsOverviewScreen() {
               <ThemedText style={styles.setInfo}>
                 {item.isWarmup ? "Warm-up, " : ""}
                 {item.isDropSet ? "Drop set, " : ""}
+                {item.isToFailure ? "To failure, " : ""}
                 {trackingType === "time"
                   ? `${formattedTime}, `
                   : repRange !== undefined
