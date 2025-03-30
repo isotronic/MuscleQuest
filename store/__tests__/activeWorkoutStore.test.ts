@@ -7,6 +7,14 @@ jest.mock("expo-router", () => ({
   router: { back: jest.fn() },
 }));
 
+jest.mock("@bugsnag/expo", () => ({
+  __esModule: true,
+  default: {
+    notify: jest.fn(),
+    leaveBreadcrumb: jest.fn(),
+  },
+}));
+
 describe("useActiveWorkoutStore", () => {
   beforeEach(() => {
     // Reset the store to a "blank" state before each test
@@ -19,7 +27,7 @@ describe("useActiveWorkoutStore", () => {
       completedSets: {},
       weightAndReps: {},
       previousWorkoutData: null,
-      startTime: null,
+      startTime: undefined,
       timerRunning: false,
       timerExpiry: null,
     });
