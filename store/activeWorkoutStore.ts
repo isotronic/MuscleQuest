@@ -5,6 +5,7 @@ import { UserExercise, Workout } from "./workoutStore";
 import { router } from "expo-router";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { formatFromTotalSeconds } from "@/utils/utility";
+import Bugsnag from "@bugsnag/expo";
 
 interface ActiveWorkoutStore {
   activeWorkout: { planId: number; workoutId: number; name: string } | null;
@@ -570,7 +571,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           },
         })),
 
-      startTimer: (expiry) => set({ timerRunning: true, timerExpiry: expiry }),
+      startTimer: (expiry) =>
+        set({
+          timerRunning: true,
+          timerExpiry: expiry,
+        }),
 
       stopTimer: () => set({ timerRunning: false, timerExpiry: null }),
 
@@ -593,10 +598,24 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       },
 
       resumeWorkout: () => {
-        const { activeWorkout, workout } = get();
+        const { activeWorkout, workout, timerExpiry, timerRunning } = get();
 
-        // If there is already an active workout, continue with it.
+        Bugsnag.leaveBreadcrumb("Resuming workout", {
+          hasActiveWorkout: !!activeWorkout,
+          hasWorkout: !!workout,
+          timerExpiry: timerExpiry?.toISOString() || "null",
+          timerRunning,
+          timerExpiryType: timerExpiry ? typeof timerExpiry : "null",
+        });
+
         if (activeWorkout && workout) {
+          if (timerExpiry && typeof timerExpiry === "string") {
+            set({ timerExpiry: new Date(timerExpiry) });
+            Bugsnag.leaveBreadcrumb("Converted timer expiry to Date", {
+              from: timerExpiry,
+              to: new Date(timerExpiry).toISOString(),
+            });
+          }
           return;
         }
       },
@@ -609,6 +628,17 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
     {
       name: "active-workout-store", // Key for AsyncStorage
       storage: createJSONStorage(() => AsyncStorage),
+      // Add parsing for date objects during rehydration
+      partialize: (state) => ({
+        ...state,
+        timerExpiry: state.timerExpiry?.toISOString(), // Convert Date to string for storage
+      }),
+      onRehydrateStorage: () => (state) => {
+        // Convert string back to Date after rehydration
+        if (state && state.timerExpiry) {
+          state.timerExpiry = new Date(state.timerExpiry);
+        }
+      },
     },
   ),
 );
