@@ -7,6 +7,7 @@ import { Colors } from "@/constants/Colors";
 import { Button, Divider, IconButton } from "react-native-paper";
 import { ThemedText } from "./ThemedText";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
+import { capitalizeWords } from "@/utils/utility";
 
 interface NotesProps {
   noteType: NoteType;
@@ -106,7 +107,7 @@ export const Notes: React.FC<NotesProps> = ({
               color: Colors.dark.text,
             }}
           >
-            Notes
+            {capitalizeWords(noteType)} Notes
           </ThemedText>
         </View>
         <Divider style={{ marginTop: 8, marginBottom: 16 }} />

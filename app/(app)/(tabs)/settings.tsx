@@ -697,6 +697,9 @@ export default function SettingsScreen() {
               <ThemedText style={styles.itemText}>
                 Download all exercise animations
               </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                Size: ~100MB
+              </ThemedText>
             </View>
             <Switch
               value={isDownloadToggled === "true"}
