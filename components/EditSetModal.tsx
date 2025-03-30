@@ -6,7 +6,7 @@ import {
   View,
   TouchableWithoutFeedback,
 } from "react-native";
-import { Button, Checkbox } from "react-native-paper";
+import { Button, Checkbox, Divider } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
@@ -54,82 +54,76 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
   );
   const set = setIndex !== null ? exercise?.sets[setIndex] : null;
 
+  // Initialize states
   const [applyToAllSets, setApplyToAllSets] = useState(false);
-  const [isWarmup, setIsWarmup] = useState(set?.isWarmup ?? false);
-  const [isDropSet, setIsDropSet] = useState(set?.isDropSet ?? false);
-
-  const [repsMin, setRepsMin] = useState(
-    set?.repsMin !== undefined && set?.repsMin !== null
-      ? String(set.repsMin)
-      : defaultRepsMin !== undefined && defaultRepsMin !== null
-        ? String(defaultRepsMin)
-        : "",
-  );
-
-  const [repsMax, setRepsMax] = useState(
-    set?.repsMax !== undefined && set?.repsMax !== null
-      ? String(set.repsMax)
-      : defaultRepsMax !== undefined && defaultRepsMax !== null
-        ? String(defaultRepsMax)
-        : "",
-  );
-
+  const [isWarmup, setIsWarmup] = useState(false);
+  const [isDropSet, setIsDropSet] = useState(false);
+  const [isToFailure, setIsToFailure] = useState(false);
+  const [repsMin, setRepsMin] = useState("");
+  const [repsMax, setRepsMax] = useState("");
   const [restTime, setRestTime] = useState(
     formatFromTotalSeconds(defaultTotalSeconds),
   );
-
   const [time, setTime] = useState(formatFromTotalSeconds(defaultTime));
 
+  // Single effect to handle initial state setup
   useEffect(() => {
     if (setIndex !== null && set) {
-      setRepsMin(
-        set.repsMin !== undefined && set.repsMin !== null
-          ? String(set.repsMin)
-          : "",
-      );
-      setRepsMax(
-        set.repsMax !== undefined && set.repsMax !== null
-          ? String(set.repsMax)
-          : "",
-      );
+      setIsWarmup(set.isWarmup ?? false);
+      setIsDropSet(set.isDropSet ?? false);
+      setIsToFailure(set.isToFailure ?? false);
+      setRepsMin(set.repsMin !== undefined ? String(set.repsMin) : "");
+      setRepsMax(set.repsMax !== undefined ? String(set.repsMax) : "");
       setRestTime(
         formatFromTotalSeconds(set.restMinutes * 60 + set.restSeconds),
       );
       setTime(set.time ? formatFromTotalSeconds(set.time) : "00:00");
-      setIsWarmup(set?.isWarmup ?? false);
-      setIsDropSet(set?.isDropSet ?? false);
     } else {
+      setIsWarmup(false);
+      setIsDropSet(false);
+      setIsToFailure(false);
       if (trackingType === "time") {
         setTime(formatFromTotalSeconds(defaultTime));
       } else {
-        setRepsMin(
-          defaultRepsMin !== undefined && defaultRepsMin !== null
-            ? String(defaultRepsMin)
-            : "",
-        );
-        setRepsMax(
-          defaultRepsMax !== undefined && defaultRepsMax !== null
-            ? String(defaultRepsMax)
-            : "",
-        );
+        setRepsMin(defaultRepsMin ? String(defaultRepsMin) : "");
+        setRepsMax(defaultRepsMax ? String(defaultRepsMax) : "");
       }
-
       setRestTime(formatFromTotalSeconds(defaultTotalSeconds));
     }
   }, [
     setIndex,
     set,
-    defaultRepsMin,
-    defaultRepsMax,
+    trackingType,
     defaultTotalSeconds,
     defaultTime,
-    trackingType,
+    defaultRepsMin,
+    defaultRepsMax,
   ]);
+
+  const handleToFailureChange = () => {
+    const newValue = !isToFailure;
+    setIsToFailure(newValue);
+    if (newValue) {
+      setRepsMin("");
+      setRepsMax("");
+    } else {
+      setRepsMin(defaultRepsMin ? String(defaultRepsMin) : "");
+      setRepsMax(defaultRepsMax ? String(defaultRepsMax) : "");
+    }
+  };
 
   const handleSaveSet = () => {
     const totalSeconds = convertToTotalSeconds(restTime);
-    const minReps = repsMin === "" ? undefined : Number(repsMin);
-    const maxReps = repsMax === "" ? undefined : Number(repsMax);
+    const minReps = isToFailure
+      ? undefined
+      : repsMin === ""
+        ? undefined
+        : Number(repsMin);
+    const maxReps = isToFailure
+      ? undefined
+      : repsMax === ""
+        ? undefined
+        : Number(repsMax);
     const timeToSave = convertToTotalSeconds(time || "00:00");
 
     const updatedSet = {
@@ -140,6 +134,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
       time: timeToSave,
       isWarmup,
       isDropSet,
+      isToFailure,
     };
 
     if (applyToAllSets) {
@@ -283,6 +278,17 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                 />
                 <ThemedText style={styles.checkboxLabel}>Drop set</ThemedText>
               </View>
+
+              <View style={styles.checkboxContainer}>
+                <Checkbox
+                  status={isToFailure ? "checked" : "unchecked"}
+                  uncheckedColor={Colors.dark.subText}
+                  onPress={handleToFailureChange}
+                />
+                <ThemedText style={styles.checkboxLabel}>To failure</ThemedText>
+              </View>
+
+              <Divider style={{ marginTop: 16 }} />
 
               <View style={styles.checkboxContainer}>
                 <Checkbox

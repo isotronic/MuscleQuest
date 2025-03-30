@@ -26,6 +26,7 @@ export interface WorkoutRecord {
       restSeconds: number;
       time: number;
       isWarmup: boolean;
+      toFailure: boolean;
     }[];
   }[];
 }

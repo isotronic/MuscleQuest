@@ -721,6 +721,7 @@ export default function WorkoutSessionScreen() {
               currentSetCompleted={currentSetCompleted}
               isWarmup={currentSet?.isWarmup || false}
               isDropSet={currentSet?.isDropSet || false}
+              isToFailure={currentSet?.isToFailure || false}
               trackingType={currentExercise?.tracking_type || "weight"}
               handleWeightInputChange={handleWeightInputChange}
               handleWeightChange={handleWeightChange}
@@ -774,6 +775,7 @@ export default function WorkoutSessionScreen() {
                 currentSetCompleted={false}
                 isWarmup={upcomingSet?.isWarmup || false}
                 isDropSet={upcomingSet?.isDropSet || false}
+                isToFailure={upcomingSet?.isToFailure || false}
                 trackingType={nextExercise?.tracking_type || "weight"}
                 handleWeightInputChange={() => {}}
                 handleWeightChange={() => {}}
@@ -830,6 +832,7 @@ export default function WorkoutSessionScreen() {
                   currentSetCompleted={previousSetCompleted}
                   isWarmup={previousSet?.isWarmup || false}
                   isDropSet={previousSet?.isDropSet || false}
+                  isToFailure={previousSet?.isToFailure || false}
                   trackingType={previousExercise?.tracking_type || "weight"}
                   handleWeightInputChange={() => {}}
                   handleWeightChange={() => {}}
