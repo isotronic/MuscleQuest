@@ -160,11 +160,20 @@ export default function WorkoutSessionScreen() {
 
   async function handleExpire() {
     if (!expiryTimestampRef.current) {
+      Bugsnag.notify(new Error("Timer expired but no expiry timestamp found"));
       return;
     }
 
     const now = new Date();
     const diffMs = now.getTime() - expiryTimestampRef.current.getTime();
+
+    Bugsnag.leaveBreadcrumb("Timer expired", {
+      diffMs,
+      soundEnabled: settings?.restTimerSound === "true",
+      vibrationEnabled: settings?.restTimerVibration === "true",
+      timestamp: now.toISOString(),
+      expiryTimestamp: expiryTimestampRef.current.toISOString(),
+    });
 
     // If we're more than 2 seconds late, assume background notification already played
     if (diffMs < 2000) {
@@ -175,14 +184,25 @@ export default function WorkoutSessionScreen() {
       if (settings?.restTimerVibration === "true") {
         triggerVibration();
       }
-      // Cancel the local notification so it won't show
-      cancelRestNotifications();
+    } else {
+      Bugsnag.leaveBreadcrumb("Skipped sound/vibration", {
+        reason: "Too late after expiry",
+        diffMs,
+      });
     }
   }
 
   useEffect(() => {
     if (timerRunning && timerExpiry) {
-      restart(new Date(timerExpiry));
+      const time = new Date(timerExpiry);
+      expiryTimestampRef.current = time;
+      restart(time);
+
+      // Add debug breadcrumb
+      Bugsnag.leaveBreadcrumb("Timer restarted", {
+        timerExpiry: timerExpiry.toISOString(),
+        currentTime: new Date().toISOString(),
+      });
     }
   }, [timerRunning, timerExpiry, restart]);
 
@@ -205,6 +225,13 @@ export default function WorkoutSessionScreen() {
       expiryTimestampRef.current = time;
       startTimer(time);
       restart(time);
+
+      // Add debug breadcrumb
+      Bugsnag.leaveBreadcrumb("Timer started", {
+        totalSeconds,
+        expiryTimestamp: time.toISOString(),
+        currentTime: new Date().toISOString(),
+      });
     }
   };
 
