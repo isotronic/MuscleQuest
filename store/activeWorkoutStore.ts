@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import Bugsnag from "@bugsnag/expo";
+import cloneDeep from "lodash/cloneDeep";
 
 interface ActiveWorkoutStore {
   activeWorkout: { planId: number; workoutId: number; name: string } | null;
@@ -73,8 +74,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       setWorkout: (workout, planId, workoutId, name) =>
         set({
           activeWorkout: { planId, workoutId, name },
-          workout: JSON.parse(JSON.stringify(workout)),
-          originalWorkout: JSON.parse(JSON.stringify(workout)),
+          workout: cloneDeep(workout),
+          originalWorkout: cloneDeep(workout),
           currentExerciseIndex: 0,
           currentSetIndices: {},
           completedSets: {},
@@ -552,7 +553,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         }
 
         set({
-          workout: JSON.parse(JSON.stringify(originalWorkout)), // Reset to original workout
+          workout: cloneDeep(originalWorkout), // Reset to original workout
           currentExerciseIndex: 0,
           currentSetIndices: {},
           completedSets: {},

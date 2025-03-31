@@ -1,4 +1,5 @@
 import { StyleSheet, View, ScrollView } from "react-native";
+import cloneDeep from "lodash/cloneDeep";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { startOfWeek, endOfWeek } from "date-fns";
@@ -258,7 +259,7 @@ export default function HomeScreen() {
                                 activeWorkoutStore.resumeWorkout();
                               } else {
                                 activeWorkoutStore.setWorkout(
-                                  JSON.parse(JSON.stringify(workout)),
+                                  cloneDeep(workout), // Using lodash's cloneDeep instead of JSON.parse(JSON.stringify(workout))
                                   activePlan.id!,
                                   workout.id!,
                                   workout.name || `Day ${index + 1}`,
