@@ -26,6 +26,9 @@ interface ActiveWorkoutStore {
   startTime: Date;
   timerRunning: boolean;
   timerExpiry: Date | null;
+  memoizedHistory: {
+    [exerciseId: number]: CompletedWorkout[];
+  };
   setWorkout: (
     workout: Workout,
     planId: number,
@@ -54,6 +57,7 @@ interface ActiveWorkoutStore {
   resumeWorkout: () => void;
   isWorkoutInProgress: () => boolean;
   getActiveWorkoutId: () => number | null;
+  processPreviousWorkoutData: (completedWorkouts: CompletedWorkout[]) => void;
 }
 
 const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
@@ -70,6 +74,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       startTime: new Date(),
       timerRunning: false,
       timerExpiry: null,
+      memoizedHistory: {},
 
       setWorkout: (workout, planId, workoutId, name) =>
         set({
@@ -417,11 +422,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           };
         }),
 
-      initializeWeightAndReps: (completedWorkouts: CompletedWorkout[]) => {
+      processPreviousWorkoutData: (completedWorkouts: CompletedWorkout[]) => {
         const { workout } = get();
-        if (!workout) {
-          return;
-        }
+        if (!workout) return;
 
         // Sort completed workouts by date (most recent first)
         const sortedWorkouts = [...completedWorkouts].sort(
@@ -430,7 +433,33 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             new Date(a.date_completed).getTime(),
         );
 
-        set({ previousWorkoutData: sortedWorkouts });
+        // Create exercise-specific history mapping
+        const exerciseHistory: { [exerciseId: number]: CompletedWorkout[] } =
+          {};
+
+        workout.exercises.forEach((exercise) => {
+          exerciseHistory[exercise.exercise_id] = sortedWorkouts.filter(
+            (workout) =>
+              workout.exercises.some(
+                (ex) => ex.exercise_id === exercise.exercise_id,
+              ),
+          );
+        });
+
+        set({
+          previousWorkoutData: sortedWorkouts,
+          memoizedHistory: exerciseHistory,
+        });
+      },
+
+      initializeWeightAndReps: (completedWorkouts: CompletedWorkout[]) => {
+        const { workout, processPreviousWorkoutData } = get();
+        if (!workout) return;
+
+        // Process workout history in the background
+        setTimeout(() => {
+          processPreviousWorkoutData(completedWorkouts);
+        }, 0);
       },
 
       replaceExercise: (index, newExercise) => {
@@ -633,6 +662,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       partialize: (state) => ({
         ...state,
         timerExpiry: state.timerExpiry?.toISOString(), // Convert Date to string for storage
+        memoizedHistory: {}, // Don't persist memoized data
       }),
       onRehydrateStorage: () => (state) => {
         // Convert string back to Date after rehydration

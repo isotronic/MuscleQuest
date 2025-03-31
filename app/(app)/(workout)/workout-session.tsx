@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Animated,
   Easing,
@@ -45,6 +45,8 @@ export default function WorkoutSessionScreen() {
 
   const {
     workout,
+    memoizedHistory,
+    processPreviousWorkoutData,
     currentExerciseIndex,
     currentSetIndices,
     weightAndReps,
@@ -53,7 +55,6 @@ export default function WorkoutSessionScreen() {
     setCurrentExerciseIndex,
     setCurrentSetIndex,
     updateWeightAndReps,
-    initializeWeightAndReps,
     nextSet,
     timerRunning,
     timerExpiry,
@@ -71,14 +72,23 @@ export default function WorkoutSessionScreen() {
 
   const { selectedExerciseIndex, workoutHistory } = useLocalSearchParams();
 
-  useEffect(() => {
+  // Memoize the history processing
+  const processHistory = useCallback(() => {
     if (workoutHistory) {
       const previousWorkoutData: CompletedWorkout[] = JSON.parse(
         workoutHistory as string,
       );
-      initializeWeightAndReps(previousWorkoutData);
+      processPreviousWorkoutData(previousWorkoutData);
     }
-  }, [workoutHistory, initializeWeightAndReps]);
+  }, [workoutHistory, processPreviousWorkoutData]);
+
+  // Process history in the background after initial render
+  useEffect(() => {
+    if (workoutHistory) {
+      const timeoutId = setTimeout(processHistory, 0);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [processHistory, workoutHistory]);
 
   useEffect(() => {
     if (workout && selectedExerciseIndex !== undefined) {
@@ -95,23 +105,24 @@ export default function WorkoutSessionScreen() {
       ? completedSets[currentExerciseIndex][currentSetIndex]
       : false;
 
-  const findLastAvailableSetData = (exerciseId: number, setIndex: number) => {
-    if (!previousWorkoutData) {
-      return null;
-    }
+  // Use memoized history data for finding previous set data
+  const findLastAvailableSetData = useCallback(
+    (exerciseId: number, setIndex: number) => {
+      const exerciseHistory = memoizedHistory[exerciseId];
+      if (!exerciseHistory?.length) return null;
 
-    for (const workout of previousWorkoutData) {
-      const exerciseData = workout.exercises.find(
-        (prevEx) => prevEx.exercise_id === exerciseId,
-      );
-
-      if (exerciseData && exerciseData.sets[setIndex]) {
-        return exerciseData.sets[setIndex]; // Return the first non-null data found
+      for (const workout of exerciseHistory) {
+        const exercise = workout.exercises.find(
+          (ex) => ex.exercise_id === exerciseId,
+        );
+        if (exercise?.sets[setIndex]) {
+          return exercise.sets[setIndex];
+        }
       }
-    }
-
-    return null; // No data found in any past workout
-  };
+      return null;
+    },
+    [memoizedHistory],
+  );
 
   const previousWorkoutSetData = findLastAvailableSetData(
     currentExercise?.exercise_id || 0,
