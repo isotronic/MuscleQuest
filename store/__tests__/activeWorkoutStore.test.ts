@@ -30,6 +30,7 @@ describe("useActiveWorkoutStore", () => {
       startTime: undefined,
       timerRunning: false,
       timerExpiry: null,
+      memoizedHistory: {},
     });
     jest.clearAllMocks();
   });
@@ -615,7 +616,7 @@ describe("useActiveWorkoutStore", () => {
     expect(weightAndReps[1][0]).toEqual({ time: "60" });
   });
 
-  it("initializeWeightAndReps should store the previous workout data in the store", () => {
+  it("processPreviousWorkoutData should store the previous workout data in the store", () => {
     const mockPreviousData = [
       {
         workout_id: 1,
@@ -643,7 +644,7 @@ describe("useActiveWorkoutStore", () => {
 
       useActiveWorkoutStore
         .getState()
-        .initializeWeightAndReps(mockPreviousData as any);
+        .processPreviousWorkoutData(mockPreviousData as any);
     });
 
     const { previousWorkoutData } = useActiveWorkoutStore.getState();
