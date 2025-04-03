@@ -21,7 +21,6 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSoundAndVibration } from "@/hooks/useSoundAndVibration";
 import WorkoutTimer from "@/components/WorkoutTimer";
 import Bugsnag from "@bugsnag/expo";
 import {
@@ -30,6 +29,7 @@ import {
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
 import { convertTimeStrToSeconds } from "@/utils/utility";
+import { useSoundStore } from "@/store/soundStore";
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
@@ -147,7 +147,7 @@ export default function WorkoutSessionScreen() {
   useKeepScreenOn();
 
   const expiryTimestampRef = useRef<Date | null>(null);
-  const { playSound, triggerVibration } = useSoundAndVibration();
+  const { playSound, triggerVibration } = useSoundStore();
   const { seconds, minutes, restart } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
@@ -179,7 +179,7 @@ export default function WorkoutSessionScreen() {
     if (diffMs < 2000) {
       // user is in the foreground at the actual expiry
       if (settings?.restTimerSound === "true") {
-        await playSound();
+        playSound();
       }
       if (settings?.restTimerVibration === "true") {
         triggerVibration();

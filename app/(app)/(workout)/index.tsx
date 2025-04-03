@@ -25,7 +25,6 @@ import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkout
 import { useCompletedWorkoutsQuery } from "@/hooks/useCompletedWorkoutsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
-import { useSoundAndVibration } from "@/hooks/useSoundAndVibration";
 import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
 import { Notes } from "@/components/Notes";
@@ -53,8 +52,6 @@ export default function WorkoutOverviewScreen() {
     useSaveCompletedWorkoutMutation(weightUnit);
 
   useKeepScreenOn();
-
-  const { unloadSound } = useSoundAndVibration();
 
   const [isSaving, setIsSaving] = useState(false);
   const [loadingExerciseIndex, setLoadingExerciseIndex] = useState<
@@ -202,7 +199,6 @@ export default function WorkoutOverviewScreen() {
             {
               onSuccess: () => {
                 console.log("Workout saved successfully!");
-                unloadSound();
                 clearPersistedStore();
                 router.push("/(tabs)");
               },
