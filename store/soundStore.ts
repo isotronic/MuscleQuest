@@ -78,13 +78,17 @@ export const useSoundStore = create<SoundStore>((set, get) => ({
       // Optional: If you have extremely short clips, you can add a tiny delay:
       // await new Promise((resolve) => setTimeout(resolve, 100));
 
-      await new Promise<void>((resolve) => {
+      const finishPromise = new Promise<void>((resolve) => {
         localSound.setOnPlaybackStatusUpdate((status) => {
           if ("didJustFinish" in status && status.didJustFinish) {
             resolve();
           }
         });
       });
+      const timeoutPromise = new Promise<void>((resolve) =>
+        setTimeout(resolve, 5000),
+      );
+      await Promise.race([finishPromise, timeoutPromise]);
 
       await localSound.unloadAsync();
       set({ sound: null, isLoaded: false });
