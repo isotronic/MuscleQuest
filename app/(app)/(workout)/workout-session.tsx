@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, View, Dimensions } from "react-native";
+import { Animated, StyleSheet, View } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
-import { PanGestureHandler, State } from "react-native-gesture-handler";
+import { PanGestureHandler } from "react-native-gesture-handler";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -22,15 +22,13 @@ import {
 import { Notes } from "@/components/Notes";
 import { useSoundStore } from "@/store/soundStore";
 import { useWorkoutSessionLogic } from "@/hooks/useWorkoutSessionLogic";
+import { useSwipeAnimation } from "@/hooks/useSwipeAnimation";
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
-  const screenWidth = Dimensions.get("window").width; // Get the screen width
-  const translateX = useRef(new Animated.Value(0)).current;
 
   console.log("Workout Session Screen load");
 
-  const [isAnimating, setIsAnimating] = useState(false);
   const [nextSetData, setNextSetData] = useState<{
     weight?: string;
     reps?: string;
@@ -233,6 +231,32 @@ export default function WorkoutSessionScreen() {
     previousExercise?.local_animated_uri,
   );
 
+  // Initialize the swipe animation hook
+  const {
+    translateX,
+    isAnimating,
+    handleSwipeGesture,
+    animateSets,
+    screenWidth,
+  } = useSwipeAnimation({
+    onSwipeLeft: hasNextSet
+      ? () => {
+          setCurrentExerciseAndSetIndex(nextExerciseIndex, nextSetIndex);
+        }
+      : undefined,
+    onSwipeRight:
+      hasPreviousSet &&
+      previousExerciseIndex !== null &&
+      previousSetIndex !== null
+        ? () => {
+            setCurrentExerciseAndSetIndex(
+              previousExerciseIndex as number,
+              previousSetIndex as number,
+            );
+          }
+        : undefined,
+  });
+
   const handlePreviousSet = () => {
     if (
       hasPreviousSet &&
@@ -255,61 +279,6 @@ export default function WorkoutSessionScreen() {
         setCurrentExerciseAndSetIndex(nextExerciseIndex, nextSetIndex);
       });
     }
-  };
-
-  const handleSwipeGesture = ({ nativeEvent }: any) => {
-    const { translationX, state } = nativeEvent;
-    const swipeThreshold = 50;
-
-    if (state === State.ACTIVE && !isAnimating) {
-      translateX.setValue(translationX);
-    }
-
-    if (state === State.END && !isAnimating) {
-      if (
-        translationX > swipeThreshold &&
-        hasPreviousSet &&
-        previousExerciseIndex !== null &&
-        previousSetIndex !== null
-      ) {
-        // Swiping right to go to previous set
-        animateSets(screenWidth, () => {
-          setCurrentExerciseAndSetIndex(
-            previousExerciseIndex as number,
-            previousSetIndex as number,
-          );
-        });
-      } else if (translationX < -swipeThreshold && hasNextSet) {
-        // Swiping left to go to next set
-        animateSets(-screenWidth, () => {
-          setCurrentExerciseAndSetIndex(nextExerciseIndex, nextSetIndex);
-        });
-      } else {
-        resetSwipe();
-      }
-    }
-  };
-
-  const animateSets = (direction: number, callback: () => void) => {
-    setIsAnimating(true);
-
-    Animated.timing(translateX, {
-      toValue: direction,
-      duration: 250,
-      easing: Easing.linear,
-      useNativeDriver: true,
-    }).start(() => {
-      setIsAnimating(false);
-      translateX.setValue(0);
-      callback();
-    });
-  };
-
-  const resetSwipe = () => {
-    Animated.spring(translateX, {
-      toValue: 0,
-      useNativeDriver: true,
-    }).start();
   };
 
   // These functions are now provided by the hook
