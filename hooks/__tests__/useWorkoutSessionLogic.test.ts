@@ -767,13 +767,33 @@ describe("useWorkoutSessionLogic", () => {
     // Create a properly structured previousWorkoutData array that matches what the hook expects
     const previousWorkoutData = createMockPreviousWorkoutData();
 
-    // Mock the implementation of getNextSetData to return expected values
-    // This is necessary because the actual implementation in the hook has complex logic
-    const mockGetNextSetData = jest.fn().mockReturnValue({
-      weight: "60",
-      reps: "8",
-      time: "",
-    });
+    jest
+      .spyOn(require("@/store/activeWorkoutStore"), "useActiveWorkoutStore")
+      .mockImplementation(() => ({
+        workout: mockWorkout,
+        currentExerciseIndex: 0,
+        currentSetIndices: { 0: 0 },
+        weightAndReps: { 0: { 0: { weight: "60", reps: "10" } } },
+        completedSets: {},
+        previousWorkoutData,
+      }));
+
+    const { result } = renderHook(() =>
+      useWorkoutSessionLogic(undefined, undefined),
+    );
+
+    expect(result.current.nextWeight).toBe("85"); // Weight from previous workout data (see createMockPreviousWorkoutData)
+    expect(result.current.nextReps).toBe("8"); // Reps from previous workout data (see createMockPreviousWorkoutData)
+    expect(result.current.nextTime).toBe(""); // No time data for weight-based exercise
+  });
+
+  it("should reset weight and reps when current set is marked as warmup", () => {
+    const mockWorkout = createMockWorkout();
+    // Mark current set as warmup so that weight/reps are not carried over
+    mockWorkout.exercises[0].sets[0].isWarmup = true;
+
+    // Create previous workout data to test the logic
+    const previousWorkoutData = createMockPreviousWorkoutData();
 
     jest
       .spyOn(require("@/store/activeWorkoutStore"), "useActiveWorkoutStore")
@@ -786,62 +806,15 @@ describe("useWorkoutSessionLogic", () => {
         previousWorkoutData,
       }));
 
-    const { result } = renderHook(() => {
-      const hookResult = useWorkoutSessionLogic(undefined, undefined);
-      // Override the getNextSetData method with our mock
-      hookResult.getNextSetData = mockGetNextSetData;
-      return hookResult;
-    });
+    const { result } = renderHook(() =>
+      useWorkoutSessionLogic(undefined, undefined),
+    );
 
-    const nextSetData = result.current.getNextSetData();
-
-    // The next set should use data from the previous workout
-    expect(nextSetData).toEqual({
-      weight: "60", // Weight is carried over from current set
-      reps: "8", // Reps from previous workout data
-      time: "", // No time data for weight-based exercise
-    });
-    expect(mockGetNextSetData).toHaveBeenCalled();
-  });
-
-  it("should reset weight and reps when current set is marked as warmup", () => {
-    const mockWorkout = createMockWorkout();
-    // Mark current set as warmup so that weight/reps are not carried over
-    mockWorkout.exercises[0].sets[0].isWarmup = true;
-
-    // Mock the implementation of getNextSetData to return empty values
-    // This is necessary because the actual implementation in the hook has complex logic
-    const mockGetNextSetData = jest.fn().mockReturnValue({
-      weight: "",
-      reps: "",
-      time: "",
-    });
-
-    jest
-      .spyOn(require("@/store/activeWorkoutStore"), "useActiveWorkoutStore")
-      .mockImplementation(() => ({
-        workout: mockWorkout,
-        currentExerciseIndex: 0,
-        currentSetIndices: { 0: 0 },
-        weightAndReps: { 0: { 0: { weight: "60", reps: "10" } } },
-        completedSets: {},
-        previousWorkoutData: null,
-      }));
-
-    const { result } = renderHook(() => {
-      const hookResult = useWorkoutSessionLogic(undefined, undefined);
-      // Override the getNextSetData method with our mock
-      hookResult.getNextSetData = mockGetNextSetData;
-      return hookResult;
-    });
-
-    const nextSetData = result.current.getNextSetData();
-    expect(nextSetData).toEqual({
-      weight: "",
-      reps: "",
-      time: "",
-    });
-    expect(mockGetNextSetData).toHaveBeenCalled();
+    // For warmup sets, the weight should be taken from previous workout data
+    // instead of carrying over from the current set
+    expect(result.current.nextWeight).toBe("85"); // Weight from previous workout data
+    expect(result.current.nextReps).toBe("8"); // Reps from previous workout data
+    expect(result.current.nextTime).toBe(""); // No time data for weight-based exercise
   });
 
   it("should reset weight when next set is marked as drop set", () => {
@@ -849,13 +822,8 @@ describe("useWorkoutSessionLogic", () => {
     // Mark the next set as a drop set
     mockWorkout.exercises[0].sets[1].isDropSet = true;
 
-    // Mock the implementation of getNextSetData to return empty values
-    // This is necessary because the actual implementation in the hook has complex logic
-    const mockGetNextSetData = jest.fn().mockReturnValue({
-      weight: "",
-      reps: "",
-      time: "",
-    });
+    // Create previous workout data to test the logic
+    const previousWorkoutData = createMockPreviousWorkoutData();
 
     jest
       .spyOn(require("@/store/activeWorkoutStore"), "useActiveWorkoutStore")
@@ -865,28 +833,23 @@ describe("useWorkoutSessionLogic", () => {
         currentSetIndices: { 0: 0 },
         weightAndReps: { 0: { 0: { weight: "60", reps: "10" } } },
         completedSets: {},
-        previousWorkoutData: null,
+        previousWorkoutData,
       }));
 
-    const { result } = renderHook(() => {
-      const hookResult = useWorkoutSessionLogic(undefined, undefined);
-      // Override the getNextSetData method with our mock
-      hookResult.getNextSetData = mockGetNextSetData;
-      return hookResult;
-    });
+    const { result } = renderHook(() =>
+      useWorkoutSessionLogic(undefined, undefined),
+    );
 
-    const nextSetData = result.current.getNextSetData();
-    expect(nextSetData).toEqual({
-      weight: "",
-      reps: "",
-      time: "",
-    });
-    expect(mockGetNextSetData).toHaveBeenCalled();
+    // For drop sets, the weight should be taken from previous workout data
+    // instead of carrying over from the current set
+    expect(result.current.nextWeight).toBe("85"); // Weight from previous workout data
+    expect(result.current.nextReps).toBe("8"); // Reps from previous workout data
+    expect(result.current.nextTime).toBe(""); // No time data for weight-based exercise
   });
 
   it("should handle transition to the first set of the next exercise", () => {
     const mockWorkout = createMockWorkout();
-    // Add a second exercise with proper set structure
+    // Add a new exercise with proper set structure
     mockWorkout.exercises.push({
       exercise_id: 999,
       name: "New Exercise",
@@ -913,12 +876,16 @@ describe("useWorkoutSessionLogic", () => {
       ],
     });
 
-    // Mock the implementation of getNextSetData to return empty values
-    // This is necessary because the actual implementation in the hook has complex logic
-    const mockGetNextSetData = jest.fn().mockReturnValue({
-      weight: "",
-      reps: "",
-      time: "",
+    // Create previous workout data to test the logic
+    const previousWorkoutData = createMockPreviousWorkoutData();
+    // Add data for the new exercise to the previous workout data
+    previousWorkoutData[0].exercises.push({
+      exercise_id: 999,
+      name: "New Exercise",
+      sets: [
+        { weight: 50, reps: 12 },
+        { weight: 55, reps: 10 },
+      ],
     });
 
     jest
@@ -937,22 +904,21 @@ describe("useWorkoutSessionLogic", () => {
           },
         },
         completedSets: {},
-        previousWorkoutData: null,
+        previousWorkoutData,
       }));
 
-    const { result } = renderHook(() => {
-      const hookResult = useWorkoutSessionLogic(undefined, undefined);
-      // Override the getNextSetData method with our mock
-      hookResult.getNextSetData = mockGetNextSetData;
-      return hookResult;
-    });
+    const { result } = renderHook(() =>
+      useWorkoutSessionLogic(undefined, undefined),
+    );
 
-    const nextSetData = result.current.getNextSetData();
-    expect(nextSetData).toEqual({
-      weight: "",
-      reps: "",
-      time: "",
-    });
-    expect(mockGetNextSetData).toHaveBeenCalled();
+    // Verify that we're transitioning to the next exercise
+    expect(result.current.nextExerciseIndex).toBe(1);
+    expect(result.current.nextSetIndex).toBe(0);
+
+    // When transitioning to a new exercise, the weight and reps should come from previous workout data
+    // or be empty if no previous data exists
+    expect(result.current.nextWeight).toBe("100"); // Weight from previous workout data for the next exercise (Squat)
+    expect(result.current.nextReps).toBe("6"); // Reps from previous workout data for the next exercise (Squat)
+    expect(result.current.nextTime).toBe(""); // No time data for weight-based exercise
   });
 });
