@@ -12,7 +12,7 @@ type SwipeAnimationOptions = {
 };
 
 type SwipeAnimationResult = {
-  translateX: any; // Using any for Animated.Value due to type issues
+  translateX: typeof Animated.Value;
   isAnimating: boolean;
   handleSwipeGesture: (event: PanGestureHandlerGestureEvent) => void;
   animateSets: (direction: number, callback: () => void) => void;
@@ -64,6 +64,10 @@ export const useSwipeAnimation = (
       } else {
         resetSwipe();
       }
+    }
+
+    if ((state === State.CANCELLED || state === State.FAILED) && !isAnimating) {
+      resetSwipe();
     }
   };
 
