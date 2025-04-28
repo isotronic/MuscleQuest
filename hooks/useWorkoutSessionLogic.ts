@@ -4,6 +4,147 @@ import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { convertTimeStrToSeconds } from "@/utils/utility";
 
+// Helper functions for workout session logic
+
+/**
+ * Computes the indices for the next set
+ */
+const computeNextIndices = (
+  workout: { exercises: Exercise[] } | null | undefined,
+  currentExerciseIndex: number,
+  currentSetIndex: number,
+) => {
+  let nextExerciseIndex = currentExerciseIndex;
+  let nextSetIndex = currentSetIndex + 1;
+
+  const currentExercise = workout?.exercises[currentExerciseIndex];
+  if (currentExercise && nextSetIndex >= currentExercise.sets.length) {
+    // Move to first set of next exercise
+    nextExerciseIndex = currentExerciseIndex + 1;
+    nextSetIndex = 0;
+  }
+
+  const hasNextSet =
+    workout &&
+    nextExerciseIndex < workout.exercises.length &&
+    workout.exercises[nextExerciseIndex]?.sets[nextSetIndex];
+
+  return { nextExerciseIndex, nextSetIndex, hasNextSet };
+};
+
+/**
+ * Computes the indices for the previous set
+ */
+const computePreviousIndices = (
+  workout: { exercises: Exercise[] } | null | undefined,
+  currentExerciseIndex: number,
+  currentSetIndex: number,
+) => {
+  let previousExerciseIndex: number | null = currentExerciseIndex;
+  let previousSetIndex: number | null = currentSetIndex - 1;
+
+  if (previousSetIndex < 0) {
+    // Move to last set of previous exercise
+    previousExerciseIndex = currentExerciseIndex - 1;
+    if (previousExerciseIndex >= 0) {
+      const prevExercise = workout?.exercises[previousExerciseIndex];
+      previousSetIndex = prevExercise?.sets.length
+        ? prevExercise.sets.length - 1
+        : 0;
+    } else {
+      previousSetIndex = null;
+      previousExerciseIndex = null;
+    }
+  }
+
+  const hasPreviousSet =
+    previousExerciseIndex !== null &&
+    previousSetIndex !== null &&
+    previousExerciseIndex >= 0 &&
+    previousSetIndex >= 0 &&
+    workout &&
+    workout.exercises[previousExerciseIndex]?.sets[previousSetIndex];
+
+  return { previousExerciseIndex, previousSetIndex, hasPreviousSet };
+};
+
+/**
+ * Checks if a set is the first or last in the workout
+ */
+const checkSetPosition = (
+  workout: { exercises: Exercise[] } | null | undefined,
+  exerciseIndex: number | null,
+  setIndex: number | null,
+  exercise: Exercise | null | undefined,
+) => {
+  if (!workout || exerciseIndex === null || setIndex === null || !exercise) {
+    return { isFirst: false, isLast: false };
+  }
+
+  const isFirst = exerciseIndex === 0 && setIndex === 0;
+  const isLast =
+    exerciseIndex === workout.exercises.length - 1 &&
+    setIndex === exercise.sets.length - 1;
+
+  return { isFirst, isLast };
+};
+
+/**
+ * Finds the last available set data from previous workouts
+ */
+const findSetDataFromPreviousWorkouts = (
+  previousWorkoutData: CompletedWorkout[] | null | undefined,
+  exerciseId: number,
+  setIndex: number,
+) => {
+  if (!previousWorkoutData) {
+    return null;
+  }
+
+  for (const workout of previousWorkoutData) {
+    const exerciseData = workout.exercises.find(
+      (prevEx) => prevEx.exercise_id === exerciseId,
+    );
+
+    if (exerciseData && exerciseData.sets[setIndex]) {
+      return exerciseData.sets[setIndex]; // Return the first non-null data found
+    }
+  }
+
+  return null; // No data found in any past workout
+};
+
+/**
+ * Gets weight/reps/time values with fallbacks
+ */
+const getSetValues = (
+  weightAndReps: any,
+  exerciseIndex: number | null,
+  setIndex: number | null,
+  previousSetData: any,
+) => {
+  if (exerciseIndex === null || setIndex === null) {
+    return { weight: "", reps: "", time: "" };
+  }
+
+  const weight =
+    weightAndReps[exerciseIndex]?.[setIndex]?.weight ??
+    previousSetData?.weight?.toString() ??
+    "";
+
+  const reps =
+    weightAndReps[exerciseIndex]?.[setIndex]?.reps ??
+    previousSetData?.reps?.toString() ??
+    "";
+
+  const time =
+    weightAndReps[exerciseIndex]?.[setIndex]?.time ??
+    previousSetData?.time?.toString() ??
+    "";
+
+  return { weight, reps, time };
+};
+
 type SetData = {
   weight?: string;
   reps?: string;
@@ -135,112 +276,61 @@ export const useWorkoutSessionLogic = (
       ? completedSets[currentExerciseIndex][currentSetIndex]
       : false;
 
-  const findLastAvailableSetData = (exerciseId: number, setIndex: number) => {
-    if (!previousWorkoutData) {
-      return null;
-    }
-
-    for (const workout of previousWorkoutData) {
-      const exerciseData = workout.exercises.find(
-        (prevEx) => prevEx.exercise_id === exerciseId,
-      );
-
-      if (exerciseData && exerciseData.sets[setIndex]) {
-        return exerciseData.sets[setIndex]; // Return the first non-null data found
-      }
-    }
-
-    return null; // No data found in any past workout
-  };
-
-  const previousWorkoutSetData = findLastAvailableSetData(
+  // Get current set data from previous workouts
+  const previousWorkoutSetData = findSetDataFromPreviousWorkouts(
+    previousWorkoutData,
     currentExercise?.exercise_id || 0,
     currentSetIndex,
   );
 
-  const weight =
-    weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight ??
-    previousWorkoutSetData?.weight?.toString() ??
-    "";
+  // Get current set values
+  const { weight, reps, time } = getSetValues(
+    weightAndReps,
+    currentExerciseIndex,
+    currentSetIndex,
+    previousWorkoutSetData,
+  );
 
-  const reps =
-    weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.reps ??
-    previousWorkoutSetData?.reps?.toString() ??
-    "";
+  // Compute next and previous indices
+  const { nextExerciseIndex, nextSetIndex, hasNextSet } = computeNextIndices(
+    workout,
+    currentExerciseIndex,
+    currentSetIndex,
+  );
 
-  const time =
-    weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.time ??
-    previousWorkoutSetData?.time?.toString() ??
-    "";
-
-  // Compute next set index and exercise index
-  let nextExerciseIndex = currentExerciseIndex;
-  let nextSetIndex = currentSetIndex + 1;
-
-  if (currentExercise && nextSetIndex >= currentExercise.sets.length) {
-    // Move to first set of next exercise
-    nextExerciseIndex = currentExerciseIndex + 1;
-    nextSetIndex = 0;
-  }
-
-  const hasNextSet =
-    workout &&
-    nextExerciseIndex < workout.exercises.length &&
-    workout.exercises[nextExerciseIndex].sets[nextSetIndex];
-
-  // Compute previous set index and exercise index
-  let previousExerciseIndex: number | null = currentExerciseIndex;
-  let previousSetIndex: number | null = currentSetIndex - 1;
-
-  if (previousSetIndex < 0) {
-    // Move to last set of previous exercise
-    previousExerciseIndex = currentExerciseIndex - 1;
-    if (previousExerciseIndex >= 0) {
-      const prevExercise = workout?.exercises[previousExerciseIndex];
-      previousSetIndex = prevExercise!.sets.length - 1;
-    } else {
-      previousSetIndex = null;
-      previousExerciseIndex = null;
-    }
-  }
-
-  const hasPreviousSet =
-    previousExerciseIndex !== null &&
-    previousSetIndex !== null &&
-    previousExerciseIndex >= 0 &&
-    previousSetIndex >= 0 &&
-    workout &&
-    workout.exercises[previousExerciseIndex].sets[previousSetIndex];
+  const { previousExerciseIndex, previousSetIndex, hasPreviousSet } =
+    computePreviousIndices(workout, currentExerciseIndex, currentSetIndex);
 
   // Next set data
-  const nextExercise = hasNextSet ? workout.exercises[nextExerciseIndex] : null;
+  const nextExercise = hasNextSet
+    ? workout!.exercises[nextExerciseIndex]
+    : null;
   const upcomingSet = nextExercise ? nextExercise.sets[nextSetIndex] : null;
   const nextExerciseName = nextExercise?.name || "";
 
-  const previousWorkoutNextSetData = findLastAvailableSetData(
+  // Get next set data from previous workouts
+  const previousWorkoutNextSetData = findSetDataFromPreviousWorkouts(
+    previousWorkoutData,
     nextExercise?.exercise_id || 0,
     nextSetIndex,
   );
 
-  const nextWeight =
-    weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.weight ??
-    previousWorkoutNextSetData?.weight?.toString() ??
-    "";
-
-  const nextReps =
-    weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.reps ??
-    previousWorkoutNextSetData?.reps?.toString() ??
-    "";
-
-  const nextTime =
-    weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.time ??
-    previousWorkoutNextSetData?.time?.toString() ??
-    "";
+  // Get next set values
+  const {
+    weight: nextWeight,
+    reps: nextReps,
+    time: nextTime,
+  } = getSetValues(
+    weightAndReps,
+    nextExerciseIndex,
+    nextSetIndex,
+    previousWorkoutNextSetData,
+  );
 
   // Previous set data
   const previousExercise =
     hasPreviousSet && previousExerciseIndex !== null
-      ? workout.exercises[previousExerciseIndex]
+      ? workout!.exercises[previousExerciseIndex]
       : null;
   const previousSet =
     previousExercise && previousSetIndex !== null
@@ -248,37 +338,27 @@ export const useWorkoutSessionLogic = (
       : null;
   const previousExerciseName = previousExercise?.name || "";
 
-  const previousExerciseData = previousWorkoutData
-    ?.map((workout) => workout.exercises)
-    .flat()
-    .find((prevEx) => prevEx.exercise_id === previousExercise?.exercise_id);
-
-  let previousSetData = null;
-
-  if (previousSetIndex !== null && previousExerciseData) {
-    previousSetData = previousExerciseData.sets[previousSetIndex];
-  }
-
-  const previousWeight =
+  // Get previous set data from previous workouts
+  const previousSetData =
     previousExerciseIndex !== null && previousSetIndex !== null
-      ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.weight ??
-        previousSetData?.weight?.toString() ??
-        ""
-      : "";
+      ? findSetDataFromPreviousWorkouts(
+          previousWorkoutData,
+          previousExercise?.exercise_id || 0,
+          previousSetIndex,
+        )
+      : null;
 
-  const previousReps =
-    previousExerciseIndex !== null && previousSetIndex !== null
-      ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.reps ??
-        previousSetData?.reps?.toString() ??
-        ""
-      : "";
-
-  const previousTime =
-    previousExerciseIndex !== null && previousSetIndex !== null
-      ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.time ??
-        previousSetData?.time?.toString() ??
-        ""
-      : "";
+  // Get previous set values
+  const {
+    weight: previousWeight,
+    reps: previousReps,
+    time: previousTime,
+  } = getSetValues(
+    weightAndReps,
+    previousExerciseIndex,
+    previousSetIndex,
+    previousSetData,
+  );
 
   const previousSetCompleted =
     previousExerciseIndex !== null &&
@@ -288,38 +368,31 @@ export const useWorkoutSessionLogic = (
       ? completedSets[previousExerciseIndex][previousSetIndex]
       : false;
 
-  const currentIsLastSetOfLastExercise =
-    workout &&
-    currentExercise &&
-    currentExerciseIndex === workout.exercises.length - 1 &&
-    currentSetIndex === currentExercise.sets.length - 1;
+  // Check position indicators
+  const {
+    isFirst: currentIsFirstSetOfFirstExercise,
+    isLast: currentIsLastSetOfLastExercise,
+  } = checkSetPosition(
+    workout,
+    currentExerciseIndex,
+    currentSetIndex,
+    currentExercise,
+  );
 
-  const currentIsFirstSetOfFirstExercise =
-    workout &&
-    currentExercise &&
-    currentExerciseIndex === 0 &&
-    currentSetIndex === 0;
+  const {
+    isFirst: nextIsFirstSetOfFirstExercise,
+    isLast: nextIsLastSetOfLastExercise,
+  } = checkSetPosition(workout, nextExerciseIndex, nextSetIndex, nextExercise);
 
-  const nextIsLastSetOfLastExercise =
-    workout &&
-    nextExercise &&
-    nextExerciseIndex === workout.exercises.length - 1 &&
-    nextSetIndex === nextExercise.sets.length - 1;
-
-  const nextIsFirstSetOfFirstExercise =
-    workout && nextExercise && nextExerciseIndex === 0 && nextSetIndex === 0;
-
-  const previousIsLastSetOfLastExercise =
-    workout &&
-    previousExercise &&
-    previousExerciseIndex === workout.exercises.length - 1 &&
-    previousSetIndex === previousExercise.sets.length - 1;
-
-  const previousIsFirstSetOfFirstExercise =
-    workout &&
-    previousExercise &&
-    previousExerciseIndex === 0 &&
-    previousSetIndex === 0;
+  const {
+    isFirst: previousIsFirstSetOfFirstExercise,
+    isLast: previousIsLastSetOfLastExercise,
+  } = checkSetPosition(
+    workout,
+    previousExerciseIndex,
+    previousSetIndex,
+    previousExercise,
+  );
 
   const handleWeightInputChange = (inputValue: string) => {
     const sanitizedInput = inputValue.replace(/[^0-9.]/g, "");
@@ -392,37 +465,34 @@ export const useWorkoutSessionLogic = (
     ]);
   };
 
+  /**
+   * Gets data for the next set with logic for carrying over values
+   */
   const getNextSetData = () => {
     // Compute temporary next indices
-    let tempNextExerciseIndex = currentExerciseIndex;
-    let tempNextSetIndex = currentSetIndex + 1;
+    const {
+      nextExerciseIndex: tempNextExerciseIndex,
+      nextSetIndex: tempNextSetIndex,
+      hasNextSet: tempHasNextSet,
+    } = computeNextIndices(workout, currentExerciseIndex, currentSetIndex);
 
-    if (currentExercise && tempNextSetIndex >= currentExercise.sets.length) {
-      tempNextExerciseIndex += 1;
-      tempNextSetIndex = 0;
-    }
-
-    if (
-      workout &&
-      tempNextExerciseIndex < workout.exercises.length &&
-      workout.exercises[tempNextExerciseIndex].sets[tempNextSetIndex]
-    ) {
-      const nextExercise = workout.exercises[tempNextExerciseIndex];
-      const previousWorkoutNextSetData = previousWorkoutData
-        ?.map((workout) => workout.exercises)
-        .flat()
-        .find((prevEx) => prevEx.exercise_id === nextExercise?.exercise_id)
-        ?.sets[tempNextSetIndex];
+    if (tempHasNextSet) {
+      const nextExercise = workout!.exercises[tempNextExerciseIndex];
+      const previousWorkoutNextSetData = findSetDataFromPreviousWorkouts(
+        previousWorkoutData,
+        nextExercise.exercise_id,
+        tempNextSetIndex,
+      );
 
       // Logic to carry over weight/reps from current set
       const currentSetValues =
         weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
 
       const { isWarmup, isDropSet } =
-        workout.exercises[currentExerciseIndex].sets[currentSetIndex];
+        workout!.exercises[currentExerciseIndex].sets[currentSetIndex];
 
       const isNextDropSet =
-        workout.exercises[currentExerciseIndex].sets[tempNextSetIndex]
+        workout!.exercises[currentExerciseIndex].sets[tempNextSetIndex]
           ?.isDropSet;
 
       const nextSetValues = {
@@ -448,33 +518,23 @@ export const useWorkoutSessionLogic = (
     }
   };
 
+  /**
+   * Handles completing the current set
+   */
   const handleCompleteSet = () => {
     if (!currentExercise || !currentSet) {
       return;
     }
 
     // Parse weight and reps, treating empty strings as zero
-    const weightStr =
-      weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight ??
-      previousWorkoutSetData?.weight?.toString() ??
-      "";
-    const repsStr =
-      weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.reps ??
-      previousWorkoutSetData?.reps?.toString() ??
-      "";
-    const timeStr =
-      weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.time ??
-      previousWorkoutSetData?.time?.toString() ??
-      "";
-
-    const weightInKg = parseFloat(weightStr);
+    const weightInKg = parseFloat(weight);
     const validWeightInKg = isNaN(weightInKg) ? 0 : weightInKg;
 
-    const repsNum = parseInt(repsStr);
+    const repsNum = parseInt(reps);
     const validRepsNum = isNaN(repsNum) ? 0 : repsNum;
 
     // Convert time from MM:SS format to total seconds
-    const validTimeNum = convertTimeStrToSeconds(timeStr);
+    const validTimeNum = convertTimeStrToSeconds(time);
 
     // Update the weightAndReps with valid values for the current set
     updateWeightAndReps(
