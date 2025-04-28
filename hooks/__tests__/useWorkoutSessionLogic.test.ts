@@ -473,6 +473,112 @@ describe("useWorkoutSessionLogic", () => {
     expect(mockNextSet).toHaveBeenCalled();
   });
 
+  it("should handle complete set for the last set of the last exercise", () => {
+    const mockWorkout = createMockWorkout();
+    const lastExerciseIndex = mockWorkout.exercises.length - 1;
+    const lastSetIndex =
+      mockWorkout.exercises[lastExerciseIndex].sets.length - 1;
+
+    // Setup the mock implementation for this test
+    jest
+      .spyOn(require("@/store/activeWorkoutStore"), "useActiveWorkoutStore")
+      .mockImplementation(() => ({
+        workout: mockWorkout,
+        currentExerciseIndex: lastExerciseIndex,
+        currentSetIndices: { [lastExerciseIndex]: lastSetIndex },
+        weightAndReps: {
+          [lastExerciseIndex]: {
+            [lastSetIndex]: { time: "60" }, // Plank is a time-based exercise
+          },
+        },
+        completedSets: {},
+        previousWorkoutData: null,
+        nextSet: mockNextSet,
+        updateWeightAndReps: mockUpdateWeightAndReps,
+      }));
+
+    const { result } = renderHook(() =>
+      useWorkoutSessionLogic(undefined, undefined),
+    );
+
+    // Verify that we're on the last set of the last exercise
+    expect(result.current.currentIsLastSetOfLastExercise).toBe(true);
+    expect(result.current.hasNextSet).toBe(false);
+
+    act(() => {
+      result.current.handleCompleteSet();
+    });
+
+    // Verify that updateWeightAndReps was called with the correct values
+    expect(mockUpdateWeightAndReps).toHaveBeenCalledWith(
+      lastExerciseIndex,
+      lastSetIndex,
+      "0", // weight (not used for time-based exercise)
+      "0", // reps (not used for time-based exercise)
+      "60", // time in seconds
+    );
+
+    // Verify that nextSet was called to complete the workout
+    expect(mockNextSet).toHaveBeenCalled();
+  });
+
+  it("should handle complete set for a time-based exercise", () => {
+    const convertTimeStrToSecondsSpy = jest.spyOn(
+      utility,
+      "convertTimeStrToSeconds",
+    );
+
+    const mockWorkout = createMockWorkout();
+    // Use the Plank exercise which is time-based (index 2)
+    const timeExerciseIndex = 2;
+    const timeSetIndex = 0;
+
+    // Setup the mock implementation for this test
+    jest
+      .spyOn(require("@/store/activeWorkoutStore"), "useActiveWorkoutStore")
+      .mockImplementation(() => ({
+        workout: mockWorkout,
+        currentExerciseIndex: timeExerciseIndex,
+        currentSetIndices: { [timeExerciseIndex]: timeSetIndex },
+        weightAndReps: {
+          [timeExerciseIndex]: {
+            [timeSetIndex]: { time: "1:30" }, // 1 minute 30 seconds
+          },
+        },
+        completedSets: {},
+        previousWorkoutData: null,
+        nextSet: mockNextSet,
+        updateWeightAndReps: mockUpdateWeightAndReps,
+      }));
+
+    const { result } = renderHook(() =>
+      useWorkoutSessionLogic(undefined, undefined),
+    );
+
+    // Verify that we're on a time-based exercise
+    expect(result.current.currentExercise?.tracking_type).toBe("time");
+
+    act(() => {
+      result.current.handleCompleteSet();
+    });
+
+    // Verify that convertTimeStrToSeconds was called with the time string
+    expect(convertTimeStrToSecondsSpy).toHaveBeenCalledWith("1:30");
+
+    // Verify that updateWeightAndReps was called with the correct values
+    // The time "1:30" should be converted to 90 seconds
+    expect(mockUpdateWeightAndReps).toHaveBeenCalledWith(
+      timeExerciseIndex,
+      timeSetIndex,
+      "0", // weight (not used for time-based exercise)
+      "0", // reps (not used for time-based exercise)
+      "90", // time converted to seconds (1:30 = 90 seconds)
+    );
+
+    // Verify that nextSet was called to move to the next set
+    expect(mockNextSet).toHaveBeenCalled();
+  });
+
   it("should handle getNextSetData", () => {
     const mockWorkout = createMockWorkout();
 
