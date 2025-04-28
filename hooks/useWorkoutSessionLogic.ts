@@ -341,10 +341,11 @@ export const useWorkoutSessionLogic = (
 
       const nextSetValues = {
         weight:
-          (isWarmup || isDropSet || isNextDropSet) &&
-          previousWorkoutNextSetData?.weight
-            ? previousWorkoutNextSetData?.weight?.toString()
-            : currentSetValues.weight || "",
+          isWarmup || isDropSet || isNextDropSet
+            ? previousWorkoutNextSetData?.weight?.toString() || ""
+            : currentSetValues.weight ||
+              previousWorkoutNextSetData?.weight?.toString() ||
+              "",
         reps: previousWorkoutNextSetData?.reps?.toString() || "",
         time: previousWorkoutNextSetData?.time
           ? // Convert stored seconds back to display format (e.g., 360 -> "600")
