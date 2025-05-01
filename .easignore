@@ -22,8 +22,6 @@ ios
 credentials.json
 credentials/
 
-coverage/
-
 # macOS
 .DS_Store
 
