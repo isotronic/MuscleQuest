@@ -1,7 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import {
+  Animated,
+  Easing,
+  StyleSheet,
+  View,
+  Dimensions,
+  Alert,
+} from "react-native";
 import { ActivityIndicator } from "react-native-paper";
-import { PanGestureHandler } from "react-native-gesture-handler";
+import { PanGestureHandler, State } from "react-native-gesture-handler";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -12,6 +19,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
+import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import WorkoutTimer from "@/components/WorkoutTimer";
 import Bugsnag from "@bugsnag/expo";
@@ -20,31 +28,40 @@ import {
   scheduleRestNotification,
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
+import { convertTimeStrToSeconds } from "@/utils/utility";
 import { useSoundStore } from "@/store/soundStore";
-import { useWorkoutSessionLogic } from "@/hooks/useWorkoutSessionLogic";
-import { useSwipeAnimation } from "@/hooks/useSwipeAnimation";
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
+  const screenWidth = Dimensions.get("window").width; // Get the screen width
+  const translateX = useRef(new Animated.Value(0)).current;
 
-  console.log("Workout Session Screen load");
-
+  const [isAnimating, setIsAnimating] = useState(false);
   const [nextSetData, setNextSetData] = useState<{
     weight?: string;
     reps?: string;
     time?: string;
   }>({});
 
-  const { selectedExerciseIndex, workoutHistory } = useLocalSearchParams();
-
-  // Use the workout session logic hook
-  const sessionLogic = useWorkoutSessionLogic(
-    selectedExerciseIndex,
-    workoutHistory,
-  );
-
-  const { timerRunning, timerExpiry, startTimer, stopTimer, addSet } =
-    useActiveWorkoutStore();
+  const {
+    workout,
+    currentExerciseIndex,
+    currentSetIndices,
+    weightAndReps,
+    previousWorkoutData,
+    completedSets,
+    setCurrentExerciseIndex,
+    setCurrentSetIndex,
+    updateWeightAndReps,
+    initializeWeightAndReps,
+    nextSet,
+    timerRunning,
+    timerExpiry,
+    startTimer,
+    stopTimer,
+    removeSet,
+    addSet,
+  } = useActiveWorkoutStore();
 
   const {
     data: settings,
@@ -52,59 +69,69 @@ export default function WorkoutSessionScreen() {
     error: settingsError,
   } = useSettingsQuery();
 
-  // Extract data from the session logic hook
-  const {
-    // Current set data
-    currentExercise,
+  const { selectedExerciseIndex, workoutHistory } = useLocalSearchParams();
+
+  useEffect(() => {
+    if (workoutHistory) {
+      const previousWorkoutData: CompletedWorkout[] = JSON.parse(
+        workoutHistory as string,
+      );
+      initializeWeightAndReps(previousWorkoutData);
+    }
+  }, [workoutHistory, initializeWeightAndReps]);
+
+  useEffect(() => {
+    if (workout && selectedExerciseIndex !== undefined) {
+      setCurrentExerciseIndex(Number(selectedExerciseIndex));
+    }
+  }, [selectedExerciseIndex, setCurrentExerciseIndex, workout]);
+
+  const currentExercise = workout?.exercises[currentExerciseIndex];
+  const currentSetIndex = currentSetIndices[currentExerciseIndex] || 0;
+  const currentSet = currentExercise?.sets[currentSetIndex];
+  const currentSetCompleted =
+    completedSets[currentExerciseIndex] &&
+    typeof completedSets[currentExerciseIndex][currentSetIndex] === "boolean"
+      ? completedSets[currentExerciseIndex][currentSetIndex]
+      : false;
+
+  const findLastAvailableSetData = (exerciseId: number, setIndex: number) => {
+    if (!previousWorkoutData) {
+      return null;
+    }
+
+    for (const workout of previousWorkoutData) {
+      const exerciseData = workout.exercises.find(
+        (prevEx) => prevEx.exercise_id === exerciseId,
+      );
+
+      if (exerciseData && exerciseData.sets[setIndex]) {
+        return exerciseData.sets[setIndex]; // Return the first non-null data found
+      }
+    }
+
+    return null; // No data found in any past workout
+  };
+
+  const previousWorkoutSetData = findLastAvailableSetData(
+    currentExercise?.exercise_id || 0,
     currentSetIndex,
-    currentSet,
-    currentSetCompleted,
-    weight,
-    reps,
-    time,
+  );
 
-    // Next set data
-    hasNextSet,
-    nextExerciseIndex,
-    nextSetIndex,
-    nextExercise,
-    upcomingSet,
-    nextExerciseName,
-    nextWeight,
-    nextReps,
-    nextTime,
-    nextIsLastSetOfLastExercise,
-    nextIsFirstSetOfFirstExercise,
+  const weight =
+    weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight ??
+    previousWorkoutSetData?.weight?.toString() ??
+    "";
 
-    // Previous set data
-    hasPreviousSet,
-    previousExerciseIndex,
-    previousSetIndex,
-    previousExercise,
-    previousSet,
-    previousExerciseName,
-    previousWeight,
-    previousReps,
-    previousTime,
-    previousSetCompleted,
-    previousIsLastSetOfLastExercise,
-    previousIsFirstSetOfFirstExercise,
+  const reps =
+    weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.reps ??
+    previousWorkoutSetData?.reps?.toString() ??
+    "";
 
-    // Position indicators
-    currentIsLastSetOfLastExercise,
-    currentIsFirstSetOfFirstExercise,
-
-    // Actions
-    handleWeightInputChange,
-    handleRepsInputChange,
-    handleTimeInputChange,
-    handleWeightChange,
-    handleRepsChange,
-    handleRemoveSet,
-    handleCompleteSet,
-    getNextSetData,
-    setCurrentExerciseAndSetIndex,
-  } = sessionLogic;
+  const time =
+    weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.time ??
+    previousWorkoutSetData?.time?.toString() ??
+    "";
 
   // Fetch animated image for current exercise
   const {
@@ -208,9 +235,120 @@ export default function WorkoutSessionScreen() {
     }
   };
 
-  // All input handling functions are now provided by the hook
+  const handleWeightInputChange = (inputValue: string) => {
+    const sanitizedInput = inputValue.replace(/[^0-9.]/g, "");
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      sanitizedInput,
+      reps,
+      time,
+    );
+  };
 
-  // Animation and UI state management
+  const handleRepsInputChange = (inputValue: string) => {
+    const sanitizedInput = inputValue.replace(/[^0-9.]/g, "");
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      weight,
+      sanitizedInput,
+      time,
+    );
+  };
+
+  const handleTimeInputChange = (inputValue: string) => {
+    // Remove any non-digits first
+    const sanitizedInput = inputValue.replace(/[^0-9]/g, "");
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      weight,
+      reps,
+      sanitizedInput,
+    );
+  };
+
+  const handleWeightChange = (amount: number) => {
+    const currentWeight = isNaN(parseFloat(weight)) ? 0 : parseFloat(weight);
+    const newWeight = (currentWeight + amount).toFixed(1);
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      newWeight,
+      reps,
+      time,
+    );
+  };
+
+  const handleRepsChange = (amount: number) => {
+    const currentReps = isNaN(parseInt(reps)) ? 0 : parseInt(reps);
+    const newReps = (currentReps + amount).toString();
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      weight,
+      newReps,
+      time,
+    );
+  };
+
+  const handleRemoveSet = (index: number) => {
+    Alert.alert("Delete Set", "Are you sure you want to delete this set?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          removeSet(index);
+        },
+      },
+    ]);
+  };
+
+  // Compute next set index and exercise index
+  let nextExerciseIndex = currentExerciseIndex;
+  let nextSetIndex = currentSetIndex + 1;
+
+  if (currentExercise && nextSetIndex >= currentExercise.sets.length) {
+    // Move to first set of next exercise
+    nextExerciseIndex = currentExerciseIndex + 1;
+    nextSetIndex = 0;
+  }
+
+  const hasNextSet =
+    workout &&
+    nextExerciseIndex < workout.exercises.length &&
+    workout.exercises[nextExerciseIndex].sets[nextSetIndex];
+
+  // Compute previous set index and exercise index
+  let previousExerciseIndex: number | null = currentExerciseIndex;
+  let previousSetIndex: number | null = currentSetIndex - 1;
+
+  if (previousSetIndex < 0) {
+    // Move to last set of previous exercise
+    previousExerciseIndex = currentExerciseIndex - 1;
+    if (previousExerciseIndex >= 0) {
+      const prevExercise = workout?.exercises[previousExerciseIndex];
+      previousSetIndex = prevExercise!.sets.length - 1;
+    } else {
+      previousSetIndex = null;
+      previousExerciseIndex = null;
+    }
+  }
+
+  const hasPreviousSet =
+    previousExerciseIndex !== null &&
+    previousSetIndex !== null &&
+    previousExerciseIndex >= 0 &&
+    previousSetIndex >= 0 &&
+    workout &&
+    workout.exercises[previousExerciseIndex].sets[previousSetIndex];
+
+  // Next set data
+  const nextExercise = hasNextSet ? workout.exercises[nextExerciseIndex] : null;
+  const upcomingSet = nextExercise ? nextExercise.sets[nextSetIndex] : null;
+  const nextExerciseName = nextExercise?.name || "";
   const {
     data: nextAnimatedUrl,
     error: nextAnimatedImageError,
@@ -221,6 +359,36 @@ export default function WorkoutSessionScreen() {
     nextExercise?.local_animated_uri,
   );
 
+  const previousWorkoutNextSetData = findLastAvailableSetData(
+    nextExercise?.exercise_id || 0,
+    nextSetIndex,
+  );
+
+  const nextWeight =
+    weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.weight ??
+    previousWorkoutNextSetData?.weight?.toString() ??
+    "";
+
+  const nextReps =
+    weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.reps ??
+    previousWorkoutNextSetData?.reps?.toString() ??
+    "";
+
+  const nextTime =
+    weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.time ??
+    previousWorkoutNextSetData?.time?.toString() ??
+    "";
+
+  // Previous set data
+  const previousExercise =
+    hasPreviousSet && previousExerciseIndex !== null
+      ? workout.exercises[previousExerciseIndex]
+      : null;
+  const previousSet =
+    previousExercise && previousSetIndex !== null
+      ? previousExercise.sets[previousSetIndex]
+      : null;
+  const previousExerciseName = previousExercise?.name || "";
   const {
     data: previousAnimatedUrl,
     error: previousAnimatedImageError,
@@ -231,31 +399,78 @@ export default function WorkoutSessionScreen() {
     previousExercise?.local_animated_uri,
   );
 
-  // Initialize the swipe animation hook
-  const {
-    translateX,
-    isAnimating,
-    handleSwipeGesture,
-    animateSets,
-    screenWidth,
-  } = useSwipeAnimation({
-    onSwipeLeft: hasNextSet
-      ? () => {
-          setCurrentExerciseAndSetIndex(nextExerciseIndex, nextSetIndex);
-        }
-      : undefined,
-    onSwipeRight:
-      hasPreviousSet &&
-      previousExerciseIndex !== null &&
-      previousSetIndex !== null
-        ? () => {
-            setCurrentExerciseAndSetIndex(
-              previousExerciseIndex as number,
-              previousSetIndex as number,
-            );
-          }
-        : undefined,
-  });
+  const previousExerciseData = previousWorkoutData
+    ?.map((workout) => workout.exercises)
+    .flat()
+    .find((prevEx) => prevEx.exercise_id === previousExercise?.exercise_id);
+
+  let previousSetData = null;
+
+  if (previousSetIndex !== null && previousExerciseData) {
+    previousSetData = previousExerciseData.sets[previousSetIndex];
+  }
+
+  const previousWeight =
+    previousExerciseIndex !== null && previousSetIndex !== null
+      ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.weight ??
+        previousSetData?.weight?.toString() ??
+        ""
+      : "";
+
+  const previousReps =
+    previousExerciseIndex !== null && previousSetIndex !== null
+      ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.reps ??
+        previousSetData?.reps?.toString() ??
+        ""
+      : "";
+
+  const previousTime =
+    previousExerciseIndex !== null && previousSetIndex !== null
+      ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.time ??
+        previousSetData?.time?.toString() ??
+        ""
+      : "";
+
+  const previousSetCompleted =
+    previousExerciseIndex !== null &&
+    previousSetIndex !== null &&
+    completedSets[previousExerciseIndex] &&
+    typeof completedSets[previousExerciseIndex][previousSetIndex] === "boolean"
+      ? completedSets[previousExerciseIndex][previousSetIndex]
+      : false;
+
+  const currentIsLastSetOfLastExercise =
+    workout &&
+    currentExercise &&
+    currentExerciseIndex === workout.exercises.length - 1 &&
+    currentSetIndex === currentExercise.sets.length - 1;
+
+  const currentIsFirstSetOfFirstExercise =
+    workout &&
+    currentExercise &&
+    currentExerciseIndex === 0 &&
+    currentSetIndex === 0;
+
+  const nextIsLastSetOfLastExercise =
+    workout &&
+    nextExercise &&
+    nextExerciseIndex === workout.exercises.length - 1 &&
+    nextSetIndex === nextExercise.sets.length - 1;
+
+  const nextIsFirstSetOfFirstExercise =
+    workout && nextExercise && nextExerciseIndex === 0 && nextSetIndex === 0;
+
+  const previousIsLastSetOfLastExercise =
+    workout &&
+    previousExercise &&
+    previousExerciseIndex === workout.exercises.length - 1 &&
+    previousSetIndex === previousExercise.sets.length - 1;
+
+  const previousIsFirstSetOfFirstExercise =
+    workout &&
+    previousExercise &&
+    previousExerciseIndex === 0 &&
+    previousSetIndex === 0;
 
   const handlePreviousSet = () => {
     if (
@@ -265,7 +480,8 @@ export default function WorkoutSessionScreen() {
       previousSetIndex !== null
     ) {
       animateSets(screenWidth, () => {
-        setCurrentExerciseAndSetIndex(
+        setCurrentExerciseIndex(previousExerciseIndex as number);
+        setCurrentSetIndex(
           previousExerciseIndex as number,
           previousSetIndex as number,
         );
@@ -276,15 +492,123 @@ export default function WorkoutSessionScreen() {
   const handleNextSet = () => {
     if (hasNextSet && !isAnimating) {
       animateSets(-screenWidth, () => {
-        setCurrentExerciseAndSetIndex(nextExerciseIndex, nextSetIndex);
+        setCurrentExerciseIndex(nextExerciseIndex);
+        setCurrentSetIndex(nextExerciseIndex, nextSetIndex);
       });
     }
   };
 
-  // These functions are now provided by the hook
+  const handleSwipeGesture = ({ nativeEvent }: any) => {
+    const { translationX, state } = nativeEvent;
+    const swipeThreshold = 50;
 
-  // Custom wrapper for handleCompleteSet that adds timer functionality
-  const handleCompleteSetWithTimer = () => {
+    if (state === State.ACTIVE && !isAnimating) {
+      translateX.setValue(translationX);
+    }
+
+    if (state === State.END && !isAnimating) {
+      if (
+        translationX > swipeThreshold &&
+        hasPreviousSet &&
+        previousExerciseIndex !== null &&
+        previousSetIndex !== null
+      ) {
+        // Swiping right to go to previous set
+        animateSets(screenWidth, () => {
+          setCurrentExerciseIndex(previousExerciseIndex);
+          setCurrentSetIndex(previousExerciseIndex, previousSetIndex);
+        });
+      } else if (translationX < -swipeThreshold && hasNextSet) {
+        // Swiping left to go to next set
+        animateSets(-screenWidth, () => {
+          setCurrentExerciseIndex(nextExerciseIndex);
+          setCurrentSetIndex(nextExerciseIndex, nextSetIndex);
+        });
+      } else {
+        resetSwipe();
+      }
+    }
+  };
+
+  const animateSets = (direction: number, callback: () => void) => {
+    setIsAnimating(true);
+
+    Animated.timing(translateX, {
+      toValue: direction,
+      duration: 250,
+      easing: Easing.linear,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsAnimating(false);
+      translateX.setValue(0);
+      callback();
+    });
+  };
+
+  const resetSwipe = () => {
+    Animated.spring(translateX, {
+      toValue: 0,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const getNextSetData = () => {
+    // Compute temporary next indices
+    let tempNextExerciseIndex = currentExerciseIndex;
+    let tempNextSetIndex = currentSetIndex + 1;
+
+    if (currentExercise && tempNextSetIndex >= currentExercise.sets.length) {
+      tempNextExerciseIndex += 1;
+      tempNextSetIndex = 0;
+    }
+
+    if (
+      workout &&
+      tempNextExerciseIndex < workout.exercises.length &&
+      workout.exercises[tempNextExerciseIndex].sets[tempNextSetIndex]
+    ) {
+      const nextExercise = workout.exercises[tempNextExerciseIndex];
+      const previousWorkoutNextSetData = previousWorkoutData
+        ?.map((workout) => workout.exercises)
+        .flat()
+        .find((prevEx) => prevEx.exercise_id === nextExercise?.exercise_id)
+        ?.sets[tempNextSetIndex];
+
+      // Logic to carry over weight/reps from current set
+      const currentSetValues =
+        weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
+
+      const { isWarmup, isDropSet } =
+        workout.exercises[currentExerciseIndex].sets[currentSetIndex];
+
+      const isNextDropSet =
+        workout.exercises[currentExerciseIndex].sets[tempNextSetIndex]
+          .isDropSet;
+
+      const nextSetValues = {
+        weight:
+          (isWarmup || isDropSet || isNextDropSet) &&
+          previousWorkoutNextSetData?.weight
+            ? previousWorkoutNextSetData?.weight?.toString()
+            : currentSetValues.weight || "",
+        reps: previousWorkoutNextSetData?.reps?.toString() || "",
+        time: previousWorkoutNextSetData?.time
+          ? // Convert stored seconds back to display format (e.g., 360 -> "600")
+            previousWorkoutNextSetData.time.toString().padStart(2, "0")
+          : "",
+      };
+
+      return {
+        weight: nextSetValues.weight,
+        reps: nextSetValues.reps,
+        time: nextSetValues.time,
+      };
+    } else {
+      return {};
+    }
+  };
+
+  const handleCompleteSet = () => {
     if (!currentExercise || !currentSet) {
       return;
     }
@@ -294,25 +618,55 @@ export default function WorkoutSessionScreen() {
       return;
     }
 
-    // Start the rest timer before completing the set
+    // Parse weight and reps, treating empty strings as zero
+    const weightStr =
+      weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight ??
+      previousWorkoutSetData?.weight?.toString() ??
+      "";
+    const repsStr =
+      weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.reps ??
+      previousWorkoutSetData?.reps?.toString() ??
+      "";
+    const timeStr =
+      weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.time ??
+      previousWorkoutSetData?.time?.toString() ??
+      "";
+
+    const weightInKg = parseFloat(weightStr);
+    const validWeightInKg = isNaN(weightInKg) ? 0 : weightInKg;
+
+    const repsNum = parseInt(repsStr);
+    const validRepsNum = isNaN(repsNum) ? 0 : repsNum;
+
+    // Convert time from MM:SS format to total seconds
+    const validTimeNum = convertTimeStrToSeconds(timeStr);
+
+    // Update the weightAndReps with valid values for the current set
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      validWeightInKg.toString(),
+      validRepsNum.toString(),
+      validTimeNum.toString(), // Store as seconds
+    );
+
     if (hasNextSet) {
       startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
-    }
 
-    // Get next set data with carried-over weight
-    const nextSetInfo = getNextSetData();
-    setNextSetData(nextSetInfo);
+      // Compute next set data with carried-over weight
+      const nextSetInfo = getNextSetData();
+      setNextSetData(nextSetInfo);
 
-    // Call the hook's handleCompleteSet function
-    handleCompleteSet();
-
-    // Animate to the next set if there is one
-    if (hasNextSet) {
       // Start animation
       animateSets(-screenWidth, () => {
-        // Clear nextSetData after animation completes
+        // Update indices after animation completes
+        nextSet();
+        // Clear nextSetData
         setNextSetData({});
       });
+    } else {
+      // No next set, workout completed
+      nextSet();
     }
   };
 
@@ -403,7 +757,7 @@ export default function WorkoutSessionScreen() {
               handleTimeInputChange={handleTimeInputChange}
               handlePreviousSet={handlePreviousSet}
               handleNextSet={handleNextSet}
-              handleCompleteSet={handleCompleteSetWithTimer}
+              handleCompleteSet={handleCompleteSet}
               removeSet={handleRemoveSet}
               addSet={addSet}
             />

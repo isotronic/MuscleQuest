@@ -42,8 +42,6 @@ export default function WorkoutOverviewScreen() {
     restartWorkout,
   } = useActiveWorkoutStore();
 
-  console.log("Workout Overview Screen load");
-
   const weightUnit = settings?.weightUnit || "kg";
   const { data: completedWorkouts, error: completedWorkoutsError } =
     useCompletedWorkoutsQuery(weightUnit);
@@ -138,13 +136,6 @@ export default function WorkoutOverviewScreen() {
       const planId = activeWorkout?.planId;
       const workoutId = activeWorkout?.workoutId;
       const endTime = new Date();
-
-      // Add debug breadcrumb
-      Bugsnag.leaveBreadcrumb("Saving workout (duration info)", {
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
-      });
-
       const duration = new Date(startTime)
         ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
         : 0;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useMemo, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import {
   IconButton,
@@ -55,7 +55,7 @@ interface SessionSetInfoProps {
   addSet: () => void;
 }
 
-function SessionSetInfo({
+export default function SessionSetInfo({
   exercise_id,
   exerciseName,
   animatedUrl,
@@ -94,7 +94,6 @@ function SessionSetInfo({
 }: SessionSetInfoProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [timeInput, setTimeInput] = useState(time);
-  console.log("SessionSetInfo load");
 
   // Update timeInput when time prop changes
   useEffect(() => {
@@ -104,27 +103,24 @@ function SessionSetInfo({
   // Format display value - now always formatted
   const displayValue = formatTimeInput(timeInput);
 
-  const openMenu = useCallback(() => setMenuVisible(true), []);
-  const closeMenu = useCallback(() => setMenuVisible(false), []);
+  const openMenu = () => setMenuVisible(true);
+  const closeMenu = () => setMenuVisible(false);
 
-  const repRange = useMemo(
-    () =>
-      repsMin === repsMax
-        ? repsMin
-        : !repsMin
-          ? repsMax
-          : repsMax
-            ? `${repsMin} - ${repsMax}`
-            : repsMin,
-    [repsMin, repsMax],
-  );
+  const repRange =
+    repsMin === repsMax
+      ? repsMin
+      : !repsMin
+        ? repsMax
+        : repsMax
+          ? `${repsMin} - ${repsMax}`
+          : repsMin;
 
-  const handleImagePress = useCallback(() => {
+  const handleImagePress = () => {
     router.push({
       pathname: "/(app)/exercise-details",
       params: { exercise_id: exercise_id.toString() },
     });
-  }, [exercise_id]);
+  };
   return (
     <View>
       <View style={styles.headerContainer}>
@@ -355,8 +351,6 @@ function SessionSetInfo({
     </View>
   );
 }
-
-export default memo(SessionSetInfo);
 
 const styles = StyleSheet.create({
   headerContainer: {

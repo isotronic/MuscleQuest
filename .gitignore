@@ -24,8 +24,6 @@ serviceAccountKey.json
 credentials.json
 credentials/
 
-coverage/
-
 eas.json
 
 # macOS
