@@ -36,3 +36,4 @@ expo-env.d.ts
 # @end expo-cli
 
 coverage/
+*copilot-instructions.md
