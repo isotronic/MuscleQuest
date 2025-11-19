@@ -530,7 +530,7 @@ describe("useActiveWorkoutStore", () => {
     });
 
     act(() => {
-      // Remove the middle set
+      // Remove the middle set (index 1)
       useActiveWorkoutStore.getState().removeSet(1);
     });
 
@@ -539,11 +539,244 @@ describe("useActiveWorkoutStore", () => {
 
     expect(workout?.exercises[0].sets.length).toBe(2); // Now only 2 sets
     expect(workout?.exercises[0].sets[1]).toBeDefined(); // Original third set is now index 1
-    // The removed set's completedSets and weightAndReps should be gone
-    expect(completedSets[0][1]).toBeUndefined();
-    expect(weightAndReps[0][1]).toBeUndefined();
-    // currentSetIndices should also be adjusted if necessary
+
+    // After removing index 1, what was at index 2 should now be at index 1
+    // Original: {0: true, 1: false, 2: true} -> After removal: {0: true, 1: true}
+    expect(completedSets[0][0]).toBe(true); // Original index 0 stays
+    expect(completedSets[0][1]).toBe(true); // Original index 2 (true) is now index 1
+
+    // Original weightAndReps: {0: {weight: "50", reps: "10"}, 1: {weight: "55", reps: "8"}, 2: {weight: "60", reps: "6"}}
+    // After removal: {0: {weight: "50", reps: "10"}, 1: {weight: "60", reps: "6"}}
+    expect(weightAndReps[0][0]).toEqual({ weight: "50", reps: "10" }); // Original index 0 stays
+    expect(weightAndReps[0][1]).toEqual({ weight: "60", reps: "6" }); // Original index 2 is now index 1
+
+    // currentSetIndices was at 2, after removing 1, it should be adjusted to 1
     expect(currentSetIndices[0]).toBe(1);
+  });
+
+  it("removeSet should correctly handle removing the first set (index 0)", () => {
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Remove First Set Test",
+          exercises: [
+            {
+              exercise_id: 700,
+              name: "Exercise with multiple sets",
+              tracking_type: "weight",
+              sets: [
+                {
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+                {
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+                {
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+              ],
+              image: [],
+              local_animated_uri: "",
+              animated_url: "",
+              equipment: "",
+              body_part: "",
+              target_muscle: "",
+              secondary_muscles: [],
+              description: "",
+            },
+          ],
+        },
+        currentExerciseIndex: 0,
+        currentSetIndices: { 0: 1 },
+        completedSets: { 0: { 0: true, 1: false, 2: true } },
+        weightAndReps: {
+          0: {
+            0: { weight: "50", reps: "10" },
+            1: { weight: "55", reps: "8" },
+            2: { weight: "60", reps: "6" },
+          },
+        },
+      });
+    });
+
+    act(() => {
+      // Remove the first set (index 0)
+      useActiveWorkoutStore.getState().removeSet(0);
+    });
+
+    const { workout, completedSets, weightAndReps, currentSetIndices } =
+      useActiveWorkoutStore.getState();
+
+    // After removing first set, original index 1 becomes index 0, original index 2 becomes index 1
+    expect(workout?.exercises[0].sets.length).toBe(2);
+    expect(completedSets[0][0]).toBe(false); // Original index 1
+    expect(completedSets[0][1]).toBe(true); // Original index 2
+    expect(weightAndReps[0][0]).toEqual({ weight: "55", reps: "8" }); // Original index 1
+    expect(weightAndReps[0][1]).toEqual({ weight: "60", reps: "6" }); // Original index 2
+    // currentSetIndices was at 1, after removing 0, it should be adjusted to 0
+    expect(currentSetIndices[0]).toBe(0);
+  });
+
+  it("removeSet should correctly handle removing the last set", () => {
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Remove Last Set Test",
+          exercises: [
+            {
+              exercise_id: 700,
+              name: "Exercise with multiple sets",
+              tracking_type: "weight",
+              sets: [
+                {
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+                {
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+                {
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+              ],
+              image: [],
+              local_animated_uri: "",
+              animated_url: "",
+              equipment: "",
+              body_part: "",
+              target_muscle: "",
+              secondary_muscles: [],
+              description: "",
+            },
+          ],
+        },
+        currentExerciseIndex: 0,
+        currentSetIndices: { 0: 2 },
+        completedSets: { 0: { 0: true, 1: false, 2: true } },
+        weightAndReps: {
+          0: {
+            0: { weight: "50", reps: "10" },
+            1: { weight: "55", reps: "8" },
+            2: { weight: "60", reps: "6" },
+          },
+        },
+      });
+    });
+
+    act(() => {
+      // Remove the last set (index 2)
+      useActiveWorkoutStore.getState().removeSet(2);
+    });
+
+    const { workout, completedSets, weightAndReps, currentSetIndices } =
+      useActiveWorkoutStore.getState();
+
+    // After removing the last set, only indices 0 and 1 remain
+    expect(workout?.exercises[0].sets.length).toBe(2);
+    expect(completedSets[0][0]).toBe(true); // Original index 0
+    expect(completedSets[0][1]).toBe(false); // Original index 1
+    expect(weightAndReps[0][0]).toEqual({ weight: "50", reps: "10" }); // Original index 0
+    expect(weightAndReps[0][1]).toEqual({ weight: "55", reps: "8" }); // Original index 1
+    // currentSetIndices was at 2, after removing 2, it should be adjusted to 1
+    expect(currentSetIndices[0]).toBe(1);
+  });
+
+  it("removeSet should handle removing when currentSetIndices is at 0", () => {
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Remove When At Index 0 Test",
+          exercises: [
+            {
+              exercise_id: 700,
+              name: "Exercise with multiple sets",
+              tracking_type: "weight",
+              sets: [
+                {
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+                {
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+                {
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+              ],
+              image: [],
+              local_animated_uri: "",
+              animated_url: "",
+              equipment: "",
+              body_part: "",
+              target_muscle: "",
+              secondary_muscles: [],
+              description: "",
+            },
+          ],
+        },
+        currentExerciseIndex: 0,
+        currentSetIndices: { 0: 0 },
+        completedSets: { 0: { 0: true, 1: false, 2: true } },
+        weightAndReps: {
+          0: {
+            0: { weight: "50", reps: "10" },
+            1: { weight: "55", reps: "8" },
+            2: { weight: "60", reps: "6" },
+          },
+        },
+      });
+    });
+
+    act(() => {
+      // Remove the first set (index 0) while currentSetIndex is also at 0
+      useActiveWorkoutStore.getState().removeSet(0);
+    });
+
+    const { workout, completedSets, weightAndReps, currentSetIndices } =
+      useActiveWorkoutStore.getState();
+
+    // After removing first set
+    expect(workout?.exercises[0].sets.length).toBe(2);
+    expect(completedSets[0][0]).toBe(false); // Original index 1
+    expect(completedSets[0][1]).toBe(true); // Original index 2
+    expect(weightAndReps[0][0]).toEqual({ weight: "55", reps: "8" }); // Original index 1
+    expect(weightAndReps[0][1]).toEqual({ weight: "60", reps: "6" }); // Original index 2
+    // currentSetIndices was at 0, after removing 0, it should remain at 0 (can't go negative)
+    expect(currentSetIndices[0]).toBe(0);
   });
 
   it("updateWeightAndReps should update the appropriate fields based on tracking type", () => {
@@ -945,5 +1178,74 @@ describe("useActiveWorkoutStore", () => {
     const { activeWorkout, workout } = useActiveWorkoutStore.getState();
     expect(activeWorkout).toBeNull();
     expect(workout).toBeNull();
+  });
+
+  it("resumeWorkout should handle timerExpiry as a Date object", () => {
+    const expiryDate = new Date(Date.now() + 60000); // 1 minute from now
+
+    act(() => {
+      useActiveWorkoutStore.setState({
+        activeWorkout: { planId: 1, workoutId: 2, name: "Test Workout" },
+        workout: { name: "Ongoing Workout", exercises: [] },
+        timerExpiry: expiryDate,
+        timerRunning: true,
+      });
+
+      useActiveWorkoutStore.getState().resumeWorkout();
+    });
+
+    const { timerExpiry, activeWorkout, workout } =
+      useActiveWorkoutStore.getState();
+
+    // timerExpiry should remain as Date object after resumeWorkout
+    expect(timerExpiry).toBeInstanceOf(Date);
+    expect(timerExpiry).toEqual(expiryDate);
+    expect(activeWorkout).not.toBeNull();
+    expect(workout).not.toBeNull();
+  });
+
+  it("resumeWorkout should handle timerExpiry as a string (from rehydration)", () => {
+    const expiryDateString = new Date(Date.now() + 60000).toISOString();
+
+    act(() => {
+      useActiveWorkoutStore.setState({
+        activeWorkout: { planId: 1, workoutId: 2, name: "Test Workout" },
+        workout: { name: "Ongoing Workout", exercises: [] },
+        timerExpiry: expiryDateString as any, // Simulate rehydration where it might be a string
+        timerRunning: true,
+      });
+
+      useActiveWorkoutStore.getState().resumeWorkout();
+    });
+
+    const { timerExpiry, activeWorkout, workout } =
+      useActiveWorkoutStore.getState();
+
+    // resumeWorkout doesn't convert strings - onRehydrateStorage handles that
+    // This test verifies resumeWorkout doesn't crash with string values
+    expect(timerExpiry).toBe(expiryDateString);
+    expect(activeWorkout).not.toBeNull();
+    expect(workout).not.toBeNull();
+  });
+
+  it("resumeWorkout should handle timerExpiry as undefined", () => {
+    act(() => {
+      useActiveWorkoutStore.setState({
+        activeWorkout: { planId: 1, workoutId: 2, name: "Test Workout" },
+        workout: { name: "Ongoing Workout", exercises: [] },
+        timerExpiry: undefined,
+        timerRunning: false,
+      });
+
+      useActiveWorkoutStore.getState().resumeWorkout();
+    });
+
+    const { timerExpiry, activeWorkout, workout } =
+      useActiveWorkoutStore.getState();
+
+    // timerExpiry should remain undefined after resumeWorkout
+    expect(timerExpiry).toBeUndefined();
+    expect(activeWorkout).not.toBeNull();
+    expect(workout).not.toBeNull();
   });
 });

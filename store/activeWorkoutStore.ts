@@ -7,6 +7,29 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import Bugsnag from "@bugsnag/expo";
 
+/**
+ * Helper function to re-index an object after removing an item at a specific index.
+ * Items at indices less than removedIndex remain unchanged.
+ * Items at indices greater than removedIndex are shifted down by 1.
+ * The item at removedIndex is removed.
+ */
+function reindexAfterRemoval<T>(
+  obj: { [key: number]: T },
+  removedIndex: number,
+): { [key: number]: T } {
+  const reindexed: { [key: number]: T } = {};
+  Object.keys(obj).forEach((key) => {
+    const index = parseInt(key, 10);
+    if (index < removedIndex) {
+      reindexed[index] = obj[index];
+    } else if (index > removedIndex) {
+      reindexed[index - 1] = obj[index];
+    }
+    // Skip the deleted index
+  });
+  return reindexed;
+}
+
 interface ActiveWorkoutStore {
   activeWorkout: { planId: number; workoutId: number; name: string } | null;
   workout: Workout | null;
@@ -184,7 +207,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                   reps:
                     nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
-                      : currentSetValues.reps,
+                      : undefined,
                 }
               : {}),
             ...(trackingType === "assisted"
@@ -197,7 +220,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                   reps:
                     nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
-                      : currentSetValues.reps,
+                      : undefined,
                 }
               : {}),
             ...(trackingType === "reps"
@@ -205,7 +228,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                   reps:
                     nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
-                      : currentSetValues.reps,
+                      : undefined,
                 }
               : {}),
             ...(trackingType === "time"
@@ -213,7 +236,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                   time:
                     nextSetValues?.time !== undefined
                       ? formatFromTotalSeconds(nextSetValues.time ?? 0)
-                      : currentSetValues.time,
+                      : undefined,
                 }
               : {}),
           };
@@ -345,19 +368,31 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           const updatedExercises = [...workout.exercises];
           updatedExercises[currentExerciseIndex].sets.splice(setIndex, 1);
 
-          // Update weightAndReps and completedSets state
+          // Re-index weightAndReps after deletion using shared helper
           const updatedWeightAndReps = { ...weightAndReps };
           if (updatedWeightAndReps[currentExerciseIndex]) {
-            delete updatedWeightAndReps[currentExerciseIndex][setIndex];
+            updatedWeightAndReps[currentExerciseIndex] = reindexAfterRemoval(
+              updatedWeightAndReps[currentExerciseIndex],
+              setIndex,
+            );
           }
 
+          // Re-index completedSets after deletion using shared helper
           const updatedCompletedSets = { ...completedSets };
           if (updatedCompletedSets[currentExerciseIndex]) {
-            delete updatedCompletedSets[currentExerciseIndex][setIndex];
+            updatedCompletedSets[currentExerciseIndex] = reindexAfterRemoval(
+              updatedCompletedSets[currentExerciseIndex],
+              setIndex,
+            );
           }
 
-          // Adjust currentSetIndices if the removed set was the last set
+          // Adjust currentSetIndices if the removed set was at or before current position
           const updatedSetIndices = { ...currentSetIndices };
+          const currentSetIndex = updatedSetIndices[currentExerciseIndex] || 0;
+          if (currentSetIndex >= setIndex && currentSetIndex > 0) {
+            updatedSetIndices[currentExerciseIndex] = currentSetIndex - 1;
+          }
+          // Ensure current set index doesn't exceed array bounds
           if (
             updatedSetIndices[currentExerciseIndex] >=
             updatedExercises[currentExerciseIndex].sets.length
@@ -598,26 +633,15 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       },
 
       resumeWorkout: () => {
-        const { activeWorkout, workout, timerExpiry, timerRunning } = get();
+        const { activeWorkout, workout } = get();
 
         Bugsnag.leaveBreadcrumb("Resuming workout", {
           hasActiveWorkout: !!activeWorkout,
           hasWorkout: !!workout,
-          timerExpiry: timerExpiry?.toISOString() || "null",
-          timerRunning,
-          timerExpiryType: timerExpiry ? typeof timerExpiry : "null",
         });
 
-        if (activeWorkout && workout) {
-          if (timerExpiry && typeof timerExpiry === "string") {
-            set({ timerExpiry: new Date(timerExpiry) });
-            Bugsnag.leaveBreadcrumb("Converted timer expiry to Date", {
-              from: timerExpiry,
-              to: new Date(timerExpiry).toISOString(),
-            });
-          }
-          return;
-        }
+        // Workout is already restored from storage with proper Date objects
+        // Nothing else needs to be done
       },
       isWorkoutInProgress: () => {
         const { activeWorkout, workout } = get();
@@ -631,12 +655,25 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       // Add parsing for date objects during rehydration
       partialize: (state) => ({
         ...state,
-        timerExpiry: state.timerExpiry?.toISOString(), // Convert Date to string for storage
+        startTime:
+          state.startTime instanceof Date
+            ? state.startTime.toISOString()
+            : state.startTime,
+        timerExpiry: state.timerExpiry
+          ? state.timerExpiry instanceof Date
+            ? state.timerExpiry.toISOString()
+            : state.timerExpiry
+          : null,
       }),
       onRehydrateStorage: () => (state) => {
-        // Convert string back to Date after rehydration
-        if (state && state.timerExpiry) {
-          state.timerExpiry = new Date(state.timerExpiry);
+        // Convert strings back to Date objects after rehydration
+        if (state) {
+          if (state.startTime) {
+            state.startTime = new Date(state.startTime);
+          }
+          if (state.timerExpiry) {
+            state.timerExpiry = new Date(state.timerExpiry);
+          }
         }
       },
     },

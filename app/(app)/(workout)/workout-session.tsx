@@ -28,8 +28,39 @@ import {
   scheduleRestNotification,
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
-import { convertTimeStrToSeconds } from "@/utils/utility";
+import {
+  convertTimeStrToSeconds,
+  formatFromTotalSeconds,
+} from "@/utils/utility";
 import { useSoundStore } from "@/store/soundStore";
+
+// Allowed tracking types for exercises
+const ALLOWED_TRACKING_TYPES = ["weight", "reps", "time", "assisted"] as const;
+
+/**
+ * Validates tracking_type and provides explicit fallback with warning logging.
+ * @param type - The tracking_type from an exercise
+ * @param exerciseId - The exercise_id for logging purposes
+ * @returns A valid tracking type, defaulting to "weight" if invalid/missing
+ */
+function getValidTrackingType(
+  type: string | undefined,
+  exerciseId?: number,
+): string {
+  // Empty string or undefined defaults to "weight" (common pattern in the app)
+  if (!type || type === "") {
+    return "weight";
+  }
+
+  if (ALLOWED_TRACKING_TYPES.includes(type as any)) {
+    return type;
+  }
+
+  console.warn(
+    `Invalid tracking_type "${type}" for exercise_id ${exerciseId}. Defaulting to "weight".`,
+  );
+  return "weight";
+}
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
@@ -568,43 +599,81 @@ export default function WorkoutSessionScreen() {
       workout.exercises[tempNextExerciseIndex].sets[tempNextSetIndex]
     ) {
       const nextExercise = workout.exercises[tempNextExerciseIndex];
+      const trackingType = getValidTrackingType(
+        nextExercise.tracking_type,
+        nextExercise?.exercise_id,
+      );
       const previousWorkoutNextSetData = previousWorkoutData
         ?.map((workout) => workout.exercises)
         .flat()
         .find((prevEx) => prevEx.exercise_id === nextExercise?.exercise_id)
         ?.sets[tempNextSetIndex];
 
-      // Logic to carry over weight/reps from current set
+      // Logic to carry over weight from current set (only if same exercise)
       const currentSetValues =
-        weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
+        tempNextExerciseIndex === currentExerciseIndex
+          ? weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {}
+          : {};
 
       const { isWarmup, isDropSet } =
         workout.exercises[currentExerciseIndex].sets[currentSetIndex];
 
+      // Check if next set is a drop set (use correct exercise index)
       const isNextDropSet =
-        workout.exercises[currentExerciseIndex].sets[tempNextSetIndex]
-          .isDropSet;
+        tempNextSetIndex <
+          workout.exercises[tempNextExerciseIndex].sets.length &&
+        workout.exercises[tempNextExerciseIndex].sets[tempNextSetIndex]
+          ?.isDropSet;
 
-      const nextSetValues = {
-        weight:
+      // Return values based on tracking type to match store logic
+      const nextSetValues: {
+        weight: string;
+        reps: string;
+        time: string;
+      } = {
+        weight: "",
+        reps: "",
+        time: "",
+      };
+
+      if (trackingType === "weight" || trackingType === "") {
+        nextSetValues.weight =
           (isWarmup || isDropSet || isNextDropSet) &&
           previousWorkoutNextSetData?.weight
             ? previousWorkoutNextSetData?.weight?.toString()
-            : currentSetValues.weight || "",
-        reps: previousWorkoutNextSetData?.reps?.toString() || "",
-        time: previousWorkoutNextSetData?.time
-          ? // Convert stored seconds back to display format (e.g., 360 -> "600")
-            previousWorkoutNextSetData.time.toString().padStart(2, "0")
-          : "",
-      };
+            : currentSetValues.weight || "";
+        nextSetValues.reps =
+          previousWorkoutNextSetData?.reps !== undefined
+            ? String(previousWorkoutNextSetData.reps)
+            : currentSetValues.reps ?? "";
+      } else if (trackingType === "assisted") {
+        nextSetValues.weight =
+          (isWarmup || isDropSet || isNextDropSet) &&
+          previousWorkoutNextSetData?.weight
+            ? previousWorkoutNextSetData?.weight?.toString()
+            : currentSetValues.weight || "";
+        nextSetValues.reps =
+          previousWorkoutNextSetData?.reps !== undefined
+            ? String(previousWorkoutNextSetData.reps)
+            : currentSetValues.reps ?? "";
+      } else if (trackingType === "reps") {
+        nextSetValues.reps =
+          previousWorkoutNextSetData?.reps !== undefined
+            ? String(previousWorkoutNextSetData.reps)
+            : currentSetValues.reps ?? "";
+      } else if (trackingType === "time") {
+        const timeValue =
+          previousWorkoutNextSetData?.time !== undefined
+            ? previousWorkoutNextSetData?.time
+            : currentSetValues.time;
+        nextSetValues.time = timeValue
+          ? formatFromTotalSeconds(Number(timeValue))
+          : "";
+      }
 
-      return {
-        weight: nextSetValues.weight,
-        reps: nextSetValues.reps,
-        time: nextSetValues.time,
-      };
+      return nextSetValues;
     } else {
-      return {};
+      return { weight: "", reps: "", time: "" };
     }
   };
 
