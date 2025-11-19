@@ -7,6 +7,29 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import Bugsnag from "@bugsnag/expo";
 
+/**
+ * Helper function to re-index an object after removing an item at a specific index.
+ * Items at indices less than removedIndex remain unchanged.
+ * Items at indices greater than removedIndex are shifted down by 1.
+ * The item at removedIndex is removed.
+ */
+function reindexAfterRemoval<T>(
+  obj: { [key: number]: T },
+  removedIndex: number,
+): { [key: number]: T } {
+  const reindexed: { [key: number]: T } = {};
+  Object.keys(obj).forEach((key) => {
+    const index = parseInt(key, 10);
+    if (index < removedIndex) {
+      reindexed[index] = obj[index];
+    } else if (index > removedIndex) {
+      reindexed[index - 1] = obj[index];
+    }
+    // Skip the deleted index
+  });
+  return reindexed;
+}
+
 interface ActiveWorkoutStore {
   activeWorkout: { planId: number; workoutId: number; name: string } | null;
   workout: Workout | null;
@@ -345,44 +368,22 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           const updatedExercises = [...workout.exercises];
           updatedExercises[currentExerciseIndex].sets.splice(setIndex, 1);
 
-          // Re-index weightAndReps after deletion
+          // Re-index weightAndReps after deletion using shared helper
           const updatedWeightAndReps = { ...weightAndReps };
           if (updatedWeightAndReps[currentExerciseIndex]) {
-            const exerciseWeightAndReps = {
-              ...updatedWeightAndReps[currentExerciseIndex],
-            };
-            // Remove the deleted set and shift down higher indices
-            const reindexed: typeof exerciseWeightAndReps = {};
-            Object.keys(exerciseWeightAndReps).forEach((key) => {
-              const index = parseInt(key, 10);
-              if (index < setIndex) {
-                reindexed[index] = exerciseWeightAndReps[index];
-              } else if (index > setIndex) {
-                reindexed[index - 1] = exerciseWeightAndReps[index];
-              }
-              // Skip the deleted index
-            });
-            updatedWeightAndReps[currentExerciseIndex] = reindexed;
+            updatedWeightAndReps[currentExerciseIndex] = reindexAfterRemoval(
+              updatedWeightAndReps[currentExerciseIndex],
+              setIndex,
+            );
           }
 
-          // Re-index completedSets after deletion
+          // Re-index completedSets after deletion using shared helper
           const updatedCompletedSets = { ...completedSets };
           if (updatedCompletedSets[currentExerciseIndex]) {
-            const exerciseCompletedSets = {
-              ...updatedCompletedSets[currentExerciseIndex],
-            };
-            // Remove the deleted set and shift down higher indices
-            const reindexed: typeof exerciseCompletedSets = {};
-            Object.keys(exerciseCompletedSets).forEach((key) => {
-              const index = parseInt(key, 10);
-              if (index < setIndex) {
-                reindexed[index] = exerciseCompletedSets[index];
-              } else if (index > setIndex) {
-                reindexed[index - 1] = exerciseCompletedSets[index];
-              }
-              // Skip the deleted index
-            });
-            updatedCompletedSets[currentExerciseIndex] = reindexed;
+            updatedCompletedSets[currentExerciseIndex] = reindexAfterRemoval(
+              updatedCompletedSets[currentExerciseIndex],
+              setIndex,
+            );
           }
 
           // Adjust currentSetIndices if the removed set was at or before current position
