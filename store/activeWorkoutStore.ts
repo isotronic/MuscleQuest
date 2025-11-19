@@ -184,7 +184,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                   reps:
                     nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
-                      : currentSetValues.reps,
+                      : undefined,
                 }
               : {}),
             ...(trackingType === "assisted"
@@ -197,7 +197,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                   reps:
                     nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
-                      : currentSetValues.reps,
+                      : undefined,
                 }
               : {}),
             ...(trackingType === "reps"
@@ -205,7 +205,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                   reps:
                     nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
-                      : currentSetValues.reps,
+                      : undefined,
                 }
               : {}),
             ...(trackingType === "time"
@@ -213,7 +213,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                   time:
                     nextSetValues?.time !== undefined
                       ? formatFromTotalSeconds(nextSetValues.time ?? 0)
-                      : currentSetValues.time,
+                      : undefined,
                 }
               : {}),
           };

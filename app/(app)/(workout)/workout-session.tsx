@@ -591,11 +591,15 @@ export default function WorkoutSessionScreen() {
           previousWorkoutNextSetData?.weight
             ? previousWorkoutNextSetData?.weight?.toString()
             : currentSetValues.weight || "",
-        reps: previousWorkoutNextSetData?.reps?.toString() || "",
-        time: previousWorkoutNextSetData?.time
-          ? // Convert stored seconds back to display format (e.g., 360 -> "600")
-            previousWorkoutNextSetData.time.toString().padStart(2, "0")
-          : "",
+        reps:
+          previousWorkoutNextSetData?.reps !== undefined
+            ? previousWorkoutNextSetData?.reps?.toString()
+            : "",
+        time:
+          previousWorkoutNextSetData?.time !== undefined &&
+          previousWorkoutNextSetData?.time !== null
+            ? previousWorkoutNextSetData.time.toString().padStart(2, "0")
+            : "",
       };
 
       return {
