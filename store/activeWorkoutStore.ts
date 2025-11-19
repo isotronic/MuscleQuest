@@ -345,19 +345,53 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           const updatedExercises = [...workout.exercises];
           updatedExercises[currentExerciseIndex].sets.splice(setIndex, 1);
 
-          // Update weightAndReps and completedSets state
+          // Re-index weightAndReps after deletion
           const updatedWeightAndReps = { ...weightAndReps };
           if (updatedWeightAndReps[currentExerciseIndex]) {
-            delete updatedWeightAndReps[currentExerciseIndex][setIndex];
+            const exerciseWeightAndReps = {
+              ...updatedWeightAndReps[currentExerciseIndex],
+            };
+            // Remove the deleted set and shift down higher indices
+            const reindexed: typeof exerciseWeightAndReps = {};
+            Object.keys(exerciseWeightAndReps).forEach((key) => {
+              const index = parseInt(key, 10);
+              if (index < setIndex) {
+                reindexed[index] = exerciseWeightAndReps[index];
+              } else if (index > setIndex) {
+                reindexed[index - 1] = exerciseWeightAndReps[index];
+              }
+              // Skip the deleted index
+            });
+            updatedWeightAndReps[currentExerciseIndex] = reindexed;
           }
 
+          // Re-index completedSets after deletion
           const updatedCompletedSets = { ...completedSets };
           if (updatedCompletedSets[currentExerciseIndex]) {
-            delete updatedCompletedSets[currentExerciseIndex][setIndex];
+            const exerciseCompletedSets = {
+              ...updatedCompletedSets[currentExerciseIndex],
+            };
+            // Remove the deleted set and shift down higher indices
+            const reindexed: typeof exerciseCompletedSets = {};
+            Object.keys(exerciseCompletedSets).forEach((key) => {
+              const index = parseInt(key, 10);
+              if (index < setIndex) {
+                reindexed[index] = exerciseCompletedSets[index];
+              } else if (index > setIndex) {
+                reindexed[index - 1] = exerciseCompletedSets[index];
+              }
+              // Skip the deleted index
+            });
+            updatedCompletedSets[currentExerciseIndex] = reindexed;
           }
 
-          // Adjust currentSetIndices if the removed set was the last set
+          // Adjust currentSetIndices if the removed set was at or before current position
           const updatedSetIndices = { ...currentSetIndices };
+          const currentSetIndex = updatedSetIndices[currentExerciseIndex] || 0;
+          if (currentSetIndex >= setIndex && currentSetIndex > 0) {
+            updatedSetIndices[currentExerciseIndex] = currentSetIndex - 1;
+          }
+          // Ensure current set index doesn't exceed array bounds
           if (
             updatedSetIndices[currentExerciseIndex] >=
             updatedExercises[currentExerciseIndex].sets.length
@@ -598,26 +632,15 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       },
 
       resumeWorkout: () => {
-        const { activeWorkout, workout, timerExpiry, timerRunning } = get();
+        const { activeWorkout, workout } = get();
 
         Bugsnag.leaveBreadcrumb("Resuming workout", {
           hasActiveWorkout: !!activeWorkout,
           hasWorkout: !!workout,
-          timerExpiry: timerExpiry?.toISOString() || "null",
-          timerRunning,
-          timerExpiryType: timerExpiry ? typeof timerExpiry : "null",
         });
 
-        if (activeWorkout && workout) {
-          if (timerExpiry && typeof timerExpiry === "string") {
-            set({ timerExpiry: new Date(timerExpiry) });
-            Bugsnag.leaveBreadcrumb("Converted timer expiry to Date", {
-              from: timerExpiry,
-              to: new Date(timerExpiry).toISOString(),
-            });
-          }
-          return;
-        }
+        // Workout is already restored from storage with proper Date objects
+        // Nothing else needs to be done
       },
       isWorkoutInProgress: () => {
         const { activeWorkout, workout } = get();
@@ -631,16 +654,25 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       // Add parsing for date objects during rehydration
       partialize: (state) => ({
         ...state,
+        startTime:
+          state.startTime instanceof Date
+            ? state.startTime.toISOString()
+            : state.startTime,
         timerExpiry: state.timerExpiry
           ? state.timerExpiry instanceof Date
             ? state.timerExpiry.toISOString()
             : state.timerExpiry
-          : null, // Convert Date to string for storage, keep string as-is
+          : null,
       }),
       onRehydrateStorage: () => (state) => {
-        // Convert string back to Date after rehydration
-        if (state && state.timerExpiry) {
-          state.timerExpiry = new Date(state.timerExpiry);
+        // Convert strings back to Date objects after rehydration
+        if (state) {
+          if (state.startTime) {
+            state.startTime = new Date(state.startTime);
+          }
+          if (state.timerExpiry) {
+            state.timerExpiry = new Date(state.timerExpiry);
+          }
         }
       },
     },
