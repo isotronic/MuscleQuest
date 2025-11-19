@@ -530,7 +530,7 @@ describe("useActiveWorkoutStore", () => {
     });
 
     act(() => {
-      // Remove the middle set
+      // Remove the middle set (index 1)
       useActiveWorkoutStore.getState().removeSet(1);
     });
 
@@ -539,10 +539,18 @@ describe("useActiveWorkoutStore", () => {
 
     expect(workout?.exercises[0].sets.length).toBe(2); // Now only 2 sets
     expect(workout?.exercises[0].sets[1]).toBeDefined(); // Original third set is now index 1
-    // The removed set's completedSets and weightAndReps should be gone
-    expect(completedSets[0][1]).toBeUndefined();
-    expect(weightAndReps[0][1]).toBeUndefined();
-    // currentSetIndices should also be adjusted if necessary
+
+    // After removing index 1, what was at index 2 should now be at index 1
+    // Original: {0: true, 1: false, 2: true} -> After removal: {0: true, 1: true}
+    expect(completedSets[0][0]).toBe(true); // Original index 0 stays
+    expect(completedSets[0][1]).toBe(true); // Original index 2 (true) is now index 1
+
+    // Original weightAndReps: {0: {weight: "50", reps: "10"}, 1: {weight: "55", reps: "8"}, 2: {weight: "60", reps: "6"}}
+    // After removal: {0: {weight: "50", reps: "10"}, 1: {weight: "60", reps: "6"}}
+    expect(weightAndReps[0][0]).toEqual({ weight: "50", reps: "10" }); // Original index 0 stays
+    expect(weightAndReps[0][1]).toEqual({ weight: "60", reps: "6" }); // Original index 2 is now index 1
+
+    // currentSetIndices was at 2, after removing 1, it should be adjusted to 1
     expect(currentSetIndices[0]).toBe(1);
   });
 
