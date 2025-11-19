@@ -568,45 +568,70 @@ export default function WorkoutSessionScreen() {
       workout.exercises[tempNextExerciseIndex].sets[tempNextSetIndex]
     ) {
       const nextExercise = workout.exercises[tempNextExerciseIndex];
+      const trackingType = nextExercise.tracking_type || "weight";
       const previousWorkoutNextSetData = previousWorkoutData
         ?.map((workout) => workout.exercises)
         .flat()
         .find((prevEx) => prevEx.exercise_id === nextExercise?.exercise_id)
         ?.sets[tempNextSetIndex];
 
-      // Logic to carry over weight/reps from current set
+      // Logic to carry over weight from current set (only if same exercise)
       const currentSetValues =
-        weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
+        tempNextExerciseIndex === currentExerciseIndex
+          ? weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {}
+          : {};
 
       const { isWarmup, isDropSet } =
         workout.exercises[currentExerciseIndex].sets[currentSetIndex];
 
+      // Check if next set is a drop set (use correct exercise index)
       const isNextDropSet =
-        workout.exercises[currentExerciseIndex].sets[tempNextSetIndex]
-          .isDropSet;
+        tempNextSetIndex <
+          workout.exercises[tempNextExerciseIndex].sets.length &&
+        workout.exercises[tempNextExerciseIndex].sets[tempNextSetIndex]
+          ?.isDropSet;
 
-      const nextSetValues = {
-        weight:
+      // Return values based on tracking type to match store logic
+      const nextSetValues: {
+        weight?: string;
+        reps?: string;
+        time?: string;
+      } = {};
+
+      if (trackingType === "weight" || trackingType === "") {
+        nextSetValues.weight =
           (isWarmup || isDropSet || isNextDropSet) &&
           previousWorkoutNextSetData?.weight
             ? previousWorkoutNextSetData?.weight?.toString()
-            : currentSetValues.weight || "",
-        reps:
+            : currentSetValues.weight || "";
+        nextSetValues.reps =
           previousWorkoutNextSetData?.reps !== undefined
             ? previousWorkoutNextSetData?.reps?.toString()
-            : "",
-        time:
+            : "";
+      } else if (trackingType === "assisted") {
+        nextSetValues.weight =
+          (isWarmup || isDropSet || isNextDropSet) &&
+          previousWorkoutNextSetData?.weight
+            ? previousWorkoutNextSetData?.weight?.toString()
+            : currentSetValues.weight || "";
+        nextSetValues.reps =
+          previousWorkoutNextSetData?.reps !== undefined
+            ? previousWorkoutNextSetData?.reps?.toString()
+            : "";
+      } else if (trackingType === "reps") {
+        nextSetValues.reps =
+          previousWorkoutNextSetData?.reps !== undefined
+            ? previousWorkoutNextSetData?.reps?.toString()
+            : "";
+      } else if (trackingType === "time") {
+        nextSetValues.time =
           previousWorkoutNextSetData?.time !== undefined &&
           previousWorkoutNextSetData?.time !== null
             ? previousWorkoutNextSetData.time.toString().padStart(2, "0")
-            : "",
-      };
+            : "";
+      }
 
-      return {
-        weight: nextSetValues.weight,
-        reps: nextSetValues.reps,
-        time: nextSetValues.time,
-      };
+      return nextSetValues;
     } else {
       return {};
     }
