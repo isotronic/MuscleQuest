@@ -631,7 +631,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       // Add parsing for date objects during rehydration
       partialize: (state) => ({
         ...state,
-        timerExpiry: state.timerExpiry?.toISOString(), // Convert Date to string for storage
+        timerExpiry: state.timerExpiry
+          ? state.timerExpiry instanceof Date
+            ? state.timerExpiry.toISOString()
+            : state.timerExpiry
+          : null, // Convert Date to string for storage, keep string as-is
       }),
       onRehydrateStorage: () => (state) => {
         // Convert string back to Date after rehydration
