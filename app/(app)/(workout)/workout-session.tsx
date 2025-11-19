@@ -28,8 +28,39 @@ import {
   scheduleRestNotification,
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
-import { convertTimeStrToSeconds } from "@/utils/utility";
+import {
+  convertTimeStrToSeconds,
+  formatFromTotalSeconds,
+} from "@/utils/utility";
 import { useSoundStore } from "@/store/soundStore";
+
+// Allowed tracking types for exercises
+const ALLOWED_TRACKING_TYPES = ["weight", "reps", "time", "assisted"] as const;
+
+/**
+ * Validates tracking_type and provides explicit fallback with warning logging.
+ * @param type - The tracking_type from an exercise
+ * @param exerciseId - The exercise_id for logging purposes
+ * @returns A valid tracking type, defaulting to "weight" if invalid/missing
+ */
+function getValidTrackingType(
+  type: string | undefined,
+  exerciseId?: number,
+): string {
+  // Empty string or undefined defaults to "weight" (common pattern in the app)
+  if (!type || type === "") {
+    return "weight";
+  }
+
+  if (ALLOWED_TRACKING_TYPES.includes(type as any)) {
+    return type;
+  }
+
+  console.warn(
+    `Invalid tracking_type "${type}" for exercise_id ${exerciseId}. Defaulting to "weight".`,
+  );
+  return "weight";
+}
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
@@ -568,7 +599,10 @@ export default function WorkoutSessionScreen() {
       workout.exercises[tempNextExerciseIndex].sets[tempNextSetIndex]
     ) {
       const nextExercise = workout.exercises[tempNextExerciseIndex];
-      const trackingType = nextExercise.tracking_type || "weight";
+      const trackingType = getValidTrackingType(
+        nextExercise.tracking_type,
+        nextExercise?.exercise_id,
+      );
       const previousWorkoutNextSetData = previousWorkoutData
         ?.map((workout) => workout.exercises)
         .flat()
@@ -593,10 +627,14 @@ export default function WorkoutSessionScreen() {
 
       // Return values based on tracking type to match store logic
       const nextSetValues: {
-        weight?: string;
-        reps?: string;
-        time?: string;
-      } = {};
+        weight: string;
+        reps: string;
+        time: string;
+      } = {
+        weight: "",
+        reps: "",
+        time: "",
+      };
 
       if (trackingType === "weight" || trackingType === "") {
         nextSetValues.weight =
@@ -606,8 +644,8 @@ export default function WorkoutSessionScreen() {
             : currentSetValues.weight || "";
         nextSetValues.reps =
           previousWorkoutNextSetData?.reps !== undefined
-            ? previousWorkoutNextSetData?.reps?.toString()
-            : "";
+            ? String(previousWorkoutNextSetData.reps)
+            : currentSetValues.reps ?? "";
       } else if (trackingType === "assisted") {
         nextSetValues.weight =
           (isWarmup || isDropSet || isNextDropSet) &&
@@ -616,24 +654,26 @@ export default function WorkoutSessionScreen() {
             : currentSetValues.weight || "";
         nextSetValues.reps =
           previousWorkoutNextSetData?.reps !== undefined
-            ? previousWorkoutNextSetData?.reps?.toString()
-            : "";
+            ? String(previousWorkoutNextSetData.reps)
+            : currentSetValues.reps ?? "";
       } else if (trackingType === "reps") {
         nextSetValues.reps =
           previousWorkoutNextSetData?.reps !== undefined
-            ? previousWorkoutNextSetData?.reps?.toString()
-            : "";
+            ? String(previousWorkoutNextSetData.reps)
+            : currentSetValues.reps ?? "";
       } else if (trackingType === "time") {
-        nextSetValues.time =
-          previousWorkoutNextSetData?.time !== undefined &&
-          previousWorkoutNextSetData?.time !== null
-            ? previousWorkoutNextSetData.time.toString().padStart(2, "0")
-            : "";
+        const timeValue =
+          previousWorkoutNextSetData?.time !== undefined
+            ? previousWorkoutNextSetData?.time
+            : currentSetValues.time;
+        nextSetValues.time = timeValue
+          ? formatFromTotalSeconds(Number(timeValue))
+          : "";
       }
 
       return nextSetValues;
     } else {
-      return {};
+      return { weight: "", reps: "", time: "" };
     }
   };
 
