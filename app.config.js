@@ -89,6 +89,7 @@ export default {
     experiments: {
       typedRoutes: true,
     },
+    newArchEnabled: true,
     extra: {
       router: {
         origin: false,
