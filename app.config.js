@@ -85,6 +85,19 @@ export default {
           backgroundColor: "#22222d",
         },
       ],
+      [
+        "expo-build-properties",
+        {
+          android: {
+            compileSdkVersion: 35,
+            targetSdkVersion: 35,
+            buildToolsVersion: "35.0.0",
+          },
+          ios: {
+            deploymentTarget: "15.1",
+          },
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,
