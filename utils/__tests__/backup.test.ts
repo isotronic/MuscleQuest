@@ -24,18 +24,19 @@ jest.mock("expo-updates", () => ({
 }));
 
 // Mock react-native-firebase/auth
-let mockUser = { uid: "mockUserId" };
+let mockUser: { uid: string } | null = { uid: "mockUserId" };
+const mockAuthInstance = {
+  get currentUser() {
+    return mockUser;
+  },
+  set currentUser(value: { uid: string } | null) {
+    mockUser = value;
+  },
+};
 
-jest.mock("@react-native-firebase/auth", () => {
-  return () => ({
-    get currentUser() {
-      return mockUser;
-    },
-    set currentUser(value) {
-      mockUser = value;
-    },
-  });
-});
+jest.mock("@react-native-firebase/auth", () => ({
+  getAuth: jest.fn(() => mockAuthInstance),
+}));
 
 // Create a mock storage reference object
 const mockStorageRef = {
@@ -70,8 +71,7 @@ describe("uploadDatabaseBackup", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Ensure user is authenticated by default
-    const mockAuth = require("@react-native-firebase/auth");
-    mockAuth().currentUser = { uid: "mockUserId" };
+    mockAuthInstance.currentUser = { uid: "mockUserId" };
   });
 
   it("should upload all files successfully when user is authenticated and files exist", async () => {
@@ -121,11 +121,10 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("should throw an error if user is not authenticated", async () => {
-    const mockAuth = require("@react-native-firebase/auth");
-    console.log("Before:", mockAuth().currentUser);
+    console.log("Before:", mockAuthInstance.currentUser);
     // Simulate no user
-    mockAuth().currentUser = null;
-    console.log("After:", mockAuth().currentUser);
+    mockAuthInstance.currentUser = null;
+    console.log("After:", mockAuthInstance.currentUser);
 
     await expect(
       uploadDatabaseBackup(setBackupProgressMock, setIsBackupLoadingMock),
@@ -191,8 +190,7 @@ describe("fetchLastBackupDate", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Ensure user is authenticated by default
-    const mockAuth = require("@react-native-firebase/auth");
-    mockAuth().currentUser = { uid: "mockUserId" };
+    mockAuthInstance.currentUser = { uid: "mockUserId" };
   });
 
   it("should return the last backup date if metadata is available", async () => {
@@ -212,14 +210,13 @@ describe("fetchLastBackupDate", () => {
   });
 
   it("should return null if user is not authenticated", async () => {
-    const mockAuth = require("@react-native-firebase/auth");
-    mockAuth().currentUser = null;
+    mockAuthInstance.currentUser = null;
 
     const date = await fetchLastBackupDate();
     expect(date).toBeNull();
 
     // Reset auth mock for other tests
-    mockAuth().currentUser = { uid: "mockUserId" };
+    mockAuthInstance.currentUser = { uid: "mockUserId" };
   });
 });
 
@@ -240,8 +237,7 @@ describe("restoreDatabaseBackup", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Ensure user is authenticated by default
-    const mockAuth = require("@react-native-firebase/auth");
-    mockAuth().currentUser = { uid: "mockUserId" };
+    mockAuthInstance.currentUser = { uid: "mockUserId" };
   });
 
   it("should restore all files successfully when user is authenticated", async () => {
@@ -300,8 +296,7 @@ describe("restoreDatabaseBackup", () => {
   });
 
   it("should throw an error if user is not authenticated", async () => {
-    const mockAuth = require("@react-native-firebase/auth");
-    mockAuth().currentUser = null;
+    mockAuthInstance.currentUser = null;
 
     await expect(
       restoreDatabaseBackup(
@@ -316,7 +311,7 @@ describe("restoreDatabaseBackup", () => {
     expect(setIsRestoreLoadingMock).toHaveBeenCalledWith(false);
 
     // Reset for other tests
-    mockAuth().currentUser = { uid: "mockUserId" };
+    mockAuthInstance.currentUser = { uid: "mockUserId" };
   });
 
   // Add additional test cases if needed...

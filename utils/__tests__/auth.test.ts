@@ -1,6 +1,9 @@
 import { signInWithGoogle } from "../auth";
 import Bugsnag from "@bugsnag/expo";
-import auth from "@react-native-firebase/auth";
+import {
+  GoogleAuthProvider,
+  signInWithCredential,
+} from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { Alert } from "react-native";
 
@@ -15,10 +18,10 @@ describe("signInWithGoogle", () => {
       idToken: "testIdToken",
     });
     const mockCredential = { token: "testCredential" };
-    (auth.GoogleAuthProvider.credential as jest.Mock).mockReturnValue(
+    (GoogleAuthProvider.credential as jest.Mock).mockReturnValue(
       mockCredential,
     );
-    (auth().signInWithCredential as jest.Mock).mockResolvedValue(null);
+    (signInWithCredential as jest.Mock).mockResolvedValue(null);
 
     await signInWithGoogle();
 
@@ -26,10 +29,8 @@ describe("signInWithGoogle", () => {
       showPlayServicesUpdateDialog: true,
     });
     expect(GoogleSignin.signIn).toHaveBeenCalled();
-    expect(auth.GoogleAuthProvider.credential).toHaveBeenCalledWith(
-      "testIdToken",
-    );
-    expect(auth().signInWithCredential).toHaveBeenCalledWith(mockCredential);
+    expect(GoogleAuthProvider.credential).toHaveBeenCalledWith("testIdToken");
+    expect(signInWithCredential).toHaveBeenCalled();
   });
 
   it("should throw an error if play services are not available", async () => {

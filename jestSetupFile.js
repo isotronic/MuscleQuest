@@ -20,15 +20,19 @@ jest.mock("@bugsnag/expo", () => ({
 
 // Mock Firebase Auth
 jest.mock("@react-native-firebase/auth", () => {
-  const mockAuth = {
+  const mockAuthInstance = {
     signInWithCredential: jest.fn(),
+    onAuthStateChanged: jest.fn(),
     currentUser: { uid: "mockUserId" }, // Add a mock user
   };
-  return Object.assign(() => mockAuth, {
+
+  return {
+    getAuth: jest.fn(() => mockAuthInstance),
     GoogleAuthProvider: {
       credential: jest.fn(),
     },
-  });
+    signInWithCredential: jest.fn(),
+  };
 });
 
 // Mock Firebase Storage
