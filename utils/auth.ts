@@ -1,5 +1,9 @@
 import Bugsnag from "@bugsnag/expo";
-import auth from "@react-native-firebase/auth";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithCredential,
+} from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { Alert } from "react-native";
 
@@ -12,8 +16,9 @@ export const signInWithGoogle = async () => {
       throw new Error("Play services not available");
     }
     const { idToken } = await GoogleSignin.signIn();
-    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-    await auth().signInWithCredential(googleCredential);
+    const googleCredential = GoogleAuthProvider.credential(idToken);
+    const auth = getAuth();
+    await signInWithCredential(auth, googleCredential);
   } catch (error: any) {
     const typedError = error as { code?: string };
 

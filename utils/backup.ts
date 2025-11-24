@@ -1,7 +1,7 @@
 import * as FileSystem from "expo-file-system";
 import { reloadAsync } from "expo-updates";
 import storage from "@react-native-firebase/storage";
-import auth from "@react-native-firebase/auth";
+import { getAuth } from "@react-native-firebase/auth";
 import { QueryClient } from "@tanstack/react-query";
 import { setAsyncStorageItem } from "./asyncStorage";
 
@@ -18,7 +18,8 @@ export const uploadDatabaseBackup = async (
   try {
     setIsBackupLoading(true); // Start the loading state
 
-    const userId = auth().currentUser?.uid;
+    const auth = getAuth();
+    const userId = auth.currentUser?.uid;
     if (!userId) {
       throw new Error("User not authenticated");
     }
@@ -91,7 +92,8 @@ export const uploadDatabaseBackup = async (
 
 export const fetchLastBackupDate = async (): Promise<Date | null> => {
   try {
-    const userId = auth().currentUser?.uid;
+    const auth = getAuth();
+    const userId = auth.currentUser?.uid;
     if (!userId) {
       throw new Error("User not authenticated");
     }
@@ -118,7 +120,8 @@ export const restoreDatabaseBackup = async (
   try {
     setIsRestoreLoading(true);
 
-    const userId = auth().currentUser?.uid;
+    const auth = getAuth();
+    const userId = auth.currentUser?.uid;
     if (!userId) {
       throw new Error("User not authenticated");
     }
