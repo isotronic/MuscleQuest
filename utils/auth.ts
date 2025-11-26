@@ -28,7 +28,13 @@ export const signInWithGoogle = async () => {
       Alert.alert("Error", "Failed to sign in. Please try again.");
     }
 
-    Bugsnag.notify(error);
+    // Log detailed error info to Bugsnag for debugging
+    Bugsnag.notify(error, (event) => {
+      event.addMetadata("sign_in_error", {
+        code: typedError.code,
+        errorString: JSON.stringify(error),
+      });
+    });
     throw error;
   }
 };
