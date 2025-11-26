@@ -23,20 +23,9 @@ jest.mock("expo-updates", () => ({
   reloadAsync: jest.fn(),
 }));
 
-// Mock react-native-firebase/auth
-let mockUser: { uid: string } | null = { uid: "mockUserId" };
-const mockAuthInstance = {
-  get currentUser() {
-    return mockUser;
-  },
-  set currentUser(value: { uid: string } | null) {
-    mockUser = value;
-  },
-};
-
-jest.mock("@react-native-firebase/auth", () => ({
-  getAuth: jest.fn(() => mockAuthInstance),
-}));
+// Use the auth mock from jestSetupFile.js and get a reference to it
+const { getAuth } = require("@react-native-firebase/auth");
+let mockAuthInstance: any;
 
 // Create a mock storage reference object
 const mockStorageRef = {
@@ -70,6 +59,8 @@ describe("uploadDatabaseBackup", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Get the mock auth instance from the centralized mock
+    mockAuthInstance = getAuth();
     // Ensure user is authenticated by default
     mockAuthInstance.currentUser = { uid: "mockUserId" };
   });
@@ -121,10 +112,8 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("should throw an error if user is not authenticated", async () => {
-    console.log("Before:", mockAuthInstance.currentUser);
     // Simulate no user
     mockAuthInstance.currentUser = null;
-    console.log("After:", mockAuthInstance.currentUser);
 
     await expect(
       uploadDatabaseBackup(setBackupProgressMock, setIsBackupLoadingMock),
@@ -189,6 +178,8 @@ describe("uploadDatabaseBackup", () => {
 describe("fetchLastBackupDate", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Get the mock auth instance from the centralized mock
+    mockAuthInstance = getAuth();
     // Ensure user is authenticated by default
     mockAuthInstance.currentUser = { uid: "mockUserId" };
   });
@@ -236,6 +227,8 @@ describe("restoreDatabaseBackup", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Get the mock auth instance from the centralized mock
+    mockAuthInstance = getAuth();
     // Ensure user is authenticated by default
     mockAuthInstance.currentUser = { uid: "mockUserId" };
   });

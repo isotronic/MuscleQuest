@@ -30,7 +30,10 @@ describe("signInWithGoogle", () => {
     });
     expect(GoogleSignin.signIn).toHaveBeenCalled();
     expect(GoogleAuthProvider.credential).toHaveBeenCalledWith("testIdToken");
-    expect(signInWithCredential).toHaveBeenCalled();
+    expect(signInWithCredential).toHaveBeenCalledWith(
+      expect.anything(),
+      mockCredential,
+    );
   });
 
   it("should throw an error if play services are not available", async () => {
@@ -53,7 +56,10 @@ describe("signInWithGoogle", () => {
     await expect(signInWithGoogle()).rejects.toEqual({ code: "12501" });
 
     expect(GoogleSignin.signIn).toHaveBeenCalled();
-    expect(Bugsnag.notify).toHaveBeenCalled(); // Ensure cancellation is logged
+    expect(Bugsnag.notify).toHaveBeenCalledWith(
+      expect.objectContaining({ code: "12501" }),
+      expect.any(Function),
+    ); // Ensure cancellation is logged
     expect(Alert.alert).not.toHaveBeenCalled(); // No alert for cancellations
   });
 
@@ -64,10 +70,37 @@ describe("signInWithGoogle", () => {
 
     await expect(signInWithGoogle()).rejects.toThrow("Sign-in error");
 
-    expect(Bugsnag.notify).toHaveBeenCalled();
+    expect(Bugsnag.notify).toHaveBeenCalledWith(
+      mockError,
+      expect.any(Function),
+    );
     expect(Alert.alert).toHaveBeenCalledWith(
       "Error",
       "Failed to sign in. Please try again.",
     );
+  });
+
+  it("should add sign_in_error metadata to Bugsnag notification", async () => {
+    (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
+    const mockError = new Error("Sign-in error");
+    mockError.name = "TestError";
+    (mockError as any).code = "test-code";
+    (GoogleSignin.signIn as jest.Mock).mockRejectedValue(mockError);
+
+    const mockEvent = {
+      addMetadata: jest.fn(),
+    };
+    (Bugsnag.notify as jest.Mock).mockImplementation((error, callback) => {
+      callback(mockEvent);
+    });
+
+    await expect(signInWithGoogle()).rejects.toThrow("Sign-in error");
+
+    expect(mockEvent.addMetadata).toHaveBeenCalledWith("sign_in_error", {
+      code: "test-code",
+      message: "Sign-in error",
+      name: "TestError",
+      stack: expect.any(String),
+    });
   });
 });
