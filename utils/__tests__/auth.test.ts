@@ -3,6 +3,7 @@ import Bugsnag from "@bugsnag/expo";
 import {
   GoogleAuthProvider,
   signInWithCredential,
+  getAuth,
 } from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { Alert } from "react-native";
@@ -30,8 +31,10 @@ describe("signInWithGoogle", () => {
     });
     expect(GoogleSignin.signIn).toHaveBeenCalled();
     expect(GoogleAuthProvider.credential).toHaveBeenCalledWith("testIdToken");
+    expect(getAuth).toHaveBeenCalled();
+    const authInstance = (getAuth as jest.Mock).mock.results[0].value;
     expect(signInWithCredential).toHaveBeenCalledWith(
-      expect.anything(),
+      authInstance,
       mockCredential,
     );
   });
