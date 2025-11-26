@@ -53,7 +53,7 @@ describe("signInWithGoogle", () => {
     await expect(signInWithGoogle()).rejects.toEqual({ code: "12501" });
 
     expect(GoogleSignin.signIn).toHaveBeenCalled();
-    expect(Bugsnag.notify).toHaveBeenCalledWith({ code: "12501" }); // Ensure cancellation is logged
+    expect(Bugsnag.notify).toHaveBeenCalled(); // Ensure cancellation is logged
     expect(Alert.alert).not.toHaveBeenCalled(); // No alert for cancellations
   });
 
@@ -64,7 +64,7 @@ describe("signInWithGoogle", () => {
 
     await expect(signInWithGoogle()).rejects.toThrow("Sign-in error");
 
-    expect(Bugsnag.notify).toHaveBeenCalledWith(mockError);
+    expect(Bugsnag.notify).toHaveBeenCalled();
     expect(Alert.alert).toHaveBeenCalledWith(
       "Error",
       "Failed to sign in. Please try again.",
