@@ -32,7 +32,9 @@ export const signInWithGoogle = async () => {
     Bugsnag.notify(error, (event) => {
       event.addMetadata("sign_in_error", {
         code: typedError.code,
-        errorString: JSON.stringify(error),
+        message: error?.message,
+        name: error?.name,
+        stack: error?.stack,
       });
     });
     throw error;
