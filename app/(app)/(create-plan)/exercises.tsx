@@ -238,7 +238,7 @@ export default function ExercisesScreen() {
                 mode={selectedExercises.length > 0 ? "contained" : "outlined"}
                 compact
                 disabled={selectedExercises.length === 0}
-                onPress={handleAddExercise}
+                onPressIn={handleAddExercise}
                 labelStyle={styles.addButtonLabel}
               >
                 Add Exercises ({selectedExercises.length})

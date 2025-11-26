@@ -211,7 +211,7 @@ export default function CreatePlanScreen() {
               icon={SaveIcon}
               style={{ marginRight: 0 }}
               disabled={saveDisabled || isSaving}
-              onPress={handleSaveAndNavigate}
+              onPressIn={handleSaveAndNavigate}
             >
               Save
             </Button>

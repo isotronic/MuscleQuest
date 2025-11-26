@@ -123,7 +123,7 @@ export default function PlanOverviewScreen() {
                   size={25}
                   style={{ marginRight: 0 }}
                   iconColor={Colors.dark.highlight}
-                  onPress={handleDeletePlan}
+                  onPressIn={handleDeletePlan}
                 />
               </>
             ),
