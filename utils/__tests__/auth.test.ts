@@ -1,6 +1,10 @@
 import { signInWithGoogle } from "../auth";
 import Bugsnag from "@bugsnag/expo";
-import auth from "@react-native-firebase/auth";
+import {
+  GoogleAuthProvider,
+  signInWithCredential,
+  getAuth,
+} from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { Alert } from "react-native";
 
@@ -15,10 +19,10 @@ describe("signInWithGoogle", () => {
       idToken: "testIdToken",
     });
     const mockCredential = { token: "testCredential" };
-    (auth.GoogleAuthProvider.credential as jest.Mock).mockReturnValue(
+    (GoogleAuthProvider.credential as jest.Mock).mockReturnValue(
       mockCredential,
     );
-    (auth().signInWithCredential as jest.Mock).mockResolvedValue(null);
+    (signInWithCredential as jest.Mock).mockResolvedValue(null);
 
     await signInWithGoogle();
 
@@ -26,10 +30,13 @@ describe("signInWithGoogle", () => {
       showPlayServicesUpdateDialog: true,
     });
     expect(GoogleSignin.signIn).toHaveBeenCalled();
-    expect(auth.GoogleAuthProvider.credential).toHaveBeenCalledWith(
-      "testIdToken",
+    expect(GoogleAuthProvider.credential).toHaveBeenCalledWith("testIdToken");
+    expect(getAuth).toHaveBeenCalled();
+    const authInstance = (getAuth as jest.Mock).mock.results[0].value;
+    expect(signInWithCredential).toHaveBeenCalledWith(
+      authInstance,
+      mockCredential,
     );
-    expect(auth().signInWithCredential).toHaveBeenCalledWith(mockCredential);
   });
 
   it("should throw an error if play services are not available", async () => {
@@ -52,7 +59,10 @@ describe("signInWithGoogle", () => {
     await expect(signInWithGoogle()).rejects.toEqual({ code: "12501" });
 
     expect(GoogleSignin.signIn).toHaveBeenCalled();
-    expect(Bugsnag.notify).toHaveBeenCalledWith({ code: "12501" }); // Ensure cancellation is logged
+    expect(Bugsnag.notify).toHaveBeenCalledWith(
+      expect.objectContaining({ code: "12501" }),
+      expect.any(Function),
+    ); // Ensure cancellation is logged
     expect(Alert.alert).not.toHaveBeenCalled(); // No alert for cancellations
   });
 
@@ -63,10 +73,37 @@ describe("signInWithGoogle", () => {
 
     await expect(signInWithGoogle()).rejects.toThrow("Sign-in error");
 
-    expect(Bugsnag.notify).toHaveBeenCalledWith(mockError);
+    expect(Bugsnag.notify).toHaveBeenCalledWith(
+      mockError,
+      expect.any(Function),
+    );
     expect(Alert.alert).toHaveBeenCalledWith(
       "Error",
       "Failed to sign in. Please try again.",
     );
+  });
+
+  it("should add sign_in_error metadata to Bugsnag notification", async () => {
+    (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
+    const mockError = new Error("Sign-in error");
+    mockError.name = "TestError";
+    (mockError as any).code = "test-code";
+    (GoogleSignin.signIn as jest.Mock).mockRejectedValue(mockError);
+
+    const mockEvent = {
+      addMetadata: jest.fn(),
+    };
+    (Bugsnag.notify as jest.Mock).mockImplementation((error, callback) => {
+      callback(mockEvent);
+    });
+
+    await expect(signInWithGoogle()).rejects.toThrow("Sign-in error");
+
+    expect(mockEvent.addMetadata).toHaveBeenCalledWith("sign_in_error", {
+      code: "test-code",
+      message: "Sign-in error",
+      name: "TestError",
+      stack: expect.any(String),
+    });
   });
 });

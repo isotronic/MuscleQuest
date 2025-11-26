@@ -200,7 +200,7 @@ export default function WorkoutOverviewScreen() {
               onSuccess: () => {
                 console.log("Workout saved successfully!");
                 clearPersistedStore();
-                router.push("/(tabs)");
+                router.push("/(app)/(tabs)");
               },
               onError: (error) => {
                 Alert.alert(
@@ -244,7 +244,7 @@ export default function WorkoutOverviewScreen() {
           onPress: () => {
             clearPersistedStore();
             // Navigate back to the main screen or home screen
-            router.push("/(tabs)");
+            router.push("/(app)/(tabs)");
           },
         },
       ],

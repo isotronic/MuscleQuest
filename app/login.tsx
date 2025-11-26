@@ -1,5 +1,9 @@
 import { ThemedView } from "@/components/ThemedView";
-import auth from "@react-native-firebase/auth";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithCredential,
+} from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { openDatabase } from "@/utils/database";
 import { Alert, StyleSheet, View } from "react-native";
@@ -41,8 +45,9 @@ export default function LoginScreen() {
         throw new Error("Play services not available");
       }
       const { idToken } = await GoogleSignin.signIn();
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      await auth().signInWithCredential(googleCredential);
+      const googleCredential = GoogleAuthProvider.credential(idToken);
+      const auth = getAuth();
+      await signInWithCredential(auth, googleCredential);
       await saveLoginShown(); // Save setting to avoid showing login again
       router.replace("/");
     } catch (error: any) {

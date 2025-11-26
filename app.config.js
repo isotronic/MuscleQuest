@@ -4,22 +4,17 @@ export default {
   expo: {
     name: IS_DEV ? "Muscle Quest (Dev)" : "Muscle Quest",
     slug: "musclequest",
-    version: "0.16.6", // MM.mm.pp
+    version: "0.17.1", // MM.mm.pp
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "musclequest",
     userInterfaceStyle: "dark",
-    splash: {
-      image: "./assets/images/splash.png",
-      resizeMode: "cover",
-      backgroundColor: "#22222d",
-    },
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.isotronic.musclequest",
     },
     android: {
-      versionCode: 1606, // MMmmpp
+      versionCode: 1701, // MMmmpp
       googleServicesFile: "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/images/ic_launcher_foreground.png",
@@ -79,10 +74,34 @@ export default {
           sounds: ["./assets/sounds/boxing_bell.mp3"],
         },
       ],
+      [
+        "expo-splash-screen",
+        {
+          // Android 12+ requires centered splash image instead of full-screen
+          // Using app icon as splash image (recommended approach)
+          image: "./assets/images/icon.png",
+          imageWidth: 200,
+          resizeMode: "contain",
+          backgroundColor: "#22222d",
+        },
+      ],
+      [
+        "expo-build-properties",
+        {
+          android: {
+            compileSdkVersion: 35,
+            targetSdkVersion: 35,
+          },
+          ios: {
+            deploymentTarget: "15.1",
+          },
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,
     },
+    newArchEnabled: true,
     extra: {
       router: {
         origin: false,

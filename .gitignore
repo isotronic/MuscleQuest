@@ -37,3 +37,4 @@ expo-env.d.ts
 
 coverage/
 *copilot-instructions.md
+*EXPO_SDK_52_UPGRADE_PLAN.md
