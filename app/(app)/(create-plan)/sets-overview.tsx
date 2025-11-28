@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
@@ -32,74 +32,68 @@ export default function SetsOverviewScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSetIndex, setSelectedSetIndex] = useState<number | null>(null);
 
-  const handleAddSet = useCallback(() => {
+  const handleAddSet = () => {
     setSelectedSetIndex(null);
     setModalVisible(true);
-  }, []);
+  };
 
-  const handleEditSet = useCallback((index: number) => {
+  const handleEditSet = (index: number) => {
     setSelectedSetIndex(index);
     setModalVisible(true);
-  }, []);
+  };
 
-  const handleDeleteSet = useCallback(
-    (index: number) => {
-      useWorkoutStore
-        .getState()
-        .removeSetFromExercise(Number(workoutIndex), Number(exerciseId), index);
-    },
-    [workoutIndex, exerciseId],
-  );
+  const handleDeleteSet = (index: number) => {
+    useWorkoutStore
+      .getState()
+      .removeSetFromExercise(Number(workoutIndex), Number(exerciseId), index);
+  };
 
-  const renderSetItem = useCallback(
-    ({ item, index }: { item: Set; index: number }) => {
-      const repRange =
-        item.repsMin === item.repsMax
-          ? item.repsMin
-          : !item.repsMin
-            ? item.repsMax
-            : item.repsMax
-              ? `${item.repsMin} - ${item.repsMax}`
-              : item.repsMin;
+  const renderSetItem = ({ item, index }: { item: Set; index: number }) => {
+    const repRange =
+      item.repsMin === item.repsMax
+        ? item.repsMin
+        : !item.repsMin
+          ? item.repsMax
+          : item.repsMax
+            ? `${item.repsMin} - ${item.repsMax}`
+            : item.repsMin;
 
-      const formattedTime = item.time
-        ? formatFromTotalSeconds(item.time)
-        : formatFromTotalSeconds(defaultTime);
+    const formattedTime = item.time
+      ? formatFromTotalSeconds(item.time)
+      : formatFromTotalSeconds(defaultTime);
 
-      return (
-        <ThemedView style={styles.setItem}>
-          <TouchableOpacity
-            onPress={() => handleEditSet(index)}
-            style={styles.setContent}
-          >
-            <ThemedView style={styles.setTextContainer}>
-              <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
-              <ThemedText style={styles.setInfo}>
-                {item.isWarmup ? "Warm-up, " : ""}
-                {item.isDropSet ? "Drop set, " : ""}
-                {item.isToFailure ? "To failure, " : ""}
-                {trackingType === "time"
-                  ? `${formattedTime}, `
-                  : repRange !== undefined
-                    ? `${repRange} Reps, `
-                    : ""}
-                {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
-                Rest
-              </ThemedText>
-            </ThemedView>
-          </TouchableOpacity>
-          <MaterialCommunityIcons
-            name="close"
-            size={24}
-            color={Colors.dark.text}
-            onPress={() => handleDeleteSet(index)}
-            style={styles.deleteIcon}
-          />
-        </ThemedView>
-      );
-    },
-    [defaultTime, trackingType, handleEditSet, handleDeleteSet],
-  );
+    return (
+      <ThemedView style={styles.setItem}>
+        <TouchableOpacity
+          onPress={() => handleEditSet(index)}
+          style={styles.setContent}
+        >
+          <ThemedView style={styles.setTextContainer}>
+            <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
+            <ThemedText style={styles.setInfo}>
+              {item.isWarmup ? "Warm-up, " : ""}
+              {item.isDropSet ? "Drop set, " : ""}
+              {item.isToFailure ? "To failure, " : ""}
+              {trackingType === "time"
+                ? `${formattedTime}, `
+                : repRange !== undefined
+                  ? `${repRange} Reps, `
+                  : ""}
+              {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
+              Rest
+            </ThemedText>
+          </ThemedView>
+        </TouchableOpacity>
+        <MaterialCommunityIcons
+          name="close"
+          size={24}
+          color={Colors.dark.text}
+          onPress={() => handleDeleteSet(index)}
+          style={styles.deleteIcon}
+        />
+      </ThemedView>
+    );
+  };
 
   return (
     <ThemedView style={styles.container}>
