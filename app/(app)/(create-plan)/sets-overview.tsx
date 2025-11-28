@@ -9,7 +9,7 @@ import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { EditSetModal } from "@/components/EditSetModal";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 import { formatFromTotalSeconds } from "@/utils/utility";
 
 export default function SetsOverviewScreen() {
@@ -49,6 +49,21 @@ export default function SetsOverviewScreen() {
       .removeSetFromExercise(Number(workoutIndex), Number(exerciseId), index);
   };
 
+  const renderRightActions = (index: number) => {
+    return (
+      <TouchableOpacity
+        onPress={() => handleDeleteSet(index)}
+        style={styles.deleteAction}
+      >
+        <MaterialCommunityIcons
+          name="delete"
+          size={24}
+          color={Colors.dark.text}
+        />
+      </TouchableOpacity>
+    );
+  };
+
   const renderSetItem = ({ item, index }: { item: Set; index: number }) => {
     const repRange =
       item.repsMin === item.repsMax
@@ -64,10 +79,7 @@ export default function SetsOverviewScreen() {
       : formatFromTotalSeconds(defaultTime);
 
     return (
-      <Swipeable
-        onSwipeableOpen={() => handleDeleteSet(index)}
-        rightThreshold={150}
-      >
+      <Swipeable renderRightActions={() => renderRightActions(index)}>
         <ThemedView style={styles.setItem}>
           <TouchableOpacity
             onPress={() => handleEditSet(index)}
@@ -170,6 +182,14 @@ const styles = StyleSheet.create({
   },
   deleteIcon: {
     paddingLeft: 16,
+  },
+  deleteAction: {
+    backgroundColor: Colors.dark.highlight || "#d32f2f",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 80,
+    borderRadius: 8,
+    marginBottom: 10,
   },
   flatListContent: {
     paddingBottom: 50,
