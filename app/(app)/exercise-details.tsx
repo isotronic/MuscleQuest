@@ -105,7 +105,7 @@ export default function ExerciseDetailsScreen() {
                   exerciseData.favorite ? Colors.dark.tint : Colors.dark.text
                 }
                 size={25}
-                onPress={handleToggleFavorite}
+                onPressIn={handleToggleFavorite}
               />
             </>
           ),

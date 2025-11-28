@@ -58,7 +58,7 @@ export const Notes: React.FC<NotesProps> = ({
       {/* Open Button */}
       {buttonType === "icon" && (
         <IconButton
-          onPress={handleOpen}
+          onPressIn={handleOpen}
           icon="note-edit"
           size={25}
           iconColor={note.trim() ? Colors.dark.tint : Colors.dark.text}
@@ -68,7 +68,7 @@ export const Notes: React.FC<NotesProps> = ({
       {buttonType === "button" && (
         <Button
           icon={note.trim() ? "note-edit" : "note-outline"}
-          onPress={handleOpen}
+          onPressIn={handleOpen}
           mode="outlined"
           compact
           style={{ marginBottom: 16 }}

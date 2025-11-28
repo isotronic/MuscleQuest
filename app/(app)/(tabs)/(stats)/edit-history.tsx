@@ -94,7 +94,7 @@ export default function EditCompletedWorkoutScreen() {
                 size={35}
                 style={{ marginRight: 0 }}
                 iconColor={Colors.dark.tint}
-                onPress={handleSave}
+                onPressIn={handleSave}
               />
             </View>
           ),

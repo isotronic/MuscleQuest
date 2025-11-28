@@ -311,7 +311,7 @@ export default function WorkoutOverviewScreen() {
                 style={{ marginRight: 0 }}
                 labelStyle={styles.buttonLabel}
                 disabled={!hasCompletedSets || isSaving}
-                onPress={handleSaveWorkout}
+                onPressIn={handleSaveWorkout}
               >
                 Finish
               </Button>
@@ -322,7 +322,7 @@ export default function WorkoutOverviewScreen() {
                   <IconButton
                     icon="dots-vertical"
                     size={24}
-                    onPress={() => handleMenuOpen(69420)}
+                    onPressIn={() => handleMenuOpen(69420)}
                     style={styles.optionsButton}
                     iconColor={Colors.dark.text}
                   />
