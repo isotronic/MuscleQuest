@@ -73,16 +73,21 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
   useEffect(() => {
     if (visible) {
       fadeAnim.setValue(0);
-      Animated.timing(fadeAnim, {
+      const animation = Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 100,
         delay: 50,
         useNativeDriver: true,
-      }).start();
+      });
+      animation.start();
+
+      return () => {
+        animation.stop();
+      };
+    } else {
+      fadeAnim.setValue(0);
     }
-    // fadeAnim is a stable ref and doesn't need to be in dependencies
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible]);
+  }, [visible, fadeAnim]);
 
   // Single effect to handle initial state setup
   useEffect(() => {
