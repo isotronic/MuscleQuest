@@ -9,7 +9,6 @@ import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { EditSetModal } from "@/components/EditSetModal";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import Swipeable from "react-native-gesture-handler/Swipeable";
 import { formatFromTotalSeconds } from "@/utils/utility";
 
 export default function SetsOverviewScreen() {
@@ -52,24 +51,6 @@ export default function SetsOverviewScreen() {
     [workoutIndex, exerciseId],
   );
 
-  const renderRightActions = useCallback(
-    (index: number) => {
-      return (
-        <TouchableOpacity
-          onPress={() => handleDeleteSet(index)}
-          style={styles.deleteAction}
-        >
-          <MaterialCommunityIcons
-            name="delete"
-            size={24}
-            color={Colors.dark.text}
-          />
-        </TouchableOpacity>
-      );
-    },
-    [handleDeleteSet],
-  );
-
   const renderSetItem = useCallback(
     ({ item, index }: { item: Set; index: number }) => {
       const repRange =
@@ -86,50 +67,38 @@ export default function SetsOverviewScreen() {
         : formatFromTotalSeconds(defaultTime);
 
       return (
-        <Swipeable
-          renderRightActions={() => renderRightActions(index)}
-          overshootRight={false}
-          overshootLeft={false}
-        >
-          <ThemedView style={styles.setItem}>
-            <TouchableOpacity
-              onPress={() => handleEditSet(index)}
-              style={styles.setContent}
-            >
-              <ThemedView style={styles.setTextContainer}>
-                <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
-                <ThemedText style={styles.setInfo}>
-                  {item.isWarmup ? "Warm-up, " : ""}
-                  {item.isDropSet ? "Drop set, " : ""}
-                  {item.isToFailure ? "To failure, " : ""}
-                  {trackingType === "time"
-                    ? `${formattedTime}, `
-                    : repRange !== undefined
-                      ? `${repRange} Reps, `
-                      : ""}
-                  {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
-                  Rest
-                </ThemedText>
-              </ThemedView>
-            </TouchableOpacity>
-            <MaterialCommunityIcons
-              name="close"
-              size={24}
-              color={Colors.dark.text}
-              onPress={() => handleDeleteSet(index)}
-              style={styles.deleteIcon}
-            />
-          </ThemedView>
-        </Swipeable>
+        <ThemedView style={styles.setItem}>
+          <TouchableOpacity
+            onPress={() => handleEditSet(index)}
+            style={styles.setContent}
+          >
+            <ThemedView style={styles.setTextContainer}>
+              <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
+              <ThemedText style={styles.setInfo}>
+                {item.isWarmup ? "Warm-up, " : ""}
+                {item.isDropSet ? "Drop set, " : ""}
+                {item.isToFailure ? "To failure, " : ""}
+                {trackingType === "time"
+                  ? `${formattedTime}, `
+                  : repRange !== undefined
+                    ? `${repRange} Reps, `
+                    : ""}
+                {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
+                Rest
+              </ThemedText>
+            </ThemedView>
+          </TouchableOpacity>
+          <MaterialCommunityIcons
+            name="close"
+            size={24}
+            color={Colors.dark.text}
+            onPress={() => handleDeleteSet(index)}
+            style={styles.deleteIcon}
+          />
+        </ThemedView>
       );
     },
-    [
-      defaultTime,
-      trackingType,
-      renderRightActions,
-      handleEditSet,
-      handleDeleteSet,
-    ],
+    [defaultTime, trackingType, handleEditSet, handleDeleteSet],
   );
 
   return (
@@ -201,14 +170,6 @@ const styles = StyleSheet.create({
   },
   deleteIcon: {
     paddingLeft: 16,
-  },
-  deleteAction: {
-    backgroundColor: Colors.dark.highlight || "#d32f2f",
-    justifyContent: "center",
-    alignItems: "center",
-    width: 80,
-    borderRadius: 8,
-    marginBottom: 10,
   },
   flatListContent: {
     paddingBottom: 50,
