@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   TextInput,
   Modal,
   View,
   TouchableWithoutFeedback,
+  Animated,
 } from "react-native";
 import { Button, Checkbox, Divider } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
@@ -65,6 +66,28 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
     formatFromTotalSeconds(defaultTotalSeconds),
   );
   const [time, setTime] = useState(formatFromTotalSeconds(defaultTime));
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Fade in content after modal animation
+  useEffect(() => {
+    if (visible) {
+      fadeAnim.setValue(0);
+      const animation = Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 100,
+        delay: 50,
+        useNativeDriver: true,
+      });
+      animation.start();
+
+      return () => {
+        animation.stop();
+      };
+    } else {
+      fadeAnim.setValue(0);
+    }
+  }, [visible, fadeAnim]);
 
   // Single effect to handle initial state setup
   useEffect(() => {
@@ -165,12 +188,13 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
       visible={visible}
       transparent={true}
       onDismiss={onClose}
-      animationType="slide"
+      animationType="fade"
+      statusBarTranslucent
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.modalContainer}>
           <TouchableWithoutFeedback>
-            <View style={styles.modalContent}>
+            <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}>
               {trackingType === "time" ? (
                 <View>
                   <ThemedText style={styles.label}>
@@ -319,14 +343,13 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                   Save Set
                 </Button>
               </View>
-            </View>
+            </Animated.View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
     </Modal>
   );
 };
-
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,

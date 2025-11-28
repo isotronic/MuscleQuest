@@ -9,7 +9,6 @@ import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { EditSetModal } from "@/components/EditSetModal";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { formatFromTotalSeconds } from "@/utils/utility";
 
 export default function SetsOverviewScreen() {
@@ -64,40 +63,35 @@ export default function SetsOverviewScreen() {
       : formatFromTotalSeconds(defaultTime);
 
     return (
-      <Swipeable
-        onSwipeableOpen={() => handleDeleteSet(index)}
-        rightThreshold={150}
-      >
-        <ThemedView style={styles.setItem}>
-          <TouchableOpacity
-            onPress={() => handleEditSet(index)}
-            style={styles.setContent}
-          >
-            <ThemedView style={styles.setTextContainer}>
-              <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
-              <ThemedText style={styles.setInfo}>
-                {item.isWarmup ? "Warm-up, " : ""}
-                {item.isDropSet ? "Drop set, " : ""}
-                {item.isToFailure ? "To failure, " : ""}
-                {trackingType === "time"
-                  ? `${formattedTime}, `
-                  : repRange !== undefined
-                    ? `${repRange} Reps, `
-                    : ""}
-                {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
-                Rest
-              </ThemedText>
-            </ThemedView>
-          </TouchableOpacity>
-          <MaterialCommunityIcons
-            name="close"
-            size={24}
-            color={Colors.dark.text}
-            onPress={() => handleDeleteSet(index)}
-            style={styles.deleteIcon}
-          />
-        </ThemedView>
-      </Swipeable>
+      <ThemedView style={styles.setItem}>
+        <TouchableOpacity
+          onPress={() => handleEditSet(index)}
+          style={styles.setContent}
+        >
+          <ThemedView style={styles.setTextContainer}>
+            <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
+            <ThemedText style={styles.setInfo}>
+              {item.isWarmup ? "Warm-up, " : ""}
+              {item.isDropSet ? "Drop set, " : ""}
+              {item.isToFailure ? "To failure, " : ""}
+              {trackingType === "time"
+                ? `${formattedTime}, `
+                : repRange !== undefined
+                  ? `${repRange} Reps, `
+                  : ""}
+              {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
+              Rest
+            </ThemedText>
+          </ThemedView>
+        </TouchableOpacity>
+        <MaterialCommunityIcons
+          name="close"
+          size={24}
+          color={Colors.dark.text}
+          onPress={() => handleDeleteSet(index)}
+          style={styles.deleteIcon}
+        />
+      </ThemedView>
     );
   };
 
