@@ -80,7 +80,9 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
         useNativeDriver: true,
       }).start();
     }
-  }, [visible, fadeAnim]);
+    // fadeAnim is a stable ref and doesn't need to be in dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
 
   // Single effect to handle initial state setup
   useEffect(() => {
