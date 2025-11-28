@@ -4,7 +4,7 @@ export default {
   expo: {
     name: IS_DEV ? "Muscle Quest (Dev)" : "Muscle Quest",
     slug: "musclequest",
-    version: "0.17.2", // MM.mm.pp
+    version: "0.17.3", // MM.mm.pp
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "musclequest",
@@ -14,7 +14,7 @@ export default {
       bundleIdentifier: "com.isotronic.musclequest",
     },
     android: {
-      versionCode: 1702, // MMmmpp
+      versionCode: 1703, // MMmmpp
       googleServicesFile: "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/images/ic_launcher_foreground.png",
