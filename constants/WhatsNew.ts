@@ -25,7 +25,11 @@ The broken sliding animations between sets have been removed entirely. Set trans
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
-export const CURRENT_WHATS_NEW_VERSION = WHATS_NEW_ENTRIES.reduce(
-  (max, entry) => (entry.version > max ? entry.version : max),
-  0,
-);
+// Defaults to 0 if the array is empty
+export const CURRENT_WHATS_NEW_VERSION =
+  WHATS_NEW_ENTRIES.length > 0
+    ? WHATS_NEW_ENTRIES.reduce(
+        (max, entry) => (entry.version > max ? entry.version : max),
+        0,
+      )
+    : 0;
