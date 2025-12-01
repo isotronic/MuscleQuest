@@ -1,14 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-  Animated,
-  Easing,
-  StyleSheet,
-  View,
-  Dimensions,
-  Alert,
-} from "react-native";
+import React, { useEffect, useRef } from "react";
+import { StyleSheet, View, Alert } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
-import { PanGestureHandler, State } from "react-native-gesture-handler";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -28,51 +20,11 @@ import {
   scheduleRestNotification,
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
-import {
-  convertTimeStrToSeconds,
-  formatFromTotalSeconds,
-} from "@/utils/utility";
+import { convertTimeStrToSeconds } from "@/utils/utility";
 import { useSoundStore } from "@/store/soundStore";
-
-// Allowed tracking types for exercises
-const ALLOWED_TRACKING_TYPES = ["weight", "reps", "time", "assisted"] as const;
-
-/**
- * Validates tracking_type and provides explicit fallback with warning logging.
- * @param type - The tracking_type from an exercise
- * @param exerciseId - The exercise_id for logging purposes
- * @returns A valid tracking type, defaulting to "weight" if invalid/missing
- */
-function getValidTrackingType(
-  type: string | undefined,
-  exerciseId?: number,
-): string {
-  // Empty string or undefined defaults to "weight" (common pattern in the app)
-  if (!type || type === "") {
-    return "weight";
-  }
-
-  if (ALLOWED_TRACKING_TYPES.includes(type as any)) {
-    return type;
-  }
-
-  console.warn(
-    `Invalid tracking_type "${type}" for exercise_id ${exerciseId}. Defaulting to "weight".`,
-  );
-  return "weight";
-}
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
-  const screenWidth = Dimensions.get("window").width; // Get the screen width
-  const translateX = useRef(new Animated.Value(0)).current;
-
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [nextSetData, setNextSetData] = useState<{
-    weight?: string;
-    reps?: string;
-    time?: string;
-  }>({});
 
   const {
     workout,
@@ -376,100 +328,6 @@ export default function WorkoutSessionScreen() {
     workout &&
     workout.exercises[previousExerciseIndex].sets[previousSetIndex];
 
-  // Next set data
-  const nextExercise = hasNextSet ? workout.exercises[nextExerciseIndex] : null;
-  const upcomingSet = nextExercise ? nextExercise.sets[nextSetIndex] : null;
-  const nextExerciseName = nextExercise?.name || "";
-  const {
-    data: nextAnimatedUrl,
-    error: nextAnimatedImageError,
-    isLoading: nextAnimatedImageLoading,
-  } = useAnimatedImageQuery(
-    nextExercise?.exercise_id || 0,
-    nextExercise?.animated_url || "",
-    nextExercise?.local_animated_uri,
-  );
-
-  const previousWorkoutNextSetData = findLastAvailableSetData(
-    nextExercise?.exercise_id || 0,
-    nextSetIndex,
-  );
-
-  const nextWeight =
-    weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.weight ??
-    previousWorkoutNextSetData?.weight?.toString() ??
-    "";
-
-  const nextReps =
-    weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.reps ??
-    previousWorkoutNextSetData?.reps?.toString() ??
-    "";
-
-  const nextTime =
-    weightAndReps[nextExerciseIndex]?.[nextSetIndex]?.time ??
-    previousWorkoutNextSetData?.time?.toString() ??
-    "";
-
-  // Previous set data
-  const previousExercise =
-    hasPreviousSet && previousExerciseIndex !== null
-      ? workout.exercises[previousExerciseIndex]
-      : null;
-  const previousSet =
-    previousExercise && previousSetIndex !== null
-      ? previousExercise.sets[previousSetIndex]
-      : null;
-  const previousExerciseName = previousExercise?.name || "";
-  const {
-    data: previousAnimatedUrl,
-    error: previousAnimatedImageError,
-    isLoading: previousAnimatedImageLoading,
-  } = useAnimatedImageQuery(
-    previousExercise?.exercise_id || 0,
-    previousExercise?.animated_url || "",
-    previousExercise?.local_animated_uri,
-  );
-
-  const previousExerciseData = previousWorkoutData
-    ?.map((workout) => workout.exercises)
-    .flat()
-    .find((prevEx) => prevEx.exercise_id === previousExercise?.exercise_id);
-
-  let previousSetData = null;
-
-  if (previousSetIndex !== null && previousExerciseData) {
-    previousSetData = previousExerciseData.sets[previousSetIndex];
-  }
-
-  const previousWeight =
-    previousExerciseIndex !== null && previousSetIndex !== null
-      ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.weight ??
-        previousSetData?.weight?.toString() ??
-        ""
-      : "";
-
-  const previousReps =
-    previousExerciseIndex !== null && previousSetIndex !== null
-      ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.reps ??
-        previousSetData?.reps?.toString() ??
-        ""
-      : "";
-
-  const previousTime =
-    previousExerciseIndex !== null && previousSetIndex !== null
-      ? weightAndReps[previousExerciseIndex]?.[previousSetIndex]?.time ??
-        previousSetData?.time?.toString() ??
-        ""
-      : "";
-
-  const previousSetCompleted =
-    previousExerciseIndex !== null &&
-    previousSetIndex !== null &&
-    completedSets[previousExerciseIndex] &&
-    typeof completedSets[previousExerciseIndex][previousSetIndex] === "boolean"
-      ? completedSets[previousExerciseIndex][previousSetIndex]
-      : false;
-
   const currentIsLastSetOfLastExercise =
     workout &&
     currentExercise &&
@@ -482,208 +340,29 @@ export default function WorkoutSessionScreen() {
     currentExerciseIndex === 0 &&
     currentSetIndex === 0;
 
-  const nextIsLastSetOfLastExercise =
-    workout &&
-    nextExercise &&
-    nextExerciseIndex === workout.exercises.length - 1 &&
-    nextSetIndex === nextExercise.sets.length - 1;
-
-  const nextIsFirstSetOfFirstExercise =
-    workout && nextExercise && nextExerciseIndex === 0 && nextSetIndex === 0;
-
-  const previousIsLastSetOfLastExercise =
-    workout &&
-    previousExercise &&
-    previousExerciseIndex === workout.exercises.length - 1 &&
-    previousSetIndex === previousExercise.sets.length - 1;
-
-  const previousIsFirstSetOfFirstExercise =
-    workout &&
-    previousExercise &&
-    previousExerciseIndex === 0 &&
-    previousSetIndex === 0;
-
   const handlePreviousSet = () => {
     if (
       hasPreviousSet &&
-      !isAnimating &&
       previousExerciseIndex !== null &&
       previousSetIndex !== null
     ) {
-      animateSets(screenWidth, () => {
-        setCurrentExerciseIndex(previousExerciseIndex as number);
-        setCurrentSetIndex(
-          previousExerciseIndex as number,
-          previousSetIndex as number,
-        );
-      });
+      setCurrentExerciseIndex(previousExerciseIndex as number);
+      setCurrentSetIndex(
+        previousExerciseIndex as number,
+        previousSetIndex as number,
+      );
     }
   };
 
   const handleNextSet = () => {
-    if (hasNextSet && !isAnimating) {
-      animateSets(-screenWidth, () => {
-        setCurrentExerciseIndex(nextExerciseIndex);
-        setCurrentSetIndex(nextExerciseIndex, nextSetIndex);
-      });
-    }
-  };
-
-  const handleSwipeGesture = ({ nativeEvent }: any) => {
-    const { translationX, state } = nativeEvent;
-    const swipeThreshold = 50;
-
-    if (state === State.ACTIVE && !isAnimating) {
-      translateX.setValue(translationX);
-    }
-
-    if (state === State.END && !isAnimating) {
-      if (
-        translationX > swipeThreshold &&
-        hasPreviousSet &&
-        previousExerciseIndex !== null &&
-        previousSetIndex !== null
-      ) {
-        // Swiping right to go to previous set
-        animateSets(screenWidth, () => {
-          setCurrentExerciseIndex(previousExerciseIndex);
-          setCurrentSetIndex(previousExerciseIndex, previousSetIndex);
-        });
-      } else if (translationX < -swipeThreshold && hasNextSet) {
-        // Swiping left to go to next set
-        animateSets(-screenWidth, () => {
-          setCurrentExerciseIndex(nextExerciseIndex);
-          setCurrentSetIndex(nextExerciseIndex, nextSetIndex);
-        });
-      } else {
-        resetSwipe();
-      }
-    }
-  };
-
-  const animateSets = (direction: number, callback: () => void) => {
-    setIsAnimating(true);
-
-    Animated.timing(translateX, {
-      toValue: direction,
-      duration: 250,
-      easing: Easing.linear,
-      useNativeDriver: true,
-    }).start(() => {
-      setIsAnimating(false);
-      translateX.setValue(0);
-      callback();
-    });
-  };
-
-  const resetSwipe = () => {
-    Animated.spring(translateX, {
-      toValue: 0,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const getNextSetData = () => {
-    // Compute temporary next indices
-    let tempNextExerciseIndex = currentExerciseIndex;
-    let tempNextSetIndex = currentSetIndex + 1;
-
-    if (currentExercise && tempNextSetIndex >= currentExercise.sets.length) {
-      tempNextExerciseIndex += 1;
-      tempNextSetIndex = 0;
-    }
-
-    if (
-      workout &&
-      tempNextExerciseIndex < workout.exercises.length &&
-      workout.exercises[tempNextExerciseIndex].sets[tempNextSetIndex]
-    ) {
-      const nextExercise = workout.exercises[tempNextExerciseIndex];
-      const trackingType = getValidTrackingType(
-        nextExercise.tracking_type,
-        nextExercise?.exercise_id,
-      );
-      const previousWorkoutNextSetData = previousWorkoutData
-        ?.map((workout) => workout.exercises)
-        .flat()
-        .find((prevEx) => prevEx.exercise_id === nextExercise?.exercise_id)
-        ?.sets[tempNextSetIndex];
-
-      // Logic to carry over weight from current set (only if same exercise)
-      const currentSetValues =
-        tempNextExerciseIndex === currentExerciseIndex
-          ? weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {}
-          : {};
-
-      const { isWarmup, isDropSet } =
-        workout.exercises[currentExerciseIndex].sets[currentSetIndex];
-
-      // Check if next set is a drop set (use correct exercise index)
-      const isNextDropSet =
-        tempNextSetIndex <
-          workout.exercises[tempNextExerciseIndex].sets.length &&
-        workout.exercises[tempNextExerciseIndex].sets[tempNextSetIndex]
-          ?.isDropSet;
-
-      // Return values based on tracking type to match store logic
-      const nextSetValues: {
-        weight: string;
-        reps: string;
-        time: string;
-      } = {
-        weight: "",
-        reps: "",
-        time: "",
-      };
-
-      if (trackingType === "weight" || trackingType === "") {
-        nextSetValues.weight =
-          (isWarmup || isDropSet || isNextDropSet) &&
-          previousWorkoutNextSetData?.weight
-            ? previousWorkoutNextSetData?.weight?.toString()
-            : currentSetValues.weight || "";
-        nextSetValues.reps =
-          previousWorkoutNextSetData?.reps !== undefined
-            ? String(previousWorkoutNextSetData.reps)
-            : currentSetValues.reps ?? "";
-      } else if (trackingType === "assisted") {
-        nextSetValues.weight =
-          (isWarmup || isDropSet || isNextDropSet) &&
-          previousWorkoutNextSetData?.weight
-            ? previousWorkoutNextSetData?.weight?.toString()
-            : currentSetValues.weight || "";
-        nextSetValues.reps =
-          previousWorkoutNextSetData?.reps !== undefined
-            ? String(previousWorkoutNextSetData.reps)
-            : currentSetValues.reps ?? "";
-      } else if (trackingType === "reps") {
-        nextSetValues.reps =
-          previousWorkoutNextSetData?.reps !== undefined
-            ? String(previousWorkoutNextSetData.reps)
-            : currentSetValues.reps ?? "";
-      } else if (trackingType === "time") {
-        const timeValue =
-          previousWorkoutNextSetData?.time !== undefined
-            ? previousWorkoutNextSetData?.time
-            : currentSetValues.time;
-        nextSetValues.time = timeValue
-          ? formatFromTotalSeconds(Number(timeValue))
-          : "";
-      }
-
-      return nextSetValues;
-    } else {
-      return { weight: "", reps: "", time: "" };
+    if (hasNextSet) {
+      setCurrentExerciseIndex(nextExerciseIndex);
+      setCurrentSetIndex(nextExerciseIndex, nextSetIndex);
     }
   };
 
   const handleCompleteSet = () => {
     if (!currentExercise || !currentSet) {
-      return;
-    }
-
-    // Prevent action if already animating
-    if (isAnimating) {
       return;
     }
 
@@ -721,18 +400,8 @@ export default function WorkoutSessionScreen() {
 
     if (hasNextSet) {
       startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
-
-      // Compute next set data with carried-over weight
-      const nextSetInfo = getNextSetData();
-      setNextSetData(nextSetInfo);
-
-      // Start animation
-      animateSets(-screenWidth, () => {
-        // Update indices after animation completes
-        nextSet();
-        // Clear nextSetData
-        setNextSetData({});
-      });
+      // Update state immediately without animation
+      nextSet();
     } else {
       // No next set, workout completed
       nextSet();
@@ -781,170 +450,45 @@ export default function WorkoutSessionScreen() {
           ),
         }}
       />
-      <PanGestureHandler
-        onGestureEvent={handleSwipeGesture}
-        onHandlerStateChange={handleSwipeGesture}
-      >
-        <View>
-          <Animated.View
-            style={{
-              transform: [{ translateX: translateX }],
-              position: "absolute",
-              width: "100%",
-            }}
-          >
-            <SessionSetInfo
-              exercise_id={currentExercise?.exercise_id || 0}
-              exerciseName={currentExercise?.name || ""}
-              animatedUrl={animatedUrl}
-              animatedImageLoading={animatedImageLoading}
-              animatedImageError={animatedImageError}
-              currentSetIndex={currentSetIndex}
-              isLastSetOfLastExercise={currentIsLastSetOfLastExercise}
-              isFirstSetOfFirstExercise={currentIsFirstSetOfFirstExercise}
-              totalSets={currentExercise?.sets.length || 0}
-              weight={weight}
-              reps={reps}
-              time={time}
-              weightIncrement={weightIncrement}
-              buttonSize={buttonSize}
-              weightUnit={settings?.weightUnit || "kg"}
-              restMinutes={currentSet?.restMinutes || 0}
-              restSeconds={currentSet?.restSeconds || 0}
-              repsMin={currentSet?.repsMin || 0}
-              repsMax={currentSet?.repsMax || 0}
-              timeMin={currentSet?.time || 0}
-              currentSetCompleted={currentSetCompleted}
-              isWarmup={currentSet?.isWarmup || false}
-              isDropSet={currentSet?.isDropSet || false}
-              isToFailure={currentSet?.isToFailure || false}
-              trackingType={currentExercise?.tracking_type || "weight"}
-              handleWeightInputChange={handleWeightInputChange}
-              handleWeightChange={handleWeightChange}
-              handleRepsInputChange={handleRepsInputChange}
-              handleRepsChange={handleRepsChange}
-              handleTimeInputChange={handleTimeInputChange}
-              handlePreviousSet={handlePreviousSet}
-              handleNextSet={handleNextSet}
-              handleCompleteSet={handleCompleteSet}
-              removeSet={handleRemoveSet}
-              addSet={addSet}
-            />
-          </Animated.View>
-
-          {!!hasNextSet && (
-            <Animated.View
-              style={{
-                transform: [
-                  {
-                    translateX: Animated.add(
-                      translateX,
-                      new Animated.Value(screenWidth),
-                    ),
-                  },
-                ],
-                position: "absolute",
-                width: "100%",
-              }}
-            >
-              <SessionSetInfo
-                exercise_id={nextExercise?.exercise_id || 0}
-                exerciseName={nextExerciseName}
-                animatedUrl={nextAnimatedUrl}
-                animatedImageLoading={nextAnimatedImageLoading}
-                animatedImageError={nextAnimatedImageError}
-                isLastSetOfLastExercise={nextIsLastSetOfLastExercise}
-                isFirstSetOfFirstExercise={nextIsFirstSetOfFirstExercise}
-                currentSetIndex={nextSetIndex}
-                totalSets={nextExercise?.sets.length || 0}
-                weight={nextSetData.weight || nextWeight}
-                reps={nextSetData.reps || nextReps}
-                time={nextSetData.time || nextTime}
-                weightIncrement={weightIncrement}
-                buttonSize={buttonSize}
-                weightUnit={settings?.weightUnit || "kg"}
-                restMinutes={upcomingSet?.restMinutes || 0}
-                restSeconds={upcomingSet?.restSeconds || 0}
-                repsMin={upcomingSet?.repsMin || 0}
-                repsMax={upcomingSet?.repsMax || 0}
-                timeMin={upcomingSet?.time || 0}
-                currentSetCompleted={false}
-                isWarmup={upcomingSet?.isWarmup || false}
-                isDropSet={upcomingSet?.isDropSet || false}
-                isToFailure={upcomingSet?.isToFailure || false}
-                trackingType={nextExercise?.tracking_type || "weight"}
-                handleWeightInputChange={() => {}}
-                handleWeightChange={() => {}}
-                handleRepsInputChange={() => {}}
-                handleRepsChange={() => {}}
-                handleTimeInputChange={() => {}}
-                handlePreviousSet={() => {}}
-                handleNextSet={() => {}}
-                handleCompleteSet={() => {}}
-                removeSet={() => {}}
-                addSet={() => {}}
-              />
-            </Animated.View>
-          )}
-
-          {!!hasPreviousSet &&
-            previousExerciseIndex !== null &&
-            previousSetIndex !== null && (
-              <Animated.View
-                style={{
-                  transform: [
-                    {
-                      translateX: Animated.add(
-                        translateX,
-                        new Animated.Value(-screenWidth),
-                      ),
-                    },
-                  ],
-                  position: "absolute",
-                  width: "100%",
-                }}
-              >
-                <SessionSetInfo
-                  exercise_id={previousExercise?.exercise_id || 0}
-                  exerciseName={previousExerciseName}
-                  animatedUrl={previousAnimatedUrl}
-                  animatedImageLoading={previousAnimatedImageLoading}
-                  animatedImageError={previousAnimatedImageError}
-                  isLastSetOfLastExercise={previousIsLastSetOfLastExercise}
-                  isFirstSetOfFirstExercise={previousIsFirstSetOfFirstExercise}
-                  currentSetIndex={previousSetIndex}
-                  totalSets={previousExercise?.sets.length || 0}
-                  weight={previousWeight || ""}
-                  reps={previousReps || ""}
-                  time={previousTime || ""}
-                  weightIncrement={weightIncrement}
-                  buttonSize={buttonSize}
-                  weightUnit={settings?.weightUnit || "kg"}
-                  restMinutes={previousSet?.restMinutes || 0}
-                  restSeconds={previousSet?.restSeconds || 0}
-                  repsMin={previousSet?.repsMin || 0}
-                  repsMax={previousSet?.repsMax || 0}
-                  timeMin={previousSet?.time || 0}
-                  currentSetCompleted={previousSetCompleted}
-                  isWarmup={previousSet?.isWarmup || false}
-                  isDropSet={previousSet?.isDropSet || false}
-                  isToFailure={previousSet?.isToFailure || false}
-                  trackingType={previousExercise?.tracking_type || "weight"}
-                  handleWeightInputChange={() => {}}
-                  handleWeightChange={() => {}}
-                  handleRepsInputChange={() => {}}
-                  handleRepsChange={() => {}}
-                  handleTimeInputChange={() => {}}
-                  handlePreviousSet={() => {}}
-                  handleNextSet={() => {}}
-                  handleCompleteSet={() => {}}
-                  removeSet={() => {}}
-                  addSet={() => {}}
-                />
-              </Animated.View>
-            )}
-        </View>
-      </PanGestureHandler>
+      <View style={{ flex: 1 }}>
+        <SessionSetInfo
+          exercise_id={currentExercise?.exercise_id || 0}
+          exerciseName={currentExercise?.name || ""}
+          animatedUrl={animatedUrl}
+          animatedImageLoading={animatedImageLoading}
+          animatedImageError={animatedImageError}
+          currentSetIndex={currentSetIndex}
+          isLastSetOfLastExercise={currentIsLastSetOfLastExercise}
+          isFirstSetOfFirstExercise={currentIsFirstSetOfFirstExercise}
+          totalSets={currentExercise?.sets.length || 0}
+          weight={weight}
+          reps={reps}
+          time={time}
+          weightIncrement={weightIncrement}
+          buttonSize={buttonSize}
+          weightUnit={settings?.weightUnit || "kg"}
+          restMinutes={currentSet?.restMinutes || 0}
+          restSeconds={currentSet?.restSeconds || 0}
+          repsMin={currentSet?.repsMin || 0}
+          repsMax={currentSet?.repsMax || 0}
+          timeMin={currentSet?.time || 0}
+          currentSetCompleted={currentSetCompleted}
+          isWarmup={currentSet?.isWarmup || false}
+          isDropSet={currentSet?.isDropSet || false}
+          isToFailure={currentSet?.isToFailure || false}
+          trackingType={currentExercise?.tracking_type || "weight"}
+          handleWeightInputChange={handleWeightInputChange}
+          handleWeightChange={handleWeightChange}
+          handleRepsInputChange={handleRepsInputChange}
+          handleRepsChange={handleRepsChange}
+          handleTimeInputChange={handleTimeInputChange}
+          handlePreviousSet={handlePreviousSet}
+          handleNextSet={handleNextSet}
+          handleCompleteSet={handleCompleteSet}
+          removeSet={handleRemoveSet}
+          addSet={addSet}
+        />
+      </View>
       {timerRunning ? (
         <ThemedView
           style={[styles.timerContainer, { paddingBottom: insets.bottom }]}
