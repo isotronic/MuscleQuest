@@ -6,15 +6,10 @@ import { Colors } from "@/constants/Colors";
 import { useAppUpdates } from "@/hooks/useAppUpdates";
 
 export const UpdateModal = () => {
-  const { status, reloadApp } = useAppUpdates();
+  const { status, errorMessage, reloadApp } = useAppUpdates();
 
-  // Only show modal when downloading or ready (skip checking state to avoid flash)
-  if (
-    status === "idle" ||
-    status === "checking" ||
-    status === "no-update" ||
-    status === "error"
-  ) {
+  // Only show modal when downloading, ready, or error (skip checking state to avoid flash)
+  if (status === "idle" || status === "checking" || status === "no-update") {
     return null;
   }
 
@@ -33,12 +28,20 @@ export const UpdateModal = () => {
             "A new version has been downloaded. Tap the button below to restart and apply the update.",
           showButton: true,
         };
-      default:
+      case "error":
         return {
-          title: "",
-          message: "",
-          showButton: false,
+          title: "⚠️ Update Failed",
+          message:
+            errorMessage ||
+            "Unable to check for updates. The app will continue to work normally.",
+          showButton: true,
+          buttonText: "Dismiss",
         };
+      default: {
+        // Ensure this switch stays exhaustive if new statuses are added
+        const _exhaustiveCheck: never = status;
+        return _exhaustiveCheck;
+      }
     }
   };
 
@@ -61,8 +64,18 @@ export const UpdateModal = () => {
           <ThemedText style={styles.message}>{content.message}</ThemedText>
 
           {content.showButton && (
-            <Button mode="contained" onPress={reloadApp} style={styles.button}>
-              Restart App
+            <Button
+              mode="contained"
+              onPress={
+                status === "error"
+                  ? () => {
+                      /* Error dismissed, modal will hide */
+                    }
+                  : reloadApp
+              }
+              style={styles.button}
+            >
+              {"buttonText" in content ? content.buttonText : "Restart App"}
             </Button>
           )}
         </View>

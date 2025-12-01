@@ -24,6 +24,9 @@ export const useAppUpdates = (): UseAppUpdatesReturn => {
   const checkForUpdates = useCallback(async () => {
     // Skip update checks in development mode
     if (__DEV__) {
+      // Treat "skipped in development" the same as "no update available"
+      // so consumers can distinguish this from the initial "idle" state.
+      setStatus("no-update");
       return;
     }
 
