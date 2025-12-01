@@ -6,7 +6,7 @@ import { Colors } from "@/constants/Colors";
 import { useAppUpdates } from "@/hooks/useAppUpdates";
 
 export const UpdateModal = () => {
-  const { status, errorMessage, reloadApp } = useAppUpdates();
+  const { status, errorMessage, reloadApp, dismissError } = useAppUpdates();
 
   // Only show modal when downloading, ready, or error (skip checking state to avoid flash)
   if (status === "idle" || status === "checking" || status === "no-update") {
@@ -49,7 +49,11 @@ export const UpdateModal = () => {
 
   return (
     <Portal>
-      <Modal visible={true} dismissable={false}>
+      <Modal
+        visible={true}
+        dismissable={status === "error"}
+        onDismiss={status === "error" ? dismissError : undefined}
+      >
         <View style={styles.container}>
           <ThemedText type="subtitle">{content.title}</ThemedText>
 
@@ -66,13 +70,7 @@ export const UpdateModal = () => {
           {content.showButton && (
             <Button
               mode="contained"
-              onPress={
-                status === "error"
-                  ? () => {
-                      /* Error dismissed, modal will hide */
-                    }
-                  : reloadApp
-              }
+              onPress={status === "error" ? dismissError : reloadApp}
               style={styles.button}
             >
               {"buttonText" in content ? content.buttonText : "Restart App"}

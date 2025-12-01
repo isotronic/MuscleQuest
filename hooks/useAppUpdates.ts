@@ -15,6 +15,7 @@ export interface UseAppUpdatesReturn {
   isUpdateReady: boolean;
   errorMessage: string | null;
   reloadApp: () => Promise<void>;
+  dismissError: () => void;
 }
 
 export const useAppUpdates = (): UseAppUpdatesReturn => {
@@ -26,6 +27,12 @@ export const useAppUpdates = (): UseAppUpdatesReturn => {
     if (__DEV__) {
       // Treat "skipped in development" the same as "no update available"
       // so consumers can distinguish this from the initial "idle" state.
+      setStatus("no-update");
+      return;
+    }
+
+    // Skip if updates are not enabled (e.g., bare or non-managed builds)
+    if (!Updates.isEnabled) {
       setStatus("no-update");
       return;
     }
@@ -76,10 +83,16 @@ export const useAppUpdates = (): UseAppUpdatesReturn => {
     }
   };
 
+  const dismissError = () => {
+    setStatus("no-update");
+    setErrorMessage(null);
+  };
+
   return {
     status,
     isUpdateReady: status === "ready",
     errorMessage,
     reloadApp,
+    dismissError,
   };
 };
