@@ -232,7 +232,7 @@ export default function ExercisesScreen() {
   }
 
   const isLoading =
-    exercisesLoading || settingsLoading || (initialBodyPart && !filterReady);
+    exercisesLoading || settingsLoading || (!!initialBodyPart && !filterReady);
 
   return (
     <ThemedView style={styles.container}>
