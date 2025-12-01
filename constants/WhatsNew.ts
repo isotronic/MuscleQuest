@@ -3,9 +3,6 @@ export interface WhatsNewEntry {
   message: string;
 }
 
-// Increment this version whenever you push an EAS update with user-facing changes
-export const CURRENT_WHATS_NEW_VERSION = 2505;
-
 export const WHATS_NEW_ENTRIES: WhatsNewEntry[] = [
   {
     version: 2504,
@@ -26,3 +23,9 @@ The broken sliding animations between sets have been removed entirely. Set trans
 `,
   },
 ];
+
+// Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
+export const CURRENT_WHATS_NEW_VERSION = WHATS_NEW_ENTRIES.reduce(
+  (max, entry) => (entry.version > max ? entry.version : max),
+  0,
+);
