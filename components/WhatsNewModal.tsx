@@ -5,7 +5,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import {
-  CURRENT_APP_VERSION,
+  CURRENT_WHATS_NEW_VERSION,
   WHATS_NEW_ENTRIES,
   WhatsNewEntry,
 } from "@/constants/WhatsNew";
@@ -37,7 +37,7 @@ export const WhatsNewModal = () => {
     } else {
       setSetting({
         key: "lastSeenVersion",
-        value: CURRENT_APP_VERSION.toString(),
+        value: CURRENT_WHATS_NEW_VERSION.toString(),
       });
       setVisible(false);
     }
