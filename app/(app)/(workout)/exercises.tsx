@@ -140,7 +140,10 @@ export default function ExercisesScreen() {
           }}
         />
       )}
-      <View style={{ opacity: isLoading ? 0 : 1, flex: 1 }}>
+      <View
+        style={{ opacity: isLoading ? 0 : 1, flex: 1 }}
+        pointerEvents={isLoading ? "none" : "auto"}
+      >
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
