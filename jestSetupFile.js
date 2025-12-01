@@ -82,6 +82,8 @@ jest.mock("expo-asset", () => ({
 // Mock Expo Updates
 jest.mock("expo-updates", () => ({
   reloadAsync: jest.fn(),
+  checkForUpdateAsync: jest.fn(() => Promise.resolve({ isAvailable: false })),
+  fetchUpdateAsync: jest.fn(() => Promise.resolve()),
 }));
 
 // Mock Google Sign-In
