@@ -19,6 +19,7 @@ interface FilterRowProps {
   setSelectedBodyPart: React.Dispatch<React.SetStateAction<string | null>>;
   selectedTargetMuscle: string | null;
   setSelectedTargetMuscle: React.Dispatch<React.SetStateAction<string | null>>;
+  onReady?: () => void;
 }
 
 function FilterRow({
@@ -28,10 +29,12 @@ function FilterRow({
   setSelectedBodyPart,
   selectedTargetMuscle,
   setSelectedTargetMuscle,
+  onReady,
 }: FilterRowProps) {
   const [bodyPartOptions, setBodyPartOptions] = useState<OptionItem[]>([]);
   const [muscleOptions, setMuscleOptions] = useState<OptionItem[]>([]);
   const [equipmentOptions, setEquipmentOptions] = useState<OptionItem[]>([]);
+  const [hasCalledReady, setHasCalledReady] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,6 +78,14 @@ function FilterRow({
         setBodyPartOptions(bodyPartOptions);
         setMuscleOptions(muscleOptions);
         setEquipmentOptions(equipmentOptions);
+
+        if (onReady && !hasCalledReady) {
+          setHasCalledReady(true);
+          // Delay onReady to ensure Dropdown components have rendered with their values
+          setTimeout(() => {
+            onReady();
+          }, 10);
+        }
       } catch (error: any) {
         Alert.alert("Error", "Failed to fetch data. Please try again.", [
           { text: "OK" },
@@ -85,7 +96,7 @@ function FilterRow({
     };
 
     fetchData();
-  }, []);
+  }, [onReady, hasCalledReady]);
 
   const dropdownPlaceholders = {
     equipment: "All equipment",

@@ -14,17 +14,26 @@ import { UserExercise } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
-  const { replaceExerciseIndex } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  const { replaceExerciseIndex, bodyPart } = params;
   const { workout, replaceExercise } = useActiveWorkoutStore();
+
+  const initialBodyPart =
+    typeof bodyPart === "string" && typeof replaceExerciseIndex !== "undefined"
+      ? bodyPart
+      : null;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
     null,
   );
-  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(
+    initialBodyPart,
+  );
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
   >(null);
+  const [filterReady, setFilterReady] = useState(false);
 
   const {
     data: exercises,
@@ -101,14 +110,6 @@ export default function ExercisesScreen() {
     selectedTargetMuscle,
   ]);
 
-  if (exercisesLoading) {
-    return (
-      <ThemedView style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
-      </ThemedView>
-    );
-  }
-
   if (exercisesError) {
     console.error("Error loading exercises:", exercisesError);
     Bugsnag.notify(exercisesError);
@@ -121,37 +122,56 @@ export default function ExercisesScreen() {
     );
   }
 
+  const isLoading = exercisesLoading || (initialBodyPart && !filterReady);
+
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholderTextColor={Colors.dark.text}
-          placeholder="Search"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          selectTextOnFocus={true}
+      {isLoading && (
+        <ActivityIndicator
+          size="large"
+          color={Colors.dark.text}
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            marginLeft: -20,
+            marginTop: -20,
+            zIndex: 1000,
+          }}
+        />
+      )}
+      <View style={{ opacity: isLoading ? 0 : 1, flex: 1 }}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholderTextColor={Colors.dark.text}
+            placeholder="Search"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            selectTextOnFocus={true}
+          />
+        </View>
+        <FilterRow
+          selectedEquipment={selectedEquipment}
+          setSelectedEquipment={setSelectedEquipment}
+          selectedBodyPart={selectedBodyPart}
+          setSelectedBodyPart={setSelectedBodyPart}
+          selectedTargetMuscle={selectedTargetMuscle}
+          setSelectedTargetMuscle={setSelectedTargetMuscle}
+          onReady={initialBodyPart ? () => setFilterReady(true) : undefined}
+        />
+        <ExerciseList
+          exercises={filteredExercises}
+          selectedExercises={[]}
+          onSelect={handleReplaceExercise}
+          onPressItem={(item) => {
+            router.push({
+              pathname: "/(app)/exercise-details",
+              params: { exercise_id: item.exercise_id.toString() },
+            });
+          }}
         />
       </View>
-      <FilterRow
-        selectedEquipment={selectedEquipment}
-        setSelectedEquipment={setSelectedEquipment}
-        selectedBodyPart={selectedBodyPart}
-        setSelectedBodyPart={setSelectedBodyPart}
-        selectedTargetMuscle={selectedTargetMuscle}
-        setSelectedTargetMuscle={setSelectedTargetMuscle}
-      />
-      <ExerciseList
-        exercises={filteredExercises}
-        selectedExercises={[]}
-        onSelect={handleReplaceExercise}
-        onPressItem={(item) => {
-          router.push({
-            pathname: "/(app)/exercise-details",
-            params: { exercise_id: item.exercise_id.toString() },
-          });
-        }}
-      />
     </ThemedView>
   );
 }

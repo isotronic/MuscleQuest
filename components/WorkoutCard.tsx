@@ -1,5 +1,11 @@
 import { useCallback, useState } from "react";
-import { StyleSheet, View, TextInput, Alert } from "react-native";
+import {
+  StyleSheet,
+  View,
+  TextInput,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
 import { Card, Button, Menu, IconButton } from "react-native-paper";
@@ -66,16 +72,19 @@ export default function WorkoutCard({
 
   const handleReplace = useCallback(
     (exerciseIndex: number) => {
-      // Navigate to the exercises screen to select a replacement
+      // Find the exercise being replaced
+      const exercise = workout.exercises[exerciseIndex];
+      // Navigate to the exercises screen to select a replacement, passing body_part if available
       router.push({
         pathname: "/(app)/(create-plan)/exercises",
         params: {
           index: workoutIndex,
           replaceExerciseIndex: exerciseIndex,
+          bodyPart: exercise?.body_part || undefined,
         },
       });
     },
-    [workoutIndex],
+    [workoutIndex, workout.exercises],
   );
 
   const renderExerciseItem: SortableGridRenderItem<UserExercise> = useCallback(
@@ -121,62 +130,64 @@ export default function WorkoutCard({
       const isMenuOpen = menuVisible === item.exercise_id;
 
       return (
-        <Sortable.Pressable
-          onPress={() =>
-            router.push(
-              `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}&exerciseIndex=${exerciseIndex}&trackingType=${item.tracking_type}`,
-            )
-          }
-          style={[styles.exerciseItem]}
-        >
-          <MaterialCommunityIcons
-            name="drag"
-            size={24}
-            color="#ECEFF4"
-            style={styles.dragIcon}
-          />
-          <View style={styles.exerciseInfo}>
-            <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
-            <ThemedText style={styles.setsAndReps}>
-              {item?.sets?.length
-                ? `${item.sets.length} Sets`
-                : "No Sets Available"}
-              {item.tracking_type === "time"
-                ? timeRange
-                  ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
-                  : ""
-                : repRange
-                  ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
-                  : ""}
-            </ThemedText>
-          </View>
-          <Menu
-            visible={isMenuOpen}
-            onDismiss={closeMenu}
-            anchor={
-              <IconButton
-                icon="dots-vertical"
-                size={24}
-                onPress={() => openMenu(item.exercise_id)}
-                iconColor={Colors.dark.text}
-              />
+        <Sortable.Pressable style={[styles.exerciseItem]}>
+          <TouchableOpacity
+            onPress={() =>
+              router.push(
+                `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}&exerciseIndex=${exerciseIndex}&trackingType=${item.tracking_type}`,
+              )
             }
+            style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
           >
-            <Menu.Item
-              onPress={() => {
-                closeMenu();
-                removeExercise(item.exercise_id);
-              }}
-              title="Delete"
+            <MaterialCommunityIcons
+              name="drag"
+              size={24}
+              color="#ECEFF4"
+              style={styles.dragIcon}
             />
-            <Menu.Item
-              onPress={() => {
-                closeMenu();
-                handleReplace(exerciseIndex);
-              }}
-              title="Replace"
-            />
-          </Menu>
+            <View style={styles.exerciseInfo}>
+              <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
+              <ThemedText style={styles.setsAndReps}>
+                {item?.sets?.length
+                  ? `${item.sets.length} Sets`
+                  : "No Sets Available"}
+                {item.tracking_type === "time"
+                  ? timeRange
+                    ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
+                    : ""
+                  : repRange
+                    ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
+                    : ""}
+              </ThemedText>
+            </View>
+            <Menu
+              visible={isMenuOpen}
+              onDismiss={closeMenu}
+              anchor={
+                <IconButton
+                  icon="dots-vertical"
+                  size={24}
+                  onPress={() => openMenu(item.exercise_id)}
+                  iconColor={Colors.dark.text}
+                />
+              }
+            >
+              <Menu.Item
+                onPress={() => {
+                  closeMenu();
+                  removeExercise(item.exercise_id);
+                }}
+                title="Delete"
+              />
+              <Menu.Item
+                onPress={() => {
+                  closeMenu();
+                  handleReplace(exerciseIndex);
+                }}
+                title="Replace"
+              />
+            </Menu>
+          </TouchableOpacity>
         </Sortable.Pressable>
       );
     },
