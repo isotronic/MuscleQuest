@@ -13,14 +13,25 @@ import ExerciseList from "@/components/ExerciseList";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
+  // Read bodyPart param from router
+  const params = useLocalSearchParams();
+  const initialBodyPart =
+    typeof params.bodyPart === "string" &&
+    typeof params.replaceExerciseIndex !== "undefined"
+      ? params.bodyPart
+      : null;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
     null,
   );
-  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(
+    initialBodyPart,
+  );
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
   >(null);
+  const [filterReady, setFilterReady] = useState(false);
 
   const {
     data: exercises,
@@ -205,14 +216,6 @@ export default function ExercisesScreen() {
     selectedTargetMuscle,
   ]);
 
-  if (exercisesLoading || settingsLoading) {
-    return (
-      <ThemedView style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
-      </ThemedView>
-    );
-  }
-
   if (exercisesError || settingsError) {
     const error = exercisesError || settingsError;
     if (error !== null) {
@@ -228,65 +231,88 @@ export default function ExercisesScreen() {
     );
   }
 
+  const isLoading =
+    exercisesLoading || settingsLoading || (!!initialBodyPart && !filterReady);
+
   return (
     <ThemedView style={styles.container}>
-      {!replacing && (
-        <Stack.Screen
-          options={{
-            headerRight: () => (
-              <Button
-                mode={selectedExercises.length > 0 ? "contained" : "outlined"}
-                compact
-                disabled={selectedExercises.length === 0}
-                onPressIn={handleAddExercise}
-                labelStyle={styles.addButtonLabel}
-              >
-                Add Exercises ({selectedExercises.length})
-              </Button>
-            ),
+      {isLoading && (
+        <ActivityIndicator
+          size="large"
+          color={Colors.dark.text}
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            marginLeft: -20,
+            marginTop: -20,
+            zIndex: 1000,
           }}
         />
       )}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholderTextColor={Colors.dark.text}
-          placeholder="Search"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          selectTextOnFocus={true}
+      <View
+        style={{ opacity: isLoading ? 0 : 1, flex: 1 }}
+        pointerEvents={isLoading ? "none" : "auto"}
+      >
+        {!replacing && (
+          <Stack.Screen
+            options={{
+              headerRight: () => (
+                <Button
+                  mode={selectedExercises.length > 0 ? "contained" : "outlined"}
+                  compact
+                  disabled={selectedExercises.length === 0}
+                  onPressIn={handleAddExercise}
+                  labelStyle={styles.addButtonLabel}
+                >
+                  Add Exercises ({selectedExercises.length})
+                </Button>
+              ),
+            }}
+          />
+        )}
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholderTextColor={Colors.dark.text}
+            placeholder="Search"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            selectTextOnFocus={true}
+          />
+        </View>
+        <FilterRow
+          selectedEquipment={selectedEquipment}
+          setSelectedEquipment={setSelectedEquipment}
+          selectedBodyPart={selectedBodyPart}
+          setSelectedBodyPart={setSelectedBodyPart}
+          selectedTargetMuscle={selectedTargetMuscle}
+          setSelectedTargetMuscle={setSelectedTargetMuscle}
+          onReady={initialBodyPart ? () => setFilterReady(true) : undefined}
         />
+        <ExerciseList
+          exercises={filteredExercises}
+          selectedExercises={selectedExercises}
+          onSelect={handleSelectExercise}
+          onPressItem={(item) => {
+            router.push({
+              pathname: "/(app)/exercise-details",
+              params: { exercise_id: item.exercise_id.toString() },
+            });
+          }}
+        />
+        {!replacing && (
+          <FAB
+            icon="plus"
+            label="Create"
+            theme={{ colors: { primary: Colors.dark.tint } }}
+            style={styles.fab}
+            onPress={() => {
+              router.push("/(app)/custom-exercise");
+            }}
+          />
+        )}
       </View>
-      <FilterRow
-        selectedEquipment={selectedEquipment}
-        setSelectedEquipment={setSelectedEquipment}
-        selectedBodyPart={selectedBodyPart}
-        setSelectedBodyPart={setSelectedBodyPart}
-        selectedTargetMuscle={selectedTargetMuscle}
-        setSelectedTargetMuscle={setSelectedTargetMuscle}
-      />
-      <ExerciseList
-        exercises={filteredExercises}
-        selectedExercises={selectedExercises}
-        onSelect={handleSelectExercise}
-        onPressItem={(item) => {
-          router.push({
-            pathname: "/(app)/exercise-details",
-            params: { exercise_id: item.exercise_id.toString() },
-          });
-        }}
-      />
-      {!replacing && (
-        <FAB
-          icon="plus"
-          label="Create"
-          theme={{ colors: { primary: Colors.dark.tint } }}
-          style={styles.fab}
-          onPress={() => {
-            router.push("/(app)/custom-exercise");
-          }}
-        />
-      )}
     </ThemedView>
   );
 }

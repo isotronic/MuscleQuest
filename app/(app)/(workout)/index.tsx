@@ -95,10 +95,15 @@ export default function WorkoutOverviewScreen() {
   };
 
   const handleReplaceExercise = (index: number) => {
-    // Navigate to the exercises screen for replacing
+    // Find the exercise being replaced
+    const exercise = workout?.exercises[index];
+    // Navigate to the exercises screen for replacing, passing body_part if available
     router.push({
       pathname: "/(app)/(workout)/exercises",
-      params: { replaceExerciseIndex: index },
+      params: {
+        replaceExerciseIndex: index,
+        bodyPart: exercise?.body_part || undefined,
+      },
     });
   };
 
