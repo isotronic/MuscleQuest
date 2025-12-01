@@ -20,6 +20,7 @@ import { Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import Onboarding from "@/components/Onboarding";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
+import { UpdateModal } from "@/components/UpdateModal";
 
 export default function HomeScreen() {
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
@@ -152,6 +153,7 @@ export default function HomeScreen() {
   return (
     <ThemedView>
       <WhatsNewModal />
+      <UpdateModal />
       {isStartingWorkout && (
         <Portal>
           <Modal visible={isStartingWorkout} dismissable={false}>
@@ -265,7 +267,7 @@ export default function HomeScreen() {
                                 );
                               }
 
-                              router.push("/(workout)");
+                              router.push("/(workout)" as any);
                             } finally {
                               setTimeout(
                                 () => setIsStartingWorkout(false),
