@@ -8,19 +8,18 @@ import { useAppUpdates } from "@/hooks/useAppUpdates";
 export const UpdateModal = () => {
   const { status, reloadApp } = useAppUpdates();
 
-  // Don't show modal if no update or if there's an error
-  if (status === "idle" || status === "no-update" || status === "error") {
+  // Only show modal when downloading or ready (skip checking state to avoid flash)
+  if (
+    status === "idle" ||
+    status === "checking" ||
+    status === "no-update" ||
+    status === "error"
+  ) {
     return null;
   }
 
   const getContent = () => {
     switch (status) {
-      case "checking":
-        return {
-          title: "🔍 Checking for Updates",
-          message: "Looking for the latest version...",
-          showButton: false,
-        };
       case "downloading":
         return {
           title: "⬇️ Downloading Update",
