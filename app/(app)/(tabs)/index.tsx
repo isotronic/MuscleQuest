@@ -267,7 +267,7 @@ export default function HomeScreen() {
                                 );
                               }
 
-                              router.push("/(workout)" as any);
+                              router.push("/(workout)");
                             } finally {
                               setTimeout(
                                 () => setIsStartingWorkout(false),
