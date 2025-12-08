@@ -3,7 +3,6 @@ import { Platform } from "react-native";
 
 /**
  * Schedules a local notification to fire in `secondsFromNow`.
- * Cancels any existing notifications before scheduling the new one.
  * @param secondsFromNow how many seconds in the future the notification should fire
  * @param title notification title
  * @param body notification body
@@ -21,9 +20,6 @@ export async function scheduleRestNotification(
   }
 
   try {
-    // Cancel any existing notifications first
-    await Notifications.cancelAllScheduledNotificationsAsync();
-
     // Schedule the new notification
     await Notifications.scheduleNotificationAsync({
       content: {
