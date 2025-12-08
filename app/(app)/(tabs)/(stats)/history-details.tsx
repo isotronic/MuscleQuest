@@ -307,6 +307,8 @@ const styles = StyleSheet.create({
   exerciseName: {
     fontSize: 20,
     fontWeight: "bold",
+    flex: 1,
+    flexWrap: "wrap",
   },
   setRow: {
     flexDirection: "row",

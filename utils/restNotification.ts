@@ -1,8 +1,8 @@
 import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
 
 /**
  * Schedules a local notification to fire in `secondsFromNow`.
- * Cancels any existing notifications before scheduling the new one.
  * @param secondsFromNow how many seconds in the future the notification should fire
  * @param title notification title
  * @param body notification body
@@ -20,10 +20,6 @@ export async function scheduleRestNotification(
   }
 
   try {
-    // Cancel any existing notifications first
-    await Notifications.cancelAllScheduledNotificationsAsync();
-    await Notifications.dismissAllNotificationsAsync(); // This removes notifications from the notification drawer
-
     // Schedule the new notification
     await Notifications.scheduleNotificationAsync({
       content: {
@@ -33,8 +29,10 @@ export async function scheduleRestNotification(
         // sound: "boxing_bell.mp3",
       },
       trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
         seconds: secondsFromNow,
-        channelId, // important on Android to match the channel created
+        repeats: false,
+        ...(Platform.OS === "android" && { channelId }),
       },
     });
   } catch (error) {
@@ -48,5 +46,26 @@ export async function cancelRestNotifications() {
     await Notifications.dismissAllNotificationsAsync(); // Also clear any visible notifications
   } catch (error) {
     console.error("Failed to cancel notifications:", error);
+  }
+}
+
+/**
+ * Cancels any existing rest notifications and schedules a new one.
+ * This wrapper ensures the cancel-then-schedule contract is always enforced.
+ * @param secondsFromNow how many seconds in the future the notification should fire
+ * @param title notification title
+ * @param body notification body
+ * @param channelId must match the channel you created (on Android)
+ */
+export async function scheduleRestNotificationWithCancellation(
+  secondsFromNow: number,
+  title: string,
+  body: string,
+  channelId: string = "rest-timer1",
+) {
+  await cancelRestNotifications();
+
+  if (secondsFromNow > 0) {
+    await scheduleRestNotification(secondsFromNow, title, body, channelId);
   }
 }
