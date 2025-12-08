@@ -1,4 +1,5 @@
 import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
 
 /**
  * Schedules a local notification to fire in `secondsFromNow`.
@@ -22,7 +23,6 @@ export async function scheduleRestNotification(
   try {
     // Cancel any existing notifications first
     await Notifications.cancelAllScheduledNotificationsAsync();
-    await Notifications.dismissAllNotificationsAsync(); // This removes notifications from the notification drawer
 
     // Schedule the new notification
     await Notifications.scheduleNotificationAsync({
@@ -33,8 +33,10 @@ export async function scheduleRestNotification(
         // sound: "boxing_bell.mp3",
       },
       trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
         seconds: secondsFromNow,
-        channelId, // important on Android to match the channel created
+        repeats: false,
+        ...(Platform.OS === "android" && { channelId }),
       },
     });
   } catch (error) {
