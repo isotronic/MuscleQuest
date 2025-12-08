@@ -17,7 +17,7 @@ import WorkoutTimer from "@/components/WorkoutTimer";
 import Bugsnag from "@bugsnag/expo";
 import {
   cancelRestNotifications,
-  scheduleRestNotification,
+  scheduleRestNotificationWithCancellation,
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
 import { convertTimeStrToSeconds } from "@/utils/utility";
@@ -193,17 +193,16 @@ export default function WorkoutSessionScreen() {
     if (restMinutes > 0 || restSeconds > 0) {
       const totalSeconds = restMinutes * 60 + restSeconds;
 
-      // Always cancel any existing notifications
-      await cancelRestNotifications();
-
-      // Only schedule a new notification if the setting is enabled
+      // Use wrapper that handles cancel-then-schedule or just cancel if notifications disabled
       if (settings?.restTimerNotification === "true") {
-        await scheduleRestNotification(
+        await scheduleRestNotificationWithCancellation(
           totalSeconds,
           "Rest Timer Finished!",
           "Time to do your next set!",
           "rest-timer1",
         );
+      } else {
+        await cancelRestNotifications();
       }
 
       const time = new Date();
@@ -402,7 +401,7 @@ export default function WorkoutSessionScreen() {
     );
 
     if (hasNextSet) {
-      startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
+      void startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
       // Update state immediately without animation
       nextSet();
     } else {

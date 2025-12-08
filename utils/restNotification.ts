@@ -48,3 +48,24 @@ export async function cancelRestNotifications() {
     console.error("Failed to cancel notifications:", error);
   }
 }
+
+/**
+ * Cancels any existing rest notifications and schedules a new one.
+ * This wrapper ensures the cancel-then-schedule contract is always enforced.
+ * @param secondsFromNow how many seconds in the future the notification should fire
+ * @param title notification title
+ * @param body notification body
+ * @param channelId must match the channel you created (on Android)
+ */
+export async function scheduleRestNotificationWithCancellation(
+  secondsFromNow: number,
+  title: string,
+  body: string,
+  channelId: string = "rest-timer1",
+) {
+  await cancelRestNotifications();
+
+  if (secondsFromNow > 0) {
+    await scheduleRestNotification(secondsFromNow, title, body, channelId);
+  }
+}
