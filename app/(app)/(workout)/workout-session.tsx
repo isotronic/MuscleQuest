@@ -192,15 +192,17 @@ export default function WorkoutSessionScreen() {
   const startRestTimer = (restMinutes: number, restSeconds: number) => {
     if (restMinutes > 0 || restSeconds > 0) {
       const totalSeconds = restMinutes * 60 + restSeconds;
-      cancelRestNotifications();
 
       if (settings?.restTimerNotification === "true") {
-        scheduleRestNotification(
-          totalSeconds,
-          "Rest Timer Finished!",
-          "Time to do your next set!",
-          "rest-timer1",
-        );
+        // Cancel first, then schedule - make sure they're awaited properly
+        cancelRestNotifications().then(() => {
+          scheduleRestNotification(
+            totalSeconds,
+            "Rest Timer Finished!",
+            "Time to do your next set!",
+            "rest-timer1",
+          );
+        });
       }
 
       const time = new Date();
