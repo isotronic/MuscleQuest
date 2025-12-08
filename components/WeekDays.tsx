@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
   todayCircle: {},
   workoutCompletedCircle: {
     borderColor: Colors.dark.completed,
+    borderWidth: 2,
   },
   dayNumber: {
     fontSize: 16,
