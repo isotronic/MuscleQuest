@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, TextInput, StyleSheet, Alert } from "react-native";
+import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
 import { Button, ActivityIndicator, FAB } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -14,11 +15,8 @@ import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
   const params = useLocalSearchParams();
-  const initialTargetMuscle =
-    typeof params.targetMuscle === "string" &&
-    typeof params.replaceExerciseIndex !== "undefined"
-      ? params.targetMuscle
-      : null;
+  const { initialTargetMuscle, isPreselectLoading, onFilterReady } =
+    useExercisePreselectFilter();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
@@ -28,7 +26,6 @@ export default function ExercisesScreen() {
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
   >(initialTargetMuscle);
-  const [filterReady, setFilterReady] = useState(false);
 
   const {
     data: exercises,
@@ -228,10 +225,7 @@ export default function ExercisesScreen() {
     );
   }
 
-  const isLoading =
-    exercisesLoading ||
-    settingsLoading ||
-    (!!initialTargetMuscle && !filterReady);
+  const isLoading = exercisesLoading || settingsLoading || isPreselectLoading;
 
   return (
     <ThemedView style={styles.container}>
@@ -287,7 +281,7 @@ export default function ExercisesScreen() {
           setSelectedBodyPart={setSelectedBodyPart}
           selectedTargetMuscle={selectedTargetMuscle}
           setSelectedTargetMuscle={setSelectedTargetMuscle}
-          onReady={initialTargetMuscle ? () => setFilterReady(true) : undefined}
+          onReady={onFilterReady}
         />
         <ExerciseList
           exercises={filteredExercises}

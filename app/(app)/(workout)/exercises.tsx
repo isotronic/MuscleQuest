@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
+import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
 import { View, TextInput, StyleSheet, Alert } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
@@ -15,14 +16,10 @@ import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
   const params = useLocalSearchParams();
-  const { replaceExerciseIndex, targetMuscle } = params;
+  const { replaceExerciseIndex } = params;
   const { workout, replaceExercise } = useActiveWorkoutStore();
-
-  const initialTargetMuscle =
-    typeof targetMuscle === "string" &&
-    typeof replaceExerciseIndex !== "undefined"
-      ? targetMuscle
-      : null;
+  const { initialTargetMuscle, isPreselectLoading, onFilterReady } =
+    useExercisePreselectFilter();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
@@ -32,7 +29,6 @@ export default function ExercisesScreen() {
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
   >(initialTargetMuscle);
-  const [filterReady, setFilterReady] = useState(false);
 
   const {
     data: exercises,
@@ -121,7 +117,7 @@ export default function ExercisesScreen() {
     );
   }
 
-  const isLoading = exercisesLoading || (!!initialTargetMuscle && !filterReady);
+  const isLoading = exercisesLoading || isPreselectLoading;
 
   return (
     <ThemedView style={styles.container}>
@@ -160,7 +156,7 @@ export default function ExercisesScreen() {
           setSelectedBodyPart={setSelectedBodyPart}
           selectedTargetMuscle={selectedTargetMuscle}
           setSelectedTargetMuscle={setSelectedTargetMuscle}
-          onReady={initialTargetMuscle ? () => setFilterReady(true) : undefined}
+          onReady={onFilterReady}
         />
         <ExerciseList
           exercises={filteredExercises}
