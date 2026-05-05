@@ -219,9 +219,13 @@ export default function HomeScreen() {
                     key={index}
                     style={styles.workoutCard}
                     onPress={() =>
-                      router.push(
-                        `/workout-details?planId=${activePlan.id}&workoutIndex=${originalIndex}`,
-                      )
+                      router.push({
+                        pathname: "/workout-details",
+                        params: {
+                          planId: String(activePlan.id),
+                          workoutIndex: String(originalIndex),
+                        },
+                      })
                     }
                   >
                     <View style={styles.workoutCardContent}>
