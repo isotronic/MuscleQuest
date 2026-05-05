@@ -145,9 +145,13 @@ export default function PlanOverviewScreen() {
           <TouchableOpacity
             key={index.toString()}
             onPress={() =>
-              router.push(
-                `/workout-details?planId=${planId}&workoutIndex=${index}`,
-              )
+              router.push({
+                pathname: "/workout-details",
+                params: {
+                  planId: String(planId),
+                  workoutIndex: String(index),
+                },
+              })
             }
             style={styles.workoutCard}
           >
