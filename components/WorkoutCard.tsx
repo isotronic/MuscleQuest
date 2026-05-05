@@ -19,7 +19,11 @@ import { formatFromTotalSeconds } from "@/utils/utility";
 interface WorkoutCardProps {
   workout: Workout;
   index: number;
+  isFirst: boolean;
+  isLast: boolean;
   onRemove: (index: number) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
   onNameChange: (index: number, name: string) => void;
   onAddExercise: (index: number) => void;
 }
@@ -27,7 +31,11 @@ interface WorkoutCardProps {
 export default function WorkoutCard({
   workout,
   index,
+  isFirst,
+  isLast,
   onRemove,
+  onMoveUp,
+  onMoveDown,
   onNameChange,
   onAddExercise,
 }: WorkoutCardProps) {
@@ -213,13 +221,27 @@ export default function WorkoutCard({
     <Card style={styles.workoutCard}>
       <View style={styles.workoutHeader}>
         <ThemedText style={styles.workoutDay}>Day {index + 1}</ThemedText>
-        <MaterialCommunityIcons
-          name="close"
-          onPress={() => onRemove(index)}
-          size={24}
-          color={Colors.dark.text}
-          style={styles.removeWorkoutButton}
-        />
+        <View style={styles.workoutHeaderActions}>
+          <MaterialCommunityIcons
+            name="chevron-up"
+            onPress={isFirst ? undefined : onMoveUp}
+            size={24}
+            color={isFirst ? Colors.dark.subText : Colors.dark.text}
+          />
+          <MaterialCommunityIcons
+            name="chevron-down"
+            onPress={isLast ? undefined : onMoveDown}
+            size={24}
+            color={isLast ? Colors.dark.subText : Colors.dark.text}
+          />
+          <MaterialCommunityIcons
+            name="close"
+            onPress={() => onRemove(index)}
+            size={24}
+            color={Colors.dark.text}
+            style={styles.removeWorkoutButton}
+          />
+        </View>
       </View>
       <TextInput
         placeholder="Workout name"
@@ -300,6 +322,10 @@ const styles = StyleSheet.create({
   workoutHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
+  },
+  workoutHeaderActions: {
+    flexDirection: "row",
     alignItems: "center",
   },
   workoutDay: {

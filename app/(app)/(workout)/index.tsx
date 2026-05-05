@@ -46,7 +46,8 @@ export default function WorkoutOverviewScreen() {
   const { data: completedWorkouts, error: completedWorkoutsError } =
     useCompletedWorkoutsQuery(weightUnit);
   const currentWorkoutHistory = completedWorkouts?.filter(
-    (completedWorkout) => completedWorkout.workout_name === activeWorkout?.name,
+    (completedWorkout) =>
+      completedWorkout.workout_id === activeWorkout?.workoutId,
   );
   const saveCompletedWorkoutMutation =
     useSaveCompletedWorkoutMutation(weightUnit);

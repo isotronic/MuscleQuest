@@ -52,6 +52,7 @@ export default function CreatePlanScreen() {
     clearWorkouts,
     addWorkout,
     removeWorkout,
+    reorderWorkouts,
     changeWorkoutName,
   } = useWorkoutStore();
   const { planName, setPlanName, planSaved, setPlanSaved, handleSavePlan } =
@@ -119,7 +120,7 @@ export default function CreatePlanScreen() {
   ]);
 
   const handleAddWorkout = () => {
-    const newWorkout = { name: "", exercises: [] };
+    const newWorkout = { name: "", exercises: [], id: -Date.now() };
     addWorkout(newWorkout);
 
     setTimeout(() => {
@@ -259,10 +260,14 @@ export default function CreatePlanScreen() {
             ) : (
               workouts.map((workout, index) => (
                 <WorkoutCard
-                  key={index}
+                  key={workout.id ?? index}
                   workout={workout}
                   index={index}
+                  isFirst={index === 0}
+                  isLast={index === workouts.length - 1}
                   onRemove={() => handleRemoveWorkout(index)}
+                  onMoveUp={() => reorderWorkouts(index, index - 1)}
+                  onMoveDown={() => reorderWorkouts(index, index + 1)}
                   onNameChange={changeWorkoutName}
                   onAddExercise={() => handleAddExercise(index)}
                 />

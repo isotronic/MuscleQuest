@@ -35,6 +35,7 @@ interface WorkoutStore {
   clearWorkouts: () => void;
   addWorkout: (workout: Workout) => void;
   removeWorkout: (index: number) => void;
+  reorderWorkouts: (fromIndex: number, toIndex: number) => void;
   changeWorkoutName: (index: number, name: string) => void;
   addExercise: (index: number, exercise: UserExercise) => void;
   removeExercise: (
@@ -82,6 +83,23 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
       ...state,
       workouts: state.workouts.filter((_, i) => i !== index),
     })),
+  reorderWorkouts: (fromIndex, toIndex) =>
+    set((state) => {
+      const { length } = state.workouts;
+      if (
+        fromIndex === toIndex ||
+        fromIndex < 0 ||
+        fromIndex >= length ||
+        toIndex < 0 ||
+        toIndex >= length
+      ) {
+        return state;
+      }
+      const updated = [...state.workouts];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return { ...state, workouts: updated };
+    }),
   changeWorkoutName: (index, name) =>
     set((state) => ({
       ...state,
