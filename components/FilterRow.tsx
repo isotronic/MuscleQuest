@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert, Text } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { Colors } from "@/constants/Colors";
 import { capitalizeWords } from "@/utils/utility";
-import { fetchAllRecords } from "@/utils/database";
+import { fetchAllRecords, fetchMusclesByFilters } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -32,6 +32,7 @@ function FilterRow({
   onReady,
 }: FilterRowProps) {
   const [bodyPartOptions, setBodyPartOptions] = useState<OptionItem[]>([]);
+  const [allMuscleOptions, setAllMuscleOptions] = useState<OptionItem[]>([]);
   const [muscleOptions, setMuscleOptions] = useState<OptionItem[]>([]);
   const [equipmentOptions, setEquipmentOptions] = useState<OptionItem[]>([]);
   const hasCalledReadyRef = useRef(false);
@@ -76,6 +77,7 @@ function FilterRow({
         ];
 
         setBodyPartOptions(bodyPartOptions);
+        setAllMuscleOptions(muscleOptions);
         setMuscleOptions(muscleOptions);
         setEquipmentOptions(equipmentOptions);
 
@@ -98,6 +100,56 @@ function FilterRow({
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const noBodyPart = !selectedBodyPart || selectedBodyPart === "all";
+    const noEquipment = !selectedEquipment || selectedEquipment === "all";
+    if (noBodyPart && noEquipment) {
+      setMuscleOptions(allMuscleOptions);
+      return;
+    }
+    let cancelled = false;
+    const updateMuscles = async () => {
+      try {
+        const results = await fetchMusclesByFilters(selectedBodyPart, selectedEquipment);
+        if (cancelled) return;
+        const filtered = [
+          { label: "All target muscles", value: "all" },
+          ...results.map((r) => ({
+            label: capitalizeWords(r.target_muscle),
+            value: r.target_muscle,
+          })),
+        ];
+        setMuscleOptions(filtered);
+        if (
+          selectedTargetMuscle &&
+          selectedTargetMuscle !== "all" &&
+          !results.some((r) => r.target_muscle === selectedTargetMuscle)
+        ) {
+          setSelectedTargetMuscle("all");
+        }
+      } catch (error: any) {
+        if (cancelled) return;
+        setMuscleOptions(allMuscleOptions);
+        setSelectedTargetMuscle(null);
+        Alert.alert("Error", "Failed to fetch data. Please try again.", [
+          { text: "OK" },
+        ]);
+        console.error("Error fetching muscles by body part:", error);
+        Bugsnag.notify(error);
+      }
+    };
+    updateMuscles();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    selectedBodyPart,
+    selectedEquipment,
+    allMuscleOptions,
+    selectedTargetMuscle,
+    setSelectedTargetMuscle,
+  ]);
 
   const dropdownPlaceholders = {
     equipment: "All equipment",
