@@ -120,7 +120,7 @@ export default function CreatePlanScreen() {
   ]);
 
   const handleAddWorkout = () => {
-    const newWorkout = { name: "", exercises: [] };
+    const newWorkout = { name: "", exercises: [], id: -Date.now() };
     addWorkout(newWorkout);
 
     setTimeout(() => {
@@ -260,7 +260,7 @@ export default function CreatePlanScreen() {
             ) : (
               workouts.map((workout, index) => (
                 <WorkoutCard
-                  key={index}
+                  key={workout.id ?? index}
                   workout={workout}
                   index={index}
                   isFirst={index === 0}
