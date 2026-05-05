@@ -350,11 +350,24 @@ export const fetchRecord = async (
   }
 };
 
-export const fetchMusclesByBodyPart = async (bodyPart: string) => {
+export const fetchMusclesByFilters = async (
+  bodyPart: string | null,
+  equipment: string | null,
+) => {
   const db = await openDatabase("userData.db");
+  const conditions = ["is_deleted = 0"];
+  const params: string[] = [];
+  if (bodyPart && bodyPart !== "all") {
+    conditions.push("body_part = ?");
+    params.push(bodyPart);
+  }
+  if (equipment && equipment !== "all") {
+    conditions.push("equipment = ?");
+    params.push(equipment);
+  }
   return await db.getAllAsync<{ target_muscle: string }>(
-    `SELECT DISTINCT target_muscle FROM exercises WHERE body_part = ? AND is_deleted = 0 ORDER BY target_muscle`,
-    [bodyPart],
+    `SELECT DISTINCT target_muscle FROM exercises WHERE ${conditions.join(" AND ")} ORDER BY target_muscle`,
+    params,
   );
 };
 

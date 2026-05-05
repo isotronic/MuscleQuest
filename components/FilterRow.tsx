@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert, Text } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { Colors } from "@/constants/Colors";
 import { capitalizeWords } from "@/utils/utility";
-import { fetchAllRecords, fetchMusclesByBodyPart } from "@/utils/database";
+import { fetchAllRecords, fetchMusclesByFilters } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -102,14 +102,16 @@ function FilterRow({
   }, []);
 
   useEffect(() => {
-    if (!selectedBodyPart || selectedBodyPart === "all") {
+    const noBodyPart = !selectedBodyPart || selectedBodyPart === "all";
+    const noEquipment = !selectedEquipment || selectedEquipment === "all";
+    if (noBodyPart && noEquipment) {
       setMuscleOptions(allMuscleOptions);
       return;
     }
     let cancelled = false;
     const updateMuscles = async () => {
       try {
-        const results = await fetchMusclesByBodyPart(selectedBodyPart);
+        const results = await fetchMusclesByFilters(selectedBodyPart, selectedEquipment);
         if (cancelled) return;
         const filtered = [
           { label: "All target muscles", value: "all" },
@@ -128,6 +130,8 @@ function FilterRow({
         }
       } catch (error: any) {
         if (cancelled) return;
+        setMuscleOptions(allMuscleOptions);
+        setSelectedTargetMuscle(null);
         Alert.alert("Error", "Failed to fetch data. Please try again.", [
           { text: "OK" },
         ]);
@@ -141,6 +145,7 @@ function FilterRow({
     };
   }, [
     selectedBodyPart,
+    selectedEquipment,
     allMuscleOptions,
     selectedTargetMuscle,
     setSelectedTargetMuscle,
