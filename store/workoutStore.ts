@@ -85,6 +85,16 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
     })),
   reorderWorkouts: (fromIndex, toIndex) =>
     set((state) => {
+      const { length } = state.workouts;
+      if (
+        fromIndex === toIndex ||
+        fromIndex < 0 ||
+        fromIndex >= length ||
+        toIndex < 0 ||
+        toIndex >= length
+      ) {
+        return state;
+      }
       const updated = [...state.workouts];
       const [moved] = updated.splice(fromIndex, 1);
       updated.splice(toIndex, 0, moved);
