@@ -80,7 +80,7 @@ export default function WorkoutCard({
         params: {
           index: workoutIndex,
           replaceExerciseIndex: exerciseIndex,
-          bodyPart: exercise?.body_part || undefined,
+          targetMuscle: exercise?.target_muscle || undefined,
         },
       });
     },

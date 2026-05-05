@@ -102,7 +102,7 @@ export default function WorkoutOverviewScreen() {
       pathname: "/(app)/(workout)/exercises",
       params: {
         replaceExerciseIndex: index,
-        bodyPart: exercise?.body_part || undefined,
+        targetMuscle: exercise?.target_muscle || undefined,
       },
     });
   };

@@ -15,24 +15,23 @@ import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
   const params = useLocalSearchParams();
-  const { replaceExerciseIndex, bodyPart } = params;
+  const { replaceExerciseIndex, targetMuscle } = params;
   const { workout, replaceExercise } = useActiveWorkoutStore();
 
-  const initialBodyPart =
-    typeof bodyPart === "string" && typeof replaceExerciseIndex !== "undefined"
-      ? bodyPart
+  const initialTargetMuscle =
+    typeof targetMuscle === "string" &&
+    typeof replaceExerciseIndex !== "undefined"
+      ? targetMuscle
       : null;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
     null,
   );
-  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(
-    initialBodyPart,
-  );
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
-  >(null);
+  >(initialTargetMuscle);
   const [filterReady, setFilterReady] = useState(false);
 
   const {
@@ -122,7 +121,7 @@ export default function ExercisesScreen() {
     );
   }
 
-  const isLoading = exercisesLoading || (!!initialBodyPart && !filterReady);
+  const isLoading = exercisesLoading || (!!initialTargetMuscle && !filterReady);
 
   return (
     <ThemedView style={styles.container}>
@@ -161,7 +160,7 @@ export default function ExercisesScreen() {
           setSelectedBodyPart={setSelectedBodyPart}
           selectedTargetMuscle={selectedTargetMuscle}
           setSelectedTargetMuscle={setSelectedTargetMuscle}
-          onReady={initialBodyPart ? () => setFilterReady(true) : undefined}
+          onReady={initialTargetMuscle ? () => setFilterReady(true) : undefined}
         />
         <ExerciseList
           exercises={filteredExercises}

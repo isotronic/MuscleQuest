@@ -15,22 +15,20 @@ import Bugsnag from "@bugsnag/expo";
 export default function ExercisesScreen() {
   // Read bodyPart param from router
   const params = useLocalSearchParams();
-  const initialBodyPart =
-    typeof params.bodyPart === "string" &&
+  const initialTargetMuscle =
+    typeof params.targetMuscle === "string" &&
     typeof params.replaceExerciseIndex !== "undefined"
-      ? params.bodyPart
+      ? params.targetMuscle
       : null;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
     null,
   );
-  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(
-    initialBodyPart,
-  );
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
-  >(null);
+  >(initialTargetMuscle);
   const [filterReady, setFilterReady] = useState(false);
 
   const {
@@ -232,7 +230,9 @@ export default function ExercisesScreen() {
   }
 
   const isLoading =
-    exercisesLoading || settingsLoading || (!!initialBodyPart && !filterReady);
+    exercisesLoading ||
+    settingsLoading ||
+    (!!initialTargetMuscle && !filterReady);
 
   return (
     <ThemedView style={styles.container}>
@@ -288,7 +288,7 @@ export default function ExercisesScreen() {
           setSelectedBodyPart={setSelectedBodyPart}
           selectedTargetMuscle={selectedTargetMuscle}
           setSelectedTargetMuscle={setSelectedTargetMuscle}
-          onReady={initialBodyPart ? () => setFilterReady(true) : undefined}
+          onReady={initialTargetMuscle ? () => setFilterReady(true) : undefined}
         />
         <ExerciseList
           exercises={filteredExercises}
