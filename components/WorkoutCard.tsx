@@ -74,13 +74,13 @@ export default function WorkoutCard({
     (exerciseIndex: number) => {
       // Find the exercise being replaced
       const exercise = workout.exercises[exerciseIndex];
-      // Navigate to the exercises screen to select a replacement, passing body_part if available
+      // Navigate to the exercises screen to select a replacement, passing target_muscle if available
       router.push({
         pathname: "/(app)/(create-plan)/exercises",
         params: {
           index: workoutIndex,
           replaceExerciseIndex: exerciseIndex,
-          bodyPart: exercise?.body_part || undefined,
+          targetMuscle: exercise?.target_muscle || undefined,
         },
       });
     },

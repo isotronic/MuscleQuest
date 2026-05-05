@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, TextInput, StyleSheet, Alert } from "react-native";
+import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
 import { Button, ActivityIndicator, FAB } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -13,25 +14,21 @@ import ExerciseList from "@/components/ExerciseList";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
-  // Read bodyPart param from router
-  const params = useLocalSearchParams();
-  const initialBodyPart =
-    typeof params.bodyPart === "string" &&
-    typeof params.replaceExerciseIndex !== "undefined"
-      ? params.bodyPart
-      : null;
+  const {
+    initialTargetMuscle,
+    isPreselectLoading,
+    onFilterReady,
+    replaceExerciseIndex,
+  } = useExercisePreselectFilter();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
     null,
   );
-  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(
-    initialBodyPart,
-  );
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
-  >(null);
-  const [filterReady, setFilterReady] = useState(false);
+  >(initialTargetMuscle);
 
   const {
     data: exercises,
@@ -45,10 +42,10 @@ export default function ExercisesScreen() {
     setNewExerciseId,
     replaceExercise,
   } = useWorkoutStore();
-  const { index, replaceExerciseIndex } = useLocalSearchParams();
+  const { index } = useLocalSearchParams();
   const currentWorkoutIndex = Number(index);
   const currentWorkout = workouts[currentWorkoutIndex];
-  const replacing = typeof replaceExerciseIndex !== "undefined";
+  const replacing = replaceExerciseIndex !== undefined;
 
   const {
     data: settings,
@@ -132,7 +129,7 @@ export default function ExercisesScreen() {
           };
           replaceExercise(
             currentWorkoutIndex,
-            Number(replaceExerciseIndex),
+            replaceExerciseIndex,
             replacement,
             defaultSets,
             defaultTimeSets,
@@ -231,8 +228,7 @@ export default function ExercisesScreen() {
     );
   }
 
-  const isLoading =
-    exercisesLoading || settingsLoading || (!!initialBodyPart && !filterReady);
+  const isLoading = exercisesLoading || settingsLoading || isPreselectLoading;
 
   return (
     <ThemedView style={styles.container}>
@@ -288,7 +284,7 @@ export default function ExercisesScreen() {
           setSelectedBodyPart={setSelectedBodyPart}
           selectedTargetMuscle={selectedTargetMuscle}
           setSelectedTargetMuscle={setSelectedTargetMuscle}
-          onReady={initialBodyPart ? () => setFilterReady(true) : undefined}
+          onReady={onFilterReady}
         />
         <ExerciseList
           exercises={filteredExercises}

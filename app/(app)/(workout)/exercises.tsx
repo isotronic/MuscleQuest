@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useLocalSearchParams } from "expo-router";
+import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
 import { View, TextInput, StyleSheet, Alert } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
@@ -14,26 +14,22 @@ import { UserExercise } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
-  const params = useLocalSearchParams();
-  const { replaceExerciseIndex, bodyPart } = params;
   const { workout, replaceExercise } = useActiveWorkoutStore();
-
-  const initialBodyPart =
-    typeof bodyPart === "string" && typeof replaceExerciseIndex !== "undefined"
-      ? bodyPart
-      : null;
+  const {
+    initialTargetMuscle,
+    isPreselectLoading,
+    onFilterReady,
+    replaceExerciseIndex,
+  } = useExercisePreselectFilter();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
     null,
   );
-  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(
-    initialBodyPart,
-  );
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
-  >(null);
-  const [filterReady, setFilterReady] = useState(false);
+  >(initialTargetMuscle);
 
   const {
     data: exercises,
@@ -68,7 +64,7 @@ export default function ExercisesScreen() {
 
       // If the exercise doesn't already exist, proceed with the replacement
       if (replaceExerciseIndex !== undefined) {
-        replaceExercise(Number(replaceExerciseIndex), exercise as UserExercise);
+        replaceExercise(replaceExerciseIndex, exercise as UserExercise);
         router.back(); // Navigate back after replacement
       }
     }
@@ -122,7 +118,7 @@ export default function ExercisesScreen() {
     );
   }
 
-  const isLoading = exercisesLoading || (!!initialBodyPart && !filterReady);
+  const isLoading = exercisesLoading || isPreselectLoading;
 
   return (
     <ThemedView style={styles.container}>
@@ -161,7 +157,7 @@ export default function ExercisesScreen() {
           setSelectedBodyPart={setSelectedBodyPart}
           selectedTargetMuscle={selectedTargetMuscle}
           setSelectedTargetMuscle={setSelectedTargetMuscle}
-          onReady={initialBodyPart ? () => setFilterReady(true) : undefined}
+          onReady={onFilterReady}
         />
         <ExerciseList
           exercises={filteredExercises}
