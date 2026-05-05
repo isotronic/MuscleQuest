@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView } from "react-native";
+import { StyleSheet, View, ScrollView, Pressable } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { startOfWeek, endOfWeek } from "date-fns";
@@ -211,8 +211,19 @@ export default function HomeScreen() {
 
                 // Condition to check if the workout is completed enough times
                 const workoutCompleted = completedTimes >= workoutsToComplete;
+                const originalIndex = activePlan.workouts.findIndex(
+                  (w) => w.id === workout.id,
+                );
                 return (
-                  <View key={index} style={styles.workoutCard}>
+                  <Pressable
+                    key={index}
+                    style={styles.workoutCard}
+                    onPress={() =>
+                      router.push(
+                        `/workout-details?planId=${activePlan.id}&workoutIndex=${originalIndex}`,
+                      )
+                    }
+                  >
                     <View style={styles.workoutCardContent}>
                       <MaterialCommunityIcons
                         name={workoutCompleted ? "check" : "weight-lifter"}
@@ -267,7 +278,7 @@ export default function HomeScreen() {
                                 );
                               }
 
-                              router.push("/(workout)");
+                              router.push("/(app)/(workout)");
                             } finally {
                               setTimeout(
                                 () => setIsStartingWorkout(false),
@@ -293,7 +304,7 @@ export default function HomeScreen() {
                       </Button> */}
                       </View>
                     </View>
-                  </View>
+                  </Pressable>
                 );
               })}
             </>
