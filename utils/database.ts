@@ -350,6 +350,14 @@ export const fetchRecord = async (
   }
 };
 
+export const fetchMusclesByBodyPart = async (bodyPart: string) => {
+  const db = await openDatabase("userData.db");
+  return await db.getAllAsync<{ target_muscle: string }>(
+    `SELECT DISTINCT target_muscle FROM exercises WHERE body_part = ? ORDER BY target_muscle`,
+    [bodyPart],
+  );
+};
+
 export const insertAnimatedImageUri = async (
   exercise_id: number,
   local_animated_uri: string,
