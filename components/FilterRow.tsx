@@ -111,7 +111,10 @@ function FilterRow({
     let cancelled = false;
     const updateMuscles = async () => {
       try {
-        const results = await fetchMusclesByFilters(selectedBodyPart, selectedEquipment);
+        const results = await fetchMusclesByFilters(
+          selectedBodyPart,
+          selectedEquipment,
+        );
         if (cancelled) return;
         const filtered = [
           { label: "All target muscles", value: "all" },
