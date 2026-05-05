@@ -106,26 +106,45 @@ function FilterRow({
       setMuscleOptions(allMuscleOptions);
       return;
     }
+    let cancelled = false;
     const updateMuscles = async () => {
-      const results = await fetchMusclesByBodyPart(selectedBodyPart);
-      const filtered = [
-        { label: "All target muscles", value: "all" },
-        ...results.map((r) => ({
-          label: capitalizeWords(r.target_muscle),
-          value: r.target_muscle,
-        })),
-      ];
-      setMuscleOptions(filtered);
-      if (
-        selectedTargetMuscle &&
-        selectedTargetMuscle !== "all" &&
-        !results.some((r) => r.target_muscle === selectedTargetMuscle)
-      ) {
-        setSelectedTargetMuscle("all");
+      try {
+        const results = await fetchMusclesByBodyPart(selectedBodyPart);
+        if (cancelled) return;
+        const filtered = [
+          { label: "All target muscles", value: "all" },
+          ...results.map((r) => ({
+            label: capitalizeWords(r.target_muscle),
+            value: r.target_muscle,
+          })),
+        ];
+        setMuscleOptions(filtered);
+        if (
+          selectedTargetMuscle &&
+          selectedTargetMuscle !== "all" &&
+          !results.some((r) => r.target_muscle === selectedTargetMuscle)
+        ) {
+          setSelectedTargetMuscle("all");
+        }
+      } catch (error: any) {
+        if (cancelled) return;
+        Alert.alert("Error", "Failed to fetch data. Please try again.", [
+          { text: "OK" },
+        ]);
+        console.error("Error fetching muscles by body part:", error);
+        Bugsnag.notify(error);
       }
     };
     updateMuscles();
-  }, [selectedBodyPart, allMuscleOptions]);
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    selectedBodyPart,
+    allMuscleOptions,
+    selectedTargetMuscle,
+    setSelectedTargetMuscle,
+  ]);
 
   const dropdownPlaceholders = {
     equipment: "All equipment",
