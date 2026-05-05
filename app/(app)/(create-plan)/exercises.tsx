@@ -13,7 +13,6 @@ import ExerciseList from "@/components/ExerciseList";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
-  // Read bodyPart param from router
   const params = useLocalSearchParams();
   const initialTargetMuscle =
     typeof params.targetMuscle === "string" &&
