@@ -64,7 +64,7 @@ export default function ExercisesScreen() {
 
       // If the exercise doesn't already exist, proceed with the replacement
       if (replaceExerciseIndex !== undefined) {
-        replaceExercise(Number(replaceExerciseIndex), exercise as UserExercise);
+        replaceExercise(replaceExerciseIndex, exercise as UserExercise);
         router.back(); // Navigate back after replacement
       }
     }

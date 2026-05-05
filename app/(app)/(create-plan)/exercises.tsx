@@ -45,7 +45,7 @@ export default function ExercisesScreen() {
   const { index } = useLocalSearchParams();
   const currentWorkoutIndex = Number(index);
   const currentWorkout = workouts[currentWorkoutIndex];
-  const replacing = typeof replaceExerciseIndex !== "undefined";
+  const replacing = replaceExerciseIndex !== undefined;
 
   const {
     data: settings,
@@ -129,7 +129,7 @@ export default function ExercisesScreen() {
           };
           replaceExercise(
             currentWorkoutIndex,
-            Number(replaceExerciseIndex),
+            replaceExerciseIndex,
             replacement,
             defaultSets,
             defaultTimeSets,

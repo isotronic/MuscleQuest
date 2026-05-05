@@ -10,14 +10,19 @@ import { useLocalSearchParams } from "expo-router";
  *  - `initialTargetMuscle` – seed value for the `selectedTargetMuscle` state
  *  - `isPreselectLoading`  – true until FilterRow signals it has rendered the
  *                            pre-selected value (use to keep the screen hidden)
- *  - `onFilterReady`       – callback to pass to FilterRow's `onReady` prop
+ *  - `replaceExerciseIndex` – index of the exercise being replaced, or `undefined` if not replacing
  */
 export function useExercisePreselectFilter() {
-  const { targetMuscle, replaceExerciseIndex } = useLocalSearchParams();
+  const { targetMuscle, replaceExerciseIndex: replaceExerciseIndexParam } =
+    useLocalSearchParams();
+
+  const replaceExerciseIndex =
+    typeof replaceExerciseIndexParam === "string"
+      ? Number(replaceExerciseIndexParam)
+      : undefined;
 
   const initialTargetMuscle =
-    typeof targetMuscle === "string" &&
-    typeof replaceExerciseIndex !== "undefined"
+    typeof targetMuscle === "string" && replaceExerciseIndex !== undefined
       ? targetMuscle
       : null;
 
