@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useLocalSearchParams } from "expo-router";
 import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
 import { View, TextInput, StyleSheet, Alert } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
@@ -15,11 +14,13 @@ import { UserExercise } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
-  const params = useLocalSearchParams();
-  const { replaceExerciseIndex } = params;
   const { workout, replaceExercise } = useActiveWorkoutStore();
-  const { initialTargetMuscle, isPreselectLoading, onFilterReady } =
-    useExercisePreselectFilter();
+  const {
+    initialTargetMuscle,
+    isPreselectLoading,
+    onFilterReady,
+    replaceExerciseIndex,
+  } = useExercisePreselectFilter();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(

@@ -28,5 +28,10 @@ export function useExercisePreselectFilter() {
     ? () => setFilterReady(true)
     : undefined;
 
-  return { initialTargetMuscle, isPreselectLoading, onFilterReady };
+  return {
+    initialTargetMuscle,
+    isPreselectLoading,
+    onFilterReady,
+    replaceExerciseIndex,
+  };
 }

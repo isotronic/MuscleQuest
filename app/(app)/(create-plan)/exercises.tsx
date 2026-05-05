@@ -14,9 +14,12 @@ import ExerciseList from "@/components/ExerciseList";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
-  const params = useLocalSearchParams();
-  const { initialTargetMuscle, isPreselectLoading, onFilterReady } =
-    useExercisePreselectFilter();
+  const {
+    initialTargetMuscle,
+    isPreselectLoading,
+    onFilterReady,
+    replaceExerciseIndex,
+  } = useExercisePreselectFilter();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
@@ -39,7 +42,7 @@ export default function ExercisesScreen() {
     setNewExerciseId,
     replaceExercise,
   } = useWorkoutStore();
-  const { index, replaceExerciseIndex } = useLocalSearchParams();
+  const { index } = useLocalSearchParams();
   const currentWorkoutIndex = Number(index);
   const currentWorkout = workouts[currentWorkoutIndex];
   const replacing = typeof replaceExerciseIndex !== "undefined";
