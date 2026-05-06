@@ -10,7 +10,10 @@ import Bugsnag from "@bugsnag/expo";
 
 // Mock your modules
 jest.mock("@react-native-firebase/storage");
-jest.mock("expo-file-system/legacy");
+jest.mock("expo-file-system/legacy", () => ({
+  documentDirectory: "/mock/document/directory/",
+  createDownloadResumable: jest.fn(),
+}));
 jest.mock("@/utils/database");
 jest.mock("@tanstack/react-query");
 jest.mock("@bugsnag/expo");
@@ -21,12 +24,6 @@ const mockStorage = {
   getDownloadURL: jest.fn(),
 };
 (storage as unknown as jest.Mock).mockImplementation(() => mockStorage);
-
-const mockFileSystem = {
-  createDownloadResumable: jest.fn(),
-};
-(FileSystem as any).createDownloadResumable =
-  mockFileSystem.createDownloadResumable;
 
 const mockInsertAnimatedImageUri = insertAnimatedImageUri as jest.Mock;
 
@@ -79,7 +76,7 @@ describe("useAnimatedImageQuery Tests", () => {
       mockStorage.getDownloadURL.mockResolvedValueOnce(
         "https://example.com/image.webp",
       );
-      mockFileSystem.createDownloadResumable.mockReturnValue({
+      (FileSystem.createDownloadResumable as jest.Mock).mockReturnValue({
         downloadAsync: jest.fn().mockResolvedValue({ uri: localUri }),
       });
       mockInsertAnimatedImageUri.mockResolvedValueOnce(undefined);
