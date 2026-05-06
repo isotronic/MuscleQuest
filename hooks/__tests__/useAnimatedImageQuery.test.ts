@@ -134,7 +134,7 @@ describe("useAnimatedImageQuery Tests", () => {
         queryFn: expect.any(Function),
         enabled: !!animatedUrlPath,
         staleTime: Infinity,
-        cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+        gcTime: 1000 * 60 * 60 * 24,
       });
     });
   });
