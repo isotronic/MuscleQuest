@@ -77,6 +77,8 @@ const ErrorView = ({ clearError }: { clearError: () => void }) => {
 
 const queryClient = new QueryClient();
 
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 GoogleSignin.configure({
   webClientId: googleServices.client[0].oauth_client[1].client_id,
 });
