@@ -194,6 +194,15 @@ export default function WorkoutCard({
                 }}
                 title="Replace"
               />
+              <Menu.Item
+                onPress={() => {
+                  closeMenu();
+                  router.push(
+                    `/(app)/exercise-details?exercise_id=${item.exercise_id}`,
+                  );
+                }}
+                title="View Details"
+              />
             </Menu>
           </TouchableOpacity>
         </Sortable.Pressable>
