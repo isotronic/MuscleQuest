@@ -1,5 +1,5 @@
 import Bugsnag from "@bugsnag/expo";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Updates from "expo-updates";
 import { openDatabase } from "./database";
 

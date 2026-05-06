@@ -1,5 +1,5 @@
 import storage from "@react-native-firebase/storage";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import {
   fetchExercisesWithoutLocalAnimatedUri,
   insertAnimatedImageUri,
@@ -7,7 +7,7 @@ import {
 import Bugsnag from "@bugsnag/expo";
 import { downloadAllAnimatedImages } from "@/utils/downloadAllAnimatedImages";
 
-jest.mock("expo-file-system");
+jest.mock("expo-file-system/legacy");
 jest.mock("@react-native-firebase/storage");
 jest.mock("@/utils/database");
 jest.mock("@bugsnag/expo");

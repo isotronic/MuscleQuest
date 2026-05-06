@@ -50,12 +50,30 @@ jest.mock("@react-native-firebase/storage", () => {
   }));
 });
 
-// Mock Expo File System
+// Mock Expo File System (both main and legacy entry points use identical mock)
 jest.mock("expo-file-system", () => ({
   documentDirectory: "/mock/document/directory/",
   getInfoAsync: jest.fn((path) =>
     Promise.resolve({
-      exists: path.includes("appData2.db"), // Simulate appData2.db existence
+      exists: path.includes("appData2.db"),
+      isDirectory: false,
+    }),
+  ),
+  createDownloadResumable: jest.fn(() => ({
+    downloadAsync: jest.fn(() =>
+      Promise.resolve({ uri: "/default/mock/path.webp" }),
+    ),
+  })),
+  deleteAsync: jest.fn().mockResolvedValue(undefined),
+  makeDirectoryAsync: jest.fn().mockResolvedValue(undefined),
+  copyAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock("expo-file-system/legacy", () => ({
+  documentDirectory: "/mock/document/directory/",
+  getInfoAsync: jest.fn((path) =>
+    Promise.resolve({
+      exists: path.includes("appData2.db"),
       isDirectory: false,
     }),
   ),
@@ -92,6 +110,13 @@ jest.mock("@react-native-google-signin/google-signin", () => ({
     hasPlayServices: jest.fn().mockResolvedValue(true), // Default to resolved
     signIn: jest.fn().mockResolvedValue({ idToken: "mockIdToken" }),
   },
+}));
+
+// Prevent RN 0.79's DevMenu getter from crashing when react-native is spread
+// via jest.requireActual below. The nested require() inside react-native/index.js
+// still goes through Jest's module resolver so this mock is picked up.
+jest.mock("react-native/src/private/devsupport/devmenu/DevMenu", () => ({
+  default: null,
 }));
 
 // Mock Alert

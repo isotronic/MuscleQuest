@@ -75,10 +75,9 @@ const ErrorView = ({ clearError }: { clearError: () => void }) => {
   );
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
 const queryClient = new QueryClient();
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 GoogleSignin.configure({
   webClientId: googleServices.client[0].oauth_client[1].client_id,
@@ -133,7 +132,7 @@ function RootLayout() {
   useEffect(() => {
     if (loaded && !error && isDatabaseInitialized && !isInitializing) {
       setupNotificationChannel();
-      SplashScreen.hideAsync();
+      SplashScreen.hide();
     }
   }, [loaded, error, isDatabaseInitialized, isInitializing]);
 
@@ -156,7 +155,7 @@ function RootLayout() {
             <SafeAreaProvider>
               <GestureHandlerRootView>
                 <BottomSheetModalProvider>
-                  <Slot screenOptions={{ headerShown: false }} />
+                  <Slot />
                 </BottomSheetModalProvider>
               </GestureHandlerRootView>
             </SafeAreaProvider>

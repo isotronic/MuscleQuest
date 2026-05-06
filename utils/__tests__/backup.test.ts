@@ -11,8 +11,8 @@ import { QueryClient } from "@tanstack/react-query";
  * ================
  */
 
-// Mock expo-file-system
-jest.mock("expo-file-system", () => ({
+// Mock expo-file-system/legacy
+jest.mock("expo-file-system/legacy", () => ({
   documentDirectory: "mockDocumentDirectory/",
   getInfoAsync: jest.fn(),
   createDownloadResumable: jest.fn(),
@@ -66,7 +66,7 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("should upload all files successfully when user is authenticated and files exist", async () => {
-    const { getInfoAsync } = require("expo-file-system");
+    const { getInfoAsync } = require("expo-file-system/legacy");
     // Mock getInfoAsync to pretend files exist
     getInfoAsync.mockImplementation(() => Promise.resolve({ exists: true }));
 
@@ -125,7 +125,7 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("should throw an error if the database file does not exist", async () => {
-    const { getInfoAsync } = require("expo-file-system");
+    const { getInfoAsync } = require("expo-file-system/legacy");
     // First call simulates DB file does not exist
     getInfoAsync.mockResolvedValueOnce({ exists: false });
 
@@ -135,7 +135,7 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("should handle upload failure and throw an error", async () => {
-    const { getInfoAsync } = require("expo-file-system");
+    const { getInfoAsync } = require("expo-file-system/legacy");
     // Pretend all files exist
     getInfoAsync.mockResolvedValue({ exists: true });
 
@@ -240,7 +240,7 @@ describe("restoreDatabaseBackup", () => {
     );
 
     // Mock createDownloadResumable to simulate a successful download
-    const { createDownloadResumable } = require("expo-file-system");
+    const { createDownloadResumable } = require("expo-file-system/legacy");
     createDownloadResumable.mockImplementation(
       (
         url: any,

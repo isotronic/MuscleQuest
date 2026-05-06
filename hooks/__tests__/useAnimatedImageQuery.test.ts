@@ -3,14 +3,17 @@ import {
   useAnimatedImageQuery,
 } from "../useAnimatedImageQuery";
 import storage from "@react-native-firebase/storage";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { insertAnimatedImageUri } from "@/utils/database";
 import { useQuery } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 
 // Mock your modules
 jest.mock("@react-native-firebase/storage");
-jest.mock("expo-file-system");
+jest.mock("expo-file-system/legacy", () => ({
+  documentDirectory: "/mock/document/directory/",
+  createDownloadResumable: jest.fn(),
+}));
 jest.mock("@/utils/database");
 jest.mock("@tanstack/react-query");
 jest.mock("@bugsnag/expo");
@@ -22,12 +25,6 @@ const mockStorage = {
 };
 (storage as unknown as jest.Mock).mockImplementation(() => mockStorage);
 
-const mockFileSystem = {
-  createDownloadResumable: jest.fn(),
-};
-(FileSystem as any).createDownloadResumable =
-  mockFileSystem.createDownloadResumable;
-
 const mockInsertAnimatedImageUri = insertAnimatedImageUri as jest.Mock;
 
 describe("useAnimatedImageQuery Tests", () => {
@@ -36,10 +33,8 @@ describe("useAnimatedImageQuery Tests", () => {
   //
   beforeAll(() => {
     jest.spyOn(global, "setTimeout").mockImplementation((callback: any) => {
-      // Immediately invoke the callback instead of waiting
       callback();
-      // Return a mock timer id
-      return 0 as unknown as NodeJS.Timeout;
+      return 0 as unknown as ReturnType<typeof setTimeout>;
     });
   });
 
@@ -81,7 +76,7 @@ describe("useAnimatedImageQuery Tests", () => {
       mockStorage.getDownloadURL.mockResolvedValueOnce(
         "https://example.com/image.webp",
       );
-      mockFileSystem.createDownloadResumable.mockReturnValue({
+      (FileSystem.createDownloadResumable as jest.Mock).mockReturnValue({
         downloadAsync: jest.fn().mockResolvedValue({ uri: localUri }),
       });
       mockInsertAnimatedImageUri.mockResolvedValueOnce(undefined);
@@ -139,7 +134,7 @@ describe("useAnimatedImageQuery Tests", () => {
         queryFn: expect.any(Function),
         enabled: !!animatedUrlPath,
         staleTime: Infinity,
-        cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+        gcTime: 1000 * 60 * 60 * 24,
       });
     });
   });

@@ -5,9 +5,10 @@ export const setupNotificationChannel = async () => {
   // Configure how the notifications should be shown
   await Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true, // Show alert even in foreground
-      shouldPlaySound: false, // We handle sound separately
+      shouldPlaySound: false,
       shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
     }),
   });
 

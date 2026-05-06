@@ -184,7 +184,7 @@ function FilterRow({
   return (
     <View style={styles.row}>
       <View style={styles.dropdownContainer}>
-        <Dropdown<OptionItem>
+        <Dropdown
           autoScroll={false}
           data={equipmentOptions}
           labelField="label"
@@ -201,7 +201,7 @@ function FilterRow({
         />
       </View>
       <View style={styles.dropdownContainer}>
-        <Dropdown<OptionItem>
+        <Dropdown
           autoScroll={false}
           data={bodyPartOptions}
           labelField="label"
@@ -218,7 +218,7 @@ function FilterRow({
         />
       </View>
       <View style={styles.dropdownContainerNoMargin}>
-        <Dropdown<OptionItem>
+        <Dropdown
           autoScroll={false}
           data={muscleOptions}
           labelField="label"
