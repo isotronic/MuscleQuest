@@ -1,4 +1,4 @@
-import { useQuery, UseQueryOptions } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import storage from "@react-native-firebase/storage";
 import * as FileSystem from "expo-file-system/legacy";
 import { insertAnimatedImageUri } from "@/utils/database";
@@ -74,6 +74,6 @@ export const useAnimatedImageQuery = (
       fetchAnimatedImageUrl(exerciseId, animatedUrlPath, localPath),
     enabled: !!animatedUrlPath,
     staleTime: Infinity,
-    cacheTime: 1000 * 60 * 60 * 24, // 24 hours
-  } as UseQueryOptions<string, Error>);
+    gcTime: 1000 * 60 * 60 * 24,
+  });
 };
