@@ -1,6 +1,10 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
-import { View, TouchableOpacity, TextInput } from "react-native";
-import { BottomSheetModal, BottomSheetBackdrop } from "@gorhom/bottom-sheet";
+import React, { useRef, useState, useCallback } from "react";
+import { View, TouchableOpacity } from "react-native";
+import {
+  BottomSheetModal,
+  BottomSheetBackdrop,
+  BottomSheetTextInput,
+} from "@gorhom/bottom-sheet";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNotes, NoteType } from "@/hooks/useNotes";
 import { Colors } from "@/constants/Colors";
@@ -8,6 +12,20 @@ import { Button, Divider, IconButton } from "react-native-paper";
 import { ThemedText } from "./ThemedText";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 import { capitalizeWords } from "@/utils/utility";
+
+// BottomSheetTextInput has a TypeScript inference issue with memo(forwardRef) —
+// cast to a plain component type so TextInputProps are accepted at the call site.
+const NoteInput = BottomSheetTextInput as unknown as React.ComponentType<{
+  ref?: React.Ref<any>;
+  value?: string;
+  defaultValue?: string;
+  onChangeText: (text: string) => void;
+  placeholder?: string;
+  placeholderTextColor?: string;
+  multiline?: boolean;
+  maxLength?: number;
+  style?: object;
+}>;
 
 interface NotesProps {
   noteType: NoteType;
@@ -23,9 +41,11 @@ export const Notes: React.FC<NotesProps> = ({
   buttonType,
 }) => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const [localNote, setLocalNote] = useState("");
-  const [initialNote, setInitialNote] = useState("");
-  const inputRef = useRef<typeof TextInput>(null);
+  const inputRef = useRef<any>(null);
+  // Refs track the live text without triggering re-renders on each keystroke
+  const currentNoteRef = useRef("");
+  const initialNoteRef = useRef("");
+  const [inputKey, setInputKey] = useState(0);
 
   const { note, saveNote } = useNotes(
     noteType,
@@ -33,13 +53,10 @@ export const Notes: React.FC<NotesProps> = ({
     secondaryReferenceId,
   );
 
-  // Sync Tanstack note into local state
-  useEffect(() => {
-    setLocalNote(note);
-    setInitialNote(note);
-  }, [note]);
-
   const handleOpen = () => {
+    currentNoteRef.current = note;
+    initialNoteRef.current = note;
+    setInputKey((k) => k + 1);
     bottomSheetRef.current?.present();
   };
 
@@ -48,10 +65,10 @@ export const Notes: React.FC<NotesProps> = ({
   };
 
   const handleSaveOnClose = useCallback(() => {
-    if (localNote.trim() !== initialNote.trim()) {
-      saveNote(localNote.trim());
+    if (currentNoteRef.current.trim() !== initialNoteRef.current.trim()) {
+      saveNote(currentNoteRef.current.trim());
     }
-  }, [localNote, initialNote, saveNote]);
+  }, [saveNote]);
 
   return (
     <>
@@ -116,11 +133,13 @@ export const Notes: React.FC<NotesProps> = ({
           style={{ height: "100%" }}
         >
           <View style={{ paddingHorizontal: 16, gap: 12 }}>
-            {/* Editable note (no visual input style) */}
-            <TextInput
+            <NoteInput
+              key={inputKey}
               ref={inputRef}
-              value={localNote}
-              onChangeText={setLocalNote}
+              defaultValue={currentNoteRef.current}
+              onChangeText={(text) => {
+                currentNoteRef.current = text;
+              }}
               placeholder="Add a note..."
               placeholderTextColor={Colors.dark.subText}
               multiline
