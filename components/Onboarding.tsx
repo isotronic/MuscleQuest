@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
 import { Button, Text, Card } from "react-native-paper";
-import { useRouter } from "expo-router";
+import { type Href, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { ThemedText } from "./ThemedText";
 
@@ -18,14 +18,14 @@ const onboardingData = [
     description:
       "Set your weekly workout goal and enter your body weight to get accurate stats and recommendations. You can also adjust your weight increment preferences, choose your preferred units, and much more.",
     buttonLabel: "Go to Settings",
-    route: "/settings",
+    route: "/(app)/(tabs)/settings" as Href,
   },
   {
     title: "Track Your Progress",
     description:
       "Monitor your fitness journey with detailed stats and insights. Keep track of workout history, analyse your body part splits, and visualise improvements over time with exercise progression graphs.",
     buttonLabel: "View Stats",
-    route: "/(stats)",
+    route: "/(app)/(tabs)/(stats)" as Href,
   },
   {
     title: "Add Personal Notes",
@@ -39,21 +39,21 @@ const onboardingData = [
     description:
       "Take full control of your training by designing your own personalised plan. Select exercises, set rep ranges, rest times, and more to create a plan that aligns perfectly with your fitness goals.",
     buttonLabel: "Create a Plan",
-    route: "/(create-plan)/create",
+    route: "/(app)/(create-plan)/create" as Href,
   },
   {
     title: "Explore Ready-Made Plans",
     description:
       "Jumpstart your fitness journey with professionally designed training plans. Choose from a variety of options tailored to different goals and experience levels. ",
     buttonLabel: "Explore Plans",
-    route: "/(plans)",
+    route: "/(app)/(tabs)/(plans)" as Href,
   },
   {
     title: "Hide / Show Onboarding",
     description:
       "You can hide this onboarding screen at any time from the settings page in the appearance section. If you ever want to revisit the onboarding, you can enable it again from the same settings page.",
     buttonLabel: "Go to Settings",
-    route: "/settings",
+    route: "/(app)/(tabs)/settings" as Href,
   },
 ];
 
@@ -61,7 +61,7 @@ const Onboarding = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const router = useRouter();
 
-  const handleNavigate = (route: string | null) => {
+  const handleNavigate = (route: Href | null) => {
     if (route) {
       router.push(route);
     }

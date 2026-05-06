@@ -183,7 +183,10 @@ export default function PlanOverviewScreen() {
 
             try {
               await new Promise((resolve) => setTimeout(resolve, 50)); // Small delay for UX
-              router.push(`/(create-plan)/create?planId=${planId}`);
+              router.push({
+                pathname: "/(app)/(create-plan)/create",
+                params: { planId },
+              });
             } finally {
               setTimeout(() => setIsEditing(false), 500); // Prevent flickering
             }

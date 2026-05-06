@@ -150,7 +150,7 @@ export default function CreatePlanScreen() {
   };
 
   const handleImageSearch = () => {
-    router.push(`/(app)/image-search`);
+    router.push("/(app)/(create-plan)/image-search");
   };
 
   const handleAddExercise = (index: number) => {
@@ -174,7 +174,7 @@ export default function CreatePlanScreen() {
       await new Promise((resolve) => setTimeout(resolve, 50)); // Small delay for smooth UX
 
       if (newPlanId) {
-        router.push("/(plans)");
+        router.push("/(app)/(tabs)/(plans)");
       } else {
         router.back();
       }

@@ -135,7 +135,7 @@ export default function HistoryDetailsScreen() {
                 iconColor={Colors.dark.text}
                 onPressIn={() =>
                   router.push({
-                    pathname: "/(stats)/edit-history",
+                    pathname: "/(app)/(tabs)/(stats)/edit-history",
                     params: { id },
                   })
                 }
