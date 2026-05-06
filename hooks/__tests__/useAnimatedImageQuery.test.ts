@@ -3,14 +3,14 @@ import {
   useAnimatedImageQuery,
 } from "../useAnimatedImageQuery";
 import storage from "@react-native-firebase/storage";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { insertAnimatedImageUri } from "@/utils/database";
 import { useQuery } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 
 // Mock your modules
 jest.mock("@react-native-firebase/storage");
-jest.mock("expo-file-system");
+jest.mock("expo-file-system/legacy");
 jest.mock("@/utils/database");
 jest.mock("@tanstack/react-query");
 jest.mock("@bugsnag/expo");
@@ -36,10 +36,8 @@ describe("useAnimatedImageQuery Tests", () => {
   //
   beforeAll(() => {
     jest.spyOn(global, "setTimeout").mockImplementation((callback: any) => {
-      // Immediately invoke the callback instead of waiting
       callback();
-      // Return a mock timer id
-      return 0 as unknown as NodeJS.Timeout;
+      return 0 as unknown as ReturnType<typeof setTimeout>;
     });
   });
 
