@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback } from "react";
-import { View, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, TextInput as RNTextInput } from "react-native";
 import {
   BottomSheetModal,
   BottomSheetBackdrop,
@@ -13,19 +13,9 @@ import { ThemedText } from "./ThemedText";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 import { capitalizeWords } from "@/utils/utility";
 
-// BottomSheetTextInput has a TypeScript inference issue with memo(forwardRef) —
-// cast to a plain component type so TextInputProps are accepted at the call site.
-const NoteInput = BottomSheetTextInput as unknown as React.ComponentType<{
-  ref?: React.Ref<any>;
-  value?: string;
-  defaultValue?: string;
-  onChangeText: (text: string) => void;
-  placeholder?: string;
-  placeholderTextColor?: string;
-  multiline?: boolean;
-  maxLength?: number;
-  style?: object;
-}>;
+const NoteInput = BottomSheetTextInput as unknown as React.ComponentType<
+  React.ComponentPropsWithoutRef<typeof RNTextInput> & { ref?: React.Ref<any> }
+>;
 
 interface NotesProps {
   noteType: NoteType;
@@ -137,7 +127,7 @@ export const Notes: React.FC<NotesProps> = ({
               key={inputKey}
               ref={inputRef}
               defaultValue={currentNoteRef.current}
-              onChangeText={(text) => {
+              onChangeText={(text: string) => {
                 currentNoteRef.current = text;
               }}
               placeholder="Add a note..."
