@@ -8,5 +8,6 @@ module.exports = {
         endOfLine: "auto",
       },
     ],
+    "expo/use-dom-exports": "off",
   },
 };
