@@ -138,7 +138,7 @@ export default function WorkoutCard({
       const isMenuOpen = menuVisible === item.exercise_id;
 
       return (
-        <Sortable.Pressable style={[styles.exerciseItem]}>
+        <View style={[styles.exerciseItem]}>
           <TouchableOpacity
             onPress={() =>
               router.push(
@@ -205,7 +205,7 @@ export default function WorkoutCard({
               />
             </Menu>
           </TouchableOpacity>
-        </Sortable.Pressable>
+        </View>
       );
     },
     [handleReplace, menuVisible, removeExercise, workoutIndex],
