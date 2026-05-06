@@ -1,11 +1,5 @@
 import { useCallback, useState } from "react";
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  Alert,
-  TouchableOpacity,
-} from "react-native";
+import { StyleSheet, View, TextInput, Alert } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
 import { Card, Button, Menu, IconButton } from "react-native-paper";
@@ -139,8 +133,8 @@ export default function WorkoutCard({
 
       return (
         <View style={[styles.exerciseItem]}>
-          <TouchableOpacity
-            onPress={() =>
+          <Sortable.Touchable
+            onTap={() =>
               router.push(
                 `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}&exerciseIndex=${exerciseIndex}&trackingType=${item.tracking_type}`,
               )
@@ -204,7 +198,7 @@ export default function WorkoutCard({
                 title="View Details"
               />
             </Menu>
-          </TouchableOpacity>
+          </Sortable.Touchable>
         </View>
       );
     },
