@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { StyleSheet, FlatList, TouchableOpacity, View } from "react-native";
 import { Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useWorkoutStore, Set } from "@/store/workoutStore";
 import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
@@ -108,13 +108,26 @@ export default function SetsOverviewScreen() {
         keyExtractor={(_: any, index: number) => index.toString()}
         contentContainerStyle={styles.flatListContent}
       />
-      <Button
-        mode="contained"
-        labelStyle={styles.buttonLabel}
-        onPress={handleAddSet}
-      >
-        Add Set
-      </Button>
+      <View style={styles.buttonRow}>
+        <Button
+          mode="outlined"
+          labelStyle={styles.buttonLabel}
+          style={styles.detailsButton}
+          onPress={() =>
+            router.push(`/(app)/exercise-details?exercise_id=${exerciseId}`)
+          }
+        >
+          Details
+        </Button>
+        <Button
+          mode="contained"
+          labelStyle={styles.buttonLabel}
+          style={styles.addSetButton}
+          onPress={handleAddSet}
+        >
+          Add Set
+        </Button>
+      </View>
       <EditSetModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -167,6 +180,16 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     paddingBottom: 50,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  detailsButton: {
+    flex: 1,
+  },
+  addSetButton: {
+    flex: 5,
   },
   buttonLabel: {
     fontSize: 16,
