@@ -11,7 +11,7 @@ import { Button } from "react-native-paper";
 import DropDownPicker from "react-native-dropdown-picker";
 import { ThemedText } from "@/components/ThemedText";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { Exercise, fetchAllRecords, openDatabase } from "@/utils/database";
 import { capitalizeWords } from "@/utils/utility";
 import { Colors } from "@/constants/Colors";

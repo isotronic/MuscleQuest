@@ -1,6 +1,6 @@
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import storage from "@react-native-firebase/storage";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { insertAnimatedImageUri } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
 
