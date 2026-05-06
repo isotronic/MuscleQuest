@@ -89,8 +89,8 @@ export default {
         "expo-build-properties",
         {
           android: {
-            compileSdkVersion: 35,
-            targetSdkVersion: 35,
+            compileSdkVersion: 36,
+            targetSdkVersion: 36,
           },
           ios: {
             deploymentTarget: "15.1",
