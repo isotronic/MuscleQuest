@@ -187,7 +187,7 @@ export const useCompletedWorkoutsQuery = (
   timeRange = 0,
 ) => {
   return useQuery<CompletedWorkout[]>({
-    queryKey: ["completedWorkouts", weightUnit],
+    queryKey: ["completedWorkouts", weightUnit, timeRange],
     queryFn: () => fetchAndOrganize(weightUnit, timeRange),
     staleTime: 5 * 60 * 1000,
   });
