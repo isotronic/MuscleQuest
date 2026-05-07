@@ -53,8 +53,7 @@ export const fetchAnimatedImageUrl = async (
         }
       }
     }
-    Bugsnag.notify(new Error("Unexpected error in fetchAnimatedImageUrl."));
-    throw new Error("Unexpected error in fetchAnimatedImageUrl.");
+    throw lastError;
   }
 };
 
