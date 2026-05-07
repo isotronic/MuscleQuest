@@ -41,7 +41,7 @@ You can now tap any recent workout on the home screen to view its full details. 
     message: `
 ↕️ New: Reorder Workouts in Your Plan!
 
-You can now drag and reorder workouts directly in the plan creation screen and workout cards, giving you full control over your training schedule layout.
+You can now reorder workouts directly in the plan creation screen and workout cards, giving you full control over your training schedule layout.
 `,
   },
   {
