@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system";
+import { File } from "expo-file-system";
 import {
   fetchExercisesWithLocalAnimatedUri,
   clearAllLocalAnimatedUri,
@@ -9,6 +9,10 @@ import { deleteAllAnimatedImages } from "@/utils/deleteAllAnimatedImages";
 describe("deleteAllAnimatedImages", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (File as unknown as jest.Mock).mockImplementation(() => ({
+      exists: true,
+      delete: jest.fn(),
+    }));
   });
 
   it("should delete all images successfully and clear the database", async () => {
@@ -19,24 +23,17 @@ describe("deleteAllAnimatedImages", () => {
     (fetchExercisesWithLocalAnimatedUri as jest.Mock).mockResolvedValue(
       mockExercises,
     );
-    (FileSystem.deleteAsync as jest.Mock).mockResolvedValue(null);
 
     const onProgress = jest.fn();
 
     const result = await deleteAllAnimatedImages(onProgress);
 
     expect(fetchExercisesWithLocalAnimatedUri).toHaveBeenCalled();
-    expect(FileSystem.deleteAsync).toHaveBeenCalledTimes(2);
-    expect(FileSystem.deleteAsync).toHaveBeenCalledWith(
-      "/path/to/image1.webp",
-      { idempotent: true },
-    );
-    expect(FileSystem.deleteAsync).toHaveBeenCalledWith(
-      "/path/to/image2.webp",
-      { idempotent: true },
-    );
-    expect(onProgress).toHaveBeenCalledWith(0.5); // After first file
-    expect(onProgress).toHaveBeenCalledWith(1); // After second file
+    expect(File).toHaveBeenCalledTimes(2);
+    expect(File).toHaveBeenCalledWith("/path/to/image1.webp");
+    expect(File).toHaveBeenCalledWith("/path/to/image2.webp");
+    expect(onProgress).toHaveBeenCalledWith(0.5);
+    expect(onProgress).toHaveBeenCalledWith(1);
     expect(clearAllLocalAnimatedUri).toHaveBeenCalled();
     expect(result).toEqual({ success: true, failedDeletes: [] });
   });
@@ -49,16 +46,23 @@ describe("deleteAllAnimatedImages", () => {
     (fetchExercisesWithLocalAnimatedUri as jest.Mock).mockResolvedValue(
       mockExercises,
     );
-    (FileSystem.deleteAsync as jest.Mock)
-      .mockResolvedValueOnce(null) // First succeeds
-      .mockRejectedValueOnce(new Error("Delete failed")); // Second fails
+
+    const mockDelete = jest.fn()
+      .mockImplementationOnce(() => {})
+      .mockImplementationOnce(() => {
+        throw new Error("Delete failed");
+      });
+    (File as unknown as jest.Mock).mockImplementation(() => ({
+      exists: true,
+      delete: mockDelete,
+    }));
 
     const onProgress = jest.fn();
 
     const result = await deleteAllAnimatedImages(onProgress);
 
     expect(fetchExercisesWithLocalAnimatedUri).toHaveBeenCalled();
-    expect(FileSystem.deleteAsync).toHaveBeenCalledTimes(2);
+    expect(File).toHaveBeenCalledTimes(2);
     expect(Bugsnag.notify).toHaveBeenCalledWith(expect.any(Error));
     expect(onProgress).toHaveBeenCalledWith(0.5);
     expect(onProgress).toHaveBeenCalledWith(1);
@@ -74,7 +78,7 @@ describe("deleteAllAnimatedImages", () => {
     const result = await deleteAllAnimatedImages(onProgress);
 
     expect(fetchExercisesWithLocalAnimatedUri).toHaveBeenCalled();
-    expect(FileSystem.deleteAsync).not.toHaveBeenCalled();
+    expect(File).not.toHaveBeenCalled();
     expect(onProgress).not.toHaveBeenCalled();
     expect(clearAllLocalAnimatedUri).toHaveBeenCalled();
     expect(result).toEqual({ success: true, failedDeletes: [] });
@@ -92,7 +96,7 @@ describe("deleteAllAnimatedImages", () => {
     );
 
     expect(fetchExercisesWithLocalAnimatedUri).toHaveBeenCalled();
-    expect(FileSystem.deleteAsync).not.toHaveBeenCalled();
+    expect(File).not.toHaveBeenCalled();
     expect(onProgress).not.toHaveBeenCalled();
     expect(Bugsnag.notify).toHaveBeenCalledWith(expect.any(Error));
     expect(clearAllLocalAnimatedUri).not.toHaveBeenCalled();

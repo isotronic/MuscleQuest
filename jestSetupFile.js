@@ -44,24 +44,32 @@ jest.mock("@react-native-firebase/storage", () => ({
   putFile: jest.fn(() => ({ on: jest.fn() })),
 }));
 
-// Mock Expo File System (both main and legacy entry points use identical mock)
-jest.mock("expo-file-system", () => ({
-  documentDirectory: "/mock/document/directory/",
-  getInfoAsync: jest.fn((path) =>
-    Promise.resolve({
-      exists: path.includes("appData2.db"),
-      isDirectory: false,
-    }),
-  ),
-  createDownloadResumable: jest.fn(() => ({
-    downloadAsync: jest.fn(() =>
-      Promise.resolve({ uri: "/default/mock/path.webp" }),
-    ),
-  })),
-  deleteAsync: jest.fn().mockResolvedValue(undefined),
-  makeDirectoryAsync: jest.fn().mockResolvedValue(undefined),
-  copyAsync: jest.fn().mockResolvedValue(undefined),
-}));
+// Mock Expo File System
+jest.mock("expo-file-system", () => {
+  const MockFile = jest.fn().mockImplementation((...args) => {
+    const uri = args
+      .map((a) => (a && typeof a === "object" && a.uri ? a.uri : String(a)))
+      .join("");
+    return { exists: true, uri, delete: jest.fn(), copy: jest.fn() };
+  });
+  MockFile.downloadFileAsync = jest.fn().mockResolvedValue(undefined);
+
+  const MockDirectory = jest.fn().mockImplementation((...args) => {
+    const uri = args
+      .map((a) => (a && typeof a === "object" && a.uri ? a.uri : String(a)))
+      .join("");
+    return { exists: true, uri, create: jest.fn() };
+  });
+
+  return {
+    File: MockFile,
+    Directory: MockDirectory,
+    Paths: {
+      document: { uri: "/mock/document/directory/" },
+      cache: { uri: "/mock/cache/directory/" },
+    },
+  };
+});
 
 jest.mock("expo-file-system/legacy", () => ({
   documentDirectory: "/mock/document/directory/",

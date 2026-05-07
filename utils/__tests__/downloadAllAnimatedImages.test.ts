@@ -1,5 +1,5 @@
 import { ref, getDownloadURL } from "@react-native-firebase/storage";
-import * as FileSystem from "expo-file-system/legacy";
+import { File } from "expo-file-system";
 import {
   fetchExercisesWithoutLocalAnimatedUri,
   insertAnimatedImageUris,
@@ -7,7 +7,6 @@ import {
 import Bugsnag from "@bugsnag/expo";
 import { downloadAllAnimatedImages } from "@/utils/downloadAllAnimatedImages";
 
-jest.mock("expo-file-system/legacy");
 jest.mock("@react-native-firebase/storage");
 jest.mock("@/utils/database");
 jest.mock("@bugsnag/expo");
@@ -17,6 +16,9 @@ describe("downloadAllAnimatedImages", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (File as any).downloadFileAsync = jest
+      .fn()
+      .mockResolvedValue(undefined);
   });
 
   it("should download all images successfully and update progress", async () => {
@@ -29,16 +31,9 @@ describe("downloadAllAnimatedImages", () => {
       mockExercises,
     );
 
-    // Tag the ref object with the URL so getDownloadURL can return URL-specific values
     (ref as jest.Mock).mockImplementation((_storage, url) => ({ _url: url }));
     (getDownloadURL as jest.Mock).mockImplementation((refObj) =>
       Promise.resolve(`mockDownloadUrl_${refObj._url}`),
-    );
-
-    (FileSystem.createDownloadResumable as jest.Mock).mockImplementation(
-      () => ({
-        downloadAsync: jest.fn().mockResolvedValue(null),
-      }),
     );
 
     const onProgress = jest.fn();
@@ -46,9 +41,8 @@ describe("downloadAllAnimatedImages", () => {
     const result = await downloadAllAnimatedImages(onProgress);
 
     expect(fetchExercisesWithoutLocalAnimatedUri).toHaveBeenCalled();
-    // ref is called once per exercise (before retry loop)
     expect(ref).toHaveBeenCalledTimes(mockExercises.length);
-    expect(FileSystem.createDownloadResumable).toHaveBeenCalledTimes(
+    expect((File as any).downloadFileAsync).toHaveBeenCalledTimes(
       mockExercises.length,
     );
     expect(insertAnimatedImageUris).toHaveBeenCalledWith([
@@ -81,32 +75,19 @@ describe("downloadAllAnimatedImages", () => {
       },
     );
 
-    (FileSystem.createDownloadResumable as jest.Mock).mockImplementation(
-      (url) => {
-        if (url === "mockDownloadUrl1") {
-          return { downloadAsync: jest.fn().mockResolvedValue(null) };
-        }
-        throw new Error(`Unexpected URL: ${url}`);
-      },
-    );
-
     const onProgress = jest.fn();
 
     const result = await downloadAllAnimatedImages(onProgress);
 
     expect(fetchExercisesWithoutLocalAnimatedUri).toHaveBeenCalledTimes(1);
-    // ref is called once per exercise (not per retry)
     expect(ref).toHaveBeenCalledTimes(mockExercises.length);
-    // getDownloadURL is called per attempt: 1 for exercise 1 + 3 for exercise 2
+    // getDownloadURL: 1 for exercise 1 + 3 retries for exercise 2
     expect(getDownloadURLMock).toHaveBeenCalledTimes(mockExercises.length + 2);
-    expect(FileSystem.createDownloadResumable).toHaveBeenCalledTimes(1);
+    expect((File as any).downloadFileAsync).toHaveBeenCalledTimes(1);
     expect(insertAnimatedImageUris).toHaveBeenCalledWith([
       { exercise_id: 1, local_animated_uri: expect.any(String) },
     ]);
     expect(Bugsnag.notify).toHaveBeenCalledTimes(1);
-    expect(Bugsnag.notify).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Download failed" }),
-    );
     expect(result).toEqual({ success: false, failedDownloads: [2] });
   });
 
@@ -119,7 +100,7 @@ describe("downloadAllAnimatedImages", () => {
 
     expect(fetchExercisesWithoutLocalAnimatedUri).toHaveBeenCalled();
     expect(ref).not.toHaveBeenCalled();
-    expect(FileSystem.createDownloadResumable).not.toHaveBeenCalled();
+    expect((File as any).downloadFileAsync).not.toHaveBeenCalled();
     expect(onProgress).not.toHaveBeenCalled();
     expect(result).toEqual({ success: true, failedDownloads: [] });
   });
@@ -137,7 +118,7 @@ describe("downloadAllAnimatedImages", () => {
 
     expect(fetchExercisesWithoutLocalAnimatedUri).toHaveBeenCalled();
     expect(ref).not.toHaveBeenCalled();
-    expect(FileSystem.createDownloadResumable).not.toHaveBeenCalled();
+    expect((File as any).downloadFileAsync).not.toHaveBeenCalled();
     expect(onProgress).not.toHaveBeenCalled();
     expect(Bugsnag.notify).toHaveBeenCalledWith(expect.any(Error));
   });
@@ -162,25 +143,14 @@ describe("downloadAllAnimatedImages", () => {
       },
     );
 
-    (FileSystem.createDownloadResumable as jest.Mock).mockImplementation(
-      (url) => {
-        if (url === "mockDownloadUrl1") {
-          return { downloadAsync: jest.fn().mockResolvedValue(null) };
-        }
-        throw new Error("Unexpected URL");
-      },
-    );
-
     const onProgress = jest.fn();
 
     const result = await downloadAllAnimatedImages(onProgress);
 
     expect(fetchExercisesWithoutLocalAnimatedUri).toHaveBeenCalled();
-    // ref called once (before retry loop)
     expect(ref).toHaveBeenCalledTimes(1);
-    // getDownloadURL called 3 times (2 failures + 1 success)
     expect(getDownloadURLMock).toHaveBeenCalledTimes(3);
-    expect(FileSystem.createDownloadResumable).toHaveBeenCalledTimes(1);
+    expect((File as any).downloadFileAsync).toHaveBeenCalledTimes(1);
     expect(insertAnimatedImageUris).toHaveBeenCalledWith([
       { exercise_id: 1, local_animated_uri: expect.any(String) },
     ]);

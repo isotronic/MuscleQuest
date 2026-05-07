@@ -3,6 +3,7 @@ import {
   fetchLastBackupDate,
   restoreDatabaseBackup,
 } from "../backup";
+import { File } from "expo-file-system";
 import { QueryClient } from "@tanstack/react-query";
 
 /**
@@ -10,13 +11,6 @@ import { QueryClient } from "@tanstack/react-query";
  * 1. MOCK MODULES
  * ================
  */
-
-// Mock expo-file-system/legacy
-jest.mock("expo-file-system/legacy", () => ({
-  documentDirectory: "mockDocumentDirectory/",
-  getInfoAsync: jest.fn(),
-  createDownloadResumable: jest.fn(),
-}));
 
 // Mock expo-updates
 jest.mock("expo-updates", () => ({
@@ -59,12 +53,14 @@ describe("uploadDatabaseBackup", () => {
     mockAuthInstance = getAuth();
     mockAuthInstance.currentUser = { uid: "mockUserId" };
     mockStorage = require("@react-native-firebase/storage");
+    // Default: all files exist
+    (File as unknown as jest.Mock).mockImplementation(() => ({
+      exists: true,
+      uri: "/mock/document/directory/SQLite/userData.db",
+    }));
   });
 
   it("should upload all files successfully when user is authenticated and files exist", async () => {
-    const { getInfoAsync } = require("expo-file-system/legacy");
-    getInfoAsync.mockImplementation(() => Promise.resolve({ exists: true }));
-
     mockStorage.putFile.mockImplementation(() => {
       interface MockPutFileReturn {
         on: (
@@ -110,8 +106,10 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("should throw an error if the database file does not exist", async () => {
-    const { getInfoAsync } = require("expo-file-system/legacy");
-    getInfoAsync.mockResolvedValueOnce({ exists: false });
+    (File as unknown as jest.Mock).mockImplementationOnce(() => ({
+      exists: false,
+      uri: "/mock/document/directory/SQLite/userData.db",
+    }));
 
     await expect(
       uploadDatabaseBackup(setBackupProgressMock, setIsBackupLoadingMock),
@@ -119,9 +117,6 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("should handle upload failure and throw an error", async () => {
-    const { getInfoAsync } = require("expo-file-system/legacy");
-    getInfoAsync.mockResolvedValue({ exists: true });
-
     mockStorage.putFile.mockImplementation(() => ({
       on: (
         event: string,
@@ -204,28 +199,11 @@ describe("restoreDatabaseBackup", () => {
     mockAuthInstance = getAuth();
     mockAuthInstance.currentUser = { uid: "mockUserId" };
     mockStorage = require("@react-native-firebase/storage");
+    (File as any).downloadFileAsync = jest.fn().mockResolvedValue(undefined);
   });
 
   it("should restore all files successfully when user is authenticated", async () => {
     mockStorage.getDownloadURL.mockResolvedValue("https://example.com/dbfile");
-
-    const { createDownloadResumable } = require("expo-file-system/legacy");
-    createDownloadResumable.mockImplementation(
-      (
-        url: any,
-        path: any,
-        opts: any,
-        progressCb: (arg0: {
-          totalBytesWritten: number;
-          totalBytesExpectedToWrite: number;
-        }) => void,
-      ) => ({
-        downloadAsync: jest.fn().mockImplementation(() => {
-          progressCb({ totalBytesWritten: 50, totalBytesExpectedToWrite: 100 });
-          return Promise.resolve();
-        }),
-      }),
-    );
 
     await restoreDatabaseBackup(
       setRestoreProgressMock,
@@ -236,7 +214,7 @@ describe("restoreDatabaseBackup", () => {
     expect(setIsRestoreLoadingMock).toHaveBeenCalledWith(true);
     expect(setIsRestoreLoadingMock).toHaveBeenCalledWith(false);
     expect(setRestoreProgressMock).toHaveBeenLastCalledWith(1);
-    expect(createDownloadResumable).toHaveBeenCalledTimes(3);
+    expect((File as any).downloadFileAsync).toHaveBeenCalledTimes(3);
     expect(setAsyncStorageItem).toHaveBeenCalledWith(
       "databaseRestored",
       "true",
