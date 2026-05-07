@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ScrollView, StyleSheet, View, FlatList } from "react-native";
 import { ActivityIndicator, Button, Card, Divider } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
@@ -36,6 +36,14 @@ export default function StatsScreen() {
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>(
     settings?.timeRange || timeRanges.thirtyDays,
   );
+
+  // Sync from settings once they load (settings is undefined on first render)
+  useEffect(() => {
+    if (settings?.timeRange) {
+      setSelectedTimeRange(settings.timeRange);
+    }
+  }, [settings?.timeRange]);
+
   const {
     data: exercises,
     isLoading: isLoadingExercises,
@@ -88,6 +96,7 @@ export default function StatsScreen() {
     } finally {
       queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
       queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
     }
   };
 
