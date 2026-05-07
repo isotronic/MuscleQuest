@@ -81,7 +81,7 @@ describe("downloadAllAnimatedImages", () => {
 
     expect(fetchExercisesWithoutLocalAnimatedUri).toHaveBeenCalledTimes(1);
     expect(ref).toHaveBeenCalledTimes(mockExercises.length);
-    // getDownloadURL: 1 for exercise 1 + 3 retries for exercise 2
+    // getDownloadURL: 1 for exercise 1 + 3 attempts for exercise 2
     expect(getDownloadURLMock).toHaveBeenCalledTimes(mockExercises.length + 2);
     expect((File as any).downloadFileAsync).toHaveBeenCalledTimes(1);
     expect(insertAnimatedImageUris).toHaveBeenCalledWith([

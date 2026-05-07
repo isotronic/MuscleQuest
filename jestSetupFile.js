@@ -49,7 +49,8 @@ jest.mock("expo-file-system", () => {
   const MockFile = jest.fn().mockImplementation((...args) => {
     const uri = args
       .map((a) => (a && typeof a === "object" && a.uri ? a.uri : String(a)))
-      .join("");
+      .join("/")
+      .replace(/\/+/g, "/");
     return { exists: true, uri, delete: jest.fn(), copy: jest.fn() };
   });
   MockFile.downloadFileAsync = jest.fn().mockResolvedValue(undefined);
@@ -57,7 +58,8 @@ jest.mock("expo-file-system", () => {
   const MockDirectory = jest.fn().mockImplementation((...args) => {
     const uri = args
       .map((a) => (a && typeof a === "object" && a.uri ? a.uri : String(a)))
-      .join("");
+      .join("/")
+      .replace(/\/+/g, "/");
     return { exists: true, uri, create: jest.fn() };
   });
 
