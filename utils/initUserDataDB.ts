@@ -221,7 +221,7 @@ export async function initUserDataDB() {
   }
   if (!workout_orderExists) {
     await db.execAsync(`
-      ALTER TABLE user_workouts ADD COLUMN workout_order INTEGER;
+      ALTER TABLE user_workouts ADD COLUMN workout_order INTEGER DEFAULT 0 NOT NULL;
     `);
     // Backfill existing rows: use id as the order so existing plans keep their original sequence
     await db.execAsync(`
