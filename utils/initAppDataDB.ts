@@ -18,7 +18,8 @@ const copyDatabase = async (): Promise<void> => {
       `SELECT value FROM settings WHERE key = ? LIMIT 1`,
       ["dataVersion"],
     );
-    dataVersion = Number(versionResult?.value);
+    const parsed = Number(versionResult?.value);
+    dataVersion = isNaN(parsed) ? null : parsed;
     console.log("Data version:", dataVersion);
   } catch {
     console.log(
