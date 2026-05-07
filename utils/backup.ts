@@ -82,7 +82,7 @@ export const uploadDatabaseBackup = async (
     throw error;
   } finally {
     setIsBackupLoading(false);
-    setBackupProgress(1);
+    setBackupProgress(100);
   }
 };
 
@@ -147,14 +147,13 @@ export const restoreDatabaseBackup = async (
     }
 
     console.log("All files restored successfully.");
+    await setAsyncStorageItem("databaseRestored", "true");
+    await reloadAsync();
   } catch (error) {
     console.error("Error restoring database:", error);
     throw error;
   } finally {
     setIsRestoreLoading(false);
-    setRestoreProgress(1);
-
-    await setAsyncStorageItem("databaseRestored", "true");
-    await reloadAsync();
+    setRestoreProgress(100);
   }
 };
