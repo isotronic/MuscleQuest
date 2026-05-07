@@ -90,7 +90,7 @@ describe("uploadDatabaseBackup", () => {
 
     expect(setIsBackupLoadingMock).toHaveBeenNthCalledWith(1, true);
     expect(setIsBackupLoadingMock).toHaveBeenLastCalledWith(false);
-    expect(setBackupProgressMock).toHaveBeenLastCalledWith(1);
+    expect(setBackupProgressMock).toHaveBeenLastCalledWith(100);
     expect(mockStorage.putFile).toHaveBeenCalledTimes(3);
   });
 
@@ -118,11 +118,7 @@ describe("uploadDatabaseBackup", () => {
 
   it("should handle upload failure and throw an error", async () => {
     mockStorage.putFile.mockImplementation(() => ({
-      on: (
-        event: string,
-        onProgress: any,
-        onError: (arg0: Error) => void,
-      ) => {
+      on: (event: string, onProgress: any, onError: (arg0: Error) => void) => {
         if (event === "state_changed") {
           onError(new Error("Simulated upload failure"));
         }
@@ -213,7 +209,7 @@ describe("restoreDatabaseBackup", () => {
 
     expect(setIsRestoreLoadingMock).toHaveBeenCalledWith(true);
     expect(setIsRestoreLoadingMock).toHaveBeenCalledWith(false);
-    expect(setRestoreProgressMock).toHaveBeenLastCalledWith(1);
+    expect(setRestoreProgressMock).toHaveBeenLastCalledWith(100);
     expect((File as any).downloadFileAsync).toHaveBeenCalledTimes(3);
     expect(setAsyncStorageItem).toHaveBeenCalledWith(
       "databaseRestored",
