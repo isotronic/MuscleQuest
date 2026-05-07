@@ -1,9 +1,9 @@
+import { File, Paths } from "expo-file-system";
 import {
   getStorage,
   ref,
   getDownloadURL,
 } from "@react-native-firebase/storage";
-import * as FileSystem from "expo-file-system/legacy";
 import {
   ExerciseWithoutLocalAnimatedUriRow,
   insertAnimatedImageUris,
@@ -26,16 +26,13 @@ const downloadExerciseImage = async (
   let attempt = 0;
 
   const storageRef = ref(getStorage(), animated_url);
+  const destFile = new File(Paths.document, `exercise_${exercise_id}.webp`);
+
   while (attempt < maxRetries) {
     try {
       const downloadUrl = await getDownloadURL(storageRef);
-      const localUri = `${FileSystem.documentDirectory}exercise_${exercise_id}.webp`;
-      const downloadResumable = FileSystem.createDownloadResumable(
-        downloadUrl,
-        localUri,
-      );
-      await downloadResumable.downloadAsync();
-      return localUri;
+      await File.downloadFileAsync(downloadUrl, destFile, { idempotent: true });
+      return destFile.uri;
     } catch (error: any) {
       attempt++;
       console.error(
@@ -81,7 +78,7 @@ export const downloadAllAnimatedImages = async (
     let currentIndex = 0;
     let activeCount = 0;
 
-    await new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve) => {
       const startNext = () => {
         while (
           activeCount < concurrencyLimit &&
@@ -120,7 +117,6 @@ export const downloadAllAnimatedImages = async (
       startNext();
     });
 
-    // Flush all successful URIs to the DB in a single transaction
     await insertAnimatedImageUris(successfulUris);
 
     return { success: failedDownloads.length === 0, failedDownloads };

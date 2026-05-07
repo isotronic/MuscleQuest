@@ -19,7 +19,6 @@ export const deleteAllAnimatedImages = async (
       const { exercise_id, local_animated_uri } = exercise;
 
       try {
-        // Delete the local file
         const file = new File(local_animated_uri);
         if (file.exists) {
           file.delete();
@@ -32,11 +31,9 @@ export const deleteAllAnimatedImages = async (
         );
         failedDeletes.push(exercise_id);
       } finally {
-        // Update progress
         completed++;
         if (onProgress) {
-          const progress = completed / totalExercises;
-          onProgress(progress);
+          onProgress(completed / totalExercises);
         }
       }
     }

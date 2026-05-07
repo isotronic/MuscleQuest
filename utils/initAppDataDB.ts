@@ -1,23 +1,19 @@
-import * as FileSystem from "expo-file-system/legacy";
+import { File, Directory, Paths } from "expo-file-system";
 import { Asset } from "expo-asset";
 import { openDatabase } from "./database";
 
 const DATABASE_NAME = "appData2.db";
 
-const copyDatabase = async (): Promise<string> => {
-  const dbFolder = `${FileSystem.documentDirectory}SQLite`;
-  const dbPath = `${dbFolder}/${DATABASE_NAME}`;
-  const oldDbPath = `${dbFolder}/appData1.db`;
+const copyDatabase = async (): Promise<void> => {
+  const dbFolder = new Directory(Paths.document, "SQLite");
+  const dbFile = new File(Paths.document, "SQLite", DATABASE_NAME);
+  const oldDbFile = new File(Paths.document, "SQLite", "appData1.db");
   const userDataDB = await openDatabase("userData.db");
 
-  await FileSystem.makeDirectoryAsync(dbFolder, { intermediates: true });
-
-  const dbFile = await FileSystem.getInfoAsync(dbPath);
-  const oldDbFile = await FileSystem.getInfoAsync(oldDbPath);
+  dbFolder.create({ intermediates: true, idempotent: true });
 
   let dataVersion: number | null = null;
   try {
-    // Attempt to retrieve the data version
     const versionResult = await userDataDB.getFirstAsync<{ value: string }>(
       `SELECT value FROM settings WHERE key = ? LIMIT 1`,
       ["dataVersion"],
@@ -32,18 +28,16 @@ const copyDatabase = async (): Promise<string> => {
 
   if (!dbFile.exists || dataVersion === null || dataVersion < 1.7) {
     console.log("Copying appData2.db ...");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const asset = Asset.fromModule(require(`../assets/db/${DATABASE_NAME}`));
     await asset.downloadAsync();
-
-    await FileSystem.copyAsync({ from: asset.localUri!, to: dbPath });
+    new File(asset.localUri!).copy(dbFile);
   }
 
   if (oldDbFile.exists) {
     console.log("Removing outdated appData1.db ...");
-    await FileSystem.deleteAsync(oldDbPath);
+    oldDbFile.delete();
   }
-
-  return dbPath;
 };
 
 const initializeAppData = async () => {

@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system/legacy";
+import { File, Paths } from "expo-file-system";
 import { reloadAsync } from "expo-updates";
 import {
   getStorage,
@@ -13,16 +13,12 @@ import { setAsyncStorageItem } from "./asyncStorage";
 
 const dbName = "userData.db";
 
-const getDatabasePath = async () => {
-  return `${FileSystem.documentDirectory}SQLite/${dbName}`;
-};
-
 export const uploadDatabaseBackup = async (
   setBackupProgress: (progress: number) => void,
   setIsBackupLoading: (loading: boolean) => void,
 ) => {
   try {
-    setIsBackupLoading(true); // Start the loading state
+    setIsBackupLoading(true);
 
     const auth = getAuth();
     const userId = auth.currentUser?.uid;
@@ -30,36 +26,29 @@ export const uploadDatabaseBackup = async (
       throw new Error("User not authenticated");
     }
 
-    const dbPath = await getDatabasePath();
-    const walPath = `${dbPath}-wal`; // Path to WAL file
-    const shmPath = `${dbPath}-shm`; // Path to SHM file
+    const dbFile = new File(Paths.document, "SQLite", dbName);
+    const walFile = new File(`${dbFile.uri}-wal`);
+    const shmFile = new File(`${dbFile.uri}-shm`);
 
-    // Check if database, WAL, and SHM files exist
-    const dbFileExists = await FileSystem.getInfoAsync(dbPath);
-    const walFileExists = await FileSystem.getInfoAsync(walPath);
-    const shmFileExists = await FileSystem.getInfoAsync(shmPath);
-
-    if (!dbFileExists.exists) {
+    if (!dbFile.exists) {
       throw new Error("Database file does not exist");
     }
-    if (!walFileExists.exists) {
+    if (!walFile.exists) {
       throw new Error("WAL file does not exist");
     }
-    if (!shmFileExists.exists) {
+    if (!shmFile.exists) {
       throw new Error("SHM file does not exist");
     }
 
-    // Storage references
     const storage = getStorage();
     const dbStorageRef = ref(storage, `backups/${userId}/${dbName}`);
     const walStorageRef = ref(storage, `backups/${userId}/${dbName}-wal`);
     const shmStorageRef = ref(storage, `backups/${userId}/${dbName}-shm`);
 
-    // List of files to upload
     const files = [
-      { path: dbPath, fileRef: dbStorageRef },
-      { path: walPath, fileRef: walStorageRef },
-      { path: shmPath, fileRef: shmStorageRef },
+      { path: dbFile.uri, fileRef: dbStorageRef },
+      { path: walFile.uri, fileRef: walStorageRef },
+      { path: shmFile.uri, fileRef: shmStorageRef },
     ];
 
     let completedFiles = 0;
@@ -73,7 +62,7 @@ export const uploadDatabaseBackup = async (
           (snapshot) => {
             const fileProgress =
               (snapshot.bytesTransferred / snapshot.totalBytes) *
-              (1 / files.length); // Fractional progress for this file
+              (1 / files.length);
             const overallProgress =
               (completedFiles / files.length + fileProgress) * 100;
             setBackupProgress(overallProgress);
@@ -92,7 +81,7 @@ export const uploadDatabaseBackup = async (
     console.error("Error uploading backup:", error);
     throw error;
   } finally {
-    setIsBackupLoading(false); // End the loading state
+    setIsBackupLoading(false);
     setBackupProgress(1);
   }
 };
@@ -109,10 +98,10 @@ export const fetchLastBackupDate = async (): Promise<Date | null> => {
     const metadata = await getMetadata(storageRef);
 
     if (metadata.updated) {
-      return new Date(metadata.updated); // Parse the "updated" timestamp into a Date object
+      return new Date(metadata.updated);
     }
 
-    return null; // Return null if no updated timestamp is available
+    return null;
   } catch (error) {
     console.error("Error fetching last backup date:", error);
     return null;
@@ -122,7 +111,7 @@ export const fetchLastBackupDate = async (): Promise<Date | null> => {
 export const restoreDatabaseBackup = async (
   setRestoreProgress: (progress: number) => void,
   setIsRestoreLoading: (loading: boolean) => void,
-  queryClient: QueryClient,
+  _queryClient: QueryClient,
 ) => {
   try {
     setIsRestoreLoading(true);
@@ -133,52 +122,28 @@ export const restoreDatabaseBackup = async (
       throw new Error("User not authenticated");
     }
 
-    const sqlitePath = `${FileSystem.documentDirectory}SQLite/`;
-    const dbPath = `${sqlitePath}userData.db`;
-    const walPath = `${sqlitePath}userData.db-wal`;
-    const shmPath = `${sqlitePath}userData.db-shm`;
+    const dbFile = new File(Paths.document, "SQLite", "userData.db");
+    const walFile = new File(Paths.document, "SQLite", "userData.db-wal");
+    const shmFile = new File(Paths.document, "SQLite", "userData.db-shm");
 
-    // Define storage references
     const storage = getStorage();
     const dbStorageRef = ref(storage, `backups/${userId}/userData.db`);
     const walStorageRef = ref(storage, `backups/${userId}/userData.db-wal`);
     const shmStorageRef = ref(storage, `backups/${userId}/userData.db-shm`);
 
     const files = [
-      { fileRef: dbStorageRef, path: dbPath },
-      { fileRef: walStorageRef, path: walPath },
-      { fileRef: shmStorageRef, path: shmPath },
+      { fileRef: dbStorageRef, destFile: dbFile },
+      { fileRef: walStorageRef, destFile: walFile },
+      { fileRef: shmStorageRef, destFile: shmFile },
     ];
 
     let completedFiles = 0;
 
-    for (const { fileRef, path } of files) {
+    for (const { fileRef, destFile } of files) {
       const downloadUrl = await getDownloadURL(fileRef);
-
-      await new Promise<void>((resolve, reject) => {
-        const downloadResumable = FileSystem.createDownloadResumable(
-          downloadUrl,
-          path,
-          undefined,
-          (downloadProgress) => {
-            const fileProgress =
-              (downloadProgress.totalBytesWritten /
-                downloadProgress.totalBytesExpectedToWrite) *
-              (1 / files.length); // Fractional progress for this file
-            const overallProgress =
-              (completedFiles / files.length + fileProgress) * 100;
-            setRestoreProgress(overallProgress);
-          },
-        );
-
-        downloadResumable
-          .downloadAsync()
-          .then(() => {
-            completedFiles += 1;
-            resolve();
-          })
-          .catch(reject);
-      });
+      await File.downloadFileAsync(downloadUrl, destFile, { idempotent: true });
+      completedFiles += 1;
+      setRestoreProgress((completedFiles / files.length) * 100);
     }
 
     console.log("All files restored successfully.");
@@ -189,7 +154,6 @@ export const restoreDatabaseBackup = async (
     setIsRestoreLoading(false);
     setRestoreProgress(1);
 
-    // Mark the database as restored and reload the app
     await setAsyncStorageItem("databaseRestored", "true");
     await reloadAsync();
   }

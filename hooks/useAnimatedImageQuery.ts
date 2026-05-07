@@ -4,7 +4,7 @@ import {
   ref,
   getDownloadURL,
 } from "@react-native-firebase/storage";
-import * as FileSystem from "expo-file-system/legacy";
+import { File, Paths } from "expo-file-system";
 import { insertAnimatedImageUri } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
 
@@ -19,30 +19,22 @@ export const fetchAnimatedImageUrl = async (
   } else {
     let attempt = 0;
     let lastError;
-    const localUri = `${FileSystem.documentDirectory}exercise_${exerciseId}.webp`;
-
+    const destFile = new File(Paths.document, `exercise_${exerciseId}.webp`);
     const storageRef = ref(getStorage(), animatedUrlPath);
+
     while (attempt < maxRetries) {
       try {
         const downloadUrl = await getDownloadURL(storageRef);
+        await File.downloadFileAsync(downloadUrl, destFile, {
+          idempotent: true,
+        });
 
-        const downloadResumable = FileSystem.createDownloadResumable(
-          downloadUrl,
-          localUri,
-        );
-
-        const downloadResult = await downloadResumable.downloadAsync();
-
-        if (downloadResult && downloadResult.uri) {
-          try {
-            await insertAnimatedImageUri(exerciseId, localUri);
-            return localUri;
-          } catch (error) {
-            console.error("Error inserting animated image URI:", error);
-            throw error;
-          }
-        } else {
-          throw new Error("Failed to download image.");
+        try {
+          await insertAnimatedImageUri(exerciseId, destFile.uri);
+          return destFile.uri;
+        } catch (error) {
+          console.error("Error inserting animated image URI:", error);
+          throw error;
         }
       } catch (error: any) {
         attempt++;
@@ -53,7 +45,7 @@ export const fetchAnimatedImageUrl = async (
         lastError = error;
 
         if (attempt < maxRetries) {
-          const delayTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+          const delayTime = Math.pow(2, attempt) * 1000;
           await new Promise((resolve) => setTimeout(resolve, delayTime));
         } else {
           Bugsnag.notify(lastError);
