@@ -11,7 +11,6 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
-import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import WorkoutTimer from "@/components/WorkoutTimer";
 import Bugsnag from "@bugsnag/expo";
@@ -36,7 +35,6 @@ export default function WorkoutSessionScreen() {
     setCurrentExerciseIndex,
     setCurrentSetIndex,
     updateWeightAndReps,
-    initializeWeightAndReps,
     nextSet,
     timerRunning,
     timerExpiry,
@@ -52,16 +50,7 @@ export default function WorkoutSessionScreen() {
     error: settingsError,
   } = useSettingsQuery();
 
-  const { selectedExerciseIndex, workoutHistory } = useLocalSearchParams();
-
-  useEffect(() => {
-    if (workoutHistory) {
-      const previousWorkoutData: CompletedWorkout[] = JSON.parse(
-        workoutHistory as string,
-      );
-      initializeWeightAndReps(previousWorkoutData);
-    }
-  }, [workoutHistory, initializeWeightAndReps]);
+  const { selectedExerciseIndex } = useLocalSearchParams();
 
   useEffect(() => {
     if (workout && selectedExerciseIndex !== undefined) {

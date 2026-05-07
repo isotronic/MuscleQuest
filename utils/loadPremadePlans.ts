@@ -43,10 +43,11 @@ const insertPlans = async (db: SQLiteDatabase, plans: Plan[]) => {
         const planId = planInsertResult.lastInsertRowId;
 
         // Step 3: Insert each workout related to this plan into user_workouts
+        let workoutOrder = 0;
         for (const workout of plan.workouts) {
           const workoutInsertResult = await txn.runAsync(
-            "INSERT INTO user_workouts (plan_id, name, is_deleted) VALUES (?, ?, ?)",
-            [planId, workout.name, workout.is_deleted ?? false],
+            "INSERT INTO user_workouts (plan_id, name, is_deleted, workout_order) VALUES (?, ?, ?, ?)",
+            [planId, workout.name, workout.is_deleted ?? false, workoutOrder++],
           );
 
           const workoutId = workoutInsertResult.lastInsertRowId;

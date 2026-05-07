@@ -121,7 +121,7 @@ const fetchTrackedExercises = async (
 
 export const useTrackedExercisesQuery = (timeRange: string) => {
   return useQuery<TrackedExerciseWithSets[], Error>({
-    queryKey: ["trackedExercises"],
+    queryKey: ["trackedExercises", timeRange],
     queryFn: () => fetchTrackedExercises(timeRange),
     staleTime: 5 * 60 * 1000,
   });

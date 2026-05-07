@@ -131,7 +131,7 @@ export const fetchPlans = async (): Promise<{
       WHERE user_plans.is_deleted = FALSE
         AND (user_workouts.is_deleted = FALSE OR user_workouts.is_deleted IS NULL)
         AND (user_workout_exercises.is_deleted = FALSE OR user_workout_exercises.is_deleted IS NULL)
-      ORDER BY user_plans.id, user_workouts.id, user_workout_exercises.exercise_order ASC
+      ORDER BY user_plans.id, user_workouts.workout_order, user_workout_exercises.exercise_order ASC
     `)) as RawPlan[];
 
     return transformRawPlans(rawPlans);

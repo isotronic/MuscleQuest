@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   ScrollView,
@@ -22,7 +22,7 @@ import { router, Stack } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
-import { useCompletedWorkoutsQuery } from "@/hooks/useCompletedWorkoutsQuery";
+import { useWorkoutSessionHistoryQuery } from "@/hooks/useCompletedWorkoutsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import Bugsnag from "@bugsnag/expo";
@@ -40,15 +40,20 @@ export default function WorkoutOverviewScreen() {
     deleteExercise,
     clearPersistedStore,
     restartWorkout,
+    initializeWeightAndReps,
   } = useActiveWorkoutStore();
 
   const weightUnit = settings?.weightUnit || "kg";
-  const { data: completedWorkouts, error: completedWorkoutsError } =
-    useCompletedWorkoutsQuery(weightUnit);
-  const currentWorkoutHistory = completedWorkouts?.filter(
-    (completedWorkout) =>
-      completedWorkout.workout_id === activeWorkout?.workoutId,
+  const { data: sessionHistory } = useWorkoutSessionHistoryQuery(
+    activeWorkout?.workoutId ?? 0,
+    weightUnit,
   );
+
+  useEffect(() => {
+    if (sessionHistory) {
+      initializeWeightAndReps(sessionHistory);
+    }
+  }, [sessionHistory, initializeWeightAndReps]);
   const saveCompletedWorkoutMutation =
     useSaveCompletedWorkoutMutation(weightUnit);
 
@@ -108,32 +113,21 @@ export default function WorkoutOverviewScreen() {
     });
   };
 
-  const handleExercisePress = async (index: number) => {
-    if (isNavigating) return; // Block all taps if a navigation is in progress
+  const handleExercisePress = (index: number) => {
+    if (isNavigating) return;
 
     setLoadingExerciseIndex(index);
     setIsNavigating(true);
 
-    try {
-      const historyString = currentWorkoutHistory?.length
-        ? JSON.stringify(currentWorkoutHistory)
-        : undefined;
+    router.push({
+      pathname: "/(app)/(workout)/workout-session",
+      params: { selectedExerciseIndex: index },
+    });
 
-      await new Promise((resolve) => setTimeout(resolve, 100)); // Small delay to show loading indicator
-
-      router.push({
-        pathname: "/(app)/(workout)/workout-session",
-        params: {
-          selectedExerciseIndex: index,
-          workoutHistory: historyString,
-        },
-      });
-    } finally {
-      setTimeout(() => {
-        setLoadingExerciseIndex(null);
-        setIsNavigating(false);
-      }, 500); // Delay to prevent multiple taps
-    }
+    setTimeout(() => {
+      setLoadingExerciseIndex(null);
+      setIsNavigating(false);
+    }, 500);
   };
 
   const handleSaveWorkout = async () => {
@@ -278,17 +272,6 @@ export default function WorkoutOverviewScreen() {
     return (
       <ThemedView>
         <ThemedText>No workout available</ThemedText>
-      </ThemedView>
-    );
-  }
-
-  if (completedWorkoutsError) {
-    Bugsnag.notify(completedWorkoutsError);
-    return (
-      <ThemedView>
-        <ThemedText>
-          Error loading completed workouts: {completedWorkoutsError.message}
-        </ThemedText>
       </ThemedView>
     );
   }
