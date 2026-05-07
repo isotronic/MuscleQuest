@@ -28,9 +28,12 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
 import { Notes } from "@/components/Notes";
+import { appendExercisesToWorkout } from "@/utils/database";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function WorkoutOverviewScreen() {
   const { data: settings } = useSettingsQuery();
+  const queryClient = useQueryClient();
   const {
     workout,
     completedSets,
@@ -41,6 +44,7 @@ export default function WorkoutOverviewScreen() {
     clearPersistedStore,
     restartWorkout,
     initializeWeightAndReps,
+    appendedExerciseIndices,
   } = useActiveWorkoutStore();
 
   const weightUnit = settings?.weightUnit || "kg";
@@ -199,8 +203,45 @@ export default function WorkoutOverviewScreen() {
             {
               onSuccess: () => {
                 console.log("Workout saved successfully!");
-                clearPersistedStore();
-                router.push("/(app)/(tabs)");
+                if (appendedExerciseIndices.length > 0) {
+                  Alert.alert(
+                    "Save Changes to Plan?",
+                    `You added ${appendedExerciseIndices.length} exercise(s) during this workout. Save them to your plan for future sessions?`,
+                    [
+                      {
+                        text: "Discard",
+                        onPress: () => {
+                          clearPersistedStore();
+                          router.push("/(app)/(tabs)");
+                        },
+                      },
+                      {
+                        text: "Save to Plan",
+                        onPress: async () => {
+                          const newExercises = appendedExerciseIndices.map(
+                            (i) => workout!.exercises[i],
+                          );
+                          try {
+                            await appendExercisesToWorkout(
+                              activeWorkout!.workoutId,
+                              newExercises,
+                            );
+                            queryClient.invalidateQueries({
+                              queryKey: ["plan", activeWorkout!.planId],
+                            });
+                          } catch (e) {
+                            Bugsnag.notify(e as Error);
+                          }
+                          clearPersistedStore();
+                          router.push("/(app)/(tabs)");
+                        },
+                      },
+                    ],
+                  );
+                } else {
+                  clearPersistedStore();
+                  router.push("/(app)/(tabs)");
+                }
               },
               onError: (error) => {
                 Alert.alert(
@@ -425,6 +466,19 @@ export default function WorkoutOverviewScreen() {
             </TouchableOpacity>
           );
         })}
+        <Button
+          mode="outlined"
+          icon="plus"
+          onPress={() =>
+            router.push({
+              pathname: "/(app)/(workout)/exercises",
+              params: { mode: "append" },
+            })
+          }
+          style={styles.addExerciseButton}
+        >
+          Add Exercise
+        </Button>
       </ScrollView>
     </ThemedView>
   );
@@ -498,5 +552,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 18,
     color: "white",
+  },
+  addExerciseButton: {
+    marginTop: 8,
+    marginBottom: 24,
   },
 });

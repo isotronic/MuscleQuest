@@ -48,6 +48,8 @@ interface ActiveWorkoutStore {
   startTime: Date;
   timerRunning: boolean;
   timerExpiry: Date | null;
+  appendedExerciseIndices: number[];
+  appendExercise: (exercise: UserExercise) => void;
   setWorkout: (
     workout: Workout,
     planId: number,
@@ -92,6 +94,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       startTime: new Date(),
       timerRunning: false,
       timerExpiry: null,
+      appendedExerciseIndices: [],
 
       setWorkout: (workout, planId, workoutId, name) =>
         set({
@@ -106,6 +109,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           startTime: new Date(),
           timerRunning: false,
           timerExpiry: null,
+          appendedExerciseIndices: [],
         }),
 
       setCurrentExerciseIndex: (index: number) =>
@@ -467,6 +471,23 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         set({ previousWorkoutData: sortedWorkouts });
       },
 
+      appendExercise: (exercise) =>
+        set((state) => {
+          if (!state.workout) return state;
+          const newIndex = state.workout.exercises.length;
+          const updatedExercises = [...state.workout.exercises, exercise];
+          return {
+            workout: { ...state.workout, exercises: updatedExercises },
+            appendedExerciseIndices: [
+              ...state.appendedExerciseIndices,
+              newIndex,
+            ],
+            completedSets: { ...state.completedSets, [newIndex]: {} },
+            weightAndReps: { ...state.weightAndReps, [newIndex]: {} },
+            currentSetIndices: { ...state.currentSetIndices, [newIndex]: 0 },
+          };
+        }),
+
       replaceExercise: (index, newExercise) => {
         set((state) => {
           const { workout, currentSetIndices } = state;
@@ -595,6 +616,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           startTime: new Date(), // Reset the start time to now
           timerRunning: false,
           timerExpiry: null,
+          appendedExerciseIndices: [],
         });
       },
 
@@ -627,6 +649,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           startTime: new Date(),
           timerRunning: false,
           timerExpiry: null,
+          appendedExerciseIndices: [],
         });
         // Clear from AsyncStorage
         AsyncStorage.removeItem("active-workout-store");

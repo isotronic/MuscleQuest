@@ -1,5 +1,5 @@
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
-import { Workout } from "@/store/workoutStore";
+import { UserExercise, Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import * as SQLite from "expo-sqlite";
 
@@ -624,6 +624,31 @@ export const updateWorkoutPlan = async (
       console.error("Error updating workout plan:", error);
       Bugsnag.notify(error);
       throw error;
+    }
+  });
+};
+
+export const appendExercisesToWorkout = async (
+  workoutId: number,
+  exercises: UserExercise[],
+): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    const row: { count: number } | null = await txn.getFirstAsync(
+      `SELECT COUNT(*) as count FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+      [workoutId],
+    );
+    const baseOrder = row?.count ?? 0;
+    for (const [i, exercise] of exercises.entries()) {
+      await txn.runAsync(
+        `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order) VALUES (?, ?, ?, ?)`,
+        [
+          workoutId,
+          exercise.exercise_id,
+          JSON.stringify(exercise.sets),
+          baseOrder + i,
+        ],
+      );
     }
   });
 };
