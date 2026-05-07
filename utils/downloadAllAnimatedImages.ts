@@ -2,7 +2,7 @@ import storage from "@react-native-firebase/storage";
 import * as FileSystem from "expo-file-system/legacy";
 import {
   ExerciseWithoutLocalAnimatedUriRow,
-  insertAnimatedImageUri,
+  insertAnimatedImageUris,
 } from "@/utils/database";
 import { fetchExercisesWithoutLocalAnimatedUri } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
@@ -17,30 +17,20 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const downloadExerciseImage = async (
   exercise: ExerciseWithoutLocalAnimatedUriRow,
   maxRetries: number,
-): Promise<void> => {
+): Promise<string> => {
   const { exercise_id, animated_url } = exercise;
   let attempt = 0;
 
   while (attempt < maxRetries) {
     try {
-      // Fetch image URL from Firebase
       const downloadUrl = await storage().ref(animated_url).getDownloadURL();
-
-      // Define local file path
       const localUri = `${FileSystem.documentDirectory}exercise_${exercise_id}.webp`;
-
-      // Download the image and save locally
       const downloadResumable = FileSystem.createDownloadResumable(
         downloadUrl,
         localUri,
       );
       await downloadResumable.downloadAsync();
-
-      // Update the database with the local URI
-      await insertAnimatedImageUri(exercise_id, localUri);
-
-      // Download successful, exit the loop
-      return;
+      return localUri;
     } catch (error: any) {
       attempt++;
       console.error(
@@ -50,17 +40,17 @@ const downloadExerciseImage = async (
 
       if (attempt >= maxRetries) {
         Bugsnag.notify(error);
-        // Throw error after max retries exceeded
         throw new Error(
           `Failed to download image for exercise ${exercise_id} after ${maxRetries} attempts`,
         );
       }
 
-      // Exponential backoff delay
-      const delayTime = Math.pow(2, attempt) * 1000; // e.g., 2s, 4s, 8s
+      const delayTime = Math.pow(2, attempt) * 1000;
       await delay(delayTime);
     }
   }
+
+  throw new Error(`Failed to download image for exercise ${exercise_id}`);
 };
 
 export const downloadAllAnimatedImages = async (
@@ -71,20 +61,23 @@ export const downloadAllAnimatedImages = async (
     const exercises = await fetchExercisesWithoutLocalAnimatedUri();
 
     const totalExercises = exercises.length;
+    if (totalExercises === 0) {
+      return { success: true, failedDownloads: [] };
+    }
+
     let completed = 0;
     const concurrencyLimit = 25;
     const failedDownloads: number[] = [];
+    const successfulUris: {
+      exercise_id: number;
+      local_animated_uri: string;
+    }[] = [];
 
-    // Index to keep track of the next exercise to process
     let currentIndex = 0;
     let activeCount = 0;
 
-    return new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const startNext = () => {
-        if (totalExercises === 0) {
-          resolve({ success: true, failedDownloads: [] });
-          return;
-        }
         while (
           activeCount < concurrencyLimit &&
           currentIndex < totalExercises
@@ -92,10 +85,12 @@ export const downloadAllAnimatedImages = async (
           const exercise = exercises[currentIndex++];
           activeCount++;
 
-          // Start the download
           downloadExerciseImage(exercise, maxRetries)
-            .then(() => {
-              // Download successful
+            .then((localUri) => {
+              successfulUris.push({
+                exercise_id: exercise.exercise_id,
+                local_animated_uri: localUri,
+              });
             })
             .catch((error) => {
               console.error(error);
@@ -105,27 +100,25 @@ export const downloadAllAnimatedImages = async (
               activeCount--;
               completed++;
               if (onProgress) {
-                const progress = completed / totalExercises;
-                onProgress(progress);
+                onProgress(completed / totalExercises);
               }
 
               if (completed === totalExercises) {
-                // All downloads are complete
-                resolve({
-                  success: failedDownloads.length === 0,
-                  failedDownloads,
-                });
+                resolve();
               } else {
-                // Start the next download
                 startNext();
               }
             });
         }
       };
 
-      // Start initial downloads
       startNext();
     });
+
+    // Flush all successful URIs to the DB in a single transaction
+    await insertAnimatedImageUris(successfulUris);
+
+    return { success: failedDownloads.length === 0, failedDownloads };
   } catch (error: any) {
     Bugsnag.notify(error);
     console.error("Error downloading all images:", error);

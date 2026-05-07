@@ -382,6 +382,21 @@ export const insertAnimatedImageUri = async (
   );
 };
 
+export const insertAnimatedImageUris = async (
+  uris: { exercise_id: number; local_animated_uri: string }[],
+) => {
+  if (uris.length === 0) return;
+  const db = await openDatabase("userData.db");
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    for (const { exercise_id, local_animated_uri } of uris) {
+      await txn.runAsync(
+        `UPDATE exercises SET local_animated_uri = ? WHERE exercise_id = ?`,
+        [local_animated_uri, exercise_id],
+      );
+    }
+  });
+};
+
 export interface ExerciseWithoutLocalAnimatedUriRow {
   exercise_id: number;
   animated_url: string;
