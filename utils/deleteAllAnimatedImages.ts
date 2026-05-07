@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system";
+import { File } from "expo-file-system";
 import {
   fetchExercisesWithLocalAnimatedUri,
   clearAllLocalAnimatedUri,
@@ -20,7 +20,10 @@ export const deleteAllAnimatedImages = async (
 
       try {
         // Delete the local file
-        await FileSystem.deleteAsync(local_animated_uri, { idempotent: true });
+        const file = new File(local_animated_uri);
+        if (file.exists) {
+          file.delete();
+        }
       } catch (error: any) {
         Bugsnag.notify(error);
         console.error(
