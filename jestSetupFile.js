@@ -36,19 +36,13 @@ jest.mock("@react-native-firebase/auth", () => {
 });
 
 // Mock Firebase Storage
-jest.mock("@react-native-firebase/storage", () => {
-  const mockRef = jest.fn(() => ({
-    getMetadata: jest.fn(),
-    getDownloadURL: jest.fn(),
-    putFile: jest.fn(() => ({
-      on: jest.fn(),
-    })),
-  }));
-
-  return jest.fn(() => ({
-    ref: mockRef,
-  }));
-});
+jest.mock("@react-native-firebase/storage", () => ({
+  getStorage: jest.fn(() => ({})),
+  ref: jest.fn(() => ({})),
+  getDownloadURL: jest.fn(),
+  getMetadata: jest.fn(),
+  putFile: jest.fn(() => ({ on: jest.fn() })),
+}));
 
 // Mock Expo File System (both main and legacy entry points use identical mock)
 jest.mock("expo-file-system", () => ({
@@ -135,6 +129,7 @@ jest.mock("@/utils/database", () => ({
   clearAllLocalAnimatedUri: jest.fn(),
   fetchExercisesWithoutLocalAnimatedUri: jest.fn(),
   insertAnimatedImageUri: jest.fn(),
+  insertAnimatedImageUris: jest.fn(),
   openDatabase: jest.fn(),
 }));
 

@@ -2,7 +2,7 @@ import {
   fetchAnimatedImageUrl,
   useAnimatedImageQuery,
 } from "../useAnimatedImageQuery";
-import storage from "@react-native-firebase/storage";
+import { ref, getDownloadURL } from "@react-native-firebase/storage";
 import * as FileSystem from "expo-file-system/legacy";
 import { insertAnimatedImageUri } from "@/utils/database";
 import { useQuery } from "@tanstack/react-query";
@@ -17,13 +17,6 @@ jest.mock("expo-file-system/legacy", () => ({
 jest.mock("@/utils/database");
 jest.mock("@tanstack/react-query");
 jest.mock("@bugsnag/expo");
-
-// Create mock objects for each mocked module
-const mockStorage = {
-  ref: jest.fn().mockReturnThis(),
-  getDownloadURL: jest.fn(),
-};
-(storage as unknown as jest.Mock).mockImplementation(() => mockStorage);
 
 const mockInsertAnimatedImageUri = insertAnimatedImageUri as jest.Mock;
 
@@ -57,7 +50,6 @@ describe("useAnimatedImageQuery Tests", () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-    // No need to useRealTimers(), we are manually mocking setTimeout above.
   });
 
   describe("fetchAnimatedImageUrl", () => {
@@ -72,8 +64,9 @@ describe("useAnimatedImageQuery Tests", () => {
       const animatedUrlPath = "path/to/image";
       const localUri = `${FileSystem.documentDirectory}exercise_${exerciseId}.webp`;
 
-      // Mock success behavior
-      mockStorage.getDownloadURL.mockResolvedValueOnce(
+      const mockRef = { _url: animatedUrlPath };
+      (ref as jest.Mock).mockReturnValue(mockRef);
+      (getDownloadURL as jest.Mock).mockResolvedValueOnce(
         "https://example.com/image.webp",
       );
       (FileSystem.createDownloadResumable as jest.Mock).mockReturnValue({
@@ -81,12 +74,10 @@ describe("useAnimatedImageQuery Tests", () => {
       });
       mockInsertAnimatedImageUri.mockResolvedValueOnce(undefined);
 
-      // Call the function under test
       const result = await fetchAnimatedImageUrl(exerciseId, animatedUrlPath);
 
-      // Assertions
       expect(result).toBe(localUri);
-      expect(mockStorage.ref).toHaveBeenCalledWith(animatedUrlPath);
+      expect(ref).toHaveBeenCalledWith(expect.anything(), animatedUrlPath);
       expect(mockInsertAnimatedImageUri).toHaveBeenCalledWith(
         exerciseId,
         localUri,
@@ -98,18 +89,16 @@ describe("useAnimatedImageQuery Tests", () => {
       const animatedUrlPath = "path/to/image";
       const error = new Error("Download failed");
 
+      (ref as jest.Mock).mockReturnValue({ _url: animatedUrlPath });
       // Mock failure every time, so it retries 3 times
-      mockStorage.getDownloadURL.mockRejectedValue(error);
+      (getDownloadURL as jest.Mock).mockRejectedValue(error);
 
-      // Call the function
       const fetchPromise = fetchAnimatedImageUrl(exerciseId, animatedUrlPath);
 
-      // Since setTimeout is instant, it won't really wait (2s, 4s, 8s).
-      // We can just await the promise and it should finish quickly.
       await expect(fetchPromise).rejects.toThrow("Download failed");
 
       // Ensure it retried 3 times
-      expect(mockStorage.getDownloadURL).toHaveBeenCalledTimes(3);
+      expect(getDownloadURL).toHaveBeenCalledTimes(3);
 
       // Ensure Bugsnag was notified
       expect(Bugsnag.notify).toHaveBeenCalledWith(error);
@@ -125,10 +114,8 @@ describe("useAnimatedImageQuery Tests", () => {
       const animatedUrlPath = "path/to/image";
       const localPath = "file://local/path/to/image.webp";
 
-      // Call the hook
       useAnimatedImageQuery(exerciseId, animatedUrlPath, localPath);
 
-      // Check that useQuery was invoked with the expected arguments
       expect(mockUseQuery).toHaveBeenCalledWith({
         queryKey: ["animatedImage", animatedUrlPath],
         queryFn: expect.any(Function),

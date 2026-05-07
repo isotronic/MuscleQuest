@@ -27,23 +27,19 @@ jest.mock("expo-updates", () => ({
 const { getAuth } = require("@react-native-firebase/auth");
 let mockAuthInstance: any;
 
-// Create a mock storage reference object
-const mockStorageRef = {
-  putFile: jest.fn().mockReturnValue({
-    on: jest.fn(),
-  }),
+// mockStorageRef is returned by ref() — starts with 'mock' so it can be used in jest.mock factory
+const mockStorageRef = {};
+
+// Mock react-native-firebase/storage with modular API
+jest.mock("@react-native-firebase/storage", () => ({
+  getStorage: jest.fn(() => ({})),
+  ref: jest.fn(() => mockStorageRef),
   getMetadata: jest.fn(),
   getDownloadURL: jest.fn(),
-};
+  putFile: jest.fn(() => ({ on: jest.fn() })),
+}));
 
-// Mock react-native-firebase/storage
-jest.mock("@react-native-firebase/storage", () => {
-  return () => ({
-    ref: jest.fn(() => mockStorageRef),
-  });
-});
-
-// Mock asyncStorage utility if you're using setAsyncStorageItem
+// Mock asyncStorage utility
 jest.mock("../asyncStorage", () => ({
   setAsyncStorageItem: jest.fn(),
 }));
@@ -56,22 +52,20 @@ jest.mock("../asyncStorage", () => ({
 describe("uploadDatabaseBackup", () => {
   const setBackupProgressMock = jest.fn();
   const setIsBackupLoadingMock = jest.fn();
+  let mockStorage: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Get the mock auth instance from the centralized mock
     mockAuthInstance = getAuth();
-    // Ensure user is authenticated by default
     mockAuthInstance.currentUser = { uid: "mockUserId" };
+    mockStorage = require("@react-native-firebase/storage");
   });
 
   it("should upload all files successfully when user is authenticated and files exist", async () => {
     const { getInfoAsync } = require("expo-file-system/legacy");
-    // Mock getInfoAsync to pretend files exist
     getInfoAsync.mockImplementation(() => Promise.resolve({ exists: true }));
 
-    // Mock the putFile -> on flow to simulate upload progress & success
-    mockStorageRef.putFile.mockImplementation(() => {
+    mockStorage.putFile.mockImplementation(() => {
       interface MockPutFileReturn {
         on: (
           event: string,
@@ -87,9 +81,7 @@ describe("uploadDatabaseBackup", () => {
       const mockPutFileReturn: MockPutFileReturn = {
         on: (event, onProgress, onError, onSuccess) => {
           if (event === "state_changed") {
-            // Simulate partial progress
             onProgress({ bytesTransferred: 50, totalBytes: 100 });
-            // Then simulate successful upload
             onSuccess();
           }
         },
@@ -100,33 +92,25 @@ describe("uploadDatabaseBackup", () => {
 
     await uploadDatabaseBackup(setBackupProgressMock, setIsBackupLoadingMock);
 
-    // Expect loading states
-    expect(setIsBackupLoadingMock).toHaveBeenNthCalledWith(1, true); // set to true first
-    expect(setIsBackupLoadingMock).toHaveBeenLastCalledWith(false); // set to false last
-
-    // Because there are 3 files, check final progress was set to 1
+    expect(setIsBackupLoadingMock).toHaveBeenNthCalledWith(1, true);
+    expect(setIsBackupLoadingMock).toHaveBeenLastCalledWith(false);
     expect(setBackupProgressMock).toHaveBeenLastCalledWith(1);
-
-    // Check that files were uploaded (3 total: .db, .db-wal, .db-shm)
-    expect(mockStorageRef.putFile).toHaveBeenCalledTimes(3);
+    expect(mockStorage.putFile).toHaveBeenCalledTimes(3);
   });
 
   it("should throw an error if user is not authenticated", async () => {
-    // Simulate no user
     mockAuthInstance.currentUser = null;
 
     await expect(
       uploadDatabaseBackup(setBackupProgressMock, setIsBackupLoadingMock),
     ).rejects.toThrow("User not authenticated");
 
-    // Loading states
     expect(setIsBackupLoadingMock).toHaveBeenCalledWith(true);
     expect(setIsBackupLoadingMock).toHaveBeenCalledWith(false);
   });
 
   it("should throw an error if the database file does not exist", async () => {
     const { getInfoAsync } = require("expo-file-system/legacy");
-    // First call simulates DB file does not exist
     getInfoAsync.mockResolvedValueOnce({ exists: false });
 
     await expect(
@@ -136,37 +120,27 @@ describe("uploadDatabaseBackup", () => {
 
   it("should handle upload failure and throw an error", async () => {
     const { getInfoAsync } = require("expo-file-system/legacy");
-    // Pretend all files exist
     getInfoAsync.mockResolvedValue({ exists: true });
 
-    // Simulate an error during putFile
-    mockStorageRef.putFile.mockImplementation(() => {
-      return {
-        on: (
-          event: string,
-          onProgress: any,
-          onError: (arg0: Error) => void,
-        ) => {
-          if (event === "state_changed") {
-            // Immediately trigger error
-            onError(new Error("Simulated upload failure"));
-          }
-        },
-      };
-    });
+    mockStorage.putFile.mockImplementation(() => ({
+      on: (
+        event: string,
+        onProgress: any,
+        onError: (arg0: Error) => void,
+      ) => {
+        if (event === "state_changed") {
+          onError(new Error("Simulated upload failure"));
+        }
+      },
+    }));
 
     await expect(
       uploadDatabaseBackup(setBackupProgressMock, setIsBackupLoadingMock),
     ).rejects.toThrow("Simulated upload failure");
 
-    // Ensure loading states were toggled
     expect(setIsBackupLoadingMock).toHaveBeenCalledWith(true);
     expect(setIsBackupLoadingMock).toHaveBeenCalledWith(false);
-
-    // Because the upload failed, we should still have called putFile once
-    // (it fails on the first file),
-    // but subsequent files shouldn't have started.
-    expect(mockStorageRef.putFile).toHaveBeenCalledTimes(1);
+    expect(mockStorage.putFile).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -176,16 +150,17 @@ describe("uploadDatabaseBackup", () => {
  * =============================
  */
 describe("fetchLastBackupDate", () => {
+  let mockStorage: any;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    // Get the mock auth instance from the centralized mock
     mockAuthInstance = getAuth();
-    // Ensure user is authenticated by default
     mockAuthInstance.currentUser = { uid: "mockUserId" };
+    mockStorage = require("@react-native-firebase/storage");
   });
 
   it("should return the last backup date if metadata is available", async () => {
-    mockStorageRef.getMetadata.mockResolvedValueOnce({
+    mockStorage.getMetadata.mockResolvedValueOnce({
       updated: "2023-10-01T10:00:00.000Z",
     });
 
@@ -194,7 +169,7 @@ describe("fetchLastBackupDate", () => {
   });
 
   it("should return null if metadata has no updated timestamp", async () => {
-    mockStorageRef.getMetadata.mockResolvedValueOnce({}); // no 'updated' field
+    mockStorage.getMetadata.mockResolvedValueOnce({});
 
     const date = await fetchLastBackupDate();
     expect(date).toBeNull();
@@ -206,7 +181,6 @@ describe("fetchLastBackupDate", () => {
     const date = await fetchLastBackupDate();
     expect(date).toBeNull();
 
-    // Reset auth mock for other tests
     mockAuthInstance.currentUser = { uid: "mockUserId" };
   });
 });
@@ -219,27 +193,22 @@ describe("fetchLastBackupDate", () => {
 describe("restoreDatabaseBackup", () => {
   const setRestoreProgressMock = jest.fn();
   const setIsRestoreLoadingMock = jest.fn();
-  const queryClient = new QueryClient(); // or a mock
+  const queryClient = new QueryClient();
+  let mockStorage: any;
 
-  // We'll need these for the final calls
   const { reloadAsync } = require("expo-updates");
   const { setAsyncStorageItem } = require("../asyncStorage");
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Get the mock auth instance from the centralized mock
     mockAuthInstance = getAuth();
-    // Ensure user is authenticated by default
     mockAuthInstance.currentUser = { uid: "mockUserId" };
+    mockStorage = require("@react-native-firebase/storage");
   });
 
   it("should restore all files successfully when user is authenticated", async () => {
-    // Mock getDownloadURL to return some dummy URL
-    mockStorageRef.getDownloadURL.mockResolvedValue(
-      "https://example.com/dbfile",
-    );
+    mockStorage.getDownloadURL.mockResolvedValue("https://example.com/dbfile");
 
-    // Mock createDownloadResumable to simulate a successful download
     const { createDownloadResumable } = require("expo-file-system/legacy");
     createDownloadResumable.mockImplementation(
       (
@@ -250,18 +219,12 @@ describe("restoreDatabaseBackup", () => {
           totalBytesWritten: number;
           totalBytesExpectedToWrite: number;
         }) => void,
-      ) => {
-        return {
-          downloadAsync: jest.fn().mockImplementation(() => {
-            // Simulate partial progress
-            progressCb({
-              totalBytesWritten: 50,
-              totalBytesExpectedToWrite: 100,
-            });
-            return Promise.resolve(); // success
-          }),
-        };
-      },
+      ) => ({
+        downloadAsync: jest.fn().mockImplementation(() => {
+          progressCb({ totalBytesWritten: 50, totalBytesExpectedToWrite: 100 });
+          return Promise.resolve();
+        }),
+      }),
     );
 
     await restoreDatabaseBackup(
@@ -270,17 +233,10 @@ describe("restoreDatabaseBackup", () => {
       queryClient,
     );
 
-    // Loading states
     expect(setIsRestoreLoadingMock).toHaveBeenCalledWith(true);
     expect(setIsRestoreLoadingMock).toHaveBeenCalledWith(false);
-
-    // Check final progress
     expect(setRestoreProgressMock).toHaveBeenLastCalledWith(1);
-
-    // 3 files (db, wal, shm)
     expect(createDownloadResumable).toHaveBeenCalledTimes(3);
-
-    // Check reload and setAsyncStorageItem calls
     expect(setAsyncStorageItem).toHaveBeenCalledWith(
       "databaseRestored",
       "true",
@@ -299,13 +255,9 @@ describe("restoreDatabaseBackup", () => {
       ),
     ).rejects.toThrow("User not authenticated");
 
-    // Loading states
     expect(setIsRestoreLoadingMock).toHaveBeenCalledWith(true);
     expect(setIsRestoreLoadingMock).toHaveBeenCalledWith(false);
 
-    // Reset for other tests
     mockAuthInstance.currentUser = { uid: "mockUserId" };
   });
-
-  // Add additional test cases if needed...
 });
