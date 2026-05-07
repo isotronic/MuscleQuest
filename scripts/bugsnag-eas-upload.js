@@ -48,12 +48,23 @@ const uploadSourceMaps = async () => {
     exit(1);
   }
 
+  const versionName = appConfig?.exp?.version;
+  const versionCode = appConfig?.exp?.android?.versionCode;
+  const androidManifest = `${PROJECT_ROOT}/android/app/build/intermediates/merged_manifests/release/AndroidManifest.xml`;
+
   console.log("Uploading Android source map to Bugsnag...");
   await BugsnagCLI.Upload.ReactNative.Android(
     {
       apiKey: apiKey,
       projectRoot: PROJECT_ROOT,
       variant: "release",
+      bundle: bundle,
+      sourceMap: sourceMap,
+      ...(versionName && { versionName }),
+      ...(versionCode && { versionCode: String(versionCode) }),
+      ...(await access(androidManifest)
+        .then(() => ({ androidManifest }))
+        .catch(() => ({}))),
     },
     PROJECT_ROOT,
   )
