@@ -65,12 +65,12 @@ export const useSoundStore = create<SoundStore>((set, get) => ({
       return;
     }
 
-    try {
-      await localSound.seekTo(0);
-      localSound.play();
+    const playToCompletion = async (player: AudioPlayer) => {
+      await player.seekTo(0);
+      player.play();
 
       const finishPromise = new Promise<void>((resolve) => {
-        const subscription = localSound!.addListener(
+        const subscription = player.addListener(
           "playbackStatusUpdate",
           (status) => {
             if (status.didJustFinish) {
@@ -85,14 +85,18 @@ export const useSoundStore = create<SoundStore>((set, get) => ({
       );
       await Promise.race([finishPromise, timeoutPromise]);
 
-      localSound.remove();
+      player.remove();
       set({ sound: null, isLoaded: false });
+    };
+
+    try {
+      await playToCompletion(localSound);
     } catch (error) {
       reportError(error);
 
       const reloaded = await get().loadSound();
       if (reloaded) {
-        reloaded.play();
+        await playToCompletion(reloaded);
       }
     }
   },
