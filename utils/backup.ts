@@ -1,6 +1,12 @@
 import * as FileSystem from "expo-file-system/legacy";
 import { reloadAsync } from "expo-updates";
-import storage from "@react-native-firebase/storage";
+import {
+  getStorage,
+  ref,
+  getMetadata,
+  getDownloadURL,
+  putFile,
+} from "@react-native-firebase/storage";
 import { getAuth } from "@react-native-firebase/auth";
 import { QueryClient } from "@tanstack/react-query";
 import { setAsyncStorageItem } from "./asyncStorage";
@@ -44,21 +50,22 @@ export const uploadDatabaseBackup = async (
     }
 
     // Storage references
-    const dbStorageRef = storage().ref(`backups/${userId}/${dbName}`);
-    const walStorageRef = storage().ref(`backups/${userId}/${dbName}-wal`);
-    const shmStorageRef = storage().ref(`backups/${userId}/${dbName}-shm`);
+    const storage = getStorage();
+    const dbStorageRef = ref(storage, `backups/${userId}/${dbName}`);
+    const walStorageRef = ref(storage, `backups/${userId}/${dbName}-wal`);
+    const shmStorageRef = ref(storage, `backups/${userId}/${dbName}-shm`);
 
     // List of files to upload
     const files = [
-      { path: dbPath, ref: dbStorageRef },
-      { path: walPath, ref: walStorageRef },
-      { path: shmPath, ref: shmStorageRef },
+      { path: dbPath, fileRef: dbStorageRef },
+      { path: walPath, fileRef: walStorageRef },
+      { path: shmPath, fileRef: shmStorageRef },
     ];
 
     let completedFiles = 0;
 
-    for (const { path, ref } of files) {
-      const task = ref.putFile(path);
+    for (const { path, fileRef } of files) {
+      const task = putFile(fileRef, path);
 
       await new Promise<void>((resolve, reject) => {
         task.on(
@@ -98,8 +105,8 @@ export const fetchLastBackupDate = async (): Promise<Date | null> => {
       throw new Error("User not authenticated");
     }
 
-    const storageRef = storage().ref(`backups/${userId}/${dbName}`);
-    const metadata = await storageRef.getMetadata();
+    const storageRef = ref(getStorage(), `backups/${userId}/${dbName}`);
+    const metadata = await getMetadata(storageRef);
 
     if (metadata.updated) {
       return new Date(metadata.updated); // Parse the "updated" timestamp into a Date object
@@ -132,20 +139,21 @@ export const restoreDatabaseBackup = async (
     const shmPath = `${sqlitePath}userData.db-shm`;
 
     // Define storage references
-    const dbStorageRef = storage().ref(`backups/${userId}/userData.db`);
-    const walStorageRef = storage().ref(`backups/${userId}/userData.db-wal`);
-    const shmStorageRef = storage().ref(`backups/${userId}/userData.db-shm`);
+    const storage = getStorage();
+    const dbStorageRef = ref(storage, `backups/${userId}/userData.db`);
+    const walStorageRef = ref(storage, `backups/${userId}/userData.db-wal`);
+    const shmStorageRef = ref(storage, `backups/${userId}/userData.db-shm`);
 
     const files = [
-      { ref: dbStorageRef, path: dbPath },
-      { ref: walStorageRef, path: walPath },
-      { ref: shmStorageRef, path: shmPath },
+      { fileRef: dbStorageRef, path: dbPath },
+      { fileRef: walStorageRef, path: walPath },
+      { fileRef: shmStorageRef, path: shmPath },
     ];
 
     let completedFiles = 0;
 
-    for (const { ref, path } of files) {
-      const downloadUrl = await ref.getDownloadURL();
+    for (const { fileRef, path } of files) {
+      const downloadUrl = await getDownloadURL(fileRef);
 
       await new Promise<void>((resolve, reject) => {
         const downloadResumable = FileSystem.createDownloadResumable(

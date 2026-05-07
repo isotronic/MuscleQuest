@@ -1,5 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import storage from "@react-native-firebase/storage";
+import {
+  getStorage,
+  ref,
+  getDownloadURL,
+} from "@react-native-firebase/storage";
 import * as FileSystem from "expo-file-system/legacy";
 import { insertAnimatedImageUri } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
@@ -17,11 +21,10 @@ export const fetchAnimatedImageUrl = async (
     let lastError;
     const localUri = `${FileSystem.documentDirectory}exercise_${exerciseId}.webp`;
 
+    const storageRef = ref(getStorage(), animatedUrlPath);
     while (attempt < maxRetries) {
       try {
-        const downloadUrl = await storage()
-          .ref(animatedUrlPath)
-          .getDownloadURL();
+        const downloadUrl = await getDownloadURL(storageRef);
 
         const downloadResumable = FileSystem.createDownloadResumable(
           downloadUrl,

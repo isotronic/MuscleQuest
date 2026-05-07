@@ -1,4 +1,8 @@
-import storage from "@react-native-firebase/storage";
+import {
+  getStorage,
+  ref,
+  getDownloadURL,
+} from "@react-native-firebase/storage";
 import * as FileSystem from "expo-file-system/legacy";
 import {
   ExerciseWithoutLocalAnimatedUriRow,
@@ -21,9 +25,10 @@ const downloadExerciseImage = async (
   const { exercise_id, animated_url } = exercise;
   let attempt = 0;
 
+  const storageRef = ref(getStorage(), animated_url);
   while (attempt < maxRetries) {
     try {
-      const downloadUrl = await storage().ref(animated_url).getDownloadURL();
+      const downloadUrl = await getDownloadURL(storageRef);
       const localUri = `${FileSystem.documentDirectory}exercise_${exercise_id}.webp`;
       const downloadResumable = FileSystem.createDownloadResumable(
         downloadUrl,
