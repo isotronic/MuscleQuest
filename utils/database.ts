@@ -465,14 +465,14 @@ export const insertWorkouts = async (
   workouts: Workout[],
 ) => {
   try {
-    for (const workout of workouts) {
+    for (const [workoutOrder, workout] of workouts.entries()) {
       const { exercises, name } = workout;
-      const workoutName = name || `Workout ${workouts.indexOf(workout) + 1}`;
+      const workoutName = name || `Workout ${workoutOrder + 1}`;
 
       // Insert the workout and get the inserted workout ID
       const result = await txn.runAsync(
-        `INSERT INTO user_workouts (plan_id, name) VALUES (?, ?)`,
-        [planId, workoutName],
+        `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (?, ?, ?)`,
+        [planId, workoutName, workoutOrder],
       );
 
       const workoutId = result.lastInsertRowId;
@@ -538,24 +538,23 @@ export const updateWorkoutPlan = async (
       }
 
       // Iterate through new or updated workouts
-      for (const workout of workouts) {
+      for (const [workoutOrder, workout] of workouts.entries()) {
         let workoutId = workout.id;
-        const workoutName =
-          workout.name || `Workout ${workouts.indexOf(workout) + 1}`;
+        const workoutName = workout.name || `Workout ${workoutOrder + 1}`;
 
         if (!workoutId) {
           // Insert new workout
           const result = await txn.runAsync(
-            `INSERT INTO user_workouts (plan_id, name) VALUES (?, ?)`,
-            [id, workoutName],
+            `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (?, ?, ?)`,
+            [id, workoutName, workoutOrder],
           );
           workoutId = result.lastInsertRowId;
         } else {
-          // Update existing workout
-          await txn.runAsync(`UPDATE user_workouts SET name = ? WHERE id = ?`, [
-            workoutName,
-            workoutId,
-          ]);
+          // Update existing workout name and order
+          await txn.runAsync(
+            `UPDATE user_workouts SET name = ?, workout_order = ? WHERE id = ?`,
+            [workoutName, workoutOrder, workoutId],
+          );
         }
 
         // Fetch existing exercises for the workout

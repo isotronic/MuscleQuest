@@ -104,10 +104,7 @@ export default function HomeScreen() {
   let workoutsToDisplay: Workout[] = [];
 
   if (activePlan) {
-    // Sort workouts based on their id to maintain a consistent order
-    const sortedWorkouts = [...activePlan.workouts].sort(
-      (a, b) => (a.id ?? 0) - (b.id ?? 0),
-    );
+    const sortedWorkouts = activePlan.workouts;
 
     // Filter completed workouts for the active plan this week
     completedWorkoutsThisPlanThisWeek =

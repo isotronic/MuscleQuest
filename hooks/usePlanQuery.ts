@@ -89,7 +89,7 @@ const fetchWorkoutsForPlan = async (
       WHERE user_workouts.plan_id = ?
         AND user_workouts.is_deleted = FALSE
         AND (user_workout_exercises.is_deleted = FALSE OR user_workout_exercises.is_deleted IS NULL)
-      ORDER BY user_workouts.id, user_workout_exercises.exercise_order ASC
+      ORDER BY user_workouts.workout_order, user_workout_exercises.exercise_order ASC
       `,
       [planId],
     )) as RawWorkoutRecord[];

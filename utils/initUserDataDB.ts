@@ -162,6 +162,9 @@ export async function initUserDataDB() {
   const user_plansResult = await db.getAllAsync(`
     PRAGMA table_info(user_plans);
   `);
+  const user_workoutsResult = await db.getAllAsync(`
+    PRAGMA table_info(user_workouts);
+  `);
 
   const app_exercise_idExists = exercisesResult.some(
     (column: any) => column.name === "app_exercise_id",
@@ -180,6 +183,9 @@ export async function initUserDataDB() {
   );
   const app_plan_idExists = user_plansResult.some(
     (column: any) => column.name === "app_plan_id",
+  );
+  const workout_orderExists = user_workoutsResult.some(
+    (column: any) => column.name === "workout_order",
   );
 
   // If the column does not exist, add it
@@ -211,6 +217,15 @@ export async function initUserDataDB() {
   if (!app_plan_idExists) {
     await db.execAsync(`
       ALTER TABLE user_plans ADD COLUMN app_plan_id INTEGER DEFAULT NULL;
+    `);
+  }
+  if (!workout_orderExists) {
+    await db.execAsync(`
+      ALTER TABLE user_workouts ADD COLUMN workout_order INTEGER;
+    `);
+    // Backfill existing rows: use id as the order so existing plans keep their original sequence
+    await db.execAsync(`
+      UPDATE user_workouts SET workout_order = id WHERE workout_order IS NULL;
     `);
   }
 }
