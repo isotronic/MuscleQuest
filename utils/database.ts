@@ -1165,13 +1165,23 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
         body_part: row.body_part || "",
         target_muscle: row.target_muscle || "",
         secondary_muscles: (() => {
-          try { return row.secondary_muscles ? JSON.parse(row.secondary_muscles) : []; }
-          catch (e: any) { Bugsnag.notify(e); return []; }
+          try {
+            return row.secondary_muscles
+              ? JSON.parse(row.secondary_muscles)
+              : [];
+          } catch (e: any) {
+            Bugsnag.notify(e);
+            return [];
+          }
         })(),
         tracking_type: row.tracking_type || "",
         sets: (() => {
-          try { return row.sets ? JSON.parse(row.sets) : []; }
-          catch (e: any) { Bugsnag.notify(e); return []; }
+          try {
+            return row.sets ? JSON.parse(row.sets) : [];
+          } catch (e: any) {
+            Bugsnag.notify(e);
+            return [];
+          }
         })(),
       });
     }
@@ -1194,7 +1204,12 @@ export const createStandaloneWorkout = async (
     for (const [order, exercise] of exercises.entries()) {
       await txn.runAsync(
         `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order) VALUES (?, ?, ?, ?)`,
-        [newWorkoutId, exercise.exercise_id, JSON.stringify(exercise.sets), order],
+        [
+          newWorkoutId,
+          exercise.exercise_id,
+          JSON.stringify(exercise.sets),
+          order,
+        ],
       );
     }
   });
@@ -1208,18 +1223,25 @@ export const updateStandaloneWorkout = async (
 ): Promise<void> => {
   const db = await openDatabase("userData.db");
   await db.withExclusiveTransactionAsync(async (txn) => {
-    await txn.runAsync(`UPDATE user_workouts SET name = ? WHERE id = ?`, [name, workoutId]);
+    await txn.runAsync(`UPDATE user_workouts SET name = ? WHERE id = ?`, [
+      name,
+      workoutId,
+    ]);
 
-    const existing: { id: number; exercise_id: number }[] = await txn.getAllAsync(
-      `SELECT id, exercise_id FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+    const existing: {
+      id: number;
+      exercise_id: number;
+      exercise_order: number;
+    }[] = await txn.getAllAsync(
+      `SELECT id, exercise_id, exercise_order FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
       [workoutId],
     );
-    const existingIds = existing.map((e) => e.exercise_id);
-    const incomingIds = exercises.map((e) => e.exercise_id);
+    const existingByOrder = new Map(existing.map((e) => [e.exercise_order, e]));
+    const incomingOrders = new Set(exercises.map((_, i) => i));
 
-    // Soft-delete rows no longer in the incoming list
+    // Soft-delete rows whose position no longer exists in the incoming list
     for (const row of existing) {
-      if (!incomingIds.includes(row.exercise_id)) {
+      if (!incomingOrders.has(row.exercise_order)) {
         await txn.runAsync(
           `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
           [row.id],
@@ -1227,31 +1249,47 @@ export const updateStandaloneWorkout = async (
       }
     }
 
-    // Update existing rows or insert new ones
+    // Update by row id (keyed on position) or insert new rows
     for (const [order, exercise] of exercises.entries()) {
-      if (existingIds.includes(exercise.exercise_id)) {
+      const existingRow = existingByOrder.get(order);
+      if (existingRow) {
         await txn.runAsync(
-          `UPDATE user_workout_exercises SET sets = ?, exercise_order = ?, is_deleted = FALSE WHERE workout_id = ? AND exercise_id = ?`,
-          [JSON.stringify(exercise.sets), order, workoutId, exercise.exercise_id],
+          `UPDATE user_workout_exercises SET exercise_id = ?, sets = ?, exercise_order = ?, is_deleted = FALSE WHERE id = ?`,
+          [
+            exercise.exercise_id,
+            JSON.stringify(exercise.sets),
+            order,
+            existingRow.id,
+          ],
         );
       } else {
         await txn.runAsync(
           `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order) VALUES (?, ?, ?, ?)`,
-          [workoutId, exercise.exercise_id, JSON.stringify(exercise.sets), order],
+          [
+            workoutId,
+            exercise.exercise_id,
+            JSON.stringify(exercise.sets),
+            order,
+          ],
         );
       }
     }
   });
 };
 
-export const deleteStandaloneWorkout = async (workoutId: number): Promise<void> => {
+export const deleteStandaloneWorkout = async (
+  workoutId: number,
+): Promise<void> => {
   const db = await openDatabase("userData.db");
   await db.withExclusiveTransactionAsync(async (txn) => {
     await txn.runAsync(
       `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE workout_id = ?`,
       [workoutId],
     );
-    await txn.runAsync(`UPDATE user_workouts SET is_deleted = TRUE WHERE id = ?`, [workoutId]);
+    await txn.runAsync(
+      `UPDATE user_workouts SET is_deleted = TRUE WHERE id = ?`,
+      [workoutId],
+    );
   });
 };
 
