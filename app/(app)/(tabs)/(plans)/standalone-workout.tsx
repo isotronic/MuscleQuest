@@ -86,7 +86,7 @@ export default function StandaloneWorkoutScreen() {
     );
   };
 
-  const renderExercise = (item: UserExercise, index: number) => {
+  const renderExercise = (item: UserExercise) => {
     let base64Image: string | undefined;
     if (item.image && item.image.length > 0) {
       base64Image = `data:image/webp;base64,${byteArrayToBase64(item.image)}`;
@@ -121,7 +121,7 @@ export default function StandaloneWorkoutScreen() {
 
     return (
       <TouchableOpacity
-        key={index}
+        key={item.exercise_id}
         onPress={() =>
           router.push({
             pathname: "/(app)/exercise-details",
@@ -214,7 +214,7 @@ export default function StandaloneWorkoutScreen() {
             No exercises in this workout yet.
           </ThemedText>
         ) : (
-          workout.exercises.map((exercise, i) => renderExercise(exercise, i))
+          workout.exercises.map((exercise) => renderExercise(exercise))
         )}
       </ScrollView>
       <View style={styles.startButtonContainer}>

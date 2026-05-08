@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Pressable, Alert } from "react-native";
+import { StyleSheet, View, ScrollView, Pressable } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { startOfWeek, endOfWeek } from "date-fns";
@@ -344,31 +344,10 @@ export default function HomeScreen() {
             mode="outlined"
             textColor={Colors.dark.tint}
             onPress={() => {
-              const store = useActiveWorkoutStore.getState();
-              if (store.isWorkoutInProgress()) {
-                Alert.alert(
-                  "Workout In Progress",
-                  "You already have a workout running. Continue it or start a new one?",
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Continue Workout",
-                      onPress: () => router.push("/(app)/(workout)"),
-                    },
-                    {
-                      text: "Start New",
-                      style: "destructive",
-                      onPress: () => {
-                        store.startQuickWorkout();
-                        router.push("/(app)/(workout)");
-                      },
-                    },
-                  ],
-                );
-                return;
-              }
-              store.startQuickWorkout();
-              router.push("/(app)/(workout)");
+              if (isStartingWorkout) return;
+              confirmStartWorkout(setIsStartingWorkout, () => {
+                useActiveWorkoutStore.getState().startQuickWorkout();
+              });
             }}
             style={styles.startWorkoutButton}
             labelStyle={styles.buttonLabel}

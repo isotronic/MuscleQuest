@@ -14,6 +14,9 @@ export const confirmStartWorkout = async (
     try {
       onStart();
       router.push("/(app)/(workout)");
+    } catch (e) {
+      console.error("Failed to start workout:", e);
+      setLoading(false);
     } finally {
       setTimeout(() => setLoading(false), 500);
     }

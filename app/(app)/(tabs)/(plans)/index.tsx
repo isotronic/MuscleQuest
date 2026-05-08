@@ -16,6 +16,7 @@ export default function PlansScreen() {
   const { data: plans, isLoading, isError, error } = useAllPlansQuery();
   const {
     data: standaloneWorkouts,
+    isLoading: standaloneIsLoading,
     isError: standaloneIsError,
     error: standaloneError,
   } = useStandaloneWorkoutsQuery();
@@ -73,7 +74,9 @@ export default function PlansScreen() {
         />
         <View style={styles.workoutsSection}>
           <ThemedText style={styles.sectionTitle}>Your workouts</ThemedText>
-          {standaloneIsError ? (
+          {standaloneIsLoading ? (
+            <ActivityIndicator size="small" color={Colors.dark.text} />
+          ) : standaloneIsError ? (
             <ThemedText style={styles.emptyText}>
               Failed to load workouts
             </ThemedText>

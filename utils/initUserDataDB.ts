@@ -61,6 +61,7 @@ export async function initUserDataDB() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       plan_id INTEGER,
       name TEXT NOT NULL,
+      image_url TEXT,
       is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (plan_id) REFERENCES user_plans(id)
     );
