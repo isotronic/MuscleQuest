@@ -4,13 +4,14 @@ import {
   BottomSheetModal,
   BottomSheetBackdrop,
   BottomSheetTextInput,
+  BottomSheetView,
 } from "@gorhom/bottom-sheet";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNotes, NoteType } from "@/hooks/useNotes";
 import { Colors } from "@/constants/Colors";
 import { Button, Divider, IconButton } from "react-native-paper";
 import { ThemedText } from "./ThemedText";
-import { TouchableWithoutFeedback } from "react-native-gesture-handler";
+import { Pressable } from "react-native-gesture-handler";
 import { capitalizeWords } from "@/utils/utility";
 
 const NoteInput = BottomSheetTextInput as unknown as React.ComponentType<
@@ -96,53 +97,57 @@ export const Notes: React.FC<NotesProps> = ({
         )}
         backgroundStyle={{ backgroundColor: Colors.dark.cardBackground }}
       >
-        <View style={{ flexDirection: "row", paddingHorizontal: 16, gap: 12 }}>
-          {/* Header with close arrow */}
-          <TouchableOpacity
-            onPress={handleClose}
-            style={{ alignSelf: "flex-start" }}
+        <BottomSheetView>
+          <View
+            style={{ flexDirection: "row", paddingHorizontal: 16, gap: 12 }}
           >
-            <MaterialCommunityIcons
-              name="chevron-down"
-              size={28}
-              color={Colors.dark.text}
-            />
-          </TouchableOpacity>
-          <ThemedText
-            style={{
-              fontSize: 20,
-              color: Colors.dark.text,
-            }}
-          >
-            {capitalizeWords(noteType)} Notes
-          </ThemedText>
-        </View>
-        <Divider style={{ marginTop: 8, marginBottom: 16 }} />
-        <TouchableWithoutFeedback
-          onPress={() => inputRef.current?.focus()}
-          style={{ height: "100%" }}
-        >
-          <View style={{ paddingHorizontal: 16, gap: 12 }}>
-            <NoteInput
-              key={inputKey}
-              ref={inputRef}
-              defaultValue={currentNoteRef.current}
-              onChangeText={(text: string) => {
-                currentNoteRef.current = text;
-              }}
-              placeholder="Add a note..."
-              placeholderTextColor={Colors.dark.subText}
-              multiline
-              maxLength={500}
+            {/* Header with close arrow */}
+            <TouchableOpacity
+              onPress={handleClose}
+              style={{ alignSelf: "flex-start" }}
+            >
+              <MaterialCommunityIcons
+                name="chevron-down"
+                size={28}
+                color={Colors.dark.text}
+              />
+            </TouchableOpacity>
+            <ThemedText
               style={{
-                fontSize: 16,
+                fontSize: 20,
                 color: Colors.dark.text,
-                minHeight: 120,
-                textAlignVertical: "top",
               }}
-            />
+            >
+              {capitalizeWords(noteType)} Notes
+            </ThemedText>
           </View>
-        </TouchableWithoutFeedback>
+          <Divider style={{ marginTop: 8, marginBottom: 16 }} />
+          <Pressable
+            onPress={() => inputRef.current?.focus()}
+            style={{ flex: 1 }}
+          >
+            <View style={{ paddingHorizontal: 16, gap: 12 }}>
+              <NoteInput
+                key={inputKey}
+                ref={inputRef}
+                defaultValue={currentNoteRef.current}
+                onChangeText={(text: string) => {
+                  currentNoteRef.current = text;
+                }}
+                placeholder="Add a note..."
+                placeholderTextColor={Colors.dark.subText}
+                multiline
+                maxLength={500}
+                style={{
+                  fontSize: 16,
+                  color: Colors.dark.text,
+                  minHeight: 120,
+                  textAlignVertical: "top",
+                }}
+              />
+            </View>
+          </Pressable>
+        </BottomSheetView>
       </BottomSheetModal>
     </>
   );
