@@ -124,7 +124,7 @@ export const Notes: React.FC<NotesProps> = ({
           <Divider style={{ marginTop: 8, marginBottom: 16 }} />
           <Pressable
             onPress={() => inputRef.current?.focus()}
-            style={{ height: "100%" }}
+            style={{ flex: 1 }}
           >
             <View style={{ paddingHorizontal: 16, gap: 12 }}>
               <NoteInput
