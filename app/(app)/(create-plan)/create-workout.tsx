@@ -10,7 +10,12 @@ import {
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
-import { router, Stack, useLocalSearchParams, useNavigation } from "expo-router";
+import {
+  router,
+  Stack,
+  useLocalSearchParams,
+  useNavigation,
+} from "expo-router";
 import { Colors } from "@/constants/Colors";
 import WorkoutCard from "@/components/WorkoutCard";
 import { useQueryClient } from "@tanstack/react-query";
@@ -25,11 +30,12 @@ import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 export default function CreateWorkoutScreen() {
   const navigation = useNavigation();
   const queryClient = useQueryClient();
-  const { workoutId: workoutIdParam } = useLocalSearchParams<{ workoutId?: string }>();
+  const { workoutId: workoutIdParam } = useLocalSearchParams<{
+    workoutId?: string;
+  }>();
   const existingWorkoutId = workoutIdParam ? Number(workoutIdParam) : null;
 
   const [isSaving, setIsSaving] = useState(false);
-  const [savedFlag, setSavedFlag] = useState(false);
   const savedRef = useRef(false);
   const initializedWorkoutId = useRef<number | null | undefined>(undefined);
 
@@ -50,7 +56,9 @@ export default function CreateWorkoutScreen() {
     const sentinel = existingWorkoutId ?? null;
     if (initializedWorkoutId.current === sentinel) return;
     if (existingWorkoutId && standaloneWorkouts) {
-      const existing = standaloneWorkouts.find((w) => w.id === existingWorkoutId);
+      const existing = standaloneWorkouts.find(
+        (w) => w.id === existingWorkoutId,
+      );
       if (existing) {
         initializedWorkoutId.current = sentinel;
         setWorkouts([existing]);
@@ -63,7 +71,7 @@ export default function CreateWorkoutScreen() {
     initializedWorkoutId.current = sentinel;
     clearWorkouts();
     addWorkout({ name: "", exercises: [], id: -Date.now() });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingWorkoutId, standaloneWorkouts]);
 
   // Guard back-navigation when there are unsaved changes
@@ -71,10 +79,9 @@ export default function CreateWorkoutScreen() {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       e.preventDefault();
 
-      if (savedRef.current || savedFlag) {
+      if (savedRef.current) {
         savedRef.current = false;
         clearWorkouts();
-        setSavedFlag(false);
         return navigation.dispatch(e.data.action);
       }
 
@@ -101,7 +108,7 @@ export default function CreateWorkoutScreen() {
       );
     });
     return unsubscribe;
-  }, [navigation, workouts, clearWorkouts, savedFlag]);
+  }, [navigation, workouts, clearWorkouts]);
 
   const handleAddExercise = () => {
     router.push("/(app)/(create-plan)/exercises?index=0");
@@ -122,12 +129,14 @@ export default function CreateWorkoutScreen() {
           exercises: workout.exercises,
         });
       } else {
-        await createMutation.mutateAsync({ name, exercises: workout.exercises });
+        await createMutation.mutateAsync({
+          name,
+          exercises: workout.exercises,
+        });
       }
 
       await queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
       savedRef.current = true;
-      setSavedFlag(true);
       router.back();
     } catch (error: any) {
       console.error("Error saving workout:", error);
@@ -187,7 +196,10 @@ export default function CreateWorkoutScreen() {
               onAddExercise={handleAddExercise}
             />
           ) : (
-            <ActivityIndicator color={Colors.dark.text} style={{ marginTop: 40 }} />
+            <ActivityIndicator
+              color={Colors.dark.text}
+              style={{ marginTop: 40 }}
+            />
           )}
         </ThemedView>
       </ScrollView>
