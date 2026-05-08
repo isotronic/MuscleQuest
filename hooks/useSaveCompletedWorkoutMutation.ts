@@ -7,7 +7,6 @@ const saveCompletedWorkoutWithConversion = async (
 ) => {
   const conversionFactor = weightUnit === "lbs" ? 0.45359237 : 1;
 
-  // Deep copy to avoid mutating the original data
   const workoutDataInKg = {
     ...completedWorkoutData,
     exercises: completedWorkoutData.exercises.map((exercise) => ({

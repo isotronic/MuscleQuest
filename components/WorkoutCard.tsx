@@ -15,6 +15,7 @@ interface WorkoutCardProps {
   index: number;
   isFirst: boolean;
   isLast: boolean;
+  isStandalone?: boolean;
   onRemove: (index: number) => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -27,6 +28,7 @@ export default function WorkoutCard({
   index,
   isFirst,
   isLast,
+  isStandalone = false,
   onRemove,
   onMoveUp,
   onMoveDown,
@@ -222,30 +224,32 @@ export default function WorkoutCard({
 
   return (
     <Card style={styles.workoutCard}>
-      <View style={styles.workoutHeader}>
-        <ThemedText style={styles.workoutDay}>Day {index + 1}</ThemedText>
-        <View style={styles.workoutHeaderActions}>
-          <MaterialCommunityIcons
-            name="chevron-up"
-            onPress={isFirst ? undefined : onMoveUp}
-            size={24}
-            color={isFirst ? Colors.dark.subText : Colors.dark.text}
-          />
-          <MaterialCommunityIcons
-            name="chevron-down"
-            onPress={isLast ? undefined : onMoveDown}
-            size={24}
-            color={isLast ? Colors.dark.subText : Colors.dark.text}
-          />
-          <MaterialCommunityIcons
-            name="close"
-            onPress={() => onRemove(index)}
-            size={24}
-            color={Colors.dark.text}
-            style={styles.removeWorkoutButton}
-          />
+      {!isStandalone && (
+        <View style={styles.workoutHeader}>
+          <ThemedText style={styles.workoutDay}>Day {index + 1}</ThemedText>
+          <View style={styles.workoutHeaderActions}>
+            <MaterialCommunityIcons
+              name="chevron-up"
+              onPress={isFirst ? undefined : onMoveUp}
+              size={24}
+              color={isFirst ? Colors.dark.subText : Colors.dark.text}
+            />
+            <MaterialCommunityIcons
+              name="chevron-down"
+              onPress={isLast ? undefined : onMoveDown}
+              size={24}
+              color={isLast ? Colors.dark.subText : Colors.dark.text}
+            />
+            <MaterialCommunityIcons
+              name="close"
+              onPress={() => onRemove(index)}
+              size={24}
+              color={Colors.dark.text}
+              style={styles.removeWorkoutButton}
+            />
+          </View>
         </View>
-      </View>
+      )}
       <TextInput
         placeholder="Workout name"
         placeholderTextColor={Colors.dark.subText}

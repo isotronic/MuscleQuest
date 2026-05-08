@@ -4,7 +4,7 @@ export default {
   expo: {
     name: IS_DEV ? "Muscle Quest (Dev)" : "Muscle Quest",
     slug: "musclequest",
-    version: "0.19.2", // MM.mm.pp
+    version: "0.20.0", // MM.mm.pp
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "musclequest",
@@ -14,7 +14,7 @@ export default {
       bundleIdentifier: "com.isotronic.musclequest",
     },
     android: {
-      versionCode: 1902, // MMmmpp
+      versionCode: 2000, // MMmmpp
       googleServicesFile: "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/images/ic_launcher_foreground.png",
@@ -27,6 +27,7 @@ export default {
       blockedPermissions: [
         "com.google.android.gms.permission.AD_ID",
         "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
       ],
     },
     androidNavigationBar: {
@@ -39,7 +40,14 @@ export default {
       favicon: "./assets/images/favicon.png",
     },
     plugins: [
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          enableBackgroundPlayback: false,
+          enableBackgroundRecording: false,
+        },
+      ],
+      "./plugins/removeAudioForegroundServices",
       "@bugsnag/plugin-expo-eas-sourcemaps",
       "@react-native-google-signin/google-signin",
       "@react-native-firebase/app",

@@ -21,6 +21,7 @@ import Bugsnag from "@bugsnag/expo";
 import Onboarding from "@/components/Onboarding";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
 import { UpdateModal } from "@/components/UpdateModal";
+import { confirmStartWorkout } from "@/utils/startWorkout";
 
 export default function HomeScreen() {
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
@@ -47,9 +48,11 @@ export default function HomeScreen() {
     error: completedWorkoutsError,
   } = useCompletedWorkoutsQuery(weightUnit);
 
-  const activeWorkoutId = useActiveWorkoutStore((state) =>
-    state.getActiveWorkoutId(),
+  const activeWorkout = useActiveWorkoutStore((state) => state.activeWorkout);
+  const workoutInProgress = useActiveWorkoutStore((state) =>
+    Boolean(state.activeWorkout && state.workout),
   );
+  const showResumeCard = workoutInProgress;
 
   const today = new Date();
   const startOfWeekDate = startOfWeek(today, { weekStartsOn: 1 });
@@ -185,6 +188,47 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.cardContainer}>
+          {showResumeCard && (
+            <Pressable
+              style={[
+                styles.workoutCard,
+                {
+                  borderWidth: 1,
+                  borderColor: Colors.dark.tint,
+                  marginBottom: 32,
+                },
+              ]}
+              onPress={() => router.push("/(app)/(workout)")}
+            >
+              <View style={styles.workoutCardContent}>
+                <MaterialCommunityIcons
+                  name={
+                    activeWorkout?.planId != null ? "weight-lifter" : "arm-flex"
+                  }
+                  size={30}
+                  color={Colors.dark.tint}
+                />
+                <View style={styles.workoutTextContainer}>
+                  <ThemedText type="subtitle" style={styles.workoutCardTitle}>
+                    {activeWorkout?.name ?? "Workout"}
+                  </ThemedText>
+                  <ThemedText style={styles.exerciseInfo}>
+                    Workout in progress
+                  </ThemedText>
+                </View>
+                <View style={styles.smallButtonGroup}>
+                  <Button
+                    mode="contained"
+                    theme={{ colors: { primary: Colors.dark.tint } }}
+                    onPress={() => router.push("/(app)/(workout)")}
+                    labelStyle={styles.smallButtonLabel}
+                  >
+                    Resume
+                  </Button>
+                </View>
+              </View>
+            </Pressable>
+          )}
           {activePlan && settings ? (
             <>
               {settings.showOnboarding === "true" && <Onboarding />}
@@ -249,48 +293,29 @@ export default function HomeScreen() {
                       <View style={styles.smallButtonGroup}>
                         <Button
                           mode={
-                            index === 0 && !weeklyGoalReached
+                            !workoutInProgress &&
+                            index === 0 &&
+                            !weeklyGoalReached
                               ? "contained"
                               : "outlined"
                           }
-                          onPress={async () => {
-                            if (isStartingWorkout) return; // Prevent multiple taps
-
-                            setIsStartingWorkout(true);
-                            await new Promise((resolve) =>
-                              setTimeout(resolve, 50),
-                            ); // Small delay for UX
-
-                            try {
-                              const activeWorkoutStore =
-                                useActiveWorkoutStore.getState();
-
-                              if (
-                                activeWorkoutStore.isWorkoutInProgress() &&
-                                activeWorkoutId === workout.id
-                              ) {
-                                activeWorkoutStore.resumeWorkout();
-                              } else {
-                                activeWorkoutStore.setWorkout(
+                          onPress={() => {
+                            if (isStartingWorkout) return;
+                            confirmStartWorkout(setIsStartingWorkout, () => {
+                              useActiveWorkoutStore
+                                .getState()
+                                .setWorkout(
                                   JSON.parse(JSON.stringify(workout)),
                                   activePlan.id!,
                                   workout.id!,
                                   workout.name || `Day ${index + 1}`,
                                 );
-                              }
-
-                              router.push("/(app)/(workout)");
-                            } finally {
-                              setTimeout(
-                                () => setIsStartingWorkout(false),
-                                500,
-                              ); // Prevent flickering
-                            }
+                            });
                           }}
                           labelStyle={styles.smallButtonLabel}
                           disabled={isStartingWorkout}
                         >
-                          {activeWorkoutId === workout.id ? "Resume" : "Start"}
+                          Start
                         </Button>
                         {/* <Button
                         mode="outlined"
@@ -314,24 +339,22 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* <View style={styles.buttonContainer}>
+        <View style={styles.buttonContainer}>
           <Button
             mode="outlined"
-            textColor={Colors.dark.text}
-            icon={() => (
-              <MaterialCommunityIcons
-                name="arm-flex"
-                size={25}
-                color={Colors.dark.icon}
-              />
-            )}
-            onPress={() => console.log("Start a workout pressed")}
+            textColor={Colors.dark.tint}
+            onPress={() => {
+              if (isStartingWorkout) return;
+              confirmStartWorkout(setIsStartingWorkout, () => {
+                useActiveWorkoutStore.getState().startQuickWorkout();
+              });
+            }}
             style={styles.startWorkoutButton}
             labelStyle={styles.buttonLabel}
           >
-            Quickstart workout
+            Quick Workout
           </Button>
-        </View> */}
+        </View>
       </ScrollView>
     </ThemedView>
   );

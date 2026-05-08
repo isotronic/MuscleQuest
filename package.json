@@ -13,7 +13,7 @@
     "test": "jest",
     "test-watchAll": "jest --watchAll",
     "lint": "expo lint",
-    "eas-build-on-success": "npx bugsnag-eas-build-on-success"
+    "eas-build-on-success": "node scripts/bugsnag-eas-upload.js"
   },
   "jest": {
     "preset": "jest-expo",

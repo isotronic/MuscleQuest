@@ -44,6 +44,8 @@ export const PlanList: React.FC<PlanListProps> = ({
 
 const styles = StyleSheet.create({
   sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
     marginTop: 10,
     marginLeft: 20,
   },

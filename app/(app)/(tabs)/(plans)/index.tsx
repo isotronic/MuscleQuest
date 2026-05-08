@@ -1,22 +1,49 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
+import { useEffect } from "react";
 import { router } from "expo-router";
-import { ScrollView, StyleSheet } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { ActivityIndicator, FAB } from "react-native-paper";
 import { useAllPlansQuery, Plan } from "@/hooks/useAllPlansQuery";
 import { PlanList } from "@/components/PlanList";
+import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
+import StandaloneWorkoutListItem from "@/components/StandaloneWorkoutListItem";
+import { Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 
 export default function PlansScreen() {
   const { data: plans, isLoading, isError, error } = useAllPlansQuery();
+  const {
+    data: standaloneWorkouts,
+    isLoading: standaloneIsLoading,
+    isError: standaloneIsError,
+    error: standaloneError,
+  } = useStandaloneWorkoutsQuery();
+
+  useEffect(() => {
+    if (standaloneIsError && standaloneError) {
+      Bugsnag.notify(standaloneError as Error);
+    }
+  }, [standaloneIsError, standaloneError]);
 
   const handleCreatePlan = () => {
     router.push("/(app)/(create-plan)/create");
   };
 
+  const handleCreateWorkout = () => {
+    router.push("/(app)/(create-plan)/create-workout");
+  };
+
   const handleViewPlan = (item: Plan) => {
     router.push(`/overview?planId=${item.id}`);
+  };
+
+  const handleViewWorkout = (workout: Workout) => {
+    router.push({
+      pathname: "/(app)/(tabs)/(plans)/standalone-workout",
+      params: { workoutId: workout.id!.toString() },
+    });
   };
 
   if (isLoading) {
@@ -34,7 +61,7 @@ export default function PlansScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <PlanList
           title="Your training plans"
           data={plans?.userPlans}
@@ -45,18 +72,40 @@ export default function PlansScreen() {
           data={plans?.appPlans}
           onPressItem={handleViewPlan}
         />
-        {/* <ThemedText style={{ margin: 20, textAlign: "center" }}>
-          View all exercises
-        </ThemedText> */}
+        <View style={styles.workoutsSection}>
+          <ThemedText style={styles.sectionTitle}>Your workouts</ThemedText>
+          {standaloneIsLoading ? (
+            <ActivityIndicator size="small" color={Colors.dark.text} />
+          ) : standaloneIsError ? (
+            <ThemedText style={styles.emptyText}>
+              Failed to load workouts
+            </ThemedText>
+          ) : standaloneWorkouts && standaloneWorkouts.length > 0 ? (
+            standaloneWorkouts.map((item) => (
+              <StandaloneWorkoutListItem
+                key={item.id!.toString()}
+                workout={item}
+                onPress={() => handleViewWorkout(item)}
+              />
+            ))
+          ) : (
+            <ThemedText style={styles.emptyText}>No workouts yet</ThemedText>
+          )}
+        </View>
       </ScrollView>
+      <FAB
+        icon="dumbbell"
+        label="Create Workout"
+        theme={{ colors: { primary: Colors.dark.tint } }}
+        style={styles.fabLeft}
+        onPress={handleCreateWorkout}
+      />
       <FAB
         icon="plus"
         label="Create Plan"
         theme={{ colors: { primary: Colors.dark.tint } }}
         style={styles.fab}
-        onPress={() => {
-          handleCreatePlan();
-        }}
+        onPress={handleCreatePlan}
       />
     </ThemedView>
   );
@@ -70,6 +119,26 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  workoutsSection: {
+    paddingHorizontal: 16,
+    marginTop: 8,
+  },
+  emptyText: {
+    color: Colors.dark.subText,
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 12,
+    color: Colors.dark.text,
+  },
+  fabLeft: {
+    position: "absolute",
+    left: 20,
+    bottom: 15,
   },
   fab: {
     position: "absolute",

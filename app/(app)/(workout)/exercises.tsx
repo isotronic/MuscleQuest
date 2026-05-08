@@ -1,26 +1,30 @@
 import { useMemo, useState } from "react";
 import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
 import { View, TextInput, StyleSheet, Alert } from "react-native";
-import { ActivityIndicator } from "react-native-paper";
+import { ActivityIndicator, Button } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
-import { router } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { UserExercise } from "@/store/workoutStore";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
-  const { workout, replaceExercise } = useActiveWorkoutStore();
+  const { workout, replaceExercise, appendExercise } = useActiveWorkoutStore();
   const {
     initialTargetMuscle,
     isPreselectLoading,
     onFilterReady,
     replaceExerciseIndex,
   } = useExercisePreselectFilter();
+
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
+  const isAppendMode = mode === "append";
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
@@ -30,12 +34,31 @@ export default function ExercisesScreen() {
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
   >(initialTargetMuscle);
+  const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
 
   const {
     data: exercises,
     isLoading: exercisesLoading,
     error: exercisesError,
   } = useExercisesQuery(false, true);
+
+  const { data: settings, isLoading: settingsLoading } = useSettingsQuery();
+
+  const defaultSetNumber = settings ? parseInt(settings.defaultSets) : 3;
+  const totalSeconds = settings ? parseInt(settings.defaultRestTime) : 0;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const defaultSets = Array.from({ length: defaultSetNumber }, () => ({
+    repsMin: 8,
+    repsMax: 12,
+    restMinutes: minutes,
+    restSeconds: seconds,
+  }));
+  const defaultTimeSets = Array.from({ length: defaultSetNumber }, () => ({
+    restMinutes: minutes,
+    restSeconds: seconds,
+    time: 30,
+  }));
 
   const allExercises = [
     ...(exercises?.activePlanExercises || []),
@@ -47,27 +70,47 @@ export default function ExercisesScreen() {
     const exercise = allExercises?.find((ex) => ex.exercise_id === exerciseId);
 
     if (exercise) {
-      // Check if the selected exercise already exists in the workout
       const exerciseExists = workout?.exercises.some(
         (ex) => ex.exercise_id === exercise.exercise_id,
       );
 
       if (exerciseExists) {
-        // If exercise already exists, show an alert to the user
         Alert.alert(
           "Exercise Already Added",
           "This exercise is already in your workout. Please choose a different one.",
           [{ text: "OK" }],
         );
-        return; // Exit early if exercise exists
+        return;
       }
 
-      // If the exercise doesn't already exist, proceed with the replacement
       if (replaceExerciseIndex !== undefined) {
         replaceExercise(replaceExerciseIndex, exercise as UserExercise);
-        router.back(); // Navigate back after replacement
+        router.back();
       }
     }
+  };
+
+  const handleToggleAppendSelection = (exerciseId: number) => {
+    setSelectedExercises((prev) =>
+      prev.includes(exerciseId)
+        ? prev.filter((id) => id !== exerciseId)
+        : [...prev, exerciseId],
+    );
+  };
+
+  const handleConfirmAppend = () => {
+    selectedExercises.forEach((exerciseId) => {
+      const exercise = allExercises.find((ex) => ex.exercise_id === exerciseId);
+      if (exercise) {
+        const exerciseToAdd = {
+          ...exercise,
+          sets:
+            exercise.tracking_type === "time" ? defaultTimeSets : defaultSets,
+        } as UserExercise;
+        appendExercise(exerciseToAdd);
+      }
+    });
+    router.back();
   };
 
   const filteredExercises = useMemo(() => {
@@ -118,10 +161,28 @@ export default function ExercisesScreen() {
     );
   }
 
-  const isLoading = exercisesLoading || isPreselectLoading;
+  const isLoading =
+    exercisesLoading || isPreselectLoading || (isAppendMode && settingsLoading);
 
   return (
     <ThemedView style={styles.container}>
+      {isAppendMode && (
+        <Stack.Screen
+          options={{
+            headerRight: () => (
+              <Button
+                mode={selectedExercises.length > 0 ? "contained" : "outlined"}
+                compact
+                disabled={selectedExercises.length === 0}
+                onPress={handleConfirmAppend}
+                labelStyle={styles.addButtonLabel}
+              >
+                Add Exercises ({selectedExercises.length})
+              </Button>
+            ),
+          }}
+        />
+      )}
       {isLoading && (
         <ActivityIndicator
           size="large"
@@ -161,8 +222,10 @@ export default function ExercisesScreen() {
         />
         <ExerciseList
           exercises={filteredExercises}
-          selectedExercises={[]}
-          onSelect={handleReplaceExercise}
+          selectedExercises={isAppendMode ? selectedExercises : []}
+          onSelect={
+            isAppendMode ? handleToggleAppendSelection : handleReplaceExercise
+          }
           onPressItem={(item) => {
             router.push({
               pathname: "/(app)/exercise-details",
@@ -196,9 +259,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     color: Colors.dark.text,
-  },
-  filterIconButton: {
-    margin: 0,
   },
   addButtonLabel: {
     fontWeight: "bold",

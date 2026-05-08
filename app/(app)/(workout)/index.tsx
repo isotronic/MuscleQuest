@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  TextInput,
 } from "react-native";
 import {
   IconButton,
@@ -28,19 +29,27 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
 import { Notes } from "@/components/Notes";
+import {
+  appendExercisesToWorkout,
+  createStandaloneWorkout,
+} from "@/utils/database";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function WorkoutOverviewScreen() {
   const { data: settings } = useSettingsQuery();
+  const queryClient = useQueryClient();
   const {
     workout,
     completedSets,
     weightAndReps,
     startTime,
     activeWorkout,
+    isQuickWorkout,
     deleteExercise,
     clearPersistedStore,
     restartWorkout,
     initializeWeightAndReps,
+    appendedExerciseIndices,
   } = useActiveWorkoutStore();
 
   const weightUnit = settings?.weightUnit || "kg";
@@ -67,6 +76,8 @@ export default function WorkoutOverviewScreen() {
   const [menuVisible, setMenuVisible] = useState<{ [key: number]: boolean }>(
     {},
   );
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveWorkoutName, setSaveWorkoutName] = useState("");
 
   // Calculate if any sets are completed
   const hasCompletedSets = useMemo(() => {
@@ -154,8 +165,11 @@ export default function WorkoutOverviewScreen() {
         0,
       );
 
-      if (workout && planId && workoutId) {
-        const exercises = workout.exercises
+      const canSave =
+        workout && (isQuickWorkout || (planId != null && workoutId != null));
+
+      if (canSave) {
+        const exercises = workout!.exercises
           .map((exercise, index) => {
             const completedSetIndices = Object.entries(
               completedSets[index] || {},
@@ -164,7 +178,7 @@ export default function WorkoutOverviewScreen() {
               .map(([setIndex]) => parseInt(setIndex));
 
             if (completedSetIndices.length === 0) {
-              return null; // Exclude exercises with no completed sets
+              return null;
             }
 
             const sets = Object.entries(weightAndReps[index] || {})
@@ -178,29 +192,67 @@ export default function WorkoutOverviewScreen() {
                 time: set.time ? parseInt(set.time) : null,
               }));
 
-            return {
-              exercise_id: exercise.exercise_id,
-              sets,
-            };
+            return { exercise_id: exercise.exercise_id, sets };
           })
-          .filter((exercise) => exercise !== null); // Remove null values from exercises
+          .filter((exercise) => exercise !== null);
 
         await new Promise((resolve) => setTimeout(resolve, 50));
 
         if (exercises.length > 0) {
           saveCompletedWorkoutMutation.mutate(
             {
-              planId,
-              workoutId,
+              planId: planId ?? null,
+              workoutId: workoutId ?? null,
               duration,
               totalSetsCompleted,
               exercises,
             },
             {
               onSuccess: () => {
-                console.log("Workout saved successfully!");
-                clearPersistedStore();
-                router.push("/(app)/(tabs)");
+                if (isQuickWorkout) {
+                  setShowSaveModal(true);
+                } else if (appendedExerciseIndices.length > 0) {
+                  Alert.alert(
+                    "Save Changes to Plan?",
+                    `You added ${appendedExerciseIndices.length} exercise(s) during this workout. Save them to your plan for future sessions?`,
+                    [
+                      {
+                        text: "Discard",
+                        onPress: () => {
+                          clearPersistedStore();
+                          router.push("/(app)/(tabs)");
+                        },
+                      },
+                      {
+                        text: "Save to Plan",
+                        onPress: async () => {
+                          const newExercises = appendedExerciseIndices.map(
+                            (i) => workout!.exercises[i],
+                          );
+                          try {
+                            await appendExercisesToWorkout(
+                              activeWorkout!.workoutId!,
+                              newExercises,
+                            );
+                            await queryClient.invalidateQueries({
+                              queryKey: ["plan", activeWorkout!.planId],
+                            });
+                            await queryClient.invalidateQueries({
+                              queryKey: ["activePlan"],
+                            });
+                          } catch (e) {
+                            Bugsnag.notify(e as Error);
+                          }
+                          clearPersistedStore();
+                          router.push("/(app)/(tabs)");
+                        },
+                      },
+                    ],
+                  );
+                } else {
+                  clearPersistedStore();
+                  router.push("/(app)/(tabs)");
+                }
               },
               onError: (error) => {
                 Alert.alert(
@@ -209,7 +261,6 @@ export default function WorkoutOverviewScreen() {
                   [{ text: "OK" }],
                 );
                 Bugsnag.notify(error);
-                console.error("Error saving workout: ", error);
               },
             },
           );
@@ -336,12 +387,86 @@ export default function WorkoutOverviewScreen() {
           ),
         }}
       />
+      <Portal>
+        <Modal
+          visible={showSaveModal}
+          onDismiss={() => {
+            setShowSaveModal(false);
+            clearPersistedStore();
+            router.push("/(app)/(tabs)");
+          }}
+          contentContainerStyle={styles.saveModal}
+        >
+          <ThemedText style={styles.saveModalTitle}>
+            Save this workout?
+          </ThemedText>
+          <ThemedText style={styles.saveModalSubtitle}>
+            Give it a name to save it as a reusable workout.
+          </ThemedText>
+          <TextInput
+            style={styles.saveModalInput}
+            placeholder="Workout name"
+            placeholderTextColor={Colors.dark.subText}
+            value={saveWorkoutName}
+            onChangeText={setSaveWorkoutName}
+            autoFocus
+          />
+          <View style={styles.saveModalButtons}>
+            <Button
+              mode="outlined"
+              onPress={() => {
+                setShowSaveModal(false);
+                clearPersistedStore();
+                router.push("/(app)/(tabs)");
+              }}
+            >
+              Discard
+            </Button>
+            <Button
+              mode="contained"
+              theme={{ colors: { primary: Colors.dark.tint } }}
+              onPress={async () => {
+                const name = saveWorkoutName.trim() || "Quick Workout";
+                try {
+                  await createStandaloneWorkout(name, workout!.exercises);
+                  await queryClient.invalidateQueries({
+                    queryKey: ["standaloneWorkouts"],
+                  });
+                  setShowSaveModal(false);
+                  clearPersistedStore();
+                  router.push("/(app)/(tabs)");
+                } catch (e) {
+                  Bugsnag.notify(e as Error);
+                  Alert.alert(
+                    "Error",
+                    "Failed to save workout. Please try again.",
+                  );
+                }
+              }}
+            >
+              Save
+            </Button>
+          </View>
+        </Modal>
+      </Portal>
       <ScrollView style={styles.container}>
         <Notes
           noteType="workout"
           referenceId={workout?.id || 0}
           buttonType="button"
         />
+        {isQuickWorkout && workout.exercises.length === 0 && (
+          <View style={styles.emptyQuickWorkout}>
+            <MaterialCommunityIcons
+              name="dumbbell"
+              size={48}
+              color={Colors.dark.subText}
+            />
+            <ThemedText style={styles.emptyQuickWorkoutText}>
+              Add exercises to get started
+            </ThemedText>
+          </View>
+        )}
         {workout.exercises.map((exercise, index) => {
           const completedSetsForExercise = completedSets[index] || {};
           const completedCount = Object.values(completedSetsForExercise).filter(
@@ -425,6 +550,19 @@ export default function WorkoutOverviewScreen() {
             </TouchableOpacity>
           );
         })}
+        <Button
+          mode="outlined"
+          icon="plus"
+          onPress={() =>
+            router.push({
+              pathname: "/(app)/(workout)/exercises",
+              params: { mode: "append" },
+            })
+          }
+          style={styles.addExerciseButton}
+        >
+          Add Exercise
+        </Button>
       </ScrollView>
     </ThemedView>
   );
@@ -472,6 +610,47 @@ const styles = StyleSheet.create({
   exerciseInfo: {
     flex: 1,
   },
+  emptyQuickWorkout: {
+    alignItems: "center",
+    marginTop: 60,
+    marginBottom: 20,
+    gap: 12,
+  },
+  emptyQuickWorkoutText: {
+    fontSize: 16,
+    color: Colors.dark.subText,
+    textAlign: "center",
+  },
+  saveModal: {
+    backgroundColor: Colors.dark.cardBackground,
+    margin: 24,
+    borderRadius: 12,
+    padding: 24,
+  },
+  saveModalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  saveModalSubtitle: {
+    fontSize: 14,
+    color: Colors.dark.subText,
+    marginBottom: 16,
+  },
+  saveModalInput: {
+    borderWidth: 1,
+    borderColor: Colors.dark.subText,
+    borderRadius: 8,
+    padding: 10,
+    color: Colors.dark.text,
+    fontSize: 14,
+    marginBottom: 20,
+  },
+  saveModalButtons: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 12,
+  },
   exerciseName: {
     fontSize: 18,
     fontWeight: "bold",
@@ -498,5 +677,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 18,
     color: "white",
+  },
+  addExerciseButton: {
+    marginTop: 8,
+    marginBottom: 50,
   },
 });
