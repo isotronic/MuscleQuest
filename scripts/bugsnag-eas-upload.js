@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const { access } = require("fs").promises;
-const BugsnagCLI = require("@bugsnag/cli");
+const { reactNative } = require("@bugsnag/source-maps");
 const { exit } = require("process");
 const { getConfig } = require("@expo/config");
 
@@ -50,33 +50,25 @@ const uploadSourceMaps = async () => {
 
   const versionName = appConfig?.exp?.version;
   const versionCode = appConfig?.exp?.android?.versionCode;
-  const androidManifest = `${PROJECT_ROOT}/android/app/build/intermediates/merged_manifests/release/AndroidManifest.xml`;
 
   console.log("Uploading Android source map to Bugsnag...");
-  await BugsnagCLI.Upload.ReactNative.Android(
-    {
-      apiKey: apiKey,
+  try {
+    await reactNative.uploadOne({
+      apiKey,
+      platform: "android",
+      bundle,
+      sourceMap,
       projectRoot: PROJECT_ROOT,
-      variant: "release",
-      bundle: bundle,
-      sourceMap: sourceMap,
-      ...(versionName && { versionName }),
-      ...(versionCode && { versionCode: String(versionCode) }),
-      ...(await access(androidManifest)
-        .then(() => ({ androidManifest }))
-        .catch(() => ({}))),
-    },
-    PROJECT_ROOT,
-  )
-    .then(() => {
-      console.log(
-        `Successfully uploaded the following files:\n${[bundle, sourceMap].join("\n")}`,
-      );
-    })
-    .catch((error) => {
-      console.error(`Error uploading source map: ${error}`);
-      exit(1);
+      ...(versionName && { appVersion: versionName }),
+      ...(versionCode && { appVersionCode: String(versionCode) }),
     });
+    console.log(
+      `Successfully uploaded the following files:\n${[bundle, sourceMap].join("\n")}`,
+    );
+  } catch (error) {
+    console.error(`Error uploading source map: ${error}`);
+    exit(1);
+  }
 };
 
 uploadSourceMaps().catch((err) => {
