@@ -27,6 +27,7 @@ export default {
       blockedPermissions: [
         "com.google.android.gms.permission.AD_ID",
         "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
       ],
     },
     androidNavigationBar: {
@@ -39,7 +40,14 @@ export default {
       favicon: "./assets/images/favicon.png",
     },
     plugins: [
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          enableBackgroundPlayback: false,
+          enableBackgroundRecording: false,
+        },
+      ],
+      "./plugins/removeAudioForegroundServices",
       "@bugsnag/plugin-expo-eas-sourcemaps",
       "@react-native-google-signin/google-signin",
       "@react-native-firebase/app",
