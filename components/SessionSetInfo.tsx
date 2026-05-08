@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import {
   IconButton,
@@ -94,6 +94,40 @@ export default function SessionSetInfo({
 }: SessionSetInfoProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [timeInput, setTimeInput] = useState(time);
+
+  const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isHoldingRef = useRef(false);
+
+  const startContinuousPress = useCallback((handler: () => void) => {
+    pressTimerRef.current = setTimeout(() => {
+      isHoldingRef.current = true;
+      handler();
+      pressIntervalRef.current = setInterval(handler, 150);
+    }, 400);
+  }, []);
+
+  const stopContinuousPress = useCallback(() => {
+    if (pressTimerRef.current !== null) {
+      clearTimeout(pressTimerRef.current);
+      pressTimerRef.current = null;
+    }
+    if (pressIntervalRef.current !== null) {
+      clearInterval(pressIntervalRef.current);
+      pressIntervalRef.current = null;
+    }
+    setTimeout(() => {
+      isHoldingRef.current = false;
+    }, 50);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (pressTimerRef.current !== null) clearTimeout(pressTimerRef.current);
+      if (pressIntervalRef.current !== null)
+        clearInterval(pressIntervalRef.current);
+    };
+  }, []);
 
   // Update timeInput when time prop changes
   useEffect(() => {
@@ -266,7 +300,13 @@ export default function SessionSetInfo({
           <View style={styles.inputContainer}>
             <IconButton
               icon="minus"
-              onPress={() => handleWeightChange(-weightIncrement)}
+              onPress={() => {
+                if (!isHoldingRef.current) handleWeightChange(-weightIncrement);
+              }}
+              onPressIn={() =>
+                startContinuousPress(() => handleWeightChange(-weightIncrement))
+              }
+              onPressOut={stopContinuousPress}
               size={buttonSize}
               iconColor={Colors.dark.text}
               style={styles.iconButton}
@@ -281,7 +321,13 @@ export default function SessionSetInfo({
             />
             <IconButton
               icon="plus"
-              onPress={() => handleWeightChange(weightIncrement)}
+              onPress={() => {
+                if (!isHoldingRef.current) handleWeightChange(weightIncrement);
+              }}
+              onPressIn={() =>
+                startContinuousPress(() => handleWeightChange(weightIncrement))
+              }
+              onPressOut={stopContinuousPress}
               size={buttonSize}
               iconColor={Colors.dark.text}
               style={styles.iconButton}
@@ -297,7 +343,11 @@ export default function SessionSetInfo({
           <View style={styles.inputContainer}>
             <IconButton
               icon="minus"
-              onPress={() => handleRepsChange(-1)}
+              onPress={() => {
+                if (!isHoldingRef.current) handleRepsChange(-1);
+              }}
+              onPressIn={() => startContinuousPress(() => handleRepsChange(-1))}
+              onPressOut={stopContinuousPress}
               size={buttonSize}
               iconColor={Colors.dark.text}
               style={styles.iconButton}
@@ -312,7 +362,11 @@ export default function SessionSetInfo({
             />
             <IconButton
               icon="plus"
-              onPress={() => handleRepsChange(1)}
+              onPress={() => {
+                if (!isHoldingRef.current) handleRepsChange(1);
+              }}
+              onPressIn={() => startContinuousPress(() => handleRepsChange(1))}
+              onPressOut={stopContinuousPress}
               size={buttonSize}
               iconColor={Colors.dark.text}
               style={styles.iconButton}

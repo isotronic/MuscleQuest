@@ -35,6 +35,8 @@ export default function WorkoutSessionScreen() {
     setCurrentExerciseIndex,
     setCurrentSetIndex,
     updateWeightAndReps,
+    adjustWeight,
+    adjustReps,
     nextSet,
     timerRunning,
     timerExpiry,
@@ -244,27 +246,11 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleWeightChange = (amount: number) => {
-    const currentWeight = isNaN(parseFloat(weight)) ? 0 : parseFloat(weight);
-    const newWeight = (currentWeight + amount).toFixed(1);
-    updateWeightAndReps(
-      currentExerciseIndex,
-      currentSetIndex,
-      newWeight,
-      reps,
-      time,
-    );
+    adjustWeight(currentExerciseIndex, currentSetIndex, amount);
   };
 
   const handleRepsChange = (amount: number) => {
-    const currentReps = isNaN(parseInt(reps)) ? 0 : parseInt(reps);
-    const newReps = (currentReps + amount).toString();
-    updateWeightAndReps(
-      currentExerciseIndex,
-      currentSetIndex,
-      weight,
-      newReps,
-      time,
-    );
+    adjustReps(currentExerciseIndex, currentSetIndex, amount);
   };
 
   const handleRemoveSet = (index: number) => {
