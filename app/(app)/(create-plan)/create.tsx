@@ -32,6 +32,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 import { ImageBackground } from "expo-image";
 import SaveIcon from "@/components/SaveIcon";
+import PlanScheduleEditor from "@/components/PlanScheduleEditor";
+import { fetchPlanSchedule } from "@/utils/database";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 type ScrollViewType = typeof ScrollView;
 
@@ -53,7 +56,13 @@ export default function CreatePlanScreen() {
     removeWorkout,
     reorderWorkouts,
     changeWorkoutName,
+    planSchedule,
+    setPlanSchedule,
+    clearPlanSchedule,
+    syncScheduleOnRemoveWorkout,
   } = useWorkoutStore();
+  const { data: settings } = useSettingsQuery();
+  const weeklyGoal = Number(settings?.weeklyGoal ?? 3);
   const { planName, setPlanName, planSaved, setPlanSaved, handleSavePlan } =
     useCreatePlan();
   const { data: existingPlan } = usePlanQuery(planId ? Number(planId) : null);
@@ -68,9 +77,37 @@ export default function CreatePlanScreen() {
         setWorkouts(existingPlan.workouts);
       }
 
+      // Load existing schedule and convert workout_id → array index
+      if (existingPlan.id) {
+        fetchPlanSchedule(existingPlan.id)
+          .then((entries) => {
+            if (entries.length > 0 && existingPlan.workouts) {
+              const schedule: Record<number, number> = {};
+              for (const entry of entries) {
+                const idx = existingPlan.workouts.findIndex(
+                  (w) => w.id === entry.workout_id,
+                );
+                if (idx !== -1) {
+                  schedule[entry.day_of_week] = idx;
+                }
+              }
+              setPlanSchedule(schedule);
+            }
+          })
+          .catch(() => {
+            // Non-critical: schedule defaults to empty
+          });
+      }
+
       setDataLoaded(true);
     }
-  }, [existingPlan, setPlanName, setWorkouts, setPlanImageUrl]);
+  }, [
+    existingPlan,
+    setPlanName,
+    setWorkouts,
+    setPlanImageUrl,
+    setPlanSchedule,
+  ]);
 
   // Listen for back navigation
   useEffect(() => {
@@ -81,6 +118,7 @@ export default function CreatePlanScreen() {
         queryClient.invalidateQueries({ queryKey: ["plans"] });
         queryClient.invalidateQueries({ queryKey: ["activePlan"] });
         clearWorkouts();
+        clearPlanSchedule();
         setPlanSaved(false);
         return navigation.dispatch(e.data.action);
       }
@@ -99,6 +137,7 @@ export default function CreatePlanScreen() {
             style: "destructive",
             onPress: () => {
               clearWorkouts();
+              clearPlanSchedule();
               setPlanSaved(false);
               navigation.dispatch(e.data.action);
             },
@@ -113,6 +152,7 @@ export default function CreatePlanScreen() {
     workouts,
     planName,
     clearWorkouts,
+    clearPlanSchedule,
     planSaved,
     setPlanSaved,
     queryClient,
@@ -140,7 +180,10 @@ export default function CreatePlanScreen() {
         },
         {
           text: "Remove",
-          onPress: () => removeWorkout(index),
+          onPress: () => {
+            syncScheduleOnRemoveWorkout(index);
+            removeWorkout(index);
+          },
           style: "destructive",
         },
       ],
@@ -281,6 +324,12 @@ export default function CreatePlanScreen() {
             >
               Add Workout
             </Button>
+            <PlanScheduleEditor
+              workouts={workouts}
+              weeklyGoal={weeklyGoal}
+              schedule={planSchedule}
+              onChange={setPlanSchedule}
+            />
           </ThemedView>
         )}
       </ScrollView>

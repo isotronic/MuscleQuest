@@ -153,6 +153,17 @@ export async function initUserDataDB() {
     );
   `);
 
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS plan_schedule (
+      plan_id     INTEGER NOT NULL,
+      day_of_week INTEGER NOT NULL, -- 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
+      workout_id  INTEGER NOT NULL,
+      PRIMARY KEY (plan_id, day_of_week),
+      FOREIGN KEY (plan_id)   REFERENCES user_plans(id),
+      FOREIGN KEY (workout_id) REFERENCES user_workouts(id)
+    );
+  `);
+
   // Check if columns already exist
   const exercisesResult = await db.getAllAsync(`
     PRAGMA table_info(exercises);

@@ -1293,6 +1293,47 @@ export const deleteStandaloneWorkout = async (
   });
 };
 
+// ---------- Plan Schedule ----------
+
+export interface PlanScheduleEntry {
+  day_of_week: number; // 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
+  workout_id: number;
+}
+
+export const fetchPlanSchedule = async (
+  planId: number,
+): Promise<PlanScheduleEntry[]> => {
+  try {
+    const db = await openDatabase("userData.db");
+    return await db.getAllAsync<PlanScheduleEntry>(
+      `SELECT day_of_week, workout_id FROM plan_schedule WHERE plan_id = ? ORDER BY day_of_week`,
+      [planId],
+    );
+  } catch (error: any) {
+    console.error("Error fetching plan schedule:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const savePlanSchedule = async (
+  planId: number,
+  entries: PlanScheduleEntry[],
+): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    await txn.runAsync(`DELETE FROM plan_schedule WHERE plan_id = ?`, [planId]);
+    for (const entry of entries) {
+      await txn.runAsync(
+        `INSERT INTO plan_schedule (plan_id, day_of_week, workout_id) VALUES (?, ?, ?)`,
+        [planId, entry.day_of_week, entry.workout_id],
+      );
+    }
+  });
+};
+
+// ---------- Notes ----------
+
 export const fetchNote = async (
   referenceId: number,
   secondaryReferenceId: number | null,

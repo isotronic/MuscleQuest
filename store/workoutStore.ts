@@ -65,6 +65,11 @@ interface WorkoutStore {
     exerciseId: number,
     setIndex: number,
   ) => void;
+  // Schedule state (day_of_week 0-6 -> workout array index)
+  planSchedule: Record<number, number>;
+  setPlanSchedule: (schedule: Record<number, number>) => void;
+  clearPlanSchedule: () => void;
+  syncScheduleOnRemoveWorkout: (removedIndex: number) => void;
 }
 
 const useWorkoutStore = create<WorkoutStore>((set) => ({
@@ -268,6 +273,21 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
       return { workouts };
     });
   },
+  // Schedule actions
+  planSchedule: {},
+  setPlanSchedule: (schedule) => set({ planSchedule: schedule }),
+  clearPlanSchedule: () => set({ planSchedule: {} }),
+  syncScheduleOnRemoveWorkout: (removedIndex) =>
+    set((state) => {
+      const updated: Record<number, number> = {};
+      for (const [day, idx] of Object.entries(state.planSchedule)) {
+        const workoutIdx = Number(idx);
+        if (workoutIdx === removedIndex) continue; // drop this day
+        updated[Number(day)] =
+          workoutIdx > removedIndex ? workoutIdx - 1 : workoutIdx;
+      }
+      return { planSchedule: updated };
+    }),
 }));
 
 export { useWorkoutStore };

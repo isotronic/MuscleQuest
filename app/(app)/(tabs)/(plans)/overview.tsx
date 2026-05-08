@@ -188,7 +188,7 @@ export default function PlanOverviewScreen() {
                 params: { planId },
               });
             } finally {
-              setTimeout(() => setIsEditing(false), 500); // Prevent flickering
+              setIsEditing(false);
             }
           }}
           style={styles.paperButton}

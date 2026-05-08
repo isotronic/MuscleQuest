@@ -1,7 +1,7 @@
 import { StyleSheet, View, ScrollView, Pressable } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { startOfWeek, endOfWeek } from "date-fns";
+import { startOfWeek, endOfWeek, getDay } from "date-fns";
 import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import WeekDays from "@/components/WeekDays";
@@ -22,6 +22,8 @@ import Onboarding from "@/components/Onboarding";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
 import { UpdateModal } from "@/components/UpdateModal";
 import { confirmStartWorkout } from "@/utils/startWorkout";
+import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
+import RestDayCard from "@/components/RestDayCard";
 
 export default function HomeScreen() {
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
@@ -48,6 +50,10 @@ export default function HomeScreen() {
     error: completedWorkoutsError,
   } = useCompletedWorkoutsQuery(weightUnit);
 
+  const { data: planScheduleEntries } = usePlanScheduleQuery(
+    activePlan?.id ?? null,
+  );
+
   const activeWorkout = useActiveWorkoutStore((state) => state.activeWorkout);
   const workoutInProgress = useActiveWorkoutStore((state) =>
     Boolean(state.activeWorkout && state.workout),
@@ -55,6 +61,8 @@ export default function HomeScreen() {
   const showResumeCard = workoutInProgress;
 
   const today = new Date();
+  // day_of_week: 0=Mon … 6=Sun  (JS Sunday=0, so shift by +6 mod 7)
+  const todayDow = (getDay(today) + 6) % 7;
   const startOfWeekDate = startOfWeek(today, { weekStartsOn: 1 });
   const endOfWeekDate = endOfWeek(today, { weekStartsOn: 1 });
 
@@ -105,9 +113,37 @@ export default function HomeScreen() {
 
   let completedWorkoutsThisPlanThisWeek: CompletedWorkout[] = [];
   let workoutsToDisplay: Workout[] = [];
+  let isRestDay = false;
+  // Map of workoutId -> required completions per week
+  const perWorkoutTarget = new Map<number, number>();
 
   if (activePlan) {
     const sortedWorkouts = activePlan.workouts;
+    const weeklyGoal = Number(settings?.weeklyGoal);
+    const numWorkouts = activePlan.workouts.length;
+
+    // Build per-workout targets
+    if (planScheduleEntries && planScheduleEntries.length > 0) {
+      // Count how many days each workout is scheduled this week
+      for (const entry of planScheduleEntries) {
+        const current = perWorkoutTarget.get(entry.workout_id) ?? 0;
+        perWorkoutTarget.set(entry.workout_id, current + 1);
+      }
+      // Determine if today is a rest day
+      const todayEntry = planScheduleEntries.find(
+        (e) => e.day_of_week === todayDow,
+      );
+      isRestDay = todayEntry == null;
+    } else {
+      // No schedule: distribute weeklyGoal evenly across workouts
+      // Use floor/ceil distribution so the total exactly equals weeklyGoal
+      sortedWorkouts.forEach((workout, i) => {
+        if (workout.id == null) return;
+        const base = Math.floor(weeklyGoal / numWorkouts);
+        const extra = i < weeklyGoal % numWorkouts ? 1 : 0;
+        perWorkoutTarget.set(workout.id, Math.max(1, base + extra));
+      });
+    }
 
     // Filter completed workouts for the active plan this week
     completedWorkoutsThisPlanThisWeek =
@@ -117,7 +153,6 @@ export default function HomeScreen() {
 
     // Create a map to count how many times each workout has been completed
     const completedWorkoutCounts = new Map<number, number>();
-
     completedWorkoutsThisPlanThisWeek.forEach((completedWorkout) => {
       const count =
         completedWorkoutCounts.get(completedWorkout.workout_id) || 0;
@@ -129,16 +164,9 @@ export default function HomeScreen() {
     const completedWorkoutsList: Workout[] = [];
 
     sortedWorkouts.forEach((workout) => {
-      // Determine if the workout is completed enough times
-      const weeklyGoal = Number(settings?.weeklyGoal);
-      const workoutsToComplete =
-        activePlan.workouts.length < weeklyGoal
-          ? Math.ceil(weeklyGoal / activePlan.workouts.length)
-          : 1;
-
+      const target = perWorkoutTarget.get(workout.id!) ?? 1;
       const completedTimes = completedWorkoutCounts.get(workout.id!) || 0;
-
-      const workoutCompleted = completedTimes >= workoutsToComplete;
+      const workoutCompleted = completedTimes >= target;
 
       if (workoutCompleted) {
         completedWorkoutsList.push(workout);
@@ -146,6 +174,48 @@ export default function HomeScreen() {
         uncompletedWorkouts.push(workout);
       }
     });
+
+    // If there's a schedule, put today's (or next scheduled) workout first among uncompleted
+    if (planScheduleEntries && planScheduleEntries.length > 0) {
+      if (!isRestDay) {
+        const todayEntry = planScheduleEntries.find(
+          (e) => e.day_of_week === todayDow,
+        );
+        if (todayEntry) {
+          const todayWorkoutIdx = uncompletedWorkouts.findIndex(
+            (w) => w.id === todayEntry.workout_id,
+          );
+          if (todayWorkoutIdx > 0) {
+            const [todayWorkout] = uncompletedWorkouts.splice(
+              todayWorkoutIdx,
+              1,
+            );
+            uncompletedWorkouts.unshift(todayWorkout);
+          }
+        }
+      } else {
+        // Rest day: find the next scheduled uncompleted workout and pin it first
+        for (let i = 1; i <= 6; i++) {
+          const nextDow = (todayDow + i) % 7;
+          const nextEntry = planScheduleEntries.find(
+            (e) => e.day_of_week === nextDow,
+          );
+          if (nextEntry) {
+            const nextWorkoutIdx = uncompletedWorkouts.findIndex(
+              (w) => w.id === nextEntry.workout_id,
+            );
+            if (nextWorkoutIdx > 0) {
+              const [nextWorkout] = uncompletedWorkouts.splice(
+                nextWorkoutIdx,
+                1,
+              );
+              uncompletedWorkouts.unshift(nextWorkout);
+            }
+            break;
+          }
+        }
+      }
+    }
 
     // Combine uncompleted and completed workouts
     workoutsToDisplay = [...uncompletedWorkouts, ...completedWorkoutsList];
@@ -186,6 +256,16 @@ export default function HomeScreen() {
               : "Make sure to track your progress!"}
           </ThemedText>
         </View>
+
+        {isRestDay && planScheduleEntries && activePlan && !showResumeCard && (
+          <View style={styles.restDayContainer}>
+            <RestDayCard
+              schedule={planScheduleEntries}
+              workouts={activePlan.workouts}
+              todayDow={todayDow}
+            />
+          </View>
+        )}
 
         <View style={styles.cardContainer}>
           {showResumeCard && (
@@ -237,11 +317,7 @@ export default function HomeScreen() {
               </ThemedText>
 
               {workoutsToDisplay.map((workout, index) => {
-                const weeklyGoal = parseInt(settings.weeklyGoal);
-                const workoutsToComplete =
-                  activePlan.workouts.length < weeklyGoal
-                    ? Math.ceil(weeklyGoal / activePlan.workouts.length)
-                    : 1;
+                const target = perWorkoutTarget.get(workout.id!) ?? 1;
 
                 // Filter to check how many times this specific workout has been completed this week
                 const completedTimes =
@@ -251,7 +327,7 @@ export default function HomeScreen() {
                   ).length;
 
                 // Condition to check if the workout is completed enough times
-                const workoutCompleted = completedTimes >= workoutsToComplete;
+                const workoutCompleted = completedTimes >= target;
                 const originalIndex = activePlan.workouts.findIndex(
                   (w) => w.id === workout.id,
                 );
@@ -295,7 +371,8 @@ export default function HomeScreen() {
                           mode={
                             !workoutInProgress &&
                             index === 0 &&
-                            !weeklyGoalReached
+                            !weeklyGoalReached &&
+                            !isRestDay
                               ? "contained"
                               : "outlined"
                           }
@@ -396,6 +473,10 @@ const styles = StyleSheet.create({
   },
   welcomeContainer: {
     padding: 16,
+  },
+  restDayContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   cardContainer: {
     padding: 16,
