@@ -31,9 +31,10 @@ function reindexAfterRemoval<T>(
 }
 
 interface ActiveWorkoutStore {
-  activeWorkout: { planId: number; workoutId: number; name: string } | null;
+  activeWorkout: { planId: number | null; workoutId: number | null; name: string } | null;
   workout: Workout | null;
   originalWorkout: Workout | null;
+  isQuickWorkout: boolean;
   currentExerciseIndex: number;
   currentSetIndices: { [exerciseIndex: number]: number };
   completedSets: {
@@ -52,10 +53,11 @@ interface ActiveWorkoutStore {
   appendExercise: (exercise: UserExercise) => void;
   setWorkout: (
     workout: Workout,
-    planId: number,
-    workoutId: number,
+    planId: number | null,
+    workoutId: number | null,
     name: string,
   ) => void;
+  startQuickWorkout: () => void;
   nextSet: () => void;
   setCurrentExerciseIndex: (index: number) => void;
   setCurrentSetIndex: (exerciseIndex: number, setIndex: number) => void;
@@ -86,6 +88,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       activeWorkout: null,
       workout: null,
       originalWorkout: null,
+      isQuickWorkout: false,
       currentExerciseIndex: 0,
       currentSetIndices: {},
       completedSets: {},
@@ -101,6 +104,24 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           activeWorkout: { planId, workoutId, name },
           workout: JSON.parse(JSON.stringify(workout)),
           originalWorkout: JSON.parse(JSON.stringify(workout)),
+          isQuickWorkout: false,
+          currentExerciseIndex: 0,
+          currentSetIndices: {},
+          completedSets: {},
+          weightAndReps: {},
+          previousWorkoutData: null,
+          startTime: new Date(),
+          timerRunning: false,
+          timerExpiry: null,
+          appendedExerciseIndices: [],
+        }),
+
+      startQuickWorkout: () =>
+        set({
+          activeWorkout: { planId: null, workoutId: null, name: "Quick Workout" },
+          workout: { id: 0, name: "Quick Workout", exercises: [] },
+          originalWorkout: { id: 0, name: "Quick Workout", exercises: [] },
+          isQuickWorkout: true,
           currentExerciseIndex: 0,
           currentSetIndices: {},
           completedSets: {},
@@ -642,6 +663,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           activeWorkout: null,
           workout: null,
           originalWorkout: null,
+          isQuickWorkout: false,
           currentExerciseIndex: 0,
           currentSetIndices: {},
           completedSets: {},
@@ -670,7 +692,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         const { activeWorkout, workout } = get();
         return Boolean(activeWorkout && workout); // Returns true if there's an active workout
       },
-      getActiveWorkoutId: () => get().activeWorkout?.workoutId || null,
+      getActiveWorkoutId: () => get().activeWorkout?.workoutId ?? null,
     }),
     {
       name: "active-workout-store", // Key for AsyncStorage

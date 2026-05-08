@@ -3,6 +3,7 @@ import { FlatList, StyleSheet } from "react-native";
 import TrainingPlanCard from "@/components/TrainingPlanCard";
 import { ThemedText } from "@/components/ThemedText";
 import { Plan } from "@/hooks/useAllPlansQuery";
+import { Colors } from "@/constants/Colors";
 
 interface PlanListProps {
   title: string;
@@ -44,8 +45,11 @@ export const PlanList: React.FC<PlanListProps> = ({
 
 const styles = StyleSheet.create({
   sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
     marginTop: 10,
     marginLeft: 20,
+    color: Colors.dark.text,
   },
   scrollViewContainer: {
     justifyContent: "space-between",

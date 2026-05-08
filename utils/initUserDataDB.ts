@@ -165,6 +165,9 @@ export async function initUserDataDB() {
   const user_workoutsResult = await db.getAllAsync(`
     PRAGMA table_info(user_workouts);
   `);
+  const completed_workoutsResult = await db.getAllAsync(`
+    PRAGMA table_info(completed_workouts);
+  `);
 
   const app_exercise_idExists = exercisesResult.some(
     (column: any) => column.name === "app_exercise_id",
@@ -186,6 +189,9 @@ export async function initUserDataDB() {
   );
   const workout_orderExists = user_workoutsResult.some(
     (column: any) => column.name === "workout_order",
+  );
+  const workout_imageUrlExists = user_workoutsResult.some(
+    (column: any) => column.name === "image_url",
   );
 
   // If the column does not exist, add it
@@ -226,6 +232,11 @@ export async function initUserDataDB() {
     // Backfill existing rows: use id as the order so existing plans keep their original sequence
     await db.execAsync(`
       UPDATE user_workouts SET workout_order = id WHERE workout_order IS NULL;
+    `);
+  }
+  if (!workout_imageUrlExists) {
+    await db.execAsync(`
+      ALTER TABLE user_workouts ADD COLUMN image_url TEXT;
     `);
   }
 }
