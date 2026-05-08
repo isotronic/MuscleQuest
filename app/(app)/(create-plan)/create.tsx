@@ -12,7 +12,6 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
 import {
-  FAB,
   ActivityIndicator,
   Button,
   IconButton,
@@ -255,7 +254,7 @@ export default function CreatePlanScreen() {
             </View>
             {workouts.length === 0 ? (
               <ThemedText style={styles.emptyText}>
-                Tap + to add a workout to your plan
+                Add a workout to get started
               </ThemedText>
             ) : (
               workouts.map((workout, index) => (
@@ -273,15 +272,18 @@ export default function CreatePlanScreen() {
                 />
               ))
             )}
+            <Button
+              mode="outlined"
+              icon="plus"
+              onPress={handleAddWorkout}
+              style={styles.addWorkoutButton}
+              labelStyle={styles.buttonLabel}
+            >
+              Add Workout
+            </Button>
           </ThemedView>
         )}
       </ScrollView>
-      <FAB
-        icon="plus"
-        label="Add Workout"
-        style={styles.fab}
-        onPress={handleAddWorkout}
-      />
     </KeyboardAvoidingView>
   );
 }
@@ -334,13 +336,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.dark.text,
   },
+  addWorkoutButton: {
+    marginTop: 16,
+    borderRadius: 8,
+  },
   buttonLabel: {
     fontSize: 16,
-  },
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 15,
   },
   loadingOverlay: {
     flex: 1,
