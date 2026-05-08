@@ -1,12 +1,22 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable } from "react-native";
-import { Button, Menu } from "react-native-paper";
+import { View, StyleSheet, Text, Pressable, ScrollView } from "react-native";
+import { Button, Modal, Portal } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { Workout } from "@/store/workoutStore";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DAY_FULL_NAMES = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 interface Props {
   workouts: Workout[];
@@ -23,7 +33,7 @@ export default function PlanScheduleEditor({
   onChange,
 }: Props) {
   const disabled = workouts.length === 0;
-  const [openMenuDow, setOpenMenuDow] = useState<number | null>(null);
+  const [pickerDow, setPickerDow] = useState<number | null>(null);
 
   const handleAutoSuggest = () => {
     if (disabled || weeklyGoal <= 0) return;
@@ -66,69 +76,111 @@ export default function PlanScheduleEditor({
           const hasWorkout = workoutIdx !== undefined;
           const workoutName = hasWorkout
             ? workouts[workoutIdx]?.name || `W${workoutIdx + 1}`
-            : null;
+            : "Rest";
 
           return (
             <View key={dow} style={styles.tileWrapper}>
-              <Menu
-                visible={openMenuDow === dow}
-                onDismiss={() => setOpenMenuDow(null)}
-                anchor={
-                  <Pressable
-                    style={[
-                      styles.dayTile,
-                      hasWorkout && styles.dayTileActive,
-                      disabled && styles.dayTileDisabled,
-                    ]}
-                    onPress={() => !disabled && setOpenMenuDow(dow)}
-                    disabled={disabled}
-                  >
-                    <ThemedText
-                      style={[
-                        styles.dayLabel,
-                        hasWorkout && styles.dayLabelActive,
-                      ]}
-                    >
-                      {label}
-                    </ThemedText>
-                    <ThemedText
-                      style={[
-                        styles.workoutLabel,
-                        hasWorkout && styles.workoutLabelActive,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {hasWorkout ? workoutName : "–"}
-                    </ThemedText>
-                  </Pressable>
-                }
+              <ThemedText
+                style={[styles.dayLabel, hasWorkout && styles.dayLabelActive]}
               >
-                {workouts.map((w, idx) => (
-                  <Menu.Item
-                    key={idx}
-                    title={w.name || `Workout ${idx + 1}`}
-                    leadingIcon={workoutIdx === idx ? "check" : undefined}
-                    onPress={() => {
-                      onChange({ ...schedule, [dow]: idx });
-                      setOpenMenuDow(null);
-                    }}
-                  />
-                ))}
-                <Menu.Item
-                  title="Rest"
-                  leadingIcon={hasWorkout ? undefined : "check"}
-                  onPress={() => {
-                    const updated = { ...schedule };
-                    delete updated[dow];
-                    onChange(updated);
-                    setOpenMenuDow(null);
-                  }}
-                />
-              </Menu>
+                {label}
+              </ThemedText>
+              <Pressable
+                style={[
+                  styles.dayTile,
+                  hasWorkout && styles.dayTileActive,
+                  disabled && styles.dayTileDisabled,
+                ]}
+                onPress={() => !disabled && setPickerDow(dow)}
+                disabled={disabled}
+              >
+                <Text
+                  style={[
+                    styles.workoutLabel,
+                    hasWorkout && styles.workoutLabelActive,
+                  ]}
+                  numberOfLines={2}
+                >
+                  {workoutName}
+                </Text>
+              </Pressable>
             </View>
           );
         })}
       </View>
+
+      {/* Workout picker modal */}
+      <Portal>
+        <Modal
+          visible={pickerDow !== null}
+          onDismiss={() => setPickerDow(null)}
+          contentContainerStyle={styles.modalContent}
+        >
+          <View style={styles.modalTitleContainer}>
+            <ThemedText style={styles.modalTitle}>
+              {pickerDow !== null ? DAY_FULL_NAMES[pickerDow] : ""}
+            </ThemedText>
+          </View>
+          <ScrollView>
+            {workouts.map((w, idx) => {
+              const isSelected =
+                pickerDow !== null && schedule[pickerDow] === idx;
+              return (
+                <Pressable
+                  key={idx}
+                  style={[
+                    styles.pickerItem,
+                    isSelected && styles.pickerItemSelected,
+                  ]}
+                  onPress={() => {
+                    if (pickerDow !== null) {
+                      onChange({ ...schedule, [pickerDow]: idx });
+                    }
+                    setPickerDow(null);
+                  }}
+                >
+                  <Text style={styles.pickerItemText}>
+                    {w.name || `Workout ${idx + 1}`}
+                  </Text>
+                  {isSelected && (
+                    <MaterialCommunityIcons
+                      name="check"
+                      size={18}
+                      color={Colors.dark.text}
+                    />
+                  )}
+                </Pressable>
+              );
+            })}
+            <Pressable
+              style={[
+                styles.pickerItem,
+                styles.pickerItemLast,
+                pickerDow !== null &&
+                  schedule[pickerDow] === undefined &&
+                  styles.pickerItemSelected,
+              ]}
+              onPress={() => {
+                if (pickerDow !== null) {
+                  const updated = { ...schedule };
+                  delete updated[pickerDow];
+                  onChange(updated);
+                }
+                setPickerDow(null);
+              }}
+            >
+              <Text style={styles.pickerItemText}>Rest</Text>
+              {pickerDow !== null && schedule[pickerDow] === undefined && (
+                <MaterialCommunityIcons
+                  name="check"
+                  size={18}
+                  color={Colors.dark.text}
+                />
+              )}
+            </Pressable>
+          </ScrollView>
+        </Modal>
+      </Portal>
 
       <Button
         mode="outlined"
@@ -171,16 +223,18 @@ const styles = StyleSheet.create({
   },
   tileWrapper: {
     flex: 1,
+    alignItems: "center",
   },
   dayTile: {
-    borderRadius: 8,
+    width: "100%",
+    borderRadius: 15,
     borderWidth: 1,
     borderColor: Colors.dark.icon,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 1,
-    minHeight: 56,
+    paddingVertical: 2,
+    paddingHorizontal: 2,
+    minHeight: 45,
   },
   dayTileActive: {
     borderColor: Colors.dark.tint,
@@ -201,10 +255,49 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: Colors.dark.icon,
     textAlign: "center",
-    marginTop: 3,
   },
   workoutLabelActive: {
     color: Colors.dark.text,
+  },
+  modalContent: {
+    backgroundColor: Colors.dark.cardBackground,
+    borderRadius: 12,
+    width: "75%",
+    maxHeight: "60%",
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: Colors.dark.cardBackground,
+    alignSelf: "center",
+  },
+  modalTitleContainer: {
+    backgroundColor: Colors.dark.screenBackground,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.dark.subText,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  pickerItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.dark.subText,
+  },
+  pickerItemLast: {
+    borderBottomWidth: 0,
+  },
+  pickerItemSelected: {
+    backgroundColor: Colors.dark.cardBackground2,
+  },
+  pickerItemText: {
+    color: Colors.dark.text,
+    fontSize: 15,
   },
   autoButton: {
     marginTop: 14,

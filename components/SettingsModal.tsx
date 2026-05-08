@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, RadioButton, Menu, PaperProvider } from "react-native-paper";
+import { Button, RadioButton, PaperProvider } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
@@ -9,11 +9,12 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   Modal,
-  TouchableOpacity,
+  Text,
 } from "react-native";
 import { paperTheme } from "@/utils/paperTheme";
 import { formatTimeInput } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
+import { Dropdown } from "react-native-element-dropdown";
 
 // Utility function to format setting keys
 const formatSettingKey = (key: string) => {
@@ -49,7 +50,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   settingType,
   options,
 }) => {
-  const [menuVisible, setMenuVisible] = useState(false);
   const [timeInput, setTimeInput] = useState("");
 
   // Initialize timeInput when modal opens
@@ -151,29 +151,48 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 )}
 
                 {settingType === "dropdown" && options && (
-                  <View style={styles.menu}>
-                    <TouchableOpacity
-                      onPress={() => setMenuVisible(true)}
+                  <View style={styles.dropdownWrapper}>
+                    <Dropdown
+                      data={options.map((o) => ({ label: o, value: o }))}
+                      labelField="label"
+                      valueField="value"
+                      value={inputValue as string}
+                      onChange={(item) => onChangeValue(item.value)}
                       style={styles.dropdown}
-                    >
-                      <ThemedText>{inputValue}</ThemedText>
-                    </TouchableOpacity>
-                    <Menu
-                      visible={menuVisible}
-                      onDismiss={() => setMenuVisible(false)}
-                      anchor={<ThemedText>Select Value</ThemedText>}
-                    >
-                      {options.map((option) => (
-                        <Menu.Item
-                          key={option}
-                          onPress={() => {
-                            onChangeValue(option);
-                            setMenuVisible(false);
-                          }}
-                          title={option}
-                        />
-                      ))}
-                    </Menu>
+                      containerStyle={styles.dropdownListContainer}
+                      placeholderStyle={styles.dropdownText}
+                      selectedTextStyle={styles.dropdownText}
+                      flatListProps={{
+                        ItemSeparatorComponent: () => (
+                          <View
+                            style={{
+                              height: 1,
+                              backgroundColor: Colors.dark.subText,
+                            }}
+                          />
+                        ),
+                      }}
+                      renderItem={(item) => (
+                        <View
+                          style={[
+                            styles.dropdownItem,
+                            item.value === inputValue &&
+                              styles.dropdownItemSelected,
+                          ]}
+                        >
+                          <Text style={styles.dropdownItemText}>
+                            {item.label}
+                          </Text>
+                          {item.value === inputValue && (
+                            <MaterialCommunityIcons
+                              name="check"
+                              size={18}
+                              color={Colors.dark.text}
+                            />
+                          )}
+                        </View>
+                      )}
+                    />
                   </View>
                 )}
 
@@ -294,14 +313,41 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
+  dropdownWrapper: {
+    width: "100%",
+    marginBottom: 16,
+  },
   dropdown: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    backgroundColor: Colors.dark.cardBackground,
     borderColor: Colors.dark.text,
     borderWidth: 1,
     borderRadius: 8,
+    height: 50,
+    paddingHorizontal: 12,
   },
-  menu: {
-    marginBottom: 16,
+  dropdownListContainer: {
+    backgroundColor: Colors.dark.cardBackground,
+    borderColor: Colors.dark.cardBackground,
+    borderRadius: 8,
+    padding: 4,
+    elevation: 4,
+  },
+  dropdownText: {
+    color: Colors.dark.text,
+    fontSize: 16,
+  },
+  dropdownItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  dropdownItemSelected: {
+    backgroundColor: Colors.dark.cardBackground,
+  },
+  dropdownItemText: {
+    color: Colors.dark.text,
+    fontSize: 16,
   },
 });

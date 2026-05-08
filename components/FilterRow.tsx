@@ -197,7 +197,14 @@ function FilterRow({
           value={selectedEquipment}
           onChange={(item) => setSelectedEquipment(item.value)}
           renderItem={renderListItem}
-          flatListProps={{ nestedScrollEnabled: true }}
+          flatListProps={{
+            nestedScrollEnabled: true,
+            ItemSeparatorComponent: () => (
+              <View
+                style={{ height: 1, backgroundColor: Colors.dark.subText }}
+              />
+            ),
+          }}
         />
       </View>
       <View style={styles.dropdownContainer}>
@@ -214,7 +221,14 @@ function FilterRow({
           value={selectedBodyPart}
           onChange={(item) => setSelectedBodyPart(item.value)}
           renderItem={renderListItem}
-          flatListProps={{ nestedScrollEnabled: true }}
+          flatListProps={{
+            nestedScrollEnabled: true,
+            ItemSeparatorComponent: () => (
+              <View
+                style={{ height: 1, backgroundColor: Colors.dark.subText }}
+              />
+            ),
+          }}
         />
       </View>
       <View style={styles.dropdownContainerNoMargin}>
@@ -231,7 +245,14 @@ function FilterRow({
           value={selectedTargetMuscle}
           onChange={(item) => setSelectedTargetMuscle(item.value)}
           renderItem={renderListItem}
-          flatListProps={{ nestedScrollEnabled: true }}
+          flatListProps={{
+            nestedScrollEnabled: true,
+            ItemSeparatorComponent: () => (
+              <View
+                style={{ height: 1, backgroundColor: Colors.dark.subText }}
+              />
+            ),
+          }}
         />
       </View>
     </View>
@@ -256,16 +277,13 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     backgroundColor: Colors.dark.screenBackground,
-    borderColor: Colors.dark.text,
-    borderWidth: 1,
     borderRadius: 8,
     height: 50,
     paddingHorizontal: 8,
   },
   dropdownListContainer: {
     backgroundColor: Colors.dark.cardBackground,
-    borderColor: Colors.dark.text,
-    borderWidth: 1,
+    borderColor: Colors.dark.cardBackground,
     borderRadius: 8,
     padding: 4,
     elevation: 4,
@@ -289,8 +307,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 8,
     paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.dark.subText,
   },
   selectedItemContainer: {
     backgroundColor: Colors.dark.cardBackground,
