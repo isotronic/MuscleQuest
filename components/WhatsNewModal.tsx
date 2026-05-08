@@ -21,7 +21,15 @@ export const WhatsNewModal = () => {
   useEffect(() => {
     if (!settings) return;
 
-    const seenVersion = parseInt(settings.lastSeenVersion ?? "0", 10);
+    if (settings.lastSeenVersion == null) {
+      setSetting({
+        key: "lastSeenVersion",
+        value: CURRENT_WHATS_NEW_VERSION.toString(),
+      });
+      return;
+    }
+
+    const seenVersion = parseInt(settings.lastSeenVersion, 10);
     const unseenEntries = WHATS_NEW_ENTRIES.filter(
       (entry) => entry.version > seenVersion,
     );
@@ -29,7 +37,7 @@ export const WhatsNewModal = () => {
       setEntriesToShow(unseenEntries.sort((a, b) => a.version - b.version));
       setVisible(true);
     }
-  }, [settings]);
+  }, [setSetting, settings]);
 
   const handleNext = () => {
     if (currentIndex + 1 < entriesToShow.length) {
