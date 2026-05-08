@@ -49,6 +49,13 @@ const onboardingData = [
     route: "/(app)/(tabs)/(plans)" as Href,
   },
   {
+    title: "Single & Quick Workouts",
+    description:
+      "Train without a plan! Create standalone workouts that live outside your training plans — perfect for mobility sessions, warm-ups, or anything ad hoc.\n\nOr jump straight into a Quick Workout from the home screen, add exercises on the fly, and optionally save it as a standalone workout when you're done.",
+    buttonLabel: "Go to Workouts",
+    route: "/(app)/(tabs)/(plans)" as Href,
+  },
+  {
     title: "Hide / Show Onboarding",
     description:
       "You can hide this onboarding screen at any time from the settings page in the appearance section. If you ever want to revisit the onboarding, you can enable it again from the same settings page.",

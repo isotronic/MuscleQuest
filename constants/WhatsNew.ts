@@ -52,6 +52,16 @@ You can now reorder workouts directly in the plan creation screen and workout ca
 Fixed the rest timer notification not triggering correctly, exercise name wrapping in the workout session, the workout completion circle width, notes not updating correctly while typing, and workout details sometimes opening in the wrong tab. Workouts now load faster thanks to internal performance improvements.
 `,
   },
+  {
+    version: 2607,
+    message: `
+🏋️ New: Single Workouts & Quick Workouts!
+
+Create standalone workouts outside of your training plans — perfect for flexible training sessions, mobility work, or anything ad hoc. Find them on the Plans screen.
+
+Or start a Quick Workout from the home screen, add exercises on the fly, and optionally save it as a standalone workout when you're done.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
