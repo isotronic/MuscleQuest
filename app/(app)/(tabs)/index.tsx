@@ -21,6 +21,7 @@ import Bugsnag from "@bugsnag/expo";
 import Onboarding from "@/components/Onboarding";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
 import { UpdateModal } from "@/components/UpdateModal";
+import { confirmStartWorkout } from "@/utils/startWorkout";
 
 export default function HomeScreen() {
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
@@ -298,67 +299,18 @@ export default function HomeScreen() {
                               ? "contained"
                               : "outlined"
                           }
-                          onPress={async () => {
+                          onPress={() => {
                             if (isStartingWorkout) return;
-                            const activeWorkoutStore =
-                              useActiveWorkoutStore.getState();
-                            if (activeWorkoutStore.isWorkoutInProgress()) {
-                              Alert.alert(
-                                "Workout In Progress",
-                                "You already have a workout running. Continue it or start a new one?",
-                                [
-                                  { text: "Cancel", style: "cancel" },
-                                  {
-                                    text: "Continue Workout",
-                                    onPress: () =>
-                                      router.push("/(app)/(workout)"),
-                                  },
-                                  {
-                                    text: "Start New",
-                                    style: "destructive",
-                                    onPress: async () => {
-                                      setIsStartingWorkout(true);
-                                      await new Promise((resolve) =>
-                                        setTimeout(resolve, 50),
-                                      );
-                                      try {
-                                        activeWorkoutStore.setWorkout(
-                                          JSON.parse(JSON.stringify(workout)),
-                                          activePlan.id!,
-                                          workout.id!,
-                                          workout.name || `Day ${index + 1}`,
-                                        );
-                                        router.push("/(app)/(workout)");
-                                      } finally {
-                                        setTimeout(
-                                          () => setIsStartingWorkout(false),
-                                          500,
-                                        );
-                                      }
-                                    },
-                                  },
-                                ],
-                              );
-                              return;
-                            }
-                            setIsStartingWorkout(true);
-                            await new Promise((resolve) =>
-                              setTimeout(resolve, 50),
-                            );
-                            try {
-                              activeWorkoutStore.setWorkout(
-                                JSON.parse(JSON.stringify(workout)),
-                                activePlan.id!,
-                                workout.id!,
-                                workout.name || `Day ${index + 1}`,
-                              );
-                              router.push("/(app)/(workout)");
-                            } finally {
-                              setTimeout(
-                                () => setIsStartingWorkout(false),
-                                500,
-                              );
-                            }
+                            confirmStartWorkout(setIsStartingWorkout, () => {
+                              useActiveWorkoutStore
+                                .getState()
+                                .setWorkout(
+                                  JSON.parse(JSON.stringify(workout)),
+                                  activePlan.id!,
+                                  workout.id!,
+                                  workout.name || `Day ${index + 1}`,
+                                );
+                            });
                           }}
                           labelStyle={styles.smallButtonLabel}
                           disabled={isStartingWorkout}

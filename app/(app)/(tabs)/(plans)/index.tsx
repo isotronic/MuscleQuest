@@ -1,6 +1,7 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
+import { useEffect } from "react";
 import { router } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { ActivityIndicator, FAB } from "react-native-paper";
@@ -8,13 +9,22 @@ import { useAllPlansQuery, Plan } from "@/hooks/useAllPlansQuery";
 import { PlanList } from "@/components/PlanList";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 import StandaloneWorkoutListItem from "@/components/StandaloneWorkoutListItem";
-import { FlashList } from "@shopify/flash-list";
 import { Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 
 export default function PlansScreen() {
   const { data: plans, isLoading, isError, error } = useAllPlansQuery();
-  const { data: standaloneWorkouts } = useStandaloneWorkoutsQuery();
+  const {
+    data: standaloneWorkouts,
+    isError: standaloneIsError,
+    error: standaloneError,
+  } = useStandaloneWorkoutsQuery();
+
+  useEffect(() => {
+    if (standaloneIsError && standaloneError) {
+      Bugsnag.notify(standaloneError as Error);
+    }
+  }, [standaloneIsError, standaloneError]);
 
   const handleCreatePlan = () => {
     router.push("/(app)/(create-plan)/create");
@@ -63,19 +73,18 @@ export default function PlansScreen() {
         />
         <View style={styles.workoutsSection}>
           <ThemedText style={styles.sectionTitle}>Your workouts</ThemedText>
-          {standaloneWorkouts && standaloneWorkouts.length > 0 ? (
-            <FlashList
-              data={standaloneWorkouts}
-              renderItem={({ item }) => (
-                <StandaloneWorkoutListItem
-                  workout={item}
-                  onPress={() => handleViewWorkout(item)}
-                />
-              )}
-              keyExtractor={(item) => item.id!.toString()}
-              estimatedItemSize={76}
-              scrollEnabled={false}
-            />
+          {standaloneIsError ? (
+            <ThemedText style={styles.emptyText}>
+              Failed to load workouts
+            </ThemedText>
+          ) : standaloneWorkouts && standaloneWorkouts.length > 0 ? (
+            standaloneWorkouts.map((item) => (
+              <StandaloneWorkoutListItem
+                key={item.id!.toString()}
+                workout={item}
+                onPress={() => handleViewWorkout(item)}
+              />
+            ))
           ) : (
             <ThemedText style={styles.emptyText}>No workouts yet</ThemedText>
           )}

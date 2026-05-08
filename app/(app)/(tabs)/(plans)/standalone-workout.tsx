@@ -24,6 +24,8 @@ import { Colors } from "@/constants/Colors";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 import { useDeleteStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
+import Bugsnag from "@bugsnag/expo";
+import { confirmStartWorkout } from "@/utils/startWorkout";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -37,47 +39,21 @@ export default function StandaloneWorkoutScreen() {
   const { data: standaloneWorkouts, isLoading } = useStandaloneWorkoutsQuery();
   const deleteMutation = useDeleteStandaloneWorkout();
 
+  if (!Number.isInteger(workoutId) || workoutId <= 0) {
+    return (
+      <ThemedView style={styles.centered}>
+        <ThemedText>Workout not found.</ThemedText>
+      </ThemedView>
+    );
+  }
+
   const workout = standaloneWorkouts?.find((w) => w.id === workoutId);
 
-  const handleStart = async () => {
+  const handleStart = () => {
     if (!workout) return;
-    const store = useActiveWorkoutStore.getState();
-    if (store.isWorkoutInProgress()) {
-      Alert.alert(
-        "Workout In Progress",
-        "You already have a workout running. Continue it or start a new one?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Continue Workout",
-            onPress: () => router.push("/(app)/(workout)"),
-          },
-          {
-            text: "Start New",
-            style: "destructive",
-            onPress: async () => {
-              setIsStarting(true);
-              await new Promise((resolve) => setTimeout(resolve, 50));
-              try {
-                store.setWorkout(workout, null, workoutId, workout.name);
-                router.push("/(app)/(workout)");
-              } finally {
-                setTimeout(() => setIsStarting(false), 500);
-              }
-            },
-          },
-        ],
-      );
-      return;
-    }
-    setIsStarting(true);
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    try {
-      store.setWorkout(workout, null, workoutId, workout.name);
-      router.push("/(app)/(workout)");
-    } finally {
-      setTimeout(() => setIsStarting(false), 500);
-    }
+    confirmStartWorkout(setIsStarting, () => {
+      useActiveWorkoutStore.getState().setWorkout(workout, null, workoutId, workout.name);
+    });
   };
 
   const handleEdit = () => {
@@ -97,8 +73,13 @@ export default function StandaloneWorkoutScreen() {
           text: "Delete",
           style: "destructive",
           onPress: async () => {
-            await deleteMutation.mutateAsync(workoutId);
-            router.back();
+            try {
+              await deleteMutation.mutateAsync(workoutId);
+              router.back();
+            } catch (e: any) {
+              Bugsnag.notify(e);
+              Alert.alert("Error", "Failed to delete workout. Please try again.");
+            }
           },
         },
       ],

@@ -13,6 +13,9 @@ const withRemovedAudioForegroundServices = (config) => {
       manifest.$["xmlns:tools"] = "http://schemas.android.com/tools";
     }
 
+    if (!manifest.application || manifest.application.length === 0) {
+      return config;
+    }
     const application = manifest.application[0];
     if (!application.service) {
       application.service = [];

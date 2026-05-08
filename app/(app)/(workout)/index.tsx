@@ -417,9 +417,6 @@ export default function WorkoutOverviewScreen() {
               onPress={() => {
                 setShowSaveModal(false);
                 clearPersistedStore();
-                queryClient.invalidateQueries({
-                  queryKey: ["standaloneWorkouts"],
-                });
                 router.push("/(app)/(tabs)");
               }}
             >
@@ -432,15 +429,19 @@ export default function WorkoutOverviewScreen() {
                 const name = saveWorkoutName.trim() || "Quick Workout";
                 try {
                   await createStandaloneWorkout(name, workout!.exercises);
-                  queryClient.invalidateQueries({
+                  await queryClient.invalidateQueries({
                     queryKey: ["standaloneWorkouts"],
                   });
+                  setShowSaveModal(false);
+                  clearPersistedStore();
+                  router.push("/(app)/(tabs)");
                 } catch (e) {
                   Bugsnag.notify(e as Error);
+                  Alert.alert(
+                    "Error",
+                    "Failed to save workout. Please try again.",
+                  );
                 }
-                setShowSaveModal(false);
-                clearPersistedStore();
-                router.push("/(app)/(tabs)");
               }}
             >
               Save

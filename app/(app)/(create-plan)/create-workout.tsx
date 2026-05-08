@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -30,6 +30,8 @@ export default function CreateWorkoutScreen() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [savedFlag, setSavedFlag] = useState(false);
+  const savedRef = useRef(false);
+  const initializedWorkoutId = useRef<number | null | undefined>(undefined);
 
   const {
     workouts,
@@ -43,15 +45,22 @@ export default function CreateWorkoutScreen() {
   const createMutation = useCreateStandaloneWorkout();
   const updateMutation = useUpdateStandaloneWorkout();
 
-  // Initialise workoutStore for this screen
+  // Initialise workoutStore for this screen — runs once per workout id
   useEffect(() => {
+    const sentinel = existingWorkoutId ?? null;
+    if (initializedWorkoutId.current === sentinel) return;
     if (existingWorkoutId && standaloneWorkouts) {
       const existing = standaloneWorkouts.find((w) => w.id === existingWorkoutId);
       if (existing) {
+        initializedWorkoutId.current = sentinel;
         setWorkouts([existing]);
         return;
       }
+    } else if (existingWorkoutId && !standaloneWorkouts) {
+      // wait for data to arrive before marking initialized
+      return;
     }
+    initializedWorkoutId.current = sentinel;
     clearWorkouts();
     addWorkout({ name: "", exercises: [], id: -Date.now() });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -62,7 +71,8 @@ export default function CreateWorkoutScreen() {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       e.preventDefault();
 
-      if (savedFlag) {
+      if (savedRef.current || savedFlag) {
+        savedRef.current = false;
         clearWorkouts();
         setSavedFlag(false);
         return navigation.dispatch(e.data.action);
@@ -116,6 +126,7 @@ export default function CreateWorkoutScreen() {
       }
 
       await queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
+      savedRef.current = true;
       setSavedFlag(true);
       router.back();
     } catch (error: any) {
@@ -153,7 +164,7 @@ export default function CreateWorkoutScreen() {
               icon={SaveIcon}
               style={{ marginRight: 0 }}
               disabled={saveDisabled}
-              onPressIn={handleSave}
+              onPress={handleSave}
             >
               Save
             </Button>

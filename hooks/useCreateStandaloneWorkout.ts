@@ -5,6 +5,7 @@ import {
   deleteStandaloneWorkout,
 } from "@/utils/database";
 import { UserExercise } from "@/store/workoutStore";
+import Bugsnag from "@bugsnag/expo";
 
 export const useCreateStandaloneWorkout = () => {
   const queryClient = useQueryClient();
@@ -18,6 +19,9 @@ export const useCreateStandaloneWorkout = () => {
     }) => createStandaloneWorkout(name, exercises),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
+    },
+    onError: (error: Error) => {
+      Bugsnag.notify(error);
     },
   });
 };
@@ -37,6 +41,9 @@ export const useUpdateStandaloneWorkout = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
     },
+    onError: (error: Error) => {
+      Bugsnag.notify(error);
+    },
   });
 };
 
@@ -46,6 +53,9 @@ export const useDeleteStandaloneWorkout = () => {
     mutationFn: (workoutId: number) => deleteStandaloneWorkout(workoutId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
+    },
+    onError: (error: Error) => {
+      Bugsnag.notify(error);
     },
   });
 };

@@ -48,17 +48,17 @@ export default function ExercisesScreen() {
   const totalSeconds = settings ? parseInt(settings.defaultRestTime) : 0;
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  const defaultSets = Array(defaultSetNumber).fill({
+  const defaultSets = Array.from({ length: defaultSetNumber }, () => ({
     repsMin: 8,
     repsMax: 12,
     restMinutes: minutes,
     restSeconds: seconds,
-  });
-  const defaultTimeSets = Array(defaultSetNumber).fill({
+  }));
+  const defaultTimeSets = Array.from({ length: defaultSetNumber }, () => ({
     restMinutes: minutes,
     restSeconds: seconds,
     time: 30,
-  });
+  }));
 
   const allExercises = [
     ...(exercises?.activePlanExercises || []),
@@ -174,7 +174,7 @@ export default function ExercisesScreen() {
                 mode={selectedExercises.length > 0 ? "contained" : "outlined"}
                 compact
                 disabled={selectedExercises.length === 0}
-                onPressIn={handleConfirmAppend}
+                onPress={handleConfirmAppend}
                 labelStyle={styles.addButtonLabel}
               >
                 Add Exercises ({selectedExercises.length})

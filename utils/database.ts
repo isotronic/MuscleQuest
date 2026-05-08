@@ -634,11 +634,11 @@ export const appendExercisesToWorkout = async (
 ): Promise<void> => {
   const db = await openDatabase("userData.db");
   await db.withExclusiveTransactionAsync(async (txn) => {
-    const row: { count: number } | null = await txn.getFirstAsync(
-      `SELECT COUNT(*) as count FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+    const row: { maxOrder: number } | null = await txn.getFirstAsync(
+      `SELECT COALESCE(MAX(exercise_order), -1) as maxOrder FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
       [workoutId],
     );
-    const baseOrder = row?.count ?? 0;
+    const baseOrder = (row?.maxOrder ?? -1) + 1;
     for (const [i, exercise] of exercises.entries()) {
       await txn.runAsync(
         `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order) VALUES (?, ?, ?, ?)`,
@@ -1164,11 +1164,15 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
         equipment: row.equipment || "",
         body_part: row.body_part || "",
         target_muscle: row.target_muscle || "",
-        secondary_muscles: row.secondary_muscles
-          ? JSON.parse(row.secondary_muscles)
-          : [],
+        secondary_muscles: (() => {
+          try { return row.secondary_muscles ? JSON.parse(row.secondary_muscles) : []; }
+          catch (e: any) { Bugsnag.notify(e); return []; }
+        })(),
         tracking_type: row.tracking_type || "",
-        sets: row.sets ? JSON.parse(row.sets) : [],
+        sets: (() => {
+          try { return row.sets ? JSON.parse(row.sets) : []; }
+          catch (e: any) { Bugsnag.notify(e); return []; }
+        })(),
       });
     }
   }
@@ -1205,15 +1209,37 @@ export const updateStandaloneWorkout = async (
   const db = await openDatabase("userData.db");
   await db.withExclusiveTransactionAsync(async (txn) => {
     await txn.runAsync(`UPDATE user_workouts SET name = ? WHERE id = ?`, [name, workoutId]);
-    await txn.runAsync(
-      `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE workout_id = ?`,
+
+    const existing: { id: number; exercise_id: number }[] = await txn.getAllAsync(
+      `SELECT id, exercise_id FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
       [workoutId],
     );
+    const existingIds = existing.map((e) => e.exercise_id);
+    const incomingIds = exercises.map((e) => e.exercise_id);
+
+    // Soft-delete rows no longer in the incoming list
+    for (const row of existing) {
+      if (!incomingIds.includes(row.exercise_id)) {
+        await txn.runAsync(
+          `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
+          [row.id],
+        );
+      }
+    }
+
+    // Update existing rows or insert new ones
     for (const [order, exercise] of exercises.entries()) {
-      await txn.runAsync(
-        `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order) VALUES (?, ?, ?, ?)`,
-        [workoutId, exercise.exercise_id, JSON.stringify(exercise.sets), order],
-      );
+      if (existingIds.includes(exercise.exercise_id)) {
+        await txn.runAsync(
+          `UPDATE user_workout_exercises SET sets = ?, exercise_order = ?, is_deleted = FALSE WHERE workout_id = ? AND exercise_id = ?`,
+          [JSON.stringify(exercise.sets), order, workoutId, exercise.exercise_id],
+        );
+      } else {
+        await txn.runAsync(
+          `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order) VALUES (?, ?, ?, ?)`,
+          [workoutId, exercise.exercise_id, JSON.stringify(exercise.sets), order],
+        );
+      }
     }
   });
 };

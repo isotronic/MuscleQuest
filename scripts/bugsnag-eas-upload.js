@@ -79,4 +79,7 @@ const uploadSourceMaps = async () => {
     });
 };
 
-uploadSourceMaps();
+uploadSourceMaps().catch((err) => {
+  console.error(`Unhandled error in uploadSourceMaps: ${err?.stack || err}`);
+  process.exitCode = 1;
+});

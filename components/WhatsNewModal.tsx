@@ -29,11 +29,13 @@ export const WhatsNewModal = () => {
       return;
     }
 
-    const seenVersion = parseInt(settings.lastSeenVersion, 10);
+    const parsed = Number.parseInt(settings.lastSeenVersion, 10);
+    const seenVersion = Number.isNaN(parsed) ? 0 : parsed;
     const unseenEntries = WHATS_NEW_ENTRIES.filter(
       (entry) => entry.version > seenVersion,
     );
     if (unseenEntries.length > 0) {
+      setCurrentIndex(0);
       setEntriesToShow(unseenEntries.sort((a, b) => a.version - b.version));
       setVisible(true);
     }

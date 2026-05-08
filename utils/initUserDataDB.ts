@@ -165,10 +165,6 @@ export async function initUserDataDB() {
   const user_workoutsResult = await db.getAllAsync(`
     PRAGMA table_info(user_workouts);
   `);
-  const completed_workoutsResult = await db.getAllAsync(`
-    PRAGMA table_info(completed_workouts);
-  `);
-
   const app_exercise_idExists = exercisesResult.some(
     (column: any) => column.name === "app_exercise_id",
   );
