@@ -226,8 +226,11 @@ export default function WorkoutOverviewScreen() {
                               activeWorkout!.workoutId,
                               newExercises,
                             );
-                            queryClient.invalidateQueries({
+                            await queryClient.invalidateQueries({
                               queryKey: ["plan", activeWorkout!.planId],
+                            });
+                            await queryClient.invalidateQueries({
+                              queryKey: ["activePlan"],
                             });
                           } catch (e) {
                             Bugsnag.notify(e as Error);
@@ -555,6 +558,6 @@ const styles = StyleSheet.create({
   },
   addExerciseButton: {
     marginTop: 8,
-    marginBottom: 24,
+    marginBottom: 50,
   },
 });
