@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(git -C /home/joseph/Projects/MuscleQuest status)"
-    ]
-  }
-}
