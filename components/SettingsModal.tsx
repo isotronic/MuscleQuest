@@ -269,6 +269,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   input: {
+    flex: 1,
     padding: 10,
     borderColor: Colors.dark.text,
     borderWidth: 1,
