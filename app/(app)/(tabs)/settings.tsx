@@ -862,6 +862,22 @@ export default function SettingsScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.item}
+            onPress={() =>
+              Linking.openURL("https://buymeacoffee.com/musclequest")
+            }
+          >
+            <MaterialCommunityIcons
+              name="coffee"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>Buy me a coffee</ThemedText>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
             onPress={() => Linking.openURL("https://musclequest.app")}
           >
             <MaterialCommunityIcons
