@@ -5,7 +5,7 @@ import { startOfWeek, endOfWeek, getDay } from "date-fns";
 import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import WeekDays from "@/components/WeekDays";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "@/context/AuthProvider";
 import { Colors } from "@/constants/Colors";
 import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
@@ -58,7 +58,16 @@ export default function HomeScreen() {
   const workoutInProgress = useActiveWorkoutStore((state) =>
     Boolean(state.activeWorkout && state.workout),
   );
-  const showResumeCard = workoutInProgress;
+  const [showResumeCard, setShowResumeCard] = useState(workoutInProgress);
+
+  useEffect(() => {
+    if (!workoutInProgress) {
+      setShowResumeCard(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowResumeCard(true), 1000);
+    return () => clearTimeout(timer);
+  }, [workoutInProgress]);
 
   const today = new Date();
   // day_of_week: 0=Mon … 6=Sun  (JS Sunday=0, so shift by +6 mod 7)
