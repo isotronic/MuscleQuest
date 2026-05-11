@@ -77,11 +77,45 @@ export default function StatsScreen() {
       }, 0)
     : 0;
 
+  // Calculate total volume lifted (weight × reps per set)
+  const totalVolume = completedWorkouts
+    ? completedWorkouts.reduce((workoutAcc, workout) => {
+        return (
+          workoutAcc +
+          workout.exercises.reduce((exerciseAcc, exercise) => {
+            return (
+              exerciseAcc +
+              exercise.sets.reduce((setAcc, set) => {
+                if (set.weight && set.reps) {
+                  return setAcc + set.weight * set.reps;
+                }
+                return setAcc;
+              }, 0)
+            );
+          }, 0)
+        );
+      }, 0)
+    : 0;
+  const tonDivisor = weightUnit === "lbs" ? 2000 : 1000;
+  const formattedVolume = (totalVolume / tonDivisor).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const volumeUnit = weightUnit === "lbs" ? "st" : "t";
+
+  const avgSetsPerWorkout =
+    totalWorkouts > 0 ? Math.round(totalSetsCompleted / totalWorkouts) : 0;
+
   // Calculate total time spent
   const totalTimeSpent = completedWorkouts
     ? completedWorkouts.reduce((acc, workout) => acc + workout.duration, 0)
     : 0;
   const totalTime = formatToHoursMinutes(totalTimeSpent);
+
+  const avgDuration =
+    totalWorkouts > 0
+      ? formatToHoursMinutes(Math.round(totalTimeSpent / totalWorkouts))
+      : "0:00";
 
   // Function to update the selected time range
   const handleTimeRangeChange = async (range: string) => {
@@ -195,19 +229,37 @@ export default function StatsScreen() {
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Summary</ThemedText>
           <View style={styles.summaryContainer}>
-            <Card style={[styles.summaryCard, { marginRight: 8 }]}>
+            <Card style={styles.summaryCard}>
               <ThemedText style={styles.statValue}>{totalWorkouts}</ThemedText>
               <ThemedText style={styles.statLabel}>Workouts</ThemedText>
             </Card>
-            <Card style={[styles.summaryCard, { marginRight: 8 }]}>
+            <Card style={styles.summaryCard}>
               <ThemedText style={styles.statValue}>
                 {totalSetsCompleted}
               </ThemedText>
               <ThemedText style={styles.statLabel}>Sets</ThemedText>
             </Card>
             <Card style={styles.summaryCard}>
+              <ThemedText style={styles.statValue}>
+                {avgSetsPerWorkout}
+              </ThemedText>
+              <ThemedText style={styles.statLabel}>Avg Sets</ThemedText>
+            </Card>
+            <Card style={styles.summaryCard}>
+              <ThemedText style={styles.statValue}>
+                {formattedVolume}
+              </ThemedText>
+              <ThemedText style={styles.statLabel}>
+                Volume ({volumeUnit})
+              </ThemedText>
+            </Card>
+            <Card style={styles.summaryCard}>
               <ThemedText style={styles.statValue}>{totalTime}</ThemedText>
               <ThemedText style={styles.statLabel}>Time (h:m)</ThemedText>
+            </Card>
+            <Card style={styles.summaryCard}>
+              <ThemedText style={styles.statValue}>{avgDuration}</ThemedText>
+              <ThemedText style={styles.statLabel}>Avg Duration</ThemedText>
             </Card>
           </View>
         </View>
@@ -307,12 +359,14 @@ const styles = StyleSheet.create({
   },
   summaryContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
+    gap: 8,
   },
   summaryCard: {
-    flex: 1,
+    width: "31%",
     paddingVertical: 16,
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
     alignItems: "center",
     borderRadius: 8,
     backgroundColor: Colors.dark.cardBackground,
