@@ -380,7 +380,8 @@ export default function WorkoutSessionScreen() {
       // Update state immediately without animation
       nextSet();
     } else {
-      // No next set, workout completed
+      // No next set, workout completed — cancel any pending rest notification
+      void cancelRestNotifications();
       nextSet();
     }
   };

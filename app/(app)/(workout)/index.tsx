@@ -34,6 +34,7 @@ import {
   createStandaloneWorkout,
   linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
+import { cancelRestNotifications } from "@/utils/restNotification";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function WorkoutOverviewScreen() {
@@ -296,6 +297,7 @@ export default function WorkoutOverviewScreen() {
           text: "Yes",
           style: "destructive",
           onPress: () => {
+            void cancelRestNotifications();
             clearPersistedStore();
             // Navigate back to the main screen or home screen
             router.push("/(app)/(tabs)");
