@@ -338,6 +338,22 @@ export default function WorkoutSessionScreen() {
     }
   };
 
+  // Determine superset context
+  const supersetGroupId = currentExercise?.supersetGroupId;
+  const supersetPartnerIndex =
+    supersetGroupId && workout
+      ? workout.exercises.findIndex(
+          (e, i) =>
+            i !== currentExerciseIndex && e.supersetGroupId === supersetGroupId,
+        )
+      : -1;
+  const isInSuperset = supersetPartnerIndex !== -1;
+  const isFirstInSuperset =
+    isInSuperset && currentExerciseIndex < supersetPartnerIndex;
+  const supersetPartnerExercise = isInSuperset
+    ? workout?.exercises[supersetPartnerIndex]
+    : null;
+
   const handleCompleteSet = () => {
     if (!currentExercise || !currentSet) {
       return;
@@ -375,9 +391,11 @@ export default function WorkoutSessionScreen() {
       validTimeNum.toString(), // Store as seconds
     );
 
-    if (hasNextSet) {
+    if (isFirstInSuperset) {
+      // No rest between superset exercises — go straight to partner
+      nextSet();
+    } else if (hasNextSet) {
       void startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
-      // Update state immediately without animation
       nextSet();
     } else {
       // No next set, workout completed — cancel any pending rest notification
@@ -429,6 +447,17 @@ export default function WorkoutSessionScreen() {
         }}
       />
       <View style={{ flex: 1 }}>
+        {isInSuperset && (
+          <View style={styles.supersetBanner}>
+            <ThemedText style={styles.supersetLabel}>
+              Superset {isFirstInSuperset ? "A" : "B"}
+            </ThemedText>
+            <ThemedText style={styles.supersetPartner}>
+              {isFirstInSuperset ? "Next: " : "Prev: "}
+              {supersetPartnerExercise?.name}
+            </ThemedText>
+          </View>
+        )}
         <SessionSetInfo
           exercise_id={currentExercise?.exercise_id || 0}
           exerciseName={currentExercise?.name || ""}
@@ -503,6 +532,30 @@ const styles = StyleSheet.create({
     boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.3)",
     elevation: 5,
     marginBottom: 0,
+  },
+  supersetBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.dark.cardBackground,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  supersetLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: Colors.dark.tint,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  supersetPartner: {
+    fontSize: 13,
+    color: Colors.dark.subText,
+    flexShrink: 1,
+    textAlign: "right",
+    marginLeft: 8,
   },
   timerLabel: {
     fontSize: 14,

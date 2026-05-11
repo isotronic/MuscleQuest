@@ -18,12 +18,30 @@ export default function WorkoutDetailsScreen() {
 
   const workout = plan?.workouts[Number(workoutIndex)];
 
-  const renderExerciseItem = ({ item }: { item: UserExercise }) => {
+  const renderExerciseItem = ({
+    item,
+    index: exerciseIndex,
+  }: {
+    item: UserExercise;
+    index: number;
+  }) => {
     let base64Image: string | undefined;
     if (item.image) {
       const base64String = byteArrayToBase64(item.image);
       base64Image = `data:image/webp;base64,${base64String}`;
     }
+
+    const { supersetGroupId } = item;
+    const exercises = workout?.exercises ?? [];
+    const partnerIndex = supersetGroupId
+      ? exercises.findIndex(
+          (e, i) =>
+            i !== exerciseIndex && e.supersetGroupId === supersetGroupId,
+        )
+      : -1;
+    const isInSuperset = partnerIndex !== -1;
+    const isFirstInSuperset = isInSuperset && exerciseIndex < partnerIndex;
+    const isSecondInSuperset = isInSuperset && exerciseIndex > partnerIndex;
 
     const minReps = Math.min(
       ...item.sets.map((set) => set.repsMin ?? Infinity),
@@ -60,42 +78,60 @@ export default function WorkoutDetailsScreen() {
     const exerciseItem = { ...item, image: undefined };
 
     return (
-      <TouchableOpacity
-        onPress={() => {
-          router.push({
-            pathname: "/(app)/exercise-details",
-            params: { exercise_id: exerciseItem.exercise_id.toString() },
-          });
-        }}
-      >
-        <View style={styles.exerciseItem}>
-          {item.image.length > 0 ? (
-            <Image style={styles.exerciseImage} source={{ uri: base64Image }} />
-          ) : item.local_animated_uri ? (
-            <Image
-              style={styles.exerciseImage}
-              source={item.local_animated_uri}
-            />
-          ) : (
-            <Image style={styles.exerciseImage} source={fallbackImage} />
-          )}
-          <View style={styles.exerciseInfo}>
-            <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
-            <ThemedText style={styles.exerciseSets}>
-              {item?.sets?.length
-                ? `${item.sets.length} Sets`
-                : "No Sets Available"}
-              {item.tracking_type === "time"
-                ? timeRange
-                  ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
-                  : ""
-                : repRange
-                  ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
-                  : ""}
-            </ThemedText>
+      <View>
+        {isFirstInSuperset && (
+          <View style={styles.supersetHeader}>
+            <ThemedText style={styles.supersetHeaderText}>Superset</ThemedText>
           </View>
-        </View>
-      </TouchableOpacity>
+        )}
+        <TouchableOpacity
+          onPress={() => {
+            router.push({
+              pathname: "/(app)/exercise-details",
+              params: { exercise_id: exerciseItem.exercise_id.toString() },
+            });
+          }}
+        >
+          <View
+            style={[
+              styles.exerciseItem,
+              isInSuperset && styles.supersetExerciseItem,
+              isFirstInSuperset && styles.supersetExerciseFirst,
+              isSecondInSuperset && styles.supersetExerciseLast,
+            ]}
+          >
+            {item.image.length > 0 ? (
+              <Image
+                style={styles.exerciseImage}
+                source={{ uri: base64Image }}
+              />
+            ) : item.local_animated_uri ? (
+              <Image
+                style={styles.exerciseImage}
+                source={item.local_animated_uri}
+              />
+            ) : (
+              <Image style={styles.exerciseImage} source={fallbackImage} />
+            )}
+            <View style={styles.exerciseInfo}>
+              <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
+              <ThemedText style={styles.exerciseSets}>
+                {item?.sets?.length
+                  ? `${item.sets.length} Sets`
+                  : "No Sets Available"}
+                {item.tracking_type === "time"
+                  ? timeRange
+                    ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
+                    : ""
+                  : repRange
+                    ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
+                    : ""}
+              </ThemedText>
+            </View>
+          </View>
+        </TouchableOpacity>
+        {isFirstInSuperset && <View style={styles.supersetConnector} />}
+      </View>
     );
   };
 
@@ -163,5 +199,37 @@ const styles = StyleSheet.create({
   exerciseSets: {
     fontSize: 14,
     color: Colors.dark.text,
+  },
+  supersetHeader: {
+    paddingHorizontal: 4,
+    paddingBottom: 0,
+    marginTop: -8,
+  },
+  supersetHeaderText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.dark.tint,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  supersetConnector: {
+    width: 3,
+    height: 6,
+    backgroundColor: Colors.dark.tint,
+    marginLeft: 27,
+  },
+  supersetExerciseItem: {
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.dark.tint,
+  },
+  supersetExerciseFirst: {
+    marginBottom: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  supersetExerciseLast: {
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    marginBottom: 8,
   },
 });

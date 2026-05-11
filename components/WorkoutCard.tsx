@@ -91,6 +91,28 @@ export default function WorkoutCard({
     [workoutIndex, workout.exercises],
   );
 
+  const handleCreateSuperset = useCallback(
+    (exerciseIndex: number) => {
+      router.push({
+        pathname: "/(app)/(create-plan)/exercises",
+        params: {
+          index: workoutIndex,
+          supersetForIndex: exerciseIndex,
+        },
+      });
+    },
+    [workoutIndex],
+  );
+
+  const handleRemoveSuperset = useCallback(
+    (exerciseIndex: number) => {
+      useWorkoutStore
+        .getState()
+        .removeFromSuperset(workoutIndex, exerciseIndex);
+    },
+    [workoutIndex],
+  );
+
   const renderExerciseItem: SortableGridRenderItem<UserExercise> = useCallback(
     ({ item, index }) => {
       const exerciseIndex = index;
@@ -130,89 +152,204 @@ export default function WorkoutCard({
       }
 
       const isToFailure = item.sets.some((set) => set.isToFailure);
-
       const isMenuOpen = menuVisible === item.exercise_id;
 
+      const { supersetGroupId } = item;
+      const partnerIndex = supersetGroupId
+        ? workout.exercises.findIndex(
+            (e, i) =>
+              i !== exerciseIndex && e.supersetGroupId === supersetGroupId,
+          )
+        : -1;
+      const isInSuperset = partnerIndex !== -1;
+      const isFirstInSuperset = isInSuperset && exerciseIndex < partnerIndex;
+      const isSecondInSuperset = isInSuperset && exerciseIndex > partnerIndex;
+
       return (
-        <View style={[styles.exerciseItem]}>
-          <Sortable.Touchable
-            onTap={() =>
-              router.push(
-                `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}&exerciseIndex=${exerciseIndex}&trackingType=${item.tracking_type}`,
-              )
-            }
-            style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-          >
-            <MaterialCommunityIcons
-              name="drag"
-              size={24}
-              color="#ECEFF4"
-              style={styles.dragIcon}
-            />
-            <View style={styles.exerciseInfo}>
-              <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
-              <ThemedText style={styles.setsAndReps}>
-                {item?.sets?.length
-                  ? `${item.sets.length} Sets`
-                  : "No Sets Available"}
-                {item.tracking_type === "time"
-                  ? timeRange
-                    ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
-                    : ""
-                  : repRange
-                    ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
-                    : ""}
+        <View>
+          {isFirstInSuperset && (
+            <View style={styles.supersetHeader}>
+              <ThemedText style={styles.supersetHeaderText}>
+                Superset
               </ThemedText>
             </View>
-          </Sortable.Touchable>
-          <Menu
-            visible={isMenuOpen}
-            onDismiss={closeMenu}
-            anchor={
-              <IconButton
-                icon="dots-vertical"
-                size={24}
-                onPress={() => openMenu(item.exercise_id)}
-                iconColor={Colors.dark.text}
-                accessibilityLabel={`Open menu for exercise ${item.exercise_id}`}
-              />
-            }
+          )}
+          <View
+            style={[
+              styles.exerciseItem,
+              isInSuperset && styles.supersetExerciseItem,
+              isFirstInSuperset && styles.supersetExerciseFirst,
+              isSecondInSuperset && styles.supersetExerciseLast,
+            ]}
           >
-            <Menu.Item
-              onPress={() => {
-                closeMenu();
-                removeExercise(item.exercise_id);
-              }}
-              title="Delete"
-            />
-            <Menu.Item
-              onPress={() => {
-                closeMenu();
-                handleReplace(exerciseIndex);
-              }}
-              title="Replace"
-            />
-            <Menu.Item
-              onPress={() => {
-                closeMenu();
+            <Sortable.Touchable
+              onTap={() =>
                 router.push(
-                  `/(app)/exercise-details?exercise_id=${item.exercise_id}`,
-                );
-              }}
-              title="View Details"
-            />
-          </Menu>
+                  `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}&exerciseIndex=${exerciseIndex}&trackingType=${item.tracking_type}`,
+                )
+              }
+              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+            >
+              <MaterialCommunityIcons
+                name="drag"
+                size={24}
+                color="#ECEFF4"
+                style={styles.dragIcon}
+              />
+              <View style={styles.exerciseInfo}>
+                <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
+                <ThemedText style={styles.setsAndReps}>
+                  {item?.sets?.length
+                    ? `${item.sets.length} Sets`
+                    : "No Sets Available"}
+                  {item.tracking_type === "time"
+                    ? timeRange
+                      ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
+                      : ""
+                    : repRange
+                      ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
+                      : ""}
+                </ThemedText>
+              </View>
+            </Sortable.Touchable>
+            <Menu
+              visible={isMenuOpen}
+              onDismiss={closeMenu}
+              anchor={
+                <IconButton
+                  icon="dots-vertical"
+                  size={24}
+                  onPress={() => openMenu(item.exercise_id)}
+                  iconColor={Colors.dark.text}
+                />
+              }
+            >
+              <Menu.Item
+                onPress={() => {
+                  closeMenu();
+                  removeExercise(item.exercise_id);
+                }}
+                title="Delete"
+              />
+              <Menu.Item
+                onPress={() => {
+                  closeMenu();
+                  handleReplace(exerciseIndex);
+                }}
+                title="Replace"
+              />
+              {isInSuperset ? (
+                <Menu.Item
+                  onPress={() => {
+                    closeMenu();
+                    handleRemoveSuperset(exerciseIndex);
+                  }}
+                  title="Remove Superset"
+                />
+              ) : (
+                <Menu.Item
+                  onPress={() => {
+                    closeMenu();
+                    handleCreateSuperset(exerciseIndex);
+                  }}
+                  title="Create Superset"
+                />
+              )}
+              <Menu.Item
+                onPress={() => {
+                  closeMenu();
+                  router.push(
+                    `/(app)/exercise-details?exercise_id=${item.exercise_id}`,
+                  );
+                }}
+                title="View Details"
+              />
+            </Menu>
+          </View>
+          {isFirstInSuperset && <View style={styles.supersetConnector} />}
         </View>
       );
     },
-    [handleReplace, menuVisible, removeExercise, workoutIndex],
+    [
+      handleCreateSuperset,
+      handleRemoveSuperset,
+      handleReplace,
+      menuVisible,
+      removeExercise,
+      workout.exercises,
+      workoutIndex,
+    ],
   );
 
   const handleOrderChange = useCallback(
     ({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => {
+      if (fromIndex === toIndex) return;
+
       const updatedExercises = [...workout.exercises];
+      const draggedExercise = updatedExercises[fromIndex];
+      const { supersetGroupId } = draggedExercise;
+
+      // Pre-compute original partner index before any mutations
+      const originalPartnerIndex = supersetGroupId
+        ? workout.exercises.findIndex(
+            (e, i) => i !== fromIndex && e.supersetGroupId === supersetGroupId,
+          )
+        : -1;
+      const isDraggingFirst =
+        originalPartnerIndex !== -1 && fromIndex < originalPartnerIndex;
+
+      // Standard single-item move
       const [movedItem] = updatedExercises.splice(fromIndex, 1);
       updatedExercises.splice(toIndex, 0, movedItem);
+
+      if (supersetGroupId) {
+        // Find where both superset members landed after the splice
+        const draggedNewIdx = updatedExercises.findIndex(
+          (e) => e.exercise_id === draggedExercise.exercise_id,
+        );
+        const partnerNewIdx = updatedExercises.findIndex(
+          (e) =>
+            e.exercise_id !== draggedExercise.exercise_id &&
+            e.supersetGroupId === supersetGroupId,
+        );
+
+        // If already adjacent the drag resulted in a natural swap — leave as-is
+        if (Math.abs(draggedNewIdx - partnerNewIdx) !== 1) {
+          // Not adjacent: bring partner next to the dragged item
+          const [partner] = updatedExercises.splice(partnerNewIdx, 1);
+          const newDraggedIdx = updatedExercises.findIndex(
+            (e) => e.exercise_id === draggedExercise.exercise_id,
+          );
+          if (isDraggingFirst) {
+            updatedExercises.splice(newDraggedIdx + 1, 0, partner);
+          } else {
+            updatedExercises.splice(newDraggedIdx, 0, partner);
+          }
+        }
+      } else {
+        // Non-superset exercise: check if it landed between two superset partners
+        const landedIdx = updatedExercises.findIndex(
+          (e) => e.exercise_id === draggedExercise.exercise_id,
+        );
+        const prevItem = landedIdx > 0 ? updatedExercises[landedIdx - 1] : null;
+        const nextItem =
+          landedIdx < updatedExercises.length - 1
+            ? updatedExercises[landedIdx + 1]
+            : null;
+
+        if (
+          prevItem?.supersetGroupId &&
+          nextItem?.supersetGroupId &&
+          prevItem.supersetGroupId === nextItem.supersetGroupId
+        ) {
+          // Remove from between superset and insert after the second superset member
+          updatedExercises.splice(landedIdx, 1);
+          const secondPartnerIdx = updatedExercises.findIndex(
+            (e) => e.exercise_id === nextItem.exercise_id,
+          );
+          updatedExercises.splice(secondPartnerIdx + 1, 0, draggedExercise);
+        }
+      }
 
       const updatedWorkouts = workouts.map((w, i) =>
         i === index ? { ...w, exercises: updatedExercises } : w,
@@ -382,5 +519,37 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     marginLeft: "auto",
+  },
+  supersetHeader: {
+    paddingHorizontal: 4,
+    paddingBottom: 0,
+    marginTop: -7,
+  },
+  supersetHeaderText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.dark.tint,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  supersetConnector: {
+    width: 3,
+    height: 6,
+    backgroundColor: Colors.dark.tint,
+    marginLeft: 27,
+  },
+  supersetExerciseItem: {
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.dark.tint,
+  },
+  supersetExerciseFirst: {
+    marginBottom: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  supersetExerciseLast: {
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    marginBottom: 8,
   },
 });

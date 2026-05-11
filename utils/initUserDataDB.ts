@@ -247,4 +247,16 @@ export async function initUserDataDB() {
       ALTER TABLE user_workouts ADD COLUMN image_url TEXT;
     `);
   }
+
+  const user_workout_exercisesResult = await db.getAllAsync(`
+    PRAGMA table_info(user_workout_exercises);
+  `);
+  const supersetGroupIdExists = user_workout_exercisesResult.some(
+    (col: any) => col.name === "superset_group_id",
+  );
+  if (!supersetGroupIdExists) {
+    await db.execAsync(`
+      ALTER TABLE user_workout_exercises ADD COLUMN superset_group_id TEXT;
+    `);
+  }
 }

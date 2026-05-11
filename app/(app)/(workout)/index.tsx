@@ -486,79 +486,115 @@ export default function WorkoutOverviewScreen() {
           const totalSets = exercise.sets.length;
           const allSetsCompleted = completedCount === totalSets;
           const isLoading = loadingExerciseIndex === index;
+
+          const { supersetGroupId } = exercise;
+          const partnerIndex = supersetGroupId
+            ? workout.exercises.findIndex(
+                (e, i) => i !== index && e.supersetGroupId === supersetGroupId,
+              )
+            : -1;
+          const isFirstInSuperset = partnerIndex !== -1 && index < partnerIndex;
+          const isSecondInSuperset =
+            partnerIndex !== -1 && index > partnerIndex;
+
           return (
-            <TouchableOpacity
-              key={exercise.exercise_id}
-              onPress={() => {
-                handleExercisePress(index);
-              }}
-            >
-              <Card style={styles.card}>
-                <Card.Content style={styles.cardContent}>
-                  {/* Circle with the number or checkmark */}
-                  <View
-                    style={[
-                      styles.numberContainer,
-                      allSetsCompleted && styles.numberContainerCompleted,
-                    ]}
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator size="small" color="white" />
-                    ) : allSetsCompleted ? (
-                      <MaterialCommunityIcons
-                        name="check"
-                        size={24}
-                        color="white"
-                      />
-                    ) : (
-                      <ThemedText style={styles.numberText}>
-                        {index + 1}
+            <View key={exercise.exercise_id}>
+              {isFirstInSuperset && (
+                <View style={styles.supersetHeader}>
+                  <ThemedText style={styles.supersetHeaderText}>
+                    Superset
+                  </ThemedText>
+                </View>
+              )}
+              <TouchableOpacity
+                onPress={() => {
+                  handleExercisePress(index);
+                }}
+                style={
+                  supersetGroupId
+                    ? isFirstInSuperset
+                      ? styles.supersetCardFirst
+                      : styles.supersetCardLast
+                    : undefined
+                }
+              >
+                <Card
+                  style={[styles.card, supersetGroupId && styles.supersetCard]}
+                >
+                  <Card.Content style={styles.cardContent}>
+                    {/* Superset indicator bar */}
+                    {supersetGroupId && <View style={styles.supersetBar} />}
+
+                    {/* Circle with the number or checkmark */}
+                    <View
+                      style={[
+                        styles.numberContainer,
+                        allSetsCompleted && styles.numberContainerCompleted,
+                      ]}
+                    >
+                      {isLoading ? (
+                        <ActivityIndicator size="small" color="white" />
+                      ) : allSetsCompleted ? (
+                        <MaterialCommunityIcons
+                          name="check"
+                          size={24}
+                          color="white"
+                        />
+                      ) : (
+                        <ThemedText style={styles.numberText}>
+                          {isFirstInSuperset
+                            ? "A"
+                            : isSecondInSuperset
+                              ? "B"
+                              : index + 1}
+                        </ThemedText>
+                      )}
+                    </View>
+
+                    {/* Exercise Info */}
+                    <View style={styles.exerciseInfo}>
+                      <ThemedText style={styles.exerciseName}>
+                        {exercise.name}
                       </ThemedText>
-                    )}
-                  </View>
+                      <ThemedText style={styles.setInfo}>
+                        {completedCount}/{exercise.sets.length} sets completed
+                      </ThemedText>
+                    </View>
 
-                  {/* Exercise Info */}
-                  <View style={styles.exerciseInfo}>
-                    <ThemedText style={styles.exerciseName}>
-                      {exercise.name}
-                    </ThemedText>
-                    <ThemedText style={styles.setInfo}>
-                      {completedCount}/{exercise.sets.length} sets completed
-                    </ThemedText>
-                  </View>
-
-                  {/* Options Menu */}
-                  <Menu
-                    visible={menuVisible[index]}
-                    onDismiss={() => handleMenuClose(index)}
-                    anchor={
-                      <IconButton
-                        icon="dots-vertical"
-                        size={24}
-                        onPress={() => handleMenuOpen(index)}
-                        style={styles.optionsButton}
-                        iconColor={Colors.dark.text}
+                    {/* Options Menu */}
+                    <Menu
+                      visible={menuVisible[index]}
+                      onDismiss={() => handleMenuClose(index)}
+                      anchor={
+                        <IconButton
+                          icon="dots-vertical"
+                          size={24}
+                          onPress={() => handleMenuOpen(index)}
+                          style={styles.optionsButton}
+                          iconColor={Colors.dark.text}
+                        />
+                      }
+                    >
+                      <Menu.Item
+                        onPress={() => {
+                          handleMenuClose(index);
+                          handleDeleteExercise(index);
+                        }}
+                        title="Delete"
                       />
-                    }
-                  >
-                    <Menu.Item
-                      onPress={() => {
-                        handleMenuClose(index);
-                        handleDeleteExercise(index);
-                      }}
-                      title="Delete"
-                    />
-                    <Menu.Item
-                      onPress={() => {
-                        handleMenuClose(index);
-                        handleReplaceExercise(index);
-                      }}
-                      title="Replace"
-                    />
-                  </Menu>
-                </Card.Content>
-              </Card>
-            </TouchableOpacity>
+                      <Menu.Item
+                        onPress={() => {
+                          handleMenuClose(index);
+                          handleReplaceExercise(index);
+                        }}
+                        title="Replace"
+                      />
+                    </Menu>
+                  </Card.Content>
+                </Card>
+              </TouchableOpacity>
+              {isFirstInSuperset && <View style={styles.supersetConnector} />}
+            </View>
           );
         })}
         <Button
@@ -692,5 +728,44 @@ const styles = StyleSheet.create({
   addExerciseButton: {
     marginTop: 8,
     marginBottom: 50,
+  },
+  supersetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+  supersetHeaderText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.dark.tint,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  supersetConnector: {
+    width: 3,
+    height: 8,
+    backgroundColor: Colors.dark.tint,
+    marginLeft: 27,
+    marginBottom: 0,
+  },
+  supersetCard: {
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.dark.tint,
+  },
+  supersetCardFirst: {
+    marginBottom: 0,
+  },
+  supersetCardLast: {
+    marginBottom: 10,
+  },
+  supersetBar: {
+    width: 3,
+    alignSelf: "stretch",
+    backgroundColor: Colors.dark.tint,
+    borderRadius: 2,
+    marginRight: 10,
+    marginLeft: -12,
   },
 });

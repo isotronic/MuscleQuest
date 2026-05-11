@@ -202,39 +202,176 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             },
           };
 
-          // Check if current set is warm-up
+          // Helper: build carry-over values for an exercise's next set
+          const buildNextSetValues = (
+            exerciseIndex: number,
+            exercise: (typeof workout.exercises)[0],
+            fromSetIndex: number,
+            toSetIndex: number,
+          ) => {
+            const exTrackingType = exercise.tracking_type || "weight";
+            const isWarmup = exercise.sets[fromSetIndex]?.isWarmup || false;
+            const isDropSet = exercise.sets[fromSetIndex]?.isDropSet || false;
+            const isNextDropSet =
+              toSetIndex < exercise.sets.length &&
+              exercise.sets[toSetIndex]?.isDropSet;
+            const currentSetValues =
+              weightAndReps[exerciseIndex]?.[fromSetIndex] || {};
+            const previousExData = previousWorkoutData
+              ?.flatMap((w) => w.exercises)
+              .find((prevEx) => prevEx.exercise_id === exercise.exercise_id);
+            const nextHistorical =
+              previousExData?.sets[toSetIndex] || undefined;
+
+            return {
+              ...(exTrackingType === "weight" ||
+              exTrackingType === "" ||
+              exTrackingType === "assisted"
+                ? {
+                    weight:
+                      (isWarmup || isDropSet || isNextDropSet) &&
+                      nextHistorical?.weight
+                        ? nextHistorical.weight.toString()
+                        : currentSetValues.weight,
+                    reps:
+                      nextHistorical?.reps !== undefined
+                        ? nextHistorical.reps?.toString()
+                        : undefined,
+                  }
+                : {}),
+              ...(exTrackingType === "reps"
+                ? {
+                    reps:
+                      nextHistorical?.reps !== undefined
+                        ? nextHistorical.reps?.toString()
+                        : undefined,
+                  }
+                : {}),
+              ...(exTrackingType === "time"
+                ? {
+                    time:
+                      nextHistorical?.time !== undefined
+                        ? formatFromTotalSeconds(nextHistorical.time ?? 0)
+                        : undefined,
+                  }
+                : {}),
+            };
+          };
+
+          // --- Superset handling ---
+          const { supersetGroupId } = currentExercise;
+          if (supersetGroupId) {
+            const partnerIndex = workout.exercises.findIndex(
+              (e, i) =>
+                i !== currentExerciseIndex &&
+                e.supersetGroupId === supersetGroupId,
+            );
+
+            if (partnerIndex !== -1) {
+              const isFirstInSuperset = currentExerciseIndex < partnerIndex;
+
+              if (isFirstInSuperset) {
+                // Move to partner (second exercise), same set index — no rest
+                const partnerSetIndex = currentSetIndices[partnerIndex] || 0;
+                return {
+                  currentExerciseIndex: partnerIndex,
+                  currentSetIndices: {
+                    ...currentSetIndices,
+                    [partnerIndex]: partnerSetIndex,
+                  },
+                  completedSets: updatedCompletedSets,
+                };
+              }
+
+              // Second in superset: advance both exercises' set indices then rest
+              const firstIndex = partnerIndex;
+              const firstExercise = workout.exercises[firstIndex];
+              const updatedSetIndices = {
+                ...currentSetIndices,
+                [currentExerciseIndex]: nextSetIndex,
+                [firstIndex]: nextSetIndex,
+              };
+
+              const firstNextValues = buildNextSetValues(
+                firstIndex,
+                firstExercise,
+                currentSetIndex,
+                nextSetIndex,
+              );
+              const updatedWeightAndReps = {
+                ...weightAndReps,
+                [firstIndex]: {
+                  ...(weightAndReps[firstIndex] || {}),
+                  [nextSetIndex]: firstNextValues,
+                },
+              };
+
+              if (nextSetIndex < currentExercise.sets.length) {
+                return {
+                  currentExerciseIndex: firstIndex,
+                  currentSetIndices: updatedSetIndices,
+                  completedSets: updatedCompletedSets,
+                  weightAndReps: updatedWeightAndReps,
+                };
+              }
+
+              // Superset fully done — find next uncompleted exercise after both
+              const maxIndex = Math.max(currentExerciseIndex, firstIndex);
+              let nextExerciseIndex = maxIndex + 1;
+              while (nextExerciseIndex < workout.exercises.length) {
+                const totalSets =
+                  workout.exercises[nextExerciseIndex].sets.length;
+                const isComplete =
+                  updatedCompletedSets[nextExerciseIndex] &&
+                  Object.keys(updatedCompletedSets[nextExerciseIndex])
+                    .length === totalSets;
+                if (!isComplete) break;
+                nextExerciseIndex++;
+              }
+
+              if (nextExerciseIndex < workout.exercises.length) {
+                return {
+                  currentExerciseIndex: nextExerciseIndex,
+                  currentSetIndices: updatedSetIndices,
+                  completedSets: updatedCompletedSets,
+                  weightAndReps: updatedWeightAndReps,
+                };
+              }
+
+              router.back();
+              return {
+                currentSetIndices: updatedSetIndices,
+                completedSets: updatedCompletedSets,
+                weightAndReps: updatedWeightAndReps,
+              };
+            }
+          }
+
+          // --- Normal (non-superset) logic ---
           const isWarmup =
             currentExercise.sets[currentSetIndex]?.isWarmup || false;
-
-          // Check if current set is a drop set
           const isDropSet =
             currentExercise.sets[currentSetIndex]?.isDropSet || false;
-
-          // Check if next set is drop set
           const isNextDropSet =
             nextSetIndex < currentExercise.sets.length &&
             currentExercise.sets[nextSetIndex]?.isDropSet;
 
-          // Update the set index for the current exercise
           const updatedSetIndices = {
             ...currentSetIndices,
             [currentExerciseIndex]: nextSetIndex,
           };
 
-          // Retrieve historical data for the next set
           const previousExerciseData = previousWorkoutData
             ?.flatMap((workout) => workout.exercises)
             .find(
               (prevEx) => prevEx.exercise_id === currentExercise.exercise_id,
             );
 
-          // Retrieve values from the current set and historical data for the next set
           const currentSetValues =
             weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
           const nextSetValues =
             previousExerciseData?.sets[nextSetIndex] || undefined;
 
-          // Determine the values to carry over based on `tracking_type`
           const updatedNextSetValues = {
             ...(trackingType === "weight" || trackingType === ""
               ? {
@@ -280,7 +417,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               : {}),
           };
 
-          // Update the weightAndReps with the new values for the next set
           const updatedWeightAndReps = {
             ...weightAndReps,
             [currentExerciseIndex]: {
@@ -289,7 +425,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             },
           };
 
-          // If there are more sets in the current exercise, update the store accordingly
           if (nextSetIndex < currentExercise.sets.length) {
             return {
               currentSetIndices: updatedSetIndices,
@@ -298,7 +433,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             };
           }
 
-          // Move to the next exercise if all sets are complete in the current exercise
           let nextExerciseIndex = currentExerciseIndex + 1;
           while (nextExerciseIndex < workout.exercises.length) {
             const totalSets = workout.exercises[nextExerciseIndex].sets.length;
@@ -308,7 +442,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                 totalSets;
 
             if (!isExerciseCompleted) {
-              // Found the next uncompleted exercise
               return {
                 currentExerciseIndex: nextExerciseIndex,
                 currentSetIndices: updatedSetIndices,
@@ -318,7 +451,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             nextExerciseIndex++;
           }
 
-          // If all exercises are completed, navigate back
           router.back();
           return {
             currentSetIndices: updatedSetIndices,

@@ -23,9 +23,18 @@ export default function SetsOverviewScreen() {
   const defaultTime = 60;
   const defaultTotalSeconds = totalSeconds;
 
-  const exercise = workouts[Number(workoutIndex)]?.exercises.find(
+  const currentWorkout = workouts[Number(workoutIndex)];
+  const exercise = currentWorkout?.exercises.find(
     (ex) => ex.exercise_id === Number(exerciseId),
   );
+
+  const supersetPartner = exercise?.supersetGroupId
+    ? currentWorkout?.exercises.find(
+        (ex) =>
+          ex.exercise_id !== Number(exerciseId) &&
+          ex.supersetGroupId === exercise.supersetGroupId,
+      )
+    : null;
 
   const sets = exercise?.sets || [];
 
@@ -102,6 +111,14 @@ export default function SetsOverviewScreen() {
           title: exercise?.name,
         }}
       />
+      {supersetPartner && (
+        <View style={styles.supersetBanner}>
+          <ThemedText style={styles.supersetBannerLabel}>Superset</ThemedText>
+          <ThemedText style={styles.supersetBannerPartner}>
+            Paired with {supersetPartner.name}
+          </ThemedText>
+        </View>
+      )}
       <FlatList
         data={sets}
         renderItem={renderSetItem}
@@ -148,6 +165,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  supersetBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.dark.cardBackground,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.dark.tint,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 12,
+  },
+  supersetBannerLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.dark.tint,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  supersetBannerPartner: {
+    fontSize: 13,
+    color: Colors.dark.subText,
   },
   setItem: {
     backgroundColor: Colors.dark.cardBackground,
