@@ -15,19 +15,7 @@ import { paperTheme } from "@/utils/paperTheme";
 import { formatTimeInput } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
 import { Dropdown } from "react-native-element-dropdown";
-import SliderLib from "@react-native-community/slider";
-
-interface SliderProps {
-  style?: object;
-  minimumValue?: number;
-  maximumValue?: number;
-  step?: number;
-  value?: number;
-  onValueChange?: (value: number) => void;
-  minimumTrackTintColor?: string;
-  maximumTrackTintColor?: string;
-  thumbTintColor?: string;
-}
+import SliderLib, { SliderProps } from "@react-native-community/slider";
 const Slider = SliderLib as unknown as React.ComponentType<SliderProps>;
 
 // Utility function to format setting keys
