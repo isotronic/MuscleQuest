@@ -24,6 +24,10 @@ import { UpdateModal } from "@/components/UpdateModal";
 import { confirmStartWorkout } from "@/utils/startWorkout";
 import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
 import RestDayCard from "@/components/RestDayCard";
+import {
+  computeWeeklyTargets,
+  prioritizeScheduledWorkout,
+} from "@/utils/planHelpers";
 
 export default function HomeScreen() {
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
@@ -128,31 +132,18 @@ export default function HomeScreen() {
 
   if (activePlan) {
     const sortedWorkouts = activePlan.workouts;
-    const weeklyGoal = Number(settings?.weeklyGoal);
-    const numWorkouts = activePlan.workouts.length;
+    const weeklyGoal = Number(settings?.weeklyGoal ?? 0);
 
-    // Build per-workout targets
-    if (planScheduleEntries && planScheduleEntries.length > 0) {
-      // Count how many days each workout is scheduled this week
-      for (const entry of planScheduleEntries) {
-        const current = perWorkoutTarget.get(entry.workout_id) ?? 0;
-        perWorkoutTarget.set(entry.workout_id, current + 1);
-      }
-      // Determine if today is a rest day
-      const todayEntry = planScheduleEntries.find(
-        (e) => e.day_of_week === todayDow,
+    // Build per-workout targets and determine rest-day status
+    const { perWorkoutTarget: targets, isRestDay: restDay } =
+      computeWeeklyTargets(
+        sortedWorkouts,
+        weeklyGoal,
+        planScheduleEntries,
+        todayDow,
       );
-      isRestDay = todayEntry == null;
-    } else {
-      // No schedule: distribute weeklyGoal evenly across workouts
-      // Use floor/ceil distribution so the total exactly equals weeklyGoal
-      sortedWorkouts.forEach((workout, i) => {
-        if (workout.id == null) return;
-        const base = Math.floor(weeklyGoal / numWorkouts);
-        const extra = i < weeklyGoal % numWorkouts ? 1 : 0;
-        perWorkoutTarget.set(workout.id, Math.max(1, base + extra));
-      });
-    }
+    targets.forEach((v, k) => perWorkoutTarget.set(k, v));
+    isRestDay = restDay;
 
     // Filter completed workouts for the active plan this week
     completedWorkoutsThisPlanThisWeek =
@@ -184,50 +175,16 @@ export default function HomeScreen() {
       }
     });
 
-    // If there's a schedule, put today's (or next scheduled) workout first among uncompleted
-    if (planScheduleEntries && planScheduleEntries.length > 0) {
-      if (!isRestDay) {
-        const todayEntry = planScheduleEntries.find(
-          (e) => e.day_of_week === todayDow,
-        );
-        if (todayEntry) {
-          const todayWorkoutIdx = uncompletedWorkouts.findIndex(
-            (w) => w.id === todayEntry.workout_id,
-          );
-          if (todayWorkoutIdx > 0) {
-            const [todayWorkout] = uncompletedWorkouts.splice(
-              todayWorkoutIdx,
-              1,
-            );
-            uncompletedWorkouts.unshift(todayWorkout);
-          }
-        }
-      } else {
-        // Rest day: find the next scheduled uncompleted workout and pin it first
-        for (let i = 1; i <= 6; i++) {
-          const nextDow = (todayDow + i) % 7;
-          const nextEntry = planScheduleEntries.find(
-            (e) => e.day_of_week === nextDow,
-          );
-          if (nextEntry) {
-            const nextWorkoutIdx = uncompletedWorkouts.findIndex(
-              (w) => w.id === nextEntry.workout_id,
-            );
-            if (nextWorkoutIdx > 0) {
-              const [nextWorkout] = uncompletedWorkouts.splice(
-                nextWorkoutIdx,
-                1,
-              );
-              uncompletedWorkouts.unshift(nextWorkout);
-            }
-            break;
-          }
-        }
-      }
-    }
+    // If there's a schedule, put today's (or next scheduled) workout first
+    const orderedUncompleted = prioritizeScheduledWorkout(
+      uncompletedWorkouts,
+      planScheduleEntries,
+      todayDow,
+      isRestDay,
+    );
 
     // Combine uncompleted and completed workouts
-    workoutsToDisplay = [...uncompletedWorkouts, ...completedWorkoutsList];
+    workoutsToDisplay = [...orderedUncompleted, ...completedWorkoutsList];
   }
   return (
     <ThemedView>
