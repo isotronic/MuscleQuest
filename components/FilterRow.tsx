@@ -181,6 +181,8 @@ function FilterRow({
     );
   };
 
+  const ItemSeparator = () => <View style={styles.itemSeparator} />;
+
   return (
     <View style={styles.row}>
       <View style={styles.dropdownContainer}>
@@ -199,11 +201,7 @@ function FilterRow({
           renderItem={renderListItem}
           flatListProps={{
             nestedScrollEnabled: true,
-            ItemSeparatorComponent: () => (
-              <View
-                style={{ height: 1, backgroundColor: Colors.dark.subText }}
-              />
-            ),
+            ItemSeparatorComponent: ItemSeparator,
           }}
         />
       </View>
@@ -223,11 +221,7 @@ function FilterRow({
           renderItem={renderListItem}
           flatListProps={{
             nestedScrollEnabled: true,
-            ItemSeparatorComponent: () => (
-              <View
-                style={{ height: 1, backgroundColor: Colors.dark.subText }}
-              />
-            ),
+            ItemSeparatorComponent: ItemSeparator,
           }}
         />
       </View>
@@ -247,11 +241,7 @@ function FilterRow({
           renderItem={renderListItem}
           flatListProps={{
             nestedScrollEnabled: true,
-            ItemSeparatorComponent: () => (
-              <View
-                style={{ height: 1, backgroundColor: Colors.dark.subText }}
-              />
-            ),
+            ItemSeparatorComponent: ItemSeparator,
           }}
         />
       </View>
@@ -317,6 +307,10 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     marginLeft: 10,
+  },
+  itemSeparator: {
+    height: 1,
+    backgroundColor: Colors.dark.subText,
   },
 });
 

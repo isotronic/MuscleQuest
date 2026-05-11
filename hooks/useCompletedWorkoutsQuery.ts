@@ -6,7 +6,7 @@ interface WorkoutResult {
   id: number;
   plan_id: number;
   workout_id: number;
-  workout_name: string;
+  workout_name: string | null;
   date_completed: string;
   duration: number;
   total_sets_completed: number;
@@ -44,6 +44,8 @@ export interface CompletedWorkout {
   }[];
 }
 
+const QUICK_WORKOUT_FALLBACK = "Quick Workout";
+
 const fetchCompletedWorkouts = async (
   timeRange: number,
 ): Promise<WorkoutResult[]> => {
@@ -54,7 +56,7 @@ const fetchCompletedWorkouts = async (
         completed_workouts.id,
         completed_workouts.plan_id,
         completed_workouts.workout_id,
-        COALESCE(user_workouts.name, 'Quick Workout') AS workout_name,
+        user_workouts.name AS workout_name,
         completed_workouts.date_completed,
         completed_workouts.duration,
         completed_workouts.total_sets_completed,
@@ -133,7 +135,7 @@ const fetchAndOrganize = async (
           id,
           workout_id,
           plan_id,
-          workout_name,
+          workout_name: workout_name ?? QUICK_WORKOUT_FALLBACK,
           date_completed,
           duration,
           total_sets_completed,
@@ -206,7 +208,7 @@ const fetchWorkoutHistoryForSession = async (
         cw.id,
         cw.plan_id,
         cw.workout_id,
-        COALESCE(uw.name, 'Quick Workout') AS workout_name,
+        uw.name AS workout_name,
         cw.date_completed,
         cw.duration,
         cw.total_sets_completed,
@@ -263,7 +265,7 @@ const fetchWorkoutHistoryForSession = async (
           id,
           workout_id,
           plan_id,
-          workout_name,
+          workout_name: workout_name ?? QUICK_WORKOUT_FALLBACK,
           date_completed,
           duration,
           total_sets_completed,

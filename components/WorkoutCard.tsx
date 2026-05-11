@@ -174,6 +174,7 @@ export default function WorkoutCard({
                 size={24}
                 onPress={() => openMenu(item.exercise_id)}
                 iconColor={Colors.dark.text}
+                accessibilityLabel={`Open menu for exercise ${item.exercise_id}`}
               />
             }
           >

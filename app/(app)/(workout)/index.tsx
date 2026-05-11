@@ -97,6 +97,13 @@ export default function WorkoutOverviewScreen() {
     setMenuVisible((prev) => ({ ...prev, [index]: false }));
   };
 
+  const handleExitSaveModal = () => {
+    void cancelRestNotifications();
+    clearPersistedStore();
+    setShowSaveModal(false);
+    router.push("/(app)/(tabs)");
+  };
+
   const handleDeleteExercise = (index: number) => {
     Alert.alert(
       "Delete Exercise",
@@ -395,11 +402,7 @@ export default function WorkoutOverviewScreen() {
       <Portal>
         <Modal
           visible={showSaveModal}
-          onDismiss={() => {
-            setShowSaveModal(false);
-            clearPersistedStore();
-            router.push("/(app)/(tabs)");
-          }}
+          onDismiss={handleExitSaveModal}
           contentContainerStyle={styles.saveModal}
         >
           <ThemedText style={styles.saveModalTitle}>
@@ -417,14 +420,7 @@ export default function WorkoutOverviewScreen() {
             autoFocus
           />
           <View style={styles.saveModalButtons}>
-            <Button
-              mode="outlined"
-              onPress={() => {
-                setShowSaveModal(false);
-                clearPersistedStore();
-                router.push("/(app)/(tabs)");
-              }}
-            >
+            <Button mode="outlined" onPress={handleExitSaveModal}>
               Discard
             </Button>
             <Button
@@ -433,9 +429,15 @@ export default function WorkoutOverviewScreen() {
               onPress={async () => {
                 const name = saveWorkoutName.trim() || "Quick Workout";
                 try {
-                  const newWorkoutId = await createStandaloneWorkout(name, workout!.exercises);
+                  const newWorkoutId = await createStandaloneWorkout(
+                    name,
+                    workout!.exercises,
+                  );
                   if (lastCompletedWorkoutIdRef.current != null) {
-                    await linkCompletedWorkoutToWorkout(lastCompletedWorkoutIdRef.current, newWorkoutId);
+                    await linkCompletedWorkoutToWorkout(
+                      lastCompletedWorkoutIdRef.current,
+                      newWorkoutId,
+                    );
                   }
                   await queryClient.invalidateQueries({
                     queryKey: ["standaloneWorkouts"],
@@ -443,9 +445,7 @@ export default function WorkoutOverviewScreen() {
                   await queryClient.invalidateQueries({
                     queryKey: ["completedWorkouts"],
                   });
-                  setShowSaveModal(false);
-                  clearPersistedStore();
-                  router.push("/(app)/(tabs)");
+                  handleExitSaveModal();
                 } catch (e) {
                   Bugsnag.notify(e as Error);
                   Alert.alert(

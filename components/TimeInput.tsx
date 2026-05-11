@@ -18,8 +18,8 @@ function parseValue(value: string): { minutes: string; seconds: string } {
 }
 
 function emitValue(minutes: string, seconds: string): string {
-  const m = parseInt(minutes || "0");
-  const s = parseInt(seconds || "0");
+  const m = parseInt(minutes || "0", 10);
+  const s = parseInt(seconds || "0", 10);
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
@@ -27,7 +27,7 @@ export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
   const { minutes: initM, seconds: initS } = parseValue(value);
   const [minutes, setMinutes] = useState(initM === "0" ? "" : initM);
   const [seconds, setSeconds] = useState(initS === "00" ? "" : initS);
-  const secondsRef = useRef<{ focus: () => void }>(null);
+  const secondsRef = useRef<{ focus: () => void } | null>(null);
   const isEditingRef = useRef(false);
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -58,12 +58,12 @@ export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
 
   const handleSecondsBlur = () => {
     // Clamp and pad on blur, before unblocking external sync
-    const s = Math.min(parseInt(seconds || "0"), 59);
+    const s = Math.min(parseInt(seconds || "0", 10), 59);
     if (seconds.length === 1) {
       const padded = seconds.padStart(2, "0");
       setSeconds(padded);
       onChange(emitValue(minutes, padded));
-    } else if (s < parseInt(seconds || "0")) {
+    } else if (s < parseInt(seconds || "0", 10)) {
       const clamped = String(s);
       setSeconds(clamped);
       onChange(emitValue(minutes, clamped));

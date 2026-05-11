@@ -4,6 +4,7 @@ import {
   updateActivePlan,
   updateSettings,
 } from "@/utils/database";
+import Bugsnag from "@bugsnag/expo";
 
 export const useSetActivePlanMutation = () => {
   const queryClient = useQueryClient();
@@ -17,7 +18,13 @@ export const useSetActivePlanMutation = () => {
           await updateSettings("weeklyGoal", String(schedule.length));
           queryClient.invalidateQueries({ queryKey: ["settings"] });
         }
-      } catch (_err) {
+      } catch (err) {
+        Bugsnag.notify(err as Error, (event) => {
+          event.addMetadata("useSetActivePlanMutation", {
+            planId,
+            message: "fetchPlanSchedule/updateSettings failed",
+          });
+        });
         // Non-critical: don't block UI if schedule fetch fails
       }
       queryClient.invalidateQueries({ queryKey: ["activePlan"] });

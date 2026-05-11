@@ -101,7 +101,7 @@ export default function StatsScreen() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-  const volumeUnit = weightUnit === "lbs" ? "st" : "t";
+  const volumeUnit = weightUnit === "lbs" ? "tn" : "t";
 
   const avgSetsPerWorkout =
     totalWorkouts > 0 ? Math.round(totalSetsCompleted / totalWorkouts) : 0;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button, RadioButton, PaperProvider } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -23,6 +23,12 @@ const formatSettingKey = (key: string) => {
     .toLowerCase()
     .replace(/^./, (str) => str.toUpperCase())
     .trim();
+};
+
+const DropdownSeparator = () => <View style={dropdownSeparatorStyle} />;
+const dropdownSeparatorStyle = {
+  height: 1,
+  backgroundColor: Colors.dark.subText,
 };
 
 interface SettingsModalProps {
@@ -91,6 +97,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       seconds: seconds || 0,
     });
   };
+
+  const renderDropdownItem = useCallback(
+    (item: { label: string; value: string }) => (
+      <View
+        style={[
+          styles.dropdownItem,
+          item.value === inputValue && styles.dropdownItemSelected,
+        ]}
+      >
+        <Text style={styles.dropdownItemText}>{item.label}</Text>
+        {item.value === inputValue && (
+          <MaterialCommunityIcons
+            name="check"
+            size={18}
+            color={Colors.dark.text}
+          />
+        )}
+      </View>
+    ),
+    [inputValue],
+  );
 
   return (
     <Modal visible={visible} transparent={true} animationType="slide">
@@ -163,35 +190,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       placeholderStyle={styles.dropdownText}
                       selectedTextStyle={styles.dropdownText}
                       flatListProps={{
-                        ItemSeparatorComponent: () => (
-                          <View
-                            style={{
-                              height: 1,
-                              backgroundColor: Colors.dark.subText,
-                            }}
-                          />
-                        ),
+                        ItemSeparatorComponent: DropdownSeparator,
                       }}
-                      renderItem={(item) => (
-                        <View
-                          style={[
-                            styles.dropdownItem,
-                            item.value === inputValue &&
-                              styles.dropdownItemSelected,
-                          ]}
-                        >
-                          <Text style={styles.dropdownItemText}>
-                            {item.label}
-                          </Text>
-                          {item.value === inputValue && (
-                            <MaterialCommunityIcons
-                              name="check"
-                              size={18}
-                              color={Colors.dark.text}
-                            />
-                          )}
-                        </View>
-                      )}
+                      renderItem={renderDropdownItem}
                     />
                   </View>
                 )}

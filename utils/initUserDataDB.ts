@@ -159,8 +159,8 @@ export async function initUserDataDB() {
       day_of_week INTEGER NOT NULL, -- 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
       workout_id  INTEGER NOT NULL,
       PRIMARY KEY (plan_id, day_of_week),
-      FOREIGN KEY (plan_id)   REFERENCES user_plans(id),
-      FOREIGN KEY (workout_id) REFERENCES user_workouts(id)
+      FOREIGN KEY (plan_id)   REFERENCES user_plans(id) ON DELETE CASCADE,
+      FOREIGN KEY (workout_id) REFERENCES user_workouts(id) ON DELETE CASCADE
     );
   `);
 

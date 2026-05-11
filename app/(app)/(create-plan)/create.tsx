@@ -94,7 +94,12 @@ export default function CreatePlanScreen() {
               setPlanSchedule(schedule);
             }
           })
-          .catch(() => {
+          .catch((err) => {
+            Bugsnag.notify(err, (event) => {
+              event.addMetadata("fetchPlanSchedule", {
+                planId: existingPlan.id,
+              });
+            });
             // Non-critical: schedule defaults to empty
           });
       }

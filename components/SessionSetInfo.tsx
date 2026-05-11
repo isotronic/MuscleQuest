@@ -98,10 +98,13 @@ export default function SessionSetInfo({
   const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isHoldingRef = useRef(false);
+  const holdStartedRef = useRef(false);
 
   const startContinuousPress = useCallback((handler: () => void) => {
+    holdStartedRef.current = false;
     pressTimerRef.current = setTimeout(() => {
       isHoldingRef.current = true;
+      holdStartedRef.current = true;
       handler();
       pressIntervalRef.current = setInterval(handler, 150);
     }, 400);
@@ -116,9 +119,7 @@ export default function SessionSetInfo({
       clearInterval(pressIntervalRef.current);
       pressIntervalRef.current = null;
     }
-    setTimeout(() => {
-      isHoldingRef.current = false;
-    }, 50);
+    isHoldingRef.current = false;
   }, []);
 
   useEffect(() => {
@@ -301,7 +302,11 @@ export default function SessionSetInfo({
             <IconButton
               icon="minus"
               onPress={() => {
-                if (!isHoldingRef.current) handleWeightChange(-weightIncrement);
+                if (holdStartedRef.current) {
+                  holdStartedRef.current = false;
+                  return;
+                }
+                handleWeightChange(-weightIncrement);
               }}
               onPressIn={() =>
                 startContinuousPress(() => handleWeightChange(-weightIncrement))
@@ -322,7 +327,11 @@ export default function SessionSetInfo({
             <IconButton
               icon="plus"
               onPress={() => {
-                if (!isHoldingRef.current) handleWeightChange(weightIncrement);
+                if (holdStartedRef.current) {
+                  holdStartedRef.current = false;
+                  return;
+                }
+                handleWeightChange(weightIncrement);
               }}
               onPressIn={() =>
                 startContinuousPress(() => handleWeightChange(weightIncrement))
@@ -344,7 +353,11 @@ export default function SessionSetInfo({
             <IconButton
               icon="minus"
               onPress={() => {
-                if (!isHoldingRef.current) handleRepsChange(-1);
+                if (holdStartedRef.current) {
+                  holdStartedRef.current = false;
+                  return;
+                }
+                handleRepsChange(-1);
               }}
               onPressIn={() => startContinuousPress(() => handleRepsChange(-1))}
               onPressOut={stopContinuousPress}
@@ -363,7 +376,11 @@ export default function SessionSetInfo({
             <IconButton
               icon="plus"
               onPress={() => {
-                if (!isHoldingRef.current) handleRepsChange(1);
+                if (holdStartedRef.current) {
+                  holdStartedRef.current = false;
+                  return;
+                }
+                handleRepsChange(1);
               }}
               onPressIn={() => startContinuousPress(() => handleRepsChange(1))}
               onPressOut={stopContinuousPress}

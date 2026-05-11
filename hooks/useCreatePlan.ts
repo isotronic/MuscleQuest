@@ -48,13 +48,18 @@ export const useCreatePlan = (existingPlan?: Plan) => {
       return;
     }
 
+    let localError = false;
+    let localPlanSaved = false;
+
     try {
       let newPlanId: number | null = null;
       let savedPlanId: number;
 
       if (appPlanId || !planId) {
         newPlanId = await insertWorkoutPlan(planName, planImageUrl, workouts);
-        savedPlanId = newPlanId!;
+        if (newPlanId == null)
+          throw new Error("insertWorkoutPlan returned null");
+        savedPlanId = newPlanId;
       } else {
         await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
         savedPlanId = planId;
@@ -106,13 +111,15 @@ export const useCreatePlan = (existingPlan?: Plan) => {
       }
 
       setPlanSaved(true);
+      localPlanSaved = true;
       return newPlanId ?? undefined;
     } catch (error: any) {
       console.error("Error inserting/updating plan data:", error);
       Bugsnag.notify(error);
       setIsError(true);
+      localError = true;
     } finally {
-      if (!isError && planSaved) {
+      if (localPlanSaved && !localError) {
         clearWorkouts();
         clearPlanSchedule();
         queryClient.invalidateQueries({ queryKey: ["plans"] });

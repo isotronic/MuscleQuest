@@ -757,11 +757,20 @@ export const linkCompletedWorkoutToWorkout = async (
   completedWorkoutId: number,
   workoutId: number,
 ): Promise<void> => {
-  const db = await openDatabase("userData.db");
-  await db.runAsync(
-    `UPDATE completed_workouts SET workout_id = ? WHERE id = ?`,
-    [workoutId, completedWorkoutId],
-  );
+  try {
+    const db = await openDatabase("userData.db");
+    await db.runAsync(
+      `UPDATE completed_workouts SET workout_id = ? WHERE id = ?`,
+      [workoutId, completedWorkoutId],
+    );
+  } catch (error) {
+    console.error(
+      `Error linking completed workout ${completedWorkoutId} to workout ${workoutId}:`,
+      error,
+    );
+    Bugsnag.notify(error as Error);
+    throw error;
+  }
 };
 
 interface CompletedWorkoutRow {
@@ -1332,16 +1341,24 @@ export const savePlanSchedule = async (
   planId: number,
   entries: PlanScheduleEntry[],
 ): Promise<void> => {
-  const db = await openDatabase("userData.db");
-  await db.withExclusiveTransactionAsync(async (txn) => {
-    await txn.runAsync(`DELETE FROM plan_schedule WHERE plan_id = ?`, [planId]);
-    for (const entry of entries) {
-      await txn.runAsync(
-        `INSERT INTO plan_schedule (plan_id, day_of_week, workout_id) VALUES (?, ?, ?)`,
-        [planId, entry.day_of_week, entry.workout_id],
-      );
-    }
-  });
+  try {
+    const db = await openDatabase("userData.db");
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(`DELETE FROM plan_schedule WHERE plan_id = ?`, [
+        planId,
+      ]);
+      for (const entry of entries) {
+        await txn.runAsync(
+          `INSERT INTO plan_schedule (plan_id, day_of_week, workout_id) VALUES (?, ?, ?)`,
+          [planId, entry.day_of_week, entry.workout_id],
+        );
+      }
+    });
+  } catch (error) {
+    console.error(`Error in savePlanSchedule for planId ${planId}:`, error);
+    Bugsnag.notify(error as Error);
+    throw error;
+  }
 };
 
 // ---------- Notes ----------
