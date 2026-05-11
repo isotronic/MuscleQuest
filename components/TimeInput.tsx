@@ -23,54 +23,39 @@ function emitValue(minutes: string, seconds: string): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+function normalizeSeconds(raw: string): string {
+  const numeric = raw.replace(/[^0-9]/g, "");
+  if (!numeric) return "00";
+  const s = Math.min(parseInt(numeric, 10), 59);
+  return String(s).padStart(2, "0");
+}
+
 export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
   const { minutes: initM, seconds: initS } = parseValue(value);
   const [minutes, setMinutes] = useState(initM === "0" ? "" : initM);
   const [seconds, setSeconds] = useState(initS === "00" ? "" : initS);
   const secondsRef = useRef<{ focus: () => void } | null>(null);
-  const isEditingRef = useRef(false);
-  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
-    };
-  }, []);
+  const [isFocused, setIsFocused] = useState(false);
 
   // Only sync external value when the user is not actively editing
   useEffect(() => {
-    if (isEditingRef.current) return;
+    if (isFocused) return;
     const { minutes: m, seconds: s } = parseValue(value);
     setMinutes(m === "0" ? "" : m);
     setSeconds(s === "00" ? "" : s);
-  }, [value]);
+  }, [value, isFocused]);
 
-  const handleFocus = () => {
-    if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
-    isEditingRef.current = true;
-  };
+  const handleFocus = () => setIsFocused(true);
 
-  const handleMinutesBlur = () => {
-    blurTimerRef.current = setTimeout(() => {
-      isEditingRef.current = false;
-    }, 50);
-  };
+  const handleMinutesBlur = () => setIsFocused(false);
 
   const handleSecondsBlur = () => {
-    // Clamp and pad on blur, before unblocking external sync
-    const s = Math.min(parseInt(seconds || "0", 10), 59);
-    if (seconds.length === 1) {
-      const padded = seconds.padStart(2, "0");
-      setSeconds(padded);
-      onChange(emitValue(minutes, padded));
-    } else if (s < parseInt(seconds || "0", 10)) {
-      const clamped = String(s);
-      setSeconds(clamped);
-      onChange(emitValue(minutes, clamped));
+    const normalized = normalizeSeconds(seconds);
+    if (normalized !== seconds) {
+      setSeconds(normalized);
+      onChange(emitValue(minutes, normalized));
     }
-    blurTimerRef.current = setTimeout(() => {
-      isEditingRef.current = false;
-    }, 50);
+    setIsFocused(false);
   };
 
   const handleMinutesChange = (text: string) => {
