@@ -50,25 +50,32 @@ export function prioritizeScheduledWorkout(
 
   const result = [...uncompleted];
 
-  const pinFirst = (workoutId: number) => {
+  // Returns true if the workout was found in the uncompleted list (and is now
+  // at the front), false if it was not present (already completed / not in list).
+  const pinFirst = (workoutId: number): boolean => {
     const idx = result.findIndex((w) => w.id === workoutId);
     if (idx > 0) {
       const [w] = result.splice(idx, 1);
       result.unshift(w);
     }
+    return idx >= 0;
   };
 
   if (!isRestDay) {
     const todayEntry = schedule.find((e) => e.day_of_week === todayDow);
-    if (todayEntry) pinFirst(todayEntry.workout_id);
+    if (!todayEntry || !pinFirst(todayEntry.workout_id)) {
+      // Today's workout is already completed; fall back to the next scheduled day.
+      for (let i = 1; i <= 6; i++) {
+        const nextDow = (todayDow + i) % 7;
+        const nextEntry = schedule.find((e) => e.day_of_week === nextDow);
+        if (nextEntry && pinFirst(nextEntry.workout_id)) break;
+      }
+    }
   } else {
     for (let i = 1; i <= 6; i++) {
       const nextDow = (todayDow + i) % 7;
       const nextEntry = schedule.find((e) => e.day_of_week === nextDow);
-      if (nextEntry) {
-        pinFirst(nextEntry.workout_id);
-        break;
-      }
+      if (nextEntry && pinFirst(nextEntry.workout_id)) break;
     }
   }
 
