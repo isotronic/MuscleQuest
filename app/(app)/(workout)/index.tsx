@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   ScrollView,
@@ -32,6 +32,7 @@ import { Notes } from "@/components/Notes";
 import {
   appendExercisesToWorkout,
   createStandaloneWorkout,
+  linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -65,6 +66,7 @@ export default function WorkoutOverviewScreen() {
   }, [sessionHistory, initializeWeightAndReps]);
   const saveCompletedWorkoutMutation =
     useSaveCompletedWorkoutMutation(weightUnit);
+  const lastCompletedWorkoutIdRef = useRef<number | null>(null);
 
   useKeepScreenOn();
 
@@ -208,8 +210,9 @@ export default function WorkoutOverviewScreen() {
               exercises,
             },
             {
-              onSuccess: () => {
+              onSuccess: (completedWorkoutId) => {
                 if (isQuickWorkout) {
+                  lastCompletedWorkoutIdRef.current = completedWorkoutId;
                   setShowSaveModal(true);
                 } else if (appendedExerciseIndices.length > 0) {
                   Alert.alert(
@@ -428,9 +431,15 @@ export default function WorkoutOverviewScreen() {
               onPress={async () => {
                 const name = saveWorkoutName.trim() || "Quick Workout";
                 try {
-                  await createStandaloneWorkout(name, workout!.exercises);
+                  const newWorkoutId = await createStandaloneWorkout(name, workout!.exercises);
+                  if (lastCompletedWorkoutIdRef.current != null) {
+                    await linkCompletedWorkoutToWorkout(lastCompletedWorkoutIdRef.current, newWorkoutId);
+                  }
                   await queryClient.invalidateQueries({
                     queryKey: ["standaloneWorkouts"],
+                  });
+                  await queryClient.invalidateQueries({
+                    queryKey: ["completedWorkouts"],
                   });
                   setShowSaveModal(false);
                   clearPersistedStore();

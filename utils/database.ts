@@ -735,6 +735,7 @@ export const saveCompletedWorkout = async (
 
     // Commit transaction
     await db.execAsync("COMMIT");
+    return completedWorkoutId;
   } catch (error: any) {
     // Rollback transaction
     try {
@@ -750,6 +751,17 @@ export const saveCompletedWorkout = async (
     Bugsnag.notify(error);
     throw error;
   }
+};
+
+export const linkCompletedWorkoutToWorkout = async (
+  completedWorkoutId: number,
+  workoutId: number,
+): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  await db.runAsync(
+    `UPDATE completed_workouts SET workout_id = ? WHERE id = ?`,
+    [workoutId, completedWorkoutId],
+  );
 };
 
 interface CompletedWorkoutRow {
@@ -785,7 +797,7 @@ export const fetchCompletedWorkoutById = async (
         cw.id, 
         cw.plan_id as plan_id,
         cw.workout_id as workout_id,
-        uw.name as workout_name, 
+        COALESCE(uw.name, 'Quick Workout') as workout_name,
         cw.date_completed, 
         cw.duration, 
         cw.total_sets_completed, 
