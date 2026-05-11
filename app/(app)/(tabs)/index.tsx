@@ -24,6 +24,7 @@ import { UpdateModal } from "@/components/UpdateModal";
 import { confirmStartWorkout } from "@/utils/startWorkout";
 import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
 import RestDayCard from "@/components/RestDayCard";
+import WorkoutDoneCard from "@/components/WorkoutDoneCard";
 import {
   computeWeeklyTargets,
   prioritizeScheduledWorkout,
@@ -131,6 +132,7 @@ export default function HomeScreen() {
   let completedWorkoutsThisPlanThisWeek: CompletedWorkout[] = [];
   let workoutsToDisplay: Workout[] = [];
   let isRestDay = false;
+  let completedTodayWorkoutIds = new Set<number>();
   // Map of workoutId -> required completions per week
   const perWorkoutTarget = new Map<number, number>();
 
@@ -163,6 +165,16 @@ export default function HomeScreen() {
       completedWorkoutCounts.set(completedWorkout.workout_id, count + 1);
     });
 
+    // Track which workout IDs were completed today (for schedule prioritization)
+    const todayDateStr = today.toDateString();
+    completedTodayWorkoutIds = new Set<number>(
+      completedWorkoutsThisPlanThisWeek
+        .filter(
+          (w) => new Date(w.date_completed).toDateString() === todayDateStr,
+        )
+        .map((w) => w.workout_id),
+    );
+
     // Separate workouts into uncompleted and completed arrays
     const uncompletedWorkouts: Workout[] = [];
     const completedWorkoutsList: Workout[] = [];
@@ -185,11 +197,24 @@ export default function HomeScreen() {
       planScheduleEntries,
       todayDow,
       isRestDay,
+      completedTodayWorkoutIds,
     );
 
     // Combine uncompleted and completed workouts
     workoutsToDisplay = [...orderedUncompleted, ...completedWorkoutsList];
   }
+
+  const todayScheduledEntry = planScheduleEntries?.find(
+    (e) => e.day_of_week === todayDow,
+  );
+  const showWorkoutDoneCard =
+    !isRestDay &&
+    !!planScheduleEntries &&
+    !!activePlan &&
+    !showResumeCard &&
+    !!todayScheduledEntry &&
+    completedTodayWorkoutIds.has(todayScheduledEntry.workout_id);
+
   return (
     <ThemedView>
       <WhatsNewModal />
@@ -232,6 +257,16 @@ export default function HomeScreen() {
             <RestDayCard
               schedule={planScheduleEntries}
               workouts={activePlan.workouts}
+              todayDow={todayDow}
+            />
+          </View>
+        )}
+
+        {showWorkoutDoneCard && (
+          <View style={styles.restDayContainer}>
+            <WorkoutDoneCard
+              schedule={planScheduleEntries!}
+              workouts={activePlan!.workouts}
               todayDow={todayDow}
             />
           </View>
@@ -342,7 +377,8 @@ export default function HomeScreen() {
                             !workoutInProgress &&
                             index === 0 &&
                             !weeklyGoalReached &&
-                            !isRestDay
+                            !isRestDay &&
+                            completedTodayWorkoutIds.size === 0
                               ? "contained"
                               : "outlined"
                           }
