@@ -39,12 +39,17 @@ export function computeWeeklyTargets(
 /**
  * Returns a copy of `uncompleted` with today's scheduled workout (or the next
  * upcoming one on a rest day) moved to the front.
+ *
+ * @param completedTodayWorkoutIds - Set of workout IDs completed today. Used to
+ *   fall back to tomorrow when today's workout was already done today but still
+ *   appears in `uncompleted` because its weekly target is > 1.
  */
 export function prioritizeScheduledWorkout(
   uncompleted: Workout[],
   schedule: PlanScheduleEntry[] | null | undefined,
   todayDow: number,
   isRestDay: boolean,
+  completedTodayWorkoutIds?: Set<number>,
 ): Workout[] {
   if (!schedule || schedule.length === 0) return uncompleted;
 
@@ -63,8 +68,16 @@ export function prioritizeScheduledWorkout(
 
   if (!isRestDay) {
     const todayEntry = schedule.find((e) => e.day_of_week === todayDow);
-    if (!todayEntry || !pinFirst(todayEntry.workout_id)) {
-      // Today's workout is already completed; fall back to the next scheduled day.
+    const todayWorkoutDoneToday =
+      todayEntry != null &&
+      (completedTodayWorkoutIds?.has(todayEntry.workout_id) ?? false);
+    if (
+      !todayEntry ||
+      todayWorkoutDoneToday ||
+      !pinFirst(todayEntry.workout_id)
+    ) {
+      // Today's workout was completed today or is fully done for the week;
+      // fall back to the next scheduled day.
       for (let i = 1; i <= 6; i++) {
         const nextDow = (todayDow + i) % 7;
         const nextEntry = schedule.find((e) => e.day_of_week === nextDow);
