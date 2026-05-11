@@ -111,7 +111,7 @@ export default {
         "expo-navigation-bar",
         {
           enforceContrast: false,
-          barStyle: "dark",
+          barStyle: "light",
           backgroundColor: "#22222d",
         },
       ],
