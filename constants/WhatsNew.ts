@@ -70,6 +70,14 @@ Or start a Quick Workout from the home screen, add exercises on the fly, and opt
 You can now assign workouts to specific days of the week directly in the plan editor. Tap any day to pick a workout or mark it as a rest day. Use the auto-suggest button to instantly generate a balanced schedule based on your weekly goal.
 `,
   },
+  {
+    version: 2609,
+    message: `
+🔗 New: Supersets!
+
+Pair two exercises together as a superset directly in the plan editor. Sets are kept in sync between both exercises, and supersets are clearly grouped with a visual indicator throughout the app.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
