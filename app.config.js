@@ -4,7 +4,7 @@ export default {
   expo: {
     name: IS_DEV ? "Muscle Quest (Dev)" : "Muscle Quest",
     slug: "musclequest",
-    version: "0.20.0", // MM.mm.pp
+    version: "0.21.04", // MM.mm.pp
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "musclequest",
@@ -14,7 +14,7 @@ export default {
       bundleIdentifier: "com.isotronic.musclequest",
     },
     android: {
-      versionCode: 2000, // MMmmpp
+      versionCode: 2104, // MMmmpp
       googleServicesFile: "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/images/ic_launcher_foreground.png",
@@ -51,6 +51,7 @@ export default {
       "@bugsnag/plugin-expo-eas-sourcemaps",
       "@react-native-google-signin/google-signin",
       "@react-native-firebase/app",
+      "@react-native-firebase/app-check",
       "@react-native-firebase/auth",
       "expo-router",
       "expo-asset",
@@ -106,6 +107,14 @@ export default {
           },
         },
       ],
+      [
+        "expo-navigation-bar",
+        {
+          enforceContrast: false,
+          barStyle: "light",
+          backgroundColor: "#22222d",
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,
@@ -116,6 +125,9 @@ export default {
         origin: false,
       },
       appVariant: process.env.APP_VARIANT || "production",
+      appCheckDebugToken: IS_DEV
+        ? process.env.FIREBASE_APP_CHECK_DEBUG_TOKEN || null
+        : null,
       eas: {
         projectId: "4f7b2a94-f0e0-44df-a5e5-1b7dc95a019a",
       },

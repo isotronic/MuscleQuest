@@ -62,6 +62,14 @@ Create standalone workouts outside of your training plans — perfect for flexib
 Or start a Quick Workout from the home screen, add exercises on the fly, and optionally save it as a standalone workout when you're done.
 `,
   },
+  {
+    version: 2608,
+    message: `
+📅 New: Weekly Schedule for Your Plan!
+
+You can now assign workouts to specific days of the week directly in the plan editor. Tap any day to pick a workout or mark it as a rest day. Use the auto-suggest button to instantly generate a balanced schedule based on your weekly goal.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

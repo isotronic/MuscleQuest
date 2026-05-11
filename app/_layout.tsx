@@ -53,6 +53,7 @@ import {
   removeAsyncStorageItem,
 } from "@/utils/asyncStorage";
 import { setupNotificationChannel } from "@/utils/notificationSetup";
+import { setupAppCheck } from "@/utils/initAppCheck";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 // Initialize Bugsnag
@@ -81,6 +82,11 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 GoogleSignin.configure({
   webClientId: googleServices.client[0].oauth_client[1].client_id,
+});
+
+setupAppCheck().catch((error) => {
+  console.error(error);
+  Bugsnag.notify(error);
 });
 
 function RootLayout() {
@@ -119,6 +125,7 @@ function RootLayout() {
         setIsDatabaseInitialized(true);
       } catch (error) {
         console.error("Database initialization error:", error);
+        Bugsnag.notify(error as any);
         await Updates.reloadAsync();
       } finally {
         setIsInitializing(false);

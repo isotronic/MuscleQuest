@@ -12,7 +12,6 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
 import {
-  FAB,
   ActivityIndicator,
   Button,
   IconButton,
@@ -33,6 +32,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 import { ImageBackground } from "expo-image";
 import SaveIcon from "@/components/SaveIcon";
+import PlanScheduleEditor from "@/components/PlanScheduleEditor";
+import { fetchPlanSchedule } from "@/utils/database";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 type ScrollViewType = typeof ScrollView;
 
@@ -54,7 +56,12 @@ export default function CreatePlanScreen() {
     removeWorkout,
     reorderWorkouts,
     changeWorkoutName,
+    planSchedule,
+    setPlanSchedule,
+    clearPlanSchedule,
   } = useWorkoutStore();
+  const { data: settings } = useSettingsQuery();
+  const weeklyGoal = Number(settings?.weeklyGoal ?? 3);
   const { planName, setPlanName, planSaved, setPlanSaved, handleSavePlan } =
     useCreatePlan();
   const { data: existingPlan } = usePlanQuery(planId ? Number(planId) : null);
@@ -69,9 +76,49 @@ export default function CreatePlanScreen() {
         setWorkouts(existingPlan.workouts);
       }
 
+      // Load existing schedule and convert workout_id → array index
+      let cancelled = false;
+      if (existingPlan.id) {
+        fetchPlanSchedule(existingPlan.id)
+          .then((entries) => {
+            if (cancelled) return;
+            if (entries.length > 0 && existingPlan.workouts) {
+              const schedule: Record<number, number> = {};
+              for (const entry of entries) {
+                const idx = existingPlan.workouts.findIndex(
+                  (w) => w.id === entry.workout_id,
+                );
+                if (idx !== -1) {
+                  schedule[entry.day_of_week] = idx;
+                }
+              }
+              setPlanSchedule(schedule);
+            }
+          })
+          .catch((err) => {
+            if (cancelled) return;
+            Bugsnag.notify(err, (event) => {
+              event.addMetadata("fetchPlanSchedule", {
+                planId: existingPlan.id,
+              });
+            });
+            // Non-critical: schedule defaults to empty
+          });
+      }
+
       setDataLoaded(true);
+
+      return () => {
+        cancelled = true;
+      };
     }
-  }, [existingPlan, setPlanName, setWorkouts, setPlanImageUrl]);
+  }, [
+    existingPlan,
+    setPlanName,
+    setWorkouts,
+    setPlanImageUrl,
+    setPlanSchedule,
+  ]);
 
   // Listen for back navigation
   useEffect(() => {
@@ -82,6 +129,7 @@ export default function CreatePlanScreen() {
         queryClient.invalidateQueries({ queryKey: ["plans"] });
         queryClient.invalidateQueries({ queryKey: ["activePlan"] });
         clearWorkouts();
+        clearPlanSchedule();
         setPlanSaved(false);
         return navigation.dispatch(e.data.action);
       }
@@ -100,6 +148,7 @@ export default function CreatePlanScreen() {
             style: "destructive",
             onPress: () => {
               clearWorkouts();
+              clearPlanSchedule();
               setPlanSaved(false);
               navigation.dispatch(e.data.action);
             },
@@ -114,6 +163,7 @@ export default function CreatePlanScreen() {
     workouts,
     planName,
     clearWorkouts,
+    clearPlanSchedule,
     planSaved,
     setPlanSaved,
     queryClient,
@@ -141,7 +191,9 @@ export default function CreatePlanScreen() {
         },
         {
           text: "Remove",
-          onPress: () => removeWorkout(index),
+          onPress: () => {
+            removeWorkout(index);
+          },
           style: "destructive",
         },
       ],
@@ -255,7 +307,7 @@ export default function CreatePlanScreen() {
             </View>
             {workouts.length === 0 ? (
               <ThemedText style={styles.emptyText}>
-                Tap + to add a workout to your plan
+                Add a workout to get started
               </ThemedText>
             ) : (
               workouts.map((workout, index) => (
@@ -273,15 +325,24 @@ export default function CreatePlanScreen() {
                 />
               ))
             )}
+            <Button
+              mode="outlined"
+              icon="plus"
+              onPress={handleAddWorkout}
+              style={styles.addWorkoutButton}
+              labelStyle={styles.buttonLabel}
+            >
+              Add Workout
+            </Button>
+            <PlanScheduleEditor
+              workouts={workouts}
+              weeklyGoal={weeklyGoal}
+              schedule={planSchedule}
+              onChange={setPlanSchedule}
+            />
           </ThemedView>
         )}
       </ScrollView>
-      <FAB
-        icon="plus"
-        label="Add Workout"
-        style={styles.fab}
-        onPress={handleAddWorkout}
-      />
     </KeyboardAvoidingView>
   );
 }
@@ -334,13 +395,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.dark.text,
   },
+  addWorkoutButton: {
+    marginTop: 16,
+    borderRadius: 8,
+  },
   buttonLabel: {
     fontSize: 16,
-  },
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 15,
   },
   loadingOverlay: {
     flex: 1,

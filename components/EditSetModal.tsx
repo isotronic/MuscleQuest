@@ -383,7 +383,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     color: Colors.dark.text,
     fontSize: 18,
-    marginHorizontal: 8,
     textAlign: "center",
   },
   checkboxContainer: {

@@ -3,7 +3,6 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { Workout } from "@/store/workoutStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 
 interface StandaloneWorkoutListItemProps {
   workout: Workout;
@@ -14,26 +13,16 @@ export default function StandaloneWorkoutListItem({
   workout,
   onPress,
 }: StandaloneWorkoutListItemProps) {
-  const firstExerciseUri = workout.exercises[0]?.local_animated_uri || null;
-
   return (
     <Pressable style={styles.container} onPress={onPress}>
       <View style={styles.imageContainer}>
-        {firstExerciseUri ? (
-          <Image
-            source={{ uri: firstExerciseUri }}
-            style={styles.image}
-            contentFit="cover"
+        <View style={styles.imagePlaceholder}>
+          <MaterialCommunityIcons
+            name="weight-lifter"
+            size={32}
+            color={Colors.dark.subText}
           />
-        ) : (
-          <View style={styles.imagePlaceholder}>
-            <MaterialCommunityIcons
-              name="dumbbell"
-              size={28}
-              color={Colors.dark.subText}
-            />
-          </View>
-        )}
+        </View>
       </View>
       <View style={styles.textContainer}>
         <ThemedText style={styles.name} numberOfLines={1}>
@@ -68,10 +57,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: "hidden",
     marginRight: 14,
-  },
-  image: {
-    width: "100%",
-    height: "100%",
   },
   imagePlaceholder: {
     width: "100%",

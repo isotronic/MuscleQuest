@@ -7,8 +7,8 @@ export const setupNotificationChannel = async () => {
     handleNotification: async () => ({
       shouldPlaySound: false,
       shouldSetBadge: false,
-      shouldShowBanner: true,
-      shouldShowList: true,
+      shouldShowBanner: false,
+      shouldShowList: false,
     }),
   });
 

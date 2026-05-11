@@ -35,6 +35,8 @@ export default function WorkoutSessionScreen() {
     setCurrentExerciseIndex,
     setCurrentSetIndex,
     updateWeightAndReps,
+    adjustWeight,
+    adjustReps,
     nextSet,
     timerRunning,
     timerExpiry,
@@ -244,27 +246,11 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleWeightChange = (amount: number) => {
-    const currentWeight = isNaN(parseFloat(weight)) ? 0 : parseFloat(weight);
-    const newWeight = (currentWeight + amount).toFixed(1);
-    updateWeightAndReps(
-      currentExerciseIndex,
-      currentSetIndex,
-      newWeight,
-      reps,
-      time,
-    );
+    adjustWeight(currentExerciseIndex, currentSetIndex, amount);
   };
 
   const handleRepsChange = (amount: number) => {
-    const currentReps = isNaN(parseInt(reps)) ? 0 : parseInt(reps);
-    const newReps = (currentReps + amount).toString();
-    updateWeightAndReps(
-      currentExerciseIndex,
-      currentSetIndex,
-      weight,
-      newReps,
-      time,
-    );
+    adjustReps(currentExerciseIndex, currentSetIndex, amount);
   };
 
   const handleRemoveSet = (index: number) => {
@@ -394,7 +380,8 @@ export default function WorkoutSessionScreen() {
       // Update state immediately without animation
       nextSet();
     } else {
-      // No next set, workout completed
+      // No next set, workout completed — cancel any pending rest notification
+      void cancelRestNotifications();
       nextSet();
     }
   };
@@ -506,7 +493,8 @@ const styles = StyleSheet.create({
     right: 16,
     left: 16,
     width: "100%",
-    height: 70,
+    paddingTop: 8,
+    paddingBottom: 8,
     backgroundColor: Colors.dark.cardBackground,
     alignItems: "center",
     justifyContent: "center",
@@ -528,5 +516,6 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     textAlign: "center",
     lineHeight: 32,
+    marginBottom: 8,
   },
 });

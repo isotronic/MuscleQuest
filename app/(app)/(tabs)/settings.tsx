@@ -76,7 +76,7 @@ export default function SettingsScreen() {
     string | number | { minutes: number; seconds: number }
   >("");
   const [settingType, setSettingType] = useState<
-    "number" | "radio" | "dropdown" | "restTime" | null
+    "number" | "radio" | "dropdown" | "restTime" | "slider" | null
   >(null);
   const [options, setOptions] = useState<string[] | undefined>(undefined);
 
@@ -117,7 +117,7 @@ export default function SettingsScreen() {
   const showOverlay = (
     key: string,
     value: string | number,
-    type: "number" | "radio" | "dropdown" | "restTime",
+    type: "number" | "radio" | "dropdown" | "restTime" | "slider",
     options?: string[],
   ) => {
     if (key === "defaultRestTime") {
@@ -351,12 +351,7 @@ export default function SettingsScreen() {
           <TouchableOpacity
             style={styles.item}
             onPress={() =>
-              showOverlay(
-                "weeklyGoal",
-                settings?.weeklyGoal || "",
-                "dropdown",
-                ["1", "2", "3", "4", "5", "6", "7"],
-              )
+              showOverlay("weeklyGoal", settings?.weeklyGoal || "1", "slider")
             }
           >
             <MaterialCommunityIcons
@@ -858,6 +853,22 @@ export default function SettingsScreen() {
               <ThemedText style={styles.itemText}>
                 Request or vote for new features
               </ThemedText>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() =>
+              Linking.openURL("https://buymeacoffee.com/musclequest")
+            }
+          >
+            <MaterialCommunityIcons
+              name="coffee"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>Buy me a coffee</ThemedText>
             </View>
           </TouchableOpacity>
           <TouchableOpacity

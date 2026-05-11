@@ -6,7 +6,7 @@ interface WorkoutResult {
   id: number;
   plan_id: number;
   workout_id: number;
-  workout_name: string;
+  workout_name: string | null;
   date_completed: string;
   duration: number;
   total_sets_completed: number;
@@ -43,6 +43,8 @@ export interface CompletedWorkout {
     }[];
   }[];
 }
+
+const QUICK_WORKOUT_FALLBACK = "Quick Workout";
 
 const fetchCompletedWorkouts = async (
   timeRange: number,
@@ -133,7 +135,7 @@ const fetchAndOrganize = async (
           id,
           workout_id,
           plan_id,
-          workout_name,
+          workout_name: workout_name ?? QUICK_WORKOUT_FALLBACK,
           date_completed,
           duration,
           total_sets_completed,
@@ -263,7 +265,7 @@ const fetchWorkoutHistoryForSession = async (
           id,
           workout_id,
           plan_id,
-          workout_name,
+          workout_name: workout_name ?? QUICK_WORKOUT_FALLBACK,
           date_completed,
           duration,
           total_sets_completed,

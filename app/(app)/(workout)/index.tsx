@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   ScrollView,
@@ -32,7 +32,9 @@ import { Notes } from "@/components/Notes";
 import {
   appendExercisesToWorkout,
   createStandaloneWorkout,
+  linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
+import { cancelRestNotifications } from "@/utils/restNotification";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function WorkoutOverviewScreen() {
@@ -65,6 +67,7 @@ export default function WorkoutOverviewScreen() {
   }, [sessionHistory, initializeWeightAndReps]);
   const saveCompletedWorkoutMutation =
     useSaveCompletedWorkoutMutation(weightUnit);
+  const lastCompletedWorkoutIdRef = useRef<number | null>(null);
 
   useKeepScreenOn();
 
@@ -92,6 +95,13 @@ export default function WorkoutOverviewScreen() {
 
   const handleMenuClose = (index: number) => {
     setMenuVisible((prev) => ({ ...prev, [index]: false }));
+  };
+
+  const handleExitSaveModal = () => {
+    void cancelRestNotifications();
+    clearPersistedStore();
+    setShowSaveModal(false);
+    router.push("/(app)/(tabs)");
   };
 
   const handleDeleteExercise = (index: number) => {
@@ -208,8 +218,9 @@ export default function WorkoutOverviewScreen() {
               exercises,
             },
             {
-              onSuccess: () => {
+              onSuccess: (completedWorkoutId) => {
                 if (isQuickWorkout) {
+                  lastCompletedWorkoutIdRef.current = completedWorkoutId;
                   setShowSaveModal(true);
                 } else if (appendedExerciseIndices.length > 0) {
                   Alert.alert(
@@ -293,6 +304,7 @@ export default function WorkoutOverviewScreen() {
           text: "Yes",
           style: "destructive",
           onPress: () => {
+            void cancelRestNotifications();
             clearPersistedStore();
             // Navigate back to the main screen or home screen
             router.push("/(app)/(tabs)");
@@ -390,11 +402,7 @@ export default function WorkoutOverviewScreen() {
       <Portal>
         <Modal
           visible={showSaveModal}
-          onDismiss={() => {
-            setShowSaveModal(false);
-            clearPersistedStore();
-            router.push("/(app)/(tabs)");
-          }}
+          onDismiss={handleExitSaveModal}
           contentContainerStyle={styles.saveModal}
         >
           <ThemedText style={styles.saveModalTitle}>
@@ -412,14 +420,7 @@ export default function WorkoutOverviewScreen() {
             autoFocus
           />
           <View style={styles.saveModalButtons}>
-            <Button
-              mode="outlined"
-              onPress={() => {
-                setShowSaveModal(false);
-                clearPersistedStore();
-                router.push("/(app)/(tabs)");
-              }}
-            >
+            <Button mode="outlined" onPress={handleExitSaveModal}>
               Discard
             </Button>
             <Button
@@ -428,13 +429,23 @@ export default function WorkoutOverviewScreen() {
               onPress={async () => {
                 const name = saveWorkoutName.trim() || "Quick Workout";
                 try {
-                  await createStandaloneWorkout(name, workout!.exercises);
+                  const newWorkoutId = await createStandaloneWorkout(
+                    name,
+                    workout!.exercises,
+                  );
+                  if (lastCompletedWorkoutIdRef.current != null) {
+                    await linkCompletedWorkoutToWorkout(
+                      lastCompletedWorkoutIdRef.current,
+                      newWorkoutId,
+                    );
+                  }
                   await queryClient.invalidateQueries({
                     queryKey: ["standaloneWorkouts"],
                   });
-                  setShowSaveModal(false);
-                  clearPersistedStore();
-                  router.push("/(app)/(tabs)");
+                  await queryClient.invalidateQueries({
+                    queryKey: ["completedWorkouts"],
+                  });
+                  handleExitSaveModal();
                 } catch (e) {
                   Bugsnag.notify(e as Error);
                   Alert.alert(

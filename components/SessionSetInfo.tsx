@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import {
   IconButton,
@@ -14,6 +14,7 @@ import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatFromTotalSeconds, formatTimeInput } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
+import { useContinuousPress } from "@/hooks/useContinuousPress";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -94,6 +95,25 @@ export default function SessionSetInfo({
 }: SessionSetInfoProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [timeInput, setTimeInput] = useState(time);
+
+  const weightMinusPress = useContinuousPress(
+    useCallback(
+      () => handleWeightChange(-weightIncrement),
+      [handleWeightChange, weightIncrement],
+    ),
+  );
+  const weightPlusPress = useContinuousPress(
+    useCallback(
+      () => handleWeightChange(weightIncrement),
+      [handleWeightChange, weightIncrement],
+    ),
+  );
+  const repsMinusPress = useContinuousPress(
+    useCallback(() => handleRepsChange(-1), [handleRepsChange]),
+  );
+  const repsPlusPress = useContinuousPress(
+    useCallback(() => handleRepsChange(1), [handleRepsChange]),
+  );
 
   // Update timeInput when time prop changes
   useEffect(() => {
@@ -266,7 +286,7 @@ export default function SessionSetInfo({
           <View style={styles.inputContainer}>
             <IconButton
               icon="minus"
-              onPress={() => handleWeightChange(-weightIncrement)}
+              {...weightMinusPress}
               size={buttonSize}
               iconColor={Colors.dark.text}
               style={styles.iconButton}
@@ -281,7 +301,7 @@ export default function SessionSetInfo({
             />
             <IconButton
               icon="plus"
-              onPress={() => handleWeightChange(weightIncrement)}
+              {...weightPlusPress}
               size={buttonSize}
               iconColor={Colors.dark.text}
               style={styles.iconButton}
@@ -297,7 +317,7 @@ export default function SessionSetInfo({
           <View style={styles.inputContainer}>
             <IconButton
               icon="minus"
-              onPress={() => handleRepsChange(-1)}
+              {...repsMinusPress}
               size={buttonSize}
               iconColor={Colors.dark.text}
               style={styles.iconButton}
@@ -312,7 +332,7 @@ export default function SessionSetInfo({
             />
             <IconButton
               icon="plus"
-              onPress={() => handleRepsChange(1)}
+              {...repsPlusPress}
               size={buttonSize}
               iconColor={Colors.dark.text}
               style={styles.iconButton}

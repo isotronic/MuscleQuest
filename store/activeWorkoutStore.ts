@@ -31,7 +31,11 @@ function reindexAfterRemoval<T>(
 }
 
 interface ActiveWorkoutStore {
-  activeWorkout: { planId: number | null; workoutId: number | null; name: string } | null;
+  activeWorkout: {
+    planId: number | null;
+    workoutId: number | null;
+    name: string;
+  } | null;
   workout: Workout | null;
   originalWorkout: Workout | null;
   isQuickWorkout: boolean;
@@ -70,6 +74,12 @@ interface ActiveWorkoutStore {
     reps?: string,
     time?: string,
   ) => void;
+  adjustWeight: (
+    exerciseIndex: number,
+    setIndex: number,
+    amount: number,
+  ) => void;
+  adjustReps: (exerciseIndex: number, setIndex: number, amount: number) => void;
   initializeWeightAndReps: (completedWorkouts: CompletedWorkout[]) => void;
   replaceExercise: (index: number, newExercise: UserExercise) => void;
   deleteExercise: (index: number) => void;
@@ -118,7 +128,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
 
       startQuickWorkout: () =>
         set({
-          activeWorkout: { planId: null, workoutId: null, name: "Quick Workout" },
+          activeWorkout: {
+            planId: null,
+            workoutId: null,
+            name: "Quick Workout",
+          },
           workout: { id: 0, name: "Quick Workout", exercises: [] },
           originalWorkout: { id: 0, name: "Quick Workout", exercises: [] },
           isQuickWorkout: true,
@@ -471,6 +485,44 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               [exerciseIndex]: {
                 ...exerciseData,
                 [setIndex]: updatedValues,
+              },
+            },
+          };
+        }),
+
+      adjustWeight: (exerciseIndex: number, setIndex: number, amount: number) =>
+        set((state) => {
+          const exerciseData = state.weightAndReps[exerciseIndex] || {};
+          const currentSet = exerciseData[setIndex] || {};
+          const currentWeight = isNaN(parseFloat(currentSet.weight ?? ""))
+            ? 0
+            : parseFloat(currentSet.weight ?? "0");
+          const newWeight = Math.max(0, currentWeight + amount).toFixed(1);
+          return {
+            weightAndReps: {
+              ...state.weightAndReps,
+              [exerciseIndex]: {
+                ...exerciseData,
+                [setIndex]: { ...currentSet, weight: newWeight },
+              },
+            },
+          };
+        }),
+
+      adjustReps: (exerciseIndex: number, setIndex: number, amount: number) =>
+        set((state) => {
+          const exerciseData = state.weightAndReps[exerciseIndex] || {};
+          const currentSet = exerciseData[setIndex] || {};
+          const currentReps = isNaN(parseInt(currentSet.reps ?? ""))
+            ? 0
+            : parseInt(currentSet.reps ?? "0");
+          const newReps = Math.max(0, currentReps + amount).toString();
+          return {
+            weightAndReps: {
+              ...state.weightAndReps,
+              [exerciseIndex]: {
+                ...exerciseData,
+                [setIndex]: { ...currentSet, reps: newReps },
               },
             },
           };

@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import { View, TextInput, StyleSheet } from "react-native";
 import { Button, ActivityIndicator } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
-import { router, Stack } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
@@ -165,21 +164,6 @@ export default function ExercisesScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <Button
-              mode={selectedExercises.length > 0 ? "contained" : "outlined"}
-              compact
-              disabled={selectedExercises.length === 0}
-              onPressIn={handleAddExercise}
-              labelStyle={styles.addButtonLabel}
-            >
-              Track Exercises ({selectedExercises.length})
-            </Button>
-          ),
-        }}
-      />
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -209,6 +193,18 @@ export default function ExercisesScreen() {
           });
         }}
       />
+      <View style={styles.bottomButtons}>
+        <Button
+          mode="contained"
+          compact
+          disabled={selectedExercises.length === 0}
+          style={styles.bottomButton}
+          labelStyle={styles.addButtonLabel}
+          onPressIn={handleAddExercise}
+        >
+          Track ({selectedExercises.length})
+        </Button>
+      </View>
     </ThemedView>
   );
 }
@@ -244,5 +240,18 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     color: "#FF6F61",
+  },
+  bottomButtons: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: Colors.dark.screenBackground,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  bottomButton: {
+    borderRadius: 8,
   },
 });

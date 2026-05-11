@@ -65,6 +65,11 @@ interface WorkoutStore {
     exerciseId: number,
     setIndex: number,
   ) => void;
+  // Schedule state (day_of_week 0-6 -> workout array index)
+  planSchedule: Record<number, number>;
+  setPlanSchedule: (schedule: Record<number, number>) => void;
+  clearPlanSchedule: () => void;
+  syncScheduleOnRemoveWorkout: (removedIndex: number) => void;
 }
 
 const useWorkoutStore = create<WorkoutStore>((set) => ({
@@ -79,10 +84,17 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
   addWorkout: (workout) =>
     set((state) => ({ ...state, workouts: [...state.workouts, workout] })),
   removeWorkout: (index) =>
-    set((state) => ({
-      ...state,
-      workouts: state.workouts.filter((_, i) => i !== index),
-    })),
+    set((state) => {
+      const workouts = state.workouts.filter((_, i) => i !== index);
+      const planSchedule: Record<number, number> = {};
+      for (const [day, idx] of Object.entries(state.planSchedule)) {
+        const workoutIdx = Number(idx);
+        if (workoutIdx === index) continue;
+        planSchedule[Number(day)] =
+          workoutIdx > index ? workoutIdx - 1 : workoutIdx;
+      }
+      return { workouts, planSchedule };
+    }),
   reorderWorkouts: (fromIndex, toIndex) =>
     set((state) => {
       const { length } = state.workouts;
@@ -98,7 +110,32 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
       const updated = [...state.workouts];
       const [moved] = updated.splice(fromIndex, 1);
       updated.splice(toIndex, 0, moved);
-      return { ...state, workouts: updated };
+
+      // Remap schedule day → index entries to reflect the new workout order
+      const remappedSchedule: Record<number, number> = {};
+      for (const [day, idx] of Object.entries(state.planSchedule)) {
+        const dayKey = Number(day);
+        const workoutIdx = Number(idx);
+        if (workoutIdx === fromIndex) {
+          remappedSchedule[dayKey] = toIndex;
+        } else if (
+          fromIndex < toIndex &&
+          workoutIdx > fromIndex &&
+          workoutIdx <= toIndex
+        ) {
+          remappedSchedule[dayKey] = workoutIdx - 1;
+        } else if (
+          fromIndex > toIndex &&
+          workoutIdx >= toIndex &&
+          workoutIdx < fromIndex
+        ) {
+          remappedSchedule[dayKey] = workoutIdx + 1;
+        } else {
+          remappedSchedule[dayKey] = workoutIdx;
+        }
+      }
+
+      return { ...state, workouts: updated, planSchedule: remappedSchedule };
     }),
   changeWorkoutName: (index, name) =>
     set((state) => ({
@@ -268,6 +305,40 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
       return { workouts };
     });
   },
+  // Schedule actions
+  planSchedule: {},
+  setPlanSchedule: (schedule) =>
+    set((state) => {
+      const numWorkouts = state.workouts.length;
+      const validated: Record<number, number> = {};
+      for (const [day, idx] of Object.entries(schedule)) {
+        const dayKey = Number(day);
+        const workoutIdx = Number(idx);
+        if (
+          Number.isInteger(dayKey) &&
+          dayKey >= 0 &&
+          dayKey <= 6 &&
+          Number.isInteger(workoutIdx) &&
+          workoutIdx >= 0 &&
+          workoutIdx < numWorkouts
+        ) {
+          validated[dayKey] = workoutIdx;
+        }
+      }
+      return { planSchedule: validated };
+    }),
+  clearPlanSchedule: () => set({ planSchedule: {} }),
+  syncScheduleOnRemoveWorkout: (removedIndex) =>
+    set((state) => {
+      const updated: Record<number, number> = {};
+      for (const [day, idx] of Object.entries(state.planSchedule)) {
+        const workoutIdx = Number(idx);
+        if (workoutIdx === removedIndex) continue; // drop this day
+        updated[Number(day)] =
+          workoutIdx > removedIndex ? workoutIdx - 1 : workoutIdx;
+      }
+      return { planSchedule: updated };
+    }),
 }));
 
 export { useWorkoutStore };

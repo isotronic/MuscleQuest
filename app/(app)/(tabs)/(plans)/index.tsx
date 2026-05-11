@@ -2,9 +2,9 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { useEffect } from "react";
-import { router } from "expo-router";
+import { router, Stack } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, FAB } from "react-native-paper";
+import { ActivityIndicator, Button } from "react-native-paper";
 import { useAllPlansQuery, Plan } from "@/hooks/useAllPlansQuery";
 import { PlanList } from "@/components/PlanList";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
@@ -61,7 +61,31 @@ export default function PlansScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <View style={styles.headerButtons}>
+              <Button
+                mode="outlined"
+                contentStyle={styles.buttonContent}
+                labelStyle={styles.buttonLabel}
+                onPress={handleCreateWorkout}
+              >
+                New Workout
+              </Button>
+              <Button
+                mode="contained"
+                contentStyle={styles.buttonContent}
+                labelStyle={styles.buttonLabel}
+                onPress={handleCreatePlan}
+              >
+                New Plan
+              </Button>
+            </View>
+          ),
+        }}
+      />
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <PlanList
           title="Your training plans"
           data={plans?.userPlans}
@@ -93,20 +117,6 @@ export default function PlansScreen() {
           )}
         </View>
       </ScrollView>
-      <FAB
-        icon="dumbbell"
-        label="Create Workout"
-        theme={{ colors: { primary: Colors.dark.tint } }}
-        style={styles.fabLeft}
-        onPress={handleCreateWorkout}
-      />
-      <FAB
-        icon="plus"
-        label="Create Plan"
-        theme={{ colors: { primary: Colors.dark.tint } }}
-        style={styles.fab}
-        onPress={handleCreatePlan}
-      />
     </ThemedView>
   );
 }
@@ -135,14 +145,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     color: Colors.dark.text,
   },
-  fabLeft: {
-    position: "absolute",
-    left: 20,
-    bottom: 15,
+  headerButtons: {
+    flexDirection: "row",
+    gap: 8,
+    marginRight: 4,
   },
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 15,
+  buttonContent: {
+    height: 34,
+  },
+  buttonLabel: {
+    fontSize: 14,
+    marginVertical: 0,
   },
 });
