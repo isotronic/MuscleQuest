@@ -493,8 +493,8 @@ const styles = StyleSheet.create({
     right: 16,
     left: 16,
     width: "100%",
-    paddingTop: 16,
-    paddingBottom: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
     backgroundColor: Colors.dark.cardBackground,
     alignItems: "center",
     justifyContent: "center",
@@ -516,5 +516,6 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     textAlign: "center",
     lineHeight: 32,
+    marginBottom: 8,
   },
 });
