@@ -40,6 +40,7 @@
     "@gorhom/bottom-sheet": "^5.0.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/netinfo": "11.4.1",
+    "@react-native-community/slider": "5.0.1",
     "@react-native-firebase/ai": "23.8.8",
     "@react-native-firebase/analytics": "^23.8.8",
     "@react-native-firebase/app": "^23.8.8",

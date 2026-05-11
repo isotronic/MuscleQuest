@@ -15,6 +15,20 @@ import { paperTheme } from "@/utils/paperTheme";
 import { formatTimeInput } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
 import { Dropdown } from "react-native-element-dropdown";
+import SliderLib from "@react-native-community/slider";
+
+interface SliderProps {
+  style?: object;
+  minimumValue?: number;
+  maximumValue?: number;
+  step?: number;
+  value?: number;
+  onValueChange?: (value: number) => void;
+  minimumTrackTintColor?: string;
+  maximumTrackTintColor?: string;
+  thumbTintColor?: string;
+}
+const Slider = SliderLib as unknown as React.ComponentType<SliderProps>;
 
 // Utility function to format setting keys
 const formatSettingKey = (key: string) => {
@@ -42,7 +56,10 @@ interface SettingsModalProps {
   onChangeValue: (
     value: string | number | { minutes: number; seconds: number },
   ) => void;
-  settingType: "number" | "radio" | "dropdown" | "restTime" | null;
+  settingType: "number" | "radio" | "dropdown" | "restTime" | "slider" | null;
+  sliderMin?: number;
+  sliderMax?: number;
+  sliderStep?: number;
   options?: string[];
 }
 
@@ -55,6 +72,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onChangeValue,
   settingType,
   options,
+  sliderMin = 1,
+  sliderMax = 7,
+  sliderStep = 1,
 }) => {
   const [timeInput, setTimeInput] = useState("");
 
@@ -194,6 +214,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       }}
                       renderItem={renderDropdownItem}
                     />
+                  </View>
+                )}
+
+                {settingType === "slider" && (
+                  <View style={styles.sliderWrapper}>
+                    <ThemedText style={styles.sliderValue}>
+                      {Number(inputValue)}
+                    </ThemedText>
+                    <Slider
+                      style={styles.slider}
+                      minimumValue={sliderMin}
+                      maximumValue={sliderMax}
+                      step={sliderStep}
+                      value={Number(inputValue)}
+                      onValueChange={(val: number) => onChangeValue(val)}
+                      minimumTrackTintColor={Colors.dark.tint}
+                      maximumTrackTintColor={Colors.dark.icon}
+                      thumbTintColor={Colors.dark.tint}
+                    />
+                    <View style={styles.sliderLabels}>
+                      <ThemedText style={styles.sliderLabelText}>
+                        {sliderMin}
+                      </ThemedText>
+                      <ThemedText style={styles.sliderLabelText}>
+                        {sliderMax}
+                      </ThemedText>
+                    </View>
                   </View>
                 )}
 
@@ -351,5 +398,30 @@ const styles = StyleSheet.create({
   dropdownItemText: {
     color: Colors.dark.text,
     fontSize: 16,
+  },
+  sliderWrapper: {
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  sliderValue: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: Colors.dark.tint,
+    marginBottom: 8,
+  },
+  slider: {
+    width: "100%",
+    height: 40,
+  },
+  sliderLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    paddingHorizontal: 4,
+  },
+  sliderLabelText: {
+    fontSize: 12,
+    color: Colors.dark.subText,
   },
 });

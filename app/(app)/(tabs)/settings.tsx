@@ -76,7 +76,7 @@ export default function SettingsScreen() {
     string | number | { minutes: number; seconds: number }
   >("");
   const [settingType, setSettingType] = useState<
-    "number" | "radio" | "dropdown" | "restTime" | null
+    "number" | "radio" | "dropdown" | "restTime" | "slider" | null
   >(null);
   const [options, setOptions] = useState<string[] | undefined>(undefined);
 
@@ -117,7 +117,7 @@ export default function SettingsScreen() {
   const showOverlay = (
     key: string,
     value: string | number,
-    type: "number" | "radio" | "dropdown" | "restTime",
+    type: "number" | "radio" | "dropdown" | "restTime" | "slider",
     options?: string[],
   ) => {
     if (key === "defaultRestTime") {
@@ -351,12 +351,7 @@ export default function SettingsScreen() {
           <TouchableOpacity
             style={styles.item}
             onPress={() =>
-              showOverlay(
-                "weeklyGoal",
-                settings?.weeklyGoal || "",
-                "dropdown",
-                ["1", "2", "3", "4", "5", "6", "7"],
-              )
+              showOverlay("weeklyGoal", settings?.weeklyGoal || "1", "slider")
             }
           >
             <MaterialCommunityIcons
