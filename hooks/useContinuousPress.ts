@@ -27,13 +27,14 @@ export function useContinuousPress(
   }, []);
 
   const onPressIn = useCallback(() => {
+    stop();
     holdStartedRef.current = false;
     pressTimerRef.current = setTimeout(() => {
       holdStartedRef.current = true;
       action();
       pressIntervalRef.current = setInterval(action, interval);
     }, delay);
-  }, [action, delay, interval]);
+  }, [action, delay, interval, stop]);
 
   const onPressOut = useCallback(() => {
     stop();
