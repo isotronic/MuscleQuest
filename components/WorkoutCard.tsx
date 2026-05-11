@@ -226,7 +226,7 @@ export default function WorkoutCard({
     <Card style={styles.workoutCard}>
       {!isStandalone && (
         <View style={styles.workoutHeader}>
-          <ThemedText style={styles.workoutDay}>Day {index + 1}</ThemedText>
+          <ThemedText style={styles.workoutDay}>Workout {index + 1}</ThemedText>
           <View style={styles.workoutHeaderActions}>
             <MaterialCommunityIcons
               name="chevron-up"

@@ -394,7 +394,7 @@ export default function HomeScreen() {
                                   JSON.parse(JSON.stringify(workout)),
                                   activePlan.id!,
                                   workout.id!,
-                                  workout.name || `Day ${index + 1}`,
+                                  workout.name || `Workout ${index + 1}`,
                                 );
                             });
                           }}
