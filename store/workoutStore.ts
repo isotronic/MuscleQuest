@@ -103,7 +103,32 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
       const updated = [...state.workouts];
       const [moved] = updated.splice(fromIndex, 1);
       updated.splice(toIndex, 0, moved);
-      return { ...state, workouts: updated };
+
+      // Remap schedule day → index entries to reflect the new workout order
+      const remappedSchedule: Record<number, number> = {};
+      for (const [day, idx] of Object.entries(state.planSchedule)) {
+        const dayKey = Number(day);
+        const workoutIdx = Number(idx);
+        if (workoutIdx === fromIndex) {
+          remappedSchedule[dayKey] = toIndex;
+        } else if (
+          fromIndex < toIndex &&
+          workoutIdx > fromIndex &&
+          workoutIdx <= toIndex
+        ) {
+          remappedSchedule[dayKey] = workoutIdx - 1;
+        } else if (
+          fromIndex > toIndex &&
+          workoutIdx >= toIndex &&
+          workoutIdx < fromIndex
+        ) {
+          remappedSchedule[dayKey] = workoutIdx + 1;
+        } else {
+          remappedSchedule[dayKey] = workoutIdx;
+        }
+      }
+
+      return { ...state, workouts: updated, planSchedule: remappedSchedule };
     }),
   changeWorkoutName: (index, name) =>
     set((state) => ({
