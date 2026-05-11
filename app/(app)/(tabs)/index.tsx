@@ -54,9 +54,8 @@ export default function HomeScreen() {
     error: completedWorkoutsError,
   } = useCompletedWorkoutsQuery(weightUnit);
 
-  const { data: planScheduleEntries } = usePlanScheduleQuery(
-    activePlan?.id ?? null,
-  );
+  const { data: planScheduleEntries, isLoading: planScheduleLoading } =
+    usePlanScheduleQuery(activePlan?.id ?? null);
 
   const activeWorkout = useActiveWorkoutStore((state) => state.activeWorkout);
   const workoutInProgress = useActiveWorkoutStore((state) =>
@@ -99,7 +98,12 @@ export default function HomeScreen() {
   const weeklyGoalReached =
     uniqueWorkoutDaysCount === Number(settings?.weeklyGoal);
 
-  if (activePlanLoading || settingsLoading || completedWorkoutsLoading) {
+  if (
+    activePlanLoading ||
+    settingsLoading ||
+    completedWorkoutsLoading ||
+    (!!activePlan && planScheduleLoading)
+  ) {
     return (
       <ThemedView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.dark.text} />
@@ -164,7 +168,7 @@ export default function HomeScreen() {
     const completedWorkoutsList: Workout[] = [];
 
     sortedWorkouts.forEach((workout) => {
-      const target = perWorkoutTarget.get(workout.id!) ?? 1;
+      const target = perWorkoutTarget.get(workout.id!) ?? 0;
       const completedTimes = completedWorkoutCounts.get(workout.id!) || 0;
       const workoutCompleted = completedTimes >= target;
 
@@ -283,7 +287,7 @@ export default function HomeScreen() {
               </ThemedText>
 
               {workoutsToDisplay.map((workout, index) => {
-                const target = perWorkoutTarget.get(workout.id!) ?? 1;
+                const target = perWorkoutTarget.get(workout.id!) ?? 0;
 
                 // Filter to check how many times this specific workout has been completed this week
                 const completedTimes =
@@ -343,7 +347,7 @@ export default function HomeScreen() {
                               : "outlined"
                           }
                           onPress={() => {
-                            if (isStartingWorkout) return;
+                            if (isStartingWorkout || isRestDay) return;
                             confirmStartWorkout(setIsStartingWorkout, () => {
                               useActiveWorkoutStore
                                 .getState()
@@ -351,12 +355,13 @@ export default function HomeScreen() {
                                   JSON.parse(JSON.stringify(workout)),
                                   activePlan.id!,
                                   workout.id!,
-                                  workout.name || `Workout ${index + 1}`,
+                                  workout.name ||
+                                    `Workout ${originalIndex + 1}`,
                                 );
                             });
                           }}
                           labelStyle={styles.smallButtonLabel}
-                          disabled={isStartingWorkout}
+                          disabled={isStartingWorkout || isRestDay}
                         >
                           Start
                         </Button>
