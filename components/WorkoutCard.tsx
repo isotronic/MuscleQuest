@@ -164,43 +164,43 @@ export default function WorkoutCard({
                     : ""}
               </ThemedText>
             </View>
-            <Menu
-              visible={isMenuOpen}
-              onDismiss={closeMenu}
-              anchor={
-                <IconButton
-                  icon="dots-vertical"
-                  size={24}
-                  onPress={() => openMenu(item.exercise_id)}
-                  iconColor={Colors.dark.text}
-                />
-              }
-            >
-              <Menu.Item
-                onPress={() => {
-                  closeMenu();
-                  removeExercise(item.exercise_id);
-                }}
-                title="Delete"
-              />
-              <Menu.Item
-                onPress={() => {
-                  closeMenu();
-                  handleReplace(exerciseIndex);
-                }}
-                title="Replace"
-              />
-              <Menu.Item
-                onPress={() => {
-                  closeMenu();
-                  router.push(
-                    `/(app)/exercise-details?exercise_id=${item.exercise_id}`,
-                  );
-                }}
-                title="View Details"
-              />
-            </Menu>
           </Sortable.Touchable>
+          <Menu
+            visible={isMenuOpen}
+            onDismiss={closeMenu}
+            anchor={
+              <IconButton
+                icon="dots-vertical"
+                size={24}
+                onPress={() => openMenu(item.exercise_id)}
+                iconColor={Colors.dark.text}
+              />
+            }
+          >
+            <Menu.Item
+              onPress={() => {
+                closeMenu();
+                removeExercise(item.exercise_id);
+              }}
+              title="Delete"
+            />
+            <Menu.Item
+              onPress={() => {
+                closeMenu();
+                handleReplace(exerciseIndex);
+              }}
+              title="Replace"
+            />
+            <Menu.Item
+              onPress={() => {
+                closeMenu();
+                router.push(
+                  `/(app)/exercise-details?exercise_id=${item.exercise_id}`,
+                );
+              }}
+              title="View Details"
+            />
+          </Menu>
         </View>
       );
     },
