@@ -77,9 +77,11 @@ export default function CreatePlanScreen() {
       }
 
       // Load existing schedule and convert workout_id → array index
+      let cancelled = false;
       if (existingPlan.id) {
         fetchPlanSchedule(existingPlan.id)
           .then((entries) => {
+            if (cancelled) return;
             if (entries.length > 0 && existingPlan.workouts) {
               const schedule: Record<number, number> = {};
               for (const entry of entries) {
@@ -94,6 +96,7 @@ export default function CreatePlanScreen() {
             }
           })
           .catch((err) => {
+            if (cancelled) return;
             Bugsnag.notify(err, (event) => {
               event.addMetadata("fetchPlanSchedule", {
                 planId: existingPlan.id,
@@ -104,6 +107,10 @@ export default function CreatePlanScreen() {
       }
 
       setDataLoaded(true);
+
+      return () => {
+        cancelled = true;
+      };
     }
   }, [
     existingPlan,
