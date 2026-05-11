@@ -84,10 +84,17 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
   addWorkout: (workout) =>
     set((state) => ({ ...state, workouts: [...state.workouts, workout] })),
   removeWorkout: (index) =>
-    set((state) => ({
-      ...state,
-      workouts: state.workouts.filter((_, i) => i !== index),
-    })),
+    set((state) => {
+      const workouts = state.workouts.filter((_, i) => i !== index);
+      const planSchedule: Record<number, number> = {};
+      for (const [day, idx] of Object.entries(state.planSchedule)) {
+        const workoutIdx = Number(idx);
+        if (workoutIdx === index) continue;
+        planSchedule[Number(day)] =
+          workoutIdx > index ? workoutIdx - 1 : workoutIdx;
+      }
+      return { workouts, planSchedule };
+    }),
   reorderWorkouts: (fromIndex, toIndex) =>
     set((state) => {
       const { length } = state.workouts;
@@ -300,7 +307,26 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
   },
   // Schedule actions
   planSchedule: {},
-  setPlanSchedule: (schedule) => set({ planSchedule: schedule }),
+  setPlanSchedule: (schedule) =>
+    set((state) => {
+      const numWorkouts = state.workouts.length;
+      const validated: Record<number, number> = {};
+      for (const [day, idx] of Object.entries(schedule)) {
+        const dayKey = Number(day);
+        const workoutIdx = Number(idx);
+        if (
+          Number.isInteger(dayKey) &&
+          dayKey >= 0 &&
+          dayKey <= 6 &&
+          Number.isInteger(workoutIdx) &&
+          workoutIdx >= 0 &&
+          workoutIdx < numWorkouts
+        ) {
+          validated[dayKey] = workoutIdx;
+        }
+      }
+      return { planSchedule: validated };
+    }),
   clearPlanSchedule: () => set({ planSchedule: {} }),
   syncScheduleOnRemoveWorkout: (removedIndex) =>
     set((state) => {
