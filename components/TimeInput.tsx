@@ -59,10 +59,12 @@ export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
   };
 
   const handleMinutesChange = (text: string) => {
-    const digit = text.replace(/[^0-9]/g, "").slice(0, 1);
-    setMinutes(digit);
-    onChange(emitValue(digit, seconds));
-    if (digit.length >= 1) {
+    const digits = text.replace(/[^0-9]/g, "").slice(0, 1);
+    const clamped =
+      digits !== "" ? String(Math.min(parseInt(digits, 10), 9)) : "";
+    setMinutes(clamped);
+    onChange(emitValue(clamped, seconds));
+    if (clamped.length >= 1) {
       secondsRef.current?.focus();
     }
   };
