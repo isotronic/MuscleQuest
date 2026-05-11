@@ -298,15 +298,29 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                 currentSetIndex,
                 nextSetIndex,
               );
+              const secondNextValues = buildNextSetValues(
+                currentExerciseIndex,
+                currentExercise,
+                currentSetIndex,
+                nextSetIndex,
+              );
               const updatedWeightAndReps = {
                 ...weightAndReps,
                 [firstIndex]: {
                   ...(weightAndReps[firstIndex] || {}),
                   [nextSetIndex]: firstNextValues,
                 },
+                [currentExerciseIndex]: {
+                  ...(weightAndReps[currentExerciseIndex] || {}),
+                  [nextSetIndex]: secondNextValues,
+                },
               };
 
-              if (nextSetIndex < currentExercise.sets.length) {
+              const supersetLength = Math.max(
+                currentExercise.sets.length,
+                firstExercise.sets.length,
+              );
+              if (nextSetIndex < supersetLength) {
                 return {
                   currentExerciseIndex: firstIndex,
                   currentSetIndices: updatedSetIndices,
