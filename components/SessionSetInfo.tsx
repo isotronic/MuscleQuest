@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import {
   IconButton,
@@ -14,6 +14,7 @@ import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatFromTotalSeconds, formatTimeInput } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
+import { useContinuousPress } from "@/hooks/useContinuousPress";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -95,40 +96,24 @@ export default function SessionSetInfo({
   const [menuVisible, setMenuVisible] = useState(false);
   const [timeInput, setTimeInput] = useState(time);
 
-  const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const isHoldingRef = useRef(false);
-  const holdStartedRef = useRef(false);
-
-  const startContinuousPress = useCallback((handler: () => void) => {
-    holdStartedRef.current = false;
-    pressTimerRef.current = setTimeout(() => {
-      isHoldingRef.current = true;
-      holdStartedRef.current = true;
-      handler();
-      pressIntervalRef.current = setInterval(handler, 150);
-    }, 400);
-  }, []);
-
-  const stopContinuousPress = useCallback(() => {
-    if (pressTimerRef.current !== null) {
-      clearTimeout(pressTimerRef.current);
-      pressTimerRef.current = null;
-    }
-    if (pressIntervalRef.current !== null) {
-      clearInterval(pressIntervalRef.current);
-      pressIntervalRef.current = null;
-    }
-    isHoldingRef.current = false;
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (pressTimerRef.current !== null) clearTimeout(pressTimerRef.current);
-      if (pressIntervalRef.current !== null)
-        clearInterval(pressIntervalRef.current);
-    };
-  }, []);
+  const weightMinusPress = useContinuousPress(
+    useCallback(
+      () => handleWeightChange(-weightIncrement),
+      [handleWeightChange, weightIncrement],
+    ),
+  );
+  const weightPlusPress = useContinuousPress(
+    useCallback(
+      () => handleWeightChange(weightIncrement),
+      [handleWeightChange, weightIncrement],
+    ),
+  );
+  const repsMinusPress = useContinuousPress(
+    useCallback(() => handleRepsChange(-1), [handleRepsChange]),
+  );
+  const repsPlusPress = useContinuousPress(
+    useCallback(() => handleRepsChange(1), [handleRepsChange]),
+  );
 
   // Update timeInput when time prop changes
   useEffect(() => {
@@ -301,17 +286,7 @@ export default function SessionSetInfo({
           <View style={styles.inputContainer}>
             <IconButton
               icon="minus"
-              onPress={() => {
-                if (holdStartedRef.current) {
-                  holdStartedRef.current = false;
-                  return;
-                }
-                handleWeightChange(-weightIncrement);
-              }}
-              onPressIn={() =>
-                startContinuousPress(() => handleWeightChange(-weightIncrement))
-              }
-              onPressOut={stopContinuousPress}
+              {...weightMinusPress}
               size={buttonSize}
               iconColor={Colors.dark.text}
               style={styles.iconButton}
@@ -326,17 +301,7 @@ export default function SessionSetInfo({
             />
             <IconButton
               icon="plus"
-              onPress={() => {
-                if (holdStartedRef.current) {
-                  holdStartedRef.current = false;
-                  return;
-                }
-                handleWeightChange(weightIncrement);
-              }}
-              onPressIn={() =>
-                startContinuousPress(() => handleWeightChange(weightIncrement))
-              }
-              onPressOut={stopContinuousPress}
+              {...weightPlusPress}
               size={buttonSize}
               iconColor={Colors.dark.text}
               style={styles.iconButton}
@@ -352,15 +317,7 @@ export default function SessionSetInfo({
           <View style={styles.inputContainer}>
             <IconButton
               icon="minus"
-              onPress={() => {
-                if (holdStartedRef.current) {
-                  holdStartedRef.current = false;
-                  return;
-                }
-                handleRepsChange(-1);
-              }}
-              onPressIn={() => startContinuousPress(() => handleRepsChange(-1))}
-              onPressOut={stopContinuousPress}
+              {...repsMinusPress}
               size={buttonSize}
               iconColor={Colors.dark.text}
               style={styles.iconButton}
@@ -375,15 +332,7 @@ export default function SessionSetInfo({
             />
             <IconButton
               icon="plus"
-              onPress={() => {
-                if (holdStartedRef.current) {
-                  holdStartedRef.current = false;
-                  return;
-                }
-                handleRepsChange(1);
-              }}
-              onPressIn={() => startContinuousPress(() => handleRepsChange(1))}
-              onPressOut={stopContinuousPress}
+              {...repsPlusPress}
               size={buttonSize}
               iconColor={Colors.dark.text}
               style={styles.iconButton}
