@@ -68,7 +68,20 @@ export const WhatsNewModal = () => {
             borderRadius: 12,
           }}
         >
-          <ThemedText type="subtitle">🎉 What's New</ThemedText>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <ThemedText type="subtitle">🎉 What's New</ThemedText>
+            {entriesToShow.length > 1 && (
+              <ThemedText
+                style={{ opacity: 0.5, fontSize: 13 }}
+              >{`${currentIndex + 1}/${entriesToShow.length}`}</ThemedText>
+            )}
+          </View>
           <Divider style={{ marginTop: 12 }} />
           <ThemedText>{currentEntry.message}</ThemedText>
           <Button
