@@ -351,6 +351,20 @@ export default function WorkoutCard({
         }
       }
 
+      // Final pass: ensure all superset pairs are adjacent (a drag can split an unrelated pair)
+      const groupsSeen = new Set<string>();
+      for (let i = 0; i < updatedExercises.length; i++) {
+        const gid = updatedExercises[i].supersetGroupId;
+        if (!gid || groupsSeen.has(gid)) continue;
+        groupsSeen.add(gid);
+        const partnerIdx = updatedExercises.findIndex(
+          (e, j) => j > i && e.supersetGroupId === gid,
+        );
+        if (partnerIdx === -1 || partnerIdx === i + 1) continue;
+        const [partner] = updatedExercises.splice(partnerIdx, 1);
+        updatedExercises.splice(i + 1, 0, partner);
+      }
+
       const updatedWorkouts = workouts.map((w, i) =>
         i === index ? { ...w, exercises: updatedExercises } : w,
       );
