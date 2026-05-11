@@ -507,9 +507,13 @@ export default function WorkoutOverviewScreen() {
                 </View>
               )}
               <TouchableOpacity
-                onPress={() => {
-                  handleExercisePress(index);
-                }}
+                onPress={
+                  isSecondInSuperset
+                    ? undefined
+                    : () => {
+                        handleExercisePress(index);
+                      }
+                }
                 style={
                   supersetGroupId
                     ? isFirstInSuperset
