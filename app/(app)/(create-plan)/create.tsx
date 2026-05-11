@@ -59,7 +59,6 @@ export default function CreatePlanScreen() {
     planSchedule,
     setPlanSchedule,
     clearPlanSchedule,
-    syncScheduleOnRemoveWorkout,
   } = useWorkoutStore();
   const { data: settings } = useSettingsQuery();
   const weeklyGoal = Number(settings?.weeklyGoal ?? 3);
@@ -186,7 +185,6 @@ export default function CreatePlanScreen() {
         {
           text: "Remove",
           onPress: () => {
-            syncScheduleOnRemoveWorkout(index);
             removeWorkout(index);
           },
           style: "destructive",
