@@ -392,7 +392,9 @@ export default function WorkoutSessionScreen() {
     );
 
     if (isFirstInSuperset) {
-      // No rest between superset exercises — go straight to partner
+      // Cancel any stale rest before moving to superset partner — no rest here
+      stopTimer();
+      void cancelRestNotifications();
       nextSet();
     } else if (hasNextSet) {
       void startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
