@@ -1334,6 +1334,27 @@ export const deleteStandaloneWorkout = async (
   });
 };
 
+export const deleteCompletedWorkout = async (id: number): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    await txn.runAsync(
+      `UPDATE completed_sets SET is_deleted = TRUE
+       WHERE completed_exercise_id IN (
+         SELECT id FROM completed_exercises WHERE completed_workout_id = ?
+       )`,
+      [id],
+    );
+    await txn.runAsync(
+      `UPDATE completed_exercises SET is_deleted = TRUE WHERE completed_workout_id = ?`,
+      [id],
+    );
+    await txn.runAsync(
+      `UPDATE completed_workouts SET is_deleted = TRUE WHERE id = ?`,
+      [id],
+    );
+  });
+};
+
 // ---------- Plan Schedule ----------
 
 export interface PlanScheduleEntry {

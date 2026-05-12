@@ -76,9 +76,9 @@ const fetchCompletedWorkouts = async (
       LEFT JOIN user_workouts ON user_workouts.id = completed_workouts.workout_id
     `;
 
-    // If a time range is specified, filter by date_completed within that range
+    query += ` WHERE completed_workouts.is_deleted = FALSE`;
     if (timeRange > 0) {
-      query += ` WHERE date_completed >= date('now', '-${timeRange} days')`;
+      query += ` AND date_completed >= date('now', '-${timeRange} days')`;
     }
 
     query += `
@@ -222,7 +222,7 @@ const fetchWorkoutHistoryForSession = async (
         cs.time
       FROM (
         SELECT * FROM completed_workouts
-        WHERE workout_id = ?
+        WHERE workout_id = ? AND is_deleted = FALSE
         ORDER BY date_completed DESC
         LIMIT 10
       ) AS cw

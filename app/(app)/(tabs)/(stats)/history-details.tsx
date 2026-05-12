@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Alert } from "react-native";
 import { Image } from "expo-image";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -18,6 +18,7 @@ import { parseISO, format } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
+import { useDeleteCompletedWorkoutMutation } from "@/hooks/useDeleteCompletedWorkoutMutation";
 import Bugsnag from "@bugsnag/expo";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
@@ -34,6 +35,8 @@ export default function HistoryDetailsScreen() {
 
   const weightUnit = settings?.weightUnit || "kg";
   const bodyWeight = parseFloat(settings?.bodyWeight || "70");
+
+  const deleteMutation = useDeleteCompletedWorkoutMutation();
 
   const {
     data: workoutData,
@@ -130,7 +133,7 @@ export default function HistoryDetailsScreen() {
             <View style={styles.headerRight}>
               <IconButton
                 icon="file-document-edit-outline"
-                size={30}
+                size={25}
                 style={{ marginRight: 0 }}
                 iconColor={Colors.dark.text}
                 onPressIn={() =>
@@ -138,6 +141,26 @@ export default function HistoryDetailsScreen() {
                     pathname: "/(app)/(tabs)/(stats)/edit-history",
                     params: { id },
                   })
+                }
+              />
+              <IconButton
+                icon="trash-can-outline"
+                size={25}
+                style={{ marginRight: 0 }}
+                iconColor={Colors.dark.highlight}
+                onPressIn={() =>
+                  Alert.alert(
+                    "Delete Workout",
+                    "Are you sure you want to delete this workout? This action cannot be undone.",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Delete",
+                        style: "destructive",
+                        onPress: () => deleteMutation.mutate(Number(id)),
+                      },
+                    ],
+                  )
                 }
               />
             </View>
@@ -253,6 +276,10 @@ export default function HistoryDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   container: {
     flex: 1,
     padding: 16,
