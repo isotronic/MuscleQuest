@@ -29,7 +29,8 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
         exercises.secondary_muscles,
         exercises.tracking_type,
         user_workout_exercises.sets,
-        user_workout_exercises.exercise_order
+        user_workout_exercises.exercise_order,
+        user_workout_exercises.superset_group_id
       FROM user_plans
       LEFT JOIN user_workouts ON user_workouts.plan_id = user_plans.id
       LEFT JOIN user_workout_exercises ON user_workout_exercises.workout_id = user_workouts.id
@@ -75,6 +76,7 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
             : [],
           tracking_type: row.tracking_type || "",
           sets: row.sets ? JSON.parse(row.sets) : [],
+          supersetGroupId: row.superset_group_id ?? undefined,
         });
       }
     }

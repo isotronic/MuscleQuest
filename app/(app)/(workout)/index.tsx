@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import {
   IconButton,
-  Card,
   Menu,
   Button,
   ActivityIndicator,
@@ -488,19 +487,11 @@ export default function WorkoutOverviewScreen() {
           const allSetsCompleted = completedCount === totalSets;
           const isLoading = loadingExerciseIndex === index;
 
-          const { supersetGroupId } = exercise;
-          const { isFirstInSuperset, isSecondInSuperset } =
+          const { isInSuperset, isFirstInSuperset, isSecondInSuperset } =
             classifySupersetPosition(workout.exercises, index);
 
           return (
             <View key={exercise.exercise_id}>
-              {isFirstInSuperset && (
-                <View style={styles.supersetHeader}>
-                  <ThemedText style={styles.supersetHeaderText}>
-                    Superset
-                  </ThemedText>
-                </View>
-              )}
               <TouchableOpacity
                 onPress={
                   isSecondInSuperset
@@ -509,21 +500,16 @@ export default function WorkoutOverviewScreen() {
                         handleExercisePress(index);
                       }
                 }
-                style={
-                  supersetGroupId
-                    ? isFirstInSuperset
-                      ? styles.supersetCardFirst
-                      : styles.supersetCardLast
-                    : undefined
-                }
               >
-                <Card
-                  style={[styles.card, supersetGroupId && styles.supersetCard]}
+                <View
+                  style={[
+                    styles.card,
+                    isInSuperset && styles.supersetCard,
+                    isFirstInSuperset && styles.supersetCardFirst,
+                    isSecondInSuperset && styles.supersetCardLast,
+                  ]}
                 >
-                  <Card.Content style={styles.cardContent}>
-                    {/* Superset indicator bar */}
-                    {supersetGroupId && <View style={styles.supersetBar} />}
-
+                  <View style={styles.cardContent}>
                     {/* Circle with the number or checkmark */}
                     <View
                       style={[
@@ -589,8 +575,8 @@ export default function WorkoutOverviewScreen() {
                         title="Replace"
                       />
                     </Menu>
-                  </Card.Content>
-                </Card>
+                  </View>
+                </View>
               </TouchableOpacity>
               {isFirstInSuperset && <View style={styles.supersetConnector} />}
             </View>
@@ -630,6 +616,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: Colors.dark.cardBackground,
     borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   cardContent: {
     flexDirection: "row",
@@ -755,16 +743,11 @@ const styles = StyleSheet.create({
   },
   supersetCardFirst: {
     marginBottom: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   supersetCardLast: {
-    marginBottom: 10,
-  },
-  supersetBar: {
-    width: 3,
-    alignSelf: "stretch",
-    backgroundColor: Colors.dark.tint,
-    borderRadius: 2,
-    marginRight: 10,
-    marginLeft: -12,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
   },
 });

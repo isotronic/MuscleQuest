@@ -34,6 +34,7 @@ export interface RawPlan {
   tracking_type: string | null;
   sets: string | null;
   exercise_order: number | null;
+  superset_group_id?: string | null;
 }
 
 export const transformRawPlans = (

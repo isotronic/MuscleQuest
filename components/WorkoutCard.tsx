@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View, TextInput, Alert } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
@@ -9,10 +9,22 @@ import { Colors } from "@/constants/Colors";
 import Sortable from "react-native-sortables";
 import type { SortableGridRenderItem } from "react-native-sortables";
 import { formatFromTotalSeconds } from "@/utils/utility";
-import {
-  classifySupersetPosition,
-  reorderWithSupersetRules,
-} from "@/utils/supersetUtils";
+
+// Each item fed to Sortable.Grid is either a solo exercise or an adjacent superset pair.
+// The pair is treated as a single draggable unit so both exercises move together.
+type SingleItem = {
+  type: "single";
+  exercise: UserExercise;
+  exerciseIndex: number;
+};
+
+type SupersetItem = {
+  type: "superset";
+  exercises: [UserExercise, UserExercise];
+  exerciseIndices: [number, number];
+};
+
+type GroupedItem = SingleItem | SupersetItem;
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -52,17 +64,12 @@ export default function WorkoutCard({
       const exercise = workout.exercises.find(
         (ex) => ex.exercise_id === exerciseId,
       );
-      if (!exercise) {
-        return;
-      }
+      if (!exercise) return;
       Alert.alert(
         "Remove Exercise",
         `Are you sure you want to remove ${exercise.name}?`,
         [
-          {
-            text: "Cancel",
-            style: "cancel",
-          },
+          { text: "Cancel", style: "cancel" },
           {
             text: "Remove",
             style: "destructive",
@@ -80,9 +87,7 @@ export default function WorkoutCard({
 
   const handleReplace = useCallback(
     (exerciseIndex: number) => {
-      // Find the exercise being replaced
       const exercise = workout.exercises[exerciseIndex];
-      // Navigate to the exercises screen to select a replacement, passing target_muscle if available
       router.push({
         pathname: "/(app)/(create-plan)/exercises",
         params: {
@@ -117,11 +122,48 @@ export default function WorkoutCard({
     [workoutIndex],
   );
 
-  const renderExerciseItem: SortableGridRenderItem<UserExercise> = useCallback(
-    ({ item, index }) => {
-      const exerciseIndex = index;
+  // Build the grouped data array. Superset pairs become one item so they drag together.
+  const groupedData = useMemo((): GroupedItem[] => {
+    const result: GroupedItem[] = [];
+    const seen = new Set<number>();
 
-      // Calculate min and max reps
+    workout.exercises.forEach((exercise, i) => {
+      if (seen.has(exercise.exercise_id)) return;
+      seen.add(exercise.exercise_id);
+
+      const { supersetGroupId } = exercise;
+      if (supersetGroupId) {
+        const partnerIdx = workout.exercises.findIndex(
+          (e, j) => j !== i && e.supersetGroupId === supersetGroupId,
+        );
+        const partner =
+          partnerIdx !== -1 ? workout.exercises[partnerIdx] : null;
+        if (partner && !seen.has(partner.exercise_id)) {
+          seen.add(partner.exercise_id);
+          result.push({
+            type: "superset",
+            exercises: [exercise, partner],
+            exerciseIndices: [i, partnerIdx],
+          });
+          return;
+        }
+      }
+      result.push({ type: "single", exercise, exerciseIndex: i });
+    });
+
+    return result;
+  }, [workout.exercises]);
+
+  // Renders a single exercise row. Used for both solo exercises and each half of a superset.
+  const renderExerciseRow = useCallback(
+    (
+      item: UserExercise,
+      exerciseIndex: number,
+      isFirstInSuperset: boolean,
+      isSecondInSuperset: boolean,
+    ) => {
+      const isInSuperset = isFirstInSuperset || isSecondInSuperset;
+
       const minReps = Math.min(
         ...item.sets.map((set) => set.repsMin ?? Infinity),
       );
@@ -138,7 +180,6 @@ export default function WorkoutCard({
         repRange = `${minReps} - ${maxReps}`;
       }
 
-      // Calculate min and max time
       const minTime = Math.min(...item.sets.map((set) => set.time ?? Infinity));
       const maxTime = Math.max(
         ...item.sets.map((set) => set.time ?? -Infinity),
@@ -158,111 +199,99 @@ export default function WorkoutCard({
       const isToFailure = item.sets.some((set) => set.isToFailure);
       const isMenuOpen = menuVisible === item.exercise_id;
 
-      const { isInSuperset, isFirstInSuperset, isSecondInSuperset } =
-        classifySupersetPosition(workout.exercises, exerciseIndex);
-
       return (
-        <View>
-          {isFirstInSuperset && (
-            <View style={styles.supersetHeader}>
-              <ThemedText style={styles.supersetHeaderText}>
-                Superset
+        <View
+          key={item.exercise_id}
+          style={[
+            styles.exerciseItem,
+            isInSuperset && styles.supersetExerciseItem,
+            isFirstInSuperset && styles.supersetExerciseFirst,
+            isSecondInSuperset && styles.supersetExerciseLast,
+          ]}
+        >
+          <Sortable.Touchable
+            onTap={() =>
+              router.push(
+                `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}&exerciseIndex=${exerciseIndex}&trackingType=${item.tracking_type}`,
+              )
+            }
+            style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+          >
+            <MaterialCommunityIcons
+              name="drag"
+              size={24}
+              color="#ECEFF4"
+              style={styles.dragIcon}
+            />
+            <View style={styles.exerciseInfo}>
+              <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
+              <ThemedText style={styles.setsAndReps}>
+                {item?.sets?.length
+                  ? `${item.sets.length} Sets`
+                  : "No Sets Available"}
+                {item.tracking_type === "time"
+                  ? timeRange
+                    ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
+                    : ""
+                  : repRange
+                    ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
+                    : ""}
               </ThemedText>
             </View>
-          )}
-          <View
-            style={[
-              styles.exerciseItem,
-              isInSuperset && styles.supersetExerciseItem,
-              isFirstInSuperset && styles.supersetExerciseFirst,
-              isSecondInSuperset && styles.supersetExerciseLast,
-            ]}
-          >
-            <Sortable.Touchable
-              onTap={() =>
-                router.push(
-                  `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}&exerciseIndex=${exerciseIndex}&trackingType=${item.tracking_type}`,
-                )
-              }
-              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-            >
-              <MaterialCommunityIcons
-                name="drag"
+          </Sortable.Touchable>
+          <Menu
+            visible={isMenuOpen}
+            onDismiss={closeMenu}
+            anchor={
+              <IconButton
+                icon="dots-vertical"
                 size={24}
-                color="#ECEFF4"
-                style={styles.dragIcon}
+                onPress={() => openMenu(item.exercise_id)}
+                iconColor={Colors.dark.text}
               />
-              <View style={styles.exerciseInfo}>
-                <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
-                <ThemedText style={styles.setsAndReps}>
-                  {item?.sets?.length
-                    ? `${item.sets.length} Sets`
-                    : "No Sets Available"}
-                  {item.tracking_type === "time"
-                    ? timeRange
-                      ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
-                      : ""
-                    : repRange
-                      ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
-                      : ""}
-                </ThemedText>
-              </View>
-            </Sortable.Touchable>
-            <Menu
-              visible={isMenuOpen}
-              onDismiss={closeMenu}
-              anchor={
-                <IconButton
-                  icon="dots-vertical"
-                  size={24}
-                  onPress={() => openMenu(item.exercise_id)}
-                  iconColor={Colors.dark.text}
-                />
-              }
-            >
+            }
+          >
+            <Menu.Item
+              onPress={() => {
+                closeMenu();
+                removeExercise(item.exercise_id);
+              }}
+              title="Delete"
+            />
+            <Menu.Item
+              onPress={() => {
+                closeMenu();
+                handleReplace(exerciseIndex);
+              }}
+              title="Replace"
+            />
+            {isInSuperset ? (
               <Menu.Item
                 onPress={() => {
                   closeMenu();
-                  removeExercise(item.exercise_id);
+                  handleRemoveSuperset(exerciseIndex);
                 }}
-                title="Delete"
+                title="Remove Superset"
               />
+            ) : (
               <Menu.Item
                 onPress={() => {
                   closeMenu();
-                  handleReplace(exerciseIndex);
+                  handleCreateSuperset(exerciseIndex);
                 }}
-                title="Replace"
+                title="Create Superset"
               />
-              {isInSuperset ? (
-                <Menu.Item
-                  onPress={() => {
-                    closeMenu();
-                    handleRemoveSuperset(exerciseIndex);
-                  }}
-                  title="Remove Superset"
-                />
-              ) : (
-                <Menu.Item
-                  onPress={() => {
-                    closeMenu();
-                    handleCreateSuperset(exerciseIndex);
-                  }}
-                  title="Create Superset"
-                />
-              )}
-              <Menu.Item
-                onPress={() => {
-                  closeMenu();
-                  router.push(
-                    `/(app)/exercise-details?exercise_id=${item.exercise_id}`,
-                  );
-                }}
-                title="View Details"
-              />
-            </Menu>
-          </View>
-          {isFirstInSuperset && <View style={styles.supersetConnector} />}
+            )}
+            <Menu.Item
+              onPress={() => {
+                closeMenu();
+                router.push(
+                  `/(app)/exercise-details?exercise_id=${item.exercise_id}`,
+                );
+              }}
+              title="View Details"
+            />
+          </Menu>
         </View>
       );
     },
@@ -272,17 +301,46 @@ export default function WorkoutCard({
       handleReplace,
       menuVisible,
       removeExercise,
-      workout.exercises,
       workoutIndex,
     ],
   );
 
+  // Renders each Sortable.Grid item — either a solo row or a superset pair block.
+  const renderItem: SortableGridRenderItem<GroupedItem> = useCallback(
+    ({ item }) => {
+      if (item.type === "single") {
+        return (
+          <View>
+            {renderExerciseRow(item.exercise, item.exerciseIndex, false, false)}
+          </View>
+        );
+      }
+      const [exA, exB] = item.exercises;
+      const [idxA, idxB] = item.exerciseIndices;
+      return (
+        <View>
+          <View style={styles.supersetHeader}>
+            <ThemedText style={styles.supersetHeaderText}>Superset</ThemedText>
+          </View>
+          {renderExerciseRow(exA, idxA, true, false)}
+          <View style={styles.supersetConnector} />
+          {renderExerciseRow(exB, idxB, false, true)}
+        </View>
+      );
+    },
+    [renderExerciseRow],
+  );
+
+  // Reorder groups then flatten back to the flat exercises array.
   const handleOrderChange = useCallback(
     ({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => {
-      const updatedExercises = reorderWithSupersetRules(
-        workout.exercises,
-        fromIndex,
-        toIndex,
+      if (fromIndex === toIndex) return;
+      const reordered = [...groupedData];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+
+      const updatedExercises = reordered.flatMap((item) =>
+        item.type === "single" ? [item.exercise] : item.exercises,
       );
 
       const updatedWorkouts = workouts.map((w, i) =>
@@ -291,7 +349,7 @@ export default function WorkoutCard({
 
       useWorkoutStore.setState({ workouts: updatedWorkouts });
     },
-    [workout.exercises, workouts, index],
+    [groupedData, workouts, index],
   );
 
   return (
@@ -331,17 +389,19 @@ export default function WorkoutCard({
       />
       {workout.exercises.length > 0 ? (
         <Sortable.Grid
-          columns={1} // Treat as a vertical list
-          data={workout.exercises}
-          keyExtractor={(exercise) => exercise.exercise_id.toString()}
-          renderItem={renderExerciseItem}
+          columns={1}
+          data={groupedData}
+          keyExtractor={(item) =>
+            item.type === "single"
+              ? item.exercise.exercise_id.toString()
+              : `ss-${item.exercises[0].exercise_id}-${item.exercises[1].exercise_id}`
+          }
+          renderItem={renderItem}
           onDragEnd={handleOrderChange}
           showDropIndicator
         />
       ) : (
-        <ThemedText style={styles.workoutInstructions}>
-          No exercises added yet
-        </ThemedText>
+        <ThemedText style={styles.emptyText}>No exercises added yet</ThemedText>
       )}
       <Button
         mode="outlined"
@@ -448,7 +508,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   setsAndReps: {
-    fontSize: 14, // Smaller font size for sets and reps
+    fontSize: 14,
     color: "#D8DEE9",
   },
   closeIcon: {
