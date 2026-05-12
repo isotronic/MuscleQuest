@@ -490,94 +490,94 @@ export default function WorkoutOverviewScreen() {
           const { isInSuperset, isFirstInSuperset, isSecondInSuperset } =
             classifySupersetPosition(workout.exercises, index);
 
-          return (
-            <View key={exercise.exercise_id}>
-              <TouchableOpacity
-                onPress={
-                  isSecondInSuperset
-                    ? undefined
-                    : () => {
-                        handleExercisePress(index);
-                      }
-                }
-              >
+          const exerciseCardContent = (
+            <View
+              style={[
+                styles.card,
+                isInSuperset && styles.supersetCard,
+                isFirstInSuperset && styles.supersetCardFirst,
+                isSecondInSuperset && styles.supersetCardLast,
+              ]}
+            >
+              <View style={styles.cardContent}>
+                {/* Circle with the number or checkmark */}
                 <View
                   style={[
-                    styles.card,
-                    isInSuperset && styles.supersetCard,
-                    isFirstInSuperset && styles.supersetCardFirst,
-                    isSecondInSuperset && styles.supersetCardLast,
+                    styles.numberContainer,
+                    allSetsCompleted && styles.numberContainerCompleted,
                   ]}
                 >
-                  <View style={styles.cardContent}>
-                    {/* Circle with the number or checkmark */}
-                    <View
-                      style={[
-                        styles.numberContainer,
-                        allSetsCompleted && styles.numberContainerCompleted,
-                      ]}
-                    >
-                      {isLoading ? (
-                        <ActivityIndicator size="small" color="white" />
-                      ) : allSetsCompleted ? (
-                        <MaterialCommunityIcons
-                          name="check"
-                          size={24}
-                          color="white"
-                        />
-                      ) : (
-                        <ThemedText style={styles.numberText}>
-                          {isFirstInSuperset
-                            ? "A"
-                            : isSecondInSuperset
-                              ? "B"
-                              : index + 1}
-                        </ThemedText>
-                      )}
-                    </View>
-
-                    {/* Exercise Info */}
-                    <View style={styles.exerciseInfo}>
-                      <ThemedText style={styles.exerciseName}>
-                        {exercise.name}
-                      </ThemedText>
-                      <ThemedText style={styles.setInfo}>
-                        {completedCount}/{exercise.sets.length} sets completed
-                      </ThemedText>
-                    </View>
-
-                    {/* Options Menu */}
-                    <Menu
-                      visible={menuVisible[index]}
-                      onDismiss={() => handleMenuClose(index)}
-                      anchor={
-                        <IconButton
-                          icon="dots-vertical"
-                          size={24}
-                          onPress={() => handleMenuOpen(index)}
-                          style={styles.optionsButton}
-                          iconColor={Colors.dark.text}
-                        />
-                      }
-                    >
-                      <Menu.Item
-                        onPress={() => {
-                          handleMenuClose(index);
-                          handleDeleteExercise(index);
-                        }}
-                        title="Delete"
-                      />
-                      <Menu.Item
-                        onPress={() => {
-                          handleMenuClose(index);
-                          handleReplaceExercise(index);
-                        }}
-                        title="Replace"
-                      />
-                    </Menu>
-                  </View>
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : allSetsCompleted ? (
+                    <MaterialCommunityIcons
+                      name="check"
+                      size={24}
+                      color="white"
+                    />
+                  ) : (
+                    <ThemedText style={styles.numberText}>
+                      {isFirstInSuperset
+                        ? "A"
+                        : isSecondInSuperset
+                          ? "B"
+                          : index + 1}
+                    </ThemedText>
+                  )}
                 </View>
-              </TouchableOpacity>
+
+                {/* Exercise Info */}
+                <View style={styles.exerciseInfo}>
+                  <ThemedText style={styles.exerciseName}>
+                    {exercise.name}
+                  </ThemedText>
+                  <ThemedText style={styles.setInfo}>
+                    {completedCount}/{exercise.sets.length} sets completed
+                  </ThemedText>
+                </View>
+
+                {/* Options Menu */}
+                <Menu
+                  visible={menuVisible[index]}
+                  onDismiss={() => handleMenuClose(index)}
+                  anchor={
+                    <IconButton
+                      icon="dots-vertical"
+                      size={24}
+                      onPress={() => handleMenuOpen(index)}
+                      style={styles.optionsButton}
+                      iconColor={Colors.dark.text}
+                    />
+                  }
+                >
+                  <Menu.Item
+                    onPress={() => {
+                      handleMenuClose(index);
+                      handleDeleteExercise(index);
+                    }}
+                    title="Delete"
+                  />
+                  <Menu.Item
+                    onPress={() => {
+                      handleMenuClose(index);
+                      handleReplaceExercise(index);
+                    }}
+                    title="Replace"
+                  />
+                </Menu>
+              </View>
+            </View>
+          );
+
+          return (
+            <View key={exercise.exercise_id}>
+              {isSecondInSuperset ? (
+                <View accessible={false}>{exerciseCardContent}</View>
+              ) : (
+                <TouchableOpacity onPress={() => handleExercisePress(index)}>
+                  {exerciseCardContent}
+                </TouchableOpacity>
+              )}
               {isFirstInSuperset && <View style={styles.supersetConnector} />}
             </View>
           );
