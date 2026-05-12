@@ -32,7 +32,6 @@ export default function WorkoutDetailsScreen() {
       base64Image = `data:image/webp;base64,${base64String}`;
     }
 
-    const { supersetGroupId } = item;
     const exercises = workout?.exercises ?? [];
     const { isInSuperset, isFirstInSuperset, isSecondInSuperset } =
       classifySupersetPosition(exercises, exerciseIndex);
@@ -154,6 +153,7 @@ export default function WorkoutDetailsScreen() {
       />
       <FlatList
         style={styles.container}
+        contentContainerStyle={styles.contentContainer}
         data={workout?.exercises}
         renderItem={renderExerciseItem}
         keyExtractor={(item: any, index: number) => index.toString()}
@@ -165,8 +165,10 @@ export default function WorkoutDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  contentContainer: {
     paddingTop: 16,
-    paddingBottom: 50,
+    paddingBottom: 30,
     paddingHorizontal: 16,
   },
   exerciseItem: {
