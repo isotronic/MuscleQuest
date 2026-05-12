@@ -35,6 +35,7 @@ import {
   linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
 import { cancelRestNotifications } from "@/utils/restNotification";
+import { classifySupersetPosition } from "@/utils/supersetUtils";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function WorkoutOverviewScreen() {
@@ -488,14 +489,8 @@ export default function WorkoutOverviewScreen() {
           const isLoading = loadingExerciseIndex === index;
 
           const { supersetGroupId } = exercise;
-          const partnerIndex = supersetGroupId
-            ? workout.exercises.findIndex(
-                (e, i) => i !== index && e.supersetGroupId === supersetGroupId,
-              )
-            : -1;
-          const isFirstInSuperset = partnerIndex !== -1 && index < partnerIndex;
-          const isSecondInSuperset =
-            partnerIndex !== -1 && index > partnerIndex;
+          const { isFirstInSuperset, isSecondInSuperset } =
+            classifySupersetPosition(workout.exercises, index);
 
           return (
             <View key={exercise.exercise_id}>

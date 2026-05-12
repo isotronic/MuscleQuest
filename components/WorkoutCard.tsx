@@ -9,6 +9,10 @@ import { Colors } from "@/constants/Colors";
 import Sortable from "react-native-sortables";
 import type { SortableGridRenderItem } from "react-native-sortables";
 import { formatFromTotalSeconds } from "@/utils/utility";
+import {
+  classifySupersetPosition,
+  reorderWithSupersetRules,
+} from "@/utils/supersetUtils";
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -154,16 +158,8 @@ export default function WorkoutCard({
       const isToFailure = item.sets.some((set) => set.isToFailure);
       const isMenuOpen = menuVisible === item.exercise_id;
 
-      const { supersetGroupId } = item;
-      const partnerIndex = supersetGroupId
-        ? workout.exercises.findIndex(
-            (e, i) =>
-              i !== exerciseIndex && e.supersetGroupId === supersetGroupId,
-          )
-        : -1;
-      const isInSuperset = partnerIndex !== -1;
-      const isFirstInSuperset = isInSuperset && exerciseIndex < partnerIndex;
-      const isSecondInSuperset = isInSuperset && exerciseIndex > partnerIndex;
+      const { isInSuperset, isFirstInSuperset, isSecondInSuperset } =
+        classifySupersetPosition(workout.exercises, exerciseIndex);
 
       return (
         <View>
@@ -283,87 +279,11 @@ export default function WorkoutCard({
 
   const handleOrderChange = useCallback(
     ({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => {
-      if (fromIndex === toIndex) return;
-
-      const updatedExercises = [...workout.exercises];
-      const draggedExercise = updatedExercises[fromIndex];
-      const { supersetGroupId } = draggedExercise;
-
-      // Pre-compute original partner index before any mutations
-      const originalPartnerIndex = supersetGroupId
-        ? workout.exercises.findIndex(
-            (e, i) => i !== fromIndex && e.supersetGroupId === supersetGroupId,
-          )
-        : -1;
-      const isDraggingFirst =
-        originalPartnerIndex !== -1 && fromIndex < originalPartnerIndex;
-
-      // Standard single-item move
-      const [movedItem] = updatedExercises.splice(fromIndex, 1);
-      updatedExercises.splice(toIndex, 0, movedItem);
-
-      if (supersetGroupId) {
-        // Find where both superset members landed after the splice
-        const draggedNewIdx = updatedExercises.findIndex(
-          (e) => e.exercise_id === draggedExercise.exercise_id,
-        );
-        const partnerNewIdx = updatedExercises.findIndex(
-          (e) =>
-            e.exercise_id !== draggedExercise.exercise_id &&
-            e.supersetGroupId === supersetGroupId,
-        );
-
-        // If already adjacent the drag resulted in a natural swap — leave as-is
-        if (Math.abs(draggedNewIdx - partnerNewIdx) !== 1) {
-          // Not adjacent: bring partner next to the dragged item
-          const [partner] = updatedExercises.splice(partnerNewIdx, 1);
-          const newDraggedIdx = updatedExercises.findIndex(
-            (e) => e.exercise_id === draggedExercise.exercise_id,
-          );
-          if (isDraggingFirst) {
-            updatedExercises.splice(newDraggedIdx + 1, 0, partner);
-          } else {
-            updatedExercises.splice(newDraggedIdx, 0, partner);
-          }
-        }
-      } else {
-        // Non-superset exercise: check if it landed between two superset partners
-        const landedIdx = updatedExercises.findIndex(
-          (e) => e.exercise_id === draggedExercise.exercise_id,
-        );
-        const prevItem = landedIdx > 0 ? updatedExercises[landedIdx - 1] : null;
-        const nextItem =
-          landedIdx < updatedExercises.length - 1
-            ? updatedExercises[landedIdx + 1]
-            : null;
-
-        if (
-          prevItem?.supersetGroupId &&
-          nextItem?.supersetGroupId &&
-          prevItem.supersetGroupId === nextItem.supersetGroupId
-        ) {
-          // Remove from between superset and insert after the second superset member
-          updatedExercises.splice(landedIdx, 1);
-          const secondPartnerIdx = updatedExercises.findIndex(
-            (e) => e.exercise_id === nextItem.exercise_id,
-          );
-          updatedExercises.splice(secondPartnerIdx + 1, 0, draggedExercise);
-        }
-      }
-
-      // Final pass: ensure all superset pairs are adjacent (a drag can split an unrelated pair)
-      const groupsSeen = new Set<string>();
-      for (let i = 0; i < updatedExercises.length; i++) {
-        const gid = updatedExercises[i].supersetGroupId;
-        if (!gid || groupsSeen.has(gid)) continue;
-        groupsSeen.add(gid);
-        const partnerIdx = updatedExercises.findIndex(
-          (e, j) => j > i && e.supersetGroupId === gid,
-        );
-        if (partnerIdx === -1 || partnerIdx === i + 1) continue;
-        const [partner] = updatedExercises.splice(partnerIdx, 1);
-        updatedExercises.splice(i + 1, 0, partner);
-      }
+      const updatedExercises = reorderWithSupersetRules(
+        workout.exercises,
+        fromIndex,
+        toIndex,
+      );
 
       const updatedWorkouts = workouts.map((w, i) =>
         i === index ? { ...w, exercises: updatedExercises } : w,

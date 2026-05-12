@@ -20,6 +20,7 @@ import {
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
 import { convertTimeStrToSeconds } from "@/utils/utility";
+import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { useSoundStore } from "@/store/soundStore";
 
 export default function WorkoutSessionScreen() {
@@ -339,13 +340,9 @@ export default function WorkoutSessionScreen() {
   };
 
   // Determine superset context
-  const supersetGroupId = currentExercise?.supersetGroupId;
   const supersetPartnerIndex =
-    supersetGroupId && workout
-      ? workout.exercises.findIndex(
-          (e, i) =>
-            i !== currentExerciseIndex && e.supersetGroupId === supersetGroupId,
-        )
+    workout && currentExercise
+      ? findSupersetPartnerIndex(workout.exercises, currentExerciseIndex)
       : -1;
   const isInSuperset = supersetPartnerIndex !== -1;
   const isFirstInSuperset =

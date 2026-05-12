@@ -5,6 +5,7 @@ import { UserExercise, Workout } from "./workoutStore";
 import { router } from "expo-router";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { formatFromTotalSeconds } from "@/utils/utility";
+import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import Bugsnag from "@bugsnag/expo";
 
 /**
@@ -259,12 +260,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           };
 
           // --- Superset handling ---
-          const { supersetGroupId } = currentExercise;
-          if (supersetGroupId) {
-            const partnerIndex = workout.exercises.findIndex(
-              (e, i) =>
-                i !== currentExerciseIndex &&
-                e.supersetGroupId === supersetGroupId,
+          if (currentExercise.supersetGroupId) {
+            const partnerIndex = findSupersetPartnerIndex(
+              workout.exercises,
+              currentExerciseIndex,
             );
 
             if (partnerIndex !== -1) {

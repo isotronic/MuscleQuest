@@ -6,6 +6,7 @@ import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { UserExercise } from "@/store/workoutStore";
 import { Image } from "expo-image";
 import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
+import { classifySupersetPosition } from "@/utils/supersetUtils";
 import { Colors } from "@/constants/Colors";
 import Bugsnag from "@bugsnag/expo";
 import { Notes } from "@/components/Notes";
@@ -33,15 +34,8 @@ export default function WorkoutDetailsScreen() {
 
     const { supersetGroupId } = item;
     const exercises = workout?.exercises ?? [];
-    const partnerIndex = supersetGroupId
-      ? exercises.findIndex(
-          (e, i) =>
-            i !== exerciseIndex && e.supersetGroupId === supersetGroupId,
-        )
-      : -1;
-    const isInSuperset = partnerIndex !== -1;
-    const isFirstInSuperset = isInSuperset && exerciseIndex < partnerIndex;
-    const isSecondInSuperset = isInSuperset && exerciseIndex > partnerIndex;
+    const { isInSuperset, isFirstInSuperset, isSecondInSuperset } =
+      classifySupersetPosition(exercises, exerciseIndex);
 
     const minReps = Math.min(
       ...item.sets.map((set) => set.repsMin ?? Infinity),
