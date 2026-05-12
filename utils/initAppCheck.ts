@@ -8,7 +8,9 @@ import Constants from "expo-constants";
 export async function setupAppCheck(): Promise<void> {
   const extra = Constants.expoConfig?.extra;
   const isDevBuild = extra?.appVariant === "development";
-  const debugToken: string | undefined = extra?.appCheckDebugToken ?? undefined;
+  const rawDebugToken = extra?.appCheckDebugToken;
+  const debugToken =
+    typeof rawDebugToken === "string" ? rawDebugToken : undefined;
 
   try {
     const rnfbProvider: ReactNativeFirebaseAppCheckProvider =

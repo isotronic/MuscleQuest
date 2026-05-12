@@ -499,9 +499,15 @@ export const insertWorkouts = async (
         // Insert into user_workout_exercises
         await txn.runAsync(
           `INSERT INTO user_workout_exercises (
-            workout_id, exercise_id, sets, exercise_order
-          ) VALUES (?, ?, ?, ?)`,
-          [workoutId, exercise_id, JSON.stringify(sets), exerciseOrder],
+            workout_id, exercise_id, sets, exercise_order, superset_group_id
+          ) VALUES (?, ?, ?, ?, ?)`,
+          [
+            workoutId,
+            exercise_id,
+            JSON.stringify(sets),
+            exerciseOrder,
+            exercise.supersetGroupId ?? null,
+          ],
         );
       }
     }
@@ -598,21 +604,23 @@ export const updateWorkoutPlan = async (
           if (!existingExerciseIds.includes(exercise.exercise_id)) {
             // Insert new exercise
             await txn.runAsync(
-              `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order) VALUES (?, ?, ?, ?)`,
+              `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id) VALUES (?, ?, ?, ?, ?)`,
               [
                 workoutId,
                 exercise.exercise_id,
                 JSON.stringify(exercise.sets),
                 exerciseOrder,
+                exercise.supersetGroupId ?? null,
               ],
             );
           } else {
             // Update existing exercise
             await txn.runAsync(
-              `UPDATE user_workout_exercises SET sets = ?, exercise_order = ? WHERE workout_id = ? AND exercise_id = ?`,
+              `UPDATE user_workout_exercises SET sets = ?, exercise_order = ?, superset_group_id = ? WHERE workout_id = ? AND exercise_id = ?`,
               [
                 JSON.stringify(exercise.sets),
                 exerciseOrder,
+                exercise.supersetGroupId ?? null,
                 workoutId,
                 exercise.exercise_id,
               ],
@@ -641,12 +649,13 @@ export const appendExercisesToWorkout = async (
     const baseOrder = (row?.maxOrder ?? -1) + 1;
     for (const [i, exercise] of exercises.entries()) {
       await txn.runAsync(
-        `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order) VALUES (?, ?, ?, ?)`,
+        `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id) VALUES (?, ?, ?, ?, ?)`,
         [
           workoutId,
           exercise.exercise_id,
           JSON.stringify(exercise.sets),
           baseOrder + i,
+          exercise.supersetGroupId ?? null,
         ],
       );
     }
@@ -1133,6 +1142,7 @@ interface RawStandaloneWorkout {
   tracking_type: string | null;
   sets: string | null;
   exercise_order: number | null;
+  superset_group_id: string | null;
 }
 
 export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
@@ -1155,7 +1165,8 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
       e.secondary_muscles,
       e.tracking_type,
       uwe.sets,
-      uwe.exercise_order
+      uwe.exercise_order,
+      uwe.superset_group_id
     FROM user_workouts uw
     LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = uw.id AND uwe.is_deleted = FALSE
     LEFT JOIN exercises e ON e.exercise_id = uwe.exercise_id
@@ -1204,6 +1215,7 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
             return [];
           }
         })(),
+        supersetGroupId: row.superset_group_id ?? undefined,
       });
     }
   }
@@ -1224,12 +1236,13 @@ export const createStandaloneWorkout = async (
     newWorkoutId = result.lastInsertRowId;
     for (const [order, exercise] of exercises.entries()) {
       await txn.runAsync(
-        `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order) VALUES (?, ?, ?, ?)`,
+        `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id) VALUES (?, ?, ?, ?, ?)`,
         [
           newWorkoutId,
           exercise.exercise_id,
           JSON.stringify(exercise.sets),
           order,
+          exercise.supersetGroupId ?? null,
         ],
       );
     }
@@ -1275,22 +1288,24 @@ export const updateStandaloneWorkout = async (
       const existingRow = existingByOrder.get(order);
       if (existingRow) {
         await txn.runAsync(
-          `UPDATE user_workout_exercises SET exercise_id = ?, sets = ?, exercise_order = ?, is_deleted = FALSE WHERE id = ?`,
+          `UPDATE user_workout_exercises SET exercise_id = ?, sets = ?, exercise_order = ?, superset_group_id = ?, is_deleted = FALSE WHERE id = ?`,
           [
             exercise.exercise_id,
             JSON.stringify(exercise.sets),
             order,
+            exercise.supersetGroupId ?? null,
             existingRow.id,
           ],
         );
       } else {
         await txn.runAsync(
-          `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order) VALUES (?, ?, ?, ?)`,
+          `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id) VALUES (?, ?, ?, ?, ?)`,
           [
             workoutId,
             exercise.exercise_id,
             JSON.stringify(exercise.sets),
             order,
+            exercise.supersetGroupId ?? null,
           ],
         );
       }

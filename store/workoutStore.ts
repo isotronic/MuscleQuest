@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { Exercise } from "@/utils/database";
+import * as Crypto from "expo-crypto";
 
 export interface Set {
   repsMin: number | undefined;
@@ -16,6 +17,7 @@ export interface UserExercise extends Exercise {
   sets: Set[];
   exercise_order?: number;
   is_deleted?: boolean;
+  supersetGroupId?: string;
 }
 
 export interface Workout {
@@ -65,6 +67,12 @@ interface WorkoutStore {
     exerciseId: number,
     setIndex: number,
   ) => void;
+  createSuperset: (
+    workoutIndex: number,
+    exerciseIndex: number,
+    newExercise: UserExercise,
+  ) => void;
+  removeFromSuperset: (workoutIndex: number, exerciseIndex: number) => void;
   // Schedule state (day_of_week 0-6 -> workout array index)
   planSchedule: Record<number, number>;
   setPlanSchedule: (schedule: Record<number, number>) => void;
@@ -222,23 +230,35 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
   },
   addSetToExercise: (workoutIndex: number, exerciseId: number, newSet: Set) => {
     set((state) => {
-      const workouts = state.workouts.map((workout, wIndex) => {
-        if (wIndex !== workoutIndex) {
-          return workout;
-        }
-        const exercises = workout.exercises.map((exercise) => {
-          if (exercise.exercise_id !== exerciseId) {
-            return exercise;
+      const workout = state.workouts[workoutIndex];
+      if (!workout) return state;
+
+      const targetExercise = workout.exercises.find(
+        (e) => e.exercise_id === exerciseId,
+      );
+      const supersetGroupId = targetExercise?.supersetGroupId;
+      const partner = supersetGroupId
+        ? workout.exercises.find(
+            (e) =>
+              e.exercise_id !== exerciseId &&
+              e.supersetGroupId === supersetGroupId,
+          )
+        : null;
+
+      const workouts = state.workouts.map((w, wIndex) => {
+        if (wIndex !== workoutIndex) return w;
+        const exercises = w.exercises.map((exercise) => {
+          if (exercise.exercise_id === exerciseId) {
+            return { ...exercise, sets: [...exercise.sets, newSet] };
           }
-          return {
-            ...exercise,
-            sets: [...exercise.sets, newSet],
-          };
+          // Mirror to superset partner: copy partner's last set as template
+          if (partner && exercise.exercise_id === partner.exercise_id) {
+            const lastSet = exercise.sets[exercise.sets.length - 1] ?? newSet;
+            return { ...exercise, sets: [...exercise.sets, { ...lastSet }] };
+          }
+          return exercise;
         });
-        return {
-          ...workout,
-          exercises,
-        };
+        return { ...w, exercises };
       });
       return { workouts };
     });
@@ -283,28 +303,87 @@ const useWorkoutStore = create<WorkoutStore>((set) => ({
     setIndex: number,
   ) => {
     set((state) => {
-      const workouts = state.workouts.map((workout, wIndex) => {
+      const workout = state.workouts[workoutIndex];
+      if (!workout) return state;
+
+      const targetExercise = workout.exercises.find(
+        (e) => e.exercise_id === exerciseId,
+      );
+      const supersetGroupId = targetExercise?.supersetGroupId;
+      const partner = supersetGroupId
+        ? workout.exercises.find(
+            (e) =>
+              e.exercise_id !== exerciseId &&
+              e.supersetGroupId === supersetGroupId,
+          )
+        : null;
+
+      const workouts = state.workouts.map((w, wIndex) => {
         if (wIndex !== workoutIndex) {
-          return workout;
+          return w;
         }
-        const exercises = workout.exercises.map((exercise) => {
-          if (exercise.exercise_id !== exerciseId) {
-            return exercise;
+        const exercises = w.exercises.map((exercise) => {
+          if (exercise.exercise_id === exerciseId) {
+            // Must keep at least 1 set
+            if (exercise.sets.length <= 1) return exercise;
+            return {
+              ...exercise,
+              sets: exercise.sets.filter((_, sIndex) => sIndex !== setIndex),
+            };
           }
-          const sets = exercise.sets.filter((_, sIndex) => sIndex !== setIndex);
-          return {
-            ...exercise,
-            sets,
-          };
+          // Mirror removal to superset partner
+          if (partner && exercise.exercise_id === partner.exercise_id) {
+            if (exercise.sets.length <= 1) return exercise;
+            return {
+              ...exercise,
+              sets: exercise.sets.filter((_, sIndex) => sIndex !== setIndex),
+            };
+          }
+          return exercise;
         });
         return {
-          ...workout,
+          ...w,
           exercises,
         };
       });
       return { workouts };
     });
   },
+  createSuperset: (workoutIndex, exerciseIndex, newExercise) =>
+    set((state) => {
+      const groupId = Crypto.randomUUID();
+      const updatedWorkouts = state.workouts.map((w, i) => {
+        if (i !== workoutIndex) return w;
+        const exercises = [...w.exercises];
+        exercises[exerciseIndex] = {
+          ...exercises[exerciseIndex],
+          supersetGroupId: groupId,
+        };
+        exercises.splice(exerciseIndex + 1, 0, {
+          ...newExercise,
+          supersetGroupId: groupId,
+        });
+        return { ...w, exercises };
+      });
+      return { workouts: updatedWorkouts };
+    }),
+
+  removeFromSuperset: (workoutIndex, exerciseIndex) =>
+    set((state) => {
+      const updatedWorkouts = state.workouts.map((w, i) => {
+        if (i !== workoutIndex) return w;
+        const groupId = w.exercises[exerciseIndex]?.supersetGroupId;
+        if (!groupId) return w;
+        const exercises = w.exercises.map((e) => {
+          if (e.supersetGroupId !== groupId) return e;
+          const { supersetGroupId: _, ...rest } = e;
+          return rest as UserExercise;
+        });
+        return { ...w, exercises };
+      });
+      return { workouts: updatedWorkouts };
+    }),
+
   // Schedule actions
   planSchedule: {},
   setPlanSchedule: (schedule) =>

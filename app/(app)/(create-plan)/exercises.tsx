@@ -41,11 +41,19 @@ export default function ExercisesScreen() {
     newExerciseId,
     setNewExerciseId,
     replaceExercise,
+    createSuperset,
   } = useWorkoutStore();
-  const { index } = useLocalSearchParams();
+  const { index, supersetForIndex } = useLocalSearchParams<{
+    index: string;
+    supersetForIndex?: string;
+  }>();
   const currentWorkoutIndex = Number(index);
   const currentWorkout = workouts[currentWorkoutIndex];
   const replacing = replaceExerciseIndex !== undefined;
+  const supersetMode = supersetForIndex !== undefined;
+  const supersetForExerciseIndex = supersetMode
+    ? Number(supersetForIndex)
+    : undefined;
 
   const {
     data: settings,
@@ -67,7 +75,7 @@ export default function ExercisesScreen() {
   const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
 
   useEffect(() => {
-    if (currentWorkout?.exercises && !replacing) {
+    if (currentWorkout?.exercises && !replacing && !supersetMode) {
       const existingExerciseIds = currentWorkout.exercises.map(
         (exercise) => exercise.exercise_id,
       );
@@ -84,7 +92,13 @@ export default function ExercisesScreen() {
       // Clear the newExerciseId after it's used
       setNewExerciseId(null);
     }
-  }, [currentWorkout, newExerciseId, replacing, setNewExerciseId]);
+  }, [
+    currentWorkout,
+    newExerciseId,
+    replacing,
+    supersetMode,
+    setNewExerciseId,
+  ]);
 
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -102,13 +116,38 @@ export default function ExercisesScreen() {
 
   const handleSelectExercise = useCallback(
     (exerciseId: number) => {
-      if (replacing) {
-        // Check if this exercise already exists in the current workout
-        const workout = workouts[currentWorkoutIndex];
-        const exerciseAlreadyExists = workout.exercises.some(
-          (e) => e.exercise_id === exerciseId,
-        );
+      const workout = workouts[currentWorkoutIndex];
+      const exerciseAlreadyExists = workout?.exercises.some(
+        (e) => e.exercise_id === exerciseId,
+      );
 
+      if (supersetMode) {
+        // Single-select: pair as superset partner
+        if (exerciseAlreadyExists) {
+          Alert.alert(
+            "Exercise Already Added",
+            "This exercise is already in your workout. Please choose a different one.",
+            [{ text: "OK" }],
+          );
+          return;
+        }
+        const exercise = allExercises.find(
+          (ex) => ex.exercise_id === exerciseId,
+        );
+        if (exercise && supersetForExerciseIndex !== undefined) {
+          const newExercise = {
+            ...exercise,
+            sets:
+              exercise.tracking_type === "time" ? defaultTimeSets : defaultSets,
+          };
+          createSuperset(
+            currentWorkoutIndex,
+            supersetForExerciseIndex,
+            newExercise,
+          );
+          router.back();
+        }
+      } else if (replacing) {
         if (exerciseAlreadyExists) {
           Alert.alert(
             "Exercise Already Added",
@@ -134,7 +173,7 @@ export default function ExercisesScreen() {
             defaultSets,
             defaultTimeSets,
           );
-          router.back(); // Return immediately after replacement
+          router.back();
         }
       } else {
         // Normal add mode - allow multiple selections
@@ -146,14 +185,17 @@ export default function ExercisesScreen() {
       }
     },
     [
+      supersetMode,
+      supersetForExerciseIndex,
       replacing,
       allExercises,
       replaceExerciseIndex,
       defaultTimeSets,
       defaultSets,
       replaceExercise,
+      createSuperset,
       currentWorkoutIndex,
-      workouts, // Make sure 'workouts' is included in dependencies
+      workouts,
     ],
   );
 
@@ -280,7 +322,7 @@ export default function ExercisesScreen() {
             });
           }}
         />
-        {!replacing && (
+        {!replacing && !supersetMode && (
           <View style={styles.bottomButtons}>
             <Button
               mode="outlined"

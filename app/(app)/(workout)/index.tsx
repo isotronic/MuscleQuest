@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import {
   IconButton,
-  Card,
   Menu,
   Button,
   ActivityIndicator,
@@ -35,6 +34,7 @@ import {
   linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
 import { cancelRestNotifications } from "@/utils/restNotification";
+import { classifySupersetPosition } from "@/utils/supersetUtils";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function WorkoutOverviewScreen() {
@@ -486,79 +486,100 @@ export default function WorkoutOverviewScreen() {
           const totalSets = exercise.sets.length;
           const allSetsCompleted = completedCount === totalSets;
           const isLoading = loadingExerciseIndex === index;
-          return (
-            <TouchableOpacity
-              key={exercise.exercise_id}
-              onPress={() => {
-                handleExercisePress(index);
-              }}
+
+          const { isInSuperset, isFirstInSuperset, isSecondInSuperset } =
+            classifySupersetPosition(workout.exercises, index);
+
+          const exerciseCardContent = (
+            <View
+              style={[
+                styles.card,
+                isInSuperset && styles.supersetCard,
+                isFirstInSuperset && styles.supersetCardFirst,
+                isSecondInSuperset && styles.supersetCardLast,
+              ]}
             >
-              <Card style={styles.card}>
-                <Card.Content style={styles.cardContent}>
-                  {/* Circle with the number or checkmark */}
-                  <View
-                    style={[
-                      styles.numberContainer,
-                      allSetsCompleted && styles.numberContainerCompleted,
-                    ]}
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator size="small" color="white" />
-                    ) : allSetsCompleted ? (
-                      <MaterialCommunityIcons
-                        name="check"
-                        size={24}
-                        color="white"
-                      />
-                    ) : (
-                      <ThemedText style={styles.numberText}>
-                        {index + 1}
-                      </ThemedText>
-                    )}
-                  </View>
-
-                  {/* Exercise Info */}
-                  <View style={styles.exerciseInfo}>
-                    <ThemedText style={styles.exerciseName}>
-                      {exercise.name}
-                    </ThemedText>
-                    <ThemedText style={styles.setInfo}>
-                      {completedCount}/{exercise.sets.length} sets completed
-                    </ThemedText>
-                  </View>
-
-                  {/* Options Menu */}
-                  <Menu
-                    visible={menuVisible[index]}
-                    onDismiss={() => handleMenuClose(index)}
-                    anchor={
-                      <IconButton
-                        icon="dots-vertical"
-                        size={24}
-                        onPress={() => handleMenuOpen(index)}
-                        style={styles.optionsButton}
-                        iconColor={Colors.dark.text}
-                      />
-                    }
-                  >
-                    <Menu.Item
-                      onPress={() => {
-                        handleMenuClose(index);
-                        handleDeleteExercise(index);
-                      }}
-                      title="Delete"
+              <View style={styles.cardContent}>
+                {/* Circle with the number or checkmark */}
+                <View
+                  style={[
+                    styles.numberContainer,
+                    allSetsCompleted && styles.numberContainerCompleted,
+                  ]}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : allSetsCompleted ? (
+                    <MaterialCommunityIcons
+                      name="check"
+                      size={24}
+                      color="white"
                     />
-                    <Menu.Item
-                      onPress={() => {
-                        handleMenuClose(index);
-                        handleReplaceExercise(index);
-                      }}
-                      title="Replace"
+                  ) : (
+                    <ThemedText style={styles.numberText}>
+                      {isFirstInSuperset
+                        ? "A"
+                        : isSecondInSuperset
+                          ? "B"
+                          : index + 1}
+                    </ThemedText>
+                  )}
+                </View>
+
+                {/* Exercise Info */}
+                <View style={styles.exerciseInfo}>
+                  <ThemedText style={styles.exerciseName}>
+                    {exercise.name}
+                  </ThemedText>
+                  <ThemedText style={styles.setInfo}>
+                    {completedCount}/{exercise.sets.length} sets completed
+                  </ThemedText>
+                </View>
+
+                {/* Options Menu */}
+                <Menu
+                  visible={menuVisible[index]}
+                  onDismiss={() => handleMenuClose(index)}
+                  anchor={
+                    <IconButton
+                      icon="dots-vertical"
+                      size={24}
+                      onPress={() => handleMenuOpen(index)}
+                      style={styles.optionsButton}
+                      iconColor={Colors.dark.text}
                     />
-                  </Menu>
-                </Card.Content>
-              </Card>
-            </TouchableOpacity>
+                  }
+                >
+                  <Menu.Item
+                    onPress={() => {
+                      handleMenuClose(index);
+                      handleDeleteExercise(index);
+                    }}
+                    title="Delete"
+                  />
+                  <Menu.Item
+                    onPress={() => {
+                      handleMenuClose(index);
+                      handleReplaceExercise(index);
+                    }}
+                    title="Replace"
+                  />
+                </Menu>
+              </View>
+            </View>
+          );
+
+          return (
+            <View key={exercise.exercise_id}>
+              {isSecondInSuperset ? (
+                <View accessible={false}>{exerciseCardContent}</View>
+              ) : (
+                <TouchableOpacity onPress={() => handleExercisePress(index)}>
+                  {exerciseCardContent}
+                </TouchableOpacity>
+              )}
+              {isFirstInSuperset && <View style={styles.supersetConnector} />}
+            </View>
           );
         })}
         <Button
@@ -595,6 +616,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: Colors.dark.cardBackground,
     borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   cardContent: {
     flexDirection: "row",
@@ -692,5 +715,39 @@ const styles = StyleSheet.create({
   addExerciseButton: {
     marginTop: 8,
     marginBottom: 50,
+  },
+  supersetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+  supersetHeaderText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.dark.tint,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  supersetConnector: {
+    width: 3,
+    height: 8,
+    backgroundColor: Colors.dark.tint,
+    marginLeft: 27,
+    marginBottom: 0,
+  },
+  supersetCard: {
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.dark.tint,
+  },
+  supersetCardFirst: {
+    marginBottom: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  supersetCardLast: {
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
   },
 });

@@ -28,6 +28,7 @@ export interface WorkoutRecord {
       isWarmup: boolean;
       toFailure: boolean;
     }[];
+    supersetGroupId?: string;
   }[];
 }
 
@@ -48,6 +49,7 @@ export interface RawWorkoutRecord {
   tracking_type: string | null;
   sets: string | null;
   exercise_order: number | null;
+  superset_group_id: string | null;
 }
 
 const fetchPlanData = async (planId: number): Promise<Plan | null> => {
@@ -82,7 +84,8 @@ const fetchWorkoutsForPlan = async (
         exercises.secondary_muscles,
         exercises.tracking_type,
         user_workout_exercises.sets,
-        user_workout_exercises.exercise_order
+        user_workout_exercises.exercise_order,
+        user_workout_exercises.superset_group_id
       FROM user_workouts
       LEFT JOIN user_workout_exercises ON user_workout_exercises.workout_id = user_workouts.id
       LEFT JOIN exercises ON exercises.exercise_id = user_workout_exercises.exercise_id
@@ -133,6 +136,7 @@ const parseWorkouts = (rawWorkouts: RawWorkoutRecord[]) => {
           : [],
         tracking_type: rawWorkout.tracking_type || "",
         sets: rawWorkout.sets ? JSON.parse(rawWorkout.sets) : [],
+        supersetGroupId: rawWorkout.superset_group_id ?? undefined,
       });
     }
   }

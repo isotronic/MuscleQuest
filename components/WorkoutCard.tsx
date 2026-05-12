@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View, TextInput, Alert } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
@@ -9,6 +9,22 @@ import { Colors } from "@/constants/Colors";
 import Sortable from "react-native-sortables";
 import type { SortableGridRenderItem } from "react-native-sortables";
 import { formatFromTotalSeconds } from "@/utils/utility";
+
+// Each item fed to Sortable.Grid is either a solo exercise or an adjacent superset pair.
+// The pair is treated as a single draggable unit so both exercises move together.
+type SingleItem = {
+  type: "single";
+  exercise: UserExercise;
+  exerciseIndex: number;
+};
+
+type SupersetItem = {
+  type: "superset";
+  exercises: [UserExercise, UserExercise];
+  exerciseIndices: [number, number];
+};
+
+type GroupedItem = SingleItem | SupersetItem;
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -48,17 +64,12 @@ export default function WorkoutCard({
       const exercise = workout.exercises.find(
         (ex) => ex.exercise_id === exerciseId,
       );
-      if (!exercise) {
-        return;
-      }
+      if (!exercise) return;
       Alert.alert(
         "Remove Exercise",
         `Are you sure you want to remove ${exercise.name}?`,
         [
-          {
-            text: "Cancel",
-            style: "cancel",
-          },
+          { text: "Cancel", style: "cancel" },
           {
             text: "Remove",
             style: "destructive",
@@ -76,9 +87,7 @@ export default function WorkoutCard({
 
   const handleReplace = useCallback(
     (exerciseIndex: number) => {
-      // Find the exercise being replaced
       const exercise = workout.exercises[exerciseIndex];
-      // Navigate to the exercises screen to select a replacement, passing target_muscle if available
       router.push({
         pathname: "/(app)/(create-plan)/exercises",
         params: {
@@ -91,11 +100,70 @@ export default function WorkoutCard({
     [workoutIndex, workout.exercises],
   );
 
-  const renderExerciseItem: SortableGridRenderItem<UserExercise> = useCallback(
-    ({ item, index }) => {
-      const exerciseIndex = index;
+  const handleCreateSuperset = useCallback(
+    (exerciseIndex: number) => {
+      router.push({
+        pathname: "/(app)/(create-plan)/exercises",
+        params: {
+          index: workoutIndex,
+          supersetForIndex: exerciseIndex,
+        },
+      });
+    },
+    [workoutIndex],
+  );
 
-      // Calculate min and max reps
+  const handleRemoveSuperset = useCallback(
+    (exerciseIndex: number) => {
+      useWorkoutStore
+        .getState()
+        .removeFromSuperset(workoutIndex, exerciseIndex);
+    },
+    [workoutIndex],
+  );
+
+  // Build the grouped data array. Superset pairs become one item so they drag together.
+  const groupedData = useMemo((): GroupedItem[] => {
+    const result: GroupedItem[] = [];
+    const seen = new Set<number>();
+
+    workout.exercises.forEach((exercise, i) => {
+      if (seen.has(exercise.exercise_id)) return;
+      seen.add(exercise.exercise_id);
+
+      const { supersetGroupId } = exercise;
+      if (supersetGroupId) {
+        const partnerIdx = workout.exercises.findIndex(
+          (e, j) => j !== i && e.supersetGroupId === supersetGroupId,
+        );
+        const partner =
+          partnerIdx !== -1 ? workout.exercises[partnerIdx] : null;
+        if (partner && !seen.has(partner.exercise_id)) {
+          seen.add(partner.exercise_id);
+          result.push({
+            type: "superset",
+            exercises: [exercise, partner],
+            exerciseIndices: [i, partnerIdx],
+          });
+          return;
+        }
+      }
+      result.push({ type: "single", exercise, exerciseIndex: i });
+    });
+
+    return result;
+  }, [workout.exercises]);
+
+  // Renders a single exercise row. Used for both solo exercises and each half of a superset.
+  const renderExerciseRow = useCallback(
+    (
+      item: UserExercise,
+      exerciseIndex: number,
+      isFirstInSuperset: boolean,
+      isSecondInSuperset: boolean,
+    ) => {
+      const isInSuperset = isFirstInSuperset || isSecondInSuperset;
+
       const minReps = Math.min(
         ...item.sets.map((set) => set.repsMin ?? Infinity),
       );
@@ -112,7 +180,6 @@ export default function WorkoutCard({
         repRange = `${minReps} - ${maxReps}`;
       }
 
-      // Calculate min and max time
       const minTime = Math.min(...item.sets.map((set) => set.time ?? Infinity));
       const maxTime = Math.max(
         ...item.sets.map((set) => set.time ?? -Infinity),
@@ -130,11 +197,18 @@ export default function WorkoutCard({
       }
 
       const isToFailure = item.sets.some((set) => set.isToFailure);
-
       const isMenuOpen = menuVisible === item.exercise_id;
 
       return (
-        <View style={[styles.exerciseItem]}>
+        <View
+          key={item.exercise_id}
+          style={[
+            styles.exerciseItem,
+            isInSuperset && styles.supersetExerciseItem,
+            isFirstInSuperset && styles.supersetExerciseFirst,
+            isSecondInSuperset && styles.supersetExerciseLast,
+          ]}
+        >
           <Sortable.Touchable
             onTap={() =>
               router.push(
@@ -174,7 +248,6 @@ export default function WorkoutCard({
                 size={24}
                 onPress={() => openMenu(item.exercise_id)}
                 iconColor={Colors.dark.text}
-                accessibilityLabel={`Open menu for exercise ${item.exercise_id}`}
               />
             }
           >
@@ -192,6 +265,23 @@ export default function WorkoutCard({
               }}
               title="Replace"
             />
+            {isInSuperset ? (
+              <Menu.Item
+                onPress={() => {
+                  closeMenu();
+                  handleRemoveSuperset(exerciseIndex);
+                }}
+                title="Remove Superset"
+              />
+            ) : (
+              <Menu.Item
+                onPress={() => {
+                  closeMenu();
+                  handleCreateSuperset(exerciseIndex);
+                }}
+                title="Create Superset"
+              />
+            )}
             <Menu.Item
               onPress={() => {
                 closeMenu();
@@ -205,14 +295,53 @@ export default function WorkoutCard({
         </View>
       );
     },
-    [handleReplace, menuVisible, removeExercise, workoutIndex],
+    [
+      handleCreateSuperset,
+      handleRemoveSuperset,
+      handleReplace,
+      menuVisible,
+      removeExercise,
+      workoutIndex,
+    ],
   );
 
+  // Renders each Sortable.Grid item — either a solo row or a superset pair block.
+  const renderItem: SortableGridRenderItem<GroupedItem> = useCallback(
+    ({ item }) => {
+      if (item.type === "single") {
+        return (
+          <View>
+            {renderExerciseRow(item.exercise, item.exerciseIndex, false, false)}
+          </View>
+        );
+      }
+      const [exA, exB] = item.exercises;
+      const [idxA, idxB] = item.exerciseIndices;
+      return (
+        <View>
+          <View style={styles.supersetHeader}>
+            <ThemedText style={styles.supersetHeaderText}>Superset</ThemedText>
+          </View>
+          {renderExerciseRow(exA, idxA, true, false)}
+          <View style={styles.supersetConnector} />
+          {renderExerciseRow(exB, idxB, false, true)}
+        </View>
+      );
+    },
+    [renderExerciseRow],
+  );
+
+  // Reorder groups then flatten back to the flat exercises array.
   const handleOrderChange = useCallback(
     ({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => {
-      const updatedExercises = [...workout.exercises];
-      const [movedItem] = updatedExercises.splice(fromIndex, 1);
-      updatedExercises.splice(toIndex, 0, movedItem);
+      if (fromIndex === toIndex) return;
+      const reordered = [...groupedData];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+
+      const updatedExercises = reordered.flatMap((item) =>
+        item.type === "single" ? [item.exercise] : item.exercises,
+      );
 
       const updatedWorkouts = workouts.map((w, i) =>
         i === index ? { ...w, exercises: updatedExercises } : w,
@@ -220,7 +349,7 @@ export default function WorkoutCard({
 
       useWorkoutStore.setState({ workouts: updatedWorkouts });
     },
-    [workout.exercises, workouts, index],
+    [groupedData, workouts, index],
   );
 
   return (
@@ -260,17 +389,19 @@ export default function WorkoutCard({
       />
       {workout.exercises.length > 0 ? (
         <Sortable.Grid
-          columns={1} // Treat as a vertical list
-          data={workout.exercises}
-          keyExtractor={(exercise) => exercise.exercise_id.toString()}
-          renderItem={renderExerciseItem}
+          columns={1}
+          data={groupedData}
+          keyExtractor={(item) =>
+            item.type === "single"
+              ? item.exercise.exercise_id.toString()
+              : `ss-${item.exercises[0].exercise_id}-${item.exercises[1].exercise_id}`
+          }
+          renderItem={renderItem}
           onDragEnd={handleOrderChange}
           showDropIndicator
         />
       ) : (
-        <ThemedText style={styles.workoutInstructions}>
-          No exercises added yet
-        </ThemedText>
+        <ThemedText style={styles.emptyText}>No exercises added yet</ThemedText>
       )}
       <Button
         mode="outlined"
@@ -377,10 +508,42 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   setsAndReps: {
-    fontSize: 14, // Smaller font size for sets and reps
+    fontSize: 14,
     color: "#D8DEE9",
   },
   closeIcon: {
     marginLeft: "auto",
+  },
+  supersetHeader: {
+    paddingHorizontal: 4,
+    paddingBottom: 0,
+    marginTop: -7,
+  },
+  supersetHeaderText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.dark.tint,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  supersetConnector: {
+    width: 3,
+    height: 6,
+    backgroundColor: Colors.dark.tint,
+    marginLeft: 27,
+  },
+  supersetExerciseItem: {
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.dark.tint,
+  },
+  supersetExerciseFirst: {
+    marginBottom: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  supersetExerciseLast: {
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    marginBottom: 8,
   },
 });
