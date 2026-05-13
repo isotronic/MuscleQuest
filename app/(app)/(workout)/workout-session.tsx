@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import { StyleSheet, View, Alert } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Dimensions, StyleSheet, View, Alert } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
@@ -22,9 +22,99 @@ import { Notes } from "@/components/Notes";
 import { convertTimeStrToSeconds } from "@/utils/utility";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { useSoundStore } from "@/store/soundStore";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  runOnJS,
+} from "react-native-reanimated";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+
+// React 18 + Reanimated 4: Animated.View types don't include children in strict TS
+const AnimatedView = Animated.View as unknown as React.ComponentType<{
+  style?: any;
+  pointerEvents?: string;
+  children?: React.ReactNode;
+}>;
+
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const COMMIT_DISTANCE = SCREEN_WIDTH * 0.3;
+const COMMIT_VELOCITY = 500;
+
+interface OutgoingSnapshot {
+  exercise_id: number;
+  exerciseName: string;
+  currentSetIndex: number;
+  totalSets: number;
+  weight: string;
+  reps: string;
+  time: string;
+  weightIncrement: number;
+  buttonSize: number;
+  weightUnit: string;
+  restMinutes: number;
+  restSeconds: number;
+  repsMin: number;
+  repsMax: number;
+  timeMin: number;
+  currentSetCompleted: boolean;
+  isWarmup: boolean;
+  isDropSet: boolean;
+  isToFailure: boolean;
+  trackingType: string;
+}
+
+const noop = () => {};
+const noopNum = (_: number) => {};
+
+function snapshotToProps(snapshot: OutgoingSnapshot) {
+  return {
+    ...snapshot,
+    animatedUrl: undefined,
+    animatedImageLoading: false,
+    animatedImageError: null,
+    isLastSetOfLastExercise: false,
+    isFirstSetOfFirstExercise: false,
+    handleWeightInputChange: noop,
+    handleWeightChange: noopNum,
+    handleRepsInputChange: noop,
+    handleRepsChange: noopNum,
+    handleTimeInputChange: noop,
+    handlePreviousSet: noop,
+    handleNextSet: noop,
+    handleCompleteSet: noop,
+    removeSet: noopNum,
+    addSet: noop,
+  };
+}
 
 export default function WorkoutSessionScreen() {
   const insets = useSafeAreaInsets();
+
+  // Animation shared values — all hooks must be before any early returns
+  const offsetX = useSharedValue(0);
+  const snapshotOffsetX = useSharedValue(0);
+  const completionIncomingX = useSharedValue(0);
+  const canGoNext = useSharedValue(false);
+  const canGoPrev = useSharedValue(false);
+
+  const [outgoingSnapshot, setOutgoingSnapshot] =
+    useState<OutgoingSnapshot | null>(null);
+  const clearOutgoingSnapshot = () => setOutgoingSnapshot(null);
+
+  const prevPanelStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: -SCREEN_WIDTH + offsetX.value }],
+  }));
+  const currentPanelStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: offsetX.value + completionIncomingX.value }],
+  }));
+  const nextPanelStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: SCREEN_WIDTH + offsetX.value }],
+  }));
+  const outgoingSnapshotStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: snapshotOffsetX.value }],
+  }));
 
   const {
     workout,
@@ -50,6 +140,15 @@ export default function WorkoutSessionScreen() {
     isLoading: settingsLoading,
     error: settingsError,
   } = useSettingsQuery();
+
+  const weightIncrement = settings ? parseFloat(settings.weightIncrement) : 1;
+  const buttonSize = settings
+    ? settings.buttonSize === "Standard"
+      ? 40
+      : settings.buttonSize === "Large"
+        ? 60
+        : 80
+    : 40;
 
   const { selectedExerciseIndex } = useLocalSearchParams();
 
@@ -79,11 +178,11 @@ export default function WorkoutSessionScreen() {
       );
 
       if (exerciseData && exerciseData.sets[setIndex]) {
-        return exerciseData.sets[setIndex]; // Return the first non-null data found
+        return exerciseData.sets[setIndex];
       }
     }
 
-    return null; // No data found in any past workout
+    return null;
   };
 
   const previousWorkoutSetData = findLastAvailableSetData(
@@ -106,7 +205,6 @@ export default function WorkoutSessionScreen() {
     previousWorkoutSetData?.time?.toString() ??
     "";
 
-  // Fetch animated image for current exercise
   const {
     data: animatedUrl,
     error: animatedImageError,
@@ -148,9 +246,7 @@ export default function WorkoutSessionScreen() {
       expiryTimestamp: expiryTimestampRef.current.toISOString(),
     });
 
-    // If we're more than 2 seconds late, assume background notification already played
     if (diffMs < 2000) {
-      // user is in the foreground at the actual expiry
       if (settings?.restTimerSound === "true") {
         playSound();
       }
@@ -171,7 +267,6 @@ export default function WorkoutSessionScreen() {
       expiryTimestampRef.current = time;
       restart(time);
 
-      // Add debug breadcrumb
       Bugsnag.leaveBreadcrumb("Timer restarted", {
         timerExpiry: timerExpiry.toISOString(),
         currentTime: new Date().toISOString(),
@@ -183,7 +278,6 @@ export default function WorkoutSessionScreen() {
     if (restMinutes > 0 || restSeconds > 0) {
       const totalSeconds = restMinutes * 60 + restSeconds;
 
-      // Use wrapper that handles cancel-then-schedule or just cancel if notifications disabled
       if (settings?.restTimerNotification === "true") {
         await scheduleRestNotificationWithCancellation(
           totalSeconds,
@@ -201,7 +295,6 @@ export default function WorkoutSessionScreen() {
       startTimer(time);
       restart(time);
 
-      // Add debug breadcrumb
       Bugsnag.leaveBreadcrumb("Timer started", {
         totalSeconds,
         expiryTimestamp: time.toISOString(),
@@ -233,7 +326,6 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleTimeInputChange = (inputValue: string) => {
-    // Remove any non-digits first
     const sanitizedInput = inputValue.replace(/[^0-9]/g, "");
     updateWeightAndReps(
       currentExerciseIndex,
@@ -286,7 +378,6 @@ export default function WorkoutSessionScreen() {
   let nextSetIndex = currentSetIndex + 1;
 
   if (currentExercise && nextSetIndex >= currentExercise.sets.length) {
-    // Move to first set of next exercise
     nextExerciseIndex = currentExerciseIndex + 1;
     nextSetIndex = 0;
   }
@@ -301,7 +392,6 @@ export default function WorkoutSessionScreen() {
   let previousSetIndex: number | null = currentSetIndex - 1;
 
   if (previousSetIndex < 0) {
-    // Move to last set of previous exercise
     previousExerciseIndex = currentExerciseIndex - 1;
     if (previousExerciseIndex >= 0) {
       const prevExercise = workout?.exercises[previousExerciseIndex];
@@ -332,12 +422,82 @@ export default function WorkoutSessionScreen() {
     currentExerciseIndex === 0 &&
     currentSetIndex === 0;
 
-  const handlePreviousSet = () => {
-    if (
-      hasPreviousSet &&
-      previousExerciseIndex !== null &&
-      previousSetIndex !== null
-    ) {
+  // Keep shared values in sync so gesture worklets see current edge state
+  useEffect(() => {
+    canGoNext.value = !!hasNextSet;
+    canGoPrev.value = !!hasPreviousSet;
+  }, [hasNextSet, hasPreviousSet]);
+
+  // Returns full SessionSetInfo props for any (exerciseIndex, setIndex) without
+  // touching store indices — used to pre-render adjacent panels with correct data
+  const getPanelData = (exerciseIndex: number, setIndex: number) => {
+    if (!workout || !settings) return null;
+    const exercise = workout.exercises[exerciseIndex];
+    if (!exercise) return null;
+    const set = exercise.sets[setIndex];
+    if (!set) return null;
+
+    const prevData = findLastAvailableSetData(exercise.exercise_id, setIndex);
+    const panelWeight =
+      weightAndReps[exerciseIndex]?.[setIndex]?.weight ??
+      prevData?.weight?.toString() ??
+      "";
+    const panelReps =
+      weightAndReps[exerciseIndex]?.[setIndex]?.reps ??
+      prevData?.reps?.toString() ??
+      "";
+    const panelTime =
+      weightAndReps[exerciseIndex]?.[setIndex]?.time ??
+      prevData?.time?.toString() ??
+      "";
+    const isCompleted = completedSets[exerciseIndex]?.[setIndex] ?? false;
+    const isFirst = exerciseIndex === 0 && setIndex === 0;
+    const isLast =
+      exerciseIndex === workout.exercises.length - 1 &&
+      setIndex === exercise.sets.length - 1;
+
+    return {
+      exercise_id: exercise.exercise_id,
+      exerciseName: exercise.name,
+      animatedUrl: undefined,
+      animatedImageLoading: false,
+      animatedImageError: null,
+      currentSetIndex: setIndex,
+      totalSets: exercise.sets.length,
+      weight: panelWeight,
+      reps: panelReps,
+      time: panelTime,
+      weightIncrement,
+      buttonSize,
+      weightUnit: settings.weightUnit || "kg",
+      restMinutes: set.restMinutes || 0,
+      restSeconds: set.restSeconds || 0,
+      repsMin: set.repsMin || 0,
+      repsMax: set.repsMax || 0,
+      timeMin: set.time || 0,
+      currentSetCompleted: !!isCompleted,
+      isWarmup: set.isWarmup || false,
+      isDropSet: set.isDropSet || false,
+      isToFailure: set.isToFailure || false,
+      trackingType: exercise.tracking_type || "weight",
+      isLastSetOfLastExercise: isLast,
+      isFirstSetOfFirstExercise: isFirst,
+      handleWeightInputChange: noop,
+      handleWeightChange: noopNum,
+      handleRepsInputChange: noop,
+      handleRepsChange: noopNum,
+      handleTimeInputChange: noop,
+      handlePreviousSet: noop,
+      handleNextSet: noop,
+      handleCompleteSet: noop,
+      removeSet: noopNum,
+      addSet: noop,
+    };
+  };
+
+  // Called from animation callbacks — updates store after swipe/button animation completes
+  const commitPrevious = () => {
+    if (previousExerciseIndex !== null && previousSetIndex !== null) {
       setCurrentExerciseIndex(previousExerciseIndex as number);
       setCurrentSetIndex(
         previousExerciseIndex as number,
@@ -346,11 +506,31 @@ export default function WorkoutSessionScreen() {
     }
   };
 
+  const commitNext = () => {
+    setCurrentExerciseIndex(nextExerciseIndex);
+    setCurrentSetIndex(nextExerciseIndex, nextSetIndex);
+  };
+
+  const handlePreviousSet = () => {
+    if (!hasPreviousSet) return;
+    offsetX.value = withTiming(SCREEN_WIDTH, { duration: 250 }, (finished) => {
+      "worklet";
+      if (finished) {
+        offsetX.value = 0;
+        runOnJS(commitPrevious)();
+      }
+    });
+  };
+
   const handleNextSet = () => {
-    if (hasNextSet) {
-      setCurrentExerciseIndex(nextExerciseIndex);
-      setCurrentSetIndex(nextExerciseIndex, nextSetIndex);
-    }
+    if (!hasNextSet) return;
+    offsetX.value = withTiming(-SCREEN_WIDTH, { duration: 250 }, (finished) => {
+      "worklet";
+      if (finished) {
+        offsetX.value = 0;
+        runOnJS(commitNext)();
+      }
+    });
   };
 
   // Determine superset context
@@ -369,8 +549,8 @@ export default function WorkoutSessionScreen() {
     if (!currentExercise || !currentSet) {
       return;
     }
+    if (outgoingSnapshot) return; // guard against double-tap during animation
 
-    // Parse weight and reps, treating empty strings as zero
     const weightStr =
       weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight ??
       previousWorkoutSetData?.weight?.toString() ??
@@ -390,20 +570,50 @@ export default function WorkoutSessionScreen() {
     const repsNum = parseInt(repsStr);
     const validRepsNum = isNaN(repsNum) ? 0 : repsNum;
 
-    // Convert time from MM:SS format to total seconds
     const validTimeNum = convertTimeStrToSeconds(timeStr);
 
-    // Update the weightAndReps with valid values for the current set
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
       validWeightInKg.toString(),
       validRepsNum.toString(),
-      validTimeNum.toString(), // Store as seconds
+      validTimeNum.toString(),
     );
 
+    // Only animate when there is a set to transition to; when the workout ends
+    // nextSet() calls router.back() so we must not start an animation.
+    const shouldAnimate = !!hasNextSet;
+
+    if (shouldAnimate) {
+      // Snapshot the outgoing set before the store advances
+      setOutgoingSnapshot({
+        exercise_id: currentExercise.exercise_id,
+        exerciseName: currentExercise.name,
+        currentSetIndex,
+        totalSets: currentExercise.sets.length,
+        weight: validWeightInKg.toString(),
+        reps: validRepsNum.toString(),
+        time: validTimeNum.toString(),
+        weightIncrement,
+        buttonSize,
+        weightUnit: settings?.weightUnit || "kg",
+        restMinutes: currentSet.restMinutes || 0,
+        restSeconds: currentSet.restSeconds || 0,
+        repsMin: currentSet.repsMin || 0,
+        repsMax: currentSet.repsMax || 0,
+        timeMin: currentSet.time || 0,
+        currentSetCompleted: true,
+        isWarmup: currentSet.isWarmup || false,
+        isDropSet: currentSet.isDropSet || false,
+        isToFailure: currentSet.isToFailure || false,
+        trackingType: currentExercise.tracking_type || "weight",
+      });
+      // Position live panel off-screen right so it slides in from there
+      completionIncomingX.value = SCREEN_WIDTH;
+    }
+
+    // Advance the store — carry-forward weight is written inside nextSet()
     if (isFirstInSuperset) {
-      // Cancel any stale rest before moving to superset partner — no rest here
       stopTimer();
       void cancelRestNotifications();
       nextSet();
@@ -411,20 +621,86 @@ export default function WorkoutSessionScreen() {
       void startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
       nextSet();
     } else {
-      // No next set, workout completed — cancel any pending rest notification
       void cancelRestNotifications();
       nextSet();
     }
+
+    if (shouldAnimate) {
+      // Snapshot slides out to the left; live panel (already showing the new
+      // set with carried-over weight) slides in from the right
+      snapshotOffsetX.value = withTiming(
+        -SCREEN_WIDTH,
+        { duration: 250 },
+        (finished) => {
+          "worklet";
+          if (finished) {
+            snapshotOffsetX.value = 0;
+            runOnJS(clearOutgoingSnapshot)();
+          }
+        },
+      );
+      completionIncomingX.value = withTiming(
+        0,
+        { duration: 250 },
+        (finished) => {
+          "worklet";
+          if (finished) {
+            completionIncomingX.value = 0;
+          }
+        },
+      );
+    }
   };
 
-  const weightIncrement = settings ? parseFloat(settings.weightIncrement) : 1;
-  const buttonSize = settings
-    ? settings.buttonSize === "Standard"
-      ? 40
-      : settings.buttonSize === "Large"
-        ? 60
-        : 80
-    : 40;
+  const panGesture = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .failOffsetY([-15, 15])
+    .onUpdate((e) => {
+      "worklet";
+      const dx = e.translationX;
+      if (dx > 0 && !canGoPrev.value) {
+        offsetX.value = dx * 0.15;
+      } else if (dx < 0 && !canGoNext.value) {
+        offsetX.value = dx * 0.15;
+      } else {
+        offsetX.value = dx;
+      }
+    })
+    .onEnd((e) => {
+      "worklet";
+      const dx = e.translationX;
+      const vx = e.velocityX;
+      if ((dx > COMMIT_DISTANCE || vx > COMMIT_VELOCITY) && canGoPrev.value) {
+        offsetX.value = withTiming(
+          SCREEN_WIDTH,
+          { duration: 200 },
+          (finished) => {
+            "worklet";
+            if (finished) {
+              offsetX.value = 0;
+              runOnJS(commitPrevious)();
+            }
+          },
+        );
+      } else if (
+        (dx < -COMMIT_DISTANCE || vx < -COMMIT_VELOCITY) &&
+        canGoNext.value
+      ) {
+        offsetX.value = withTiming(
+          -SCREEN_WIDTH,
+          { duration: 200 },
+          (finished) => {
+            "worklet";
+            if (finished) {
+              offsetX.value = 0;
+              runOnJS(commitNext)();
+            }
+          },
+        );
+      } else {
+        offsetX.value = withSpring(0, { damping: 20, stiffness: 200 });
+      }
+    });
 
   if (settingsLoading) {
     return (
@@ -471,43 +747,84 @@ export default function WorkoutSessionScreen() {
             </ThemedText>
           </View>
         )}
-        <SessionSetInfo
-          exercise_id={currentExercise?.exercise_id || 0}
-          exerciseName={currentExercise?.name || ""}
-          animatedUrl={animatedUrl}
-          animatedImageLoading={animatedImageLoading}
-          animatedImageError={animatedImageError}
-          currentSetIndex={currentSetIndex}
-          isLastSetOfLastExercise={currentIsLastSetOfLastExercise}
-          isFirstSetOfFirstExercise={currentIsFirstSetOfFirstExercise}
-          totalSets={currentExercise?.sets.length || 0}
-          weight={weight}
-          reps={reps}
-          time={time}
-          weightIncrement={weightIncrement}
-          buttonSize={buttonSize}
-          weightUnit={settings?.weightUnit || "kg"}
-          restMinutes={currentSet?.restMinutes || 0}
-          restSeconds={currentSet?.restSeconds || 0}
-          repsMin={currentSet?.repsMin || 0}
-          repsMax={currentSet?.repsMax || 0}
-          timeMin={currentSet?.time || 0}
-          currentSetCompleted={currentSetCompleted}
-          isWarmup={currentSet?.isWarmup || false}
-          isDropSet={currentSet?.isDropSet || false}
-          isToFailure={currentSet?.isToFailure || false}
-          trackingType={currentExercise?.tracking_type || "weight"}
-          handleWeightInputChange={handleWeightInputChange}
-          handleWeightChange={handleWeightChange}
-          handleRepsInputChange={handleRepsInputChange}
-          handleRepsChange={handleRepsChange}
-          handleTimeInputChange={handleTimeInputChange}
-          handlePreviousSet={handlePreviousSet}
-          handleNextSet={handleNextSet}
-          handleCompleteSet={handleCompleteSet}
-          removeSet={handleRemoveSet}
-          addSet={addSet}
-        />
+        <GestureDetector gesture={panGesture}>
+          <View style={styles.panelContainer}>
+            {!!hasPreviousSet &&
+              previousExerciseIndex !== null &&
+              previousSetIndex !== null && (
+                <AnimatedView
+                  style={[StyleSheet.absoluteFill, prevPanelStyle]}
+                  pointerEvents="none"
+                >
+                  {(() => {
+                    const p = getPanelData(
+                      previousExerciseIndex as number,
+                      previousSetIndex as number,
+                    );
+                    return p ? <SessionSetInfo {...p} /> : null;
+                  })()}
+                </AnimatedView>
+              )}
+            <AnimatedView style={[StyleSheet.absoluteFill, currentPanelStyle]}>
+              <SessionSetInfo
+                exercise_id={currentExercise?.exercise_id || 0}
+                exerciseName={currentExercise?.name || ""}
+                animatedUrl={animatedUrl}
+                animatedImageLoading={animatedImageLoading}
+                animatedImageError={animatedImageError}
+                currentSetIndex={currentSetIndex}
+                isLastSetOfLastExercise={currentIsLastSetOfLastExercise}
+                isFirstSetOfFirstExercise={currentIsFirstSetOfFirstExercise}
+                totalSets={currentExercise?.sets.length || 0}
+                weight={weight}
+                reps={reps}
+                time={time}
+                weightIncrement={weightIncrement}
+                buttonSize={buttonSize}
+                weightUnit={settings?.weightUnit || "kg"}
+                restMinutes={currentSet?.restMinutes || 0}
+                restSeconds={currentSet?.restSeconds || 0}
+                repsMin={currentSet?.repsMin || 0}
+                repsMax={currentSet?.repsMax || 0}
+                timeMin={currentSet?.time || 0}
+                currentSetCompleted={currentSetCompleted}
+                isWarmup={currentSet?.isWarmup || false}
+                isDropSet={currentSet?.isDropSet || false}
+                isToFailure={currentSet?.isToFailure || false}
+                trackingType={currentExercise?.tracking_type || "weight"}
+                handleWeightInputChange={handleWeightInputChange}
+                handleWeightChange={handleWeightChange}
+                handleRepsInputChange={handleRepsInputChange}
+                handleRepsChange={handleRepsChange}
+                handleTimeInputChange={handleTimeInputChange}
+                handlePreviousSet={handlePreviousSet}
+                handleNextSet={handleNextSet}
+                handleCompleteSet={handleCompleteSet}
+                removeSet={handleRemoveSet}
+                addSet={addSet}
+              />
+            </AnimatedView>
+            {!!hasNextSet && (
+              <AnimatedView
+                style={[StyleSheet.absoluteFill, nextPanelStyle]}
+                pointerEvents="none"
+              >
+                {(() => {
+                  const p = getPanelData(nextExerciseIndex, nextSetIndex);
+                  return p ? <SessionSetInfo {...p} /> : null;
+                })()}
+              </AnimatedView>
+            )}
+            {outgoingSnapshot && (
+              <AnimatedView
+                style={[StyleSheet.absoluteFill, outgoingSnapshotStyle]}
+                pointerEvents="none"
+              >
+                <SessionSetInfo {...snapshotToProps(outgoingSnapshot)} />
+              </AnimatedView>
+            )}
+          </View>
+        </GestureDetector>
       </View>
       {timerRunning ? (
         <ThemedView
@@ -528,6 +845,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-between",
     padding: 16,
+  },
+  panelContainer: {
+    flex: 1,
+    overflow: "hidden",
   },
   timerContainer: {
     position: "absolute",
