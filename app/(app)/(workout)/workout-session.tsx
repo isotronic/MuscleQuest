@@ -439,7 +439,7 @@ export default function WorkoutSessionScreen() {
   // Returns full SessionSetInfo props for any (exerciseIndex, setIndex) without
   // touching store indices — used to pre-render adjacent panels with correct data
   const getPanelData = (exerciseIndex: number, setIndex: number) => {
-    if (!workout || !settings) return null;
+    if (!workout) return null;
     const exercise = workout.exercises[exerciseIndex];
     if (!exercise) return null;
     const set = exercise.sets[setIndex];
@@ -475,7 +475,7 @@ export default function WorkoutSessionScreen() {
       time: panelTime,
       weightIncrement,
       buttonSize,
-      weightUnit: settings.weightUnit || "kg",
+      weightUnit: settings?.weightUnit || "kg",
       restMinutes: set.restMinutes || 0,
       restSeconds: set.restSeconds || 0,
       repsMin: set.repsMin || 0,
