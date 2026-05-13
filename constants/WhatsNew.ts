@@ -91,7 +91,7 @@ Navigating between sets now features smooth slide transitions. Swipe left or rig
     message: `
 📊 New: Workout Summary!
 
-After completing a workout, you'll now see a full summary of your session — total duration, sets, and volume, plus a comparison against your previous session. Tap any exercise to expand its individual sets and weights.
+After completing a workout, you'll now see a full summary of your session: total duration, sets, and volume, plus a comparison against your previous session. Tap any exercise to expand its individual sets and weights.
 `,
   },
 ];
