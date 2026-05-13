@@ -23,9 +23,11 @@ import { ThemedText } from "@/components/ThemedText";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
 import {
+  useCompletedWorkoutsQuery,
   useWorkoutSessionHistoryQuery,
   type CompletedWorkout,
 } from "@/hooks/useCompletedWorkoutsQuery";
+import { startOfWeek, endOfWeek } from "date-fns";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -305,6 +307,63 @@ function ExerciseRow({
   );
 }
 
+// --- Weekly goal banner ---
+
+function getGoalMessage(completed: number, goal: number): string {
+  if (completed >= goal) {
+    return completed > goal
+      ? `${completed} workouts this week. You've smashed your goal!`
+      : "You've hit your weekly goal. Incredible work!";
+  }
+  const remaining = goal - completed;
+  if (completed === 1) return "Great start to the week!";
+  if (remaining === 1) return "One more workout to hit your goal!";
+  return "Keep the momentum going!";
+}
+
+function WeeklyGoalBanner({
+  completed,
+  goal,
+}: {
+  completed: number;
+  goal: number;
+}) {
+  const goalReached = completed >= goal;
+  const accentColor = goalReached ? Colors.dark.completed : Colors.dark.tint;
+
+  return (
+    <View style={styles.weeklyGoalCard}>
+      <View style={styles.weeklyGoalTop}>
+        <MaterialCommunityIcons
+          name={goalReached ? "check-decagram" : "fire"}
+          size={18}
+          color={accentColor}
+        />
+        <ThemedText style={[styles.weeklyGoalCount, { color: accentColor }]}>
+          {completed} of {goal} workouts this week
+        </ThemedText>
+      </View>
+      <View style={styles.weeklyGoalPips}>
+        {Array.from({ length: goal }, (_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.pip,
+              {
+                backgroundColor:
+                  i < completed ? accentColor : Colors.dark.cardBackground2,
+              },
+            ]}
+          />
+        ))}
+      </View>
+      <ThemedText style={styles.weeklyGoalMessage}>
+        {getGoalMessage(completed, goal)}
+      </ThemedText>
+    </View>
+  );
+}
+
 // --- Main screen ---
 
 export default function WorkoutSummaryScreen() {
@@ -328,6 +387,24 @@ export default function WorkoutSummaryScreen() {
     workoutId,
     weightUnit,
   );
+  const { data: allWorkouts } = useCompletedWorkoutsQuery(weightUnit);
+
+  const weeklyGoal = Number(settings?.weeklyGoal ?? 0);
+
+  const workoutsThisWeek = useMemo(() => {
+    if (!allWorkouts) return 0;
+    const today = new Date();
+    const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
+    const thisWeek = allWorkouts.filter((w) => {
+      const d = new Date(w.date_completed);
+      return d >= weekStart && d <= weekEnd;
+    });
+    const uniqueDays = new Set(
+      thisWeek.map((w) => new Date(w.date_completed).toDateString()),
+    );
+    return uniqueDays.size;
+  }, [allWorkouts]);
 
   const prevWorkout = useMemo(() => {
     if (!history || !workout) return null;
@@ -437,12 +514,14 @@ export default function WorkoutSummaryScreen() {
                 higherIsBetter={false}
                 neutral
               />
+              <View style={styles.statsDivider} />
               <DiffChip
                 label="Sets"
                 diff={setsDiff}
                 unit=""
                 higherIsBetter={true}
               />
+              <View style={styles.statsDivider} />
               <DiffChip
                 label="Volume"
                 diff={volumeDiff}
@@ -451,6 +530,10 @@ export default function WorkoutSummaryScreen() {
               />
             </View>
           </View>
+        )}
+
+        {weeklyGoal > 0 && (
+          <WeeklyGoalBanner completed={workoutsThisWeek} goal={weeklyGoal} />
         )}
 
         <ThemedText style={styles.sectionTitle}>Exercises</ThemedText>
@@ -532,21 +615,26 @@ const styles = StyleSheet.create({
   progressionCard: {
     backgroundColor: Colors.dark.cardBackground,
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
+    paddingTop: 14,
+    paddingBottom: 16,
+    paddingHorizontal: 8,
+    marginBottom: 16,
+    gap: 14,
   },
   progressionTitle: {
     color: Colors.dark.subText,
-    marginBottom: 12,
+    textAlign: "center",
     fontSize: 12,
     textTransform: "uppercase",
     letterSpacing: 0.8,
+    paddingHorizontal: 6,
   },
   diffRow: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    alignItems: "center",
   },
   diffChip: {
+    flex: 1,
     alignItems: "center",
     gap: 4,
   },
@@ -617,5 +705,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     paddingVertical: 4,
+  },
+  weeklyGoalCard: {
+    backgroundColor: Colors.dark.cardBackground,
+    alignItems: "center",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    gap: 10,
+  },
+  weeklyGoalTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+  },
+  weeklyGoalCount: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  weeklyGoalPips: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  pip: {
+    width: 28,
+    height: 6,
+    borderRadius: 3,
+  },
+  weeklyGoalMessage: {
+    fontSize: 13,
+    color: Colors.dark.subText,
   },
 });
