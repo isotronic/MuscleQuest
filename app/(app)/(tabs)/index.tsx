@@ -339,7 +339,19 @@ export default function HomeScreen() {
                 return (
                   <Pressable
                     key={index}
-                    style={styles.workoutCard}
+                    style={[
+                      styles.workoutCard,
+                      !workoutInProgress &&
+                      index === 0 &&
+                      !weeklyGoalReached &&
+                      !isRestDay &&
+                      completedTodayWorkoutIds.size === 0
+                        ? {
+                            borderWidth: 1,
+                            borderColor: Colors.dark.tint,
+                          }
+                        : undefined,
+                    ]}
                     onPress={() =>
                       router.push({
                         pathname: "/workout-details",
