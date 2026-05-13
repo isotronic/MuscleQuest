@@ -158,8 +158,8 @@ function getBestSetLabel(
     return `best ${maxTime}s`;
   }
   const best = exercise.sets.reduce((b, s) => {
-    const vol = (s.weight ?? 0) * (s.reps ?? 1);
-    const bVol = (b.weight ?? 0) * (b.reps ?? 1);
+    const vol = (s.weight ?? 0) * (s.reps ?? 0);
+    const bVol = (b.weight ?? 0) * (b.reps ?? 0);
     return vol > bVol ? s : b;
   }, exercise.sets[0]);
   if (best.weight != null && best.reps != null) {
@@ -309,10 +309,12 @@ export default function WorkoutSummaryScreen() {
   const weightUnit = settings?.weightUnit ?? "kg";
 
   const id = Number(completedWorkoutId);
-  const { data: workout, isLoading } = useCompletedWorkoutByIdQuery(
-    id,
-    weightUnit,
-  );
+  const isValidId = Number.isFinite(id) && id > 0;
+  const {
+    data: workout,
+    isLoading,
+    isError,
+  } = useCompletedWorkoutByIdQuery(id, weightUnit);
 
   const workoutId = workout?.workout_id ?? 0;
   const { data: history } = useWorkoutSessionHistoryQuery(
@@ -334,12 +336,30 @@ export default function WorkoutSummaryScreen() {
     [prevWorkout],
   );
 
-  if (isLoading || !workout) {
+  if (isLoading) {
     return (
       <View
         style={[styles.container, styles.center, { paddingTop: insets.top }]}
       >
         <ActivityIndicator size="large" color={Colors.dark.tint} />
+      </View>
+    );
+  }
+
+  if (!isValidId || isError || !workout) {
+    return (
+      <View
+        style={[styles.container, styles.center, { paddingTop: insets.top }]}
+      >
+        <ThemedText style={{ marginBottom: 16 }}>Workout not found.</ThemedText>
+        <Button
+          mode="contained"
+          onPress={() => router.push("/(app)/(tabs)")}
+          style={styles.doneButton}
+          labelStyle={styles.doneButtonLabel}
+        >
+          Go Home
+        </Button>
       </View>
     );
   }
