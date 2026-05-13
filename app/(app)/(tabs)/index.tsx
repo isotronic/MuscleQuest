@@ -336,10 +336,24 @@ export default function HomeScreen() {
                 const originalIndex = activePlan.workouts.findIndex(
                   (w) => w.id === workout.id,
                 );
+                const shouldHighlightCard =
+                  !workoutInProgress &&
+                  index === 0 &&
+                  !weeklyGoalReached &&
+                  !isRestDay &&
+                  completedTodayWorkoutIds.size === 0;
                 return (
                   <Pressable
                     key={index}
-                    style={styles.workoutCard}
+                    style={[
+                      styles.workoutCard,
+                      shouldHighlightCard
+                        ? {
+                            borderWidth: 1,
+                            borderColor: Colors.dark.tint,
+                          }
+                        : null,
+                    ]}
                     onPress={() =>
                       router.push({
                         pathname: "/workout-details",
@@ -373,17 +387,9 @@ export default function HomeScreen() {
                       </View>
                       <View style={styles.smallButtonGroup}>
                         <Button
-                          mode={
-                            !workoutInProgress &&
-                            index === 0 &&
-                            !weeklyGoalReached &&
-                            !isRestDay &&
-                            completedTodayWorkoutIds.size === 0
-                              ? "contained"
-                              : "outlined"
-                          }
+                          mode={shouldHighlightCard ? "contained" : "outlined"}
                           onPress={() => {
-                            if (isStartingWorkout || isRestDay) return;
+                            if (isStartingWorkout) return;
                             confirmStartWorkout(setIsStartingWorkout, () => {
                               useActiveWorkoutStore
                                 .getState()
@@ -397,7 +403,7 @@ export default function HomeScreen() {
                             });
                           }}
                           labelStyle={styles.smallButtonLabel}
-                          disabled={isStartingWorkout || isRestDay}
+                          disabled={isStartingWorkout}
                         >
                           Start
                         </Button>

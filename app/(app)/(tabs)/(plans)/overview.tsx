@@ -11,8 +11,10 @@ import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
+import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
 import { useDeletePlanMutation } from "@/hooks/useDeletePlanMutation";
 import { useSetActivePlanMutation } from "@/hooks/useSetActivePlanMutation";
+import WeeklyScheduleDisplay from "@/components/WeeklyScheduleDisplay";
 import {
   Snackbar,
   Button,
@@ -30,6 +32,7 @@ const fallbackImage = require("@/assets/images/placeholder.webp");
 export default function PlanOverviewScreen() {
   const { planId } = useLocalSearchParams();
   const { data: plan, isLoading, error } = usePlanQuery(Number(planId));
+  const { data: scheduleEntries = [] } = usePlanScheduleQuery(Number(planId));
   const deletePlanMutation = useDeletePlanMutation();
   const setActivePlanMutation = useSetActivePlanMutation();
 
@@ -163,6 +166,11 @@ export default function PlanOverviewScreen() {
             </ThemedText>
           </TouchableOpacity>
         ))}
+
+        <WeeklyScheduleDisplay
+          workouts={plan?.workouts ?? []}
+          scheduleEntries={scheduleEntries}
+        />
       </ScrollView>
 
       <View style={styles.buttonContainer}>

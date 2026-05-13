@@ -30,10 +30,6 @@ export default {
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
       ],
     },
-    androidNavigationBar: {
-      backgroundColor: "#22222d",
-      barStyle: "dark-content",
-    },
     web: {
       bundler: "metro",
       output: "static",

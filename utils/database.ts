@@ -882,20 +882,25 @@ export const fetchCompletedWorkoutById = async (
           };
         }
 
-        if (row.set_number !== null) {
-          // Convert weight from kg to the user's unit
-          const weightInKg = parseFloat(row.weight?.toString() || "0");
-          const convertedWeight = parseFloat(
-            (weightInKg * conversionFactor).toFixed(1),
+        if (row.set_number !== null && row.set_id !== null) {
+          const alreadySeen = exercisesMap[row.exercise_id].sets.some(
+            (s) => s.set_id === row.set_id,
           );
+          if (!alreadySeen) {
+            // Convert weight from kg to the user's unit
+            const weightInKg = parseFloat(row.weight?.toString() || "0");
+            const convertedWeight = parseFloat(
+              (weightInKg * conversionFactor).toFixed(1),
+            );
 
-          exercisesMap[row.exercise_id].sets.push({
-            set_id: row.set_id,
-            set_number: row.set_number,
-            weight: convertedWeight || null,
-            reps: row.reps || null,
-            time: row.time || null,
-          });
+            exercisesMap[row.exercise_id].sets.push({
+              set_id: row.set_id,
+              set_number: row.set_number,
+              weight: Number.isFinite(convertedWeight) ? convertedWeight : null,
+              reps: row.reps || null,
+              time: row.time || null,
+            });
+          }
         }
       }
     });
@@ -1325,6 +1330,27 @@ export const deleteStandaloneWorkout = async (
     await txn.runAsync(
       `UPDATE user_workouts SET is_deleted = TRUE WHERE id = ?`,
       [workoutId],
+    );
+  });
+};
+
+export const deleteCompletedWorkout = async (id: number): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    await txn.runAsync(
+      `UPDATE completed_sets SET is_deleted = TRUE
+       WHERE completed_exercise_id IN (
+         SELECT id FROM completed_exercises WHERE completed_workout_id = ?
+       )`,
+      [id],
+    );
+    await txn.runAsync(
+      `UPDATE completed_exercises SET is_deleted = TRUE WHERE completed_workout_id = ?`,
+      [id],
+    );
+    await txn.runAsync(
+      `UPDATE completed_workouts SET is_deleted = TRUE WHERE id = ?`,
+      [id],
     );
   });
 };
