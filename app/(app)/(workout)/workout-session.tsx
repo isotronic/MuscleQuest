@@ -98,6 +98,7 @@ export default function WorkoutSessionScreen() {
   const canGoNext = useSharedValue(false);
   const canGoPrev = useSharedValue(false);
   const isTransitioning = useSharedValue(false);
+  const resetOffsetXPending = useRef(false);
 
   const [outgoingSnapshot, setOutgoingSnapshot] =
     useState<OutgoingSnapshot | null>(null);
@@ -436,6 +437,15 @@ export default function WorkoutSessionScreen() {
     canGoPrev.value = !!hasPreviousSet;
   }, [hasNextSet, hasPreviousSet]);
 
+  // Reset offsetX only after React has committed the new store state so the
+  // center panel's content is correct before it re-enters the visible area.
+  useEffect(() => {
+    if (resetOffsetXPending.current) {
+      resetOffsetXPending.current = false;
+      offsetX.value = 0;
+    }
+  }, [currentExerciseIndex, currentSetIndex, offsetX]);
+
   // Returns full SessionSetInfo props for any (exerciseIndex, setIndex) without
   // touching store indices — used to pre-render adjacent panels with correct data
   const getPanelData = (exerciseIndex: number, setIndex: number) => {
@@ -494,6 +504,7 @@ export default function WorkoutSessionScreen() {
   // Called from animation callbacks — updates store after swipe/button animation completes
   const commitPrevious = () => {
     if (previousExerciseIndex !== null && previousSetIndex !== null) {
+      resetOffsetXPending.current = true;
       setCurrentExerciseIndex(previousExerciseIndex as number);
       setCurrentSetIndex(
         previousExerciseIndex as number,
@@ -503,6 +514,7 @@ export default function WorkoutSessionScreen() {
   };
 
   const commitNext = () => {
+    resetOffsetXPending.current = true;
     setCurrentExerciseIndex(nextExerciseIndex);
     setCurrentSetIndex(nextExerciseIndex, nextSetIndex);
   };
@@ -514,7 +526,6 @@ export default function WorkoutSessionScreen() {
       "worklet";
       isTransitioning.value = false;
       if (finished) {
-        offsetX.value = 0;
         runOnJS(commitPrevious)();
       }
     });
@@ -527,7 +538,6 @@ export default function WorkoutSessionScreen() {
       "worklet";
       isTransitioning.value = false;
       if (finished) {
-        offsetX.value = 0;
         runOnJS(commitNext)();
       }
     });
@@ -723,7 +733,6 @@ export default function WorkoutSessionScreen() {
             "worklet";
             isTransitioning.value = false;
             if (finished) {
-              offsetX.value = 0;
               runOnJS(commitPrevious)();
             }
           },
@@ -740,7 +749,6 @@ export default function WorkoutSessionScreen() {
             "worklet";
             isTransitioning.value = false;
             if (finished) {
-              offsetX.value = 0;
               runOnJS(commitNext)();
             }
           },
