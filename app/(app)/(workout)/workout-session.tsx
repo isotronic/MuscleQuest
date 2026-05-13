@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Dimensions, StyleSheet, View, Alert } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
@@ -97,6 +97,7 @@ export default function WorkoutSessionScreen() {
   const completionIncomingX = useSharedValue(0);
   const canGoNext = useSharedValue(false);
   const canGoPrev = useSharedValue(false);
+  const isTransitioning = useSharedValue(false);
 
   const [outgoingSnapshot, setOutgoingSnapshot] =
     useState<OutgoingSnapshot | null>(null);
@@ -167,21 +168,28 @@ export default function WorkoutSessionScreen() {
       ? completedSets[currentExerciseIndex][currentSetIndex]
       : false;
 
-  const findLastAvailableSetData = (exerciseId: number, setIndex: number) => {
-    if (!previousWorkoutData) {
-      return null;
-    }
-
-    for (const workout of previousWorkoutData) {
-      const exerciseData = workout.exercises.find(
-        (prevEx) => prevEx.exercise_id === exerciseId,
-      );
-
-      if (exerciseData && exerciseData.sets[setIndex]) {
-        return exerciseData.sets[setIndex];
+  const prevExercisesByExerciseId = useMemo(() => {
+    const map = new Map<
+      number,
+      NonNullable<typeof previousWorkoutData>[number]["exercises"][number][]
+    >();
+    if (!previousWorkoutData) return map;
+    for (const w of previousWorkoutData) {
+      for (const ex of w.exercises) {
+        const arr = map.get(ex.exercise_id) ?? [];
+        arr.push(ex);
+        map.set(ex.exercise_id, arr);
       }
     }
+    return map;
+  }, [previousWorkoutData]);
 
+  const findLastAvailableSetData = (exerciseId: number, setIndex: number) => {
+    const exercises = prevExercisesByExerciseId.get(exerciseId);
+    if (!exercises) return null;
+    for (const ex of exercises) {
+      if (ex.sets[setIndex]) return ex.sets[setIndex];
+    }
     return null;
   };
 
@@ -500,9 +508,11 @@ export default function WorkoutSessionScreen() {
   };
 
   const handlePreviousSet = () => {
-    if (!hasPreviousSet) return;
+    if (!hasPreviousSet || isTransitioning.value) return;
+    isTransitioning.value = true;
     offsetX.value = withTiming(SCREEN_WIDTH, { duration: 250 }, (finished) => {
       "worklet";
+      isTransitioning.value = false;
       if (finished) {
         offsetX.value = 0;
         runOnJS(commitPrevious)();
@@ -511,9 +521,11 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleNextSet = () => {
-    if (!hasNextSet) return;
+    if (!hasNextSet || isTransitioning.value) return;
+    isTransitioning.value = true;
     offsetX.value = withTiming(-SCREEN_WIDTH, { duration: 250 }, (finished) => {
       "worklet";
+      isTransitioning.value = false;
       if (finished) {
         offsetX.value = 0;
         runOnJS(commitNext)();
@@ -537,7 +549,7 @@ export default function WorkoutSessionScreen() {
     if (!currentExercise || !currentSet) {
       return;
     }
-    if (outgoingSnapshot) return; // guard against double-tap during animation
+    if (outgoingSnapshot || isTransitioning.value) return;
 
     const weightStr =
       weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight ??
@@ -566,9 +578,48 @@ export default function WorkoutSessionScreen() {
       timeStr,
     );
 
-    // Only animate when there is a set to transition to; when the workout ends
-    // nextSet() calls router.back() so we must not start an animation.
-    const shouldAnimate = !!hasNextSet;
+    // Only animate when nextSet() will keep this screen mounted.
+    // hasNextSet can be true even when the store calls router.back() — e.g. the
+    // next sequential exercise exists but is already fully completed.
+    const shouldAnimate = (() => {
+      if (!workout || !currentExercise) return false;
+      // First in superset always transitions to the partner — never navigates away.
+      if (isFirstInSuperset) return true;
+      // Second in superset: the superset may have more rounds even when the
+      // current exercise's sets are exhausted (uneven set counts).
+      if (isInSuperset) {
+        const partnerExercise = workout.exercises[supersetPartnerIndex];
+        const supersetLength = Math.max(
+          currentExercise.sets.length,
+          partnerExercise.sets.length,
+        );
+        if (currentSetIndex + 1 < supersetLength) return true;
+      } else if (currentSetIndex + 1 < currentExercise.sets.length) {
+        return true;
+      }
+      // Simulate the completed-sets state after marking this set done, then
+      // check whether any exercise ahead still has sets to do.
+      const updatedCompleted = {
+        ...completedSets,
+        [currentExerciseIndex]: {
+          ...(completedSets[currentExerciseIndex] || {}),
+          [currentSetIndex]: true,
+        },
+      };
+      const startIdx = isInSuperset
+        ? Math.max(currentExerciseIndex, supersetPartnerIndex) + 1
+        : currentExerciseIndex + 1;
+      for (let idx = startIdx; idx < workout.exercises.length; idx++) {
+        const done = updatedCompleted[idx];
+        if (
+          (done ? Object.keys(done).length : 0) <
+          workout.exercises[idx].sets.length
+        ) {
+          return true;
+        }
+      }
+      return false;
+    })();
 
     if (shouldAnimate) {
       // Snapshot the outgoing set before the store advances
@@ -612,6 +663,7 @@ export default function WorkoutSessionScreen() {
     }
 
     if (shouldAnimate) {
+      isTransitioning.value = true;
       // Snapshot slides out to the left; live panel (already showing the new
       // set with carried-over weight) slides in from the right
       snapshotOffsetX.value = withTiming(
@@ -619,6 +671,7 @@ export default function WorkoutSessionScreen() {
         { duration: 250 },
         (finished) => {
           "worklet";
+          isTransitioning.value = false;
           if (finished) {
             snapshotOffsetX.value = 0;
             runOnJS(clearOutgoingSnapshot)();
@@ -643,6 +696,7 @@ export default function WorkoutSessionScreen() {
     .failOffsetY([-15, 15])
     .onUpdate((e) => {
       "worklet";
+      if (isTransitioning.value) return;
       const dx = e.translationX;
       if (dx > 0 && !canGoPrev.value) {
         offsetX.value = dx * 0.15;
@@ -654,14 +708,20 @@ export default function WorkoutSessionScreen() {
     })
     .onEnd((e) => {
       "worklet";
+      if (isTransitioning.value) {
+        offsetX.value = withSpring(0, { damping: 20, stiffness: 200 });
+        return;
+      }
       const dx = e.translationX;
       const vx = e.velocityX;
       if ((dx > COMMIT_DISTANCE || vx > COMMIT_VELOCITY) && canGoPrev.value) {
+        isTransitioning.value = true;
         offsetX.value = withTiming(
           SCREEN_WIDTH,
           { duration: 200 },
           (finished) => {
             "worklet";
+            isTransitioning.value = false;
             if (finished) {
               offsetX.value = 0;
               runOnJS(commitPrevious)();
@@ -672,11 +732,13 @@ export default function WorkoutSessionScreen() {
         (dx < -COMMIT_DISTANCE || vx < -COMMIT_VELOCITY) &&
         canGoNext.value
       ) {
+        isTransitioning.value = true;
         offsetX.value = withTiming(
           -SCREEN_WIDTH,
           { duration: 200 },
           (finished) => {
             "worklet";
+            isTransitioning.value = false;
             if (finished) {
               offsetX.value = 0;
               runOnJS(commitNext)();
@@ -739,7 +801,11 @@ export default function WorkoutSessionScreen() {
               previousExerciseIndex !== null &&
               previousSetIndex !== null && (
                 <AnimatedView
-                  style={[StyleSheet.absoluteFill, prevPanelStyle, { pointerEvents: "none" }]}
+                  style={[
+                    StyleSheet.absoluteFill,
+                    prevPanelStyle,
+                    { pointerEvents: "none" },
+                  ]}
                 >
                   {(() => {
                     const p = getPanelData(
@@ -791,7 +857,11 @@ export default function WorkoutSessionScreen() {
             </AnimatedView>
             {!!hasNextSet && (
               <AnimatedView
-                style={[StyleSheet.absoluteFill, nextPanelStyle, { pointerEvents: "none" }]}
+                style={[
+                  StyleSheet.absoluteFill,
+                  nextPanelStyle,
+                  { pointerEvents: "none" },
+                ]}
               >
                 {(() => {
                   const p = getPanelData(nextExerciseIndex, nextSetIndex);
@@ -801,7 +871,11 @@ export default function WorkoutSessionScreen() {
             )}
             {outgoingSnapshot && (
               <AnimatedView
-                style={[StyleSheet.absoluteFill, outgoingSnapshotStyle, { pointerEvents: "none" }]}
+                style={[
+                  StyleSheet.absoluteFill,
+                  outgoingSnapshotStyle,
+                  { pointerEvents: "none" },
+                ]}
               >
                 <SessionSetInfo {...snapshotToProps(outgoingSnapshot)} />
               </AnimatedView>
