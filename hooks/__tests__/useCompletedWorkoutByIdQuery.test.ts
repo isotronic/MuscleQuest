@@ -40,4 +40,18 @@ describe("useCompletedWorkoutByIdQuery", () => {
       weightUnit,
     );
   });
+
+  it.each([
+    ["zero", 0],
+    ["negative", -1],
+    ["NaN", NaN],
+  ])("should disable the query for invalid id: %s", (_, workoutId) => {
+    const mockUseQuery = useQuery as jest.Mock;
+
+    useCompletedWorkoutByIdQuery(workoutId, "kg");
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
 });
