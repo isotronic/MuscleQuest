@@ -78,6 +78,14 @@ You can now assign workouts to specific days of the week directly in the plan ed
 Pair two exercises together as a superset directly in the plan editor. Sets are kept in sync between both exercises, and supersets are clearly grouped with a visual indicator throughout the app.
 `,
   },
+  {
+    version: 2610,
+    message: `
+✨ New: Workout Session Animations!
+
+Navigating between sets now features smooth slide transitions. Swipe left or right to move between sets, or use the pre-existing arrow buttons for the same effect.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
