@@ -464,7 +464,7 @@ export default function WorkoutSummaryScreen() {
 
         <Button
           mode="contained"
-          onPress={() => router.push("/(app)/(tabs)")}
+          onPress={() => router.replace("/(app)/(tabs)")}
           style={styles.doneButton}
           labelStyle={styles.doneButtonLabel}
         >
