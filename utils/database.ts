@@ -896,7 +896,7 @@ export const fetchCompletedWorkoutById = async (
             exercisesMap[row.exercise_id].sets.push({
               set_id: row.set_id,
               set_number: row.set_number,
-              weight: convertedWeight || null,
+              weight: Number.isFinite(convertedWeight) ? convertedWeight : null,
               reps: row.reps || null,
               time: row.time || null,
             });
