@@ -19,7 +19,6 @@ import {
   scheduleRestNotificationWithCancellation,
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
-import { convertTimeStrToSeconds } from "@/utils/utility";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { useSoundStore } from "@/store/soundStore";
 import Animated, {
@@ -31,10 +30,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
-// React 18 + Reanimated 4: Animated.View types don't include children in strict TS
+// Reanimated 4: Animated.View types don't include children in strict TS
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
   style?: any;
-  pointerEvents?: string;
   children?: React.ReactNode;
 }>;
 
@@ -68,25 +66,26 @@ interface OutgoingSnapshot {
 const noop = () => {};
 const noopNum = (_: number) => {};
 
+const READONLY_PANEL_DEFAULTS = {
+  animatedUrl: undefined,
+  animatedImageLoading: false,
+  animatedImageError: null,
+  isLastSetOfLastExercise: false,
+  isFirstSetOfFirstExercise: false,
+  handleWeightInputChange: noop,
+  handleWeightChange: noopNum,
+  handleRepsInputChange: noop,
+  handleRepsChange: noopNum,
+  handleTimeInputChange: noop,
+  handlePreviousSet: noop,
+  handleNextSet: noop,
+  handleCompleteSet: noop,
+  removeSet: noopNum,
+  addSet: noop,
+} as const;
+
 function snapshotToProps(snapshot: OutgoingSnapshot) {
-  return {
-    ...snapshot,
-    animatedUrl: undefined,
-    animatedImageLoading: false,
-    animatedImageError: null,
-    isLastSetOfLastExercise: false,
-    isFirstSetOfFirstExercise: false,
-    handleWeightInputChange: noop,
-    handleWeightChange: noopNum,
-    handleRepsInputChange: noop,
-    handleRepsChange: noopNum,
-    handleTimeInputChange: noop,
-    handlePreviousSet: noop,
-    handleNextSet: noop,
-    handleCompleteSet: noop,
-    removeSet: noopNum,
-    addSet: noop,
-  };
+  return { ...snapshot, ...READONLY_PANEL_DEFAULTS };
 }
 
 export default function WorkoutSessionScreen() {
@@ -141,7 +140,8 @@ export default function WorkoutSessionScreen() {
     error: settingsError,
   } = useSettingsQuery();
 
-  const weightIncrement = settings ? parseFloat(settings.weightIncrement) : 1;
+  const parsedIncrement = parseFloat(settings?.weightIncrement ?? "");
+  const weightIncrement = Number.isNaN(parsedIncrement) ? 1 : parsedIncrement;
   const buttonSize = settings
     ? settings.buttonSize === "Standard"
       ? 40
@@ -457,11 +457,9 @@ export default function WorkoutSessionScreen() {
       setIndex === exercise.sets.length - 1;
 
     return {
+      ...READONLY_PANEL_DEFAULTS,
       exercise_id: exercise.exercise_id,
       exerciseName: exercise.name,
-      animatedUrl: undefined,
-      animatedImageLoading: false,
-      animatedImageError: null,
       currentSetIndex: setIndex,
       totalSets: exercise.sets.length,
       weight: panelWeight,
@@ -482,16 +480,6 @@ export default function WorkoutSessionScreen() {
       trackingType: exercise.tracking_type || "weight",
       isLastSetOfLastExercise: isLast,
       isFirstSetOfFirstExercise: isFirst,
-      handleWeightInputChange: noop,
-      handleWeightChange: noopNum,
-      handleRepsInputChange: noop,
-      handleRepsChange: noopNum,
-      handleTimeInputChange: noop,
-      handlePreviousSet: noop,
-      handleNextSet: noop,
-      handleCompleteSet: noop,
-      removeSet: noopNum,
-      addSet: noop,
     };
   };
 
@@ -570,14 +558,12 @@ export default function WorkoutSessionScreen() {
     const repsNum = parseInt(repsStr);
     const validRepsNum = isNaN(repsNum) ? 0 : repsNum;
 
-    const validTimeNum = convertTimeStrToSeconds(timeStr);
-
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
       validWeightInKg.toString(),
       validRepsNum.toString(),
-      validTimeNum.toString(),
+      timeStr,
     );
 
     // Only animate when there is a set to transition to; when the workout ends
@@ -593,7 +579,7 @@ export default function WorkoutSessionScreen() {
         totalSets: currentExercise.sets.length,
         weight: validWeightInKg.toString(),
         reps: validRepsNum.toString(),
-        time: validTimeNum.toString(),
+        time: timeStr,
         weightIncrement,
         buttonSize,
         weightUnit: settings?.weightUnit || "kg",
@@ -753,8 +739,7 @@ export default function WorkoutSessionScreen() {
               previousExerciseIndex !== null &&
               previousSetIndex !== null && (
                 <AnimatedView
-                  style={[StyleSheet.absoluteFill, prevPanelStyle]}
-                  pointerEvents="none"
+                  style={[StyleSheet.absoluteFill, prevPanelStyle, { pointerEvents: "none" }]}
                 >
                   {(() => {
                     const p = getPanelData(
@@ -806,8 +791,7 @@ export default function WorkoutSessionScreen() {
             </AnimatedView>
             {!!hasNextSet && (
               <AnimatedView
-                style={[StyleSheet.absoluteFill, nextPanelStyle]}
-                pointerEvents="none"
+                style={[StyleSheet.absoluteFill, nextPanelStyle, { pointerEvents: "none" }]}
               >
                 {(() => {
                   const p = getPanelData(nextExerciseIndex, nextSetIndex);
@@ -817,8 +801,7 @@ export default function WorkoutSessionScreen() {
             )}
             {outgoingSnapshot && (
               <AnimatedView
-                style={[StyleSheet.absoluteFill, outgoingSnapshotStyle]}
-                pointerEvents="none"
+                style={[StyleSheet.absoluteFill, outgoingSnapshotStyle, { pointerEvents: "none" }]}
               >
                 <SessionSetInfo {...snapshotToProps(outgoingSnapshot)} />
               </AnimatedView>
