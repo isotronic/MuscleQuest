@@ -148,7 +148,14 @@ export default function HistoryDetailsScreen() {
                 size={25}
                 style={{ marginRight: 0 }}
                 iconColor={Colors.dark.highlight}
-                onPressIn={() =>
+                onPressIn={() => {
+                  const parsedId = parseInt(String(id), 10);
+                  if (
+                    !Number.isFinite(parsedId) ||
+                    !Number.isInteger(parsedId) ||
+                    parsedId <= 0
+                  )
+                    return;
                   Alert.alert(
                     "Delete Workout",
                     "Are you sure you want to delete this workout? This action cannot be undone.",
@@ -157,11 +164,11 @@ export default function HistoryDetailsScreen() {
                       {
                         text: "Delete",
                         style: "destructive",
-                        onPress: () => deleteMutation.mutate(Number(id)),
+                        onPress: () => deleteMutation.mutate(parsedId),
                       },
                     ],
-                  )
-                }
+                  );
+                }}
               />
             </View>
           ),
