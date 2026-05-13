@@ -336,16 +336,18 @@ export default function HomeScreen() {
                 const originalIndex = activePlan.workouts.findIndex(
                   (w) => w.id === workout.id,
                 );
+                const shouldHighlightCard =
+                  !workoutInProgress &&
+                  index === 0 &&
+                  !weeklyGoalReached &&
+                  !isRestDay &&
+                  completedTodayWorkoutIds.size === 0;
                 return (
                   <Pressable
                     key={index}
                     style={[
                       styles.workoutCard,
-                      !workoutInProgress &&
-                      index === 0 &&
-                      !weeklyGoalReached &&
-                      !isRestDay &&
-                      completedTodayWorkoutIds.size === 0
+                      shouldHighlightCard
                         ? {
                             borderWidth: 1,
                             borderColor: Colors.dark.tint,
@@ -385,15 +387,7 @@ export default function HomeScreen() {
                       </View>
                       <View style={styles.smallButtonGroup}>
                         <Button
-                          mode={
-                            !workoutInProgress &&
-                            index === 0 &&
-                            !weeklyGoalReached &&
-                            !isRestDay &&
-                            completedTodayWorkoutIds.size === 0
-                              ? "contained"
-                              : "outlined"
-                          }
+                          mode={shouldHighlightCard ? "contained" : "outlined"}
                           onPress={() => {
                             if (isStartingWorkout) return;
                             confirmStartWorkout(setIsStartingWorkout, () => {
