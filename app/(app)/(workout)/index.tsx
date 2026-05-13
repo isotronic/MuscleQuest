@@ -99,9 +99,13 @@ export default function WorkoutOverviewScreen() {
 
   const handleExitSaveModal = () => {
     void cancelRestNotifications();
+    const savedId = lastCompletedWorkoutIdRef.current;
     clearPersistedStore();
     setShowSaveModal(false);
-    router.push("/(app)/(tabs)");
+    router.push({
+      pathname: "/(app)/(workout)/workout-summary" as any,
+      params: { completedWorkoutId: String(savedId ?? 0) },
+    });
   };
 
   const handleDeleteExercise = (index: number) => {
@@ -231,7 +235,12 @@ export default function WorkoutOverviewScreen() {
                         text: "Discard",
                         onPress: () => {
                           clearPersistedStore();
-                          router.push("/(app)/(tabs)");
+                          router.push({
+                            pathname: "/(app)/(workout)/workout-summary" as any,
+                            params: {
+                              completedWorkoutId: String(completedWorkoutId),
+                            },
+                          });
                         },
                       },
                       {
@@ -255,14 +264,24 @@ export default function WorkoutOverviewScreen() {
                             Bugsnag.notify(e as Error);
                           }
                           clearPersistedStore();
-                          router.push("/(app)/(tabs)");
+                          router.push({
+                            pathname: "/(app)/(workout)/workout-summary" as any,
+                            params: {
+                              completedWorkoutId: String(completedWorkoutId),
+                            },
+                          });
                         },
                       },
                     ],
                   );
                 } else {
                   clearPersistedStore();
-                  router.push("/(app)/(tabs)");
+                  router.push({
+                    pathname: "/(app)/(workout)/workout-summary" as any,
+                    params: {
+                      completedWorkoutId: String(completedWorkoutId),
+                    },
+                  });
                 }
               },
               onError: (error) => {
