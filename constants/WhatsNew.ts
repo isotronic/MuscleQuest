@@ -86,6 +86,14 @@ Pair two exercises together as a superset directly in the plan editor. Sets are 
 Navigating between sets now features smooth slide transitions. Swipe left or right to move between sets, or use the pre-existing arrow buttons for the same effect.
 `,
   },
+  {
+    version: 2611,
+    message: `
+📊 New: Workout Summary!
+
+After completing a workout, you'll now see a full summary of your session — total duration, sets, and volume, plus a comparison against your previous session. Tap any exercise to expand its individual sets and weights.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
