@@ -25,8 +25,9 @@ describe("useCompletedWorkoutByIdQuery", () => {
 
     // Assertions
     expect(mockUseQuery).toHaveBeenCalledWith({
-      queryKey: ["completedWorkout", workoutId],
+      queryKey: ["completedWorkout", workoutId, weightUnit],
       queryFn: expect.any(Function),
+      enabled: true,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     });
@@ -37,6 +38,20 @@ describe("useCompletedWorkoutByIdQuery", () => {
     expect(fetchCompletedWorkoutById).toHaveBeenCalledWith(
       workoutId,
       weightUnit,
+    );
+  });
+
+  it.each([
+    ["zero", 0],
+    ["negative", -1],
+    ["NaN", NaN],
+  ])("should disable the query for invalid id: %s", (_, workoutId) => {
+    const mockUseQuery = useQuery as jest.Mock;
+
+    useCompletedWorkoutByIdQuery(workoutId, "kg");
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
     );
   });
 });

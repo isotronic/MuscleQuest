@@ -14,6 +14,7 @@ export default function WorkoutLayout() {
       <Stack.Screen name="index" options={{ title: "Overview" }} />
       <Stack.Screen name="workout-session" options={{ title: "Workout" }} />
       <Stack.Screen name="exercises" options={{ title: "Exercises" }} />
+      <Stack.Screen name="workout-summary" options={{ headerShown: false }} />
     </Stack>
   );
 }

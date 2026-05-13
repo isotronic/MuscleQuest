@@ -7,8 +7,9 @@ export const useCompletedWorkoutByIdQuery = (
   weightUnit: string,
 ) => {
   return useQuery<CompletedWorkout>({
-    queryKey: ["completedWorkout", id],
+    queryKey: ["completedWorkout", id, weightUnit],
     queryFn: () => fetchCompletedWorkoutById(id, weightUnit),
+    enabled: Number.isFinite(id) && id > 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
