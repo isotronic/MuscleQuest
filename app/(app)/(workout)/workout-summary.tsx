@@ -16,7 +16,7 @@ import Animated, {
   withTiming,
   withDelay,
 } from "react-native-reanimated";
-import type { SharedValue } from "react-native-reanimated";
+
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 import { ThemedText } from "@/components/ThemedText";
@@ -47,6 +47,12 @@ const CONFETTI_COLORS = [
   "#1ABC9C",
 ];
 
+// Deterministic pseudo-random in [0, 1) from a seed
+function pr(seed: number): number {
+  const x = Math.sin(seed + 1) * 10000;
+  return x - Math.floor(x);
+}
+
 type ParticleConfig = {
   id: number;
   startX: number;
@@ -55,30 +61,41 @@ type ParticleConfig = {
   rotationSpeed: number;
   driftAmplitude: number;
   driftFreq: number;
+  delay: number;
+  duration: number;
 };
 
 const PARTICLE_CONFIGS: ParticleConfig[] = Array.from(
-  { length: 35 },
+  { length: 40 },
   (_, i) => ({
     id: i,
-    startX: (i / 35) * SCREEN_WIDTH + Math.sin(i * 2.3) * 20,
+    startX: pr(i * 7 + 1) * SCREEN_WIDTH,
     color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
     size: 7 + (i % 5) * 2,
     rotationSpeed: 120 + (i % 7) * 60,
-    driftAmplitude: 12 + (i % 5) * 10,
-    driftFreq: 0.8 + (i % 4) * 0.35,
+    driftAmplitude: 10 + pr(i * 7 + 4) * 30,
+    driftFreq: 0.6 + pr(i * 7 + 5) * 0.8,
+    delay: Math.floor(pr(i * 7 + 2) * 1400),
+    duration: Math.floor(2200 + pr(i * 7 + 3) * 1800),
   }),
 );
 
-function ConfettiParticle({
-  config,
-  progress,
-}: {
-  config: ParticleConfig;
-  progress: SharedValue<number>;
-}) {
-  const { startX, driftFreq, driftAmplitude, rotationSpeed, size, color } =
-    config;
+function ConfettiParticle({ config }: { config: ParticleConfig }) {
+  const progress = useSharedValue(0);
+  const {
+    startX,
+    driftFreq,
+    driftAmplitude,
+    rotationSpeed,
+    size,
+    color,
+    delay,
+    duration,
+  } = config;
+
+  useEffect(() => {
+    progress.value = withDelay(delay, withTiming(1, { duration }));
+  }, [delay, duration, progress]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const p = progress.value;
@@ -108,16 +125,10 @@ function ConfettiParticle({
 }
 
 function ConfettiAnimation() {
-  const progress = useSharedValue(0);
-
-  useEffect(() => {
-    progress.value = withDelay(400, withTiming(1, { duration: 3000 }));
-  }, []);
-
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       {PARTICLE_CONFIGS.map((config) => (
-        <ConfettiParticle key={config.id} config={config} progress={progress} />
+        <ConfettiParticle key={config.id} config={config} />
       ))}
     </View>
   );
