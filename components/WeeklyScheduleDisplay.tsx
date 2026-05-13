@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
@@ -35,13 +35,19 @@ export default function WeeklyScheduleDisplay({
     );
   }
 
-  // Build day_of_week → workout name lookup
-  const workoutById = new Map(workouts.map((w) => [w.id, w]));
-  const scheduleMap: Record<number, string> = {};
-  for (const entry of scheduleEntries) {
-    const workout = workoutById.get(entry.workout_id);
-    scheduleMap[entry.day_of_week] = workout?.name || "Workout";
-  }
+  const scheduleMap = useMemo(() => {
+    const workoutById = new Map(
+      workouts
+        .filter((w): w is WorkoutRef & { id: number } => typeof w.id === "number")
+        .map((w) => [w.id, w]),
+    );
+    const sMap: Record<number, string> = {};
+    for (const entry of scheduleEntries) {
+      const workout = workoutById.get(entry.workout_id);
+      sMap[entry.day_of_week] = workout?.name || "Workout";
+    }
+    return sMap;
+  }, [workouts, scheduleEntries]);
 
   const scheduledCount = scheduleEntries.length;
 
