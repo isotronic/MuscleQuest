@@ -350,7 +350,7 @@ export default function HomeScreen() {
                             borderWidth: 1,
                             borderColor: Colors.dark.tint,
                           }
-                        : undefined,
+                        : null,
                     ]}
                     onPress={() =>
                       router.push({
@@ -395,7 +395,7 @@ export default function HomeScreen() {
                               : "outlined"
                           }
                           onPress={() => {
-                            if (isStartingWorkout || isRestDay) return;
+                            if (isStartingWorkout) return;
                             confirmStartWorkout(setIsStartingWorkout, () => {
                               useActiveWorkoutStore
                                 .getState()
@@ -409,7 +409,7 @@ export default function HomeScreen() {
                             });
                           }}
                           labelStyle={styles.smallButtonLabel}
-                          disabled={isStartingWorkout || isRestDay}
+                          disabled={isStartingWorkout}
                         >
                           Start
                         </Button>
