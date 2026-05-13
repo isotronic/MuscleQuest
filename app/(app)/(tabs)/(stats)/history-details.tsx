@@ -149,13 +149,9 @@ export default function HistoryDetailsScreen() {
                 style={{ marginRight: 0 }}
                 iconColor={Colors.dark.highlight}
                 onPressIn={() => {
-                  const parsedId = parseInt(String(id), 10);
-                  if (
-                    !Number.isFinite(parsedId) ||
-                    !Number.isInteger(parsedId) ||
-                    parsedId <= 0
-                  )
-                    return;
+                  if (typeof id !== "string" || !/^\d+$/.test(id)) return;
+                  const parsedId = parseInt(id, 10);
+                  if (parsedId <= 0) return;
                   Alert.alert(
                     "Delete Workout",
                     "Are you sure you want to delete this workout? This action cannot be undone.",
