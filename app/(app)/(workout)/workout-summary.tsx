@@ -27,8 +27,7 @@ import {
   type CompletedWorkout,
 } from "@/hooks/useCompletedWorkoutsQuery";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } =
-  Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 // Reanimated 4: Animated.View types don't include children in strict TS
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
@@ -58,15 +57,18 @@ type ParticleConfig = {
   driftFreq: number;
 };
 
-const PARTICLE_CONFIGS: ParticleConfig[] = Array.from({ length: 35 }, (_, i) => ({
-  id: i,
-  startX: (i / 35) * SCREEN_WIDTH + Math.sin(i * 2.3) * 20,
-  color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-  size: 7 + (i % 5) * 2,
-  rotationSpeed: 120 + (i % 7) * 60,
-  driftAmplitude: 12 + (i % 5) * 10,
-  driftFreq: 0.8 + (i % 4) * 0.35,
-}));
+const PARTICLE_CONFIGS: ParticleConfig[] = Array.from(
+  { length: 35 },
+  (_, i) => ({
+    id: i,
+    startX: (i / 35) * SCREEN_WIDTH + Math.sin(i * 2.3) * 20,
+    color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+    size: 7 + (i % 5) * 2,
+    rotationSpeed: 120 + (i % 7) * 60,
+    driftAmplitude: 12 + (i % 5) * 10,
+    driftFreq: 0.8 + (i % 4) * 0.35,
+  }),
+);
 
 function ConfettiParticle({
   config,
@@ -75,7 +77,8 @@ function ConfettiParticle({
   config: ParticleConfig;
   progress: SharedValue<number>;
 }) {
-  const { startX, driftFreq, driftAmplitude, rotationSpeed, size, color } = config;
+  const { startX, driftFreq, driftAmplitude, rotationSpeed, size, color } =
+    config;
 
   const animatedStyle = useAnimatedStyle(() => {
     const p = progress.value;
@@ -92,7 +95,11 @@ function ConfettiParticle({
       backgroundColor: color,
       borderRadius: 2,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      transform: [{ translateX: x }, { translateY: y }, { rotate: `${rotation}deg` }] as any,
+      transform: [
+        { translateX: x },
+        { translateY: y },
+        { rotate: `${rotation}deg` },
+      ] as any,
       opacity,
     };
   });
@@ -229,7 +236,9 @@ function DiffChip({
 
   return (
     <View style={styles.diffChip}>
-      <ThemedText style={[styles.diffValue, { color }]}>{displayVal}</ThemedText>
+      <ThemedText style={[styles.diffValue, { color }]}>
+        {displayVal}
+      </ThemedText>
       <ThemedText style={styles.diffLabel}>{label}</ThemedText>
     </View>
   );
@@ -257,8 +266,7 @@ function ExerciseRow({
             {exercise.exercise_name}
           </ThemedText>
           <ThemedText style={styles.exerciseMeta}>
-            {exercise.sets.length}{" "}
-            {exercise.sets.length === 1 ? "set" : "sets"}
+            {exercise.sets.length} {exercise.sets.length === 1 ? "set" : "sets"}
             {bestLabel ? ` · ${bestLabel}` : ""}
           </ThemedText>
         </View>
@@ -276,7 +284,11 @@ function ExerciseRow({
                 Set {set.set_number}
               </ThemedText>
               <ThemedText style={styles.setValue}>
-                {formatSetValue(set, exercise.exercise_tracking_type, weightUnit)}
+                {formatSetValue(
+                  set,
+                  exercise.exercise_tracking_type,
+                  weightUnit,
+                )}
               </ThemedText>
             </View>
           ))}
@@ -303,7 +315,10 @@ export default function WorkoutSummaryScreen() {
   );
 
   const workoutId = workout?.workout_id ?? 0;
-  const { data: history } = useWorkoutSessionHistoryQuery(workoutId, weightUnit);
+  const { data: history } = useWorkoutSessionHistoryQuery(
+    workoutId,
+    weightUnit,
+  );
 
   const prevWorkout = useMemo(() => {
     if (!history || !workout) return null;
@@ -379,7 +394,11 @@ export default function WorkoutSummaryScreen() {
             icon="dumbbell"
           />
           <View style={styles.statsDivider} />
-          <StatChip label="Volume" value={volumeDisplay} icon="weight-kilogram" />
+          <StatChip
+            label="Volume"
+            value={volumeDisplay}
+            icon="weight-kilogram"
+          />
         </View>
 
         {prevWorkout && (
