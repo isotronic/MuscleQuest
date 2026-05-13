@@ -25,8 +25,9 @@ describe("useCompletedWorkoutByIdQuery", () => {
 
     // Assertions
     expect(mockUseQuery).toHaveBeenCalledWith({
-      queryKey: ["completedWorkout", workoutId],
+      queryKey: ["completedWorkout", workoutId, weightUnit],
       queryFn: expect.any(Function),
+      enabled: true,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     });
