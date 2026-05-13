@@ -191,15 +191,11 @@ function StatChip({
 }: {
   label: string;
   value: string;
-  icon: string;
+  icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 }) {
   return (
     <View style={styles.statChip}>
-      <MaterialCommunityIcons
-        name={icon as any}
-        size={22}
-        color={Colors.dark.tint}
-      />
+      <MaterialCommunityIcons name={icon} size={22} color={Colors.dark.tint} />
       <ThemedText type="defaultSemiBold" style={styles.statValue}>
         {value}
       </ThemedText>
