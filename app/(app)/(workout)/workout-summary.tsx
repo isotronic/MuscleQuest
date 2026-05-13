@@ -414,11 +414,7 @@ export default function WorkoutSummaryScreen() {
             icon="dumbbell"
           />
           <View style={styles.statsDivider} />
-          <StatChip
-            label="Volume"
-            value={volumeDisplay}
-            icon="weight-kilogram"
-          />
+          <StatChip label="Volume" value={volumeDisplay} icon="scale" />
         </View>
 
         {prevWorkout && (
