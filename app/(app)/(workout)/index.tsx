@@ -102,9 +102,13 @@ export default function WorkoutOverviewScreen() {
     const savedId = lastCompletedWorkoutIdRef.current;
     clearPersistedStore();
     setShowSaveModal(false);
+    if (savedId == null) {
+      router.push("/(app)/(tabs)");
+      return;
+    }
     router.push({
       pathname: "/(app)/(workout)/workout-summary" as any,
-      params: { completedWorkoutId: String(savedId ?? 0) },
+      params: { completedWorkoutId: String(savedId) },
     });
   };
 
