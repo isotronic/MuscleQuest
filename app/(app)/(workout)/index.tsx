@@ -24,13 +24,14 @@ import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
 import { Notes } from "@/components/Notes";
 import {
-  appendExercisesToWorkout,
+  updatePlanWorkoutExercises,
+  updateStandaloneWorkout,
   createStandaloneWorkout,
   linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
 import { cancelRestNotifications } from "@/utils/restNotification";
 import { useQueryClient } from "@tanstack/react-query";
-import { UserExercise } from "@/store/workoutStore";
+import { UserExercise, Workout } from "@/store/workoutStore";
 
 type SingleItem = {
   type: "single";
@@ -46,11 +47,24 @@ type SupersetItem = {
 
 type GroupedItem = SingleItem | SupersetItem;
 
+function hasStructuralChanges(current: Workout, original: Workout): boolean {
+  const toKey = (exercises: UserExercise[]) =>
+    JSON.stringify(
+      exercises.map((e) => ({
+        exercise_id: e.exercise_id,
+        sets: e.sets,
+        supersetGroupId: e.supersetGroupId ?? null,
+      })),
+    );
+  return toKey(current.exercises) !== toKey(original.exercises);
+}
+
 export default function WorkoutOverviewScreen() {
   const { data: settings } = useSettingsQuery();
   const queryClient = useQueryClient();
   const {
     workout,
+    originalWorkout,
     completedSets,
     weightAndReps,
     startTime,
@@ -61,7 +75,6 @@ export default function WorkoutOverviewScreen() {
     clearPersistedStore,
     restartWorkout,
     initializeWeightAndReps,
-    appendedExerciseIndices,
   } = useActiveWorkoutStore();
 
   const weightUnit = settings?.weightUnit || "kg";
@@ -413,8 +426,7 @@ export default function WorkoutOverviewScreen() {
         0,
       );
 
-      const canSave =
-        workout && (isQuickWorkout || (planId != null && workoutId != null));
+      const canSave = workout && (isQuickWorkout || workoutId != null);
 
       if (canSave) {
         const exercises = workout!.exercises
@@ -457,65 +469,83 @@ export default function WorkoutOverviewScreen() {
             },
             {
               onSuccess: (completedWorkoutId) => {
-                if (isQuickWorkout) {
-                  lastCompletedWorkoutIdRef.current = completedWorkoutId;
-                  setShowSaveModal(true);
-                } else if (appendedExerciseIndices.length > 0) {
-                  Alert.alert(
-                    "Save Changes to Plan?",
-                    `You added ${appendedExerciseIndices.length} exercise(s) during this workout. Save them to your plan for future sessions?`,
-                    [
-                      {
-                        text: "Discard",
-                        onPress: () => {
-                          clearPersistedStore();
-                          router.push({
-                            pathname: "/(app)/(workout)/workout-summary" as any,
-                            params: {
-                              completedWorkoutId: String(completedWorkoutId),
-                            },
-                          });
-                        },
-                      },
-                      {
-                        text: "Save to Plan",
-                        onPress: async () => {
-                          const newExercises = appendedExerciseIndices.map(
-                            (i) => workout!.exercises[i],
-                          );
-                          try {
-                            await appendExercisesToWorkout(
-                              activeWorkout!.workoutId!,
-                              newExercises,
-                            );
-                            await queryClient.invalidateQueries({
-                              queryKey: ["plan", activeWorkout!.planId],
-                            });
-                            await queryClient.invalidateQueries({
-                              queryKey: ["activePlan"],
-                            });
-                          } catch (e) {
-                            Bugsnag.notify(e as Error);
-                          }
-                          clearPersistedStore();
-                          router.push({
-                            pathname: "/(app)/(workout)/workout-summary" as any,
-                            params: {
-                              completedWorkoutId: String(completedWorkoutId),
-                            },
-                          });
-                        },
-                      },
-                    ],
-                  );
-                } else {
+                const navigateToSummary = () => {
                   clearPersistedStore();
                   router.push({
                     pathname: "/(app)/(workout)/workout-summary" as any,
-                    params: {
-                      completedWorkoutId: String(completedWorkoutId),
-                    },
+                    params: { completedWorkoutId: String(completedWorkoutId) },
                   });
+                };
+
+                if (isQuickWorkout) {
+                  lastCompletedWorkoutIdRef.current = completedWorkoutId;
+                  setShowSaveModal(true);
+                } else if (planId != null && workoutId != null) {
+                  // Plan workout — prompt to save structural changes back to the plan
+                  if (hasStructuralChanges(workout!, originalWorkout!)) {
+                    Alert.alert(
+                      "Save Changes to Plan?",
+                      "You modified this workout. Save those changes for future sessions?",
+                      [
+                        { text: "Discard", onPress: navigateToSummary },
+                        {
+                          text: "Save to Plan",
+                          onPress: async () => {
+                            try {
+                              await updatePlanWorkoutExercises(
+                                workoutId,
+                                workout!.exercises,
+                              );
+                              await queryClient.invalidateQueries({
+                                queryKey: ["plan", planId],
+                              });
+                              await queryClient.invalidateQueries({
+                                queryKey: ["activePlan"],
+                              });
+                            } catch (e) {
+                              Bugsnag.notify(e as Error);
+                            }
+                            navigateToSummary();
+                          },
+                        },
+                      ],
+                    );
+                  } else {
+                    navigateToSummary();
+                  }
+                } else if (workoutId != null) {
+                  // Standalone workout — prompt to save structural changes back
+                  if (hasStructuralChanges(workout!, originalWorkout!)) {
+                    Alert.alert(
+                      "Save Changes to Workout?",
+                      "You modified this workout. Save those changes for future sessions?",
+                      [
+                        { text: "Discard", onPress: navigateToSummary },
+                        {
+                          text: "Save",
+                          onPress: async () => {
+                            try {
+                              await updateStandaloneWorkout(
+                                workoutId,
+                                workout!.name,
+                                workout!.exercises,
+                              );
+                              await queryClient.invalidateQueries({
+                                queryKey: ["standaloneWorkouts"],
+                              });
+                            } catch (e) {
+                              Bugsnag.notify(e as Error);
+                            }
+                            navigateToSummary();
+                          },
+                        },
+                      ],
+                    );
+                  } else {
+                    navigateToSummary();
+                  }
+                } else {
+                  navigateToSummary();
                 }
               },
               onError: (error) => {
