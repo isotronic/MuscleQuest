@@ -1,12 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  TextInput,
-} from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { View, ScrollView, StyleSheet, Alert, TextInput } from "react-native";
+import Sortable from "react-native-sortables";
+import type { SortableGridRenderItem } from "react-native-sortables";
 import {
   IconButton,
   Menu,
@@ -34,8 +29,22 @@ import {
   linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
 import { cancelRestNotifications } from "@/utils/restNotification";
-import { classifySupersetPosition } from "@/utils/supersetUtils";
 import { useQueryClient } from "@tanstack/react-query";
+import { UserExercise } from "@/store/workoutStore";
+
+type SingleItem = {
+  type: "single";
+  exercise: UserExercise;
+  exerciseIndex: number;
+};
+
+type SupersetItem = {
+  type: "superset";
+  exercises: [UserExercise, UserExercise];
+  exerciseIndices: [number, number];
+};
+
+type GroupedItem = SingleItem | SupersetItem;
 
 export default function WorkoutOverviewScreen() {
   const { data: settings } = useSettingsQuery();
@@ -48,6 +57,7 @@ export default function WorkoutOverviewScreen() {
     activeWorkout,
     isQuickWorkout,
     deleteExercise,
+    reorderExercises,
     clearPersistedStore,
     restartWorkout,
     initializeWeightAndReps,
@@ -82,6 +92,38 @@ export default function WorkoutOverviewScreen() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveWorkoutName, setSaveWorkoutName] = useState("");
 
+  const groupedData = useMemo((): GroupedItem[] => {
+    if (!workout) return [];
+    const result: GroupedItem[] = [];
+    const seen = new Set<number>();
+
+    workout.exercises.forEach((exercise, i) => {
+      if (seen.has(exercise.exercise_id)) return;
+      seen.add(exercise.exercise_id);
+
+      const { supersetGroupId } = exercise;
+      if (supersetGroupId) {
+        const partnerIdx = workout.exercises.findIndex(
+          (e, j) => j !== i && e.supersetGroupId === supersetGroupId,
+        );
+        const partner =
+          partnerIdx !== -1 ? workout.exercises[partnerIdx] : null;
+        if (partner && !seen.has(partner.exercise_id)) {
+          seen.add(partner.exercise_id);
+          result.push({
+            type: "superset",
+            exercises: [exercise, partner],
+            exerciseIndices: [i, partnerIdx],
+          });
+          return;
+        }
+      }
+      result.push({ type: "single", exercise, exerciseIndex: i });
+    });
+
+    return result;
+  }, [workout]);
+
   // Calculate if any sets are completed
   const hasCompletedSets = useMemo(() => {
     return Object.values(completedSets).some((exerciseSets) =>
@@ -89,13 +131,13 @@ export default function WorkoutOverviewScreen() {
     );
   }, [completedSets]);
 
-  const handleMenuOpen = (index: number) => {
+  const handleMenuOpen = useCallback((index: number) => {
     setMenuVisible((prev) => ({ ...prev, [index]: true }));
-  };
+  }, []);
 
-  const handleMenuClose = (index: number) => {
+  const handleMenuClose = useCallback((index: number) => {
     setMenuVisible((prev) => ({ ...prev, [index]: false }));
-  };
+  }, []);
 
   const handleExitSaveModal = () => {
     void cancelRestNotifications();
@@ -112,52 +154,240 @@ export default function WorkoutOverviewScreen() {
     });
   };
 
-  const handleDeleteExercise = (index: number) => {
-    Alert.alert(
-      "Delete Exercise",
-      "Are you sure you want to delete this exercise?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            deleteExercise(index);
+  const handleDeleteExercise = useCallback(
+    (index: number) => {
+      Alert.alert(
+        "Delete Exercise",
+        "Are you sure you want to delete this exercise?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => {
+              deleteExercise(index);
+            },
           },
+        ],
+      );
+    },
+    [deleteExercise],
+  );
+
+  const handleReplaceExercise = useCallback(
+    (index: number) => {
+      const exercise = workout?.exercises[index];
+      router.push({
+        pathname: "/(app)/(workout)/exercises",
+        params: {
+          replaceExerciseIndex: index,
+          targetMuscle: exercise?.target_muscle || undefined,
         },
-      ],
-    );
-  };
+      });
+    },
+    [workout],
+  );
 
-  const handleReplaceExercise = (index: number) => {
-    // Find the exercise being replaced
-    const exercise = workout?.exercises[index];
-    // Navigate to the exercises screen for replacing, passing target_muscle if available
-    router.push({
-      pathname: "/(app)/(workout)/exercises",
-      params: {
-        replaceExerciseIndex: index,
-        targetMuscle: exercise?.target_muscle || undefined,
-      },
-    });
-  };
+  const handleExercisePress = useCallback(
+    (index: number) => {
+      if (isNavigating) return;
 
-  const handleExercisePress = (index: number) => {
-    if (isNavigating) return;
+      setLoadingExerciseIndex(index);
+      setIsNavigating(true);
 
-    setLoadingExerciseIndex(index);
-    setIsNavigating(true);
+      router.push({
+        pathname: "/(app)/(workout)/workout-session",
+        params: { selectedExerciseIndex: index },
+      });
 
-    router.push({
-      pathname: "/(app)/(workout)/workout-session",
-      params: { selectedExerciseIndex: index },
-    });
+      setTimeout(() => {
+        setLoadingExerciseIndex(null);
+        setIsNavigating(false);
+      }, 500);
+    },
+    [isNavigating],
+  );
 
-    setTimeout(() => {
-      setLoadingExerciseIndex(null);
-      setIsNavigating(false);
-    }, 500);
-  };
+  const handleOrderChange = useCallback(
+    ({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => {
+      if (fromIndex === toIndex) return;
+      setMenuVisible({});
+      const reordered = [...groupedData];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+      const newExercises = reordered.flatMap((item) =>
+        item.type === "single" ? [item.exercise] : item.exercises,
+      );
+      reorderExercises(newExercises);
+    },
+    [groupedData, reorderExercises],
+  );
+
+  const renderItem: SortableGridRenderItem<GroupedItem> = useCallback(
+    ({ item }) => {
+      const renderCard = (
+        exercise: UserExercise,
+        exerciseIndex: number,
+        label: number | string,
+        isInSuperset: boolean,
+        isFirstInSuperset: boolean,
+        isLastInSuperset: boolean,
+        isTappable: boolean,
+      ) => {
+        const completedSetsForExercise = completedSets[exerciseIndex] || {};
+        const completedCount = Object.values(completedSetsForExercise).filter(
+          Boolean,
+        ).length;
+        const allSetsCompleted = completedCount === exercise.sets.length;
+        const isLoading = loadingExerciseIndex === exerciseIndex;
+
+        const inner = isTappable ? (
+          <Sortable.Touchable
+            onTap={() => handleExercisePress(exerciseIndex)}
+            style={styles.cardTouchable}
+          >
+            <MaterialCommunityIcons
+              name="drag"
+              size={20}
+              color={Colors.dark.subText}
+              style={styles.dragIcon}
+            />
+            <View
+              style={[
+                styles.numberContainer,
+                allSetsCompleted && styles.numberContainerCompleted,
+              ]}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : allSetsCompleted ? (
+                <MaterialCommunityIcons name="check" size={24} color="white" />
+              ) : (
+                <ThemedText style={styles.numberText}>{label}</ThemedText>
+              )}
+            </View>
+            <View style={styles.exerciseInfo}>
+              <ThemedText style={styles.exerciseName}>
+                {exercise.name}
+              </ThemedText>
+              <ThemedText style={styles.setInfo}>
+                {completedCount}/{exercise.sets.length} sets completed
+              </ThemedText>
+            </View>
+          </Sortable.Touchable>
+        ) : (
+          <View style={styles.cardTouchable}>
+            <MaterialCommunityIcons
+              name="drag"
+              size={20}
+              color={Colors.dark.subText}
+              style={styles.dragIcon}
+            />
+            <View
+              style={[
+                styles.numberContainer,
+                allSetsCompleted && styles.numberContainerCompleted,
+              ]}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : allSetsCompleted ? (
+                <MaterialCommunityIcons name="check" size={24} color="white" />
+              ) : (
+                <ThemedText style={styles.numberText}>{label}</ThemedText>
+              )}
+            </View>
+            <View style={styles.exerciseInfo}>
+              <ThemedText style={styles.exerciseName}>
+                {exercise.name}
+              </ThemedText>
+              <ThemedText style={styles.setInfo}>
+                {completedCount}/{exercise.sets.length} sets completed
+              </ThemedText>
+            </View>
+          </View>
+        );
+
+        return (
+          <View
+            style={[
+              styles.card,
+              styles.cardRow,
+              isInSuperset && styles.supersetCard,
+              isFirstInSuperset && styles.supersetCardFirst,
+              isLastInSuperset && styles.supersetCardLast,
+            ]}
+          >
+            {inner}
+            <Menu
+              visible={!!menuVisible[exerciseIndex]}
+              onDismiss={() => handleMenuClose(exerciseIndex)}
+              anchor={
+                <IconButton
+                  icon="dots-vertical"
+                  size={24}
+                  onPress={() => handleMenuOpen(exerciseIndex)}
+                  style={styles.optionsButton}
+                  iconColor={Colors.dark.text}
+                />
+              }
+            >
+              <Menu.Item
+                onPress={() => {
+                  handleMenuClose(exerciseIndex);
+                  handleDeleteExercise(exerciseIndex);
+                }}
+                title="Delete"
+              />
+              <Menu.Item
+                onPress={() => {
+                  handleMenuClose(exerciseIndex);
+                  handleReplaceExercise(exerciseIndex);
+                }}
+                title="Replace"
+              />
+            </Menu>
+          </View>
+        );
+      };
+
+      if (item.type === "single") {
+        return (
+          <View>
+            {renderCard(
+              item.exercise,
+              item.exerciseIndex,
+              item.exerciseIndex + 1,
+              false,
+              false,
+              false,
+              true,
+            )}
+          </View>
+        );
+      }
+
+      const [exA, exB] = item.exercises;
+      const [idxA, idxB] = item.exerciseIndices;
+      return (
+        <View>
+          {renderCard(exA, idxA, "A", true, true, false, true)}
+          <View style={styles.supersetConnector} />
+          {renderCard(exB, idxB, "B", true, false, true, false)}
+        </View>
+      );
+    },
+    [
+      completedSets,
+      loadingExerciseIndex,
+      menuVisible,
+      handleMenuClose,
+      handleMenuOpen,
+      handleDeleteExercise,
+      handleReplaceExercise,
+      handleExercisePress,
+    ],
+  );
 
   const handleSaveWorkout = async () => {
     setIsSaving(true);
@@ -501,110 +731,20 @@ export default function WorkoutOverviewScreen() {
             </ThemedText>
           </View>
         )}
-        {workout.exercises.map((exercise, index) => {
-          const completedSetsForExercise = completedSets[index] || {};
-          const completedCount = Object.values(completedSetsForExercise).filter(
-            (setCompleted) => setCompleted === true,
-          ).length;
-          const totalSets = exercise.sets.length;
-          const allSetsCompleted = completedCount === totalSets;
-          const isLoading = loadingExerciseIndex === index;
-
-          const { isInSuperset, isFirstInSuperset, isSecondInSuperset } =
-            classifySupersetPosition(workout.exercises, index);
-
-          const exerciseCardContent = (
-            <View
-              style={[
-                styles.card,
-                isInSuperset && styles.supersetCard,
-                isFirstInSuperset && styles.supersetCardFirst,
-                isSecondInSuperset && styles.supersetCardLast,
-              ]}
-            >
-              <View style={styles.cardContent}>
-                {/* Circle with the number or checkmark */}
-                <View
-                  style={[
-                    styles.numberContainer,
-                    allSetsCompleted && styles.numberContainerCompleted,
-                  ]}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color="white" />
-                  ) : allSetsCompleted ? (
-                    <MaterialCommunityIcons
-                      name="check"
-                      size={24}
-                      color="white"
-                    />
-                  ) : (
-                    <ThemedText style={styles.numberText}>
-                      {isFirstInSuperset
-                        ? "A"
-                        : isSecondInSuperset
-                          ? "B"
-                          : index + 1}
-                    </ThemedText>
-                  )}
-                </View>
-
-                {/* Exercise Info */}
-                <View style={styles.exerciseInfo}>
-                  <ThemedText style={styles.exerciseName}>
-                    {exercise.name}
-                  </ThemedText>
-                  <ThemedText style={styles.setInfo}>
-                    {completedCount}/{exercise.sets.length} sets completed
-                  </ThemedText>
-                </View>
-
-                {/* Options Menu */}
-                <Menu
-                  visible={menuVisible[index]}
-                  onDismiss={() => handleMenuClose(index)}
-                  anchor={
-                    <IconButton
-                      icon="dots-vertical"
-                      size={24}
-                      onPress={() => handleMenuOpen(index)}
-                      style={styles.optionsButton}
-                      iconColor={Colors.dark.text}
-                    />
-                  }
-                >
-                  <Menu.Item
-                    onPress={() => {
-                      handleMenuClose(index);
-                      handleDeleteExercise(index);
-                    }}
-                    title="Delete"
-                  />
-                  <Menu.Item
-                    onPress={() => {
-                      handleMenuClose(index);
-                      handleReplaceExercise(index);
-                    }}
-                    title="Replace"
-                  />
-                </Menu>
-              </View>
-            </View>
-          );
-
-          return (
-            <View key={exercise.exercise_id}>
-              {isSecondInSuperset ? (
-                <View accessible={false}>{exerciseCardContent}</View>
-              ) : (
-                <TouchableOpacity onPress={() => handleExercisePress(index)}>
-                  {exerciseCardContent}
-                </TouchableOpacity>
-              )}
-              {isFirstInSuperset && <View style={styles.supersetConnector} />}
-            </View>
-          );
-        })}
+        {groupedData.length > 0 && (
+          <Sortable.Grid
+            columns={1}
+            data={groupedData}
+            keyExtractor={(item) =>
+              item.type === "single"
+                ? item.exercise.exercise_id.toString()
+                : `ss-${item.exercises[0].exercise_id}-${item.exercises[1].exercise_id}`
+            }
+            renderItem={renderItem}
+            onDragEnd={handleOrderChange}
+            showDropIndicator
+          />
+        )}
         <Button
           mode="outlined"
           icon="plus"
@@ -642,9 +782,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
-  cardContent: {
+  cardRow: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  cardTouchable: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dragIcon: {
+    marginRight: 8,
   },
   numberContainer: {
     width: 40,

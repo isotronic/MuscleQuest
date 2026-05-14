@@ -78,6 +78,7 @@ interface ActiveWorkoutStore {
   initializeWeightAndReps: (completedWorkouts: CompletedWorkout[]) => void;
   replaceExercise: (index: number, newExercise: UserExercise) => void;
   deleteExercise: (index: number) => void;
+  reorderExercises: (newExercises: UserExercise[]) => void;
   restartWorkout: () => void;
   startTimer: (expiry: Date) => void;
   stopTimer: () => void;
@@ -770,6 +771,53 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             completedSets: adjustedCompletedSets, // Remove and adjust completed sets
             weightAndReps: adjustedWeightAndReps, // Remove and adjust weight/reps
             currentSetIndices: adjustedSetIndices, // Adjust set indices
+          };
+        });
+      },
+
+      reorderExercises: (newExercises) => {
+        set((state) => {
+          const {
+            workout,
+            completedSets,
+            weightAndReps,
+            currentSetIndices,
+            currentExerciseIndex,
+            appendedExerciseIndices,
+          } = state;
+          if (!workout) return state;
+
+          const oldExercises = workout.exercises;
+          const oldToNew: { [oldIndex: number]: number } = {};
+          for (let oldIdx = 0; oldIdx < oldExercises.length; oldIdx++) {
+            const newIdx = newExercises.findIndex(
+              (e) => e.exercise_id === oldExercises[oldIdx].exercise_id,
+            );
+            if (newIdx !== -1) oldToNew[oldIdx] = newIdx;
+          }
+
+          const remap = <T>(obj: {
+            [key: number]: T;
+          }): { [key: number]: T } => {
+            const result: { [key: number]: T } = {};
+            for (const [key, val] of Object.entries(obj)) {
+              const oldIdx = parseInt(key, 10);
+              const newIdx = oldToNew[oldIdx];
+              if (newIdx !== undefined) result[newIdx] = val;
+            }
+            return result;
+          };
+
+          return {
+            workout: { ...workout, exercises: newExercises },
+            completedSets: remap(completedSets),
+            weightAndReps: remap(weightAndReps),
+            currentSetIndices: remap(currentSetIndices),
+            currentExerciseIndex:
+              oldToNew[currentExerciseIndex] ?? currentExerciseIndex,
+            appendedExerciseIndices: appendedExerciseIndices
+              .map((oldIdx) => oldToNew[oldIdx])
+              .filter((idx): idx is number => idx !== undefined),
           };
         });
       },
