@@ -1,16 +1,19 @@
 import { Tabs } from "expo-router";
 import React from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
   return (
     <Tabs
       screenOptions={{
         tabBarStyle: {
           backgroundColor: Colors.dark.background,
-          height: 68,
+          height: 50 + insets.bottom,
+          paddingBottom: insets.bottom,
         },
         tabBarActiveTintColor: Colors.dark.tint,
         headerStyle: {
