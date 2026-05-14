@@ -1,5 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Dimensions, StyleSheet, View, Alert } from "react-native";
+import {
+  Dimensions,
+  StyleSheet,
+  View,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
@@ -179,6 +185,7 @@ export default function WorkoutSessionScreen() {
     stopTimer,
     removeSet,
     addSet,
+    updateSetRestTime,
   } = useActiveWorkoutStore();
 
   const {
@@ -189,6 +196,10 @@ export default function WorkoutSessionScreen() {
 
   const parsedIncrement = parseFloat(settings?.weightIncrement ?? "");
   const weightIncrement = Number.isNaN(parsedIncrement) ? 1 : parsedIncrement;
+  const parsedRestIncrement = parseInt(settings?.restTimerIncrement ?? "");
+  const restTimerIncrement = Number.isNaN(parsedRestIncrement)
+    ? 15
+    : parsedRestIncrement;
   const buttonSize = settings
     ? settings.buttonSize === "Standard"
       ? 40
@@ -272,6 +283,11 @@ export default function WorkoutSessionScreen() {
   useKeepScreenOn();
 
   const expiryTimestampRef = useRef<Date | null>(null);
+  const lastCompletedSetRef = useRef<{
+    exerciseIndex: number;
+    setIndex: number;
+  } | null>(null);
+  const adjustedRestSecondsRef = useRef<number>(0);
   const { playSound, triggerVibration } = useSoundStore();
   const { seconds, minutes, restart } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
@@ -343,6 +359,7 @@ export default function WorkoutSessionScreen() {
         await cancelRestNotifications();
       }
 
+      adjustedRestSecondsRef.current = totalSeconds;
       const time = new Date();
       time.setSeconds(time.getSeconds() + totalSeconds);
       expiryTimestampRef.current = time;
@@ -353,6 +370,44 @@ export default function WorkoutSessionScreen() {
         expiryTimestamp: time.toISOString(),
         currentTime: new Date().toISOString(),
       });
+    }
+  };
+
+  const adjustTimer = async (deltaSeconds: number) => {
+    const currentRemaining = minutes * 60 + seconds;
+    const newRemaining = Math.max(0, currentRemaining + deltaSeconds);
+    const newExpiry = new Date();
+    newExpiry.setSeconds(newExpiry.getSeconds() + newRemaining);
+    expiryTimestampRef.current = newExpiry;
+    startTimer(newExpiry);
+    restart(newExpiry);
+
+    // Track the intended rest time (original + all deltas) separately from the
+    // live countdown, so we save the right value even if the timer has already
+    // ticked down before the user presses confirm.
+    adjustedRestSecondsRef.current = Math.max(
+      0,
+      adjustedRestSecondsRef.current + deltaSeconds,
+    );
+
+    if (settings?.restTimerNotification === "true") {
+      await scheduleRestNotificationWithCancellation(
+        newRemaining,
+        "Rest Timer Finished!",
+        "Time to do your next set!",
+        "rest-timer1",
+      );
+    }
+
+    if (lastCompletedSetRef.current) {
+      const { exerciseIndex, setIndex } = lastCompletedSetRef.current;
+      const target = adjustedRestSecondsRef.current;
+      updateSetRestTime(
+        exerciseIndex,
+        setIndex,
+        Math.floor(target / 60),
+        target % 60,
+      );
     }
   };
 
@@ -776,6 +831,10 @@ export default function WorkoutSessionScreen() {
       } else {
         void cancelRestNotifications();
       }
+      lastCompletedSetRef.current = {
+        exerciseIndex: currentExerciseIndex,
+        setIndex: currentSetIndex,
+      };
       nextSet();
       return;
     }
@@ -829,6 +888,10 @@ export default function WorkoutSessionScreen() {
     completionIncomingX.value = SCREEN_WIDTH;
 
     // Advance the store — carry-forward weight is written inside nextSet()
+    lastCompletedSetRef.current = {
+      exerciseIndex: currentExerciseIndex,
+      setIndex: currentSetIndex,
+    };
     nextSet();
 
     // Update current slot to point to the new exercise that nextSet() navigated to.
@@ -1096,9 +1159,27 @@ export default function WorkoutSessionScreen() {
           style={[styles.timerContainer, { paddingBottom: insets.bottom }]}
         >
           <ThemedText style={styles.timerLabel}>Rest Time Left:</ThemedText>
-          <ThemedText style={styles.timerText}>
-            {minutes}:{seconds.toString().padStart(2, "0")}
-          </ThemedText>
+          <View style={styles.timerRow}>
+            <TouchableOpacity
+              style={styles.timerAdjustButton}
+              onPress={() => void adjustTimer(-restTimerIncrement)}
+            >
+              <ThemedText style={styles.timerAdjustText}>
+                −{restTimerIncrement}s
+              </ThemedText>
+            </TouchableOpacity>
+            <ThemedText style={styles.timerText}>
+              {minutes}:{seconds.toString().padStart(2, "0")}
+            </ThemedText>
+            <TouchableOpacity
+              style={styles.timerAdjustButton}
+              onPress={() => void adjustTimer(restTimerIncrement)}
+            >
+              <ThemedText style={styles.timerAdjustText}>
+                +{restTimerIncrement}s
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
         </ThemedView>
       ) : null}
     </ThemedView>
@@ -1161,6 +1242,23 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     marginBottom: 4,
     textAlign: "center",
+  },
+  timerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
+  },
+  timerAdjustButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: Colors.dark.cardBackground2,
+  },
+  timerAdjustText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.dark.text,
   },
   timerText: {
     fontSize: 32,

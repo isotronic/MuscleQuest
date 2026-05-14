@@ -547,6 +547,31 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() =>
+              showOverlay(
+                "restTimerIncrement",
+                settings?.restTimerIncrement || "",
+                "number",
+              )
+            }
+          >
+            <MaterialCommunityIcons
+              name="timer"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Rest timer increment
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.restTimerIncrement} seconds
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
           <View style={styles.item}>
             <MaterialCommunityIcons
               name="vibrate"

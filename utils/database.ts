@@ -1023,6 +1023,7 @@ export const insertDefaultSettings = async () => {
     { key: "restTimerVibration", value: "false" },
     { key: "restTimerSound", value: "false" },
     { key: "restTimerNotification", value: "false" },
+    { key: "restTimerIncrement", value: "15" },
     { key: "loginShown", value: "false" },
     { key: "showOnboarding", value: "true" },
     { key: "bodyWeight", value: "70" },
@@ -1066,6 +1067,7 @@ export interface Settings {
   restTimerVibration: string;
   restTimerSound: string;
   restTimerNotification: string;
+  restTimerIncrement: string;
   bodyWeight: string;
   loginShown: string;
   showOnboarding: string;

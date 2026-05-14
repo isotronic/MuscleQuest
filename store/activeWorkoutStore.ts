@@ -80,6 +80,7 @@ interface ActiveWorkoutStore {
   deleteExercise: (index: number) => void;
   reorderExercises: (newExercises: UserExercise[]) => void;
   restartWorkout: () => void;
+  updateSetRestTime: (exerciseIndex: number, setIndex: number, restMinutes: number, restSeconds: number) => void;
   startTimer: (expiry: Date) => void;
   stopTimer: () => void;
   clearPersistedStore: () => void;
@@ -855,6 +856,20 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             [exerciseIndex]: setIndex,
           },
         })),
+
+      updateSetRestTime: (exerciseIndex, setIndex, restMinutes, restSeconds) =>
+        set((state) => {
+          const { workout } = state;
+          if (!workout) return state;
+          const updatedExercises = workout.exercises.map((exercise, exIdx) => {
+            if (exIdx !== exerciseIndex) return exercise;
+            const updatedSets = exercise.sets.map((s, sIdx) =>
+              sIdx === setIndex ? { ...s, restMinutes, restSeconds } : s,
+            );
+            return { ...exercise, sets: updatedSets };
+          });
+          return { workout: { ...workout, exercises: updatedExercises } };
+        }),
 
       startTimer: (expiry) =>
         set({
