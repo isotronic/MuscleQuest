@@ -166,7 +166,7 @@ export default function SessionSetInfo({
             </TouchableOpacity>
           )}
           <View style={styles.titleContainer}>
-            <ThemedText style={styles.title}>{exerciseName}</ThemedText>
+            <ThemedText style={styles.title} numberOfLines={1} ellipsizeMode="tail">{exerciseName}</ThemedText>
 
             {trackingType !== "time" && !!repRange && (
               <ThemedText style={styles.headerText}>

@@ -61,6 +61,9 @@ interface OutgoingSnapshot {
   isDropSet: boolean;
   isToFailure: boolean;
   trackingType: string;
+  isInSuperset: boolean;
+  isFirstInSuperset: boolean;
+  partnerName?: string;
 }
 
 const noop = () => {};
@@ -85,7 +88,8 @@ const READONLY_PANEL_DEFAULTS = {
 } as const;
 
 function snapshotToProps(snapshot: OutgoingSnapshot) {
-  return { ...snapshot, ...READONLY_PANEL_DEFAULTS };
+  const { isInSuperset: _a, isFirstInSuperset: _b, partnerName: _c, ...sessionProps } = snapshot;
+  return { ...sessionProps, ...READONLY_PANEL_DEFAULTS };
 }
 
 export default function WorkoutSessionScreen() {
@@ -98,11 +102,13 @@ export default function WorkoutSessionScreen() {
   const canGoNext = useSharedValue(false);
   const canGoPrev = useSharedValue(false);
   const isTransitioning = useSharedValue(false);
-  const resetOffsetXPending = useRef(false);
+  const pendingRestTimerRef = useRef<{
+    minutes: number;
+    seconds: number;
+  } | null>(null);
 
   const [outgoingSnapshot, setOutgoingSnapshot] =
     useState<OutgoingSnapshot | null>(null);
-  const clearOutgoingSnapshot = () => setOutgoingSnapshot(null);
 
   const prevPanelStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: -SCREEN_WIDTH + offsetX.value }],
@@ -302,7 +308,6 @@ export default function WorkoutSessionScreen() {
       time.setSeconds(time.getSeconds() + totalSeconds);
       expiryTimestampRef.current = time;
       startTimer(time);
-      restart(time);
 
       Bugsnag.leaveBreadcrumb("Timer started", {
         totalSeconds,
@@ -437,14 +442,16 @@ export default function WorkoutSessionScreen() {
     canGoPrev.value = !!hasPreviousSet;
   }, [hasNextSet, hasPreviousSet]);
 
-  // Reset offsetX only after React has committed the new store state so the
-  // center panel's content is correct before it re-enters the visible area.
-  useEffect(() => {
-    if (resetOffsetXPending.current) {
-      resetOffsetXPending.current = false;
-      offsetX.value = 0;
-    }
-  }, [currentExerciseIndex, currentSetIndex, offsetX]);
+  const getPanelSuperset = (exerciseIndex: number) => {
+    if (!workout) return { isInSuperset: false, isFirstInSuperset: false, partnerName: undefined };
+    const partnerIdx = findSupersetPartnerIndex(workout.exercises, exerciseIndex);
+    const inSuperset = partnerIdx !== -1;
+    return {
+      isInSuperset: inSuperset,
+      isFirstInSuperset: inSuperset && exerciseIndex < partnerIdx,
+      partnerName: inSuperset ? workout.exercises[partnerIdx]?.name : undefined,
+    };
+  };
 
   // Returns full SessionSetInfo props for any (exerciseIndex, setIndex) without
   // touching store indices — used to pre-render adjacent panels with correct data
@@ -501,10 +508,20 @@ export default function WorkoutSessionScreen() {
     };
   };
 
+  // Called from the snapshot slide-out callback: clears snapshot and starts any
+  // rest timer that was deferred until after the animation.
+  const afterAnimation = () => {
+    setOutgoingSnapshot(null);
+    if (pendingRestTimerRef.current) {
+      const { minutes, seconds } = pendingRestTimerRef.current;
+      pendingRestTimerRef.current = null;
+      void startRestTimer(minutes, seconds);
+    }
+  };
+
   // Called from animation callbacks — updates store after swipe/button animation completes
   const commitPrevious = () => {
     if (previousExerciseIndex !== null && previousSetIndex !== null) {
-      resetOffsetXPending.current = true;
       setCurrentExerciseIndex(previousExerciseIndex as number);
       setCurrentSetIndex(
         previousExerciseIndex as number,
@@ -514,7 +531,6 @@ export default function WorkoutSessionScreen() {
   };
 
   const commitNext = () => {
-    resetOffsetXPending.current = true;
     setCurrentExerciseIndex(nextExerciseIndex);
     setCurrentSetIndex(nextExerciseIndex, nextSetIndex);
   };
@@ -526,6 +542,7 @@ export default function WorkoutSessionScreen() {
       "worklet";
       isTransitioning.value = false;
       if (finished) {
+        offsetX.value = 0;
         runOnJS(commitPrevious)();
       }
     });
@@ -538,12 +555,13 @@ export default function WorkoutSessionScreen() {
       "worklet";
       isTransitioning.value = false;
       if (finished) {
+        offsetX.value = 0;
         runOnJS(commitNext)();
       }
     });
   };
 
-  // Determine superset context
+  // Determine superset context (used for completion logic)
   const supersetPartnerIndex =
     workout && currentExercise
       ? findSupersetPartnerIndex(workout.exercises, currentExerciseIndex)
@@ -551,9 +569,6 @@ export default function WorkoutSessionScreen() {
   const isInSuperset = supersetPartnerIndex !== -1;
   const isFirstInSuperset =
     isInSuperset && currentExerciseIndex < supersetPartnerIndex;
-  const supersetPartnerExercise = isInSuperset
-    ? workout?.exercises[supersetPartnerIndex]
-    : null;
 
   const handleCompleteSet = () => {
     if (!currentExercise || !currentSet) {
@@ -631,51 +646,74 @@ export default function WorkoutSessionScreen() {
       return false;
     })();
 
-    if (shouldAnimate) {
-      // Snapshot the outgoing set before the store advances
-      setOutgoingSnapshot({
-        exercise_id: currentExercise.exercise_id,
-        exerciseName: currentExercise.name,
-        currentSetIndex,
-        totalSets: currentExercise.sets.length,
-        weight: validWeightInKg.toString(),
-        reps: validRepsNum.toString(),
-        time: timeStr,
-        weightIncrement,
-        buttonSize,
-        weightUnit: settings?.weightUnit || "kg",
-        restMinutes: currentSet.restMinutes || 0,
-        restSeconds: currentSet.restSeconds || 0,
-        repsMin: currentSet.repsMin || 0,
-        repsMax: currentSet.repsMax || 0,
-        timeMin: currentSet.time || 0,
-        currentSetCompleted: true,
-        isWarmup: currentSet.isWarmup || false,
-        isDropSet: currentSet.isDropSet || false,
-        isToFailure: currentSet.isToFailure || false,
-        trackingType: currentExercise.tracking_type || "weight",
-      });
-      // Position live panel off-screen right so it slides in from there
-      completionIncomingX.value = SCREEN_WIDTH;
+    if (!shouldAnimate) {
+      if (isFirstInSuperset) {
+        stopTimer();
+        void cancelRestNotifications();
+      } else if (hasNextSet) {
+        void startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
+      } else {
+        void cancelRestNotifications();
+      }
+      nextSet();
+      return;
     }
 
-    // Advance the store — carry-forward weight is written inside nextSet()
+    // Build snapshot with superset info so the banner animates with the panel
+    const snapshotData: OutgoingSnapshot = {
+      exercise_id: currentExercise.exercise_id,
+      exerciseName: currentExercise.name,
+      currentSetIndex,
+      totalSets: currentExercise.sets.length,
+      weight: validWeightInKg.toString(),
+      reps: validRepsNum.toString(),
+      time: timeStr,
+      weightIncrement,
+      buttonSize,
+      weightUnit: settings?.weightUnit || "kg",
+      restMinutes: currentSet.restMinutes || 0,
+      restSeconds: currentSet.restSeconds || 0,
+      repsMin: currentSet.repsMin || 0,
+      repsMax: currentSet.repsMax || 0,
+      timeMin: currentSet.time || 0,
+      currentSetCompleted: true,
+      isWarmup: currentSet.isWarmup || false,
+      isDropSet: currentSet.isDropSet || false,
+      isToFailure: currentSet.isToFailure || false,
+      trackingType: currentExercise.tracking_type || "weight",
+      isInSuperset,
+      isFirstInSuperset,
+      partnerName: isInSuperset
+        ? workout?.exercises[supersetPartnerIndex]?.name
+        : undefined,
+    };
+
     if (isFirstInSuperset) {
       stopTimer();
       void cancelRestNotifications();
-      nextSet();
     } else if (hasNextSet) {
-      void startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
-      nextSet();
+      pendingRestTimerRef.current = {
+        minutes: currentSet.restMinutes,
+        seconds: currentSet.restSeconds,
+      };
     } else {
       void cancelRestNotifications();
-      nextSet();
     }
 
-    if (shouldAnimate) {
-      isTransitioning.value = true;
-      // Snapshot slides out to the left; live panel (already showing the new
-      // set with carried-over weight) slides in from the right
+    isTransitioning.value = true;
+
+    // Reset snapshot position and move live panel off-screen BEFORE the snapshot
+    // panel is created, so both panels are never at position 0 simultaneously.
+    snapshotOffsetX.value = 0;
+    completionIncomingX.value = SCREEN_WIDTH;
+
+    // Advance the store — carry-forward weight is written inside nextSet()
+    nextSet();
+
+    // Defer snapshot creation by one frame so completionIncomingX = SCREEN_WIDTH
+    // has been applied on the UI thread before the snapshot panel appears.
+    requestAnimationFrame(() => {
+      setOutgoingSnapshot(snapshotData);
       snapshotOffsetX.value = withTiming(
         -SCREEN_WIDTH,
         { duration: 250 },
@@ -683,8 +721,7 @@ export default function WorkoutSessionScreen() {
           "worklet";
           isTransitioning.value = false;
           if (finished) {
-            snapshotOffsetX.value = 0;
-            runOnJS(clearOutgoingSnapshot)();
+            runOnJS(afterAnimation)();
           }
         },
       );
@@ -698,7 +735,7 @@ export default function WorkoutSessionScreen() {
           }
         },
       );
-    }
+    });
   };
 
   const panGesture = Gesture.Pan()
@@ -733,6 +770,7 @@ export default function WorkoutSessionScreen() {
             "worklet";
             isTransitioning.value = false;
             if (finished) {
+              offsetX.value = 0;
               runOnJS(commitPrevious)();
             }
           },
@@ -749,6 +787,7 @@ export default function WorkoutSessionScreen() {
             "worklet";
             isTransitioning.value = false;
             if (finished) {
+              offsetX.value = 0;
               runOnJS(commitNext)();
             }
           },
@@ -791,40 +830,56 @@ export default function WorkoutSessionScreen() {
           ),
         }}
       />
-      <View style={{ flex: 1 }}>
-        {isInSuperset && (
-          <View style={styles.supersetBanner}>
-            <ThemedText style={styles.supersetLabel}>
-              Superset {isFirstInSuperset ? "A" : "B"}
-            </ThemedText>
-            <ThemedText style={styles.supersetPartner}>
-              {isFirstInSuperset ? "Next: " : "Prev: "}
-              {supersetPartnerExercise?.name}
-            </ThemedText>
-          </View>
-        )}
-        <GestureDetector gesture={panGesture}>
-          <View style={styles.panelContainer}>
-            {!!hasPreviousSet &&
-              previousExerciseIndex !== null &&
-              previousSetIndex !== null && (
-                <AnimatedView
-                  style={[
-                    StyleSheet.absoluteFill,
-                    prevPanelStyle,
-                    { pointerEvents: "none" },
-                  ]}
-                >
-                  {(() => {
-                    const p = getPanelData(
-                      previousExerciseIndex as number,
-                      previousSetIndex as number,
-                    );
-                    return p ? <SessionSetInfo {...p} /> : null;
-                  })()}
-                </AnimatedView>
+      <GestureDetector gesture={panGesture}>
+        <View style={styles.panelContainer}>
+          {!!hasPreviousSet &&
+            previousExerciseIndex !== null &&
+            previousSetIndex !== null && (
+              <AnimatedView
+                style={[
+                  StyleSheet.absoluteFill,
+                  prevPanelStyle,
+                  { pointerEvents: "none" },
+                ]}
+              >
+                {(() => {
+                  const p = getPanelData(
+                    previousExerciseIndex as number,
+                    previousSetIndex as number,
+                  );
+                  if (!p) return null;
+                  const ss = getPanelSuperset(previousExerciseIndex as number);
+                  return (
+                    <View style={{ flex: 1 }}>
+                      {ss.isInSuperset && (
+                        <View style={styles.supersetBanner}>
+                          <ThemedText style={styles.supersetLabel}>
+                            Superset {ss.isFirstInSuperset ? "A" : "B"}
+                          </ThemedText>
+                          <ThemedText style={styles.supersetPartner} numberOfLines={1} ellipsizeMode="tail">
+                            {ss.isFirstInSuperset ? "Next: " : "Prev: "}{ss.partnerName}
+                          </ThemedText>
+                        </View>
+                      )}
+                      <SessionSetInfo {...p} />
+                    </View>
+                  );
+                })()}
+              </AnimatedView>
+            )}
+          <AnimatedView style={[StyleSheet.absoluteFill, currentPanelStyle]}>
+            <View style={{ flex: 1 }}>
+              {isInSuperset && (
+                <View style={styles.supersetBanner}>
+                  <ThemedText style={styles.supersetLabel}>
+                    Superset {isFirstInSuperset ? "A" : "B"}
+                  </ThemedText>
+                  <ThemedText style={styles.supersetPartner} numberOfLines={1} ellipsizeMode="tail">
+                    {isFirstInSuperset ? "Next: " : "Prev: "}
+                    {workout?.exercises[supersetPartnerIndex]?.name}
+                  </ThemedText>
+                </View>
               )}
-            <AnimatedView style={[StyleSheet.absoluteFill, currentPanelStyle]}>
               <SessionSetInfo
                 exercise_id={currentExercise?.exercise_id || 0}
                 exerciseName={currentExercise?.name || ""}
@@ -862,35 +917,63 @@ export default function WorkoutSessionScreen() {
                 removeSet={handleRemoveSet}
                 addSet={addSet}
               />
+            </View>
+          </AnimatedView>
+          {!!hasNextSet && (
+            <AnimatedView
+              style={[
+                StyleSheet.absoluteFill,
+                nextPanelStyle,
+                { pointerEvents: "none" },
+              ]}
+            >
+              {(() => {
+                const p = getPanelData(nextExerciseIndex, nextSetIndex);
+                if (!p) return null;
+                const ss = getPanelSuperset(nextExerciseIndex);
+                return (
+                  <View style={{ flex: 1 }}>
+                    {ss.isInSuperset && (
+                      <View style={styles.supersetBanner}>
+                        <ThemedText style={styles.supersetLabel}>
+                          Superset {ss.isFirstInSuperset ? "A" : "B"}
+                        </ThemedText>
+                        <ThemedText style={styles.supersetPartner} numberOfLines={1} ellipsizeMode="tail">
+                          {ss.isFirstInSuperset ? "Next: " : "Prev: "}{ss.partnerName}
+                        </ThemedText>
+                      </View>
+                    )}
+                    <SessionSetInfo {...p} />
+                  </View>
+                );
+              })()}
             </AnimatedView>
-            {!!hasNextSet && (
-              <AnimatedView
-                style={[
-                  StyleSheet.absoluteFill,
-                  nextPanelStyle,
-                  { pointerEvents: "none" },
-                ]}
-              >
-                {(() => {
-                  const p = getPanelData(nextExerciseIndex, nextSetIndex);
-                  return p ? <SessionSetInfo {...p} /> : null;
-                })()}
-              </AnimatedView>
-            )}
-            {outgoingSnapshot && (
-              <AnimatedView
-                style={[
-                  StyleSheet.absoluteFill,
-                  outgoingSnapshotStyle,
-                  { pointerEvents: "none" },
-                ]}
-              >
+          )}
+          {outgoingSnapshot && (
+            <AnimatedView
+              style={[
+                StyleSheet.absoluteFill,
+                outgoingSnapshotStyle,
+                { pointerEvents: "none" },
+              ]}
+            >
+              <View style={{ flex: 1 }}>
+                {outgoingSnapshot.isInSuperset && (
+                  <View style={styles.supersetBanner}>
+                    <ThemedText style={styles.supersetLabel}>
+                      Superset {outgoingSnapshot.isFirstInSuperset ? "A" : "B"}
+                    </ThemedText>
+                    <ThemedText style={styles.supersetPartner} numberOfLines={1} ellipsizeMode="tail">
+                      {outgoingSnapshot.isFirstInSuperset ? "Next: " : "Prev: "}{outgoingSnapshot.partnerName}
+                    </ThemedText>
+                  </View>
+                )}
                 <SessionSetInfo {...snapshotToProps(outgoingSnapshot)} />
-              </AnimatedView>
-            )}
-          </View>
-        </GestureDetector>
-      </View>
+              </View>
+            </AnimatedView>
+          )}
+        </View>
+      </GestureDetector>
       {timerRunning ? (
         <ThemedView
           style={[styles.timerContainer, { paddingBottom: insets.bottom }]}
