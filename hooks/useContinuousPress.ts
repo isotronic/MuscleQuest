@@ -11,6 +11,11 @@ export function useContinuousPress(
   delay = 400,
   interval = 150,
 ) {
+  // Always call the latest action — avoids stale closures when the parent
+  // re-renders (e.g. after each weight/reps increment) and passes a new callback.
+  const actionRef = useRef(action);
+  actionRef.current = action;
+
   const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const holdStartedRef = useRef(false);
@@ -31,10 +36,10 @@ export function useContinuousPress(
     holdStartedRef.current = false;
     pressTimerRef.current = setTimeout(() => {
       holdStartedRef.current = true;
-      action();
-      pressIntervalRef.current = setInterval(action, interval);
+      actionRef.current();
+      pressIntervalRef.current = setInterval(() => actionRef.current(), interval);
     }, delay);
-  }, [action, delay, interval, stop]);
+  }, [delay, interval, stop]);
 
   const onPressOut = useCallback(() => {
     stop();
@@ -45,8 +50,8 @@ export function useContinuousPress(
       holdStartedRef.current = false;
       return; // suppress the tap that fires after a long-press
     }
-    action();
-  }, [action]);
+    actionRef.current();
+  }, []);
 
   // Clean up timers when the component unmounts
   useEffect(() => stop, [stop]);
