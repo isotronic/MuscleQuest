@@ -66,6 +66,11 @@ interface OutgoingSnapshot {
   partnerName?: string;
 }
 
+interface SlotData {
+  exerciseIndex: number;
+  setIndex: number;
+}
+
 const noop = () => {};
 const noopNum = (_: number) => {};
 
@@ -88,7 +93,12 @@ const READONLY_PANEL_DEFAULTS = {
 } as const;
 
 function snapshotToProps(snapshot: OutgoingSnapshot) {
-  const { isInSuperset: _a, isFirstInSuperset: _b, partnerName: _c, ...sessionProps } = snapshot;
+  const {
+    isInSuperset: _a,
+    isFirstInSuperset: _b,
+    partnerName: _c,
+    ...sessionProps
+  } = snapshot;
   return { ...sessionProps, ...READONLY_PANEL_DEFAULTS };
 }
 
@@ -102,6 +112,7 @@ export default function WorkoutSessionScreen() {
   const canGoNext = useSharedValue(false);
   const canGoPrev = useSharedValue(false);
   const isTransitioning = useSharedValue(false);
+  const activeSlot = useSharedValue(0);
   const pendingRestTimerRef = useRef<{
     minutes: number;
     seconds: number;
@@ -109,16 +120,44 @@ export default function WorkoutSessionScreen() {
 
   const [outgoingSnapshot, setOutgoingSnapshot] =
     useState<OutgoingSnapshot | null>(null);
+  const [currentSlotIndex, setCurrentSlotIndex] = useState(0);
+  const [slots, setSlots] = useState<[SlotData, SlotData, SlotData]>([
+    { exerciseIndex: 0, setIndex: 0 },
+    { exerciseIndex: 0, setIndex: 0 },
+    { exerciseIndex: 0, setIndex: 0 },
+  ]);
 
-  const prevPanelStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: -SCREEN_WIDTH + offsetX.value }],
-  }));
-  const currentPanelStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: offsetX.value + completionIncomingX.value }],
-  }));
-  const nextPanelStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: SCREEN_WIDTH + offsetX.value }],
-  }));
+  // Ring-buffer slot positions: relPos 0=current, 1=next(right), 2=prev(left)
+  const slot0Style = useAnimatedStyle(() => {
+    const relPos = (0 - activeSlot.value + 3) % 3;
+    const shift =
+      relPos === 0
+        ? completionIncomingX.value
+        : relPos === 1
+          ? SCREEN_WIDTH
+          : -SCREEN_WIDTH;
+    return { transform: [{ translateX: offsetX.value + shift }] };
+  });
+  const slot1Style = useAnimatedStyle(() => {
+    const relPos = (1 - activeSlot.value + 3) % 3;
+    const shift =
+      relPos === 0
+        ? completionIncomingX.value
+        : relPos === 1
+          ? SCREEN_WIDTH
+          : -SCREEN_WIDTH;
+    return { transform: [{ translateX: offsetX.value + shift }] };
+  });
+  const slot2Style = useAnimatedStyle(() => {
+    const relPos = (2 - activeSlot.value + 3) % 3;
+    const shift =
+      relPos === 0
+        ? completionIncomingX.value
+        : relPos === 1
+          ? SCREEN_WIDTH
+          : -SCREEN_WIDTH;
+    return { transform: [{ translateX: offsetX.value + shift }] };
+  });
   const outgoingSnapshotStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: snapshotOffsetX.value }],
   }));
@@ -442,9 +481,55 @@ export default function WorkoutSessionScreen() {
     canGoPrev.value = !!hasPreviousSet;
   }, [hasNextSet, hasPreviousSet]);
 
+  // Populate ring-buffer slots once the workout is available.
+  // Reads directly from the store so the selectedExerciseIndex effect is already applied.
+  const slotsInitialized = useRef(false);
+  useEffect(() => {
+    if (!workout || slotsInitialized.current) return;
+    slotsInitialized.current = true;
+    const st = useActiveWorkoutStore.getState();
+    const exIdx = st.currentExerciseIndex;
+    const setIdx = st.currentSetIndices[exIdx] || 0;
+    const exercise = workout.exercises[exIdx];
+    // next
+    let nxEx = exIdx;
+    let nxSet = setIdx + 1;
+    if (exercise && nxSet >= exercise.sets.length) {
+      nxEx = exIdx + 1;
+      nxSet = 0;
+    }
+    const hasNx =
+      nxEx < workout.exercises.length && !!workout.exercises[nxEx]?.sets[nxSet];
+    // prev
+    let pvEx = exIdx;
+    let pvSet = setIdx - 1;
+    if (pvSet < 0) {
+      pvEx = exIdx - 1;
+      pvSet = pvEx >= 0 ? workout.exercises[pvEx]?.sets.length - 1 || 0 : 0;
+    }
+    const hasPv = pvEx >= 0;
+    setSlots([
+      { exerciseIndex: exIdx, setIndex: setIdx },
+      hasNx
+        ? { exerciseIndex: nxEx, setIndex: nxSet }
+        : { exerciseIndex: exIdx, setIndex: setIdx },
+      hasPv
+        ? { exerciseIndex: pvEx, setIndex: pvSet }
+        : { exerciseIndex: exIdx, setIndex: setIdx },
+    ]);
+  }, [workout]);
+
   const getPanelSuperset = (exerciseIndex: number) => {
-    if (!workout) return { isInSuperset: false, isFirstInSuperset: false, partnerName: undefined };
-    const partnerIdx = findSupersetPartnerIndex(workout.exercises, exerciseIndex);
+    if (!workout)
+      return {
+        isInSuperset: false,
+        isFirstInSuperset: false,
+        partnerName: undefined,
+      };
+    const partnerIdx = findSupersetPartnerIndex(
+      workout.exercises,
+      exerciseIndex,
+    );
     const inSuperset = partnerIdx !== -1;
     return {
       isInSuperset: inSuperset,
@@ -519,20 +604,54 @@ export default function WorkoutSessionScreen() {
     }
   };
 
-  // Called from animation callbacks — updates store after swipe/button animation completes
-  const commitPrevious = () => {
-    if (previousExerciseIndex !== null && previousSetIndex !== null) {
-      setCurrentExerciseIndex(previousExerciseIndex as number);
-      setCurrentSetIndex(
-        previousExerciseIndex as number,
-        previousSetIndex as number,
-      );
+  // Ring-buffer swipe commits: rotate activeSlot atomically in worklet then call these on JS thread
+  const onSwipePrevCommit = () => {
+    const newActive = activeSlot.value; // already decremented in worklet
+    const cur = slots[newActive];
+    setCurrentExerciseIndex(cur.exerciseIndex);
+    setCurrentSetIndex(cur.exerciseIndex, cur.setIndex);
+    setCurrentSlotIndex(newActive);
+    if (workout) {
+      const newPrevSlotIdx = (newActive + 2) % 3;
+      let pvEx = cur.exerciseIndex;
+      let pvSet = cur.setIndex - 1;
+      if (pvSet < 0) {
+        pvEx = cur.exerciseIndex - 1;
+        pvSet = pvEx >= 0 ? workout.exercises[pvEx]?.sets.length - 1 || 0 : 0;
+      }
+      setSlots((prev) => {
+        const u = [...prev] as [SlotData, SlotData, SlotData];
+        u[newPrevSlotIdx] =
+          pvEx >= 0 ? { exerciseIndex: pvEx, setIndex: pvSet } : cur;
+        return u;
+      });
     }
   };
 
-  const commitNext = () => {
-    setCurrentExerciseIndex(nextExerciseIndex);
-    setCurrentSetIndex(nextExerciseIndex, nextSetIndex);
+  const onSwipeNextCommit = () => {
+    const newActive = activeSlot.value; // already incremented in worklet
+    const cur = slots[newActive];
+    setCurrentExerciseIndex(cur.exerciseIndex);
+    setCurrentSetIndex(cur.exerciseIndex, cur.setIndex);
+    setCurrentSlotIndex(newActive);
+    if (workout) {
+      const newNextSlotIdx = (newActive + 1) % 3;
+      const ex = workout.exercises[cur.exerciseIndex];
+      let nxEx = cur.exerciseIndex;
+      let nxSet = cur.setIndex + 1;
+      if (ex && nxSet >= ex.sets.length) {
+        nxEx = cur.exerciseIndex + 1;
+        nxSet = 0;
+      }
+      setSlots((prev) => {
+        const u = [...prev] as [SlotData, SlotData, SlotData];
+        u[newNextSlotIdx] =
+          nxEx < workout.exercises.length
+            ? { exerciseIndex: nxEx, setIndex: nxSet }
+            : cur;
+        return u;
+      });
+    }
   };
 
   const handlePreviousSet = () => {
@@ -543,7 +662,8 @@ export default function WorkoutSessionScreen() {
       isTransitioning.value = false;
       if (finished) {
         offsetX.value = 0;
-        runOnJS(commitPrevious)();
+        activeSlot.value = (activeSlot.value + 2) % 3; // -1 mod 3
+        runOnJS(onSwipePrevCommit)();
       }
     });
   };
@@ -556,7 +676,8 @@ export default function WorkoutSessionScreen() {
       isTransitioning.value = false;
       if (finished) {
         offsetX.value = 0;
-        runOnJS(commitNext)();
+        activeSlot.value = (activeSlot.value + 1) % 3;
+        runOnJS(onSwipeNextCommit)();
       }
     });
   };
@@ -710,9 +831,48 @@ export default function WorkoutSessionScreen() {
     // Advance the store — carry-forward weight is written inside nextSet()
     nextSet();
 
+    // Update current slot to point to the new exercise that nextSet() navigated to.
+    // The panel is already off-screen (completionIncomingX = SCREEN_WIDTH), so
+    // the content swap is invisible.
+    const stAfter = useActiveWorkoutStore.getState();
+    const newExIdx = stAfter.currentExerciseIndex;
+    const newSetIdx = stAfter.currentSetIndices[newExIdx] || 0;
+    const capturedSlotIndex = currentSlotIndex;
+    setSlots((prev) => {
+      const u = [...prev] as [SlotData, SlotData, SlotData];
+      u[capturedSlotIndex] = { exerciseIndex: newExIdx, setIndex: newSetIdx };
+      return u;
+    });
+
     // Defer snapshot creation by one frame so completionIncomingX = SCREEN_WIDTH
     // has been applied on the UI thread before the snapshot panel appears.
     requestAnimationFrame(() => {
+      // Also refresh adjacent slots (off-screen) for the new position.
+      if (workout) {
+        const newExercise = workout.exercises[newExIdx];
+        let nxEx = newExIdx;
+        let nxSet = newSetIdx + 1;
+        if (newExercise && nxSet >= newExercise.sets.length) {
+          nxEx = newExIdx + 1;
+          nxSet = 0;
+        }
+        let pvEx = newExIdx;
+        let pvSet = newSetIdx - 1;
+        if (pvSet < 0) {
+          pvEx = newExIdx - 1;
+          pvSet = pvEx >= 0 ? workout.exercises[pvEx]?.sets.length - 1 || 0 : 0;
+        }
+        setSlots((prev) => {
+          const u = [...prev] as [SlotData, SlotData, SlotData];
+          const nxSlot = (capturedSlotIndex + 1) % 3;
+          const pvSlot = (capturedSlotIndex + 2) % 3;
+          if (nxEx < workout.exercises.length)
+            u[nxSlot] = { exerciseIndex: nxEx, setIndex: nxSet };
+          if (pvEx >= 0) u[pvSlot] = { exerciseIndex: pvEx, setIndex: pvSet };
+          return u;
+        });
+      }
+
       setOutgoingSnapshot(snapshotData);
       snapshotOffsetX.value = withTiming(
         -SCREEN_WIDTH,
@@ -771,7 +931,8 @@ export default function WorkoutSessionScreen() {
             isTransitioning.value = false;
             if (finished) {
               offsetX.value = 0;
-              runOnJS(commitPrevious)();
+              activeSlot.value = (activeSlot.value + 2) % 3;
+              runOnJS(onSwipePrevCommit)();
             }
           },
         );
@@ -788,7 +949,8 @@ export default function WorkoutSessionScreen() {
             isTransitioning.value = false;
             if (finished) {
               offsetX.value = 0;
-              runOnJS(commitNext)();
+              activeSlot.value = (activeSlot.value + 1) % 3;
+              runOnJS(onSwipeNextCommit)();
             }
           },
         );
@@ -832,122 +994,72 @@ export default function WorkoutSessionScreen() {
       />
       <GestureDetector gesture={panGesture}>
         <View style={styles.panelContainer}>
-          {!!hasPreviousSet &&
-            previousExerciseIndex !== null &&
-            previousSetIndex !== null && (
-              <AnimatedView
-                style={[
-                  StyleSheet.absoluteFill,
-                  prevPanelStyle,
-                  { pointerEvents: "none" },
-                ]}
-              >
-                {(() => {
-                  const p = getPanelData(
-                    previousExerciseIndex as number,
-                    previousSetIndex as number,
-                  );
-                  if (!p) return null;
-                  const ss = getPanelSuperset(previousExerciseIndex as number);
-                  return (
+          {([slot0Style, slot1Style, slot2Style] as const).map(
+            (slotStyle, slotIdx) => {
+              const isCurrentSlot = slotIdx === currentSlotIndex;
+              const p = getPanelData(
+                slots[slotIdx].exerciseIndex,
+                slots[slotIdx].setIndex,
+              );
+              const ss = getPanelSuperset(slots[slotIdx].exerciseIndex);
+              return (
+                <AnimatedView
+                  key={slotIdx}
+                  style={[
+                    StyleSheet.absoluteFill,
+                    slotStyle,
+                    isCurrentSlot ? undefined : { pointerEvents: "none" },
+                  ]}
+                >
+                  {p && (
                     <View style={{ flex: 1 }}>
                       {ss.isInSuperset && (
                         <View style={styles.supersetBanner}>
                           <ThemedText style={styles.supersetLabel}>
                             Superset {ss.isFirstInSuperset ? "A" : "B"}
                           </ThemedText>
-                          <ThemedText style={styles.supersetPartner} numberOfLines={1} ellipsizeMode="tail">
-                            {ss.isFirstInSuperset ? "Next: " : "Prev: "}{ss.partnerName}
+                          <ThemedText
+                            style={styles.supersetPartner}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {ss.isFirstInSuperset ? "Next: " : "Prev: "}
+                            {ss.partnerName}
                           </ThemedText>
                         </View>
                       )}
-                      <SessionSetInfo {...p} />
+                      {isCurrentSlot ? (
+                        <SessionSetInfo
+                          {...p}
+                          animatedUrl={animatedUrl}
+                          animatedImageLoading={animatedImageLoading}
+                          animatedImageError={animatedImageError}
+                          isLastSetOfLastExercise={
+                            !!currentIsLastSetOfLastExercise
+                          }
+                          isFirstSetOfFirstExercise={
+                            !!currentIsFirstSetOfFirstExercise
+                          }
+                          currentSetCompleted={currentSetCompleted}
+                          handleWeightInputChange={handleWeightInputChange}
+                          handleWeightChange={handleWeightChange}
+                          handleRepsInputChange={handleRepsInputChange}
+                          handleRepsChange={handleRepsChange}
+                          handleTimeInputChange={handleTimeInputChange}
+                          handlePreviousSet={handlePreviousSet}
+                          handleNextSet={handleNextSet}
+                          handleCompleteSet={handleCompleteSet}
+                          removeSet={handleRemoveSet}
+                          addSet={addSet}
+                        />
+                      ) : (
+                        <SessionSetInfo {...p} />
+                      )}
                     </View>
-                  );
-                })()}
-              </AnimatedView>
-            )}
-          <AnimatedView style={[StyleSheet.absoluteFill, currentPanelStyle]}>
-            <View style={{ flex: 1 }}>
-              {isInSuperset && (
-                <View style={styles.supersetBanner}>
-                  <ThemedText style={styles.supersetLabel}>
-                    Superset {isFirstInSuperset ? "A" : "B"}
-                  </ThemedText>
-                  <ThemedText style={styles.supersetPartner} numberOfLines={1} ellipsizeMode="tail">
-                    {isFirstInSuperset ? "Next: " : "Prev: "}
-                    {workout?.exercises[supersetPartnerIndex]?.name}
-                  </ThemedText>
-                </View>
-              )}
-              <SessionSetInfo
-                exercise_id={currentExercise?.exercise_id || 0}
-                exerciseName={currentExercise?.name || ""}
-                animatedUrl={animatedUrl}
-                animatedImageLoading={animatedImageLoading}
-                animatedImageError={animatedImageError}
-                currentSetIndex={currentSetIndex}
-                isLastSetOfLastExercise={currentIsLastSetOfLastExercise}
-                isFirstSetOfFirstExercise={currentIsFirstSetOfFirstExercise}
-                totalSets={currentExercise?.sets.length || 0}
-                weight={weight}
-                reps={reps}
-                time={time}
-                weightIncrement={weightIncrement}
-                buttonSize={buttonSize}
-                weightUnit={settings?.weightUnit || "kg"}
-                restMinutes={currentSet?.restMinutes || 0}
-                restSeconds={currentSet?.restSeconds || 0}
-                repsMin={currentSet?.repsMin || 0}
-                repsMax={currentSet?.repsMax || 0}
-                timeMin={currentSet?.time || 0}
-                currentSetCompleted={currentSetCompleted}
-                isWarmup={currentSet?.isWarmup || false}
-                isDropSet={currentSet?.isDropSet || false}
-                isToFailure={currentSet?.isToFailure || false}
-                trackingType={currentExercise?.tracking_type || "weight"}
-                handleWeightInputChange={handleWeightInputChange}
-                handleWeightChange={handleWeightChange}
-                handleRepsInputChange={handleRepsInputChange}
-                handleRepsChange={handleRepsChange}
-                handleTimeInputChange={handleTimeInputChange}
-                handlePreviousSet={handlePreviousSet}
-                handleNextSet={handleNextSet}
-                handleCompleteSet={handleCompleteSet}
-                removeSet={handleRemoveSet}
-                addSet={addSet}
-              />
-            </View>
-          </AnimatedView>
-          {!!hasNextSet && (
-            <AnimatedView
-              style={[
-                StyleSheet.absoluteFill,
-                nextPanelStyle,
-                { pointerEvents: "none" },
-              ]}
-            >
-              {(() => {
-                const p = getPanelData(nextExerciseIndex, nextSetIndex);
-                if (!p) return null;
-                const ss = getPanelSuperset(nextExerciseIndex);
-                return (
-                  <View style={{ flex: 1 }}>
-                    {ss.isInSuperset && (
-                      <View style={styles.supersetBanner}>
-                        <ThemedText style={styles.supersetLabel}>
-                          Superset {ss.isFirstInSuperset ? "A" : "B"}
-                        </ThemedText>
-                        <ThemedText style={styles.supersetPartner} numberOfLines={1} ellipsizeMode="tail">
-                          {ss.isFirstInSuperset ? "Next: " : "Prev: "}{ss.partnerName}
-                        </ThemedText>
-                      </View>
-                    )}
-                    <SessionSetInfo {...p} />
-                  </View>
-                );
-              })()}
-            </AnimatedView>
+                  )}
+                </AnimatedView>
+              );
+            },
           )}
           {outgoingSnapshot && (
             <AnimatedView
@@ -963,8 +1075,13 @@ export default function WorkoutSessionScreen() {
                     <ThemedText style={styles.supersetLabel}>
                       Superset {outgoingSnapshot.isFirstInSuperset ? "A" : "B"}
                     </ThemedText>
-                    <ThemedText style={styles.supersetPartner} numberOfLines={1} ellipsizeMode="tail">
-                      {outgoingSnapshot.isFirstInSuperset ? "Next: " : "Prev: "}{outgoingSnapshot.partnerName}
+                    <ThemedText
+                      style={styles.supersetPartner}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {outgoingSnapshot.isFirstInSuperset ? "Next: " : "Prev: "}
+                      {outgoingSnapshot.partnerName}
                     </ThemedText>
                   </View>
                 )}
