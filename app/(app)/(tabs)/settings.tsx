@@ -56,12 +56,15 @@ export default function SettingsScreen() {
   const [restoreProgress, setRestoreProgress] = useState(1);
 
   const [lastBackupDate, setLastBackupDate] = useState<Date | null>(null);
+  const [isLoadingBackupDate, setIsLoadingBackupDate] = useState(false);
 
   useEffect(() => {
     const getBackupDate = async () => {
       if (user) {
+        setIsLoadingBackupDate(true);
         const date = await fetchLastBackupDate();
         setLastBackupDate(date);
+        setIsLoadingBackupDate(false);
       }
     };
 
@@ -401,9 +404,11 @@ export default function SettingsScreen() {
               <ThemedText style={styles.currentSetting}>
                 {!user
                   ? "You need to sign in to use this feature"
-                  : lastBackupDate
-                    ? `Last backup: ${lastBackupDate.toLocaleDateString()}`
-                    : "No backups found"}
+                  : isLoadingBackupDate
+                    ? "Checking for backups..."
+                    : lastBackupDate
+                      ? `Last backup: ${lastBackupDate.toLocaleDateString()}`
+                      : "No backups found"}
               </ThemedText>
             </View>
             {user && (
