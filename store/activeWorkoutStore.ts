@@ -565,19 +565,25 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             );
           }
 
-          // Adjust currentSetIndices if the removed set was at or before current position
+          // Navigate to the active set after deletion:
+          // - first uncompleted set if the exercise still has one (the "active" set)
+          // - last set if the exercise is fully completed (another exercise is active)
           const updatedSetIndices = { ...currentSetIndices };
-          const currentSetIndex = updatedSetIndices[currentExerciseIndex] || 0;
-          if (currentSetIndex >= setIndex && currentSetIndex > 0) {
-            updatedSetIndices[currentExerciseIndex] = currentSetIndex - 1;
-          }
-          // Ensure current set index doesn't exceed array bounds
-          if (
-            updatedSetIndices[currentExerciseIndex] >=
-            updatedExercises[currentExerciseIndex].sets.length
-          ) {
+          const totalSetsAfterRemoval =
+            updatedExercises[currentExerciseIndex].sets.length;
+          const updatedExerciseCompleted =
+            updatedCompletedSets[currentExerciseIndex] || {};
+          const isExerciseFullyCompleted = Array.from(
+            { length: totalSetsAfterRemoval },
+            (_, i) => i,
+          ).every((i) => updatedExerciseCompleted[i] === true);
+          if (isExerciseFullyCompleted) {
+            updatedSetIndices[currentExerciseIndex] = totalSetsAfterRemoval - 1;
+          } else {
             updatedSetIndices[currentExerciseIndex] =
-              updatedExercises[currentExerciseIndex].sets.length - 1;
+              Array.from({ length: totalSetsAfterRemoval }, (_, i) => i).find(
+                (i) => !updatedExerciseCompleted[i],
+              ) ?? 0;
           }
 
           return {
