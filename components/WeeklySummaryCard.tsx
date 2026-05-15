@@ -122,7 +122,10 @@ function computeBestAchievement(
   return bestAchievement;
 }
 
-function formatAchievement(a: BestAchievement): { label: string; value: string } {
+function formatAchievement(a: BestAchievement): {
+  label: string;
+  value: string;
+} {
   const unit = a.weightUnit;
   if (a.trackingType === "reps") {
     return {
@@ -169,14 +172,16 @@ export default function WeeklySummaryCard({
   }, [workoutsThisWeek]);
 
   const bestAchievement = useMemo(
-    () => computeBestAchievement(workoutsThisWeek, allCompletedWorkouts, weightUnit),
+    () =>
+      computeBestAchievement(
+        workoutsThisWeek,
+        allCompletedWorkouts,
+        weightUnit,
+      ),
     [workoutsThisWeek, allCompletedWorkouts, weightUnit],
   );
 
-  const volumeLabel =
-    totalVolume >= 1000
-      ? `${(totalVolume / 1000).toFixed(1)}k ${weightUnit}`
-      : `${Math.round(totalVolume)} ${weightUnit}`;
+  const volumeLabel = `${Math.round(totalVolume).toLocaleString()} ${weightUnit}`;
 
   const achievementFormatted = bestAchievement
     ? formatAchievement(bestAchievement)
