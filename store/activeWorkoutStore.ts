@@ -796,11 +796,23 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
 
           const oldExercises = workout.exercises;
           const oldToNew: { [oldIndex: number]: number } = {};
+          const usedNewIndices = new Set<number>();
           for (let oldIdx = 0; oldIdx < oldExercises.length; oldIdx++) {
-            const newIdx = newExercises.findIndex(
-              (e) => e.exercise_id === oldExercises[oldIdx].exercise_id,
-            );
-            if (newIdx !== -1) oldToNew[oldIdx] = newIdx;
+            const targetId = oldExercises[oldIdx].exercise_id;
+            let newIdx = -1;
+            for (let ni = 0; ni < newExercises.length; ni++) {
+              if (
+                !usedNewIndices.has(ni) &&
+                newExercises[ni].exercise_id === targetId
+              ) {
+                newIdx = ni;
+                break;
+              }
+            }
+            if (newIdx !== -1) {
+              oldToNew[oldIdx] = newIdx;
+              usedNewIndices.add(newIdx);
+            }
           }
 
           const remap = <T>(obj: {
