@@ -368,7 +368,7 @@ export default function SessionSetInfo({
             }
             style={[
               styles.startTimerButton,
-              buttonSize === 40 ? "" : styles.largeButton,
+              buttonSize === 40 ? null : styles.largeButton,
             ]}
           >
             Start Timer
