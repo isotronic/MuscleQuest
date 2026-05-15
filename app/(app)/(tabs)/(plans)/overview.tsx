@@ -243,6 +243,7 @@ const styles = StyleSheet.create({
   },
   planName: {
     fontSize: 24,
+    lineHeight: 27,
     color: Colors.dark.text,
     marginTop: 10,
   },
