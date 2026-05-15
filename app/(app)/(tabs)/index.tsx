@@ -249,17 +249,6 @@ export default function HomeScreen() {
             {uniqueWorkoutDaysCount} / {settings?.weeklyGoal} days worked out
           </ThemedText>
         </View>
-        {weeklyGoalReached && (
-          <View style={styles.restDayContainer}>
-            <WeeklySummaryCard
-              workoutsThisWeek={completedWorkoutsThisWeek ?? []}
-              allCompletedWorkouts={completedWorkouts ?? []}
-              weeklyGoal={Number(settings?.weeklyGoal)}
-              weightUnit={settings?.weightUnit ?? "kg"}
-              streak={streak}
-            />
-          </View>
-        )}
         <View style={styles.welcomeContainer}>
           <ThemedText type="subtitle">
             Welcome{activePlan && " back"}
@@ -272,17 +261,33 @@ export default function HomeScreen() {
           </ThemedText>
         </View>
 
-        {isRestDay && planScheduleEntries && activePlan && !showResumeCard && (
+        {weeklyGoalReached && (
           <View style={styles.restDayContainer}>
-            <RestDayCard
-              schedule={planScheduleEntries}
-              workouts={activePlan.workouts}
-              todayDow={todayDow}
+            <WeeklySummaryCard
+              workoutsThisWeek={completedWorkoutsThisWeek ?? []}
+              allCompletedWorkouts={completedWorkouts ?? []}
+              weeklyGoal={Number(settings?.weeklyGoal)}
+              weightUnit={settings?.weightUnit ?? "kg"}
+              streak={streak}
             />
           </View>
         )}
 
-        {showWorkoutDoneCard && (
+        {!weeklyGoalReached &&
+          isRestDay &&
+          planScheduleEntries &&
+          activePlan &&
+          !showResumeCard && (
+            <View style={styles.restDayContainer}>
+              <RestDayCard
+                schedule={planScheduleEntries}
+                workouts={activePlan.workouts}
+                todayDow={todayDow}
+              />
+            </View>
+          )}
+
+        {!weeklyGoalReached && showWorkoutDoneCard && (
           <View style={styles.restDayContainer}>
             <WorkoutDoneCard
               schedule={planScheduleEntries!}
