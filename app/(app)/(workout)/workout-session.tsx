@@ -119,6 +119,7 @@ export default function WorkoutSessionScreen() {
   const canGoPrev = useSharedValue(false);
   const isTransitioning = useSharedValue(false);
   const activeSlot = useSharedValue(0);
+  const timerTranslateY = useSharedValue(200);
   const pendingRestTimerRef = useRef<{
     minutes: number;
     seconds: number;
@@ -166,6 +167,9 @@ export default function WorkoutSessionScreen() {
   });
   const outgoingSnapshotStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: snapshotOffsetX.value }],
+  }));
+  const timerAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: timerTranslateY.value }],
   }));
 
   const {
@@ -330,6 +334,12 @@ export default function WorkoutSessionScreen() {
       });
     }
   }
+
+  useEffect(() => {
+    timerTranslateY.value = withTiming(timerRunning ? 0 : 200, {
+      duration: 300,
+    });
+  }, [timerRunning, timerTranslateY]);
 
   useEffect(() => {
     if (timerRunning && timerExpiry) {
@@ -1154,34 +1164,37 @@ export default function WorkoutSessionScreen() {
           )}
         </View>
       </GestureDetector>
-      {timerRunning ? (
-        <ThemedView
-          style={[styles.timerContainer, { paddingBottom: insets.bottom }]}
-        >
-          <ThemedText style={styles.timerLabel}>Rest Time Left:</ThemedText>
-          <View style={styles.timerRow}>
-            <TouchableOpacity
-              style={styles.timerAdjustButton}
-              onPress={() => void adjustTimer(-restTimerIncrement)}
-            >
-              <ThemedText style={styles.timerAdjustText}>
-                −{restTimerIncrement}s
-              </ThemedText>
-            </TouchableOpacity>
-            <ThemedText style={styles.timerText}>
-              {minutes}:{seconds.toString().padStart(2, "0")}
+      <AnimatedView
+        style={[
+          styles.timerContainer,
+          { paddingBottom: insets.bottom },
+          timerAnimStyle,
+          { pointerEvents: timerRunning ? "auto" : "none" },
+        ]}
+      >
+        <ThemedText style={styles.timerLabel}>Rest Time Left:</ThemedText>
+        <View style={styles.timerRow}>
+          <TouchableOpacity
+            style={styles.timerAdjustButton}
+            onPress={() => void adjustTimer(-restTimerIncrement)}
+          >
+            <ThemedText style={styles.timerAdjustText}>
+              −{restTimerIncrement}s
             </ThemedText>
-            <TouchableOpacity
-              style={styles.timerAdjustButton}
-              onPress={() => void adjustTimer(restTimerIncrement)}
-            >
-              <ThemedText style={styles.timerAdjustText}>
-                +{restTimerIncrement}s
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
-        </ThemedView>
-      ) : null}
+          </TouchableOpacity>
+          <ThemedText style={styles.timerText}>
+            {minutes}:{seconds.toString().padStart(2, "0")}
+          </ThemedText>
+          <TouchableOpacity
+            style={styles.timerAdjustButton}
+            onPress={() => void adjustTimer(restTimerIncrement)}
+          >
+            <ThemedText style={styles.timerAdjustText}>
+              +{restTimerIncrement}s
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+      </AnimatedView>
     </ThemedView>
   );
 }
