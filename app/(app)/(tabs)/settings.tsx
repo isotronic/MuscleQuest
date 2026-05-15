@@ -572,6 +572,31 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() =>
+              showOverlay(
+                "timerCountdown",
+                settings?.timerCountdown || "5",
+                "number",
+              )
+            }
+          >
+            <MaterialCommunityIcons
+              name="timer-play-outline"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Exercise timer countdown
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.timerCountdown || "5"} seconds
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
           <View style={styles.item}>
             <MaterialCommunityIcons
               name="vibrate"

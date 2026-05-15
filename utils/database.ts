@@ -1027,6 +1027,7 @@ export const insertDefaultSettings = async () => {
     { key: "loginShown", value: "false" },
     { key: "showOnboarding", value: "true" },
     { key: "bodyWeight", value: "70" },
+    { key: "timerCountdown", value: "5" },
   ];
 
   // Loop through each default setting
@@ -1072,6 +1073,7 @@ export interface Settings {
   loginShown: string;
   showOnboarding: string;
   lastSeenVersion: string;
+  timerCountdown: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
