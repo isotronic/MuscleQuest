@@ -94,6 +94,38 @@ Navigating between sets now features smooth slide transitions. Swipe left or rig
 After completing a workout, you'll now see a full summary of your session: total duration, sets, and volume, plus a comparison against your previous session. Tap any exercise to expand its individual sets and weights.
 `,
   },
+  {
+    version: 2612,
+    message: `
+⏱️ New: Adjustable Rest Timer!
+
+A new slide-in panel lets you fine-tune your rest duration on the fly during a workout. Your custom rest time is saved per set, so each set remembers exactly how long you like to rest.
+`,
+  },
+  {
+    version: 2613,
+    message: `
+🔵 New: Exercise Timer Modal!
+
+Time-based exercises now show a dedicated countdown modal with a progress ring, making it easy to track your effort and stay on pace during timed sets.
+`,
+  },
+  {
+    version: 2614,
+    message: `
+↕️ New: Reorder Exercises in the Workout Overview!
+
+You can now drag and drop exercises and supersets to reorder them directly from the workout overview screen during a session.
+`,
+  },
+  {
+    version: 2615,
+    message: `
+💾 New: Save Workout Changes Back to Your Plan!
+
+When you finish a session where you added, removed, or reordered exercises, or sets, you'll be prompted to save those changes back to the original plan or standalone workout, keeping your training up to date automatically.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

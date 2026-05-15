@@ -662,6 +662,61 @@ export const appendExercisesToWorkout = async (
   });
 };
 
+export const updatePlanWorkoutExercises = async (
+  workoutId: number,
+  exercises: UserExercise[],
+): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    const existing: {
+      id: number;
+      exercise_id: number;
+      exercise_order: number;
+    }[] = await txn.getAllAsync(
+      `SELECT id, exercise_id, exercise_order FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+      [workoutId],
+    );
+    const existingByOrder = new Map(existing.map((e) => [e.exercise_order, e]));
+    const incomingOrders = new Set(exercises.map((_, i) => i));
+
+    for (const row of existing) {
+      if (!incomingOrders.has(row.exercise_order)) {
+        await txn.runAsync(
+          `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
+          [row.id],
+        );
+      }
+    }
+
+    for (const [order, exercise] of exercises.entries()) {
+      const existingRow = existingByOrder.get(order);
+      if (existingRow) {
+        await txn.runAsync(
+          `UPDATE user_workout_exercises SET exercise_id = ?, sets = ?, exercise_order = ?, superset_group_id = ?, is_deleted = FALSE WHERE id = ?`,
+          [
+            exercise.exercise_id,
+            JSON.stringify(exercise.sets),
+            order,
+            exercise.supersetGroupId ?? null,
+            existingRow.id,
+          ],
+        );
+      } else {
+        await txn.runAsync(
+          `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id) VALUES (?, ?, ?, ?, ?)`,
+          [
+            workoutId,
+            exercise.exercise_id,
+            JSON.stringify(exercise.sets),
+            order,
+            exercise.supersetGroupId ?? null,
+          ],
+        );
+      }
+    }
+  });
+};
+
 export const deleteWorkoutPlan = async (planId: number) => {
   const db = await openDatabase("userData.db");
 
@@ -968,9 +1023,11 @@ export const insertDefaultSettings = async () => {
     { key: "restTimerVibration", value: "false" },
     { key: "restTimerSound", value: "false" },
     { key: "restTimerNotification", value: "false" },
+    { key: "restTimerIncrement", value: "15" },
     { key: "loginShown", value: "false" },
     { key: "showOnboarding", value: "true" },
     { key: "bodyWeight", value: "70" },
+    { key: "timerCountdown", value: "5" },
   ];
 
   // Loop through each default setting
@@ -1011,10 +1068,12 @@ export interface Settings {
   restTimerVibration: string;
   restTimerSound: string;
   restTimerNotification: string;
+  restTimerIncrement: string;
   bodyWeight: string;
   loginShown: string;
   showOnboarding: string;
   lastSeenVersion: string;
+  timerCountdown: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

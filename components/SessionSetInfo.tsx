@@ -15,6 +15,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatFromTotalSeconds, formatTimeInput } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
 import { useContinuousPress } from "@/hooks/useContinuousPress";
+import { ExerciseTimerModal } from "./ExerciseTimerModal";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -95,6 +96,7 @@ export default function SessionSetInfo({
 }: SessionSetInfoProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [timeInput, setTimeInput] = useState(time);
+  const [timerModalVisible, setTimerModalVisible] = useState(false);
 
   const weightMinusPress = useContinuousPress(
     useCallback(
@@ -166,7 +168,13 @@ export default function SessionSetInfo({
             </TouchableOpacity>
           )}
           <View style={styles.titleContainer}>
-            <ThemedText style={styles.title}>{exerciseName}</ThemedText>
+            <ThemedText
+              style={styles.title}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {exerciseName}
+            </ThemedText>
 
             {trackingType !== "time" && !!repRange && (
               <ThemedText style={styles.headerText}>
@@ -351,6 +359,29 @@ export default function SessionSetInfo({
               style={styles.input}
             />
           </View>
+          <Button
+            mode="contained"
+            onPress={() => setTimerModalVisible(true)}
+            icon="timer-play-outline"
+            labelStyle={
+              buttonSize === 40 ? styles.buttonLabel : styles.largeButtonLabel
+            }
+            style={[
+              styles.startTimerButton,
+              buttonSize === 40 ? null : styles.largeButton,
+            ]}
+          >
+            Start Timer
+          </Button>
+          <ExerciseTimerModal
+            visible={timerModalVisible}
+            goalTimeSeconds={timeMin}
+            onStop={(elapsedSeconds) => {
+              handleTimeInputChange(formatFromTotalSeconds(elapsedSeconds));
+              setTimerModalVisible(false);
+            }}
+            onCancel={() => setTimerModalVisible(false)}
+          />
         </>
       ) : null}
       <Button
@@ -446,6 +477,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 26,
     color: Colors.dark.text,
+  },
+  startTimerButton: {
+    marginBottom: 12,
   },
   completeButton: {
     marginTop: 16,

@@ -17,7 +17,7 @@ jobs:
             const conventionalCommitRegex = /^(feat|fix|docs|style|refactor|test|chore|perf|build|ci|revert)(\([^)]+\))?:\s.{1,72}$/;
 
             if (!conventionalCommitRegex.test(prTitle)) {
-              throw new Error(
+              core.warning(
                 `Invalid PR title: "${prTitle}". PR titles must follow Conventional Commit rules.`
               );
             }

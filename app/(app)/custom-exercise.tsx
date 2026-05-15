@@ -129,6 +129,7 @@ export default function AddCustomExerciseScreen() {
                 ? existingData.secondary_muscles
                 : JSON.parse(existingData.secondary_muscles) || [],
             );
+            setTrackingType(existingData.tracking_type ?? "");
           }
         } catch (error: any) {
           console.error("Error fetching exercise data for editing:", error);

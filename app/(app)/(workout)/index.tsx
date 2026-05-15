@@ -1,12 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  TextInput,
-} from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { View, ScrollView, StyleSheet, Alert, TextInput } from "react-native";
+import Sortable from "react-native-sortables";
+import type { SortableGridRenderItem } from "react-native-sortables";
 import {
   IconButton,
   Menu,
@@ -29,29 +24,57 @@ import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
 import { Notes } from "@/components/Notes";
 import {
-  appendExercisesToWorkout,
+  updatePlanWorkoutExercises,
+  updateStandaloneWorkout,
   createStandaloneWorkout,
   linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
 import { cancelRestNotifications } from "@/utils/restNotification";
-import { classifySupersetPosition } from "@/utils/supersetUtils";
 import { useQueryClient } from "@tanstack/react-query";
+import { UserExercise, Workout } from "@/store/workoutStore";
+
+type SingleItem = {
+  type: "single";
+  exercise: UserExercise;
+  exerciseIndex: number;
+};
+
+type SupersetItem = {
+  type: "superset";
+  exercises: [UserExercise, UserExercise];
+  exerciseIndices: [number, number];
+};
+
+type GroupedItem = SingleItem | SupersetItem;
+
+function hasStructuralChanges(current: Workout, original: Workout): boolean {
+  const toKey = (exercises: UserExercise[]) =>
+    JSON.stringify(
+      exercises.map((e) => ({
+        exercise_id: e.exercise_id,
+        sets: e.sets,
+        supersetGroupId: e.supersetGroupId ?? null,
+      })),
+    );
+  return toKey(current.exercises) !== toKey(original.exercises);
+}
 
 export default function WorkoutOverviewScreen() {
   const { data: settings } = useSettingsQuery();
   const queryClient = useQueryClient();
   const {
     workout,
+    originalWorkout,
     completedSets,
     weightAndReps,
     startTime,
     activeWorkout,
     isQuickWorkout,
     deleteExercise,
+    reorderExercises,
     clearPersistedStore,
     restartWorkout,
     initializeWeightAndReps,
-    appendedExerciseIndices,
   } = useActiveWorkoutStore();
 
   const weightUnit = settings?.weightUnit || "kg";
@@ -82,6 +105,38 @@ export default function WorkoutOverviewScreen() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveWorkoutName, setSaveWorkoutName] = useState("");
 
+  const groupedData = useMemo((): GroupedItem[] => {
+    if (!workout) return [];
+    const result: GroupedItem[] = [];
+    const seen = new Set<number>();
+
+    workout.exercises.forEach((exercise, i) => {
+      if (seen.has(i)) return;
+      seen.add(i);
+
+      const { supersetGroupId } = exercise;
+      if (supersetGroupId) {
+        const partnerIdx = workout.exercises.findIndex(
+          (e, j) => j !== i && e.supersetGroupId === supersetGroupId,
+        );
+        const partner =
+          partnerIdx !== -1 ? workout.exercises[partnerIdx] : null;
+        if (partner && !seen.has(partnerIdx)) {
+          seen.add(partnerIdx);
+          result.push({
+            type: "superset",
+            exercises: [exercise, partner],
+            exerciseIndices: [i, partnerIdx],
+          });
+          return;
+        }
+      }
+      result.push({ type: "single", exercise, exerciseIndex: i });
+    });
+
+    return result;
+  }, [workout]);
+
   // Calculate if any sets are completed
   const hasCompletedSets = useMemo(() => {
     return Object.values(completedSets).some((exerciseSets) =>
@@ -89,13 +144,13 @@ export default function WorkoutOverviewScreen() {
     );
   }, [completedSets]);
 
-  const handleMenuOpen = (index: number) => {
+  const handleMenuOpen = useCallback((index: number) => {
     setMenuVisible((prev) => ({ ...prev, [index]: true }));
-  };
+  }, []);
 
-  const handleMenuClose = (index: number) => {
+  const handleMenuClose = useCallback((index: number) => {
     setMenuVisible((prev) => ({ ...prev, [index]: false }));
-  };
+  }, []);
 
   const handleExitSaveModal = () => {
     void cancelRestNotifications();
@@ -112,52 +167,240 @@ export default function WorkoutOverviewScreen() {
     });
   };
 
-  const handleDeleteExercise = (index: number) => {
-    Alert.alert(
-      "Delete Exercise",
-      "Are you sure you want to delete this exercise?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            deleteExercise(index);
+  const handleDeleteExercise = useCallback(
+    (index: number) => {
+      Alert.alert(
+        "Delete Exercise",
+        "Are you sure you want to delete this exercise?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => {
+              deleteExercise(index);
+            },
           },
+        ],
+      );
+    },
+    [deleteExercise],
+  );
+
+  const handleReplaceExercise = useCallback(
+    (index: number) => {
+      const exercise = workout?.exercises[index];
+      router.push({
+        pathname: "/(app)/(workout)/exercises",
+        params: {
+          replaceExerciseIndex: index,
+          targetMuscle: exercise?.target_muscle || undefined,
         },
-      ],
-    );
-  };
+      });
+    },
+    [workout],
+  );
 
-  const handleReplaceExercise = (index: number) => {
-    // Find the exercise being replaced
-    const exercise = workout?.exercises[index];
-    // Navigate to the exercises screen for replacing, passing target_muscle if available
-    router.push({
-      pathname: "/(app)/(workout)/exercises",
-      params: {
-        replaceExerciseIndex: index,
-        targetMuscle: exercise?.target_muscle || undefined,
-      },
-    });
-  };
+  const handleExercisePress = useCallback(
+    (index: number) => {
+      if (isNavigating) return;
 
-  const handleExercisePress = (index: number) => {
-    if (isNavigating) return;
+      setLoadingExerciseIndex(index);
+      setIsNavigating(true);
 
-    setLoadingExerciseIndex(index);
-    setIsNavigating(true);
+      router.push({
+        pathname: "/(app)/(workout)/workout-session",
+        params: { selectedExerciseIndex: index },
+      });
 
-    router.push({
-      pathname: "/(app)/(workout)/workout-session",
-      params: { selectedExerciseIndex: index },
-    });
+      setTimeout(() => {
+        setLoadingExerciseIndex(null);
+        setIsNavigating(false);
+      }, 500);
+    },
+    [isNavigating],
+  );
 
-    setTimeout(() => {
-      setLoadingExerciseIndex(null);
-      setIsNavigating(false);
-    }, 500);
-  };
+  const handleOrderChange = useCallback(
+    ({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => {
+      if (fromIndex === toIndex) return;
+      setMenuVisible({});
+      const reordered = [...groupedData];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+      const newExercises = reordered.flatMap((item) =>
+        item.type === "single" ? [item.exercise] : item.exercises,
+      );
+      reorderExercises(newExercises);
+    },
+    [groupedData, reorderExercises],
+  );
+
+  const renderItem: SortableGridRenderItem<GroupedItem> = useCallback(
+    ({ item }) => {
+      const renderCard = (
+        exercise: UserExercise,
+        exerciseIndex: number,
+        label: number | string,
+        isInSuperset: boolean,
+        isFirstInSuperset: boolean,
+        isLastInSuperset: boolean,
+        isTappable: boolean,
+      ) => {
+        const completedSetsForExercise = completedSets[exerciseIndex] || {};
+        const completedCount = Object.values(completedSetsForExercise).filter(
+          Boolean,
+        ).length;
+        const allSetsCompleted = completedCount === exercise.sets.length;
+        const isLoading = loadingExerciseIndex === exerciseIndex;
+
+        const inner = isTappable ? (
+          <Sortable.Touchable
+            onTap={() => handleExercisePress(exerciseIndex)}
+            style={styles.cardTouchable}
+          >
+            <MaterialCommunityIcons
+              name="drag"
+              size={20}
+              color={Colors.dark.subText}
+              style={styles.dragIcon}
+            />
+            <View
+              style={[
+                styles.numberContainer,
+                allSetsCompleted && styles.numberContainerCompleted,
+              ]}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : allSetsCompleted ? (
+                <MaterialCommunityIcons name="check" size={24} color="white" />
+              ) : (
+                <ThemedText style={styles.numberText}>{label}</ThemedText>
+              )}
+            </View>
+            <View style={styles.exerciseInfo}>
+              <ThemedText style={styles.exerciseName}>
+                {exercise.name}
+              </ThemedText>
+              <ThemedText style={styles.setInfo}>
+                {completedCount}/{exercise.sets.length} sets completed
+              </ThemedText>
+            </View>
+          </Sortable.Touchable>
+        ) : (
+          <View style={styles.cardTouchable}>
+            <MaterialCommunityIcons
+              name="drag"
+              size={20}
+              color={Colors.dark.subText}
+              style={styles.dragIcon}
+            />
+            <View
+              style={[
+                styles.numberContainer,
+                allSetsCompleted && styles.numberContainerCompleted,
+              ]}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : allSetsCompleted ? (
+                <MaterialCommunityIcons name="check" size={24} color="white" />
+              ) : (
+                <ThemedText style={styles.numberText}>{label}</ThemedText>
+              )}
+            </View>
+            <View style={styles.exerciseInfo}>
+              <ThemedText style={styles.exerciseName}>
+                {exercise.name}
+              </ThemedText>
+              <ThemedText style={styles.setInfo}>
+                {completedCount}/{exercise.sets.length} sets completed
+              </ThemedText>
+            </View>
+          </View>
+        );
+
+        return (
+          <View
+            style={[
+              styles.card,
+              styles.cardRow,
+              isInSuperset && styles.supersetCard,
+              isFirstInSuperset && styles.supersetCardFirst,
+              isLastInSuperset && styles.supersetCardLast,
+            ]}
+          >
+            {inner}
+            <Menu
+              visible={!!menuVisible[exerciseIndex]}
+              onDismiss={() => handleMenuClose(exerciseIndex)}
+              anchor={
+                <IconButton
+                  icon="dots-vertical"
+                  size={24}
+                  onPress={() => handleMenuOpen(exerciseIndex)}
+                  style={styles.optionsButton}
+                  iconColor={Colors.dark.text}
+                />
+              }
+            >
+              <Menu.Item
+                onPress={() => {
+                  handleMenuClose(exerciseIndex);
+                  handleDeleteExercise(exerciseIndex);
+                }}
+                title="Delete"
+              />
+              <Menu.Item
+                onPress={() => {
+                  handleMenuClose(exerciseIndex);
+                  handleReplaceExercise(exerciseIndex);
+                }}
+                title="Replace"
+              />
+            </Menu>
+          </View>
+        );
+      };
+
+      if (item.type === "single") {
+        return (
+          <View>
+            {renderCard(
+              item.exercise,
+              item.exerciseIndex,
+              item.exerciseIndex + 1,
+              false,
+              false,
+              false,
+              true,
+            )}
+          </View>
+        );
+      }
+
+      const [exA, exB] = item.exercises;
+      const [idxA, idxB] = item.exerciseIndices;
+      return (
+        <View>
+          {renderCard(exA, idxA, "A", true, true, false, true)}
+          <View style={styles.supersetConnector} />
+          {renderCard(exB, idxB, "B", true, false, true, false)}
+        </View>
+      );
+    },
+    [
+      completedSets,
+      loadingExerciseIndex,
+      menuVisible,
+      handleMenuClose,
+      handleMenuOpen,
+      handleDeleteExercise,
+      handleReplaceExercise,
+      handleExercisePress,
+    ],
+  );
 
   const handleSaveWorkout = async () => {
     setIsSaving(true);
@@ -183,8 +426,7 @@ export default function WorkoutOverviewScreen() {
         0,
       );
 
-      const canSave =
-        workout && (isQuickWorkout || (planId != null && workoutId != null));
+      const canSave = workout && (isQuickWorkout || workoutId != null);
 
       if (canSave) {
         const exercises = workout!.exercises
@@ -227,65 +469,83 @@ export default function WorkoutOverviewScreen() {
             },
             {
               onSuccess: (completedWorkoutId) => {
-                if (isQuickWorkout) {
-                  lastCompletedWorkoutIdRef.current = completedWorkoutId;
-                  setShowSaveModal(true);
-                } else if (appendedExerciseIndices.length > 0) {
-                  Alert.alert(
-                    "Save Changes to Plan?",
-                    `You added ${appendedExerciseIndices.length} exercise(s) during this workout. Save them to your plan for future sessions?`,
-                    [
-                      {
-                        text: "Discard",
-                        onPress: () => {
-                          clearPersistedStore();
-                          router.push({
-                            pathname: "/(app)/(workout)/workout-summary" as any,
-                            params: {
-                              completedWorkoutId: String(completedWorkoutId),
-                            },
-                          });
-                        },
-                      },
-                      {
-                        text: "Save to Plan",
-                        onPress: async () => {
-                          const newExercises = appendedExerciseIndices.map(
-                            (i) => workout!.exercises[i],
-                          );
-                          try {
-                            await appendExercisesToWorkout(
-                              activeWorkout!.workoutId!,
-                              newExercises,
-                            );
-                            await queryClient.invalidateQueries({
-                              queryKey: ["plan", activeWorkout!.planId],
-                            });
-                            await queryClient.invalidateQueries({
-                              queryKey: ["activePlan"],
-                            });
-                          } catch (e) {
-                            Bugsnag.notify(e as Error);
-                          }
-                          clearPersistedStore();
-                          router.push({
-                            pathname: "/(app)/(workout)/workout-summary" as any,
-                            params: {
-                              completedWorkoutId: String(completedWorkoutId),
-                            },
-                          });
-                        },
-                      },
-                    ],
-                  );
-                } else {
+                const navigateToSummary = () => {
                   clearPersistedStore();
                   router.push({
                     pathname: "/(app)/(workout)/workout-summary" as any,
-                    params: {
-                      completedWorkoutId: String(completedWorkoutId),
-                    },
+                    params: { completedWorkoutId: String(completedWorkoutId) },
                   });
+                };
+
+                if (isQuickWorkout) {
+                  lastCompletedWorkoutIdRef.current = completedWorkoutId;
+                  setShowSaveModal(true);
+                } else if (planId != null && workoutId != null) {
+                  // Plan workout — prompt to save structural changes back to the plan
+                  if (hasStructuralChanges(workout!, originalWorkout!)) {
+                    Alert.alert(
+                      "Save Changes to Plan?",
+                      "You modified this workout. Save those changes for future sessions?",
+                      [
+                        { text: "Discard", onPress: navigateToSummary },
+                        {
+                          text: "Save to Plan",
+                          onPress: async () => {
+                            try {
+                              await updatePlanWorkoutExercises(
+                                workoutId,
+                                workout!.exercises,
+                              );
+                              await queryClient.invalidateQueries({
+                                queryKey: ["plan", planId],
+                              });
+                              await queryClient.invalidateQueries({
+                                queryKey: ["activePlan"],
+                              });
+                            } catch (e) {
+                              Bugsnag.notify(e as Error);
+                            }
+                            navigateToSummary();
+                          },
+                        },
+                      ],
+                    );
+                  } else {
+                    navigateToSummary();
+                  }
+                } else if (workoutId != null) {
+                  // Standalone workout — prompt to save structural changes back
+                  if (hasStructuralChanges(workout!, originalWorkout!)) {
+                    Alert.alert(
+                      "Save Changes to Workout?",
+                      "You modified this workout. Save those changes for future sessions?",
+                      [
+                        { text: "Discard", onPress: navigateToSummary },
+                        {
+                          text: "Save",
+                          onPress: async () => {
+                            try {
+                              await updateStandaloneWorkout(
+                                workoutId,
+                                workout!.name,
+                                workout!.exercises,
+                              );
+                              await queryClient.invalidateQueries({
+                                queryKey: ["standaloneWorkouts"],
+                              });
+                            } catch (e) {
+                              Bugsnag.notify(e as Error);
+                            }
+                            navigateToSummary();
+                          },
+                        },
+                      ],
+                    );
+                  } else {
+                    navigateToSummary();
+                  }
+                } else {
+                  navigateToSummary();
                 }
               },
               onError: (error) => {
@@ -501,110 +761,20 @@ export default function WorkoutOverviewScreen() {
             </ThemedText>
           </View>
         )}
-        {workout.exercises.map((exercise, index) => {
-          const completedSetsForExercise = completedSets[index] || {};
-          const completedCount = Object.values(completedSetsForExercise).filter(
-            (setCompleted) => setCompleted === true,
-          ).length;
-          const totalSets = exercise.sets.length;
-          const allSetsCompleted = completedCount === totalSets;
-          const isLoading = loadingExerciseIndex === index;
-
-          const { isInSuperset, isFirstInSuperset, isSecondInSuperset } =
-            classifySupersetPosition(workout.exercises, index);
-
-          const exerciseCardContent = (
-            <View
-              style={[
-                styles.card,
-                isInSuperset && styles.supersetCard,
-                isFirstInSuperset && styles.supersetCardFirst,
-                isSecondInSuperset && styles.supersetCardLast,
-              ]}
-            >
-              <View style={styles.cardContent}>
-                {/* Circle with the number or checkmark */}
-                <View
-                  style={[
-                    styles.numberContainer,
-                    allSetsCompleted && styles.numberContainerCompleted,
-                  ]}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color="white" />
-                  ) : allSetsCompleted ? (
-                    <MaterialCommunityIcons
-                      name="check"
-                      size={24}
-                      color="white"
-                    />
-                  ) : (
-                    <ThemedText style={styles.numberText}>
-                      {isFirstInSuperset
-                        ? "A"
-                        : isSecondInSuperset
-                          ? "B"
-                          : index + 1}
-                    </ThemedText>
-                  )}
-                </View>
-
-                {/* Exercise Info */}
-                <View style={styles.exerciseInfo}>
-                  <ThemedText style={styles.exerciseName}>
-                    {exercise.name}
-                  </ThemedText>
-                  <ThemedText style={styles.setInfo}>
-                    {completedCount}/{exercise.sets.length} sets completed
-                  </ThemedText>
-                </View>
-
-                {/* Options Menu */}
-                <Menu
-                  visible={menuVisible[index]}
-                  onDismiss={() => handleMenuClose(index)}
-                  anchor={
-                    <IconButton
-                      icon="dots-vertical"
-                      size={24}
-                      onPress={() => handleMenuOpen(index)}
-                      style={styles.optionsButton}
-                      iconColor={Colors.dark.text}
-                    />
-                  }
-                >
-                  <Menu.Item
-                    onPress={() => {
-                      handleMenuClose(index);
-                      handleDeleteExercise(index);
-                    }}
-                    title="Delete"
-                  />
-                  <Menu.Item
-                    onPress={() => {
-                      handleMenuClose(index);
-                      handleReplaceExercise(index);
-                    }}
-                    title="Replace"
-                  />
-                </Menu>
-              </View>
-            </View>
-          );
-
-          return (
-            <View key={exercise.exercise_id}>
-              {isSecondInSuperset ? (
-                <View accessible={false}>{exerciseCardContent}</View>
-              ) : (
-                <TouchableOpacity onPress={() => handleExercisePress(index)}>
-                  {exerciseCardContent}
-                </TouchableOpacity>
-              )}
-              {isFirstInSuperset && <View style={styles.supersetConnector} />}
-            </View>
-          );
-        })}
+        {groupedData.length > 0 && (
+          <Sortable.Grid
+            columns={1}
+            data={groupedData}
+            keyExtractor={(item) =>
+              item.type === "single"
+                ? item.exerciseIndex.toString()
+                : `ss-${item.exerciseIndices[0]}-${item.exerciseIndices[1]}`
+            }
+            renderItem={renderItem}
+            onDragEnd={handleOrderChange}
+            showDropIndicator
+          />
+        )}
         <Button
           mode="outlined"
           icon="plus"
@@ -642,9 +812,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
-  cardContent: {
+  cardRow: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  cardTouchable: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dragIcon: {
+    marginRight: 8,
   },
   numberContainer: {
     width: 40,

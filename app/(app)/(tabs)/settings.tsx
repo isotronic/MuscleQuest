@@ -56,12 +56,15 @@ export default function SettingsScreen() {
   const [restoreProgress, setRestoreProgress] = useState(1);
 
   const [lastBackupDate, setLastBackupDate] = useState<Date | null>(null);
+  const [isLoadingBackupDate, setIsLoadingBackupDate] = useState(false);
 
   useEffect(() => {
     const getBackupDate = async () => {
       if (user) {
+        setIsLoadingBackupDate(true);
         const date = await fetchLastBackupDate();
         setLastBackupDate(date);
+        setIsLoadingBackupDate(false);
       }
     };
 
@@ -401,9 +404,11 @@ export default function SettingsScreen() {
               <ThemedText style={styles.currentSetting}>
                 {!user
                   ? "You need to sign in to use this feature"
-                  : lastBackupDate
-                    ? `Last backup: ${lastBackupDate.toLocaleDateString()}`
-                    : "No backups found"}
+                  : isLoadingBackupDate
+                    ? "Checking for backups..."
+                    : lastBackupDate
+                      ? `Last backup: ${lastBackupDate.toLocaleDateString()}`
+                      : "No backups found"}
               </ThemedText>
             </View>
             {user && (
@@ -539,6 +544,56 @@ export default function SettingsScreen() {
               <ThemedText style={styles.itemText}>Weight increment</ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {settings?.weightIncrement} {settings?.weightUnit}
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() =>
+              showOverlay(
+                "restTimerIncrement",
+                settings?.restTimerIncrement || "",
+                "number",
+              )
+            }
+          >
+            <MaterialCommunityIcons
+              name="timer"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Rest timer increment
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.restTimerIncrement} seconds
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() =>
+              showOverlay(
+                "timerCountdown",
+                settings?.timerCountdown || "5",
+                "number",
+              )
+            }
+          >
+            <MaterialCommunityIcons
+              name="timer-play-outline"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Exercise timer countdown
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {settings?.timerCountdown || "5"} seconds
               </ThemedText>
             </View>
           </TouchableOpacity>
