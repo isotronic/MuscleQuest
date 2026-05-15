@@ -104,11 +104,16 @@ function computeBestAchievement(
   }
 
   let bestAchievement: BestAchievement | null = null;
+  let bestPercentage = 0;
 
   thisWeekBest.forEach(({ name, trackingType, best }, exerciseId) => {
-    const lastBest = lastWeekBest.get(exerciseId) ?? 0;
+    const lastBest = lastWeekBest.get(exerciseId);
+    if (!lastBest) return; // no baseline from last week, skip
     const delta = best - lastBest;
-    if (delta > 0 && (!bestAchievement || delta > bestAchievement.delta)) {
+    if (delta <= 0) return;
+    const percentage = delta / lastBest;
+    if (percentage > bestPercentage) {
+      bestPercentage = percentage;
       bestAchievement = {
         exerciseName: name,
         trackingType,
@@ -127,21 +132,23 @@ function formatAchievement(a: BestAchievement): {
   value: string;
 } {
   const unit = a.weightUnit;
+  const pct = Math.round((a.delta / (a.thisWeekBest - a.delta)) * 100);
+  const pctStr = `+${pct}%`;
   if (a.trackingType === "reps") {
     return {
       label: "Rep PR",
-      value: `${a.exerciseName}: ${Math.round(a.thisWeekBest)} reps (+${Math.round(a.delta)})`,
+      value: `${a.exerciseName}: ${Math.round(a.thisWeekBest)} reps (+${Math.round(a.delta)}, ${pctStr})`,
     };
   }
   if (a.trackingType === "time") {
     return {
       label: "Time PR",
-      value: `${a.exerciseName}: ${Math.round(a.thisWeekBest)}s (+${Math.round(a.delta)}s)`,
+      value: `${a.exerciseName}: ${Math.round(a.thisWeekBest)}s (+${Math.round(a.delta)}s, ${pctStr})`,
     };
   }
   return {
     label: "1RM",
-    value: `${a.exerciseName}: ${a.thisWeekBest.toFixed(1)}${unit} (+${a.delta.toFixed(1)}${unit})`,
+    value: `${a.exerciseName}: ${a.thisWeekBest.toFixed(1)}${unit} (+${a.delta.toFixed(1)}${unit}, ${pctStr})`,
   };
 }
 
