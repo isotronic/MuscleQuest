@@ -25,10 +25,12 @@ import { confirmStartWorkout } from "@/utils/startWorkout";
 import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
 import RestDayCard from "@/components/RestDayCard";
 import WorkoutDoneCard from "@/components/WorkoutDoneCard";
+import WeeklySummaryCard from "@/components/WeeklySummaryCard";
 import {
   computeWeeklyTargets,
   prioritizeScheduledWorkout,
 } from "@/utils/planHelpers";
+import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
 
 export default function HomeScreen() {
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
@@ -98,6 +100,13 @@ export default function HomeScreen() {
 
   const weeklyGoalReached =
     uniqueWorkoutDaysCount === Number(settings?.weeklyGoal);
+
+  const { streak } = useWeeklyStreak(
+    completedWorkouts,
+    Number(settings?.weeklyGoal ?? 0),
+    uniqueWorkoutDaysCount,
+    weeklyGoalReached,
+  );
 
   if (
     activePlanLoading ||
@@ -240,6 +249,17 @@ export default function HomeScreen() {
             {uniqueWorkoutDaysCount} / {settings?.weeklyGoal} days worked out
           </ThemedText>
         </View>
+        {weeklyGoalReached && (
+          <View style={styles.restDayContainer}>
+            <WeeklySummaryCard
+              workoutsThisWeek={completedWorkoutsThisWeek ?? []}
+              allCompletedWorkouts={completedWorkouts ?? []}
+              weeklyGoal={Number(settings?.weeklyGoal)}
+              weightUnit={settings?.weightUnit ?? "kg"}
+              streak={streak}
+            />
+          </View>
+        )}
         <View style={styles.welcomeContainer}>
           <ThemedText type="subtitle">
             Welcome{activePlan && " back"}
