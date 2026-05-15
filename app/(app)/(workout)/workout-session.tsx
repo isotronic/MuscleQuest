@@ -200,7 +200,7 @@ export default function WorkoutSessionScreen() {
 
   const parsedIncrement = parseFloat(settings?.weightIncrement ?? "");
   const weightIncrement = Number.isNaN(parsedIncrement) ? 1 : parsedIncrement;
-  const parsedRestIncrement = parseInt(settings?.restTimerIncrement ?? "");
+  const parsedRestIncrement = parseInt(settings?.restTimerIncrement ?? "", 10);
   const restTimerIncrement = Number.isNaN(parsedRestIncrement)
     ? 15
     : parsedRestIncrement;
@@ -354,6 +354,12 @@ export default function WorkoutSessionScreen() {
     }
   }, [timerRunning, timerExpiry, restart]);
 
+  useEffect(() => {
+    return () => {
+      pendingRestTimerRef.current = null;
+    };
+  }, []);
+
   const startRestTimer = async (restMinutes: number, restSeconds: number) => {
     if (restMinutes > 0 || restSeconds > 0) {
       const totalSeconds = restMinutes * 60 + restSeconds;
@@ -384,7 +390,14 @@ export default function WorkoutSessionScreen() {
   };
 
   const adjustTimer = async (deltaSeconds: number) => {
-    const currentRemaining = minutes * 60 + seconds;
+    const currentRemaining = expiryTimestampRef.current
+      ? Math.max(
+          0,
+          Math.round(
+            (expiryTimestampRef.current.getTime() - Date.now()) / 1000,
+          ),
+        )
+      : minutes * 60 + seconds;
     const newRemaining = Math.max(0, currentRemaining + deltaSeconds);
     const newExpiry = new Date();
     newExpiry.setSeconds(newExpiry.getSeconds() + newRemaining);
@@ -570,7 +583,10 @@ export default function WorkoutSessionScreen() {
     let pvSet = setIdx - 1;
     if (pvSet < 0) {
       pvEx = exIdx - 1;
-      pvSet = pvEx >= 0 ? workout.exercises[pvEx]?.sets.length - 1 || 0 : 0;
+      pvSet =
+        pvEx >= 0
+          ? Math.max(0, (workout.exercises[pvEx]?.sets?.length ?? 1) - 1)
+          : 0;
     }
     const hasPv = pvEx >= 0;
     setSlots([
@@ -682,7 +698,10 @@ export default function WorkoutSessionScreen() {
       let pvSet = cur.setIndex - 1;
       if (pvSet < 0) {
         pvEx = cur.exerciseIndex - 1;
-        pvSet = pvEx >= 0 ? workout.exercises[pvEx]?.sets.length - 1 || 0 : 0;
+        pvSet =
+          pvEx >= 0
+            ? Math.max(0, (workout.exercises[pvEx]?.sets?.length ?? 1) - 1)
+            : 0;
       }
       setSlots((prev) => {
         const u = [...prev] as [SlotData, SlotData, SlotData];
