@@ -111,8 +111,8 @@ export default function WorkoutOverviewScreen() {
     const seen = new Set<number>();
 
     workout.exercises.forEach((exercise, i) => {
-      if (seen.has(exercise.exercise_id)) return;
-      seen.add(exercise.exercise_id);
+      if (seen.has(i)) return;
+      seen.add(i);
 
       const { supersetGroupId } = exercise;
       if (supersetGroupId) {
@@ -121,8 +121,8 @@ export default function WorkoutOverviewScreen() {
         );
         const partner =
           partnerIdx !== -1 ? workout.exercises[partnerIdx] : null;
-        if (partner && !seen.has(partner.exercise_id)) {
-          seen.add(partner.exercise_id);
+        if (partner && !seen.has(partnerIdx)) {
+          seen.add(partnerIdx);
           result.push({
             type: "superset",
             exercises: [exercise, partner],
@@ -767,8 +767,8 @@ export default function WorkoutOverviewScreen() {
             data={groupedData}
             keyExtractor={(item) =>
               item.type === "single"
-                ? item.exercise.exercise_id.toString()
-                : `ss-${item.exercises[0].exercise_id}-${item.exercises[1].exercise_id}`
+                ? item.exerciseIndex.toString()
+                : `ss-${item.exerciseIndices[0]}-${item.exerciseIndices[1]}`
             }
             renderItem={renderItem}
             onDragEnd={handleOrderChange}
