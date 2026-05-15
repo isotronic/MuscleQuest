@@ -563,8 +563,9 @@ export const updateWorkoutPlan = async (
         let workoutId = workout.id;
         const workoutName = workout.name || `Workout ${workoutOrder + 1}`;
 
-        if (!workoutId) {
-          // Insert new workout
+        if (!workoutId || workoutId < 0) {
+          // Insert new workout (workoutId is null/undefined for brand-new workouts,
+          // or negative (temp ID like -Date.now()) for workouts added during plan editing)
           const result = await txn.runAsync(
             `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (?, ?, ?)`,
             [id, workoutName, workoutOrder],
