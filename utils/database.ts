@@ -1503,3 +1503,43 @@ export const fetchNote = async (
     throw error;
   }
 };
+
+export interface WeeklyCompletion {
+  id: number;
+  week_start: string;
+  goal: number;
+  completed: number;
+  goal_reached: boolean;
+}
+
+export const getWeeklyCompletions = async (): Promise<WeeklyCompletion[]> => {
+  try {
+    const db = await openDatabase("userData.db");
+    return (await db.getAllAsync(
+      `SELECT * FROM weekly_completions ORDER BY week_start DESC`,
+    )) as WeeklyCompletion[];
+  } catch (error: any) {
+    console.error("Error fetching weekly completions:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const upsertWeeklyCompletion = async (
+  weekStart: string,
+  goal: number,
+  completed: number,
+  goalReached: boolean,
+): Promise<void> => {
+  try {
+    const db = await openDatabase("userData.db");
+    await db.runAsync(
+      `INSERT OR REPLACE INTO weekly_completions (week_start, goal, completed, goal_reached) VALUES (?, ?, ?, ?)`,
+      [weekStart, goal, completed, goalReached ? 1 : 0],
+    );
+  } catch (error: any) {
+    console.error("Error upserting weekly completion:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};

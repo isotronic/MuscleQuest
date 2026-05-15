@@ -259,4 +259,19 @@ export async function initUserDataDB() {
       ALTER TABLE user_workout_exercises ADD COLUMN superset_group_id TEXT;
     `);
   }
+
+  const weeklyCompletionsResult = await db.getAllAsync(`
+    PRAGMA table_info(weekly_completions);
+  `);
+  if (weeklyCompletionsResult.length === 0) {
+    await db.execAsync(`
+      CREATE TABLE weekly_completions (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        week_start   TEXT NOT NULL UNIQUE,
+        goal         INTEGER NOT NULL,
+        completed    INTEGER NOT NULL,
+        goal_reached BOOLEAN NOT NULL
+      );
+    `);
+  }
 }
