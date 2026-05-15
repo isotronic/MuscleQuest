@@ -100,7 +100,7 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onCancel}
+      onRequestClose={phase === "running" ? handleStop : onCancel}
     >
       <View style={styles.overlay}>
         <View style={styles.card}>
