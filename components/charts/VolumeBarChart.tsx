@@ -6,73 +6,82 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { chartTheme } from "./chartTheme";
 import { Colors } from "@/constants/Colors";
 
-interface WorkoutBarChartProps {
+interface VolumeBarChartProps {
   completedWorkouts: CompletedWorkout[];
   timeRange: string;
+  weightUnit: string;
 }
 
-const groupWorkoutsByTime = (
+const groupVolumeByTime = (
   completedWorkouts: CompletedWorkout[],
   timeRange: string,
+  weightUnit: string,
 ) => {
-  const workoutsGrouped: Record<string, number> = {};
+  const grouped: Record<string, number> = {};
+  const tonDivisor = weightUnit === "lbs" ? 2000 : 1000;
 
   completedWorkouts.forEach((workout) => {
     const workoutDate = new Date(workout.date_completed);
-
-    // Determine the group key based on the selected time range
     let groupKey: string;
 
     if (timeRange === "30") {
-      // Group by week: label in "30 Sep" format
       const weekStart = new Date(workoutDate);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of the week
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
       const day = weekStart.getDate();
       const month = weekStart.toLocaleString(undefined, { month: "short" });
       groupKey = `${day} ${month}`;
     } else if (timeRange === "90") {
-      // Group by week: label in "18.12." (day.month.) format
       const weekStart = new Date(workoutDate);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of the week
-      const day = weekStart.getDate().toString().padStart(2, "0"); // Add leading zero
-      const month = (weekStart.getMonth() + 1).toString().padStart(2, "0"); // Add leading zero
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+      const day = weekStart.getDate().toString().padStart(2, "0");
+      const month = (weekStart.getMonth() + 1).toString().padStart(2, "0");
       groupKey = `${day}.${month}.`;
     } else {
-      // Group by month: label in the first three letters of the month
       const month = workoutDate.toLocaleString(undefined, { month: "short" });
       groupKey = month;
     }
 
-    if (!workoutsGrouped[groupKey]) {
-      workoutsGrouped[groupKey] = 0;
-    }
-    workoutsGrouped[groupKey]++;
+    if (!grouped[groupKey]) grouped[groupKey] = 0;
+
+    workout.exercises.forEach((exercise) => {
+      exercise.sets.forEach((set) => {
+        if (set.weight && set.reps) {
+          grouped[groupKey] += (set.weight * set.reps) / tonDivisor;
+        }
+      });
+    });
   });
 
-  return workoutsGrouped;
+  return grouped;
 };
 
-export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
+export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
   completedWorkouts,
   timeRange,
+  weightUnit,
 }) => {
-  const groupedWorkouts = useMemo(
-    () => groupWorkoutsByTime(completedWorkouts, timeRange),
-    [completedWorkouts, timeRange],
+  const grouped = useMemo(
+    () => groupVolumeByTime(completedWorkouts, timeRange, weightUnit),
+    [completedWorkouts, timeRange, weightUnit],
   );
 
-  const barData = Object.keys(groupedWorkouts).map((key) => ({
-    label: key,
-    value: groupedWorkouts[key],
-  }));
+  const barData = Object.keys(grouped)
+    .reverse()
+    .map((key) => ({
+      label: key,
+      value: parseFloat(grouped[key].toFixed(2)),
+    }));
 
+  if (barData.length === 0) return null;
+
+  const maxVal = Math.max(...barData.map((d) => d.value));
   const barWidth = timeRange === "30" ? 35 : 15;
   const barSpacing = timeRange === "30" ? 20 : timeRange === "90" ? 15 : 6;
 
   return (
     <Card style={styles.card}>
       <BarChart
-        data={barData.reverse()}
+        data={barData}
         barWidth={barWidth}
         spacing={barSpacing}
         isAnimated
@@ -86,7 +95,7 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
         width={270}
         noOfSections={chartTheme.noOfSections}
         initialSpacing={10}
-        maxValue={Math.max(0, ...Object.values(groupedWorkouts))}
+        maxValue={maxVal > 0 ? maxVal : 1}
         hideRules
       />
     </Card>

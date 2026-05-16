@@ -4,6 +4,7 @@ import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { LineChart } from "react-native-gifted-charts";
 import { Colors } from "@/constants/Colors";
+import { chartTheme } from "./chartTheme";
 import {
   TrackedExerciseWithSets,
   CompletedSet,
@@ -13,6 +14,7 @@ interface ExerciseProgressionChartProps {
   exercise: TrackedExerciseWithSets;
   timeRange: string;
   weightUnit: string;
+  prValue?: number;
 }
 
 const groupSetsByTime = (
@@ -70,7 +72,7 @@ const groupSetsByTime = (
 
 export const ExerciseProgressionChart: React.FC<
   ExerciseProgressionChartProps
-> = ({ exercise, timeRange, weightUnit }) => {
+> = ({ exercise, timeRange, weightUnit, prValue }) => {
   // Determine conversion factor
   const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
 
@@ -81,17 +83,26 @@ export const ExerciseProgressionChart: React.FC<
       exercise.tracking_type,
       conversionFactor,
     );
+    const convertedPR =
+      prValue != null && prValue > 0 ? prValue * conversionFactor : undefined;
     return Object.keys(groupedSets)
-      .map((key) => ({
-        label: key,
-        value: groupedSets[key].progressionMetric,
-      }))
+      .map((key) => {
+        const metric = groupedSets[key].progressionMetric;
+        const isPR = convertedPR != null && Math.abs(metric - convertedPR) < 0.5;
+        return {
+          label: key,
+          value: metric,
+          dataPointColor: isPR ? Colors.dark.tint : Colors.dark.highlight,
+          dataPointRadius: isPR ? 6 : 4,
+        };
+      })
       .reverse();
   }, [
     exercise.completed_sets,
     timeRange,
     exercise.tracking_type,
     conversionFactor,
+    prValue,
   ]);
 
   const latestSet = exercise.completed_sets[0];
@@ -152,18 +163,19 @@ export const ExerciseProgressionChart: React.FC<
         <LineChart
           data={chartData}
           spacing={30}
-          thickness={5}
+          thickness={2}
           color={Colors.dark.highlight}
           isAnimated
           areaChart
           width={250}
-          startFillColor="rgba(231, 64, 67, 0.5)"
-          endFillColor="rgba(231, 64, 67, 0)"
-          yAxisColor={Colors.dark.text}
+          startFillColor={chartTheme.negativeAreaStartFill}
+          endFillColor={chartTheme.negativeAreaEndFill}
+          yAxisColor="transparent"
           yAxisTextStyle={styles.yAxisLabel}
           xAxisLabelTextStyle={styles.xAxisLabel}
-          xAxisColor={Colors.dark.text}
-          dataPointsColor={Colors.dark.tint}
+          xAxisColor={Colors.dark.subText}
+          hideRules
+          noOfSections={3}
         />
       </View>
     </Card>

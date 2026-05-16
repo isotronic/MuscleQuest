@@ -48,11 +48,13 @@ const QUICK_WORKOUT_FALLBACK = "Quick Workout";
 
 const fetchCompletedWorkouts = async (
   timeRange: number,
+  startDate?: string,
+  endDate?: string,
 ): Promise<WorkoutResult[]> => {
   try {
     const db = await openDatabase("userData.db");
     let query = `
-      SELECT 
+      SELECT
         completed_workouts.id,
         completed_workouts.plan_id,
         completed_workouts.workout_id,
@@ -76,8 +78,12 @@ const fetchCompletedWorkouts = async (
       LEFT JOIN user_workouts ON user_workouts.id = completed_workouts.workout_id
     `;
 
+    const params: (string | number)[] = [];
     query += ` WHERE completed_workouts.is_deleted = FALSE`;
-    if (timeRange > 0) {
+    if (startDate && endDate) {
+      query += ` AND date_completed BETWEEN ? AND ?`;
+      params.push(startDate, endDate);
+    } else if (timeRange > 0) {
       query += ` AND date_completed >= date('now', '-${timeRange} days')`;
     }
 
@@ -85,7 +91,7 @@ const fetchCompletedWorkouts = async (
       ORDER BY completed_workouts.date_completed DESC, completed_exercises.id, completed_sets.set_number;
     `;
 
-    const results = await db.getAllAsync(query);
+    const results = await db.getAllAsync(query, params);
 
     return results as WorkoutResult[];
   } catch (error: any) {
@@ -98,8 +104,10 @@ const fetchCompletedWorkouts = async (
 const fetchAndOrganize = async (
   weightUnit: string,
   timeRange: number,
+  startDate?: string,
+  endDate?: string,
 ): Promise<CompletedWorkout[]> => {
-  const results = await fetchCompletedWorkouts(timeRange);
+  const results = await fetchCompletedWorkouts(timeRange, startDate, endDate);
 
   if (results) {
     const workoutsMap = new Map<number, CompletedWorkout>();
@@ -191,6 +199,34 @@ export const useCompletedWorkoutsQuery = (
   return useQuery<CompletedWorkout[]>({
     queryKey: ["completedWorkouts", weightUnit, timeRange],
     queryFn: () => fetchAndOrganize(weightUnit, timeRange),
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+const getPreviousPeriodDates = (days: number): { startDate: string; endDate: string } => {
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() - days - 1);
+  const startDate = new Date(endDate);
+  startDate.setDate(startDate.getDate() - days);
+  return {
+    startDate: startDate.toISOString().split("T")[0],
+    endDate: endDate.toISOString().split("T")[0],
+  };
+};
+
+export const usePreviousPeriodWorkoutsQuery = (
+  weightUnit: string,
+  timeRange: number,
+) => {
+  const enabled = timeRange > 0;
+  const { startDate, endDate } = enabled
+    ? getPreviousPeriodDates(timeRange)
+    : { startDate: "", endDate: "" };
+
+  return useQuery<CompletedWorkout[]>({
+    queryKey: ["completedWorkouts", weightUnit, timeRange, "prev"],
+    queryFn: () => fetchAndOrganize(weightUnit, timeRange, startDate, endDate),
+    enabled,
     staleTime: 5 * 60 * 1000,
   });
 };

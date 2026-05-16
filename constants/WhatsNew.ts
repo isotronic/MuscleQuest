@@ -126,6 +126,14 @@ You can now drag and drop exercises and supersets to reorder them directly from 
 When you finish a session where you added, removed, or reordered exercises, or sets, you'll be prompted to save those changes back to the original plan or standalone workout, keeping your training up to date automatically.
 `,
   },
+  {
+    version: 2616,
+    message: `
+📊 New: Improved Stats Screen!
+
+The stats screen has been redesigned with a fresh new look and improved insights. Explore your training history with better charts, clearer summaries, and more detailed breakdowns of your progress over time.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
