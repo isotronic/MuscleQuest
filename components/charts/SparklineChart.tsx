@@ -16,10 +16,18 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
 }) => {
   if (data.length < 2) return null;
 
+  const minVal = Math.min(...data.map((d) => d.value));
+  const maxVal = Math.max(...data.map((d) => d.value));
+  const range = maxVal - minVal;
+  const normalized =
+    range === 0
+      ? data.map(() => ({ value: 50 }))
+      : data.map((d) => ({ value: ((d.value - minVal) / range) * 100 }));
+
   return (
     <View style={{ width, height, overflow: "hidden" }}>
       <LineChart
-        data={data}
+        data={normalized}
         width={width}
         height={height}
         thickness={chartTheme.thickness}
@@ -34,6 +42,7 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
         endFillColor={chartTheme.areaEndFill}
         startOpacity={1}
         endOpacity={0}
+        maxValue={100}
       />
     </View>
   );
