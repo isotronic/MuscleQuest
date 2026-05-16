@@ -6,7 +6,7 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 
 interface WeekDaysProps {
   completedWorkoutsThisWeek?: CompletedWorkout[];
-  onDayPress?: (completedWorkoutId: number) => void;
+  onDayPress?: (completedWorkouts: CompletedWorkout[]) => void;
 }
 
 export default function WeekDays({
@@ -21,10 +21,10 @@ export default function WeekDays({
     <View style={styles.container}>
       {days.map((day, index) => {
         const isToday = isSameDay(day, today);
-        const completedOnDay = completedWorkoutsThisWeek?.find((workout) =>
+        const completedOnDay = completedWorkoutsThisWeek?.filter((workout) =>
           isSameDay(new Date(workout.date_completed), day),
         );
-        const isWorkoutCompleted = !!completedOnDay;
+        const isWorkoutCompleted = !!completedOnDay?.length;
 
         const circle = (
           <View
@@ -49,8 +49,8 @@ export default function WeekDays({
             >
               {format(day, "EEE")}
             </ThemedText>
-            {isWorkoutCompleted && onDayPress && completedOnDay ? (
-              <Pressable onPress={() => onDayPress(completedOnDay.id)}>
+            {isWorkoutCompleted && onDayPress && completedOnDay?.length ? (
+              <Pressable onPress={() => onDayPress(completedOnDay)}>
                 {circle}
               </Pressable>
             ) : (

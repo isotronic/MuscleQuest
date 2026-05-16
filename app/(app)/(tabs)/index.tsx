@@ -1,7 +1,7 @@
 import { StyleSheet, View, ScrollView, Pressable } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { startOfWeek, endOfWeek, getDay } from "date-fns";
+import { startOfWeek, endOfWeek, getDay, format } from "date-fns";
 import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import WeekDays from "@/components/WeekDays";
@@ -34,6 +34,7 @@ import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
 
 export default function HomeScreen() {
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
+  const [pickerWorkouts, setPickerWorkouts] = useState<CompletedWorkout[]>([]);
   const user = useContext(AuthContext);
   const userName = user?.displayName
     ? ", " + user.displayName.split(" ")[0]
@@ -213,6 +214,33 @@ export default function HomeScreen() {
     workoutsToDisplay = [...orderedUncompleted, ...completedWorkoutsList];
   }
 
+  const navigateToWorkoutSummary = (id: number) =>
+    router.push({
+      pathname: "/(app)/(workout)/workout-summary",
+      params: { completedWorkoutId: String(id) },
+    });
+
+  const handleDayPress = (workouts: CompletedWorkout[]) => {
+    if (workouts.length === 1) {
+      navigateToWorkoutSummary(workouts[0].id);
+    } else {
+      setPickerWorkouts(workouts);
+    }
+  };
+
+  const handleWorkoutDoneCardPress = () => {
+    const todayStr = today.toDateString();
+    const todayWorkouts =
+      completedWorkoutsThisWeek?.filter(
+        (w) => new Date(w.date_completed).toDateString() === todayStr,
+      ) ?? [];
+    if (todayWorkouts.length === 1) {
+      navigateToWorkoutSummary(todayWorkouts[0].id);
+    } else if (todayWorkouts.length > 1) {
+      setPickerWorkouts(todayWorkouts);
+    }
+  };
+
   const todayScheduledEntry = planScheduleEntries?.find(
     (e) => e.day_of_week === todayDow,
   );
@@ -240,16 +268,41 @@ export default function HomeScreen() {
           </Modal>
         </Portal>
       )}
+      {pickerWorkouts.length > 0 && (
+        <Portal>
+          <Modal
+            visible={pickerWorkouts.length > 0}
+            onDismiss={() => setPickerWorkouts([])}
+            contentContainerStyle={styles.pickerModal}
+          >
+            <ThemedText type="subtitle" style={styles.pickerTitle}>
+              Select a workout to view
+            </ThemedText>
+            {pickerWorkouts.map((workout) => (
+              <Pressable
+                key={workout.id}
+                style={styles.pickerItem}
+                onPress={() => {
+                  setPickerWorkouts([]);
+                  navigateToWorkoutSummary(workout.id);
+                }}
+              >
+                <ThemedText style={styles.pickerItemName}>
+                  {workout.workout_name}
+                </ThemedText>
+                <ThemedText style={styles.pickerItemTime}>
+                  {format(new Date(workout.date_completed), "h:mm a")}
+                </ThemedText>
+              </Pressable>
+            ))}
+          </Modal>
+        </Portal>
+      )}
       <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
         <View style={styles.weekContainer}>
           <WeekDays
             completedWorkoutsThisWeek={completedWorkoutsThisWeek}
-            onDayPress={(completedWorkoutId) =>
-              router.push({
-                pathname: "/(app)/(workout)/workout-summary",
-                params: { completedWorkoutId: String(completedWorkoutId) },
-              })
-            }
+            onDayPress={handleDayPress}
           />
         </View>
         <View style={styles.summaryContainer}>
@@ -301,20 +354,7 @@ export default function HomeScreen() {
               schedule={planScheduleEntries!}
               workouts={activePlan!.workouts}
               todayDow={todayDow}
-              onPress={() => {
-                const todayStr = today.toDateString();
-                const completed = completedWorkoutsThisPlanThisWeek.find(
-                  (w) =>
-                    w.workout_id === todayScheduledEntry?.workout_id &&
-                    new Date(w.date_completed).toDateString() === todayStr,
-                );
-                if (completed) {
-                  router.push({
-                    pathname: "/(app)/(workout)/workout-summary",
-                    params: { completedWorkoutId: String(completed.id) },
-                  });
-                }
-              }}
+              onPress={handleWorkoutDoneCardPress}
             />
           </View>
         )}
@@ -587,5 +627,31 @@ const styles = StyleSheet.create({
   buttonLabel: {
     fontSize: 18,
     lineHeight: 27,
+  },
+  pickerModal: {
+    backgroundColor: Colors.dark.cardBackground,
+    margin: 24,
+    borderRadius: 12,
+    padding: 20,
+  },
+  pickerTitle: {
+    marginBottom: 12,
+  },
+  pickerItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: Colors.dark.background,
+  },
+  pickerItemName: {
+    fontSize: 16,
+    flex: 1,
+  },
+  pickerItemTime: {
+    fontSize: 14,
+    color: Colors.dark.subText,
+    marginLeft: 8,
   },
 });
