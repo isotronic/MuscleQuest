@@ -73,10 +73,16 @@ export default function StatsScreen() {
     if (settings?.timeRange) setSelectedTimeRange(settings.timeRange);
   }, [settings?.timeRange]);
 
-  const { data: exercises, isLoading: isLoadingExercises } =
-    useExercisesQuery();
-  const { data: trackedExercises, isLoading: isLoadingTracked } =
-    useTrackedExercisesQuery(selectedTimeRange);
+  const {
+    data: exercises,
+    isLoading: isLoadingExercises,
+    error: exercisesError,
+  } = useExercisesQuery();
+  const {
+    data: trackedExercises,
+    isLoading: isLoadingTracked,
+    error: trackedError,
+  } = useTrackedExercisesQuery(selectedTimeRange);
   const {
     data: completedWorkouts,
     isLoading: isLoadingWorkouts,
@@ -102,7 +108,6 @@ export default function StatsScreen() {
         await updateSettings("timeRange", range);
       } catch (err: any) {
         Bugsnag.notify(err);
-        setSelectedTimeRange((prev) => prev);
       } finally {
         queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
         queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
@@ -148,8 +153,11 @@ export default function StatsScreen() {
     );
   }
 
-  if (error) {
-    Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
+  const anyError = error || exercisesError || trackedError;
+  if (anyError) {
+    Bugsnag.notify(
+      anyError instanceof Error ? anyError : new Error(String(anyError)),
+    );
     return (
       <ThemedView style={styles.centered}>
         <ThemedText>Error loading stats. Please try again.</ThemedText>
