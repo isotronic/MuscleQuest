@@ -30,7 +30,6 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
       endFillColor={chartTheme.areaEndFill}
       startOpacity={1}
       endOpacity={0}
-      adjustToWidth
     />
   );
 };
