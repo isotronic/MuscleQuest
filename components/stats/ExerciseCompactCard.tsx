@@ -13,8 +13,9 @@ interface ExerciseCompactCardProps {
 
 const formatDaysAgo = (dateStr: string): string => {
   const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "Unknown";
   const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+  const diffMs = Math.max(0, now.getTime() - date.getTime());
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   if (days === 0) return "Today";
   if (days === 1) return "Yesterday";
