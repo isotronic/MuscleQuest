@@ -23,6 +23,7 @@ const fetchAndSortExercises = async (
   } catch (error: any) {
     console.error("Error fetching exercises", error);
     Bugsnag.notify(error);
+    throw error;
   }
 
   const result: ExercisesResult = {
