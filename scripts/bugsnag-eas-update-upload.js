@@ -140,12 +140,12 @@ async function run() {
 
   const androidBundleFile = entries.find((f) => /^entry-.*\.(hbc|js)$/.test(f));
   const androidSourceMapFile = entries.find((f) =>
-    /^entry-.*\.hbc\.map$/.test(f),
+    /^entry-.*\.(hbc|js)\.map$/.test(f),
   );
 
   if (!androidBundleFile || !androidSourceMapFile) {
     throw new Error(
-      `Could not find entry-*.hbc/js or entry-*.hbc.map in ${bundlesDir}.`,
+      `Could not find entry-*.hbc/js or entry-*.hbc.map/entry-*.js.map in ${bundlesDir}.`,
     );
   }
 
