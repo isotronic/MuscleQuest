@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, View, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
@@ -34,6 +34,13 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
   const containerRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const gainPillRef = useRef<any>(null);
+
+  useEffect(
+    () => () => {
+      if (dismissTimer.current) clearTimeout(dismissTimer.current);
+    },
+    [],
+  );
 
   const showTooltip = (text: string) => {
     if (dismissTimer.current) clearTimeout(dismissTimer.current);
