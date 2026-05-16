@@ -232,11 +232,10 @@ function DiffChip({
 }) {
   const isNeutral = diff === 0 || neutral;
   const isPositive = diff > 0;
-  const color = isNeutral
-    ? Colors.dark.subText
-    : isPositive === higherIsBetter
+  const color =
+    !isNeutral && isPositive === higherIsBetter
       ? Colors.dark.completed
-      : Colors.dark.highlight;
+      : Colors.dark.subText;
 
   const sign = diff > 0 ? "+" : "";
   const displayVal = Number.isInteger(diff)
@@ -504,7 +503,7 @@ export default function WorkoutSummaryScreen() {
         {prevWorkout && (
           <View style={styles.progressionCard}>
             <ThemedText style={styles.progressionTitle}>
-              vs. Previous Session
+              vs. last &ldquo;{workout.workout_name}&rdquo;
             </ThemedText>
             <View style={styles.diffRow}>
               <DiffChip
