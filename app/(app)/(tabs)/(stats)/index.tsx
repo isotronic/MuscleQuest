@@ -88,6 +88,15 @@ export default function StatsScreen() {
     isLoading: isLoadingWorkouts,
     error,
   } = useCompletedWorkoutsQuery(weightUnit, parseInt(selectedTimeRange));
+
+  useEffect(() => {
+    const anyError = error || exercisesError || trackedError;
+    if (anyError) {
+      Bugsnag.notify(
+        anyError instanceof Error ? anyError : new Error(String(anyError)),
+      );
+    }
+  }, [error, exercisesError, trackedError]);
   const { data: prevWorkouts } = usePreviousPeriodWorkoutsQuery(
     weightUnit,
     parseInt(selectedTimeRange),
@@ -155,9 +164,6 @@ export default function StatsScreen() {
 
   const anyError = error || exercisesError || trackedError;
   if (anyError) {
-    Bugsnag.notify(
-      anyError instanceof Error ? anyError : new Error(String(anyError)),
-    );
     return (
       <ThemedView style={styles.centered}>
         <ThemedText>Error loading stats. Please try again.</ThemedText>
