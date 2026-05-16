@@ -282,7 +282,9 @@ export default function StatsScreen() {
 
         {/* Training split */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Training Split</ThemedText>
+          <ThemedText style={styles.sectionTitle}>
+            Training Split (by sets)
+          </ThemedText>
           <BodyPartChart
             completedWorkouts={completedWorkouts}
             exercises={exercises?.otherExercises}
