@@ -78,9 +78,11 @@ const fetchCompletedWorkouts = async (
       LEFT JOIN user_workouts ON user_workouts.id = completed_workouts.workout_id
     `;
 
+    const params: (string | number)[] = [];
     query += ` WHERE completed_workouts.is_deleted = FALSE`;
     if (startDate && endDate) {
-      query += ` AND date_completed BETWEEN '${startDate}' AND '${endDate}'`;
+      query += ` AND date_completed BETWEEN ? AND ?`;
+      params.push(startDate, endDate);
     } else if (timeRange > 0) {
       query += ` AND date_completed >= date('now', '-${timeRange} days')`;
     }
@@ -89,7 +91,7 @@ const fetchCompletedWorkouts = async (
       ORDER BY completed_workouts.date_completed DESC, completed_exercises.id, completed_sets.set_number;
     `;
 
-    const results = await db.getAllAsync(query);
+    const results = await db.getAllAsync(query, params);
 
     return results as WorkoutResult[];
   } catch (error: any) {
