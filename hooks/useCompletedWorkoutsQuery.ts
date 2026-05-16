@@ -203,7 +203,7 @@ export const useCompletedWorkoutsQuery = (
 
 const getPreviousPeriodDates = (days: number): { startDate: string; endDate: string } => {
   const endDate = new Date();
-  endDate.setDate(endDate.getDate() - days);
+  endDate.setDate(endDate.getDate() - days - 1);
   const startDate = new Date(endDate);
   startDate.setDate(startDate.getDate() - days);
   return {
