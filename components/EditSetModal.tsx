@@ -102,20 +102,43 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
       );
       setTime(set.time ? formatFromTotalSeconds(set.time) : "00:00");
     } else {
-      setIsWarmup(false);
-      setIsDropSet(false);
-      setIsToFailure(false);
+      const prevSets = exercise?.sets;
+      const previousSet =
+        prevSets && prevSets.length > 0 ? prevSets[prevSets.length - 1] : null;
+
+      setIsWarmup(previousSet?.isWarmup ?? false);
+      setIsDropSet(previousSet?.isDropSet ?? false);
+      setIsToFailure(previousSet?.isToFailure ?? false);
+
       if (trackingType === "time") {
-        setTime(formatFromTotalSeconds(defaultTime));
+        const prevTime = previousSet?.time ?? defaultTime;
+        setTime(formatFromTotalSeconds(prevTime));
       } else {
-        setRepsMin(defaultRepsMin ? String(defaultRepsMin) : "");
-        setRepsMax(defaultRepsMax ? String(defaultRepsMax) : "");
+        setRepsMin(
+          previousSet?.repsMin !== undefined
+            ? String(previousSet.repsMin)
+            : defaultRepsMin
+              ? String(defaultRepsMin)
+              : "",
+        );
+        setRepsMax(
+          previousSet?.repsMax !== undefined
+            ? String(previousSet.repsMax)
+            : defaultRepsMax
+              ? String(defaultRepsMax)
+              : "",
+        );
       }
-      setRestTime(formatFromTotalSeconds(defaultTotalSeconds));
+
+      const prevRestSeconds = previousSet
+        ? previousSet.restMinutes * 60 + previousSet.restSeconds
+        : defaultTotalSeconds;
+      setRestTime(formatFromTotalSeconds(prevRestSeconds));
     }
   }, [
     setIndex,
     set,
+    exercise,
     trackingType,
     defaultTotalSeconds,
     defaultTime,
