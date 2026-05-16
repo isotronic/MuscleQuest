@@ -11,7 +11,7 @@ interface SparklineChartProps {
 
 export const SparklineChart: React.FC<SparklineChartProps> = ({
   data,
-  width = 60,
+  width = 120,
   height = 30,
 }) => {
   if (data.length < 2) return null;
