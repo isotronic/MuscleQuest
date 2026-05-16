@@ -192,6 +192,9 @@ export async function initUserDataDB() {
   const timeExists = completed_setsResult.some(
     (column: any) => column.name === "time",
   );
+  const distanceExists = completed_setsResult.some(
+    (column: any) => column.name === "distance",
+  );
   const app_plan_idExists = user_plansResult.some(
     (column: any) => column.name === "app_plan_id",
   );
@@ -226,6 +229,11 @@ export async function initUserDataDB() {
   if (!timeExists) {
     await db.execAsync(`
       ALTER TABLE completed_sets ADD COLUMN time INTEGER;
+    `);
+  }
+  if (!distanceExists) {
+    await db.execAsync(`
+      ALTER TABLE completed_sets ADD COLUMN distance REAL;
     `);
   }
   if (!app_plan_idExists) {
@@ -274,4 +282,9 @@ export async function initUserDataDB() {
       );
     `);
   }
+
+  // Migrate distanceUnit from legacy "km" default to "m"
+  await db.runAsync(
+    `UPDATE settings SET value = 'm' WHERE key = 'distanceUnit' AND value = 'km';`,
+  );
 }

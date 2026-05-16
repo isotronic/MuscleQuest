@@ -29,7 +29,9 @@ interface EditSetModalProps {
   defaultRepsMax: number;
   defaultTotalSeconds: number;
   defaultTime: number;
+  defaultDistance: number;
   trackingType: string;
+  distanceUnit?: string;
 }
 
 export const EditSetModal: React.FC<EditSetModalProps> = ({
@@ -42,7 +44,9 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
   defaultRepsMax,
   defaultTotalSeconds,
   defaultTime,
+  defaultDistance,
   trackingType,
+  distanceUnit = "m",
 }) => {
   const updateSetInExercise = useWorkoutStore(
     (state) => state.updateSetInExercise,
@@ -66,6 +70,9 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
     formatFromTotalSeconds(defaultTotalSeconds),
   );
   const [time, setTime] = useState(formatFromTotalSeconds(defaultTime));
+  const [distance, setDistance] = useState(
+    defaultDistance ? String(defaultDistance) : "",
+  );
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -101,6 +108,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
         formatFromTotalSeconds(set.restMinutes * 60 + set.restSeconds),
       );
       setTime(set.time ? formatFromTotalSeconds(set.time) : "00:00");
+      setDistance(set.distance !== undefined ? String(set.distance) : "");
     } else {
       const prevSets = exercise?.sets;
       const previousSet =
@@ -113,6 +121,14 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
       if (trackingType === "time") {
         const prevTime = previousSet?.time ?? defaultTime;
         setTime(formatFromTotalSeconds(prevTime));
+      } else if (trackingType === "distance") {
+        setDistance(
+          previousSet?.distance !== undefined
+            ? String(previousSet.distance)
+            : defaultDistance
+              ? String(defaultDistance)
+              : "",
+        );
       } else {
         setRepsMin(
           previousSet?.repsMin !== undefined
@@ -144,6 +160,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
     defaultTime,
     defaultRepsMin,
     defaultRepsMax,
+    defaultDistance,
   ]);
 
   const handleToFailureChange = () => {
@@ -170,12 +187,18 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
     const maxReps = parseReps(isToFailure, repsMax);
     const timeToSave = convertToTotalSeconds(time || "00:00");
 
+    const distanceToSave =
+      trackingType === "distance" && distance !== ""
+        ? parseFloat(distance)
+        : undefined;
+
     const updatedSet = {
       repsMin: minReps,
       repsMax: maxReps,
       restMinutes: Math.floor(totalSeconds / 60),
       restSeconds: totalSeconds % 60,
       time: timeToSave,
+      distance: distanceToSave,
       isWarmup,
       isDropSet,
       isToFailure,
@@ -228,6 +251,43 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                       style={styles.input}
                       value={time}
                       onChange={handleTimeChange}
+                    />
+                  </View>
+                </View>
+              ) : trackingType === "distance" ? (
+                <View>
+                  <ThemedText style={styles.label}>
+                    Target Distance ({distanceUnit})
+                  </ThemedText>
+                  <View style={styles.inputRow}>
+                    <MaterialCommunityIcons
+                      name="minus"
+                      size={32}
+                      color={Colors.dark.text}
+                      onPress={() =>
+                        setDistance((prev) =>
+                          String(Math.max(parseFloat(prev || "0") - 1, 0)),
+                        )
+                      }
+                    />
+                    <TextInput
+                      style={styles.input}
+                      value={distance}
+                      onChangeText={(v: string) =>
+                        setDistance(v.replace(/[^0-9.]/g, ""))
+                      }
+                      keyboardType="numeric"
+                      selectTextOnFocus={true}
+                    />
+                    <MaterialCommunityIcons
+                      name="plus"
+                      size={32}
+                      color={Colors.dark.text}
+                      onPress={() =>
+                        setDistance((prev) =>
+                          String(parseFloat(prev || "0") + 1),
+                        )
+                      }
                     />
                   </View>
                 </View>

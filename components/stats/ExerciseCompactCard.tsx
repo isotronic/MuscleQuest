@@ -8,6 +8,7 @@ import { Colors } from "@/constants/Colors";
 interface ExerciseCompactCardProps {
   exercise: TrackedExerciseWithSets;
   weightUnit: string;
+  distanceUnit: string;
   onPress: () => void;
 }
 
@@ -27,6 +28,7 @@ const formatDaysAgo = (dateStr: string): string => {
 const formatPRLabel = (
   exercise: TrackedExerciseWithSets,
   unit: string,
+  distanceUnit: string,
 ): string => {
   const convFactor = unit === "lbs" ? 2.2046226 : 1;
   const pr = exercise.allTimePR;
@@ -36,16 +38,18 @@ const formatPRLabel = (
       return `${Math.round(pr)} reps`;
     case "time":
       return `${Math.round(pr)}s`;
+    case "distance":
+      return `${pr.toFixed(1)} ${distanceUnit}`;
     default:
       return `1RM ${(pr * convFactor).toFixed(1)} ${unit}`;
   }
 };
 
 export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
-  React.memo(({ exercise, weightUnit, onPress }) => {
+  React.memo(({ exercise, weightUnit, distanceUnit, onPress }) => {
     const latestSet = exercise.completed_sets[0];
     const daysAgo = latestSet ? formatDaysAgo(latestSet.date_completed) : null;
-    const prLabel = formatPRLabel(exercise, weightUnit);
+    const prLabel = formatPRLabel(exercise, weightUnit, distanceUnit);
 
     const sparkData = useMemo(
       () =>

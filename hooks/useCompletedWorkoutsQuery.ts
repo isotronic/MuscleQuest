@@ -19,6 +19,7 @@ interface WorkoutResult {
   weight: number | null;
   reps: number | null;
   time: number | null;
+  distance: number | null;
 }
 
 export interface CompletedWorkout {
@@ -40,6 +41,7 @@ export interface CompletedWorkout {
       weight: number | null;
       reps: number | null;
       time: number | null;
+      distance: number | null;
     }[];
   }[];
 }
@@ -70,7 +72,8 @@ const fetchCompletedWorkouts = async (
         completed_sets.set_number,
         completed_sets.weight,
         completed_sets.reps,
-        completed_sets.time
+        completed_sets.time,
+        completed_sets.distance
       FROM completed_workouts
       LEFT JOIN completed_exercises ON completed_exercises.completed_workout_id = completed_workouts.id
       LEFT JOIN exercises ON exercises.exercise_id = completed_exercises.exercise_id -- Fetch exercise details from exercises table
@@ -133,6 +136,7 @@ const fetchAndOrganize = async (
         weight,
         reps,
         time,
+        distance,
       } = item;
 
       let workout = workoutsMap.get(id);
@@ -182,6 +186,7 @@ const fetchAndOrganize = async (
         weight: convertedWeight,
         reps,
         time,
+        distance: distance ?? null,
       });
     });
 
@@ -255,7 +260,8 @@ const fetchWorkoutHistoryForSession = async (
         cs.set_number,
         cs.weight,
         cs.reps,
-        cs.time
+        cs.time,
+        cs.distance
       FROM (
         SELECT * FROM completed_workouts
         WHERE workout_id = ? AND is_deleted = FALSE
@@ -293,6 +299,7 @@ const fetchWorkoutHistoryForSession = async (
         weight,
         reps,
         time,
+        distance,
       } = item;
 
       let workout = workoutsMap.get(id);
@@ -332,6 +339,7 @@ const fetchWorkoutHistoryForSession = async (
           : null,
         reps,
         time,
+        distance: distance ?? null,
       });
     });
 

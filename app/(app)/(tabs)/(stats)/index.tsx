@@ -65,6 +65,7 @@ export default function StatsScreen() {
   const queryClient = useQueryClient();
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit || "kg";
+  const distanceUnit = settings?.distanceUnit || "m";
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>(
     settings?.timeRange || "30",
   );
@@ -108,6 +109,7 @@ export default function StatsScreen() {
     exercises?.otherExercises,
     parseInt(selectedTimeRange),
     weightUnit,
+    distanceUnit,
   );
 
   const handleTimeRangeChange = useCallback(
@@ -314,6 +316,7 @@ export default function StatsScreen() {
                 key={exercise.exercise_id}
                 exercise={exercise}
                 weightUnit={weightUnit}
+                distanceUnit={distanceUnit}
                 onPress={() =>
                   handleExercisePress(exercise.exercise_id, exercise.name)
                 }

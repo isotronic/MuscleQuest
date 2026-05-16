@@ -34,6 +34,7 @@ export default function HistoryDetailsScreen() {
   } = useSettingsQuery();
 
   const weightUnit = settings?.weightUnit || "kg";
+  const distanceUnit = settings?.distanceUnit || "m";
   const bodyWeight = parseFloat(settings?.bodyWeight || "70");
 
   const deleteMutation = useDeleteCompletedWorkoutMutation();
@@ -43,7 +44,7 @@ export default function HistoryDetailsScreen() {
     isLoading: isWorkoutLoading,
     error: workoutError,
     refetch,
-  } = useCompletedWorkoutByIdQuery(Number(id), weightUnit);
+  } = useCompletedWorkoutByIdQuery(Number(id), weightUnit, distanceUnit);
 
   useEffect(() => {
     if (workoutData) {
@@ -255,6 +256,10 @@ export default function HistoryDetailsScreen() {
                     ) : exercise.exercise_tracking_type === "reps" ? (
                       <ThemedText style={styles.setText}>
                         {set.reps} Reps
+                      </ThemedText>
+                    ) : exercise.exercise_tracking_type === "distance" ? (
+                      <ThemedText style={styles.setText}>
+                        {set.distance} {distanceUnit}
                       </ThemedText>
                     ) : exercise.exercise_tracking_type === "weight" ? (
                       <ThemedText style={styles.setText}>

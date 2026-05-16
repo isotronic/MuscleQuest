@@ -19,6 +19,7 @@ export default function ExerciseDetailScreen() {
   const navigation = useNavigation();
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit || "kg";
+  const distanceUnit = settings?.distanceUnit || "m";
   const [timeRange, setTimeRange] = useState("30");
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function ExerciseDetailScreen() {
     if (val == null) return "—";
     if (trackingType === "reps") return `${Math.round(val)} reps`;
     if (trackingType === "time") return `${Math.round(val)}s`;
+    if (trackingType === "distance") return `${val.toFixed(1)} ${distanceUnit}`;
     return `${(val * convFactor).toFixed(1)} ${weightUnit}`;
   };
 
@@ -113,6 +115,7 @@ export default function ExerciseDetailScreen() {
               exercise={data.trackedExercise}
               timeRange={timeRange}
               weightUnit={weightUnit}
+              distanceUnit={distanceUnit}
               prValue={prValue > 0 ? prValue : undefined}
             />
           </View>
@@ -125,13 +128,15 @@ export default function ExerciseDetailScreen() {
             {data.topPRSets.map((set, i) => (
               <View key={i} style={styles.listRow}>
                 <ThemedText style={styles.listMain}>
-                  {set.weight != null
-                    ? `${(set.weight * convFactor).toFixed(1)} ${weightUnit} × ${set.reps} reps`
-                    : set.reps != null
-                      ? `${set.reps} reps`
-                      : set.time != null
-                        ? formatToHoursMinutes(set.time)
-                        : "—"}
+                  {set.distance != null
+                    ? `${set.distance.toFixed(1)} ${distanceUnit}`
+                    : set.weight != null
+                      ? `${(set.weight * convFactor).toFixed(1)} ${weightUnit} × ${set.reps} reps`
+                      : set.reps != null
+                        ? `${set.reps} reps`
+                        : set.time != null
+                          ? formatToHoursMinutes(set.time)
+                          : "—"}
                 </ThemedText>
                 <ThemedText style={styles.listSub}>
                   {set.oneRepMax != null
@@ -164,13 +169,15 @@ export default function ExerciseDetailScreen() {
                   )}
                 </ThemedText>
                 <ThemedText style={styles.listSub}>
-                  {session.bestSet.weight != null
-                    ? `${(session.bestSet.weight * convFactor).toFixed(1)} ${weightUnit} × ${session.bestSet.reps} reps`
-                    : session.bestSet.reps != null
-                      ? `${session.bestSet.reps} reps`
-                      : session.bestSet.time != null
-                        ? `${session.bestSet.time}s`
-                        : "—"}
+                  {session.bestSet.distance != null
+                    ? `${session.bestSet.distance.toFixed(1)} ${distanceUnit}`
+                    : session.bestSet.weight != null
+                      ? `${(session.bestSet.weight * convFactor).toFixed(1)} ${weightUnit} × ${session.bestSet.reps} reps`
+                      : session.bestSet.reps != null
+                        ? `${session.bestSet.reps} reps`
+                        : session.bestSet.time != null
+                          ? `${session.bestSet.time}s`
+                          : "—"}
                   {session.bestSet.oneRepMax != null
                     ? `  ·  1RM ${(session.bestSet.oneRepMax * convFactor).toFixed(1)} ${weightUnit}`
                     : ""}

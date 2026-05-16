@@ -10,12 +10,15 @@ import { classifySupersetPosition } from "@/utils/supersetUtils";
 import { Colors } from "@/constants/Colors";
 import Bugsnag from "@bugsnag/expo";
 import { Notes } from "@/components/Notes";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
 export default function WorkoutDetailsScreen() {
   const { workoutIndex, planId } = useLocalSearchParams();
   const { data: plan, isLoading, error } = usePlanQuery(Number(planId));
+  const { data: settings } = useSettingsQuery();
+  const distanceUnit = settings?.distanceUnit || "m";
 
   const workout = plan?.workouts[Number(workoutIndex)];
 
@@ -64,6 +67,23 @@ export default function WorkoutDetailsScreen() {
       timeRange = `${formatFromTotalSeconds(minTime)}`;
     } else if (minTime !== Infinity && maxTime !== -Infinity) {
       timeRange = `${formatFromTotalSeconds(minTime)} - ${formatFromTotalSeconds(maxTime)}`;
+    }
+
+    const minDist = Math.min(
+      ...item.sets.map((set) => set.distance ?? Infinity),
+    );
+    const maxDist = Math.max(
+      ...item.sets.map((set) => set.distance ?? -Infinity),
+    );
+
+    let distanceRange: string | undefined;
+    if (minDist !== Infinity && maxDist !== -Infinity) {
+      distanceRange =
+        minDist === maxDist ? `${minDist}` : `${minDist} - ${maxDist}`;
+    } else if (minDist !== Infinity) {
+      distanceRange = `${minDist}`;
+    } else if (maxDist !== -Infinity) {
+      distanceRange = `${maxDist}`;
     }
 
     const isToFailure = item.sets.some((set) => set.isToFailure);
@@ -116,9 +136,13 @@ export default function WorkoutDetailsScreen() {
                   ? timeRange
                     ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
                     : ""
-                  : repRange
-                    ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
-                    : ""}
+                  : item.tracking_type === "distance"
+                    ? distanceRange
+                      ? ` | ${distanceRange} ${distanceUnit}`
+                      : ""
+                    : repRange
+                      ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
+                      : ""}
               </ThemedText>
             </View>
           </View>

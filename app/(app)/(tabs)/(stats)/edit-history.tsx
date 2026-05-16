@@ -22,6 +22,7 @@ export default function EditCompletedWorkoutScreen() {
   } = useSettingsQuery();
 
   const weightUnit = settings?.weightUnit || "kg";
+  const distanceUnit = settings?.distanceUnit || "m";
 
   const [exercises, setExercises] = useState<CompletedWorkout["exercises"]>([]);
   const [weightInputs, setWeightInputs] = useState<{ [key: string]: string }>(
@@ -33,9 +34,9 @@ export default function EditCompletedWorkoutScreen() {
     data: workoutData,
     isLoading: isWorkoutLoading,
     error: workoutError,
-  } = useCompletedWorkoutByIdQuery(Number(id), weightUnit);
+  } = useCompletedWorkoutByIdQuery(Number(id), weightUnit, distanceUnit);
 
-  const editWorkout = useEditCompletedWorkoutMutation(Number(id), weightUnit);
+  const editWorkout = useEditCompletedWorkoutMutation(Number(id), weightUnit, distanceUnit);
 
   // Update exercises when workout data is available
   useEffect(() => {
@@ -217,6 +218,28 @@ export default function EditCompletedWorkoutScreen() {
                           const updated = [...prev];
                           updated[exerciseIndex].sets[setIndex].reps =
                             Number(value);
+                          return updated;
+                        });
+                      }}
+                    />
+                  </View>
+                ) : exercise.exercise_tracking_type === "distance" ? (
+                  <View style={styles.inputContainer}>
+                    <ThemedText style={styles.label}>
+                      Distance ({distanceUnit})
+                    </ThemedText>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Distance"
+                      value={set.distance != null ? String(set.distance) : ""}
+                      placeholderTextColor={Colors.dark.subText}
+                      selectTextOnFocus={true}
+                      keyboardType="numeric"
+                      onChangeText={(value: string) => {
+                        setExercises((prev) => {
+                          const updated = [...prev];
+                          updated[exerciseIndex].sets[setIndex].distance =
+                            value === "" ? null : parseFloat(value);
                           return updated;
                         });
                       }}

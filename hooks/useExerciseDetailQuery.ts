@@ -27,6 +27,7 @@ const progressionMetricCase = `
     WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
     WHEN 'reps' THEN cs.reps
     WHEN 'time' THEN cs.time
+    WHEN 'distance' THEN cs.distance
     ELSE cs.weight * (1 + cs.reps / 30.0)
   END
 `;
@@ -38,6 +39,7 @@ const mapRowToCompletedSet = (row: any, trackingType: string | null): CompletedS
     weight: isWeight ? row.weight : undefined,
     reps: trackingType === "reps" || isWeight ? row.reps : undefined,
     time: trackingType === "time" ? row.time : undefined,
+    distance: trackingType === "distance" ? row.distance : undefined,
     date_completed: row.date_completed,
     oneRepMax: isWeight ? Math.round(row.progression_metric * 10) / 10 : undefined,
     progressionMetric: row.progression_metric,
@@ -63,6 +65,7 @@ const fetchExerciseDetail = async (
           cs.weight,
           cs.reps,
           cs.time,
+          cs.distance,
           cs.set_number,
           DATE(cw.date_completed) AS date_completed,
           (${progressionMetricCase}) AS progression_metric,
@@ -83,7 +86,7 @@ const fetchExerciseDetail = async (
 
     setsQuery += `
       )
-      SELECT tracking_type, weight, reps, time, set_number, date_completed, progression_metric
+      SELECT tracking_type, weight, reps, time, distance, set_number, date_completed, progression_metric
       FROM best_sets
       WHERE rn = 1
       ORDER BY date_completed DESC
@@ -132,7 +135,7 @@ const fetchExerciseDetail = async (
     // Top 5 PR sets (highest progressionMetric, all time)
     const topPRQuery = `
       SELECT
-        cs.weight, cs.reps, cs.time, cs.set_number,
+        cs.weight, cs.reps, cs.time, cs.distance, cs.set_number,
         DATE(cw.date_completed) AS date_completed,
         ${progressionMetricCase} AS progression_metric
       FROM exercises e
@@ -153,7 +156,7 @@ const fetchExerciseDetail = async (
     const recentQuery = `
       SELECT
         DATE(cw.date_completed) AS date_completed,
-        cs.weight, cs.reps, cs.time, cs.set_number,
+        cs.weight, cs.reps, cs.time, cs.distance, cs.set_number,
         MAX(${progressionMetricCase}) AS progression_metric
       FROM exercises e
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id

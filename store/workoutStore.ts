@@ -8,6 +8,7 @@ export interface Set {
   restMinutes: number;
   restSeconds: number;
   time: number | undefined;
+  distance?: number | undefined;
   isWarmup?: boolean;
   isDropSet?: boolean;
   isToFailure?: boolean;

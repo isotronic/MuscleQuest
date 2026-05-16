@@ -14,6 +14,7 @@ interface ExerciseProgressionChartProps {
   exercise: TrackedExerciseWithSets;
   timeRange: string;
   weightUnit: string;
+  distanceUnit: string;
   prValue?: number;
 }
 
@@ -72,7 +73,7 @@ const groupSetsByTime = (
 
 export const ExerciseProgressionChart: React.FC<
   ExerciseProgressionChartProps
-> = ({ exercise, timeRange, weightUnit, prValue }) => {
+> = ({ exercise, timeRange, weightUnit, distanceUnit, prValue }) => {
   // Determine conversion factor
   const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
 
@@ -120,7 +121,9 @@ export const ExerciseProgressionChart: React.FC<
       ? "Time (s)"
       : exercise.tracking_type === "reps"
         ? "Reps"
-        : `1RM (${weightUnitLabel})`; // For null or "weight"
+        : exercise.tracking_type === "distance"
+          ? `Distance (${distanceUnit})`
+          : `1RM (${weightUnitLabel})`;
 
   // Convert latest metrics if applicable
   const latestMetric =
@@ -128,9 +131,11 @@ export const ExerciseProgressionChart: React.FC<
       ? latestSet?.reps
       : exercise.tracking_type === "time"
         ? latestSet?.time
-        : latestSet?.oneRepMax !== undefined
-          ? latestSet.oneRepMax * conversionFactor
-          : undefined;
+        : exercise.tracking_type === "distance"
+          ? latestSet?.progressionMetric
+          : latestSet?.oneRepMax !== undefined
+            ? latestSet.oneRepMax * conversionFactor
+            : undefined;
 
   const latestWeight =
     latestSet?.weight !== undefined && isWeightType

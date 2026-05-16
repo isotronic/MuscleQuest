@@ -99,10 +99,10 @@ export default function SettingsScreen() {
         .padStart(2, "0")} minutes`
     : "";
 
-  // When weightUnit changes, refetch completed workouts
+  // When weightUnit or distanceUnit changes, refetch completed workouts
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
-  }, [settings?.weightUnit, queryClient]);
+  }, [settings?.weightUnit, settings?.distanceUnit, queryClient]);
 
   // Sync local states with fetched settings data on load
   useEffect(() => {
@@ -473,19 +473,19 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
-          {/* <TouchableOpacity
+          <TouchableOpacity
             style={styles.item}
             onPress={() =>
               showOverlay(
                 "distanceUnit",
-                settings?.distanceUnit || "",
+                settings?.distanceUnit || "m",
                 "radio",
-                ["Kilometers", "Miles"],
+                ["m", "ft"],
               )
             }
           >
             <MaterialCommunityIcons
-              name="run"
+              name="map-marker-distance"
               size={24}
               color={Colors.dark.icon}
               style={styles.icon}
@@ -493,10 +493,10 @@ export default function SettingsScreen() {
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>Distance unit</ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.distanceUnit}
+                {settings?.distanceUnit || "m"}
               </ThemedText>
             </View>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
           {/* <TouchableOpacity
             style={styles.item}
             onPress={() =>

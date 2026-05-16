@@ -164,11 +164,16 @@ function computeVolume(workout: CompletedWorkout): number {
 function getBestSetLabel(
   exercise: CompletedWorkout["exercises"][0],
   weightUnit: string,
+  distanceUnit: string,
 ): string {
   if (exercise.sets.length === 0) return "";
   if (exercise.exercise_tracking_type === "time") {
     const maxTime = Math.max(...exercise.sets.map((s) => s.time ?? 0));
     return `best ${maxTime}s`;
+  }
+  if (exercise.exercise_tracking_type === "distance") {
+    const maxDist = Math.max(...exercise.sets.map((s) => s.distance ?? 0));
+    return maxDist > 0 ? `best ${maxDist}${distanceUnit}` : "";
   }
   const best = exercise.sets.reduce((b, s) => {
     const vol = (s.weight ?? 0) * (s.reps ?? 0);
@@ -186,8 +191,12 @@ function formatSetValue(
   set: CompletedWorkout["exercises"][0]["sets"][0],
   trackingType: string,
   weightUnit: string,
+  distanceUnit: string,
 ): string {
   if (trackingType === "time") return `${set.time ?? 0}s`;
+  if (trackingType === "distance") {
+    return set.distance != null ? `${set.distance}${distanceUnit}` : "—";
+  }
   if (set.weight != null && set.reps != null) {
     return `${set.weight}${weightUnit} × ${set.reps}`;
   }
@@ -255,12 +264,14 @@ function DiffChip({
 function ExerciseRow({
   exercise,
   weightUnit,
+  distanceUnit,
 }: {
   exercise: CompletedWorkout["exercises"][0];
   weightUnit: string;
+  distanceUnit: string;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const bestLabel = getBestSetLabel(exercise, weightUnit);
+  const bestLabel = getBestSetLabel(exercise, weightUnit, distanceUnit);
 
   return (
     <View style={styles.exerciseCard}>
@@ -296,6 +307,7 @@ function ExerciseRow({
                   set,
                   exercise.exercise_tracking_type,
                   weightUnit,
+                  distanceUnit,
                 )}
               </ThemedText>
             </View>
@@ -372,6 +384,7 @@ export default function WorkoutSummaryScreen() {
   const insets = useSafeAreaInsets();
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit ?? "kg";
+  const distanceUnit = settings?.distanceUnit ?? "m";
 
   const id = Number(completedWorkoutId);
   const isValidId = Number.isFinite(id) && id > 0;
@@ -379,7 +392,7 @@ export default function WorkoutSummaryScreen() {
     data: workout,
     isLoading,
     isError,
-  } = useCompletedWorkoutByIdQuery(id, weightUnit);
+  } = useCompletedWorkoutByIdQuery(id, weightUnit, distanceUnit);
 
   const workoutId = workout?.workout_id ?? 0;
   const { data: history } = useWorkoutSessionHistoryQuery(
@@ -541,6 +554,7 @@ export default function WorkoutSummaryScreen() {
             key={exercise.exercise_id}
             exercise={exercise}
             weightUnit={weightUnit}
+            distanceUnit={distanceUnit}
           />
         ))}
 

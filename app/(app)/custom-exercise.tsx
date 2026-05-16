@@ -58,6 +58,7 @@ export default function AddCustomExerciseScreen() {
     { label: "Assistance/Reps", value: "assisted" },
     { label: "Reps", value: "reps" },
     { label: "Time", value: "time" },
+    { label: "Distance", value: "distance" },
   ]);
 
   useEffect(() => {

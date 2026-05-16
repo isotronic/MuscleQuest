@@ -100,6 +100,7 @@ export default function WorkoutOverviewScreen() {
   );
 
   const weightUnit = settings?.weightUnit || "kg";
+  const distanceUnit = settings?.distanceUnit || "m";
   const { data: sessionHistory } = useWorkoutSessionHistoryQuery(
     activeWorkout?.workoutId ?? 0,
     weightUnit,
@@ -111,7 +112,7 @@ export default function WorkoutOverviewScreen() {
     }
   }, [sessionHistory, initializeWeightAndReps]);
   const saveCompletedWorkoutMutation =
-    useSaveCompletedWorkoutMutation(weightUnit);
+    useSaveCompletedWorkoutMutation(weightUnit, distanceUnit);
   const lastCompletedWorkoutIdRef = useRef<number | null>(null);
 
   useKeepScreenOn();
@@ -480,6 +481,7 @@ export default function WorkoutOverviewScreen() {
                 weight: set.weight ? parseFloat(set.weight) : null,
                 reps: set.reps ? parseInt(set.reps) : null,
                 time: set.time ? parseInt(set.time) : null,
+                distance: set.distance ? parseFloat(set.distance) : null,
               }));
 
             return { exercise_id: exercise.exercise_id, sets };

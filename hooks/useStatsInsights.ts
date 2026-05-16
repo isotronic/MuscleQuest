@@ -23,6 +23,7 @@ export const useStatsInsights = (
   exercises: Exercise[] | undefined,
   timeRangeDays: number,
   weightUnit: string,
+  distanceUnit: string = "m",
 ): StatsInsights => {
   return useMemo(() => {
     const workoutsPerWeek =
@@ -56,6 +57,8 @@ export const useStatsInsights = (
             biggestGainValue = `+${Math.round(maxGain)} reps`;
           } else if (ex.tracking_type === "time" && maxGain > 0) {
             biggestGainValue = `+${Math.round(maxGain)}s`;
+          } else if (ex.tracking_type === "distance" && maxGain > 0) {
+            biggestGainValue = `+${maxGain.toFixed(1)} ${distanceUnit}`;
           } else {
             biggestGainLabel = null;
             biggestGainValue = null;

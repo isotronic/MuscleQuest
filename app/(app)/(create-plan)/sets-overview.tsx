@@ -18,9 +18,12 @@ export default function SetsOverviewScreen() {
   const { data: settings } = useSettingsQuery();
 
   const totalSeconds = settings ? parseInt(settings?.defaultRestTime) : 0;
+  const weightUnit = settings?.weightUnit || "kg";
+  const distanceUnit = settings?.distanceUnit || "m";
   const defaultRepsMin = 8;
   const defaultRepsMax = 12;
   const defaultTime = 60;
+  const defaultDistance = 0;
   const defaultTotalSeconds = totalSeconds;
 
   const currentWorkout = workouts[Number(workoutIndex)];
@@ -85,9 +88,13 @@ export default function SetsOverviewScreen() {
               {item.isToFailure ? "To failure, " : ""}
               {trackingType === "time"
                 ? `${formattedTime}, `
-                : repRange !== undefined
-                  ? `${repRange} Reps, `
-                  : ""}
+                : trackingType === "distance"
+                  ? item.distance !== undefined
+                    ? `${item.distance} ${distanceUnit}, `
+                    : ""
+                  : repRange !== undefined
+                    ? `${repRange} Reps, `
+                    : ""}
               {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
               Rest
             </ThemedText>
@@ -155,7 +162,9 @@ export default function SetsOverviewScreen() {
         defaultRepsMax={defaultRepsMax}
         defaultTotalSeconds={defaultTotalSeconds}
         defaultTime={defaultTime}
+        defaultDistance={defaultDistance}
         trackingType={trackingType?.toString() || "weight"}
+        distanceUnit={distanceUnit}
       />
     </ThemedView>
   );

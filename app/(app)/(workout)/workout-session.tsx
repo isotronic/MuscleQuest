@@ -54,14 +54,17 @@ interface OutgoingSnapshot {
   weight: string;
   reps: string;
   time: string;
+  distance: string;
   weightIncrement: number;
   buttonSize: number;
   weightUnit: string;
+  distanceUnit: string;
   restMinutes: number;
   restSeconds: number;
   repsMin: number;
   repsMax: number;
   timeMin: number;
+  distanceMin: number | undefined;
   currentSetCompleted: boolean;
   isWarmup: boolean;
   isDropSet: boolean;
@@ -91,6 +94,8 @@ const READONLY_PANEL_DEFAULTS = {
   handleRepsInputChange: noop,
   handleRepsChange: noopNum,
   handleTimeInputChange: noop,
+  handleDistanceInputChange: noop,
+  handleDistanceChange: noopNum,
   handlePreviousSet: noop,
   handleNextSet: noop,
   handleCompleteSet: noop,
@@ -272,6 +277,11 @@ export default function WorkoutSessionScreen() {
   const time =
     weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.time ??
     previousWorkoutSetData?.time?.toString() ??
+    "";
+
+  const distance =
+    weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.distance ??
+    previousWorkoutSetData?.distance?.toString() ??
     "";
 
   const {
@@ -491,6 +501,31 @@ export default function WorkoutSessionScreen() {
     );
   };
 
+  const handleDistanceInputChange = (inputValue: string) => {
+    const sanitizedInput = inputValue.replace(/[^0-9.]/g, "");
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      undefined,
+      undefined,
+      undefined,
+      sanitizedInput,
+    );
+  };
+
+  const handleDistanceChange = (amount: number) => {
+    const currentDistance = isNaN(parseFloat(distance)) ? 0 : parseFloat(distance);
+    const newDistance = Math.max(0, currentDistance + amount).toFixed(1);
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      undefined,
+      undefined,
+      undefined,
+      newDistance,
+    );
+  };
+
   const handleRemoveSet = (index: number) => {
     Alert.alert("Delete Set", "Are you sure you want to delete this set?", [
       { text: "Cancel", style: "cancel" },
@@ -641,6 +676,10 @@ export default function WorkoutSessionScreen() {
       weightAndReps[exerciseIndex]?.[setIndex]?.time ??
       prevData?.time?.toString() ??
       "";
+    const panelDistance =
+      weightAndReps[exerciseIndex]?.[setIndex]?.distance ??
+      prevData?.distance?.toString() ??
+      "";
     const isCompleted = completedSets[exerciseIndex]?.[setIndex] ?? false;
     const isFirst = exerciseIndex === 0 && setIndex === 0;
     const isLast =
@@ -656,14 +695,17 @@ export default function WorkoutSessionScreen() {
       weight: panelWeight,
       reps: panelReps,
       time: panelTime,
+      distance: panelDistance,
       weightIncrement,
       buttonSize,
       weightUnit: settings?.weightUnit || "kg",
+      distanceUnit: settings?.distanceUnit || "m",
       restMinutes: set.restMinutes || 0,
       restSeconds: set.restSeconds || 0,
       repsMin: set.repsMin || 0,
       repsMax: set.repsMax || 0,
       timeMin: set.time || 0,
+      distanceMin: set.distance,
       currentSetCompleted: !!isCompleted,
       isWarmup: set.isWarmup || false,
       isDropSet: set.isDropSet || false,
@@ -793,6 +835,10 @@ export default function WorkoutSessionScreen() {
       weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.time ??
       previousWorkoutSetData?.time?.toString() ??
       "";
+    const distanceStr =
+      weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.distance ??
+      previousWorkoutSetData?.distance?.toString() ??
+      "";
 
     const weightInKg = parseFloat(weightStr);
     const validWeightInKg = isNaN(weightInKg) ? 0 : weightInKg;
@@ -806,6 +852,7 @@ export default function WorkoutSessionScreen() {
       validWeightInKg.toString(),
       validRepsNum.toString(),
       timeStr,
+      distanceStr,
     );
 
     // Only animate when nextSet() will keep this screen mounted.
@@ -877,14 +924,17 @@ export default function WorkoutSessionScreen() {
       weight: validWeightInKg.toString(),
       reps: validRepsNum.toString(),
       time: timeStr,
+      distance: distanceStr,
       weightIncrement,
       buttonSize,
       weightUnit: settings?.weightUnit || "kg",
+      distanceUnit: settings?.distanceUnit || "m",
       restMinutes: currentSet.restMinutes || 0,
       restSeconds: currentSet.restSeconds || 0,
       repsMin: currentSet.repsMin || 0,
       repsMax: currentSet.repsMax || 0,
       timeMin: currentSet.time || 0,
+      distanceMin: currentSet.distance,
       currentSetCompleted: true,
       isWarmup: currentSet.isWarmup || false,
       isDropSet: currentSet.isDropSet || false,
@@ -1138,6 +1188,8 @@ export default function WorkoutSessionScreen() {
                           handleRepsInputChange={handleRepsInputChange}
                           handleRepsChange={handleRepsChange}
                           handleTimeInputChange={handleTimeInputChange}
+                          handleDistanceInputChange={handleDistanceInputChange}
+                          handleDistanceChange={handleDistanceChange}
                           handlePreviousSet={handlePreviousSet}
                           handleNextSet={handleNextSet}
                           handleCompleteSet={handleCompleteSet}
