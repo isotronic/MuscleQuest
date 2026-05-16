@@ -22,6 +22,7 @@ export interface TrackedExerciseWithSets extends TrackedExercise {
   name: string;
   tracking_type: string;
   completed_sets: CompletedSet[];
+  allTimePR: number;
 }
 
 const fetchTrackedExercises = async (
@@ -67,6 +68,38 @@ const fetchTrackedExercises = async (
 
     const trackedExercises = await db.getAllAsync(query);
 
+    // Fetch all-time PR for each tracked exercise (unfiltered by time range)
+    const allTimePRQuery = `
+      SELECT
+        te.exercise_id,
+        MAX(
+          CASE e.tracking_type
+            WHEN 'weight' THEN cs.weight * (1 + cs.reps / 30.0)
+            WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
+            WHEN 'reps' THEN cs.reps
+            WHEN 'time' THEN cs.time
+            ELSE cs.weight * (1 + cs.reps / 30.0)
+          END
+        ) AS all_time_pr
+      FROM tracked_exercises te
+      LEFT JOIN exercises e ON te.exercise_id = e.exercise_id
+      LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
+      LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
+      LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
+      WHERE cw.is_deleted = FALSE OR cw.is_deleted IS NULL
+      GROUP BY te.exercise_id
+    `;
+    const allTimePRRows = (await db.getAllAsync(allTimePRQuery)) as {
+      exercise_id: number;
+      all_time_pr: number | null;
+    }[];
+    const allTimePRMap: Record<number, number> = {};
+    allTimePRRows.forEach((row) => {
+      if (row.all_time_pr !== null) {
+        allTimePRMap[row.exercise_id] = row.all_time_pr;
+      }
+    });
+
     // Group the sets by the exercise
     const groupedExercises: Record<number, TrackedExerciseWithSets> = {};
 
@@ -79,6 +112,7 @@ const fetchTrackedExercises = async (
           completed_sets: [],
           name: row.name,
           tracking_type: row.tracking_type,
+          allTimePR: allTimePRMap[row.exercise_id] ?? 0,
         };
       }
 
