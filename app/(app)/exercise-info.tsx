@@ -6,7 +6,7 @@ import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { ThemedView } from "@/components/ThemedView";
-import { useExerciseDetailsQuery } from "@/hooks/useExerciseDetailsQuery";
+import { useExerciseInfoQuery } from "@/hooks/useExerciseInfoQuery";
 import { useToggleFavoriteExerciseMutation } from "@/hooks/useToggleFavoriteExerciseMutation";
 import Bugsnag from "@bugsnag/expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -14,14 +14,14 @@ import { Notes } from "@/components/Notes";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
-export default function ExerciseDetailsScreen() {
+export default function ExerciseInfoScreen() {
   const { exercise_id } = useLocalSearchParams();
 
   const {
     data: exerciseData,
     error: exerciseError,
     isLoading: exerciseLoading,
-  } = useExerciseDetailsQuery(Number(exercise_id));
+  } = useExerciseInfoQuery(Number(exercise_id));
 
   const { mutate: toggleFavorite } = useToggleFavoriteExerciseMutation();
 

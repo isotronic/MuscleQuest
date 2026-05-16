@@ -131,7 +131,7 @@ export default function SetsOverviewScreen() {
           labelStyle={styles.buttonLabel}
           style={styles.detailsButton}
           onPress={() =>
-            router.push(`/(app)/exercise-details?exercise_id=${exerciseId}`)
+            router.push(`/(app)/exercise-info?exercise_id=${exerciseId}`)
           }
         >
           Details

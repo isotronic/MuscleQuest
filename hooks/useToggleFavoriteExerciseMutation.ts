@@ -40,7 +40,7 @@ export const useToggleFavoriteExerciseMutation = () => {
     onSuccess: (_, { exerciseId }) => {
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
       queryClient.invalidateQueries({
-        queryKey: ["exercise-details", exerciseId],
+        queryKey: ["exercise-info", exerciseId],
       });
     },
   });

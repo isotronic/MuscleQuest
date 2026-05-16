@@ -226,7 +226,7 @@ export default function AddCustomExerciseScreen() {
       queryClient.invalidateQueries({ queryKey: ["plan"] });
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
       queryClient.invalidateQueries({
-        queryKey: ["exercise-details", Number(exercise_id)],
+        queryKey: ["exercise-info", Number(exercise_id)],
       });
       router.back();
     } catch (error: any) {

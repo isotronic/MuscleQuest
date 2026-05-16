@@ -286,7 +286,7 @@ export default function WorkoutCard({
               onPress={() => {
                 closeMenu();
                 router.push(
-                  `/(app)/exercise-details?exercise_id=${item.exercise_id}`,
+                  `/(app)/exercise-info?exercise_id=${item.exercise_id}`,
                 );
               }}
               title="View Details"

@@ -139,7 +139,7 @@ export default function SessionSetInfo({
 
   const handleImagePress = () => {
     router.push({
-      pathname: "/(app)/exercise-details",
+      pathname: "/(app)/exercise-info",
       params: { exercise_id: exercise_id.toString() },
     });
   };

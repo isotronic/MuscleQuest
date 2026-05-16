@@ -11,7 +11,6 @@ import { ExerciseProgressionChart } from "@/components/charts/ExerciseProgressio
 import { Colors } from "@/constants/Colors";
 import { formatToHoursMinutes } from "@/utils/utility";
 
-
 export default function ExerciseDetailScreen() {
   const { exerciseId, name } = useLocalSearchParams<{
     exerciseId: string;
@@ -41,7 +40,10 @@ export default function ExerciseDetailScreen() {
       ? (((latestMetric - prValue) / prValue) * 100).toFixed(1)
       : null;
 
-  const formatMetric = (val: number | null, trackingType: string | null): string => {
+  const formatMetric = (
+    val: number | null,
+    trackingType: string | null,
+  ): string => {
     if (val == null) return "—";
     if (trackingType === "reps") return `${Math.round(val)} reps`;
     if (trackingType === "time") return `${Math.round(val)}s`;
@@ -96,7 +98,8 @@ export default function ExerciseDetailScreen() {
                     },
                   ]}
                 >
-                  {parseFloat(deltaPercent) >= 0 ? "▲" : "▼"} {Math.abs(parseFloat(deltaPercent))}%
+                  {parseFloat(deltaPercent) >= 0 ? "▲" : "▼"}{" "}
+                  {Math.abs(parseFloat(deltaPercent))}%
                 </ThemedText>
               </View>
             </>
@@ -151,11 +154,14 @@ export default function ExerciseDetailScreen() {
             {data.recentSessions.map((session, i) => (
               <View key={i} style={styles.listRow}>
                 <ThemedText style={styles.listMain}>
-                  {new Date(session.date_completed).toLocaleDateString(undefined, {
-                    weekday: "short",
-                    day: "numeric",
-                    month: "short",
-                  })}
+                  {new Date(session.date_completed).toLocaleDateString(
+                    undefined,
+                    {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                    },
+                  )}
                 </ThemedText>
                 <ThemedText style={styles.listSub}>
                   {session.bestSet.weight != null
@@ -175,7 +181,9 @@ export default function ExerciseDetailScreen() {
         )}
 
         {!data?.trackedExercise && (
-          <ThemedText style={{ color: Colors.dark.subText, textAlign: "center" }}>
+          <ThemedText
+            style={{ color: Colors.dark.subText, textAlign: "center" }}
+          >
             No data for this period.
           </ThemedText>
         )}
@@ -186,7 +194,12 @@ export default function ExerciseDetailScreen() {
 
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  container: { flex: 1, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 50 },
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 50,
+  },
   divider: { marginBottom: 16 },
   pillRow: {
     flexDirection: "row",
@@ -200,7 +213,11 @@ const styles = StyleSheet.create({
   pill: { alignItems: "center", flex: 1 },
   pillLabel: { fontSize: 11, color: Colors.dark.subText, marginBottom: 4 },
   pillValue: { fontSize: 16, fontWeight: "bold" },
-  pillDivider: { width: 1, height: 30, backgroundColor: Colors.dark.subText + "40" },
+  pillDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: Colors.dark.subText + "40",
+  },
   section: { marginBottom: 24 },
   sectionTitle: { fontSize: 16, fontWeight: "bold", marginBottom: 10 },
   listRow: {

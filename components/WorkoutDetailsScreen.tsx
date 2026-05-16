@@ -80,7 +80,7 @@ export default function WorkoutDetailsScreen() {
         <TouchableOpacity
           onPress={() => {
             router.push({
-              pathname: "/(app)/exercise-details",
+              pathname: "/(app)/exercise-info",
               params: { exercise_id: exerciseItem.exercise_id.toString() },
             });
           }}
