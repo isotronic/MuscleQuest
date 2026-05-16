@@ -4,6 +4,7 @@ import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { LineChart } from "react-native-gifted-charts";
 import { Colors } from "@/constants/Colors";
+import { chartTheme } from "./chartTheme";
 import {
   TrackedExerciseWithSets,
   CompletedSet,
@@ -167,8 +168,8 @@ export const ExerciseProgressionChart: React.FC<
           isAnimated
           areaChart
           width={250}
-          startFillColor="rgba(231, 64, 67, 0.4)"
-          endFillColor="rgba(231, 64, 67, 0)"
+          startFillColor={chartTheme.negativeAreaStartFill}
+          endFillColor={chartTheme.negativeAreaEndFill}
           yAxisColor="transparent"
           yAxisTextStyle={styles.yAxisLabel}
           xAxisLabelTextStyle={styles.xAxisLabel}

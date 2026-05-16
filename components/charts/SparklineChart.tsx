@@ -20,7 +20,7 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
       data={data}
       width={width}
       height={height}
-      thickness={1.5}
+      thickness={chartTheme.thickness}
       color={chartTheme.primaryColor}
       hideDataPoints
       hideAxesAndRules
@@ -29,7 +29,7 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
       startFillColor={chartTheme.areaStartFill}
       endFillColor={chartTheme.areaEndFill}
       startOpacity={1}
-      endOpacity={1}
+      endOpacity={0}
       adjustToWidth
     />
   );

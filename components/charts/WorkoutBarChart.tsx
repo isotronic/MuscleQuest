@@ -4,6 +4,7 @@ import { BarChart } from "react-native-gifted-charts";
 import { Card } from "react-native-paper";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { chartTheme } from "./chartTheme";
+import { Colors } from "@/constants/Colors";
 
 interface WorkoutBarChartProps {
   completedWorkouts: CompletedWorkout[];
@@ -98,15 +99,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingVertical: 16,
     paddingHorizontal: 8,
-    backgroundColor: "#3A3A4A",
+    backgroundColor: Colors.dark.cardBackground,
   },
   yAxisLabel: {
     fontSize: 10,
-    color: "#9BA1A6",
+    color: Colors.dark.subText,
   },
   xAxisLabel: {
     fontSize: 9,
-    color: "#9BA1A6",
+    color: Colors.dark.subText,
     marginTop: 4,
   },
 });
