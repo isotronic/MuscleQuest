@@ -59,12 +59,10 @@ export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
   };
 
   const handleMinutesChange = (text: string) => {
-    const digits = text.replace(/[^0-9]/g, "").slice(0, 1);
-    const clamped =
-      digits !== "" ? String(Math.min(parseInt(digits, 10), 9)) : "";
-    setMinutes(clamped);
-    onChange(emitValue(clamped, seconds));
-    if (clamped.length >= 1) {
+    const digits = text.replace(/[^0-9]/g, "").slice(0, 2);
+    setMinutes(digits);
+    onChange(emitValue(digits, seconds));
+    if (digits.length >= 2) {
       secondsRef.current?.focus();
     }
   };
@@ -86,7 +84,7 @@ export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
         onBlur={handleMinutesBlur}
         keyboardType="numeric"
         selectTextOnFocus
-        maxLength={1}
+        maxLength={2}
         style={[style, styles.minutesField]}
       />
       <Text style={styles.separator}>:</Text>
