@@ -4,20 +4,71 @@ const { promisify } = require("util");
 const { execFile } = require("child_process");
 const fs = require("fs").promises;
 const path = require("path");
+const readline = require("readline");
 const { reactNative } = require("@bugsnag/source-maps");
 const { getConfig } = require("@expo/config");
 
 const execFileAsync = promisify(execFile);
 const PROJECT_ROOT = process.cwd();
-
-// Default channel; override with EAS_UPDATE_CHANNEL=staging etc.
 const CHANNEL = process.env.EAS_UPDATE_CHANNEL || "production";
 
-async function run() {
-  console.log(`Running EAS Update on channel "${CHANNEL}" for Android...`);
+function ask(question) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer);
+    });
+  });
+}
 
-  // 1) Run eas update and capture JSON output (array of updates)
-  const { stdout } = await execFileAsync(
+async function run() {
+  console.log(`Preparing EAS Update for channel "${CHANNEL}" (Android)...`);
+
+  // 0) Ask for update message
+  const defaultMessage = "OTA update";
+  const msgInput = await ask(
+    `EAS update message [default: "${defaultMessage}"]: `,
+  );
+  const message = (msgInput && msgInput.trim()) || defaultMessage;
+
+  console.log(
+    "\n1) Exporting bundles + sourcemaps for Android (expo export)...\n",
+  );
+
+  // 1) Create a local export with sourcemaps
+  const exportResult = await execFileAsync(
+    "npx",
+    [
+      "expo",
+      "export",
+      "--platform",
+      "android",
+      "--dump-sourcemap",
+      "--output-dir",
+      "dist",
+      "--non-interactive",
+    ],
+    {
+      cwd: PROJECT_ROOT,
+      maxBuffer: 10 * 1024 * 1024,
+    },
+  );
+
+  if (exportResult.stdout) {
+    process.stdout.write(exportResult.stdout);
+  }
+  if (exportResult.stderr) {
+    process.stderr.write(exportResult.stderr);
+  }
+
+  console.log("\n2) Running EAS Update for Android...\n");
+
+  // 2) Run eas update and capture JSON output
+  const updateResult = await execFileAsync(
     "eas",
     [
       "update",
@@ -26,8 +77,9 @@ async function run() {
       "--platform",
       "android",
       "--non-interactive",
-      "--auto",
       "--json",
+      "--message",
+      message,
     ],
     {
       cwd: PROJECT_ROOT,
@@ -35,7 +87,22 @@ async function run() {
     },
   );
 
-  const updates = JSON.parse(stdout);
+  if (updateResult.stdout) {
+    process.stdout.write(updateResult.stdout);
+  }
+  if (updateResult.stderr) {
+    process.stderr.write(updateResult.stderr);
+  }
+
+  let updates;
+  try {
+    updates = JSON.parse(updateResult.stdout);
+  } catch (err) {
+    throw new Error(
+      `Failed to parse EAS Update JSON output. Did --json run correctly?\n${err}`,
+    );
+  }
+
   const androidUpdate =
     Array.isArray(updates) && updates.find((u) => u.platform === "android");
 
@@ -45,7 +112,6 @@ async function run() {
     );
   }
 
-  // Prefer group (update group ID) to match manifest.metadata.updateGroup
   const codeBundleId =
     androidUpdate.group || androidUpdate.groupId || androidUpdate.id;
 
@@ -55,30 +121,45 @@ async function run() {
     );
   }
 
-  console.log(`Using codeBundleId: ${codeBundleId}`);
+  console.log(`\nUsing codeBundleId: ${codeBundleId}\n`);
 
-  // 2) Find Android bundle + sourcemap in dist/bundles
+  // 3) Find Android bundle + sourcemap in dist/bundles
   const bundlesDir = path.join(PROJECT_ROOT, "dist", "bundles");
-  const entries = await fs.readdir(bundlesDir);
-
-  const bundleFile = entries.find((f) => /^android-.*\.js$/.test(f));
-  const sourceMapFile = entries.find((f) => /^android-.*\.map$/.test(f));
-
-  if (!bundleFile || !sourceMapFile) {
+  const entries = await fs.readdir(bundlesDir).catch((err) => {
     throw new Error(
-      `Could not find android-*.js / android-*.map in ${bundlesDir}. ` +
-        "Confirm that EAS Update produced bundles there.",
+      `Could not read ${bundlesDir}. Did expo export run successfully?\n${err}`,
+    );
+  });
+
+  const androidBundleFile = entries.find((f) =>
+    /^android-.*\.(hbc|js)$/.test(f),
+  );
+  const androidSourceMapFile = entries.find((f) => /^android-.*\.map$/.test(f));
+
+  if (!androidBundleFile || !androidSourceMapFile) {
+    throw new Error(
+      `Could not find android-*.hbc/js or android-*.map in ${bundlesDir}.`,
     );
   }
 
-  const bundle = path.join(bundlesDir, bundleFile);
-  const sourceMap = path.join(bundlesDir, sourceMapFile);
+  const originalBundle = path.join(bundlesDir, androidBundleFile);
+  const originalSourceMap = path.join(bundlesDir, androidSourceMapFile);
 
-  console.log("Found bundle and sourcemap:");
+  // 4) Copy to the names Bugsnag expects
+  const bugSnagDir = path.join(PROJECT_ROOT, "dist", "bugsnag-android");
+  await fs.mkdir(bugSnagDir, { recursive: true });
+
+  const bundle = path.join(bugSnagDir, "index.android.bundle");
+  const sourceMap = path.join(bugSnagDir, "index.android.bundle.map");
+
+  await fs.copyFile(originalBundle, bundle);
+  await fs.copyFile(originalSourceMap, sourceMap);
+
+  console.log("Bundle and sourcemap prepared:");
   console.log(`  bundle:    ${bundle}`);
-  console.log(`  sourcemap: ${sourceMap}`);
+  console.log(`  sourcemap: ${sourceMap}\n`);
 
-  // 3) Read Bugsnag API key from Expo config
+  // 5) Read Bugsnag API key from Expo config
   const appConfig = getConfig(PROJECT_ROOT);
   const apiKey = appConfig?.exp?.extra?.bugsnag?.apiKey;
 
@@ -86,7 +167,7 @@ async function run() {
     throw new Error("No Bugsnag API key found in expo.extra.bugsnag.apiKey.");
   }
 
-  console.log("Uploading Android EAS Update sourcemap to Bugsnag...");
+  console.log("3) Uploading Android EAS Update sourcemap to Bugsnag...\n");
 
   await reactNative.uploadOne({
     apiKey,
@@ -94,10 +175,12 @@ async function run() {
     bundle,
     sourceMap,
     projectRoot: PROJECT_ROOT,
-    codeBundleId, // must match Bugsnag.start({ codeBundleId: ... })
+    codeBundleId,
   });
 
-  console.log("Successfully uploaded Android EAS Update sourcemap to Bugsnag.");
+  console.log(
+    "✅ Successfully uploaded Android EAS Update sourcemap to Bugsnag.\n",
+  );
 }
 
 run().catch((err) => {
