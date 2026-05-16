@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
+require("dotenv").config();
+
 const { promisify } = require("util");
 const { execFile } = require("child_process");
 const fs = require("fs").promises;
 const path = require("path");
 const readline = require("readline");
 const { reactNative } = require("@bugsnag/source-maps");
-const { getConfig } = require("@expo/config");
 
 const execFileAsync = promisify(execFile);
 const PROJECT_ROOT = process.cwd();
@@ -161,12 +162,13 @@ async function run() {
   await fs.copyFile(originalBundle, bundle);
   await fs.copyFile(originalSourceMap, sourceMap);
 
-  // 5) Read Bugsnag API key from Expo config
-  const appConfig = getConfig(PROJECT_ROOT);
-  const apiKey = appConfig?.exp?.extra?.bugsnag?.apiKey;
+  // 5) Read Bugsnag API key from .env and upload to Bugsnag
+  const apiKey = process.env.EXPO_PUBLIC_BUGSNAG_API_KEY;
 
   if (!apiKey) {
-    throw new Error("No Bugsnag API key found in expo.extra.bugsnag.apiKey.");
+    throw new Error(
+      "No Bugsnag API key found. Set EXPO_PUBLIC_BUGSNAG_API_KEY in your .env.",
+    );
   }
 
   console.log("3) Uploading Android EAS Update sourcemap to Bugsnag...\n");
