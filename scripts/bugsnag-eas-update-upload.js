@@ -50,7 +50,6 @@ async function run() {
       "--dump-sourcemap",
       "--output-dir",
       "dist",
-      "--non-interactive",
     ],
     {
       cwd: PROJECT_ROOT,
@@ -123,22 +122,29 @@ async function run() {
 
   console.log(`\nUsing codeBundleId: ${codeBundleId}\n`);
 
-  // 3) Find Android bundle + sourcemap in dist/bundles
-  const bundlesDir = path.join(PROJECT_ROOT, "dist", "bundles");
+  // 3) Find Android bundle + sourcemap in dist/_expo/static/js/android
+  const bundlesDir = path.join(
+    PROJECT_ROOT,
+    "dist",
+    "_expo",
+    "static",
+    "js",
+    "android",
+  );
   const entries = await fs.readdir(bundlesDir).catch((err) => {
     throw new Error(
       `Could not read ${bundlesDir}. Did expo export run successfully?\n${err}`,
     );
   });
 
-  const androidBundleFile = entries.find((f) =>
-    /^android-.*\.(hbc|js)$/.test(f),
+  const androidBundleFile = entries.find((f) => /^entry-.*\.(hbc|js)$/.test(f));
+  const androidSourceMapFile = entries.find((f) =>
+    /^entry-.*\.hbc\.map$/.test(f),
   );
-  const androidSourceMapFile = entries.find((f) => /^android-.*\.map$/.test(f));
 
   if (!androidBundleFile || !androidSourceMapFile) {
     throw new Error(
-      `Could not find android-*.hbc/js or android-*.map in ${bundlesDir}.`,
+      `Could not find entry-*.hbc/js or entry-*.hbc.map in ${bundlesDir}.`,
     );
   }
 
@@ -154,10 +160,6 @@ async function run() {
 
   await fs.copyFile(originalBundle, bundle);
   await fs.copyFile(originalSourceMap, sourceMap);
-
-  console.log("Bundle and sourcemap prepared:");
-  console.log(`  bundle:    ${bundle}`);
-  console.log(`  sourcemap: ${sourceMap}\n`);
 
   // 5) Read Bugsnag API key from Expo config
   const appConfig = getConfig(PROJECT_ROOT);
