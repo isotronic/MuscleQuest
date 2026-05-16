@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, ScrollView, StyleSheet, Alert, TextInput } from "react-native";
 import Sortable from "react-native-sortables";
-import type { SortableGridRenderItem } from "react-native-sortables";
+import type {
+  SortableGridRenderItem,
+  SortableGridDragEndParams,
+} from "react-native-sortables";
 import {
   IconButton,
   Menu,
@@ -77,6 +80,25 @@ export default function WorkoutOverviewScreen() {
     initializeWeightAndReps,
   } = useActiveWorkoutStore();
 
+  const stableKeyMapRef = useRef(new WeakMap<UserExercise, string>());
+  const getStableKey = useCallback((exercise: UserExercise): string => {
+    if (!stableKeyMapRef.current.has(exercise)) {
+      stableKeyMapRef.current.set(
+        exercise,
+        Math.random().toString(36).slice(2),
+      );
+    }
+    return stableKeyMapRef.current.get(exercise)!;
+  }, []);
+
+  const keyExtractor = useCallback(
+    (item: GroupedItem): string =>
+      item.type === "single"
+        ? getStableKey(item.exercise)
+        : `ss-${getStableKey(item.exercises[0])}`,
+    [getStableKey],
+  );
+
   const weightUnit = settings?.weightUnit || "kg";
   const { data: sessionHistory } = useWorkoutSessionHistoryQuery(
     activeWorkout?.workoutId ?? 0,
@@ -136,6 +158,15 @@ export default function WorkoutOverviewScreen() {
 
     return result;
   }, [workout]);
+
+  const itemLabels = useMemo(() => {
+    let offset = 0;
+    return groupedData.map((item) => {
+      const label = offset + 1;
+      offset += item.type === "single" ? 1 : 2;
+      return label;
+    });
+  }, [groupedData]);
 
   // Calculate if any sets are completed
   const hasCompletedSets = useMemo(() => {
@@ -222,22 +253,18 @@ export default function WorkoutOverviewScreen() {
   );
 
   const handleOrderChange = useCallback(
-    ({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => {
-      if (fromIndex === toIndex) return;
+    ({ data }: SortableGridDragEndParams<GroupedItem>) => {
       setMenuVisible({});
-      const reordered = [...groupedData];
-      const [moved] = reordered.splice(fromIndex, 1);
-      reordered.splice(toIndex, 0, moved);
-      const newExercises = reordered.flatMap((item) =>
+      const newExercises = data.flatMap((item) =>
         item.type === "single" ? [item.exercise] : item.exercises,
       );
       reorderExercises(newExercises);
     },
-    [groupedData, reorderExercises],
+    [reorderExercises],
   );
 
   const renderItem: SortableGridRenderItem<GroupedItem> = useCallback(
-    ({ item }) => {
+    ({ item, index }) => {
       const renderCard = (
         exercise: UserExercise,
         exerciseIndex: number,
@@ -364,13 +391,15 @@ export default function WorkoutOverviewScreen() {
         );
       };
 
+      const baseLabel = itemLabels[index];
+
       if (item.type === "single") {
         return (
           <View>
             {renderCard(
               item.exercise,
               item.exerciseIndex,
-              item.exerciseIndex + 1,
+              baseLabel,
               false,
               false,
               false,
@@ -384,9 +413,9 @@ export default function WorkoutOverviewScreen() {
       const [idxA, idxB] = item.exerciseIndices;
       return (
         <View>
-          {renderCard(exA, idxA, "A", true, true, false, true)}
+          {renderCard(exA, idxA, baseLabel, true, true, false, true)}
           <View style={styles.supersetConnector} />
-          {renderCard(exB, idxB, "B", true, false, true, false)}
+          {renderCard(exB, idxB, baseLabel + 1, true, false, true, false)}
         </View>
       );
     },
@@ -399,6 +428,7 @@ export default function WorkoutOverviewScreen() {
       handleDeleteExercise,
       handleReplaceExercise,
       handleExercisePress,
+      itemLabels,
     ],
   );
 
@@ -765,11 +795,7 @@ export default function WorkoutOverviewScreen() {
           <Sortable.Grid
             columns={1}
             data={groupedData}
-            keyExtractor={(item) =>
-              item.type === "single"
-                ? item.exerciseIndex.toString()
-                : `ss-${item.exerciseIndices[0]}-${item.exerciseIndices[1]}`
-            }
+            keyExtractor={keyExtractor}
             renderItem={renderItem}
             onDragEnd={handleOrderChange}
             showDropIndicator
