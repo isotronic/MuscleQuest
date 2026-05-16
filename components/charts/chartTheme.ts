@@ -10,6 +10,8 @@ export const chartTheme = {
   negativeColor: Colors.dark.highlight,
   areaStartFill: "rgba(235,170,57,0.4)",
   areaEndFill: "rgba(235,170,57,0)",
+  negativeAreaStartFill: "rgba(231,64,67,0.4)",
+  negativeAreaEndFill: "rgba(231,64,67,0)",
   thickness: 2,
   dataPointRadius: 4,
   barBorderRadius: 4,
