@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     width: "48%",
     paddingVertical: 14,
     paddingHorizontal: 12,
-    borderRadius: 10,
+    borderRadius: 6,
     backgroundColor: Colors.dark.cardBackground,
     alignItems: "center",
   },

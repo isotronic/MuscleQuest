@@ -1,4 +1,5 @@
 import React from "react";
+import { View } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 import { chartTheme } from "./chartTheme";
 
@@ -16,21 +17,24 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
   if (data.length < 2) return null;
 
   return (
-    <LineChart
-      data={data}
-      width={width}
-      height={height}
-      thickness={chartTheme.thickness}
-      color={chartTheme.primaryColor}
-      hideDataPoints
-      hideAxesAndRules
-      isAnimated={false}
-      areaChart
-      startFillColor={chartTheme.areaStartFill}
-      endFillColor={chartTheme.areaEndFill}
-      startOpacity={1}
-      endOpacity={0}
-      adjustToWidth
-    />
+    <View style={{ width, height, overflow: "hidden" }}>
+      <LineChart
+        data={data}
+        width={width}
+        height={height}
+        thickness={chartTheme.thickness}
+        color={chartTheme.primaryColor}
+        hideDataPoints
+        hideAxesAndRules
+        initialSpacing={0}
+        endSpacing={0}
+        isAnimated={false}
+        areaChart
+        startFillColor={chartTheme.areaStartFill}
+        endFillColor={chartTheme.areaEndFill}
+        startOpacity={1}
+        endOpacity={0}
+      />
+    </View>
   );
 };

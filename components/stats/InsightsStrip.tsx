@@ -1,11 +1,12 @@
-import React from "react";
-import { ScrollView, View, StyleSheet } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Pressable, ScrollView, View, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 
 interface InsightPill {
   label: string;
   value: string;
+  tooltip?: string;
 }
 
 interface InsightsStripProps {
@@ -24,13 +25,53 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
   topBodyPart,
   streak,
 }) => {
+  const [tooltipText, setTooltipText] = useState<string | null>(null);
+  const [tooltipLeft, setTooltipLeft] = useState(0);
+  const [tooltipHalfWidth, setTooltipHalfWidth] = useState(0);
+  const [stripHeight, setStripHeight] = useState(0);
+  const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const containerRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const gainPillRef = useRef<any>(null);
+
+  useEffect(
+    () => () => {
+      if (dismissTimer.current) clearTimeout(dismissTimer.current);
+    },
+    [],
+  );
+
+  const showTooltip = (text: string) => {
+    if (dismissTimer.current) clearTimeout(dismissTimer.current);
+    setTooltipHalfWidth(0);
+
+    gainPillRef.current?.measureInWindow(
+      (pillX: number, _pillY: number, pillWidth: number) => {
+        containerRef.current?.measureInWindow((containerX: number) => {
+          setTooltipLeft(pillX - containerX + pillWidth / 2);
+          setTooltipText(text);
+        });
+      },
+    );
+
+    dismissTimer.current = setTimeout(() => setTooltipText(null), 2500);
+  };
+
   const pills: InsightPill[] = [];
 
   if (workoutsPerWeek != null) {
-    pills.push({ label: "Per week", value: `${workoutsPerWeek.toFixed(1)} workouts` });
+    pills.push({
+      label: "Per week (avg)",
+      value: `${workoutsPerWeek.toFixed(1)} workouts`,
+    });
   }
   if (biggestGainLabel && biggestGainValue) {
-    pills.push({ label: `Best gain · ${biggestGainLabel}`, value: biggestGainValue });
+    pills.push({
+      label: "Best gain",
+      value: biggestGainValue,
+      tooltip: biggestGainLabel,
+    });
   }
   if (topBodyPart) {
     pills.push({ label: "Most trained", value: topBodyPart });
@@ -42,18 +83,54 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
   if (pills.length === 0) return null;
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.strip}
-    >
-      {pills.map((pill, i) => (
-        <View key={i} style={styles.pill}>
-          <ThemedText style={styles.pillLabel}>{pill.label}</ThemedText>
-          <ThemedText style={styles.pillValue}>{pill.value}</ThemedText>
+    <View ref={containerRef}>
+      {tooltipText ? (
+        <View
+          style={[
+            styles.tooltip,
+            {
+              position: "absolute",
+              bottom: stripHeight + 6,
+              left: tooltipLeft - tooltipHalfWidth,
+              opacity: tooltipHalfWidth === 0 ? 0 : 1,
+            },
+          ]}
+          onLayout={({
+            nativeEvent,
+          }: {
+            nativeEvent: { layout: { width: number } };
+          }) => {
+            setTooltipHalfWidth(nativeEvent.layout.width / 2);
+          }}
+        >
+          <ThemedText style={styles.tooltipText}>{tooltipText}</ThemedText>
         </View>
-      ))}
-    </ScrollView>
+      ) : null}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.strip}
+        onLayout={({
+          nativeEvent,
+        }: {
+          nativeEvent: { layout: { height: number } };
+        }) => setStripHeight(nativeEvent.layout.height)}
+      >
+        {pills.map((pill, i) => (
+          <Pressable
+            key={i}
+            ref={pill.tooltip ? gainPillRef : undefined}
+            style={styles.pill}
+            onPress={
+              pill.tooltip ? () => showTooltip(pill.tooltip!) : undefined
+            }
+          >
+            <ThemedText style={styles.pillLabel}>{pill.label}</ThemedText>
+            <ThemedText style={styles.pillValue}>{pill.value}</ThemedText>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
   );
 };
 
@@ -64,7 +141,7 @@ const styles = StyleSheet.create({
   },
   pill: {
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 10,
+    borderRadius: 6,
     paddingVertical: 10,
     paddingHorizontal: 14,
     minWidth: 110,
@@ -83,5 +160,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     color: Colors.dark.tint,
+  },
+  tooltip: {
+    backgroundColor: Colors.dark.cardBackground,
+    borderRadius: 6,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: Colors.dark.tint + "60",
+    zIndex: 10,
+  },
+  tooltipText: {
+    fontSize: 12,
+    color: Colors.dark.text,
   },
 });
