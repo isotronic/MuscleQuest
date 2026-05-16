@@ -1,4 +1,4 @@
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { ThemedText } from "./ThemedText";
 import { Colors } from "@/constants/Colors";
@@ -6,9 +6,13 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 
 interface WeekDaysProps {
   completedWorkoutsThisWeek?: CompletedWorkout[];
+  onDayPress?: (completedWorkoutId: number) => void;
 }
 
-export default function WeekDays({ completedWorkoutsThisWeek }: WeekDaysProps) {
+export default function WeekDays({
+  completedWorkoutsThisWeek,
+  onDayPress,
+}: WeekDaysProps) {
   const today = new Date();
   const start = startOfWeek(today, { weekStartsOn: 1 });
   const days = Array.from({ length: 7 }).map((_, i) => addDays(start, i));
@@ -17,8 +21,25 @@ export default function WeekDays({ completedWorkoutsThisWeek }: WeekDaysProps) {
     <View style={styles.container}>
       {days.map((day, index) => {
         const isToday = isSameDay(day, today);
-        const isWorkoutCompleted = completedWorkoutsThisWeek?.some((workout) =>
+        const completedOnDay = completedWorkoutsThisWeek?.find((workout) =>
           isSameDay(new Date(workout.date_completed), day),
+        );
+        const isWorkoutCompleted = !!completedOnDay;
+
+        const circle = (
+          <View
+            style={[
+              styles.circle,
+              isWorkoutCompleted && styles.workoutCompletedCircle,
+              isToday && styles.todayCircle,
+            ]}
+          >
+            <ThemedText
+              style={[styles.dayNumber, isToday && styles.todayDayNumber]}
+            >
+              {format(day, "d")}
+            </ThemedText>
+          </View>
         );
 
         return (
@@ -28,19 +49,13 @@ export default function WeekDays({ completedWorkoutsThisWeek }: WeekDaysProps) {
             >
               {format(day, "EEE")}
             </ThemedText>
-            <View
-              style={[
-                styles.circle,
-                isWorkoutCompleted && styles.workoutCompletedCircle,
-                isToday && styles.todayCircle,
-              ]}
-            >
-              <ThemedText
-                style={[styles.dayNumber, isToday && styles.todayDayNumber]}
-              >
-                {format(day, "d")}
-              </ThemedText>
-            </View>
+            {isWorkoutCompleted && onDayPress && completedOnDay ? (
+              <Pressable onPress={() => onDayPress(completedOnDay.id)}>
+                {circle}
+              </Pressable>
+            ) : (
+              circle
+            )}
           </View>
         );
       })}

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -21,12 +21,14 @@ interface Props {
   schedule: PlanScheduleEntry[];
   workouts: Workout[];
   todayDow: number; // 0=Mon … 6=Sun
+  onPress?: () => void;
 }
 
 export default function WorkoutDoneCard({
   schedule,
   workouts,
   todayDow,
+  onPress,
 }: Props) {
   const todayEntry = schedule.find((e) => e.day_of_week === todayDow);
   const todayWorkoutName =
@@ -45,24 +47,33 @@ export default function WorkoutDoneCard({
   }
 
   return (
-    <ThemedView style={styles.card}>
-      <MaterialCommunityIcons
-        name="check-circle-outline"
-        size={28}
-        color={Colors.dark.completed}
-        style={styles.icon}
-      />
-      <View style={styles.textContainer}>
-        <ThemedText type="subtitle" style={styles.title}>
-          {todayWorkoutName ?? "Workout"} Complete!
-        </ThemedText>
-        {nextLabel ? (
-          <ThemedText style={styles.subtitle}>{nextLabel}</ThemedText>
-        ) : (
-          <ThemedText style={styles.subtitle}>Great work today!</ThemedText>
+    <Pressable onPress={onPress} disabled={!onPress}>
+      <ThemedView style={styles.card}>
+        <MaterialCommunityIcons
+          name="check-circle-outline"
+          size={28}
+          color={Colors.dark.completed}
+          style={styles.icon}
+        />
+        <View style={styles.textContainer}>
+          <ThemedText type="subtitle" style={styles.title}>
+            {todayWorkoutName ?? "Workout"} Complete!
+          </ThemedText>
+          {nextLabel ? (
+            <ThemedText style={styles.subtitle}>{nextLabel}</ThemedText>
+          ) : (
+            <ThemedText style={styles.subtitle}>Great work today!</ThemedText>
+          )}
+        </View>
+        {onPress && (
+          <MaterialCommunityIcons
+            name="chevron-right"
+            size={20}
+            color={Colors.dark.icon}
+          />
         )}
-      </View>
-    </ThemedView>
+      </ThemedView>
+    </Pressable>
   );
 }
 

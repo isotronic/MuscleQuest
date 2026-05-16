@@ -242,7 +242,15 @@ export default function HomeScreen() {
       )}
       <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
         <View style={styles.weekContainer}>
-          <WeekDays completedWorkoutsThisWeek={completedWorkoutsThisWeek} />
+          <WeekDays
+            completedWorkoutsThisWeek={completedWorkoutsThisWeek}
+            onDayPress={(completedWorkoutId) =>
+              router.push({
+                pathname: "/(app)/(workout)/workout-summary",
+                params: { completedWorkoutId: String(completedWorkoutId) },
+              })
+            }
+          />
         </View>
         <View style={styles.summaryContainer}>
           <ThemedText style={styles.summaryText}>
@@ -293,6 +301,20 @@ export default function HomeScreen() {
               schedule={planScheduleEntries!}
               workouts={activePlan!.workouts}
               todayDow={todayDow}
+              onPress={() => {
+                const todayStr = today.toDateString();
+                const completed = completedWorkoutsThisPlanThisWeek.find(
+                  (w) =>
+                    w.workout_id === todayScheduledEntry?.workout_id &&
+                    new Date(w.date_completed).toDateString() === todayStr,
+                );
+                if (completed) {
+                  router.push({
+                    pathname: "/(app)/(workout)/workout-summary",
+                    params: { completedWorkoutId: String(completed.id) },
+                  });
+                }
+              }}
             />
           </View>
         )}
