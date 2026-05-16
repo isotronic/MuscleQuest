@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   },
   pill: {
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 10,
+    borderRadius: 6,
     paddingVertical: 10,
     paddingHorizontal: 14,
     minWidth: 110,
