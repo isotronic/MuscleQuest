@@ -86,7 +86,7 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
         width={270}
         noOfSections={chartTheme.noOfSections}
         initialSpacing={10}
-        maxValue={Math.max(...Object.values(groupedWorkouts))}
+        maxValue={Math.max(0, ...Object.values(groupedWorkouts))}
         hideRules
       />
     </Card>
