@@ -58,7 +58,9 @@ const fetchTrackedExercises = async (
     `;
 
     if (timeRange !== "0") {
-      query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) `;
+      query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) AND (cw.is_deleted = FALSE OR cw.is_deleted IS NULL) `;
+    } else {
+      query += `WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL) `;
     }
 
     query += `
