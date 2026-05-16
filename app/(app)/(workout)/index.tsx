@@ -195,7 +195,7 @@ export default function WorkoutOverviewScreen() {
     }
     router.push({
       pathname: "/(app)/(workout)/workout-summary" as any,
-      params: { completedWorkoutId: String(savedId) },
+      params: { completedWorkoutId: String(savedId), fresh: "true" },
     });
   };
 
@@ -505,7 +505,7 @@ export default function WorkoutOverviewScreen() {
                   clearPersistedStore();
                   router.push({
                     pathname: "/(app)/(workout)/workout-summary" as any,
-                    params: { completedWorkoutId: String(completedWorkoutId) },
+                    params: { completedWorkoutId: String(completedWorkoutId), fresh: "true" },
                   });
                 };
 

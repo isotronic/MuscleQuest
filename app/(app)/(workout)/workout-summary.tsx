@@ -378,9 +378,11 @@ function WeeklyGoalBanner({
 // --- Main screen ---
 
 export default function WorkoutSummaryScreen() {
-  const { completedWorkoutId } = useLocalSearchParams<{
+  const { completedWorkoutId, fresh } = useLocalSearchParams<{
     completedWorkoutId: string;
+    fresh?: string;
   }>();
+  const showConfetti = fresh === "true";
   const insets = useSafeAreaInsets();
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit ?? "kg";
@@ -475,7 +477,7 @@ export default function WorkoutSummaryScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ConfettiAnimation />
+      {showConfetti && <ConfettiAnimation />}
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
