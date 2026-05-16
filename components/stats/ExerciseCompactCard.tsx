@@ -24,7 +24,10 @@ const formatDaysAgo = (dateStr: string): string => {
   return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
 };
 
-const formatPRLabel = (exercise: TrackedExerciseWithSets, unit: string): string => {
+const formatPRLabel = (
+  exercise: TrackedExerciseWithSets,
+  unit: string,
+): string => {
   const convFactor = unit === "lbs" ? 2.2046226 : 1;
   const pr = exercise.allTimePR;
   if (!pr) return "—";
@@ -38,8 +41,8 @@ const formatPRLabel = (exercise: TrackedExerciseWithSets, unit: string): string 
   }
 };
 
-export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> = React.memo(
-  ({ exercise, weightUnit, onPress }) => {
+export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
+  React.memo(({ exercise, weightUnit, onPress }) => {
     const latestSet = exercise.completed_sets[0];
     const daysAgo = latestSet ? formatDaysAgo(latestSet.date_completed) : null;
     const prLabel = formatPRLabel(exercise, weightUnit);
@@ -54,7 +57,11 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> = React.mem
     );
 
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={styles.card}>
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.7}
+        style={styles.card}
+      >
         <View style={styles.left}>
           <ThemedText style={styles.name} numberOfLines={1}>
             {exercise.name}
@@ -70,8 +77,8 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> = React.mem
         </View>
       </TouchableOpacity>
     );
-  },
-);
+  });
+ExerciseCompactCard.displayName = "ExerciseCompactCard";
 
 const styles = StyleSheet.create({
   card: {
