@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   TextInput,
   Modal,
@@ -238,7 +240,10 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
       statusBarTranslucent
     >
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.modalContainer}>
+        <KeyboardAvoidingView
+          style={styles.modalContainer}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
           <TouchableWithoutFeedback>
             <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}>
               {trackingType === "time" ? (
@@ -428,7 +433,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
               </View>
             </Animated.View>
           </TouchableWithoutFeedback>
-        </View>
+        </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
     </Modal>
   );

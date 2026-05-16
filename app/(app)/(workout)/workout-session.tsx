@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   View,
   Alert,
@@ -1134,6 +1136,10 @@ export default function WorkoutSessionScreen() {
           ),
         }}
       />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
       <GestureDetector gesture={panGesture}>
         <View style={styles.panelContainer}>
           {([slot0Style, slot1Style, slot2Style] as const).map(
@@ -1235,6 +1241,7 @@ export default function WorkoutSessionScreen() {
           )}
         </View>
       </GestureDetector>
+      </KeyboardAvoidingView>
       <AnimatedView
         style={[
           styles.timerContainer,
