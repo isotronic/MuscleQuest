@@ -503,7 +503,7 @@ export default function WorkoutSummaryScreen() {
         {prevWorkout && (
           <View style={styles.progressionCard}>
             <ThemedText style={styles.progressionTitle}>
-              vs. Previous Session
+              vs. last &ldquo;{workout.workout_name}&rdquo;
             </ThemedText>
             <View style={styles.diffRow}>
               <DiffChip
