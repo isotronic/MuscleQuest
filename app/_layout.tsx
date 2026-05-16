@@ -169,17 +169,17 @@ function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={DarkTheme}>
-        <PaperProvider theme={paperTheme}>
-          <AuthProvider>
-            <SafeAreaProvider>
+        <SafeAreaProvider>
+          <PaperProvider theme={paperTheme}>
+            <AuthProvider>
               <GestureHandlerRootView>
                 <BottomSheetModalProvider>
                   <Slot />
                 </BottomSheetModalProvider>
               </GestureHandlerRootView>
-            </SafeAreaProvider>
-          </AuthProvider>
-        </PaperProvider>
+            </AuthProvider>
+          </PaperProvider>
+        </SafeAreaProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
