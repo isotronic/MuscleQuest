@@ -53,21 +53,28 @@ const fetchExerciseDetail = async (
     const db = await openDatabase("userData.db");
     const convFactor = weightUnit === "lbs" ? 2.2046226 : 1;
 
-    // Fetch all sets for this exercise (time-range filtered)
+    // Fetch the best set per day for this exercise (time-range filtered).
+    // ROW_NUMBER() deterministically picks the highest-metric set per date,
+    // ensuring cs.weight/reps/time correspond to the actual best set.
     let setsQuery = `
-      SELECT
-        e.tracking_type,
-        cs.weight,
-        cs.reps,
-        cs.time,
-        cs.set_number,
-        DATE(cw.date_completed) AS date_completed,
-        MAX(${progressionMetricCase}) AS progression_metric
-      FROM exercises e
-      LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
-      LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
-      LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE
+      WITH best_sets AS (
+        SELECT
+          e.tracking_type,
+          cs.weight,
+          cs.reps,
+          cs.time,
+          cs.set_number,
+          DATE(cw.date_completed) AS date_completed,
+          (${progressionMetricCase}) AS progression_metric,
+          ROW_NUMBER() OVER (
+            PARTITION BY DATE(cw.date_completed)
+            ORDER BY (${progressionMetricCase}) DESC
+          ) AS rn
+        FROM exercises e
+        LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
+        LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
+        LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
+        WHERE e.exercise_id = ? AND cw.is_deleted = FALSE
     `;
 
     if (timeRange !== "0") {
@@ -75,8 +82,11 @@ const fetchExerciseDetail = async (
     }
 
     setsQuery += `
-      GROUP BY DATE(cw.date_completed)
-      ORDER BY cw.date_completed DESC
+      )
+      SELECT tracking_type, weight, reps, time, set_number, date_completed, progression_metric
+      FROM best_sets
+      WHERE rn = 1
+      ORDER BY date_completed DESC
     `;
 
     const setsRows = (await db.getAllAsync(setsQuery, [exerciseId])) as any[];
@@ -174,7 +184,7 @@ const fetchExerciseDetail = async (
   } catch (error: any) {
     Bugsnag.notify(error);
     console.error("Error fetching exercise detail:", error);
-    return null;
+    throw error;
   }
 };
 
