@@ -125,7 +125,12 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
               pill.tooltip ? () => showTooltip(pill.tooltip!) : undefined
             }
           >
-            <ThemedText style={styles.pillLabel}>{pill.label}</ThemedText>
+            <View style={styles.pillLabelRow}>
+              <ThemedText style={styles.pillLabel}>{pill.label}</ThemedText>
+              {pill.tooltip ? (
+                <ThemedText style={styles.infoIcon}>{"ⓘ"}</ThemedText>
+              ) : null}
+            </View>
             <ThemedText style={styles.pillValue}>{pill.value}</ThemedText>
           </Pressable>
         ))}
@@ -149,11 +154,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.dark.tint + "40",
   },
+  pillLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    marginBottom: 2,
+  },
   pillLabel: {
     fontSize: 11,
     color: Colors.dark.subText,
     textAlign: "center",
-    marginBottom: 2,
+  },
+  infoIcon: {
+    fontSize: 10,
+    color: Colors.dark.subText,
+    lineHeight: 13,
   },
   pillValue: {
     fontSize: 14,
