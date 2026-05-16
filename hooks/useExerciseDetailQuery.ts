@@ -21,6 +21,29 @@ export interface ExerciseDetail {
   recentSessions: RecentSession[];
 }
 
+const progressionMetricCase = `
+  CASE e.tracking_type
+    WHEN 'weight' THEN cs.weight * (1 + cs.reps / 30.0)
+    WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
+    WHEN 'reps' THEN cs.reps
+    WHEN 'time' THEN cs.time
+    ELSE cs.weight * (1 + cs.reps / 30.0)
+  END
+`;
+
+const mapRowToCompletedSet = (row: any, trackingType: string | null): CompletedSet => {
+  const isWeight = !trackingType || trackingType === "weight" || trackingType === "assisted";
+  return {
+    set_number: row.set_number,
+    weight: isWeight ? row.weight : undefined,
+    reps: trackingType === "reps" || isWeight ? row.reps : undefined,
+    time: trackingType === "time" ? row.time : undefined,
+    date_completed: row.date_completed,
+    oneRepMax: isWeight ? Math.round(row.progression_metric * 10) / 10 : undefined,
+    progressionMetric: row.progression_metric,
+  };
+};
+
 const fetchExerciseDetail = async (
   exerciseId: number,
   timeRange: string,
@@ -39,15 +62,7 @@ const fetchExerciseDetail = async (
         cs.time,
         cs.set_number,
         DATE(cw.date_completed) AS date_completed,
-        MAX(
-          CASE e.tracking_type
-            WHEN 'weight' THEN cs.weight * (1 + cs.reps / 30.0)
-            WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
-            WHEN 'reps' THEN cs.reps
-            WHEN 'time' THEN cs.time
-            ELSE cs.weight * (1 + cs.reps / 30.0)
-          END
-        ) AS progression_metric
+        MAX(${progressionMetricCase}) AS progression_metric
       FROM exercises e
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
@@ -69,34 +84,14 @@ const fetchExerciseDetail = async (
     if (setsRows.length === 0) return null;
 
     const trackingType: string | null = setsRows[0]?.tracking_type ?? null;
-    const isWeight =
-      !trackingType || trackingType === "weight" || trackingType === "assisted";
 
     const completedSets: CompletedSet[] = setsRows
       .filter((r) => r.progression_metric !== null)
-      .map((r) => ({
-        set_number: r.set_number,
-        weight: isWeight ? r.weight : undefined,
-        reps:
-          trackingType === "reps" || isWeight ? r.reps : undefined,
-        time: trackingType === "time" ? r.time : undefined,
-        date_completed: r.date_completed,
-        oneRepMax:
-          isWeight ? Math.round(r.progression_metric * 10) / 10 : undefined,
-        progressionMetric: r.progression_metric,
-      }));
+      .map((r) => mapRowToCompletedSet(r, trackingType));
 
     // Fetch all-time PR
     const allTimePRQuery = `
-      SELECT MAX(
-        CASE e.tracking_type
-          WHEN 'weight' THEN cs.weight * (1 + cs.reps / 30.0)
-          WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
-          WHEN 'reps' THEN cs.reps
-          WHEN 'time' THEN cs.time
-          ELSE cs.weight * (1 + cs.reps / 30.0)
-        END
-      ) AS all_time_pr
+      SELECT MAX(${progressionMetricCase}) AS all_time_pr
       FROM exercises e
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
@@ -129,30 +124,19 @@ const fetchExerciseDetail = async (
       SELECT
         cs.weight, cs.reps, cs.time, cs.set_number,
         DATE(cw.date_completed) AS date_completed,
-        CASE e.tracking_type
-          WHEN 'weight' THEN cs.weight * (1 + cs.reps / 30.0)
-          WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
-          WHEN 'reps' THEN cs.reps
-          WHEN 'time' THEN cs.time
-          ELSE cs.weight * (1 + cs.reps / 30.0)
-        END AS progression_metric
+        ${progressionMetricCase} AS progression_metric
       FROM exercises e
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE AND cs.weight IS NOT NULL
+      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE
       ORDER BY progression_metric DESC
       LIMIT 5
     `;
     const topPRRows = (await db.getAllAsync(topPRQuery, [exerciseId])) as any[];
     const topPRSets: PRSet[] = topPRRows.map((r) => ({
-      set_number: r.set_number,
-      weight: isWeight ? r.weight : undefined,
-      reps: r.reps,
-      time: r.time,
+      ...mapRowToCompletedSet(r, trackingType),
       date_completed: r.date_completed,
-      oneRepMax: isWeight ? Math.round(r.progression_metric * 10) / 10 : undefined,
-      progressionMetric: r.progression_metric,
     }));
 
     // Recent 5 sessions (distinct workout days)
@@ -160,15 +144,7 @@ const fetchExerciseDetail = async (
       SELECT
         DATE(cw.date_completed) AS date_completed,
         cs.weight, cs.reps, cs.time, cs.set_number,
-        MAX(
-          CASE e.tracking_type
-            WHEN 'weight' THEN cs.weight * (1 + cs.reps / 30.0)
-            WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
-            WHEN 'reps' THEN cs.reps
-            WHEN 'time' THEN cs.time
-            ELSE cs.weight * (1 + cs.reps / 30.0)
-          END
-        ) AS progression_metric
+        MAX(${progressionMetricCase}) AS progression_metric
       FROM exercises e
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
@@ -181,15 +157,7 @@ const fetchExerciseDetail = async (
     const recentRows = (await db.getAllAsync(recentQuery, [exerciseId])) as any[];
     const recentSessions: RecentSession[] = recentRows.map((r) => ({
       date_completed: r.date_completed,
-      bestSet: {
-        set_number: r.set_number,
-        weight: isWeight ? r.weight : undefined,
-        reps: r.reps,
-        time: r.time,
-        date_completed: r.date_completed,
-        oneRepMax: isWeight ? Math.round(r.progression_metric * 10) / 10 : undefined,
-        progressionMetric: r.progression_metric,
-      },
+      bestSet: mapRowToCompletedSet(r, trackingType),
     }));
 
     const latestMetric =
