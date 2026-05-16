@@ -294,7 +294,9 @@ export default function StatsScreen() {
         {/* Exercises */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>Exercises</ThemedText>
+            <ThemedText style={styles.sectionTitle}>
+              Tracked Exercises
+            </ThemedText>
             <Button
               mode="text"
               compact
@@ -350,12 +352,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 17,
     fontWeight: "bold",
-    marginBottom: 12,
   },
   tileGrid: {
     flexDirection: "row",
