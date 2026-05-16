@@ -56,8 +56,20 @@ import { setupNotificationChannel } from "@/utils/notificationSetup";
 import { setupAppCheck } from "@/utils/initAppCheck";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
+const manifest = Updates.manifest as
+  | (Updates.Manifest & {
+      metadata?: { updateGroup?: string };
+    })
+  | null;
+
+const codeBundleId =
+  manifest?.metadata?.updateGroup ?? Updates.updateId ?? undefined;
+
 // Initialize Bugsnag
-Bugsnag.start(process.env.EXPO_PUBLIC_BUGSNAG_API_KEY);
+Bugsnag.start({
+  apiKey: process.env.EXPO_PUBLIC_BUGSNAG_API_KEY,
+  codeBundleId,
+});
 
 const ErrorBoundary = Bugsnag.getPlugin("react").createErrorBoundary(React);
 
