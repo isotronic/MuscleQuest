@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { Card } from "react-native-paper";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
@@ -11,68 +11,120 @@ interface WorkoutBarChartProps {
   timeRange: string;
 }
 
+interface Bucket {
+  label: string;
+  labelLine2?: string;
+  value: number;
+}
+
 const groupWorkoutsByTime = (
   completedWorkouts: CompletedWorkout[],
   timeRange: string,
-) => {
-  const workoutsGrouped: Record<string, number> = {};
+): Bucket[] => {
+  type InternalBucket = Bucket & { internalKey: string };
+  const buckets: InternalBucket[] = [];
+  const keyToIndex = new Map<string, number>();
+
+  const today = new Date();
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - parseInt(timeRange));
+
+  if (timeRange === "30" || timeRange === "90") {
+    const cursor = new Date(startDate);
+    cursor.setDate(cursor.getDate() - ((cursor.getDay() + 6) % 7));
+    cursor.setHours(0, 0, 0, 0);
+    while (cursor <= today) {
+      const internalKey = `${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`;
+      const label =
+        timeRange === "30"
+          ? `${cursor.getDate()} ${cursor.toLocaleString(undefined, { month: "short" })}`
+          : String(cursor.getDate());
+      const labelLine2 =
+        timeRange === "90"
+          ? cursor.toLocaleString(undefined, { month: "short" })
+          : undefined;
+      buckets.push({ internalKey, label, labelLine2, value: 0 });
+      keyToIndex.set(internalKey, buckets.length - 1);
+      cursor.setDate(cursor.getDate() + 7);
+    }
+  } else {
+    const cursor = new Date(startDate);
+    cursor.setDate(1);
+    cursor.setHours(0, 0, 0, 0);
+    while (cursor <= today) {
+      // Use year+month as key to avoid collision when range spans same month in two years
+      const internalKey = `${cursor.getFullYear()}-${cursor.getMonth()}`;
+      const label = cursor.toLocaleString(undefined, { month: "short" });
+      buckets.push({ internalKey, label, value: 0 });
+      keyToIndex.set(internalKey, buckets.length - 1);
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+  }
 
   completedWorkouts.forEach((workout) => {
     const workoutDate = new Date(workout.date_completed);
+    let internalKey: string;
 
-    // Determine the group key based on the selected time range
-    let groupKey: string;
-
-    if (timeRange === "30") {
-      // Group by week: label in "30 Sep" format
+    if (timeRange === "30" || timeRange === "90") {
       const weekStart = new Date(workoutDate);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of the week
-      const day = weekStart.getDate();
-      const month = weekStart.toLocaleString(undefined, { month: "short" });
-      groupKey = `${day} ${month}`;
-    } else if (timeRange === "90") {
-      // Group by week: label in "18.12." (day.month.) format
-      const weekStart = new Date(workoutDate);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of the week
-      const day = weekStart.getDate().toString().padStart(2, "0"); // Add leading zero
-      const month = (weekStart.getMonth() + 1).toString().padStart(2, "0"); // Add leading zero
-      groupKey = `${day}.${month}.`;
+      weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+      internalKey = `${weekStart.getFullYear()}-${weekStart.getMonth()}-${weekStart.getDate()}`;
     } else {
-      // Group by month: label in the first three letters of the month
-      const month = workoutDate.toLocaleString(undefined, { month: "short" });
-      groupKey = month;
+      internalKey = `${workoutDate.getFullYear()}-${workoutDate.getMonth()}`;
     }
 
-    if (!workoutsGrouped[groupKey]) {
-      workoutsGrouped[groupKey] = 0;
+    const idx = keyToIndex.get(internalKey);
+    if (idx !== undefined) {
+      buckets[idx].value++;
     }
-    workoutsGrouped[groupKey]++;
   });
 
-  return workoutsGrouped;
+  return buckets;
 };
+
+const INITIAL_SPACING = 10;
+const Y_AXIS_WIDTH = 35;
+// screen paddingHorizontal 16 each side + card paddingHorizontal 8 each side
+const HORIZONTAL_INSETS = 16 * 2 + 8 * 2;
 
 export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
   completedWorkouts,
   timeRange,
 }) => {
-  const groupedWorkouts = useMemo(
+  const { width: screenWidth } = useWindowDimensions();
+
+  const buckets = useMemo(
     () => groupWorkoutsByTime(completedWorkouts, timeRange),
     [completedWorkouts, timeRange],
   );
 
-  const barData = Object.keys(groupedWorkouts).map((key) => ({
-    label: key,
-    value: groupedWorkouts[key],
-  }));
+  // Subtract INITIAL_SPACING on the right to mirror the left-side gap
+  const chartWidth =
+    screenWidth - HORIZONTAL_INSETS - Y_AXIS_WIDTH - INITIAL_SPACING;
+  const numBars = Math.max(1, buckets.length);
+  const slotWidth = (chartWidth - INITIAL_SPACING) / numBars;
+  const barSpacing = Math.max(3, Math.floor(slotWidth * 0.3));
+  const barWidth = Math.max(4, Math.floor(slotWidth - barSpacing));
 
-  const barWidth = timeRange === "30" ? 35 : 15;
-  const barSpacing = timeRange === "30" ? 20 : timeRange === "90" ? 15 : 6;
+  const barData = buckets.map((bucket) => {
+    if (bucket.labelLine2) {
+      return {
+        value: bucket.value,
+        labelComponent: () => (
+          <View style={styles.twoLineLabel}>
+            <Text style={styles.twoLineLabelText}>{bucket.label}</Text>
+            <Text style={styles.twoLineLabelText}>{bucket.labelLine2}</Text>
+          </View>
+        ),
+      };
+    }
+    return { value: bucket.value, label: bucket.label };
+  });
 
   return (
     <Card style={styles.card}>
       <BarChart
-        data={barData.reverse()}
+        data={barData}
         barWidth={barWidth}
         spacing={barSpacing}
         isAnimated
@@ -83,10 +135,10 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
         xAxisLabelTextStyle={styles.xAxisLabel}
         yAxisColor="transparent"
         xAxisColor={chartTheme.axisColor}
-        width={270}
+        width={chartWidth}
         noOfSections={chartTheme.noOfSections}
-        initialSpacing={10}
-        maxValue={Math.max(0, ...Object.values(groupedWorkouts))}
+        initialSpacing={INITIAL_SPACING}
+        maxValue={Math.max(1, ...buckets.map((b) => b.value))}
         hideRules
       />
     </Card>
@@ -109,5 +161,13 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: Colors.dark.subText,
     marginTop: 4,
+  },
+  twoLineLabel: {
+    alignItems: "center",
+    marginTop: 4,
+  },
+  twoLineLabelText: {
+    fontSize: 9,
+    color: Colors.dark.subText,
   },
 });
