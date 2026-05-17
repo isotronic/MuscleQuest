@@ -12,7 +12,7 @@ interface SparklineChartProps {
 export const SparklineChart: React.FC<SparklineChartProps> = ({
   data,
   width = 120,
-  height = 30,
+  height = 44,
 }) => {
   if (data.length < 2) return null;
 
@@ -30,7 +30,7 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
         data={normalized}
         width={width}
         height={height}
-        thickness={chartTheme.thickness}
+        thickness={3}
         color={chartTheme.primaryColor}
         hideDataPoints
         hideAxesAndRules
@@ -40,8 +40,8 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
         areaChart
         startFillColor={chartTheme.areaStartFill}
         endFillColor={chartTheme.areaEndFill}
-        startOpacity={1}
-        endOpacity={0}
+        startOpacity={0.6}
+        endOpacity={0.05}
         maxValue={100}
       />
     </View>
