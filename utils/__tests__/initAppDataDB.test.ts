@@ -12,8 +12,9 @@ const mockDatabase = {
 
 describe("initializeAppData", () => {
   let mockDirCreate: jest.Mock;
-  let mockDbFileCopy: jest.Mock;
-  let mockOldDbFileDelete: jest.Mock;
+  let mockDbFileDelete: jest.Mock;
+  let mockOldDb1FileDelete: jest.Mock;
+  let mockOldDb2FileDelete: jest.Mock;
   let mockAssetFileCopy: jest.Mock;
 
   beforeEach(() => {
@@ -21,24 +22,34 @@ describe("initializeAppData", () => {
     (openDatabase as jest.Mock).mockReturnValue(mockDatabase);
 
     mockDirCreate = jest.fn();
-    mockDbFileCopy = jest.fn();
-    mockOldDbFileDelete = jest.fn();
+    mockDbFileDelete = jest.fn();
+    mockOldDb1FileDelete = jest.fn();
+    mockOldDb2FileDelete = jest.fn();
     mockAssetFileCopy = jest.fn();
 
     MockDirectory.mockImplementation(() => ({ create: mockDirCreate }));
   });
 
-  const setupFileMocks = (dbExists: boolean, oldDbExists: boolean) => {
+  const setupFileMocks = (
+    dbExists: boolean,
+    oldDb1Exists: boolean,
+    oldDb2Exists: boolean,
+  ) => {
     MockFile.mockImplementationOnce(() => ({
       exists: dbExists,
-      copy: mockDbFileCopy,
-      uri: "/mock/document/directory/SQLite/appData2.db",
+      delete: mockDbFileDelete,
+      uri: "/mock/document/directory/SQLite/appData3.db",
     })); // dbFile
     MockFile.mockImplementationOnce(() => ({
-      exists: oldDbExists,
-      delete: mockOldDbFileDelete,
+      exists: oldDb1Exists,
+      delete: mockOldDb1FileDelete,
       uri: "/mock/document/directory/SQLite/appData1.db",
-    })); // oldDbFile
+    })); // oldDbFile1
+    MockFile.mockImplementationOnce(() => ({
+      exists: oldDb2Exists,
+      delete: mockOldDb2FileDelete,
+      uri: "/mock/document/directory/SQLite/appData2.db",
+    })); // oldDbFile2
     MockFile.mockImplementation(() => ({
       exists: true,
       copy: mockAssetFileCopy,
@@ -47,7 +58,7 @@ describe("initializeAppData", () => {
   };
 
   it("should not copy database if it exists and dataVersion is sufficient", async () => {
-    setupFileMocks(true, false);
+    setupFileMocks(true, false, false);
     mockDatabase.getFirstAsync.mockResolvedValue({ value: "2.0" });
 
     await initializeAppData();
@@ -57,11 +68,12 @@ describe("initializeAppData", () => {
       idempotent: true,
     });
     expect(mockAssetFileCopy).not.toHaveBeenCalled();
-    expect(mockOldDbFileDelete).not.toHaveBeenCalled();
+    expect(mockOldDb1FileDelete).not.toHaveBeenCalled();
+    expect(mockOldDb2FileDelete).not.toHaveBeenCalled();
   });
 
   it("should copy database if it does not exist", async () => {
-    setupFileMocks(false, false);
+    setupFileMocks(false, false, false);
     mockDatabase.getFirstAsync.mockResolvedValue({ value: "2.0" });
 
     await initializeAppData();
@@ -69,14 +81,15 @@ describe("initializeAppData", () => {
     expect(Asset.fromModule).toHaveBeenCalled();
     expect(mockAssetFileCopy).toHaveBeenCalledWith(
       expect.objectContaining({
-        uri: "/mock/document/directory/SQLite/appData2.db",
+        uri: "/mock/document/directory/SQLite/appData3.db",
       }),
     );
-    expect(mockOldDbFileDelete).not.toHaveBeenCalled();
+    expect(mockOldDb1FileDelete).not.toHaveBeenCalled();
+    expect(mockOldDb2FileDelete).not.toHaveBeenCalled();
   });
 
   it("should copy database if dataVersion is outdated", async () => {
-    setupFileMocks(true, false);
+    setupFileMocks(true, false, false);
     mockDatabase.getFirstAsync.mockResolvedValue({ value: "1.5" });
 
     await initializeAppData();
@@ -85,18 +98,19 @@ describe("initializeAppData", () => {
     expect(mockAssetFileCopy).toHaveBeenCalled();
   });
 
-  it("should delete old database if it exists", async () => {
-    setupFileMocks(true, true);
+  it("should delete old database files if they exist", async () => {
+    setupFileMocks(true, true, true);
     mockDatabase.getFirstAsync.mockResolvedValue({ value: "2.0" });
 
     await initializeAppData();
 
     expect(mockAssetFileCopy).not.toHaveBeenCalled();
-    expect(mockOldDbFileDelete).toHaveBeenCalled();
+    expect(mockOldDb1FileDelete).toHaveBeenCalled();
+    expect(mockOldDb2FileDelete).toHaveBeenCalled();
   });
 
   it("should proceed if dataVersion retrieval fails", async () => {
-    setupFileMocks(false, false);
+    setupFileMocks(false, false, false);
     mockDatabase.getFirstAsync.mockRejectedValue(
       new Error("Table does not exist"),
     );
@@ -105,6 +119,7 @@ describe("initializeAppData", () => {
 
     expect(Asset.fromModule).toHaveBeenCalled();
     expect(mockAssetFileCopy).toHaveBeenCalled();
-    expect(mockOldDbFileDelete).not.toHaveBeenCalled();
+    expect(mockOldDb1FileDelete).not.toHaveBeenCalled();
+    expect(mockOldDb2FileDelete).not.toHaveBeenCalled();
   });
 });

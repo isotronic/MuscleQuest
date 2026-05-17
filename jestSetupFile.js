@@ -77,7 +77,7 @@ jest.mock("expo-file-system/legacy", () => ({
   documentDirectory: "/mock/document/directory/",
   getInfoAsync: jest.fn((path) =>
     Promise.resolve({
-      exists: path.includes("appData2.db"),
+      exists: path.includes("appData3.db"),
       isDirectory: false,
     }),
   ),
