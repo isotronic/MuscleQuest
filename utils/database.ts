@@ -904,6 +904,8 @@ interface CompletedWorkoutRow {
   exercise_image: Uint8Array | null;
   exercise_order: number;
   exercise_tracking_type: string | null;
+  is_unilateral: number | null;
+  double_weight: number | null;
   set_id: number;
   set_number: number | null;
   weight: number | null;
@@ -935,6 +937,8 @@ export const fetchCompletedWorkoutById = async (
         e.name as exercise_name, 
         e.image as exercise_image, 
         e.tracking_type as exercise_tracking_type,
+        e.is_unilateral,
+        e.double_weight,
         cs.id as set_id,
         cs.set_number,
         cs.weight,
@@ -991,6 +995,8 @@ export const fetchCompletedWorkoutById = async (
               ? Array.from(row.exercise_image)
               : undefined,
             exercise_tracking_type: row.exercise_tracking_type || "weight",
+            is_unilateral: row.is_unilateral ?? 0,
+            double_weight: row.double_weight ?? 0,
             sets: [],
             exercise_order: row.exercise_order, // Track exercise order
           };
