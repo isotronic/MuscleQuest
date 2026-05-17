@@ -31,6 +31,8 @@ const computeStats = (
   workouts: CompletedWorkout[],
   weightUnit: string,
   excludeWarmup: boolean,
+  countUnilateralDouble: boolean = false,
+  doubleWeightForPaired: boolean = false,
 ) => {
   const tonDivisor = weightUnit === "lbs" ? 2000 : 1000;
   const totalWorkouts = workouts.length;
@@ -47,18 +49,20 @@ const computeStats = (
   const totalVolume = workouts.reduce(
     (acc, w) =>
       acc +
-      w.exercises.reduce(
-        (a, e) =>
+      w.exercises.reduce((a, e) => {
+        const weightM = doubleWeightForPaired && e.double_weight ? 2 : 1;
+        const repM = countUnilateralDouble && e.is_unilateral ? 2 : 1;
+        return (
           a +
           e.sets.reduce(
             (s, set) =>
               (!excludeWarmup || !set.is_warmup) && set.weight && set.reps
-                ? s + set.weight * set.reps
+                ? s + set.weight * weightM * set.reps * repM
                 : s,
             0,
-          ),
-        0,
-      ),
+          )
+        );
+      }, 0),
     0,
   );
   const totalTimeSeconds = workouts.reduce((acc, w) => acc + w.duration, 0);
@@ -79,6 +83,8 @@ export default function StatsScreen() {
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
   const excludeWarmup = settings?.excludeWarmupSets === "true";
+  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
+  const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>(
     settings?.timeRange || "30",
   );
@@ -96,7 +102,12 @@ export default function StatsScreen() {
     data: trackedExercises,
     isLoading: isLoadingTracked,
     error: trackedError,
-  } = useTrackedExercisesQuery(selectedTimeRange, excludeWarmup);
+  } = useTrackedExercisesQuery(
+    selectedTimeRange,
+    excludeWarmup,
+    countUnilateralDouble,
+    doubleWeightForPaired,
+  );
   const {
     data: completedWorkouts,
     isLoading: isLoadingWorkouts,
@@ -194,9 +205,17 @@ export default function StatsScreen() {
     completedWorkouts ?? [],
     weightUnit,
     excludeWarmup,
+    countUnilateralDouble,
+    doubleWeightForPaired,
   );
   const prev = prevWorkouts
-    ? computeStats(prevWorkouts, weightUnit, excludeWarmup)
+    ? computeStats(
+        prevWorkouts,
+        weightUnit,
+        excludeWarmup,
+        countUnilateralDouble,
+        doubleWeightForPaired,
+      )
     : null;
 
   const volumeUnit = weightUnit === "lbs" ? "tn" : "t";
@@ -303,6 +322,8 @@ export default function StatsScreen() {
               timeRange={selectedTimeRange}
               weightUnit={weightUnit}
               excludeWarmup={excludeWarmup}
+              countUnilateralDouble={countUnilateralDouble}
+              doubleWeightForPaired={doubleWeightForPaired}
             />
           </View>
         )}

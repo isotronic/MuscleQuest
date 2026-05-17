@@ -26,34 +26,49 @@ export interface TrackedExerciseWithSets extends TrackedExercise {
   allTimePR: number;
 }
 
+const buildTrackedProgressionCase = (
+  countUnilateralDouble: boolean,
+  doubleWeightForPaired: boolean,
+) => {
+  const wM = doubleWeightForPaired ? 2 : 1;
+  const rM = countUnilateralDouble ? 2 : 1;
+  return `
+    CASE e.tracking_type
+      WHEN 'weight' THEN (cs.weight * CASE WHEN e.double_weight = 1 THEN ${wM} ELSE 1 END) * (1 + cs.reps / 30.0)
+      WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
+      WHEN 'reps' THEN cs.reps * CASE WHEN e.is_unilateral = 1 THEN ${rM} ELSE 1 END
+      WHEN 'time' THEN cs.time
+      WHEN 'distance' THEN cs.distance
+      ELSE (cs.weight * CASE WHEN e.double_weight = 1 THEN ${wM} ELSE 1 END) * (1 + cs.reps / 30.0)
+    END
+  `;
+};
+
 const fetchTrackedExercises = async (
   timeRange: string,
   excludeWarmup: boolean = false,
+  countUnilateralDouble: boolean = false,
+  doubleWeightForPaired: boolean = false,
 ): Promise<TrackedExerciseWithSets[]> => {
   try {
     const db = await openDatabase("userData.db");
+    const progressionCase = buildTrackedProgressionCase(
+      countUnilateralDouble,
+      doubleWeightForPaired,
+    );
 
     let query = `
-      SELECT 
+      SELECT
         te.*,
         e.name,
-        e.tracking_type, -- Include tracking type
+        e.tracking_type,
         cs.weight,
         cs.reps,
         cs.time,
         cs.distance,
         cs.set_number,
         DATE(cw.date_completed) AS date_completed,
-        MAX(
-        CASE e.tracking_type
-          WHEN 'weight' THEN cs.weight * (1 + cs.reps / 30.0)
-          WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
-          WHEN 'reps' THEN cs.reps
-          WHEN 'time' THEN cs.time
-          WHEN 'distance' THEN cs.distance
-          ELSE cs.weight * (1 + cs.reps / 30.0)
-        END
-      ) AS progression_metric
+        MAX(${progressionCase}) AS progression_metric
       FROM tracked_exercises te
       LEFT JOIN exercises e ON te.exercise_id = e.exercise_id
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
@@ -79,16 +94,7 @@ const fetchTrackedExercises = async (
     const allTimePRQuery = `
       SELECT
         te.exercise_id,
-        MAX(
-          CASE e.tracking_type
-            WHEN 'weight' THEN cs.weight * (1 + cs.reps / 30.0)
-            WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
-            WHEN 'reps' THEN cs.reps
-            WHEN 'time' THEN cs.time
-            WHEN 'distance' THEN cs.distance
-            ELSE cs.weight * (1 + cs.reps / 30.0)
-          END
-        ) AS all_time_pr
+        MAX(${progressionCase}) AS all_time_pr
       FROM tracked_exercises te
       LEFT JOIN exercises e ON te.exercise_id = e.exercise_id
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
@@ -162,10 +168,15 @@ const fetchTrackedExercises = async (
   }
 };
 
-export const useTrackedExercisesQuery = (timeRange: string, excludeWarmup: boolean = false) => {
+export const useTrackedExercisesQuery = (
+  timeRange: string,
+  excludeWarmup: boolean = false,
+  countUnilateralDouble: boolean = false,
+  doubleWeightForPaired: boolean = false,
+) => {
   return useQuery<TrackedExerciseWithSets[], Error>({
-    queryKey: ["trackedExercises", timeRange, excludeWarmup],
-    queryFn: () => fetchTrackedExercises(timeRange, excludeWarmup),
+    queryKey: ["trackedExercises", timeRange, excludeWarmup, countUnilateralDouble, doubleWeightForPaired],
+    queryFn: () => fetchTrackedExercises(timeRange, excludeWarmup, countUnilateralDouble, doubleWeightForPaired),
     staleTime: 0,
     gcTime: 0,
   });

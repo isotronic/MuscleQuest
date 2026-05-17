@@ -11,6 +11,8 @@ interface VolumeBarChartProps {
   timeRange: string;
   weightUnit: string;
   excludeWarmup?: boolean;
+  countUnilateralDouble?: boolean;
+  doubleWeightForPaired?: boolean;
 }
 
 interface Bucket {
@@ -26,6 +28,8 @@ const groupVolumeByTime = (
   timeRange: string,
   weightUnit: string,
   excludeWarmup: boolean = false,
+  countUnilateralDouble: boolean = false,
+  doubleWeightForPaired: boolean = false,
 ): Bucket[] => {
   type InternalBucket = Bucket & { internalKey: string };
   const buckets: InternalBucket[] = [];
@@ -155,9 +159,12 @@ const groupVolumeByTime = (
     if (idx === undefined) return;
 
     workout.exercises.forEach((exercise) => {
+      const weightM = doubleWeightForPaired && exercise.double_weight ? 2 : 1;
+      const repM = countUnilateralDouble && exercise.is_unilateral ? 2 : 1;
       exercise.sets.forEach((set) => {
         if ((!excludeWarmup || !set.is_warmup) && set.weight && set.reps) {
-          buckets[idx].value += (set.weight * set.reps) / tonDivisor;
+          buckets[idx].value +=
+            (set.weight * weightM * set.reps * repM) / tonDivisor;
         }
       });
     });
@@ -175,6 +182,8 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
   timeRange,
   weightUnit,
   excludeWarmup = false,
+  countUnilateralDouble = false,
+  doubleWeightForPaired = false,
 }) => {
   const { width: screenWidth } = useWindowDimensions();
 
@@ -185,8 +194,17 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
         timeRange,
         weightUnit,
         excludeWarmup,
+        countUnilateralDouble,
+        doubleWeightForPaired,
       ),
-    [completedWorkouts, timeRange, weightUnit, excludeWarmup],
+    [
+      completedWorkouts,
+      timeRange,
+      weightUnit,
+      excludeWarmup,
+      countUnilateralDouble,
+      doubleWeightForPaired,
+    ],
   );
 
   if (buckets.length === 0) return null;
