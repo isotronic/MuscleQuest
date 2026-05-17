@@ -795,6 +795,11 @@ export default function SettingsScreen() {
               style={styles.switch}
             />
           </View>
+        </View>
+        <Divider style={styles.divider} />
+
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionHeader}>Stats</ThemedText>
           <View style={styles.item}>
             <MaterialCommunityIcons
               name="fire-off"
