@@ -71,7 +71,9 @@ export const useStatsInsights = (
     let topBodyPart: string | null = null;
     if (completedWorkouts && exercises) {
       const bpMap: Record<number, string> = {};
-      exercises.forEach((e) => { bpMap[e.exercise_id] = e.body_part; });
+      exercises.forEach((e) => {
+        bpMap[e.exercise_id] = e.body_part;
+      });
 
       const counts: Record<string, number> = {};
       completedWorkouts.forEach((w) => {
@@ -88,5 +90,12 @@ export const useStatsInsights = (
     }
 
     return { workoutsPerWeek, biggestGainLabel, biggestGainValue, topBodyPart };
-  }, [completedWorkouts, trackedExercises, exercises, timeRangeDays, weightUnit]);
+  }, [
+    completedWorkouts,
+    trackedExercises,
+    exercises,
+    timeRangeDays,
+    weightUnit,
+    distanceUnit,
+  ]);
 };
