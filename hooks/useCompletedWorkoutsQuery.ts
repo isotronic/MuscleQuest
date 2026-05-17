@@ -14,6 +14,8 @@ interface WorkoutResult {
   exercise_name: string;
   exercise_image: Uint8Array | null;
   exercise_tracking_type: string;
+  is_unilateral: number | null;
+  double_weight: number | null;
   set_id: number;
   set_number: number;
   weight: number | null;
@@ -36,6 +38,8 @@ export interface CompletedWorkout {
     exercise_name: string;
     exercise_image?: number[];
     exercise_tracking_type: string;
+    is_unilateral?: number;
+    double_weight?: number;
     sets: {
       set_id: number;
       set_number: number;
@@ -70,6 +74,8 @@ const fetchCompletedWorkouts = async (
         exercises.name AS exercise_name,
         exercises.image AS exercise_image,
         exercises.tracking_type AS exercise_tracking_type,
+        exercises.is_unilateral,
+        exercises.double_weight,
         completed_sets.id AS set_id,
         completed_sets.set_number,
         completed_sets.weight,
@@ -136,6 +142,8 @@ const fetchAndOrganize = async (
         exercise_name,
         exercise_image,
         exercise_tracking_type,
+        is_unilateral,
+        double_weight,
         set_id,
         set_number,
         weight,
@@ -175,6 +183,8 @@ const fetchAndOrganize = async (
             ? Array.from(exercise_image)
             : undefined,
           exercise_tracking_type,
+          is_unilateral: is_unilateral ?? 0,
+          double_weight: double_weight ?? 0,
           sets: [],
         };
         workout.exercises.push(exercise);
@@ -219,7 +229,9 @@ export const useCompletedWorkoutsQuery = (
   });
 };
 
-const getPreviousPeriodDates = (days: number): { startDate: string; endDate: string } => {
+const getPreviousPeriodDates = (
+  days: number,
+): { startDate: string; endDate: string } => {
   const endDate = new Date();
   endDate.setDate(endDate.getDate() - days - 1);
   const startDate = new Date(endDate);
@@ -241,8 +253,15 @@ export const usePreviousPeriodWorkoutsQuery = (
     : { startDate: "", endDate: "" };
 
   return useQuery<CompletedWorkout[]>({
-    queryKey: ["completedWorkouts", weightUnit, distanceUnit, timeRange, "prev"],
-    queryFn: () => fetchAndOrganize(weightUnit, distanceUnit, timeRange, startDate, endDate),
+    queryKey: [
+      "completedWorkouts",
+      weightUnit,
+      distanceUnit,
+      timeRange,
+      "prev",
+    ],
+    queryFn: () =>
+      fetchAndOrganize(weightUnit, distanceUnit, timeRange, startDate, endDate),
     enabled,
     staleTime: 0,
     gcTime: 0,
@@ -271,6 +290,8 @@ const fetchWorkoutHistoryForSession = async (
         ce.exercise_id,
         e.name AS exercise_name,
         e.tracking_type AS exercise_tracking_type,
+        e.is_unilateral,
+        e.double_weight,
         cs.id AS set_id,
         cs.set_number,
         cs.weight,
@@ -343,6 +364,8 @@ const fetchWorkoutHistoryForSession = async (
           exercise_id,
           exercise_name,
           exercise_tracking_type,
+          is_unilateral: item.is_unilateral ?? 0,
+          double_weight: item.double_weight ?? 0,
           sets: [],
         };
         workout.exercises.push(exercise);
@@ -379,7 +402,8 @@ export const useWorkoutSessionHistoryQuery = (
 ) => {
   return useQuery<CompletedWorkout[]>({
     queryKey: ["workoutSessionHistory", workoutId, weightUnit, distanceUnit],
-    queryFn: () => fetchWorkoutHistoryForSession(workoutId, weightUnit, distanceUnit),
+    queryFn: () =>
+      fetchWorkoutHistoryForSession(workoutId, weightUnit, distanceUnit),
     enabled: workoutId > 0,
     staleTime: 5 * 60 * 1000,
   });
