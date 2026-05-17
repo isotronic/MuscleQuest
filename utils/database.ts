@@ -17,6 +17,8 @@ export interface Exercise {
   description: string;
   tracking_type?: string;
   favorite?: number;
+  is_unilateral?: number;
+  double_weight?: number;
 }
 
 export interface SavedWorkout {
@@ -221,6 +223,10 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
                     return row[col] !== existingEntry.tracking_type;
                   case "equipment":
                     return row[col] !== existingEntry.equipment;
+                  case "is_unilateral":
+                    return row[col] !== (existingEntry as any).is_unilateral;
+                  case "double_weight":
+                    return row[col] !== (existingEntry as any).double_weight;
                   default:
                     return false;
                 }
@@ -276,6 +282,8 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
       "description",
       "is_deleted",
       "tracking_type",
+      "is_unilateral",
+      "double_weight",
     ],
     true, // Exclude the auto-incremented exercise_id for userData
   );
@@ -288,6 +296,39 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
     );
 
     console.log("Data copy completed and version updated.");
+  }
+};
+
+export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
+  const userDataDB = await openDatabase("userData.db");
+  const versionResult = await userDataDB.getFirstAsync<SettingsEntry>(
+    "SELECT value FROM settings WHERE key = 'dataVersion'",
+  );
+  if (Number(versionResult?.value) >= 1.9) return;
+
+  const appDataDB = await openDatabase("appData2.db");
+  const appExercises = await appDataDB.getAllAsync<{
+    exercise_id: number;
+    is_unilateral: number;
+    double_weight: number;
+  }>("SELECT exercise_id, is_unilateral, double_weight FROM exercises");
+
+  await userDataDB.execAsync("BEGIN TRANSACTION");
+  try {
+    for (const ex of appExercises) {
+      await userDataDB.runAsync(
+        "UPDATE exercises SET is_unilateral = ?, double_weight = ? WHERE app_exercise_id = ?",
+        [ex.is_unilateral ?? 0, ex.double_weight ?? 0, ex.exercise_id],
+      );
+    }
+    await userDataDB.runAsync(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      ["dataVersion", "1.9"],
+    );
+    await userDataDB.execAsync("COMMIT");
+  } catch (err) {
+    await userDataDB.execAsync("ROLLBACK");
+    Bugsnag.notify(err as Error);
   }
 };
 
@@ -1064,6 +1105,8 @@ export const insertDefaultSettings = async () => {
     { key: "workoutReminderDays", value: "[]" },
     { key: "workoutReminderTime", value: "08:00" },
     { key: "excludeWarmupSets", value: "false" },
+    { key: "countUnilateralDouble", value: "false" },
+    { key: "doubleWeightForPaired", value: "false" },
   ];
 
   // Loop through each default setting
@@ -1114,6 +1157,8 @@ export interface Settings {
   workoutReminderDays: string;
   workoutReminderTime: string;
   excludeWarmupSets: string;
+  countUnilateralDouble: string;
+  doubleWeightForPaired: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

@@ -41,6 +41,7 @@ import {
   copyDataFromAppDataToUserData,
   fetchSettings,
   insertDefaultSettings,
+  syncExerciseFlagsFromAppData,
   updateAppExerciseIds,
 } from "@/utils/database";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -135,6 +136,7 @@ function RootLayout() {
         await updateAppExerciseIds();
         await insertDefaultSettings();
         await loadPremadePlans();
+        await syncExerciseFlagsFromAppData();
         // Set the database initialization state to true after setup is complete
         setIsDatabaseInitialized(true);
       } catch (error) {
