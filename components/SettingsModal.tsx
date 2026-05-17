@@ -33,18 +33,27 @@ const dropdownSeparatorStyle = {
   backgroundColor: Colors.dark.subText,
 };
 
+type SettingsInputValue =
+  | string
+  | number
+  | { minutes: number; seconds: number }
+  | { hours: number; minutes: number };
+
 interface SettingsModalProps {
   visible: boolean;
   settingKey: string | null;
-  inputValue: string | number | { minutes: number; seconds: number };
+  inputValue: SettingsInputValue;
   onCancel: () => void;
-  onSave: (
-    value: string | number | { minutes: number; seconds: number },
-  ) => void;
-  onChangeValue: (
-    value: string | number | { minutes: number; seconds: number },
-  ) => void;
-  settingType: "number" | "radio" | "dropdown" | "restTime" | "slider" | null;
+  onSave: (value: SettingsInputValue) => void;
+  onChangeValue: (value: SettingsInputValue) => void;
+  settingType:
+    | "number"
+    | "radio"
+    | "dropdown"
+    | "restTime"
+    | "reminderTime"
+    | "slider"
+    | null;
   sliderMin?: number;
   sliderMax?: number;
   sliderStep?: number;
@@ -65,13 +74,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   sliderStep = 1,
 }) => {
   const [timeInput, setTimeInput] = useState("");
+  const [reminderTimeInput, setReminderTimeInput] = useState("");
 
-  // Initialize timeInput when modal opens
   useEffect(() => {
-    if (settingType === "restTime" && typeof inputValue === "object") {
+    if (
+      settingType === "restTime" &&
+      typeof inputValue === "object" &&
+      "seconds" in inputValue
+    ) {
       const minutes = inputValue.minutes.toString().padStart(1, "0");
       const seconds = inputValue.seconds.toString().padStart(2, "0");
       setTimeInput(`${minutes}:${seconds}`);
+    }
+    if (
+      settingType === "reminderTime" &&
+      typeof inputValue === "object" &&
+      "hours" in inputValue
+    ) {
+      const hours = inputValue.hours.toString().padStart(2, "0");
+      const minutes = inputValue.minutes.toString().padStart(2, "0");
+      setReminderTimeInput(`${hours}:${minutes}`);
     }
   }, [inputValue, settingType]);
 
@@ -94,9 +116,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     });
   };
 
-  // Handle Save button
   const handleSaveRestTime = () => {
-    // Split the time input into minutes and seconds
     const [minutes, seconds] = timeInput
       .split(":")
       .map((num) => parseInt(num || "0"));
@@ -104,6 +124,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       minutes: minutes || 0,
       seconds: seconds || 0,
     });
+  };
+
+  const handleReminderTimeInputChange = (value: string) => {
+    const sanitizedInput = value.replace(/[^0-9]/g, "");
+    const formattedValue = formatTimeInput(sanitizedInput);
+    setReminderTimeInput(formattedValue);
+
+    const [hoursStr, minutesStr] = formattedValue.split(":");
+    const hours = Math.min(parseInt(hoursStr || "0"), 23);
+    const minutes = parseInt(minutesStr || "0");
+    onChangeValue({ hours: hours || 0, minutes: minutes || 0 });
+  };
+
+  const handleSaveReminderTime = () => {
+    const [hoursStr, minutesStr] = reminderTimeInput.split(":");
+    const hours = Math.min(parseInt(hoursStr || "0"), 23);
+    const minutes = Math.min(parseInt(minutesStr || "0"), 59);
+    onSave({ hours: hours || 0, minutes: minutes || 0 });
   };
 
   const renderDropdownItem = useCallback(
@@ -245,6 +283,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </View>
                 )}
 
+                {settingType === "reminderTime" && (
+                  <View style={styles.labeledInput}>
+                    <ThemedText style={styles.inputLabel}>
+                      Time (Hour:Min)
+                    </ThemedText>
+                    <TimeInput
+                      value={reminderTimeInput}
+                      onChange={handleReminderTimeInputChange}
+                      style={styles.input}
+                    />
+                  </View>
+                )}
+
                 <View style={styles.buttonContainer}>
                   <Button
                     mode="outlined"
@@ -257,7 +308,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <Button
                     mode="contained"
                     onPress={
-                      settingType === "restTime" ? handleSaveRestTime : onSave
+                      settingType === "restTime"
+                        ? handleSaveRestTime
+                        : settingType === "reminderTime"
+                          ? handleSaveReminderTime
+                          : onSave
                     }
                     labelStyle={styles.buttonLabel}
                     style={styles.saveButton}

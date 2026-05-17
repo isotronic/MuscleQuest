@@ -39,6 +39,7 @@ import { initializeAppData } from "@/utils/initAppDataDB";
 import { initUserDataDB } from "@/utils/initUserDataDB";
 import {
   copyDataFromAppDataToUserData,
+  fetchSettings,
   insertDefaultSettings,
   updateAppExerciseIds,
 } from "@/utils/database";
@@ -53,6 +54,7 @@ import {
   removeAsyncStorageItem,
 } from "@/utils/asyncStorage";
 import { setupNotificationChannel } from "@/utils/notificationSetup";
+import { rescheduleWorkoutReminders } from "@/utils/workoutReminder";
 import { setupAppCheck } from "@/utils/initAppCheck";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
@@ -150,7 +152,26 @@ function RootLayout() {
 
   useEffect(() => {
     if (loaded && !error && isDatabaseInitialized && !isInitializing) {
-      setupNotificationChannel();
+      setupNotificationChannel().then(() => {
+        fetchSettings()
+          .then((s) => {
+            rescheduleWorkoutReminders(
+              s.workoutReminderEnabled ?? "false",
+              s.workoutReminderDays ?? "[]",
+              s.workoutReminderTime ?? "08:00",
+            ).catch((err: any) => {
+              Bugsnag.notify(err);
+              console.error("Failed to reschedule workout reminders:", err);
+            });
+          })
+          .catch((err: any) => {
+            Bugsnag.notify(err);
+            console.error(
+              "Failed to fetch settings for workout reminders:",
+              err,
+            );
+          });
+      });
       SplashScreen.hide();
     }
   }, [loaded, error, isDatabaseInitialized, isInitializing]);

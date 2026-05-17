@@ -795,7 +795,14 @@ export const saveCompletedWorkout = async (
         // Insert each completed set
         await db.runAsync(
           `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance) VALUES (?, ?, ?, ?, ?, ?)`,
-          [completedExerciseId, set.set_number, set.weight, set.reps, set.time, set.distance],
+          [
+            completedExerciseId,
+            set.set_number,
+            set.weight,
+            set.reps,
+            set.time,
+            set.distance,
+          ],
         );
       }
     }
@@ -954,8 +961,11 @@ export const fetchCompletedWorkoutById = async (
               (weightInKg * conversionFactor).toFixed(1),
             );
 
-            const distanceInMeters = parseFloat(row.distance?.toString() || "0");
-            const distanceConversionFactor = distanceUnit === "ft" ? 3.28084 : 1;
+            const distanceInMeters = parseFloat(
+              row.distance?.toString() || "0",
+            );
+            const distanceConversionFactor =
+              distanceUnit === "ft" ? 3.28084 : 1;
             const convertedDistance = parseFloat(
               (distanceInMeters * distanceConversionFactor).toFixed(2),
             );
@@ -966,7 +976,10 @@ export const fetchCompletedWorkoutById = async (
               weight: Number.isFinite(convertedWeight) ? convertedWeight : null,
               reps: row.reps || null,
               time: row.time || null,
-              distance: row.distance !== null && Number.isFinite(distanceInMeters) ? convertedDistance : null,
+              distance:
+                row.distance !== null && Number.isFinite(distanceInMeters)
+                  ? convertedDistance
+                  : null,
             });
           }
         }
@@ -1041,6 +1054,9 @@ export const insertDefaultSettings = async () => {
     { key: "showOnboarding", value: "true" },
     { key: "bodyWeight", value: "70" },
     { key: "timerCountdown", value: "5" },
+    { key: "workoutReminderEnabled", value: "false" },
+    { key: "workoutReminderDays", value: "[]" },
+    { key: "workoutReminderTime", value: "08:00" },
   ];
 
   // Loop through each default setting
@@ -1087,6 +1103,9 @@ export interface Settings {
   showOnboarding: string;
   lastSeenVersion: string;
   timerCountdown: string;
+  workoutReminderEnabled: string;
+  workoutReminderDays: string;
+  workoutReminderTime: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
