@@ -200,6 +200,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     alignItems: "center",
     marginBottom: 20,
+    height: 350,
   },
   image: {
     width: "100%",
