@@ -49,7 +49,7 @@ export default function ExerciseInfoScreen() {
       exerciseData?.local_animated_uri,
     );
 
-  const { data: historyData, isLoading: historyLoading } =
+  const { data: historyData, isLoading: historyLoading, isError: historyError } =
     useExerciseHistoryQuery(Number(exercise_id));
 
   const { data: settings } = useSettingsQuery();
@@ -300,6 +300,17 @@ export default function ExerciseInfoScreen() {
             historyLoading ? (
               <View style={styles.emptyState}>
                 <ActivityIndicator size="large" />
+              </View>
+            ) : historyError ? (
+              <View style={styles.emptyState}>
+                <MaterialCommunityIcons
+                  name="alert-circle-outline"
+                  size={48}
+                  color={Colors.dark.subText}
+                />
+                <ThemedText style={styles.emptyText}>
+                  Failed to load history
+                </ThemedText>
               </View>
             ) : (
               <View style={styles.emptyState}>
