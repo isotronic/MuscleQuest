@@ -99,5 +99,6 @@ export const useExercisesQuery = (
     ],
     queryFn: () => fetchAndSortExercises(includeActivePlan, includeFavorites),
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 };
