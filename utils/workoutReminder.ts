@@ -99,7 +99,16 @@ export async function rescheduleWorkoutReminders(
 
   let parsedDays: number[] = [];
   try {
-    parsedDays = JSON.parse(days || "[]");
+    const raw = JSON.parse(days || "[]");
+    parsedDays = Array.isArray(raw)
+      ? [
+          ...new Set(
+            raw
+              .map((d: unknown) => (typeof d === "number" ? d : Number(d)))
+              .filter((d: number) => Number.isInteger(d) && d >= 0 && d <= 6),
+          ),
+        ].sort((a, b) => a - b)
+      : [];
   } catch (error: any) {
     Bugsnag.notify(error);
     console.error("Failed to parse workoutReminderDays:", error);
