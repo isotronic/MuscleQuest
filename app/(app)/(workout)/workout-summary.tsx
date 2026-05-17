@@ -147,18 +147,29 @@ function formatDuration(seconds: number): string {
   return `${s}s`;
 }
 
-function computeVolume(workout: CompletedWorkout, excludeWarmup: boolean = false): number {
-  return workout.exercises.reduce(
-    (total, exercise) =>
+function computeVolume(
+  workout: CompletedWorkout,
+  excludeWarmup: boolean = false,
+  countUnilateralDouble: boolean = false,
+  doubleWeightForPaired: boolean = false,
+): number {
+  return workout.exercises.reduce((total, exercise) => {
+    const weightM = doubleWeightForPaired && exercise.double_weight ? 2 : 1;
+    const repM = countUnilateralDouble && exercise.is_unilateral ? 2 : 1;
+    return (
       total +
       exercise.sets.reduce((setTotal, set) => {
-        if ((!excludeWarmup || !set.is_warmup) && set.weight != null && set.reps != null) {
-          return setTotal + set.weight * set.reps;
+        if (
+          (!excludeWarmup || !set.is_warmup) &&
+          set.weight != null &&
+          set.reps != null
+        ) {
+          return setTotal + set.weight * weightM * set.reps * repM;
         }
         return setTotal;
-      }, 0),
-    0,
-  );
+      }, 0)
+    );
+  }, 0);
 }
 
 function getBestSetLabel(
@@ -388,6 +399,8 @@ export default function WorkoutSummaryScreen() {
   const weightUnit = settings?.weightUnit ?? "kg";
   const distanceUnit = settings?.distanceUnit ?? "m";
   const excludeWarmup = settings?.excludeWarmupSets === "true";
+  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
+  const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
 
   const id = Number(completedWorkoutId);
   const isValidId = Number.isFinite(id) && id > 0;
@@ -403,7 +416,10 @@ export default function WorkoutSummaryScreen() {
     weightUnit,
     distanceUnit,
   );
-  const { data: allWorkouts } = useCompletedWorkoutsQuery(weightUnit, distanceUnit);
+  const { data: allWorkouts } = useCompletedWorkoutsQuery(
+    weightUnit,
+    distanceUnit,
+  );
 
   const weeklyGoal = Number(settings?.weeklyGoal ?? 0);
 
@@ -428,17 +444,36 @@ export default function WorkoutSummaryScreen() {
   }, [history, workout]);
 
   const currentVolume = useMemo(
-    () => (workout ? computeVolume(workout, excludeWarmup) : 0),
-    [workout, excludeWarmup],
+    () =>
+      workout
+        ? computeVolume(
+            workout,
+            excludeWarmup,
+            countUnilateralDouble,
+            doubleWeightForPaired,
+          )
+        : 0,
+    [workout, excludeWarmup, countUnilateralDouble, doubleWeightForPaired],
   );
   const prevVolume = useMemo(
-    () => (prevWorkout ? computeVolume(prevWorkout, excludeWarmup) : 0),
-    [prevWorkout, excludeWarmup],
+    () =>
+      prevWorkout
+        ? computeVolume(
+            prevWorkout,
+            excludeWarmup,
+            countUnilateralDouble,
+            doubleWeightForPaired,
+          )
+        : 0,
+    [prevWorkout, excludeWarmup, countUnilateralDouble, doubleWeightForPaired],
   );
 
   const countSets = (w: CompletedWorkout) =>
     excludeWarmup
-      ? w.exercises.reduce((t, e) => t + e.sets.filter((s) => !s.is_warmup).length, 0)
+      ? w.exercises.reduce(
+          (t, e) => t + e.sets.filter((s) => !s.is_warmup).length,
+          0,
+        )
       : w.total_sets_completed;
 
   if (isLoading) {
