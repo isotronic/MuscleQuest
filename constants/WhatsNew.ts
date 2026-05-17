@@ -163,7 +163,7 @@ The exercise info screen now includes a full history of every time you've perfor
     message: `
 ⚙️ New: Three New Stats Settings!
 
-Customize how your volume and stats are calculated with three new options in Settings:
+Customise how your volume and stats are calculated with three new options in Settings:
 
 • Exclude warm-up sets from stats so they don't skew your numbers.
 • Double dumbbell weight automatically, so you can log the weight of one dumbbell and have the total counted for you.
