@@ -106,6 +106,7 @@ const fetchCompletedWorkouts = async (
 
 const fetchAndOrganize = async (
   weightUnit: string,
+  distanceUnit: string,
   timeRange: number,
   startDate?: string,
   endDate?: string,
@@ -117,6 +118,7 @@ const fetchAndOrganize = async (
     const workoutsArray: CompletedWorkout[] = [];
 
     const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
+    const distanceConversionFactor = distanceUnit === "ft" ? 3.28084 : 1;
 
     results.forEach((item) => {
       const {
@@ -186,7 +188,10 @@ const fetchAndOrganize = async (
         weight: convertedWeight,
         reps,
         time,
-        distance: distance ?? null,
+        distance:
+          distance != null
+            ? parseFloat((distance * distanceConversionFactor).toFixed(2))
+            : null,
       });
     });
 
@@ -199,11 +204,12 @@ const fetchAndOrganize = async (
 
 export const useCompletedWorkoutsQuery = (
   weightUnit: string,
+  distanceUnit: string = "m",
   timeRange = 0,
 ) => {
   return useQuery<CompletedWorkout[]>({
-    queryKey: ["completedWorkouts", weightUnit, timeRange],
-    queryFn: () => fetchAndOrganize(weightUnit, timeRange),
+    queryKey: ["completedWorkouts", weightUnit, distanceUnit, timeRange],
+    queryFn: () => fetchAndOrganize(weightUnit, distanceUnit, timeRange),
     staleTime: 5 * 60 * 1000,
   });
 };
@@ -221,6 +227,7 @@ const getPreviousPeriodDates = (days: number): { startDate: string; endDate: str
 
 export const usePreviousPeriodWorkoutsQuery = (
   weightUnit: string,
+  distanceUnit: string = "m",
   timeRange: number,
 ) => {
   const enabled = timeRange > 0;
@@ -229,8 +236,8 @@ export const usePreviousPeriodWorkoutsQuery = (
     : { startDate: "", endDate: "" };
 
   return useQuery<CompletedWorkout[]>({
-    queryKey: ["completedWorkouts", weightUnit, timeRange, "prev"],
-    queryFn: () => fetchAndOrganize(weightUnit, timeRange, startDate, endDate),
+    queryKey: ["completedWorkouts", weightUnit, distanceUnit, timeRange, "prev"],
+    queryFn: () => fetchAndOrganize(weightUnit, distanceUnit, timeRange, startDate, endDate),
     enabled,
     staleTime: 5 * 60 * 1000,
   });
@@ -239,10 +246,12 @@ export const usePreviousPeriodWorkoutsQuery = (
 const fetchWorkoutHistoryForSession = async (
   workoutId: number,
   weightUnit: string,
+  distanceUnit: string,
 ): Promise<CompletedWorkout[]> => {
   try {
     const db = await openDatabase("userData.db");
     const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
+    const distanceConversionFactor = distanceUnit === "ft" ? 3.28084 : 1;
 
     const query = `
       SELECT
@@ -339,7 +348,10 @@ const fetchWorkoutHistoryForSession = async (
           : null,
         reps,
         time,
-        distance: distance ?? null,
+        distance:
+          distance != null
+            ? parseFloat((distance * distanceConversionFactor).toFixed(2))
+            : null,
       });
     });
 
@@ -354,10 +366,11 @@ const fetchWorkoutHistoryForSession = async (
 export const useWorkoutSessionHistoryQuery = (
   workoutId: number,
   weightUnit: string,
+  distanceUnit: string = "m",
 ) => {
   return useQuery<CompletedWorkout[]>({
-    queryKey: ["workoutSessionHistory", workoutId, weightUnit],
-    queryFn: () => fetchWorkoutHistoryForSession(workoutId, weightUnit),
+    queryKey: ["workoutSessionHistory", workoutId, weightUnit, distanceUnit],
+    queryFn: () => fetchWorkoutHistoryForSession(workoutId, weightUnit, distanceUnit),
     enabled: workoutId > 0,
     staleTime: 5 * 60 * 1000,
   });

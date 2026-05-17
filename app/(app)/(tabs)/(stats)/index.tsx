@@ -88,7 +88,7 @@ export default function StatsScreen() {
     data: completedWorkouts,
     isLoading: isLoadingWorkouts,
     error,
-  } = useCompletedWorkoutsQuery(weightUnit, parseInt(selectedTimeRange));
+  } = useCompletedWorkoutsQuery(weightUnit, distanceUnit, parseInt(selectedTimeRange));
 
   useEffect(() => {
     const anyError = error || exercisesError || trackedError;
@@ -100,6 +100,7 @@ export default function StatsScreen() {
   }, [error, exercisesError, trackedError]);
   const { data: prevWorkouts } = usePreviousPeriodWorkoutsQuery(
     weightUnit,
+    distanceUnit,
     parseInt(selectedTimeRange),
   );
 

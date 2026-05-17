@@ -400,8 +400,9 @@ export default function WorkoutSummaryScreen() {
   const { data: history } = useWorkoutSessionHistoryQuery(
     workoutId,
     weightUnit,
+    distanceUnit,
   );
-  const { data: allWorkouts } = useCompletedWorkoutsQuery(weightUnit);
+  const { data: allWorkouts } = useCompletedWorkoutsQuery(weightUnit, distanceUnit);
 
   const weeklyGoal = Number(settings?.weeklyGoal ?? 0);
 

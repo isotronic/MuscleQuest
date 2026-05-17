@@ -52,11 +52,12 @@ export default function HomeScreen() {
   } = useSettingsQuery();
 
   const weightUnit = settings?.weightUnit || "kg";
+  const distanceUnit = settings?.distanceUnit || "m";
   const {
     data: completedWorkouts,
     isLoading: completedWorkoutsLoading,
     error: completedWorkoutsError,
-  } = useCompletedWorkoutsQuery(weightUnit);
+  } = useCompletedWorkoutsQuery(weightUnit, distanceUnit);
 
   const { data: planScheduleEntries, isLoading: planScheduleLoading } =
     usePlanScheduleQuery(activePlan?.id ?? null);
