@@ -21,6 +21,8 @@ export default function ExerciseDetailScreen() {
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
   const excludeWarmup = settings?.excludeWarmupSets === "true";
+  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
+  const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
   const [timeRange, setTimeRange] = useState("30");
 
   useEffect(() => {
@@ -36,6 +38,8 @@ export default function ExerciseDetailScreen() {
     timeRange,
     weightUnit,
     excludeWarmup,
+    countUnilateralDouble,
+    doubleWeightForPaired,
   );
 
   const convFactor = weightUnit === "lbs" ? 2.2046226 : 1;
