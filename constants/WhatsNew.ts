@@ -150,14 +150,6 @@ Custom exercises can now use a distance tracking type, perfect for cardio and co
 Never miss a session. Set reminder notifications for your workouts directly from the app. Choose which days you want to be reminded, and pick a time to get started.
 `,
   },
-  {
-    version: 2619,
-    message: `
-📈 New: Exercise History in the Info Screen!
-
-The exercise info screen now includes a full history of every time you've performed that exercise, showing weights, reps, and sets from past sessions. Access it during a workout, from your plan, or anywhere else exercise info is available.
-`,
-  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
