@@ -8,9 +8,8 @@ import {
   Platform,
   Image,
   View,
-  Switch,
 } from "react-native";
-import { Button, Divider } from "react-native-paper";
+import { Button, Divider, Switch } from "react-native-paper";
 import DropDownPicker from "react-native-dropdown-picker";
 import { ThemedText } from "@/components/ThemedText";
 import * as ImagePicker from "expo-image-picker";
@@ -595,7 +594,7 @@ export default function AddCustomExerciseScreen() {
                   setIsUnilateral(v);
                   markDirty();
                 }}
-                thumbColor={Colors.dark.tint}
+                color={Colors.dark.tint}
               />
             </View>
 
@@ -614,7 +613,7 @@ export default function AddCustomExerciseScreen() {
                   setDoubleWeight(v);
                   markDirty();
                 }}
-                thumbColor={Colors.dark.tint}
+                color={Colors.dark.tint}
               />
             </View>
           </View>
