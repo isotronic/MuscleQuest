@@ -49,7 +49,7 @@ export default function WeekDays({
             >
               {format(day, "EEE")}
             </ThemedText>
-            {isWorkoutCompleted && onDayPress && completedOnDay?.length ? (
+            {isWorkoutCompleted && onDayPress ? (
               <Pressable onPress={() => onDayPress(completedOnDay)}>
                 {circle}
               </Pressable>
