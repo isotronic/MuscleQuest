@@ -210,7 +210,8 @@ export const useCompletedWorkoutsQuery = (
   return useQuery<CompletedWorkout[]>({
     queryKey: ["completedWorkouts", weightUnit, distanceUnit, timeRange],
     queryFn: () => fetchAndOrganize(weightUnit, distanceUnit, timeRange),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
   });
 };
 
@@ -239,7 +240,8 @@ export const usePreviousPeriodWorkoutsQuery = (
     queryKey: ["completedWorkouts", weightUnit, distanceUnit, timeRange, "prev"],
     queryFn: () => fetchAndOrganize(weightUnit, distanceUnit, timeRange, startDate, endDate),
     enabled,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
   });
 };
 

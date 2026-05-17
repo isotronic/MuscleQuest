@@ -200,6 +200,7 @@ export const useExerciseDetailQuery = (
     queryKey: ["exerciseDetail", exerciseId, timeRange, weightUnit],
     queryFn: () => fetchExerciseDetail(exerciseId, timeRange, weightUnit),
     enabled: exerciseId > 0,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
   });
 };
