@@ -135,9 +135,8 @@ export default function SettingsScreen() {
       });
       setWorkoutReminderEnabled(settings.workoutReminderEnabled === "true");
       try {
-        setWorkoutReminderDays(
-          JSON.parse(settings.workoutReminderDays || "[]"),
-        );
+        const parsed = JSON.parse(settings.workoutReminderDays || "[]");
+        setWorkoutReminderDays(Array.isArray(parsed) ? parsed : []);
       } catch {
         setWorkoutReminderDays([]);
       }
