@@ -47,6 +47,7 @@ const fetchExerciseHistory = async (
         cs.time,
         cs.distance,
         DATE(cw.date_completed) AS date_completed,
+        cw.id                   AS workout_id,
         uw.name                 AS workout_name,
         e.tracking_type,
         COALESCE(
@@ -85,6 +86,7 @@ const fetchExerciseHistory = async (
       time,
       distance,
       date_completed,
+      workout_id,
       workout_name,
       tracking_type,
       hist_bw_kg,
@@ -102,6 +104,7 @@ const fetchExerciseHistory = async (
     time: number | null;
     distance: number | null;
     date_completed: string;
+    workout_id: number;
     workout_name: string | null;
     tracking_type: string | null;
     hist_bw_kg: number | null;
@@ -118,13 +121,13 @@ const fetchExerciseHistory = async (
 
   const sectionMap = new Map<
     string,
-    { workout_name: string | null; sets: HistorySet[] }
+    { date: string; workout_name: string | null; sets: HistorySet[] }
   >();
 
   for (const row of rows) {
-    const key = row.date_completed;
+    const key = `${row.date_completed}__${row.workout_id}`;
     if (!sectionMap.has(key)) {
-      sectionMap.set(key, { workout_name: row.workout_name, sets: [] });
+      sectionMap.set(key, { date: row.date_completed, workout_name: row.workout_name, sets: [] });
     }
     const isPR =
       allTimePR !== null &&
@@ -143,7 +146,7 @@ const fetchExerciseHistory = async (
   }
 
   const sections: HistorySection[] = Array.from(sectionMap.entries()).map(
-    ([date, { workout_name, sets }]) => ({
+    ([_, { date, workout_name, sets }]) => ({
       date: new Date(date + "T00:00:00").toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
