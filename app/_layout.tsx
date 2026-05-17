@@ -152,26 +152,31 @@ function RootLayout() {
 
   useEffect(() => {
     if (loaded && !error && isDatabaseInitialized && !isInitializing) {
-      setupNotificationChannel().then(() => {
-        fetchSettings()
-          .then((s) => {
-            rescheduleWorkoutReminders(
-              s.workoutReminderEnabled ?? "false",
-              s.workoutReminderDays ?? "[]",
-              s.workoutReminderTime ?? "08:00",
-            ).catch((err: any) => {
+      setupNotificationChannel()
+        .then(() => {
+          fetchSettings()
+            .then((s) => {
+              rescheduleWorkoutReminders(
+                s.workoutReminderEnabled ?? "false",
+                s.workoutReminderDays ?? "[]",
+                s.workoutReminderTime ?? "08:00",
+              ).catch((err: any) => {
+                Bugsnag.notify(err);
+                console.error("Failed to reschedule workout reminders:", err);
+              });
+            })
+            .catch((err: any) => {
               Bugsnag.notify(err);
-              console.error("Failed to reschedule workout reminders:", err);
+              console.error(
+                "Failed to fetch settings for workout reminders:",
+                err,
+              );
             });
-          })
-          .catch((err: any) => {
-            Bugsnag.notify(err);
-            console.error(
-              "Failed to fetch settings for workout reminders:",
-              err,
-            );
-          });
-      });
+        })
+        .catch((err: any) => {
+          Bugsnag.notify(err);
+          console.error("Failed to setup notification channel:", err);
+        });
       SplashScreen.hide();
     }
   }, [loaded, error, isDatabaseInitialized, isInitializing]);
