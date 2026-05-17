@@ -243,15 +243,20 @@ export async function initUserDataDB() {
     await db.execAsync(`
       ALTER TABLE completed_sets ADD COLUMN is_warmup BOOLEAN DEFAULT FALSE;
     `);
+  }
 
-    // One-time backfill: read isWarmup flags from plan/standalone workout templates
-    // and apply them to matching historical completed_sets rows.
-    // Works for plan workouts, standalone workouts, and saved quick workouts (all have
-    // a workout_id and user_workout_exercises rows). Unsaved quick workouts (no workout_id)
-    // cannot be backfilled and remain FALSE. If a template was edited after completion the
-    // current template state is used — best-effort accuracy.
-    const templates = await db.getAllAsync<{ workout_id: number; exercise_id: number; sets: string }>(
-      `SELECT workout_id, exercise_id, sets FROM user_workout_exercises WHERE sets IS NOT NULL`,
+  // Idempotent warmup backfill — runs once, resumable if a previous run was interrupted.
+  // Gated by a settings flag so it can retry safely across app starts.
+  const warmupBackfillDone = await db.getFirstAsync<{ value: string }>(
+    `SELECT value FROM settings WHERE key = 'warmup_backfill_completed'`,
+  );
+  if (!warmupBackfillDone) {
+    const templates = await db.getAllAsync<{
+      workout_id: number;
+      exercise_id: number;
+      sets: string;
+    }>(
+      `SELECT workout_id, exercise_id, sets FROM user_workout_exercises WHERE sets IS NOT NULL AND is_deleted = FALSE`,
     );
     for (const tmpl of templates) {
       let planSets: { isWarmup?: boolean }[];
@@ -277,6 +282,9 @@ export async function initUserDataDB() {
         }
       }
     }
+    await db.runAsync(
+      `INSERT OR REPLACE INTO settings (key, value) VALUES ('warmup_backfill_completed', 'true')`,
+    );
   }
   if (!app_plan_idExists) {
     await db.execAsync(`
