@@ -158,6 +158,18 @@ Never miss a session. Set reminder notifications for your workouts directly from
 The exercise info screen now includes a full history of every time you've performed that exercise, showing weights, reps, time, and distance for each set from past sessions. Access it during a workout, from your plan, or anywhere else exercise info is available.
 `,
   },
+  {
+    version: 2620,
+    message: `
+⚙️ New: Three New Stats Settings!
+
+Customize how your volume and stats are calculated with three new options in Settings:
+
+• Exclude warm-up sets from stats so they don't skew your numbers.
+• Double dumbbell weight automatically, so you can log the weight of one dumbbell and have the total counted for you.
+• Double reps for single arm/leg exercises, so unilateral movements are counted correctly in your volume totals.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
