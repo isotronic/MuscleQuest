@@ -158,16 +158,24 @@ export default function AddCustomExerciseScreen() {
 
         if (existingData) {
           setName(existingData.name);
-          setDescription(JSON.parse(existingData.description)[0]);
+          try {
+            setDescription(JSON.parse(existingData.description)[0]);
+          } catch {
+            setDescription("");
+          }
           setImage(existingData.local_animated_uri);
           setBodyPart(existingData.body_part);
           setTargetMuscle(existingData.target_muscle);
           setEquipment(existingData.equipment);
-          setSecondaryMuscles(
-            Array.isArray(existingData.secondary_muscles)
-              ? existingData.secondary_muscles
-              : JSON.parse(existingData.secondary_muscles) || [],
-          );
+          try {
+            setSecondaryMuscles(
+              Array.isArray(existingData.secondary_muscles)
+                ? existingData.secondary_muscles
+                : JSON.parse(existingData.secondary_muscles) || [],
+            );
+          } catch {
+            setSecondaryMuscles([]);
+          }
           setTrackingType(existingData.tracking_type ?? "");
         }
       } catch (error: any) {
@@ -213,16 +221,18 @@ export default function AddCustomExerciseScreen() {
     if (image) {
       const fileName = image.split("/").pop();
       newImageUri = `${FileSystem.documentDirectory}${fileName}`;
-      try {
-        await FileSystem.moveAsync({ from: image, to: newImageUri });
-      } catch (error: any) {
-        console.error("Error saving image to filesystem:", error);
-        Bugsnag.notify(error);
-        Alert.alert(
-          "Image Save Error",
-          "Failed to save the image. Please try again.",
-          [{ text: "OK" }],
-        );
+      if (image !== newImageUri) {
+        try {
+          await FileSystem.moveAsync({ from: image, to: newImageUri });
+        } catch (error: any) {
+          console.error("Error saving image to filesystem:", error);
+          Bugsnag.notify(error);
+          Alert.alert(
+            "Image Save Error",
+            "Failed to save the image. Please try again.",
+            [{ text: "OK" }],
+          );
+        }
       }
     }
 
@@ -266,9 +276,11 @@ export default function AddCustomExerciseScreen() {
 
       queryClient.invalidateQueries({ queryKey: ["plan"] });
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
-      queryClient.invalidateQueries({
-        queryKey: ["exercise-info", Number(exercise_id)],
-      });
+      if (exercise_id) {
+        queryClient.invalidateQueries({
+          queryKey: ["exercise-info", Number(exercise_id)],
+        });
+      }
       isDirtyRef.current = false;
       router.back();
     } catch (error: any) {
