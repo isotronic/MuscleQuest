@@ -5,10 +5,11 @@ import { CompletedWorkout } from "./useCompletedWorkoutsQuery";
 export const useCompletedWorkoutByIdQuery = (
   id: number,
   weightUnit: string,
+  distanceUnit: string = "m",
 ) => {
   return useQuery<CompletedWorkout>({
-    queryKey: ["completedWorkout", id, weightUnit],
-    queryFn: () => fetchCompletedWorkoutById(id, weightUnit),
+    queryKey: ["completedWorkout", id, weightUnit, distanceUnit],
+    queryFn: () => fetchCompletedWorkoutById(id, weightUnit, distanceUnit),
     enabled: Number.isFinite(id) && id > 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,

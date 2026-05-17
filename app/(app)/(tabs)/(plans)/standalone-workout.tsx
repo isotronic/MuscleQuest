@@ -26,6 +26,7 @@ import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 import { useDeleteStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
 import Bugsnag from "@bugsnag/expo";
 import { confirmStartWorkout } from "@/utils/startWorkout";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -38,6 +39,8 @@ export default function StandaloneWorkoutScreen() {
 
   const { data: standaloneWorkouts, isLoading } = useStandaloneWorkoutsQuery();
   const deleteMutation = useDeleteStandaloneWorkout();
+  const { data: settings } = useSettingsQuery();
+  const distanceUnit = settings?.distanceUnit || "m";
 
   if (!Number.isInteger(workoutId) || workoutId <= 0) {
     return (
@@ -117,6 +120,18 @@ export default function StandaloneWorkoutScreen() {
       timeRange = formatFromTotalSeconds(minTime);
     }
 
+    const minDist = Math.min(...item.sets.map((s) => s.distance ?? Infinity));
+    const maxDist = Math.max(...item.sets.map((s) => s.distance ?? -Infinity));
+    let distanceRange: string | undefined;
+    if (minDist !== Infinity && maxDist !== -Infinity) {
+      distanceRange =
+        minDist === maxDist ? `${minDist}` : `${minDist} - ${maxDist}`;
+    } else if (maxDist !== -Infinity) {
+      distanceRange = `${maxDist}`;
+    } else if (minDist !== Infinity) {
+      distanceRange = `${minDist}`;
+    }
+
     const isToFailure = item.sets.some((s) => s.isToFailure);
 
     return (
@@ -124,7 +139,7 @@ export default function StandaloneWorkoutScreen() {
         key={item.exercise_id}
         onPress={() =>
           router.push({
-            pathname: "/(app)/exercise-details",
+            pathname: "/(app)/exercise-info",
             params: { exercise_id: item.exercise_id.toString() },
           })
         }
@@ -148,9 +163,13 @@ export default function StandaloneWorkoutScreen() {
                 ? timeRange
                   ? ` | ${timeRange}${isToFailure ? " (to Failure)" : ""}`
                   : ""
-                : repRange
-                  ? ` | ${repRange}${isToFailure ? " (to Failure) " : " "}Reps`
-                  : ""}
+                : item.tracking_type === "distance"
+                  ? distanceRange
+                    ? ` | ${distanceRange} ${distanceUnit}`
+                    : ""
+                  : repRange
+                    ? ` | ${repRange}${isToFailure ? " (to Failure) " : " "}Reps`
+                    : ""}
             </ThemedText>
           </View>
         </View>

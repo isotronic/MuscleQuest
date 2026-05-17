@@ -19,25 +19,24 @@ describe("useCompletedWorkoutByIdQuery", () => {
     const mockUseQuery = useQuery as jest.Mock;
     const workoutId = 1;
     const weightUnit = "kg";
+    const distanceUnit = "m";
 
-    // Call the hook
     useCompletedWorkoutByIdQuery(workoutId, weightUnit);
 
-    // Assertions
     expect(mockUseQuery).toHaveBeenCalledWith({
-      queryKey: ["completedWorkout", workoutId, weightUnit],
+      queryKey: ["completedWorkout", workoutId, weightUnit, distanceUnit],
       queryFn: expect.any(Function),
       enabled: true,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     });
 
-    // Ensure the query function calls the fetchCompletedWorkoutById function with correct args
     const { queryFn } = mockUseQuery.mock.calls[0][0];
-    queryFn(); // Execute the query function
+    queryFn();
     expect(fetchCompletedWorkoutById).toHaveBeenCalledWith(
       workoutId,
       weightUnit,
+      distanceUnit,
     );
   });
 

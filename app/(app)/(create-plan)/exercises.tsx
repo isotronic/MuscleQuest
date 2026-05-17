@@ -113,6 +113,11 @@ export default function ExercisesScreen() {
     restSeconds: seconds,
     time: 30,
   });
+  const defaultDistanceSets = Array.from({ length: defaultSetNumber }, () => ({
+    restMinutes: minutes,
+    restSeconds: seconds,
+    distance: 0,
+  }));
 
   const handleSelectExercise = useCallback(
     (exerciseId: number) => {
@@ -138,7 +143,7 @@ export default function ExercisesScreen() {
           const newExercise = {
             ...exercise,
             sets:
-              exercise.tracking_type === "time" ? defaultTimeSets : defaultSets,
+              exercise.tracking_type === "time" ? defaultTimeSets : exercise.tracking_type === "distance" ? defaultDistanceSets : defaultSets,
           };
           createSuperset(
             currentWorkoutIndex,
@@ -164,7 +169,7 @@ export default function ExercisesScreen() {
           const replacement = {
             ...exercise,
             sets:
-              exercise.tracking_type === "time" ? defaultTimeSets : defaultSets,
+              exercise.tracking_type === "time" ? defaultTimeSets : exercise.tracking_type === "distance" ? defaultDistanceSets : defaultSets,
           };
           replaceExercise(
             currentWorkoutIndex,
@@ -211,7 +216,11 @@ export default function ExercisesScreen() {
         const exerciseToAdd = {
           ...exercise,
           sets:
-            exercise.tracking_type === "time" ? defaultTimeSets : defaultSets,
+            exercise.tracking_type === "time"
+              ? defaultTimeSets
+              : exercise.tracking_type === "distance"
+                ? Array.from({ length: defaultSetNumber }, () => ({ restMinutes: minutes, restSeconds: seconds, distance: 0 }))
+                : defaultSets,
         };
         addExercise(currentWorkoutIndex, exerciseToAdd);
       }
@@ -317,7 +326,7 @@ export default function ExercisesScreen() {
           onSelect={handleSelectExercise}
           onPressItem={(item) => {
             router.push({
-              pathname: "/(app)/exercise-details",
+              pathname: "/(app)/exercise-info",
               params: { exercise_id: item.exercise_id.toString() },
             });
           }}

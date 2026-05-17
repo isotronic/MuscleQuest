@@ -13,6 +13,7 @@ export interface CompletedSet {
   weight: number;
   reps: number;
   time: number;
+  distance: number | undefined;
   date_completed: string;
   oneRepMax: number | undefined;
   progressionMetric: number;
@@ -39,6 +40,7 @@ const fetchTrackedExercises = async (
         cs.weight,
         cs.reps,
         cs.time,
+        cs.distance,
         cs.set_number,
         DATE(cw.date_completed) AS date_completed,
         MAX(
@@ -47,6 +49,7 @@ const fetchTrackedExercises = async (
           WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
           WHEN 'reps' THEN cs.reps
           WHEN 'time' THEN cs.time
+          WHEN 'distance' THEN cs.distance
           ELSE cs.weight * (1 + cs.reps / 30.0)
         END
       ) AS progression_metric
@@ -80,6 +83,7 @@ const fetchTrackedExercises = async (
             WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
             WHEN 'reps' THEN cs.reps
             WHEN 'time' THEN cs.time
+            WHEN 'distance' THEN cs.distance
             ELSE cs.weight * (1 + cs.reps / 30.0)
           END
         ) AS all_time_pr
@@ -135,6 +139,7 @@ const fetchTrackedExercises = async (
               ? row.reps
               : undefined,
           time: row.tracking_type === "time" ? row.time : undefined,
+          distance: row.tracking_type === "distance" ? row.distance : undefined,
           date_completed: row.date_completed,
           oneRepMax:
             row.tracking_type === "weight" ||

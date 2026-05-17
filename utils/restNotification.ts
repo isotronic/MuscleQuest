@@ -1,32 +1,29 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
+import Bugsnag from "@bugsnag/expo";
+import {
+  getAsyncStorageItem,
+  setAsyncStorageItem,
+  removeAsyncStorageItem,
+} from "@/utils/asyncStorage";
 
-/**
- * Schedules a local notification to fire in `secondsFromNow`.
- * @param secondsFromNow how many seconds in the future the notification should fire
- * @param title notification title
- * @param body notification body
- * @param channelId must match the channel you created (on Android)
- */
+const REST_TIMER_NOTIFICATION_ID_KEY = "restTimerNotificationId";
+
 export async function scheduleRestNotification(
   secondsFromNow: number,
   title: string,
   body: string,
   channelId: string = "rest-timer1",
 ) {
-  // If the user tries to schedule for 0 or negative, ignore or handle.
   if (secondsFromNow <= 0) {
     return;
   }
 
   try {
-    // Schedule the new notification
-    await Notifications.scheduleNotificationAsync({
+    const id = await Notifications.scheduleNotificationAsync({
       content: {
         title,
         body,
-        // We handle sound separately through the sound hook
-        // sound: "boxing_bell.mp3",
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
@@ -35,16 +32,23 @@ export async function scheduleRestNotification(
         ...(Platform.OS === "android" && { channelId }),
       },
     });
-  } catch (error) {
+    await setAsyncStorageItem(REST_TIMER_NOTIFICATION_ID_KEY, id);
+  } catch (error: any) {
+    Bugsnag.notify(error);
     console.error("Failed to schedule notification:", error);
   }
 }
 
 export async function cancelRestNotifications() {
   try {
-    await Notifications.cancelAllScheduledNotificationsAsync();
-    await Notifications.dismissAllNotificationsAsync(); // Also clear any visible notifications
-  } catch (error) {
+    const id = await getAsyncStorageItem(REST_TIMER_NOTIFICATION_ID_KEY);
+    if (id) {
+      await Notifications.cancelScheduledNotificationAsync(id);
+      await removeAsyncStorageItem(REST_TIMER_NOTIFICATION_ID_KEY);
+      await Notifications.dismissNotificationAsync(id);
+    }
+  } catch (error: any) {
+    Bugsnag.notify(error);
     console.error("Failed to cancel notifications:", error);
   }
 }

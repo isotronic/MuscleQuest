@@ -34,7 +34,14 @@ import {
   uploadDatabaseBackup,
 } from "@/utils/backup";
 import * as Notifications from "expo-notifications";
+import {
+  rescheduleWorkoutReminders,
+  requestNotificationPermission,
+} from "@/utils/workoutReminder";
 // import { clearActivePlanStatus } from "@/utils/clearUserData";
+
+const REMINDER_DAY_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+const REMINDER_DAY_VALUES = [1, 2, 3, 4, 5, 6, 0];
 
 export default function SettingsScreen() {
   const user = useContext(AuthContext);
@@ -76,10 +83,19 @@ export default function SettingsScreen() {
     null,
   );
   const [inputValue, setInputValue] = useState<
-    string | number | { minutes: number; seconds: number }
+    | string
+    | number
+    | { minutes: number; seconds: number }
+    | { hours: number; minutes: number }
   >("");
   const [settingType, setSettingType] = useState<
-    "number" | "radio" | "dropdown" | "restTime" | "slider" | null
+    | "number"
+    | "radio"
+    | "dropdown"
+    | "restTime"
+    | "reminderTime"
+    | "slider"
+    | null
   >(null);
   const [options, setOptions] = useState<string[] | undefined>(undefined);
 
@@ -91,6 +107,9 @@ export default function SettingsScreen() {
     showOnboarding: settings?.showOnboarding,
   });
 
+  const [workoutReminderEnabled, setWorkoutReminderEnabled] = useState(false);
+  const [workoutReminderDays, setWorkoutReminderDays] = useState<number[]>([]);
+
   const defaultRestTime = settings
     ? `${Math.floor(parseInt(settings?.defaultRestTime) / 60)}:${(
         parseInt(settings?.defaultRestTime) % 60
@@ -99,10 +118,10 @@ export default function SettingsScreen() {
         .padStart(2, "0")} minutes`
     : "";
 
-  // When weightUnit changes, refetch completed workouts
+  // When weightUnit or distanceUnit changes, refetch completed workouts
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
-  }, [settings?.weightUnit, queryClient]);
+  }, [settings?.weightUnit, settings?.distanceUnit, queryClient]);
 
   // Sync local states with fetched settings data on load
   useEffect(() => {
@@ -114,13 +133,26 @@ export default function SettingsScreen() {
         restTimerNotification: settings?.restTimerNotification,
         showOnboarding: settings?.showOnboarding,
       });
+      setWorkoutReminderEnabled(settings.workoutReminderEnabled === "true");
+      try {
+        const parsed = JSON.parse(settings.workoutReminderDays || "[]");
+        setWorkoutReminderDays(Array.isArray(parsed) ? parsed : []);
+      } catch {
+        setWorkoutReminderDays([]);
+      }
     }
   }, [settings]);
 
   const showOverlay = (
     key: string,
     value: string | number,
-    type: "number" | "radio" | "dropdown" | "restTime" | "slider",
+    type:
+      | "number"
+      | "radio"
+      | "dropdown"
+      | "restTime"
+      | "reminderTime"
+      | "slider",
     options?: string[],
   ) => {
     if (key === "defaultRestTime") {
@@ -129,6 +161,10 @@ export default function SettingsScreen() {
       const seconds = totalSeconds % 60;
       setInputValue({ minutes, seconds });
       setSettingType("restTime");
+    } else if (key === "workoutReminderTime") {
+      const [h, m] = (value as string).split(":").map(Number);
+      setInputValue({ hours: h || 0, minutes: m || 0 });
+      setSettingType("reminderTime");
     } else {
       setInputValue(value);
       setSettingType(type);
@@ -151,6 +187,21 @@ export default function SettingsScreen() {
         updateSetting({
           key: currentSettingKey as string,
           value: totalSeconds.toString(),
+        });
+      } else if (currentSettingKey === "workoutReminderTime") {
+        const { hours, minutes } = inputValue as {
+          hours: number;
+          minutes: number;
+        };
+        const timeStr = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+        updateSetting({ key: "workoutReminderTime", value: timeStr });
+        rescheduleWorkoutReminders(
+          workoutReminderEnabled ? "true" : "false",
+          JSON.stringify(workoutReminderDays),
+          timeStr,
+        ).catch((err: any) => {
+          Bugsnag.notify(err);
+          console.error("Failed to reschedule workout reminders:", err);
         });
       } else if (currentSettingKey === "bodyWeight") {
         // Convert to kg if the unit is lbs
@@ -235,6 +286,54 @@ export default function SettingsScreen() {
     }
 
     updateSetting({ key: "restTimerNotification", value: value.toString() });
+  };
+
+  const toggleWorkoutReminder = async (value: boolean) => {
+    if (value) {
+      const hasPermission = await requestNotificationPermission();
+      if (!hasPermission) {
+        Alert.alert(
+          "Permission Required",
+          "To enable workout reminders, grant notification permissions in your device settings.",
+          [
+            { text: "Open Settings", onPress: () => Linking.openSettings() },
+            { text: "Cancel", style: "cancel" },
+          ],
+        );
+        return;
+      }
+    }
+    setWorkoutReminderEnabled(value);
+    updateSetting({ key: "workoutReminderEnabled", value: value.toString() });
+    rescheduleWorkoutReminders(
+      value.toString(),
+      JSON.stringify(workoutReminderDays),
+      settings?.workoutReminderTime ?? "08:00",
+    ).catch((err: any) => {
+      Bugsnag.notify(err);
+      console.error("Failed to reschedule workout reminders:", err);
+    });
+  };
+
+  const toggleReminderDay = async (day: number) => {
+    const newDays = workoutReminderDays.includes(day)
+      ? workoutReminderDays.filter((d) => d !== day)
+      : [...workoutReminderDays, day].sort((a, b) => a - b);
+    setWorkoutReminderDays(newDays);
+    updateSetting({
+      key: "workoutReminderDays",
+      value: JSON.stringify(newDays),
+    });
+    if (workoutReminderEnabled) {
+      rescheduleWorkoutReminders(
+        "true",
+        JSON.stringify(newDays),
+        settings?.workoutReminderTime ?? "08:00",
+      ).catch((err: any) => {
+        Bugsnag.notify(err);
+        console.error("Failed to reschedule workout reminders:", err);
+      });
+    }
   };
 
   // const handleClearDatabase = async () => {
@@ -473,19 +572,19 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
-          {/* <TouchableOpacity
+          <TouchableOpacity
             style={styles.item}
             onPress={() =>
               showOverlay(
                 "distanceUnit",
-                settings?.distanceUnit || "",
+                settings?.distanceUnit || "m",
                 "radio",
-                ["Kilometers", "Miles"],
+                ["m", "ft"],
               )
             }
           >
             <MaterialCommunityIcons
-              name="run"
+              name="map-marker-distance"
               size={24}
               color={Colors.dark.icon}
               style={styles.icon}
@@ -493,10 +592,10 @@ export default function SettingsScreen() {
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>Distance unit</ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.distanceUnit}
+                {settings?.distanceUnit || "m"}
               </ThemedText>
             </View>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
           {/* <TouchableOpacity
             style={styles.item}
             onPress={() =>
@@ -689,6 +788,101 @@ export default function SettingsScreen() {
               style={styles.switch}
             />
           </View>
+        </View>
+        <Divider style={styles.divider} />
+
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionHeader}>Reminders</ThemedText>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="bell"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>Workout reminders</ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {workoutReminderEnabled ? "Enabled" : "Disabled"}
+              </ThemedText>
+            </View>
+            <Switch
+              value={workoutReminderEnabled}
+              onValueChange={toggleWorkoutReminder}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
+          {workoutReminderEnabled && (
+            <>
+              <View style={[styles.item, { alignItems: "flex-start" }]}>
+                <MaterialCommunityIcons
+                  name="calendar-week"
+                  size={24}
+                  color={Colors.dark.icon}
+                  style={[styles.icon, { marginTop: 2 }]}
+                />
+                <View style={styles.textContainer}>
+                  <ThemedText style={styles.itemText}>Reminder days</ThemedText>
+                  <View style={styles.dayChipsRow}>
+                    {REMINDER_DAY_LABELS.map((label, index) => {
+                      const dayValue = REMINDER_DAY_VALUES[index];
+                      const selected = workoutReminderDays.includes(
+                        dayValue as number,
+                      );
+                      return (
+                        <TouchableOpacity
+                          key={index}
+                          onPress={() => toggleReminderDay(dayValue as number)}
+                          style={[
+                            styles.dayChip,
+                            selected && styles.dayChipSelected,
+                          ]}
+                        >
+                          <ThemedText
+                            style={[
+                              styles.dayChipText,
+                              selected && styles.dayChipTextSelected,
+                            ]}
+                          >
+                            {label}
+                          </ThemedText>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  {workoutReminderDays.length === 0 && (
+                    <ThemedText style={styles.reminderHint}>
+                      Select at least one day
+                    </ThemedText>
+                  )}
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() =>
+                  showOverlay(
+                    "workoutReminderTime",
+                    settings?.workoutReminderTime ?? "08:00",
+                    "reminderTime",
+                  )
+                }
+              >
+                <MaterialCommunityIcons
+                  name="clock-outline"
+                  size={24}
+                  color={Colors.dark.icon}
+                  style={styles.icon}
+                />
+                <View style={styles.textContainer}>
+                  <ThemedText style={styles.itemText}>Reminder time</ThemedText>
+                  <ThemedText style={styles.currentSetting}>
+                    {settings?.workoutReminderTime ?? "08:00"}
+                  </ThemedText>
+                </View>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
         <Divider style={styles.divider} />
 
@@ -1042,5 +1236,37 @@ const styles = StyleSheet.create({
   progressBarText: {},
   backupButton: {
     marginRight: 4,
+  },
+  dayChipsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 8,
+  },
+  dayChip: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.dark.subText,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dayChipSelected: {
+    backgroundColor: Colors.dark.tint,
+    borderColor: Colors.dark.tint,
+  },
+  dayChipText: {
+    fontSize: 12,
+    color: Colors.dark.subText,
+  },
+  dayChipTextSelected: {
+    color: Colors.dark.background,
+    fontWeight: "bold",
+  },
+  reminderHint: {
+    fontSize: 12,
+    color: Colors.dark.highlight,
+    marginTop: 6,
   },
 });

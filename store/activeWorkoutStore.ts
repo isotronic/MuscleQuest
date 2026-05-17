@@ -47,7 +47,7 @@ interface ActiveWorkoutStore {
   };
   weightAndReps: {
     [exerciseIndex: number]: {
-      [setIndex: number]: { weight?: string; reps?: string; time?: string };
+      [setIndex: number]: { weight?: string; reps?: string; time?: string; distance?: string };
     };
   };
   previousWorkoutData: CompletedWorkout[] | null;
@@ -74,6 +74,7 @@ interface ActiveWorkoutStore {
     weight?: string,
     reps?: string,
     time?: string,
+    distance?: string,
   ) => void;
   initializeWeightAndReps: (completedWorkouts: CompletedWorkout[]) => void;
   replaceExercise: (index: number, newExercise: UserExercise) => void;
@@ -252,6 +253,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                         : undefined,
                   }
                 : {}),
+              ...(exTrackingType === "distance"
+                ? {
+                    distance:
+                      nextHistorical?.distance !== undefined
+                        ? nextHistorical.distance?.toString()
+                        : currentSetValues.distance,
+                  }
+                : {}),
             };
           };
 
@@ -424,6 +433,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                       : undefined,
                 }
               : {}),
+            ...(trackingType === "distance"
+              ? {
+                  distance:
+                    nextSetValues?.distance !== undefined
+                      ? nextSetValues.distance?.toString()
+                      : currentSetValues.distance,
+                }
+              : {}),
           };
 
           const updatedWeightAndReps = {
@@ -504,6 +521,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               : {}),
             ...(trackingType === "reps" ? { reps: lastSetValues.reps } : {}),
             ...(trackingType === "time" ? { time: lastSetValues.time } : {}),
+            ...(trackingType === "distance" ? { distance: lastSetValues.distance } : {}),
           };
 
           // Update the store with the new set in weightAndReps and completedSets
@@ -602,6 +620,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         weight?: string,
         reps?: string,
         time?: string,
+        distance?: string,
       ) =>
         set((state) => {
           const exerciseData = state.weightAndReps[exerciseIndex] || {};
@@ -612,6 +631,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             weight?: string;
             reps?: string;
             time?: string;
+            distance?: string;
           } = {};
 
           if (trackingType === "weight" || trackingType === "") {
@@ -624,6 +644,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             updatedValues.reps = reps;
           } else if (trackingType === "time") {
             updatedValues.time = time;
+          } else if (trackingType === "distance") {
+            updatedValues.distance = distance;
           }
 
           return {
@@ -796,24 +818,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
 
           const oldExercises = workout.exercises;
           const oldToNew: { [oldIndex: number]: number } = {};
-          const usedNewIndices = new Set<number>();
-          for (let oldIdx = 0; oldIdx < oldExercises.length; oldIdx++) {
-            const targetId = oldExercises[oldIdx].exercise_id;
-            let newIdx = -1;
-            for (let ni = 0; ni < newExercises.length; ni++) {
-              if (
-                !usedNewIndices.has(ni) &&
-                newExercises[ni].exercise_id === targetId
-              ) {
-                newIdx = ni;
-                break;
-              }
-            }
-            if (newIdx !== -1) {
-              oldToNew[oldIdx] = newIdx;
-              usedNewIndices.add(newIdx);
-            }
-          }
+          newExercises.forEach((ex, newIdx) => {
+            const oldIdx = oldExercises.indexOf(ex);
+            if (oldIdx !== -1) oldToNew[oldIdx] = newIdx;
+          });
 
           const remap = <T>(obj: {
             [key: number]: T;

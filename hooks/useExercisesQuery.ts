@@ -23,6 +23,7 @@ const fetchAndSortExercises = async (
   } catch (error: any) {
     console.error("Error fetching exercises", error);
     Bugsnag.notify(error);
+    throw error;
   }
 
   const result: ExercisesResult = {
@@ -98,5 +99,6 @@ export const useExercisesQuery = (
     ],
     queryFn: () => fetchAndSortExercises(includeActivePlan, includeFavorites),
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 };

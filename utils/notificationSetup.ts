@@ -22,5 +22,13 @@ export const setupNotificationChannel = async () => {
       enableVibrate: true,
       enableLights: true,
     });
+    await Notifications.setNotificationChannelAsync("workout-reminders", {
+      name: "Workout Reminders",
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      enableVibrate: true,
+      enableLights: true,
+    });
   }
 };

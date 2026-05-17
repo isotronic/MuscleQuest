@@ -134,6 +134,22 @@ When you finish a session where you added, removed, or reordered exercises, or s
 The stats screen has been redesigned with a fresh new look and improved insights. Explore your training history with better charts, clearer summaries, and more detailed breakdowns of your progress over time.
 `,
   },
+  {
+    version: 2617,
+    message: `
+📏 New: Distance Tracking for Custom Exercises!
+
+Custom exercises can now use a distance tracking type, perfect for cardio and conditioning movements like runs, rows, or sled pushes. Log distance for your sets and get insights on progression just like any other exercise.
+`,
+  },
+  {
+    version: 2618,
+    message: `
+🔔 New: Workout Reminder Notifications!
+
+Never miss a session. Set reminder notifications for your workouts directly from the app. Choose which days you want to be reminded, and pick a time to get started.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

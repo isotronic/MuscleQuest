@@ -19,6 +19,7 @@ interface WorkoutResult {
   weight: number | null;
   reps: number | null;
   time: number | null;
+  distance: number | null;
 }
 
 export interface CompletedWorkout {
@@ -40,6 +41,7 @@ export interface CompletedWorkout {
       weight: number | null;
       reps: number | null;
       time: number | null;
+      distance: number | null;
     }[];
   }[];
 }
@@ -70,7 +72,8 @@ const fetchCompletedWorkouts = async (
         completed_sets.set_number,
         completed_sets.weight,
         completed_sets.reps,
-        completed_sets.time
+        completed_sets.time,
+        completed_sets.distance
       FROM completed_workouts
       LEFT JOIN completed_exercises ON completed_exercises.completed_workout_id = completed_workouts.id
       LEFT JOIN exercises ON exercises.exercise_id = completed_exercises.exercise_id -- Fetch exercise details from exercises table
@@ -103,6 +106,7 @@ const fetchCompletedWorkouts = async (
 
 const fetchAndOrganize = async (
   weightUnit: string,
+  distanceUnit: string,
   timeRange: number,
   startDate?: string,
   endDate?: string,
@@ -114,6 +118,7 @@ const fetchAndOrganize = async (
     const workoutsArray: CompletedWorkout[] = [];
 
     const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
+    const distanceConversionFactor = distanceUnit === "ft" ? 3.28084 : 1;
 
     results.forEach((item) => {
       const {
@@ -133,6 +138,7 @@ const fetchAndOrganize = async (
         weight,
         reps,
         time,
+        distance,
       } = item;
 
       let workout = workoutsMap.get(id);
@@ -182,6 +188,10 @@ const fetchAndOrganize = async (
         weight: convertedWeight,
         reps,
         time,
+        distance:
+          distance != null
+            ? parseFloat((distance * distanceConversionFactor).toFixed(2))
+            : null,
       });
     });
 
@@ -194,11 +204,12 @@ const fetchAndOrganize = async (
 
 export const useCompletedWorkoutsQuery = (
   weightUnit: string,
+  distanceUnit: string = "m",
   timeRange = 0,
 ) => {
   return useQuery<CompletedWorkout[]>({
-    queryKey: ["completedWorkouts", weightUnit, timeRange],
-    queryFn: () => fetchAndOrganize(weightUnit, timeRange),
+    queryKey: ["completedWorkouts", weightUnit, distanceUnit, timeRange],
+    queryFn: () => fetchAndOrganize(weightUnit, distanceUnit, timeRange),
     staleTime: 5 * 60 * 1000,
   });
 };
@@ -216,6 +227,7 @@ const getPreviousPeriodDates = (days: number): { startDate: string; endDate: str
 
 export const usePreviousPeriodWorkoutsQuery = (
   weightUnit: string,
+  distanceUnit: string = "m",
   timeRange: number,
 ) => {
   const enabled = timeRange > 0;
@@ -224,8 +236,8 @@ export const usePreviousPeriodWorkoutsQuery = (
     : { startDate: "", endDate: "" };
 
   return useQuery<CompletedWorkout[]>({
-    queryKey: ["completedWorkouts", weightUnit, timeRange, "prev"],
-    queryFn: () => fetchAndOrganize(weightUnit, timeRange, startDate, endDate),
+    queryKey: ["completedWorkouts", weightUnit, distanceUnit, timeRange, "prev"],
+    queryFn: () => fetchAndOrganize(weightUnit, distanceUnit, timeRange, startDate, endDate),
     enabled,
     staleTime: 5 * 60 * 1000,
   });
@@ -234,10 +246,12 @@ export const usePreviousPeriodWorkoutsQuery = (
 const fetchWorkoutHistoryForSession = async (
   workoutId: number,
   weightUnit: string,
+  distanceUnit: string,
 ): Promise<CompletedWorkout[]> => {
   try {
     const db = await openDatabase("userData.db");
     const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
+    const distanceConversionFactor = distanceUnit === "ft" ? 3.28084 : 1;
 
     const query = `
       SELECT
@@ -255,7 +269,8 @@ const fetchWorkoutHistoryForSession = async (
         cs.set_number,
         cs.weight,
         cs.reps,
-        cs.time
+        cs.time,
+        cs.distance
       FROM (
         SELECT * FROM completed_workouts
         WHERE workout_id = ? AND is_deleted = FALSE
@@ -293,6 +308,7 @@ const fetchWorkoutHistoryForSession = async (
         weight,
         reps,
         time,
+        distance,
       } = item;
 
       let workout = workoutsMap.get(id);
@@ -332,6 +348,10 @@ const fetchWorkoutHistoryForSession = async (
           : null,
         reps,
         time,
+        distance:
+          distance != null
+            ? parseFloat((distance * distanceConversionFactor).toFixed(2))
+            : null,
       });
     });
 
@@ -346,10 +366,11 @@ const fetchWorkoutHistoryForSession = async (
 export const useWorkoutSessionHistoryQuery = (
   workoutId: number,
   weightUnit: string,
+  distanceUnit: string = "m",
 ) => {
   return useQuery<CompletedWorkout[]>({
-    queryKey: ["workoutSessionHistory", workoutId, weightUnit],
-    queryFn: () => fetchWorkoutHistoryForSession(workoutId, weightUnit),
+    queryKey: ["workoutSessionHistory", workoutId, weightUnit, distanceUnit],
+    queryFn: () => fetchWorkoutHistoryForSession(workoutId, weightUnit, distanceUnit),
     enabled: workoutId > 0,
     staleTime: 5 * 60 * 1000,
   });

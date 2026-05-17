@@ -31,6 +31,7 @@ export interface SavedWorkout {
       weight: number | null;
       reps: number | null;
       time: number | null;
+      distance: number | null;
     }[];
   }[];
 }
@@ -763,6 +764,7 @@ export const saveCompletedWorkout = async (
       weight: number | null;
       reps: number | null;
       time: number | null;
+      distance: number | null;
     }[];
   }[],
 ) => {
@@ -792,8 +794,15 @@ export const saveCompletedWorkout = async (
       for (const set of exercise.sets) {
         // Insert each completed set
         await db.runAsync(
-          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time) VALUES (?, ?, ?, ?, ?)`,
-          [completedExerciseId, set.set_number, set.weight, set.reps, set.time],
+          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance) VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            completedExerciseId,
+            set.set_number,
+            set.weight,
+            set.reps,
+            set.time,
+            set.distance,
+          ],
         );
       }
     }
@@ -856,11 +865,13 @@ interface CompletedWorkoutRow {
   weight: number | null;
   reps: number | null;
   time: number | null;
+  distance: number | null;
 }
 
 export const fetchCompletedWorkoutById = async (
   id: number,
   weightUnit: string = "kg",
+  distanceUnit: string = "m",
 ): Promise<CompletedWorkout> => {
   const db = await openDatabase("userData.db");
 
@@ -880,10 +891,11 @@ export const fetchCompletedWorkoutById = async (
         e.image as exercise_image, 
         e.tracking_type as exercise_tracking_type,
         cs.id as set_id,
-        cs.set_number, 
-        cs.weight, 
+        cs.set_number,
+        cs.weight,
         cs.reps,
         cs.time,
+        cs.distance,
         uwe.exercise_order -- Include exercise order from user_workout_exercises
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
@@ -949,12 +961,25 @@ export const fetchCompletedWorkoutById = async (
               (weightInKg * conversionFactor).toFixed(1),
             );
 
+            const distanceInMeters = parseFloat(
+              row.distance?.toString() || "0",
+            );
+            const distanceConversionFactor =
+              distanceUnit === "ft" ? 3.28084 : 1;
+            const convertedDistance = parseFloat(
+              (distanceInMeters * distanceConversionFactor).toFixed(2),
+            );
+
             exercisesMap[row.exercise_id].sets.push({
               set_id: row.set_id,
               set_number: row.set_number,
               weight: Number.isFinite(convertedWeight) ? convertedWeight : null,
               reps: row.reps || null,
               time: row.time || null,
+              distance:
+                row.distance !== null && Number.isFinite(distanceInMeters)
+                  ? convertedDistance
+                  : null,
             });
           }
         }
@@ -1014,7 +1039,7 @@ export const insertDefaultSettings = async () => {
     { key: "keepScreenOn", value: "false" },
     { key: "downloadImages", value: "false" },
     { key: "weightUnit", value: "kg" },
-    { key: "distanceUnit", value: "km" },
+    { key: "distanceUnit", value: "m" },
     { key: "sizeUnit", value: "cm" },
     { key: "weightIncrement", value: "1" },
     { key: "defaultSets", value: "3" },
@@ -1029,6 +1054,9 @@ export const insertDefaultSettings = async () => {
     { key: "showOnboarding", value: "true" },
     { key: "bodyWeight", value: "70" },
     { key: "timerCountdown", value: "5" },
+    { key: "workoutReminderEnabled", value: "false" },
+    { key: "workoutReminderDays", value: "[]" },
+    { key: "workoutReminderTime", value: "08:00" },
   ];
 
   // Loop through each default setting
@@ -1075,6 +1103,9 @@ export interface Settings {
   showOnboarding: string;
   lastSeenVersion: string;
   timerCountdown: string;
+  workoutReminderEnabled: string;
+  workoutReminderDays: string;
+  workoutReminderTime: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

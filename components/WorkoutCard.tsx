@@ -9,6 +9,7 @@ import { Colors } from "@/constants/Colors";
 import Sortable from "react-native-sortables";
 import type { SortableGridRenderItem } from "react-native-sortables";
 import { formatFromTotalSeconds } from "@/utils/utility";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 // Each item fed to Sortable.Grid is either a solo exercise or an adjacent superset pair.
 // The pair is treated as a single draggable unit so both exercises move together.
@@ -52,6 +53,8 @@ export default function WorkoutCard({
   onAddExercise,
 }: WorkoutCardProps) {
   const { workouts } = useWorkoutStore();
+  const { data: settings } = useSettingsQuery();
+  const distanceUnit = settings?.distanceUnit || "m";
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
 
   const openMenu = (exerciseId: number) => setMenuVisible(exerciseId);
@@ -196,6 +199,23 @@ export default function WorkoutCard({
         timeRange = `${formatFromTotalSeconds(minTime)} - ${formatFromTotalSeconds(maxTime)}`;
       }
 
+      const minDist = Math.min(
+        ...item.sets.map((set) => set.distance ?? Infinity),
+      );
+      const maxDist = Math.max(
+        ...item.sets.map((set) => set.distance ?? -Infinity),
+      );
+
+      let distanceRange: string | undefined;
+      if (minDist !== Infinity && maxDist !== -Infinity) {
+        distanceRange =
+          minDist === maxDist ? `${minDist}` : `${minDist} - ${maxDist}`;
+      } else if (minDist !== Infinity) {
+        distanceRange = `${minDist}`;
+      } else if (maxDist !== -Infinity) {
+        distanceRange = `${maxDist}`;
+      }
+
       const isToFailure = item.sets.some((set) => set.isToFailure);
       const isMenuOpen = menuVisible === item.exercise_id;
 
@@ -233,9 +253,13 @@ export default function WorkoutCard({
                   ? timeRange
                     ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
                     : ""
-                  : repRange
-                    ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
-                    : ""}
+                  : item.tracking_type === "distance"
+                    ? distanceRange
+                      ? ` | ${distanceRange} ${distanceUnit}`
+                      : ""
+                    : repRange
+                      ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
+                      : ""}
               </ThemedText>
             </View>
           </Sortable.Touchable>
@@ -286,7 +310,7 @@ export default function WorkoutCard({
               onPress={() => {
                 closeMenu();
                 router.push(
-                  `/(app)/exercise-details?exercise_id=${item.exercise_id}`,
+                  `/(app)/exercise-info?exercise_id=${item.exercise_id}`,
                 );
               }}
               title="View Details"
@@ -302,6 +326,7 @@ export default function WorkoutCard({
       menuVisible,
       removeExercise,
       workoutIndex,
+      distanceUnit,
     ],
   );
 

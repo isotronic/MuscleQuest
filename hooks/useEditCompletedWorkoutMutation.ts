@@ -7,27 +7,31 @@ import Bugsnag from "@bugsnag/expo";
 const saveCompletedWorkoutWithConversion = async (
   completedWorkoutData: CompletedWorkout["exercises"],
   weightUnit: string,
+  distanceUnit: string,
 ) => {
   const conversionFactor = weightUnit === "lbs" ? 0.45359237 : 1;
+  const distanceConversionFactor = distanceUnit === "ft" ? 0.3048 : 1;
 
   // Deep copy to avoid mutating the original data
-  const workoutDataInKg = completedWorkoutData.map((exercise) => ({
+  const workoutDataConverted = completedWorkoutData.map((exercise) => ({
     ...exercise,
     sets: exercise.sets.map((set) => ({
       ...set,
       weight: set.weight ? set.weight * conversionFactor : 0,
       reps: set.reps || 0,
       time: set.time || 0,
+      distance:
+        set.distance != null ? set.distance * distanceConversionFactor : null,
     })),
   }));
 
   try {
     const db = await openDatabase("userData.db");
-    for (const exercise of workoutDataInKg) {
+    for (const exercise of workoutDataConverted) {
       for (const set of exercise.sets) {
         await db.runAsync(
-          `UPDATE completed_sets SET weight = ?, reps = ?, time = ? WHERE id = ? AND set_number = ?`,
-          [set.weight, set.reps, set.time, set.set_id, set.set_number],
+          `UPDATE completed_sets SET weight = ?, reps = ?, time = ?, distance = ? WHERE id = ? AND set_number = ?`,
+          [set.weight, set.reps, set.time, set.distance, set.set_id, set.set_number],
         );
       }
     }
@@ -41,6 +45,7 @@ const saveCompletedWorkoutWithConversion = async (
 export const useEditCompletedWorkoutMutation = (
   id: number,
   weightUnit: string,
+  distanceUnit: string = "m",
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -48,6 +53,7 @@ export const useEditCompletedWorkoutMutation = (
       return await saveCompletedWorkoutWithConversion(
         completedWorkoutData,
         weightUnit,
+        distanceUnit,
       );
     },
     onSuccess: () => {

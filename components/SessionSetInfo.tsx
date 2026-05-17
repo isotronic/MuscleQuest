@@ -45,11 +45,16 @@ interface SessionSetInfoProps {
   isDropSet: boolean;
   isToFailure: boolean;
   trackingType: string;
+  distance: string;
+  distanceUnit: string;
+  distanceMin: number | undefined;
   handleWeightInputChange: (text: string) => void;
   handleWeightChange: (amount: number) => void;
   handleRepsInputChange: (text: string) => void;
   handleRepsChange: (amount: number) => void;
   handleTimeInputChange: (text: string) => void;
+  handleDistanceInputChange: (text: string) => void;
+  handleDistanceChange: (amount: number) => void;
   handlePreviousSet: () => void;
   handleNextSet: () => void;
   handleCompleteSet: () => void;
@@ -83,11 +88,16 @@ export default function SessionSetInfo({
   isDropSet,
   isToFailure,
   trackingType,
+  distance,
+  distanceUnit,
+  distanceMin,
   handleWeightInputChange,
   handleWeightChange,
   handleRepsInputChange,
   handleRepsChange,
   handleTimeInputChange,
+  handleDistanceInputChange,
+  handleDistanceChange,
   handlePreviousSet,
   handleNextSet,
   handleCompleteSet,
@@ -116,6 +126,12 @@ export default function SessionSetInfo({
   const repsPlusPress = useContinuousPress(
     useCallback(() => handleRepsChange(1), [handleRepsChange]),
   );
+  const distanceMinusPress = useContinuousPress(
+    useCallback(() => handleDistanceChange(-1), [handleDistanceChange]),
+  );
+  const distancePlusPress = useContinuousPress(
+    useCallback(() => handleDistanceChange(1), [handleDistanceChange]),
+  );
 
   // Update timeInput when time prop changes
   useEffect(() => {
@@ -139,7 +155,7 @@ export default function SessionSetInfo({
 
   const handleImagePress = () => {
     router.push({
-      pathname: "/(app)/exercise-details",
+      pathname: "/(app)/exercise-info",
       params: { exercise_id: exercise_id.toString() },
     });
   };
@@ -176,7 +192,7 @@ export default function SessionSetInfo({
               {exerciseName}
             </ThemedText>
 
-            {trackingType !== "time" && !!repRange && (
+            {trackingType !== "time" && trackingType !== "distance" && !!repRange && (
               <ThemedText style={styles.headerText}>
                 Reps: {repRange}
               </ThemedText>
@@ -184,6 +200,11 @@ export default function SessionSetInfo({
             {trackingType === "time" && !!timeMin && (
               <ThemedText style={styles.headerText}>
                 Time: {formatFromTotalSeconds(timeMin)}
+              </ThemedText>
+            )}
+            {trackingType === "distance" && !!distanceMin && (
+              <ThemedText style={styles.headerText}>
+                Target: {distanceMin} {distanceUnit}
               </ThemedText>
             )}
 
@@ -317,7 +338,7 @@ export default function SessionSetInfo({
           </View>
         </>
       ) : null}
-      {trackingType !== "time" ? (
+      {trackingType !== "time" && trackingType !== "distance" ? (
         <>
           <View style={styles.centeredLabelContainer}>
             <ThemedText style={styles.label}>Reps</ThemedText>
@@ -382,6 +403,38 @@ export default function SessionSetInfo({
             }}
             onCancel={() => setTimerModalVisible(false)}
           />
+        </>
+      ) : trackingType === "distance" ? (
+        <>
+          <View style={styles.centeredLabelContainer}>
+            <ThemedText style={styles.label}>
+              Distance ({distanceUnit})
+            </ThemedText>
+          </View>
+          <View style={styles.inputContainer}>
+            <IconButton
+              icon="minus"
+              {...distanceMinusPress}
+              size={buttonSize}
+              iconColor={Colors.dark.text}
+              style={styles.iconButton}
+            />
+            <TextInput
+              placeholderTextColor={Colors.dark.text}
+              value={distance}
+              onChangeText={(text: string) => handleDistanceInputChange(text)}
+              keyboardType="numeric"
+              selectTextOnFocus
+              style={styles.input}
+            />
+            <IconButton
+              icon="plus"
+              {...distancePlusPress}
+              size={buttonSize}
+              iconColor={Colors.dark.text}
+              style={styles.iconButton}
+            />
+          </View>
         </>
       ) : null}
       <Button
