@@ -114,7 +114,7 @@ export const updateAppExerciseIds = async (): Promise<void> => {
 };
 
 export const copyDataFromAppDataToUserData = async (): Promise<void> => {
-  const appDataDB = await openDatabase("appData2.db");
+  const appDataDB = await openDatabase("appData3.db");
   const userDataDB = await openDatabase("userData.db");
 
   interface ExerciseCheckResult {
@@ -306,9 +306,9 @@ export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
   const versionResult = await userDataDB.getFirstAsync<SettingsEntry>(
     "SELECT value FROM settings WHERE key = 'dataVersion'",
   );
-  if (Number(versionResult?.value) >= 1.9) return;
+  if (Number(versionResult?.value) >= 2.0) return;
 
-  const appDataDB = await openDatabase("appData2.db");
+  const appDataDB = await openDatabase("appData3.db");
   const appExercises = await appDataDB.getAllAsync<{
     exercise_id: number;
     is_unilateral: number;
@@ -325,7 +325,7 @@ export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
     }
     await userDataDB.runAsync(
       "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-      ["dataVersion", "1.9"],
+      ["dataVersion", "2.0"],
     );
     await userDataDB.execAsync("COMMIT");
   } catch (err) {
