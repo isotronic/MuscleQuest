@@ -113,11 +113,11 @@ export default function ExercisesScreen() {
     restSeconds: seconds,
     time: 30,
   });
-  const defaultDistanceSets = Array(defaultSetNumber).fill({
+  const defaultDistanceSets = Array.from({ length: defaultSetNumber }, () => ({
     restMinutes: minutes,
     restSeconds: seconds,
     distance: 0,
-  });
+  }));
 
   const handleSelectExercise = useCallback(
     (exerciseId: number) => {
@@ -216,7 +216,11 @@ export default function ExercisesScreen() {
         const exerciseToAdd = {
           ...exercise,
           sets:
-            exercise.tracking_type === "time" ? defaultTimeSets : exercise.tracking_type === "distance" ? defaultDistanceSets : defaultSets,
+            exercise.tracking_type === "time"
+              ? defaultTimeSets
+              : exercise.tracking_type === "distance"
+                ? Array.from({ length: defaultSetNumber }, () => ({ restMinutes: minutes, restSeconds: seconds, distance: 0 }))
+                : defaultSets,
         };
         addExercise(currentWorkoutIndex, exerciseToAdd);
       }
