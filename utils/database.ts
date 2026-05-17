@@ -126,6 +126,8 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
     equipment: string | null;
     tracking_type: string | null;
     is_deleted: number;
+    is_unilateral?: boolean;
+    double_weight?: boolean;
   }
 
   const dataVersionEntry: SettingsEntry | null =
@@ -224,9 +226,9 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
                   case "equipment":
                     return row[col] !== existingEntry.equipment;
                   case "is_unilateral":
-                    return row[col] !== (existingEntry as any).is_unilateral;
+                    return row[col] !== existingEntry.is_unilateral;
                   case "double_weight":
-                    return row[col] !== (existingEntry as any).double_weight;
+                    return row[col] !== existingEntry.double_weight;
                   default:
                     return false;
                 }
