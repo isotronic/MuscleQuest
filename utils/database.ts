@@ -17,6 +17,8 @@ export interface Exercise {
   description: string;
   tracking_type?: string;
   favorite?: number;
+  is_unilateral?: number;
+  double_weight?: number;
 }
 
 export interface SavedWorkout {
@@ -124,6 +126,8 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
     equipment: string | null;
     tracking_type: string | null;
     is_deleted: number;
+    is_unilateral?: boolean;
+    double_weight?: boolean;
   }
 
   const dataVersionEntry: SettingsEntry | null =
@@ -221,6 +225,10 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
                     return row[col] !== existingEntry.tracking_type;
                   case "equipment":
                     return row[col] !== existingEntry.equipment;
+                  case "is_unilateral":
+                    return row[col] !== existingEntry.is_unilateral;
+                  case "double_weight":
+                    return row[col] !== existingEntry.double_weight;
                   default:
                     return false;
                 }
@@ -276,6 +284,8 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
       "description",
       "is_deleted",
       "tracking_type",
+      "is_unilateral",
+      "double_weight",
     ],
     true, // Exclude the auto-incremented exercise_id for userData
   );
@@ -288,6 +298,39 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
     );
 
     console.log("Data copy completed and version updated.");
+  }
+};
+
+export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
+  const userDataDB = await openDatabase("userData.db");
+  const versionResult = await userDataDB.getFirstAsync<SettingsEntry>(
+    "SELECT value FROM settings WHERE key = 'dataVersion'",
+  );
+  if (Number(versionResult?.value) >= 1.9) return;
+
+  const appDataDB = await openDatabase("appData2.db");
+  const appExercises = await appDataDB.getAllAsync<{
+    exercise_id: number;
+    is_unilateral: number;
+    double_weight: number;
+  }>("SELECT exercise_id, is_unilateral, double_weight FROM exercises");
+
+  await userDataDB.execAsync("BEGIN TRANSACTION");
+  try {
+    for (const ex of appExercises) {
+      await userDataDB.runAsync(
+        "UPDATE exercises SET is_unilateral = ?, double_weight = ? WHERE app_exercise_id = ?",
+        [ex.is_unilateral ?? 0, ex.double_weight ?? 0, ex.exercise_id],
+      );
+    }
+    await userDataDB.runAsync(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      ["dataVersion", "1.9"],
+    );
+    await userDataDB.execAsync("COMMIT");
+  } catch (err) {
+    await userDataDB.execAsync("ROLLBACK");
+    Bugsnag.notify(err as Error);
   }
 };
 
@@ -863,6 +906,8 @@ interface CompletedWorkoutRow {
   exercise_image: Uint8Array | null;
   exercise_order: number;
   exercise_tracking_type: string | null;
+  is_unilateral: number | null;
+  double_weight: number | null;
   set_id: number;
   set_number: number | null;
   weight: number | null;
@@ -894,6 +939,8 @@ export const fetchCompletedWorkoutById = async (
         e.name as exercise_name, 
         e.image as exercise_image, 
         e.tracking_type as exercise_tracking_type,
+        e.is_unilateral,
+        e.double_weight,
         cs.id as set_id,
         cs.set_number,
         cs.weight,
@@ -950,6 +997,8 @@ export const fetchCompletedWorkoutById = async (
               ? Array.from(row.exercise_image)
               : undefined,
             exercise_tracking_type: row.exercise_tracking_type || "weight",
+            is_unilateral: row.is_unilateral ?? 0,
+            double_weight: row.double_weight ?? 0,
             sets: [],
             exercise_order: row.exercise_order, // Track exercise order
           };
@@ -1064,6 +1113,8 @@ export const insertDefaultSettings = async () => {
     { key: "workoutReminderDays", value: "[]" },
     { key: "workoutReminderTime", value: "08:00" },
     { key: "excludeWarmupSets", value: "false" },
+    { key: "countUnilateralDouble", value: "false" },
+    { key: "doubleWeightForPaired", value: "false" },
   ];
 
   // Loop through each default setting
@@ -1114,6 +1165,8 @@ export interface Settings {
   workoutReminderDays: string;
   workoutReminderTime: string;
   excludeWarmupSets: string;
+  countUnilateralDouble: string;
+  doubleWeightForPaired: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

@@ -207,6 +207,12 @@ export async function initUserDataDB() {
   const workout_imageUrlExists = user_workoutsResult.some(
     (column: any) => column.name === "image_url",
   );
+  const isUnilateralExists = exercisesResult.some(
+    (column: any) => column.name === "is_unilateral",
+  );
+  const doubleWeightExists = exercisesResult.some(
+    (column: any) => column.name === "double_weight",
+  );
 
   // If the column does not exist, add it
   if (!app_exercise_idExists) {
@@ -303,6 +309,16 @@ export async function initUserDataDB() {
   if (!workout_imageUrlExists) {
     await db.execAsync(`
       ALTER TABLE user_workouts ADD COLUMN image_url TEXT;
+    `);
+  }
+  if (!isUnilateralExists) {
+    await db.execAsync(`
+      ALTER TABLE exercises ADD COLUMN is_unilateral BOOLEAN DEFAULT FALSE;
+    `);
+  }
+  if (!doubleWeightExists) {
+    await db.execAsync(`
+      ALTER TABLE exercises ADD COLUMN double_weight BOOLEAN DEFAULT FALSE;
     `);
   }
 

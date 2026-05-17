@@ -27,7 +27,7 @@ const copyDatabase = async (): Promise<void> => {
     );
   }
 
-  if (!dbFile.exists || dataVersion === null || dataVersion < 1.7) {
+  if (!dbFile.exists || dataVersion === null || dataVersion < 1.9) {
     console.log("Copying appData2.db ...");
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const asset = Asset.fromModule(require(`../assets/db/${DATABASE_NAME}`));

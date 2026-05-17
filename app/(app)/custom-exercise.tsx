@@ -9,7 +9,7 @@ import {
   Image,
   View,
 } from "react-native";
-import { Button, Divider } from "react-native-paper";
+import { Button, Divider, Switch } from "react-native-paper";
 import DropDownPicker from "react-native-dropdown-picker";
 import { ThemedText } from "@/components/ThemedText";
 import * as ImagePicker from "expo-image-picker";
@@ -54,6 +54,8 @@ export default function AddCustomExerciseScreen() {
   const [equipment, setEquipment] = useState<string>("");
   const [secondaryMuscles, setSecondaryMuscles] = useState<string[]>([]);
   const [trackingType, setTrackingType] = useState<string>("");
+  const [isUnilateral, setIsUnilateral] = useState(false);
+  const [doubleWeight, setDoubleWeight] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -177,6 +179,8 @@ export default function AddCustomExerciseScreen() {
             setSecondaryMuscles([]);
           }
           setTrackingType(existingData.tracking_type ?? "");
+          setIsUnilateral(existingData.is_unilateral === 1);
+          setDoubleWeight(existingData.double_weight === 1);
         }
       } catch (error: any) {
         console.error("Error fetching exercise data for editing:", error);
@@ -241,7 +245,7 @@ export default function AddCustomExerciseScreen() {
 
       if (isEditing) {
         await db.runAsync(
-          `UPDATE exercises SET name = ?, description = ?, local_animated_uri = ?, body_part = ?, target_muscle = ?, equipment = ?, secondary_muscles = ? WHERE exercise_id = ?`,
+          `UPDATE exercises SET name = ?, description = ?, local_animated_uri = ?, body_part = ?, target_muscle = ?, equipment = ?, secondary_muscles = ?, is_unilateral = ?, double_weight = ? WHERE exercise_id = ?`,
           [
             name,
             JSON.stringify([description]),
@@ -250,12 +254,14 @@ export default function AddCustomExerciseScreen() {
             targetMuscle,
             equipment,
             JSON.stringify(secondaryMuscles),
+            isUnilateral ? 1 : 0,
+            doubleWeight ? 1 : 0,
             Number(exercise_id),
           ],
         );
       } else {
         await db.runAsync(
-          `INSERT INTO exercises (app_exercise_id, name, description, local_animated_uri, body_part, target_muscle, equipment, secondary_muscles, tracking_type) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO exercises (app_exercise_id, name, description, local_animated_uri, body_part, target_muscle, equipment, secondary_muscles, tracking_type, is_unilateral, double_weight) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             name,
             JSON.stringify([description]),
@@ -265,6 +271,8 @@ export default function AddCustomExerciseScreen() {
             equipment,
             JSON.stringify(secondaryMuscles),
             trackingType,
+            isUnilateral ? 1 : 0,
+            doubleWeight ? 1 : 0,
           ],
         );
 
@@ -565,6 +573,51 @@ export default function AddCustomExerciseScreen() {
             </View>
           </View>
 
+          <Divider style={styles.divider} />
+
+          {/* ── Stats Options ──────────────────────────────── */}
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionHeader}>Stats Options</ThemedText>
+
+            <View style={styles.switchRow}>
+              <View style={styles.switchTextContainer}>
+                <ThemedText style={styles.fieldLabel}>
+                  Single-arm / single-leg
+                </ThemedText>
+                <ThemedText style={styles.helperText}>
+                  Count reps ×2 for volume when the setting is enabled
+                </ThemedText>
+              </View>
+              <Switch
+                value={isUnilateral}
+                onValueChange={(v: boolean) => {
+                  setIsUnilateral(v);
+                  markDirty();
+                }}
+                color={Colors.dark.tint}
+              />
+            </View>
+
+            <View style={styles.switchRow}>
+              <View style={styles.switchTextContainer}>
+                <ThemedText style={styles.fieldLabel}>
+                  Paired implements
+                </ThemedText>
+                <ThemedText style={styles.helperText}>
+                  Double the weight for volume when the setting is enabled
+                </ThemedText>
+              </View>
+              <Switch
+                value={doubleWeight}
+                onValueChange={(v: boolean) => {
+                  setDoubleWeight(v);
+                  markDirty();
+                }}
+                color={Colors.dark.tint}
+              />
+            </View>
+          </View>
+
           <Button
             mode="contained"
             labelStyle={styles.buttonLabel}
@@ -659,5 +712,15 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontSize: 16,
+  },
+  switchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  switchTextContainer: {
+    flex: 1,
+    marginRight: 12,
   },
 });

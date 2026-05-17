@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
-import { TrackedExerciseWithSets, CompletedSet } from "./useTrackedExercisesQuery";
+import {
+  TrackedExerciseWithSets,
+  CompletedSet,
+} from "./useTrackedExercisesQuery";
 
 interface PRSet extends CompletedSet {
   date_completed: string;
@@ -22,19 +25,23 @@ export interface ExerciseDetail {
   preRangeBaseline: number | null;
 }
 
-const progressionMetricCase = `
+const buildProgressionMetricCase = (weightM: number, repM: number) => `
   CASE e.tracking_type
-    WHEN 'weight' THEN cs.weight * (1 + cs.reps / 30.0)
+    WHEN 'weight' THEN (cs.weight * ${weightM}) * (1 + cs.reps / 30.0)
     WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
-    WHEN 'reps' THEN cs.reps
+    WHEN 'reps' THEN cs.reps * ${repM}
     WHEN 'time' THEN cs.time
     WHEN 'distance' THEN cs.distance
-    ELSE cs.weight * (1 + cs.reps / 30.0)
+    ELSE (cs.weight * ${weightM}) * (1 + cs.reps / 30.0)
   END
 `;
 
-const mapRowToCompletedSet = (row: any, trackingType: string | null): CompletedSet => {
-  const isWeight = !trackingType || trackingType === "weight" || trackingType === "assisted";
+const mapRowToCompletedSet = (
+  row: any,
+  trackingType: string | null,
+): CompletedSet => {
+  const isWeight =
+    !trackingType || trackingType === "weight" || trackingType === "assisted";
   return {
     set_number: row.set_number,
     weight: isWeight ? row.weight : undefined,
@@ -42,7 +49,9 @@ const mapRowToCompletedSet = (row: any, trackingType: string | null): CompletedS
     time: trackingType === "time" ? row.time : undefined,
     distance: trackingType === "distance" ? row.distance : undefined,
     date_completed: row.date_completed,
-    oneRepMax: isWeight ? Math.round(row.progression_metric * 10) / 10 : undefined,
+    oneRepMax: isWeight
+      ? Math.round(row.progression_metric * 10) / 10
+      : undefined,
     progressionMetric: row.progression_metric,
   };
 };
@@ -50,13 +59,27 @@ const mapRowToCompletedSet = (row: any, trackingType: string | null): CompletedS
 const fetchExerciseDetail = async (
   exerciseId: number,
   timeRange: string,
-  weightUnit: string,
   excludeWarmup = false,
+  countUnilateralDouble = false,
+  doubleWeightForPaired = false,
 ): Promise<ExerciseDetail | null> => {
   try {
     const db = await openDatabase("userData.db");
-    const convFactor = weightUnit === "lbs" ? 2.2046226 : 1;
-    const warmupFilter = excludeWarmup ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)" : "";
+    const warmupFilter = excludeWarmup
+      ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)"
+      : "";
+
+    const exerciseFlags = await db.getFirstAsync<{
+      is_unilateral: number;
+      double_weight: number;
+    }>(
+      "SELECT is_unilateral, double_weight FROM exercises WHERE exercise_id = ?",
+      [exerciseId],
+    );
+    const repM = countUnilateralDouble && exerciseFlags?.is_unilateral ? 2 : 1;
+    const weightM =
+      doubleWeightForPaired && exerciseFlags?.double_weight ? 2 : 1;
+    const progressionMetricCase = buildProgressionMetricCase(weightM, repM);
 
     // Fetch the best set per day for this exercise (time-range filtered).
     // ROW_NUMBER() deterministically picks the highest-metric set per date,
@@ -170,7 +193,9 @@ const fetchExerciseDetail = async (
       ORDER BY cw.date_completed DESC
       LIMIT 5
     `;
-    const recentRows = (await db.getAllAsync(recentQuery, [exerciseId])) as any[];
+    const recentRows = (await db.getAllAsync(recentQuery, [
+      exerciseId,
+    ])) as any[];
     const recentSessions: RecentSession[] = recentRows.map((r) => ({
       date_completed: r.date_completed,
       bestSet: mapRowToCompletedSet(r, trackingType),
@@ -195,7 +220,9 @@ const fetchExerciseDetail = async (
         ORDER BY DATE(cw.date_completed) DESC
         LIMIT 1
       `;
-      const baselineRow = (await db.getFirstAsync(baselineQuery, [exerciseId])) as {
+      const baselineRow = (await db.getFirstAsync(baselineQuery, [
+        exerciseId,
+      ])) as {
         baseline_metric: number | null;
       } | null;
       preRangeBaseline = baselineRow?.baseline_metric ?? null;
@@ -222,10 +249,27 @@ export const useExerciseDetailQuery = (
   timeRange: string,
   weightUnit: string,
   excludeWarmup = false,
+  countUnilateralDouble = false,
+  doubleWeightForPaired = false,
 ) => {
   return useQuery<ExerciseDetail | null>({
-    queryKey: ["exerciseDetail", exerciseId, timeRange, weightUnit, excludeWarmup],
-    queryFn: () => fetchExerciseDetail(exerciseId, timeRange, weightUnit, excludeWarmup),
+    queryKey: [
+      "exerciseDetail",
+      exerciseId,
+      timeRange,
+      weightUnit,
+      excludeWarmup,
+      countUnilateralDouble,
+      doubleWeightForPaired,
+    ],
+    queryFn: () =>
+      fetchExerciseDetail(
+        exerciseId,
+        timeRange,
+        excludeWarmup,
+        countUnilateralDouble,
+        doubleWeightForPaired,
+      ),
     enabled: exerciseId > 0,
     staleTime: 0,
     gcTime: 0,

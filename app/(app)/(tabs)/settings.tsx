@@ -106,6 +106,8 @@ export default function SettingsScreen() {
     restTimerNotification: settings?.restTimerNotification,
     showOnboarding: settings?.showOnboarding,
     excludeWarmupSets: settings?.excludeWarmupSets,
+    countUnilateralDouble: settings?.countUnilateralDouble,
+    doubleWeightForPaired: settings?.doubleWeightForPaired,
   });
 
   const [workoutReminderEnabled, setWorkoutReminderEnabled] = useState(false);
@@ -134,6 +136,8 @@ export default function SettingsScreen() {
         restTimerNotification: settings?.restTimerNotification,
         showOnboarding: settings?.showOnboarding,
         excludeWarmupSets: settings?.excludeWarmupSets,
+        countUnilateralDouble: settings?.countUnilateralDouble,
+        doubleWeightForPaired: settings?.doubleWeightForPaired,
       });
       setWorkoutReminderEnabled(settings.workoutReminderEnabled === "true");
       try {
@@ -258,6 +262,22 @@ export default function SettingsScreen() {
   const toggleExcludeWarmupSets = (value: boolean) => {
     setToggleValues({ ...toggleValues, excludeWarmupSets: value.toString() });
     updateSetting({ key: "excludeWarmupSets", value: value.toString() });
+  };
+
+  const toggleCountUnilateralDouble = (value: boolean) => {
+    setToggleValues({
+      ...toggleValues,
+      countUnilateralDouble: value.toString(),
+    });
+    updateSetting({ key: "countUnilateralDouble", value: value.toString() });
+  };
+
+  const toggleDoubleWeightForPaired = (value: boolean) => {
+    setToggleValues({
+      ...toggleValues,
+      doubleWeightForPaired: value.toString(),
+    });
+    updateSetting({ key: "doubleWeightForPaired", value: value.toString() });
   };
 
   const toggleVibration = (value: boolean) => {
@@ -812,12 +832,62 @@ export default function SettingsScreen() {
                 Exclude warmup sets from stats
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {toggleValues.excludeWarmupSets === "true" ? "Enabled" : "Disabled"}
+                {toggleValues.excludeWarmupSets === "true"
+                  ? "Enabled"
+                  : "Disabled"}
               </ThemedText>
             </View>
             <Switch
               value={toggleValues.excludeWarmupSets === "true"}
               onValueChange={toggleExcludeWarmupSets}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="arm-flex"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                I log one side only for single-arm/leg exercises
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {toggleValues.countUnilateralDouble === "true"
+                  ? "Counting reps ×2 for these exercises"
+                  : "Disabled"}
+              </ThemedText>
+            </View>
+            <Switch
+              value={toggleValues.countUnilateralDouble === "true"}
+              onValueChange={toggleCountUnilateralDouble}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="dumbbell"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                I enter weight per dumbbell / cable, not total
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {toggleValues.doubleWeightForPaired === "true"
+                  ? "Doubling weight for volume calculations"
+                  : "Disabled"}
+              </ThemedText>
+            </View>
+            <Switch
+              value={toggleValues.doubleWeightForPaired === "true"}
+              onValueChange={toggleDoubleWeightForPaired}
               color={Colors.dark.tint}
               style={styles.switch}
             />
