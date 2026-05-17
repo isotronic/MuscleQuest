@@ -326,6 +326,7 @@ export default function WorkoutCard({
       menuVisible,
       removeExercise,
       workoutIndex,
+      distanceUnit,
     ],
   );
 
