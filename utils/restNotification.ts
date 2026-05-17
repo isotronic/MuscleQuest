@@ -45,8 +45,8 @@ export async function cancelRestNotifications() {
     if (id) {
       await Notifications.cancelScheduledNotificationAsync(id);
       await removeAsyncStorageItem(REST_TIMER_NOTIFICATION_ID_KEY);
+      await Notifications.dismissNotificationAsync(id);
     }
-    await Notifications.dismissAllNotificationsAsync();
   } catch (error: any) {
     Bugsnag.notify(error);
     console.error("Failed to cancel notifications:", error);
