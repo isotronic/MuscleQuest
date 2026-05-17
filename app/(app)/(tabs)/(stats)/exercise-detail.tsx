@@ -121,6 +121,7 @@ export default function ExerciseDetailScreen() {
               weightUnit={weightUnit}
               distanceUnit={distanceUnit}
               prValue={prValue > 0 ? prValue : undefined}
+              preRangeBaseline={data.preRangeBaseline}
             />
           </View>
         )}
@@ -149,6 +150,7 @@ export default function ExerciseDetailScreen() {
                   {new Date(set.date_completed).toLocaleDateString(undefined, {
                     day: "numeric",
                     month: "short",
+                    year: "numeric",
                   })}
                 </ThemedText>
               </View>
