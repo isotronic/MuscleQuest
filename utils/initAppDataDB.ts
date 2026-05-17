@@ -30,13 +30,21 @@ const copyDatabase = async (): Promise<void> => {
 
   if (!dbFile.exists || dataVersion === null || dataVersion < 2.0) {
     console.log(`Copying ${DATABASE_NAME} ...`);
-    if (dbFile.exists) {
-      dbFile.delete();
+    const tempFile = new File(Paths.document, "SQLite", `${DATABASE_NAME}.tmp`);
+    if (tempFile.exists) {
+      tempFile.delete();
     }
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const asset = Asset.fromModule(require(`../assets/db/${DATABASE_NAME}`));
     await asset.downloadAsync();
-    new File(asset.localUri!).copy(dbFile);
+    new File(asset.localUri!).copy(tempFile);
+    if (!tempFile.exists) {
+      throw new Error(`Failed to stage ${DATABASE_NAME} to temp file`);
+    }
+    if (dbFile.exists) {
+      dbFile.delete();
+    }
+    tempFile.move(dbFile);
   }
 
   if (oldDbFile1.exists) {
