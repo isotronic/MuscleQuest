@@ -11,6 +11,7 @@ export interface HistorySet {
   distance: number | null;
   /** Historical body weight in kg at the time of this set, for assisted resist calculation. */
   hist_bw_kg: number | null;
+  is_warmup: boolean;
   is_pr: boolean;
 }
 
@@ -46,6 +47,7 @@ const fetchExerciseHistory = async (
         cs.reps,
         cs.time,
         cs.distance,
+        cs.is_warmup,
         DATE(cw.date_completed) AS date_completed,
         cw.id                   AS workout_id,
         uw.name                 AS workout_name,
@@ -85,13 +87,14 @@ const fetchExerciseHistory = async (
       reps,
       time,
       distance,
+      is_warmup,
       date_completed,
       workout_id,
       workout_name,
       tracking_type,
       hist_bw_kg,
       progression_metric,
-      MAX(progression_metric) OVER () AS all_time_pr
+      MAX(CASE WHEN is_warmup THEN NULL ELSE progression_metric END) OVER () AS all_time_pr
     FROM all_sets
     ORDER BY date_completed DESC, set_number ASC
     `,
@@ -108,6 +111,7 @@ const fetchExerciseHistory = async (
     workout_name: string | null;
     tracking_type: string | null;
     hist_bw_kg: number | null;
+    is_warmup: number | null;
     progression_metric: number | null;
     all_time_pr: number | null;
   }[];
@@ -141,6 +145,7 @@ const fetchExerciseHistory = async (
       time: row.time,
       distance: row.distance,
       hist_bw_kg: row.hist_bw_kg,
+      is_warmup: !!row.is_warmup,
       is_pr: isPR,
     });
   }

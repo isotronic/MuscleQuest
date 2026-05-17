@@ -195,6 +195,9 @@ export async function initUserDataDB() {
   const distanceExists = completed_setsResult.some(
     (column: any) => column.name === "distance",
   );
+  const isWarmupExists = completed_setsResult.some(
+    (column: any) => column.name === "is_warmup",
+  );
   const app_plan_idExists = user_plansResult.some(
     (column: any) => column.name === "app_plan_id",
   );
@@ -235,6 +238,53 @@ export async function initUserDataDB() {
     await db.execAsync(`
       ALTER TABLE completed_sets ADD COLUMN distance REAL;
     `);
+  }
+  if (!isWarmupExists) {
+    await db.execAsync(`
+      ALTER TABLE completed_sets ADD COLUMN is_warmup BOOLEAN DEFAULT FALSE;
+    `);
+  }
+
+  // Idempotent warmup backfill — runs once, resumable if a previous run was interrupted.
+  // Gated by a settings flag so it can retry safely across app starts.
+  const warmupBackfillDone = await db.getFirstAsync<{ value: string }>(
+    `SELECT value FROM settings WHERE key = 'warmup_backfill_completed'`,
+  );
+  if (!warmupBackfillDone) {
+    const templates = await db.getAllAsync<{
+      workout_id: number;
+      exercise_id: number;
+      sets: string;
+    }>(
+      `SELECT workout_id, exercise_id, sets FROM user_workout_exercises WHERE sets IS NOT NULL AND is_deleted = FALSE`,
+    );
+    for (const tmpl of templates) {
+      let planSets: { isWarmup?: boolean }[];
+      try {
+        planSets = JSON.parse(tmpl.sets);
+      } catch {
+        continue;
+      }
+      for (let i = 0; i < planSets.length; i++) {
+        if (planSets[i].isWarmup) {
+          await db.runAsync(
+            `UPDATE completed_sets
+             SET is_warmup = TRUE
+             WHERE set_number = ?
+               AND completed_exercise_id IN (
+                 SELECT ce.id
+                 FROM completed_exercises ce
+                 JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
+                 WHERE ce.exercise_id = ? AND cw.workout_id = ?
+               )`,
+            [i + 1, tmpl.exercise_id, tmpl.workout_id],
+          );
+        }
+      }
+    }
+    await db.runAsync(
+      `INSERT OR REPLACE INTO settings (key, value) VALUES ('warmup_backfill_completed', 'true')`,
+    );
   }
   if (!app_plan_idExists) {
     await db.execAsync(`

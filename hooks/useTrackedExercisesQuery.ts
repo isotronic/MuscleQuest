@@ -28,6 +28,7 @@ export interface TrackedExerciseWithSets extends TrackedExercise {
 
 const fetchTrackedExercises = async (
   timeRange: string,
+  excludeWarmup: boolean = false,
 ): Promise<TrackedExerciseWithSets[]> => {
   try {
     const db = await openDatabase("userData.db");
@@ -60,10 +61,11 @@ const fetchTrackedExercises = async (
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
     `;
 
+    const warmupFilter = excludeWarmup ? ` AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)` : "";
     if (timeRange !== "0") {
-      query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) AND (cw.is_deleted = FALSE OR cw.is_deleted IS NULL) `;
+      query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) AND (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter} `;
     } else {
-      query += `WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL) `;
+      query += `WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter} `;
     }
 
     query += `
@@ -92,7 +94,7 @@ const fetchTrackedExercises = async (
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-      WHERE cw.is_deleted = FALSE OR cw.is_deleted IS NULL
+      WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${excludeWarmup ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)" : ""}
       GROUP BY te.exercise_id
     `;
     const allTimePRRows = (await db.getAllAsync(allTimePRQuery)) as {
@@ -160,10 +162,11 @@ const fetchTrackedExercises = async (
   }
 };
 
-export const useTrackedExercisesQuery = (timeRange: string) => {
+export const useTrackedExercisesQuery = (timeRange: string, excludeWarmup: boolean = false) => {
   return useQuery<TrackedExerciseWithSets[], Error>({
-    queryKey: ["trackedExercises", timeRange],
-    queryFn: () => fetchTrackedExercises(timeRange),
-    staleTime: 5 * 60 * 1000,
+    queryKey: ["trackedExercises", timeRange, excludeWarmup],
+    queryFn: () => fetchTrackedExercises(timeRange, excludeWarmup),
+    staleTime: 0,
+    gcTime: 0,
   });
 };

@@ -12,11 +12,13 @@ import { capitalizeWords } from "@/utils/utility";
 interface BodyPartChartProps {
   completedWorkouts: CompletedWorkout[] | undefined;
   exercises: Exercise[] | undefined;
+  excludeWarmup?: boolean;
 }
 
 const BodyPartChart: React.FC<BodyPartChartProps> = ({
   completedWorkouts,
   exercises,
+  excludeWarmup = false,
 }) => {
   const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
   const [selectedPercentage, setSelectedPercentage] = useState<number | null>(
@@ -68,14 +70,16 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
           }
 
           // Count the number of sets for this exercise
-          const completedSets = exercise.sets.length;
+          const completedSets = excludeWarmup
+            ? exercise.sets.filter((s) => !s.is_warmup).length
+            : exercise.sets.length;
           counts[bodyPart] = (counts[bodyPart] || 0) + completedSets;
         }
       });
     });
 
     return counts;
-  }, [completedWorkouts, exerciseIdToBodyPartMap]);
+  }, [completedWorkouts, exerciseIdToBodyPartMap, excludeWarmup]);
 
   // Calculate body part percentages
   const bodyPartPercentages = useMemo(() => {

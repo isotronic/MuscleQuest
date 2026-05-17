@@ -19,6 +19,7 @@ export interface ExerciseDetail {
   trackingType: string | null;
   topPRSets: PRSet[];
   recentSessions: RecentSession[];
+  preRangeBaseline: number | null;
 }
 
 const progressionMetricCase = `
@@ -50,10 +51,12 @@ const fetchExerciseDetail = async (
   exerciseId: number,
   timeRange: string,
   weightUnit: string,
+  excludeWarmup = false,
 ): Promise<ExerciseDetail | null> => {
   try {
     const db = await openDatabase("userData.db");
     const convFactor = weightUnit === "lbs" ? 2.2046226 : 1;
+    const warmupFilter = excludeWarmup ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)" : "";
 
     // Fetch the best set per day for this exercise (time-range filtered).
     // ROW_NUMBER() deterministically picks the highest-metric set per date,
@@ -77,7 +80,7 @@ const fetchExerciseDetail = async (
         LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
         LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
         LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-        WHERE e.exercise_id = ? AND cw.is_deleted = FALSE
+        WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}
     `;
 
     if (timeRange !== "0") {
@@ -109,7 +112,7 @@ const fetchExerciseDetail = async (
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE
+      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}
     `;
     const prRow = (await db.getFirstAsync(allTimePRQuery, [exerciseId])) as {
       all_time_pr: number | null;
@@ -142,7 +145,7 @@ const fetchExerciseDetail = async (
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE
+      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}
       ORDER BY progression_metric DESC
       LIMIT 5
     `;
@@ -162,7 +165,7 @@ const fetchExerciseDetail = async (
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE
+      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}
       GROUP BY DATE(cw.date_completed)
       ORDER BY cw.date_completed DESC
       LIMIT 5
@@ -176,6 +179,28 @@ const fetchExerciseDetail = async (
     const latestMetric =
       completedSets.length > 0 ? completedSets[0].progressionMetric : null;
 
+    // Most recent best set from before the selected time range (used as chart baseline)
+    let preRangeBaseline: number | null = null;
+    if (timeRange !== "0") {
+      const baselineQuery = `
+        SELECT MAX(${progressionMetricCase}) AS baseline_metric
+        FROM exercises e
+        JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
+        JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
+        JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
+        WHERE e.exercise_id = ?
+          AND cw.is_deleted = FALSE${warmupFilter}
+          AND DATE(cw.date_completed) < DATE('now', '-${timeRange} days')
+        GROUP BY DATE(cw.date_completed)
+        ORDER BY DATE(cw.date_completed) DESC
+        LIMIT 1
+      `;
+      const baselineRow = (await db.getFirstAsync(baselineQuery, [exerciseId])) as {
+        baseline_metric: number | null;
+      } | null;
+      preRangeBaseline = baselineRow?.baseline_metric ?? null;
+    }
+
     return {
       trackedExercise,
       allTimePR,
@@ -183,6 +208,7 @@ const fetchExerciseDetail = async (
       trackingType,
       topPRSets,
       recentSessions,
+      preRangeBaseline,
     };
   } catch (error: any) {
     Bugsnag.notify(error);
@@ -195,11 +221,13 @@ export const useExerciseDetailQuery = (
   exerciseId: number,
   timeRange: string,
   weightUnit: string,
+  excludeWarmup = false,
 ) => {
   return useQuery<ExerciseDetail | null>({
-    queryKey: ["exerciseDetail", exerciseId, timeRange, weightUnit],
-    queryFn: () => fetchExerciseDetail(exerciseId, timeRange, weightUnit),
+    queryKey: ["exerciseDetail", exerciseId, timeRange, weightUnit, excludeWarmup],
+    queryFn: () => fetchExerciseDetail(exerciseId, timeRange, weightUnit, excludeWarmup),
     enabled: exerciseId > 0,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
   });
 };

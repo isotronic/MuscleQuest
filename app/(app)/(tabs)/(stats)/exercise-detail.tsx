@@ -20,16 +20,22 @@ export default function ExerciseDetailScreen() {
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
+  const excludeWarmup = settings?.excludeWarmupSets === "true";
   const [timeRange, setTimeRange] = useState("30");
 
   useEffect(() => {
     if (name) navigation.setOptions({ title: name });
   }, [name, navigation]);
 
+  useEffect(() => {
+    if (settings?.timeRange) setTimeRange(settings.timeRange);
+  }, [settings?.timeRange]);
+
   const { data, isLoading } = useExerciseDetailQuery(
     parseInt(exerciseId ?? "0"),
     timeRange,
     weightUnit,
+    excludeWarmup,
   );
 
   const convFactor = weightUnit === "lbs" ? 2.2046226 : 1;
@@ -117,6 +123,7 @@ export default function ExerciseDetailScreen() {
               weightUnit={weightUnit}
               distanceUnit={distanceUnit}
               prValue={prValue > 0 ? prValue : undefined}
+              preRangeBaseline={data.preRangeBaseline}
             />
           </View>
         )}
@@ -145,6 +152,7 @@ export default function ExerciseDetailScreen() {
                   {new Date(set.date_completed).toLocaleDateString(undefined, {
                     day: "numeric",
                     month: "short",
+                    year: "numeric",
                   })}
                 </ThemedText>
               </View>

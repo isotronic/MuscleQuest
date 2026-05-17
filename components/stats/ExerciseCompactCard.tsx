@@ -76,7 +76,7 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
           </ThemedText>
         </View>
         <View style={styles.right}>
-          <SparklineChart data={sparkData} width={100} height={30} />
+          <SparklineChart data={sparkData} width={100} height={44} />
           <ThemedText style={styles.chevron}>›</ThemedText>
         </View>
       </TouchableOpacity>

@@ -483,6 +483,7 @@ export default function WorkoutOverviewScreen() {
                 reps: set.reps ? parseInt(set.reps) : null,
                 time: set.time ? parseInt(set.time) : null,
                 distance: (set.distance !== "" && set.distance != null) ? parseFloat(set.distance) : null,
+                is_warmup: exercise.sets[parseInt(setIndex)]?.isWarmup || false,
               }));
 
             return { exercise_id: exercise.exercise_id, sets };

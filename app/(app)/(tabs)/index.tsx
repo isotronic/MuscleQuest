@@ -331,6 +331,7 @@ export default function HomeScreen() {
               weeklyGoal={Number(settings?.weeklyGoal)}
               weightUnit={settings?.weightUnit ?? "kg"}
               streak={streak}
+              excludeWarmup={settings?.excludeWarmupSets === "true"}
             />
           </View>
         )}

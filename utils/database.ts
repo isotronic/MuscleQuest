@@ -32,6 +32,7 @@ export interface SavedWorkout {
       reps: number | null;
       time: number | null;
       distance: number | null;
+      is_warmup?: boolean;
     }[];
   }[];
 }
@@ -765,6 +766,7 @@ export const saveCompletedWorkout = async (
       reps: number | null;
       time: number | null;
       distance: number | null;
+      is_warmup?: boolean;
     }[];
   }[],
 ) => {
@@ -794,7 +796,7 @@ export const saveCompletedWorkout = async (
       for (const set of exercise.sets) {
         // Insert each completed set
         await db.runAsync(
-          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance) VALUES (?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup) VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
             completedExerciseId,
             set.set_number,
@@ -802,6 +804,7 @@ export const saveCompletedWorkout = async (
             set.reps,
             set.time,
             set.distance,
+            set.is_warmup ? 1 : 0,
           ],
         );
       }
@@ -866,6 +869,7 @@ interface CompletedWorkoutRow {
   reps: number | null;
   time: number | null;
   distance: number | null;
+  is_warmup: number | null;
 }
 
 export const fetchCompletedWorkoutById = async (
@@ -896,6 +900,7 @@ export const fetchCompletedWorkoutById = async (
         cs.reps,
         cs.time,
         cs.distance,
+        cs.is_warmup,
         uwe.exercise_order -- Include exercise order from user_workout_exercises
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
@@ -980,6 +985,7 @@ export const fetchCompletedWorkoutById = async (
                 row.distance !== null && Number.isFinite(distanceInMeters)
                   ? convertedDistance
                   : null,
+              is_warmup: !!row.is_warmup,
             });
           }
         }
@@ -1057,6 +1063,7 @@ export const insertDefaultSettings = async () => {
     { key: "workoutReminderEnabled", value: "false" },
     { key: "workoutReminderDays", value: "[]" },
     { key: "workoutReminderTime", value: "08:00" },
+    { key: "excludeWarmupSets", value: "false" },
   ];
 
   // Loop through each default setting
@@ -1106,6 +1113,7 @@ export interface Settings {
   workoutReminderEnabled: string;
   workoutReminderDays: string;
   workoutReminderTime: string;
+  excludeWarmupSets: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

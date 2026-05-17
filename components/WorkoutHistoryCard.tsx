@@ -7,12 +7,17 @@ import { Colors } from "@/constants/Colors";
 interface WorkoutCardProps {
   workout: CompletedWorkout;
   onPress: (id: number) => void;
+  excludeWarmup?: boolean;
 }
 
 export default function WorkoutHistoryCard({
   workout,
   onPress,
+  excludeWarmup = false,
 }: WorkoutCardProps) {
+  const setsCount = excludeWarmup
+    ? workout.exercises.reduce((t, e) => t + e.sets.filter((s) => !s.is_warmup).length, 0)
+    : workout.total_sets_completed;
   return (
     <TouchableOpacity
       onPress={() => onPress(workout.id)}
@@ -29,7 +34,7 @@ export default function WorkoutHistoryCard({
           Duration: {Math.round(workout.duration / 60)} min
         </ThemedText>
         <ThemedText style={styles.workoutSets}>
-          Sets: {workout.total_sets_completed}
+          Sets: {setsCount}
         </ThemedText>
       </ThemedView>
     </TouchableOpacity>

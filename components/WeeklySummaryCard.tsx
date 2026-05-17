@@ -13,6 +13,7 @@ interface Props {
   weeklyGoal: number;
   weightUnit: string;
   streak: number;
+  excludeWarmup?: boolean;
 }
 
 function formatDuration(seconds: number): string {
@@ -47,6 +48,7 @@ function computeBestAchievement(
   workoutsThisWeek: CompletedWorkout[],
   allCompletedWorkouts: CompletedWorkout[],
   weightUnit: string,
+  excludeWarmup: boolean = false,
 ): BestAchievement | null {
   const today = new Date();
   const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -63,6 +65,7 @@ function computeBestAchievement(
   for (const workout of lastWeekWorkouts) {
     for (const ex of workout.exercises) {
       for (const set of ex.sets) {
+        if (excludeWarmup && set.is_warmup) continue;
         const metric = getProgressionMetric(
           set.weight,
           set.reps,
@@ -84,6 +87,7 @@ function computeBestAchievement(
   for (const workout of workoutsThisWeek) {
     for (const ex of workout.exercises) {
       for (const set of ex.sets) {
+        if (excludeWarmup && set.is_warmup) continue;
         const metric = getProgressionMetric(
           set.weight,
           set.reps,
@@ -158,6 +162,7 @@ export default function WeeklySummaryCard({
   weeklyGoal,
   weightUnit,
   streak,
+  excludeWarmup = false,
 }: Props) {
   const totalDuration = useMemo(
     () => workoutsThisWeek.reduce((sum, w) => sum + (w.duration ?? 0), 0),
@@ -169,14 +174,14 @@ export default function WeeklySummaryCard({
     for (const workout of workoutsThisWeek) {
       for (const ex of workout.exercises) {
         for (const set of ex.sets) {
-          if (set.weight != null && set.reps != null) {
+          if ((!excludeWarmup || !set.is_warmup) && set.weight != null && set.reps != null) {
             vol += set.weight * set.reps;
           }
         }
       }
     }
     return vol;
-  }, [workoutsThisWeek]);
+  }, [workoutsThisWeek, excludeWarmup]);
 
   const bestAchievement = useMemo(
     () =>
@@ -184,8 +189,9 @@ export default function WeeklySummaryCard({
         workoutsThisWeek,
         allCompletedWorkouts,
         weightUnit,
+        excludeWarmup,
       ),
-    [workoutsThisWeek, allCompletedWorkouts, weightUnit],
+    [workoutsThisWeek, allCompletedWorkouts, weightUnit, excludeWarmup],
   );
 
   const volumeLabel = `${Math.round(totalVolume).toLocaleString()} ${weightUnit}`;

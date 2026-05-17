@@ -147,12 +147,12 @@ function formatDuration(seconds: number): string {
   return `${s}s`;
 }
 
-function computeVolume(workout: CompletedWorkout): number {
+function computeVolume(workout: CompletedWorkout, excludeWarmup: boolean = false): number {
   return workout.exercises.reduce(
     (total, exercise) =>
       total +
       exercise.sets.reduce((setTotal, set) => {
-        if (set.weight != null && set.reps != null) {
+        if ((!excludeWarmup || !set.is_warmup) && set.weight != null && set.reps != null) {
           return setTotal + set.weight * set.reps;
         }
         return setTotal;
@@ -387,6 +387,7 @@ export default function WorkoutSummaryScreen() {
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit ?? "kg";
   const distanceUnit = settings?.distanceUnit ?? "m";
+  const excludeWarmup = settings?.excludeWarmupSets === "true";
 
   const id = Number(completedWorkoutId);
   const isValidId = Number.isFinite(id) && id > 0;
@@ -427,13 +428,18 @@ export default function WorkoutSummaryScreen() {
   }, [history, workout]);
 
   const currentVolume = useMemo(
-    () => (workout ? computeVolume(workout) : 0),
-    [workout],
+    () => (workout ? computeVolume(workout, excludeWarmup) : 0),
+    [workout, excludeWarmup],
   );
   const prevVolume = useMemo(
-    () => (prevWorkout ? computeVolume(prevWorkout) : 0),
-    [prevWorkout],
+    () => (prevWorkout ? computeVolume(prevWorkout, excludeWarmup) : 0),
+    [prevWorkout, excludeWarmup],
   );
+
+  const countSets = (w: CompletedWorkout) =>
+    excludeWarmup
+      ? w.exercises.reduce((t, e) => t + e.sets.filter((s) => !s.is_warmup).length, 0)
+      : w.total_sets_completed;
 
   if (isLoading) {
     return (
@@ -472,7 +478,7 @@ export default function WorkoutSummaryScreen() {
     ? Math.round((workout.duration - prevWorkout.duration) / 60)
     : 0;
   const setsDiff = prevWorkout
-    ? workout.total_sets_completed - prevWorkout.total_sets_completed
+    ? countSets(workout) - countSets(prevWorkout)
     : 0;
   const volumeDiff = currentVolume - prevVolume;
 
@@ -509,7 +515,7 @@ export default function WorkoutSummaryScreen() {
           <View style={styles.statsDivider} />
           <StatChip
             label="Sets"
-            value={String(workout.total_sets_completed)}
+            value={String(countSets(workout))}
             icon="dumbbell"
           />
           <View style={styles.statsDivider} />
