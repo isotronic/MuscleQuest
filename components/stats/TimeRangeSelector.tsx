@@ -4,10 +4,10 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 
 const RANGES = [
-  { label: "All Time", value: "0" },
   { label: "30d", value: "30" },
   { label: "90d", value: "90" },
   { label: "1yr", value: "365" },
+  { label: "All Time", value: "0" },
 ];
 
 interface TimeRangeSelectorProps {
