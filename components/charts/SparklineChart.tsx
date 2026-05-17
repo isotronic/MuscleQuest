@@ -36,14 +36,20 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
     return vPad + drawHeight * (1 - (v - minVal) / range);
   };
 
+  const hPad = width * 0.04;
+
   const points = values.map((v, i) => {
-    const x = (i / (values.length - 1)) * width;
+    const x = hPad + (i / (values.length - 1)) * (width - 2 * hPad);
     const y = toY(v);
     return `${x},${y}`;
   });
 
   // Area fill: close the polygon along the bottom edge
-  const areaPoints = [`0,${height}`, ...points, `${width},${height}`].join(" ");
+  const areaPoints = [
+    `${hPad},${height}`,
+    ...points,
+    `${width - hPad},${height}`,
+  ].join(" ");
 
   const linePoints = points.join(" ");
 
