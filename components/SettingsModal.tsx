@@ -129,11 +129,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const handleReminderTimeInputChange = (value: string) => {
     const sanitizedInput = value.replace(/[^0-9]/g, "");
     const formattedValue = formatTimeInput(sanitizedInput);
-    setReminderTimeInput(formattedValue);
 
     const [hoursStr, minutesStr] = formattedValue.split(":");
     const hours = Math.min(parseInt(hoursStr || "0"), 23);
-    const minutes = parseInt(minutesStr || "0");
+    const minutes = Math.min(parseInt(minutesStr || "0"), 59);
+    const normalizedValue = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    setReminderTimeInput(normalizedValue);
     onChangeValue({ hours: hours || 0, minutes: minutes || 0 });
   };
 
