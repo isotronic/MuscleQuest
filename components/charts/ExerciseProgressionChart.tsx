@@ -136,8 +136,10 @@ const groupSetsByTime = (
     const earliest = new Date(
       completedSets[completedSets.length - 1].date_completed,
     );
+    const latestCompleted = new Date(completedSets[0].date_completed);
     const spanYears =
-      (today.getTime() - earliest.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+      (latestCompleted.getTime() - earliest.getTime()) /
+      (1000 * 60 * 60 * 24 * 365.25);
 
     const buckets: (Bucket & { internalKey: string })[] = [];
     const keyToIndex = new Map<string, number>();
@@ -147,7 +149,7 @@ const groupSetsByTime = (
       const cursor = new Date(earliest);
       cursor.setDate(1);
       cursor.setHours(0, 0, 0, 0);
-      while (cursor <= today) {
+      while (cursor <= latestCompleted) {
         const internalKey = `${cursor.getFullYear()}-${cursor.getMonth()}`;
         buckets.push({
           internalKey,
@@ -164,7 +166,7 @@ const groupSetsByTime = (
       cursor.setDate(1);
       cursor.setMonth(Math.floor(cursor.getMonth() / 3) * 3);
       cursor.setHours(0, 0, 0, 0);
-      while (cursor <= today) {
+      while (cursor <= latestCompleted) {
         const q = Math.floor(cursor.getMonth() / 3) + 1;
         const yr = cursor.getFullYear();
         buckets.push({
@@ -183,7 +185,7 @@ const groupSetsByTime = (
       cursor.setMonth(0);
       cursor.setDate(1);
       cursor.setHours(0, 0, 0, 0);
-      while (cursor <= today) {
+      while (cursor <= latestCompleted) {
         const yr = cursor.getFullYear();
         buckets.push({
           internalKey: `${yr}`,
@@ -263,9 +265,9 @@ export const ExerciseProgressionChart: React.FC<
         ? isWeightTypePre
           ? preRangeBaseline * conversionFactor
           : preRangeBaseline
-        : 0;
+        : undefined;
     for (let i = 0; i < buckets.length; i++) {
-      if (buckets[i].value === null) {
+      if (buckets[i].value === null && baselineValue !== undefined) {
         buckets[i] = { ...buckets[i], value: baselineValue };
       }
     }
