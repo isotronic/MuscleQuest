@@ -48,6 +48,7 @@ function computeBestAchievement(
   workoutsThisWeek: CompletedWorkout[],
   allCompletedWorkouts: CompletedWorkout[],
   weightUnit: string,
+  excludeWarmup: boolean = false,
 ): BestAchievement | null {
   const today = new Date();
   const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -64,6 +65,7 @@ function computeBestAchievement(
   for (const workout of lastWeekWorkouts) {
     for (const ex of workout.exercises) {
       for (const set of ex.sets) {
+        if (excludeWarmup && set.is_warmup) continue;
         const metric = getProgressionMetric(
           set.weight,
           set.reps,
@@ -85,6 +87,7 @@ function computeBestAchievement(
   for (const workout of workoutsThisWeek) {
     for (const ex of workout.exercises) {
       for (const set of ex.sets) {
+        if (excludeWarmup && set.is_warmup) continue;
         const metric = getProgressionMetric(
           set.weight,
           set.reps,
@@ -186,8 +189,9 @@ export default function WeeklySummaryCard({
         workoutsThisWeek,
         allCompletedWorkouts,
         weightUnit,
+        excludeWarmup,
       ),
-    [workoutsThisWeek, allCompletedWorkouts, weightUnit],
+    [workoutsThisWeek, allCompletedWorkouts, weightUnit, excludeWarmup],
   );
 
   const volumeLabel = `${Math.round(totalVolume).toLocaleString()} ${weightUnit}`;
