@@ -20,6 +20,7 @@ interface WorkoutResult {
   reps: number | null;
   time: number | null;
   distance: number | null;
+  is_warmup: number | null;
 }
 
 export interface CompletedWorkout {
@@ -42,6 +43,7 @@ export interface CompletedWorkout {
       reps: number | null;
       time: number | null;
       distance: number | null;
+      is_warmup: boolean;
     }[];
   }[];
 }
@@ -73,7 +75,8 @@ const fetchCompletedWorkouts = async (
         completed_sets.weight,
         completed_sets.reps,
         completed_sets.time,
-        completed_sets.distance
+        completed_sets.distance,
+        completed_sets.is_warmup
       FROM completed_workouts
       LEFT JOIN completed_exercises ON completed_exercises.completed_workout_id = completed_workouts.id
       LEFT JOIN exercises ON exercises.exercise_id = completed_exercises.exercise_id -- Fetch exercise details from exercises table
@@ -192,6 +195,7 @@ const fetchAndOrganize = async (
           distance != null
             ? parseFloat((distance * distanceConversionFactor).toFixed(2))
             : null,
+        is_warmup: !!item.is_warmup,
       });
     });
 
@@ -272,7 +276,8 @@ const fetchWorkoutHistoryForSession = async (
         cs.weight,
         cs.reps,
         cs.time,
-        cs.distance
+        cs.distance,
+        cs.is_warmup
       FROM (
         SELECT * FROM completed_workouts
         WHERE workout_id = ? AND is_deleted = FALSE
@@ -311,6 +316,7 @@ const fetchWorkoutHistoryForSession = async (
         reps,
         time,
         distance,
+        is_warmup,
       } = item;
 
       let workout = workoutsMap.get(id);
@@ -354,6 +360,7 @@ const fetchWorkoutHistoryForSession = async (
           distance != null
             ? parseFloat((distance * distanceConversionFactor).toFixed(2))
             : null,
+        is_warmup: !!is_warmup,
       });
     });
 

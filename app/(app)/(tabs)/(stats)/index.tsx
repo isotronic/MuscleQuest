@@ -27,11 +27,21 @@ import { useQueryClient } from "@tanstack/react-query";
 import { formatToHoursMinutes } from "@/utils/utility";
 import Bugsnag from "@bugsnag/expo";
 
-const computeStats = (workouts: CompletedWorkout[], weightUnit: string) => {
+const computeStats = (
+  workouts: CompletedWorkout[],
+  weightUnit: string,
+  excludeWarmup: boolean,
+) => {
   const tonDivisor = weightUnit === "lbs" ? 2000 : 1000;
   const totalWorkouts = workouts.length;
   const totalSets = workouts.reduce(
-    (acc, w) => acc + w.exercises.reduce((a, e) => a + e.sets.length, 0),
+    (acc, w) =>
+      acc +
+      w.exercises.reduce(
+        (a, e) =>
+          a + e.sets.filter((s) => !excludeWarmup || !s.is_warmup).length,
+        0,
+      ),
     0,
   );
   const totalVolume = workouts.reduce(
@@ -42,7 +52,9 @@ const computeStats = (workouts: CompletedWorkout[], weightUnit: string) => {
           a +
           e.sets.reduce(
             (s, set) =>
-              s + (set.weight && set.reps ? set.weight * set.reps : 0),
+              (!excludeWarmup || !set.is_warmup) && set.weight && set.reps
+                ? s + set.weight * set.reps
+                : s,
             0,
           ),
         0,
@@ -66,6 +78,7 @@ export default function StatsScreen() {
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
+  const excludeWarmup = settings?.excludeWarmupSets === "true";
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>(
     settings?.timeRange || "30",
   );
@@ -83,7 +96,7 @@ export default function StatsScreen() {
     data: trackedExercises,
     isLoading: isLoadingTracked,
     error: trackedError,
-  } = useTrackedExercisesQuery(selectedTimeRange);
+  } = useTrackedExercisesQuery(selectedTimeRange, excludeWarmup);
   const {
     data: completedWorkouts,
     isLoading: isLoadingWorkouts,
@@ -115,6 +128,7 @@ export default function StatsScreen() {
     parseInt(selectedTimeRange),
     weightUnit,
     distanceUnit,
+    excludeWarmup,
   );
 
   const handleTimeRangeChange = useCallback(
@@ -176,8 +190,14 @@ export default function StatsScreen() {
     );
   }
 
-  const current = computeStats(completedWorkouts ?? [], weightUnit);
-  const prev = prevWorkouts ? computeStats(prevWorkouts, weightUnit) : null;
+  const current = computeStats(
+    completedWorkouts ?? [],
+    weightUnit,
+    excludeWarmup,
+  );
+  const prev = prevWorkouts
+    ? computeStats(prevWorkouts, weightUnit, excludeWarmup)
+    : null;
 
   const volumeUnit = weightUnit === "lbs" ? "tn" : "t";
   const formattedVolume = current.totalVolumeTons.toLocaleString(undefined, {
@@ -255,6 +275,7 @@ export default function StatsScreen() {
           <WorkoutHistorySection
             completedWorkouts={completedWorkouts ?? []}
             onWorkoutPress={handleWorkoutPress}
+            excludeWarmup={excludeWarmup}
           />
         </View>
 
@@ -281,6 +302,7 @@ export default function StatsScreen() {
               completedWorkouts={completedWorkouts!}
               timeRange={selectedTimeRange}
               weightUnit={weightUnit}
+              excludeWarmup={excludeWarmup}
             />
           </View>
         )}
@@ -293,6 +315,7 @@ export default function StatsScreen() {
           <BodyPartChart
             completedWorkouts={completedWorkouts}
             exercises={exercises?.otherExercises}
+            excludeWarmup={excludeWarmup}
           />
         </View>
 

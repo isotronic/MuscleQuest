@@ -24,6 +24,7 @@ export const useStatsInsights = (
   timeRangeDays: number,
   weightUnit: string,
   distanceUnit: string = "m",
+  excludeWarmup: boolean = false,
 ): StatsInsights => {
   return useMemo(() => {
     const workoutsPerWeek =
@@ -81,7 +82,8 @@ export const useStatsInsights = (
           const raw = bpMap[ex.exercise_id];
           if (!raw) return;
           const bp = mapBodyPart(raw);
-          counts[bp] = (counts[bp] || 0) + ex.sets.length;
+          const setCount = excludeWarmup ? ex.sets.filter((s) => !s.is_warmup).length : ex.sets.length;
+          counts[bp] = (counts[bp] || 0) + setCount;
         });
       });
 
@@ -97,5 +99,6 @@ export const useStatsInsights = (
     timeRangeDays,
     weightUnit,
     distanceUnit,
+    excludeWarmup,
   ]);
 };

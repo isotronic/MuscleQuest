@@ -20,6 +20,7 @@ export default function ExerciseDetailScreen() {
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
+  const excludeWarmup = settings?.excludeWarmupSets === "true";
   const [timeRange, setTimeRange] = useState("30");
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function ExerciseDetailScreen() {
     parseInt(exerciseId ?? "0"),
     timeRange,
     weightUnit,
+    excludeWarmup,
   );
 
   const convFactor = weightUnit === "lbs" ? 2.2046226 : 1;

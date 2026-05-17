@@ -13,6 +13,7 @@ interface Props {
   weeklyGoal: number;
   weightUnit: string;
   streak: number;
+  excludeWarmup?: boolean;
 }
 
 function formatDuration(seconds: number): string {
@@ -158,6 +159,7 @@ export default function WeeklySummaryCard({
   weeklyGoal,
   weightUnit,
   streak,
+  excludeWarmup = false,
 }: Props) {
   const totalDuration = useMemo(
     () => workoutsThisWeek.reduce((sum, w) => sum + (w.duration ?? 0), 0),
@@ -169,14 +171,14 @@ export default function WeeklySummaryCard({
     for (const workout of workoutsThisWeek) {
       for (const ex of workout.exercises) {
         for (const set of ex.sets) {
-          if (set.weight != null && set.reps != null) {
+          if ((!excludeWarmup || !set.is_warmup) && set.weight != null && set.reps != null) {
             vol += set.weight * set.reps;
           }
         }
       }
     }
     return vol;
-  }, [workoutsThisWeek]);
+  }, [workoutsThisWeek, excludeWarmup]);
 
   const bestAchievement = useMemo(
     () =>

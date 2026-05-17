@@ -7,11 +7,13 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 interface WorkoutHistorySectionProps {
   completedWorkouts: CompletedWorkout[];
   onWorkoutPress: (id: number) => void;
+  excludeWarmup?: boolean;
 }
 
 export const WorkoutHistorySection: React.FC<WorkoutHistorySectionProps> = ({
   completedWorkouts,
   onWorkoutPress,
+  excludeWarmup = false,
 }) => {
   if (completedWorkouts.length === 0) {
     return (
@@ -24,7 +26,7 @@ export const WorkoutHistorySection: React.FC<WorkoutHistorySectionProps> = ({
       <FlatList
         data={completedWorkouts}
         renderItem={({ item }: { item: CompletedWorkout }) => (
-          <WorkoutHistoryCard workout={item} onPress={() => onWorkoutPress(item.id)} />
+          <WorkoutHistoryCard workout={item} onPress={() => onWorkoutPress(item.id)} excludeWarmup={excludeWarmup} />
         )}
         keyExtractor={(item: CompletedWorkout) => item.id.toString()}
         horizontal

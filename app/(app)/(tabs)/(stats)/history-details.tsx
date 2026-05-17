@@ -36,6 +36,7 @@ export default function HistoryDetailsScreen() {
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
   const bodyWeight = parseFloat(settings?.bodyWeight || "70");
+  const excludeWarmup = settings?.excludeWarmupSets === "true";
 
   const deleteMutation = useDeleteCompletedWorkoutMutation();
 
@@ -93,18 +94,17 @@ export default function HistoryDetailsScreen() {
 
     return workout.exercises.reduce((exerciseAcc, exercise) => {
       const exerciseVolume = exercise.sets.reduce((setAcc, set) => {
-        // Check if the tracking type is "assistance" and apply custom calculation
+        if (excludeWarmup && set.is_warmup) return setAcc;
         const weight =
           exercise.exercise_tracking_type === "assisted"
             ? bodyWeight - (set.weight || 0)
             : set.weight || 0;
-
         return setAcc + weight * (set.reps || 0);
       }, 0);
 
       return parseFloat((exerciseAcc + exerciseVolume).toFixed(1));
     }, 0);
-  }, [workout, bodyWeight]);
+  }, [workout, bodyWeight, excludeWarmup]);
 
   if (isWorkoutLoading || !workout || settingsLoading) {
     return (

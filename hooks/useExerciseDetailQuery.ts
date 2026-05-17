@@ -51,10 +51,12 @@ const fetchExerciseDetail = async (
   exerciseId: number,
   timeRange: string,
   weightUnit: string,
+  excludeWarmup = false,
 ): Promise<ExerciseDetail | null> => {
   try {
     const db = await openDatabase("userData.db");
     const convFactor = weightUnit === "lbs" ? 2.2046226 : 1;
+    const warmupFilter = excludeWarmup ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)" : "";
 
     // Fetch the best set per day for this exercise (time-range filtered).
     // ROW_NUMBER() deterministically picks the highest-metric set per date,
@@ -78,7 +80,7 @@ const fetchExerciseDetail = async (
         LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
         LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
         LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-        WHERE e.exercise_id = ? AND cw.is_deleted = FALSE
+        WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}
     `;
 
     if (timeRange !== "0") {
@@ -110,7 +112,7 @@ const fetchExerciseDetail = async (
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE
+      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}
     `;
     const prRow = (await db.getFirstAsync(allTimePRQuery, [exerciseId])) as {
       all_time_pr: number | null;
@@ -143,7 +145,7 @@ const fetchExerciseDetail = async (
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE
+      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}
       ORDER BY progression_metric DESC
       LIMIT 5
     `;
@@ -163,7 +165,7 @@ const fetchExerciseDetail = async (
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE
+      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}
       GROUP BY DATE(cw.date_completed)
       ORDER BY cw.date_completed DESC
       LIMIT 5
@@ -187,7 +189,7 @@ const fetchExerciseDetail = async (
         JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
         JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
         WHERE e.exercise_id = ?
-          AND cw.is_deleted = FALSE
+          AND cw.is_deleted = FALSE${warmupFilter}
           AND DATE(cw.date_completed) < DATE('now', '-${timeRange} days')
         GROUP BY DATE(cw.date_completed)
         ORDER BY DATE(cw.date_completed) DESC
@@ -219,10 +221,11 @@ export const useExerciseDetailQuery = (
   exerciseId: number,
   timeRange: string,
   weightUnit: string,
+  excludeWarmup = false,
 ) => {
   return useQuery<ExerciseDetail | null>({
-    queryKey: ["exerciseDetail", exerciseId, timeRange, weightUnit],
-    queryFn: () => fetchExerciseDetail(exerciseId, timeRange, weightUnit),
+    queryKey: ["exerciseDetail", exerciseId, timeRange, weightUnit, excludeWarmup],
+    queryFn: () => fetchExerciseDetail(exerciseId, timeRange, weightUnit, excludeWarmup),
     enabled: exerciseId > 0,
     staleTime: 0,
     gcTime: 0,

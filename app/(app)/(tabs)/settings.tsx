@@ -105,6 +105,7 @@ export default function SettingsScreen() {
     restTimerSound: settings?.restTimerSound,
     restTimerNotification: settings?.restTimerNotification,
     showOnboarding: settings?.showOnboarding,
+    excludeWarmupSets: settings?.excludeWarmupSets,
   });
 
   const [workoutReminderEnabled, setWorkoutReminderEnabled] = useState(false);
@@ -132,6 +133,7 @@ export default function SettingsScreen() {
         restTimerSound: settings?.restTimerSound,
         restTimerNotification: settings?.restTimerNotification,
         showOnboarding: settings?.showOnboarding,
+        excludeWarmupSets: settings?.excludeWarmupSets,
       });
       setWorkoutReminderEnabled(settings.workoutReminderEnabled === "true");
       try {
@@ -251,6 +253,11 @@ export default function SettingsScreen() {
   const toggleKeepScreenOn = (value: boolean) => {
     setToggleValues({ ...toggleValues, keepScreenOn: value.toString() });
     updateSetting({ key: "keepScreenOn", value: value.toString() });
+  };
+
+  const toggleExcludeWarmupSets = (value: boolean) => {
+    setToggleValues({ ...toggleValues, excludeWarmupSets: value.toString() });
+    updateSetting({ key: "excludeWarmupSets", value: value.toString() });
   };
 
   const toggleVibration = (value: boolean) => {
@@ -784,6 +791,28 @@ export default function SettingsScreen() {
             <Switch
               value={toggleValues.keepScreenOn === "true"}
               onValueChange={toggleKeepScreenOn}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="fire-off"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Exclude warmup sets from stats
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {toggleValues.excludeWarmupSets === "true" ? "Enabled" : "Disabled"}
+              </ThemedText>
+            </View>
+            <Switch
+              value={toggleValues.excludeWarmupSets === "true"}
+              onValueChange={toggleExcludeWarmupSets}
               color={Colors.dark.tint}
               style={styles.switch}
             />

@@ -10,6 +10,7 @@ interface VolumeBarChartProps {
   completedWorkouts: CompletedWorkout[];
   timeRange: string;
   weightUnit: string;
+  excludeWarmup?: boolean;
 }
 
 interface Bucket {
@@ -24,6 +25,7 @@ const groupVolumeByTime = (
   completedWorkouts: CompletedWorkout[],
   timeRange: string,
   weightUnit: string,
+  excludeWarmup: boolean = false,
 ): Bucket[] => {
   type InternalBucket = Bucket & { internalKey: string };
   const buckets: InternalBucket[] = [];
@@ -149,7 +151,7 @@ const groupVolumeByTime = (
 
     workout.exercises.forEach((exercise) => {
       exercise.sets.forEach((set) => {
-        if (set.weight && set.reps) {
+        if ((!excludeWarmup || !set.is_warmup) && set.weight && set.reps) {
           buckets[idx].value += (set.weight * set.reps) / tonDivisor;
         }
       });
@@ -167,12 +169,19 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
   completedWorkouts,
   timeRange,
   weightUnit,
+  excludeWarmup = false,
 }) => {
   const { width: screenWidth } = useWindowDimensions();
 
   const buckets = useMemo(
-    () => groupVolumeByTime(completedWorkouts, timeRange, weightUnit),
-    [completedWorkouts, timeRange, weightUnit],
+    () =>
+      groupVolumeByTime(
+        completedWorkouts,
+        timeRange,
+        weightUnit,
+        excludeWarmup,
+      ),
+    [completedWorkouts, timeRange, weightUnit, excludeWarmup],
   );
 
   if (buckets.length === 0) return null;
