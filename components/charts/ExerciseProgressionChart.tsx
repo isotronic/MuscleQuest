@@ -260,12 +260,12 @@ export const ExerciseProgressionChart: React.FC<
       exercise.tracking_type === null ||
       exercise.tracking_type === "weight" ||
       exercise.tracking_type === "assisted";
-    const baselineValue =
-      preRangeBaseline != null
-        ? isWeightTypePre
-          ? preRangeBaseline * conversionFactor
-          : preRangeBaseline
-        : undefined;
+    const rawBaseline = preRangeBaseline != null
+      ? isWeightTypePre
+        ? preRangeBaseline * conversionFactor
+        : preRangeBaseline
+      : undefined;
+    const baselineValue = rawBaseline != null && rawBaseline > 0 ? rawBaseline : undefined;
     for (let i = 0; i < buckets.length; i++) {
       if (buckets[i].value === null && baselineValue !== undefined) {
         buckets[i] = { ...buckets[i], value: baselineValue };
@@ -278,7 +278,7 @@ export const ExerciseProgressionChart: React.FC<
       prValue != null && prValue > 0 ? prValue * conversionFactor : undefined;
 
     return buckets.map((bucket) => {
-      const metric = bucket.value as number;
+      const metric = bucket.value ?? 0;
       const isPR =
         bucket.hasData &&
         convertedPR != null &&
