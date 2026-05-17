@@ -89,21 +89,10 @@ const groupSetsByTime = (
     return buckets;
   }
 
-  // --- 365d / All Time: monthly buckets ---
-  if (timeRange === "365" || timeRange === "0") {
+  // --- 365d: monthly buckets ---
+  if (timeRange === "365") {
     const startDate = new Date(today);
-    if (timeRange === "365") {
-      startDate.setFullYear(today.getFullYear() - 1);
-    } else if (completedSets.length > 0) {
-      const earliest = new Date(
-        completedSets[completedSets.length - 1].date_completed,
-      );
-      startDate.setFullYear(earliest.getFullYear());
-      startDate.setMonth(earliest.getMonth());
-      startDate.setDate(1);
-    } else {
-      startDate.setFullYear(today.getFullYear() - 1);
-    }
+    startDate.setFullYear(today.getFullYear() - 1);
 
     const buckets: (Bucket & { internalKey: string })[] = [];
     const keyToIndex = new Map<string, number>();
@@ -113,8 +102,12 @@ const groupSetsByTime = (
     cursor.setHours(0, 0, 0, 0);
     while (cursor <= today) {
       const internalKey = `${cursor.getFullYear()}-${cursor.getMonth()}`;
-      const label = cursor.toLocaleString(undefined, { month: "short" });
-      buckets.push({ internalKey, label, value: null, hasData: false });
+      buckets.push({
+        internalKey,
+        label: cursor.toLocaleString(undefined, { month: "short" }),
+        value: null,
+        hasData: false,
+      });
       keyToIndex.set(internalKey, buckets.length - 1);
       cursor.setMonth(cursor.getMonth() + 1);
     }
@@ -122,6 +115,90 @@ const groupSetsByTime = (
     completedSets.forEach((set) => {
       const setDate = new Date(set.date_completed);
       const internalKey = `${setDate.getFullYear()}-${setDate.getMonth()}`;
+      const metric = toMetric(set.progressionMetric);
+      const idx = keyToIndex.get(internalKey);
+      if (
+        idx !== undefined &&
+        (!buckets[idx].hasData || metric > (buckets[idx].value as number))
+      ) {
+        buckets[idx].value = metric;
+        buckets[idx].hasData = true;
+      }
+    });
+
+    return buckets;
+  }
+
+  // --- All Time: adaptive bucket size based on data span ---
+  if (timeRange === "0") {
+    if (completedSets.length === 0) return [];
+
+    const earliest = new Date(
+      completedSets[completedSets.length - 1].date_completed,
+    );
+    const spanYears =
+      (today.getTime() - earliest.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+
+    const buckets: (Bucket & { internalKey: string })[] = [];
+    const keyToIndex = new Map<string, number>();
+    let getKey: (d: Date) => string;
+
+    if (spanYears <= 1) {
+      const cursor = new Date(earliest);
+      cursor.setDate(1);
+      cursor.setHours(0, 0, 0, 0);
+      while (cursor <= today) {
+        const internalKey = `${cursor.getFullYear()}-${cursor.getMonth()}`;
+        buckets.push({
+          internalKey,
+          label: cursor.toLocaleString(undefined, { month: "short" }),
+          value: null,
+          hasData: false,
+        });
+        keyToIndex.set(internalKey, buckets.length - 1);
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
+      getKey = (d) => `${d.getFullYear()}-${d.getMonth()}`;
+    } else if (spanYears <= 3) {
+      const cursor = new Date(earliest);
+      cursor.setDate(1);
+      cursor.setMonth(Math.floor(cursor.getMonth() / 3) * 3);
+      cursor.setHours(0, 0, 0, 0);
+      while (cursor <= today) {
+        const q = Math.floor(cursor.getMonth() / 3) + 1;
+        const yr = cursor.getFullYear();
+        buckets.push({
+          internalKey: `${yr}-Q${q}`,
+          label: `Q${q}`,
+          labelLine2: `${yr}`,
+          value: null,
+          hasData: false,
+        });
+        keyToIndex.set(`${yr}-Q${q}`, buckets.length - 1);
+        cursor.setMonth(cursor.getMonth() + 3);
+      }
+      getKey = (d) => `${d.getFullYear()}-Q${Math.floor(d.getMonth() / 3) + 1}`;
+    } else {
+      const cursor = new Date(earliest);
+      cursor.setMonth(0);
+      cursor.setDate(1);
+      cursor.setHours(0, 0, 0, 0);
+      while (cursor <= today) {
+        const yr = cursor.getFullYear();
+        buckets.push({
+          internalKey: `${yr}`,
+          label: `${yr}`,
+          value: null,
+          hasData: false,
+        });
+        keyToIndex.set(`${yr}`, buckets.length - 1);
+        cursor.setFullYear(cursor.getFullYear() + 1);
+      }
+      getKey = (d) => `${d.getFullYear()}`;
+    }
+
+    completedSets.forEach((set) => {
+      const internalKey = getKey(new Date(set.date_completed));
       const metric = toMetric(set.progressionMetric);
       const idx = keyToIndex.get(internalKey);
       if (
