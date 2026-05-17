@@ -73,7 +73,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
   );
   const [time, setTime] = useState(formatFromTotalSeconds(defaultTime));
   const [distance, setDistance] = useState(
-    defaultDistance ? String(defaultDistance) : "",
+    defaultDistance != null ? String(defaultDistance) : "",
   );
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -278,9 +278,15 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                     <TextInput
                       style={styles.input}
                       value={distance}
-                      onChangeText={(v: string) =>
-                        setDistance(v.replace(/[^0-9.]/g, ""))
-                      }
+                      onChangeText={(v: string) => {
+                        const cleaned = v.replace(/[^0-9.]/g, "");
+                        const parts = cleaned.split(".");
+                        setDistance(
+                          parts.length > 1
+                            ? parts[0] + "." + parts.slice(1).join("")
+                            : cleaned,
+                        );
+                      }}
                       keyboardType="numeric"
                       selectTextOnFocus={true}
                     />
