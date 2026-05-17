@@ -83,7 +83,11 @@ const groupWorkoutsByTime = (
       cursor.setHours(0, 0, 0, 0);
       while (cursor <= today) {
         const internalKey = `${cursor.getFullYear()}-${cursor.getMonth()}`;
-        buckets.push({ internalKey, label: cursor.toLocaleString(undefined, { month: "short" }), value: 0 });
+        buckets.push({
+          internalKey,
+          label: cursor.toLocaleString(undefined, { month: "short" }),
+          value: 0,
+        });
         keyToIndex.set(internalKey, buckets.length - 1);
         cursor.setMonth(cursor.getMonth() + 1);
       }
@@ -96,7 +100,12 @@ const groupWorkoutsByTime = (
       while (cursor <= today) {
         const q = Math.floor(cursor.getMonth() / 3) + 1;
         const yr = cursor.getFullYear();
-        buckets.push({ internalKey: `${yr}-Q${q}`, label: `Q${q}`, labelLine2: `${yr}`, value: 0 });
+        buckets.push({
+          internalKey: `${yr}-Q${q}`,
+          label: `Q${q}`,
+          labelLine2: `${yr}`,
+          value: 0,
+        });
         keyToIndex.set(`${yr}-Q${q}`, buckets.length - 1);
         cursor.setMonth(cursor.getMonth() + 3);
       }
@@ -154,9 +163,8 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
     [completedWorkouts, timeRange],
   );
 
-  // Subtract INITIAL_SPACING on the right to mirror the left-side gap
   const chartWidth =
-    screenWidth - HORIZONTAL_INSETS - Y_AXIS_WIDTH - INITIAL_SPACING;
+    screenWidth - HORIZONTAL_INSETS - Y_AXIS_WIDTH - INITIAL_SPACING - 16;
   const numBars = Math.max(1, buckets.length);
   const slotWidth = (chartWidth - INITIAL_SPACING) / numBars;
   const barSpacing = Math.max(3, Math.floor(slotWidth * 0.3));
