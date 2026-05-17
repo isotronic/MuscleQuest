@@ -26,6 +26,10 @@ export default function ExerciseDetailScreen() {
     if (name) navigation.setOptions({ title: name });
   }, [name, navigation]);
 
+  useEffect(() => {
+    if (settings?.timeRange) setTimeRange(settings.timeRange);
+  }, [settings?.timeRange]);
+
   const { data, isLoading } = useExerciseDetailQuery(
     parseInt(exerciseId ?? "0"),
     timeRange,
