@@ -87,6 +87,7 @@ const fetchExerciseHistory = async (
       reps,
       time,
       distance,
+      is_warmup,
       date_completed,
       workout_id,
       workout_name,
