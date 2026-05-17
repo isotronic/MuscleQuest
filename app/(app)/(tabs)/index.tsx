@@ -332,6 +332,8 @@ export default function HomeScreen() {
               weightUnit={settings?.weightUnit ?? "kg"}
               streak={streak}
               excludeWarmup={settings?.excludeWarmupSets === "true"}
+              countUnilateralDouble={settings?.countUnilateralDouble === "true"}
+              doubleWeightForPaired={settings?.doubleWeightForPaired === "true"}
             />
           </View>
         )}

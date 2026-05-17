@@ -14,6 +14,8 @@ interface Props {
   weightUnit: string;
   streak: number;
   excludeWarmup?: boolean;
+  countUnilateralDouble?: boolean;
+  doubleWeightForPaired?: boolean;
 }
 
 function formatDuration(seconds: number): string {
@@ -28,11 +30,14 @@ function getProgressionMetric(
   reps: number | null,
   time: number | null,
   trackingType: string,
+  weightM: number = 1,
+  repM: number = 1,
 ): number | null {
-  if (trackingType === "reps") return reps;
+  if (trackingType === "reps") return reps != null ? reps * repM : null;
   if (trackingType === "time") return time;
-  // weight, assisted, or null → Epley 1RM
-  if (weight != null && reps != null) return weight * (1 + reps / 30.0);
+  // weight, assisted, or null → Epley 1RM (weightM applies; repM does not affect 1RM)
+  if (weight != null && reps != null)
+    return weight * weightM * (1 + reps / 30.0);
   return null;
 }
 
@@ -49,6 +54,8 @@ function computeBestAchievement(
   allCompletedWorkouts: CompletedWorkout[],
   weightUnit: string,
   excludeWarmup: boolean = false,
+  countUnilateralDouble: boolean = false,
+  doubleWeightForPaired: boolean = false,
 ): BestAchievement | null {
   const today = new Date();
   const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -64,6 +71,8 @@ function computeBestAchievement(
   const lastWeekBest = new Map<number, number>();
   for (const workout of lastWeekWorkouts) {
     for (const ex of workout.exercises) {
+      const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1;
+      const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1;
       for (const set of ex.sets) {
         if (excludeWarmup && set.is_warmup) continue;
         const metric = getProgressionMetric(
@@ -71,6 +80,8 @@ function computeBestAchievement(
           set.reps,
           set.time,
           ex.exercise_tracking_type,
+          weightM,
+          repM,
         );
         if (metric == null) continue;
         const prev = lastWeekBest.get(ex.exercise_id) ?? -Infinity;
@@ -86,6 +97,8 @@ function computeBestAchievement(
   >();
   for (const workout of workoutsThisWeek) {
     for (const ex of workout.exercises) {
+      const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1;
+      const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1;
       for (const set of ex.sets) {
         if (excludeWarmup && set.is_warmup) continue;
         const metric = getProgressionMetric(
@@ -93,6 +106,8 @@ function computeBestAchievement(
           set.reps,
           set.time,
           ex.exercise_tracking_type,
+          weightM,
+          repM,
         );
         if (metric == null) continue;
         const prev = thisWeekBest.get(ex.exercise_id);
@@ -163,6 +178,8 @@ export default function WeeklySummaryCard({
   weightUnit,
   streak,
   excludeWarmup = false,
+  countUnilateralDouble = false,
+  doubleWeightForPaired = false,
 }: Props) {
   const totalDuration = useMemo(
     () => workoutsThisWeek.reduce((sum, w) => sum + (w.duration ?? 0), 0),
@@ -173,15 +190,26 @@ export default function WeeklySummaryCard({
     let vol = 0;
     for (const workout of workoutsThisWeek) {
       for (const ex of workout.exercises) {
+        const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1;
+        const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1;
         for (const set of ex.sets) {
-          if ((!excludeWarmup || !set.is_warmup) && set.weight != null && set.reps != null) {
-            vol += set.weight * set.reps;
+          if (
+            (!excludeWarmup || !set.is_warmup) &&
+            set.weight != null &&
+            set.reps != null
+          ) {
+            vol += set.weight * weightM * set.reps * repM;
           }
         }
       }
     }
     return vol;
-  }, [workoutsThisWeek, excludeWarmup]);
+  }, [
+    workoutsThisWeek,
+    excludeWarmup,
+    countUnilateralDouble,
+    doubleWeightForPaired,
+  ]);
 
   const bestAchievement = useMemo(
     () =>
@@ -190,8 +218,17 @@ export default function WeeklySummaryCard({
         allCompletedWorkouts,
         weightUnit,
         excludeWarmup,
+        countUnilateralDouble,
+        doubleWeightForPaired,
       ),
-    [workoutsThisWeek, allCompletedWorkouts, weightUnit, excludeWarmup],
+    [
+      workoutsThisWeek,
+      allCompletedWorkouts,
+      weightUnit,
+      excludeWarmup,
+      countUnilateralDouble,
+      doubleWeightForPaired,
+    ],
   );
 
   const volumeLabel = `${Math.round(totalVolume).toLocaleString()} ${weightUnit}`;
