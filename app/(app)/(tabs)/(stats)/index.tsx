@@ -88,7 +88,11 @@ export default function StatsScreen() {
     data: completedWorkouts,
     isLoading: isLoadingWorkouts,
     error,
-  } = useCompletedWorkoutsQuery(weightUnit, distanceUnit, parseInt(selectedTimeRange));
+  } = useCompletedWorkoutsQuery(
+    weightUnit,
+    distanceUnit,
+    parseInt(selectedTimeRange),
+  );
 
   useEffect(() => {
     const anyError = error || exercisesError || trackedError;
@@ -121,8 +125,6 @@ export default function StatsScreen() {
       } catch (err: any) {
         Bugsnag.notify(err);
       } finally {
-        queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
-        queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
         queryClient.invalidateQueries({ queryKey: ["settings"] });
       }
     },
