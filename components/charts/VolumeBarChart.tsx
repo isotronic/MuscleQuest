@@ -81,15 +81,20 @@ const groupVolumeByTime = (
         new Date(w.date_completed) < min ? new Date(w.date_completed) : min,
       new Date(completedWorkouts[0].date_completed),
     );
+    const latest = completedWorkouts.reduce(
+      (max, w) =>
+        new Date(w.date_completed) > max ? new Date(w.date_completed) : max,
+      new Date(completedWorkouts[0].date_completed),
+    );
     const spanYears =
-      (today.getTime() - earliest.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+      (latest.getTime() - earliest.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
 
     if (spanYears <= 1) {
       bucketType = "monthly";
       const cursor = new Date(earliest);
       cursor.setDate(1);
       cursor.setHours(0, 0, 0, 0);
-      while (cursor <= today) {
+      while (cursor <= latest) {
         const internalKey = `${cursor.getFullYear()}-${cursor.getMonth()}`;
         buckets.push({
           internalKey,
@@ -105,7 +110,7 @@ const groupVolumeByTime = (
       cursor.setDate(1);
       cursor.setMonth(Math.floor(cursor.getMonth() / 3) * 3);
       cursor.setHours(0, 0, 0, 0);
-      while (cursor <= today) {
+      while (cursor <= latest) {
         const q = Math.floor(cursor.getMonth() / 3) + 1;
         const yr = cursor.getFullYear();
         buckets.push({
@@ -123,7 +128,7 @@ const groupVolumeByTime = (
       cursor.setMonth(0);
       cursor.setDate(1);
       cursor.setHours(0, 0, 0, 0);
-      while (cursor <= today) {
+      while (cursor <= latest) {
         const yr = cursor.getFullYear();
         buckets.push({ internalKey: `${yr}`, label: `${yr}`, value: 0 });
         keyToIndex.set(`${yr}`, buckets.length - 1);
