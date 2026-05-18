@@ -33,6 +33,7 @@ import {
   linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
 import { cancelRestNotifications } from "@/utils/restNotification";
+import { convertTimeStrToSeconds } from "@/utils/utility";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserExercise, Workout } from "@/store/workoutStore";
 
@@ -518,7 +519,7 @@ export default function WorkoutOverviewScreen() {
                 set_number: parseInt(setIndex) + 1,
                 weight: set.weight ? parseFloat(set.weight) : null,
                 reps: set.reps ? parseInt(set.reps) : null,
-                time: set.time ? parseInt(set.time) : null,
+                time: set.time ? convertTimeStrToSeconds(set.time) : null,
                 distance:
                   set.distance !== "" && set.distance != null
                     ? parseFloat(set.distance)
