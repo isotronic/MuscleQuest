@@ -15,7 +15,8 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
-  const { workout, replaceExercise, appendExercise } = useActiveWorkoutStore();
+  const { workout, replaceExercise, appendExercise, createSuperset } =
+    useActiveWorkoutStore();
   const {
     initialTargetMuscle,
     isPreselectLoading,
@@ -23,8 +24,15 @@ export default function ExercisesScreen() {
     replaceExerciseIndex,
   } = useExercisePreselectFilter();
 
-  const { mode } = useLocalSearchParams<{ mode?: string }>();
+  const { mode, supersetForIndex } = useLocalSearchParams<{
+    mode?: string;
+    supersetForIndex?: string;
+  }>();
   const isAppendMode = mode === "append";
+  const parsed = Number(supersetForIndex);
+  const isSupersetMode =
+    supersetForIndex !== undefined && Number.isInteger(parsed) && parsed >= 0;
+  const supersetForExerciseIndex = isSupersetMode ? parsed : undefined;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
@@ -95,6 +103,34 @@ export default function ExercisesScreen() {
     }
   };
 
+  const handleSupersetSelect = (exerciseId: number) => {
+    const exercise = allExercises.find((ex) => ex.exercise_id === exerciseId);
+    const exerciseExists = workout?.exercises.some(
+      (ex) => ex.exercise_id === exerciseId,
+    );
+    if (exerciseExists) {
+      Alert.alert(
+        "Exercise Already Added",
+        "This exercise is already in your workout. Please choose a different one.",
+        [{ text: "OK" }],
+      );
+      return;
+    }
+    if (exercise && supersetForExerciseIndex !== undefined) {
+      const exerciseToAdd = {
+        ...exercise,
+        sets:
+          exercise.tracking_type === "time"
+            ? defaultTimeSets
+            : exercise.tracking_type === "distance"
+              ? defaultDistanceSets
+              : defaultSets,
+      } as UserExercise;
+      createSuperset(supersetForExerciseIndex, exerciseToAdd);
+      router.back();
+    }
+  };
+
   const handleToggleAppendSelection = (exerciseId: number) => {
     setSelectedExercises((prev) =>
       prev.includes(exerciseId)
@@ -110,7 +146,11 @@ export default function ExercisesScreen() {
         const exerciseToAdd = {
           ...exercise,
           sets:
-            exercise.tracking_type === "time" ? defaultTimeSets : exercise.tracking_type === "distance" ? defaultDistanceSets : defaultSets,
+            exercise.tracking_type === "time"
+              ? defaultTimeSets
+              : exercise.tracking_type === "distance"
+                ? defaultDistanceSets
+                : defaultSets,
         } as UserExercise;
         appendExercise(exerciseToAdd);
       }
@@ -167,7 +207,9 @@ export default function ExercisesScreen() {
   }
 
   const isLoading =
-    exercisesLoading || isPreselectLoading || (isAppendMode && settingsLoading);
+    exercisesLoading ||
+    isPreselectLoading ||
+    ((isAppendMode || isSupersetMode) && settingsLoading);
 
   return (
     <ThemedView style={styles.container}>
@@ -212,7 +254,11 @@ export default function ExercisesScreen() {
           exercises={filteredExercises}
           selectedExercises={isAppendMode ? selectedExercises : []}
           onSelect={
-            isAppendMode ? handleToggleAppendSelection : handleReplaceExercise
+            isSupersetMode
+              ? handleSupersetSelect
+              : isAppendMode
+                ? handleToggleAppendSelection
+                : handleReplaceExercise
           }
           onPressItem={(item) => {
             router.push({

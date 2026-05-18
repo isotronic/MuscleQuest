@@ -35,6 +35,8 @@ export interface SavedWorkout {
       time: number | null;
       distance: number | null;
       is_warmup?: boolean;
+      is_drop_set?: boolean;
+      is_to_failure?: boolean;
     }[];
   }[];
 }
@@ -810,6 +812,8 @@ export const saveCompletedWorkout = async (
       time: number | null;
       distance: number | null;
       is_warmup?: boolean;
+      is_drop_set?: boolean;
+      is_to_failure?: boolean;
     }[];
   }[],
 ) => {
@@ -839,7 +843,7 @@ export const saveCompletedWorkout = async (
       for (const set of exercise.sets) {
         // Insert each completed set
         await db.runAsync(
-          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup, is_drop_set, is_to_failure) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             completedExerciseId,
             set.set_number,
@@ -848,6 +852,8 @@ export const saveCompletedWorkout = async (
             set.time,
             set.distance,
             set.is_warmup ? 1 : 0,
+            set.is_drop_set ? 1 : 0,
+            set.is_to_failure ? 1 : 0,
           ],
         );
       }

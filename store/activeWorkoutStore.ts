@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { UserExercise, Workout } from "./workoutStore";
 import { router } from "expo-router";
+import * as Crypto from "expo-crypto";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
@@ -31,6 +32,18 @@ function reindexAfterRemoval<T>(
   return reindexed;
 }
 
+function shiftIndicesForInsert<T>(
+  obj: { [key: number]: T },
+  afterIndex: number,
+): { [key: number]: T } {
+  const shifted: { [key: number]: T } = {};
+  Object.keys(obj).forEach((key) => {
+    const idx = parseInt(key, 10);
+    shifted[idx > afterIndex ? idx + 1 : idx] = obj[idx];
+  });
+  return shifted;
+}
+
 interface ActiveWorkoutStore {
   activeWorkout: {
     planId: number | null;
@@ -47,7 +60,12 @@ interface ActiveWorkoutStore {
   };
   weightAndReps: {
     [exerciseIndex: number]: {
-      [setIndex: number]: { weight?: string; reps?: string; time?: string; distance?: string };
+      [setIndex: number]: {
+        weight?: string;
+        reps?: string;
+        time?: string;
+        distance?: string;
+      };
     };
   };
   previousWorkoutData: CompletedWorkout[] | null;
@@ -81,7 +99,20 @@ interface ActiveWorkoutStore {
   deleteExercise: (index: number) => void;
   reorderExercises: (newExercises: UserExercise[]) => void;
   restartWorkout: () => void;
-  updateSetRestTime: (exerciseIndex: number, setIndex: number, restMinutes: number, restSeconds: number) => void;
+  updateSetRestTime: (
+    exerciseIndex: number,
+    setIndex: number,
+    restMinutes: number,
+    restSeconds: number,
+  ) => void;
+  updateSetType: (
+    exerciseIndex: number,
+    setIndex: number,
+    type: "isWarmup" | "isDropSet" | "isToFailure",
+    value: boolean,
+  ) => void;
+  createSuperset: (exerciseIndex: number, newExercise: UserExercise) => void;
+  removeFromSuperset: (exerciseIndex: number) => void;
   startTimer: (expiry: Date) => void;
   stopTimer: () => void;
   clearPersistedStore: () => void;
@@ -325,8 +356,12 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                 firstExercise.sets.length,
               );
               if (nextSetIndex < supersetLength) {
+                const firstHas = nextSetIndex < firstExercise.sets.length;
+                const secondHas = nextSetIndex < currentExercise.sets.length;
+                const nextExIdx =
+                  firstHas || !secondHas ? firstIndex : currentExerciseIndex;
                 return {
-                  currentExerciseIndex: firstIndex,
+                  currentExerciseIndex: nextExIdx,
                   currentSetIndices: updatedSetIndices,
                   completedSets: updatedCompletedSets,
                   weightAndReps: updatedWeightAndReps,
@@ -521,7 +556,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               : {}),
             ...(trackingType === "reps" ? { reps: lastSetValues.reps } : {}),
             ...(trackingType === "time" ? { time: lastSetValues.time } : {}),
-            ...(trackingType === "distance" ? { distance: lastSetValues.distance } : {}),
+            ...(trackingType === "distance"
+              ? { distance: lastSetValues.distance }
+              : {}),
           };
 
           // Update the store with the new set in weightAndReps and completedSets
@@ -887,6 +924,87 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               sIdx === setIndex ? { ...s, restMinutes, restSeconds } : s,
             );
             return { ...exercise, sets: updatedSets };
+          });
+          return { workout: { ...workout, exercises: updatedExercises } };
+        }),
+
+      updateSetType: (exerciseIndex, setIndex, type, value) =>
+        set((state) => {
+          const { workout } = state;
+          if (!workout) return state;
+          const updatedExercises = workout.exercises.map((exercise, exIdx) => {
+            if (exIdx !== exerciseIndex) return exercise;
+            const updatedSets = exercise.sets.map((s, sIdx) =>
+              sIdx === setIndex ? { ...s, [type]: value } : s,
+            );
+            return { ...exercise, sets: updatedSets };
+          });
+          return { workout: { ...workout, exercises: updatedExercises } };
+        }),
+
+      createSuperset: (exerciseIndex, newExercise) =>
+        set((state) => {
+          const {
+            workout,
+            completedSets,
+            weightAndReps,
+            currentSetIndices,
+            appendedExerciseIndices,
+          } = state;
+          if (!workout) return state;
+
+          const groupId = Crypto.randomUUID();
+          const exercises = [...workout.exercises];
+          exercises[exerciseIndex] = {
+            ...exercises[exerciseIndex],
+            supersetGroupId: groupId,
+          };
+          exercises.splice(exerciseIndex + 1, 0, {
+            ...newExercise,
+            supersetGroupId: groupId,
+          });
+
+          const newCompletedSets = shiftIndicesForInsert(
+            completedSets,
+            exerciseIndex,
+          );
+          newCompletedSets[exerciseIndex + 1] = {};
+
+          const newWeightAndReps = shiftIndicesForInsert(
+            weightAndReps,
+            exerciseIndex,
+          );
+          newWeightAndReps[exerciseIndex + 1] = {};
+
+          const newSetIndices = shiftIndicesForInsert(
+            currentSetIndices,
+            exerciseIndex,
+          );
+          newSetIndices[exerciseIndex + 1] = 0;
+
+          const newAppendedIndices = appendedExerciseIndices.map((i) =>
+            i > exerciseIndex ? i + 1 : i,
+          );
+
+          return {
+            workout: { ...workout, exercises },
+            completedSets: newCompletedSets,
+            weightAndReps: newWeightAndReps,
+            currentSetIndices: newSetIndices,
+            appendedExerciseIndices: newAppendedIndices,
+          };
+        }),
+
+      removeFromSuperset: (exerciseIndex) =>
+        set((state) => {
+          const { workout } = state;
+          if (!workout) return state;
+          const groupId = workout.exercises[exerciseIndex]?.supersetGroupId;
+          if (!groupId) return state;
+          const updatedExercises = workout.exercises.map((e) => {
+            if (e.supersetGroupId !== groupId) return e;
+            const { supersetGroupId: _, ...rest } = e;
+            return rest as UserExercise;
           });
           return { workout: { ...workout, exercises: updatedExercises } };
         }),

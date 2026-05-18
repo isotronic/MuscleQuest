@@ -877,7 +877,7 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                I enter weight per dumbbell / cable, not total
+                I enter weight per dumbbell/cable, not total
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {toggleValues.doubleWeightForPaired === "true"
