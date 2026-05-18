@@ -60,6 +60,7 @@ interface SessionSetInfoProps {
   handleCompleteSet: () => void;
   removeSet: (currentSetIndex: number) => void;
   addSet: () => void;
+  onToggleSetType: (type: "isWarmup" | "isDropSet" | "isToFailure") => void;
 }
 
 export default function SessionSetInfo({
@@ -103,6 +104,7 @@ export default function SessionSetInfo({
   handleCompleteSet,
   removeSet,
   addSet,
+  onToggleSetType,
 }: SessionSetInfoProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [timeInput, setTimeInput] = useState(time);
@@ -192,11 +194,13 @@ export default function SessionSetInfo({
               {exerciseName}
             </ThemedText>
 
-            {trackingType !== "time" && trackingType !== "distance" && !!repRange && (
-              <ThemedText style={styles.headerText}>
-                Reps: {repRange}
-              </ThemedText>
-            )}
+            {trackingType !== "time" &&
+              trackingType !== "distance" &&
+              !!repRange && (
+                <ThemedText style={styles.headerText}>
+                  Reps: {repRange}
+                </ThemedText>
+              )}
             {trackingType === "time" && !!timeMin && (
               <ThemedText style={styles.headerText}>
                 Time: {formatFromTotalSeconds(timeMin)}
@@ -240,6 +244,30 @@ export default function SessionSetInfo({
               closeMenu();
             }}
             title="Add Set"
+          />
+          <Menu.Item
+            onPress={() => {
+              onToggleSetType("isWarmup");
+              closeMenu();
+            }}
+            title="Warm-up"
+            leadingIcon={isWarmup ? "check" : undefined}
+          />
+          <Menu.Item
+            onPress={() => {
+              onToggleSetType("isDropSet");
+              closeMenu();
+            }}
+            title="Drop Set"
+            leadingIcon={isDropSet ? "check" : undefined}
+          />
+          <Menu.Item
+            onPress={() => {
+              onToggleSetType("isToFailure");
+              closeMenu();
+            }}
+            title="To Failure"
+            leadingIcon={isToFailure ? "check" : undefined}
           />
         </Menu>
       </View>

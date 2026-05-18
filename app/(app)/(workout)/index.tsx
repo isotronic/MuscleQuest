@@ -78,6 +78,7 @@ export default function WorkoutOverviewScreen() {
     clearPersistedStore,
     restartWorkout,
     initializeWeightAndReps,
+    removeFromSuperset,
   } = useActiveWorkoutStore();
 
   const stableKeyMapRef = useRef(new WeakMap<UserExercise, string>());
@@ -112,8 +113,10 @@ export default function WorkoutOverviewScreen() {
       initializeWeightAndReps(sessionHistory);
     }
   }, [sessionHistory, initializeWeightAndReps]);
-  const saveCompletedWorkoutMutation =
-    useSaveCompletedWorkoutMutation(weightUnit, distanceUnit);
+  const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation(
+    weightUnit,
+    distanceUnit,
+  );
   const lastCompletedWorkoutIdRef = useRef<number | null>(null);
 
   useKeepScreenOn();
@@ -232,6 +235,25 @@ export default function WorkoutOverviewScreen() {
       });
     },
     [workout],
+  );
+
+  const handleCreateSuperset = useCallback(
+    (exerciseIndex: number) => {
+      handleMenuClose(exerciseIndex);
+      router.push({
+        pathname: "/(app)/(workout)/exercises",
+        params: { supersetForIndex: exerciseIndex },
+      });
+    },
+    [handleMenuClose],
+  );
+
+  const handleRemoveSuperset = useCallback(
+    (exerciseIndex: number) => {
+      handleMenuClose(exerciseIndex);
+      removeFromSuperset(exerciseIndex);
+    },
+    [handleMenuClose, removeFromSuperset],
   );
 
   const handleExercisePress = useCallback(
@@ -388,6 +410,17 @@ export default function WorkoutOverviewScreen() {
                 }}
                 title="Replace"
               />
+              {exercise.supersetGroupId ? (
+                <Menu.Item
+                  onPress={() => handleRemoveSuperset(exerciseIndex)}
+                  title="Remove Superset"
+                />
+              ) : (
+                <Menu.Item
+                  onPress={() => handleCreateSuperset(exerciseIndex)}
+                  title="Create Superset"
+                />
+              )}
             </Menu>
           </View>
         );
@@ -429,6 +462,8 @@ export default function WorkoutOverviewScreen() {
       handleMenuOpen,
       handleDeleteExercise,
       handleReplaceExercise,
+      handleCreateSuperset,
+      handleRemoveSuperset,
       handleExercisePress,
       itemLabels,
     ],
@@ -482,8 +517,15 @@ export default function WorkoutOverviewScreen() {
                 weight: set.weight ? parseFloat(set.weight) : null,
                 reps: set.reps ? parseInt(set.reps) : null,
                 time: set.time ? parseInt(set.time) : null,
-                distance: (set.distance !== "" && set.distance != null) ? parseFloat(set.distance) : null,
+                distance:
+                  set.distance !== "" && set.distance != null
+                    ? parseFloat(set.distance)
+                    : null,
                 is_warmup: exercise.sets[parseInt(setIndex)]?.isWarmup || false,
+                is_drop_set:
+                  exercise.sets[parseInt(setIndex)]?.isDropSet || false,
+                is_to_failure:
+                  exercise.sets[parseInt(setIndex)]?.isToFailure || false,
               }));
 
             return { exercise_id: exercise.exercise_id, sets };
@@ -507,7 +549,10 @@ export default function WorkoutOverviewScreen() {
                   clearPersistedStore();
                   router.push({
                     pathname: "/(app)/(workout)/workout-summary" as any,
-                    params: { completedWorkoutId: String(completedWorkoutId), fresh: "true" },
+                    params: {
+                      completedWorkoutId: String(completedWorkoutId),
+                      fresh: "true",
+                    },
                   });
                 };
 

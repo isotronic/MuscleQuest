@@ -84,6 +84,7 @@ interface SlotData {
 
 const noop = () => {};
 const noopNum = (_: number) => {};
+const noopType = (_: "isWarmup" | "isDropSet" | "isToFailure") => {};
 
 const READONLY_PANEL_DEFAULTS = {
   animatedUrl: undefined,
@@ -103,6 +104,7 @@ const READONLY_PANEL_DEFAULTS = {
   handleCompleteSet: noop,
   removeSet: noopNum,
   addSet: noop,
+  onToggleSetType: noopType,
 } as const;
 
 function snapshotToProps(snapshot: OutgoingSnapshot) {
@@ -197,6 +199,7 @@ export default function WorkoutSessionScreen() {
     removeSet,
     addSet,
     updateSetRestTime,
+    updateSetType,
   } = useActiveWorkoutStore();
 
   const {
@@ -516,7 +519,9 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleDistanceChange = (amount: number) => {
-    const currentDistance = isNaN(parseFloat(distance)) ? 0 : parseFloat(distance);
+    const currentDistance = isNaN(parseFloat(distance))
+      ? 0
+      : parseFloat(distance);
     const newDistance = Math.max(0, currentDistance + amount).toFixed(1);
     updateWeightAndReps(
       currentExerciseIndex,
@@ -526,6 +531,13 @@ export default function WorkoutSessionScreen() {
       undefined,
       newDistance,
     );
+  };
+
+  const handleToggleSetType = (
+    type: "isWarmup" | "isDropSet" | "isToFailure",
+  ) => {
+    const currentVal = currentSet?.[type] || false;
+    updateSetType(currentExerciseIndex, currentSetIndex, type, !currentVal);
   };
 
   const handleRemoveSet = (index: number) => {
@@ -1140,107 +1152,113 @@ export default function WorkoutSessionScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-      <GestureDetector gesture={panGesture}>
-        <View style={styles.panelContainer}>
-          {([slot0Style, slot1Style, slot2Style] as const).map(
-            (slotStyle, slotIdx) => {
-              const isCurrentSlot = slotIdx === currentSlotIndex;
-              const p = getPanelData(
-                slots[slotIdx].exerciseIndex,
-                slots[slotIdx].setIndex,
-              );
-              const ss = getPanelSuperset(slots[slotIdx].exerciseIndex);
-              return (
-                <AnimatedView
-                  key={slotIdx}
-                  style={[
-                    StyleSheet.absoluteFill,
-                    slotStyle,
-                    isCurrentSlot ? undefined : { pointerEvents: "none" },
-                  ]}
-                >
-                  {p && (
-                    <View style={{ flex: 1 }}>
-                      {ss.isInSuperset && (
-                        <View style={styles.supersetBanner}>
-                          <ThemedText style={styles.supersetLabel}>
-                            Superset {ss.isFirstInSuperset ? "A" : "B"}
-                          </ThemedText>
-                          <ThemedText
-                            style={styles.supersetPartner}
-                            numberOfLines={1}
-                            ellipsizeMode="tail"
-                          >
-                            {ss.isFirstInSuperset ? "Next: " : "Prev: "}
-                            {ss.partnerName}
-                          </ThemedText>
-                        </View>
-                      )}
-                      {isCurrentSlot ? (
-                        <SessionSetInfo
-                          {...p}
-                          animatedUrl={animatedUrl}
-                          animatedImageLoading={animatedImageLoading}
-                          animatedImageError={animatedImageError}
-                          isLastSetOfLastExercise={
-                            !!currentIsLastSetOfLastExercise
-                          }
-                          isFirstSetOfFirstExercise={
-                            !!currentIsFirstSetOfFirstExercise
-                          }
-                          currentSetCompleted={currentSetCompleted}
-                          handleWeightInputChange={handleWeightInputChange}
-                          handleWeightChange={handleWeightChange}
-                          handleRepsInputChange={handleRepsInputChange}
-                          handleRepsChange={handleRepsChange}
-                          handleTimeInputChange={handleTimeInputChange}
-                          handleDistanceInputChange={handleDistanceInputChange}
-                          handleDistanceChange={handleDistanceChange}
-                          handlePreviousSet={handlePreviousSet}
-                          handleNextSet={handleNextSet}
-                          handleCompleteSet={handleCompleteSet}
-                          removeSet={handleRemoveSet}
-                          addSet={addSet}
-                        />
-                      ) : (
-                        <SessionSetInfo {...p} />
-                      )}
+        <GestureDetector gesture={panGesture}>
+          <View style={styles.panelContainer}>
+            {([slot0Style, slot1Style, slot2Style] as const).map(
+              (slotStyle, slotIdx) => {
+                const isCurrentSlot = slotIdx === currentSlotIndex;
+                const p = getPanelData(
+                  slots[slotIdx].exerciseIndex,
+                  slots[slotIdx].setIndex,
+                );
+                const ss = getPanelSuperset(slots[slotIdx].exerciseIndex);
+                return (
+                  <AnimatedView
+                    key={slotIdx}
+                    style={[
+                      StyleSheet.absoluteFill,
+                      slotStyle,
+                      isCurrentSlot ? undefined : { pointerEvents: "none" },
+                    ]}
+                  >
+                    {p && (
+                      <View style={{ flex: 1 }}>
+                        {ss.isInSuperset && (
+                          <View style={styles.supersetBanner}>
+                            <ThemedText style={styles.supersetLabel}>
+                              Superset {ss.isFirstInSuperset ? "A" : "B"}
+                            </ThemedText>
+                            <ThemedText
+                              style={styles.supersetPartner}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {ss.isFirstInSuperset ? "Next: " : "Prev: "}
+                              {ss.partnerName}
+                            </ThemedText>
+                          </View>
+                        )}
+                        {isCurrentSlot ? (
+                          <SessionSetInfo
+                            {...p}
+                            animatedUrl={animatedUrl}
+                            animatedImageLoading={animatedImageLoading}
+                            animatedImageError={animatedImageError}
+                            isLastSetOfLastExercise={
+                              !!currentIsLastSetOfLastExercise
+                            }
+                            isFirstSetOfFirstExercise={
+                              !!currentIsFirstSetOfFirstExercise
+                            }
+                            currentSetCompleted={currentSetCompleted}
+                            handleWeightInputChange={handleWeightInputChange}
+                            handleWeightChange={handleWeightChange}
+                            handleRepsInputChange={handleRepsInputChange}
+                            handleRepsChange={handleRepsChange}
+                            handleTimeInputChange={handleTimeInputChange}
+                            handleDistanceInputChange={
+                              handleDistanceInputChange
+                            }
+                            handleDistanceChange={handleDistanceChange}
+                            handlePreviousSet={handlePreviousSet}
+                            handleNextSet={handleNextSet}
+                            handleCompleteSet={handleCompleteSet}
+                            removeSet={handleRemoveSet}
+                            addSet={addSet}
+                            onToggleSetType={handleToggleSetType}
+                          />
+                        ) : (
+                          <SessionSetInfo {...p} />
+                        )}
+                      </View>
+                    )}
+                  </AnimatedView>
+                );
+              },
+            )}
+            {outgoingSnapshot && (
+              <AnimatedView
+                style={[
+                  StyleSheet.absoluteFill,
+                  outgoingSnapshotStyle,
+                  { pointerEvents: "none" },
+                ]}
+              >
+                <View style={{ flex: 1 }}>
+                  {outgoingSnapshot.isInSuperset && (
+                    <View style={styles.supersetBanner}>
+                      <ThemedText style={styles.supersetLabel}>
+                        Superset{" "}
+                        {outgoingSnapshot.isFirstInSuperset ? "A" : "B"}
+                      </ThemedText>
+                      <ThemedText
+                        style={styles.supersetPartner}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {outgoingSnapshot.isFirstInSuperset
+                          ? "Next: "
+                          : "Prev: "}
+                        {outgoingSnapshot.partnerName}
+                      </ThemedText>
                     </View>
                   )}
-                </AnimatedView>
-              );
-            },
-          )}
-          {outgoingSnapshot && (
-            <AnimatedView
-              style={[
-                StyleSheet.absoluteFill,
-                outgoingSnapshotStyle,
-                { pointerEvents: "none" },
-              ]}
-            >
-              <View style={{ flex: 1 }}>
-                {outgoingSnapshot.isInSuperset && (
-                  <View style={styles.supersetBanner}>
-                    <ThemedText style={styles.supersetLabel}>
-                      Superset {outgoingSnapshot.isFirstInSuperset ? "A" : "B"}
-                    </ThemedText>
-                    <ThemedText
-                      style={styles.supersetPartner}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                    >
-                      {outgoingSnapshot.isFirstInSuperset ? "Next: " : "Prev: "}
-                      {outgoingSnapshot.partnerName}
-                    </ThemedText>
-                  </View>
-                )}
-                <SessionSetInfo {...snapshotToProps(outgoingSnapshot)} />
-              </View>
-            </AnimatedView>
-          )}
-        </View>
-      </GestureDetector>
+                  <SessionSetInfo {...snapshotToProps(outgoingSnapshot)} />
+                </View>
+              </AnimatedView>
+            )}
+          </View>
+        </GestureDetector>
       </KeyboardAvoidingView>
       <AnimatedView
         style={[
