@@ -10,6 +10,8 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useEditCompletedWorkoutMutation } from "@/hooks/useEditCompletedWorkoutMutation";
 import { ActivityIndicator } from "react-native-paper";
 import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
+import { formatFromTotalSeconds, convertToTotalSeconds } from "@/utils/utility";
+import { TimeInput } from "@/components/TimeInput";
 import Bugsnag from "@bugsnag/expo";
 
 export default function EditCompletedWorkoutScreen() {
@@ -36,8 +38,11 @@ export default function EditCompletedWorkoutScreen() {
     error: workoutError,
   } = useCompletedWorkoutByIdQuery(Number(id), weightUnit, distanceUnit);
 
-  const editWorkout = useEditCompletedWorkoutMutation(Number(id), weightUnit, distanceUnit);
-
+  const editWorkout = useEditCompletedWorkoutMutation(
+    Number(id),
+    weightUnit,
+    distanceUnit,
+  );
   // Update exercises when workout data is available
   useEffect(() => {
     if (workoutData) {
@@ -58,10 +63,23 @@ export default function EditCompletedWorkoutScreen() {
   }, [exercises]);
 
   const handleSave = () => {
-    // Blur each input to ensure all onBlur events are fired
     Object.values(weightInputRefs.current).forEach((input) => input?.blur());
 
-    editWorkout.mutate(exercises, {
+    // Merge weightInputs into exercises synchronously — onBlur state updates
+    // are batched by React and won't be applied before mutate runs.
+    const finalExercises = exercises.map((exercise, exerciseIndex) => ({
+      ...exercise,
+      sets: exercise.sets.map((set, setIndex) => {
+        const key = `${exerciseIndex}-${setIndex}`;
+        if (weightInputs[key] === undefined) return set;
+        const raw = weightInputs[key];
+        if (raw == null || raw.trim() === "") return { ...set, weight: null };
+        const parsedWeight = parseFloat(raw);
+        return { ...set, weight: isNaN(parsedWeight) ? null : parsedWeight };
+      }),
+    }));
+
+    editWorkout.mutate(finalExercises, {
       onSuccess: () => {
         router.back();
       },
@@ -90,13 +108,21 @@ export default function EditCompletedWorkoutScreen() {
         options={{
           headerRight: () => (
             <View style={styles.headerRight}>
-              <IconButton
-                icon="content-save-outline"
-                size={35}
-                style={{ marginRight: 0 }}
-                iconColor={Colors.dark.tint}
-                onPressIn={handleSave}
-              />
+              {editWorkout.isPending ? (
+                <ActivityIndicator
+                  size={24}
+                  color={Colors.dark.tint}
+                  style={{ marginRight: 12 }}
+                />
+              ) : (
+                <IconButton
+                  icon="content-save-outline"
+                  size={35}
+                  style={{ marginRight: 0 }}
+                  iconColor={Colors.dark.tint}
+                  onPressIn={handleSave}
+                />
+              )}
             </View>
           ),
         }}
@@ -185,22 +211,18 @@ export default function EditCompletedWorkoutScreen() {
                   </View>
                 ) : exercise.exercise_tracking_type === "time" ? (
                   <View style={styles.inputContainer}>
-                    <ThemedText style={styles.label}>Time (Seconds)</ThemedText>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Time"
-                      value={String(set.time || "")}
-                      placeholderTextColor={Colors.dark.subText}
-                      selectTextOnFocus={true}
-                      keyboardType="numeric"
-                      onChangeText={(value: string) => {
+                    <ThemedText style={styles.label}>Time (Min:Sec)</ThemedText>
+                    <TimeInput
+                      value={formatFromTotalSeconds(set.time || 0)}
+                      onChange={(value: string) => {
                         setExercises((prev) => {
                           const updated = [...prev];
                           updated[exerciseIndex].sets[setIndex].time =
-                            Number(value);
+                            convertToTotalSeconds(value);
                           return updated;
                         });
                       }}
+                      style={styles.timeInput}
                     />
                   </View>
                 ) : exercise.exercise_tracking_type === "reps" ? (
@@ -281,5 +303,15 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     fontSize: 18,
     textAlign: "right",
+  },
+  timeInput: {
+    width: 96,
+    padding: 10,
+    borderColor: Colors.dark.subText,
+    borderWidth: 1,
+    borderRadius: 8,
+    color: Colors.dark.text,
+    fontSize: 18,
+    textAlign: "center",
   },
 });

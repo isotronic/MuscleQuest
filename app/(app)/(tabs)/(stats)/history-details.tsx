@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Alert } from "react-native";
 import { Image } from "expo-image";
 import { ThemedView } from "@/components/ThemedView";
@@ -11,14 +11,14 @@ import {
   useLocalSearchParams,
   useFocusEffect,
 } from "expo-router";
-import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
-import { fetchExerciseImagesByIds } from "@/utils/database";
 import { byteArrayToBase64 } from "@/utils/utility";
 import { parseISO, format } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
-import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
+import { fetchCompletedWorkoutById } from "@/utils/database";
+import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useDeleteCompletedWorkoutMutation } from "@/hooks/useDeleteCompletedWorkoutMutation";
+import { formatFromTotalSeconds } from "@/utils/utility";
 import Bugsnag from "@bugsnag/expo";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
@@ -26,6 +26,8 @@ const fallbackImage = require("@/assets/images/placeholder.webp");
 export default function HistoryDetailsScreen() {
   const { id } = useLocalSearchParams();
   const [workout, setWorkout] = useState<CompletedWorkout | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   const {
     data: settings,
@@ -40,55 +42,50 @@ export default function HistoryDetailsScreen() {
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
 
-  const deleteMutation = useDeleteCompletedWorkoutMutation();
-
-  const {
-    data: workoutData,
-    isLoading: isWorkoutLoading,
-    error: workoutError,
-    refetch,
-  } = useCompletedWorkoutByIdQuery(Number(id), weightUnit, distanceUnit);
-
   useEffect(() => {
-    if (workoutData) {
-      // Collect unique exercise IDs
-      const exerciseIds = workoutData.exercises.map(
-        (exercise) => exercise.exercise_id,
-      );
-
-      // Fetch images for these exercise IDs and attach them to the exercises
-      const fetchImages = async () => {
-        try {
-          const imagesMap = await fetchExerciseImagesByIds(exerciseIds);
-
-          // Attach images to exercises
-          const exercisesWithImages = workoutData.exercises.map((exercise) => ({
-            ...exercise,
-            exercise_image: imagesMap[exercise.exercise_id],
-          }));
-
-          // Update workout data with exercises including images
-          setWorkout({
-            ...workoutData,
-            exercises: exercisesWithImages,
-          });
-        } catch (error: any) {
-          console.error("Error fetching exercise images:", error);
-          Bugsnag.notify(error);
-        }
-      };
-
-      fetchImages();
+    if (settingsError instanceof Error) {
+      Bugsnag.notify(settingsError);
     }
-  }, [workoutData]);
+  }, [settingsError]);
+
+  const deleteMutation = useDeleteCompletedWorkoutMutation();
 
   useFocusEffect(
     useCallback(() => {
-      refetch();
-    }, [refetch]),
+      const numId = Number(Array.isArray(id) ? id[0] : id);
+      if (!numId) {
+        setIsLoading(false);
+        setWorkout(null);
+        return;
+      }
+
+      let cancelled = false;
+      setIsLoading(true);
+      setError(null);
+
+      fetchCompletedWorkoutById(numId, weightUnit, distanceUnit)
+        .then((data) => {
+          if (!cancelled) {
+            setWorkout(data);
+            setError(null);
+            setIsLoading(false);
+          }
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setError(err instanceof Error ? err : new Error(String(err)));
+            setWorkout(null);
+            setIsLoading(false);
+            Bugsnag.notify(err);
+          }
+        });
+
+      return () => {
+        cancelled = true;
+      };
+    }, [id, weightUnit, distanceUnit]),
   );
 
-  // Calculate total volume
   const totalVolume = useMemo(() => {
     if (!workout) return 0;
 
@@ -106,9 +103,15 @@ export default function HistoryDetailsScreen() {
 
       return parseFloat((exerciseAcc + exerciseVolume).toFixed(1));
     }, 0);
-  }, [workout, bodyWeight, excludeWarmup, countUnilateralDouble, doubleWeightForPaired]);
+  }, [
+    workout,
+    bodyWeight,
+    excludeWarmup,
+    countUnilateralDouble,
+    doubleWeightForPaired,
+  ]);
 
-  if (isWorkoutLoading || !workout || settingsLoading) {
+  if (isLoading || settingsLoading) {
     return (
       <ThemedView style={styles.container}>
         <ActivityIndicator size="large" color={Colors.dark.text} />
@@ -116,12 +119,16 @@ export default function HistoryDetailsScreen() {
     );
   }
 
-  if (settingsError || workoutError) {
-    const error = settingsError || workoutError;
-    if (error instanceof Error) {
-      Bugsnag.notify(error);
-      return <ThemedText>Error: {error.message}</ThemedText>;
-    }
+  if (settingsError instanceof Error) {
+    return <ThemedText>Error: {settingsError.message}</ThemedText>;
+  }
+
+  if (error) {
+    return <ThemedText>Error: {error.message}</ThemedText>;
+  }
+
+  if (!workout) {
+    return null;
   }
 
   const isoDateString = workout.date_completed.replace(" ", "T");
@@ -219,10 +226,8 @@ export default function HistoryDetailsScreen() {
         {/* Exercise List */}
         <View style={styles.exerciseList}>
           {workout.exercises.map((exercise) => {
-            // Check if the image exists
             let imageUri = "";
             if (exercise.exercise_image) {
-              // Convert the image blob to Base64
               const base64Image = byteArrayToBase64(exercise.exercise_image);
               imageUri = `data:image/webp;base64,${base64Image}`;
             }
@@ -253,7 +258,9 @@ export default function HistoryDetailsScreen() {
                     </ThemedText>
                     {exercise.exercise_tracking_type === "time" ? (
                       <ThemedText style={styles.setText}>
-                        {set.time} Seconds
+                        {set.time != null
+                          ? formatFromTotalSeconds(set.time)
+                          : "—"}
                       </ThemedText>
                     ) : exercise.exercise_tracking_type === "reps" ? (
                       <ThemedText style={styles.setText}>

@@ -632,6 +632,17 @@ export default function WorkoutSessionScreen() {
         style: "destructive",
         onPress: () => {
           removeSet(index);
+          const st = useActiveWorkoutStore.getState();
+          const newExerciseIndex = st.currentExerciseIndex;
+          const newSetIndex = st.currentSetIndices[newExerciseIndex] ?? 0;
+          setSlots((prev) => {
+            const u = [...prev] as [SlotData, SlotData, SlotData];
+            u[currentSlotIndex] = {
+              exerciseIndex: newExerciseIndex,
+              setIndex: newSetIndex,
+            };
+            return u;
+          });
         },
       },
     ]);
