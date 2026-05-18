@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Alert } from "react-native";
 import { Image } from "expo-image";
 import { ThemedView } from "@/components/ThemedView";
@@ -27,6 +27,7 @@ export default function HistoryDetailsScreen() {
   const { id } = useLocalSearchParams();
   const [workout, setWorkout] = useState<CompletedWorkout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   const {
     data: settings,
@@ -41,26 +42,42 @@ export default function HistoryDetailsScreen() {
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
 
+  useEffect(() => {
+    if (settingsError instanceof Error) {
+      Bugsnag.notify(settingsError);
+    }
+  }, [settingsError]);
+
   const deleteMutation = useDeleteCompletedWorkoutMutation();
 
   useFocusEffect(
     useCallback(() => {
       const numId = Number(Array.isArray(id) ? id[0] : id);
-      if (!numId) return;
+      if (!numId) {
+        setIsLoading(false);
+        setWorkout(null);
+        return;
+      }
 
       let cancelled = false;
       setIsLoading(true);
+      setError(null);
 
       fetchCompletedWorkoutById(numId, weightUnit, distanceUnit)
         .then((data) => {
           if (!cancelled) {
             setWorkout(data);
+            setError(null);
             setIsLoading(false);
           }
         })
-        .catch((error) => {
-          if (!cancelled) setIsLoading(false);
-          Bugsnag.notify(error);
+        .catch((err) => {
+          if (!cancelled) {
+            setError(err instanceof Error ? err : new Error(String(err)));
+            setWorkout(null);
+            setIsLoading(false);
+            Bugsnag.notify(err);
+          }
         });
 
       return () => {
@@ -94,7 +111,7 @@ export default function HistoryDetailsScreen() {
     doubleWeightForPaired,
   ]);
 
-  if (isLoading || !workout || settingsLoading) {
+  if (isLoading || settingsLoading) {
     return (
       <ThemedView style={styles.container}>
         <ActivityIndicator size="large" color={Colors.dark.text} />
@@ -102,11 +119,16 @@ export default function HistoryDetailsScreen() {
     );
   }
 
-  if (settingsError) {
-    if (settingsError instanceof Error) {
-      Bugsnag.notify(settingsError);
-      return <ThemedText>Error: {settingsError.message}</ThemedText>;
-    }
+  if (settingsError instanceof Error) {
+    return <ThemedText>Error: {settingsError.message}</ThemedText>;
+  }
+
+  if (error) {
+    return <ThemedText>Error: {error.message}</ThemedText>;
+  }
+
+  if (!workout) {
+    return null;
   }
 
   const isoDateString = workout.date_completed.replace(" ", "T");
