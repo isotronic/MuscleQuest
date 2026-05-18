@@ -28,6 +28,7 @@ import {
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
+import { UserExercise } from "@/store/workoutStore";
 import { useSoundStore } from "@/store/soundStore";
 import Animated, {
   useSharedValue,
@@ -80,6 +81,85 @@ interface OutgoingSnapshot {
 interface SlotData {
   exerciseIndex: number;
   setIndex: number;
+}
+
+function getNextSlotData(
+  exercises: UserExercise[],
+  exerciseIndex: number,
+  setIndex: number,
+): SlotData | null {
+  const exercise = exercises[exerciseIndex];
+  if (!exercise) return null;
+
+  const partnerIndex = findSupersetPartnerIndex(exercises, exerciseIndex);
+  if (partnerIndex !== -1) {
+    const isFirst = exerciseIndex < partnerIndex;
+    const firstIndex = isFirst ? exerciseIndex : partnerIndex;
+    const secondIndex = isFirst ? partnerIndex : exerciseIndex;
+    const supersetLength = Math.max(
+      exercises[firstIndex].sets.length,
+      exercises[secondIndex].sets.length,
+    );
+    if (isFirst) {
+      return { exerciseIndex: secondIndex, setIndex };
+    }
+    const nextSetIndex = setIndex + 1;
+    if (nextSetIndex < supersetLength) {
+      return { exerciseIndex: firstIndex, setIndex: nextSetIndex };
+    }
+    const afterIndex = secondIndex + 1;
+    return afterIndex < exercises.length
+      ? { exerciseIndex: afterIndex, setIndex: 0 }
+      : null;
+  }
+
+  const nextSetIndex = setIndex + 1;
+  if (nextSetIndex < exercise.sets.length) {
+    return { exerciseIndex, setIndex: nextSetIndex };
+  }
+  const nextExIdx = exerciseIndex + 1;
+  return nextExIdx < exercises.length
+    ? { exerciseIndex: nextExIdx, setIndex: 0 }
+    : null;
+}
+
+function getPrevSlotData(
+  exercises: UserExercise[],
+  exerciseIndex: number,
+  setIndex: number,
+): SlotData | null {
+  const partnerIndex = findSupersetPartnerIndex(exercises, exerciseIndex);
+  if (partnerIndex !== -1) {
+    const isFirst = exerciseIndex < partnerIndex;
+    const firstIndex = isFirst ? exerciseIndex : partnerIndex;
+    const secondIndex = isFirst ? partnerIndex : exerciseIndex;
+
+    if (isFirst) {
+      if (setIndex > 0) {
+        return { exerciseIndex: secondIndex, setIndex: setIndex - 1 };
+      }
+      const beforeIndex = firstIndex - 1;
+      return beforeIndex >= 0
+        ? {
+            exerciseIndex: beforeIndex,
+            setIndex: exercises[beforeIndex].sets.length - 1,
+          }
+        : null;
+    }
+    return { exerciseIndex: firstIndex, setIndex };
+  }
+
+  const prevSetIndex = setIndex - 1;
+  if (prevSetIndex >= 0) {
+    return { exerciseIndex, setIndex: prevSetIndex };
+  }
+  const prevExIdx = exerciseIndex - 1;
+  return prevExIdx >= 0
+    ? {
+        exerciseIndex: prevExIdx,
+        setIndex: exercises[prevExIdx].sets.length - 1,
+      }
+    : null;
 }
 
 const noop = () => {};
@@ -553,42 +633,29 @@ export default function WorkoutSessionScreen() {
     ]);
   };
 
-  // Compute next set index and exercise index
-  let nextExerciseIndex = currentExerciseIndex;
-  let nextSetIndex = currentSetIndex + 1;
-
-  if (currentExercise && nextSetIndex >= currentExercise.sets.length) {
-    nextExerciseIndex = currentExerciseIndex + 1;
-    nextSetIndex = 0;
-  }
-
+  const nextSlotData =
+    workout && currentExercise
+      ? getNextSlotData(
+          workout.exercises,
+          currentExerciseIndex,
+          currentSetIndex,
+        )
+      : null;
   const hasNextSet =
-    workout &&
-    nextExerciseIndex < workout.exercises.length &&
-    workout.exercises[nextExerciseIndex].sets[nextSetIndex];
+    nextSlotData &&
+    workout?.exercises[nextSlotData.exerciseIndex]?.sets[nextSlotData.setIndex];
 
-  // Compute previous set index and exercise index
-  let previousExerciseIndex: number | null = currentExerciseIndex;
-  let previousSetIndex: number | null = currentSetIndex - 1;
-
-  if (previousSetIndex < 0) {
-    previousExerciseIndex = currentExerciseIndex - 1;
-    if (previousExerciseIndex >= 0) {
-      const prevExercise = workout?.exercises[previousExerciseIndex];
-      previousSetIndex = prevExercise!.sets.length - 1;
-    } else {
-      previousSetIndex = null;
-      previousExerciseIndex = null;
-    }
-  }
-
+  const prevSlotData =
+    workout && currentExercise
+      ? getPrevSlotData(
+          workout.exercises,
+          currentExerciseIndex,
+          currentSetIndex,
+        )
+      : null;
   const hasPreviousSet =
-    previousExerciseIndex !== null &&
-    previousSetIndex !== null &&
-    previousExerciseIndex >= 0 &&
-    previousSetIndex >= 0 &&
-    workout &&
-    workout.exercises[previousExerciseIndex].sets[previousSetIndex];
+    prevSlotData &&
+    workout?.exercises[prevSlotData.exerciseIndex]?.sets[prevSlotData.setIndex];
 
   const currentIsLastSetOfLastExercise =
     workout &&
@@ -617,36 +684,10 @@ export default function WorkoutSessionScreen() {
     const st = useActiveWorkoutStore.getState();
     const exIdx = st.currentExerciseIndex;
     const setIdx = st.currentSetIndices[exIdx] || 0;
-    const exercise = workout.exercises[exIdx];
-    // next
-    let nxEx = exIdx;
-    let nxSet = setIdx + 1;
-    if (exercise && nxSet >= exercise.sets.length) {
-      nxEx = exIdx + 1;
-      nxSet = 0;
-    }
-    const hasNx =
-      nxEx < workout.exercises.length && !!workout.exercises[nxEx]?.sets[nxSet];
-    // prev
-    let pvEx = exIdx;
-    let pvSet = setIdx - 1;
-    if (pvSet < 0) {
-      pvEx = exIdx - 1;
-      pvSet =
-        pvEx >= 0
-          ? Math.max(0, (workout.exercises[pvEx]?.sets?.length ?? 1) - 1)
-          : 0;
-    }
-    const hasPv = pvEx >= 0;
-    setSlots([
-      { exerciseIndex: exIdx, setIndex: setIdx },
-      hasNx
-        ? { exerciseIndex: nxEx, setIndex: nxSet }
-        : { exerciseIndex: exIdx, setIndex: setIdx },
-      hasPv
-        ? { exerciseIndex: pvEx, setIndex: pvSet }
-        : { exerciseIndex: exIdx, setIndex: setIdx },
-    ]);
+    const initNext = getNextSlotData(workout.exercises, exIdx, setIdx);
+    const initPrev = getPrevSlotData(workout.exercises, exIdx, setIdx);
+    const cur = { exerciseIndex: exIdx, setIndex: setIdx };
+    setSlots([cur, initNext ?? cur, initPrev ?? cur]);
   }, [workout]);
 
   const getPanelSuperset = (exerciseIndex: number) => {
@@ -750,19 +791,14 @@ export default function WorkoutSessionScreen() {
     setCurrentSlotIndex(newActive);
     if (workout) {
       const newPrevSlotIdx = (newActive + 2) % 3;
-      let pvEx = cur.exerciseIndex;
-      let pvSet = cur.setIndex - 1;
-      if (pvSet < 0) {
-        pvEx = cur.exerciseIndex - 1;
-        pvSet =
-          pvEx >= 0
-            ? Math.max(0, (workout.exercises[pvEx]?.sets?.length ?? 1) - 1)
-            : 0;
-      }
+      const prevSlot = getPrevSlotData(
+        workout.exercises,
+        cur.exerciseIndex,
+        cur.setIndex,
+      );
       setSlots((prev) => {
         const u = [...prev] as [SlotData, SlotData, SlotData];
-        u[newPrevSlotIdx] =
-          pvEx >= 0 ? { exerciseIndex: pvEx, setIndex: pvSet } : cur;
+        u[newPrevSlotIdx] = prevSlot ?? cur;
         return u;
       });
     }
@@ -776,19 +812,14 @@ export default function WorkoutSessionScreen() {
     setCurrentSlotIndex(newActive);
     if (workout) {
       const newNextSlotIdx = (newActive + 1) % 3;
-      const ex = workout.exercises[cur.exerciseIndex];
-      let nxEx = cur.exerciseIndex;
-      let nxSet = cur.setIndex + 1;
-      if (ex && nxSet >= ex.sets.length) {
-        nxEx = cur.exerciseIndex + 1;
-        nxSet = 0;
-      }
+      const nextSlot = getNextSlotData(
+        workout.exercises,
+        cur.exerciseIndex,
+        cur.setIndex,
+      );
       setSlots((prev) => {
         const u = [...prev] as [SlotData, SlotData, SlotData];
-        u[newNextSlotIdx] =
-          nxEx < workout.exercises.length
-            ? { exerciseIndex: nxEx, setIndex: nxSet }
-            : cur;
+        u[newNextSlotIdx] = nextSlot ?? cur;
         return u;
       });
     }
@@ -1005,26 +1036,22 @@ export default function WorkoutSessionScreen() {
     requestAnimationFrame(() => {
       // Also refresh adjacent slots (off-screen) for the new position.
       if (workout) {
-        const newExercise = workout.exercises[newExIdx];
-        let nxEx = newExIdx;
-        let nxSet = newSetIdx + 1;
-        if (newExercise && nxSet >= newExercise.sets.length) {
-          nxEx = newExIdx + 1;
-          nxSet = 0;
-        }
-        let pvEx = newExIdx;
-        let pvSet = newSetIdx - 1;
-        if (pvSet < 0) {
-          pvEx = newExIdx - 1;
-          pvSet = pvEx >= 0 ? workout.exercises[pvEx]?.sets.length - 1 || 0 : 0;
-        }
+        const nxSlotData = getNextSlotData(
+          workout.exercises,
+          newExIdx,
+          newSetIdx,
+        );
+        const pvSlotData = getPrevSlotData(
+          workout.exercises,
+          newExIdx,
+          newSetIdx,
+        );
         setSlots((prev) => {
           const u = [...prev] as [SlotData, SlotData, SlotData];
           const nxSlot = (capturedSlotIndex + 1) % 3;
           const pvSlot = (capturedSlotIndex + 2) % 3;
-          if (nxEx < workout.exercises.length)
-            u[nxSlot] = { exerciseIndex: nxEx, setIndex: nxSet };
-          if (pvEx >= 0) u[pvSlot] = { exerciseIndex: pvEx, setIndex: pvSet };
+          if (nxSlotData) u[nxSlot] = nxSlotData;
+          if (pvSlotData) u[pvSlot] = pvSlotData;
           return u;
         });
       }
