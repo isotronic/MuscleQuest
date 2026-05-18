@@ -72,7 +72,9 @@ export default function EditCompletedWorkoutScreen() {
       sets: exercise.sets.map((set, setIndex) => {
         const key = `${exerciseIndex}-${setIndex}`;
         if (weightInputs[key] === undefined) return set;
-        const parsedWeight = parseFloat(weightInputs[key] || "0");
+        const raw = weightInputs[key];
+        if (raw == null || raw.trim() === "") return { ...set, weight: null };
+        const parsedWeight = parseFloat(raw);
         return { ...set, weight: isNaN(parsedWeight) ? null : parsedWeight };
       }),
     }));
