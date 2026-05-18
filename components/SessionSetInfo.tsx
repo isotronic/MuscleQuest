@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import {
   IconButton,
@@ -107,7 +107,6 @@ export default function SessionSetInfo({
   onToggleSetType,
 }: SessionSetInfoProps) {
   const [menuVisible, setMenuVisible] = useState(false);
-  const [timeInput, setTimeInput] = useState(time);
   const [timerModalVisible, setTimerModalVisible] = useState(false);
 
   const weightMinusPress = useContinuousPress(
@@ -135,13 +134,7 @@ export default function SessionSetInfo({
     useCallback(() => handleDistanceChange(1), [handleDistanceChange]),
   );
 
-  // Update timeInput when time prop changes
-  useEffect(() => {
-    setTimeInput(time);
-  }, [time]);
-
-  // Format display value - now always formatted
-  const displayValue = formatTimeInput(timeInput);
+  const displayValue = formatTimeInput(time);
 
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
@@ -403,6 +396,7 @@ export default function SessionSetInfo({
           </View>
           <View style={styles.inputContainer}>
             <TimeInput
+              key={`${exercise_id}-${currentSetIndex}`}
               value={displayValue}
               onChange={handleTimeInputChange}
               style={styles.input}
