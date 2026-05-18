@@ -126,6 +126,7 @@ export default function WorkoutOverviewScreen() {
     number | null
   >(null);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
   const [menuVisible, setMenuVisible] = useState<{ [key: number]: boolean }>(
     {},
   );
@@ -191,16 +192,17 @@ export default function WorkoutOverviewScreen() {
   const handleExitSaveModal = () => {
     void cancelRestNotifications();
     const savedId = lastCompletedWorkoutIdRef.current;
-    clearPersistedStore();
     setShowSaveModal(false);
+    setIsLeaving(true);
     if (savedId == null) {
       router.push("/(app)/(tabs)");
-      return;
+    } else {
+      router.push({
+        pathname: "/(app)/(workout)/workout-summary" as any,
+        params: { completedWorkoutId: String(savedId), fresh: "true" },
+      });
     }
-    router.push({
-      pathname: "/(app)/(workout)/workout-summary" as any,
-      params: { completedWorkoutId: String(savedId), fresh: "true" },
-    });
+    clearPersistedStore();
   };
 
   const handleDeleteExercise = useCallback(
@@ -546,7 +548,7 @@ export default function WorkoutOverviewScreen() {
             {
               onSuccess: (completedWorkoutId) => {
                 const navigateToSummary = () => {
-                  clearPersistedStore();
+                  setIsLeaving(true);
                   router.push({
                     pathname: "/(app)/(workout)/workout-summary" as any,
                     params: {
@@ -554,6 +556,7 @@ export default function WorkoutOverviewScreen() {
                       fresh: "true",
                     },
                   });
+                  clearPersistedStore();
                 };
 
                 if (isQuickWorkout) {
@@ -667,9 +670,9 @@ export default function WorkoutOverviewScreen() {
           style: "destructive",
           onPress: () => {
             void cancelRestNotifications();
-            clearPersistedStore();
-            // Navigate back to the main screen or home screen
+            setIsLeaving(true);
             router.push("/(app)/(tabs)");
+            clearPersistedStore();
           },
         },
       ],
@@ -694,6 +697,15 @@ export default function WorkoutOverviewScreen() {
   };
 
   if (!workout) {
+    if (isLeaving) {
+      return (
+        <ThemedView
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" />
+        </ThemedView>
+      );
+    }
     return (
       <ThemedView>
         <ThemedText>No workout available</ThemedText>
