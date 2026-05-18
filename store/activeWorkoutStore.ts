@@ -356,8 +356,12 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                 firstExercise.sets.length,
               );
               if (nextSetIndex < supersetLength) {
+                const firstHas = nextSetIndex < firstExercise.sets.length;
+                const secondHas = nextSetIndex < currentExercise.sets.length;
+                const nextExIdx =
+                  firstHas || !secondHas ? firstIndex : currentExerciseIndex;
                 return {
-                  currentExerciseIndex: firstIndex,
+                  currentExerciseIndex: nextExIdx,
                   currentSetIndices: updatedSetIndices,
                   completedSets: updatedCompletedSets,
                   weightAndReps: updatedWeightAndReps,
@@ -964,12 +968,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             completedSets,
             exerciseIndex,
           );
-          newCompletedSets[exerciseIndex + 1] = Object.fromEntries(
-            Array.from({ length: newExercise.sets.length }, (_, i) => [
-              i,
-              false,
-            ]),
-          );
+          newCompletedSets[exerciseIndex + 1] = {};
 
           const newWeightAndReps = shiftIndicesForInsert(
             weightAndReps,
