@@ -19,6 +19,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
 import { useDeleteCompletedWorkoutMutation } from "@/hooks/useDeleteCompletedWorkoutMutation";
+import { formatFromTotalSeconds } from "@/utils/utility";
 import Bugsnag from "@bugsnag/expo";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
@@ -106,7 +107,13 @@ export default function HistoryDetailsScreen() {
 
       return parseFloat((exerciseAcc + exerciseVolume).toFixed(1));
     }, 0);
-  }, [workout, bodyWeight, excludeWarmup, countUnilateralDouble, doubleWeightForPaired]);
+  }, [
+    workout,
+    bodyWeight,
+    excludeWarmup,
+    countUnilateralDouble,
+    doubleWeightForPaired,
+  ]);
 
   if (isWorkoutLoading || !workout || settingsLoading) {
     return (
@@ -253,7 +260,9 @@ export default function HistoryDetailsScreen() {
                     </ThemedText>
                     {exercise.exercise_tracking_type === "time" ? (
                       <ThemedText style={styles.setText}>
-                        {set.time} Seconds
+                        {set.time != null
+                          ? formatFromTotalSeconds(set.time)
+                          : "—"}
                       </ThemedText>
                     ) : exercise.exercise_tracking_type === "reps" ? (
                       <ThemedText style={styles.setText}>
