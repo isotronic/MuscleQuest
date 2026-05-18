@@ -198,6 +198,12 @@ export async function initUserDataDB() {
   const isWarmupExists = completed_setsResult.some(
     (column: any) => column.name === "is_warmup",
   );
+  const isDropSetExists = completed_setsResult.some(
+    (column: any) => column.name === "is_drop_set",
+  );
+  const isToFailureExists = completed_setsResult.some(
+    (column: any) => column.name === "is_to_failure",
+  );
   const app_plan_idExists = user_plansResult.some(
     (column: any) => column.name === "app_plan_id",
   );
@@ -250,6 +256,16 @@ export async function initUserDataDB() {
       ALTER TABLE completed_sets ADD COLUMN is_warmup BOOLEAN DEFAULT FALSE;
     `);
   }
+  if (!isDropSetExists) {
+    await db.execAsync(
+      `ALTER TABLE completed_sets ADD COLUMN is_drop_set BOOLEAN DEFAULT FALSE;`,
+    );
+  }
+  if (!isToFailureExists) {
+    await db.execAsync(
+      `ALTER TABLE completed_sets ADD COLUMN is_to_failure BOOLEAN DEFAULT FALSE;`,
+    );
+  }
 
   // Idempotent warmup backfill — runs once, resumable if a previous run was interrupted.
   // Gated by a settings flag so it can retry safely across app starts.
@@ -292,6 +308,48 @@ export async function initUserDataDB() {
       `INSERT OR REPLACE INTO settings (key, value) VALUES ('warmup_backfill_completed', 'true')`,
     );
   }
+
+  // Idempotent drop-set / to-failure backfill from plan templates.
+  const setTypesBackfillDone = await db.getFirstAsync<{ value: string }>(
+    `SELECT value FROM settings WHERE key = 'set_types_backfill_completed'`,
+  );
+  if (!setTypesBackfillDone) {
+    const setTypeTemplates = await db.getAllAsync<{
+      workout_id: number;
+      exercise_id: number;
+      sets: string;
+    }>(
+      `SELECT workout_id, exercise_id, sets FROM user_workout_exercises WHERE sets IS NOT NULL AND is_deleted = FALSE`,
+    );
+    for (const tmpl of setTypeTemplates) {
+      let planSets: { isDropSet?: boolean; isToFailure?: boolean }[];
+      try {
+        planSets = JSON.parse(tmpl.sets);
+      } catch {
+        continue;
+      }
+      for (let i = 0; i < planSets.length; i++) {
+        const setNum = i + 1;
+        const subquery = `SELECT ce.id FROM completed_exercises ce JOIN completed_workouts cw ON ce.completed_workout_id = cw.id WHERE ce.exercise_id = ? AND cw.workout_id = ?`;
+        if (planSets[i].isDropSet) {
+          await db.runAsync(
+            `UPDATE completed_sets SET is_drop_set = TRUE WHERE set_number = ? AND completed_exercise_id IN (${subquery})`,
+            [setNum, tmpl.exercise_id, tmpl.workout_id],
+          );
+        }
+        if (planSets[i].isToFailure) {
+          await db.runAsync(
+            `UPDATE completed_sets SET is_to_failure = TRUE WHERE set_number = ? AND completed_exercise_id IN (${subquery})`,
+            [setNum, tmpl.exercise_id, tmpl.workout_id],
+          );
+        }
+      }
+    }
+    await db.runAsync(
+      `INSERT OR REPLACE INTO settings (key, value) VALUES ('set_types_backfill_completed', 'true')`,
+    );
+  }
+
   if (!app_plan_idExists) {
     await db.execAsync(`
       ALTER TABLE user_plans ADD COLUMN app_plan_id INTEGER DEFAULT NULL;
