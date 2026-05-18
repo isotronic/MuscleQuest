@@ -29,10 +29,10 @@ export default function ExercisesScreen() {
     supersetForIndex?: string;
   }>();
   const isAppendMode = mode === "append";
-  const isSupersetMode = supersetForIndex !== undefined;
-  const supersetForExerciseIndex = isSupersetMode
-    ? Number(supersetForIndex)
-    : undefined;
+  const parsed = Number(supersetForIndex);
+  const isSupersetMode =
+    supersetForIndex !== undefined && Number.isInteger(parsed) && parsed >= 0;
+  const supersetForExerciseIndex = isSupersetMode ? parsed : undefined;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
