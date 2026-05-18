@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { View, StyleSheet, ScrollView, Alert } from "react-native";
 import { Image } from "expo-image";
 import { ThemedView } from "@/components/ThemedView";
@@ -11,13 +11,12 @@ import {
   useLocalSearchParams,
   useFocusEffect,
 } from "expo-router";
-import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
-import { fetchExerciseImagesByIds } from "@/utils/database";
 import { byteArrayToBase64 } from "@/utils/utility";
 import { parseISO, format } from "date-fns";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
-import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
+import { fetchCompletedWorkoutById } from "@/utils/database";
+import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useDeleteCompletedWorkoutMutation } from "@/hooks/useDeleteCompletedWorkoutMutation";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import Bugsnag from "@bugsnag/expo";
@@ -27,6 +26,7 @@ const fallbackImage = require("@/assets/images/placeholder.webp");
 export default function HistoryDetailsScreen() {
   const { id } = useLocalSearchParams();
   const [workout, setWorkout] = useState<CompletedWorkout | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
     data: settings,
@@ -43,53 +43,32 @@ export default function HistoryDetailsScreen() {
 
   const deleteMutation = useDeleteCompletedWorkoutMutation();
 
-  const {
-    data: workoutData,
-    isLoading: isWorkoutLoading,
-    error: workoutError,
-    refetch,
-  } = useCompletedWorkoutByIdQuery(Number(id), weightUnit, distanceUnit);
-
-  useEffect(() => {
-    if (workoutData) {
-      // Collect unique exercise IDs
-      const exerciseIds = workoutData.exercises.map(
-        (exercise) => exercise.exercise_id,
-      );
-
-      // Fetch images for these exercise IDs and attach them to the exercises
-      const fetchImages = async () => {
-        try {
-          const imagesMap = await fetchExerciseImagesByIds(exerciseIds);
-
-          // Attach images to exercises
-          const exercisesWithImages = workoutData.exercises.map((exercise) => ({
-            ...exercise,
-            exercise_image: imagesMap[exercise.exercise_id],
-          }));
-
-          // Update workout data with exercises including images
-          setWorkout({
-            ...workoutData,
-            exercises: exercisesWithImages,
-          });
-        } catch (error: any) {
-          console.error("Error fetching exercise images:", error);
-          Bugsnag.notify(error);
-        }
-      };
-
-      fetchImages();
-    }
-  }, [workoutData]);
-
   useFocusEffect(
     useCallback(() => {
-      refetch();
-    }, [refetch]),
+      const numId = Number(Array.isArray(id) ? id[0] : id);
+      if (!numId) return;
+
+      let cancelled = false;
+      setIsLoading(true);
+
+      fetchCompletedWorkoutById(numId, weightUnit, distanceUnit)
+        .then((data) => {
+          if (!cancelled) {
+            setWorkout(data);
+            setIsLoading(false);
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) setIsLoading(false);
+          Bugsnag.notify(error);
+        });
+
+      return () => {
+        cancelled = true;
+      };
+    }, [id, weightUnit, distanceUnit]),
   );
 
-  // Calculate total volume
   const totalVolume = useMemo(() => {
     if (!workout) return 0;
 
@@ -115,7 +94,7 @@ export default function HistoryDetailsScreen() {
     doubleWeightForPaired,
   ]);
 
-  if (isWorkoutLoading || !workout || settingsLoading) {
+  if (isLoading || !workout || settingsLoading) {
     return (
       <ThemedView style={styles.container}>
         <ActivityIndicator size="large" color={Colors.dark.text} />
@@ -123,11 +102,10 @@ export default function HistoryDetailsScreen() {
     );
   }
 
-  if (settingsError || workoutError) {
-    const error = settingsError || workoutError;
-    if (error instanceof Error) {
-      Bugsnag.notify(error);
-      return <ThemedText>Error: {error.message}</ThemedText>;
+  if (settingsError) {
+    if (settingsError instanceof Error) {
+      Bugsnag.notify(settingsError);
+      return <ThemedText>Error: {settingsError.message}</ThemedText>;
     }
   }
 
@@ -226,10 +204,8 @@ export default function HistoryDetailsScreen() {
         {/* Exercise List */}
         <View style={styles.exerciseList}>
           {workout.exercises.map((exercise) => {
-            // Check if the image exists
             let imageUri = "";
             if (exercise.exercise_image) {
-              // Convert the image blob to Base64
               const base64Image = byteArrayToBase64(exercise.exercise_image);
               imageUri = `data:image/webp;base64,${base64Image}`;
             }
