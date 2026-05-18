@@ -105,7 +105,11 @@ function getNextSlotData(
     }
     const nextSetIndex = setIndex + 1;
     if (nextSetIndex < supersetLength) {
-      return { exerciseIndex: firstIndex, setIndex: nextSetIndex };
+      const firstHas = nextSetIndex < exercises[firstIndex].sets.length;
+      return {
+        exerciseIndex: firstHas ? firstIndex : secondIndex,
+        setIndex: nextSetIndex,
+      };
     }
     const afterIndex = secondIndex + 1;
     return afterIndex < exercises.length
