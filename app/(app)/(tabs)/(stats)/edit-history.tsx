@@ -43,7 +43,6 @@ export default function EditCompletedWorkoutScreen() {
     weightUnit,
     distanceUnit,
   );
-
   // Update exercises when workout data is available
   useEffect(() => {
     if (workoutData) {
@@ -64,10 +63,21 @@ export default function EditCompletedWorkoutScreen() {
   }, [exercises]);
 
   const handleSave = () => {
-    // Blur each input to ensure all onBlur events are fired
     Object.values(weightInputRefs.current).forEach((input) => input?.blur());
 
-    editWorkout.mutate(exercises, {
+    // Merge weightInputs into exercises synchronously — onBlur state updates
+    // are batched by React and won't be applied before mutate runs.
+    const finalExercises = exercises.map((exercise, exerciseIndex) => ({
+      ...exercise,
+      sets: exercise.sets.map((set, setIndex) => {
+        const key = `${exerciseIndex}-${setIndex}`;
+        if (weightInputs[key] === undefined) return set;
+        const parsedWeight = parseFloat(weightInputs[key] || "0");
+        return { ...set, weight: isNaN(parsedWeight) ? null : parsedWeight };
+      }),
+    }));
+
+    editWorkout.mutate(finalExercises, {
       onSuccess: () => {
         router.back();
       },
@@ -96,13 +106,21 @@ export default function EditCompletedWorkoutScreen() {
         options={{
           headerRight: () => (
             <View style={styles.headerRight}>
-              <IconButton
-                icon="content-save-outline"
-                size={35}
-                style={{ marginRight: 0 }}
-                iconColor={Colors.dark.tint}
-                onPressIn={handleSave}
-              />
+              {editWorkout.isPending ? (
+                <ActivityIndicator
+                  size={24}
+                  color={Colors.dark.tint}
+                  style={{ marginRight: 12 }}
+                />
+              ) : (
+                <IconButton
+                  icon="content-save-outline"
+                  size={35}
+                  style={{ marginRight: 0 }}
+                  iconColor={Colors.dark.tint}
+                  onPressIn={handleSave}
+                />
+              )}
             </View>
           ),
         }}
