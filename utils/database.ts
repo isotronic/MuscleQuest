@@ -1647,3 +1647,38 @@ export const upsertWeeklyCompletion = async (
     throw error;
   }
 };
+
+export const fetchSetDurationsForExercises = async (
+  exerciseIds: number[],
+): Promise<Record<number, number[]>> => {
+  if (exerciseIds.length === 0) return {};
+  try {
+    const db = await openDatabase("userData.db");
+    const placeholders = exerciseIds.map(() => "?").join(", ");
+    const rows = (await db.getAllAsync(
+      `SELECT ce.exercise_id, cs.set_duration
+       FROM completed_sets cs
+       JOIN completed_exercises ce ON cs.completed_exercise_id = ce.id
+       JOIN completed_workouts cw  ON ce.completed_workout_id  = cw.id
+       WHERE ce.exercise_id IN (${placeholders})
+         AND cs.set_duration > 0
+         AND cs.is_deleted   = FALSE
+         AND cw.is_deleted   = FALSE
+       ORDER BY cw.date_completed DESC`,
+      exerciseIds,
+    )) as { exercise_id: number; set_duration: number }[];
+
+    const result: Record<number, number[]> = {};
+    for (const row of rows) {
+      if (!result[row.exercise_id]) {
+        result[row.exercise_id] = [];
+      }
+      result[row.exercise_id].push(row.set_duration);
+    }
+    return result;
+  } catch (error: any) {
+    console.error("Error fetching set durations for exercises:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
