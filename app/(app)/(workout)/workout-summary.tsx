@@ -191,7 +191,7 @@ function getBestSetLabel(
     const bVol = (b.weight ?? 0) * (b.reps ?? 0);
     return vol > bVol ? s : b;
   }, exercise.sets[0]);
-  if (best.weight != null && best.reps != null) {
+  if (best.weight != null && best.weight > 0 && best.reps != null) {
     return `best ${best.weight}${weightUnit} × ${best.reps}`;
   }
   if (best.reps != null) return `best ${best.reps} reps`;
