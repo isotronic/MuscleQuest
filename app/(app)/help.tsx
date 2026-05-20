@@ -151,7 +151,7 @@ export default function HelpScreen() {
             <View key={group.group}>
               <GroupHeader label={group.group} />
               {group.sections.map((section, i) => (
-                <View key={i}>
+                <View key={`${group.group}:${section.title}`}>
                   <Section
                     icon={section.icon}
                     title={highlightTokens(
