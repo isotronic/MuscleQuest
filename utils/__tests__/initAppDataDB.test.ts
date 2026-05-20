@@ -15,16 +15,19 @@ describe("initializeAppData", () => {
   let mockDbFileDelete: jest.Mock;
   let mockOldDb1FileDelete: jest.Mock;
   let mockOldDb2FileDelete: jest.Mock;
+  let mockTempFileMove: jest.Mock;
   let mockAssetFileCopy: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    MockFile.mockReset();
     (openDatabase as jest.Mock).mockReturnValue(mockDatabase);
 
     mockDirCreate = jest.fn();
     mockDbFileDelete = jest.fn();
     mockOldDb1FileDelete = jest.fn();
     mockOldDb2FileDelete = jest.fn();
+    mockTempFileMove = jest.fn();
     mockAssetFileCopy = jest.fn();
 
     MockDirectory.mockImplementation(() => ({ create: mockDirCreate }));
@@ -50,11 +53,17 @@ describe("initializeAppData", () => {
       delete: mockOldDb2FileDelete,
       uri: "/mock/document/directory/SQLite/appData2.db",
     })); // oldDbFile2
+    MockFile.mockImplementationOnce(() => ({
+      exists: true,
+      delete: jest.fn(),
+      move: mockTempFileMove,
+      uri: "/mock/document/directory/SQLite/appData3.db.tmp",
+    })); // tempFile (consumed only when copy is triggered)
     MockFile.mockImplementation(() => ({
       exists: true,
       copy: mockAssetFileCopy,
       uri: "mockDatabaseFileUri",
-    })); // asset file (if copy is triggered)
+    })); // asset file (fallback)
   };
 
   it("should not copy database if it exists and dataVersion is sufficient", async () => {
@@ -81,6 +90,11 @@ describe("initializeAppData", () => {
     expect(Asset.fromModule).toHaveBeenCalled();
     expect(mockAssetFileCopy).toHaveBeenCalledWith(
       expect.objectContaining({
+        uri: "/mock/document/directory/SQLite/appData3.db.tmp",
+      }),
+    );
+    expect(mockTempFileMove).toHaveBeenCalledWith(
+      expect.objectContaining({
         uri: "/mock/document/directory/SQLite/appData3.db",
       }),
     );
@@ -96,6 +110,7 @@ describe("initializeAppData", () => {
 
     expect(Asset.fromModule).toHaveBeenCalled();
     expect(mockAssetFileCopy).toHaveBeenCalled();
+    expect(mockTempFileMove).toHaveBeenCalled();
   });
 
   it("should delete old database files if they exist", async () => {
