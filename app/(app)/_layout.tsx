@@ -32,6 +32,8 @@ export default function AppLayout() {
       />
       <Stack.Screen name="exercise-info" options={{ title: "Exercise Info" }} />
       <Stack.Screen name="custom-exercise" />
+      <Stack.Screen name="settings" options={{ title: "Settings" }} />
+      <Stack.Screen name="help" options={{ title: "Help & Info" }} />
       <Stack.Screen name="+not-found" />
     </Stack>
   );

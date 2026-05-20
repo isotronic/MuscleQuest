@@ -18,7 +18,7 @@ const onboardingData = [
     description:
       "Set your weekly workout goal and enter your body weight to get accurate stats and recommendations. You can also adjust your weight increment preferences, choose your preferred units, and much more.",
     buttonLabel: "Go to Settings",
-    route: "/(app)/(tabs)/settings" as Href,
+    route: "/(app)/settings" as Href,
   },
   {
     title: "Track Your Progress",
@@ -60,7 +60,7 @@ const onboardingData = [
     description:
       "You can hide this onboarding screen at any time from the settings page in the appearance section. If you ever want to revisit the onboarding, you can enable it again from the same settings page.",
     buttonLabel: "Go to Settings",
-    route: "/(app)/(tabs)/settings" as Href,
+    route: "/(app)/settings" as Href,
   },
 ];
 
