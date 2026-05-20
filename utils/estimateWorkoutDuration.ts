@@ -131,11 +131,15 @@ export function computeWorkoutDurationEstimate(
   let totalMin = 0;
   let totalMax = 0;
 
-  for (const exercise of exercises) {
+  for (const [exIdx, exercise] of exercises.entries()) {
     const history = historyByExerciseId[exercise.exercise_id] ?? [];
     const skipRest = supersetFirstIds.has(exercise.exercise_id);
-    for (const set of exercise.sets) {
-      const rest = skipRest ? 0 : set.restMinutes * 60 + set.restSeconds;
+    for (const [setIdx, set] of exercise.sets.entries()) {
+      const hasNextSlot =
+        setIdx < exercise.sets.length - 1 ||
+        exercises.slice(exIdx + 1).some((e) => e.sets.length > 0);
+      const rest =
+        skipRest || !hasNextSlot ? 0 : set.restMinutes * 60 + set.restSeconds;
       const [workMin, workMax] = estimateSetWorkDuration(
         set,
         exercise.equipment,
