@@ -9,6 +9,8 @@ import {
   useCompletedWorkoutsQuery,
   usePreviousPeriodWorkoutsQuery,
 } from "@/hooks/useCompletedWorkoutsQuery";
+import { startOfWeek, endOfWeek } from "date-fns";
+import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { Colors } from "@/constants/Colors";
 import { WorkoutHistorySection } from "@/components/stats/WorkoutHistorySection";
@@ -130,6 +132,30 @@ export default function StatsScreen() {
     weightUnit,
     distanceUnit,
     parseInt(selectedTimeRange),
+  );
+
+  const { data: allWorkouts } = useCompletedWorkoutsQuery(
+    weightUnit,
+    distanceUnit,
+  );
+
+  const thisWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const thisWeekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+  const thisWeekWorkouts = allWorkouts?.filter((w) => {
+    const d = new Date(w.date_completed);
+    return d >= thisWeekStart && d <= thisWeekEnd;
+  });
+  const uniqueWorkoutDaysCount = new Set(
+    thisWeekWorkouts?.map((w) => new Date(w.date_completed).toDateString()),
+  ).size;
+  const weeklyGoal = Number(settings?.weeklyGoal ?? 0);
+  const weeklyGoalReached =
+    uniqueWorkoutDaysCount >= weeklyGoal && weeklyGoal > 0;
+  const { streak } = useWeeklyStreak(
+    allWorkouts,
+    weeklyGoal,
+    uniqueWorkoutDaysCount,
+    weeklyGoalReached,
   );
 
   const insights = useStatsInsights(
@@ -254,7 +280,7 @@ export default function StatsScreen() {
               biggestGainLabel={insights.biggestGainLabel}
               biggestGainValue={insights.biggestGainValue}
               topBodyPart={insights.topBodyPart}
-              streak={null}
+              streak={streak}
               weightUnit={weightUnit}
             />
           </View>
