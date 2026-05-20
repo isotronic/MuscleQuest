@@ -140,7 +140,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       startTime: new Date(),
       timerRunning: false,
       timerExpiry: null,
-      currentSetStartedAt: new Date(),
+      currentSetStartedAt: null,
       setDurations: {},
       appendedExerciseIndices: [],
 
@@ -158,7 +158,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           startTime: new Date(),
           timerRunning: false,
           timerExpiry: null,
-          currentSetStartedAt: new Date(),
+          currentSetStartedAt: null,
           setDurations: {},
           appendedExerciseIndices: [],
         }),
@@ -181,7 +181,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           startTime: new Date(),
           timerRunning: false,
           timerExpiry: null,
-          currentSetStartedAt: new Date(),
+          currentSetStartedAt: null,
           setDurations: {},
           appendedExerciseIndices: [],
         }),
@@ -601,6 +601,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             completedSets,
             currentSetIndices,
             currentExerciseIndex,
+            setDurations,
           } = state;
 
           if (
@@ -631,6 +632,15 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             );
           }
 
+          // Re-index setDurations after deletion using shared helper
+          const updatedSetDurations = { ...setDurations };
+          if (updatedSetDurations[currentExerciseIndex]) {
+            updatedSetDurations[currentExerciseIndex] = reindexAfterRemoval(
+              updatedSetDurations[currentExerciseIndex],
+              setIndex,
+            );
+          }
+
           // Navigate to the active set after deletion:
           // - first uncompleted set if the exercise still has one (the "active" set)
           // - last set if the exercise is fully completed (another exercise is active)
@@ -657,6 +667,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             weightAndReps: updatedWeightAndReps,
             completedSets: updatedCompletedSets,
             currentSetIndices: updatedSetIndices,
+            setDurations: updatedSetDurations,
           };
         });
       },
@@ -791,8 +802,13 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
 
       deleteExercise: (index) => {
         set((state) => {
-          const { workout, completedSets, weightAndReps, currentSetIndices } =
-            state;
+          const {
+            workout,
+            completedSets,
+            weightAndReps,
+            currentSetIndices,
+            setDurations,
+          } = state;
           if (!workout) {
             return state;
           }
@@ -802,10 +818,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             (_, exerciseIndex) => exerciseIndex !== index,
           );
 
-          // Remove the corresponding completed sets, weight/reps, and set index
+          // Remove the corresponding completed sets, weight/reps, set index, and durations
           const { [index]: _, ...updatedCompletedSets } = completedSets;
           const { [index]: __, ...updatedWeightAndReps } = weightAndReps;
           const { [index]: ___, ...updatedSetIndices } = currentSetIndices;
+          const { [index]: ____, ...updatedSetDurations } = setDurations;
 
           // Adjust indices for remaining sets and exercises, if necessary
           const adjustedCompletedSets = Object.keys(
@@ -842,11 +859,22 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             {} as typeof updatedSetIndices,
           );
 
+          const adjustedSetDurations = Object.keys(updatedSetDurations).reduce(
+            (acc, key) => {
+              const parsedKey = parseInt(key, 10);
+              acc[parsedKey > index ? parsedKey - 1 : parsedKey] =
+                updatedSetDurations[parsedKey];
+              return acc;
+            },
+            {} as typeof updatedSetDurations,
+          );
+
           return {
             workout: { ...workout, exercises: updatedExercises },
-            completedSets: adjustedCompletedSets, // Remove and adjust completed sets
-            weightAndReps: adjustedWeightAndReps, // Remove and adjust weight/reps
-            currentSetIndices: adjustedSetIndices, // Adjust set indices
+            completedSets: adjustedCompletedSets,
+            weightAndReps: adjustedWeightAndReps,
+            currentSetIndices: adjustedSetIndices,
+            setDurations: adjustedSetDurations,
           };
         });
       },
@@ -860,6 +888,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentSetIndices,
             currentExerciseIndex,
             appendedExerciseIndices,
+            setDurations,
           } = state;
           if (!workout) return state;
 
@@ -887,6 +916,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             completedSets: remap(completedSets),
             weightAndReps: remap(weightAndReps),
             currentSetIndices: remap(currentSetIndices),
+            setDurations: remap(setDurations),
             currentExerciseIndex:
               oldToNew[currentExerciseIndex] ?? currentExerciseIndex,
             appendedExerciseIndices: appendedExerciseIndices
@@ -912,7 +942,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           startTime: new Date(), // Reset the start time to now
           timerRunning: false,
           timerExpiry: null,
-          currentSetStartedAt: new Date(),
+          currentSetStartedAt: null,
           setDurations: {},
           appendedExerciseIndices: [],
         });
@@ -962,6 +992,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             weightAndReps,
             currentSetIndices,
             appendedExerciseIndices,
+            setDurations,
           } = state;
           if (!workout) return state;
 
@@ -994,6 +1025,12 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           );
           newSetIndices[exerciseIndex + 1] = 0;
 
+          const newSetDurations = shiftIndicesForInsert(
+            setDurations,
+            exerciseIndex,
+          );
+          newSetDurations[exerciseIndex + 1] = {};
+
           const newAppendedIndices = appendedExerciseIndices.map((i) =>
             i > exerciseIndex ? i + 1 : i,
           );
@@ -1003,6 +1040,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             completedSets: newCompletedSets,
             weightAndReps: newWeightAndReps,
             currentSetIndices: newSetIndices,
+            setDurations: newSetDurations,
             appendedExerciseIndices: newAppendedIndices,
           };
         }),

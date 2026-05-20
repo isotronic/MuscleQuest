@@ -464,6 +464,13 @@ export default function WorkoutSessionScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!currentSetStartedAt) {
+      setCurrentSetStartedAt(new Date());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const startRestTimer = async (restMinutes: number, restSeconds: number) => {
     if (restMinutes > 0 || restSeconds > 0) {
       const totalSeconds = restMinutes * 60 + restSeconds;
@@ -982,6 +989,9 @@ export default function WorkoutSessionScreen() {
       recordSetDuration(currentExerciseIndex, currentSetIndex, durationNoAnim);
       setCurrentSetStartedAt(null);
       nextSet();
+      if (hasNextSet && currentSet.restMinutes === 0 && currentSet.restSeconds === 0) {
+        setCurrentSetStartedAt(new Date());
+      }
       return;
     }
 
@@ -1047,6 +1057,9 @@ export default function WorkoutSessionScreen() {
     recordSetDuration(currentExerciseIndex, currentSetIndex, durationAnim);
     setCurrentSetStartedAt(null);
     nextSet();
+    if (isFirstInSuperset || (hasNextSet && currentSet.restMinutes === 0 && currentSet.restSeconds === 0)) {
+      setCurrentSetStartedAt(new Date());
+    }
 
     // Update current slot to point to the new exercise that nextSet() navigated to.
     // The panel is already off-screen (completionIncomingX = SCREEN_WIDTH), so
