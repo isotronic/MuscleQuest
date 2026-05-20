@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -45,14 +45,82 @@ export default function CreateWorkoutScreen() {
     addWorkout,
     changeWorkoutName,
     setWorkouts,
+    setDraftContext,
+    setDraftId,
+    clearDraft,
   } = useWorkoutStore();
 
   const { data: standaloneWorkouts } = useStandaloneWorkoutsQuery();
   const createMutation = useCreateStandaloneWorkout();
   const updateMutation = useUpdateStandaloneWorkout();
 
+  // 'pending' until draft check resolves; then 'continue' or 'fresh'
+  const [draftDecision, setDraftDecision] = useState<
+    "pending" | "continue" | "fresh"
+  >("pending");
+
+  const startFreshSession = useCallback(() => {
+    setDraftContext("standalone");
+    setDraftId(existingWorkoutId);
+  }, [existingWorkoutId, setDraftContext, setDraftId]);
+
+  // Check for a persisted draft once on mount, after store hydrates
+  useEffect(() => {
+    const checkDraft = () => {
+      const {
+        workouts: storedWorkouts,
+        draftContext,
+        draftId,
+      } = useWorkoutStore.getState();
+      const hasDraft =
+        draftContext === "standalone" &&
+        draftId === existingWorkoutId &&
+        storedWorkouts.length > 0 &&
+        (storedWorkouts[0].exercises.length > 0 ||
+          storedWorkouts[0].name.trim() !== "");
+
+      if (hasDraft) {
+        Alert.alert(
+          "Continue Editing?",
+          "You have unsaved changes from your last session. Would you like to continue?",
+          [
+            {
+              text: "Discard Changes",
+              style: "destructive",
+              onPress: () => {
+                clearDraft();
+                startFreshSession();
+                setDraftDecision("fresh");
+              },
+            },
+            {
+              text: "Continue",
+              onPress: () => {
+                initializedWorkoutId.current = existingWorkoutId ?? null;
+                setDraftDecision("continue");
+              },
+            },
+          ],
+        );
+      } else {
+        if (draftContext !== null) clearDraft();
+        startFreshSession();
+        setDraftDecision("fresh");
+      }
+    };
+
+    if (useWorkoutStore.persist.hasHydrated()) {
+      checkDraft();
+    } else {
+      const unsub = useWorkoutStore.persist.onFinishHydration(checkDraft);
+      return unsub;
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Initialise workoutStore for this screen — runs once per workout id
   useEffect(() => {
+    if (draftDecision === "pending" || draftDecision === "continue") return;
+
     const sentinel = existingWorkoutId ?? null;
     if (initializedWorkoutId.current === sentinel) return;
     if (existingWorkoutId && standaloneWorkouts) {
@@ -72,7 +140,7 @@ export default function CreateWorkoutScreen() {
     clearWorkouts();
     addWorkout({ name: "", exercises: [], id: -Date.now() });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [existingWorkoutId, standaloneWorkouts]);
+  }, [draftDecision, existingWorkoutId, standaloneWorkouts]);
 
   // Guard back-navigation when there are unsaved changes
   useEffect(() => {
@@ -81,13 +149,13 @@ export default function CreateWorkoutScreen() {
 
       if (savedRef.current) {
         savedRef.current = false;
-        clearWorkouts();
+        clearDraft();
         return navigation.dispatch(e.data.action);
       }
 
       const workout = workouts[0];
       if (!workout || (!workout.exercises.length && !workout.name.trim())) {
-        clearWorkouts();
+        clearDraft();
         return navigation.dispatch(e.data.action);
       }
 
@@ -100,7 +168,7 @@ export default function CreateWorkoutScreen() {
             text: "Discard",
             style: "destructive",
             onPress: () => {
-              clearWorkouts();
+              clearDraft();
               navigation.dispatch(e.data.action);
             },
           },
@@ -108,7 +176,7 @@ export default function CreateWorkoutScreen() {
       );
     });
     return unsubscribe;
-  }, [navigation, workouts, clearWorkouts]);
+  }, [navigation, workouts, clearDraft]);
 
   const handleAddExercise = () => {
     router.push("/(app)/(create-plan)/exercises?index=0");

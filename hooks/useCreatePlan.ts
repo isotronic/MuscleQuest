@@ -18,14 +18,8 @@ export const useCreatePlan = (existingPlan?: Plan) => {
   const [planName, setPlanName] = useState("");
   const [isError, setIsError] = useState(false);
 
-  const {
-    workouts,
-    clearWorkouts,
-    planImageUrl,
-    setPlanImageUrl,
-    planSchedule,
-    clearPlanSchedule,
-  } = useWorkoutStore();
+  const { workouts, planImageUrl, setPlanImageUrl, planSchedule, clearDraft } =
+    useWorkoutStore();
 
   useEffect(() => {
     if (existingPlan) {
@@ -120,8 +114,7 @@ export const useCreatePlan = (existingPlan?: Plan) => {
       localError = true;
     } finally {
       if (localPlanSaved && !localError) {
-        clearWorkouts();
-        clearPlanSchedule();
+        clearDraft();
         queryClient.invalidateQueries({ queryKey: ["plans"] });
         queryClient.invalidateQueries({ queryKey: ["activePlan"] });
       }
