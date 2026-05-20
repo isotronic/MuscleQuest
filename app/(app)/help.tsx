@@ -142,9 +142,7 @@ export default function HelpScreen() {
 
         {filtered.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>
-              No results for &ldquo;{query}&rdquo;
-            </Text>
+            <Text style={styles.emptyStateText}>No results for “{query}”</Text>
           </View>
         ) : (
           filtered.map((group) => (
