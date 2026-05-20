@@ -989,9 +989,6 @@ export default function WorkoutSessionScreen() {
       recordSetDuration(currentExerciseIndex, currentSetIndex, durationNoAnim);
       setCurrentSetStartedAt(null);
       nextSet();
-      if (hasNextSet && currentSet.restMinutes === 0 && currentSet.restSeconds === 0) {
-        setCurrentSetStartedAt(new Date());
-      }
       return;
     }
 
