@@ -18,12 +18,23 @@ export async function requestNotificationPermission(): Promise<boolean> {
 async function cancelWorkoutReminders(): Promise<void> {
   try {
     const raw = await getAsyncStorageItem(WORKOUT_REMINDER_IDS_KEY);
-    if (!raw) return;
-    const ids: string[] = JSON.parse(raw);
-    for (const id of ids) {
-      await Notifications.cancelScheduledNotificationAsync(id);
+    if (raw) {
+      const ids: string[] = JSON.parse(raw);
+      for (const id of ids) {
+        await Notifications.cancelScheduledNotificationAsync(id);
+      }
+      await removeAsyncStorageItem(WORKOUT_REMINDER_IDS_KEY);
     }
-    await removeAsyncStorageItem(WORKOUT_REMINDER_IDS_KEY);
+
+    // Failsafe: cancel any workout reminders not tracked in storage
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    await Promise.all(
+      scheduled
+        .filter((n) => n.content.title === "Time to train!")
+        .map((n) =>
+          Notifications.cancelScheduledNotificationAsync(n.identifier),
+        ),
+    );
   } catch (error: any) {
     Bugsnag.notify(error);
     console.error("Failed to cancel workout reminders:", error);
