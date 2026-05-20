@@ -72,6 +72,8 @@ interface ActiveWorkoutStore {
   startTime: Date;
   timerRunning: boolean;
   timerExpiry: Date | null;
+  currentSetStartedAt: Date | null;
+  setDurations: { [exerciseIndex: number]: { [setIndex: number]: number | null } };
   appendedExerciseIndices: number[];
   appendExercise: (exercise: UserExercise) => void;
   setWorkout: (
@@ -115,6 +117,8 @@ interface ActiveWorkoutStore {
   removeFromSuperset: (exerciseIndex: number) => void;
   startTimer: (expiry: Date) => void;
   stopTimer: () => void;
+  setCurrentSetStartedAt: (date: Date | null) => void;
+  recordSetDuration: (exerciseIndex: number, setIndex: number, duration: number | null) => void;
   clearPersistedStore: () => void;
   resumeWorkout: () => void;
   isWorkoutInProgress: () => boolean;
@@ -136,6 +140,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       startTime: new Date(),
       timerRunning: false,
       timerExpiry: null,
+      currentSetStartedAt: new Date(),
+      setDurations: {},
       appendedExerciseIndices: [],
 
       setWorkout: (workout, planId, workoutId, name) =>
@@ -152,6 +158,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           startTime: new Date(),
           timerRunning: false,
           timerExpiry: null,
+          currentSetStartedAt: new Date(),
+          setDurations: {},
           appendedExerciseIndices: [],
         }),
 
@@ -173,6 +181,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           startTime: new Date(),
           timerRunning: false,
           timerExpiry: null,
+          currentSetStartedAt: new Date(),
+          setDurations: {},
           appendedExerciseIndices: [],
         }),
 
@@ -902,6 +912,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           startTime: new Date(), // Reset the start time to now
           timerRunning: false,
           timerExpiry: null,
+          currentSetStartedAt: new Date(),
+          setDurations: {},
           appendedExerciseIndices: [],
         });
       },
@@ -1017,6 +1029,19 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
 
       stopTimer: () => set({ timerRunning: false, timerExpiry: null }),
 
+      setCurrentSetStartedAt: (date) => set({ currentSetStartedAt: date }),
+
+      recordSetDuration: (exerciseIndex, setIndex, duration) =>
+        set((state) => ({
+          setDurations: {
+            ...state.setDurations,
+            [exerciseIndex]: {
+              ...(state.setDurations[exerciseIndex] || {}),
+              [setIndex]: duration,
+            },
+          },
+        })),
+
       clearPersistedStore: () => {
         // Reset the store to initial values and remove from AsyncStorage
         set({
@@ -1031,6 +1056,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           startTime: new Date(),
           timerRunning: false,
           timerExpiry: null,
+          currentSetStartedAt: null,
+          setDurations: {},
           appendedExerciseIndices: [],
         });
         // Clear from AsyncStorage
@@ -1069,6 +1096,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             ? state.timerExpiry.toISOString()
             : state.timerExpiry
           : null,
+        currentSetStartedAt: state.currentSetStartedAt
+          ? state.currentSetStartedAt instanceof Date
+            ? state.currentSetStartedAt.toISOString()
+            : state.currentSetStartedAt
+          : null,
       }),
       onRehydrateStorage: () => (state) => {
         // Convert strings back to Date objects after rehydration
@@ -1078,6 +1110,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           }
           if (state.timerExpiry) {
             state.timerExpiry = new Date(state.timerExpiry);
+          }
+          if (state.currentSetStartedAt) {
+            state.currentSetStartedAt = new Date(state.currentSetStartedAt);
           }
         }
       },

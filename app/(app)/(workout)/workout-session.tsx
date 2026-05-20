@@ -284,6 +284,9 @@ export default function WorkoutSessionScreen() {
     addSet,
     updateSetRestTime,
     updateSetType,
+    currentSetStartedAt,
+    setCurrentSetStartedAt,
+    recordSetDuration,
   } = useActiveWorkoutStore();
 
   const {
@@ -432,6 +435,8 @@ export default function WorkoutSessionScreen() {
         diffMs,
       });
     }
+
+    setCurrentSetStartedAt(new Date());
   }
 
   useEffect(() => {
@@ -971,6 +976,11 @@ export default function WorkoutSessionScreen() {
         exerciseIndex: currentExerciseIndex,
         setIndex: currentSetIndex,
       };
+      const durationNoAnim = currentSetStartedAt
+        ? Math.round((Date.now() - new Date(currentSetStartedAt).getTime()) / 1000)
+        : null;
+      recordSetDuration(currentExerciseIndex, currentSetIndex, durationNoAnim);
+      setCurrentSetStartedAt(null);
       nextSet();
       return;
     }
@@ -1031,6 +1041,11 @@ export default function WorkoutSessionScreen() {
       exerciseIndex: currentExerciseIndex,
       setIndex: currentSetIndex,
     };
+    const durationAnim = currentSetStartedAt
+      ? Math.round((Date.now() - new Date(currentSetStartedAt).getTime()) / 1000)
+      : null;
+    recordSetDuration(currentExerciseIndex, currentSetIndex, durationAnim);
+    setCurrentSetStartedAt(null);
     nextSet();
 
     // Update current slot to point to the new exercise that nextSet() navigated to.

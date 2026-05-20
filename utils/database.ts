@@ -37,6 +37,7 @@ export interface SavedWorkout {
       is_warmup?: boolean;
       is_drop_set?: boolean;
       is_to_failure?: boolean;
+      set_duration?: number | null;
     }[];
   }[];
 }
@@ -814,6 +815,7 @@ export const saveCompletedWorkout = async (
       is_warmup?: boolean;
       is_drop_set?: boolean;
       is_to_failure?: boolean;
+      set_duration?: number | null;
     }[];
   }[],
 ) => {
@@ -843,7 +845,7 @@ export const saveCompletedWorkout = async (
       for (const set of exercise.sets) {
         // Insert each completed set
         await db.runAsync(
-          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup, is_drop_set, is_to_failure) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup, is_drop_set, is_to_failure, set_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             completedExerciseId,
             set.set_number,
@@ -854,6 +856,7 @@ export const saveCompletedWorkout = async (
             set.is_warmup ? 1 : 0,
             set.is_drop_set ? 1 : 0,
             set.is_to_failure ? 1 : 0,
+            set.set_duration ?? null,
           ],
         );
       }
@@ -921,6 +924,7 @@ interface CompletedWorkoutRow {
   time: number | null;
   distance: number | null;
   is_warmup: number | null;
+  set_duration: number | null;
 }
 
 export const fetchCompletedWorkoutById = async (
@@ -954,6 +958,7 @@ export const fetchCompletedWorkoutById = async (
         cs.time,
         cs.distance,
         cs.is_warmup,
+        cs.set_duration,
         uwe.exercise_order -- Include exercise order from user_workout_exercises
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
@@ -1041,6 +1046,7 @@ export const fetchCompletedWorkoutById = async (
                   ? convertedDistance
                   : null,
               is_warmup: !!row.is_warmup,
+              set_duration: row.set_duration ?? null,
             });
           }
         }
