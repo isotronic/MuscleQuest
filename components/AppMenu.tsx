@@ -161,14 +161,14 @@ export function AppMenu() {
         <MenuDivider />
 
         <MenuItem
-          icon="help-circle-outline"
-          label="Help & Info"
-          onPress={() => navigate("/(app)/help")}
-        />
-        <MenuItem
           icon="settings-outline"
           label="Settings"
           onPress={() => navigate("/(app)/settings")}
+        />
+        <MenuItem
+          icon="help-circle-outline"
+          label="Help & Info"
+          onPress={() => navigate("/(app)/help")}
         />
 
         <MenuDivider />
@@ -181,7 +181,7 @@ export function AppMenu() {
         />
         <MenuItem
           icon="logo-instagram"
-          label="Instagram"
+          label="MuscleQuest's Instagram"
           onPress={() => openLink("https://www.instagram.com/musclequest.app/")}
           hint="Opens in your browser"
         />
