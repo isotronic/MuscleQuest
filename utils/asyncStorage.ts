@@ -5,8 +5,8 @@ export const getAsyncStorageItem = async (key: string): Promise<string> => {
   try {
     const value = await AsyncStorage.getItem(key);
     return value || "";
-  } catch (error: any) {
-    Bugsnag.notify(error);
+  } catch (error: unknown) {
+    Bugsnag.notify(error as Error);
     console.error("AsyncStorage getItem error:", error);
     return "";
   }
@@ -18,8 +18,8 @@ export const setAsyncStorageItem = async (
 ): Promise<void> => {
   try {
     await AsyncStorage.setItem(key, value);
-  } catch (error: any) {
-    Bugsnag.notify(error);
+  } catch (error: unknown) {
+    Bugsnag.notify(error as Error);
     console.error("AsyncStorage setItem error:", error);
   }
 };
@@ -27,8 +27,8 @@ export const setAsyncStorageItem = async (
 export const removeAsyncStorageItem = async (key: string): Promise<void> => {
   try {
     await AsyncStorage.removeItem(key);
-  } catch (error: any) {
-    Bugsnag.notify(error);
+  } catch (error: unknown) {
+    Bugsnag.notify(error as Error);
     console.error("AsyncStorage removeItem error:", error);
   }
 };
