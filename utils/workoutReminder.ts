@@ -23,7 +23,10 @@ async function cancelWorkoutReminders(): Promise<void> {
     let ids: string[] = [];
     if (raw) {
       try {
-        ids = JSON.parse(raw) as string[];
+        const parsed: unknown = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          ids = parsed.filter((item): item is string => typeof item === "string");
+        }
       } catch {
         // Corrupted storage — treat as empty; fallback scan will catch strays.
       }
