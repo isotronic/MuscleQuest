@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
 import Svg, { Circle, Text as SvgText } from "react-native-svg";
 import { ThemedText } from "@/components/ThemedText";
@@ -36,12 +36,12 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
   const countdownSoundPlayedRef = useRef(false);
   const goalSoundPlayedRef = useRef(false);
 
-  const clearCurrent = () => {
+  const clearCurrent = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (visible) {
@@ -59,14 +59,22 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
     if (!visible || phase !== "countdown") return;
     clearCurrent();
     const soundThreshold = Math.min(3, countdownFrom);
-    if (settings?.timerCountdownSound === "true" && !countdownSoundPlayedRef.current && countdownFrom <= 3) {
+    if (
+      settings?.timerCountdownSound === "true" &&
+      !countdownSoundPlayedRef.current &&
+      countdownFrom <= 3
+    ) {
       countdownSoundPlayedRef.current = true;
       playCountdownSound();
     }
     intervalRef.current = setInterval(() => {
       setCountdown((prev) => {
         const next = prev - 1;
-        if (settings?.timerCountdownSound === "true" && !countdownSoundPlayedRef.current && next === soundThreshold) {
+        if (
+          settings?.timerCountdownSound === "true" &&
+          !countdownSoundPlayedRef.current &&
+          next === soundThreshold
+        ) {
           countdownSoundPlayedRef.current = true;
           playCountdownSound();
         }
@@ -79,7 +87,14 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
       });
     }, 1000);
     return clearCurrent;
-  }, [visible, phase]);
+  }, [
+    visible,
+    phase,
+    settings,
+    countdownFrom,
+    playCountdownSound,
+    clearCurrent,
+  ]);
 
   useEffect(() => {
     if (!visible || phase !== "running") return;
@@ -101,7 +116,7 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
       }
     }, 50);
     return clearCurrent;
-  }, [visible, phase]);
+  }, [visible, phase, settings, goalTimeSeconds, playGoalSound, clearCurrent]);
 
   const elapsedSeconds = Math.floor(elapsedMs / 1000);
 
