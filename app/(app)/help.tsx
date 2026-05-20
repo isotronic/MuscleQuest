@@ -103,9 +103,17 @@ export default function HelpScreen() {
           returnKeyType="search"
           clearButtonMode="never"
           autoCorrect={false}
+          accessibilityLabel="Search help"
+          accessibilityHint="Type to filter help topics"
         />
         {isSearching && (
-          <TouchableOpacity onPress={() => setQuery("")} hitSlop={8}>
+          <TouchableOpacity
+            onPress={() => setQuery("")}
+            hitSlop={8}
+            accessibilityLabel="Clear search"
+            accessibilityRole="button"
+            accessibilityHint="Clears the search field"
+          >
             <Ionicons
               name="close-circle"
               size={18}
@@ -143,7 +151,7 @@ export default function HelpScreen() {
             <View key={group.group}>
               <GroupHeader label={group.group} />
               {group.sections.map((section, i) => (
-                <View key={section.title}>
+                <View key={i}>
                   <Section
                     icon={section.icon}
                     title={highlightTokens(
