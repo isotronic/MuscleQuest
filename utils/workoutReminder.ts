@@ -9,6 +9,7 @@ import {
 
 const WORKOUT_REMINDER_IDS_KEY = "workoutReminderIds";
 const CHANNEL_ID = "workout-reminders";
+const WORKOUT_REMINDER_TITLE = "Time to train!";
 
 export async function requestNotificationPermission(): Promise<boolean> {
   const { status } = await Notifications.requestPermissionsAsync();
@@ -16,17 +17,42 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 async function cancelWorkoutReminders(): Promise<void> {
+  // Cancel tracked IDs; parse/cancel failures must not prevent the fallback scan.
   try {
     const raw = await getAsyncStorageItem(WORKOUT_REMINDER_IDS_KEY);
-    if (!raw) return;
-    const ids: string[] = JSON.parse(raw);
-    for (const id of ids) {
-      await Notifications.cancelScheduledNotificationAsync(id);
+    let ids: string[] = [];
+    if (raw) {
+      try {
+        const parsed: unknown = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          ids = parsed.filter((item): item is string => typeof item === "string");
+        }
+      } catch {
+        // Corrupted storage — treat as empty; fallback scan will catch strays.
+      }
     }
+    await Promise.allSettled(
+      ids.map((id) => Notifications.cancelScheduledNotificationAsync(id)),
+    );
     await removeAsyncStorageItem(WORKOUT_REMINDER_IDS_KEY);
-  } catch (error: any) {
-    Bugsnag.notify(error);
-    console.error("Failed to cancel workout reminders:", error);
+  } catch (error: unknown) {
+    Bugsnag.notify(error as Error);
+    console.error("Failed to cancel tracked workout reminders:", error);
+  }
+
+  // Failsafe: always runs regardless of errors above.
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    await Promise.allSettled(
+      scheduled
+        .filter((n) => n.content.title === WORKOUT_REMINDER_TITLE)
+        .map((n) =>
+          Notifications.cancelScheduledNotificationAsync(n.identifier),
+        ),
+    );
+  } catch (error: unknown) {
+    Bugsnag.notify(error as Error);
+    console.error("Failed to cancel untracked workout reminders:", error);
   }
 }
 
@@ -63,7 +89,7 @@ async function scheduleWorkoutReminders(
     try {
       const id = await Notifications.scheduleNotificationAsync({
         content: {
-          title: "Time to train!",
+          title: WORKOUT_REMINDER_TITLE,
           body: "Your workout is scheduled for today. Let's go!",
           sound: true,
         },

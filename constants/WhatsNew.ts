@@ -170,6 +170,22 @@ Customise how your volume and stats are calculated with three new options in Set
 • Double reps for single arm/leg exercises, so unilateral movements are counted correctly in your volume totals.
 `,
   },
+  {
+    version: 2621,
+    message: `
+🕐 New: Workout Duration Estimate!
+
+Each workout card now shows an estimated duration so you can plan your sessions at a glance before you start.
+`,
+  },
+  {
+    version: 2622,
+    message: `
+🔔 New: Exercise Timer Sounds!
+
+The exercise timer now plays audio cues to keep you on track. A countdown beep as the timer nears zero and a sound when you hit your goal. Toggle each sound independently in Settings.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

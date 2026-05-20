@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
 import Svg, { Circle, Text as SvgText } from "react-native-svg";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useSoundStore } from "@/store/soundStore";
 const RING_SIZE = 220;
 const STROKE_WIDTH = 14;
 const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
@@ -25,25 +26,30 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
 }) => {
   const { data: settings } = useSettingsQuery();
   const countdownFrom = parseInt(settings?.timerCountdown ?? "5", 10) || 5;
+  const { playCountdownSound, playGoalSound } = useSoundStore();
 
   const [phase, setPhase] = useState<"countdown" | "running">("countdown");
   const [countdown, setCountdown] = useState(countdownFrom);
   const [elapsedMs, setElapsedMs] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef(0);
+  const countdownSoundPlayedRef = useRef(false);
+  const goalSoundPlayedRef = useRef(false);
 
-  const clearCurrent = () => {
+  const clearCurrent = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (visible) {
       setPhase("countdown");
       setCountdown(countdownFrom);
       setElapsedMs(0);
+      countdownSoundPlayedRef.current = false;
+      goalSoundPlayedRef.current = false;
     } else {
       clearCurrent();
     }
@@ -52,18 +58,43 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
   useEffect(() => {
     if (!visible || phase !== "countdown") return;
     clearCurrent();
+    const soundThreshold = Math.min(3, countdownFrom);
+    if (
+      settings?.timerCountdownSound === "true" &&
+      !countdownSoundPlayedRef.current &&
+      countdownFrom <= 3
+    ) {
+      countdownSoundPlayedRef.current = true;
+      playCountdownSound();
+    }
     intervalRef.current = setInterval(() => {
       setCountdown((prev) => {
+        const next = prev - 1;
+        if (
+          settings?.timerCountdownSound === "true" &&
+          !countdownSoundPlayedRef.current &&
+          next === soundThreshold
+        ) {
+          countdownSoundPlayedRef.current = true;
+          playCountdownSound();
+        }
         if (prev <= 1) {
           clearCurrent();
           setPhase("running");
           return 0;
         }
-        return prev - 1;
+        return next;
       });
     }, 1000);
     return clearCurrent;
-  }, [visible, phase]);
+  }, [
+    visible,
+    phase,
+    settings,
+    countdownFrom,
+    playCountdownSound,
+    clearCurrent,
+  ]);
 
   useEffect(() => {
     if (!visible || phase !== "running") return;
@@ -71,10 +102,21 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
     startTimeRef.current = Date.now();
     setElapsedMs(0);
     intervalRef.current = setInterval(() => {
-      setElapsedMs(Date.now() - startTimeRef.current);
+      const newElapsed = Date.now() - startTimeRef.current;
+      setElapsedMs(newElapsed);
+      if (
+        settings?.timerGoalSound === "true" &&
+        !goalSoundPlayedRef.current &&
+        goalTimeSeconds &&
+        goalTimeSeconds > 0 &&
+        newElapsed >= goalTimeSeconds * 1000
+      ) {
+        goalSoundPlayedRef.current = true;
+        playGoalSound();
+      }
     }, 50);
     return clearCurrent;
-  }, [visible, phase]);
+  }, [visible, phase, settings, goalTimeSeconds, playGoalSound, clearCurrent]);
 
   const elapsedSeconds = Math.floor(elapsedMs / 1000);
 

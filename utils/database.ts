@@ -37,6 +37,7 @@ export interface SavedWorkout {
       is_warmup?: boolean;
       is_drop_set?: boolean;
       is_to_failure?: boolean;
+      set_duration?: number | null;
     }[];
   }[];
 }
@@ -814,6 +815,7 @@ export const saveCompletedWorkout = async (
       is_warmup?: boolean;
       is_drop_set?: boolean;
       is_to_failure?: boolean;
+      set_duration?: number | null;
     }[];
   }[],
 ) => {
@@ -843,7 +845,7 @@ export const saveCompletedWorkout = async (
       for (const set of exercise.sets) {
         // Insert each completed set
         await db.runAsync(
-          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup, is_drop_set, is_to_failure) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup, is_drop_set, is_to_failure, set_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             completedExerciseId,
             set.set_number,
@@ -854,6 +856,7 @@ export const saveCompletedWorkout = async (
             set.is_warmup ? 1 : 0,
             set.is_drop_set ? 1 : 0,
             set.is_to_failure ? 1 : 0,
+            set.set_duration ?? null,
           ],
         );
       }
@@ -921,6 +924,7 @@ interface CompletedWorkoutRow {
   time: number | null;
   distance: number | null;
   is_warmup: number | null;
+  set_duration: number | null;
 }
 
 export const fetchCompletedWorkoutById = async (
@@ -954,6 +958,7 @@ export const fetchCompletedWorkoutById = async (
         cs.time,
         cs.distance,
         cs.is_warmup,
+        cs.set_duration,
         uwe.exercise_order -- Include exercise order from user_workout_exercises
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
@@ -1041,6 +1046,7 @@ export const fetchCompletedWorkoutById = async (
                   ? convertedDistance
                   : null,
               is_warmup: !!row.is_warmup,
+              set_duration: row.set_duration ?? null,
             });
           }
         }
@@ -1121,6 +1127,8 @@ export const insertDefaultSettings = async () => {
     { key: "excludeWarmupSets", value: "false" },
     { key: "countUnilateralDouble", value: "false" },
     { key: "doubleWeightForPaired", value: "false" },
+    { key: "timerCountdownSound", value: "false" },
+    { key: "timerGoalSound", value: "false" },
   ];
 
   // Loop through each default setting
@@ -1173,6 +1181,8 @@ export interface Settings {
   excludeWarmupSets: string;
   countUnilateralDouble: string;
   doubleWeightForPaired: string;
+  timerCountdownSound: string;
+  timerGoalSound: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
@@ -1637,6 +1647,41 @@ export const upsertWeeklyCompletion = async (
     );
   } catch (error: any) {
     console.error("Error upserting weekly completion:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const fetchSetDurationsForExercises = async (
+  exerciseIds: number[],
+): Promise<Record<number, number[]>> => {
+  if (exerciseIds.length === 0) return {};
+  try {
+    const db = await openDatabase("userData.db");
+    const placeholders = exerciseIds.map(() => "?").join(", ");
+    const rows = (await db.getAllAsync(
+      `SELECT ce.exercise_id, cs.set_duration
+       FROM completed_sets cs
+       JOIN completed_exercises ce ON cs.completed_exercise_id = ce.id
+       JOIN completed_workouts cw  ON ce.completed_workout_id  = cw.id
+       WHERE ce.exercise_id IN (${placeholders})
+         AND cs.set_duration > 0
+         AND cs.is_deleted   = FALSE
+         AND cw.is_deleted   = FALSE
+       ORDER BY cw.date_completed DESC`,
+      exerciseIds,
+    )) as { exercise_id: number; set_duration: number }[];
+
+    const result: Record<number, number[]> = {};
+    for (const row of rows) {
+      if (!result[row.exercise_id]) {
+        result[row.exercise_id] = [];
+      }
+      result[row.exercise_id].push(row.set_duration);
+    }
+    return result;
+  } catch (error: any) {
+    console.error("Error fetching set durations for exercises:", error);
     Bugsnag.notify(error);
     throw error;
   }

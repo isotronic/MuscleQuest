@@ -284,6 +284,9 @@ export default function WorkoutSessionScreen() {
     addSet,
     updateSetRestTime,
     updateSetType,
+    currentSetStartedAt,
+    setCurrentSetStartedAt,
+    recordSetDuration,
   } = useActiveWorkoutStore();
 
   const {
@@ -432,6 +435,8 @@ export default function WorkoutSessionScreen() {
         diffMs,
       });
     }
+
+    setCurrentSetStartedAt(new Date());
   }
 
   useEffect(() => {
@@ -457,6 +462,13 @@ export default function WorkoutSessionScreen() {
     return () => {
       pendingRestTimerRef.current = null;
     };
+  }, []);
+
+  useEffect(() => {
+    if (!currentSetStartedAt) {
+      setCurrentSetStartedAt(new Date());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startRestTimer = async (restMinutes: number, restSeconds: number) => {
@@ -971,6 +983,11 @@ export default function WorkoutSessionScreen() {
         exerciseIndex: currentExerciseIndex,
         setIndex: currentSetIndex,
       };
+      const durationNoAnim = currentSetStartedAt
+        ? Math.round((Date.now() - new Date(currentSetStartedAt).getTime()) / 1000)
+        : null;
+      recordSetDuration(currentExerciseIndex, currentSetIndex, durationNoAnim);
+      setCurrentSetStartedAt(null);
       nextSet();
       return;
     }
@@ -1031,7 +1048,15 @@ export default function WorkoutSessionScreen() {
       exerciseIndex: currentExerciseIndex,
       setIndex: currentSetIndex,
     };
+    const durationAnim = currentSetStartedAt
+      ? Math.round((Date.now() - new Date(currentSetStartedAt).getTime()) / 1000)
+      : null;
+    recordSetDuration(currentExerciseIndex, currentSetIndex, durationAnim);
+    setCurrentSetStartedAt(null);
     nextSet();
+    if (isFirstInSuperset || (hasNextSet && currentSet.restMinutes === 0 && currentSet.restSeconds === 0)) {
+      setCurrentSetStartedAt(new Date());
+    }
 
     // Update current slot to point to the new exercise that nextSet() navigated to.
     // The panel is already off-screen (completionIncomingX = SCREEN_WIDTH), so

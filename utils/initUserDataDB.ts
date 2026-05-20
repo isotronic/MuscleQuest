@@ -113,6 +113,7 @@ export async function initUserDataDB() {
       weight REAL, -- Weight used in this set
       reps INTEGER, -- Number of reps in this set
       time INTEGER, -- Duration in seconds of this set
+      set_duration INTEGER, -- Seconds from rest-timer-end (or workout start) to Complete Set press
       is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (completed_exercise_id) REFERENCES completed_exercises(id)
     );
@@ -204,6 +205,9 @@ export async function initUserDataDB() {
   const isToFailureExists = completed_setsResult.some(
     (column: any) => column.name === "is_to_failure",
   );
+  const setDurationExists = completed_setsResult.some(
+    (column: any) => column.name === "set_duration",
+  );
   const app_plan_idExists = user_plansResult.some(
     (column: any) => column.name === "app_plan_id",
   );
@@ -264,6 +268,11 @@ export async function initUserDataDB() {
   if (!isToFailureExists) {
     await db.execAsync(
       `ALTER TABLE completed_sets ADD COLUMN is_to_failure BOOLEAN DEFAULT FALSE;`,
+    );
+  }
+  if (!setDurationExists) {
+    await db.execAsync(
+      `ALTER TABLE completed_sets ADD COLUMN set_duration INTEGER;`,
     );
   }
 

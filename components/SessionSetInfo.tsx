@@ -273,43 +273,6 @@ export default function SessionSetInfo({
           disabled={isFirstSetOfFirstExercise}
           iconColor={Colors.dark.text}
         />
-        {(isWarmup || isDropSet || isToFailure) && (
-          <View style={styles.setTypeContainer}>
-            {isWarmup && (
-              <>
-                <MaterialCommunityIcons
-                  name="speedometer-slow"
-                  size={24}
-                  color={Colors.dark.text}
-                  style={styles.setIcon}
-                />
-                <ThemedText style={styles.setTypeLabel}>Warm-up</ThemedText>
-              </>
-            )}
-            {isDropSet && (
-              <>
-                <MaterialCommunityIcons
-                  name="arrow-down-bold"
-                  size={24}
-                  color={Colors.dark.text}
-                  style={styles.setIcon}
-                />
-                <ThemedText style={styles.setTypeLabel}>Drop</ThemedText>
-              </>
-            )}
-            {isToFailure && (
-              <>
-                <MaterialCommunityIcons
-                  name="fire"
-                  size={24}
-                  color={Colors.dark.text}
-                  style={styles.setIcon}
-                />
-                <ThemedText style={styles.setTypeLabel}>To Failure</ThemedText>
-              </>
-            )}
-          </View>
-        )}
         <ThemedText style={styles.setNavigationText}>
           Set {currentSetIndex + 1} of {totalSets}
         </ThemedText>
@@ -321,6 +284,59 @@ export default function SessionSetInfo({
           iconColor={Colors.dark.text}
         />
       </View>
+      {/* Set Type Indicators */}
+      {(isWarmup || isDropSet || isToFailure) && (
+        <View style={styles.setTypeContainer}>
+          {isWarmup && (
+            <View
+              style={[styles.setTypeBadge, styles.setTypeBadgeWarmup]}
+              accessible={true}
+              accessibilityLabel="Warm-up set"
+              accessibilityRole="text"
+            >
+              <MaterialCommunityIcons
+                name="speedometer-slow"
+                size={16}
+                color="#fff"
+                style={styles.setIcon}
+              />
+              <ThemedText style={styles.setTypeLabel}>Warm-up</ThemedText>
+            </View>
+          )}
+          {isDropSet && (
+            <View
+              style={[styles.setTypeBadge, styles.setTypeBadgeDrop]}
+              accessible={true}
+              accessibilityLabel="Drop set"
+              accessibilityRole="text"
+            >
+              <MaterialCommunityIcons
+                name="arrow-down-bold"
+                size={16}
+                color="#fff"
+                style={styles.setIcon}
+              />
+              <ThemedText style={styles.setTypeLabel}>Drop Set</ThemedText>
+            </View>
+          )}
+          {isToFailure && (
+            <View
+              style={[styles.setTypeBadge, styles.setTypeBadgeFailure]}
+              accessible={true}
+              accessibilityLabel="To failure"
+              accessibilityRole="text"
+            >
+              <MaterialCommunityIcons
+                name="fire"
+                size={16}
+                color="#fff"
+                style={styles.setIcon}
+              />
+              <ThemedText style={styles.setTypeLabel}>To Failure</ThemedText>
+            </View>
+          )}
+        </View>
+      )}
       {/* Conditionally Render Weight/Assistance, Reps, or Time Input Fields */}
       {trackingType === "weight" ||
       trackingType === "assisted" ||
@@ -527,17 +543,38 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 16,
   },
   setTypeContainer: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 16,
+  },
+  setTypeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  setTypeBadgeWarmup: {
+    backgroundColor: Colors.dark.badgeWarmup,
+  },
+  setTypeBadgeDrop: {
+    backgroundColor: Colors.dark.badgeDrop,
+  },
+  setTypeBadgeFailure: {
+    backgroundColor: Colors.dark.badgeFailure,
   },
   setTypeLabel: {
-    fontSize: 18,
+    fontSize: 13,
+    color: "#fff",
+    fontWeight: "600",
   },
   setIcon: {
-    marginRight: 8,
+    marginRight: 4,
   },
   setNavigationText: {
     fontSize: 18,

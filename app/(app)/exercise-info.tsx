@@ -49,8 +49,11 @@ export default function ExerciseInfoScreen() {
       exerciseData?.local_animated_uri,
     );
 
-  const { data: historyData, isLoading: historyLoading, isError: historyError } =
-    useExerciseHistoryQuery(Number(exercise_id));
+  const {
+    data: historyData,
+    isLoading: historyLoading,
+    isError: historyError,
+  } = useExerciseHistoryQuery(Number(exercise_id));
 
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit ?? "kg";
@@ -214,6 +217,32 @@ export default function ExerciseInfoScreen() {
                 Equipment: {exerciseData.equipment}
               </ThemedText>
             </View>
+
+            {!!exerciseData.is_unilateral && (
+              <View style={styles.infoRow}>
+                <MaterialCommunityIcons
+                  name="arm-flex"
+                  size={20}
+                  style={styles.icon}
+                />
+                <ThemedText style={styles.infoText}>
+                  Single-arm / single-leg
+                </ThemedText>
+              </View>
+            )}
+
+            {!!exerciseData.double_weight && (
+              <View style={styles.infoRow}>
+                <MaterialCommunityIcons
+                  name="scale-balance"
+                  size={20}
+                  style={styles.icon}
+                />
+                <ThemedText style={styles.infoText}>
+                  Paired implements
+                </ThemedText>
+              </View>
+            )}
 
             {description.length > 0 && (
               <View>

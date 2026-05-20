@@ -10,6 +10,8 @@ import Sortable from "react-native-sortables";
 import type { SortableGridRenderItem } from "react-native-sortables";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
+import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 
 // Each item fed to Sortable.Grid is either a solo exercise or an adjacent superset pair.
 // The pair is treated as a single draggable unit so both exercises move together.
@@ -56,6 +58,7 @@ export default function WorkoutCard({
   const { data: settings } = useSettingsQuery();
   const distanceUnit = settings?.distanceUnit || "m";
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
+  const { estimate } = useWorkoutDurationEstimate(workout.exercises);
 
   const openMenu = (exerciseId: number) => setMenuVisible(exerciseId);
   const closeMenu = () => setMenuVisible(null);
@@ -412,6 +415,11 @@ export default function WorkoutCard({
         value={workout.name}
         onChangeText={(text: string) => onNameChange(index, text)}
       />
+      {workout.exercises.length > 0 && estimate != null && (
+        <ThemedText style={styles.durationEstimate}>
+          Estimated Duration: {formatDurationEstimate(estimate)}
+        </ThemedText>
+      )}
       {workout.exercises.length > 0 ? (
         <Sortable.Grid
           columns={1}
@@ -457,10 +465,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     color: Colors.dark.text,
-    marginVertical: 10,
+    marginTop: 10,
     fontSize: 14,
     lineHeight: 18,
     height: 40,
+  },
+  durationEstimate: {
+    fontSize: 13,
+    color: Colors.dark.subText,
+    marginTop: 4,
+    marginBottom: 4,
   },
   addButton: {
     marginTop: 8,

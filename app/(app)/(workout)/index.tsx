@@ -80,6 +80,7 @@ export default function WorkoutOverviewScreen() {
     restartWorkout,
     initializeWeightAndReps,
     removeFromSuperset,
+    setDurations,
   } = useActiveWorkoutStore();
 
   const stableKeyMapRef = useRef(new WeakMap<UserExercise, string>());
@@ -529,6 +530,7 @@ export default function WorkoutOverviewScreen() {
                   exercise.sets[parseInt(setIndex)]?.isDropSet || false,
                 is_to_failure:
                   exercise.sets[parseInt(setIndex)]?.isToFailure || false,
+                set_duration: setDurations?.[index]?.[parseInt(setIndex)] ?? null,
               }));
 
             return { exercise_id: exercise.exercise_id, sets };
