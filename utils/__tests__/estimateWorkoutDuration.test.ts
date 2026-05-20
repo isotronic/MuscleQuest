@@ -8,7 +8,6 @@ import {
   SPARSE_HISTORY_MIN,
 } from "@/utils/estimateWorkoutDuration";
 import type { UserExercise, Set } from "@/store/workoutStore";
-import type { Exercise } from "@/utils/database";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -88,7 +87,9 @@ describe("computeWorkoutDurationEstimate", () => {
       const uniformHistory = [20, 20, 20, 20, 20];
       const set = makeSet({ time: 60, restMinutes: 0, restSeconds: 0 });
       const ex = makeExercise(1, "cable", [set], "time");
-      const result = computeWorkoutDurationEstimate([ex], { 1: uniformHistory });
+      const result = computeWorkoutDurationEstimate([ex], {
+        1: uniformHistory,
+      });
       // P25 = P75 = 20, not 60
       expect(result.minSeconds).toBe(20);
       expect(result.maxSeconds).toBe(20);
@@ -162,8 +163,16 @@ describe("computeWorkoutDurationEstimate", () => {
 
   describe("warmup sets included", () => {
     it("counts warmup sets the same as working sets", () => {
-      const warmupSet = makeSet({ isWarmup: true, restMinutes: 0, restSeconds: 0 });
-      const workingSet = makeSet({ isWarmup: false, restMinutes: 0, restSeconds: 0 });
+      const warmupSet = makeSet({
+        isWarmup: true,
+        restMinutes: 0,
+        restSeconds: 0,
+      });
+      const workingSet = makeSet({
+        isWarmup: false,
+        restMinutes: 0,
+        restSeconds: 0,
+      });
       const ex = makeExercise(1, "barbell", [warmupSet, workingSet]);
       const exWorking = makeExercise(2, "barbell", [workingSet]);
       const r1 = computeWorkoutDurationEstimate([ex], {});
@@ -192,7 +201,9 @@ describe("computeWorkoutDurationEstimate", () => {
       const [defMin, defMax] = EQUIPMENT_DURATION_DEFAULTS["cable"];
       const set = makeSet();
       const ex = makeExercise(1, "cable", [set]);
-      const result = computeWorkoutDurationEstimate([ex], { 1: [0, 0, 0, 0, 0] });
+      const result = computeWorkoutDurationEstimate([ex], {
+        1: [0, 0, 0, 0, 0],
+      });
       expect(result.minSeconds).toBe(defMin);
       expect(result.maxSeconds).toBe(defMax);
     });
@@ -224,10 +235,7 @@ describe("computeWorkoutDurationEstimate", () => {
     it("produces a result between history mean and equipment range with 2 samples", () => {
       const set = makeSet();
       const ex = makeExercise(1, "dumbbell", [set]);
-      const result = computeWorkoutDurationEstimate(
-        [ex],
-        { 1: [50, 70] },
-      );
+      const result = computeWorkoutDurationEstimate([ex], { 1: [50, 70] });
       expect(result.minSeconds).toBeGreaterThan(0);
       expect(result.maxSeconds).toBeGreaterThanOrEqual(result.minSeconds);
     });
@@ -251,10 +259,9 @@ describe("computeWorkoutDurationEstimate", () => {
     it("blends with 4 samples", () => {
       const set = makeSet();
       const ex = makeExercise(1, "barbell", [set]);
-      const result = computeWorkoutDurationEstimate(
-        [ex],
-        { 1: [40, 45, 50, 55] },
-      );
+      const result = computeWorkoutDurationEstimate([ex], {
+        1: [40, 45, 50, 55],
+      });
       expect(result.minSeconds).toBeGreaterThan(0);
       expect(result.maxSeconds).toBeGreaterThanOrEqual(result.minSeconds);
     });
@@ -302,12 +309,21 @@ describe("computeWorkoutDurationEstimate", () => {
       const rest = 90;
       const setA = makeSet({ restMinutes: 1, restSeconds: 30 }); // 90 s rest — should be ignored
       const setB = makeSet({ restMinutes: 1, restSeconds: 30 }); // 90 s rest — should be kept
-      const exA: UserExercise = { ...makeExercise(1, "barbell", [setA]), supersetGroupId: "ss1" };
-      const exB: UserExercise = { ...makeExercise(2, "dumbbell", [setB]), supersetGroupId: "ss1" };
+      const exA: UserExercise = {
+        ...makeExercise(1, "barbell", [setA]),
+        supersetGroupId: "ss1",
+      };
+      const exB: UserExercise = {
+        ...makeExercise(2, "dumbbell", [setB]),
+        supersetGroupId: "ss1",
+      };
 
       const result = computeWorkoutDurationEstimate([exA, exB], {});
       const resultWithoutSuperset = computeWorkoutDurationEstimate(
-        [makeExercise(1, "barbell", [setA]), makeExercise(2, "dumbbell", [setB])],
+        [
+          makeExercise(1, "barbell", [setA]),
+          makeExercise(2, "dumbbell", [setB]),
+        ],
         {},
       );
 
@@ -319,8 +335,14 @@ describe("computeWorkoutDurationEstimate", () => {
     it("keeps rest for the second exercise in a superset pair", () => {
       const setA = makeSet({ restMinutes: 1, restSeconds: 0 });
       const setB = makeSet({ restMinutes: 2, restSeconds: 0 }); // 120 s
-      const exA: UserExercise = { ...makeExercise(1, "barbell", [setA]), supersetGroupId: "ss1" };
-      const exB: UserExercise = { ...makeExercise(2, "barbell", [setB]), supersetGroupId: "ss1" };
+      const exA: UserExercise = {
+        ...makeExercise(1, "barbell", [setA]),
+        supersetGroupId: "ss1",
+      };
+      const exB: UserExercise = {
+        ...makeExercise(2, "barbell", [setB]),
+        supersetGroupId: "ss1",
+      };
       const [defMin, defMax] = EQUIPMENT_DURATION_DEFAULTS["barbell"];
 
       const result = computeWorkoutDurationEstimate([exA, exB], {});
@@ -332,8 +354,14 @@ describe("computeWorkoutDurationEstimate", () => {
     it("non-superset exercises are unaffected", () => {
       const set = makeSet({ restMinutes: 1, restSeconds: 0 });
       const solo = makeExercise(3, "cable", [set]);
-      const exA: UserExercise = { ...makeExercise(1, "barbell", [set]), supersetGroupId: "ss1" };
-      const exB: UserExercise = { ...makeExercise(2, "barbell", [set]), supersetGroupId: "ss1" };
+      const exA: UserExercise = {
+        ...makeExercise(1, "barbell", [set]),
+        supersetGroupId: "ss1",
+      };
+      const exB: UserExercise = {
+        ...makeExercise(2, "barbell", [set]),
+        supersetGroupId: "ss1",
+      };
 
       const result = computeWorkoutDurationEstimate([exA, exB, solo], {});
       const [defMin, defMax] = EQUIPMENT_DURATION_DEFAULTS["barbell"];
@@ -376,12 +404,18 @@ describe("computeWorkoutDurationEstimate", () => {
 
 describe("formatDurationEstimate", () => {
   it("shows a range for different min and max (under 1 hour)", () => {
-    const result = formatDurationEstimate({ minSeconds: 42 * 60, maxSeconds: 50 * 60 });
-    expect(result).toBe("~42 min – 50 min");
+    const result = formatDurationEstimate({
+      minSeconds: 42 * 60,
+      maxSeconds: 50 * 60,
+    });
+    expect(result).toBe("42 min – 50 min");
   });
 
   it("deduplicates equal bounds (shows single value)", () => {
-    const result = formatDurationEstimate({ minSeconds: 45 * 60, maxSeconds: 45 * 60 });
+    const result = formatDurationEstimate({
+      minSeconds: 45 * 60,
+      maxSeconds: 45 * 60,
+    });
     expect(result).toBe("~45 min");
   });
 
@@ -395,7 +429,10 @@ describe("formatDurationEstimate", () => {
   });
 
   it("formats exactly 60 minutes as 1h", () => {
-    const result = formatDurationEstimate({ minSeconds: 3600, maxSeconds: 3600 });
+    const result = formatDurationEstimate({
+      minSeconds: 3600,
+      maxSeconds: 3600,
+    });
     expect(result).toBe("~1h");
   });
 
@@ -412,7 +449,7 @@ describe("formatDurationEstimate", () => {
       minSeconds: 55 * 60,
       maxSeconds: 65 * 60,
     });
-    expect(result).toBe("~55 min – 1h 5min");
+    expect(result).toBe("55 min – 1h 5min");
   });
 
   it("formats multi-hour workouts", () => {
@@ -420,11 +457,6 @@ describe("formatDurationEstimate", () => {
       minSeconds: 90 * 60,
       maxSeconds: 100 * 60,
     });
-    expect(result).toBe("~1h 30min – 1h 40min");
-  });
-
-  it("starts with ~ prefix", () => {
-    const result = formatDurationEstimate({ minSeconds: 1800, maxSeconds: 2400 });
-    expect(result.startsWith("~")).toBe(true);
+    expect(result).toBe("1h 30min – 1h 40min");
   });
 });
