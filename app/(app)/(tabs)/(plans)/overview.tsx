@@ -26,13 +26,58 @@ import {
 import { useState } from "react";
 import Bugsnag from "@bugsnag/expo";
 import { Notes } from "@/components/Notes";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
+import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
+import type { Workout } from "@/store/workoutStore";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
+
+function PlanWorkoutCard({
+  workout,
+  index,
+  planId,
+  countUnilateralDouble,
+}: {
+  workout: Workout;
+  index: number;
+  planId: string | string[];
+  countUnilateralDouble: boolean;
+}) {
+  const { estimate } = useWorkoutDurationEstimate(
+    workout.exercises,
+    countUnilateralDouble,
+  );
+  return (
+    <TouchableOpacity
+      onPress={() =>
+        router.push({
+          pathname: "/workout-details",
+          params: {
+            planId: String(planId),
+            workoutIndex: String(index),
+          },
+        })
+      }
+      style={styles.workoutCard}
+    >
+      <ThemedText style={styles.workoutTitle}>
+        {workout.name || `Day ${index + 1}`}
+      </ThemedText>
+      <ThemedText style={styles.workoutInfo}>
+        {workout.exercises.length} Exercises
+        {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
+      </ThemedText>
+    </TouchableOpacity>
+  );
+}
 
 export default function PlanOverviewScreen() {
   const { planId } = useLocalSearchParams();
   const { data: plan, isLoading, error } = usePlanQuery(Number(planId));
   const { data: scheduleEntries = [] } = usePlanScheduleQuery(Number(planId));
+  const { data: settings } = useSettingsQuery();
+  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const deletePlanMutation = useDeletePlanMutation();
   const setActivePlanMutation = useSetActivePlanMutation();
 
@@ -145,26 +190,13 @@ export default function PlanOverviewScreen() {
         </View>
 
         {plan?.workouts.map((workout, index) => (
-          <TouchableOpacity
+          <PlanWorkoutCard
             key={index.toString()}
-            onPress={() =>
-              router.push({
-                pathname: "/workout-details",
-                params: {
-                  planId: String(planId),
-                  workoutIndex: String(index),
-                },
-              })
-            }
-            style={styles.workoutCard}
-          >
-            <ThemedText style={styles.workoutTitle}>
-              {workout.name || `Day ${index + 1}`}
-            </ThemedText>
-            <ThemedText style={styles.workoutInfo}>
-              {workout.exercises.length} Exercises
-            </ThemedText>
-          </TouchableOpacity>
+            workout={workout}
+            index={index}
+            planId={planId}
+            countUnilateralDouble={countUnilateralDouble}
+          />
         ))}
 
         <WeeklyScheduleDisplay

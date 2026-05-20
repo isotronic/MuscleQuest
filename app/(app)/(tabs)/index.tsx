@@ -12,11 +12,13 @@ import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
 import { router } from "expo-router";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
+import { formatDurationEstimateCompact } from "@/utils/estimateWorkoutDuration";
 import {
   CompletedWorkout,
   useCompletedWorkoutsQuery,
 } from "@/hooks/useCompletedWorkoutsQuery";
-import { Workout } from "@/store/workoutStore";
+import { Workout, UserExercise } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import Onboarding from "@/components/Onboarding";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
@@ -31,6 +33,27 @@ import {
   prioritizeScheduledWorkout,
 } from "@/utils/planHelpers";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
+
+function WorkoutDurationInfo({
+  exercises,
+  countUnilateralDouble,
+  style,
+}: {
+  exercises: UserExercise[];
+  countUnilateralDouble: boolean;
+  style?: object;
+}) {
+  const { estimate } = useWorkoutDurationEstimate(
+    exercises,
+    countUnilateralDouble,
+  );
+  return (
+    <ThemedText style={style}>
+      {exercises.length} Exercises
+      {estimate ? `  ·  ~${formatDurationEstimateCompact(estimate)}` : ""}
+    </ThemedText>
+  );
+}
 
 export default function HomeScreen() {
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
@@ -53,6 +76,7 @@ export default function HomeScreen() {
 
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
+  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const {
     data: completedWorkouts,
     isLoading: completedWorkoutsLoading,
@@ -472,9 +496,11 @@ export default function HomeScreen() {
                         >
                           {workout.name}
                         </ThemedText>
-                        <ThemedText style={styles.exerciseInfo}>
-                          {workout.exercises.length} Exercises
-                        </ThemedText>
+                        <WorkoutDurationInfo
+                          exercises={workout.exercises}
+                          countUnilateralDouble={countUnilateralDouble}
+                          style={styles.exerciseInfo}
+                        />
                       </View>
                       <View style={styles.smallButtonGroup}>
                         <Button
@@ -498,17 +524,6 @@ export default function HomeScreen() {
                         >
                           Start
                         </Button>
-                        {/* <Button
-                        mode="outlined"
-                        onPress={() =>
-                          router.push(
-                            `/workout-details?planId=${activePlan.id}&workoutIndex=${index}`,
-                          )
-                        }
-                        labelStyle={styles.smallButtonLabel}
-                      >
-                        View
-                      </Button> */}
                       </View>
                     </View>
                   </Pressable>
