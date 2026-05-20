@@ -9,6 +9,7 @@ import {
 
 const WORKOUT_REMINDER_IDS_KEY = "workoutReminderIds";
 const CHANNEL_ID = "workout-reminders";
+const WORKOUT_REMINDER_TITLE = "Time to train!";
 
 export async function requestNotificationPermission(): Promise<boolean> {
   const { status } = await Notifications.requestPermissionsAsync();
@@ -30,7 +31,7 @@ async function cancelWorkoutReminders(): Promise<void> {
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
     await Promise.all(
       scheduled
-        .filter((n) => n.content.title === "Time to train!")
+        .filter((n) => n.content.title === WORKOUT_REMINDER_TITLE)
         .map((n) =>
           Notifications.cancelScheduledNotificationAsync(n.identifier),
         ),
@@ -74,7 +75,7 @@ async function scheduleWorkoutReminders(
     try {
       const id = await Notifications.scheduleNotificationAsync({
         content: {
-          title: "Time to train!",
+          title: WORKOUT_REMINDER_TITLE,
           body: "Your workout is scheduled for today. Let's go!",
           sound: true,
         },
