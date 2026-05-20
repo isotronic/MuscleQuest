@@ -10,6 +10,8 @@ type SoundStore = {
   loadSound: () => Promise<AudioPlayer | null>;
   unloadSound: () => Promise<void>;
   playSound: () => Promise<void>;
+  playCountdownSound: () => Promise<void>;
+  playGoalSound: () => Promise<void>;
   triggerVibration: (pattern?: number | number[]) => void;
 };
 
@@ -98,6 +100,42 @@ export const useSoundStore = create<SoundStore>((set, get) => ({
       if (reloaded) {
         await playToCompletion(reloaded);
       }
+    }
+  },
+
+  playCountdownSound: async () => {
+    try {
+      await setAudioModeAsync({ playsInSilentMode: true, interruptionMode: "duckOthers" });
+      const player = createAudioPlayer(require("@/assets/sounds/mixkit-simple-countdown-922.wav"));
+      await player.seekTo(0);
+      player.play();
+      const finish = new Promise<void>((resolve) => {
+        const sub = player.addListener("playbackStatusUpdate", (status) => {
+          if (status.didJustFinish) { sub.remove(); resolve(); }
+        });
+      });
+      await Promise.race([finish, new Promise<void>((r) => setTimeout(r, 8000))]);
+      player.remove();
+    } catch (error) {
+      reportError(error);
+    }
+  },
+
+  playGoalSound: async () => {
+    try {
+      await setAudioModeAsync({ playsInSilentMode: true, interruptionMode: "duckOthers" });
+      const player = createAudioPlayer(require("@/assets/sounds/mixkit-achievement-bell-600.wav"));
+      await player.seekTo(0);
+      player.play();
+      const finish = new Promise<void>((resolve) => {
+        const sub = player.addListener("playbackStatusUpdate", (status) => {
+          if (status.didJustFinish) { sub.remove(); resolve(); }
+        });
+      });
+      await Promise.race([finish, new Promise<void>((r) => setTimeout(r, 8000))]);
+      player.remove();
+    } catch (error) {
+      reportError(error);
     }
   },
 

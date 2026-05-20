@@ -1127,6 +1127,8 @@ export const insertDefaultSettings = async () => {
     { key: "excludeWarmupSets", value: "false" },
     { key: "countUnilateralDouble", value: "false" },
     { key: "doubleWeightForPaired", value: "false" },
+    { key: "timerCountdownSound", value: "false" },
+    { key: "timerGoalSound", value: "false" },
   ];
 
   // Loop through each default setting
@@ -1179,6 +1181,8 @@ export interface Settings {
   excludeWarmupSets: string;
   countUnilateralDouble: string;
   doubleWeightForPaired: string;
+  timerCountdownSound: string;
+  timerGoalSound: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

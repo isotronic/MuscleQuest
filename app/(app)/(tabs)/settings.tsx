@@ -108,6 +108,8 @@ export default function SettingsScreen() {
     excludeWarmupSets: settings?.excludeWarmupSets,
     countUnilateralDouble: settings?.countUnilateralDouble,
     doubleWeightForPaired: settings?.doubleWeightForPaired,
+    timerCountdownSound: settings?.timerCountdownSound,
+    timerGoalSound: settings?.timerGoalSound,
   });
 
   const [workoutReminderEnabled, setWorkoutReminderEnabled] = useState(false);
@@ -138,6 +140,8 @@ export default function SettingsScreen() {
         excludeWarmupSets: settings?.excludeWarmupSets,
         countUnilateralDouble: settings?.countUnilateralDouble,
         doubleWeightForPaired: settings?.doubleWeightForPaired,
+        timerCountdownSound: settings?.timerCountdownSound,
+        timerGoalSound: settings?.timerGoalSound,
       });
       setWorkoutReminderEnabled(settings.workoutReminderEnabled === "true");
       try {
@@ -288,6 +292,16 @@ export default function SettingsScreen() {
   const toggleSound = (value: boolean) => {
     setToggleValues({ ...toggleValues, restTimerSound: value.toString() });
     updateSetting({ key: "restTimerSound", value: value.toString() });
+  };
+
+  const toggleCountdownSound = (value: boolean) => {
+    setToggleValues({ ...toggleValues, timerCountdownSound: value.toString() });
+    updateSetting({ key: "timerCountdownSound", value: value.toString() });
+  };
+
+  const toggleGoalSound = (value: boolean) => {
+    setToggleValues({ ...toggleValues, timerGoalSound: value.toString() });
+    updateSetting({ key: "timerGoalSound", value: value.toString() });
   };
 
   const toggleNotification = async (value: boolean) => {
@@ -723,6 +737,54 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="volume-high"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Play countdown beeps (Exercise Timer)
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {toggleValues.timerCountdownSound === "true"
+                  ? "Enabled"
+                  : "Disabled"}
+              </ThemedText>
+            </View>
+            <Switch
+              value={toggleValues.timerCountdownSound === "true"}
+              onValueChange={toggleCountdownSound}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="volume-high"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                Play goal achieved sound (Exercise Timer)
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {toggleValues.timerGoalSound === "true"
+                  ? "Enabled"
+                  : "Disabled"}
+              </ThemedText>
+            </View>
+            <Switch
+              value={toggleValues.timerGoalSound === "true"}
+              onValueChange={toggleGoalSound}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
           <View style={styles.item}>
             <MaterialCommunityIcons
               name="vibrate"
