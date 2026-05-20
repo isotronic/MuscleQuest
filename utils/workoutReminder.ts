@@ -17,28 +17,39 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 async function cancelWorkoutReminders(): Promise<void> {
+  // Cancel tracked IDs; parse/cancel failures must not prevent the fallback scan.
   try {
     const raw = await getAsyncStorageItem(WORKOUT_REMINDER_IDS_KEY);
+    let ids: string[] = [];
     if (raw) {
-      const ids: string[] = JSON.parse(raw);
-      for (const id of ids) {
-        await Notifications.cancelScheduledNotificationAsync(id);
+      try {
+        ids = JSON.parse(raw) as string[];
+      } catch {
+        // Corrupted storage — treat as empty; fallback scan will catch strays.
       }
-      await removeAsyncStorageItem(WORKOUT_REMINDER_IDS_KEY);
     }
+    await Promise.allSettled(
+      ids.map((id) => Notifications.cancelScheduledNotificationAsync(id)),
+    );
+    await removeAsyncStorageItem(WORKOUT_REMINDER_IDS_KEY);
+  } catch (error: unknown) {
+    Bugsnag.notify(error as Error);
+    console.error("Failed to cancel tracked workout reminders:", error);
+  }
 
-    // Failsafe: cancel any workout reminders not tracked in storage
+  // Failsafe: always runs regardless of errors above.
+  try {
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-    await Promise.all(
+    await Promise.allSettled(
       scheduled
         .filter((n) => n.content.title === WORKOUT_REMINDER_TITLE)
         .map((n) =>
           Notifications.cancelScheduledNotificationAsync(n.identifier),
         ),
     );
-  } catch (error: any) {
-    Bugsnag.notify(error);
-    console.error("Failed to cancel workout reminders:", error);
+  } catch (error: unknown) {
+    Bugsnag.notify(error as Error);
+    console.error("Failed to cancel untracked workout reminders:", error);
   }
 }
 
