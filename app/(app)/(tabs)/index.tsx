@@ -215,9 +215,9 @@ export default function HomeScreen() {
     const completedWorkoutsList: Workout[] = [];
 
     sortedWorkouts.forEach((workout) => {
-      const target = perWorkoutTarget.get(workout.id!) ?? 0;
+      const target = perWorkoutTarget.get(workout.id!);
       const completedTimes = completedWorkoutCounts.get(workout.id!) || 0;
-      const workoutCompleted = completedTimes >= target;
+      const workoutCompleted = target !== undefined && completedTimes >= target;
 
       if (workoutCompleted) {
         completedWorkoutsList.push(workout);
