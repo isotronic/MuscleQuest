@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
@@ -11,7 +11,10 @@ interface StatsTileProps {
   deltaLabel?: string;
 }
 
-const DeltaText: React.FC<{ delta: number; label?: string }> = ({ delta, label }) => {
+const DeltaText: React.FC<{ delta: number; label?: string }> = ({
+  delta,
+  label,
+}) => {
   const isPositive = delta > 0;
   const isNeutral = delta === 0;
   const color = isNeutral
@@ -36,16 +39,14 @@ export const StatsTile: React.FC<StatsTileProps> = ({
     <Card style={styles.card}>
       <ThemedText style={styles.value}>{value}</ThemedText>
       <ThemedText style={styles.label}>{label}</ThemedText>
-      {delta != null && (
-        <DeltaText delta={delta} label={deltaLabel} />
-      )}
+      {delta != null && <DeltaText delta={delta} label={deltaLabel} />}
     </Card>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    width: "48%",
+    flex: 1,
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderRadius: 6,
