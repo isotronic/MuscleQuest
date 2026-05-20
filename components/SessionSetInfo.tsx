@@ -288,7 +288,12 @@ export default function SessionSetInfo({
       {(isWarmup || isDropSet || isToFailure) && (
         <View style={styles.setTypeContainer}>
           {isWarmup && (
-            <View style={[styles.setTypeBadge, styles.setTypeBadgeWarmup]}>
+            <View
+              style={[styles.setTypeBadge, styles.setTypeBadgeWarmup]}
+              accessible={true}
+              accessibilityLabel="Warm-up set"
+              accessibilityRole="text"
+            >
               <MaterialCommunityIcons
                 name="speedometer-slow"
                 size={16}
@@ -299,7 +304,12 @@ export default function SessionSetInfo({
             </View>
           )}
           {isDropSet && (
-            <View style={[styles.setTypeBadge, styles.setTypeBadgeDrop]}>
+            <View
+              style={[styles.setTypeBadge, styles.setTypeBadgeDrop]}
+              accessible={true}
+              accessibilityLabel="Drop set"
+              accessibilityRole="text"
+            >
               <MaterialCommunityIcons
                 name="arrow-down-bold"
                 size={16}
@@ -310,7 +320,12 @@ export default function SessionSetInfo({
             </View>
           )}
           {isToFailure && (
-            <View style={[styles.setTypeBadge, styles.setTypeBadgeFailure]}>
+            <View
+              style={[styles.setTypeBadge, styles.setTypeBadgeFailure]}
+              accessible={true}
+              accessibilityLabel="To failure"
+              accessibilityRole="text"
+            >
               <MaterialCommunityIcons
                 name="fire"
                 size={16}
@@ -545,13 +560,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   setTypeBadgeWarmup: {
-    backgroundColor: "#4A90D9",
+    backgroundColor: Colors.dark.badgeWarmup,
   },
   setTypeBadgeDrop: {
-    backgroundColor: "#9B59B6",
+    backgroundColor: Colors.dark.badgeDrop,
   },
   setTypeBadgeFailure: {
-    backgroundColor: "#E74C3C",
+    backgroundColor: Colors.dark.badgeFailure,
   },
   setTypeLabel: {
     fontSize: 13,

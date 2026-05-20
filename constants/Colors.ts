@@ -29,5 +29,8 @@ export const Colors = {
     activeCardBackground: "#81A1C1",
     disabledButtonBackground: "#4d4d59",
     disabledButtonText: "#a6a6b0",
+    badgeWarmup: "#4A90D9",
+    badgeDrop: "#9B59B6",
+    badgeFailure: "#E74C3C",
   },
 };
