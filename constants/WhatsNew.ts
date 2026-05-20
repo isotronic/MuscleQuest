@@ -186,6 +186,16 @@ Each workout card now shows an estimated duration so you can plan your sessions 
 The exercise timer now plays audio cues to keep you on track. A countdown beep as the timer nears zero and a sound when you hit your goal. Toggle each sound independently in Settings.
 `,
   },
+  {
+    version: 2623,
+    message: `
+📋 New: "More" Menu and Help & Info Section!
+
+There's a new "More" tab in the navigation bar. Tap it to open a slide-in panel where you'll find Settings and a brand new Help & Info section.
+
+Settings has moved here from the tab bar, and Help & Info covers everything from plans and workouts to stats and your account, with a search bar to find answers quickly.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
