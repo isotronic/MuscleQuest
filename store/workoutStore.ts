@@ -62,6 +62,12 @@ interface WorkoutStore {
     exerciseId: number,
     set: Set,
   ) => void;
+  insertSetAtExercise: (
+    workoutIndex: number,
+    exerciseId: number,
+    atIndex: number,
+    set: Set,
+  ) => void;
   updateSetInExercise: (
     workoutIndex: number,
     exerciseId: number,
@@ -285,6 +291,43 @@ const useWorkoutStore = create<WorkoutStore>()(
                   ...exercise,
                   sets: [...exercise.sets, { ...lastSet }],
                 };
+              }
+              return exercise;
+            });
+            return { ...w, exercises };
+          });
+          return { workouts };
+        });
+      },
+      insertSetAtExercise: (workoutIndex, exerciseId, atIndex, newSet) => {
+        set((state) => {
+          const workout = state.workouts[workoutIndex];
+          if (!workout) return state;
+          const targetExercise = workout.exercises.find(
+            (e) => e.exercise_id === exerciseId,
+          );
+          const partner = targetExercise?.supersetGroupId
+            ? workout.exercises.find(
+                (e) =>
+                  e.exercise_id !== exerciseId &&
+                  e.supersetGroupId === targetExercise.supersetGroupId,
+              )
+            : null;
+
+          const workouts = state.workouts.map((w, wIndex) => {
+            if (wIndex !== workoutIndex) return w;
+            const exercises = w.exercises.map((exercise) => {
+              if (exercise.exercise_id === exerciseId) {
+                const sets = [...exercise.sets];
+                sets.splice(atIndex, 0, newSet);
+                return { ...exercise, sets };
+              }
+              if (partner && exercise.exercise_id === partner.exercise_id) {
+                const lastSet =
+                  exercise.sets[exercise.sets.length - 1] ?? newSet;
+                const sets = [...exercise.sets];
+                sets.splice(atIndex, 0, { ...lastSet });
+                return { ...exercise, sets };
               }
               return exercise;
             });
