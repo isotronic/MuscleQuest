@@ -62,6 +62,10 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
     format(new Date(), "yyyy-MM-dd"),
   );
 
+  const currentMonthRef = useRef(format(new Date(), "yyyy-MM-dd"));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const calendarRef = useRef<any>(null);
+
   useLayoutEffect(() => {
     if (!visible) return;
     const targetDate = selectedDate ?? format(new Date(), "yyyy-MM-dd");
@@ -77,10 +81,6 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
     currentMonthRef.current = selectedDate;
     setCalendarCurrentDate(selectedDate);
   }, [selectedDate]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const currentMonthRef = useRef(format(new Date(), "yyyy-MM-dd"));
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const calendarRef = useRef<any>(null);
 
   const navigateMonth = useCallback((dir: "next" | "prev") => {
     const next = format(
