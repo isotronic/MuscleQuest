@@ -120,24 +120,26 @@ export default function StatsScreen() {
     parseInt(selectedTimeRange),
   );
 
-  useEffect(() => {
-    const anyError = error || exercisesError || trackedError;
-    if (anyError) {
-      Bugsnag.notify(
-        anyError instanceof Error ? anyError : new Error(String(anyError)),
-      );
-    }
-  }, [error, exercisesError, trackedError]);
   const { data: prevWorkouts } = usePreviousPeriodWorkoutsQuery(
     weightUnit,
     distanceUnit,
     parseInt(selectedTimeRange),
   );
 
-  const { data: allWorkouts } = useCompletedWorkoutsQuery(
-    weightUnit,
-    distanceUnit,
-  );
+  const {
+    data: allWorkouts,
+    isLoading: isLoadingAllWorkouts,
+    error: allWorkoutsError,
+  } = useCompletedWorkoutsQuery(weightUnit, distanceUnit);
+
+  useEffect(() => {
+    const anyError = error || exercisesError || trackedError || allWorkoutsError;
+    if (anyError) {
+      Bugsnag.notify(
+        anyError instanceof Error ? anyError : new Error(String(anyError)),
+      );
+    }
+  }, [error, exercisesError, trackedError, allWorkoutsError]);
 
   const thisWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const thisWeekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
@@ -208,7 +210,11 @@ export default function StatsScreen() {
     });
   }, [router, trackedExercises]);
 
-  const isLoading = isLoadingWorkouts || isLoadingExercises || isLoadingTracked;
+  const isLoading =
+    isLoadingWorkouts ||
+    isLoadingExercises ||
+    isLoadingTracked ||
+    isLoadingAllWorkouts;
 
   if (isLoading) {
     return (
@@ -218,7 +224,7 @@ export default function StatsScreen() {
     );
   }
 
-  const anyError = error || exercisesError || trackedError;
+  const anyError = error || exercisesError || trackedError || allWorkoutsError;
   if (anyError) {
     return (
       <ThemedView style={styles.centered}>
