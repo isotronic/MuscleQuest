@@ -299,6 +299,7 @@ export default function HomeScreen() {
             visible={pickerWorkouts.length > 0}
             onDismiss={() => setPickerWorkouts([])}
             contentContainerStyle={styles.pickerModal}
+            theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
           >
             <ThemedText type="subtitle" style={styles.pickerTitle}>
               Select a workout to view

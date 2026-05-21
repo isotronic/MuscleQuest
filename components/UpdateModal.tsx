@@ -53,6 +53,7 @@ export const UpdateModal = () => {
         visible={true}
         dismissable={status === "error"}
         onDismiss={status === "error" ? dismissError : undefined}
+        theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
       >
         <View style={styles.container}>
           <ThemedText type="subtitle">{content.title}</ThemedText>

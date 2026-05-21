@@ -115,6 +115,7 @@ export default function PlanScheduleEditor({
           visible={pickerDow !== null}
           onDismiss={() => setPickerDow(null)}
           contentContainerStyle={styles.modalContent}
+          theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
         >
           <View style={styles.modalTitleContainer}>
             <ThemedText style={styles.modalTitle}>
