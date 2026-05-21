@@ -390,10 +390,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               while (nextExerciseIndex < workout.exercises.length) {
                 const totalSets =
                   workout.exercises[nextExerciseIndex].sets.length;
-                const isComplete =
-                  updatedCompletedSets[nextExerciseIndex] &&
-                  Object.keys(updatedCompletedSets[nextExerciseIndex])
-                    .length === totalSets;
+                const completedCount = Object.values(
+                  updatedCompletedSets[nextExerciseIndex] || {},
+                ).filter((v) => v === true).length;
+                const isComplete = completedCount === totalSets;
                 if (!isComplete) break;
                 nextExerciseIndex++;
               }
@@ -527,10 +527,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           let nextExerciseIndex = currentExerciseIndex + 1;
           while (nextExerciseIndex < workout.exercises.length) {
             const totalSets = workout.exercises[nextExerciseIndex].sets.length;
-            const isExerciseCompleted =
-              updatedCompletedSets[nextExerciseIndex] &&
-              Object.keys(updatedCompletedSets[nextExerciseIndex]).length ===
-                totalSets;
+            const completedCount = Object.values(
+              updatedCompletedSets[nextExerciseIndex] || {},
+            ).filter((v) => v === true).length;
+            const isExerciseCompleted = completedCount === totalSets;
 
             if (!isExerciseCompleted) {
               const nextExCompleted =
