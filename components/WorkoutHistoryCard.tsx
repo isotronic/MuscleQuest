@@ -1,4 +1,5 @@
-import { StyleSheet, TouchableOpacity } from "react-native";
+import type { ComponentProps } from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
@@ -8,12 +9,16 @@ interface WorkoutCardProps {
   workout: CompletedWorkout;
   onPress: (id: number) => void;
   excludeWarmup?: boolean;
+  containerStyle?: ComponentProps<typeof TouchableOpacity>["style"];
+  cardStyle?: ComponentProps<typeof View>["style"];
 }
 
 export default function WorkoutHistoryCard({
   workout,
   onPress,
   excludeWarmup = false,
+  containerStyle,
+  cardStyle,
 }: WorkoutCardProps) {
   const setsCount = excludeWarmup
     ? workout.exercises.reduce(
@@ -24,9 +29,9 @@ export default function WorkoutHistoryCard({
   return (
     <TouchableOpacity
       onPress={() => onPress(workout.id)}
-      style={styles.cardContainer}
+      style={[styles.cardContainer, containerStyle]}
     >
-      <ThemedView style={styles.card}>
+      <ThemedView style={[styles.card, cardStyle]}>
         <ThemedText style={styles.workoutName}>
           {workout.workout_name}
         </ThemedText>
