@@ -1,8 +1,14 @@
-import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { Modal, Portal, Divider, IconButton } from "react-native-paper";
-import { Calendar, DateData } from "react-native-calendars";
-import { format, parseISO } from "date-fns";
+import { CalendarList, DateData } from "react-native-calendars";
+import { addMonths, format, parseISO, subMonths } from "date-fns";
 import { ThemedText } from "@/components/ThemedText";
 import WorkoutHistoryCard from "@/components/WorkoutHistoryCard";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
@@ -17,7 +23,11 @@ interface WorkoutCalendarModalProps {
   workoutsForSelectedDate: CompletedWorkout[];
   onWorkoutPress: (id: number) => void;
   excludeWarmup?: boolean;
+  loading?: boolean;
 }
+
+// 16px modal margin + 16px padding on each side = 64px total
+const CALENDAR_WIDTH = Dimensions.get("window").width - 64;
 
 const calendarTheme = {
   backgroundColor: Colors.dark.cardBackground,
@@ -26,8 +36,6 @@ const calendarTheme = {
   todayTextColor: Colors.dark.tint,
   selectedDayBackgroundColor: Colors.dark.tint,
   selectedDayTextColor: Colors.dark.background,
-  dotColor: Colors.dark.tint,
-  selectedDotColor: Colors.dark.background,
   monthTextColor: Colors.dark.text,
   arrowColor: Colors.dark.tint,
   textDisabledColor: Colors.dark.subText,
@@ -43,10 +51,44 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
   workoutsForSelectedDate,
   onWorkoutPress,
   excludeWarmup = false,
+  loading = false,
 }) => {
   const formattedHeading = selectedDate
     ? format(parseISO(selectedDate), "EEEE, d MMMM")
     : null;
+
+  const [calendarReady, setCalendarReady] = useState(false);
+
+  useLayoutEffect(() => {
+    if (!visible) return;
+    setCalendarReady(false);
+    const timer = setTimeout(() => setCalendarReady(true), 300);
+    return () => clearTimeout(timer);
+  }, [visible]);
+
+  const currentMonthRef = useRef(format(new Date(), "yyyy-MM-dd"));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const calendarRef = useRef<any>(null);
+
+  const navigateMonth = useCallback((dir: "next" | "prev") => {
+    const next = format(
+      dir === "next"
+        ? addMonths(parseISO(currentMonthRef.current), 1)
+        : subMonths(parseISO(currentMonthRef.current), 1),
+      "yyyy-MM-dd",
+    );
+    currentMonthRef.current = next;
+    calendarRef.current?.scrollToMonth(next);
+  }, []);
+
+  const handleVisibleMonthsChange = useCallback((months: DateData[]) => {
+    if (months[0]) {
+      currentMonthRef.current = months[0].dateString;
+      setCalendarReady(true);
+    }
+  }, []);
+
+  const showSpinner = loading || !calendarReady;
 
   return (
     <Portal>
@@ -67,44 +109,69 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
           />
         </View>
         <Divider style={styles.divider} />
-        <Calendar
-          markedDates={markedDates}
-          onDayPress={(day: DateData) => onDayPress(day.dateString)}
-          theme={calendarTheme}
-          markingType="dot"
-        />
-        <Divider style={styles.divider} />
-        <ScrollView
-          style={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          nestedScrollEnabled
-        >
-          {formattedHeading && (
-            <ThemedText style={styles.dateHeading}>
-              {formattedHeading}
-            </ThemedText>
+
+        {/* CalendarList always renders at full height so onVisibleMonthsChange fires.
+            Opaque overlay sits on top while the list is initialising. */}
+        <View style={styles.calendarContainer}>
+          <CalendarList
+            ref={calendarRef}
+            markedDates={markedDates}
+            onDayPress={(day: DateData) => onDayPress(day.dateString)}
+            theme={calendarTheme}
+            markingType="custom"
+            horizontal
+            pagingEnabled
+            firstDay={1}
+            calendarWidth={CALENDAR_WIDTH}
+            showScrollIndicator={false}
+            hideArrows={false}
+            onVisibleMonthsChange={handleVisibleMonthsChange}
+            onPressArrowLeft={() => navigateMonth("prev")}
+            onPressArrowRight={() => navigateMonth("next")}
+          />
+          {showSpinner && (
+            <View style={styles.calendarOverlay}>
+              <ActivityIndicator size="large" color={Colors.dark.tint} />
+            </View>
           )}
-          {workoutsForSelectedDate.length === 0 ? (
-            <ThemedText style={styles.emptyText}>
-              {selectedDate
-                ? "No workouts on this day."
-                : "Select a day to see workouts."}
-            </ThemedText>
-          ) : (
-            workoutsForSelectedDate.map((workout) => (
-              <WorkoutHistoryCard
-                key={workout.id}
-                workout={workout}
-                excludeWarmup={excludeWarmup}
-                variant="vertical"
-                onPress={(id) => {
-                  onDismiss();
-                  onWorkoutPress(id);
-                }}
-              />
-            ))
-          )}
-        </ScrollView>
+        </View>
+
+        {calendarReady && !loading && (
+          <>
+            <Divider style={styles.divider} />
+            <ScrollView
+              style={styles.listContainer}
+              showsVerticalScrollIndicator={false}
+              nestedScrollEnabled
+            >
+              {formattedHeading && (
+                <ThemedText style={styles.dateHeading}>
+                  {formattedHeading}
+                </ThemedText>
+              )}
+              {workoutsForSelectedDate.length === 0 ? (
+                <ThemedText style={styles.emptyText}>
+                  {selectedDate
+                    ? "No workouts on this day."
+                    : "Select a day to see workouts."}
+                </ThemedText>
+              ) : (
+                workoutsForSelectedDate.map((workout) => (
+                  <WorkoutHistoryCard
+                    key={workout.id}
+                    workout={workout}
+                    excludeWarmup={excludeWarmup}
+                    variant="vertical"
+                    onPress={(id) => {
+                      onDismiss();
+                      onWorkoutPress(id);
+                    }}
+                  />
+                ))
+              )}
+            </ScrollView>
+          </>
+        )}
       </Modal>
     </Portal>
   );
@@ -133,6 +200,15 @@ const styles = StyleSheet.create({
   },
   divider: {
     marginVertical: 8,
+  },
+  calendarContainer: {
+    position: "relative",
+  },
+  calendarOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.dark.cardBackground,
+    alignItems: "center",
+    justifyContent: "center",
   },
   listContainer: {
     flexGrow: 0,

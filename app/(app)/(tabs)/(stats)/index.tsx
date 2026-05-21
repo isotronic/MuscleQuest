@@ -208,15 +208,49 @@ export default function StatsScreen() {
   }, [completedWorkouts]);
 
   const markedDates = useMemo(() => {
+    const today = format(new Date(), "yyyy-MM-dd");
     const marks: Record<string, object> = {};
     for (const date of Object.keys(workoutsByDate)) {
-      marks[date] = { marked: true, dotColor: Colors.dark.tint };
+      marks[date] = {
+        customStyles: {
+          container: {
+            borderWidth: 1.5,
+            borderColor: Colors.dark.tint,
+            borderRadius: 16,
+          },
+          text: {
+            color: date === today ? Colors.dark.tint : Colors.dark.text,
+            fontWeight:
+              date === today ? ("bold" as const) : ("normal" as const),
+          },
+        },
+      };
+    }
+    // Ensure today is always bold even when it has no workout
+    if (!marks[today]) {
+      marks[today] = {
+        customStyles: {
+          container: {},
+          text: {
+            color: Colors.dark.tint,
+            fontWeight: "bold" as const,
+          },
+        },
+      };
     }
     if (selectedDate) {
       marks[selectedDate] = {
-        ...(marks[selectedDate] ?? {}),
-        selected: true,
-        selectedColor: Colors.dark.tint,
+        customStyles: {
+          container: {
+            backgroundColor: Colors.dark.tint,
+            borderRadius: 16,
+          },
+          text: {
+            color: Colors.dark.background,
+            fontWeight:
+              selectedDate === today ? ("bold" as const) : ("normal" as const),
+          },
+        },
       };
     }
     return marks;
@@ -483,6 +517,7 @@ export default function StatsScreen() {
           handleWorkoutPress(id);
         }}
         excludeWarmup={excludeWarmup}
+        loading={isLoadingWorkouts}
       />
     </ThemedView>
   );
