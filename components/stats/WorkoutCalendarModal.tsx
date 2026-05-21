@@ -54,6 +54,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
         visible={visible}
         onDismiss={onDismiss}
         contentContainerStyle={styles.container}
+        theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
       >
         <View style={styles.header}>
           <ThemedText style={styles.title}>Workout Calendar</ThemedText>
@@ -95,12 +96,11 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
                 key={workout.id}
                 workout={workout}
                 excludeWarmup={excludeWarmup}
+                variant="vertical"
                 onPress={(id) => {
                   onDismiss();
                   onWorkoutPress(id);
                 }}
-                containerStyle={styles.verticalCard}
-                cardStyle={styles.verticalCardInner}
               />
             ))
           )}
@@ -113,7 +113,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 16,
+    borderRadius: 8,
     margin: 16,
     maxHeight: "82%",
     padding: 16,
@@ -146,13 +146,5 @@ const styles = StyleSheet.create({
   emptyText: {
     color: Colors.dark.subText,
     marginTop: 4,
-  },
-  verticalCard: {
-    marginRight: 0,
-    marginBottom: 8,
-    width: "100%",
-  },
-  verticalCardInner: {
-    width: "100%",
   },
 });
