@@ -108,10 +108,9 @@ const insertPlans = async (db: SQLiteDatabase, plans: Plan[]) => {
               [exercise.exercise_id],
             );
             if (!localExercise) {
-              console.warn(
-                `Exercise with app_exercise_id=${exercise.exercise_id} not found in userData.db, skipping.`,
+              throw new Error(
+                `Exercise with app_exercise_id=${exercise.exercise_id} not found in userData.db (plan app_plan_id=${plan.app_plan_id})`,
               );
-              continue;
             }
 
             const setsJson = JSON.stringify(exercise.sets); // Convert sets array to JSON string
