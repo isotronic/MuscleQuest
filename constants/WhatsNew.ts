@@ -196,6 +196,30 @@ There's a new "More" tab in the navigation bar. Tap it to open a slide-in panel 
 Settings has moved here from the tab bar, and Help & Info covers everything from plans and workouts to stats and your account, with a search bar to find answers quickly.
 `,
   },
+  {
+    version: 2624,
+    message: `
+💾 New: Save & Resume Plan and Workout Drafts!
+
+Your work in the plan and standalone workout editors is now automatically saved as a draft. If you leave mid-edit, you'll be prompted to continue where you left off or discard the draft — so you never lose progress by accident.
+`,
+  },
+  {
+    version: 2625,
+    message: `
+🔥 Improved: Warm-Up Set Management!
+
+Warm-up sets are visually grouped and styled separately from working sets, and "Apply to all" lets you bulk-edit warm-up or working sets independently.
+`,
+  },
+  {
+    version: 2626,
+    message: `
+🗂️ New: Five New Premade Training Plans!
+
+Five new ready-to-use plans are now available: 5-Day Bro Split, 5-Day Push/Pull/Legs, 6-Day Split, Bodyweight, and Dumbbell Only — whether you're training at home or in the gym, there's a plan to get you started straight away.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
