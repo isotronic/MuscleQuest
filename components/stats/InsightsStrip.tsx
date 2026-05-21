@@ -51,7 +51,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
       (pillX: number, _pillY: number, pillWidth: number) => {
         containerRef.current?.measureInWindow((containerX: number) => {
           setTooltipLeft(pillX - containerX + pillWidth / 2);
-          setTooltipText(text + " 1RM");
+          setTooltipText(text);
         });
       },
     );
@@ -71,7 +71,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
     pills.push({
       label: "Best gain",
       value: biggestGainValue,
-      tooltip: biggestGainLabel,
+      tooltip: `${biggestGainLabel} 1RM`,
     });
   }
   if (topBodyPart) {
