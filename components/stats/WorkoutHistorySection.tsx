@@ -17,7 +17,9 @@ export const WorkoutHistorySection: React.FC<WorkoutHistorySectionProps> = ({
 }) => {
   if (completedWorkouts.length === 0) {
     return (
-      <ThemedText>No workouts completed yet. Start your first workout!</ThemedText>
+      <ThemedText>
+        No workouts completed yet. Start your first workout!
+      </ThemedText>
     );
   }
 
@@ -26,7 +28,11 @@ export const WorkoutHistorySection: React.FC<WorkoutHistorySectionProps> = ({
       <FlatList
         data={completedWorkouts}
         renderItem={({ item }: { item: CompletedWorkout }) => (
-          <WorkoutHistoryCard workout={item} onPress={() => onWorkoutPress(item.id)} excludeWarmup={excludeWarmup} />
+          <WorkoutHistoryCard
+            workout={item}
+            onPress={() => onWorkoutPress(item.id)}
+            excludeWarmup={excludeWarmup}
+          />
         )}
         keyExtractor={(item: CompletedWorkout) => item.id.toString()}
         horizontal
