@@ -70,7 +70,13 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
     setCalendarReady(false);
     const timer = setTimeout(() => setCalendarReady(true), 300);
     return () => clearTimeout(timer);
-  }, [visible, selectedDate]);
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useLayoutEffect(() => {
+    if (!visible || !selectedDate) return;
+    currentMonthRef.current = selectedDate;
+    setCalendarCurrentDate(selectedDate);
+  }, [selectedDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentMonthRef = useRef(format(new Date(), "yyyy-MM-dd"));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
