@@ -781,6 +781,7 @@ export default function WorkoutOverviewScreen() {
           visible={showSaveModal}
           onDismiss={handleExitSaveModal}
           contentContainerStyle={styles.saveModal}
+          theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
         >
           <ThemedText style={styles.saveModalTitle}>
             Save this workout?

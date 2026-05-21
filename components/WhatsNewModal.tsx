@@ -59,7 +59,11 @@ export const WhatsNewModal = () => {
 
   return (
     <Portal>
-      <Modal visible={visible} onDismiss={handleNext}>
+      <Modal
+        visible={visible}
+        onDismiss={handleNext}
+        theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
+      >
         <View
           style={{
             backgroundColor: Colors.dark.cardBackground2,
