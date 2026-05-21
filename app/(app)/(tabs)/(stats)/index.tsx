@@ -133,7 +133,8 @@ export default function StatsScreen() {
   } = useCompletedWorkoutsQuery(weightUnit, distanceUnit);
 
   useEffect(() => {
-    const anyError = error || exercisesError || trackedError || allWorkoutsError;
+    const anyError =
+      error || exercisesError || trackedError || allWorkoutsError;
     if (anyError) {
       Bugsnag.notify(
         anyError instanceof Error ? anyError : new Error(String(anyError)),
@@ -267,6 +268,15 @@ export default function StatsScreen() {
     prev != null
       ? Math.round((current.totalTimeSeconds - prev.totalTimeSeconds) / 60)
       : null;
+  const timeDeltaFormatted = (() => {
+    if (timeDeltaMinutes == null) return undefined;
+    const abs = Math.abs(timeDeltaMinutes);
+    const h = Math.floor(abs / 60);
+    const m = abs % 60;
+    if (h === 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}m`;
+  })();
 
   return (
     <ThemedView>
@@ -281,6 +291,7 @@ export default function StatsScreen() {
         {/* Insights strip */}
         {(completedWorkouts?.length ?? 0) > 0 && (
           <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Insights</ThemedText>
             <InsightsStrip
               workoutsPerWeek={insights.workoutsPerWeek}
               biggestGainLabel={insights.biggestGainLabel}
@@ -311,7 +322,7 @@ export default function StatsScreen() {
               label="Total Time"
               value={formatToHoursMinutes(current.totalTimeSeconds)}
               delta={timeDeltaMinutes}
-              deltaLabel="min"
+              deltaText={timeDeltaFormatted}
             />
             <StatsTile
               label="Avg Duration"
@@ -442,6 +453,6 @@ const styles = StyleSheet.create({
   tileGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    gap: 8,
   },
 });

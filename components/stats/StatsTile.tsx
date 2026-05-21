@@ -9,12 +9,14 @@ interface StatsTileProps {
   value: string;
   delta?: number | null;
   deltaLabel?: string;
+  deltaText?: string;
 }
 
-const DeltaText: React.FC<{ delta: number; label?: string }> = ({
-  delta,
-  label,
-}) => {
+const DeltaText: React.FC<{
+  delta: number;
+  label?: string;
+  deltaText?: string;
+}> = ({ delta, label, deltaText }) => {
   const isPositive = delta > 0;
   const isNeutral = delta === 0;
   const color = isNeutral
@@ -24,7 +26,8 @@ const DeltaText: React.FC<{ delta: number; label?: string }> = ({
       : Colors.dark.highlight;
   const prefix = isNeutral ? "─" : isPositive ? "▲" : "▼";
   const absVal = Math.abs(delta);
-  const text = `${prefix} ${label ? `${absVal}${label}` : absVal}`;
+  const formatted = deltaText ?? (label ? `${absVal}${label}` : absVal);
+  const text = `${prefix} ${formatted}`;
 
   return <ThemedText style={[styles.delta, { color }]}>{text}</ThemedText>;
 };
@@ -34,19 +37,23 @@ export const StatsTile: React.FC<StatsTileProps> = ({
   value,
   delta,
   deltaLabel,
+  deltaText,
 }) => {
   return (
     <Card style={styles.card}>
       <ThemedText style={styles.value}>{value}</ThemedText>
       <ThemedText style={styles.label}>{label}</ThemedText>
-      {delta != null && <DeltaText delta={delta} label={deltaLabel} />}
+      {delta != null && (
+        <DeltaText delta={delta} label={deltaLabel} deltaText={deltaText} />
+      )}
     </Card>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,
+    flexBasis: "47%",
+    flexGrow: 1,
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderRadius: 6,
