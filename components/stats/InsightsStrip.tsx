@@ -33,7 +33,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const containerRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const gainPillRef = useRef<any>(null);
+  const pillRefs = useRef<Record<string, any>>({});
 
   useEffect(
     () => () => {
@@ -42,15 +42,16 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
     [],
   );
 
-  const showTooltip = (text: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const showTooltip = (text: string, pillRef: any) => {
     if (dismissTimer.current) clearTimeout(dismissTimer.current);
     setTooltipHalfWidth(0);
 
-    gainPillRef.current?.measureInWindow(
+    pillRef?.measureInWindow(
       (pillX: number, _pillY: number, pillWidth: number) => {
         containerRef.current?.measureInWindow((containerX: number) => {
           setTooltipLeft(pillX - containerX + pillWidth / 2);
-          setTooltipText(text);
+          setTooltipText(text + " 1RM");
         });
       },
     );
@@ -82,12 +83,23 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
 
   if (pills.length === 0) return null;
 
-  const renderPill = (pill: InsightPill, i: number) => (
+  const renderPill = (pill: InsightPill) => (
     <Pressable
-      key={i}
-      ref={pill.tooltip ? gainPillRef : undefined}
+      key={pill.label}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ref={
+        pill.tooltip
+          ? (el: any) => {
+              pillRefs.current[pill.label] = el;
+            }
+          : undefined
+      }
       style={styles.pill}
-      onPress={pill.tooltip ? () => showTooltip(pill.tooltip!) : undefined}
+      onPress={
+        pill.tooltip
+          ? () => showTooltip(pill.tooltip!, pillRefs.current[pill.label])
+          : undefined
+      }
     >
       <View style={styles.pillLabelRow}>
         <ThemedText style={styles.pillLabel}>{pill.label}</ThemedText>
@@ -142,7 +154,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
         <View style={styles.grid} onLayout={onLayout}>
           {rows.map((row, ri) => (
             <View key={ri} style={styles.row}>
-              {row.map((pill, i) => renderPill(pill, ri * 2 + i))}
+              {row.map((pill) => renderPill(pill))}
             </View>
           ))}
         </View>
@@ -153,7 +165,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
           contentContainerStyle={styles.strip}
           onLayout={onLayout}
         >
-          {pills.map((pill, i) => renderPill(pill, i))}
+          {pills.map((pill) => renderPill(pill))}
         </ScrollView>
       )}
     </View>
