@@ -437,17 +437,18 @@ export default function HomeScreen() {
               </ThemedText>
 
               {workoutsToDisplay.map((workout, index) => {
-                const target = perWorkoutTarget.get(workout.id!) ?? 0;
+                const target = perWorkoutTarget.get(workout.id!);
 
                 // Filter to check how many times this specific workout has been completed this week
                 const completedTimes =
                   completedWorkoutsThisPlanThisWeek?.filter(
                     (completedWorkout) =>
                       completedWorkout.workout_id === workout.id,
-                  ).length;
+                  ).length ?? 0;
 
                 // Condition to check if the workout is completed enough times
-                const workoutCompleted = completedTimes >= target;
+                const workoutCompleted =
+                  target !== undefined && completedTimes >= target;
                 const originalIndex = activePlan.workouts.findIndex(
                   (w) => w.id === workout.id,
                 );
