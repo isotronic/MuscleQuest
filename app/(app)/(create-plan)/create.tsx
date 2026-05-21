@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -57,11 +57,14 @@ export default function CreatePlanScreen() {
     changeWorkoutName,
     planSchedule,
     setPlanSchedule,
-    setDraftContext,
-    setDraftId,
-    setDraftName,
+    saveDraftEntry,
+    clearDraftEntry,
     clearDraft,
   } = useWorkoutStore();
+
+  const currentPlanId = planId ? Number(planId) : null;
+  const draftKey =
+    currentPlanId !== null ? `plan:${currentPlanId}` : "plan:null";
   const { data: settings } = useSettingsQuery();
   const weeklyGoal = Number(settings?.weeklyGoal ?? 3);
   const { planName, setPlanName, planSaved, setPlanSaved, handleSavePlan } =
@@ -73,26 +76,14 @@ export default function CreatePlanScreen() {
     "pending" | "continue" | "fresh"
   >("pending");
 
-  const startFreshSession = useCallback(() => {
-    const currentPlanId = planId ? Number(planId) : null;
-    setDraftContext("plan");
-    setDraftId(currentPlanId);
-  }, [planId, setDraftContext, setDraftId]);
-
   // Check for a persisted draft once on mount, after store hydrates
   useEffect(() => {
     const checkDraft = () => {
-      const {
-        workouts: storedWorkouts,
-        draftContext,
-        draftId,
-        draftName,
-      } = useWorkoutStore.getState();
-      const currentPlanId = planId ? Number(planId) : null;
+      const { drafts } = useWorkoutStore.getState();
+      const draft = drafts[draftKey];
       const hasDraft =
-        draftContext === "plan" &&
-        draftId === currentPlanId &&
-        (storedWorkouts.length > 0 || draftName.trim() !== "");
+        !!draft &&
+        (draft.workouts.length > 0 || (draft.draftName ?? "").trim() !== "");
 
       if (hasDraft) {
         Alert.alert(
@@ -103,8 +94,8 @@ export default function CreatePlanScreen() {
               text: "Discard Changes",
               style: "destructive",
               onPress: () => {
+                clearDraftEntry(draftKey);
                 clearDraft();
-                startFreshSession();
                 setDraftDecision("fresh");
                 if (!planId) setDataLoaded(true);
               },
@@ -112,7 +103,10 @@ export default function CreatePlanScreen() {
             {
               text: "Continue",
               onPress: () => {
-                setPlanName(draftName);
+                setWorkouts(draft.workouts);
+                if (draft.planImageUrl) setPlanImageUrl(draft.planImageUrl);
+                if (draft.planSchedule) setPlanSchedule(draft.planSchedule);
+                setPlanName(draft.draftName ?? "");
                 setDraftDecision("continue");
                 if (!planId) setDataLoaded(true);
               },
@@ -120,9 +114,6 @@ export default function CreatePlanScreen() {
           ],
         );
       } else {
-        // Clear stale draft from a different context
-        if (draftContext !== null) clearDraft();
-        startFreshSession();
         setDraftDecision("fresh");
         if (!planId) setDataLoaded(true);
       }
@@ -136,15 +127,25 @@ export default function CreatePlanScreen() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync plan name into persisted draft so it survives app close
+  // Auto-save draft on every change so it survives app close
   useEffect(() => {
-    if (draftDecision !== "pending") {
-      setDraftName(planName);
-    }
-  }, [planName, draftDecision, setDraftName]);
+    if (draftDecision === "pending") return;
+    if (workouts.length === 0 && !planName.trim()) return;
+    saveDraftEntry(draftKey, {
+      workouts,
+      planImageUrl,
+      planSchedule,
+      draftName: planName,
+    });
+  }, [workouts, planImageUrl, planSchedule, planName, draftDecision]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!existingPlan || draftDecision === "pending") return;
+    if (draftDecision === "pending") return;
+    if (draftDecision === "continue") {
+      setDataLoaded(true);
+      return;
+    }
+    if (!existingPlan) return;
 
     if (draftDecision === "fresh") {
       setPlanName(existingPlan.name);
@@ -209,12 +210,14 @@ export default function CreatePlanScreen() {
       if (planSaved) {
         queryClient.invalidateQueries({ queryKey: ["plans"] });
         queryClient.invalidateQueries({ queryKey: ["activePlan"] });
+        clearDraftEntry(draftKey);
         clearDraft();
         setPlanSaved(false);
         return navigation.dispatch(e.data.action);
       }
 
       if (!workouts.length && !planName.trim()) {
+        clearDraftEntry(draftKey);
         clearDraft();
         return navigation.dispatch(e.data.action);
       }
@@ -228,6 +231,7 @@ export default function CreatePlanScreen() {
             text: "Discard",
             style: "destructive",
             onPress: () => {
+              clearDraftEntry(draftKey);
               clearDraft();
               setPlanSaved(false);
               navigation.dispatch(e.data.action);
@@ -243,6 +247,8 @@ export default function CreatePlanScreen() {
     workouts,
     planName,
     clearDraft,
+    clearDraftEntry,
+    draftKey,
     planSaved,
     setPlanSaved,
     queryClient,
@@ -296,6 +302,8 @@ export default function CreatePlanScreen() {
         Number(planId),
         existingPlan?.app_plan_id,
       );
+
+      clearDraftEntry(draftKey);
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["plans"] }),

@@ -33,6 +33,13 @@ export interface Workout {
   exercises: UserExercise[];
 }
 
+export interface DraftEntry {
+  workouts: Workout[];
+  planImageUrl?: string;
+  planSchedule?: Record<number, number>;
+  draftName?: string;
+}
+
 interface WorkoutStore {
   workouts: Workout[];
   newExerciseId: number | null;
@@ -90,13 +97,10 @@ interface WorkoutStore {
   setPlanSchedule: (schedule: Record<number, number>) => void;
   clearPlanSchedule: () => void;
   syncScheduleOnRemoveWorkout: (removedIndex: number) => void;
-  // Draft persistence metadata
-  draftContext: "plan" | "standalone" | null;
-  draftId: number | null;
-  draftName: string;
-  setDraftContext: (context: "plan" | "standalone" | null) => void;
-  setDraftId: (id: number | null) => void;
-  setDraftName: (name: string) => void;
+  // Draft persistence — one slot per context:id pair
+  drafts: Record<string, DraftEntry>;
+  saveDraftEntry: (key: string, entry: DraftEntry) => void;
+  clearDraftEntry: (key: string) => void;
   clearDraft: () => void;
 }
 
@@ -502,32 +506,31 @@ const useWorkoutStore = create<WorkoutStore>()(
           return { planSchedule: updated };
         }),
 
-      draftContext: null,
-      draftId: null,
-      draftName: "",
-      setDraftContext: (context) => set({ draftContext: context }),
-      setDraftId: (id) => set({ draftId: id }),
-      setDraftName: (name) => set({ draftName: name }),
+      drafts: {},
+      saveDraftEntry: (key, entry) =>
+        set((state) => ({ drafts: { ...state.drafts, [key]: entry } })),
+      clearDraftEntry: (key) =>
+        set((state) => {
+          const { [key]: _removed, ...rest } = state.drafts;
+          return { drafts: rest };
+        }),
       clearDraft: () =>
         set({
           workouts: [],
           planImageUrl: DEFAULT_PLAN_IMAGE_URL,
           planSchedule: {},
-          draftContext: null,
-          draftId: null,
-          draftName: "",
         }),
     }),
     {
       name: "workout-draft-store",
+      version: 1,
+      migrate: (persistedState, version) => {
+        if (version < 1) return { drafts: {} };
+        return persistedState as { drafts: Record<string, DraftEntry> };
+      },
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
-        workouts: state.workouts,
-        planImageUrl: state.planImageUrl,
-        planSchedule: state.planSchedule,
-        draftContext: state.draftContext,
-        draftId: state.draftId,
-        draftName: state.draftName,
+        drafts: state.drafts,
       }),
     },
   ),

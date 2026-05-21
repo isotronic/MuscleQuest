@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -45,10 +45,15 @@ export default function CreateWorkoutScreen() {
     addWorkout,
     changeWorkoutName,
     setWorkouts,
-    setDraftContext,
-    setDraftId,
+    saveDraftEntry,
+    clearDraftEntry,
     clearDraft,
   } = useWorkoutStore();
+
+  const draftKey =
+    existingWorkoutId !== null
+      ? `standalone:${existingWorkoutId}`
+      : "standalone:null";
 
   const { data: standaloneWorkouts } = useStandaloneWorkoutsQuery();
   const createMutation = useCreateStandaloneWorkout();
@@ -59,25 +64,16 @@ export default function CreateWorkoutScreen() {
     "pending" | "continue" | "fresh"
   >("pending");
 
-  const startFreshSession = useCallback(() => {
-    setDraftContext("standalone");
-    setDraftId(existingWorkoutId);
-  }, [existingWorkoutId, setDraftContext, setDraftId]);
-
   // Check for a persisted draft once on mount, after store hydrates
   useEffect(() => {
     const checkDraft = () => {
-      const {
-        workouts: storedWorkouts,
-        draftContext,
-        draftId,
-      } = useWorkoutStore.getState();
+      const { drafts } = useWorkoutStore.getState();
+      const draft = drafts[draftKey];
       const hasDraft =
-        draftContext === "standalone" &&
-        draftId === existingWorkoutId &&
-        storedWorkouts.length > 0 &&
-        (storedWorkouts[0].exercises.length > 0 ||
-          storedWorkouts[0].name.trim() !== "");
+        !!draft &&
+        draft.workouts.length > 0 &&
+        (draft.workouts[0].exercises.length > 0 ||
+          draft.workouts[0].name.trim() !== "");
 
       if (hasDraft) {
         Alert.alert(
@@ -88,14 +84,15 @@ export default function CreateWorkoutScreen() {
               text: "Discard Changes",
               style: "destructive",
               onPress: () => {
+                clearDraftEntry(draftKey);
                 clearDraft();
-                startFreshSession();
                 setDraftDecision("fresh");
               },
             },
             {
               text: "Continue",
               onPress: () => {
+                setWorkouts(draft.workouts);
                 initializedWorkoutId.current = existingWorkoutId ?? null;
                 setDraftDecision("continue");
               },
@@ -103,8 +100,6 @@ export default function CreateWorkoutScreen() {
           ],
         );
       } else {
-        if (draftContext !== null) clearDraft();
-        startFreshSession();
         setDraftDecision("fresh");
       }
     };
@@ -116,6 +111,14 @@ export default function CreateWorkoutScreen() {
       return unsub;
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-save draft on every change so it survives app close
+  useEffect(() => {
+    if (draftDecision === "pending") return;
+    const workout = workouts[0];
+    if (!workout || (!workout.exercises.length && !workout.name.trim())) return;
+    saveDraftEntry(draftKey, { workouts });
+  }, [workouts, draftDecision]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Initialise workoutStore for this screen — runs once per workout id
   useEffect(() => {
@@ -149,12 +152,14 @@ export default function CreateWorkoutScreen() {
 
       if (savedRef.current) {
         savedRef.current = false;
+        clearDraftEntry(draftKey);
         clearDraft();
         return navigation.dispatch(e.data.action);
       }
 
       const workout = workouts[0];
       if (!workout || (!workout.exercises.length && !workout.name.trim())) {
+        clearDraftEntry(draftKey);
         clearDraft();
         return navigation.dispatch(e.data.action);
       }
@@ -168,6 +173,7 @@ export default function CreateWorkoutScreen() {
             text: "Discard",
             style: "destructive",
             onPress: () => {
+              clearDraftEntry(draftKey);
               clearDraft();
               navigation.dispatch(e.data.action);
             },
@@ -176,7 +182,7 @@ export default function CreateWorkoutScreen() {
       );
     });
     return unsubscribe;
-  }, [navigation, workouts, clearDraft]);
+  }, [navigation, workouts, clearDraft, clearDraftEntry, draftKey]);
 
   const handleAddExercise = () => {
     router.push("/(app)/(create-plan)/exercises?index=0");
@@ -204,6 +210,7 @@ export default function CreateWorkoutScreen() {
       }
 
       await queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
+      clearDraftEntry(draftKey);
       savedRef.current = true;
       router.back();
     } catch (error: any) {
