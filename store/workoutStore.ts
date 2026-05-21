@@ -325,8 +325,14 @@ const useWorkoutStore = create<WorkoutStore>()(
               if (partner && exercise.exercise_id === partner.exercise_id) {
                 const lastSet =
                   exercise.sets[exercise.sets.length - 1] ?? newSet;
+                const clone = {
+                  ...lastSet,
+                  isWarmup: newSet.isWarmup,
+                  isDropSet: newSet.isDropSet,
+                  isToFailure: newSet.isToFailure,
+                };
                 const sets = [...exercise.sets];
-                sets.splice(atIndex, 0, { ...lastSet });
+                sets.splice(atIndex, 0, clone);
                 return { ...exercise, sets };
               }
               return exercise;
