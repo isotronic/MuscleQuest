@@ -974,8 +974,6 @@ export default function WorkoutSessionScreen() {
       if (isFirstInSuperset) {
         stopTimer();
         void cancelRestNotifications();
-      } else if (hasNextSet) {
-        void startRestTimer(currentSet.restMinutes, currentSet.restSeconds);
       } else {
         void cancelRestNotifications();
       }
