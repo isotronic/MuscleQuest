@@ -207,9 +207,13 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
     };
 
     if (applyToAllSets) {
-      // Update all sets in the current exercise
-      exercise?.sets.forEach((_, sIndex) => {
-        updateSetInExercise(workoutIndex, exerciseId, sIndex, updatedSet);
+      exercise?.sets.forEach((s, sIndex) => {
+        if (
+          (s.isWarmup ?? false) === isWarmup ||
+          (setIndex !== null && sIndex === setIndex)
+        ) {
+          updateSetInExercise(workoutIndex, exerciseId, sIndex, updatedSet);
+        }
       });
     } else if (setIndex !== null) {
       // Update only the selected set
@@ -415,7 +419,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                   }}
                 />
                 <ThemedText style={styles.checkboxLabel}>
-                  Apply to all sets
+                  Apply to all {isWarmup ? "warmup" : "working"} sets
                 </ThemedText>
               </View>
 

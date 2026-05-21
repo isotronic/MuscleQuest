@@ -3,16 +3,24 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { Workout } from "@/store/workoutStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
+import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 
 interface StandaloneWorkoutListItemProps {
   workout: Workout;
   onPress: () => void;
+  countUnilateralDouble?: boolean;
 }
 
 export default function StandaloneWorkoutListItem({
   workout,
   onPress,
+  countUnilateralDouble = false,
 }: StandaloneWorkoutListItemProps) {
+  const { estimate } = useWorkoutDurationEstimate(
+    workout.exercises,
+    countUnilateralDouble,
+  );
   return (
     <Pressable style={styles.container} onPress={onPress}>
       <View style={styles.imageContainer}>
@@ -31,6 +39,7 @@ export default function StandaloneWorkoutListItem({
         <ThemedText style={styles.subtitle}>
           {workout.exercises.length}{" "}
           {workout.exercises.length === 1 ? "exercise" : "exercises"}
+          {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
         </ThemedText>
       </View>
       <MaterialCommunityIcons

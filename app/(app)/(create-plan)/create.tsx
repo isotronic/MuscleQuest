@@ -43,7 +43,7 @@ export default function CreatePlanScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { planId } = useLocalSearchParams();
-  const [dataLoaded, setDataLoaded] = useState(!planId);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const scrollRef = useRef<ScrollViewType>(null);
   const {
@@ -51,23 +51,103 @@ export default function CreatePlanScreen() {
     planImageUrl,
     setPlanImageUrl,
     setWorkouts,
-    clearWorkouts,
     addWorkout,
     removeWorkout,
     reorderWorkouts,
     changeWorkoutName,
     planSchedule,
     setPlanSchedule,
-    clearPlanSchedule,
+    saveDraftEntry,
+    clearDraftEntry,
+    clearDraft,
   } = useWorkoutStore();
+
+  const currentPlanId = planId ? Number(planId) : null;
+  const draftKey =
+    currentPlanId !== null ? `plan:${currentPlanId}` : "plan:null";
   const { data: settings } = useSettingsQuery();
   const weeklyGoal = Number(settings?.weeklyGoal ?? 3);
   const { planName, setPlanName, planSaved, setPlanSaved, handleSavePlan } =
     useCreatePlan();
   const { data: existingPlan } = usePlanQuery(planId ? Number(planId) : null);
 
+  // 'pending' until draft check resolves; then 'continue' or 'fresh'
+  const [draftDecision, setDraftDecision] = useState<
+    "pending" | "continue" | "fresh"
+  >("pending");
+
+  // Check for a persisted draft once on mount, after store hydrates
   useEffect(() => {
-    if (existingPlan) {
+    const checkDraft = () => {
+      const { drafts } = useWorkoutStore.getState();
+      const draft = drafts[draftKey];
+      const hasDraft =
+        !!draft &&
+        (draft.workouts.length > 0 || (draft.draftName ?? "").trim() !== "");
+
+      if (hasDraft) {
+        Alert.alert(
+          "Continue Editing?",
+          "You have unsaved changes from your last session. Would you like to continue?",
+          [
+            {
+              text: "Discard Changes",
+              style: "destructive",
+              onPress: () => {
+                clearDraftEntry(draftKey);
+                clearDraft();
+                setDraftDecision("fresh");
+                if (!planId) setDataLoaded(true);
+              },
+            },
+            {
+              text: "Continue",
+              onPress: () => {
+                setWorkouts(draft.workouts);
+                if (draft.planImageUrl) setPlanImageUrl(draft.planImageUrl);
+                if (draft.planSchedule) setPlanSchedule(draft.planSchedule);
+                setPlanName(draft.draftName ?? "");
+                setDraftDecision("continue");
+                if (!planId) setDataLoaded(true);
+              },
+            },
+          ],
+        );
+      } else {
+        setDraftDecision("fresh");
+        if (!planId) setDataLoaded(true);
+      }
+    };
+
+    if (useWorkoutStore.persist.hasHydrated()) {
+      checkDraft();
+    } else {
+      const unsub = useWorkoutStore.persist.onFinishHydration(checkDraft);
+      return unsub;
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-save draft on every change so it survives app close
+  useEffect(() => {
+    if (draftDecision === "pending") return;
+    if (workouts.length === 0 && !planName.trim()) return;
+    saveDraftEntry(draftKey, {
+      workouts,
+      planImageUrl,
+      planSchedule,
+      draftName: planName,
+    });
+  }, [workouts, planImageUrl, planSchedule, planName, draftDecision]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (draftDecision === "pending") return;
+    if (draftDecision === "continue") {
+      setDataLoaded(true);
+      return;
+    }
+    if (!existingPlan) return;
+
+    if (draftDecision === "fresh") {
       setPlanName(existingPlan.name);
       setPlanImageUrl(existingPlan.image_url);
 
@@ -85,7 +165,7 @@ export default function CreatePlanScreen() {
             if (entries.length > 0 && existingPlan.workouts) {
               const schedule: Record<number, number> = {};
               for (const entry of entries) {
-                const idx = existingPlan.workouts.findIndex(
+                const idx = existingPlan.workouts!.findIndex(
                   (w) => w.id === entry.workout_id,
                 );
                 if (idx !== -1) {
@@ -102,18 +182,20 @@ export default function CreatePlanScreen() {
                 planId: existingPlan.id,
               });
             });
-            // Non-critical: schedule defaults to empty
           });
+
+        setDataLoaded(true);
+
+        return () => {
+          cancelled = true;
+        };
       }
-
-      setDataLoaded(true);
-
-      return () => {
-        cancelled = true;
-      };
     }
+
+    setDataLoaded(true);
   }, [
     existingPlan,
+    draftDecision,
     setPlanName,
     setWorkouts,
     setPlanImageUrl,
@@ -128,13 +210,15 @@ export default function CreatePlanScreen() {
       if (planSaved) {
         queryClient.invalidateQueries({ queryKey: ["plans"] });
         queryClient.invalidateQueries({ queryKey: ["activePlan"] });
-        clearWorkouts();
-        clearPlanSchedule();
+        clearDraftEntry(draftKey);
+        clearDraft();
         setPlanSaved(false);
         return navigation.dispatch(e.data.action);
       }
 
       if (!workouts.length && !planName.trim()) {
+        clearDraftEntry(draftKey);
+        clearDraft();
         return navigation.dispatch(e.data.action);
       }
 
@@ -147,8 +231,8 @@ export default function CreatePlanScreen() {
             text: "Discard",
             style: "destructive",
             onPress: () => {
-              clearWorkouts();
-              clearPlanSchedule();
+              clearDraftEntry(draftKey);
+              clearDraft();
               setPlanSaved(false);
               navigation.dispatch(e.data.action);
             },
@@ -162,8 +246,9 @@ export default function CreatePlanScreen() {
     navigation,
     workouts,
     planName,
-    clearWorkouts,
-    clearPlanSchedule,
+    clearDraft,
+    clearDraftEntry,
+    draftKey,
     planSaved,
     setPlanSaved,
     queryClient,
@@ -217,6 +302,8 @@ export default function CreatePlanScreen() {
         Number(planId),
         existingPlan?.app_plan_id,
       );
+
+      clearDraftEntry(draftKey);
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["plans"] }),

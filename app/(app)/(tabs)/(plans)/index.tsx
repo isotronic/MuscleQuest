@@ -11,9 +11,12 @@ import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 import StandaloneWorkoutListItem from "@/components/StandaloneWorkoutListItem";
 import { Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 
 export default function PlansScreen() {
   const { data: plans, isLoading, isError, error } = useAllPlansQuery();
+  const { data: settings } = useSettingsQuery();
+  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const {
     data: standaloneWorkouts,
     isLoading: standaloneIsLoading,
@@ -110,6 +113,7 @@ export default function PlansScreen() {
                 key={item.id!.toString()}
                 workout={item}
                 onPress={() => handleViewWorkout(item)}
+                countUnilateralDouble={countUnilateralDouble}
               />
             ))
           ) : (

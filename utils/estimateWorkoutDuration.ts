@@ -115,6 +115,7 @@ function estimateSetWorkDuration(
 export function computeWorkoutDurationEstimate(
   exercises: UserExercise[],
   historyByExerciseId: Record<number, number[]>,
+  countUnilateralDouble = false,
 ): DurationEstimate {
   // In a superset the transition from exercise A to B has no rest — only B's
   // rest counts (the between-round recovery). Collect the exercise_id of the
@@ -145,8 +146,10 @@ export function computeWorkoutDurationEstimate(
         exercise.equipment,
         history,
       );
-      totalMin += workMin + rest;
-      totalMax += workMax + rest;
+      const unilateralMul =
+        countUnilateralDouble && exercise.is_unilateral ? 2 : 1;
+      totalMin += workMin * unilateralMul + rest;
+      totalMax += workMax * unilateralMul + rest;
     }
   }
 
@@ -167,7 +170,24 @@ export function formatDurationEstimate(estimate: DurationEstimate): string {
   const minStr = formatMinutes(estimate.minSeconds);
   const maxStr = formatMinutes(estimate.maxSeconds);
   if (minStr === maxStr) {
-    return `~${minStr}`;
+    return `${minStr}`;
   }
   return `${minStr} – ${maxStr}`;
+}
+
+function formatMinutesCompact(totalSeconds: number): string {
+  const totalMins = Math.ceil(totalSeconds / 60);
+  if (totalMins < 60) return `${totalMins}m`;
+  const hours = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+  return mins === 0 ? `${hours}h` : `${hours}h${String(mins).padStart(2, "0")}`;
+}
+
+export function formatDurationEstimateCompact(
+  estimate: DurationEstimate,
+): string {
+  const minStr = formatMinutesCompact(estimate.minSeconds);
+  const maxStr = formatMinutesCompact(estimate.maxSeconds);
+  if (minStr === maxStr) return minStr;
+  return `${minStr}–${maxStr}`;
 }

@@ -8,7 +8,10 @@ import {
 import type { UserExercise } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 
-export function useWorkoutDurationEstimate(exercises: UserExercise[]): {
+export function useWorkoutDurationEstimate(
+  exercises: UserExercise[],
+  countUnilateralDouble = false,
+): {
   estimate: DurationEstimate | null;
   isLoading: boolean;
 } {
@@ -33,8 +36,12 @@ export function useWorkoutDurationEstimate(exercises: UserExercise[]): {
 
   const estimate = useMemo(() => {
     if (exercises.length === 0) return null;
-    return computeWorkoutDurationEstimate(exercises, data ?? {});
-  }, [exercises, data]);
+    return computeWorkoutDurationEstimate(
+      exercises,
+      data ?? {},
+      countUnilateralDouble,
+    );
+  }, [exercises, data, countUnilateralDouble]);
 
   return { estimate, isLoading };
 }

@@ -9,6 +9,8 @@ import {
   useCompletedWorkoutsQuery,
   usePreviousPeriodWorkoutsQuery,
 } from "@/hooks/useCompletedWorkoutsQuery";
+import { startOfWeek, endOfWeek } from "date-fns";
+import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { Colors } from "@/constants/Colors";
 import { WorkoutHistorySection } from "@/components/stats/WorkoutHistorySection";
@@ -118,18 +120,45 @@ export default function StatsScreen() {
     parseInt(selectedTimeRange),
   );
 
+  const { data: prevWorkouts } = usePreviousPeriodWorkoutsQuery(
+    weightUnit,
+    distanceUnit,
+    parseInt(selectedTimeRange),
+  );
+
+  const {
+    data: allWorkouts,
+    isLoading: isLoadingAllWorkouts,
+    error: allWorkoutsError,
+  } = useCompletedWorkoutsQuery(weightUnit, distanceUnit);
+
   useEffect(() => {
-    const anyError = error || exercisesError || trackedError;
+    const anyError =
+      error || exercisesError || trackedError || allWorkoutsError;
     if (anyError) {
       Bugsnag.notify(
         anyError instanceof Error ? anyError : new Error(String(anyError)),
       );
     }
-  }, [error, exercisesError, trackedError]);
-  const { data: prevWorkouts } = usePreviousPeriodWorkoutsQuery(
-    weightUnit,
-    distanceUnit,
-    parseInt(selectedTimeRange),
+  }, [error, exercisesError, trackedError, allWorkoutsError]);
+
+  const thisWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const thisWeekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+  const thisWeekWorkouts = allWorkouts?.filter((w) => {
+    const d = new Date(w.date_completed);
+    return d >= thisWeekStart && d <= thisWeekEnd;
+  });
+  const uniqueWorkoutDaysCount = new Set(
+    thisWeekWorkouts?.map((w) => new Date(w.date_completed).toDateString()),
+  ).size;
+  const weeklyGoal = Number(settings?.weeklyGoal ?? 0);
+  const weeklyGoalReached =
+    uniqueWorkoutDaysCount >= weeklyGoal && weeklyGoal > 0;
+  const { streak } = useWeeklyStreak(
+    allWorkouts,
+    weeklyGoal,
+    uniqueWorkoutDaysCount,
+    weeklyGoalReached,
   );
 
   const insights = useStatsInsights(
@@ -182,7 +211,11 @@ export default function StatsScreen() {
     });
   }, [router, trackedExercises]);
 
-  const isLoading = isLoadingWorkouts || isLoadingExercises || isLoadingTracked;
+  const isLoading =
+    isLoadingWorkouts ||
+    isLoadingExercises ||
+    isLoadingTracked ||
+    isLoadingAllWorkouts;
 
   if (isLoading) {
     return (
@@ -192,7 +225,7 @@ export default function StatsScreen() {
     );
   }
 
-  const anyError = error || exercisesError || trackedError;
+  const anyError = error || exercisesError || trackedError || allWorkoutsError;
   if (anyError) {
     return (
       <ThemedView style={styles.centered}>
@@ -235,6 +268,15 @@ export default function StatsScreen() {
     prev != null
       ? Math.round((current.totalTimeSeconds - prev.totalTimeSeconds) / 60)
       : null;
+  const timeDeltaFormatted = (() => {
+    if (timeDeltaMinutes == null) return undefined;
+    const abs = Math.abs(timeDeltaMinutes);
+    const h = Math.floor(abs / 60);
+    const m = abs % 60;
+    if (h === 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}m`;
+  })();
 
   return (
     <ThemedView>
@@ -249,12 +291,13 @@ export default function StatsScreen() {
         {/* Insights strip */}
         {(completedWorkouts?.length ?? 0) > 0 && (
           <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Insights</ThemedText>
             <InsightsStrip
               workoutsPerWeek={insights.workoutsPerWeek}
               biggestGainLabel={insights.biggestGainLabel}
               biggestGainValue={insights.biggestGainValue}
               topBodyPart={insights.topBodyPart}
-              streak={null}
+              streak={streak}
               weightUnit={weightUnit}
             />
           </View>
@@ -279,7 +322,7 @@ export default function StatsScreen() {
               label="Total Time"
               value={formatToHoursMinutes(current.totalTimeSeconds)}
               delta={timeDeltaMinutes}
-              deltaLabel="min"
+              deltaText={timeDeltaFormatted}
             />
             <StatsTile
               label="Avg Duration"
@@ -410,6 +453,6 @@ const styles = StyleSheet.create({
   tileGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    gap: 8,
   },
 });

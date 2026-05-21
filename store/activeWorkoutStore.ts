@@ -73,7 +73,9 @@ interface ActiveWorkoutStore {
   timerRunning: boolean;
   timerExpiry: Date | null;
   currentSetStartedAt: Date | null;
-  setDurations: { [exerciseIndex: number]: { [setIndex: number]: number | null } };
+  setDurations: {
+    [exerciseIndex: number]: { [setIndex: number]: number | null };
+  };
   appendedExerciseIndices: number[];
   appendExercise: (exercise: UserExercise) => void;
   setWorkout: (
@@ -118,7 +120,11 @@ interface ActiveWorkoutStore {
   startTimer: (expiry: Date) => void;
   stopTimer: () => void;
   setCurrentSetStartedAt: (date: Date | null) => void;
-  recordSetDuration: (exerciseIndex: number, setIndex: number, duration: number | null) => void;
+  recordSetDuration: (
+    exerciseIndex: number,
+    setIndex: number,
+    duration: number | null,
+  ) => void;
   clearPersistedStore: () => void;
   resumeWorkout: () => void;
   isWorkoutInProgress: () => boolean;
@@ -384,18 +390,32 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               while (nextExerciseIndex < workout.exercises.length) {
                 const totalSets =
                   workout.exercises[nextExerciseIndex].sets.length;
-                const isComplete =
-                  updatedCompletedSets[nextExerciseIndex] &&
-                  Object.keys(updatedCompletedSets[nextExerciseIndex])
-                    .length === totalSets;
+                const completedCount = Object.values(
+                  updatedCompletedSets[nextExerciseIndex] || {},
+                ).filter((v) => v === true).length;
+                const isComplete = completedCount === totalSets;
                 if (!isComplete) break;
                 nextExerciseIndex++;
               }
 
               if (nextExerciseIndex < workout.exercises.length) {
+                const nextExTotalSets =
+                  workout.exercises[nextExerciseIndex].sets.length;
+                const nextExCompleted =
+                  updatedCompletedSets[nextExerciseIndex] || {};
+                let firstUncompleted = 0;
+                for (let s = 0; s < nextExTotalSets; s++) {
+                  if (!nextExCompleted[s]) {
+                    firstUncompleted = s;
+                    break;
+                  }
+                }
                 return {
                   currentExerciseIndex: nextExerciseIndex,
-                  currentSetIndices: updatedSetIndices,
+                  currentSetIndices: {
+                    ...updatedSetIndices,
+                    [nextExerciseIndex]: firstUncompleted,
+                  },
                   completedSets: updatedCompletedSets,
                   weightAndReps: updatedWeightAndReps,
                 };
@@ -507,15 +527,27 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           let nextExerciseIndex = currentExerciseIndex + 1;
           while (nextExerciseIndex < workout.exercises.length) {
             const totalSets = workout.exercises[nextExerciseIndex].sets.length;
-            const isExerciseCompleted =
-              updatedCompletedSets[nextExerciseIndex] &&
-              Object.keys(updatedCompletedSets[nextExerciseIndex]).length ===
-                totalSets;
+            const completedCount = Object.values(
+              updatedCompletedSets[nextExerciseIndex] || {},
+            ).filter((v) => v === true).length;
+            const isExerciseCompleted = completedCount === totalSets;
 
             if (!isExerciseCompleted) {
+              const nextExCompleted =
+                updatedCompletedSets[nextExerciseIndex] || {};
+              let firstUncompleted = 0;
+              for (let s = 0; s < totalSets; s++) {
+                if (!nextExCompleted[s]) {
+                  firstUncompleted = s;
+                  break;
+                }
+              }
               return {
                 currentExerciseIndex: nextExerciseIndex,
-                currentSetIndices: updatedSetIndices,
+                currentSetIndices: {
+                  ...updatedSetIndices,
+                  [nextExerciseIndex]: firstUncompleted,
+                },
                 completedSets: updatedCompletedSets,
               };
             }

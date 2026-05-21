@@ -57,8 +57,12 @@ export default function WorkoutCard({
   const { workouts } = useWorkoutStore();
   const { data: settings } = useSettingsQuery();
   const distanceUnit = settings?.distanceUnit || "m";
+  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
-  const { estimate } = useWorkoutDurationEstimate(workout.exercises);
+  const { estimate } = useWorkoutDurationEstimate(
+    workout.exercises,
+    countUnilateralDouble,
+  );
 
   const openMenu = (exerciseId: number) => setMenuVisible(exerciseId);
   const closeMenu = () => setMenuVisible(null);

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { StyleSheet, FlatList, TouchableOpacity, View } from "react-native";
-import { Button } from "react-native-paper";
+import { Button, Divider } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useLocalSearchParams } from "expo-router";
@@ -18,7 +18,6 @@ export default function SetsOverviewScreen() {
   const { data: settings } = useSettingsQuery();
 
   const totalSeconds = settings ? parseInt(settings?.defaultRestTime) : 0;
-  const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
   const defaultRepsMin = 8;
   const defaultRepsMax = 12;
@@ -60,6 +59,43 @@ export default function SetsOverviewScreen() {
       .removeSetFromExercise(Number(workoutIndex), Number(exerciseId), index);
   };
 
+  const handleAddWarmupSet = () => {
+    let insertIndex = 0;
+    for (let i = sets.length - 1; i >= 0; i--) {
+      if (sets[i].isWarmup) {
+        insertIndex = i + 1;
+        break;
+      }
+    }
+    const lastWarmupSet = sets.filter((s) => s.isWarmup).at(-1);
+    const newSet: Set = lastWarmupSet
+      ? {
+          ...lastWarmupSet,
+          isWarmup: true,
+          isDropSet: false,
+          isToFailure: false,
+        }
+      : {
+          repsMin: defaultRepsMin,
+          repsMax: defaultRepsMax,
+          restMinutes: Math.floor(defaultTotalSeconds / 60),
+          restSeconds: defaultTotalSeconds % 60,
+          time: defaultTime,
+          distance: undefined,
+          isWarmup: true,
+          isDropSet: false,
+          isToFailure: false,
+        };
+    useWorkoutStore
+      .getState()
+      .insertSetAtExercise(
+        Number(workoutIndex),
+        Number(exerciseId),
+        insertIndex,
+        newSet,
+      );
+  };
+
   const renderSetItem = ({ item, index }: { item: Set; index: number }) => {
     const repRange =
       item.repsMin === item.repsMax
@@ -74,40 +110,50 @@ export default function SetsOverviewScreen() {
       ? formatFromTotalSeconds(item.time)
       : formatFromTotalSeconds(defaultTime);
 
+    const previousSet = index > 0 ? sets[index - 1] : null;
+    const showGroupDivider =
+      previousSet !== null &&
+      (previousSet.isWarmup ?? false) !== (item.isWarmup ?? false);
+
     return (
-      <ThemedView style={styles.setItem}>
-        <TouchableOpacity
-          onPress={() => handleEditSet(index)}
-          style={styles.setContent}
+      <>
+        {showGroupDivider && <Divider style={styles.groupDivider} />}
+        <ThemedView
+          style={[styles.setItem, item.isWarmup && styles.warmupSetItem]}
         >
-          <ThemedView style={styles.setTextContainer}>
-            <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
-            <ThemedText style={styles.setInfo}>
-              {item.isWarmup ? "Warm-up, " : ""}
-              {item.isDropSet ? "Drop set, " : ""}
-              {item.isToFailure ? "To failure, " : ""}
-              {trackingType === "time"
-                ? `${formattedTime}, `
-                : trackingType === "distance"
-                  ? item.distance !== undefined
-                    ? `${item.distance} ${distanceUnit}, `
-                    : ""
-                  : repRange !== undefined
-                    ? `${repRange} Reps, `
-                    : ""}
-              {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
-              Rest
-            </ThemedText>
-          </ThemedView>
-        </TouchableOpacity>
-        <MaterialCommunityIcons
-          name="close"
-          size={24}
-          color={Colors.dark.text}
-          onPress={() => handleDeleteSet(index)}
-          style={styles.deleteIcon}
-        />
-      </ThemedView>
+          <TouchableOpacity
+            onPress={() => handleEditSet(index)}
+            style={styles.setContent}
+          >
+            <ThemedView style={styles.setTextContainer}>
+              <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
+              <ThemedText style={styles.setInfo}>
+                {item.isWarmup ? "Warm-up, " : ""}
+                {item.isDropSet ? "Drop set, " : ""}
+                {item.isToFailure ? "To failure, " : ""}
+                {trackingType === "time"
+                  ? `${formattedTime}, `
+                  : trackingType === "distance"
+                    ? item.distance !== undefined
+                      ? `${item.distance} ${distanceUnit}, `
+                      : ""
+                    : repRange !== undefined
+                      ? `${repRange} Reps, `
+                      : ""}
+                {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
+                Rest
+              </ThemedText>
+            </ThemedView>
+          </TouchableOpacity>
+          <MaterialCommunityIcons
+            name="close"
+            size={24}
+            color={Colors.dark.text}
+            onPress={() => handleDeleteSet(index)}
+            style={styles.deleteIcon}
+          />
+        </ThemedView>
+      </>
     );
   };
 
@@ -116,6 +162,16 @@ export default function SetsOverviewScreen() {
       <Stack.Screen
         options={{
           title: exercise?.name,
+          headerRight: () => (
+            <Button
+              labelStyle={styles.buttonLabel}
+              onPress={() =>
+                router.push(`/(app)/exercise-info?exercise_id=${exerciseId}`)
+              }
+            >
+              Details
+            </Button>
+          ),
         }}
       />
       {supersetPartner && (
@@ -136,12 +192,10 @@ export default function SetsOverviewScreen() {
         <Button
           mode="outlined"
           labelStyle={styles.buttonLabel}
-          style={styles.detailsButton}
-          onPress={() =>
-            router.push(`/(app)/exercise-info?exercise_id=${exerciseId}`)
-          }
+          style={styles.addSetButton}
+          onPress={handleAddWarmupSet}
         >
-          Details
+          Add Warm-up
         </Button>
         <Button
           mode="contained"
@@ -207,6 +261,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  warmupSetItem: {
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.dark.badgeWarmup,
+  },
+  groupDivider: {
+    marginBottom: 8,
+    backgroundColor: Colors.dark.subText,
+  },
   setContent: {
     flex: 1,
   },
@@ -235,11 +297,8 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingBottom: 16,
   },
-  detailsButton: {
-    flex: 1,
-  },
   addSetButton: {
-    flex: 5,
+    flex: 1,
   },
   buttonLabel: {
     fontSize: 16,

@@ -33,7 +33,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const containerRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const gainPillRef = useRef<any>(null);
+  const pillRefs = useRef<Record<string, any>>({});
 
   useEffect(
     () => () => {
@@ -42,11 +42,12 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
     [],
   );
 
-  const showTooltip = (text: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const showTooltip = (text: string, pillRef: any) => {
     if (dismissTimer.current) clearTimeout(dismissTimer.current);
     setTooltipHalfWidth(0);
 
-    gainPillRef.current?.measureInWindow(
+    pillRef?.measureInWindow(
       (pillX: number, _pillY: number, pillWidth: number) => {
         containerRef.current?.measureInWindow((containerX: number) => {
           setTooltipLeft(pillX - containerX + pillWidth / 2);
@@ -70,7 +71,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
     pills.push({
       label: "Best gain",
       value: biggestGainValue,
-      tooltip: biggestGainLabel,
+      tooltip: `${biggestGainLabel} 1RM`,
     });
   }
   if (topBodyPart) {
@@ -81,6 +82,49 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
   }
 
   if (pills.length === 0) return null;
+
+  const renderPill = (pill: InsightPill) => (
+    <Pressable
+      key={pill.label}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ref={
+        pill.tooltip
+          ? (el: any) => {
+              pillRefs.current[pill.label] = el;
+            }
+          : undefined
+      }
+      style={styles.pill}
+      onPress={
+        pill.tooltip
+          ? () => showTooltip(pill.tooltip!, pillRefs.current[pill.label])
+          : undefined
+      }
+    >
+      <View style={styles.pillLabelRow}>
+        <ThemedText style={styles.pillLabel}>{pill.label}</ThemedText>
+        {pill.tooltip ? (
+          <ThemedText style={styles.infoIcon}>{"ⓘ"}</ThemedText>
+        ) : null}
+      </View>
+      <ThemedText style={styles.pillValue}>{pill.value}</ThemedText>
+    </Pressable>
+  );
+
+  const useGrid = pills.length >= 4;
+
+  const rows: InsightPill[][] = [];
+  if (useGrid) {
+    for (let i = 0; i < pills.length; i += 2) {
+      rows.push(pills.slice(i, i + 2));
+    }
+  }
+
+  const onLayout = ({
+    nativeEvent,
+  }: {
+    nativeEvent: { layout: { height: number } };
+  }) => setStripHeight(nativeEvent.layout.height);
 
   return (
     <View ref={containerRef}>
@@ -106,35 +150,24 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
           <ThemedText style={styles.tooltipText}>{tooltipText}</ThemedText>
         </View>
       ) : null}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.strip}
-        onLayout={({
-          nativeEvent,
-        }: {
-          nativeEvent: { layout: { height: number } };
-        }) => setStripHeight(nativeEvent.layout.height)}
-      >
-        {pills.map((pill, i) => (
-          <Pressable
-            key={i}
-            ref={pill.tooltip ? gainPillRef : undefined}
-            style={styles.pill}
-            onPress={
-              pill.tooltip ? () => showTooltip(pill.tooltip!) : undefined
-            }
-          >
-            <View style={styles.pillLabelRow}>
-              <ThemedText style={styles.pillLabel}>{pill.label}</ThemedText>
-              {pill.tooltip ? (
-                <ThemedText style={styles.infoIcon}>{"ⓘ"}</ThemedText>
-              ) : null}
+      {useGrid ? (
+        <View style={styles.grid} onLayout={onLayout}>
+          {rows.map((row, ri) => (
+            <View key={ri} style={styles.row}>
+              {row.map((pill) => renderPill(pill))}
             </View>
-            <ThemedText style={styles.pillValue}>{pill.value}</ThemedText>
-          </Pressable>
-        ))}
-      </ScrollView>
+          ))}
+        </View>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.strip}
+          onLayout={onLayout}
+        >
+          {pills.map((pill) => renderPill(pill))}
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -144,12 +177,20 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     gap: 10,
   },
+  grid: {
+    gap: 8,
+    paddingVertical: 4,
+  },
+  row: {
+    flexDirection: "row",
+    gap: 8,
+  },
   pill: {
+    flex: 1,
     backgroundColor: Colors.dark.cardBackground,
     borderRadius: 6,
     paddingVertical: 10,
     paddingHorizontal: 14,
-    minWidth: 110,
     alignItems: "center",
     borderWidth: 1,
     borderColor: Colors.dark.tint + "40",

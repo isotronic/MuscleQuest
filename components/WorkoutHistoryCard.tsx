@@ -16,7 +16,10 @@ export default function WorkoutHistoryCard({
   excludeWarmup = false,
 }: WorkoutCardProps) {
   const setsCount = excludeWarmup
-    ? workout.exercises.reduce((t, e) => t + e.sets.filter((s) => !s.is_warmup).length, 0)
+    ? workout.exercises.reduce(
+        (t, e) => t + e.sets.filter((s) => !s.is_warmup).length,
+        0,
+      )
     : workout.total_sets_completed;
   return (
     <TouchableOpacity
@@ -33,9 +36,7 @@ export default function WorkoutHistoryCard({
         <ThemedText style={styles.workoutDuration}>
           Duration: {Math.round(workout.duration / 60)} min
         </ThemedText>
-        <ThemedText style={styles.workoutSets}>
-          Sets: {setsCount}
-        </ThemedText>
+        <ThemedText style={styles.workoutSets}>Sets: {setsCount}</ThemedText>
       </ThemedView>
     </TouchableOpacity>
   );
@@ -43,15 +44,18 @@ export default function WorkoutHistoryCard({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    marginRight: 16,
+    marginRight: 8,
   },
   card: {
     width: 200,
     padding: 16,
     borderRadius: 6,
     backgroundColor: Colors.dark.cardBackground,
-    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)",
-    elevation: 3, // For Android shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4, // For Android shadow
   },
   workoutName: {
     fontSize: 16,

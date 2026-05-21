@@ -12,11 +12,13 @@ import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
 import { router } from "expo-router";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
+import { formatDurationEstimateCompact } from "@/utils/estimateWorkoutDuration";
 import {
   CompletedWorkout,
   useCompletedWorkoutsQuery,
 } from "@/hooks/useCompletedWorkoutsQuery";
-import { Workout } from "@/store/workoutStore";
+import { Workout, UserExercise } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import Onboarding from "@/components/Onboarding";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
@@ -31,6 +33,27 @@ import {
   prioritizeScheduledWorkout,
 } from "@/utils/planHelpers";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
+
+function WorkoutDurationInfo({
+  exercises,
+  countUnilateralDouble,
+  style,
+}: {
+  exercises: UserExercise[];
+  countUnilateralDouble: boolean;
+  style?: object;
+}) {
+  const { estimate } = useWorkoutDurationEstimate(
+    exercises,
+    countUnilateralDouble,
+  );
+  return (
+    <ThemedText style={style}>
+      {exercises.length} Exercises
+      {estimate ? `  ·  ~${formatDurationEstimateCompact(estimate)}` : ""}
+    </ThemedText>
+  );
+}
 
 export default function HomeScreen() {
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
@@ -53,6 +76,7 @@ export default function HomeScreen() {
 
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
+  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const {
     data: completedWorkouts,
     isLoading: completedWorkoutsLoading,
@@ -191,9 +215,9 @@ export default function HomeScreen() {
     const completedWorkoutsList: Workout[] = [];
 
     sortedWorkouts.forEach((workout) => {
-      const target = perWorkoutTarget.get(workout.id!) ?? 0;
+      const target = perWorkoutTarget.get(workout.id!);
       const completedTimes = completedWorkoutCounts.get(workout.id!) || 0;
-      const workoutCompleted = completedTimes >= target;
+      const workoutCompleted = target !== undefined && completedTimes >= target;
 
       if (workoutCompleted) {
         completedWorkoutsList.push(workout);
@@ -413,17 +437,18 @@ export default function HomeScreen() {
               </ThemedText>
 
               {workoutsToDisplay.map((workout, index) => {
-                const target = perWorkoutTarget.get(workout.id!) ?? 0;
+                const target = perWorkoutTarget.get(workout.id!);
 
                 // Filter to check how many times this specific workout has been completed this week
                 const completedTimes =
                   completedWorkoutsThisPlanThisWeek?.filter(
                     (completedWorkout) =>
                       completedWorkout.workout_id === workout.id,
-                  ).length;
+                  ).length ?? 0;
 
                 // Condition to check if the workout is completed enough times
-                const workoutCompleted = completedTimes >= target;
+                const workoutCompleted =
+                  target !== undefined && completedTimes >= target;
                 const originalIndex = activePlan.workouts.findIndex(
                   (w) => w.id === workout.id,
                 );
@@ -472,9 +497,11 @@ export default function HomeScreen() {
                         >
                           {workout.name}
                         </ThemedText>
-                        <ThemedText style={styles.exerciseInfo}>
-                          {workout.exercises.length} Exercises
-                        </ThemedText>
+                        <WorkoutDurationInfo
+                          exercises={workout.exercises}
+                          countUnilateralDouble={countUnilateralDouble}
+                          style={styles.exerciseInfo}
+                        />
                       </View>
                       <View style={styles.smallButtonGroup}>
                         <Button
@@ -498,17 +525,6 @@ export default function HomeScreen() {
                         >
                           Start
                         </Button>
-                        {/* <Button
-                        mode="outlined"
-                        onPress={() =>
-                          router.push(
-                            `/workout-details?planId=${activePlan.id}&workoutIndex=${index}`,
-                          )
-                        }
-                        labelStyle={styles.smallButtonLabel}
-                      >
-                        View
-                      </Button> */}
                       </View>
                     </View>
                   </Pressable>
