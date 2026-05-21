@@ -208,7 +208,10 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
 
     if (applyToAllSets) {
       exercise?.sets.forEach((s, sIndex) => {
-        if ((s.isWarmup ?? false) === isWarmup) {
+        if (
+          (s.isWarmup ?? false) === isWarmup ||
+          (setIndex !== null && sIndex === setIndex)
+        ) {
           updateSetInExercise(workoutIndex, exerciseId, sIndex, updatedSet);
         }
       });
