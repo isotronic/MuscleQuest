@@ -58,13 +58,19 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
     : null;
 
   const [calendarReady, setCalendarReady] = useState(false);
+  const [calendarCurrentDate, setCalendarCurrentDate] = useState(() =>
+    format(new Date(), "yyyy-MM-dd"),
+  );
 
   useLayoutEffect(() => {
     if (!visible) return;
+    const targetDate = selectedDate ?? format(new Date(), "yyyy-MM-dd");
+    currentMonthRef.current = targetDate;
+    setCalendarCurrentDate(targetDate);
     setCalendarReady(false);
     const timer = setTimeout(() => setCalendarReady(true), 300);
     return () => clearTimeout(timer);
-  }, [visible]);
+  }, [visible, selectedDate]);
 
   const currentMonthRef = useRef(format(new Date(), "yyyy-MM-dd"));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -115,6 +121,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
         <View style={styles.calendarContainer}>
           <CalendarList
             ref={calendarRef}
+            current={calendarCurrentDate}
             markedDates={markedDates}
             onDayPress={(day: DateData) => onDayPress(day.dateString)}
             theme={calendarTheme}
