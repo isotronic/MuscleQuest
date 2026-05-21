@@ -1,6 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Button, Divider } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Button,
+  Divider,
+  IconButton,
+} from "react-native-paper";
 import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -9,11 +14,12 @@ import {
   useCompletedWorkoutsQuery,
   usePreviousPeriodWorkoutsQuery,
 } from "@/hooks/useCompletedWorkoutsQuery";
-import { startOfWeek, endOfWeek } from "date-fns";
+import { startOfWeek, endOfWeek, format } from "date-fns";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { Colors } from "@/constants/Colors";
 import { WorkoutHistorySection } from "@/components/stats/WorkoutHistorySection";
+import { WorkoutCalendarModal } from "@/components/stats/WorkoutCalendarModal";
 import { InsightsStrip } from "@/components/stats/InsightsStrip";
 import { StatsTile } from "@/components/stats/StatsTile";
 import { ExerciseCompactCard } from "@/components/stats/ExerciseCompactCard";
@@ -90,6 +96,8 @@ export default function StatsScreen() {
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>(
     settings?.timeRange || "30",
   );
+  const [historyVisible, setHistoryVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
     if (settings?.timeRange) setSelectedTimeRange(settings.timeRange);
@@ -189,6 +197,37 @@ export default function StatsScreen() {
     (id: number) => router.push(`/history-details?id=${id}`),
     [router],
   );
+
+  const workoutsByDate = useMemo(() => {
+    const map: Record<string, CompletedWorkout[]> = {};
+    for (const w of completedWorkouts ?? []) {
+      const key = format(new Date(w.date_completed), "yyyy-MM-dd");
+      (map[key] ??= []).push(w);
+    }
+    return map;
+  }, [completedWorkouts]);
+
+  const markedDates = useMemo(() => {
+    const marks: Record<string, object> = {};
+    for (const date of Object.keys(workoutsByDate)) {
+      marks[date] = { marked: true, dotColor: Colors.dark.tint };
+    }
+    if (selectedDate) {
+      marks[selectedDate] = {
+        ...(marks[selectedDate] ?? {}),
+        selected: true,
+        selectedColor: Colors.dark.tint,
+      };
+    }
+    return marks;
+  }, [workoutsByDate, selectedDate]);
+
+  const handleOpenCalendar = useCallback(() => {
+    const today = format(new Date(), "yyyy-MM-dd");
+    const fallback = Object.keys(workoutsByDate).sort().reverse()[0] ?? null;
+    setSelectedDate(workoutsByDate[today] ? today : fallback);
+    setHistoryVisible(true);
+  }, [workoutsByDate]);
 
   const handleExercisePress = useCallback(
     (exerciseId: number, name: string) =>
@@ -333,7 +372,18 @@ export default function StatsScreen() {
 
         {/* Workout history */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Workout History</ThemedText>
+          <View style={styles.sectionHeader}>
+            <ThemedText style={styles.sectionTitle}>Workout History</ThemedText>
+            {(completedWorkouts?.length ?? 0) > 0 && (
+              <IconButton
+                icon="calendar-month"
+                size={20}
+                iconColor={Colors.dark.tint}
+                style={{ margin: 0 }}
+                onPress={handleOpenCalendar}
+              />
+            )}
+          </View>
           <WorkoutHistorySection
             completedWorkouts={completedWorkouts ?? []}
             onWorkoutPress={handleWorkoutPress}
@@ -419,6 +469,21 @@ export default function StatsScreen() {
           )}
         </View>
       </ScrollView>
+      <WorkoutCalendarModal
+        visible={historyVisible}
+        onDismiss={() => setHistoryVisible(false)}
+        markedDates={markedDates}
+        selectedDate={selectedDate}
+        onDayPress={(dateString) => setSelectedDate(dateString)}
+        workoutsForSelectedDate={
+          selectedDate ? (workoutsByDate[selectedDate] ?? []) : []
+        }
+        onWorkoutPress={(id) => {
+          setHistoryVisible(false);
+          handleWorkoutPress(id);
+        }}
+        excludeWarmup={excludeWarmup}
+      />
     </ThemedView>
   );
 }
