@@ -220,6 +220,14 @@ Warm-up sets are visually grouped and styled separately from working sets, and "
 Five new ready-to-use plans are now available: 5-Day Bro Split, 5-Day Push/Pull/Legs, 6-Day Split, Bodyweight, and Dumbbell Only. Whether you're training at home or in the gym, there's a plan to get you started straight away.
 `,
   },
+  {
+    version: 2627,
+    message: `
+📅 New: Workout Calendar!
+
+Tap the calendar icon in the Workout History section on the Stats tab to browse your training history by date. Days with workouts are highlighted, and tapping any day shows the sessions logged on that date.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
