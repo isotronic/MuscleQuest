@@ -984,7 +984,9 @@ export default function WorkoutSessionScreen() {
         setIndex: currentSetIndex,
       };
       const durationNoAnim = currentSetStartedAt
-        ? Math.round((Date.now() - new Date(currentSetStartedAt).getTime()) / 1000)
+        ? Math.round(
+            (Date.now() - new Date(currentSetStartedAt).getTime()) / 1000,
+          )
         : null;
       recordSetDuration(currentExerciseIndex, currentSetIndex, durationNoAnim);
       setCurrentSetStartedAt(null);
@@ -1049,12 +1051,19 @@ export default function WorkoutSessionScreen() {
       setIndex: currentSetIndex,
     };
     const durationAnim = currentSetStartedAt
-      ? Math.round((Date.now() - new Date(currentSetStartedAt).getTime()) / 1000)
+      ? Math.round(
+          (Date.now() - new Date(currentSetStartedAt).getTime()) / 1000,
+        )
       : null;
     recordSetDuration(currentExerciseIndex, currentSetIndex, durationAnim);
     setCurrentSetStartedAt(null);
     nextSet();
-    if (isFirstInSuperset || (hasNextSet && currentSet.restMinutes === 0 && currentSet.restSeconds === 0)) {
+    if (
+      isFirstInSuperset ||
+      (hasNextSet &&
+        currentSet.restMinutes === 0 &&
+        currentSet.restSeconds === 0)
+    ) {
       setCurrentSetStartedAt(new Date());
     }
 
@@ -1103,8 +1112,13 @@ export default function WorkoutSessionScreen() {
         (finished) => {
           "worklet";
           isTransitioning.value = false;
-          if (finished) {
-            runOnJS(afterAnimation)();
+          // Always clear the snapshot so the UI can never get permanently stuck
+          // if Reanimated fires finished=false (e.g. an animation edge case that
+          // would otherwise leave outgoingSnapshot set with the live panel
+          // hidden behind completionIncomingX = SCREEN_WIDTH).
+          runOnJS(afterAnimation)();
+          if (!finished) {
+            completionIncomingX.value = 0;
           }
         },
       );
