@@ -201,7 +201,7 @@ Settings has moved here from the tab bar, and Help & Info covers everything from
     message: `
 💾 New: Save & Resume Plan and Workout Drafts!
 
-Your work in the plan and standalone workout editors is now automatically saved as a draft. If you leave mid-edit, you'll be prompted to continue where you left off or discard the draft — so you never lose progress by accident.
+Your work in the plan and standalone workout editors is now automatically saved as a draft. If you leave mid-edit, you'll be prompted to continue where you left off or discard the draft, so you never lose progress by accident.
 `,
   },
   {
@@ -217,7 +217,7 @@ Warm-up sets are visually grouped and styled separately from working sets, and "
     message: `
 🗂️ New: Five New Premade Training Plans!
 
-Five new ready-to-use plans are now available: 5-Day Bro Split, 5-Day Push/Pull/Legs, 6-Day Split, Bodyweight, and Dumbbell Only — whether you're training at home or in the gym, there's a plan to get you started straight away.
+Five new ready-to-use plans are now available: 5-Day Bro Split, 5-Day Push/Pull/Legs, 6-Day Split, Bodyweight, and Dumbbell Only. Whether you're training at home or in the gym, there's a plan to get you started straight away.
 `,
   },
 ];

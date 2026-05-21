@@ -50,6 +50,7 @@ export default {
       "@react-native-firebase/app-check",
       "@react-native-firebase/auth",
       "expo-router",
+      "expo-localization",
       "expo-asset",
       [
         "expo-image-picker",
