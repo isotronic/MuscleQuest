@@ -170,7 +170,7 @@ export function formatDurationEstimate(estimate: DurationEstimate): string {
   const minStr = formatMinutes(estimate.minSeconds);
   const maxStr = formatMinutes(estimate.maxSeconds);
   if (minStr === maxStr) {
-    return `~${minStr}`;
+    return `${minStr}`;
   }
   return `${minStr} – ${maxStr}`;
 }
