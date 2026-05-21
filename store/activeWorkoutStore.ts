@@ -73,7 +73,9 @@ interface ActiveWorkoutStore {
   timerRunning: boolean;
   timerExpiry: Date | null;
   currentSetStartedAt: Date | null;
-  setDurations: { [exerciseIndex: number]: { [setIndex: number]: number | null } };
+  setDurations: {
+    [exerciseIndex: number]: { [setIndex: number]: number | null };
+  };
   appendedExerciseIndices: number[];
   appendExercise: (exercise: UserExercise) => void;
   setWorkout: (
@@ -118,7 +120,11 @@ interface ActiveWorkoutStore {
   startTimer: (expiry: Date) => void;
   stopTimer: () => void;
   setCurrentSetStartedAt: (date: Date | null) => void;
-  recordSetDuration: (exerciseIndex: number, setIndex: number, duration: number | null) => void;
+  recordSetDuration: (
+    exerciseIndex: number,
+    setIndex: number,
+    duration: number | null,
+  ) => void;
   clearPersistedStore: () => void;
   resumeWorkout: () => void;
   isWorkoutInProgress: () => boolean;
@@ -393,9 +399,23 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               }
 
               if (nextExerciseIndex < workout.exercises.length) {
+                const nextExTotalSets =
+                  workout.exercises[nextExerciseIndex].sets.length;
+                const nextExCompleted =
+                  updatedCompletedSets[nextExerciseIndex] || {};
+                let firstUncompleted = 0;
+                for (let s = 0; s < nextExTotalSets; s++) {
+                  if (!nextExCompleted[s]) {
+                    firstUncompleted = s;
+                    break;
+                  }
+                }
                 return {
                   currentExerciseIndex: nextExerciseIndex,
-                  currentSetIndices: updatedSetIndices,
+                  currentSetIndices: {
+                    ...updatedSetIndices,
+                    [nextExerciseIndex]: firstUncompleted,
+                  },
                   completedSets: updatedCompletedSets,
                   weightAndReps: updatedWeightAndReps,
                 };
@@ -513,9 +533,21 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                 totalSets;
 
             if (!isExerciseCompleted) {
+              const nextExCompleted =
+                updatedCompletedSets[nextExerciseIndex] || {};
+              let firstUncompleted = 0;
+              for (let s = 0; s < totalSets; s++) {
+                if (!nextExCompleted[s]) {
+                  firstUncompleted = s;
+                  break;
+                }
+              }
               return {
                 currentExerciseIndex: nextExerciseIndex,
-                currentSetIndices: updatedSetIndices,
+                currentSetIndices: {
+                  ...updatedSetIndices,
+                  [nextExerciseIndex]: firstUncompleted,
+                },
                 completedSets: updatedCompletedSets,
               };
             }
