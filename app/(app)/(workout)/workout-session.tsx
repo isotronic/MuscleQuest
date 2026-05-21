@@ -35,8 +35,8 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withSpring,
-  runOnJS,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 // Reanimated 4: Animated.View types don't include children in strict TS
@@ -861,7 +861,7 @@ export default function WorkoutSessionScreen() {
       if (finished) {
         offsetX.value = 0;
         activeSlot.value = (activeSlot.value + 2) % 3; // -1 mod 3
-        runOnJS(onSwipePrevCommit)();
+        scheduleOnRN(onSwipePrevCommit);
       }
     });
   };
@@ -875,7 +875,7 @@ export default function WorkoutSessionScreen() {
       if (finished) {
         offsetX.value = 0;
         activeSlot.value = (activeSlot.value + 1) % 3;
-        runOnJS(onSwipeNextCommit)();
+        scheduleOnRN(onSwipeNextCommit);
       }
     });
   };
@@ -1116,7 +1116,7 @@ export default function WorkoutSessionScreen() {
           // if Reanimated fires finished=false (e.g. an animation edge case that
           // would otherwise leave outgoingSnapshot set with the live panel
           // hidden behind completionIncomingX = SCREEN_WIDTH).
-          runOnJS(afterAnimation)();
+          scheduleOnRN(afterAnimation);
           if (!finished) {
             completionIncomingX.value = 0;
           }
@@ -1169,7 +1169,7 @@ export default function WorkoutSessionScreen() {
             if (finished) {
               offsetX.value = 0;
               activeSlot.value = (activeSlot.value + 2) % 3;
-              runOnJS(onSwipePrevCommit)();
+              scheduleOnRN(onSwipePrevCommit);
             }
           },
         );
@@ -1187,7 +1187,7 @@ export default function WorkoutSessionScreen() {
             if (finished) {
               offsetX.value = 0;
               activeSlot.value = (activeSlot.value + 1) % 3;
-              runOnJS(onSwipeNextCommit)();
+              scheduleOnRN(onSwipeNextCommit);
             }
           },
         );
