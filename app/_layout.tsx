@@ -58,6 +58,8 @@ import { setupNotificationChannel } from "@/utils/notificationSetup";
 import { rescheduleWorkoutReminders } from "@/utils/workoutReminder";
 import { setupAppCheck } from "@/utils/initAppCheck";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { I18nProvider } from "@lingui/react";
+import { i18n } from "@/utils/i18n";
 
 const manifest = Updates.manifest as
   | (Updates.Manifest & {
@@ -215,8 +217,10 @@ function RootLayout() {
 
 export default function App() {
   return (
-    <ErrorBoundary FallbackComponent={ErrorView}>
-      <RootLayout />
-    </ErrorBoundary>
+    <I18nProvider i18n={i18n}>
+      <ErrorBoundary FallbackComponent={ErrorView}>
+        <RootLayout />
+      </ErrorBoundary>
+    </I18nProvider>
   );
 }
