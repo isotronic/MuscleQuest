@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { CompletedWorkout } from "./useCompletedWorkoutsQuery";
 import { TrackedExerciseWithSets } from "./useTrackedExercisesQuery";
 import { Exercise } from "@/utils/database";
-import { capitalizeWords } from "@/utils/utility";
 
 interface StatsInsights {
   workoutsPerWeek: number | null;
@@ -88,7 +87,7 @@ export const useStatsInsights = (
       });
 
       const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
-      if (top) topBodyPart = capitalizeWords(top[0]);
+      if (top) topBodyPart = top[0];
     }
 
     return { workoutsPerWeek, biggestGainLabel, biggestGainValue, topBodyPart };

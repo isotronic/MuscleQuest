@@ -3,6 +3,9 @@ import { Pressable, ScrollView, View, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
+import { bodyPartTranslations } from "@/constants/dbTranslations";
+import { capitalizeWords } from "@/utils/utility";
 
 interface InsightPill {
   label: string;
@@ -26,6 +29,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
   topBodyPart,
   streak,
 }) => {
+  const { _ } = useLingui();
   const [tooltipText, setTooltipText] = useState<string | null>(null);
   const [tooltipLeft, setTooltipLeft] = useState(0);
   const [tooltipHalfWidth, setTooltipHalfWidth] = useState(0);
@@ -76,7 +80,10 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
     });
   }
   if (topBodyPart) {
-    pills.push({ label: t`Most trained`, value: topBodyPart });
+    const translatedBodyPart = bodyPartTranslations[topBodyPart]
+      ? _(bodyPartTranslations[topBodyPart])
+      : capitalizeWords(topBodyPart);
+    pills.push({ label: t`Most trained`, value: translatedBodyPart });
   }
   if (streak != null && streak > 0) {
     pills.push({ label: t`Week streak`, value: `${streak} 🔥` });

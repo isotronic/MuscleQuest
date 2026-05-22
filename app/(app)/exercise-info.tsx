@@ -26,6 +26,12 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Notes } from "@/components/Notes";
 import { useState } from "react";
 import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
+import {
+  muscleTranslations,
+  equipmentTranslations,
+} from "@/constants/dbTranslations";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -57,6 +63,7 @@ export default function ExerciseInfoScreen() {
   } = useExerciseHistoryQuery(Number(exercise_id));
 
   const { data: settings } = useSettingsQuery();
+  const { _ } = useLingui();
   const weightUnit = settings?.weightUnit ?? "kg";
   const bwUnitMultiplier = weightUnit === "lbs" ? 2.2046226 : 1;
   // Fallback body weight in user's unit, used only when no historical measurement exists.
@@ -191,7 +198,10 @@ export default function ExerciseInfoScreen() {
                 style={styles.icon}
               />
               <ThemedText style={styles.infoText}>
-                <Trans>Target muscle: {exerciseData.target_muscle}</Trans>
+                {t`Target muscle:`}{" "}
+                {muscleTranslations[exerciseData.target_muscle]
+                  ? _(muscleTranslations[exerciseData.target_muscle])
+                  : exerciseData.target_muscle}
               </ThemedText>
             </View>
 
@@ -203,9 +213,12 @@ export default function ExerciseInfoScreen() {
                   style={styles.icon}
                 />
                 <ThemedText style={styles.infoText}>
-                  <Trans>
-                    Secondary muscles: {secondaryMuscles.join(", ")}
-                  </Trans>
+                  {t`Secondary muscles:`}{" "}
+                  {secondaryMuscles
+                    .map((m) =>
+                      muscleTranslations[m] ? _(muscleTranslations[m]) : m,
+                    )
+                    .join(", ")}
                 </ThemedText>
               </View>
             )}
@@ -217,7 +230,10 @@ export default function ExerciseInfoScreen() {
                 style={styles.icon}
               />
               <ThemedText style={styles.infoText}>
-                <Trans>Equipment: {exerciseData.equipment}</Trans>
+                {t`Equipment:`}{" "}
+                {equipmentTranslations[exerciseData.equipment]
+                  ? _(equipmentTranslations[exerciseData.equipment])
+                  : exerciseData.equipment}
               </ThemedText>
             </View>
 

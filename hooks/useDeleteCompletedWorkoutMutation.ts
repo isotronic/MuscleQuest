@@ -3,6 +3,7 @@ import { Alert } from "react-native";
 import { router } from "expo-router";
 import { deleteCompletedWorkout } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
+import { t } from "@lingui/core/macro";
 
 export const useDeleteCompletedWorkoutMutation = () => {
   const queryClient = useQueryClient();
@@ -16,7 +17,7 @@ export const useDeleteCompletedWorkoutMutation = () => {
     onError: (error: any) => {
       console.error("Error deleting workout:", error);
       Bugsnag.notify(error);
-      Alert.alert("Error", "Failed to delete the workout. Please try again.");
+      Alert.alert(t`Error`, t`Failed to delete the workout. Please try again.`);
     },
   });
 };
