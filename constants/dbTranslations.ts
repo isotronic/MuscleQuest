@@ -2,11 +2,14 @@ import { msg } from "@lingui/core/macro";
 import type { MessageDescriptor } from "@lingui/core";
 
 export const bodyPartTranslations: Record<string, MessageDescriptor> = {
+  arms: msg`arms`,
   back: msg`back`,
   cardio: msg`cardio`,
   chest: msg`chest`,
+  legs: msg`legs`,
   "lower arms": msg`lower arms`,
   "lower legs": msg`lower legs`,
+  neck: msg`neck`,
   shoulders: msg`shoulders`,
   "upper arms": msg`upper arms`,
   "upper legs": msg`upper legs`,
