@@ -2,6 +2,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { format } from "date-fns";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Colors } from "@/constants/Colors";
+import { t } from "@lingui/core/macro";
 
 interface WorkoutCardProps {
   workout: CompletedWorkout;
@@ -51,10 +52,10 @@ export default function WorkoutHistoryCard({
         <Text style={styles.date}>{dateLabel}</Text>
         <View style={styles.chips}>
           <View style={styles.chip}>
-            <Text style={styles.chipText}>{durationMin} min</Text>
+            <Text style={styles.chipText}>{t`${durationMin} min`}</Text>
           </View>
           <View style={styles.chip}>
-            <Text style={styles.chipText}>{setsCount} sets</Text>
+            <Text style={styles.chipText}>{t`${setsCount} sets`}</Text>
           </View>
         </View>
       </View>

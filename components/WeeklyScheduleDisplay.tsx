@@ -3,9 +3,21 @@ import { View, StyleSheet, Text } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { PlanScheduleEntry } from "@/utils/database";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Trans } from "@lingui/react/macro";
+import { t, msg } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
+
+const DAY_LABELS = [
+  msg`Mon`,
+  msg`Tue`,
+  msg`Wed`,
+  msg`Thu`,
+  msg`Fri`,
+  msg`Sat`,
+  msg`Sun`,
+];
 
 interface WorkoutRef {
   id?: number | null;
@@ -21,6 +33,25 @@ export default function WeeklyScheduleDisplay({
   workouts,
   scheduleEntries,
 }: Props) {
+  const { _ } = useLingui();
+  const scheduleMap = useMemo(() => {
+    const workoutById = new Map(
+      workouts
+        .filter(
+          (w): w is WorkoutRef & { id: number } => typeof w.id === "number",
+        )
+        .map((w) => [w.id, w]),
+    );
+    const sMap: Record<number, string> = {};
+    for (const entry of scheduleEntries) {
+      const workout = workoutById.get(entry.workout_id);
+      sMap[entry.day_of_week] = workout?.name || t`Workout`;
+    }
+    return sMap;
+  }, [workouts, scheduleEntries]);
+
+  const scheduledCount = scheduleEntries.length;
+
   if (scheduleEntries.length === 0) {
     return (
       <View style={styles.emptyContainer}>
@@ -30,33 +61,22 @@ export default function WeeklyScheduleDisplay({
           color={Colors.dark.icon}
           style={styles.emptyIcon}
         />
-        <ThemedText style={styles.emptyText}>No schedule set</ThemedText>
+        <ThemedText style={styles.emptyText}>
+          <Trans>No schedule set</Trans>
+        </ThemedText>
       </View>
     );
   }
 
-  const scheduleMap = useMemo(() => {
-    const workoutById = new Map(
-      workouts
-        .filter((w): w is WorkoutRef & { id: number } => typeof w.id === "number")
-        .map((w) => [w.id, w]),
-    );
-    const sMap: Record<number, string> = {};
-    for (const entry of scheduleEntries) {
-      const workout = workoutById.get(entry.workout_id);
-      sMap[entry.day_of_week] = workout?.name || "Workout";
-    }
-    return sMap;
-  }, [workouts, scheduleEntries]);
-
-  const scheduledCount = scheduleEntries.length;
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ThemedText style={styles.title}>Weekly Schedule</ThemedText>
+        <ThemedText style={styles.title}>
+          <Trans>Weekly Schedule</Trans>
+        </ThemedText>
         <ThemedText style={styles.summary}>
-          {scheduledCount} day{scheduledCount !== 1 ? "s" : ""}/week
+          {scheduledCount}{" "}
+          <Trans>day{scheduledCount !== 1 ? "s" : ""}/week</Trans>
         </ThemedText>
       </View>
       <View style={styles.grid}>
@@ -68,7 +88,7 @@ export default function WeeklyScheduleDisplay({
               <ThemedText
                 style={[styles.dayLabel, hasWorkout && styles.dayLabelActive]}
               >
-                {label}
+                {_(label)}
               </ThemedText>
               <View
                 style={[styles.dayTile, hasWorkout && styles.dayTileActive]}
@@ -80,7 +100,7 @@ export default function WeeklyScheduleDisplay({
                   ]}
                   numberOfLines={2}
                 >
-                  {hasWorkout ? workoutName : "Rest"}
+                  {hasWorkout ? workoutName : t`Rest`}
                 </Text>
               </View>
             </View>

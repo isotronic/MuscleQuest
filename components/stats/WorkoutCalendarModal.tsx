@@ -13,6 +13,8 @@ import { ThemedText } from "@/components/ThemedText";
 import WorkoutHistoryCard from "@/components/WorkoutHistoryCard";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Colors } from "@/constants/Colors";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 
 interface WorkoutCalendarModalProps {
   visible: boolean;
@@ -109,7 +111,9 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
         theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
       >
         <View style={styles.header}>
-          <ThemedText style={styles.title}>Workout Calendar</ThemedText>
+          <ThemedText style={styles.title}>
+            <Trans>Workout Calendar</Trans>
+          </ThemedText>
           <IconButton
             icon="close"
             size={20}
@@ -163,8 +167,8 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
               {workoutsForSelectedDate.length === 0 ? (
                 <ThemedText style={styles.emptyText}>
                   {selectedDate
-                    ? "No workouts on this day."
-                    : "Select a day to see workouts."}
+                    ? t`No workouts on this day.`
+                    : t`Select a day to see workouts.`}
                 </ThemedText>
               ) : (
                 workoutsForSelectedDate.map((workout) => (

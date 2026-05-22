@@ -6,16 +6,27 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { Workout } from "@/store/workoutStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Trans } from "@lingui/react/macro";
+import { t, msg } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
-const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DAY_LABELS = [
+  msg`Mon`,
+  msg`Tue`,
+  msg`Wed`,
+  msg`Thu`,
+  msg`Fri`,
+  msg`Sat`,
+  msg`Sun`,
+];
 const DAY_FULL_NAMES = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
+  msg`Monday`,
+  msg`Tuesday`,
+  msg`Wednesday`,
+  msg`Thursday`,
+  msg`Friday`,
+  msg`Saturday`,
+  msg`Sunday`,
 ];
 
 interface Props {
@@ -32,6 +43,7 @@ export default function PlanScheduleEditor({
   schedule,
   onChange,
 }: Props) {
+  const { _ } = useLingui();
   const disabled = workouts.length === 0;
   const [pickerDow, setPickerDow] = useState<number | null>(null);
 
@@ -63,10 +75,11 @@ export default function PlanScheduleEditor({
     <ThemedView style={styles.container}>
       <View style={styles.header}>
         <ThemedText type="subtitle" style={styles.title}>
-          Weekly Schedule
+          <Trans>Weekly Schedule</Trans>
         </ThemedText>
         <ThemedText style={styles.summary}>
-          {scheduledDays} day{scheduledDays !== 1 ? "s" : ""}/week
+          {scheduledDays}{" "}
+          <Trans>day{scheduledDays !== 1 ? "s" : ""}/week</Trans>
         </ThemedText>
       </View>
 
@@ -76,14 +89,14 @@ export default function PlanScheduleEditor({
           const hasWorkout = workoutIdx !== undefined;
           const workoutName = hasWorkout
             ? workouts[workoutIdx]?.name || `W${workoutIdx + 1}`
-            : "Rest";
+            : t`Rest`;
 
           return (
             <View key={dow} style={styles.tileWrapper}>
               <ThemedText
                 style={[styles.dayLabel, hasWorkout && styles.dayLabelActive]}
               >
-                {label}
+                {_(label)}
               </ThemedText>
               <Pressable
                 style={[
@@ -119,7 +132,7 @@ export default function PlanScheduleEditor({
         >
           <View style={styles.modalTitleContainer}>
             <ThemedText style={styles.modalTitle}>
-              {pickerDow !== null ? DAY_FULL_NAMES[pickerDow] : ""}
+              {pickerDow !== null ? _(DAY_FULL_NAMES[pickerDow]) : ""}
             </ThemedText>
           </View>
           <ScrollView>
@@ -141,7 +154,7 @@ export default function PlanScheduleEditor({
                   }}
                 >
                   <Text style={styles.pickerItemText}>
-                    {w.name || `Workout ${idx + 1}`}
+                    {w.name || t`Workout ${idx + 1}`}
                   </Text>
                   {isSelected && (
                     <MaterialCommunityIcons
@@ -170,7 +183,7 @@ export default function PlanScheduleEditor({
                 setPickerDow(null);
               }}
             >
-              <Text style={styles.pickerItemText}>Rest</Text>
+              <Text style={styles.pickerItemText}>{t`Rest`}</Text>
               {pickerDow !== null && schedule[pickerDow] === undefined && (
                 <MaterialCommunityIcons
                   name="check"
@@ -191,7 +204,7 @@ export default function PlanScheduleEditor({
         labelStyle={styles.autoButtonLabel}
         textColor={Colors.dark.tint}
       >
-        Auto-suggest ({weeklyGoal} days)
+        <Trans>Auto-suggest ({weeklyGoal} days)</Trans>
       </Button>
     </ThemedView>
   );

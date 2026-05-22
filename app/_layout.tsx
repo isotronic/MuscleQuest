@@ -59,6 +59,7 @@ import { rescheduleWorkoutReminders } from "@/utils/workoutReminder";
 import { setupAppCheck } from "@/utils/initAppCheck";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { I18nProvider } from "@lingui/react";
+import { Trans } from "@lingui/react/macro";
 import { i18n } from "@/utils/i18n";
 
 const manifest = Updates.manifest as
@@ -84,10 +85,10 @@ const ErrorView = ({ clearError }: { clearError: () => void }) => {
       style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
     >
       <ThemedText>
-        A render error has occurred. Press the button to reload.
+        <Trans>A render error has occurred. Press the button to reload.</Trans>
       </ThemedText>
       <Button onPress={clearError} mode="contained">
-        Reload
+        <Trans>Reload</Trans>
       </Button>
     </ThemedView>
   );
@@ -191,7 +192,9 @@ function RootLayout() {
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
         <ActivityIndicator size="large" />
-        <ThemedText>Loading data, please wait...</ThemedText>
+        <ThemedText>
+          <Trans>Loading data, please wait...</Trans>
+        </ThemedText>
       </ThemedView>
     );
   }

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
 import Svg, { Circle, Text as SvgText } from "react-native-svg";
+import { Trans } from "@lingui/react/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { formatFromTotalSeconds } from "@/utils/utility";
@@ -146,11 +147,15 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
     >
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <ThemedText style={styles.title}>Exercise Timer</ThemedText>
+          <ThemedText style={styles.title}>
+            <Trans>Exercise Timer</Trans>
+          </ThemedText>
 
           {phase === "countdown" ? (
             <>
-              <ThemedText style={styles.getReadyText}>Get Ready...</ThemedText>
+              <ThemedText style={styles.getReadyText}>
+                <Trans>Get Ready...</Trans>
+              </ThemedText>
               <ThemedText style={styles.countdownText}>{countdown}</ThemedText>
             </>
           ) : (
@@ -204,13 +209,17 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
                     isVisuallyComplete && styles.goalTextReached,
                   ]}
                 >
-                  Goal: {goalLabel}
-                  {isVisuallyComplete ? " ✓" : ""}
+                  <Trans>
+                    Goal: {goalLabel}
+                    {isVisuallyComplete ? " ✓" : ""}
+                  </Trans>
                 </ThemedText>
               )}
 
               <TouchableOpacity style={styles.stopButton} onPress={handleStop}>
-                <ThemedText style={styles.stopButtonText}>Stop</ThemedText>
+                <ThemedText style={styles.stopButtonText}>
+                  <Trans>Stop</Trans>
+                </ThemedText>
               </TouchableOpacity>
             </>
           )}

@@ -4,6 +4,7 @@ import { Modal, Portal, Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { useAppUpdates } from "@/hooks/useAppUpdates";
+import { t } from "@lingui/core/macro";
 
 export const UpdateModal = () => {
   const { status, errorMessage, reloadApp, dismissError } = useAppUpdates();
@@ -17,25 +18,24 @@ export const UpdateModal = () => {
     switch (status) {
       case "downloading":
         return {
-          title: "⬇️ Downloading Update",
-          message: "Please wait while we download the latest version...",
+          title: t`⬇️ Downloading Update`,
+          message: t`Please wait while we download the latest version...`,
           showButton: false,
         };
       case "ready":
         return {
-          title: "✨ Update Ready!",
-          message:
-            "A new version has been downloaded. Tap the button below to restart and apply the update.",
+          title: t`✨ Update Ready!`,
+          message: t`A new version has been downloaded. Tap the button below to restart and apply the update.`,
           showButton: true,
         };
       case "error":
         return {
-          title: "⚠️ Update Failed",
+          title: t`⚠️ Update Failed`,
           message:
             errorMessage ||
-            "Unable to check for updates. The app will continue to work normally.",
+            t`Unable to check for updates. The app will continue to work normally.`,
           showButton: true,
-          buttonText: "Dismiss",
+          buttonText: t`Dismiss`,
         };
       default: {
         // Ensure this switch stays exhaustive if new statuses are added
@@ -74,7 +74,7 @@ export const UpdateModal = () => {
               onPress={status === "error" ? dismissError : reloadApp}
               style={styles.button}
             >
-              {"buttonText" in content ? content.buttonText : "Restart App"}
+              {"buttonText" in content ? content.buttonText : t`Restart App`}
             </Button>
           )}
         </View>

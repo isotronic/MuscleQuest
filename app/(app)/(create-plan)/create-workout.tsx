@@ -7,6 +7,8 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
@@ -77,11 +79,11 @@ export default function CreateWorkoutScreen() {
 
       if (hasDraft) {
         Alert.alert(
-          "Continue Editing?",
-          "You have unsaved changes from your last session. Would you like to continue?",
+          t`Continue Editing?`,
+          t`You have unsaved changes from your last session. Would you like to continue?`,
           [
             {
-              text: "Discard Changes",
+              text: t`Discard Changes`,
               style: "destructive",
               onPress: () => {
                 clearDraftEntry(draftKey);
@@ -90,7 +92,7 @@ export default function CreateWorkoutScreen() {
               },
             },
             {
-              text: "Continue",
+              text: t`Continue`,
               onPress: () => {
                 setWorkouts(draft.workouts);
                 initializedWorkoutId.current = existingWorkoutId ?? null;
@@ -165,12 +167,12 @@ export default function CreateWorkoutScreen() {
       }
 
       Alert.alert(
-        "Discard Changes?",
-        "You have unsaved changes. Are you sure you want to discard them?",
+        t`Discard Changes?`,
+        t`You have unsaved changes. Are you sure you want to discard them?`,
         [
-          { text: "Cancel", style: "cancel" },
+          { text: t`Cancel`, style: "cancel" },
           {
-            text: "Discard",
+            text: t`Discard`,
             style: "destructive",
             onPress: () => {
               clearDraftEntry(draftKey);
@@ -241,7 +243,7 @@ export default function CreateWorkoutScreen() {
       )}
       <Stack.Screen
         options={{
-          title: existingWorkoutId ? "Edit Workout" : "Create Workout",
+          title: existingWorkoutId ? t`Edit Workout` : t`Create Workout`,
           headerRight: () => (
             <Button
               mode="text"
@@ -250,7 +252,7 @@ export default function CreateWorkoutScreen() {
               disabled={saveDisabled}
               onPress={handleSave}
             >
-              Save
+              <Trans>Save</Trans>
             </Button>
           ),
         }}

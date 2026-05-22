@@ -6,6 +6,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import { Trans } from "@lingui/react/macro";
+import { t, plural } from "@lingui/core/macro";
 
 interface Props {
   workoutsThisWeek: CompletedWorkout[];
@@ -155,18 +157,18 @@ function formatAchievement(a: BestAchievement): {
   const pctStr = `+${pct}%`;
   if (a.trackingType === "reps") {
     return {
-      label: "Rep PR",
+      label: t`Rep PR`,
       value: `${a.exerciseName}: ${Math.round(a.thisWeekBest)} reps (+${Math.round(a.delta)}, ${pctStr})`,
     };
   }
   if (a.trackingType === "time") {
     return {
-      label: "Time PR",
+      label: t`Time PR`,
       value: `${a.exerciseName}: ${Math.round(a.thisWeekBest)}s (+${Math.round(a.delta)}s, ${pctStr})`,
     };
   }
   return {
-    label: "1RM",
+    label: t`1RM`,
     value: `${a.exerciseName}: ${a.thisWeekBest.toFixed(1)}${unit} (+${a.delta.toFixed(1)}${unit}, ${pctStr})`,
   };
 }
@@ -246,7 +248,7 @@ export default function WeeklySummaryCard({
           color={Colors.dark.tint}
         />
         <ThemedText type="subtitle" style={styles.title}>
-          Weekly Goal Complete!
+          <Trans>Weekly Goal Complete!</Trans>
         </ThemedText>
       </View>
 
@@ -259,7 +261,9 @@ export default function WeeklySummaryCard({
             size={16}
             color={Colors.dark.icon}
           />
-          <ThemedText style={styles.statLabel}>Workouts</ThemedText>
+          <ThemedText style={styles.statLabel}>
+            <Trans>Workouts</Trans>
+          </ThemedText>
           <ThemedText style={styles.statValue}>
             {workoutsThisWeek.length} / {weeklyGoal}
           </ThemedText>
@@ -271,7 +275,9 @@ export default function WeeklySummaryCard({
             size={16}
             color={Colors.dark.icon}
           />
-          <ThemedText style={styles.statLabel}>Volume</ThemedText>
+          <ThemedText style={styles.statLabel}>
+            <Trans>Volume</Trans>
+          </ThemedText>
           <ThemedText style={styles.statValue}>{volumeLabel}</ThemedText>
         </View>
 
@@ -281,7 +287,9 @@ export default function WeeklySummaryCard({
             size={16}
             color={Colors.dark.icon}
           />
-          <ThemedText style={styles.statLabel}>Time</ThemedText>
+          <ThemedText style={styles.statLabel}>
+            <Trans>Time</Trans>
+          </ThemedText>
           <ThemedText style={styles.statValue}>
             {formatDuration(totalDuration)}
           </ThemedText>
@@ -310,9 +318,14 @@ export default function WeeklySummaryCard({
               size={16}
               color={Colors.dark.tint}
             />
-            <ThemedText style={styles.statLabel}>Streak</ThemedText>
+            <ThemedText style={styles.statLabel}>
+              <Trans>Streak</Trans>
+            </ThemedText>
             <ThemedText style={[styles.statValue, styles.streakValue]}>
-              {streak} {streak === 1 ? "week" : "weeks"} in a row
+              <Trans>
+                {streak} {plural(streak, { one: "week", other: "weeks" })} in a
+                row
+              </Trans>
             </ThemedText>
           </View>
         )}

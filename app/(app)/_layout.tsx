@@ -2,6 +2,7 @@ import { Colors } from "@/constants/Colors";
 import { Redirect, Stack } from "expo-router";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { ThemedView } from "@/components/ThemedView";
+import { t } from "@lingui/core/macro";
 
 export default function AppLayout() {
   const { data: settings, isLoading: settingsLoading } = useSettingsQuery();
@@ -28,12 +29,15 @@ export default function AppLayout() {
       <Stack.Screen name="(workout)" options={{ headerShown: false }} />
       <Stack.Screen
         name="workout-details"
-        options={{ title: "Workout Details" }}
+        options={{ title: t`Workout Details` }}
       />
-      <Stack.Screen name="exercise-info" options={{ title: "Exercise Info" }} />
+      <Stack.Screen
+        name="exercise-info"
+        options={{ title: t`Exercise Info` }}
+      />
       <Stack.Screen name="custom-exercise" />
-      <Stack.Screen name="settings" options={{ title: "Settings" }} />
-      <Stack.Screen name="help" options={{ title: "Help & Info" }} />
+      <Stack.Screen name="settings" options={{ title: t`Settings` }} />
+      <Stack.Screen name="help" options={{ title: t`Help & Info` }} />
       <Stack.Screen name="+not-found" />
     </Stack>
   );

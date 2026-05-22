@@ -9,6 +9,8 @@ import {
   TrackedExerciseWithSets,
   CompletedSet,
 } from "@/hooks/useTrackedExercisesQuery";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 
 interface ExerciseProgressionChartProps {
   exercise: TrackedExerciseWithSets;
@@ -260,12 +262,14 @@ export const ExerciseProgressionChart: React.FC<
       exercise.tracking_type === null ||
       exercise.tracking_type === "weight" ||
       exercise.tracking_type === "assisted";
-    const rawBaseline = preRangeBaseline != null
-      ? isWeightTypePre
-        ? preRangeBaseline * conversionFactor
-        : preRangeBaseline
-      : undefined;
-    const baselineValue = rawBaseline != null && rawBaseline > 0 ? rawBaseline : undefined;
+    const rawBaseline =
+      preRangeBaseline != null
+        ? isWeightTypePre
+          ? preRangeBaseline * conversionFactor
+          : preRangeBaseline
+        : undefined;
+    const baselineValue =
+      rawBaseline != null && rawBaseline > 0 ? rawBaseline : undefined;
     for (let i = 0; i < buckets.length; i++) {
       if (buckets[i].value === null && baselineValue !== undefined) {
         buckets[i] = { ...buckets[i], value: baselineValue };
@@ -323,12 +327,12 @@ export const ExerciseProgressionChart: React.FC<
 
   const metricLabel =
     exercise.tracking_type === "time"
-      ? "Time (s)"
+      ? t`Time (s)`
       : exercise.tracking_type === "reps"
-        ? "Reps"
+        ? t`Reps`
         : exercise.tracking_type === "distance"
-          ? `Distance (${distanceUnit})`
-          : `1RM (${weightUnitLabel})`;
+          ? t`Distance (${distanceUnit})`
+          : t`1RM (${weightUnitLabel})`;
 
   const latestMetric =
     exercise.tracking_type === "reps"
@@ -364,16 +368,18 @@ export const ExerciseProgressionChart: React.FC<
         {latestSet && (
           <>
             <ThemedText style={styles.latestMetric}>
-              Latest {metricLabel}:{" "}
-              {latestMetric !== undefined ? latestMetric.toFixed(1) : "N/A"}
+              <Trans>
+                Latest {metricLabel}:{" "}
+                {latestMetric !== undefined ? latestMetric.toFixed(1) : t`N/A`}
+              </Trans>
             </ThemedText>
 
             <ThemedText style={styles.additionalInfo}>
               {latestWeight !== undefined &&
                 `${latestWeight.toFixed(1)}${weightUnitLabel} `}
-              {exercise.tracking_type === "assisted" && "assistance "}
-              {latestSet.reps !== undefined && `x ${latestSet.reps} reps `}
-              {latestSet.time !== undefined && `for ${latestSet.time}s `}(
+              {exercise.tracking_type === "assisted" && t`assistance `}
+              {latestSet.reps !== undefined && t`x ${latestSet.reps} reps `}
+              {latestSet.time !== undefined && t`for ${latestSet.time}s `}(
               {new Date(latestSet.date_completed).toLocaleDateString()})
             </ThemedText>
           </>

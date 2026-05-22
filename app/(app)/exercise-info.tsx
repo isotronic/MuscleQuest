@@ -25,6 +25,7 @@ import Bugsnag from "@bugsnag/expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Notes } from "@/components/Notes";
 import { useState } from "react";
+import { Trans } from "@lingui/react/macro";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -104,7 +105,7 @@ export default function ExerciseInfoScreen() {
     return (
       <View style={styles.centered}>
         <ThemedText style={styles.errorText}>
-          Error loading exercise details
+          <Trans>Error loading exercise details</Trans>
         </ThemedText>
       </View>
     );
@@ -170,7 +171,7 @@ export default function ExerciseInfoScreen() {
               <ThemedText
                 style={[styles.tabLabel, active && styles.tabLabelActive]}
               >
-                {tab === "info" ? "Info" : "History"}
+                {tab === "info" ? <Trans>Info</Trans> : <Trans>History</Trans>}
               </ThemedText>
             </TouchableOpacity>
           );
@@ -190,7 +191,7 @@ export default function ExerciseInfoScreen() {
                 style={styles.icon}
               />
               <ThemedText style={styles.infoText}>
-                Target muscle: {exerciseData.target_muscle}
+                <Trans>Target muscle: {exerciseData.target_muscle}</Trans>
               </ThemedText>
             </View>
 
@@ -202,7 +203,9 @@ export default function ExerciseInfoScreen() {
                   style={styles.icon}
                 />
                 <ThemedText style={styles.infoText}>
-                  Secondary muscles: {secondaryMuscles.join(", ")}
+                  <Trans>
+                    Secondary muscles: {secondaryMuscles.join(", ")}
+                  </Trans>
                 </ThemedText>
               </View>
             )}
@@ -214,7 +217,7 @@ export default function ExerciseInfoScreen() {
                 style={styles.icon}
               />
               <ThemedText style={styles.infoText}>
-                Equipment: {exerciseData.equipment}
+                <Trans>Equipment: {exerciseData.equipment}</Trans>
               </ThemedText>
             </View>
 
@@ -226,7 +229,7 @@ export default function ExerciseInfoScreen() {
                   style={styles.icon}
                 />
                 <ThemedText style={styles.infoText}>
-                  Single-arm / single-leg
+                  <Trans>Single-arm / single-leg</Trans>
                 </ThemedText>
               </View>
             )}
@@ -239,7 +242,7 @@ export default function ExerciseInfoScreen() {
                   style={styles.icon}
                 />
                 <ThemedText style={styles.infoText}>
-                  Paired implements
+                  <Trans>Paired implements</Trans>
                 </ThemedText>
               </View>
             )}
@@ -247,7 +250,7 @@ export default function ExerciseInfoScreen() {
             {description.length > 0 && (
               <View>
                 <ThemedText style={styles.sectionTitle}>
-                  Description:
+                  <Trans>Description:</Trans>
                 </ThemedText>
                 <ThemedText style={styles.descriptionText}>
                   {description.join("\n")}
@@ -269,7 +272,7 @@ export default function ExerciseInfoScreen() {
                   });
                 }}
               >
-                Edit Exercise
+                <Trans>Edit Exercise</Trans>
               </Button>
             )}
           </View>
@@ -296,7 +299,7 @@ export default function ExerciseInfoScreen() {
             <View style={[styles.setRow, item.is_pr && styles.setRowPR]}>
               <View style={styles.setBadge}>
                 <ThemedText style={styles.setBadgeText}>
-                  Set {item.set_number}
+                  <Trans>Set {item.set_number}</Trans>
                 </ThemedText>
               </View>
               {item.is_pr && (
@@ -338,7 +341,7 @@ export default function ExerciseInfoScreen() {
                   color={Colors.dark.subText}
                 />
                 <ThemedText style={styles.emptyText}>
-                  Failed to load history
+                  <Trans>Failed to load history</Trans>
                 </ThemedText>
               </View>
             ) : (
@@ -348,9 +351,11 @@ export default function ExerciseInfoScreen() {
                   size={48}
                   color={Colors.dark.subText}
                 />
-                <ThemedText style={styles.emptyText}>No history yet</ThemedText>
+                <ThemedText style={styles.emptyText}>
+                  <Trans>No history yet</Trans>
+                </ThemedText>
                 <ThemedText style={styles.emptySubText}>
-                  Completed sets will appear here
+                  <Trans>Completed sets will appear here</Trans>
                 </ThemedText>
               </View>
             )

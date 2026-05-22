@@ -10,6 +10,8 @@ import {
 import { useLocalSearchParams, router } from "expo-router";
 import { Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Trans } from "@lingui/react/macro";
+import { t, plural } from "@lingui/core/macro";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -180,11 +182,11 @@ function getBestSetLabel(
   if (exercise.sets.length === 0) return "";
   if (exercise.exercise_tracking_type === "time") {
     const maxTime = Math.max(...exercise.sets.map((s) => s.time ?? 0));
-    return `best ${maxTime}s`;
+    return t`best ${maxTime}s`;
   }
   if (exercise.exercise_tracking_type === "distance") {
     const maxDist = Math.max(...exercise.sets.map((s) => s.distance ?? 0));
-    return maxDist > 0 ? `best ${maxDist}${distanceUnit}` : "";
+    return maxDist > 0 ? t`best ${maxDist}${distanceUnit}` : "";
   }
   const best = exercise.sets.reduce((b, s) => {
     const vol = (s.weight ?? 0) * (s.reps ?? 0);
@@ -192,9 +194,9 @@ function getBestSetLabel(
     return vol > bVol ? s : b;
   }, exercise.sets[0]);
   if (best.weight != null && best.weight > 0 && best.reps != null) {
-    return `best ${best.weight}${weightUnit} × ${best.reps}`;
+    return t`best ${best.weight}${weightUnit} × ${best.reps}`;
   }
-  if (best.reps != null) return `best ${best.reps} reps`;
+  if (best.reps != null) return t`best ${best.reps} reps`;
   return "";
 }
 
@@ -204,14 +206,14 @@ function formatSetValue(
   weightUnit: string,
   distanceUnit: string,
 ): string {
-  if (trackingType === "time") return `${set.time ?? 0}s`;
+  if (trackingType === "time") return t`${set.time ?? 0}s`;
   if (trackingType === "distance") {
-    return set.distance != null ? `${set.distance}${distanceUnit}` : "—";
+    return set.distance != null ? t`${set.distance}${distanceUnit}` : "—";
   }
   if (set.weight != null && set.reps != null) {
-    return `${set.weight}${weightUnit} × ${set.reps}`;
+    return t`${set.weight}${weightUnit} × ${set.reps}`;
   }
-  if (set.reps != null) return `${set.reps} reps`;
+  if (set.reps != null) return t`${set.reps} reps`;
   return "—";
 }
 
@@ -296,7 +298,7 @@ function ExerciseRow({
             {exercise.exercise_name}
           </ThemedText>
           <ThemedText style={styles.exerciseMeta}>
-            {exercise.sets.length} {exercise.sets.length === 1 ? "set" : "sets"}
+            {plural(exercise.sets.length, { one: "# set", other: "# sets" })}
             {bestLabel ? ` · ${bestLabel}` : ""}
           </ThemedText>
         </View>
@@ -311,7 +313,7 @@ function ExerciseRow({
           {exercise.sets.map((set) => (
             <View key={set.set_id} style={styles.setRow}>
               <ThemedText style={styles.setNumber}>
-                Set {set.set_number}
+                <Trans>Set {set.set_number}</Trans>
               </ThemedText>
               <ThemedText style={styles.setValue}>
                 {formatSetValue(
@@ -334,13 +336,13 @@ function ExerciseRow({
 function getGoalMessage(completed: number, goal: number): string {
   if (completed >= goal) {
     return completed > goal
-      ? `${completed} workouts this week. You've smashed your goal!`
-      : "You've hit your weekly goal. Incredible work!";
+      ? t`${completed} workouts this week. You've smashed your goal!`
+      : t`You've hit your weekly goal. Incredible work!`;
   }
   const remaining = goal - completed;
-  if (completed === 1) return "Great start to the week!";
-  if (remaining === 1) return "One more workout to hit your goal!";
-  return "Keep the momentum going!";
+  if (completed === 1) return t`Great start to the week!`;
+  if (remaining === 1) return t`One more workout to hit your goal!`;
+  return t`Keep the momentum going!`;
 }
 
 function WeeklyGoalBanner({
@@ -362,7 +364,9 @@ function WeeklyGoalBanner({
           color={accentColor}
         />
         <ThemedText style={[styles.weeklyGoalCount, { color: accentColor }]}>
-          {completed} of {goal} workouts this week
+          <Trans>
+            {completed} of {goal} workouts this week
+          </Trans>
         </ThemedText>
       </View>
       <View style={styles.weeklyGoalPips}>
@@ -491,14 +495,16 @@ export default function WorkoutSummaryScreen() {
       <View
         style={[styles.container, styles.center, { paddingTop: insets.top }]}
       >
-        <ThemedText style={{ marginBottom: 16 }}>Workout not found.</ThemedText>
+        <ThemedText style={{ marginBottom: 16 }}>
+          <Trans>Workout not found.</Trans>
+        </ThemedText>
         <Button
           mode="contained"
           onPress={() => router.push("/(app)/(tabs)")}
           style={styles.doneButton}
           labelStyle={styles.doneButtonLabel}
         >
-          Go Home
+          <Trans>Go Home</Trans>
         </Button>
       </View>
     );
@@ -534,7 +540,7 @@ export default function WorkoutSummaryScreen() {
             color={Colors.dark.tint}
           />
           <ThemedText type="title" style={styles.completeTitle}>
-            Workout Complete!
+            <Trans>Workout Complete!</Trans>
           </ThemedText>
           <ThemedText style={styles.workoutName}>
             {workout.workout_name}
@@ -543,28 +549,28 @@ export default function WorkoutSummaryScreen() {
 
         <View style={styles.statsRow}>
           <StatChip
-            label="Duration"
+            label={t`Duration`}
             value={formatDuration(workout.duration)}
             icon="clock-outline"
           />
           <View style={styles.statsDivider} />
           <StatChip
-            label="Sets"
+            label={t`Sets`}
             value={String(countSets(workout))}
             icon="dumbbell"
           />
           <View style={styles.statsDivider} />
-          <StatChip label="Volume" value={volumeDisplay} icon="scale" />
+          <StatChip label={t`Volume`} value={volumeDisplay} icon="scale" />
         </View>
 
         {prevWorkout && (
           <View style={styles.progressionCard}>
             <ThemedText style={styles.progressionTitle}>
-              vs. last &ldquo;{workout.workout_name}&rdquo;
+              <Trans>vs. last "{workout.workout_name}"</Trans>
             </ThemedText>
             <View style={styles.diffRow}>
               <DiffChip
-                label="Duration"
+                label={t`Duration`}
                 diff={durationDiffMin}
                 unit="m"
                 higherIsBetter={false}
@@ -572,14 +578,14 @@ export default function WorkoutSummaryScreen() {
               />
               <View style={styles.statsDivider} />
               <DiffChip
-                label="Sets"
+                label={t`Sets`}
                 diff={setsDiff}
                 unit=""
                 higherIsBetter={true}
               />
               <View style={styles.statsDivider} />
               <DiffChip
-                label="Volume"
+                label={t`Volume`}
                 diff={volumeDiff}
                 unit={weightUnit}
                 higherIsBetter={true}
@@ -592,7 +598,9 @@ export default function WorkoutSummaryScreen() {
           <WeeklyGoalBanner completed={workoutsThisWeek} goal={weeklyGoal} />
         )}
 
-        <ThemedText style={styles.sectionTitle}>Exercises</ThemedText>
+        <ThemedText style={styles.sectionTitle}>
+          <Trans>Exercises</Trans>
+        </ThemedText>
         {workout.exercises.map((exercise) => (
           <ExerciseRow
             key={exercise.exercise_id}
@@ -608,7 +616,7 @@ export default function WorkoutSummaryScreen() {
           style={styles.doneButton}
           labelStyle={styles.doneButtonLabel}
         >
-          Done
+          <Trans>Done</Trans>
         </Button>
       </ScrollView>
     </View>

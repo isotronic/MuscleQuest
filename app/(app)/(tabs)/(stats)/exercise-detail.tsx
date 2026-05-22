@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { Trans } from "@lingui/react/macro";
 import { ActivityIndicator, Divider } from "react-native-paper";
 import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
 import { ThemedView } from "@/components/ThemedView";
@@ -82,14 +83,18 @@ export default function ExerciseDetailScreen() {
         {/* Stat pills */}
         <View style={styles.pillRow}>
           <View style={styles.pill}>
-            <ThemedText style={styles.pillLabel}>All-time PR</ThemedText>
+            <ThemedText style={styles.pillLabel}>
+              <Trans>All-time PR</Trans>
+            </ThemedText>
             <ThemedText style={styles.pillValue}>
               {formatMetric(prValue || null, trackingType)}
             </ThemedText>
           </View>
           <View style={styles.pillDivider} />
           <View style={styles.pill}>
-            <ThemedText style={styles.pillLabel}>Latest</ThemedText>
+            <ThemedText style={styles.pillLabel}>
+              <Trans>Latest</Trans>
+            </ThemedText>
             <ThemedText style={styles.pillValue}>
               {formatMetric(latestMetric, trackingType)}
             </ThemedText>
@@ -98,7 +103,9 @@ export default function ExerciseDetailScreen() {
             <>
               <View style={styles.pillDivider} />
               <View style={styles.pill}>
-                <ThemedText style={styles.pillLabel}>vs PR</ThemedText>
+                <ThemedText style={styles.pillLabel}>
+                  <Trans>vs PR</Trans>
+                </ThemedText>
                 <ThemedText
                   style={[
                     styles.pillValue,
@@ -135,7 +142,9 @@ export default function ExerciseDetailScreen() {
         {/* Top PR sets */}
         {data?.topPRSets && data.topPRSets.length > 0 && (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>Top PR Sets</ThemedText>
+            <ThemedText style={styles.sectionTitle}>
+              <Trans>Top PR Sets</Trans>
+            </ThemedText>
             {data.topPRSets.map((set, i) => (
               <View key={i} style={styles.listRow}>
                 <ThemedText style={styles.listMain}>
@@ -167,7 +176,9 @@ export default function ExerciseDetailScreen() {
         {/* Recent sessions */}
         {data?.recentSessions && data.recentSessions.length > 0 && (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>Recent Sessions</ThemedText>
+            <ThemedText style={styles.sectionTitle}>
+              <Trans>Recent Sessions</Trans>
+            </ThemedText>
             {data.recentSessions.map((session, i) => (
               <View key={i} style={styles.listRow}>
                 <ThemedText style={styles.listMain}>
@@ -203,7 +214,7 @@ export default function ExerciseDetailScreen() {
           <ThemedText
             style={{ color: Colors.dark.subText, textAlign: "center" }}
           >
-            No data for this period.
+            <Trans>No data for this period.</Trans>
           </ThemedText>
         )}
       </ScrollView>

@@ -8,6 +8,8 @@ import {
 import { Card, Text } from "react-native-paper";
 import { ThemedView } from "./ThemedView";
 import { Colors } from "@/constants/Colors";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 
 export default function TrainingPlanCard({
   title,
@@ -64,12 +66,14 @@ export default function TrainingPlanCard({
             />
             <View style={styles.floatingTitleContainer}>
               <Text style={styles.floatingTitleText}>
-                {title || "Training Plan"}
+                {title || t`Training Plan`}
               </Text>
             </View>
             {isActive && (
               <View style={styles.activeBadge}>
-                <Text style={styles.activeBadgeText}>Active</Text>
+                <Text style={styles.activeBadgeText}>
+                  <Trans>Active</Trans>
+                </Text>
               </View>
             )}
           </Card>

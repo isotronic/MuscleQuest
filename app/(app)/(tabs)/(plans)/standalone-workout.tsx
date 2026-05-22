@@ -27,6 +27,8 @@ import { useDeleteStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
 import Bugsnag from "@bugsnag/expo";
 import { confirmStartWorkout } from "@/utils/startWorkout";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -45,7 +47,9 @@ export default function StandaloneWorkoutScreen() {
   if (!Number.isInteger(workoutId) || workoutId <= 0) {
     return (
       <ThemedView style={styles.centered}>
-        <ThemedText>Workout not found.</ThemedText>
+        <ThemedText>
+          <Trans>Workout not found.</Trans>
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -55,7 +59,9 @@ export default function StandaloneWorkoutScreen() {
   const handleStart = () => {
     if (!workout) return;
     confirmStartWorkout(setIsStarting, () => {
-      useActiveWorkoutStore.getState().setWorkout(workout, null, workoutId, workout.name);
+      useActiveWorkoutStore
+        .getState()
+        .setWorkout(workout, null, workoutId, workout.name);
     });
   };
 
@@ -68,12 +74,12 @@ export default function StandaloneWorkoutScreen() {
 
   const handleDelete = () => {
     Alert.alert(
-      "Delete Workout",
-      `Are you sure you want to delete "${workout?.name}"?`,
+      t`Delete Workout`,
+      t`Are you sure you want to delete "${workout?.name ?? ""}"?`,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t`Cancel`, style: "cancel" },
         {
-          text: "Delete",
+          text: t`Delete`,
           style: "destructive",
           onPress: async () => {
             try {
@@ -81,7 +87,10 @@ export default function StandaloneWorkoutScreen() {
               router.back();
             } catch (e: any) {
               Bugsnag.notify(e);
-              Alert.alert("Error", "Failed to delete workout. Please try again.");
+              Alert.alert(
+                t`Error`,
+                t`Failed to delete workout. Please try again.`,
+              );
             }
           },
         },
@@ -158,17 +167,17 @@ export default function StandaloneWorkoutScreen() {
           <View style={styles.exerciseInfo}>
             <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
             <ThemedText style={styles.exerciseSets}>
-              {item.sets.length ? `${item.sets.length} Sets` : "No Sets"}
+              {item.sets.length ? t`${item.sets.length} Sets` : t`No Sets`}
               {item.tracking_type === "time"
                 ? timeRange
-                  ? ` | ${timeRange}${isToFailure ? " (to Failure)" : ""}`
+                  ? ` | ${timeRange}${isToFailure ? t` (to Failure)` : ""}`
                   : ""
                 : item.tracking_type === "distance"
                   ? distanceRange
                     ? ` | ${distanceRange} ${distanceUnit}`
                     : ""
                   : repRange
-                    ? ` | ${repRange}${isToFailure ? " (to Failure) " : " "}Reps`
+                    ? ` | ${repRange}${isToFailure ? t` (to Failure) ` : " "}${t`Reps`}`
                     : ""}
             </ThemedText>
           </View>
@@ -188,7 +197,9 @@ export default function StandaloneWorkoutScreen() {
   if (!workout) {
     return (
       <ThemedView style={styles.centered}>
-        <ThemedText>Workout not found.</ThemedText>
+        <ThemedText>
+          <Trans>Workout not found.</Trans>
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -201,7 +212,7 @@ export default function StandaloneWorkoutScreen() {
             <View style={styles.centered}>
               <ActivityIndicator size="large" color="white" />
               <ThemedText style={{ marginTop: 12, color: "white" }}>
-                Starting Workout...
+                <Trans>Starting Workout...</Trans>
               </ThemedText>
             </View>
           </Modal>
@@ -230,7 +241,7 @@ export default function StandaloneWorkoutScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {workout.exercises.length === 0 ? (
           <ThemedText style={styles.emptyText}>
-            No exercises in this workout yet.
+            <Trans>No exercises in this workout yet.</Trans>
           </ThemedText>
         ) : (
           workout.exercises.map((exercise) => renderExercise(exercise))
@@ -245,7 +256,7 @@ export default function StandaloneWorkoutScreen() {
           style={styles.startButton}
           labelStyle={styles.startButtonLabel}
         >
-          Start Workout
+          <Trans>Start Workout</Trans>
         </Button>
         <Button
           mode="outlined"
@@ -254,7 +265,7 @@ export default function StandaloneWorkoutScreen() {
           style={styles.editButton}
           labelStyle={styles.startButtonLabel}
         >
-          Edit Workout
+          <Trans>Edit Workout</Trans>
         </Button>
       </View>
     </ThemedView>

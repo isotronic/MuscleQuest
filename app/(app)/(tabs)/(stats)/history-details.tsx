@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Alert } from "react-native";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { Image } from "expo-image";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -163,12 +165,12 @@ export default function HistoryDetailsScreen() {
                   const parsedId = parseInt(id, 10);
                   if (parsedId <= 0) return;
                   Alert.alert(
-                    "Delete Workout",
-                    "Are you sure you want to delete this workout? This action cannot be undone.",
+                    t`Delete Workout`,
+                    t`Are you sure you want to delete this workout? This action cannot be undone.`,
                     [
-                      { text: "Cancel", style: "cancel" },
+                      { text: t`Cancel`, style: "cancel" },
                       {
-                        text: "Delete",
+                        text: t`Delete`,
                         style: "destructive",
                         onPress: () => deleteMutation.mutate(parsedId),
                       },
@@ -187,7 +189,7 @@ export default function HistoryDetailsScreen() {
             {workout.workout_name}
           </ThemedText>
           <ThemedText style={styles.workoutDate}>
-            Completed on: {formattedDate}
+            <Trans>Completed on: {formattedDate}</Trans>
           </ThemedText>
         </View>
         <View style={styles.summaryRow}>
@@ -198,7 +200,7 @@ export default function HistoryDetailsScreen() {
               color={Colors.dark.icon}
             />
             <ThemedText style={styles.summaryText}>
-              {Math.round(workout.duration / 60)} mins
+              <Trans>{Math.round(workout.duration / 60)} mins</Trans>
             </ThemedText>
           </View>
           <View style={styles.summaryItem}>
@@ -208,7 +210,7 @@ export default function HistoryDetailsScreen() {
               color={Colors.dark.icon}
             />
             <ThemedText style={styles.summaryText}>
-              {workout.total_sets_completed} sets
+              <Trans>{workout.total_sets_completed} sets</Trans>
             </ThemedText>
           </View>
           <View style={styles.summaryItem}>
@@ -254,7 +256,7 @@ export default function HistoryDetailsScreen() {
                 {exercise.sets.map((set, index) => (
                   <View key={index} style={styles.setRow}>
                     <ThemedText style={styles.setText}>
-                      Set {set.set_number}
+                      <Trans>Set {set.set_number}</Trans>
                     </ThemedText>
                     {exercise.exercise_tracking_type === "time" ? (
                       <ThemedText style={styles.setText}>
@@ -264,7 +266,7 @@ export default function HistoryDetailsScreen() {
                       </ThemedText>
                     ) : exercise.exercise_tracking_type === "reps" ? (
                       <ThemedText style={styles.setText}>
-                        {set.reps} Reps
+                        <Trans>{set.reps} Reps</Trans>
                       </ThemedText>
                     ) : exercise.exercise_tracking_type === "distance" ? (
                       <ThemedText style={styles.setText}>
@@ -272,13 +274,17 @@ export default function HistoryDetailsScreen() {
                       </ThemedText>
                     ) : exercise.exercise_tracking_type === "weight" ? (
                       <ThemedText style={styles.setText}>
-                        {set.weight} {settings?.weightUnit} | {set.reps} Reps
+                        <Trans>
+                          {set.weight} {settings?.weightUnit} | {set.reps} Reps
+                        </Trans>
                       </ThemedText>
                     ) : (
                       <ThemedText style={styles.setText}>
-                        Assist {set.weight} {settings?.weightUnit} | Resist{" "}
-                        {bodyWeight - (set.weight || 0)} {settings?.weightUnit}{" "}
-                        | {set.reps} Reps
+                        <Trans>
+                          Assist {set.weight} {settings?.weightUnit} | Resist{" "}
+                          {bodyWeight - (set.weight || 0)}{" "}
+                          {settings?.weightUnit} | {set.reps} Reps
+                        </Trans>
                       </ThemedText>
                     )}
                   </View>

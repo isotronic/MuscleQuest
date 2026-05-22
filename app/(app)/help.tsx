@@ -12,6 +12,9 @@ import { Divider } from "react-native-paper";
 import { Colors } from "@/constants/Colors";
 import { ThemedView } from "@/components/ThemedView";
 import { HELP_DATA } from "@/constants/HelpData";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
 function highlightTokens(text: string, tokens: string[]) {
   if (tokens.length === 0) return <Text>{text}</Text>;
@@ -66,6 +69,21 @@ function Section({ icon, title, body }: SectionProps) {
 
 export default function HelpScreen() {
   const [query, setQuery] = useState("");
+  const { _ } = useLingui();
+
+  const translatedHelpData = useMemo(
+    () =>
+      HELP_DATA.map((group) => ({
+        ...group,
+        group: _(group.group),
+        sections: group.sections.map((s) => ({
+          ...s,
+          title: _(s.title),
+          body: _(s.body),
+        })),
+      })),
+    [_],
+  );
 
   const tokens = useMemo(
     () => query.trim().toLowerCase().split(/\s+/).filter(Boolean),
@@ -73,15 +91,17 @@ export default function HelpScreen() {
   );
 
   const filtered = useMemo(() => {
-    if (tokens.length === 0) return HELP_DATA;
-    return HELP_DATA.map((group) => ({
-      ...group,
-      sections: group.sections.filter((s) => {
-        const combined = `${group.group} ${s.title} ${s.body}`.toLowerCase();
-        return tokens.every((t) => combined.includes(t));
-      }),
-    })).filter((group) => group.sections.length > 0);
-  }, [tokens]);
+    if (tokens.length === 0) return translatedHelpData;
+    return translatedHelpData
+      .map((group) => ({
+        ...group,
+        sections: group.sections.filter((s) => {
+          const combined = `${group.group} ${s.title} ${s.body}`.toLowerCase();
+          return tokens.every((t) => combined.includes(t));
+        }),
+      }))
+      .filter((group) => group.sections.length > 0);
+  }, [tokens, translatedHelpData]);
 
   const isSearching = query.trim().length > 0;
 
@@ -96,23 +116,23 @@ export default function HelpScreen() {
         />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search help…"
+          placeholder={t`Search help…`}
           placeholderTextColor={Colors.dark.subText}
           value={query}
           onChangeText={setQuery}
           returnKeyType="search"
           clearButtonMode="never"
           autoCorrect={false}
-          accessibilityLabel="Search help"
-          accessibilityHint="Type to filter help topics"
+          accessibilityLabel={t`Search help`}
+          accessibilityHint={t`Type to filter help topics`}
         />
         {isSearching && (
           <TouchableOpacity
             onPress={() => setQuery("")}
             hitSlop={8}
-            accessibilityLabel="Clear search"
+            accessibilityLabel={t`Clear search`}
             accessibilityRole="button"
-            accessibilityHint="Clears the search field"
+            accessibilityHint={t`Clears the search field`}
           >
             <Ionicons
               name="close-circle"
@@ -132,9 +152,11 @@ export default function HelpScreen() {
         {!isSearching && (
           <>
             <Text style={styles.intro}>
-              Welcome to MuscleQuest, your personal strength training companion.
-              Use this guide to discover the features and get the most from your
-              training.
+              <Trans>
+                Welcome to MuscleQuest, your personal strength training
+                companion. Use this guide to discover the features and get the
+                most from your training.
+              </Trans>
             </Text>
             <Divider style={styles.topDivider} />
           </>
@@ -142,7 +164,9 @@ export default function HelpScreen() {
 
         {filtered.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>No results for “{query}”</Text>
+            <Text style={styles.emptyStateText}>
+              <Trans>No results for “{query}”</Trans>
+            </Text>
           </View>
         ) : (
           filtered.map((group) => (

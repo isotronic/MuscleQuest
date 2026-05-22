@@ -8,6 +8,8 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
@@ -87,11 +89,11 @@ export default function CreatePlanScreen() {
 
       if (hasDraft) {
         Alert.alert(
-          "Continue Editing?",
-          "You have unsaved changes from your last session. Would you like to continue?",
+          t`Continue Editing?`,
+          t`You have unsaved changes from your last session. Would you like to continue?`,
           [
             {
-              text: "Discard Changes",
+              text: t`Discard Changes`,
               style: "destructive",
               onPress: () => {
                 clearDraftEntry(draftKey);
@@ -101,7 +103,7 @@ export default function CreatePlanScreen() {
               },
             },
             {
-              text: "Continue",
+              text: t`Continue`,
               onPress: () => {
                 setWorkouts(draft.workouts);
                 if (draft.planImageUrl) setPlanImageUrl(draft.planImageUrl);
@@ -223,12 +225,12 @@ export default function CreatePlanScreen() {
       }
 
       Alert.alert(
-        "Discard Changes?",
-        "You have unsaved changes. Are you sure you want to discard them?",
+        t`Discard Changes?`,
+        t`You have unsaved changes. Are you sure you want to discard them?`,
         [
-          { text: "Cancel", style: "cancel", onPress: () => {} },
+          { text: t`Cancel`, style: "cancel", onPress: () => {} },
           {
-            text: "Discard",
+            text: t`Discard`,
             style: "destructive",
             onPress: () => {
               clearDraftEntry(draftKey);
@@ -267,15 +269,15 @@ export default function CreatePlanScreen() {
 
   const handleRemoveWorkout = (index: number) => {
     Alert.alert(
-      "Remove Workout",
-      "Are you sure you want to remove this workout?",
+      t`Remove Workout`,
+      t`Are you sure you want to remove this workout?`,
       [
         {
-          text: "Cancel",
+          text: t`Cancel`,
           style: "cancel",
         },
         {
-          text: "Remove",
+          text: t`Remove`,
           onPress: () => {
             removeWorkout(index);
           },
@@ -338,7 +340,9 @@ export default function CreatePlanScreen() {
           <Modal visible={isSaving} dismissable={false}>
             <View style={styles.loadingOverlay}>
               <ActivityIndicator size="large" color="white" />
-              <ThemedText style={styles.loadingText}>Saving Plan...</ThemedText>
+              <ThemedText style={styles.loadingText}>
+                <Trans>Saving Plan...</Trans>
+              </ThemedText>
             </View>
           </Modal>
         </Portal>
@@ -353,7 +357,7 @@ export default function CreatePlanScreen() {
               disabled={saveDisabled || isSaving}
               onPressIn={handleSaveAndNavigate}
             >
-              Save
+              <Trans>Save</Trans>
             </Button>
           ),
         }}
@@ -386,7 +390,7 @@ export default function CreatePlanScreen() {
               <TextInput
                 style={styles.input}
                 placeholderTextColor={Colors.dark.subText}
-                placeholder="Training Plan Name"
+                placeholder={t`Training Plan Name`}
                 value={planName}
                 onChangeText={setPlanName}
                 dense
@@ -394,7 +398,7 @@ export default function CreatePlanScreen() {
             </View>
             {workouts.length === 0 ? (
               <ThemedText style={styles.emptyText}>
-                Add a workout to get started
+                <Trans>Add a workout to get started</Trans>
               </ThemedText>
             ) : (
               workouts.map((workout, index) => (
@@ -419,7 +423,7 @@ export default function CreatePlanScreen() {
               style={styles.addWorkoutButton}
               labelStyle={styles.buttonLabel}
             >
-              Add Workout
+              <Trans>Add Workout</Trans>
             </Button>
             <PlanScheduleEditor
               workouts={workouts}

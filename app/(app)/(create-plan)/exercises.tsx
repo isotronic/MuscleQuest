@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, TextInput, StyleSheet, Alert } from "react-native";
 import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { Button, ActivityIndicator } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -130,9 +132,9 @@ export default function ExercisesScreen() {
         // Single-select: pair as superset partner
         if (exerciseAlreadyExists) {
           Alert.alert(
-            "Exercise Already Added",
-            "This exercise is already in your workout. Please choose a different one.",
-            [{ text: "OK" }],
+            t`Exercise Already Added`,
+            t`This exercise is already in your workout. Please choose a different one.`,
+            [{ text: t`OK` }],
           );
           return;
         }
@@ -143,7 +145,11 @@ export default function ExercisesScreen() {
           const newExercise = {
             ...exercise,
             sets:
-              exercise.tracking_type === "time" ? defaultTimeSets : exercise.tracking_type === "distance" ? defaultDistanceSets : defaultSets,
+              exercise.tracking_type === "time"
+                ? defaultTimeSets
+                : exercise.tracking_type === "distance"
+                  ? defaultDistanceSets
+                  : defaultSets,
           };
           createSuperset(
             currentWorkoutIndex,
@@ -155,9 +161,9 @@ export default function ExercisesScreen() {
       } else if (replacing) {
         if (exerciseAlreadyExists) {
           Alert.alert(
-            "Exercise Already Added",
-            "This exercise is already in your workout. Please choose a different one.",
-            [{ text: "OK" }],
+            t`Exercise Already Added`,
+            t`This exercise is already in your workout. Please choose a different one.`,
+            [{ text: t`OK` }],
           );
           return;
         }
@@ -169,7 +175,11 @@ export default function ExercisesScreen() {
           const replacement = {
             ...exercise,
             sets:
-              exercise.tracking_type === "time" ? defaultTimeSets : exercise.tracking_type === "distance" ? defaultDistanceSets : defaultSets,
+              exercise.tracking_type === "time"
+                ? defaultTimeSets
+                : exercise.tracking_type === "distance"
+                  ? defaultDistanceSets
+                  : defaultSets,
           };
           replaceExercise(
             currentWorkoutIndex,
@@ -219,7 +229,11 @@ export default function ExercisesScreen() {
             exercise.tracking_type === "time"
               ? defaultTimeSets
               : exercise.tracking_type === "distance"
-                ? Array.from({ length: defaultSetNumber }, () => ({ restMinutes: minutes, restSeconds: seconds, distance: 0 }))
+                ? Array.from({ length: defaultSetNumber }, () => ({
+                    restMinutes: minutes,
+                    restSeconds: seconds,
+                    distance: 0,
+                  }))
                 : defaultSets,
         };
         addExercise(currentWorkoutIndex, exerciseToAdd);
@@ -273,7 +287,7 @@ export default function ExercisesScreen() {
     return (
       <ThemedView style={styles.container}>
         <ThemedText style={styles.errorText}>
-          Error loading exercises: {error?.message}
+          <Trans>Error loading exercises: {error?.message}</Trans>
         </ThemedText>
       </ThemedView>
     );
@@ -305,7 +319,7 @@ export default function ExercisesScreen() {
           <TextInput
             style={styles.searchInput}
             placeholderTextColor={Colors.dark.text}
-            placeholder="Search"
+            placeholder={t`Search`}
             value={searchQuery}
             onChangeText={setSearchQuery}
             selectTextOnFocus={true}
@@ -341,7 +355,7 @@ export default function ExercisesScreen() {
                 router.push("/(app)/custom-exercise");
               }}
             >
-              Create Exercise
+              <Trans>Create Exercise</Trans>
             </Button>
             <Button
               mode="contained"
@@ -351,7 +365,7 @@ export default function ExercisesScreen() {
               labelStyle={styles.addButtonLabel}
               onPressIn={handleAddExercise}
             >
-              Add ({selectedExercises.length})
+              <Trans>Add ({selectedExercises.length})</Trans>
             </Button>
           </View>
         )}

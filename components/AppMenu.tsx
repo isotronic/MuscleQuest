@@ -19,6 +19,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
+import { t } from "@lingui/core/macro";
 import { Colors } from "@/constants/Colors";
 import { useMenuStore } from "@/store/menuStore";
 
@@ -129,7 +130,7 @@ export function AppMenu() {
         <Pressable
           style={StyleSheet.absoluteFill}
           onPress={closeMenu}
-          accessibilityLabel="Close menu"
+          accessibilityLabel={t`Close menu`}
           accessibilityRole="button"
         />
       </AnimatedView>
@@ -151,7 +152,7 @@ export function AppMenu() {
           <TouchableOpacity
             onPress={closeMenu}
             style={styles.closeButton}
-            accessibilityLabel="Close menu"
+            accessibilityLabel={t`Close menu`}
             accessibilityRole="button"
           >
             <Ionicons name="close" size={24} color={Colors.dark.text} />
@@ -162,12 +163,12 @@ export function AppMenu() {
 
         <MenuItem
           icon="settings-outline"
-          label="Settings"
+          label={t`Settings`}
           onPress={() => navigate("/(app)/settings")}
         />
         <MenuItem
           icon="help-circle-outline"
-          label="Help & Info"
+          label={t`Help & Info`}
           onPress={() => navigate("/(app)/help")}
         />
 
@@ -175,15 +176,15 @@ export function AppMenu() {
 
         <MenuItem
           icon="cafe-outline"
-          label="Buy Me a Coffee"
+          label={t`Buy Me a Coffee`}
           onPress={() => openLink("https://buymeacoffee.com/musclequest")}
-          hint="Opens in your browser"
+          hint={t`Opens in your browser`}
         />
         <MenuItem
           icon="logo-instagram"
-          label="MuscleQuest's Instagram"
+          label={t`MuscleQuest's Instagram`}
           onPress={() => openLink("https://www.instagram.com/musclequest.app/")}
-          hint="Opens in your browser"
+          hint={t`Opens in your browser`}
         />
       </AnimatedView>
     </Portal>

@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { StyleSheet, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
+import { t } from "@lingui/core/macro";
 import { ThemedText } from "./ThemedText";
 import ExerciseItem from "./ExerciseItem";
 import { Exercise } from "@/utils/database";
@@ -25,7 +26,7 @@ const ExerciseList = ({
   const listData = [];
 
   if (exercises.favoriteExercises.length > 0) {
-    listData.push({ type: "title", title: "Favorites" });
+    listData.push({ type: "title", title: t`Favorites` });
     listData.push(
       ...exercises.favoriteExercises.map((item) => ({
         type: "exercise",
@@ -35,7 +36,7 @@ const ExerciseList = ({
   }
 
   if (exercises.activePlanExercises.length > 0) {
-    listData.push({ type: "title", title: "Active Plan Exercises" });
+    listData.push({ type: "title", title: t`Active Plan Exercises` });
     listData.push(
       ...exercises.activePlanExercises.map((item) => ({
         type: "exercise",
@@ -57,7 +58,7 @@ const ExerciseList = ({
         })),
       );
     } else {
-      listData.push({ type: "title", title: "Other Exercises" });
+      listData.push({ type: "title", title: t`Other Exercises` });
       listData.push(
         ...exercises.otherExercises.map((item) => ({
           type: "exercise",

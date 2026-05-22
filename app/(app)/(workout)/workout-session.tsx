@@ -8,6 +8,8 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { ActivityIndicator } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
@@ -637,10 +639,10 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleRemoveSet = (index: number) => {
-    Alert.alert("Delete Set", "Are you sure you want to delete this set?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t`Delete Set`, t`Are you sure you want to delete this set?`, [
+      { text: t`Cancel`, style: "cancel" },
       {
-        text: "Delete",
+        text: t`Delete`,
         style: "destructive",
         onPress: () => {
           removeSet(index);
@@ -1206,7 +1208,9 @@ export default function WorkoutSessionScreen() {
     Bugsnag.notify(settingsError);
     return (
       <ThemedView style={styles.container}>
-        <ThemedText>Error: {settingsError.message}</ThemedText>
+        <ThemedText>
+          <Trans>Error: {settingsError.message}</Trans>
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -1255,14 +1259,20 @@ export default function WorkoutSessionScreen() {
                         {ss.isInSuperset && (
                           <View style={styles.supersetBanner}>
                             <ThemedText style={styles.supersetLabel}>
-                              Superset {ss.isFirstInSuperset ? "A" : "B"}
+                              <Trans>
+                                Superset {ss.isFirstInSuperset ? "A" : "B"}
+                              </Trans>
                             </ThemedText>
                             <ThemedText
                               style={styles.supersetPartner}
                               numberOfLines={1}
                               ellipsizeMode="tail"
                             >
-                              {ss.isFirstInSuperset ? "Next: " : "Prev: "}
+                              {ss.isFirstInSuperset ? (
+                                <Trans>Next: </Trans>
+                              ) : (
+                                <Trans>Prev: </Trans>
+                              )}
                               {ss.partnerName}
                             </ThemedText>
                           </View>
@@ -1317,17 +1327,21 @@ export default function WorkoutSessionScreen() {
                   {outgoingSnapshot.isInSuperset && (
                     <View style={styles.supersetBanner}>
                       <ThemedText style={styles.supersetLabel}>
-                        Superset{" "}
-                        {outgoingSnapshot.isFirstInSuperset ? "A" : "B"}
+                        <Trans>
+                          Superset{" "}
+                          {outgoingSnapshot.isFirstInSuperset ? "A" : "B"}
+                        </Trans>
                       </ThemedText>
                       <ThemedText
                         style={styles.supersetPartner}
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
-                        {outgoingSnapshot.isFirstInSuperset
-                          ? "Next: "
-                          : "Prev: "}
+                        {outgoingSnapshot.isFirstInSuperset ? (
+                          <Trans>Next: </Trans>
+                        ) : (
+                          <Trans>Prev: </Trans>
+                        )}
                         {outgoingSnapshot.partnerName}
                       </ThemedText>
                     </View>
@@ -1347,14 +1361,16 @@ export default function WorkoutSessionScreen() {
           { pointerEvents: timerRunning ? "auto" : "none" },
         ]}
       >
-        <ThemedText style={styles.timerLabel}>Rest Time Left:</ThemedText>
+        <ThemedText style={styles.timerLabel}>
+          <Trans>Rest Time Left:</Trans>
+        </ThemedText>
         <View style={styles.timerRow}>
           <TouchableOpacity
             style={styles.timerAdjustButton}
             onPress={() => void adjustTimer(-restTimerIncrement)}
           >
             <ThemedText style={styles.timerAdjustText}>
-              −{restTimerIncrement}s
+              <Trans>−{restTimerIncrement}s</Trans>
             </ThemedText>
           </TouchableOpacity>
           <ThemedText style={styles.timerText}>
@@ -1365,7 +1381,7 @@ export default function WorkoutSessionScreen() {
             onPress={() => void adjustTimer(restTimerIncrement)}
           >
             <ThemedText style={styles.timerAdjustText}>
-              +{restTimerIncrement}s
+              <Trans>+{restTimerIncrement}s</Trans>
             </ThemedText>
           </TouchableOpacity>
         </View>

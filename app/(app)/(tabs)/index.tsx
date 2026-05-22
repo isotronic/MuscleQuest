@@ -1,6 +1,7 @@
 import { StyleSheet, View, ScrollView, Pressable } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { Trans } from "@lingui/react/macro";
 import { startOfWeek, endOfWeek, getDay, format } from "date-fns";
 import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -49,8 +50,10 @@ function WorkoutDurationInfo({
   );
   return (
     <ThemedText style={style}>
-      {exercises.length} Exercises
-      {estimate ? `  ·  ~${formatDurationEstimateCompact(estimate)}` : ""}
+      <Trans>
+        {exercises.length} Exercises
+        {estimate ? `  ·  ~${formatDurationEstimateCompact(estimate)}` : ""}
+      </Trans>
     </ThemedText>
   );
 }
@@ -153,13 +156,15 @@ export default function HomeScreen() {
     }
     return (
       <ThemedText style={styles.loadingContainer}>
-        Error fetching{" "}
-        {activePlanError
-          ? "active plan"
-          : settingsError
-            ? "settings"
-            : "completed workouts"}
-        : {error?.message}
+        <Trans>
+          Error fetching{" "}
+          {activePlanError
+            ? "active plan"
+            : settingsError
+              ? "settings"
+              : "completed workouts"}
+          : {error?.message}
+        </Trans>
       </ThemedText>
     );
   }
@@ -287,7 +292,7 @@ export default function HomeScreen() {
             <View style={styles.loadingOverlay}>
               <ActivityIndicator size="large" color="white" />
               <ThemedText style={styles.loadingText}>
-                Starting Workout...
+                <Trans>Starting Workout...</Trans>
               </ThemedText>
             </View>
           </Modal>
@@ -302,7 +307,7 @@ export default function HomeScreen() {
             theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
           >
             <ThemedText type="subtitle" style={styles.pickerTitle}>
-              Select a workout to view
+              <Trans>Select a workout to view</Trans>
             </ThemedText>
             {pickerWorkouts.map((workout) => (
               <Pressable
@@ -333,18 +338,24 @@ export default function HomeScreen() {
         </View>
         <View style={styles.summaryContainer}>
           <ThemedText style={styles.summaryText}>
-            {uniqueWorkoutDaysCount} / {settings?.weeklyGoal} days worked out
+            <Trans>
+              {uniqueWorkoutDaysCount} / {settings?.weeklyGoal} days worked out
+            </Trans>
           </ThemedText>
         </View>
         <View style={styles.welcomeContainer}>
           <ThemedText type="subtitle">
-            Welcome{activePlan && " back"}
-            {userName}
+            <Trans>
+              Welcome{activePlan && " back"}
+              {userName}
+            </Trans>
           </ThemedText>
           <ThemedText type="default">
-            {!activePlan
-              ? "Your journey to Swoletown begins today!"
-              : "Make sure to track your progress!"}
+            {!activePlan ? (
+              <Trans>Your journey to Swoletown begins today!</Trans>
+            ) : (
+              <Trans>Make sure to track your progress!</Trans>
+            )}
           </ThemedText>
         </View>
 
@@ -414,7 +425,7 @@ export default function HomeScreen() {
                     {activeWorkout?.name ?? "Workout"}
                   </ThemedText>
                   <ThemedText style={styles.exerciseInfo}>
-                    Workout in progress
+                    <Trans>Workout in progress</Trans>
                   </ThemedText>
                 </View>
                 <View style={styles.smallButtonGroup}>
@@ -424,7 +435,7 @@ export default function HomeScreen() {
                     onPress={() => router.push("/(app)/(workout)")}
                     labelStyle={styles.smallButtonLabel}
                   >
-                    Resume
+                    <Trans>Resume</Trans>
                   </Button>
                 </View>
               </View>
@@ -434,7 +445,7 @@ export default function HomeScreen() {
             <>
               {settings.showOnboarding === "true" && <Onboarding />}
               <ThemedText type="default" style={styles.sectionTitle}>
-                Active Plan: {activePlan.name}
+                <Trans>Active Plan: {activePlan.name}</Trans>
               </ThemedText>
 
               {workoutsToDisplay.map((workout, index) => {
@@ -524,7 +535,7 @@ export default function HomeScreen() {
                           labelStyle={styles.smallButtonLabel}
                           disabled={isStartingWorkout}
                         >
-                          Start
+                          <Trans>Start</Trans>
                         </Button>
                       </View>
                     </View>
@@ -550,7 +561,7 @@ export default function HomeScreen() {
             style={styles.startWorkoutButton}
             labelStyle={styles.buttonLabel}
           >
-            Quick Workout
+            <Trans>Quick Workout</Trans>
           </Button>
         </View>
       </ScrollView>

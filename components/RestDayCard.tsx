@@ -6,15 +6,18 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { PlanScheduleEntry } from "@/utils/database";
 import { Workout } from "@/store/workoutStore";
+import { Trans } from "@lingui/react/macro";
+import { t, msg } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
 const DAY_NAMES = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
+  msg`Monday`,
+  msg`Tuesday`,
+  msg`Wednesday`,
+  msg`Thursday`,
+  msg`Friday`,
+  msg`Saturday`,
+  msg`Sunday`,
 ];
 
 interface Props {
@@ -24,6 +27,7 @@ interface Props {
 }
 
 export default function RestDayCard({ schedule, workouts, todayDow }: Props) {
+  const { _ } = useLingui();
   // Find next scheduled workout day (looking forward, wrapping the week)
   let nextLabel: string | null = null;
   for (let i = 1; i <= 7; i++) {
@@ -31,8 +35,8 @@ export default function RestDayCard({ schedule, workouts, todayDow }: Props) {
     const entry = schedule.find((e) => e.day_of_week === nextDow);
     if (entry) {
       const workout = workouts.find((w) => w.id === entry.workout_id);
-      const workoutName = workout?.name ?? "Workout";
-      nextLabel = `Next: ${workoutName} on ${DAY_NAMES[nextDow]}`;
+      const workoutName = workout?.name ?? t`Workout`;
+      nextLabel = t`Next: ${workoutName} on ${_(DAY_NAMES[nextDow])}`;
       break;
     }
   }
@@ -47,7 +51,7 @@ export default function RestDayCard({ schedule, workouts, todayDow }: Props) {
       />
       <View style={styles.textContainer}>
         <ThemedText type="subtitle" style={styles.title}>
-          Rest Day
+          <Trans>Rest Day</Trans>
         </ThemedText>
         {nextLabel && (
           <ThemedText style={styles.subtitle}>{nextLabel}</ThemedText>

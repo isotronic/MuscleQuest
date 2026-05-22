@@ -1,5 +1,7 @@
 import { View, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
@@ -94,7 +96,9 @@ export default function WorkoutDetailsScreen() {
       <View>
         {isFirstInSuperset && (
           <View style={styles.supersetHeader}>
-            <ThemedText style={styles.supersetHeaderText}>Superset</ThemedText>
+            <ThemedText style={styles.supersetHeaderText}>
+              <Trans>Superset</Trans>
+            </ThemedText>
           </View>
         )}
         <TouchableOpacity
@@ -130,18 +134,18 @@ export default function WorkoutDetailsScreen() {
               <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
               <ThemedText style={styles.exerciseSets}>
                 {item?.sets?.length
-                  ? `${item.sets.length} Sets`
-                  : "No Sets Available"}
+                  ? t`${item.sets.length} Sets`
+                  : t`No Sets Available`}
                 {item.tracking_type === "time"
                   ? timeRange
-                    ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
+                    ? ` | ${timeRange} ${isToFailure ? t`(to Failure)` : ""}`
                     : ""
                   : item.tracking_type === "distance"
                     ? distanceRange
                       ? ` | ${distanceRange} ${distanceUnit}`
                       : ""
                     : repRange
-                      ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
+                      ? ` | ${repRange} ${isToFailure ? t`(to Failure) ` : ""}${t`Reps`}`
                       : ""}
               </ThemedText>
             </View>
@@ -153,12 +157,20 @@ export default function WorkoutDetailsScreen() {
   };
 
   if (isLoading) {
-    return <ThemedText>Loading...</ThemedText>;
+    return (
+      <ThemedText>
+        <Trans>Loading...</Trans>
+      </ThemedText>
+    );
   }
 
   if (error) {
     Bugsnag.notify(error);
-    return <ThemedText>Error: {error.message}</ThemedText>;
+    return (
+      <ThemedText>
+        <Trans>Error: {error.message}</Trans>
+      </ThemedText>
+    );
   }
 
   return (
