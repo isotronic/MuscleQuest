@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Alert } from "react-native";
 import { Trans } from "@lingui/react/macro";
-import { t } from "@lingui/core/macro";
+import { t, plural } from "@lingui/core/macro";
 import { Image } from "expo-image";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -200,7 +200,7 @@ export default function HistoryDetailsScreen() {
               color={Colors.dark.icon}
             />
             <ThemedText style={styles.summaryText}>
-              <Trans>{Math.round(workout.duration / 60)} mins</Trans>
+              {plural(Math.round(workout.duration / 60), { one: "# min", other: "# mins" })}
             </ThemedText>
           </View>
           <View style={styles.summaryItem}>
@@ -210,7 +210,7 @@ export default function HistoryDetailsScreen() {
               color={Colors.dark.icon}
             />
             <ThemedText style={styles.summaryText}>
-              <Trans>{workout.total_sets_completed} sets</Trans>
+              {plural(workout.total_sets_completed, { one: "# set", other: "# sets" })}
             </ThemedText>
           </View>
           <View style={styles.summaryItem}>
@@ -266,7 +266,7 @@ export default function HistoryDetailsScreen() {
                       </ThemedText>
                     ) : exercise.exercise_tracking_type === "reps" ? (
                       <ThemedText style={styles.setText}>
-                        <Trans>{set.reps} Reps</Trans>
+                        {plural(set.reps, { one: "# Rep", other: "# Reps" })}
                       </ThemedText>
                     ) : exercise.exercise_tracking_type === "distance" ? (
                       <ThemedText style={styles.setText}>

@@ -2,6 +2,7 @@ import { StyleSheet, View, ScrollView, Pressable } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { startOfWeek, endOfWeek, getDay, format } from "date-fns";
 import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -159,10 +160,10 @@ export default function HomeScreen() {
         <Trans>
           Error fetching{" "}
           {activePlanError
-            ? "active plan"
+            ? t`active plan`
             : settingsError
-              ? "settings"
-              : "completed workouts"}
+              ? t`settings`
+              : t`completed workouts`}
           : {error?.message}
         </Trans>
       </ThemedText>
@@ -345,10 +346,11 @@ export default function HomeScreen() {
         </View>
         <View style={styles.welcomeContainer}>
           <ThemedText type="subtitle">
-            <Trans>
-              Welcome{activePlan && " back"}
-              {userName}
-            </Trans>
+            {activePlan ? (
+              <Trans>Welcome back{userName}</Trans>
+            ) : (
+              <Trans>Welcome{userName}</Trans>
+            )}
           </ThemedText>
           <ThemedText type="default">
             {!activePlan ? (

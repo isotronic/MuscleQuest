@@ -252,8 +252,7 @@ export default function PlanOverviewScreen() {
           labelStyle={styles.buttonLabel}
           disabled={isEditing}
         >
-          {plan?.app_plan_id ? <Trans>Customise</Trans> : <Trans>Edit</Trans>}
-          <Trans> Plan</Trans>
+          {plan?.app_plan_id ? <Trans>Customise Plan</Trans> : <Trans>Edit Plan</Trans>}
         </Button>
       </View>
       <Snackbar

@@ -156,20 +156,26 @@ function formatAchievement(a: BestAchievement): {
   const pct = Math.round((a.delta / (a.thisWeekBest - a.delta)) * 100);
   const pctStr = `+${pct}%`;
   if (a.trackingType === "reps") {
+    const best = Math.round(a.thisWeekBest);
+    const delta = Math.round(a.delta);
     return {
       label: t`Rep PR`,
-      value: `${a.exerciseName}: ${Math.round(a.thisWeekBest)} reps (+${Math.round(a.delta)}, ${pctStr})`,
+      value: t`${a.exerciseName}: ${best} ${plural(best, { one: "rep", other: "reps" })} (+${delta}, ${pctStr})`,
     };
   }
   if (a.trackingType === "time") {
+    const best = Math.round(a.thisWeekBest);
+    const delta = Math.round(a.delta);
     return {
       label: t`Time PR`,
-      value: `${a.exerciseName}: ${Math.round(a.thisWeekBest)}s (+${Math.round(a.delta)}s, ${pctStr})`,
+      value: t`${a.exerciseName}: ${best}s (+${delta}s, ${pctStr})`,
     };
   }
+  const best = a.thisWeekBest.toFixed(1);
+  const delta = a.delta.toFixed(1);
   return {
     label: t`1RM`,
-    value: `${a.exerciseName}: ${a.thisWeekBest.toFixed(1)}${unit} (+${a.delta.toFixed(1)}${unit}, ${pctStr})`,
+    value: t`${a.exerciseName}: ${best}${unit} (+${delta}${unit}, ${pctStr})`,
   };
 }
 

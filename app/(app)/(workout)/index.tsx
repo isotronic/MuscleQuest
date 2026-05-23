@@ -814,7 +814,7 @@ export default function WorkoutOverviewScreen() {
               mode="contained"
               theme={{ colors: { primary: Colors.dark.tint } }}
               onPress={async () => {
-                const name = saveWorkoutName.trim() || "Quick Workout";
+                const name = saveWorkoutName.trim() || t`Quick Workout`;
                 try {
                   const newWorkoutId = await createStandaloneWorkout(
                     name,

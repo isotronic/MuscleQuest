@@ -4,7 +4,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { SparklineChart } from "@/components/charts/SparklineChart";
 import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
 import { Colors } from "@/constants/Colors";
-import { t } from "@lingui/core/macro";
+import { t, plural } from "@lingui/core/macro";
 
 interface ExerciseCompactCardProps {
   exercise: TrackedExerciseWithSets;
@@ -21,9 +21,9 @@ const formatDaysAgo = (dateStr: string): string => {
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   if (days === 0) return t`Today`;
   if (days === 1) return t`Yesterday`;
-  if (days < 7) return t`${days} days ago`;
+  if (days < 7) return plural(days, { one: "# day ago", other: "# days ago" });
   const weeks = Math.floor(days / 7);
-  return weeks === 1 ? t`1 week ago` : t`${weeks} weeks ago`;
+  return plural(weeks, { one: "# week ago", other: "# weeks ago" });
 };
 
 const formatPRLabel = (
@@ -36,7 +36,7 @@ const formatPRLabel = (
   if (!pr) return "—";
   switch (exercise.tracking_type) {
     case "reps":
-      return t`${Math.round(pr)} reps`;
+      return plural(Math.round(pr), { one: "# rep", other: "# reps" });
     case "time":
       return `${Math.round(pr)}s`;
     case "distance":

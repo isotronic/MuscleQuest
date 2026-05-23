@@ -364,9 +364,10 @@ function WeeklyGoalBanner({
           color={accentColor}
         />
         <ThemedText style={[styles.weeklyGoalCount, { color: accentColor }]}>
-          <Trans>
-            {completed} of {goal} workouts this week
-          </Trans>
+          {plural(goal, {
+            one: `${completed} of # workout this week`,
+            other: `${completed} of # workouts this week`,
+          })}
         </ThemedText>
       </View>
       <View style={styles.weeklyGoalPips}>

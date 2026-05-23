@@ -7,7 +7,7 @@ import { Colors } from "@/constants/Colors";
 import { Workout } from "@/store/workoutStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Trans } from "@lingui/react/macro";
-import { t, msg } from "@lingui/core/macro";
+import { t, msg, plural } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 
 const DAY_LABELS = [
@@ -78,8 +78,7 @@ export default function PlanScheduleEditor({
           <Trans>Weekly Schedule</Trans>
         </ThemedText>
         <ThemedText style={styles.summary}>
-          {scheduledDays}{" "}
-          <Trans>day{scheduledDays !== 1 ? "s" : ""}/week</Trans>
+          {plural(scheduledDays, { one: "# day/week", other: "# days/week" })}
         </ThemedText>
       </View>
 

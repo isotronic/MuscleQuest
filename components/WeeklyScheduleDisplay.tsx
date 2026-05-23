@@ -6,7 +6,7 @@ import { PlanScheduleEntry } from "@/utils/database";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Trans } from "@lingui/react/macro";
-import { t, msg } from "@lingui/core/macro";
+import { t, msg, plural } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 
 const DAY_LABELS = [
@@ -42,10 +42,10 @@ export default function WeeklyScheduleDisplay({
         )
         .map((w) => [w.id, w]),
     );
-    const sMap: Record<number, string> = {};
+    const sMap: Record<number, string | null> = {};
     for (const entry of scheduleEntries) {
       const workout = workoutById.get(entry.workout_id);
-      sMap[entry.day_of_week] = workout?.name || t`Workout`;
+      sMap[entry.day_of_week] = workout?.name ?? null;
     }
     return sMap;
   }, [workouts, scheduleEntries]);
@@ -75,14 +75,13 @@ export default function WeeklyScheduleDisplay({
           <Trans>Weekly Schedule</Trans>
         </ThemedText>
         <ThemedText style={styles.summary}>
-          {scheduledCount}{" "}
-          <Trans>day{scheduledCount !== 1 ? "s" : ""}/week</Trans>
+          {plural(scheduledCount, { one: "# day/week", other: "# days/week" })}
         </ThemedText>
       </View>
       <View style={styles.grid}>
         {DAY_LABELS.map((label, dow) => {
-          const workoutName = scheduleMap[dow];
-          const hasWorkout = workoutName !== undefined;
+          const hasWorkout = scheduleMap[dow] !== undefined;
+          const workoutName = scheduleMap[dow] || t`Workout`;
           return (
             <View key={dow} style={styles.tileWrapper}>
               <ThemedText

@@ -110,7 +110,7 @@ export default function LoginScreen() {
             style={styles.loginButton}
             mode="contained"
             onPress={handleSignIn}
-            accessibilityLabel={t`Login`}
+            accessibilityLabel={t`Google sign in`}
           >
             <Trans>Google sign in</Trans>
           </Button>
