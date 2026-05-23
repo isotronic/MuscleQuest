@@ -59,6 +59,7 @@ import { useSoundStore } from "@/store/soundStore";
 
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
   style?: any;
+  pointerEvents?: "auto" | "none" | "box-none" | "box-only";
   children?: React.ReactNode;
 }>;
 
@@ -152,7 +153,11 @@ export default function WorkoutOverviewScreen() {
 
   useKeepScreenOn();
 
-  const restTimerIncrement = parseInt(settings?.restTimerIncrement || "15");
+  const parsedIncrement = parseInt(settings?.restTimerIncrement || "15", 10);
+  const restTimerIncrement =
+    Number.isFinite(parsedIncrement) && parsedIncrement > 0
+      ? parsedIncrement
+      : 15;
   const { playSound, triggerVibration } = useSoundStore();
   const insets = useSafeAreaInsets();
 
@@ -988,11 +993,11 @@ export default function WorkoutOverviewScreen() {
         </Button>
       </ScrollView>
       <AnimatedView
+        pointerEvents={timerRunning ? "auto" : "none"}
         style={[
           styles.timerContainer,
           { paddingBottom: insets.bottom },
           timerAnimStyle,
-          { pointerEvents: timerRunning ? "auto" : "none" },
         ]}
       >
         <ThemedText style={styles.timerLabel}>
@@ -1194,7 +1199,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.3)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
     elevation: 5,
     marginBottom: 0,
   },
