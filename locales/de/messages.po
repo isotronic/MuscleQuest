@@ -653,6 +653,10 @@ msgstr "{streak} {0} in Folge"
 msgid "{uniqueWorkoutDaysCount} / {0} days worked out"
 msgstr "{uniqueWorkoutDaysCount} / {0} Trainingstage"
 
+#: components/PlanScheduleEditor.tsx:206
+msgid "{weeklyGoal, plural, one {Auto-suggest (1 day)} other {Auto-suggest (# days)}}"
+msgstr "{weeklyGoal, plural, one {Auto-Vorschlag (1 Tag)} other {Auto-Vorschlag (# Tage)}}"
+
 #: components/stats/ExerciseCompactCard.tsx:26
 msgid "{weeks, plural, one {# week ago} other {# weeks ago}}"
 msgstr "{weeks, plural, one {vor # Woche} other {vor # Wochen}}"
@@ -977,8 +981,8 @@ msgid "Assistance/Reps"
 msgstr "Assistenz/Wdh."
 
 #: components/PlanScheduleEditor.tsx:206
-msgid "Auto-suggest ({weeklyGoal} days)"
-msgstr "Auto-Vorschlag ({weeklyGoal} Tage)"
+#~ msgid "Auto-suggest ({weeklyGoal} days)"
+#~ msgstr "Auto-Vorschlag ({weeklyGoal} Tage)"
 
 #: app/(app)/(tabs)/(stats)/index.tsx:409
 msgid "Avg Duration"

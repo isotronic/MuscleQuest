@@ -203,7 +203,7 @@ export default function PlanScheduleEditor({
         labelStyle={styles.autoButtonLabel}
         textColor={Colors.dark.tint}
       >
-        <Trans>Auto-suggest ({weeklyGoal} days)</Trans>
+        {plural(weeklyGoal, { one: "Auto-suggest (1 day)", other: "Auto-suggest (# days)" })}
       </Button>
     </ThemedView>
   );
