@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, ScrollView, StyleSheet, Alert, TextInput } from "react-native";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import Sortable from "react-native-sortables";
@@ -18,7 +25,7 @@ import {
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { router, Stack } from "expo-router";
+import { router, Stack, useFocusEffect } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
@@ -34,10 +41,26 @@ import {
   createStandaloneWorkout,
   linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
-import { cancelRestNotifications } from "@/utils/restNotification";
+import {
+  cancelRestNotifications,
+  scheduleRestNotificationWithCancellation,
+} from "@/utils/restNotification";
 import { convertTimeStrToSeconds } from "@/utils/utility";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserExercise, Workout } from "@/store/workoutStore";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
+import { useTimer } from "react-timer-hook";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSoundStore } from "@/store/soundStore";
+
+const AnimatedView = Animated.View as unknown as React.ComponentType<{
+  style?: any;
+  children?: React.ReactNode;
+}>;
 
 type SingleItem = {
   type: "single";
@@ -83,6 +106,10 @@ export default function WorkoutOverviewScreen() {
     initializeWeightAndReps,
     removeFromSuperset,
     setDurations,
+    timerRunning,
+    timerExpiry,
+    stopTimer,
+    startTimer,
   } = useActiveWorkoutStore();
 
   const stableKeyMapRef = useRef(new WeakMap<UserExercise, string>());
@@ -124,6 +151,77 @@ export default function WorkoutOverviewScreen() {
   const lastCompletedWorkoutIdRef = useRef<number | null>(null);
 
   useKeepScreenOn();
+
+  const restTimerIncrement = parseInt(settings?.restTimerIncrement || "15");
+  const { playSound, triggerVibration } = useSoundStore();
+  const insets = useSafeAreaInsets();
+
+  const isFocusedRef = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      isFocusedRef.current = true;
+      return () => {
+        isFocusedRef.current = false;
+      };
+    }, []),
+  );
+
+  const expiryTimestampRef = useRef<Date | null>(null);
+  const timerTranslateY = useSharedValue(timerRunning ? 0 : 200);
+  const timerAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: timerTranslateY.value }],
+  }));
+
+  const { seconds, minutes, restart } = useTimer({
+    expiryTimestamp: timerExpiry || new Date(),
+    autoStart: timerRunning,
+    onExpire: () => {
+      stopTimer();
+      if (isFocusedRef.current) {
+        if (settings?.restTimerSound === "true") void playSound();
+        if (settings?.restTimerVibration === "true") triggerVibration();
+      }
+    },
+  });
+
+  useEffect(() => {
+    timerTranslateY.value = withTiming(timerRunning ? 0 : 200, {
+      duration: 300,
+    });
+  }, [timerRunning, timerTranslateY]);
+
+  useEffect(() => {
+    if (timerRunning && timerExpiry) {
+      const time = new Date(timerExpiry);
+      expiryTimestampRef.current = time;
+      restart(time);
+    }
+  }, [timerRunning, timerExpiry, restart]);
+
+  const adjustTimerOverview = async (deltaSeconds: number) => {
+    const currentRemaining = expiryTimestampRef.current
+      ? Math.max(
+          0,
+          Math.round(
+            (expiryTimestampRef.current.getTime() - Date.now()) / 1000,
+          ),
+        )
+      : minutes * 60 + seconds;
+    const newRemaining = Math.max(0, currentRemaining + deltaSeconds);
+    const newExpiry = new Date();
+    newExpiry.setSeconds(newExpiry.getSeconds() + newRemaining);
+    expiryTimestampRef.current = newExpiry;
+    startTimer(newExpiry);
+    restart(newExpiry);
+    if (settings?.restTimerNotification === "true") {
+      await scheduleRestNotificationWithCancellation(
+        newRemaining,
+        "Rest Timer Finished!",
+        "Time to do your next set!",
+        "rest-timer1",
+      );
+    }
+  };
 
   const [isSaving, setIsSaving] = useState(false);
   const [loadingExerciseIndex, setLoadingExerciseIndex] = useState<
@@ -889,6 +987,39 @@ export default function WorkoutOverviewScreen() {
           <Trans>Add Exercise</Trans>
         </Button>
       </ScrollView>
+      <AnimatedView
+        style={[
+          styles.timerContainer,
+          { paddingBottom: insets.bottom },
+          timerAnimStyle,
+          { pointerEvents: timerRunning ? "auto" : "none" },
+        ]}
+      >
+        <ThemedText style={styles.timerLabel}>
+          <Trans>Rest Time Left:</Trans>
+        </ThemedText>
+        <View style={styles.timerRow}>
+          <TouchableOpacity
+            style={styles.timerAdjustButton}
+            onPress={() => void adjustTimerOverview(-restTimerIncrement)}
+          >
+            <ThemedText style={styles.timerAdjustText}>
+              <Trans>−{restTimerIncrement}s</Trans>
+            </ThemedText>
+          </TouchableOpacity>
+          <ThemedText style={styles.timerText}>
+            {minutes}:{seconds.toString().padStart(2, "0")}
+          </ThemedText>
+          <TouchableOpacity
+            style={styles.timerAdjustButton}
+            onPress={() => void adjustTimerOverview(restTimerIncrement)}
+          >
+            <ThemedText style={styles.timerAdjustText}>
+              <Trans>+{restTimerIncrement}s</Trans>
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+      </AnimatedView>
     </ThemedView>
   );
 }
@@ -1050,5 +1181,52 @@ const styles = StyleSheet.create({
   supersetCardLast: {
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
+  },
+  timerContainer: {
+    position: "absolute",
+    bottom: 0,
+    right: 16,
+    left: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+    backgroundColor: Colors.dark.cardBackground,
+    alignItems: "center",
+    justifyContent: "center",
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.3)",
+    elevation: 5,
+    marginBottom: 0,
+  },
+  timerLabel: {
+    fontSize: 14,
+    color: Colors.dark.text,
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  timerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
+  },
+  timerAdjustButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: Colors.dark.cardBackground2,
+  },
+  timerAdjustText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.dark.text,
+  },
+  timerText: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: Colors.dark.text,
+    textAlign: "center",
+    lineHeight: 32,
+    marginBottom: 8,
   },
 });
