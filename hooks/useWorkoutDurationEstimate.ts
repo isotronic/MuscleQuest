@@ -4,6 +4,7 @@ import { fetchSetDurationsForExercises } from "@/utils/database";
 import {
   computeWorkoutDurationEstimate,
   type DurationEstimate,
+  type SetDurationSample,
 } from "@/utils/estimateWorkoutDuration";
 import type { UserExercise } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
@@ -20,7 +21,7 @@ export function useWorkoutDurationEstimate(
     [exercises],
   );
 
-  const { data, isLoading } = useQuery<Record<number, number[]>>({
+  const { data, isLoading } = useQuery<Record<number, SetDurationSample[]>>({
     queryKey: ["exerciseSetDurations", exerciseIds],
     queryFn: async () => {
       try {

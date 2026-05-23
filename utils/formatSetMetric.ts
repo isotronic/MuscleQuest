@@ -24,12 +24,12 @@ export function formatSetMetric(
     case "distance":
       return `${set.distance ?? 0} m`;
     case "assisted": {
-      const assist = set.weight ?? 0;
-      const resist = Math.max(0, bodyWeight - assist);
+      const assist = parseFloat((set.weight ?? 0).toFixed(1));
+      const resist = parseFloat(Math.max(0, bodyWeight - assist).toFixed(1));
       return `${assist} ${weightUnit} assist / ${resist} ${weightUnit} resist × ${set.reps ?? 0}`;
     }
     case "weight":
     default:
-      return `${set.weight ?? 0} ${weightUnit} × ${set.reps ?? 0}`;
+      return `${parseFloat((set.weight ?? 0).toFixed(1))} ${weightUnit} × ${set.reps ?? 0}`;
   }
 }

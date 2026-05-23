@@ -1654,13 +1654,13 @@ export const upsertWeeklyCompletion = async (
 
 export const fetchSetDurationsForExercises = async (
   exerciseIds: number[],
-): Promise<Record<number, number[]>> => {
+): Promise<Record<number, { duration: number; reps: number | null }[]>> => {
   if (exerciseIds.length === 0) return {};
   try {
     const db = await openDatabase("userData.db");
     const placeholders = exerciseIds.map(() => "?").join(", ");
     const rows = (await db.getAllAsync(
-      `SELECT ce.exercise_id, cs.set_duration
+      `SELECT ce.exercise_id, cs.set_duration, cs.reps
        FROM completed_sets cs
        JOIN completed_exercises ce ON cs.completed_exercise_id = ce.id
        JOIN completed_workouts cw  ON ce.completed_workout_id  = cw.id
@@ -1670,14 +1670,18 @@ export const fetchSetDurationsForExercises = async (
          AND cw.is_deleted   = FALSE
        ORDER BY cw.date_completed DESC`,
       exerciseIds,
-    )) as { exercise_id: number; set_duration: number }[];
+    )) as { exercise_id: number; set_duration: number; reps: number | null }[];
 
-    const result: Record<number, number[]> = {};
+    const result: Record<number, { duration: number; reps: number | null }[]> =
+      {};
     for (const row of rows) {
       if (!result[row.exercise_id]) {
         result[row.exercise_id] = [];
       }
-      result[row.exercise_id].push(row.set_duration);
+      result[row.exercise_id].push({
+        duration: row.set_duration,
+        reps: row.reps,
+      });
     }
     return result;
   } catch (error: any) {
