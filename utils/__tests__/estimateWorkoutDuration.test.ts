@@ -568,17 +568,15 @@ describe("computeWorkoutDurationEstimate", () => {
 
       it("blends sparse rep-aware history (1–2 samples) with defaults", () => {
         // 1 rep-aware sample: 30 s at 10 reps → 3 s/rep
+        // mid = 0.5*(30/10) + 0.5*(35/10) = 3.25 s/rep
+        // perRepLo = 3.25 - 0.5*1 = 2.75, perRepHi = 3.25 + 0.5*1 = 3.75
+        // result = [round(2.75*10), round(3.75*10)] = [28, 38]
         const history = [withReps(30, REP_NORM)];
         const set = makeSet({ repsMin: REP_NORM, repsMax: REP_NORM });
-        const [rawMin, rawMax] = EQUIPMENT_DURATION_DEFAULTS["cable"];
         const ex = makeExercise(1, "cable", [set]);
         const result = computeWorkoutDurationEstimate([ex], { 1: history });
-        // Blended result should be between history and equipment default
-        expect(result.minSeconds).toBeGreaterThan(0);
-        expect(result.maxSeconds).toBeGreaterThan(0);
-        expect(result.minSeconds).toBeLessThanOrEqual(
-          Math.max(rawMin, 30) + 10,
-        );
+        expect(result.minSeconds).toBe(28);
+        expect(result.maxSeconds).toBe(38);
       });
     });
   });
