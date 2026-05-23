@@ -25,9 +25,7 @@ export function formatSetMetric(
       return `${set.distance ?? 0} m`;
     case "assisted": {
       const assist = parseFloat((set.weight ?? 0).toFixed(1));
-      const resist = parseFloat(
-        Math.max(0, bodyWeight - (set.weight ?? 0)).toFixed(1),
-      );
+      const resist = parseFloat(Math.max(0, bodyWeight - assist).toFixed(1));
       return `${assist} ${weightUnit} assist / ${resist} ${weightUnit} resist × ${set.reps ?? 0}`;
     }
     case "weight":
