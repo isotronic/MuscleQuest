@@ -122,10 +122,9 @@ function estimateSetWorkDuration(
       perRepHi = percentile(sorted, 75);
     }
 
-    return [
-      Math.round(perRepLo * targetMin!),
-      Math.round(perRepHi * targetMax!),
-    ];
+    const clampedLo = Math.max(0, perRepLo * targetMin!);
+    const clampedHi = Math.max(clampedLo, perRepHi * targetMax!);
+    return [Math.round(clampedLo), Math.round(clampedHi)];
   }
 
   // Fallback: use raw durations (legacy data with null reps, or timed sets).
