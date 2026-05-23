@@ -22,6 +22,8 @@ import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWorkoutStore } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 
 export default function AddCustomExerciseScreen() {
   const queryClient = useQueryClient();
@@ -69,16 +71,16 @@ export default function AddCustomExerciseScreen() {
     { label: string; value: string }[]
   >([]);
   const [trackingTypeOptions, setTrackingTypeOptions] = useState([
-    { label: "Weight/Reps", value: "weight" },
-    { label: "Assistance/Reps", value: "assisted" },
-    { label: "Reps", value: "reps" },
-    { label: "Time", value: "time" },
-    { label: "Distance", value: "distance" },
+    { label: t`Weight/Reps`, value: "weight" },
+    { label: t`Assistance/Reps`, value: "assisted" },
+    { label: t`Reps`, value: "reps" },
+    { label: t`Time`, value: "time" },
+    { label: t`Distance`, value: "distance" },
   ]);
 
   useEffect(() => {
     navigation.setOptions({
-      title: isEditing ? "Edit Exercise" : "Create Exercise",
+      title: isEditing ? t`Edit Exercise` : t`Create Exercise`,
     });
   }, [isEditing, navigation]);
 
@@ -87,12 +89,12 @@ export default function AddCustomExerciseScreen() {
       if (!isDirtyRef.current) return;
       e.preventDefault();
       Alert.alert(
-        "Discard changes?",
-        "You'll lose what you've entered so far.",
+        t`Discard changes?`,
+        t`You'll lose what you've entered so far.`,
         [
-          { text: "Keep editing", style: "cancel" },
+          { text: t`Keep editing`, style: "cancel" },
           {
-            text: "Discard",
+            text: t`Discard`,
             style: "destructive",
             onPress: () => navigation.dispatch(e.data.action),
           },
@@ -136,8 +138,8 @@ export default function AddCustomExerciseScreen() {
           })),
         );
       } catch (error: any) {
-        Alert.alert("Error", "Failed to fetch data. Please try again.", [
-          { text: "OK" },
+        Alert.alert(t`Error`, t`Failed to fetch data. Please try again.`, [
+          { text: t`OK` },
         ]);
         console.error("Error fetching data:", error);
         Bugsnag.notify(error);
@@ -185,8 +187,8 @@ export default function AddCustomExerciseScreen() {
       } catch (error: any) {
         console.error("Error fetching exercise data for editing:", error);
         Bugsnag.notify(error);
-        Alert.alert("Error", "Failed to load exercise details.", [
-          { text: "OK" },
+        Alert.alert(t`Error`, t`Failed to load exercise details.`, [
+          { text: t`OK` },
         ]);
       }
     };
@@ -207,12 +209,12 @@ export default function AddCustomExerciseScreen() {
 
   const handleSubmit = async () => {
     const newErrors: Record<string, string> = {};
-    if (!name.trim()) newErrors.name = "Name is required.";
-    if (!bodyPart) newErrors.bodyPart = "Body part is required.";
-    if (!targetMuscle) newErrors.targetMuscle = "Target muscle is required.";
-    if (!equipment) newErrors.equipment = "Equipment is required.";
+    if (!name.trim()) newErrors.name = t`Name is required.`;
+    if (!bodyPart) newErrors.bodyPart = t`Body part is required.`;
+    if (!targetMuscle) newErrors.targetMuscle = t`Target muscle is required.`;
+    if (!equipment) newErrors.equipment = t`Equipment is required.`;
     if (!trackingType && !isEditing)
-      newErrors.trackingType = "Tracking type is required.";
+      newErrors.trackingType = t`Tracking type is required.`;
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -232,9 +234,9 @@ export default function AddCustomExerciseScreen() {
           console.error("Error saving image to filesystem:", error);
           Bugsnag.notify(error);
           Alert.alert(
-            "Image Save Error",
-            "Failed to save the image. Please try again.",
-            [{ text: "OK" }],
+            t`Image Save Error`,
+            t`Failed to save the image. Please try again.`,
+            [{ text: t`OK` }],
           );
         }
       }
@@ -293,9 +295,9 @@ export default function AddCustomExerciseScreen() {
       router.back();
     } catch (error: any) {
       Alert.alert(
-        "Error",
-        "Failed to save custom exercise. Please try again.",
-        [{ text: "OK" }],
+        t`Error`,
+        t`Failed to save custom exercise. Please try again.`,
+        [{ text: t`OK` }],
       );
       console.error("Error saving data:", error);
       Bugsnag.notify(error);
@@ -317,7 +319,7 @@ export default function AddCustomExerciseScreen() {
   // Extra props for searchable dropdowns
   const searchProps = {
     searchable: true,
-    searchPlaceholder: "Search...",
+    searchPlaceholder: t`Search...`,
     searchTextInputStyle: {
       color: Colors.dark.text,
       borderColor: Colors.dark.subText,
@@ -345,7 +347,9 @@ export default function AddCustomExerciseScreen() {
         >
           {/* ── Basics ─────────────────────────────────────── */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionHeader}>Basics</ThemedText>
+            <ThemedText style={styles.sectionHeader}>
+              <Trans>Basics</Trans>
+            </ThemedText>
 
             {image ? (
               <Image
@@ -359,12 +363,14 @@ export default function AddCustomExerciseScreen() {
               onPress={pickImage}
               style={{ marginBottom: 16 }}
             >
-              {image ? "Change Image" : "Add Image"}
+              {image ? <Trans>Change Image</Trans> : <Trans>Add Image</Trans>}
             </Button>
 
-            <ThemedText style={styles.fieldLabel}>Name *</ThemedText>
+            <ThemedText style={styles.fieldLabel}>
+              <Trans>Name *</Trans>
+            </ThemedText>
             <TextInput
-              placeholder="Enter exercise name"
+              placeholder={t`Enter exercise name`}
               value={name}
               onChangeText={(v: string) => {
                 setName(v);
@@ -379,9 +385,11 @@ export default function AddCustomExerciseScreen() {
               <ThemedText style={styles.errorText}>{errors.name}</ThemedText>
             ) : null}
 
-            <ThemedText style={styles.fieldLabel}>Description</ThemedText>
+            <ThemedText style={styles.fieldLabel}>
+              <Trans>Description</Trans>
+            </ThemedText>
             <TextInput
-              placeholder="Enter description"
+              placeholder={t`Enter description`}
               value={description}
               onChangeText={(v: string) => {
                 setDescription(v);
@@ -398,10 +406,14 @@ export default function AddCustomExerciseScreen() {
 
           {/* ── Muscles ────────────────────────────────────── */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionHeader}>Muscles</ThemedText>
+            <ThemedText style={styles.sectionHeader}>
+              <Trans>Muscles</Trans>
+            </ThemedText>
 
             <View style={{ zIndex: 4000 }}>
-              <ThemedText style={styles.fieldLabel}>Body Part *</ThemedText>
+              <ThemedText style={styles.fieldLabel}>
+                <Trans>Body Part *</Trans>
+              </ThemedText>
               <DropDownPicker
                 {...commonDropdownProps}
                 zIndex={4000}
@@ -412,7 +424,7 @@ export default function AddCustomExerciseScreen() {
                 setOpen={makeSetOpen("bodyPart")}
                 setValue={setBodyPart}
                 setItems={setBodyPartOptions}
-                placeholder="Select body part"
+                placeholder={t`Select body part`}
                 style={[
                   styles.dropdown,
                   errors.bodyPart ? styles.dropdownError : null,
@@ -430,7 +442,9 @@ export default function AddCustomExerciseScreen() {
             </View>
 
             <View style={{ zIndex: 3000 }}>
-              <ThemedText style={styles.fieldLabel}>Target Muscle *</ThemedText>
+              <ThemedText style={styles.fieldLabel}>
+                <Trans>Target Muscle *</Trans>
+              </ThemedText>
               <DropDownPicker
                 {...commonDropdownProps}
                 {...searchProps}
@@ -442,7 +456,7 @@ export default function AddCustomExerciseScreen() {
                 setOpen={makeSetOpen("targetMuscle")}
                 setValue={setTargetMuscle}
                 setItems={setMuscleOptions}
-                placeholder="Select target muscle"
+                placeholder={t`Select target muscle`}
                 style={[
                   styles.dropdown,
                   errors.targetMuscle ? styles.dropdownError : null,
@@ -461,7 +475,7 @@ export default function AddCustomExerciseScreen() {
 
             <View style={{ zIndex: 2000 }}>
               <ThemedText style={styles.fieldLabel}>
-                Secondary Muscles
+                <Trans>Secondary Muscles</Trans>
               </ThemedText>
               <DropDownPicker
                 {...commonDropdownProps}
@@ -481,7 +495,7 @@ export default function AddCustomExerciseScreen() {
                 badgeDotColors={[Colors.dark.tint]}
                 badgeColors={Colors.dark.cardBackground}
                 badgeTextStyle={{ color: Colors.dark.text, fontSize: 13 }}
-                placeholder="Select secondary muscles"
+                placeholder={t`Select secondary muscles`}
                 style={styles.dropdown}
                 listItemLabelStyle={{ color: Colors.dark.text, fontSize: 18 }}
                 onSelectItem={markDirty}
@@ -494,13 +508,15 @@ export default function AddCustomExerciseScreen() {
           {/* ── Equipment & Tracking ────────────────────────── */}
           <View style={styles.section}>
             <ThemedText style={styles.sectionHeader}>
-              Equipment & Tracking
+              <Trans>Equipment & Tracking</Trans>
             </ThemedText>
 
             <View
               style={{ zIndex: openDropdown === "equipment" ? 5000 : 1500 }}
             >
-              <ThemedText style={styles.fieldLabel}>Equipment *</ThemedText>
+              <ThemedText style={styles.fieldLabel}>
+                <Trans>Equipment *</Trans>
+              </ThemedText>
               <DropDownPicker
                 {...commonDropdownProps}
                 {...searchProps}
@@ -512,7 +528,7 @@ export default function AddCustomExerciseScreen() {
                 setOpen={makeSetOpen("equipment")}
                 setValue={setEquipment}
                 setItems={setEquipmentOptions}
-                placeholder="Select equipment"
+                placeholder={t`Select equipment`}
                 dropDownContainerStyle={{
                   ...styles.dropdownContainer,
                   minHeight: 200,
@@ -538,7 +554,9 @@ export default function AddCustomExerciseScreen() {
                 zIndex: openDropdown === "trackingType" ? 5000 : 1000,
               }}
             >
-              <ThemedText style={styles.fieldLabel}>Tracking Type *</ThemedText>
+              <ThemedText style={styles.fieldLabel}>
+                <Trans>Tracking Type *</Trans>
+              </ThemedText>
               <DropDownPicker
                 {...commonDropdownProps}
                 zIndex={openDropdown === "trackingType" ? 5000 : 1000}
@@ -549,7 +567,7 @@ export default function AddCustomExerciseScreen() {
                 setOpen={makeSetOpen("trackingType")}
                 setValue={setTrackingType}
                 setItems={setTrackingTypeOptions}
-                placeholder="Select tracking type"
+                placeholder={t`Select tracking type`}
                 disabled={isEditing}
                 style={[
                   styles.dropdown,
@@ -563,7 +581,7 @@ export default function AddCustomExerciseScreen() {
               />
               {isEditing ? (
                 <ThemedText style={styles.helperText}>
-                  Tracking type cannot be changed after creation.
+                  <Trans>Tracking type cannot be changed after creation.</Trans>
                 </ThemedText>
               ) : errors.trackingType ? (
                 <ThemedText style={styles.errorText}>
@@ -577,15 +595,19 @@ export default function AddCustomExerciseScreen() {
 
           {/* ── Stats Options ──────────────────────────────── */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionHeader}>Stats Options</ThemedText>
+            <ThemedText style={styles.sectionHeader}>
+              <Trans>Stats Options</Trans>
+            </ThemedText>
 
             <View style={styles.switchRow}>
               <View style={styles.switchTextContainer}>
                 <ThemedText style={styles.fieldLabel}>
-                  Single-arm / single-leg
+                  <Trans>Single-arm / single-leg</Trans>
                 </ThemedText>
                 <ThemedText style={styles.helperText}>
-                  Count reps ×2 for volume when the setting is enabled
+                  <Trans>
+                    Count reps ×2 for volume when the setting is enabled
+                  </Trans>
                 </ThemedText>
               </View>
               <Switch
@@ -601,10 +623,12 @@ export default function AddCustomExerciseScreen() {
             <View style={styles.switchRow}>
               <View style={styles.switchTextContainer}>
                 <ThemedText style={styles.fieldLabel}>
-                  Paired implements
+                  <Trans>Paired implements</Trans>
                 </ThemedText>
                 <ThemedText style={styles.helperText}>
-                  Double the weight for volume when the setting is enabled
+                  <Trans>
+                    Double the weight for volume when the setting is enabled
+                  </Trans>
                 </ThemedText>
               </View>
               <Switch
@@ -624,7 +648,7 @@ export default function AddCustomExerciseScreen() {
             onPress={handleSubmit}
             style={{ marginTop: 8 }}
           >
-            {isEditing ? "Save" : "Save and select"}
+            {isEditing ? <Trans>Save</Trans> : <Trans>Save and select</Trans>}
           </Button>
         </ScrollView>
       </KeyboardAvoidingView>

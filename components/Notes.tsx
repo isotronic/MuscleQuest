@@ -7,6 +7,8 @@ import {
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { useNotes, NoteType } from "@/hooks/useNotes";
 import { Colors } from "@/constants/Colors";
 import { Button, Divider, IconButton } from "react-native-paper";
@@ -81,7 +83,7 @@ export const Notes: React.FC<NotesProps> = ({
           compact
           style={{ marginBottom: 16 }}
         >
-          {note.trim() ? "View/Edit" : "Add"} Note
+          <Trans>{note.trim() ? t`View/Edit` : t`Add`} Note</Trans>
         </Button>
       )}
 
@@ -118,7 +120,7 @@ export const Notes: React.FC<NotesProps> = ({
                 color: Colors.dark.text,
               }}
             >
-              {capitalizeWords(noteType)} Notes
+              <Trans>{capitalizeWords(noteType)} Notes</Trans>
             </ThemedText>
           </View>
           <Divider style={{ marginTop: 8, marginBottom: 16 }} />
@@ -134,7 +136,7 @@ export const Notes: React.FC<NotesProps> = ({
                 onChangeText={(text: string) => {
                   currentNoteRef.current = text;
                 }}
-                placeholder="Add a note..."
+                placeholder={t`Add a note...`}
                 placeholderTextColor={Colors.dark.subText}
                 multiline
                 maxLength={500}

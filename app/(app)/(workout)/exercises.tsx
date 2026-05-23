@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
 import { View, TextInput, StyleSheet, Alert } from "react-native";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { ActivityIndicator, Button } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -89,9 +91,9 @@ export default function ExercisesScreen() {
 
       if (exerciseExists) {
         Alert.alert(
-          "Exercise Already Added",
-          "This exercise is already in your workout. Please choose a different one.",
-          [{ text: "OK" }],
+          t`Exercise Already Added`,
+          t`This exercise is already in your workout. Please choose a different one.`,
+          [{ text: t`OK` }],
         );
         return;
       }
@@ -110,9 +112,9 @@ export default function ExercisesScreen() {
     );
     if (exerciseExists) {
       Alert.alert(
-        "Exercise Already Added",
-        "This exercise is already in your workout. Please choose a different one.",
-        [{ text: "OK" }],
+        t`Exercise Already Added`,
+        t`This exercise is already in your workout. Please choose a different one.`,
+        [{ text: t`OK` }],
       );
       return;
     }
@@ -200,7 +202,7 @@ export default function ExercisesScreen() {
     return (
       <ThemedView style={styles.container}>
         <ThemedText style={styles.errorText}>
-          Error loading exercises: {exercisesError?.message}
+          <Trans>Error loading exercises: {exercisesError?.message}</Trans>
         </ThemedText>
       </ThemedView>
     );
@@ -235,7 +237,7 @@ export default function ExercisesScreen() {
           <TextInput
             style={styles.searchInput}
             placeholderTextColor={Colors.dark.text}
-            placeholder="Search"
+            placeholder={t`Search`}
             value={searchQuery}
             onChangeText={setSearchQuery}
             selectTextOnFocus={true}
@@ -277,7 +279,7 @@ export default function ExercisesScreen() {
               labelStyle={styles.addButtonLabel}
               onPress={handleConfirmAppend}
             >
-              Add ({selectedExercises.length})
+              <Trans>Add ({selectedExercises.length})</Trans>
             </Button>
           </View>
         )}

@@ -3,6 +3,8 @@ import { StyleSheet, View, TextInput, Alert } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
 import { Card, Button, Menu, IconButton } from "react-native-paper";
+import { Trans } from "@lingui/react/macro";
+import { t, plural } from "@lingui/core/macro";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
@@ -76,12 +78,12 @@ export default function WorkoutCard({
       );
       if (!exercise) return;
       Alert.alert(
-        "Remove Exercise",
-        `Are you sure you want to remove ${exercise.name}?`,
+        t`Remove Exercise`,
+        t`Are you sure you want to remove ${exercise.name}?`,
         [
-          { text: "Cancel", style: "cancel" },
+          { text: t`Cancel`, style: "cancel" },
           {
-            text: "Remove",
+            text: t`Remove`,
             style: "destructive",
             onPress: () => {
               useWorkoutStore
@@ -254,18 +256,18 @@ export default function WorkoutCard({
               <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
               <ThemedText style={styles.setsAndReps}>
                 {item?.sets?.length
-                  ? `${item.sets.length} Sets`
-                  : "No Sets Available"}
+                  ? plural(item.sets.length, { one: "# Set", other: "# Sets" })
+                  : t`No Sets Available`}
                 {item.tracking_type === "time"
                   ? timeRange
-                    ? ` | ${timeRange} ${isToFailure ? "(to Failure)" : ""}`
+                    ? ` | ${timeRange} ${isToFailure ? t`(to Failure)` : ""}`
                     : ""
                   : item.tracking_type === "distance"
                     ? distanceRange
                       ? ` | ${distanceRange} ${distanceUnit}`
                       : ""
                     : repRange
-                      ? ` | ${repRange} ${isToFailure ? "(to Failure) " : ""}Reps`
+                      ? ` | ${repRange} ${isToFailure ? t`(to Failure) ` : ""}${t`Reps`}`
                       : ""}
               </ThemedText>
             </View>
@@ -287,14 +289,14 @@ export default function WorkoutCard({
                 closeMenu();
                 removeExercise(item.exercise_id);
               }}
-              title="Delete"
+              title={t`Delete`}
             />
             <Menu.Item
               onPress={() => {
                 closeMenu();
                 handleReplace(exerciseIndex);
               }}
-              title="Replace"
+              title={t`Replace`}
             />
             {isInSuperset ? (
               <Menu.Item
@@ -302,7 +304,7 @@ export default function WorkoutCard({
                   closeMenu();
                   handleRemoveSuperset(exerciseIndex);
                 }}
-                title="Remove Superset"
+                title={t`Remove Superset`}
               />
             ) : (
               <Menu.Item
@@ -310,7 +312,7 @@ export default function WorkoutCard({
                   closeMenu();
                   handleCreateSuperset(exerciseIndex);
                 }}
-                title="Create Superset"
+                title={t`Create Superset`}
               />
             )}
             <Menu.Item
@@ -320,7 +322,7 @@ export default function WorkoutCard({
                   `/(app)/exercise-info?exercise_id=${item.exercise_id}`,
                 );
               }}
-              title="View Details"
+              title={t`View Details`}
             />
           </Menu>
         </View>
@@ -352,7 +354,9 @@ export default function WorkoutCard({
       return (
         <View>
           <View style={styles.supersetHeader}>
-            <ThemedText style={styles.supersetHeaderText}>Superset</ThemedText>
+            <ThemedText style={styles.supersetHeaderText}>
+              <Trans>Superset</Trans>
+            </ThemedText>
           </View>
           {renderExerciseRow(exA, idxA, true, false)}
           <View style={styles.supersetConnector} />
@@ -388,7 +392,9 @@ export default function WorkoutCard({
     <Card style={styles.workoutCard}>
       {!isStandalone && (
         <View style={styles.workoutHeader}>
-          <ThemedText style={styles.workoutDay}>Workout {index + 1}</ThemedText>
+          <ThemedText style={styles.workoutDay}>
+            <Trans>Workout {index + 1}</Trans>
+          </ThemedText>
           <View style={styles.workoutHeaderActions}>
             <MaterialCommunityIcons
               name="chevron-up"
@@ -413,7 +419,7 @@ export default function WorkoutCard({
         </View>
       )}
       <TextInput
-        placeholder="Workout name"
+        placeholder={t`Workout name`}
         placeholderTextColor={Colors.dark.subText}
         style={styles.input}
         value={workout.name}
@@ -421,7 +427,7 @@ export default function WorkoutCard({
       />
       {workout.exercises.length > 0 && estimate != null && (
         <ThemedText style={styles.durationEstimate}>
-          Estimated Duration: {formatDurationEstimate(estimate)}
+          <Trans>Estimated Duration: {formatDurationEstimate(estimate)}</Trans>
         </ThemedText>
       )}
       {workout.exercises.length > 0 ? (
@@ -438,14 +444,16 @@ export default function WorkoutCard({
           showDropIndicator
         />
       ) : (
-        <ThemedText style={styles.emptyText}>No exercises added yet</ThemedText>
+        <ThemedText style={styles.emptyText}>
+          <Trans>No exercises added yet</Trans>
+        </ThemedText>
       )}
       <Button
         mode="outlined"
         style={styles.addButton}
         onPress={() => onAddExercise(index)}
       >
-        Add Exercise
+        <Trans>Add Exercise</Trans>
       </Button>
     </Card>
   );

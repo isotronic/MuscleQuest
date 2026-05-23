@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { View, StyleSheet, Alert, Text } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
+import { t } from "@lingui/core/macro";
 import { Colors } from "@/constants/Colors";
 import { capitalizeWords } from "@/utils/utility";
 import { fetchAllRecords, fetchMusclesByFilters } from "@/utils/database";
@@ -55,21 +56,21 @@ function FilterRow({
         )) as { equipment: string }[];
 
         const bodyPartOptions = [
-          { label: "All body parts", value: "all" },
+          { label: t`All body parts`, value: "all" },
           ...bodyParts.map((bodyPart) => ({
             label: capitalizeWords(bodyPart.body_part),
             value: bodyPart.body_part,
           })),
         ];
         const muscleOptions = [
-          { label: "All target muscles", value: "all" },
+          { label: t`All target muscles`, value: "all" },
           ...muscles.map((muscle) => ({
             label: capitalizeWords(muscle.muscle),
             value: muscle.muscle,
           })),
         ];
         const equipmentOptions = [
-          { label: "All equipment", value: "all" },
+          { label: t`All equipment`, value: "all" },
           ...equipmentList.map((equipment) => ({
             label: capitalizeWords(equipment.equipment),
             value: equipment.equipment,
@@ -89,8 +90,8 @@ function FilterRow({
           }, 10);
         }
       } catch (error: any) {
-        Alert.alert("Error", "Failed to fetch data. Please try again.", [
-          { text: "OK" },
+        Alert.alert(t`Error`, t`Failed to fetch data. Please try again.`, [
+          { text: t`OK` },
         ]);
         console.error("Error fetching data:", error);
         Bugsnag.notify(error);
@@ -117,7 +118,7 @@ function FilterRow({
         );
         if (cancelled) return;
         const filtered = [
-          { label: "All target muscles", value: "all" },
+          { label: t`All target muscles`, value: "all" },
           ...results.map((r) => ({
             label: capitalizeWords(r.target_muscle),
             value: r.target_muscle,
@@ -135,8 +136,8 @@ function FilterRow({
         if (cancelled) return;
         setMuscleOptions(allMuscleOptions);
         setSelectedTargetMuscle(null);
-        Alert.alert("Error", "Failed to fetch data. Please try again.", [
-          { text: "OK" },
+        Alert.alert(t`Error`, t`Failed to fetch data. Please try again.`, [
+          { text: t`OK` },
         ]);
         console.error("Error fetching muscles by body part:", error);
         Bugsnag.notify(error);
@@ -155,9 +156,9 @@ function FilterRow({
   ]);
 
   const dropdownPlaceholders = {
-    equipment: "All equipment",
-    bodyPart: "All body parts",
-    targetMuscle: "All target muscles",
+    equipment: t`All equipment`,
+    bodyPart: t`All body parts`,
+    targetMuscle: t`All target muscles`,
   };
 
   const renderListItem = (item: OptionItem, selected?: boolean) => {

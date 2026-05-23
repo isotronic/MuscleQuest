@@ -2,6 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, View, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
+import { bodyPartTranslations } from "@/constants/dbTranslations";
+import { capitalizeWords } from "@/utils/utility";
 
 interface InsightPill {
   label: string;
@@ -25,6 +29,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
   topBodyPart,
   streak,
 }) => {
+  const { _ } = useLingui();
   const [tooltipText, setTooltipText] = useState<string | null>(null);
   const [tooltipLeft, setTooltipLeft] = useState(0);
   const [tooltipHalfWidth, setTooltipHalfWidth] = useState(0);
@@ -63,22 +68,25 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
 
   if (workoutsPerWeek != null) {
     pills.push({
-      label: "Per week (avg)",
-      value: `${workoutsPerWeek.toFixed(1)} workouts`,
+      label: t`Per week (avg)`,
+      value: t`${workoutsPerWeek.toFixed(1)} workouts`,
     });
   }
   if (biggestGainLabel && biggestGainValue) {
     pills.push({
-      label: "Best gain",
+      label: t`Best gain`,
       value: biggestGainValue,
-      tooltip: `${biggestGainLabel} 1RM`,
+      tooltip: t`${biggestGainLabel} 1RM`,
     });
   }
   if (topBodyPart) {
-    pills.push({ label: "Most trained", value: topBodyPart });
+    const translatedBodyPart = bodyPartTranslations[topBodyPart]
+      ? _(bodyPartTranslations[topBodyPart])
+      : capitalizeWords(topBodyPart);
+    pills.push({ label: t`Most trained`, value: translatedBodyPart });
   }
   if (streak != null && streak > 0) {
-    pills.push({ label: "Week streak", value: `${streak} 🔥` });
+    pills.push({ label: t`Week streak`, value: `${streak} 🔥` });
   }
 
   if (pills.length === 0) return null;

@@ -10,6 +10,9 @@ import {
   WhatsNewEntry,
 } from "@/constants/WhatsNew";
 import { Colors } from "@/constants/Colors";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
 export const WhatsNewModal = () => {
   const [visible, setVisible] = useState(false);
@@ -17,6 +20,8 @@ export const WhatsNewModal = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const { data: settings } = useSettingsQuery();
   const { mutate: setSetting } = useUpdateSettingsMutation();
+
+  const { _ } = useLingui();
 
   useEffect(() => {
     if (!settings) return;
@@ -79,7 +84,9 @@ export const WhatsNewModal = () => {
               alignItems: "center",
             }}
           >
-            <ThemedText type="subtitle">🎉 What's New</ThemedText>
+            <ThemedText type="subtitle">
+              <Trans>🎉 What's New</Trans>
+            </ThemedText>
             {entriesToShow.length > 1 && (
               <ThemedText
                 style={{ opacity: 0.5, fontSize: 13 }}
@@ -87,13 +94,13 @@ export const WhatsNewModal = () => {
             )}
           </View>
           <Divider style={{ marginTop: 12 }} />
-          <ThemedText>{currentEntry.message}</ThemedText>
+          <ThemedText>{_(currentEntry.message)}</ThemedText>
           <Button
             mode="contained"
             onPress={handleNext}
             style={{ marginTop: 24 }}
           >
-            {currentIndex + 1 < entriesToShow.length ? "Next" : "Got it!"}
+            {currentIndex + 1 < entriesToShow.length ? t`Next` : t`Got it!`}
           </Button>
         </View>
       </Modal>

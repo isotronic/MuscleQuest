@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ScrollView, TextInput, StyleSheet, View } from "react-native";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { Divider, IconButton } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -139,7 +141,7 @@ export default function EditCompletedWorkoutScreen() {
             {exercise.sets.map((set, setIndex) => (
               <ThemedView key={set.set_number} style={styles.setContainer}>
                 <ThemedText style={styles.setNumber}>
-                  Set {set.set_number}
+                  <Trans>Set {set.set_number}</Trans>
                 </ThemedText>
                 <Divider style={styles.divider} />
                 {exercise.exercise_tracking_type === "weight" ||
@@ -147,9 +149,11 @@ export default function EditCompletedWorkoutScreen() {
                   <View>
                     <View style={styles.inputContainer}>
                       <ThemedText style={styles.label}>
-                        {exercise.exercise_tracking_type === "weight"
-                          ? "Weight"
-                          : "Assist"}{" "}
+                        {exercise.exercise_tracking_type === "weight" ? (
+                          <Trans>Weight</Trans>
+                        ) : (
+                          <Trans>Assist</Trans>
+                        )}{" "}
                         ({weightUnit})
                       </ThemedText>
                       <TextInput
@@ -159,7 +163,7 @@ export default function EditCompletedWorkoutScreen() {
                           ] = ref)
                         }
                         style={styles.input}
-                        placeholder="Weight"
+                        placeholder={t`Weight`}
                         value={
                           weightInputs[`${exerciseIndex}-${setIndex}`] || ""
                         }
@@ -190,10 +194,12 @@ export default function EditCompletedWorkoutScreen() {
                       />
                     </View>
                     <View style={styles.inputContainer}>
-                      <ThemedText style={styles.label}>Reps</ThemedText>
+                      <ThemedText style={styles.label}>
+                        <Trans>Reps</Trans>
+                      </ThemedText>
                       <TextInput
                         style={styles.input}
-                        placeholder="Reps"
+                        placeholder={t`Reps`}
                         value={String(set.reps || "")}
                         placeholderTextColor={Colors.dark.subText}
                         selectTextOnFocus={true}
@@ -211,7 +217,9 @@ export default function EditCompletedWorkoutScreen() {
                   </View>
                 ) : exercise.exercise_tracking_type === "time" ? (
                   <View style={styles.inputContainer}>
-                    <ThemedText style={styles.label}>Time (Min:Sec)</ThemedText>
+                    <ThemedText style={styles.label}>
+                      <Trans>Time (Min:Sec)</Trans>
+                    </ThemedText>
                     <TimeInput
                       value={formatFromTotalSeconds(set.time || 0)}
                       onChange={(value: string) => {
@@ -227,10 +235,12 @@ export default function EditCompletedWorkoutScreen() {
                   </View>
                 ) : exercise.exercise_tracking_type === "reps" ? (
                   <View style={styles.inputContainer}>
-                    <ThemedText style={styles.label}>Reps</ThemedText>
+                    <ThemedText style={styles.label}>
+                      <Trans>Reps</Trans>
+                    </ThemedText>
                     <TextInput
                       style={styles.input}
-                      placeholder="Reps"
+                      placeholder={t`Reps`}
                       value={String(set.reps || "")}
                       placeholderTextColor={Colors.dark.subText}
                       selectTextOnFocus={true}
@@ -248,11 +258,11 @@ export default function EditCompletedWorkoutScreen() {
                 ) : exercise.exercise_tracking_type === "distance" ? (
                   <View style={styles.inputContainer}>
                     <ThemedText style={styles.label}>
-                      Distance ({distanceUnit})
+                      <Trans>Distance ({distanceUnit})</Trans>
                     </ThemedText>
                     <TextInput
                       style={styles.input}
-                      placeholder="Distance"
+                      placeholder={t`Distance`}
                       value={set.distance != null ? String(set.distance) : ""}
                       placeholderTextColor={Colors.dark.subText}
                       selectTextOnFocus={true}

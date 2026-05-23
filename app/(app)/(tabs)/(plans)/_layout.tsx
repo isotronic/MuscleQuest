@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { Stack } from "expo-router";
+import { t } from "@lingui/core/macro";
 
 export default function PlansLayout() {
   return (
@@ -11,9 +12,9 @@ export default function PlansLayout() {
         headerTintColor: Colors.dark.text,
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Plans" }} />
-      <Stack.Screen name="overview" options={{ title: "Plan Overview" }} />
-      <Stack.Screen name="standalone-workout" options={{ title: "Workout" }} />
+      <Stack.Screen name="index" options={{ title: t`Plans` }} />
+      <Stack.Screen name="overview" options={{ title: t`Plan Overview` }} />
+      <Stack.Screen name="standalone-workout" options={{ title: t`Workout` }} />
     </Stack>
   );
 }

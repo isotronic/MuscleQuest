@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocalSearchParams, router } from "expo-router";
 import { View, TextInput, StyleSheet } from "react-native";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { Button, ActivityIndicator } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -156,7 +158,7 @@ export default function ExercisesScreen() {
     return (
       <ThemedView style={styles.container}>
         <ThemedText style={styles.errorText}>
-          Error loading exercises: {exercisesError?.message}
+          <Trans>Error loading exercises: {exercisesError?.message}</Trans>
         </ThemedText>
       </ThemedView>
     );
@@ -168,7 +170,7 @@ export default function ExercisesScreen() {
         <TextInput
           style={styles.searchInput}
           placeholderTextColor={Colors.dark.text}
-          placeholder="Search"
+          placeholder={t`Search`}
           value={searchQuery}
           onChangeText={setSearchQuery}
           selectTextOnFocus={true}
@@ -202,7 +204,7 @@ export default function ExercisesScreen() {
           labelStyle={styles.addButtonLabel}
           onPressIn={handleAddExercise}
         >
-          Track ({selectedExercises.length})
+          <Trans>Track ({selectedExercises.length})</Trans>
         </Button>
       </View>
     </ThemedView>

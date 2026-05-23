@@ -3,6 +3,7 @@ import { FlatList, StyleSheet } from "react-native";
 import TrainingPlanCard from "@/components/TrainingPlanCard";
 import { ThemedText } from "@/components/ThemedText";
 import { Plan } from "@/hooks/useAllPlansQuery";
+import { Trans } from "@lingui/react/macro";
 
 interface PlanListProps {
   title: string;
@@ -19,7 +20,7 @@ export const PlanList: React.FC<PlanListProps> = ({
     <ThemedText style={styles.sectionTitle}>{title}</ThemedText>
     {data?.length === 0 && (
       <ThemedText style={styles.noPlansText}>
-        No training plans found
+        <Trans>No training plans found</Trans>
       </ThemedText>
     )}
     <FlatList

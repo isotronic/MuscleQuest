@@ -12,6 +12,8 @@ import StandaloneWorkoutListItem from "@/components/StandaloneWorkoutListItem";
 import { Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 
 export default function PlansScreen() {
   const { data: plans, isLoading, isError, error } = useAllPlansQuery();
@@ -59,7 +61,11 @@ export default function PlansScreen() {
 
   if (isError) {
     Bugsnag.notify(error);
-    return <ThemedText>Error loading plans</ThemedText>;
+    return (
+      <ThemedText>
+        <Trans>Error loading plans</Trans>
+      </ThemedText>
+    );
   }
 
   return (
@@ -74,7 +80,7 @@ export default function PlansScreen() {
                 labelStyle={styles.buttonLabel}
                 onPress={handleCreateWorkout}
               >
-                New Workout
+                <Trans>New Workout</Trans>
               </Button>
               <Button
                 mode="contained"
@@ -82,7 +88,7 @@ export default function PlansScreen() {
                 labelStyle={styles.buttonLabel}
                 onPress={handleCreatePlan}
               >
-                New Plan
+                <Trans>New Plan</Trans>
               </Button>
             </View>
           ),
@@ -90,22 +96,24 @@ export default function PlansScreen() {
       />
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <PlanList
-          title="Your training plans"
+          title={t`Your training plans`}
           data={plans?.userPlans}
           onPressItem={handleViewPlan}
         />
         <PlanList
-          title="Premade plans"
+          title={t`Premade plans`}
           data={plans?.appPlans}
           onPressItem={handleViewPlan}
         />
         <View style={styles.workoutsSection}>
-          <ThemedText style={styles.sectionTitle}>Your workouts</ThemedText>
+          <ThemedText style={styles.sectionTitle}>
+            <Trans>Your workouts</Trans>
+          </ThemedText>
           {standaloneIsLoading ? (
             <ActivityIndicator size="small" color={Colors.dark.text} />
           ) : standaloneIsError ? (
             <ThemedText style={styles.emptyText}>
-              Failed to load workouts
+              <Trans>Failed to load workouts</Trans>
             </ThemedText>
           ) : standaloneWorkouts && standaloneWorkouts.length > 0 ? (
             standaloneWorkouts.map((item) => (
@@ -117,7 +125,9 @@ export default function PlansScreen() {
               />
             ))
           ) : (
-            <ThemedText style={styles.emptyText}>No workouts yet</ThemedText>
+            <ThemedText style={styles.emptyText}>
+              <Trans>No workouts yet</Trans>
+            </ThemedText>
           )}
         </View>
       </ScrollView>

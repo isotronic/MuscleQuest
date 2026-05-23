@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import {
   ActivityIndicator,
   Button,
@@ -302,7 +304,9 @@ export default function StatsScreen() {
   if (anyError) {
     return (
       <ThemedView style={styles.centered}>
-        <ThemedText>Error loading stats. Please try again.</ThemedText>
+        <ThemedText>
+          <Trans>Error loading stats. Please try again.</Trans>
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -364,7 +368,9 @@ export default function StatsScreen() {
         {/* Insights strip */}
         {(completedWorkouts?.length ?? 0) > 0 && (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>Insights</ThemedText>
+            <ThemedText style={styles.sectionTitle}>
+              <Trans>Insights</Trans>
+            </ThemedText>
             <InsightsStrip
               workoutsPerWeek={insights.workoutsPerWeek}
               biggestGainLabel={insights.biggestGainLabel}
@@ -378,27 +384,29 @@ export default function StatsScreen() {
 
         {/* Summary tiles */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Summary</ThemedText>
+          <ThemedText style={styles.sectionTitle}>
+            <Trans>Summary</Trans>
+          </ThemedText>
           <View style={styles.tileGrid}>
             <StatsTile
-              label="Workouts"
+              label={t`Workouts`}
               value={String(current.totalWorkouts)}
               delta={workoutsDelta}
             />
             <StatsTile
-              label={`Volume (${volumeUnit})`}
+              label={t`Volume (${volumeUnit})`}
               value={formattedVolume}
               delta={volumeDelta}
               deltaLabel={volumeUnit}
             />
             <StatsTile
-              label="Total Time"
+              label={t`Total Time`}
               value={formatToHoursMinutes(current.totalTimeSeconds)}
               delta={timeDeltaMinutes}
               deltaText={timeDeltaFormatted}
             />
             <StatsTile
-              label="Avg Duration"
+              label={t`Avg Duration`}
               value={formatToHoursMinutes(current.avgDurationSeconds)}
             />
           </View>
@@ -407,7 +415,9 @@ export default function StatsScreen() {
         {/* Workout history */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>Workout History</ThemedText>
+            <ThemedText style={styles.sectionTitle}>
+              <Trans>Workout History</Trans>
+            </ThemedText>
             {(completedWorkouts?.length ?? 0) > 0 && (
               <IconButton
                 icon="calendar-month"
@@ -429,7 +439,7 @@ export default function StatsScreen() {
         {(completedWorkouts?.length ?? 0) > 0 && (
           <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>
-              Workouts per Week
+              <Trans>Workouts per Week</Trans>
             </ThemedText>
             <WorkoutBarChart
               completedWorkouts={completedWorkouts!}
@@ -442,7 +452,7 @@ export default function StatsScreen() {
         {(completedWorkouts?.length ?? 0) > 0 && (
           <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>
-              Volume per Week ({volumeUnit})
+              <Trans>Volume per Week ({volumeUnit})</Trans>
             </ThemedText>
             <VolumeBarChart
               completedWorkouts={completedWorkouts!}
@@ -458,7 +468,7 @@ export default function StatsScreen() {
         {/* Training split */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>
-            Training Split (by sets)
+            <Trans>Training Split (by sets)</Trans>
           </ThemedText>
           <BodyPartChart
             completedWorkouts={completedWorkouts}
@@ -471,7 +481,7 @@ export default function StatsScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <ThemedText style={styles.sectionTitle}>
-              Tracked Exercises
+              <Trans>Tracked Exercises</Trans>
             </ThemedText>
             <Button
               mode="text"
@@ -479,9 +489,11 @@ export default function StatsScreen() {
               labelStyle={{ color: Colors.dark.tint, fontSize: 13 }}
               onPress={handleManageExercisesPress}
             >
-              {trackedExercises && trackedExercises.length > 0
-                ? "Manage"
-                : "+ Add"}
+              {trackedExercises && trackedExercises.length > 0 ? (
+                <Trans>Manage</Trans>
+              ) : (
+                <Trans>+ Add</Trans>
+              )}
             </Button>
           </View>
           {trackedExercises && trackedExercises.length > 0 ? (
@@ -498,7 +510,7 @@ export default function StatsScreen() {
             ))
           ) : (
             <ThemedText style={{ color: Colors.dark.subText }}>
-              No exercises tracked yet. Tap + Add to start.
+              <Trans>No exercises tracked yet. Tap + Add to start.</Trans>
             </ThemedText>
           )}
         </View>

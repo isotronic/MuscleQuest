@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { StyleSheet, FlatList, TouchableOpacity, View } from "react-native";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { Button, Divider } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -126,11 +128,13 @@ export default function SetsOverviewScreen() {
             style={styles.setContent}
           >
             <ThemedView style={styles.setTextContainer}>
-              <ThemedText style={styles.setTitle}>Set {index + 1}</ThemedText>
+              <ThemedText style={styles.setTitle}>
+                <Trans>Set {index + 1}</Trans>
+              </ThemedText>
               <ThemedText style={styles.setInfo}>
-                {item.isWarmup ? "Warm-up, " : ""}
-                {item.isDropSet ? "Drop set, " : ""}
-                {item.isToFailure ? "To failure, " : ""}
+                {item.isWarmup ? t`Warm-up, ` : ""}
+                {item.isDropSet ? t`Drop set, ` : ""}
+                {item.isToFailure ? t`To failure, ` : ""}
                 {trackingType === "time"
                   ? `${formattedTime}, `
                   : trackingType === "distance"
@@ -138,10 +142,10 @@ export default function SetsOverviewScreen() {
                       ? `${item.distance} ${distanceUnit}, `
                       : ""
                     : repRange !== undefined
-                      ? `${repRange} Reps, `
+                      ? t`${repRange} Reps, `
                       : ""}
                 {item.restMinutes}:{String(item.restSeconds).padStart(2, "0")}{" "}
-                Rest
+                <Trans>Rest</Trans>
               </ThemedText>
             </ThemedView>
           </TouchableOpacity>
@@ -169,16 +173,18 @@ export default function SetsOverviewScreen() {
                 router.push(`/(app)/exercise-info?exercise_id=${exerciseId}`)
               }
             >
-              Details
+              <Trans>Details</Trans>
             </Button>
           ),
         }}
       />
       {supersetPartner && (
         <View style={styles.supersetBanner}>
-          <ThemedText style={styles.supersetBannerLabel}>Superset</ThemedText>
+          <ThemedText style={styles.supersetBannerLabel}>
+            <Trans>Superset</Trans>
+          </ThemedText>
           <ThemedText style={styles.supersetBannerPartner}>
-            Paired with {supersetPartner.name}
+            <Trans>Paired with {supersetPartner.name}</Trans>
           </ThemedText>
         </View>
       )}
@@ -195,7 +201,7 @@ export default function SetsOverviewScreen() {
           style={styles.addSetButton}
           onPress={handleAddWarmupSet}
         >
-          Add Warm-up
+          <Trans>Add Warm-up</Trans>
         </Button>
         <Button
           mode="contained"
@@ -203,7 +209,7 @@ export default function SetsOverviewScreen() {
           style={styles.addSetButton}
           onPress={handleAddSet}
         >
-          Add Set
+          <Trans>Add Set</Trans>
         </Button>
       </View>
       <EditSetModal

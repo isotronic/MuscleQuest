@@ -10,6 +10,8 @@ import {
   Animated,
 } from "react-native";
 import { Button, Checkbox, Divider } from "react-native-paper";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
@@ -253,7 +255,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
               {trackingType === "time" ? (
                 <View>
                   <ThemedText style={styles.label}>
-                    Time (Minutes:Seconds)
+                    <Trans>Time (Minutes:Seconds)</Trans>
                   </ThemedText>
                   <View style={styles.inputRow}>
                     <TimeInput
@@ -266,7 +268,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
               ) : trackingType === "distance" ? (
                 <View>
                   <ThemedText style={styles.label}>
-                    Target Distance ({distanceUnit})
+                    <Trans>Target Distance ({distanceUnit})</Trans>
                   </ThemedText>
                   <View style={styles.inputRow}>
                     <MaterialCommunityIcons
@@ -308,7 +310,9 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                 </View>
               ) : (
                 <View>
-                  <ThemedText style={styles.label}>Min Reps</ThemedText>
+                  <ThemedText style={styles.label}>
+                    <Trans>Min Reps</Trans>
+                  </ThemedText>
                   <View style={styles.inputRow}>
                     <MaterialCommunityIcons
                       name="minus"
@@ -337,7 +341,9 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                     />
                   </View>
 
-                  <ThemedText style={styles.label}>Max Reps</ThemedText>
+                  <ThemedText style={styles.label}>
+                    <Trans>Max Reps</Trans>
+                  </ThemedText>
                   <View style={styles.inputRow}>
                     <MaterialCommunityIcons
                       name="minus"
@@ -369,7 +375,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
               )}
 
               <ThemedText style={styles.label}>
-                Rest Time (Minutes:Seconds)
+                <Trans>Rest Time (Minutes:Seconds)</Trans>
               </ThemedText>
               <View style={styles.inputRow}>
                 <TimeInput
@@ -386,7 +392,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                   onPress={() => setIsWarmup(!isWarmup)}
                 />
                 <ThemedText style={styles.checkboxLabel}>
-                  Warm-up set
+                  <Trans>Warm-up set</Trans>
                 </ThemedText>
               </View>
 
@@ -396,7 +402,9 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                   uncheckedColor={Colors.dark.subText}
                   onPress={() => setIsDropSet(!isDropSet)}
                 />
-                <ThemedText style={styles.checkboxLabel}>Drop set</ThemedText>
+                <ThemedText style={styles.checkboxLabel}>
+                  <Trans>Drop set</Trans>
+                </ThemedText>
               </View>
 
               <View style={styles.checkboxContainer}>
@@ -405,7 +413,9 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                   uncheckedColor={Colors.dark.subText}
                   onPress={handleToFailureChange}
                 />
-                <ThemedText style={styles.checkboxLabel}>To failure</ThemedText>
+                <ThemedText style={styles.checkboxLabel}>
+                  <Trans>To failure</Trans>
+                </ThemedText>
               </View>
 
               <Divider style={{ marginTop: 16 }} />
@@ -419,7 +429,9 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                   }}
                 />
                 <ThemedText style={styles.checkboxLabel}>
-                  Apply to all {isWarmup ? "warmup" : "working"} sets
+                  <Trans>
+                    Apply to all {isWarmup ? t`warmup` : t`working`} sets
+                  </Trans>
                 </ThemedText>
               </View>
 
@@ -430,7 +442,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                   onPress={onClose}
                   mode="outlined"
                 >
-                  Cancel
+                  <Trans>Cancel</Trans>
                 </Button>
                 <Button
                   style={styles.button}
@@ -438,7 +450,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                   onPress={handleSaveSet}
                   mode="contained"
                 >
-                  Save Set
+                  <Trans>Save Set</Trans>
                 </Button>
               </View>
             </Animated.View>

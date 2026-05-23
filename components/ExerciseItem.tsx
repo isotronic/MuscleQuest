@@ -6,6 +6,11 @@ import { Image } from "expo-image";
 import { Colors } from "@/constants/Colors";
 import { capitalizeWords } from "@/utils/utility";
 import { Exercise } from "@/utils/database";
+import { useLingui } from "@lingui/react";
+import {
+  bodyPartTranslations,
+  equipmentTranslations,
+} from "@/constants/dbTranslations";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -22,6 +27,7 @@ const ExerciseItem = ({
   onSelect,
   onPress,
 }: ExerciseItemProps) => {
+  const { _ } = useLingui();
   const base64Image = `data:image/webp;base64,${btoa(String.fromCharCode(...new Uint8Array(item.image)))}`;
 
   return (
@@ -40,8 +46,13 @@ const ExerciseItem = ({
         <View style={styles.exerciseInfo}>
           <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
           <ThemedText style={styles.exerciseDetails}>
-            {capitalizeWords(item.body_part)} |{" "}
-            {capitalizeWords(item.equipment)}
+            {bodyPartTranslations[item.body_part]
+              ? _(bodyPartTranslations[item.body_part])
+              : capitalizeWords(item.body_part)}{" "}
+            |{" "}
+            {equipmentTranslations[item.equipment]
+              ? _(equipmentTranslations[item.equipment])
+              : capitalizeWords(item.equipment)}
           </ThemedText>
         </View>
         <Checkbox

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Button, RadioButton, PaperProvider } from "react-native-paper";
+import { Trans } from "@lingui/react/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
@@ -274,7 +275,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {settingType === "restTime" && (
                   <View style={styles.labeledInput}>
                     <ThemedText style={styles.inputLabel}>
-                      Time (Min:Sec)
+                      <Trans>Time (Min:Sec)</Trans>
                     </ThemedText>
                     <TimeInput
                       value={timeInput}
@@ -287,7 +288,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {settingType === "reminderTime" && (
                   <View style={styles.labeledInput}>
                     <ThemedText style={styles.inputLabel}>
-                      Time (Hour:Min)
+                      <Trans>Time (Hour:Min)</Trans>
                     </ThemedText>
                     <TimeInput
                       value={reminderTimeInput}
@@ -304,7 +305,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     labelStyle={styles.buttonLabel}
                     style={styles.cancelButton}
                   >
-                    Cancel
+                    <Trans>Cancel</Trans>
                   </Button>
                   <Button
                     mode="contained"
@@ -318,7 +319,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     labelStyle={styles.buttonLabel}
                     style={styles.saveButton}
                   >
-                    Save
+                    <Trans>Save</Trans>
                   </Button>
                 </View>
               </View>

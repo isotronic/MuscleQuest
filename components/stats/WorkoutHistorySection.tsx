@@ -3,6 +3,7 @@ import { FlatList, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import WorkoutHistoryCard from "@/components/WorkoutHistoryCard";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import { Trans } from "@lingui/react/macro";
 
 interface WorkoutHistorySectionProps {
   completedWorkouts: CompletedWorkout[];
@@ -18,7 +19,7 @@ export const WorkoutHistorySection: React.FC<WorkoutHistorySectionProps> = ({
   if (completedWorkouts.length === 0) {
     return (
       <ThemedText>
-        No workouts completed yet. Start your first workout!
+        <Trans>No workouts completed yet. Start your first workout!</Trans>
       </ThemedText>
     );
   }

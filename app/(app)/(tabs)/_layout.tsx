@@ -6,6 +6,7 @@ import { AppMenu } from "@/components/AppMenu";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
 import { useMenuStore } from "@/store/menuStore";
+import { t } from "@lingui/core/macro";
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -30,8 +31,8 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: "MuscleQuest",
-            tabBarLabel: "Home",
+            title: t`MuscleQuest`,
+            tabBarLabel: t`Home`,
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
                 name={focused ? "home" : "home-outline"}
@@ -44,7 +45,7 @@ export default function TabLayout() {
           name="(plans)"
           options={{
             headerShown: false,
-            title: "Plans",
+            title: t`Plans`,
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
                 name={focused ? "barbell" : "barbell-outline"}
@@ -69,7 +70,7 @@ export default function TabLayout() {
           name="(stats)"
           options={{
             headerShown: false,
-            title: "Stats",
+            title: t`Stats`,
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
                 name={focused ? "stats-chart" : "stats-chart-outline"}
@@ -87,7 +88,7 @@ export default function TabLayout() {
             },
           }}
           options={{
-            title: "More",
+            title: t`More`,
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
                 name={

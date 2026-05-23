@@ -1,5 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import {
   IconButton,
   ActivityIndicator,
@@ -191,22 +193,26 @@ export default function SessionSetInfo({
               trackingType !== "distance" &&
               !!repRange && (
                 <ThemedText style={styles.headerText}>
-                  Reps: {repRange}
+                  <Trans>Reps: {repRange}</Trans>
                 </ThemedText>
               )}
             {trackingType === "time" && !!timeMin && (
               <ThemedText style={styles.headerText}>
-                Time: {formatFromTotalSeconds(timeMin)}
+                <Trans>Time: {formatFromTotalSeconds(timeMin)}</Trans>
               </ThemedText>
             )}
             {trackingType === "distance" && !!distanceMin && (
               <ThemedText style={styles.headerText}>
-                Target: {distanceMin} {distanceUnit}
+                <Trans>
+                  Target: {distanceMin} {distanceUnit}
+                </Trans>
               </ThemedText>
             )}
 
             <ThemedText style={styles.headerText}>
-              Rest Time: {restMinutes}:{String(restSeconds).padStart(2, "0")}
+              <Trans>
+                Rest Time: {restMinutes}:{String(restSeconds).padStart(2, "0")}
+              </Trans>
             </ThemedText>
           </View>
         </View>
@@ -229,21 +235,21 @@ export default function SessionSetInfo({
               removeSet(currentSetIndex);
               closeMenu();
             }}
-            title="Delete Set"
+            title={t`Delete Set`}
           />
           <Menu.Item
             onPress={() => {
               addSet();
               closeMenu();
             }}
-            title="Add Set"
+            title={t`Add Set`}
           />
           <Menu.Item
             onPress={() => {
               onToggleSetType("isWarmup");
               closeMenu();
             }}
-            title="Warm-up"
+            title={t`Warm-up`}
             leadingIcon={isWarmup ? "check" : undefined}
           />
           <Menu.Item
@@ -251,7 +257,7 @@ export default function SessionSetInfo({
               onToggleSetType("isDropSet");
               closeMenu();
             }}
-            title="Drop Set"
+            title={t`Drop Set`}
             leadingIcon={isDropSet ? "check" : undefined}
           />
           <Menu.Item
@@ -259,7 +265,7 @@ export default function SessionSetInfo({
               onToggleSetType("isToFailure");
               closeMenu();
             }}
-            title="To Failure"
+            title={t`To Failure`}
             leadingIcon={isToFailure ? "check" : undefined}
           />
         </Menu>
@@ -274,7 +280,9 @@ export default function SessionSetInfo({
           iconColor={Colors.dark.text}
         />
         <ThemedText style={styles.setNavigationText}>
-          Set {currentSetIndex + 1} of {totalSets}
+          <Trans>
+            Set {currentSetIndex + 1} of {totalSets}
+          </Trans>
         </ThemedText>
         <IconButton
           icon="chevron-right"
@@ -291,7 +299,7 @@ export default function SessionSetInfo({
             <View
               style={[styles.setTypeBadge, styles.setTypeBadgeWarmup]}
               accessible={true}
-              accessibilityLabel="Warm-up set"
+              accessibilityLabel={t`Warm-up set`}
               accessibilityRole="text"
             >
               <MaterialCommunityIcons
@@ -300,14 +308,16 @@ export default function SessionSetInfo({
                 color="#fff"
                 style={styles.setIcon}
               />
-              <ThemedText style={styles.setTypeLabel}>Warm-up</ThemedText>
+              <ThemedText style={styles.setTypeLabel}>
+                <Trans>Warm-up</Trans>
+              </ThemedText>
             </View>
           )}
           {isDropSet && (
             <View
               style={[styles.setTypeBadge, styles.setTypeBadgeDrop]}
               accessible={true}
-              accessibilityLabel="Drop set"
+              accessibilityLabel={t`Drop set`}
               accessibilityRole="text"
             >
               <MaterialCommunityIcons
@@ -316,14 +326,16 @@ export default function SessionSetInfo({
                 color="#fff"
                 style={styles.setIcon}
               />
-              <ThemedText style={styles.setTypeLabel}>Drop Set</ThemedText>
+              <ThemedText style={styles.setTypeLabel}>
+                <Trans>Drop Set</Trans>
+              </ThemedText>
             </View>
           )}
           {isToFailure && (
             <View
               style={[styles.setTypeBadge, styles.setTypeBadgeFailure]}
               accessible={true}
-              accessibilityLabel="To failure"
+              accessibilityLabel={t`To failure`}
               accessibilityRole="text"
             >
               <MaterialCommunityIcons
@@ -332,7 +344,9 @@ export default function SessionSetInfo({
                 color="#fff"
                 style={styles.setIcon}
               />
-              <ThemedText style={styles.setTypeLabel}>To Failure</ThemedText>
+              <ThemedText style={styles.setTypeLabel}>
+                <Trans>To Failure</Trans>
+              </ThemedText>
             </View>
           )}
         </View>
@@ -345,7 +359,7 @@ export default function SessionSetInfo({
         <>
           <View style={styles.centeredLabelContainer}>
             <ThemedText style={styles.label}>
-              {trackingType === "weight" ? "Weight" : "Assistance"} (
+              {trackingType === "weight" ? t`Weight` : t`Assistance`} (
               {weightUnit})
             </ThemedText>
           </View>
@@ -378,7 +392,9 @@ export default function SessionSetInfo({
       {trackingType !== "time" && trackingType !== "distance" ? (
         <>
           <View style={styles.centeredLabelContainer}>
-            <ThemedText style={styles.label}>Reps</ThemedText>
+            <ThemedText style={styles.label}>
+              <Trans>Reps</Trans>
+            </ThemedText>
           </View>
           <View style={styles.inputContainer}>
             <IconButton
@@ -408,7 +424,9 @@ export default function SessionSetInfo({
       ) : trackingType === "time" ? (
         <>
           <View style={styles.centeredLabelContainer}>
-            <ThemedText style={styles.label}>Time (Min:Sec)</ThemedText>
+            <ThemedText style={styles.label}>
+              <Trans>Time (Min:Sec)</Trans>
+            </ThemedText>
           </View>
           <View style={styles.inputContainer}>
             <TimeInput
@@ -430,7 +448,7 @@ export default function SessionSetInfo({
               buttonSize === 40 ? null : styles.largeButton,
             ]}
           >
-            Start Timer
+            <Trans>Start Timer</Trans>
           </Button>
           <ExerciseTimerModal
             visible={timerModalVisible}
@@ -446,7 +464,7 @@ export default function SessionSetInfo({
         <>
           <View style={styles.centeredLabelContainer}>
             <ThemedText style={styles.label}>
-              Distance ({distanceUnit})
+              <Trans>Distance ({distanceUnit})</Trans>
             </ThemedText>
           </View>
           <View style={styles.inputContainer}>
@@ -488,7 +506,7 @@ export default function SessionSetInfo({
         ]}
         disabled={currentSetCompleted}
       >
-        Complete Set
+        <Trans>Complete Set</Trans>
       </Button>
     </View>
   );

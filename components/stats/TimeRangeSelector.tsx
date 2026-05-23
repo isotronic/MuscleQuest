@@ -2,12 +2,14 @@ import React from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
+import { msg } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
 const RANGES = [
-  { label: "30d", value: "30" },
-  { label: "90d", value: "90" },
-  { label: "1yr", value: "365" },
-  { label: "All Time", value: "0" },
+  { label: msg`30d`, value: "30" },
+  { label: msg`90d`, value: "90" },
+  { label: msg`1yr`, value: "365" },
+  { label: msg`All Time`, value: "0" },
 ];
 
 interface TimeRangeSelectorProps {
@@ -19,6 +21,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   selected,
   onChange,
 }) => {
+  const { _ } = useLingui();
   return (
     <View style={styles.row}>
       {RANGES.map((r) => {
@@ -30,10 +33,8 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
             style={[styles.pill, active && styles.pillActive]}
             activeOpacity={0.7}
           >
-            <ThemedText
-              style={[styles.label, active && styles.labelActive]}
-            >
-              {r.label}
+            <ThemedText style={[styles.label, active && styles.labelActive]}>
+              {_(r.label)}
             </ThemedText>
           </TouchableOpacity>
         );

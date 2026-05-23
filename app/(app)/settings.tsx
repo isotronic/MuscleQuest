@@ -1,4 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
+import { Trans } from "@lingui/react/macro";
+import { t, msg } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import {
   Alert,
   ScrollView,
@@ -40,10 +43,19 @@ import {
 } from "@/utils/workoutReminder";
 // import { clearActivePlanStatus } from "@/utils/clearUserData";
 
-const REMINDER_DAY_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+const REMINDER_DAY_LABELS = [
+  msg`Mo`,
+  msg`Tu`,
+  msg`We`,
+  msg`Th`,
+  msg`Fr`,
+  msg`Sa`,
+  msg`Su`,
+];
 const REMINDER_DAY_VALUES = [1, 2, 3, 4, 5, 6, 0];
 
 export default function SettingsScreen() {
+  const { _ } = useLingui();
   const user = useContext(AuthContext);
   const queryClient = useQueryClient();
   const { data: settings, isLoading, isError, error } = useSettingsQuery();
@@ -315,8 +327,8 @@ export default function SettingsScreen() {
 
       if (status !== "granted") {
         Alert.alert(
-          "Permission Required",
-          "To enable rest timer notifications, grant notification permissions in your device settings.",
+          t`Permission Required`,
+          t`To enable rest timer notifications, grant notification permissions in your device settings.`,
         );
         updateSetting({
           key: "restTimerNotification",
@@ -334,11 +346,11 @@ export default function SettingsScreen() {
       const hasPermission = await requestNotificationPermission();
       if (!hasPermission) {
         Alert.alert(
-          "Permission Required",
-          "To enable workout reminders, grant notification permissions in your device settings.",
+          t`Permission Required`,
+          t`To enable workout reminders, grant notification permissions in your device settings.`,
           [
-            { text: "Open Settings", onPress: () => Linking.openSettings() },
-            { text: "Cancel", style: "cancel" },
+            { text: t`Open Settings`, onPress: () => Linking.openSettings() },
+            { text: t`Cancel`, style: "cancel" },
           ],
         );
         return;
@@ -410,12 +422,12 @@ export default function SettingsScreen() {
 
   const confirmRestoreBackup = async () => {
     Alert.alert(
-      "Restore Backup",
-      "Are you sure you want to restore the backup?",
+      t`Restore Backup`,
+      t`Are you sure you want to restore the backup?`,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t`Cancel`, style: "cancel" },
         {
-          text: "Restore",
+          text: t`Restore`,
           onPress: () =>
             restoreDatabaseBackup(
               setRestoreProgress,
@@ -461,7 +473,9 @@ export default function SettingsScreen() {
           options={options}
         />
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>Personal</ThemedText>
+          <ThemedText style={styles.sectionHeader}>
+            <Trans>Personal</Trans>
+          </ThemedText>
           <View style={styles.item}>
             <MaterialCommunityIcons
               name="account"
@@ -473,20 +487,20 @@ export default function SettingsScreen() {
               <>
                 <View style={styles.textContainer}>
                   <ThemedText style={styles.itemText}>
-                    Sign in with Google
+                    <Trans>Sign in with Google</Trans>
                   </ThemedText>
                   <ThemedText style={styles.currentSetting}>
-                    Log in to secure your data
+                    <Trans>Log in to secure your data</Trans>
                   </ThemedText>
                 </View>
                 <Button mode="outlined" compact onPress={signInWithGoogle}>
-                  Sign in
+                  <Trans>Sign in</Trans>
                 </Button>
               </>
             ) : (
               <View style={styles.textContainer}>
                 <ThemedText style={styles.itemText}>
-                  Signed in as {user.displayName || user.email}
+                  <Trans>Signed in as {user.displayName || user.email}</Trans>
                 </ThemedText>
               </View>
             )}
@@ -504,9 +518,11 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Weekly goal</ThemedText>
+              <ThemedText style={styles.itemText}>
+                <Trans>Weekly goal</Trans>
+              </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.weeklyGoal} days per week
+                <Trans>{settings?.weeklyGoal} days per week</Trans>
               </ThemedText>
             </View>
           </TouchableOpacity>
@@ -523,10 +539,14 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Body weight</ThemedText>
+              <ThemedText style={styles.itemText}>
+                <Trans>Body weight</Trans>
+              </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.bodyWeight} {settings?.weightUnit} (used for assisted
-                exercises)
+                <Trans>
+                  {settings?.bodyWeight} {settings?.weightUnit} (used for
+                  assisted exercises)
+                </Trans>
               </ThemedText>
             </View>
           </TouchableOpacity>
@@ -539,16 +559,16 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Backup and restore
+                <Trans>Backup and restore</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {!user
-                  ? "You need to sign in to use this feature"
+                  ? t`You need to sign in to use this feature`
                   : isLoadingBackupDate
-                    ? "Checking for backups..."
+                    ? t`Checking for backups...`
                     : lastBackupDate
-                      ? `Last backup: ${lastBackupDate.toLocaleDateString()}`
-                      : "No backups found"}
+                      ? t`Last backup: ${lastBackupDate.toLocaleDateString()}`
+                      : t`No backups found`}
               </ThemedText>
             </View>
             {user && (
@@ -561,10 +581,10 @@ export default function SettingsScreen() {
                     uploadDatabaseBackup(setBackupProgress, setIsBackupLoading)
                   }
                 >
-                  Backup
+                  <Trans>Backup</Trans>
                 </Button>
                 <Button mode="outlined" compact onPress={confirmRestoreBackup}>
-                  Restore
+                  <Trans>Restore</Trans>
                 </Button>
               </>
             )}
@@ -573,8 +593,8 @@ export default function SettingsScreen() {
             <View style={styles.progressContainer}>
               <ThemedText style={styles.progressText}>
                 {isBackupLoading
-                  ? "Uploading. Please wait..."
-                  : "Restoring. Please wait..."}
+                  ? t`Uploading. Please wait...`
+                  : t`Restoring. Please wait...`}
               </ThemedText>
               <ProgressBar
                 animatedValue={
@@ -589,7 +609,7 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>
-            Units of measurement
+            <Trans>Units of measurement</Trans>
           </ThemedText>
           <TouchableOpacity
             style={styles.item}
@@ -607,7 +627,9 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Weight unit</ThemedText>
+              <ThemedText style={styles.itemText}>
+                <Trans>Weight unit</Trans>
+              </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {settings?.weightUnit}
               </ThemedText>
@@ -631,7 +653,9 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Distance unit</ThemedText>
+              <ThemedText style={styles.itemText}>
+                <Trans>Distance unit</Trans>
+              </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {settings?.distanceUnit || "m"}
               </ThemedText>
@@ -663,7 +687,9 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>Workout</ThemedText>
+          <ThemedText style={styles.sectionHeader}>
+            <Trans>Workout</Trans>
+          </ThemedText>
           <TouchableOpacity
             style={styles.item}
             onPress={() =>
@@ -681,9 +707,13 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Weight increment</ThemedText>
+              <ThemedText style={styles.itemText}>
+                <Trans>Weight increment</Trans>
+              </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.weightIncrement} {settings?.weightUnit}
+                <Trans>
+                  {settings?.weightIncrement} {settings?.weightUnit}
+                </Trans>
               </ThemedText>
             </View>
           </TouchableOpacity>
@@ -705,10 +735,10 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Rest timer increment
+                <Trans>Rest timer increment</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.restTimerIncrement} seconds
+                <Trans>{settings?.restTimerIncrement} seconds</Trans>
               </ThemedText>
             </View>
           </TouchableOpacity>
@@ -730,10 +760,10 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Exercise timer countdown
+                <Trans>Exercise timer countdown</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.timerCountdown || "5"} seconds
+                <Trans>{settings?.timerCountdown || "5"} seconds</Trans>
               </ThemedText>
             </View>
           </TouchableOpacity>
@@ -746,12 +776,12 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Play countdown beeps (Exercise Timer)
+                <Trans>Play countdown beeps (Exercise Timer)</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {toggleValues.timerCountdownSound === "true"
-                  ? "Enabled"
-                  : "Disabled"}
+                  ? t`Enabled`
+                  : t`Disabled`}
               </ThemedText>
             </View>
             <Switch
@@ -770,12 +800,12 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Play goal achieved sound (Exercise Timer)
+                <Trans>Play goal achieved sound (Exercise Timer)</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {toggleValues.timerGoalSound === "true"
-                  ? "Enabled"
-                  : "Disabled"}
+                  ? t`Enabled`
+                  : t`Disabled`}
               </ThemedText>
             </View>
             <Switch
@@ -794,12 +824,12 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Vibrate after rest
+                <Trans>Vibrate after rest</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {toggleValues.restTimerVibration === "true"
-                  ? "Enabled"
-                  : "Disabled"}
+                  ? t`Enabled`
+                  : t`Disabled`}
               </ThemedText>
             </View>
             <Switch
@@ -818,10 +848,10 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Play sound after rest
+                <Trans>Play sound after rest</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.restTimerSound === "true" ? "Enabled" : "Disabled"}
+                {settings?.restTimerSound === "true" ? t`Enabled` : t`Disabled`}
               </ThemedText>
             </View>
             <Switch
@@ -840,12 +870,12 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Send notification in background after rest
+                <Trans>Send notification in background after rest</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {settings?.restTimerNotification === "true"
-                  ? "Enabled"
-                  : "Disabled"}
+                  ? t`Enabled`
+                  : t`Disabled`}
               </ThemedText>
             </View>
             <Switch
@@ -864,10 +894,12 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Keep screen on during workout
+                <Trans>Keep screen on during workout</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {toggleValues.keepScreenOn === "true" ? "Enabled" : "Disabled"}
+                {toggleValues.keepScreenOn === "true"
+                  ? t`Enabled`
+                  : t`Disabled`}
               </ThemedText>
             </View>
             <Switch
@@ -881,7 +913,9 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>Stats</ThemedText>
+          <ThemedText style={styles.sectionHeader}>
+            <Trans>Stats</Trans>
+          </ThemedText>
           <View style={styles.item}>
             <MaterialCommunityIcons
               name="fire-off"
@@ -891,12 +925,12 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Exclude warmup sets from stats
+                <Trans>Exclude warmup sets from stats</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {toggleValues.excludeWarmupSets === "true"
-                  ? "Enabled"
-                  : "Disabled"}
+                  ? t`Enabled`
+                  : t`Disabled`}
               </ThemedText>
             </View>
             <Switch
@@ -915,12 +949,12 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                I log one side only for single-arm/leg exercises
+                <Trans>I log one side only for single-arm/leg exercises</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {toggleValues.countUnilateralDouble === "true"
-                  ? "Counting reps ×2 for these exercises"
-                  : "Disabled"}
+                  ? t`Counting reps ×2 for these exercises`
+                  : t`Disabled`}
               </ThemedText>
             </View>
             <Switch
@@ -939,12 +973,12 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                I enter weight per dumbbell/cable, not total
+                <Trans>I enter weight per dumbbell/cable, not total</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {toggleValues.doubleWeightForPaired === "true"
-                  ? "Doubling weight for volume calculations"
-                  : "Disabled"}
+                  ? t`Doubling weight for volume calculations`
+                  : t`Disabled`}
               </ThemedText>
             </View>
             <Switch
@@ -958,7 +992,9 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>Reminders</ThemedText>
+          <ThemedText style={styles.sectionHeader}>
+            <Trans>Reminders</Trans>
+          </ThemedText>
           <View style={styles.item}>
             <MaterialCommunityIcons
               name="bell"
@@ -967,9 +1003,11 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Workout reminders</ThemedText>
+              <ThemedText style={styles.itemText}>
+                <Trans>Workout reminders</Trans>
+              </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {workoutReminderEnabled ? "Enabled" : "Disabled"}
+                {workoutReminderEnabled ? t`Enabled` : t`Disabled`}
               </ThemedText>
             </View>
             <Switch
@@ -989,7 +1027,9 @@ export default function SettingsScreen() {
                   style={[styles.icon, { marginTop: 2 }]}
                 />
                 <View style={styles.textContainer}>
-                  <ThemedText style={styles.itemText}>Reminder days</ThemedText>
+                  <ThemedText style={styles.itemText}>
+                    <Trans>Reminder days</Trans>
+                  </ThemedText>
                   <View style={styles.dayChipsRow}>
                     {REMINDER_DAY_LABELS.map((label, index) => {
                       const dayValue = REMINDER_DAY_VALUES[index];
@@ -1011,7 +1051,7 @@ export default function SettingsScreen() {
                               selected && styles.dayChipTextSelected,
                             ]}
                           >
-                            {label}
+                            {_(label)}
                           </ThemedText>
                         </TouchableOpacity>
                       );
@@ -1019,7 +1059,7 @@ export default function SettingsScreen() {
                   </View>
                   {workoutReminderDays.length === 0 && (
                     <ThemedText style={styles.reminderHint}>
-                      Select at least one day
+                      <Trans>Select at least one day</Trans>
                     </ThemedText>
                   )}
                 </View>
@@ -1041,7 +1081,9 @@ export default function SettingsScreen() {
                   style={styles.icon}
                 />
                 <View style={styles.textContainer}>
-                  <ThemedText style={styles.itemText}>Reminder time</ThemedText>
+                  <ThemedText style={styles.itemText}>
+                    <Trans>Reminder time</Trans>
+                  </ThemedText>
                   <ThemedText style={styles.currentSetting}>
                     {settings?.workoutReminderTime ?? "08:00"}
                   </ThemedText>
@@ -1053,7 +1095,9 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>Exercise</ThemedText>
+          <ThemedText style={styles.sectionHeader}>
+            <Trans>Exercise</Trans>
+          </ThemedText>
           <TouchableOpacity
             style={styles.item}
             onPress={() =>
@@ -1067,9 +1111,11 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Default sets</ThemedText>
+              <ThemedText style={styles.itemText}>
+                <Trans>Default sets</Trans>
+              </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.defaultSets} sets
+                <Trans>{settings?.defaultSets} sets</Trans>
               </ThemedText>
             </View>
           </TouchableOpacity>
@@ -1090,7 +1136,9 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Default rest time</ThemedText>
+              <ThemedText style={styles.itemText}>
+                <Trans>Default rest time</Trans>
+              </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {defaultRestTime}
               </ThemedText>
@@ -1105,10 +1153,10 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Download all exercise animations
+                <Trans>Download all exercise animations</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                Size: ~100MB
+                <Trans>Size: ~100MB</Trans>
               </ThemedText>
             </View>
             <Switch
@@ -1122,8 +1170,8 @@ export default function SettingsScreen() {
             <View style={styles.progressContainer}>
               <ThemedText style={styles.progressText}>
                 {isDownloading
-                  ? "Downloading. Please wait..."
-                  : "Deleting. Please wait..."}
+                  ? t`Downloading. Please wait...`
+                  : t`Deleting. Please wait...`}
               </ThemedText>
               <ProgressBar
                 animatedValue={progress}
@@ -1135,7 +1183,9 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>Appearance</ThemedText>
+          <ThemedText style={styles.sectionHeader}>
+            <Trans>Appearance</Trans>
+          </ThemedText>
           <View style={styles.item}>
             <MaterialCommunityIcons
               name="view-dashboard"
@@ -1145,10 +1195,10 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Show onboarding on home screen
+                <Trans>Show onboarding on home screen</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.showOnboarding === "true" ? "Enabled" : "Disabled"}
+                {settings?.showOnboarding === "true" ? t`Enabled` : t`Disabled`}
               </ThemedText>
             </View>
             <Switch
@@ -1176,7 +1226,7 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Button size during workout
+                <Trans>Button size during workout</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {settings?.buttonSize}
@@ -1251,7 +1301,9 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} /> */}
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>About</ThemedText>
+          <ThemedText style={styles.sectionHeader}>
+            <Trans>About</Trans>
+          </ThemedText>
           <TouchableOpacity
             style={styles.item}
             onPress={() =>
@@ -1266,7 +1318,7 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Request or vote for new features
+                <Trans>Request or vote for new features</Trans>
               </ThemedText>
             </View>
           </TouchableOpacity>
@@ -1283,7 +1335,9 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Buy me a coffee</ThemedText>
+              <ThemedText style={styles.itemText}>
+                <Trans>Buy me a coffee</Trans>
+              </ThemedText>
             </View>
           </TouchableOpacity>
           <TouchableOpacity
@@ -1297,7 +1351,9 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>MuscleQuest.app</ThemedText>
+              <ThemedText style={styles.itemText}>
+                <Trans>MuscleQuest.app</Trans>
+              </ThemedText>
             </View>
           </TouchableOpacity>
           <TouchableOpacity
@@ -1314,7 +1370,7 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                Follow MuscleQuest on Instagram
+                <Trans>Follow MuscleQuest on Instagram</Trans>
               </ThemedText>
             </View>
           </TouchableOpacity>
@@ -1330,7 +1386,7 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                About the developer
+                <Trans>About the developer</Trans>
               </ThemedText>
             </View>
           </TouchableOpacity>
@@ -1347,7 +1403,9 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Privacy policy</ThemedText>
+              <ThemedText style={styles.itemText}>
+                <Trans>Privacy policy</Trans>
+              </ThemedText>
             </View>
           </TouchableOpacity>
         </View>

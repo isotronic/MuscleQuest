@@ -7,6 +7,9 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Exercise } from "@/utils/database";
 import { Card } from "react-native-paper";
 import { capitalizeWords } from "@/utils/utility";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react";
+import { bodyPartTranslations } from "@/constants/dbTranslations";
 
 // Define the props for the component
 interface BodyPartChartProps {
@@ -20,6 +23,7 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
   exercises,
   excludeWarmup = false,
 }) => {
+  const { _ } = useLingui();
   const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
   const [selectedPercentage, setSelectedPercentage] = useState<number | null>(
     null,
@@ -146,7 +150,9 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
                 isSelected && styles.selectedLegendText,
               ]}
             >
-              {`${item.text}`}
+              {bodyPartTranslations[item.text]
+                ? _(bodyPartTranslations[item.text])
+                : capitalizeWords(item.text)}
             </ThemedText>
           </View>
         );
@@ -177,12 +183,14 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
                         {`${selectedPercentage}%`}
                       </ThemedText>
                       <ThemedText style={{ fontSize: 18 }}>
-                        {capitalizeWords(selectedBodyPart)}
+                        {bodyPartTranslations[selectedBodyPart]
+                          ? _(bodyPartTranslations[selectedBodyPart])
+                          : capitalizeWords(selectedBodyPart)}
                       </ThemedText>
                     </>
                   ) : (
                     <ThemedText style={{ fontSize: 18, fontWeight: "bold" }}>
-                      Body Parts
+                      <Trans>Body Parts</Trans>
                     </ThemedText>
                   )}
                 </View>
@@ -192,7 +200,9 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
           </View>
         </Card>
       ) : (
-        <ThemedText>No data available.</ThemedText>
+        <ThemedText>
+          <Trans>No data available.</Trans>
+        </ThemedText>
       )}
     </>
   );

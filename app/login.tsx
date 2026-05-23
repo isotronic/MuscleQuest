@@ -9,6 +9,8 @@ import { openDatabase } from "@/utils/database";
 import { Alert, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { Button } from "react-native-paper";
 import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
@@ -53,8 +55,8 @@ export default function LoginScreen() {
     } catch (error: any) {
       console.error("handleSignIn error", error);
       Bugsnag.notify(error);
-      Alert.alert("Error", "Failed to sign in. Please try again.", [
-        { text: "OK" },
+      Alert.alert(t`Error`, t`Failed to sign in. Please try again.`, [
+        { text: t`OK` },
       ]);
     }
   }
@@ -69,26 +71,30 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <Image source={logo} style={styles.logo} />
         <ThemedText style={styles.welcomeText}>
-          Welcome to MuscleQuest!
+          <Trans>Welcome to MuscleQuest!</Trans>
         </ThemedText>
         <ThemedText style={styles.benefitsText}>
-          Benefits of logging in:
+          <Trans>Benefits of logging in:</Trans>
         </ThemedText>
         <ThemedText style={styles.benefit}>
-          • Backup and restore data
+          <Trans>• Backup and restore data</Trans>
         </ThemedText>
         <ThemedText style={styles.benefit}>
-          • Share your training plans with others *
+          <Trans>• Share your training plans with others *</Trans>
         </ThemedText>
         <ThemedText style={styles.benefit}>
-          • Challenges and badges *
+          <Trans>• Challenges and badges *</Trans>
         </ThemedText>
-
-        <ThemedText style={styles.info}>* features in development</ThemedText>
 
         <ThemedText style={styles.info}>
-          You can login at any time from the settings screen, if you choose to
-          skip it now.
+          <Trans>* features in development</Trans>
+        </ThemedText>
+
+        <ThemedText style={styles.info}>
+          <Trans>
+            You can login at any time from the settings screen, if you choose to
+            skip it now.
+          </Trans>
         </ThemedText>
 
         <View style={styles.buttonRow}>
@@ -97,16 +103,16 @@ export default function LoginScreen() {
             mode="outlined"
             onPress={handleSkip}
           >
-            Skip login
+            <Trans>Skip login</Trans>
           </Button>
 
           <Button
             style={styles.loginButton}
             mode="contained"
             onPress={handleSignIn}
-            accessibilityLabel="Login"
+            accessibilityLabel={t`Google sign in`}
           >
-            Google sign in
+            <Trans>Google sign in</Trans>
           </Button>
         </View>
       </ScrollView>

@@ -8,6 +8,8 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { PlanImages } from "@/constants/PlanImages";
@@ -38,8 +40,8 @@ export default function ImageSearchScreen() {
       }
     } catch (error) {
       Bugsnag.notify(error as Error);
-      Alert.alert("Error", "Failed to pick image. Please try again.", [
-        { text: "OK" },
+      Alert.alert(t`Error`, t`Failed to pick image. Please try again.`, [
+        { text: t`OK` },
       ]);
     }
   };
@@ -66,7 +68,7 @@ export default function ImageSearchScreen() {
         ListFooterComponent={
           <View style={styles.footer}>
             <Button mode="contained" onPress={handlePickImage}>
-              Choose from Device
+              <Trans>Choose from Device</Trans>
             </Button>
           </View>
         }

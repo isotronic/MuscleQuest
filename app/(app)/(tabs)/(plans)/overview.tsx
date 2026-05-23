@@ -30,6 +30,8 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import type { Workout } from "@/store/workoutStore";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -65,8 +67,10 @@ function PlanWorkoutCard({
         {workout.name || `Day ${index + 1}`}
       </ThemedText>
       <ThemedText style={styles.workoutInfo}>
-        {workout.exercises.length} Exercises
-        {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
+        <Trans>
+          {workout.exercises.length} Exercises
+          {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
+        </Trans>
       </ThemedText>
     </TouchableOpacity>
   );
@@ -91,15 +95,15 @@ export default function PlanOverviewScreen() {
 
   const handleDeletePlan = () => {
     Alert.alert(
-      "Delete Plan",
-      "Are you sure you want to delete this plan?",
+      t`Delete Plan`,
+      t`Are you sure you want to delete this plan?`,
       [
         {
-          text: "Cancel",
+          text: t`Cancel`,
           style: "cancel",
         },
         {
-          text: "Delete",
+          text: t`Delete`,
           style: "destructive",
           onPress: () => {
             deletePlanMutation.mutate(Number(planId), {
@@ -107,7 +111,10 @@ export default function PlanOverviewScreen() {
                 router.back(); // Navigate back after deletion
               },
               onError: (error) => {
-                Alert.alert("Error", `Failed to delete plan: ${error.message}`);
+                Alert.alert(
+                  t`Error`,
+                  t`Failed to delete plan: ${error.message}`,
+                );
                 Bugsnag.notify(error);
               },
             });
@@ -121,12 +128,12 @@ export default function PlanOverviewScreen() {
   const handleStartPlan = () => {
     setActivePlanMutation.mutate(Number(planId), {
       onSuccess: () => {
-        setSnackbarMessage("You activated this plan.");
+        setSnackbarMessage(t`You activated this plan.`);
         setSnackbarError(false);
         setSnackbarVisible(true);
       },
       onError: (error) => {
-        setSnackbarMessage(`Failed to activate this plan: ${error.message}`);
+        setSnackbarMessage(t`Failed to activate this plan: ${error.message}`);
         setSnackbarError(true);
         setSnackbarVisible(true);
         Bugsnag.notify(error);
@@ -135,11 +142,19 @@ export default function PlanOverviewScreen() {
   };
 
   if (isLoading) {
-    return <ThemedText>Loading...</ThemedText>;
+    return (
+      <ThemedText>
+        <Trans>Loading...</Trans>
+      </ThemedText>
+    );
   }
 
   if (error) {
-    return <ThemedText>Error: {error.message}</ThemedText>;
+    return (
+      <ThemedText>
+        <Trans>Error: {error.message}</Trans>
+      </ThemedText>
+    );
   }
 
   return (
@@ -150,7 +165,7 @@ export default function PlanOverviewScreen() {
             <View style={styles.loadingOverlay}>
               <ActivityIndicator size="large" color="white" />
               <ThemedText style={styles.loadingText}>
-                Loading Plan...
+                <Trans>Loading Plan...</Trans>
               </ThemedText>
             </View>
           </Modal>
@@ -184,7 +199,9 @@ export default function PlanOverviewScreen() {
           <ThemedText style={styles.planName}>{plan?.name}</ThemedText>
           {plan?.is_active === 1 && (
             <View style={styles.activeBadge}>
-              <ThemedText style={styles.activeBadgeText}>Active</ThemedText>
+              <ThemedText style={styles.activeBadgeText}>
+                <Trans>Active</Trans>
+              </ThemedText>
             </View>
           )}
         </View>
@@ -212,7 +229,7 @@ export default function PlanOverviewScreen() {
           style={styles.paperButton}
           labelStyle={styles.buttonLabel}
         >
-          Start Plan
+          <Trans>Start Plan</Trans>
         </Button>
         <Button
           mode="outlined"
@@ -235,7 +252,7 @@ export default function PlanOverviewScreen() {
           labelStyle={styles.buttonLabel}
           disabled={isEditing}
         >
-          {plan?.app_plan_id ? "Customise" : "Edit"} Plan
+          {plan?.app_plan_id ? <Trans>Customise Plan</Trans> : <Trans>Edit Plan</Trans>}
         </Button>
       </View>
       <Snackbar
@@ -246,7 +263,7 @@ export default function PlanOverviewScreen() {
           backgroundColor: snackbarError ? "red" : Colors.dark.completed,
         }}
         action={{
-          label: "DISMISS",
+          label: t`DISMISS`,
           onPress: () => {
             setSnackbarVisible(false);
           },

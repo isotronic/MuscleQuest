@@ -4,6 +4,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { SparklineChart } from "@/components/charts/SparklineChart";
 import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
 import { Colors } from "@/constants/Colors";
+import { t, plural } from "@lingui/core/macro";
 
 interface ExerciseCompactCardProps {
   exercise: TrackedExerciseWithSets;
@@ -14,15 +15,15 @@ interface ExerciseCompactCardProps {
 
 const formatDaysAgo = (dateStr: string): string => {
   const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return "Unknown";
+  if (isNaN(date.getTime())) return t`Unknown`;
   const now = new Date();
   const diffMs = Math.max(0, now.getTime() - date.getTime());
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (days === 0) return "Today";
-  if (days === 1) return "Yesterday";
-  if (days < 7) return `${days} days ago`;
+  if (days === 0) return t`Today`;
+  if (days === 1) return t`Yesterday`;
+  if (days < 7) return plural(days, { one: "# day ago", other: "# days ago" });
   const weeks = Math.floor(days / 7);
-  return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+  return plural(weeks, { one: "# week ago", other: "# weeks ago" });
 };
 
 const formatPRLabel = (
@@ -35,13 +36,13 @@ const formatPRLabel = (
   if (!pr) return "—";
   switch (exercise.tracking_type) {
     case "reps":
-      return `${Math.round(pr)} reps`;
+      return plural(Math.round(pr), { one: "# rep", other: "# reps" });
     case "time":
       return `${Math.round(pr)}s`;
     case "distance":
       return `${pr.toFixed(1)} ${distanceUnit}`;
     default:
-      return `1RM ${(pr * convFactor).toFixed(1)} ${unit}`;
+      return t`1RM ${(pr * convFactor).toFixed(1)} ${unit}`;
   }
 };
 

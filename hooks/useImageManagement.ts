@@ -3,6 +3,7 @@ import { downloadAllAnimatedImages } from "@/utils/downloadAllAnimatedImages";
 import Bugsnag from "@bugsnag/expo";
 import { useState } from "react";
 import { Alert } from "react-native";
+import { t } from "@lingui/core/macro";
 
 export const useImageManagement = (
   updateSetting: ({ key, value }: { key: string; value: string }) => void,
@@ -17,32 +18,32 @@ export const useImageManagement = (
     setIsToggled(value.toString());
     if (value === true) {
       Alert.alert(
-        "Download Images",
-        "Are you sure you want to download all animated images? This may take a while.",
+        t`Download Images`,
+        t`Are you sure you want to download all animated images? This may take a while.`,
         [
           {
-            text: "Cancel",
+            text: t`Cancel`,
             style: "cancel",
             onPress: () => setIsToggled("false"),
           },
           {
-            text: "Download",
+            text: t`Download`,
             onPress: () => handleDownloadAllImages(),
           },
         ],
       );
     } else {
       Alert.alert(
-        "Download Images",
-        "Are you sure you want to delete all animated images? Single images will be automatically re-downloaded when viewed.",
+        t`Download Images`,
+        t`Are you sure you want to delete all animated images? Single images will be automatically re-downloaded when viewed.`,
         [
           {
-            text: "Cancel",
+            text: t`Cancel`,
             style: "cancel",
             onPress: () => setIsToggled("true"),
           },
           {
-            text: "Delete",
+            text: t`Delete`,
             onPress: () => handleDeleteAllImages(),
           },
         ],
@@ -63,11 +64,11 @@ export const useImageManagement = (
       );
 
       if (success) {
-        Alert.alert("Success", "All images downloaded successfully!");
+        Alert.alert(t`Success`, t`All images downloaded successfully!`);
       } else {
         Alert.alert(
-          "Download Complete",
-          `Some images failed to download after retries. Failed exercise IDs: ${failedDownloads.join(", ")}`,
+          t`Download Complete`,
+          t`Some images failed to download after retries. Failed exercise IDs: ${failedDownloads.join(", ")}`,
         );
         console.error(
           "Some images failed to download after retries:",
@@ -75,7 +76,7 @@ export const useImageManagement = (
         );
       }
     } catch (error: any) {
-      Alert.alert("Error", "An error occurred while downloading images.");
+      Alert.alert(t`Error`, t`An error occurred while downloading images.`);
       console.error("Error downloading images:", error);
       Bugsnag.notify(error);
     } finally {
@@ -96,16 +97,16 @@ export const useImageManagement = (
       );
 
       if (success) {
-        Alert.alert("Success", "All images deleted successfully!");
+        Alert.alert(t`Success`, t`All images deleted successfully!`);
       } else {
         Alert.alert(
-          "Delete Complete",
-          `Some images failed to delete. Failed exercise IDs: ${failedDeletes.join(", ")}`,
+          t`Delete Complete`,
+          t`Some images failed to delete. Failed exercise IDs: ${failedDeletes.join(", ")}`,
         );
         console.error("Some images failed to delete:", failedDeletes);
       }
     } catch (error) {
-      Alert.alert("Error", "An error occurred while deleting images.");
+      Alert.alert(t`Error`, t`An error occurred while deleting images.`);
       console.error("Error deleting images:", error);
     } finally {
       setIsDeleting(false);

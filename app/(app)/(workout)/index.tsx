@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, ScrollView, StyleSheet, Alert, TextInput } from "react-native";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import Sortable from "react-native-sortables";
 import type {
   SortableGridRenderItem,
@@ -210,12 +212,12 @@ export default function WorkoutOverviewScreen() {
   const handleDeleteExercise = useCallback(
     (index: number) => {
       Alert.alert(
-        "Delete Exercise",
-        "Are you sure you want to delete this exercise?",
+        t`Delete Exercise`,
+        t`Are you sure you want to delete this exercise?`,
         [
-          { text: "Cancel", style: "cancel" },
+          { text: t`Cancel`, style: "cancel" },
           {
-            text: "Delete",
+            text: t`Delete`,
             style: "destructive",
             onPress: () => {
               deleteExercise(index);
@@ -339,7 +341,9 @@ export default function WorkoutOverviewScreen() {
                 {exercise.name}
               </ThemedText>
               <ThemedText style={styles.setInfo}>
-                {completedCount}/{exercise.sets.length} sets completed
+                <Trans>
+                  {completedCount}/{exercise.sets.length} sets completed
+                </Trans>
               </ThemedText>
             </View>
           </Sortable.Touchable>
@@ -370,7 +374,9 @@ export default function WorkoutOverviewScreen() {
                 {exercise.name}
               </ThemedText>
               <ThemedText style={styles.setInfo}>
-                {completedCount}/{exercise.sets.length} sets completed
+                <Trans>
+                  {completedCount}/{exercise.sets.length} sets completed
+                </Trans>
               </ThemedText>
             </View>
           </View>
@@ -405,24 +411,24 @@ export default function WorkoutOverviewScreen() {
                   handleMenuClose(exerciseIndex);
                   handleDeleteExercise(exerciseIndex);
                 }}
-                title="Delete"
+                title={t`Delete`}
               />
               <Menu.Item
                 onPress={() => {
                   handleMenuClose(exerciseIndex);
                   handleReplaceExercise(exerciseIndex);
                 }}
-                title="Replace"
+                title={t`Replace`}
               />
               {exercise.supersetGroupId ? (
                 <Menu.Item
                   onPress={() => handleRemoveSuperset(exerciseIndex)}
-                  title="Remove Superset"
+                  title={t`Remove Superset`}
                 />
               ) : (
                 <Menu.Item
                   onPress={() => handleCreateSuperset(exerciseIndex)}
-                  title="Create Superset"
+                  title={t`Create Superset`}
                 />
               )}
             </Menu>
@@ -530,7 +536,8 @@ export default function WorkoutOverviewScreen() {
                   exercise.sets[parseInt(setIndex)]?.isDropSet || false,
                 is_to_failure:
                   exercise.sets[parseInt(setIndex)]?.isToFailure || false,
-                set_duration: setDurations?.[index]?.[parseInt(setIndex)] ?? null,
+                set_duration:
+                  setDurations?.[index]?.[parseInt(setIndex)] ?? null,
               }));
 
             return { exercise_id: exercise.exercise_id, sets };
@@ -569,12 +576,12 @@ export default function WorkoutOverviewScreen() {
                   // Plan workout — prompt to save structural changes back to the plan
                   if (hasStructuralChanges(workout!, originalWorkout!)) {
                     Alert.alert(
-                      "Save Changes to Plan?",
-                      "You modified this workout. Save those changes for future sessions?",
+                      t`Save Changes to Plan?`,
+                      t`You modified this workout. Save those changes for future sessions?`,
                       [
-                        { text: "Discard", onPress: navigateToSummary },
+                        { text: t`Discard`, onPress: navigateToSummary },
                         {
-                          text: "Save to Plan",
+                          text: t`Save to Plan`,
                           onPress: async () => {
                             try {
                               await updatePlanWorkoutExercises(
@@ -602,12 +609,12 @@ export default function WorkoutOverviewScreen() {
                   // Standalone workout — prompt to save structural changes back
                   if (hasStructuralChanges(workout!, originalWorkout!)) {
                     Alert.alert(
-                      "Save Changes to Workout?",
-                      "You modified this workout. Save those changes for future sessions?",
+                      t`Save Changes to Workout?`,
+                      t`You modified this workout. Save those changes for future sessions?`,
                       [
-                        { text: "Discard", onPress: navigateToSummary },
+                        { text: t`Discard`, onPress: navigateToSummary },
                         {
-                          text: "Save",
+                          text: t`Save`,
                           onPress: async () => {
                             try {
                               await updateStandaloneWorkout(
@@ -635,9 +642,9 @@ export default function WorkoutOverviewScreen() {
               },
               onError: (error) => {
                 Alert.alert(
-                  "Error",
-                  "Failed to save workout. Please try again.",
-                  [{ text: "OK" }],
+                  t`Error`,
+                  t`Failed to save workout. Please try again.`,
+                  [{ text: t`OK` }],
                 );
                 Bugsnag.notify(error);
               },
@@ -652,8 +659,8 @@ export default function WorkoutOverviewScreen() {
     } catch (error: any) {
       Bugsnag.notify(error);
       Alert.alert(
-        "Error saving workout",
-        "Unable to save your workout. Please try again later.",
+        t`Error saving workout`,
+        t`Unable to save your workout. Please try again later.`,
       );
     } finally {
       setTimeout(() => {
@@ -664,12 +671,12 @@ export default function WorkoutOverviewScreen() {
 
   const handleCancelWorkout = () => {
     Alert.alert(
-      "Cancel Workout",
-      "Are you sure you want to cancel and delete this workout?",
+      t`Cancel Workout`,
+      t`Are you sure you want to cancel and delete this workout?`,
       [
-        { text: "No", style: "cancel" },
+        { text: t`No`, style: "cancel" },
         {
-          text: "Yes",
+          text: t`Yes`,
           style: "destructive",
           onPress: () => {
             void cancelRestNotifications();
@@ -684,12 +691,12 @@ export default function WorkoutOverviewScreen() {
 
   const handleRestartWorkout = () => {
     Alert.alert(
-      "Restart Workout",
-      "Are you sure you want to restart this workout?",
+      t`Restart Workout`,
+      t`Are you sure you want to restart this workout?`,
       [
-        { text: "No", style: "cancel" },
+        { text: t`No`, style: "cancel" },
         {
-          text: "Yes",
+          text: t`Yes`,
           style: "destructive",
           onPress: () => {
             restartWorkout();
@@ -711,7 +718,9 @@ export default function WorkoutOverviewScreen() {
     }
     return (
       <ThemedView>
-        <ThemedText>No workout available</ThemedText>
+        <ThemedText>
+          <Trans>No workout available</Trans>
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -724,7 +733,7 @@ export default function WorkoutOverviewScreen() {
             <View style={styles.loadingOverlay}>
               <ActivityIndicator size="large" color="white" />
               <ThemedText style={styles.loadingText}>
-                Saving Workout...
+                <Trans>Saving Workout...</Trans>
               </ThemedText>
             </View>
           </Modal>
@@ -742,7 +751,7 @@ export default function WorkoutOverviewScreen() {
                 disabled={!hasCompletedSets || isSaving}
                 onPressIn={handleSaveWorkout}
               >
-                Finish
+                <Trans>Finish</Trans>
               </Button>
               <Menu
                 visible={menuVisible[69420]}
@@ -762,14 +771,14 @@ export default function WorkoutOverviewScreen() {
                     handleMenuClose(69420);
                     handleRestartWorkout();
                   }}
-                  title="Restart"
+                  title={t`Restart`}
                 />
                 <Menu.Item
                   onPress={() => {
                     handleMenuClose(69420);
                     handleCancelWorkout();
                   }}
-                  title="Cancel"
+                  title={t`Cancel`}
                 />
               </Menu>
             </View>
@@ -784,14 +793,14 @@ export default function WorkoutOverviewScreen() {
           theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
         >
           <ThemedText style={styles.saveModalTitle}>
-            Save this workout?
+            <Trans>Save this workout?</Trans>
           </ThemedText>
           <ThemedText style={styles.saveModalSubtitle}>
-            Give it a name to save it as a reusable workout.
+            <Trans>Give it a name to save it as a reusable workout.</Trans>
           </ThemedText>
           <TextInput
             style={styles.saveModalInput}
-            placeholder="Workout name"
+            placeholder={t`Workout name`}
             placeholderTextColor={Colors.dark.subText}
             value={saveWorkoutName}
             onChangeText={setSaveWorkoutName}
@@ -799,13 +808,13 @@ export default function WorkoutOverviewScreen() {
           />
           <View style={styles.saveModalButtons}>
             <Button mode="outlined" onPress={handleExitSaveModal}>
-              Discard
+              <Trans>Discard</Trans>
             </Button>
             <Button
               mode="contained"
               theme={{ colors: { primary: Colors.dark.tint } }}
               onPress={async () => {
-                const name = saveWorkoutName.trim() || "Quick Workout";
+                const name = saveWorkoutName.trim() || t`Quick Workout`;
                 try {
                   const newWorkoutId = await createStandaloneWorkout(
                     name,
@@ -827,13 +836,13 @@ export default function WorkoutOverviewScreen() {
                 } catch (e) {
                   Bugsnag.notify(e as Error);
                   Alert.alert(
-                    "Error",
-                    "Failed to save workout. Please try again.",
+                    t`Error`,
+                    t`Failed to save workout. Please try again.`,
                   );
                 }
               }}
             >
-              Save
+              <Trans>Save</Trans>
             </Button>
           </View>
         </Modal>
@@ -852,7 +861,7 @@ export default function WorkoutOverviewScreen() {
               color={Colors.dark.subText}
             />
             <ThemedText style={styles.emptyQuickWorkoutText}>
-              Add exercises to get started
+              <Trans>Add exercises to get started</Trans>
             </ThemedText>
           </View>
         )}
@@ -877,7 +886,7 @@ export default function WorkoutOverviewScreen() {
           }
           style={styles.addExerciseButton}
         >
-          Add Exercise
+          <Trans>Add Exercise</Trans>
         </Button>
       </ScrollView>
     </ThemedView>
