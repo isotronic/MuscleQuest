@@ -15,7 +15,7 @@ const saveCompletedWorkoutWithConversion = async (
       ...exercise,
       sets: exercise.sets.map((set) => ({
         ...set,
-        weight: (set.weight || 0) * weightConversionFactor,
+        weight: set.weight == null ? null : set.weight * weightConversionFactor,
         distance:
           set.distance != null ? set.distance * distanceConversionFactor : null,
       })),
