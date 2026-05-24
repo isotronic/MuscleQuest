@@ -15,8 +15,9 @@ const saveCompletedWorkoutWithConversion = async (
       ...exercise,
       sets: exercise.sets.map((set) => ({
         ...set,
-        weight: (set.weight || 0) * weightConversionFactor,
-        distance: set.distance != null ? set.distance * distanceConversionFactor : null,
+        weight: set.weight == null ? null : set.weight * weightConversionFactor,
+        distance:
+          set.distance != null ? set.distance * distanceConversionFactor : null,
       })),
     })),
   };
@@ -30,7 +31,10 @@ const saveCompletedWorkoutWithConversion = async (
   );
 };
 
-export const useSaveCompletedWorkoutMutation = (weightUnit: string, distanceUnit: string = "m") => {
+export const useSaveCompletedWorkoutMutation = (
+  weightUnit: string,
+  distanceUnit: string = "m",
+) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (completedWorkoutData: SavedWorkout) => {
@@ -43,6 +47,9 @@ export const useSaveCompletedWorkoutMutation = (weightUnit: string, distanceUnit
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
       queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
+      queryClient.invalidateQueries({
+        queryKey: ["globalExerciseHistoryForSession", weightUnit, distanceUnit],
+      });
     },
   });
 };

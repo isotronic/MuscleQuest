@@ -29,7 +29,10 @@ import { router, Stack, useFocusEffect } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
-import { useWorkoutSessionHistoryQuery } from "@/hooks/useCompletedWorkoutsQuery";
+import {
+  useWorkoutSessionHistoryQuery,
+  useGlobalExerciseHistoryForSessionQuery,
+} from "@/hooks/useCompletedWorkoutsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import Bugsnag from "@bugsnag/expo";
@@ -61,6 +64,7 @@ const AnimatedView = Animated.View as unknown as React.ComponentType<{
   style?: any;
   pointerEvents?: "auto" | "none" | "box-none" | "box-only";
   children?: React.ReactNode;
+  onLayout?: (event: any) => void;
 }>;
 
 type SingleItem = {
@@ -105,6 +109,7 @@ export default function WorkoutOverviewScreen() {
     clearPersistedStore,
     restartWorkout,
     initializeWeightAndReps,
+    initializeGlobalHistory,
     removeFromSuperset,
     setDurations,
     timerRunning,
@@ -145,6 +150,18 @@ export default function WorkoutOverviewScreen() {
       initializeWeightAndReps(sessionHistory);
     }
   }, [sessionHistory, initializeWeightAndReps]);
+
+  const { data: globalHistory } = useGlobalExerciseHistoryForSessionQuery(
+    weightUnit,
+    distanceUnit,
+  );
+
+  useEffect(() => {
+    if (globalHistory) {
+      initializeGlobalHistory(globalHistory);
+    }
+  }, [globalHistory, initializeGlobalHistory]);
+
   const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation(
     weightUnit,
     distanceUnit,
@@ -228,6 +245,7 @@ export default function WorkoutOverviewScreen() {
     }
   };
 
+  const [timerHeight, setTimerHeight] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [loadingExerciseIndex, setLoadingExerciseIndex] = useState<
     number | null
@@ -950,7 +968,12 @@ export default function WorkoutOverviewScreen() {
           </View>
         </Modal>
       </Portal>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={
+          timerRunning ? { paddingBottom: timerHeight } : undefined
+        }
+      >
         <Notes
           noteType="workout"
           referenceId={workout?.id || 0}
@@ -994,6 +1017,7 @@ export default function WorkoutOverviewScreen() {
       </ScrollView>
       <AnimatedView
         pointerEvents={timerRunning ? "auto" : "none"}
+        onLayout={(e) => setTimerHeight(e.nativeEvent.layout.height)}
         style={[
           styles.timerContainer,
           { paddingBottom: insets.bottom },

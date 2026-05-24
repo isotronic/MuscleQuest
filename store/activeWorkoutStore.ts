@@ -69,6 +69,7 @@ interface ActiveWorkoutStore {
     };
   };
   previousWorkoutData: CompletedWorkout[] | null;
+  globalHistoryData: CompletedWorkout[] | null;
   startTime: Date;
   timerRunning: boolean;
   timerExpiry: Date | null;
@@ -99,6 +100,7 @@ interface ActiveWorkoutStore {
     distance?: string,
   ) => void;
   initializeWeightAndReps: (completedWorkouts: CompletedWorkout[]) => void;
+  initializeGlobalHistory: (completedWorkouts: CompletedWorkout[]) => void;
   replaceExercise: (index: number, newExercise: UserExercise) => void;
   deleteExercise: (index: number) => void;
   reorderExercises: (newExercises: UserExercise[]) => void;
@@ -143,6 +145,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       completedSets: {},
       weightAndReps: {},
       previousWorkoutData: null,
+      globalHistoryData: null,
       startTime: new Date(),
       timerRunning: false,
       timerExpiry: null,
@@ -161,6 +164,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           completedSets: {},
           weightAndReps: {},
           previousWorkoutData: null,
+          globalHistoryData: null,
           startTime: new Date(),
           timerRunning: false,
           timerExpiry: null,
@@ -184,6 +188,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           completedSets: {},
           weightAndReps: {},
           previousWorkoutData: null,
+          globalHistoryData: null,
           startTime: new Date(),
           timerRunning: false,
           timerExpiry: null,
@@ -763,6 +768,15 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         );
 
         set({ previousWorkoutData: sortedWorkouts });
+      },
+
+      initializeGlobalHistory: (completedWorkouts: CompletedWorkout[]) => {
+        const sortedWorkouts = [...completedWorkouts].sort(
+          (a, b) =>
+            new Date(b.date_completed).getTime() -
+            new Date(a.date_completed).getTime(),
+        );
+        set({ globalHistoryData: sortedWorkouts });
       },
 
       appendExercise: (exercise) =>

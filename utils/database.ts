@@ -1129,6 +1129,7 @@ export const insertDefaultSettings = async () => {
     { key: "doubleWeightForPaired", value: "false" },
     { key: "timerCountdownSound", value: "false" },
     { key: "timerGoalSound", value: "false" },
+    { key: "alwaysUseGlobalHistory", value: "false" },
   ];
 
   // Loop through each default setting
@@ -1183,6 +1184,7 @@ export interface Settings {
   doubleWeightForPaired: string;
   timerCountdownSound: string;
   timerGoalSound: string;
+  alwaysUseGlobalHistory: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

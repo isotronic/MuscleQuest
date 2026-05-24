@@ -273,6 +273,7 @@ export default function WorkoutSessionScreen() {
     currentSetIndices,
     weightAndReps,
     previousWorkoutData,
+    globalHistoryData,
     completedSets,
     setCurrentExerciseIndex,
     setCurrentSetIndex,
@@ -328,13 +329,16 @@ export default function WorkoutSessionScreen() {
       ? completedSets[currentExerciseIndex][currentSetIndex]
       : false;
 
-  const prevExercisesByExerciseId = useMemo(() => {
-    const map = new Map<
-      number,
-      NonNullable<typeof previousWorkoutData>[number]["exercises"][number][]
-    >();
-    if (!previousWorkoutData) return map;
-    for (const w of previousWorkoutData) {
+  type ExerciseEntry = NonNullable<
+    typeof previousWorkoutData
+  >[number]["exercises"][number];
+
+  const buildExerciseMap = (
+    data: typeof previousWorkoutData,
+  ): Map<number, ExerciseEntry[]> => {
+    const map = new Map<number, ExerciseEntry[]>();
+    if (!data) return map;
+    for (const w of data) {
       for (const ex of w.exercises) {
         const arr = map.get(ex.exercise_id) ?? [];
         arr.push(ex);
@@ -342,15 +346,45 @@ export default function WorkoutSessionScreen() {
       }
     }
     return map;
-  }, [previousWorkoutData]);
+  };
+
+  const prevExercisesByExerciseId = useMemo(
+    () => buildExerciseMap(previousWorkoutData),
+    [previousWorkoutData],
+  );
+
+  const globalExercisesByExerciseId = useMemo(
+    () => buildExerciseMap(globalHistoryData),
+    [globalHistoryData],
+  );
+
+  const alwaysUseGlobalHistory = settings?.alwaysUseGlobalHistory === "true";
 
   const findLastAvailableSetData = (exerciseId: number, setIndex: number) => {
-    const exercises = prevExercisesByExerciseId.get(exerciseId);
-    if (!exercises) return null;
-    for (const ex of exercises) {
-      if (ex.sets[setIndex]) return ex.sets[setIndex];
+    const targetSets =
+      workout?.exercises.find((e) => e.exercise_id === exerciseId)?.sets ?? [];
+    const isWarmup = targetSets[setIndex]?.isWarmup ?? false;
+    const ordinal = targetSets
+      .slice(0, setIndex)
+      .filter((s) => (s.isWarmup ?? false) === isWarmup).length;
+
+    const lookup = (map: Map<number, ExerciseEntry[]>) => {
+      const exercises = map.get(exerciseId);
+      if (!exercises) return null;
+      for (const ex of exercises) {
+        const setsOfType = ex.sets.filter((s) => s.is_warmup === isWarmup);
+        if (setsOfType[ordinal]) return setsOfType[ordinal];
+      }
+      return null;
+    };
+
+    if (alwaysUseGlobalHistory) {
+      return lookup(globalExercisesByExerciseId);
     }
-    return null;
+
+    return (
+      lookup(prevExercisesByExerciseId) ?? lookup(globalExercisesByExerciseId)
+    );
   };
 
   const previousWorkoutSetData = findLastAvailableSetData(
