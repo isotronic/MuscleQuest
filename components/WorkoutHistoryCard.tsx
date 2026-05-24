@@ -2,7 +2,8 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { format } from "date-fns";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Colors } from "@/constants/Colors";
-import { t, plural } from "@lingui/core/macro";
+import { t } from "@lingui/core/macro";
+import { Plural } from "@lingui/react/macro";
 
 interface WorkoutCardProps {
   workout: CompletedWorkout;
@@ -19,7 +20,7 @@ export default function WorkoutHistoryCard({
 }: WorkoutCardProps) {
   const setsCount = excludeWarmup
     ? workout.exercises.reduce(
-        (t, e) => t + e.sets.filter((s) => !s.is_warmup).length,
+        (acc, e) => acc + e.sets.filter((s) => !s.is_warmup).length,
         0,
       )
     : workout.total_sets_completed;
@@ -55,7 +56,9 @@ export default function WorkoutHistoryCard({
             <Text style={styles.chipText}>{t`${durationMin} min`}</Text>
           </View>
           <View style={styles.chip}>
-            <Text style={styles.chipText}>{plural(setsCount, { one: "# set", other: "# sets" })}</Text>
+            <Text style={styles.chipText}>
+              <Plural value={setsCount} one="# set" other="# sets" />
+            </Text>
           </View>
         </View>
       </View>

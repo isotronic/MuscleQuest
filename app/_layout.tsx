@@ -7,6 +7,14 @@
  * See the LICENSE file for more details.
  */
 
+// Intl.PluralRules polyfill required by Lingui for plural support in Hermes
+import "@formatjs/intl-locale/polyfill-force.js";
+import "@formatjs/intl-pluralrules/polyfill-force.js";
+import "@formatjs/intl-pluralrules/locale-data/en.js";
+import "@formatjs/intl-pluralrules/locale-data/de.js";
+import "@formatjs/intl-pluralrules/locale-data/es.js";
+import "@formatjs/intl-pluralrules/locale-data/fr.js";
+
 import Bugsnag from "@bugsnag/expo";
 import React, { useEffect, useState } from "react";
 import { Slot } from "expo-router";

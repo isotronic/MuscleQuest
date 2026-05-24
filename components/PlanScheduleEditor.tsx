@@ -6,8 +6,8 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { Workout } from "@/store/workoutStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Trans } from "@lingui/react/macro";
-import { t, msg, plural } from "@lingui/core/macro";
+import { Trans, Plural } from "@lingui/react/macro";
+import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 
 const DAY_LABELS = [
@@ -78,7 +78,7 @@ export default function PlanScheduleEditor({
           <Trans>Weekly Schedule</Trans>
         </ThemedText>
         <ThemedText style={styles.summary}>
-          {plural(scheduledDays, { one: "# day/week", other: "# days/week" })}
+          <Plural value={scheduledDays} one="# day/week" other="# days/week" />
         </ThemedText>
       </View>
 
@@ -203,7 +203,7 @@ export default function PlanScheduleEditor({
         labelStyle={styles.autoButtonLabel}
         textColor={Colors.dark.tint}
       >
-        {plural(weeklyGoal, { one: "Auto-suggest (1 day)", other: "Auto-suggest (# days)" })}
+        <Plural value={weeklyGoal} one="Auto-suggest (# day)" other="Auto-suggest (# days)" />
       </Button>
     </ThemedView>
   );

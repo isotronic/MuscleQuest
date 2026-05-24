@@ -6,7 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
-import { Trans } from "@lingui/react/macro";
+import { Trans, Plural } from "@lingui/react/macro";
 import { t, plural } from "@lingui/core/macro";
 
 interface Props {
@@ -328,10 +328,7 @@ export default function WeeklySummaryCard({
               <Trans>Streak</Trans>
             </ThemedText>
             <ThemedText style={[styles.statValue, styles.streakValue]}>
-              <Trans>
-                {streak} {plural(streak, { one: "week", other: "weeks" })} in a
-                row
-              </Trans>
+              <Plural value={streak} one="# week in a row" other="# weeks in a row" />
             </ThemedText>
           </View>
         )}

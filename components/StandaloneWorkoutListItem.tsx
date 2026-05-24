@@ -5,8 +5,7 @@ import { Workout } from "@/store/workoutStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
-import { Trans } from "@lingui/react/macro";
-import { plural } from "@lingui/core/macro";
+import { Plural } from "@lingui/react/macro";
 
 interface StandaloneWorkoutListItemProps {
   workout: Workout;
@@ -39,14 +38,8 @@ export default function StandaloneWorkoutListItem({
           {workout.name}
         </ThemedText>
         <ThemedText style={styles.subtitle}>
-          <Trans>
-            {workout.exercises.length}{" "}
-            {plural(workout.exercises.length, {
-              one: "exercise",
-              other: "exercises",
-            })}
-            {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
-          </Trans>
+          <Plural value={workout.exercises.length} one="# exercise" other="# exercises" />
+          {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
         </ThemedText>
       </View>
       <MaterialCommunityIcons

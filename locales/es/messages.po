@@ -415,10 +415,6 @@ msgstr " (al fallo)"
 msgid " (to Failure) "
 msgstr " (al fallo) "
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:256
-#~ msgid " Plan"
-#~ msgstr " Plan"
-
 #: components/WorkoutCard.tsx:263
 #: components/WorkoutDetailsScreen.tsx:141
 msgid "(to Failure)"
@@ -428,6 +424,11 @@ msgstr "(al fallo)"
 #: components/WorkoutDetailsScreen.tsx:148
 msgid "(to Failure) "
 msgstr "(al fallo) "
+
+#. placeholder {0}: workout.exercises.length
+#: components/StandaloneWorkoutListItem.tsx:41
+msgid "{0, plural, one {# exercise} other {# exercises}}"
+msgstr "{0, plural, one {# ejercicio} other {# ejercicios}}"
 
 #. placeholder {0}: Math.round(workout.duration / 60)
 #: app/(app)/(tabs)/(stats)/history-details.tsx:203
@@ -456,10 +457,10 @@ msgstr "{0, plural, one {# serie} other {# series}}"
 msgid "{0, plural, one {# Set} other {# Sets}}"
 msgstr "{0, plural, one {# Serie} other {# Series}}"
 
-#. placeholder {0}: workout.exercises.length
-#: components/StandaloneWorkoutListItem.tsx:44
-msgid "{0, plural, one {exercise} other {exercises}}"
-msgstr "{0, plural, one {ejercicio} other {ejercicios}}"
+#. placeholder {0}: Math.abs(setsDiff)
+#: app/(app)/(workout)/workout-summary.tsx:526
+msgid "{0, plural, one {set} other {sets}}"
+msgstr "{0, plural, one {serie} other {series}}"
 
 #. placeholder {0}: settings?.weightIncrement
 #. placeholder {1}: settings?.weightUnit
@@ -480,13 +481,6 @@ msgstr "{0} {1} (usado en ejercicios asistidos)"
 msgid "{0} {1} | {2} Reps"
 msgstr "{0} {1} | {2} Reps"
 
-#. placeholder {0}: workout.exercises.length
-#. placeholder {1}: import { Pressable, StyleSheet, View } from "react-native"; import { ThemedText } from "@/components/ThemedText"; import { Colors } from "@/constants/Colors"; import { Workout } from "@/store/workoutStore"; import { MaterialCommunityIcons } from "@expo/vector-icons"; import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate"; import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration"; import { Trans } from "@lingui/react/macro"; import { plural } from "@lingui/core/macro"; interface StandaloneWorkoutListItemProps { workout: Workout; onPress: () => void; countUnilateralDouble?: boolean; } export default function StandaloneWorkoutListItem({ workout, onPress, countUnilateralDouble = false, }: StandaloneWorkoutListItemProps) { const { estimate } = useWorkoutDurationEstimate( workout.exercises, countUnilateralDouble, ); return ( <Pressable style={styles.container} onPress={onPress}> <View style={styles.imageContainer}> <View style={styles.imagePlaceholder}> <MaterialCommunityIcons name="weight-lifter" size={32} color={Colors.dark.subText} /> </View> </View> <View style={styles.textContainer}> <ThemedText style={styles.name} numberOfLines={1}> {workout.name} </ThemedText> <ThemedText style={styles.subtitle}> <Trans> {workout.exercises.length}{" "} {plural(workout.exercises.length, { one: "exercise", other: "exercises", })} {estimate ? ` · ~${formatDurationEstimate(estimate)}` : ""} </Trans> </ThemedText> </View> <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.dark.subText} /> </Pressable> ); } const styles = StyleSheet.create({ container: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.dark.cardBackground, borderRadius: 8, padding: 12, marginBottom: 10, }, imageContainer: { width: 52, height: 52, borderRadius: 8, overflow: "hidden", marginRight: 14, }, imagePlaceholder: { width: "100%", height: "100%", backgroundColor: Colors.dark.cardBackground2, borderRadius: 8, justifyContent: "center", alignItems: "center", }, textContainer: { flex: 1, }, name: { fontSize: 16, fontWeight: "600", marginBottom: 2, }, subtitle: { fontSize: 13, color: Colors.dark.subText, }, }); 
-#. placeholder {2}: estimate ? ` · ~${formatDurationEstimate(estimate)}` : ""
-#: components/StandaloneWorkoutListItem.tsx:42
-msgid "{0} {1}{2}"
-msgstr "{0} {1}{2}"
-
 #. placeholder {0}: todayWorkoutName ?? t`Workout`
 #: components/WorkoutDoneCard.tsx:64
 msgid "{0} Complete!"
@@ -506,11 +500,6 @@ msgstr "{0} días por semana"
 msgid "{0} Exercises{1}"
 msgstr "{0} ejercicios{1}"
 
-#. placeholder {0}: Math.round(workout.duration / 60)
-#: app/(app)/(tabs)/(stats)/history-details.tsx:203
-#~ msgid "{0} mins"
-#~ msgstr "{0} min"
-
 #. placeholder {0}: note.trim() ? t`View/Edit` : t`Add`
 #: components/Notes.tsx:86
 msgid "{0} Note"
@@ -525,11 +514,6 @@ msgstr "{0} notas"
 #: app/(app)/(workout)/workout-summary.tsx:216
 msgid "{0} reps"
 msgstr "{0} reps"
-
-#. placeholder {0}: set.reps
-#: app/(app)/(tabs)/(stats)/history-details.tsx:269
-#~ msgid "{0} Reps"
-#~ msgstr "{0} Reps"
 
 #. placeholder {0}: settings?.restTimerIncrement
 #. placeholder {0}: settings?.timerCountdown || "5"
@@ -589,17 +573,13 @@ msgstr "{0}s"
 msgid "{biggestGainLabel} 1RM"
 msgstr "{biggestGainLabel} 1RM"
 
-#: app/(app)/(workout)/workout-summary.tsx:367
-#~ msgid "{completed} of {goal} workouts this week"
-#~ msgstr "{completed} de {goal} entrenamientos esta semana"
-
 #: app/(app)/(workout)/workout-summary.tsx:339
 msgid "{completed} workouts this week. You've smashed your goal!"
 msgstr "¡{completed} entrenamientos esta semana. Has superado tu objetivo!"
 
 #. placeholder {0}: exercise.sets.length
-#: app/(app)/(workout)/index.tsx:344
-#: app/(app)/(workout)/index.tsx:377
+#: app/(app)/(workout)/index.tsx:447
+#: app/(app)/(workout)/index.tsx:480
 msgid "{completedCount}/{0} sets completed"
 msgstr "{completedCount}/{0} series completadas"
 
@@ -607,11 +587,7 @@ msgstr "{completedCount}/{0} series completadas"
 msgid "{days, plural, one {# day ago} other {# days ago}}"
 msgstr "{days, plural, one {hace # día} other {hace # días}}"
 
-#: components/stats/ExerciseCompactCard.tsx:24
-#~ msgid "{days} days ago"
-#~ msgstr "hace {days} días"
-
-#: components/WorkoutHistoryCard.tsx:55
+#: components/WorkoutHistoryCard.tsx:56
 msgid "{durationMin} min"
 msgstr "{durationMin} min"
 
@@ -631,22 +607,13 @@ msgstr "{scheduledCount, plural, one {# día/semana} other {# días/semana}}"
 msgid "{scheduledDays, plural, one {# day/week} other {# days/week}}"
 msgstr "{scheduledDays, plural, one {# día/semana} other {# días/semana}}"
 
-#: components/WorkoutHistoryCard.tsx:58
+#: components/WorkoutHistoryCard.tsx:60
 msgid "{setsCount, plural, one {# set} other {# sets}}"
 msgstr "{setsCount, plural, one {# serie} other {# series}}"
 
-#: components/WorkoutHistoryCard.tsx:58
-#~ msgid "{setsCount} sets"
-#~ msgstr "{setsCount} series"
-
-#: components/WeeklySummaryCard.tsx:332
-msgid "{streak, plural, one {week} other {weeks}}"
-msgstr "{streak, plural, one {semana} other {semanas}}"
-
-#. placeholder {0}: import React, { useMemo } from "react"; import { View, StyleSheet } from "react-native"; import { MaterialCommunityIcons } from "@expo/vector-icons"; import { startOfWeek, endOfWeek, subWeeks } from "date-fns"; import { ThemedText } from "@/components/ThemedText"; import { ThemedView } from "@/components/ThemedView"; import { Colors } from "@/constants/Colors"; import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery"; import { Trans } from "@lingui/react/macro"; import { t, plural } from "@lingui/core/macro"; interface Props { workoutsThisWeek: CompletedWorkout[]; allCompletedWorkouts: CompletedWorkout[]; weeklyGoal: number; weightUnit: string; streak: number; excludeWarmup?: boolean; countUnilateralDouble?: boolean; doubleWeightForPaired?: boolean; } function formatDuration(seconds: number): string { const h = Math.floor(seconds / 3600); const m = Math.floor((seconds % 3600) / 60); if (h > 0) return `${h}h ${m}m`; return `${m}m`; } function getProgressionMetric( weight: number | null, reps: number | null, time: number | null, trackingType: string, weightM: number = 1, repM: number = 1, ): number | null { if (trackingType === "reps") return reps != null ? reps * repM : null; if (trackingType === "time") return time; // weight, assisted, or null → Epley 1RM (weightM applies; repM does not affect 1RM) if (weight != null && reps != null) return weight * weightM * (1 + reps / 30.0); return null; } interface BestAchievement { exerciseName: string; trackingType: string; thisWeekBest: number; delta: number; weightUnit: string; } function computeBestAchievement( workoutsThisWeek: CompletedWorkout[], allCompletedWorkouts: CompletedWorkout[], weightUnit: string, excludeWarmup: boolean = false, countUnilateralDouble: boolean = false, doubleWeightForPaired: boolean = false, ): BestAchievement | null { const today = new Date(); const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 }); const lastWeekStart = subWeeks(currentWeekStart, 1); const lastWeekEnd = endOfWeek(lastWeekStart, { weekStartsOn: 1 }); const lastWeekWorkouts = allCompletedWorkouts.filter((w) => { const d = new Date(w.date_completed); return d >= lastWeekStart && d <= lastWeekEnd; }); // Build map of exercise_id → best metric for last week const lastWeekBest = new Map<number, number>(); for (const workout of lastWeekWorkouts) { for (const ex of workout.exercises) { const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1; const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1; for (const set of ex.sets) { if (excludeWarmup && set.is_warmup) continue; const metric = getProgressionMetric( set.weight, set.reps, set.time, ex.exercise_tracking_type, weightM, repM, ); if (metric == null) continue; const prev = lastWeekBest.get(ex.exercise_id) ?? -Infinity; if (metric > prev) lastWeekBest.set(ex.exercise_id, metric); } } } // Build map of exercise_id → { name, trackingType, best } for this week const thisWeekBest = new Map< number, { name: string; trackingType: string; best: number } >(); for (const workout of workoutsThisWeek) { for (const ex of workout.exercises) { const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1; const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1; for (const set of ex.sets) { if (excludeWarmup && set.is_warmup) continue; const metric = getProgressionMetric( set.weight, set.reps, set.time, ex.exercise_tracking_type, weightM, repM, ); if (metric == null) continue; const prev = thisWeekBest.get(ex.exercise_id); if (!prev || metric > prev.best) { thisWeekBest.set(ex.exercise_id, { name: ex.exercise_name, trackingType: ex.exercise_tracking_type, best: metric, }); } } } } let bestAchievement: BestAchievement | null = null; let bestPercentage = 0; thisWeekBest.forEach(({ name, trackingType, best }, exerciseId) => { const lastBest = lastWeekBest.get(exerciseId); if (!lastBest) return; // no baseline from last week, skip const delta = best - lastBest; if (delta <= 0) return; const percentage = delta / lastBest; if (percentage > bestPercentage) { bestPercentage = percentage; bestAchievement = { exerciseName: name, trackingType, thisWeekBest: best, delta, weightUnit, }; } }); return bestAchievement; } function formatAchievement(a: BestAchievement): { label: string; value: string; } { const unit = a.weightUnit; const pct = Math.round((a.delta / (a.thisWeekBest - a.delta)) * 100); const pctStr = `+${pct}%`; if (a.trackingType === "reps") { const best = Math.round(a.thisWeekBest); const delta = Math.round(a.delta); return { label: t`Rep PR`, value: t`${a.exerciseName}: ${best} ${plural(best, { one: "rep", other: "reps" })} (+${delta}, ${pctStr})`, }; } if (a.trackingType === "time") { const best = Math.round(a.thisWeekBest); const delta = Math.round(a.delta); return { label: t`Time PR`, value: t`${a.exerciseName}: ${best}s (+${delta}s, ${pctStr})`, }; } const best = a.thisWeekBest.toFixed(1); const delta = a.delta.toFixed(1); return { label: t`1RM`, value: t`${a.exerciseName}: ${best}${unit} (+${delta}${unit}, ${pctStr})`, }; } export default function WeeklySummaryCard({ workoutsThisWeek, allCompletedWorkouts, weeklyGoal, weightUnit, streak, excludeWarmup = false, countUnilateralDouble = false, doubleWeightForPaired = false, }: Props) { const totalDuration = useMemo( () => workoutsThisWeek.reduce((sum, w) => sum + (w.duration ?? 0), 0), [workoutsThisWeek], ); const totalVolume = useMemo(() => { let vol = 0; for (const workout of workoutsThisWeek) { for (const ex of workout.exercises) { const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1; const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1; for (const set of ex.sets) { if ( (!excludeWarmup || !set.is_warmup) && set.weight != null && set.reps != null ) { vol += set.weight * weightM * set.reps * repM; } } } } return vol; }, [ workoutsThisWeek, excludeWarmup, countUnilateralDouble, doubleWeightForPaired, ]); const bestAchievement = useMemo( () => computeBestAchievement( workoutsThisWeek, allCompletedWorkouts, weightUnit, excludeWarmup, countUnilateralDouble, doubleWeightForPaired, ), [ workoutsThisWeek, allCompletedWorkouts, weightUnit, excludeWarmup, countUnilateralDouble, doubleWeightForPaired, ], ); const volumeLabel = `${Math.round(totalVolume).toLocaleString()} ${weightUnit}`; const achievementFormatted = bestAchievement ? formatAchievement(bestAchievement) : null; return ( <ThemedView style={styles.card}> <View style={styles.header}> <MaterialCommunityIcons name="trophy-outline" size={22} color={Colors.dark.tint} /> <ThemedText type="subtitle" style={styles.title}> <Trans>Weekly Goal Complete!</Trans> </ThemedText> </View> <View style={styles.divider} /> <View style={styles.statsGrid}> <View style={styles.statRow}> <MaterialCommunityIcons name="calendar-check-outline" size={16} color={Colors.dark.icon} /> <ThemedText style={styles.statLabel}> <Trans>Workouts</Trans> </ThemedText> <ThemedText style={styles.statValue}> {workoutsThisWeek.length} / {weeklyGoal} </ThemedText> </View> <View style={styles.statRow}> <MaterialCommunityIcons name="weight-kilogram" size={16} color={Colors.dark.icon} /> <ThemedText style={styles.statLabel}> <Trans>Volume</Trans> </ThemedText> <ThemedText style={styles.statValue}>{volumeLabel}</ThemedText> </View> <View style={styles.statRow}> <MaterialCommunityIcons name="timer-outline" size={16} color={Colors.dark.icon} /> <ThemedText style={styles.statLabel}> <Trans>Time</Trans> </ThemedText> <ThemedText style={styles.statValue}> {formatDuration(totalDuration)} </ThemedText> </View> {achievementFormatted && ( <View style={styles.statRow}> <MaterialCommunityIcons name="trending-up" size={16} color={Colors.dark.icon} /> <ThemedText style={styles.statLabel}> {achievementFormatted.label} </ThemedText> <ThemedText style={[styles.statValue, styles.achievementValue]}> {achievementFormatted.value} </ThemedText> </View> )} {streak > 0 && ( <View style={styles.statRow}> <MaterialCommunityIcons name="fire" size={16} color={Colors.dark.tint} /> <ThemedText style={styles.statLabel}> <Trans>Streak</Trans> </ThemedText> <ThemedText style={[styles.statValue, styles.streakValue]}> <Trans> {streak} {plural(streak, { one: "week", other: "weeks" })} in a row </Trans> </ThemedText> </View> )} </View> </ThemedView> ); } const styles = StyleSheet.create({ card: { borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: Colors.dark.tint, }, header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12, }, title: { fontSize: 16, color: Colors.dark.tint, }, divider: { height: 1, backgroundColor: Colors.dark.tint, opacity: 0.2, marginBottom: 12, }, statsGrid: { gap: 10, }, statRow: { flexDirection: "row", alignItems: "center", gap: 8, }, statLabel: { flex: 1, fontSize: 13, color: Colors.dark.icon, }, statValue: { fontSize: 13, textAlign: "right", }, achievementValue: { flex: 2, textAlign: "right", }, streakValue: { color: Colors.dark.tint, }, }); 
 #: components/WeeklySummaryCard.tsx:331
-msgid "{streak} {0} in a row"
-msgstr "{streak} {0} seguidas"
+msgid "{streak, plural, one {# week in a row} other {# weeks in a row}}"
+msgstr "{streak, plural, one {# semana consecutiva} other {# semanas consecutivas}}"
 
 #. placeholder {0}: settings?.weeklyGoal
 #: app/(app)/(tabs)/index.tsx:342
@@ -654,16 +621,12 @@ msgid "{uniqueWorkoutDaysCount} / {0} days worked out"
 msgstr "{uniqueWorkoutDaysCount} / {0} días entrenados"
 
 #: components/PlanScheduleEditor.tsx:206
-msgid "{weeklyGoal, plural, one {Auto-suggest (1 day)} other {Auto-suggest (# days)}}"
-msgstr "{weeklyGoal, plural, one {Sugerencia automática (1 día)} other {Sugerencia automática (# días)}}"
+msgid "{weeklyGoal, plural, one {Auto-suggest (# day)} other {Auto-suggest (# days)}}"
+msgstr "{weeklyGoal, plural, one {Sugerencia automática (# día)} other {Sugerencia automática (# días)}}"
 
 #: components/stats/ExerciseCompactCard.tsx:26
 msgid "{weeks, plural, one {# week ago} other {# weeks ago}}"
 msgstr "{weeks, plural, one {hace # semana} other {hace # semanas}}"
-
-#: components/stats/ExerciseCompactCard.tsx:26
-#~ msgid "{weeks} weeks ago"
-#~ msgstr "hace {weeks} semanas"
 
 #: app/login.tsx:90
 msgid "* features in development"
@@ -685,10 +648,12 @@ msgstr "• Comparte tus planes de entrenamiento con otros *"
 msgid "+ Add"
 msgstr "+ Añadir"
 
+#: app/(app)/(workout)/index.tsx:1023
 #: app/(app)/(workout)/workout-session.tsx:1384
 msgid "+{restTimerIncrement}s"
 msgstr "+{restTimerIncrement}s"
 
+#: app/(app)/(workout)/index.tsx:1012
 #: app/(app)/(workout)/workout-session.tsx:1373
 msgid "−{restTimerIncrement}s"
 msgstr "−{restTimerIncrement}s"
@@ -708,10 +673,6 @@ msgstr "⬇️ Descargando actualización"
 #: components/WhatsNewModal.tsx:88
 msgid "🎉 What's New"
 msgstr "🎉 Novedades"
-
-#: components/stats/ExerciseCompactCard.tsx:26
-#~ msgid "1 week ago"
-#~ msgstr "hace 1 semana"
 
 #: components/WeeklySummaryCard.tsx:177
 msgid "1RM"
@@ -742,7 +703,7 @@ msgstr "90d"
 msgid "A new version has been downloaded. Tap the button below to restart and apply the update."
 msgstr "Se ha descargado una nueva versión. Toca el botón de abajo para reiniciar y aplicar la actualización."
 
-#: app/_layout.tsx:88
+#: app/_layout.tsx:96
 msgid "A render error has occurred. Press the button to reload."
 msgstr "Se ha producido un error de renderizado. Pulsa el botón para recargar."
 
@@ -806,12 +767,12 @@ msgstr "Añade una nota..."
 msgid "Add a workout to get started"
 msgstr "Añade un entrenamiento para empezar"
 
-#: app/(app)/(workout)/index.tsx:889
+#: app/(app)/(workout)/index.tsx:992
 #: components/WorkoutCard.tsx:456
 msgid "Add Exercise"
 msgstr "Añadir ejercicio"
 
-#: app/(app)/(workout)/index.tsx:864
+#: app/(app)/(workout)/index.tsx:967
 msgid "Add exercises to get started"
 msgstr "Añade ejercicios para empezar"
 
@@ -901,7 +862,7 @@ msgstr "Apariencia"
 msgid "Apply to all {0} sets"
 msgstr "Aplicar a todas las series {0}"
 
-#: app/(app)/(workout)/index.tsx:675
+#: app/(app)/(workout)/index.tsx:778
 msgid "Are you sure you want to cancel and delete this workout?"
 msgstr "¿Estás seguro de que quieres cancelar y eliminar este entrenamiento?"
 
@@ -914,7 +875,7 @@ msgstr "¿Estás seguro de que quieres eliminar \"{0}\"?"
 msgid "Are you sure you want to delete all animated images? Single images will be automatically re-downloaded when viewed."
 msgstr "¿Estás seguro de que quieres eliminar todas las imágenes animadas? Las imágenes individuales se volverán a descargar automáticamente cuando se vean."
 
-#: app/(app)/(workout)/index.tsx:216
+#: app/(app)/(workout)/index.tsx:319
 msgid "Are you sure you want to delete this exercise?"
 msgstr "¿Estás seguro de que quieres eliminar este ejercicio?"
 
@@ -943,7 +904,7 @@ msgstr "¿Estás seguro de que quieres eliminar {0}?"
 msgid "Are you sure you want to remove this workout?"
 msgstr "¿Estás seguro de que quieres eliminar este entrenamiento?"
 
-#: app/(app)/(workout)/index.tsx:695
+#: app/(app)/(workout)/index.tsx:798
 msgid "Are you sure you want to restart this workout?"
 msgstr "¿Estás seguro de que quieres reiniciar este entrenamiento?"
 
@@ -979,10 +940,6 @@ msgstr "asistencia "
 #: app/(app)/custom-exercise.tsx:75
 msgid "Assistance/Reps"
 msgstr "Asistencia/Reps"
-
-#: components/PlanScheduleEditor.tsx:206
-#~ msgid "Auto-suggest ({weeklyGoal} days)"
-#~ msgstr "Sugerencia automática ({weeklyGoal} días)"
 
 #: app/(app)/(tabs)/(stats)/index.tsx:409
 msgid "Avg Duration"
@@ -1098,8 +1055,8 @@ msgstr "gemelos"
 #: app/(app)/(tabs)/(plans)/overview.tsx:102
 #: app/(app)/(tabs)/(plans)/standalone-workout.tsx:80
 #: app/(app)/(tabs)/(stats)/history-details.tsx:171
-#: app/(app)/(workout)/index.tsx:218
-#: app/(app)/(workout)/index.tsx:781
+#: app/(app)/(workout)/index.tsx:321
+#: app/(app)/(workout)/index.tsx:884
 #: app/(app)/(workout)/workout-session.tsx:643
 #: app/(app)/settings.tsx:353
 #: app/(app)/settings.tsx:428
@@ -1111,7 +1068,7 @@ msgstr "gemelos"
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: app/(app)/(workout)/index.tsx:674
+#: app/(app)/(workout)/index.tsx:777
 msgid "Cancel Workout"
 msgstr "Cancelar entrenamiento"
 
@@ -1216,7 +1173,7 @@ msgstr "Crear ejercicio"
 msgid "Create Plan"
 msgstr "Crear plan"
 
-#: app/(app)/(workout)/index.tsx:431
+#: app/(app)/(workout)/index.tsx:534
 #: components/WorkoutCard.tsx:315
 msgid "Create Superset"
 msgstr "Crear superserie"
@@ -1239,23 +1196,12 @@ msgid "Customisation"
 msgstr "Personalización"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:255
-#~ msgid "Customise"
-#~ msgstr "Personalizar"
-
-#: app/(app)/(tabs)/(plans)/overview.tsx:255
 msgid "Customise Plan"
 msgstr "Personalizar plan"
 
 #: components/Onboarding.tsx:21
 msgid "Customise Your Settings"
 msgstr "Personaliza tus ajustes"
-
-#. placeholder {0}: scheduledCount !== 1 ? "s" : ""
-#. placeholder {0}: scheduledDays !== 1 ? "s" : ""
-#: components/PlanScheduleEditor.tsx:82
-#: components/WeeklyScheduleDisplay.tsx:79
-#~ msgid "day{0}/week"
-#~ msgstr "día{0}/semana"
 
 #: app/(app)/settings.tsx:1140
 msgid "Default rest time"
@@ -1268,8 +1214,8 @@ msgstr "Series predeterminadas"
 #: app/(app)/(tabs)/(plans)/overview.tsx:106
 #: app/(app)/(tabs)/(plans)/standalone-workout.tsx:82
 #: app/(app)/(tabs)/(stats)/history-details.tsx:173
-#: app/(app)/(workout)/index.tsx:220
-#: app/(app)/(workout)/index.tsx:414
+#: app/(app)/(workout)/index.tsx:323
+#: app/(app)/(workout)/index.tsx:517
 #: app/(app)/(workout)/workout-session.tsx:645
 #: components/WorkoutCard.tsx:292
 #: hooks/useImageManagement.ts:46
@@ -1280,7 +1226,7 @@ msgstr "Eliminar"
 msgid "Delete Complete"
 msgstr "Eliminación completa"
 
-#: app/(app)/(workout)/index.tsx:215
+#: app/(app)/(workout)/index.tsx:318
 msgid "Delete Exercise"
 msgstr "Eliminar ejercicio"
 
@@ -1338,9 +1284,9 @@ msgstr "Desactivado"
 
 #: app/(app)/(create-plan)/create-workout.tsx:175
 #: app/(app)/(create-plan)/create.tsx:233
-#: app/(app)/(workout)/index.tsx:582
-#: app/(app)/(workout)/index.tsx:615
-#: app/(app)/(workout)/index.tsx:811
+#: app/(app)/(workout)/index.tsx:685
+#: app/(app)/(workout)/index.tsx:718
+#: app/(app)/(workout)/index.tsx:914
 #: app/(app)/custom-exercise.tsx:97
 msgid "Discard"
 msgstr "Descartar"
@@ -1382,7 +1328,7 @@ msgstr "Distancia ({distanceUnit})"
 msgid "Distance unit"
 msgstr "Unidad de distancia"
 
-#: app/(app)/(workout)/workout-summary.tsx:620
+#: app/(app)/(workout)/workout-summary.tsx:622
 msgid "Done"
 msgstr "Listo"
 
@@ -1433,8 +1379,8 @@ msgstr "Serie descendente, "
 msgid "dumbbell"
 msgstr "mancuerna"
 
-#: app/(app)/(workout)/workout-summary.tsx:553
-#: app/(app)/(workout)/workout-summary.tsx:574
+#: app/(app)/(workout)/workout-summary.tsx:555
+#: app/(app)/(workout)/workout-summary.tsx:576
 msgid "Duration"
 msgstr "Duración"
 
@@ -1445,10 +1391,6 @@ msgstr "Durante una sesión, desliza a izquierda/derecha o usa los botones de fl
 #: constants/HelpData.ts:69
 msgid "Each set can be flagged as a Warm-up, Drop Set, To Failure, or any combination of these. The badge shown next to a set displays its current type. To change the type during a session, tap the menu (⋮) and toggle the relevant option on or off. When building a plan, use the checkboxes in the set editor; tap Add Warm-up to insert a dedicated warm-up set at the top of the list. Warm-up sets are visually grouped and separated from working sets, and the Apply to All option in the edit modal only affects sets of the same type. Warm-up sets can be excluded from volume and stats calculations in Settings."
 msgstr "Cada serie puede marcarse como Calentamiento, Serie descendente, Al fallo o cualquier combinación de estas. La insignia junto a una serie muestra su tipo actual. Para cambiar el tipo durante una sesión, toca el menú (⋮) y activa o desactiva la opción correspondiente. Al crear un plan, usa las casillas en el editor de series; toca Añadir calentamiento para insertar una serie de calentamiento al principio de la lista. Las series de calentamiento se agrupan y separan visualmente de las series de trabajo, y la opción Aplicar a todas en el modal de edición solo afecta a series del mismo tipo. Las series de calentamiento se pueden excluir de los cálculos de volumen y estadísticas en Ajustes."
-
-#: app/(app)/(tabs)/(plans)/overview.tsx:255
-#~ msgid "Edit"
-#~ msgstr "Editar"
 
 #: app/(app)/custom-exercise.tsx:83
 #: app/(app)/exercise-info.tsx:291
@@ -1509,16 +1451,11 @@ msgstr "El equipamiento es obligatorio."
 msgid "Equipment:"
 msgstr "Equipamiento:"
 
-#. placeholder {0}: exerciseData.equipment
-#: app/(app)/exercise-info.tsx:219
-#~ msgid "Equipment: {0}"
-#~ msgstr ""
-
 #: app/(app)/(create-plan)/image-search.tsx:43
 #: app/(app)/(tabs)/(plans)/overview.tsx:115
 #: app/(app)/(tabs)/(plans)/standalone-workout.tsx:91
-#: app/(app)/(workout)/index.tsx:645
-#: app/(app)/(workout)/index.tsx:839
+#: app/(app)/(workout)/index.tsx:748
+#: app/(app)/(workout)/index.tsx:942
 #: app/(app)/custom-exercise.tsx:141
 #: app/(app)/custom-exercise.tsx:190
 #: app/(app)/custom-exercise.tsx:298
@@ -1557,7 +1494,7 @@ msgstr "Error al cargar los planes"
 msgid "Error loading stats. Please try again."
 msgstr "Error al cargar las estadísticas. Por favor, inténtalo de nuevo."
 
-#: app/(app)/(workout)/index.tsx:662
+#: app/(app)/(workout)/index.tsx:765
 msgid "Error saving workout"
 msgstr "Error al guardar el entrenamiento"
 
@@ -1612,7 +1549,7 @@ msgstr "Seguimiento de ejercicio"
 #: app/(app)/(create-plan)/_layout.tsx:24
 #: app/(app)/(tabs)/(stats)/_layout.tsx:20
 #: app/(app)/(workout)/_layout.tsx:17
-#: app/(app)/(workout)/workout-summary.tsx:603
+#: app/(app)/(workout)/workout-summary.tsx:605
 msgid "Exercises"
 msgstr "Ejercicios"
 
@@ -1676,8 +1613,8 @@ msgstr "Error al guardar el ejercicio personalizado. Por favor, inténtalo de nu
 msgid "Failed to save the image. Please try again."
 msgstr "Error al guardar la imagen. Por favor, inténtalo de nuevo."
 
-#: app/(app)/(workout)/index.tsx:646
-#: app/(app)/(workout)/index.tsx:840
+#: app/(app)/(workout)/index.tsx:749
+#: app/(app)/(workout)/index.tsx:943
 msgid "Failed to save workout. Please try again."
 msgstr "Error al guardar el entrenamiento. Por favor, inténtalo de nuevo."
 
@@ -1697,7 +1634,7 @@ msgstr "Ejercicios favoritos"
 msgid "feet"
 msgstr "pies"
 
-#: app/(app)/(workout)/index.tsx:754
+#: app/(app)/(workout)/index.tsx:857
 msgid "Finish"
 msgstr "Finalizar"
 
@@ -1733,7 +1670,7 @@ msgstr "Viernes"
 msgid "Get Ready..."
 msgstr "¡Prepárate..."
 
-#: app/(app)/(workout)/index.tsx:799
+#: app/(app)/(workout)/index.tsx:902
 msgid "Give it a name to save it as a reusable workout."
 msgstr "Dale un nombre para guardarlo como entrenamiento reutilizable."
 
@@ -1741,7 +1678,7 @@ msgstr "Dale un nombre para guardarlo como entrenamiento reutilizable."
 msgid "glutes"
 msgstr "glúteos"
 
-#: app/(app)/(workout)/workout-summary.tsx:508
+#: app/(app)/(workout)/workout-summary.tsx:509
 msgid "Go Home"
 msgstr "Ir al inicio"
 
@@ -1892,7 +1829,7 @@ msgstr "piernas"
 msgid "leverage machine"
 msgstr "máquina de palanca"
 
-#: app/_layout.tsx:196
+#: app/_layout.tsx:204
 msgid "Loading data, please wait..."
 msgstr "Cargando datos, por favor espera..."
 
@@ -1908,10 +1845,6 @@ msgstr "Cargando..."
 #: app/(app)/settings.tsx:493
 msgid "Log in to secure your data"
 msgstr "Inicia sesión para proteger tus datos"
-
-#: app/login.tsx:113
-#~ msgid "Login"
-#~ msgstr "Iniciar sesión"
 
 #: constants/dbTranslations.ts:50
 msgid "lower abs"
@@ -1972,10 +1905,6 @@ msgstr "Más"
 msgid "Most trained"
 msgstr "Más entrenado"
 
-#: app/(app)/help.tsx:168
-#~ msgid "msgid “No results for “{query}””"
-#~ msgstr "msgstr “Sin resultados para “{query}””"
-
 #: app/(app)/(tabs)/_layout.tsx:34
 msgid "MuscleQuest"
 msgstr "MuscleQuest"
@@ -2035,8 +1964,8 @@ msgstr "Siguiente: "
 msgid "Next: {workoutName} on {0}"
 msgstr "Siguiente: {workoutName} el {0}"
 
-#: app/(app)/(workout)/index.tsx:677
-#: app/(app)/(workout)/index.tsx:697
+#: app/(app)/(workout)/index.tsx:780
+#: app/(app)/(workout)/index.tsx:800
 msgid "No"
 msgstr "No"
 
@@ -2089,7 +2018,7 @@ msgstr "No hay series disponibles"
 msgid "No training plans found"
 msgstr "No se encontraron planes de entrenamiento"
 
-#: app/(app)/(workout)/index.tsx:722
+#: app/(app)/(workout)/index.tsx:825
 msgid "No workout available"
 msgstr "No hay entrenamiento disponible"
 
@@ -2114,7 +2043,7 @@ msgstr "oblicuos"
 #: app/(app)/(create-plan)/image-search.tsx:44
 #: app/(app)/(workout)/exercises.tsx:96
 #: app/(app)/(workout)/exercises.tsx:117
-#: app/(app)/(workout)/index.tsx:647
+#: app/(app)/(workout)/index.tsx:750
 #: app/(app)/custom-exercise.tsx:142
 #: app/(app)/custom-exercise.tsx:191
 #: app/(app)/custom-exercise.tsx:239
@@ -2237,7 +2166,7 @@ msgid "quads"
 msgstr "cuádriceps"
 
 #: app/(app)/(tabs)/index.tsx:566
-#: app/(app)/(workout)/index.tsx:817
+#: app/(app)/(workout)/index.tsx:920
 msgid "Quick Workout"
 msgstr "Entrenamiento rápido"
 
@@ -2249,7 +2178,7 @@ msgstr "deltoides posteriores"
 msgid "Recent Sessions"
 msgstr "Sesiones recientes"
 
-#: app/_layout.tsx:91
+#: app/_layout.tsx:99
 msgid "Reload"
 msgstr "Recargar"
 
@@ -2274,7 +2203,7 @@ msgstr "Eliminar"
 msgid "Remove Exercise"
 msgstr "Eliminar ejercicio"
 
-#: app/(app)/(workout)/index.tsx:426
+#: app/(app)/(workout)/index.tsx:529
 #: components/WorkoutCard.tsx:307
 msgid "Remove Superset"
 msgstr "Eliminar superserie"
@@ -2287,7 +2216,7 @@ msgstr "Eliminar entrenamiento"
 msgid "Rep PR"
 msgstr "PR de reps"
 
-#: app/(app)/(workout)/index.tsx:421
+#: app/(app)/(workout)/index.tsx:524
 #: components/WorkoutCard.tsx:299
 msgid "Replace"
 msgstr "Reemplazar"
@@ -2328,6 +2257,7 @@ msgstr "Día de descanso"
 msgid "Rest Time (Minutes:Seconds)"
 msgstr "Tiempo de descanso (Minutos:Segundos)"
 
+#: app/(app)/(workout)/index.tsx:1004
 #: app/(app)/(workout)/workout-session.tsx:1365
 msgid "Rest Time Left:"
 msgstr "Tiempo de descanso restante:"
@@ -2345,7 +2275,7 @@ msgstr "Temporizador de descanso"
 msgid "Rest timer increment"
 msgstr "Incremento del temporizador de descanso"
 
-#: app/(app)/(workout)/index.tsx:774
+#: app/(app)/(workout)/index.tsx:877
 msgid "Restart"
 msgstr "Reiniciar"
 
@@ -2353,7 +2283,7 @@ msgstr "Reiniciar"
 msgid "Restart App"
 msgstr "Reiniciar app"
 
-#: app/(app)/(workout)/index.tsx:694
+#: app/(app)/(workout)/index.tsx:797
 msgid "Restart Workout"
 msgstr "Reiniciar entrenamiento"
 
@@ -2403,8 +2333,8 @@ msgstr "Sábado"
 
 #: app/(app)/(create-plan)/create-workout.tsx:255
 #: app/(app)/(create-plan)/create.tsx:360
-#: app/(app)/(workout)/index.tsx:617
-#: app/(app)/(workout)/index.tsx:845
+#: app/(app)/(workout)/index.tsx:720
+#: app/(app)/(workout)/index.tsx:948
 #: app/(app)/custom-exercise.tsx:651
 #: components/SettingsModal.tsx:322
 msgid "Save"
@@ -2414,11 +2344,11 @@ msgstr "Guardar"
 msgid "Save and select"
 msgstr "Guardar y seleccionar"
 
-#: app/(app)/(workout)/index.tsx:579
+#: app/(app)/(workout)/index.tsx:682
 msgid "Save Changes to Plan?"
 msgstr "¿Guardar cambios en el plan?"
 
-#: app/(app)/(workout)/index.tsx:612
+#: app/(app)/(workout)/index.tsx:715
 msgid "Save Changes to Workout?"
 msgstr "¿Guardar cambios en el entrenamiento?"
 
@@ -2426,11 +2356,11 @@ msgstr "¿Guardar cambios en el entrenamiento?"
 msgid "Save Set"
 msgstr "Guardar serie"
 
-#: app/(app)/(workout)/index.tsx:796
+#: app/(app)/(workout)/index.tsx:899
 msgid "Save this workout?"
 msgstr "¿Guardar este entrenamiento?"
 
-#: app/(app)/(workout)/index.tsx:584
+#: app/(app)/(workout)/index.tsx:687
 msgid "Save to Plan"
 msgstr "Guardar en el plan"
 
@@ -2438,7 +2368,7 @@ msgstr "Guardar en el plan"
 msgid "Saving Plan..."
 msgstr "Guardando plan..."
 
-#: app/(app)/(workout)/index.tsx:736
+#: app/(app)/(workout)/index.tsx:839
 msgid "Saving Workout..."
 msgstr "Guardando entrenamiento..."
 
@@ -2467,11 +2397,6 @@ msgstr "Músculos secundarios"
 #: app/(app)/exercise-info.tsx:216
 msgid "Secondary muscles:"
 msgstr "Músculos secundarios:"
-
-#. placeholder {0}: secondaryMuscles.join(", ")
-#: app/(app)/exercise-info.tsx:207
-#~ msgid "Secondary muscles: {0}"
-#~ msgstr ""
 
 #: components/stats/WorkoutCalendarModal.tsx:171
 msgid "Select a day to see workouts."
@@ -2537,8 +2462,8 @@ msgstr "Tipos de serie"
 msgid "Set your weekly workout goal and enter your body weight to get accurate stats and recommendations. You can also adjust your weight increment preferences, choose your preferred units, and much more."
 msgstr "Establece tu objetivo semanal de entrenamientos e introduce tu peso corporal para obtener estadísticas y recomendaciones precisas. También puedes ajustar tus preferencias de incremento de peso, elegir tus unidades preferidas y mucho más."
 
-#: app/(app)/(workout)/workout-summary.tsx:559
-#: app/(app)/(workout)/workout-summary.tsx:582
+#: app/(app)/(workout)/workout-summary.tsx:561
+#: app/(app)/(workout)/workout-summary.tsx:584
 msgid "Sets"
 msgstr "Series"
 
@@ -2760,11 +2685,6 @@ msgstr "El músculo objetivo es obligatorio."
 #: app/(app)/exercise-info.tsx:201
 msgid "Target muscle:"
 msgstr "Músculo objetivo:"
-
-#. placeholder {0}: exerciseData.target_muscle
-#: app/(app)/exercise-info.tsx:195
-#~ msgid "Target muscle: {0}"
-#~ msgstr ""
 
 #: components/SessionSetInfo.tsx:206
 msgid "Target: {distanceMin} {distanceUnit}"
@@ -2990,7 +2910,7 @@ msgstr "Escribe para filtrar temas de ayuda"
 msgid "Unable to check for updates. The app will continue to work normally."
 msgstr "No se pueden buscar actualizaciones. La app seguirá funcionando con normalidad."
 
-#: app/(app)/(workout)/index.tsx:663
+#: app/(app)/(workout)/index.tsx:766
 msgid "Unable to save your workout. Please try again later."
 msgstr "No se puede guardar tu entrenamiento. Por favor, inténtalo de nuevo más tarde."
 
@@ -3042,8 +2962,8 @@ msgstr "Ver estadísticas"
 msgid "View/Edit"
 msgstr "Ver/Editar"
 
-#: app/(app)/(workout)/workout-summary.tsx:564
-#: app/(app)/(workout)/workout-summary.tsx:589
+#: app/(app)/(workout)/workout-summary.tsx:566
+#: app/(app)/(workout)/workout-summary.tsx:591
 #: components/WeeklySummaryCard.tsx:285
 msgid "Volume"
 msgstr "Volumen"
@@ -3061,7 +2981,7 @@ msgid "vs PR"
 msgstr "vs PR"
 
 #. placeholder {0}: workout.workout_name
-#: app/(app)/(workout)/workout-summary.tsx:570
+#: app/(app)/(workout)/workout-summary.tsx:572
 msgid "vs. last \"{0}\""
 msgstr "vs. último \"{0}\""
 
@@ -3149,11 +3069,6 @@ msgstr "Bienvenido/a a MuscleQuest, tu acompañante personal de entrenamiento de
 msgid "Welcome to MuscleQuest!"
 msgstr "¡Bienvenido/a a MuscleQuest!"
 
-#. placeholder {0}: activePlan && " back"
-#: app/(app)/(tabs)/index.tsx:348
-#~ msgid "Welcome{0}{userName}"
-#~ msgstr "Bienvenido/a{0}{userName}"
-
 #: app/(app)/(tabs)/index.tsx:352
 msgid "Welcome{userName}"
 msgstr "Bienvenido/a{userName}"
@@ -3183,7 +3098,7 @@ msgstr "Entrenamiento {0}"
 msgid "Workout Calendar"
 msgstr "Calendario de entrenamientos"
 
-#: app/(app)/(workout)/workout-summary.tsx:544
+#: app/(app)/(workout)/workout-summary.tsx:546
 msgid "Workout Complete!"
 msgstr "¡Entrenamiento completado!"
 
@@ -3200,14 +3115,14 @@ msgstr "Historial de entrenamientos"
 msgid "Workout in progress"
 msgstr "Entrenamiento en curso"
 
-#: app/(app)/(workout)/index.tsx:803
+#: app/(app)/(workout)/index.tsx:906
 #: components/WorkoutCard.tsx:422
 msgid "Workout name"
 msgstr "Nombre del entrenamiento"
 
 #: app/(app)/(tabs)/(plans)/standalone-workout.tsx:51
 #: app/(app)/(tabs)/(plans)/standalone-workout.tsx:201
-#: app/(app)/(workout)/workout-summary.tsx:500
+#: app/(app)/(workout)/workout-summary.tsx:501
 msgid "Workout not found."
 msgstr "Entrenamiento no encontrado."
 
@@ -3250,8 +3165,8 @@ msgstr "muñecas"
 msgid "x {0} reps "
 msgstr "x {0} reps "
 
-#: app/(app)/(workout)/index.tsx:679
-#: app/(app)/(workout)/index.tsx:699
+#: app/(app)/(workout)/index.tsx:782
+#: app/(app)/(workout)/index.tsx:802
 msgid "Yes"
 msgstr "Sí"
 
@@ -3281,8 +3196,8 @@ msgstr "Tienes cambios sin guardar de tu última sesión. ¿Quieres continuar?"
 msgid "You have unsaved changes. Are you sure you want to discard them?"
 msgstr "Tienes cambios sin guardar. ¿Seguro que quieres descartarlos?"
 
-#: app/(app)/(workout)/index.tsx:580
-#: app/(app)/(workout)/index.tsx:613
+#: app/(app)/(workout)/index.tsx:683
+#: app/(app)/(workout)/index.tsx:716
 msgid "You modified this workout. Save those changes for future sessions?"
 msgstr "Has modificado este entrenamiento. ¿Guardar los cambios para sesiones futuras?"
 
