@@ -15,6 +15,7 @@ interface ExerciseListProps {
   selectedExercises: number[];
   onSelect: (exerciseId: number) => void;
   onPressItem: (item: Exercise) => void;
+  showCheckbox?: boolean;
 }
 
 const ExerciseList = ({
@@ -22,6 +23,7 @@ const ExerciseList = ({
   selectedExercises,
   onSelect,
   onPressItem,
+  showCheckbox = true,
 }: ExerciseListProps) => {
   const listData = [];
 
@@ -83,10 +85,11 @@ const ExerciseList = ({
           selected={selectedExercises.includes(item.item.exercise_id)}
           onSelect={onSelect}
           onPress={onPressItem}
+          showCheckbox={showCheckbox}
         />
       );
     },
-    [selectedExercises, onSelect, onPressItem],
+    [selectedExercises, onSelect, onPressItem, showCheckbox],
   );
 
   return (
