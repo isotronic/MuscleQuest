@@ -415,10 +415,6 @@ msgstr " (jusqu'à l'échec)"
 msgid " (to Failure) "
 msgstr " (jusqu'à l'échec) "
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:256
-#~ msgid " Plan"
-#~ msgstr " Programme"
-
 #: components/WorkoutCard.tsx:263
 #: components/WorkoutDetailsScreen.tsx:141
 msgid "(to Failure)"
@@ -461,11 +457,6 @@ msgstr "{0, plural, one {# série} other {# séries}}"
 msgid "{0, plural, one {# Set} other {# Sets}}"
 msgstr "{0, plural, one {# Série} other {# Séries}}"
 
-#. placeholder {0}: workout.exercises.length
-#: components/StandaloneWorkoutListItem.tsx:44
-#~ msgid "{0, plural, one {exercise} other {exercises}}"
-#~ msgstr "{0, plural, one {exercice} other {exercices}}"
-
 #. placeholder {0}: Math.abs(setsDiff)
 #: app/(app)/(workout)/workout-summary.tsx:526
 msgid "{0, plural, one {set} other {sets}}"
@@ -490,13 +481,6 @@ msgstr "{0} {1} (utilisé pour les exercices assistés)"
 msgid "{0} {1} | {2} Reps"
 msgstr "{0} {1} | {2} Rép."
 
-#. placeholder {0}: workout.exercises.length
-#. placeholder {1}: import { Pressable, StyleSheet, View } from "react-native"; import { ThemedText } from "@/components/ThemedText"; import { Colors } from "@/constants/Colors"; import { Workout } from "@/store/workoutStore"; import { MaterialCommunityIcons } from "@expo/vector-icons"; import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate"; import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration"; import { Trans } from "@lingui/react/macro"; import { plural } from "@lingui/core/macro"; interface StandaloneWorkoutListItemProps { workout: Workout; onPress: () => void; countUnilateralDouble?: boolean; } export default function StandaloneWorkoutListItem({ workout, onPress, countUnilateralDouble = false, }: StandaloneWorkoutListItemProps) { const { estimate } = useWorkoutDurationEstimate( workout.exercises, countUnilateralDouble, ); return ( <Pressable style={styles.container} onPress={onPress}> <View style={styles.imageContainer}> <View style={styles.imagePlaceholder}> <MaterialCommunityIcons name="weight-lifter" size={32} color={Colors.dark.subText} /> </View> </View> <View style={styles.textContainer}> <ThemedText style={styles.name} numberOfLines={1}> {workout.name} </ThemedText> <ThemedText style={styles.subtitle}> <Trans> {workout.exercises.length}{" "} {plural(workout.exercises.length, { one: "exercise", other: "exercises", })} {estimate ? ` · ~${formatDurationEstimate(estimate)}` : ""} </Trans> </ThemedText> </View> <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.dark.subText} /> </Pressable> ); } const styles = StyleSheet.create({ container: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.dark.cardBackground, borderRadius: 8, padding: 12, marginBottom: 10, }, imageContainer: { width: 52, height: 52, borderRadius: 8, overflow: "hidden", marginRight: 14, }, imagePlaceholder: { width: "100%", height: "100%", backgroundColor: Colors.dark.cardBackground2, borderRadius: 8, justifyContent: "center", alignItems: "center", }, textContainer: { flex: 1, }, name: { fontSize: 16, fontWeight: "600", marginBottom: 2, }, subtitle: { fontSize: 13, color: Colors.dark.subText, }, });
-#. placeholder {2}: estimate ? ` · ~${formatDurationEstimate(estimate)}` : ""
-#: components/StandaloneWorkoutListItem.tsx:42
-#~ msgid "{0} {1}{2}"
-#~ msgstr "{0} {1}{2}"
-
 #. placeholder {0}: todayWorkoutName ?? t`Workout`
 #: components/WorkoutDoneCard.tsx:64
 msgid "{0} Complete!"
@@ -516,11 +500,6 @@ msgstr "{0} jours par semaine"
 msgid "{0} Exercises{1}"
 msgstr "{0} Exercices{1}"
 
-#. placeholder {0}: Math.round(workout.duration / 60)
-#: app/(app)/(tabs)/(stats)/history-details.tsx:203
-#~ msgid "{0} mins"
-#~ msgstr "{0} min"
-
 #. placeholder {0}: note.trim() ? t`View/Edit` : t`Add`
 #: components/Notes.tsx:86
 msgid "{0} Note"
@@ -535,11 +514,6 @@ msgstr "{0} notes"
 #: app/(app)/(workout)/workout-summary.tsx:216
 msgid "{0} reps"
 msgstr "{0} rép."
-
-#. placeholder {0}: set.reps
-#: app/(app)/(tabs)/(stats)/history-details.tsx:269
-#~ msgid "{0} Reps"
-#~ msgstr "{0} Rép."
 
 #. placeholder {0}: settings?.restTimerIncrement
 #. placeholder {0}: settings?.timerCountdown || "5"
@@ -599,10 +573,6 @@ msgstr "{0}s"
 msgid "{biggestGainLabel} 1RM"
 msgstr "{biggestGainLabel} 1RM"
 
-#: app/(app)/(workout)/workout-summary.tsx:367
-#~ msgid "{completed} of {goal} workouts this week"
-#~ msgstr "{completed} sur {goal} entraînements cette semaine"
-
 #: app/(app)/(workout)/workout-summary.tsx:339
 msgid "{completed} workouts this week. You've smashed your goal!"
 msgstr "{completed} entraînements cette semaine. Tu as explosé ton objectif !"
@@ -616,10 +586,6 @@ msgstr "{completedCount}/{0} séries terminées"
 #: components/stats/ExerciseCompactCard.tsx:24
 msgid "{days, plural, one {# day ago} other {# days ago}}"
 msgstr "{days, plural, one {il y a # jour} other {il y a # jours}}"
-
-#: components/stats/ExerciseCompactCard.tsx:24
-#~ msgid "{days} days ago"
-#~ msgstr "il y a {days} jours"
 
 #: components/WorkoutHistoryCard.tsx:56
 msgid "{durationMin} min"
@@ -645,22 +611,9 @@ msgstr "{scheduledDays, plural, one {# jour/sem.} other {# jours/sem.}}"
 msgid "{setsCount, plural, one {# set} other {# sets}}"
 msgstr "{setsCount, plural, one {# série} other {# séries}}"
 
-#: components/WorkoutHistoryCard.tsx:58
-#~ msgid "{setsCount} sets"
-#~ msgstr "{setsCount} séries"
-
 #: components/WeeklySummaryCard.tsx:331
 msgid "{streak, plural, one {# week in a row} other {# weeks in a row}}"
 msgstr "{streak, plural, one {# semaine d'affilée} other {# semaines d'affilée}}"
-
-#: components/WeeklySummaryCard.tsx:332
-#~ msgid "{streak, plural, one {week} other {weeks}}"
-#~ msgstr "{streak, plural, one {semaine} other {semaines}}"
-
-#. placeholder {0}: import React, { useMemo } from "react"; import { View, StyleSheet } from "react-native"; import { MaterialCommunityIcons } from "@expo/vector-icons"; import { startOfWeek, endOfWeek, subWeeks } from "date-fns"; import { ThemedText } from "@/components/ThemedText"; import { ThemedView } from "@/components/ThemedView"; import { Colors } from "@/constants/Colors"; import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery"; import { Trans } from "@lingui/react/macro"; import { t, plural } from "@lingui/core/macro"; interface Props { workoutsThisWeek: CompletedWorkout[]; allCompletedWorkouts: CompletedWorkout[]; weeklyGoal: number; weightUnit: string; streak: number; excludeWarmup?: boolean; countUnilateralDouble?: boolean; doubleWeightForPaired?: boolean; } function formatDuration(seconds: number): string { const h = Math.floor(seconds / 3600); const m = Math.floor((seconds % 3600) / 60); if (h > 0) return `${h}h ${m}m`; return `${m}m`; } function getProgressionMetric( weight: number | null, reps: number | null, time: number | null, trackingType: string, weightM: number = 1, repM: number = 1, ): number | null { if (trackingType === "reps") return reps != null ? reps * repM : null; if (trackingType === "time") return time; // weight, assisted, or null → Epley 1RM (weightM applies; repM does not affect 1RM) if (weight != null && reps != null) return weight * weightM * (1 + reps / 30.0); return null; } interface BestAchievement { exerciseName: string; trackingType: string; thisWeekBest: number; delta: number; weightUnit: string; } function computeBestAchievement( workoutsThisWeek: CompletedWorkout[], allCompletedWorkouts: CompletedWorkout[], weightUnit: string, excludeWarmup: boolean = false, countUnilateralDouble: boolean = false, doubleWeightForPaired: boolean = false, ): BestAchievement | null { const today = new Date(); const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 }); const lastWeekStart = subWeeks(currentWeekStart, 1); const lastWeekEnd = endOfWeek(lastWeekStart, { weekStartsOn: 1 }); const lastWeekWorkouts = allCompletedWorkouts.filter((w) => { const d = new Date(w.date_completed); return d >= lastWeekStart && d <= lastWeekEnd; }); // Build map of exercise_id → best metric for last week const lastWeekBest = new Map<number, number>(); for (const workout of lastWeekWorkouts) { for (const ex of workout.exercises) { const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1; const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1; for (const set of ex.sets) { if (excludeWarmup && set.is_warmup) continue; const metric = getProgressionMetric( set.weight, set.reps, set.time, ex.exercise_tracking_type, weightM, repM, ); if (metric == null) continue; const prev = lastWeekBest.get(ex.exercise_id) ?? -Infinity; if (metric > prev) lastWeekBest.set(ex.exercise_id, metric); } } } // Build map of exercise_id → { name, trackingType, best } for this week const thisWeekBest = new Map< number, { name: string; trackingType: string; best: number } >(); for (const workout of workoutsThisWeek) { for (const ex of workout.exercises) { const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1; const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1; for (const set of ex.sets) { if (excludeWarmup && set.is_warmup) continue; const metric = getProgressionMetric( set.weight, set.reps, set.time, ex.exercise_tracking_type, weightM, repM, ); if (metric == null) continue; const prev = thisWeekBest.get(ex.exercise_id); if (!prev || metric > prev.best) { thisWeekBest.set(ex.exercise_id, { name: ex.exercise_name, trackingType: ex.exercise_tracking_type, best: metric, }); } } } } let bestAchievement: BestAchievement | null = null; let bestPercentage = 0; thisWeekBest.forEach(({ name, trackingType, best }, exerciseId) => { const lastBest = lastWeekBest.get(exerciseId); if (!lastBest) return; // no baseline from last week, skip const delta = best - lastBest; if (delta <= 0) return; const percentage = delta / lastBest; if (percentage > bestPercentage) { bestPercentage = percentage; bestAchievement = { exerciseName: name, trackingType, thisWeekBest: best, delta, weightUnit, }; } }); return bestAchievement; } function formatAchievement(a: BestAchievement): { label: string; value: string; } { const unit = a.weightUnit; const pct = Math.round((a.delta / (a.thisWeekBest - a.delta)) * 100); const pctStr = `+${pct}%`; if (a.trackingType === "reps") { const best = Math.round(a.thisWeekBest); const delta = Math.round(a.delta); return { label: t`Rep PR`, value: t`${a.exerciseName}: ${best} ${plural(best, { one: "rep", other: "reps" })} (+${delta}, ${pctStr})`, }; } if (a.trackingType === "time") { const best = Math.round(a.thisWeekBest); const delta = Math.round(a.delta); return { label: t`Time PR`, value: t`${a.exerciseName}: ${best}s (+${delta}s, ${pctStr})`, }; } const best = a.thisWeekBest.toFixed(1); const delta = a.delta.toFixed(1); return { label: t`1RM`, value: t`${a.exerciseName}: ${best}${unit} (+${delta}${unit}, ${pctStr})`, }; } export default function WeeklySummaryCard({ workoutsThisWeek, allCompletedWorkouts, weeklyGoal, weightUnit, streak, excludeWarmup = false, countUnilateralDouble = false, doubleWeightForPaired = false, }: Props) { const totalDuration = useMemo( () => workoutsThisWeek.reduce((sum, w) => sum + (w.duration ?? 0), 0), [workoutsThisWeek], ); const totalVolume = useMemo(() => { let vol = 0; for (const workout of workoutsThisWeek) { for (const ex of workout.exercises) { const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1; const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1; for (const set of ex.sets) { if ( (!excludeWarmup || !set.is_warmup) && set.weight != null && set.reps != null ) { vol += set.weight * weightM * set.reps * repM; } } } } return vol; }, [ workoutsThisWeek, excludeWarmup, countUnilateralDouble, doubleWeightForPaired, ]); const bestAchievement = useMemo( () => computeBestAchievement( workoutsThisWeek, allCompletedWorkouts, weightUnit, excludeWarmup, countUnilateralDouble, doubleWeightForPaired, ), [ workoutsThisWeek, allCompletedWorkouts, weightUnit, excludeWarmup, countUnilateralDouble, doubleWeightForPaired, ], ); const volumeLabel = `${Math.round(totalVolume).toLocaleString()} ${weightUnit}`; const achievementFormatted = bestAchievement ? formatAchievement(bestAchievement) : null; return ( <ThemedView style={styles.card}> <View style={styles.header}> <MaterialCommunityIcons name="trophy-outline" size={22} color={Colors.dark.tint} /> <ThemedText type="subtitle" style={styles.title}> <Trans>Weekly Goal Complete!</Trans> </ThemedText> </View> <View style={styles.divider} /> <View style={styles.statsGrid}> <View style={styles.statRow}> <MaterialCommunityIcons name="calendar-check-outline" size={16} color={Colors.dark.icon} /> <ThemedText style={styles.statLabel}> <Trans>Workouts</Trans> </ThemedText> <ThemedText style={styles.statValue}> {workoutsThisWeek.length} / {weeklyGoal} </ThemedText> </View> <View style={styles.statRow}> <MaterialCommunityIcons name="weight-kilogram" size={16} color={Colors.dark.icon} /> <ThemedText style={styles.statLabel}> <Trans>Volume</Trans> </ThemedText> <ThemedText style={styles.statValue}>{volumeLabel}</ThemedText> </View> <View style={styles.statRow}> <MaterialCommunityIcons name="timer-outline" size={16} color={Colors.dark.icon} /> <ThemedText style={styles.statLabel}> <Trans>Time</Trans> </ThemedText> <ThemedText style={styles.statValue}> {formatDuration(totalDuration)} </ThemedText> </View> {achievementFormatted && ( <View style={styles.statRow}> <MaterialCommunityIcons name="trending-up" size={16} color={Colors.dark.icon} /> <ThemedText style={styles.statLabel}> {achievementFormatted.label} </ThemedText> <ThemedText style={[styles.statValue, styles.achievementValue]}> {achievementFormatted.value} </ThemedText> </View> )} {streak > 0 && ( <View style={styles.statRow}> <MaterialCommunityIcons name="fire" size={16} color={Colors.dark.tint} /> <ThemedText style={styles.statLabel}> <Trans>Streak</Trans> </ThemedText> <ThemedText style={[styles.statValue, styles.streakValue]}> <Trans> {streak} {plural(streak, { one: "week", other: "weeks" })} in a row </Trans> </ThemedText> </View> )} </View> </ThemedView> ); } const styles = StyleSheet.create({ card: { borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: Colors.dark.tint, }, header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12, }, title: { fontSize: 16, color: Colors.dark.tint, }, divider: { height: 1, backgroundColor: Colors.dark.tint, opacity: 0.2, marginBottom: 12, }, statsGrid: { gap: 10, }, statRow: { flexDirection: "row", alignItems: "center", gap: 8, }, statLabel: { flex: 1, fontSize: 13, color: Colors.dark.icon, }, statValue: { fontSize: 13, textAlign: "right", }, achievementValue: { flex: 2, textAlign: "right", }, streakValue: { color: Colors.dark.tint, }, });
-#: components/WeeklySummaryCard.tsx:331
-#~ msgid "{streak} {0} in a row"
-#~ msgstr "{streak} {0} d'affilée"
 
 #. placeholder {0}: settings?.weeklyGoal
 #: app/(app)/(tabs)/index.tsx:342
@@ -671,17 +624,9 @@ msgstr "{uniqueWorkoutDaysCount} / {0} jours d'entraînement"
 msgid "{weeklyGoal, plural, one {Auto-suggest (# day)} other {Auto-suggest (# days)}}"
 msgstr "{weeklyGoal, plural, one {Suggestion auto (# jour)} other {Suggestion auto (# jours)}}"
 
-#: components/PlanScheduleEditor.tsx:206
-#~ msgid "{weeklyGoal, plural, one {Auto-suggest (1 day)} other {Auto-suggest (# days)}}"
-#~ msgstr "{weeklyGoal, plural, one {Suggestion automatique (1 jour)} other {Suggestion automatique (# jours)}}"
-
 #: components/stats/ExerciseCompactCard.tsx:26
 msgid "{weeks, plural, one {# week ago} other {# weeks ago}}"
 msgstr "{weeks, plural, one {il y a # semaine} other {il y a # semaines}}"
-
-#: components/stats/ExerciseCompactCard.tsx:26
-#~ msgid "{weeks} weeks ago"
-#~ msgstr "il y a {weeks} semaines"
 
 #: app/login.tsx:90
 msgid "* features in development"
@@ -728,10 +673,6 @@ msgstr "⬇️ Téléchargement de la mise à jour"
 #: components/WhatsNewModal.tsx:88
 msgid "🎉 What's New"
 msgstr "🎉 Nouveautés"
-
-#: components/stats/ExerciseCompactCard.tsx:26
-#~ msgid "1 week ago"
-#~ msgstr "il y a 1 semaine"
 
 #: components/WeeklySummaryCard.tsx:177
 msgid "1RM"
@@ -1000,10 +941,6 @@ msgstr "assistance "
 msgid "Assistance/Reps"
 msgstr "Assistance/Rép."
 
-#: components/PlanScheduleEditor.tsx:206
-#~ msgid "Auto-suggest ({weeklyGoal} days)"
-#~ msgstr "Suggestion auto ({weeklyGoal} jours)"
-
 #: app/(app)/(tabs)/(stats)/index.tsx:409
 msgid "Avg Duration"
 msgstr "Durée moyenne"
@@ -1259,23 +1196,12 @@ msgid "Customisation"
 msgstr "Personnalisation"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:255
-#~ msgid "Customise"
-#~ msgstr "Personnaliser"
-
-#: app/(app)/(tabs)/(plans)/overview.tsx:255
 msgid "Customise Plan"
 msgstr "Personnaliser le programme"
 
 #: components/Onboarding.tsx:21
 msgid "Customise Your Settings"
 msgstr "Personnalise tes paramètres"
-
-#. placeholder {0}: scheduledCount !== 1 ? "s" : ""
-#. placeholder {0}: scheduledDays !== 1 ? "s" : ""
-#: components/PlanScheduleEditor.tsx:82
-#: components/WeeklyScheduleDisplay.tsx:79
-#~ msgid "day{0}/week"
-#~ msgstr "jour{0}/semaine"
 
 #: app/(app)/settings.tsx:1140
 msgid "Default rest time"
@@ -1466,10 +1392,6 @@ msgstr "Pendant une séance, glisse vers la gauche/droite ou utilise les boutons
 msgid "Each set can be flagged as a Warm-up, Drop Set, To Failure, or any combination of these. The badge shown next to a set displays its current type. To change the type during a session, tap the menu (⋮) and toggle the relevant option on or off. When building a plan, use the checkboxes in the set editor; tap Add Warm-up to insert a dedicated warm-up set at the top of the list. Warm-up sets are visually grouped and separated from working sets, and the Apply to All option in the edit modal only affects sets of the same type. Warm-up sets can be excluded from volume and stats calculations in Settings."
 msgstr "Chaque série peut être marquée comme Échauffement, Série dégressive, Jusqu'à l'échec, ou toute combinaison de ces options. Le badge affiché à côté d'une série indique son type actuel. Pour changer le type pendant une séance, appuie sur le menu (⋮) et active ou désactive l'option correspondante. Lors de la création d'un programme, utilise les cases à cocher dans l'éditeur de séries ; appuie sur Ajouter un échauffement pour insérer une série d'échauffement dédiée en haut de la liste. Les séries d'échauffement sont visuellement regroupées et séparées des séries de travail, et l'option Appliquer à tous dans le modal de modification n'affecte que les séries du même type. Les séries d'échauffement peuvent être exclues des calculs de volume et de stats dans les Paramètres."
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:255
-#~ msgid "Edit"
-#~ msgstr "Modifier"
-
 #: app/(app)/custom-exercise.tsx:83
 #: app/(app)/exercise-info.tsx:291
 msgid "Edit Exercise"
@@ -1528,11 +1450,6 @@ msgstr "L'équipement est obligatoire."
 #: app/(app)/exercise-info.tsx:233
 msgid "Equipment:"
 msgstr "Équipement :"
-
-#. placeholder {0}: exerciseData.equipment
-#: app/(app)/exercise-info.tsx:219
-#~ msgid "Equipment: {0}"
-#~ msgstr ""
 
 #: app/(app)/(create-plan)/image-search.tsx:43
 #: app/(app)/(tabs)/(plans)/overview.tsx:115
@@ -1928,10 +1845,6 @@ msgstr "Chargement..."
 #: app/(app)/settings.tsx:493
 msgid "Log in to secure your data"
 msgstr "Connecte-toi pour sécuriser tes données"
-
-#: app/login.tsx:113
-#~ msgid "Login"
-#~ msgstr "Connexion"
 
 #: constants/dbTranslations.ts:50
 msgid "lower abs"
@@ -2485,11 +2398,6 @@ msgstr "Muscles secondaires"
 msgid "Secondary muscles:"
 msgstr "Muscles secondaires :"
 
-#. placeholder {0}: secondaryMuscles.join(", ")
-#: app/(app)/exercise-info.tsx:207
-#~ msgid "Secondary muscles: {0}"
-#~ msgstr ""
-
 #: components/stats/WorkoutCalendarModal.tsx:171
 msgid "Select a day to see workouts."
 msgstr "Sélectionne un jour pour voir les entraînements."
@@ -2777,11 +2685,6 @@ msgstr "Le muscle cible est obligatoire."
 #: app/(app)/exercise-info.tsx:201
 msgid "Target muscle:"
 msgstr "Muscle cible :"
-
-#. placeholder {0}: exerciseData.target_muscle
-#: app/(app)/exercise-info.tsx:195
-#~ msgid "Target muscle: {0}"
-#~ msgstr ""
 
 #: components/SessionSetInfo.tsx:206
 msgid "Target: {distanceMin} {distanceUnit}"
@@ -3165,11 +3068,6 @@ msgstr "Bienvenue dans MuscleQuest, ton compagnon de musculation personnel. Util
 #: app/login.tsx:74
 msgid "Welcome to MuscleQuest!"
 msgstr "Bienvenue dans MuscleQuest !"
-
-#. placeholder {0}: activePlan && " back"
-#: app/(app)/(tabs)/index.tsx:348
-#~ msgid "Welcome{0}{userName}"
-#~ msgstr "Bienvenue{0}{userName}"
 
 #: app/(app)/(tabs)/index.tsx:352
 msgid "Welcome{userName}"
