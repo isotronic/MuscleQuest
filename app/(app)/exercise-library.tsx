@@ -16,9 +16,13 @@ import Bugsnag from "@bugsnag/expo";
 
 export default function ExerciseLibraryScreen() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null);
+  const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
+    null,
+  );
   const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
-  const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<string | null>(null);
+  const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
+    string | null
+  >(null);
 
   const {
     data: exercises,
@@ -26,7 +30,7 @@ export default function ExerciseLibraryScreen() {
     error: exercisesError,
   } = useExercisesQuery(false, false);
 
-  const { filteredExercises, suggestions } = useExerciseSearch(
+  const { filteredExercises, suggestions, debouncedQuery } = useExerciseSearch(
     exercises,
     {
       equipment: selectedEquipment,
@@ -85,6 +89,7 @@ export default function ExerciseLibraryScreen() {
         exercises={filteredExercises}
         selectedExercises={[]}
         onSelect={() => {}}
+        scrollKey={debouncedQuery}
         onPressItem={(item) => {
           router.push({
             pathname: "/(app)/exercise-info",

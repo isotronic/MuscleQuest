@@ -110,7 +110,7 @@ export default function ExercisesScreen() {
     }
   };
 
-  const { filteredExercises, suggestions } = useExerciseSearch(
+  const { filteredExercises, suggestions, debouncedQuery } = useExerciseSearch(
     exercises,
     {
       equipment: selectedEquipment,
@@ -169,6 +169,7 @@ export default function ExercisesScreen() {
         exercises={filteredExercises}
         selectedExercises={selectedExercises}
         onSelect={handleSelectExercise}
+        scrollKey={debouncedQuery}
         onPressItem={(item) => {
           router.push({
             pathname: "/(app)/exercise-info",

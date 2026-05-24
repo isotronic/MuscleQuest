@@ -16,6 +16,7 @@ interface ExerciseListProps {
   onSelect: (exerciseId: number) => void;
   onPressItem: (item: Exercise) => void;
   showCheckbox?: boolean;
+  scrollKey?: string;
 }
 
 const ExerciseList = ({
@@ -24,6 +25,7 @@ const ExerciseList = ({
   onSelect,
   onPressItem,
   showCheckbox = true,
+  scrollKey,
 }: ExerciseListProps) => {
   const listData = [];
 
@@ -94,6 +96,7 @@ const ExerciseList = ({
 
   return (
     <FlashList
+      key={scrollKey}
       data={listData}
       keyExtractor={(item: any, index: number) =>
         item.type === "title"

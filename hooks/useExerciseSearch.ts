@@ -23,6 +23,7 @@ interface FilteredExercisesResult {
 interface ExerciseSearchResult {
   filteredExercises: FilteredExercisesResult;
   suggestions: AutocompleteSuggestion[];
+  debouncedQuery: string;
 }
 
 function useDebounce(value: string, delay: number): string {
@@ -75,5 +76,9 @@ export function useExerciseSearch(
     [index, debouncedSuggestionQuery],
   );
 
-  return { filteredExercises, suggestions };
+  return {
+    filteredExercises,
+    suggestions,
+    debouncedQuery: debouncedSearchQuery,
+  };
 }

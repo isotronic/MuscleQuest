@@ -162,7 +162,7 @@ export default function ExercisesScreen() {
     router.back();
   };
 
-  const { filteredExercises, suggestions } = useExerciseSearch(
+  const { filteredExercises, suggestions, debouncedQuery } = useExerciseSearch(
     exercises,
     {
       equipment: selectedEquipment,
@@ -236,6 +236,7 @@ export default function ExercisesScreen() {
         <ExerciseList
           exercises={filteredExercises}
           selectedExercises={isAppendMode ? selectedExercises : []}
+          scrollKey={debouncedQuery}
           onSelect={
             isSupersetMode
               ? handleSupersetSelect
