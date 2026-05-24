@@ -298,7 +298,7 @@ msgstr ""
 #: constants/WhatsNew.ts:236
 msgid ""
 "\n"
-"🔍 Improved: Smarter Exercise Search & Easy Access Exercise Library!\n"
+"🔍 Improved: Smarter Exercise Search & Easy Access to the Exercise Library!\n"
 "\n"
 "Exercise search now understands common abbreviations like RDL, OHP, DB, and KB, corrects minor typos, and ranks results by relevance so the best match always comes first.\n"
 "\n"
@@ -1501,7 +1501,7 @@ msgstr "Error al cargar los detalles del ejercicio"
 #: app/(app)/(create-plan)/exercises.tsx:266
 #: app/(app)/(tabs)/(stats)/exercises.tsx:137
 #: app/(app)/(workout)/exercises.tsx:181
-#: app/(app)/exercise-library.tsx:57
+#: app/(app)/exercise-library.tsx:62
 msgid "Error loading exercises: {0}"
 msgstr "Error al cargar los ejercicios: {0}"
 
@@ -2396,7 +2396,7 @@ msgstr "Guardando entrenamiento..."
 #: app/(app)/(create-plan)/exercises.tsx:298
 #: app/(app)/(tabs)/(stats)/exercises.tsx:149
 #: app/(app)/(workout)/exercises.tsx:216
-#: app/(app)/exercise-library.tsx:69
+#: app/(app)/exercise-library.tsx:74
 msgid "Search"
 msgstr "Buscar"
 
