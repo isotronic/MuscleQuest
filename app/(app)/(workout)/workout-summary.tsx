@@ -11,7 +11,7 @@ import { useLocalSearchParams, router } from "expo-router";
 import { Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Trans, Plural } from "@lingui/react/macro";
-import { t } from "@lingui/core/macro";
+import { t, plural } from "@lingui/core/macro";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -523,6 +523,7 @@ export default function WorkoutSummaryScreen() {
   const setsDiff = prevWorkout
     ? countSets(workout) - countSets(prevWorkout)
     : 0;
+  const setsUnit = ` ${plural(Math.abs(setsDiff), { one: "set", other: "sets" })}`;
   const volumeDiff = currentVolume - prevVolume;
 
   return (
@@ -582,7 +583,7 @@ export default function WorkoutSummaryScreen() {
               <DiffChip
                 label={t`Sets`}
                 diff={setsDiff}
-                unit=""
+                unit={setsUnit}
                 higherIsBetter={true}
               />
               <View style={styles.statsDivider} />
