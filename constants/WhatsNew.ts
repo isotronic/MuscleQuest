@@ -241,6 +241,16 @@ Exercise search now understands common abbreviations like RDL, OHP, DB, and KB, 
 You can also browse the full exercise library any time from the menu, without needing to be in a workout or plan.
 `,
   },
+  {
+    version: 2629,
+    message: msg`
+📋 Improved: Smarter History Pre-Fill During Workouts!
+
+Set fields now pre-fill more intelligently. If an exercise has no history in the current workout, it falls back to the most recent time you performed it in any session, so you always start with a useful reference.
+
+A new setting in the Workout section lets you always use the most recent history across all workouts, regardless of which routine it came from.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
