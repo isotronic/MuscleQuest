@@ -379,9 +379,10 @@ const fetchWorkoutHistoryForSession = async (
       exercise.sets.push({
         set_id,
         set_number,
-        weight: weight
-          ? parseFloat((weight * conversionFactor).toFixed(1))
-          : null,
+        weight:
+          weight != null
+            ? parseFloat((weight * conversionFactor).toFixed(1))
+            : null,
         reps,
         time,
         distance:
@@ -519,9 +520,10 @@ const fetchGlobalExerciseHistoryForSession = async (
       exercise.sets.push({
         set_id,
         set_number,
-        weight: weight
-          ? parseFloat((weight * conversionFactor).toFixed(1))
-          : null,
+        weight:
+          weight != null
+            ? parseFloat((weight * conversionFactor).toFixed(1))
+            : null,
         reps,
         time,
         distance:
