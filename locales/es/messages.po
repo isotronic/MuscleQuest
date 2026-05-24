@@ -295,6 +295,24 @@ msgstr ""
 "Los ejercicios personalizados ahora pueden usar un tipo de seguimiento por distancia, perfecto para movimientos de cardio y acondicionamiento como carreras, remadas o empujes de trineo. Registra la distancia de tus series y obtén información sobre tu progresión igual que con cualquier otro ejercicio.\n"
 ""
 
+#: constants/WhatsNew.ts:236
+msgid ""
+"\n"
+"🔍 Improved: Smarter Exercise Search & Easy Access Exercise Library!\n"
+"\n"
+"Exercise search now understands common abbreviations like RDL, OHP, DB, and KB, corrects minor typos, and ranks results by relevance so the best match always comes first.\n"
+"\n"
+"You can also browse the full exercise library any time from the menu, without needing to be in a workout or plan.\n"
+""
+msgstr ""
+"\n"
+"🔍 Mejorado: ¡Búsqueda de ejercicios más inteligente y acceso fácil a la biblioteca de ejercicios!\n"
+"\n"
+"La búsqueda de ejercicios ahora reconoce abreviaturas comunes como RDL, OHP, DB y KB, corrige pequeños errores tipográficos y clasifica los resultados por relevancia para que la mejor coincidencia aparezca siempre primero.\n"
+"\n"
+"También puedes explorar la biblioteca completa de ejercicios en cualquier momento desde el menú, sin necesidad de estar en un entrenamiento o plan.\n"
+""
+
 #: constants/WhatsNew.ts:186
 msgid ""
 "\n"
@@ -670,7 +688,7 @@ msgstr "✨ ¡Actualización lista!"
 msgid "⬇️ Downloading Update"
 msgstr "⬇️ Descargando actualización"
 
-#: components/WhatsNewModal.tsx:88
+#: components/WhatsNewModal.tsx:97
 msgid "🎉 What's New"
 msgstr "🎉 Novedades"
 
@@ -736,7 +754,7 @@ msgstr "Activo"
 msgid "active plan"
 msgstr "plan activo"
 
-#: components/ExerciseList.tsx:39
+#: components/ExerciseList.tsx:43
 msgid "Active Plan Exercises"
 msgstr "Ejercicios del plan activo"
 
@@ -754,8 +772,8 @@ msgid "Add"
 msgstr "Añadir"
 
 #. placeholder {0}: selectedExercises.length
-#: app/(app)/(create-plan)/exercises.tsx:368
-#: app/(app)/(workout)/exercises.tsx:282
+#: app/(app)/(create-plan)/exercises.tsx:350
+#: app/(app)/(workout)/exercises.tsx:264
 msgid "Add ({0})"
 msgstr "Añadir ({0})"
 
@@ -1037,7 +1055,7 @@ msgstr "Tamaño de botones durante el entrenamiento"
 msgid "Buy me a coffee"
 msgstr "Invítame a un café"
 
-#: components/AppMenu.tsx:179
+#: components/AppMenu.tsx:184
 msgid "Buy Me a Coffee"
 msgstr "Invítame a un café"
 
@@ -1164,7 +1182,7 @@ msgstr "Crear un plan personalizado"
 msgid "Create a Plan"
 msgstr "Crear un plan"
 
-#: app/(app)/(create-plan)/exercises.tsx:358
+#: app/(app)/(create-plan)/exercises.tsx:340
 #: app/(app)/custom-exercise.tsx:83
 msgid "Create Exercise"
 msgstr "Crear ejercicio"
@@ -1480,9 +1498,10 @@ msgstr "Error al cargar los detalles del ejercicio"
 
 #. placeholder {0}: error?.message
 #. placeholder {0}: exercisesError?.message
-#: app/(app)/(create-plan)/exercises.tsx:290
-#: app/(app)/(tabs)/(stats)/exercises.tsx:161
-#: app/(app)/(workout)/exercises.tsx:205
+#: app/(app)/(create-plan)/exercises.tsx:266
+#: app/(app)/(tabs)/(stats)/exercises.tsx:137
+#: app/(app)/(workout)/exercises.tsx:181
+#: app/(app)/exercise-library.tsx:57
 msgid "Error loading exercises: {0}"
 msgstr "Error al cargar los ejercicios: {0}"
 
@@ -1519,10 +1538,10 @@ msgstr "Excluir series de calentamiento de las estadísticas"
 msgid "Exercise"
 msgstr "Ejercicio"
 
-#: app/(app)/(create-plan)/exercises.tsx:135
-#: app/(app)/(create-plan)/exercises.tsx:164
-#: app/(app)/(workout)/exercises.tsx:94
-#: app/(app)/(workout)/exercises.tsx:115
+#: app/(app)/(create-plan)/exercises.tsx:137
+#: app/(app)/(create-plan)/exercises.tsx:166
+#: app/(app)/(workout)/exercises.tsx:96
+#: app/(app)/(workout)/exercises.tsx:117
 msgid "Exercise Already Added"
 msgstr "Ejercicio ya añadido"
 
@@ -1530,6 +1549,8 @@ msgstr "Ejercicio ya añadido"
 msgid "Exercise Info"
 msgstr "Info del ejercicio"
 
+#: app/(app)/_layout.tsx:43
+#: components/AppMenu.tsx:166
 #: constants/HelpData.ts:73
 msgid "Exercise Library"
 msgstr "Biblioteca de ejercicios"
@@ -1622,7 +1643,7 @@ msgstr "Error al guardar el entrenamiento. Por favor, inténtalo de nuevo."
 msgid "Failed to sign in. Please try again."
 msgstr "Error al iniciar sesión. Por favor, inténtalo de nuevo."
 
-#: components/ExerciseList.tsx:29
+#: components/ExerciseList.tsx:33
 msgid "Favorites"
 msgstr "Favoritos"
 
@@ -1705,7 +1726,7 @@ msgstr "Objetivo: {goalLabel}{0}"
 msgid "Google sign in"
 msgstr "Iniciar sesión con Google"
 
-#: components/WhatsNewModal.tsx:103
+#: components/WhatsNewModal.tsx:121
 msgid "Got it!"
 msgstr "¡Entendido!"
 
@@ -1730,7 +1751,7 @@ msgid "hamstrings"
 msgstr "isquiotibiales"
 
 #: app/(app)/_layout.tsx:40
-#: components/AppMenu.tsx:171
+#: components/AppMenu.tsx:176
 msgid "Help & Info"
 msgstr "Ayuda e información"
 
@@ -1917,7 +1938,7 @@ msgstr "Introducción a MuscleQuest"
 msgid "MuscleQuest.app"
 msgstr "MuscleQuest.app"
 
-#: components/AppMenu.tsx:185
+#: components/AppMenu.tsx:190
 msgid "MuscleQuest's Instagram"
 msgstr "Instagram de MuscleQuest"
 
@@ -1949,7 +1970,7 @@ msgstr "Nuevo plan"
 msgid "New Workout"
 msgstr "Nuevo entrenamiento"
 
-#: components/WhatsNewModal.tsx:103
+#: components/WhatsNewModal.tsx:121
 msgid "Next"
 msgstr "Siguiente"
 
@@ -2038,11 +2059,11 @@ msgstr "Aún no hay entrenamientos"
 msgid "obliques"
 msgstr "oblicuos"
 
-#: app/(app)/(create-plan)/exercises.tsx:137
-#: app/(app)/(create-plan)/exercises.tsx:166
+#: app/(app)/(create-plan)/exercises.tsx:139
+#: app/(app)/(create-plan)/exercises.tsx:168
 #: app/(app)/(create-plan)/image-search.tsx:44
-#: app/(app)/(workout)/exercises.tsx:96
-#: app/(app)/(workout)/exercises.tsx:117
+#: app/(app)/(workout)/exercises.tsx:98
+#: app/(app)/(workout)/exercises.tsx:119
 #: app/(app)/(workout)/index.tsx:750
 #: app/(app)/custom-exercise.tsx:142
 #: app/(app)/custom-exercise.tsx:191
@@ -2066,12 +2087,12 @@ msgstr "¡Vaya!"
 msgid "Open Settings"
 msgstr "Abrir Ajustes"
 
-#: components/AppMenu.tsx:181
-#: components/AppMenu.tsx:187
+#: components/AppMenu.tsx:186
+#: components/AppMenu.tsx:192
 msgid "Opens in your browser"
 msgstr "Se abre en tu navegador"
 
-#: components/ExerciseList.tsx:61
+#: components/ExerciseList.tsx:65
 msgid "Other Exercises"
 msgstr "Otros ejercicios"
 
@@ -2372,9 +2393,10 @@ msgstr "Guardando plan..."
 msgid "Saving Workout..."
 msgstr "Guardando entrenamiento..."
 
-#: app/(app)/(create-plan)/exercises.tsx:322
-#: app/(app)/(tabs)/(stats)/exercises.tsx:173
-#: app/(app)/(workout)/exercises.tsx:240
+#: app/(app)/(create-plan)/exercises.tsx:298
+#: app/(app)/(tabs)/(stats)/exercises.tsx:149
+#: app/(app)/(workout)/exercises.tsx:216
+#: app/(app)/exercise-library.tsx:69
 msgid "Search"
 msgstr "Buscar"
 
@@ -2480,7 +2502,7 @@ msgid "settings"
 msgstr "ajustes"
 
 #: app/(app)/_layout.tsx:39
-#: components/AppMenu.tsx:166
+#: components/AppMenu.tsx:171
 #: constants/HelpData.ts:113
 msgid "Settings"
 msgstr "Ajustes"
@@ -2531,6 +2553,10 @@ msgstr "Un solo brazo / una sola pierna"
 #: app/(app)/settings.tsx:1159
 msgid "Size: ~100MB"
 msgstr "Tamaño: ~100 MB"
+
+#: components/WhatsNewModal.tsx:117
+msgid "Skip all"
+msgstr "Omitir todo"
 
 #: app/login.tsx:106
 msgid "Skip login"
@@ -2714,10 +2740,10 @@ msgstr "El temporizador de descanso se inicia automáticamente tras cada serie y
 msgid "The Stats tab shows total workouts, total volume, total time, and average session duration over a selectable time range, with a period-over-period delta for each metric. Charts display weekly volume and your training split by body part. Browse your full workout history and tap any session to review every set in detail, including weights, reps, time, or distance. You can edit or delete completed workouts from the history details screen. Tap the calendar icon in the Workout History section to open a calendar view: days with workouts are highlighted with a yellow circle, and tapping any day shows the workouts logged on that date."
 msgstr "La pestaña Estadísticas muestra el total de entrenamientos, volumen total, tiempo total y duración media de sesión en un rango de tiempo seleccionable, con una variación período a período para cada métrica. Los gráficos muestran el volumen semanal y tu división de entrenamiento por parte del cuerpo. Navega por tu historial completo de entrenamientos y toca cualquier sesión para revisar cada serie en detalle, incluyendo pesos, reps, tiempo o distancia. Puedes editar o eliminar entrenamientos completados desde la pantalla de detalles del historial. Toca el icono de calendario en la sección Historial de entrenamientos para abrir una vista de calendario: los días con entrenamientos se resaltan con un círculo amarillo, y al tocar cualquier día se muestran los entrenamientos registrados en esa fecha."
 
-#: app/(app)/(create-plan)/exercises.tsx:136
-#: app/(app)/(create-plan)/exercises.tsx:165
-#: app/(app)/(workout)/exercises.tsx:95
-#: app/(app)/(workout)/exercises.tsx:116
+#: app/(app)/(create-plan)/exercises.tsx:138
+#: app/(app)/(create-plan)/exercises.tsx:167
+#: app/(app)/(workout)/exercises.tsx:97
+#: app/(app)/(workout)/exercises.tsx:118
 msgid "This exercise is already in your workout. Please choose a different one."
 msgstr "Este ejercicio ya está en tu entrenamiento. Por favor, elige uno diferente."
 
@@ -2803,7 +2829,7 @@ msgid "Total Time"
 msgstr "Tiempo total"
 
 #. placeholder {0}: selectedExercises.length
-#: app/(app)/(tabs)/(stats)/exercises.tsx:207
+#: app/(app)/(tabs)/(stats)/exercises.tsx:189
 msgid "Track ({0})"
 msgstr "Seguir ({0})"
 
