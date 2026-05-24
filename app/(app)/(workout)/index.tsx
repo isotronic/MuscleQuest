@@ -29,7 +29,10 @@ import { router, Stack, useFocusEffect } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
-import { useWorkoutSessionHistoryQuery } from "@/hooks/useCompletedWorkoutsQuery";
+import {
+  useWorkoutSessionHistoryQuery,
+  useGlobalExerciseHistoryForSessionQuery,
+} from "@/hooks/useCompletedWorkoutsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import Bugsnag from "@bugsnag/expo";
@@ -105,6 +108,7 @@ export default function WorkoutOverviewScreen() {
     clearPersistedStore,
     restartWorkout,
     initializeWeightAndReps,
+    initializeGlobalHistory,
     removeFromSuperset,
     setDurations,
     timerRunning,
@@ -145,6 +149,18 @@ export default function WorkoutOverviewScreen() {
       initializeWeightAndReps(sessionHistory);
     }
   }, [sessionHistory, initializeWeightAndReps]);
+
+  const { data: globalHistory } = useGlobalExerciseHistoryForSessionQuery(
+    weightUnit,
+    distanceUnit,
+  );
+
+  useEffect(() => {
+    if (globalHistory) {
+      initializeGlobalHistory(globalHistory);
+    }
+  }, [globalHistory, initializeGlobalHistory]);
+
   const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation(
     weightUnit,
     distanceUnit,
