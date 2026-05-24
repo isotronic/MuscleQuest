@@ -231,6 +231,16 @@ Five new ready-to-use plans are now available: 5-Day Bro Split, 5-Day Push/Pull/
 Tap the calendar icon in the Workout History section on the Stats tab to browse your training history by date. Days with workouts are highlighted, and tapping any day shows the sessions logged on that date.
 `,
   },
+  {
+    version: 2628,
+    message: msg`
+🔍 Improved: Smarter Exercise Search & Easy Access Exercise Library!
+
+Exercise search now understands common abbreviations like RDL, OHP, DB, and KB, corrects minor typos, and ranks results by relevance so the best match always comes first.
+
+You can also browse the full exercise library any time from the menu, without needing to be in a workout or plan.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
