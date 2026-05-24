@@ -193,9 +193,10 @@ const fetchAndOrganize = async (
         workout.exercises.push(exercise);
       }
 
-      const convertedWeight = weight
-        ? parseFloat((weight * conversionFactor).toFixed(1))
-        : null;
+      const convertedWeight =
+        weight != null
+          ? parseFloat((weight * conversionFactor).toFixed(1))
+          : null;
 
       // Add the set to the exercise
       exercise.sets.push({
