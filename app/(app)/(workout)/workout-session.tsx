@@ -361,9 +361,10 @@ export default function WorkoutSessionScreen() {
   const alwaysUseGlobalHistory = settings?.alwaysUseGlobalHistory === "true";
 
   const findLastAvailableSetData = (exerciseId: number, setIndex: number) => {
-    const currentSets = currentExercise?.sets ?? [];
-    const isWarmup = currentSets[setIndex]?.isWarmup ?? false;
-    const ordinal = currentSets
+    const targetSets =
+      workout?.exercises.find((e) => e.exercise_id === exerciseId)?.sets ?? [];
+    const isWarmup = targetSets[setIndex]?.isWarmup ?? false;
+    const ordinal = targetSets
       .slice(0, setIndex)
       .filter((s) => (s.isWarmup ?? false) === isWarmup).length;
 
