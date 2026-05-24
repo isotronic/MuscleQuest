@@ -1474,6 +1474,10 @@ msgstr "Enter description"
 msgid "Enter exercise name"
 msgstr "Enter exercise name"
 
+#: app/(app)/settings.tsx:1010
+msgid "Enter weight per dumbbell/cable, not total"
+msgstr "Enter weight per dumbbell/cable, not total"
+
 #: app/(app)/custom-exercise.tsx:518
 msgid "Equipment *"
 msgstr "Equipment *"
@@ -1796,14 +1800,6 @@ msgstr "Home"
 msgid "Home Screen & Weekly Goal"
 msgstr "Home Screen & Weekly Goal"
 
-#: app/(app)/settings.tsx:1010
-msgid "I enter weight per dumbbell/cable, not total"
-msgstr "I enter weight per dumbbell/cable, not total"
-
-#: app/(app)/settings.tsx:986
-msgid "I log one side only for single-arm/leg exercises"
-msgstr "I log one side only for single-arm/leg exercises"
-
 #: app/(app)/custom-exercise.tsx:237
 msgid "Image Save Error"
 msgstr "Image Save Error"
@@ -1887,6 +1883,10 @@ msgstr "Loading..."
 #: app/(app)/settings.tsx:503
 msgid "Log in to secure your data"
 msgstr "Log in to secure your data"
+
+#: app/(app)/settings.tsx:986
+msgid "Log one side only for single-arm/leg exercises"
+msgstr "Log one side only for single-arm/leg exercises"
 
 #: constants/dbTranslations.ts:50
 msgid "lower abs"

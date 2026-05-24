@@ -983,7 +983,7 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                <Trans>I log one side only for single-arm/leg exercises</Trans>
+                <Trans>Log one side only for single-arm/leg exercises</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {toggleValues.countUnilateralDouble === "true"
@@ -1007,7 +1007,7 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                <Trans>I enter weight per dumbbell/cable, not total</Trans>
+                <Trans>Enter weight per dumbbell/cable, not total</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {toggleValues.doubleWeightForPaired === "true"

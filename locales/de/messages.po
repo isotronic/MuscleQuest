@@ -264,7 +264,7 @@ msgstr ""
 "\n"
 "Satzfelder werden jetzt intelligenter vorbefüllt. Hat eine Übung keine Historie im aktuellen Training, wird automatisch auf die letzte Ausführung dieser Übung aus einer beliebigen Einheit zurückgegriffen. Du startest also immer mit einer sinnvollen Referenz.\n"
 "\n"
-"Eine neue Einstellung im Bereich „Training" ermöglicht es, stets die aktuellste Historie aus allen Trainings zu verwenden, unabhängig davon, aus welcher Routine sie stammt.\n"
+"Eine neue Einstellung im Bereich „Training\" ermöglicht es, stets die aktuellste Historie aus allen Trainings zu verwenden, unabhängig davon, aus welcher Routine sie stammt.\n"
 ""
 
 #: constants/WhatsNew.ts:194
@@ -1475,6 +1475,10 @@ msgstr "Beschreibung eingeben"
 msgid "Enter exercise name"
 msgstr "Übungsname eingeben"
 
+#: app/(app)/settings.tsx:1010
+msgid "Enter weight per dumbbell/cable, not total"
+msgstr "Gewicht pro Hantel/Kabel eingeben, nicht gesamt"
+
 #: app/(app)/custom-exercise.tsx:518
 msgid "Equipment *"
 msgstr "Gerät *"
@@ -1797,14 +1801,6 @@ msgstr "Startseite"
 msgid "Home Screen & Weekly Goal"
 msgstr "Startbildschirm & Wochenziel"
 
-#: app/(app)/settings.tsx:1010
-msgid "I enter weight per dumbbell/cable, not total"
-msgstr "Ich gebe Gewicht pro Kurzhantel/Kabelzug ein, nicht gesamt"
-
-#: app/(app)/settings.tsx:986
-msgid "I log one side only for single-arm/leg exercises"
-msgstr "Ich protokolliere nur eine Seite bei Einarm-/Einbeinübungen"
-
 #: app/(app)/custom-exercise.tsx:237
 msgid "Image Save Error"
 msgstr "Fehler beim Speichern des Bildes"
@@ -1888,6 +1884,10 @@ msgstr "Wird geladen..."
 #: app/(app)/settings.tsx:503
 msgid "Log in to secure your data"
 msgstr "Melde dich an, um deine Daten zu sichern"
+
+#: app/(app)/settings.tsx:986
+msgid "Log one side only for single-arm/leg exercises"
+msgstr "Trage nur eine Seite bei Einarm-/Einbeinübungen ein"
 
 #: constants/dbTranslations.ts:50
 msgid "lower abs"

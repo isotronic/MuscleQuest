@@ -1475,6 +1475,10 @@ msgstr "Entrer une description"
 msgid "Enter exercise name"
 msgstr "Entrer le nom de l'exercice"
 
+#: app/(app)/settings.tsx:1010
+msgid "Enter weight per dumbbell/cable, not total"
+msgstr "Saisir le poids par haltère/câble, pas le total"
+
 #: app/(app)/custom-exercise.tsx:518
 msgid "Equipment *"
 msgstr "Équipement *"
@@ -1797,14 +1801,6 @@ msgstr "Accueil"
 msgid "Home Screen & Weekly Goal"
 msgstr "Écran d'accueil et objectif hebdomadaire"
 
-#: app/(app)/settings.tsx:1010
-msgid "I enter weight per dumbbell/cable, not total"
-msgstr "Je note le poids par haltère/câble, pas le total"
-
-#: app/(app)/settings.tsx:986
-msgid "I log one side only for single-arm/leg exercises"
-msgstr "Je note un seul côté pour les exercices unilatéraux"
-
 #: app/(app)/custom-exercise.tsx:237
 msgid "Image Save Error"
 msgstr "Erreur de sauvegarde d'image"
@@ -1888,6 +1884,10 @@ msgstr "Chargement..."
 #: app/(app)/settings.tsx:503
 msgid "Log in to secure your data"
 msgstr "Connecte-toi pour sécuriser tes données"
+
+#: app/(app)/settings.tsx:986
+msgid "Log one side only for single-arm/leg exercises"
+msgstr "Enregistrer un seul côté pour les exercices unilatéraux"
 
 #: constants/dbTranslations.ts:50
 msgid "lower abs"
