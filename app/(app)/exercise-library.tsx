@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useExerciseSearch } from "@/hooks/useExerciseSearch";
 import { router } from "expo-router";
 import { View, TextInput, StyleSheet } from "react-native";
@@ -40,6 +40,13 @@ export default function ExerciseLibraryScreen() {
     searchQuery,
   );
 
+  useEffect(() => {
+    if (exercisesError) {
+      console.error("Error loading exercises:", exercisesError);
+      Bugsnag.notify(exercisesError);
+    }
+  }, [exercisesError]);
+
   if (exercisesLoading) {
     return (
       <ThemedView style={styles.container}>
@@ -49,8 +56,6 @@ export default function ExerciseLibraryScreen() {
   }
 
   if (exercisesError) {
-    console.error("Error loading exercises:", exercisesError);
-    Bugsnag.notify(exercisesError);
     return (
       <ThemedView style={styles.container}>
         <ThemedText style={styles.errorText}>
