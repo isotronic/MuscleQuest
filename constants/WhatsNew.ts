@@ -234,7 +234,7 @@ Tap the calendar icon in the Workout History section on the Stats tab to browse 
   {
     version: 2628,
     message: msg`
-🔍 Improved: Smarter Exercise Search & Easy Access Exercise Library!
+🔍 Improved: Smarter Exercise Search & Easy Access to the Exercise Library!
 
 Exercise search now understands common abbreviations like RDL, OHP, DB, and KB, corrects minor typos, and ranks results by relevance so the best match always comes first.
 
