@@ -64,6 +64,7 @@ const AnimatedView = Animated.View as unknown as React.ComponentType<{
   style?: any;
   pointerEvents?: "auto" | "none" | "box-none" | "box-only";
   children?: React.ReactNode;
+  onLayout?: (event: any) => void;
 }>;
 
 type SingleItem = {
@@ -244,6 +245,7 @@ export default function WorkoutOverviewScreen() {
     }
   };
 
+  const [timerHeight, setTimerHeight] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [loadingExerciseIndex, setLoadingExerciseIndex] = useState<
     number | null
@@ -966,7 +968,12 @@ export default function WorkoutOverviewScreen() {
           </View>
         </Modal>
       </Portal>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={
+          timerRunning ? { paddingBottom: timerHeight } : undefined
+        }
+      >
         <Notes
           noteType="workout"
           referenceId={workout?.id || 0}
@@ -1010,6 +1017,7 @@ export default function WorkoutOverviewScreen() {
       </ScrollView>
       <AnimatedView
         pointerEvents={timerRunning ? "auto" : "none"}
+        onLayout={(e) => setTimerHeight(e.nativeEvent.layout.height)}
         style={[
           styles.timerContainer,
           { paddingBottom: insets.bottom },
