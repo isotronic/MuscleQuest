@@ -10,8 +10,8 @@ import {
 import { useLocalSearchParams, router } from "expo-router";
 import { Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Trans } from "@lingui/react/macro";
-import { t, plural } from "@lingui/core/macro";
+import { Trans, Plural } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -298,7 +298,7 @@ function ExerciseRow({
             {exercise.exercise_name}
           </ThemedText>
           <ThemedText style={styles.exerciseMeta}>
-            {plural(exercise.sets.length, { one: "# set", other: "# sets" })}
+            <Plural value={exercise.sets.length} one="# set" other="# sets" />
             {bestLabel ? ` · ${bestLabel}` : ""}
           </ThemedText>
         </View>
@@ -364,10 +364,11 @@ function WeeklyGoalBanner({
           color={accentColor}
         />
         <ThemedText style={[styles.weeklyGoalCount, { color: accentColor }]}>
-          {plural(goal, {
-            one: `${completed} of # workout this week`,
-            other: `${completed} of # workouts this week`,
-          })}
+          <Plural
+            value={goal}
+            one={`${completed} of # workout this week`}
+            other={`${completed} of # workouts this week`}
+          />
         </ThemedText>
       </View>
       <View style={styles.weeklyGoalPips}>
@@ -476,7 +477,7 @@ export default function WorkoutSummaryScreen() {
   const countSets = (w: CompletedWorkout) =>
     excludeWarmup
       ? w.exercises.reduce(
-          (t, e) => t + e.sets.filter((s) => !s.is_warmup).length,
+          (acc, e) => acc + e.sets.filter((s) => !s.is_warmup).length,
           0,
         )
       : w.total_sets_completed;

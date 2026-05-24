@@ -5,8 +5,8 @@ import { Colors } from "@/constants/Colors";
 import { PlanScheduleEntry } from "@/utils/database";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Trans } from "@lingui/react/macro";
-import { t, msg, plural } from "@lingui/core/macro";
+import { Trans, Plural } from "@lingui/react/macro";
+import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 
 const DAY_LABELS = [
@@ -75,7 +75,7 @@ export default function WeeklyScheduleDisplay({
           <Trans>Weekly Schedule</Trans>
         </ThemedText>
         <ThemedText style={styles.summary}>
-          {plural(scheduledCount, { one: "# day/week", other: "# days/week" })}
+          <Plural value={scheduledCount} one="# day/week" other="# days/week" />
         </ThemedText>
       </View>
       <View style={styles.grid}>

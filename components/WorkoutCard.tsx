@@ -3,8 +3,8 @@ import { StyleSheet, View, TextInput, Alert } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
 import { Card, Button, Menu, IconButton } from "react-native-paper";
-import { Trans } from "@lingui/react/macro";
-import { t, plural } from "@lingui/core/macro";
+import { Trans, Plural } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
@@ -256,7 +256,7 @@ export default function WorkoutCard({
               <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
               <ThemedText style={styles.setsAndReps}>
                 {item?.sets?.length
-                  ? plural(item.sets.length, { one: "# Set", other: "# Sets" })
+                  ? <Plural value={item.sets.length} one="# Set" other="# Sets" />
                   : t`No Sets Available`}
                 {item.tracking_type === "time"
                   ? timeRange
