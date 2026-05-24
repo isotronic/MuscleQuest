@@ -46,7 +46,7 @@ export interface ScoreBreakdown {
 export interface SearchResult {
   exercise: Exercise;
   score: number;
-  breakdown?: ScoreBreakdown;
+  breakdown?: { fuzzyToken: number } & Partial<ScoreBreakdown>;
 }
 
 export interface AutocompleteSuggestion {
@@ -208,7 +208,7 @@ function scoreExercise(
 
   // Exact full-name match — perfect score, short-circuit
   if (indexed.normalizedName === normalizedQuery) {
-    const breakdown: ScoreBreakdown | undefined = debug
+    const breakdown = debug
       ? {
           exactName: 100,
           prefixName: 0,
@@ -218,7 +218,7 @@ function scoreExercise(
           fuzzyToken: 0,
           coverageMultiplier: 1,
         }
-      : undefined;
+      : { fuzzyToken: 0 };
     return { exercise, score: 100, breakdown };
   }
 
@@ -327,7 +327,11 @@ function scoreExercise(
     bd.aliasBonus = 10;
   }
 
-  return { exercise, score, breakdown: debug ? bd : undefined };
+  return {
+    exercise,
+    score,
+    breakdown: debug ? bd : { fuzzyToken: bd.fuzzyToken },
+  };
 }
 
 // ─── Search ───────────────────────────────────────────────────────────────────
