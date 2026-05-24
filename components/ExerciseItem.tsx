@@ -19,6 +19,7 @@ interface ExerciseItemProps {
   selected: boolean;
   onSelect: (id: number) => void;
   onPress: (item: Exercise) => void;
+  showCheckbox?: boolean;
 }
 
 const ExerciseItem = ({
@@ -26,6 +27,7 @@ const ExerciseItem = ({
   selected,
   onSelect,
   onPress,
+  showCheckbox = true,
 }: ExerciseItemProps) => {
   const { _ } = useLingui();
   const base64Image = `data:image/webp;base64,${btoa(String.fromCharCode(...new Uint8Array(item.image)))}`;
@@ -55,11 +57,13 @@ const ExerciseItem = ({
               : capitalizeWords(item.equipment)}
           </ThemedText>
         </View>
-        <Checkbox
-          status={selected ? "checked" : "unchecked"}
-          uncheckedColor={Colors.dark.subText}
-          onPress={() => onSelect(item.exercise_id)}
-        />
+        {showCheckbox && (
+          <Checkbox
+            status={selected ? "checked" : "unchecked"}
+            uncheckedColor={Colors.dark.subText}
+            onPress={() => onSelect(item.exercise_id)}
+          />
+        )}
       </View>
     </TouchableOpacity>
   );

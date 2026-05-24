@@ -162,6 +162,11 @@ export function AppMenu() {
         <MenuDivider />
 
         <MenuItem
+          icon="barbell-outline"
+          label={t`Exercise Library`}
+          onPress={() => navigate("/(app)/exercise-library")}
+        />
+        <MenuItem
           icon="settings-outline"
           label={t`Settings`}
           onPress={() => navigate("/(app)/settings")}
