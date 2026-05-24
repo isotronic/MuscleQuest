@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, TextInput, StyleSheet, Alert } from "react-native";
 import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
+import { useExerciseSearch } from "@/hooks/useExerciseSearch";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { Button, ActivityIndicator } from "react-native-paper";
@@ -13,6 +14,7 @@ import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
+import ExerciseSuggestions from "@/components/ExerciseSuggestions";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
@@ -242,41 +244,15 @@ export default function ExercisesScreen() {
     router.back();
   };
 
-  const filteredExercises = useMemo(() => {
-    const filterByQueryAndSelection = (exercise: any) => {
-      const queryWords = searchQuery.toLowerCase().split(" ");
-      const matchesSearch = queryWords.every((word) =>
-        exercise.name.toLowerCase().includes(word),
-      );
-      return (
-        matchesSearch &&
-        (!selectedEquipment ||
-          selectedEquipment === "all" ||
-          exercise.equipment === selectedEquipment) &&
-        (!selectedBodyPart ||
-          selectedBodyPart === "all" ||
-          exercise.body_part === selectedBodyPart) &&
-        (!selectedTargetMuscle ||
-          selectedTargetMuscle === "all" ||
-          exercise.target_muscle === selectedTargetMuscle)
-      );
-    };
-
-    return {
-      activePlanExercises:
-        exercises?.activePlanExercises?.filter(filterByQueryAndSelection) || [],
-      favoriteExercises:
-        exercises?.favoriteExercises?.filter(filterByQueryAndSelection) || [],
-      otherExercises:
-        exercises?.otherExercises.filter(filterByQueryAndSelection) || [],
-    };
-  }, [
+  const { filteredExercises, suggestions } = useExerciseSearch(
     exercises,
+    {
+      equipment: selectedEquipment,
+      bodyPart: selectedBodyPart,
+      targetMuscle: selectedTargetMuscle,
+    },
     searchQuery,
-    selectedEquipment,
-    selectedBodyPart,
-    selectedTargetMuscle,
-  ]);
+  );
 
   if (exercisesError || settingsError) {
     const error = exercisesError || settingsError;
@@ -325,6 +301,11 @@ export default function ExercisesScreen() {
             selectTextOnFocus={true}
           />
         </View>
+        <ExerciseSuggestions
+          suggestions={suggestions}
+          query={searchQuery}
+          onSelect={(s) => setSearchQuery(s.text)}
+        />
         <FilterRow
           selectedEquipment={selectedEquipment}
           setSelectedEquipment={setSelectedEquipment}
