@@ -58,6 +58,15 @@ export const WhatsNewModal = () => {
     }
   };
 
+  const handleSkipAll = () => {
+    const highestVersion = Math.max(...entriesToShow.map((e) => e.version));
+    setSetting({
+      key: "lastSeenVersion",
+      value: highestVersion.toString(),
+    });
+    setVisible(false);
+  };
+
   if (!visible || entriesToShow.length === 0) return null;
 
   const currentEntry = entriesToShow[currentIndex];
@@ -95,13 +104,23 @@ export const WhatsNewModal = () => {
           </View>
           <Divider style={{ marginTop: 12 }} />
           <ThemedText>{_(currentEntry.message)}</ThemedText>
-          <Button
-            mode="contained"
-            onPress={handleNext}
-            style={{ marginTop: 24 }}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              gap: 8,
+              marginTop: 24,
+            }}
           >
-            {currentIndex + 1 < entriesToShow.length ? t`Next` : t`Got it!`}
-          </Button>
+            {currentIndex + 1 < entriesToShow.length && (
+              <Button mode="outlined" onPress={handleSkipAll}>
+                <Trans>Skip all</Trans>
+              </Button>
+            )}
+            <Button mode="contained" onPress={handleNext}>
+              {currentIndex + 1 < entriesToShow.length ? t`Next` : t`Got it!`}
+            </Button>
+          </View>
         </View>
       </Modal>
     </Portal>
