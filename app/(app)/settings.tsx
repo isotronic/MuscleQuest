@@ -122,6 +122,7 @@ export default function SettingsScreen() {
     doubleWeightForPaired: settings?.doubleWeightForPaired,
     timerCountdownSound: settings?.timerCountdownSound,
     timerGoalSound: settings?.timerGoalSound,
+    alwaysUseGlobalHistory: settings?.alwaysUseGlobalHistory,
   });
 
   const [workoutReminderEnabled, setWorkoutReminderEnabled] = useState(false);
@@ -154,6 +155,7 @@ export default function SettingsScreen() {
         doubleWeightForPaired: settings?.doubleWeightForPaired,
         timerCountdownSound: settings?.timerCountdownSound,
         timerGoalSound: settings?.timerGoalSound,
+        alwaysUseGlobalHistory: settings?.alwaysUseGlobalHistory,
       });
       setWorkoutReminderEnabled(settings.workoutReminderEnabled === "true");
       try {
@@ -294,6 +296,14 @@ export default function SettingsScreen() {
       doubleWeightForPaired: value.toString(),
     });
     updateSetting({ key: "doubleWeightForPaired", value: value.toString() });
+  };
+
+  const toggleAlwaysUseGlobalHistory = (value: boolean) => {
+    setToggleValues({
+      ...toggleValues,
+      alwaysUseGlobalHistory: value.toString(),
+    });
+    updateSetting({ key: "alwaysUseGlobalHistory", value: value.toString() });
   };
 
   const toggleVibration = (value: boolean) => {
@@ -905,6 +915,30 @@ export default function SettingsScreen() {
             <Switch
               value={toggleValues.keepScreenOn === "true"}
               onValueChange={toggleKeepScreenOn}
+              color={Colors.dark.tint}
+              style={styles.switch}
+            />
+          </View>
+          <View style={styles.item}>
+            <MaterialCommunityIcons
+              name="history"
+              size={24}
+              color={Colors.dark.icon}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                <Trans>Always use most recent exercise history</Trans>
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {toggleValues.alwaysUseGlobalHistory === "true"
+                  ? t`Using most recent from any workout`
+                  : t`Using history from same workout`}
+              </ThemedText>
+            </View>
+            <Switch
+              value={toggleValues.alwaysUseGlobalHistory === "true"}
+              onValueChange={toggleAlwaysUseGlobalHistory}
               color={Colors.dark.tint}
               style={styles.switch}
             />
