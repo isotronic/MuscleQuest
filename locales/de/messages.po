@@ -299,6 +299,30 @@ msgstr ""
 "Du kannst jetzt auf ein beliebiges kürzliches Training auf dem Startbildschirm tippen, um alle Details anzuzeigen. Jede Trainings- und Satzübersicht hat außerdem eine neue Details-Schaltfläche für schnellen Zugriff auf Übungsinformationen.\n"
 ""
 
+#: constants/WhatsNew.ts:256
+msgid ""
+"\n"
+"📏 New: Body Measurements!\n"
+"\n"
+"Track your body composition alongside your training from the new Measurements section in the Stats tab.\n"
+"\n"
+"• Log weight, body fat %, waist, hips, chest, and more\n"
+"• Tap any past entry to edit values or view a chart of that metric over time\n"
+"• Manage which metrics appear and add your own custom metrics\n"
+"• Units follow your weight and size preferences in Settings\n"
+""
+msgstr ""
+"\n"
+"📏 Neu: Körpermaße!\n"
+"\n"
+"Verfolge deine Körperzusammensetzung neben deinem Training im neuen Bereich Messungen im Stats-Tab.\n"
+"\n"
+"• Gewicht, Körperfettanteil, Taille, Hüften, Brust und mehr erfassen\n"
+"• Vergangene Einträge antippen, um Werte zu bearbeiten oder ein Diagramm anzusehen\n"
+"• Messgrößen verwalten und eigene hinzufügen\n"
+"• Einheiten folgen deinen Gewichts- und Größeneinstellungen\n"
+""
+
 #: constants/WhatsNew.ts:142
 msgid ""
 "\n"
@@ -451,6 +475,10 @@ msgstr " (bis zum Versagen)"
 msgid " (to Failure) "
 msgstr " (bis zum Versagen) "
 
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:77
+msgid "\"{label}\" will be hidden from the entry form. Your historical data is preserved."
+msgstr "„{label}\" wird aus dem Eingabeformular ausgeblendet. Deine historischen Daten bleiben erhalten."
+
 #: components/WorkoutCard.tsx:263
 #: components/WorkoutDetailsScreen.tsx:141
 msgid "(to Failure)"
@@ -500,13 +528,13 @@ msgstr "{0, plural, one {Satz} other {Sätze}}"
 
 #. placeholder {0}: settings?.weightIncrement
 #. placeholder {1}: settings?.weightUnit
-#: app/(app)/settings.tsx:724
+#: app/(app)/settings.tsx:727
 msgid "{0} {1}"
 msgstr "{0} {1}"
 
 #. placeholder {0}: settings?.bodyWeight
 #. placeholder {1}: settings?.weightUnit
-#: app/(app)/settings.tsx:556
+#: app/(app)/settings.tsx:557
 msgid "{0} {1} (used for assisted exercises)"
 msgstr "{0} {1} (für Assistenzübungen verwendet)"
 
@@ -523,7 +551,7 @@ msgid "{0} Complete!"
 msgstr "{0} abgeschlossen!"
 
 #. placeholder {0}: settings?.weeklyGoal
-#: app/(app)/settings.tsx:535
+#: app/(app)/settings.tsx:536
 msgid "{0} days per week"
 msgstr "{0} Tage pro Woche"
 
@@ -553,13 +581,13 @@ msgstr "{0} Wdh."
 
 #. placeholder {0}: settings?.restTimerIncrement
 #. placeholder {0}: settings?.timerCountdown || "5"
-#: app/(app)/settings.tsx:751
-#: app/(app)/settings.tsx:776
+#: app/(app)/settings.tsx:754
+#: app/(app)/settings.tsx:779
 msgid "{0} seconds"
 msgstr "{0} Sekunden"
 
 #. placeholder {0}: settings?.defaultSets
-#: app/(app)/settings.tsx:1152
+#: app/(app)/settings.tsx:1155
 msgid "{0} sets"
 msgstr "{0} Sätze"
 
@@ -614,8 +642,8 @@ msgid "{completed} workouts this week. You've smashed your goal!"
 msgstr "{completed} Trainings diese Woche. Du hast dein Ziel geknackt!"
 
 #. placeholder {0}: exercise.sets.length
-#: app/(app)/(workout)/index.tsx:463
-#: app/(app)/(workout)/index.tsx:496
+#: app/(app)/(workout)/index.tsx:465
+#: app/(app)/(workout)/index.tsx:498
 msgid "{completedCount}/{0} sets completed"
 msgstr "{completedCount}/{0} Sätze abgeschlossen"
 
@@ -680,17 +708,17 @@ msgstr "• Herausforderungen und Abzeichen *"
 msgid "• Share your training plans with others *"
 msgstr "• Trainingspläne mit anderen teilen *"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:495
+#: app/(app)/(tabs)/(stats)/index.tsx:502
 msgid "+ Add"
 msgstr "+ Hinzufügen"
 
-#: app/(app)/(workout)/index.tsx:1039
-#: app/(app)/(workout)/workout-session.tsx:1417
+#: app/(app)/(workout)/index.tsx:1047
+#: app/(app)/(workout)/workout-session.tsx:1418
 msgid "+{restTimerIncrement}s"
 msgstr "+{restTimerIncrement}s"
 
-#: app/(app)/(workout)/index.tsx:1028
-#: app/(app)/(workout)/workout-session.tsx:1406
+#: app/(app)/(workout)/index.tsx:1036
+#: app/(app)/(workout)/workout-session.tsx:1407
 msgid "−{restTimerIncrement}s"
 msgstr "−{restTimerIncrement}s"
 
@@ -747,11 +775,11 @@ msgstr "Es ist ein Darstellungsfehler aufgetreten. Drücke die Schaltfläche, um
 msgid "abductors"
 msgstr "Abduktoren"
 
-#: app/(app)/settings.tsx:1339
+#: app/(app)/settings.tsx:1342
 msgid "About"
 msgstr "Über"
 
-#: app/(app)/settings.tsx:1423
+#: app/(app)/settings.tsx:1426
 msgid "About the developer"
 msgstr "Über den Entwickler"
 
@@ -759,7 +787,7 @@ msgstr "Über den Entwickler"
 msgid "abs"
 msgstr "Bauch"
 
-#: constants/HelpData.ts:124
+#: constants/HelpData.ts:129
 msgid "Account"
 msgstr "Konto"
 
@@ -785,6 +813,7 @@ msgstr "Aktiver Plan: {0}"
 msgid "Active Workout"
 msgstr "Aktives Training"
 
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:161
 #: components/Notes.tsx:86
 msgid "Add"
 msgstr "Hinzufügen"
@@ -803,12 +832,16 @@ msgstr "Notiz hinzufügen..."
 msgid "Add a workout to get started"
 msgstr "Füge ein Training hinzu, um loszulegen"
 
-#: app/(app)/(workout)/index.tsx:1008
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:113
+msgid "Add custom metric"
+msgstr "Eigenen Messwert hinzufügen"
+
+#: app/(app)/(workout)/index.tsx:1015
 #: components/WorkoutCard.tsx:456
 msgid "Add Exercise"
 msgstr "Übung hinzufügen"
 
-#: app/(app)/(workout)/index.tsx:983
+#: app/(app)/(workout)/index.tsx:990
 msgid "Add exercises to get started"
 msgstr "Füge Übungen hinzu, um loszulegen"
 
@@ -873,7 +906,7 @@ msgstr "Gesamt"
 msgid "All-time PR"
 msgstr "Bester PR aller Zeiten"
 
-#: app/(app)/settings.tsx:931
+#: app/(app)/settings.tsx:934
 msgid "Always use most recent exercise history"
 msgstr "Immer aktuellste Übungshistorie verwenden"
 
@@ -893,7 +926,7 @@ msgstr "Knöchelstabilisatoren"
 msgid "ankles"
 msgstr "Knöchel"
 
-#: app/(app)/settings.tsx:1221
+#: app/(app)/settings.tsx:1224
 msgid "Appearance"
 msgstr "Erscheinungsbild"
 
@@ -902,7 +935,7 @@ msgstr "Erscheinungsbild"
 msgid "Apply to all {0} sets"
 msgstr "Auf alle {0} Sätze anwenden"
 
-#: app/(app)/(workout)/index.tsx:794
+#: app/(app)/(workout)/index.tsx:796
 msgid "Are you sure you want to cancel and delete this workout?"
 msgstr "Möchtest du dieses Training wirklich abbrechen und löschen?"
 
@@ -915,15 +948,19 @@ msgstr "Möchtest du \"{0}\" wirklich löschen?"
 msgid "Are you sure you want to delete all animated images? Single images will be automatically re-downloaded when viewed."
 msgstr "Möchtest du wirklich alle animierten Bilder löschen? Einzelbilder werden beim Anzeigen automatisch erneut heruntergeladen."
 
-#: app/(app)/(workout)/index.tsx:335
+#: app/(app)/(workout)/index.tsx:337
 msgid "Are you sure you want to delete this exercise?"
 msgstr "Möchtest du diese Übung wirklich löschen?"
+
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:97
+msgid "Are you sure you want to delete this measurement entry?"
+msgstr "Bist du sicher, dass du diesen Messeintrag löschen möchtest?"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:99
 msgid "Are you sure you want to delete this plan?"
 msgstr "Möchtest du diesen Plan wirklich löschen?"
 
-#: app/(app)/(workout)/workout-session.tsx:675
+#: app/(app)/(workout)/workout-session.tsx:676
 msgid "Are you sure you want to delete this set?"
 msgstr "Möchtest du diesen Satz wirklich löschen?"
 
@@ -944,11 +981,11 @@ msgstr "Möchtest du {0} wirklich entfernen?"
 msgid "Are you sure you want to remove this workout?"
 msgstr "Möchtest du dieses Training wirklich entfernen?"
 
-#: app/(app)/(workout)/index.tsx:814
+#: app/(app)/(workout)/index.tsx:816
 msgid "Are you sure you want to restart this workout?"
 msgstr "Möchtest du dieses Training wirklich neu starten?"
 
-#: app/(app)/settings.tsx:436
+#: app/(app)/settings.tsx:437
 msgid "Are you sure you want to restore the backup?"
 msgstr "Möchtest du die Sicherung wirklich wiederherstellen?"
 
@@ -981,7 +1018,7 @@ msgstr "Assistenz "
 msgid "Assistance/Reps"
 msgstr "Assistenz/Wdh."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:409
+#: app/(app)/(tabs)/(stats)/index.tsx:416
 msgid "Avg Duration"
 msgstr "Ø Dauer"
 
@@ -990,15 +1027,15 @@ msgstr "Ø Dauer"
 msgid "back"
 msgstr "Rücken"
 
-#: app/(app)/settings.tsx:594
+#: app/(app)/settings.tsx:595
 msgid "Backup"
 msgstr "Sichern"
 
-#: constants/HelpData.ts:133
+#: constants/HelpData.ts:138
 msgid "Backup & Restore"
 msgstr "Sichern & Wiederherstellen"
 
-#: app/(app)/settings.tsx:572
+#: app/(app)/settings.tsx:573
 msgid "Backup and restore"
 msgstr "Sichern und wiederherstellen"
 
@@ -1041,6 +1078,11 @@ msgstr "Bester Zuwachs"
 msgid "biceps"
 msgstr "Bizeps"
 
+#: app/(app)/(tabs)/(stats)/index.tsx:529
+#: constants/HelpData.ts:108
+msgid "Body Measurements"
+msgstr "Körpermaße"
+
 #: app/(app)/custom-exercise.tsx:415
 msgid "Body Part *"
 msgstr "Körperteil *"
@@ -1057,7 +1099,7 @@ msgstr "Körperteile"
 msgid "body weight"
 msgstr "Körpergewicht"
 
-#: app/(app)/settings.tsx:553
+#: app/(app)/settings.tsx:554
 msgid "Body weight"
 msgstr "Körpergewicht"
 
@@ -1069,11 +1111,15 @@ msgstr "Brachialis"
 msgid "Browse almost 1,000 exercises and filter by body part, target muscle, or equipment. When replacing an exercise, the filter automatically preselects the matching target muscle to help you find alternatives faster. Tap any exercise to view its animated demonstration, the muscles targeted, and a full history of every time you have performed it, including weights, reps, time, or distance per set. Download all exercise animations (~100 MB) in Settings for offline access."
 msgstr "Durchsuche fast 1.000 Übungen und filtere nach Körperteil, Zielmuskel oder Gerät. Wenn du eine Übung ersetzt, wählt der Filter automatisch den passenden Zielmuskel vor, damit du schneller Alternativen findest. Tippe auf eine Übung, um die animierte Demo, die angesprochenen Muskeln und eine vollständige Historie jeder Durchführung mit Gewicht, Wiederholungen, Zeit oder Distanz pro Satz anzuzeigen. Lade alle Übungsanimationen (~100 MB) in den Einstellungen für den Offline-Zugriff herunter."
 
-#: app/(app)/settings.tsx:1263
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:169
+msgid "Built-in Metrics"
+msgstr "Integrierte Messwerte"
+
+#: app/(app)/settings.tsx:1266
 msgid "Button size during workout"
 msgstr "Schaltflächengröße beim Training"
 
-#: app/(app)/settings.tsx:1373
+#: app/(app)/settings.tsx:1376
 msgid "Buy me a coffee"
 msgstr "Kauf mir einen Kaffee"
 
@@ -1095,11 +1141,13 @@ msgstr "Waden"
 #: app/(app)/(tabs)/(plans)/overview.tsx:102
 #: app/(app)/(tabs)/(plans)/standalone-workout.tsx:80
 #: app/(app)/(tabs)/(stats)/history-details.tsx:171
-#: app/(app)/(workout)/index.tsx:337
-#: app/(app)/(workout)/index.tsx:900
-#: app/(app)/(workout)/workout-session.tsx:676
-#: app/(app)/settings.tsx:363
-#: app/(app)/settings.tsx:438
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:99
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:79
+#: app/(app)/(workout)/index.tsx:339
+#: app/(app)/(workout)/index.tsx:902
+#: app/(app)/(workout)/workout-session.tsx:677
+#: app/(app)/settings.tsx:364
+#: app/(app)/settings.tsx:439
 #: components/EditSetModal.tsx:445
 #: components/SettingsModal.tsx:308
 #: components/WorkoutCard.tsx:84
@@ -1108,7 +1156,7 @@ msgstr "Waden"
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: app/(app)/(workout)/index.tsx:793
+#: app/(app)/(workout)/index.tsx:795
 msgid "Cancel Workout"
 msgstr "Training abbrechen"
 
@@ -1128,7 +1176,7 @@ msgstr "Herz-Kreislauf-System"
 msgid "Change Image"
 msgstr "Bild ändern"
 
-#: app/(app)/settings.tsx:578
+#: app/(app)/settings.tsx:579
 msgid "Checking for backups..."
 msgstr "Sicherungen werden gesucht..."
 
@@ -1170,9 +1218,9 @@ msgstr "Abgeschlossene Sätze erscheinen hier"
 msgid "completed workouts"
 msgstr "abgeschlossene Trainings"
 
-#: constants/HelpData.ts:114
-msgid "Configure weight and distance units, default sets per exercise, default rest time, and the weight increment used by the ± buttons during a session. Adjust workout button size (Standard, Large, or XLarge) and toggle Keep Screen On to prevent the display sleeping mid-workout. Under Stats, you can exclude warmup sets from volume, double reps for unilateral exercises, or double the weight for paired implements, useful if you prefer logging per-dumbbell weight rather than the total. Set your body weight here; it is used to calculate effective load for assisted exercises."
-msgstr "Konfiguriere Gewichts- und Distanzeinheiten, Standard-Sätze pro Übung, Standard-Pausenzeit und die Gewichtserhöhung der ±-Schaltflächen während einer Einheit. Passe die Schaltflächengröße (Standard, Groß oder Sehr groß) an und aktiviere Bildschirm eingeschaltet lassen, damit das Display nicht mitten im Training ausgeht. Unter Statistiken kannst du Aufwärmsätze vom Volumen ausschließen, Wiederholungen für einseitige Übungen verdoppeln oder das Gewicht für gepaarte Geräte verdoppeln, nützlich wenn du das Gewicht pro Kurzhantel statt das Gesamtgewicht protokollierst. Lege hier dein Körpergewicht fest, es wird zur Berechnung der effektiven Last bei Assistenzübungen verwendet."
+#: constants/HelpData.ts:119
+msgid "Configure weight, size, and distance units, default sets per exercise, default rest time, and the weight increment used by the ± buttons during a session. Adjust workout button size (Standard, Large, or XLarge) and toggle Keep Screen On to prevent the display sleeping mid-workout. Under Stats, you can exclude warmup sets from volume, double reps for unilateral exercises, or double the weight for paired implements, useful if you prefer logging per-dumbbell weight rather than the total. Set your body weight here; it is used to calculate effective load for assisted exercises."
+msgstr "Konfiguriere Gewichts-, Größen- und Distanzeinheiten, Standard-Sätze pro Übung, Standard-Pausenzeit und die Gewichtserhöhung der ±-Schaltflächen während einer Einheit. Passe die Schaltflächengröße (Standard, Groß oder Sehr groß) an und aktiviere Bildschirm eingeschaltet lassen, damit das Display nicht mitten im Training ausgeht. Unter Statistiken kannst du Aufwärmsätze vom Volumen ausschließen, Wiederholungen für einseitige Übungen verdoppeln oder das Gewicht für gepaarte Geräte verdoppeln, nützlich wenn du das Gewicht pro Kurzhantel statt das Gesamtgewicht protokollierst. Lege hier dein Körpergewicht fest, es wird zur Berechnung der effektiven Last bei Assistenzübungen verwendet."
 
 #: app/(app)/(create-plan)/create-workout.tsx:95
 #: app/(app)/(create-plan)/create.tsx:106
@@ -1192,7 +1240,7 @@ msgstr "Core"
 msgid "Count reps ×2 for volume when the setting is enabled"
 msgstr "Wiederholungen ×2 für Volumen zählen, wenn die Einstellung aktiviert ist"
 
-#: app/(app)/settings.tsx:990
+#: app/(app)/settings.tsx:993
 msgid "Counting reps ×2 for these exercises"
 msgstr "Wiederholungen ×2 für diese Übungen zählen"
 
@@ -1213,7 +1261,7 @@ msgstr "Übung erstellen"
 msgid "Create Plan"
 msgstr "Plan erstellen"
 
-#: app/(app)/(workout)/index.tsx:550
+#: app/(app)/(workout)/index.tsx:552
 #: components/WorkoutCard.tsx:315
 msgid "Create Superset"
 msgstr "Supersatz erstellen"
@@ -1231,7 +1279,11 @@ msgstr "Erstelle eigene Übungen über die Übungsauswahl. Gib einen Namen, ein 
 msgid "Custom Exercises"
 msgstr "Eigene Übungen"
 
-#: constants/HelpData.ts:109
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:196
+msgid "Custom Metrics"
+msgstr "Eigene Messwerte"
+
+#: constants/HelpData.ts:114
 msgid "Customisation"
 msgstr "Anpassung"
 
@@ -1243,20 +1295,21 @@ msgstr "Plan anpassen"
 msgid "Customise Your Settings"
 msgstr "Einstellungen anpassen"
 
-#: app/(app)/settings.tsx:1174
+#: app/(app)/settings.tsx:1177
 msgid "Default rest time"
 msgstr "Standard-Pausenzeit"
 
-#: app/(app)/settings.tsx:1149
+#: app/(app)/settings.tsx:1152
 msgid "Default sets"
 msgstr "Standard-Sätze"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:106
 #: app/(app)/(tabs)/(plans)/standalone-workout.tsx:82
 #: app/(app)/(tabs)/(stats)/history-details.tsx:173
-#: app/(app)/(workout)/index.tsx:339
-#: app/(app)/(workout)/index.tsx:533
-#: app/(app)/(workout)/workout-session.tsx:678
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:101
+#: app/(app)/(workout)/index.tsx:341
+#: app/(app)/(workout)/index.tsx:535
+#: app/(app)/(workout)/workout-session.tsx:679
 #: components/WorkoutCard.tsx:292
 #: hooks/useImageManagement.ts:46
 msgid "Delete"
@@ -1266,7 +1319,12 @@ msgstr "Löschen"
 msgid "Delete Complete"
 msgstr "Löschen abgeschlossen"
 
-#: app/(app)/(workout)/index.tsx:334
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:96
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:245
+msgid "Delete Entry"
+msgstr "Eintrag löschen"
+
+#: app/(app)/(workout)/index.tsx:336
 msgid "Delete Exercise"
 msgstr "Übung löschen"
 
@@ -1274,7 +1332,7 @@ msgstr "Übung löschen"
 msgid "Delete Plan"
 msgstr "Plan löschen"
 
-#: app/(app)/(workout)/workout-session.tsx:675
+#: app/(app)/(workout)/workout-session.tsx:676
 #: components/SessionSetInfo.tsx:238
 msgid "Delete Set"
 msgstr "Satz löschen"
@@ -1284,7 +1342,7 @@ msgstr "Satz löschen"
 msgid "Delete Workout"
 msgstr "Training löschen"
 
-#: app/(app)/settings.tsx:1208
+#: app/(app)/settings.tsx:1211
 msgid "Deleting. Please wait..."
 msgstr "Wird gelöscht. Bitte warten..."
 
@@ -1308,25 +1366,25 @@ msgstr "Beschreibung:"
 msgid "Details"
 msgstr "Details"
 
-#: app/(app)/settings.tsx:794
-#: app/(app)/settings.tsx:818
-#: app/(app)/settings.tsx:842
-#: app/(app)/settings.tsx:864
-#: app/(app)/settings.tsx:888
-#: app/(app)/settings.tsx:912
-#: app/(app)/settings.tsx:967
-#: app/(app)/settings.tsx:991
-#: app/(app)/settings.tsx:1015
-#: app/(app)/settings.tsx:1044
-#: app/(app)/settings.tsx:1235
+#: app/(app)/settings.tsx:797
+#: app/(app)/settings.tsx:821
+#: app/(app)/settings.tsx:845
+#: app/(app)/settings.tsx:867
+#: app/(app)/settings.tsx:891
+#: app/(app)/settings.tsx:915
+#: app/(app)/settings.tsx:970
+#: app/(app)/settings.tsx:994
+#: app/(app)/settings.tsx:1018
+#: app/(app)/settings.tsx:1047
+#: app/(app)/settings.tsx:1238
 msgid "Disabled"
 msgstr "Deaktiviert"
 
 #: app/(app)/(create-plan)/create-workout.tsx:175
 #: app/(app)/(create-plan)/create.tsx:233
-#: app/(app)/(workout)/index.tsx:701
-#: app/(app)/(workout)/index.tsx:734
-#: app/(app)/(workout)/index.tsx:930
+#: app/(app)/(workout)/index.tsx:703
+#: app/(app)/(workout)/index.tsx:736
+#: app/(app)/(workout)/index.tsx:932
 #: app/(app)/custom-exercise.tsx:97
 msgid "Discard"
 msgstr "Verwerfen"
@@ -1364,7 +1422,7 @@ msgstr "Distanz"
 msgid "Distance ({distanceUnit})"
 msgstr "Distanz ({distanceUnit})"
 
-#: app/(app)/settings.tsx:667
+#: app/(app)/settings.tsx:668
 msgid "Distance unit"
 msgstr "Distanzeinheit"
 
@@ -1376,7 +1434,7 @@ msgstr "Fertig"
 msgid "Double the weight for volume when the setting is enabled"
 msgstr "Gewicht für Volumen verdoppeln, wenn die Einstellung aktiviert ist"
 
-#: app/(app)/settings.tsx:1014
+#: app/(app)/settings.tsx:1017
 msgid "Doubling weight for volume calculations"
 msgstr "Gewicht für Volumenberechnungen verdoppeln"
 
@@ -1384,7 +1442,7 @@ msgstr "Gewicht für Volumenberechnungen verdoppeln"
 msgid "Download"
 msgstr "Herunterladen"
 
-#: app/(app)/settings.tsx:1190
+#: app/(app)/settings.tsx:1193
 msgid "Download all exercise animations"
 msgstr "Alle Übungsanimationen herunterladen"
 
@@ -1397,7 +1455,7 @@ msgstr "Download abgeschlossen"
 msgid "Download Images"
 msgstr "Bilder herunterladen"
 
-#: app/(app)/settings.tsx:1207
+#: app/(app)/settings.tsx:1210
 msgid "Downloading. Please wait..."
 msgstr "Wird heruntergeladen. Bitte warten..."
 
@@ -1451,21 +1509,29 @@ msgstr "Training bearbeiten"
 msgid "elliptical machine"
 msgstr "Crosstrainer"
 
-#: constants/HelpData.ts:119
+#: constants/HelpData.ts:124
 msgid "Enable recurring workout reminders from Settings. Select the days of the week you want to be reminded using the day chips and choose a time. You will receive a notification at that time on each selected day. Notification permission must be granted for reminders to work."
 msgstr "Richte wiederkehrende Trainingserinnerungen in den Einstellungen ein. Wähle die Wochentage, an denen du erinnert werden möchtest, über die Tag-Chips aus und lege eine Uhrzeit fest. Du erhältst eine Benachrichtigung zu dieser Uhrzeit an jedem ausgewählten Tag. Die Benachrichtigungsberechtigung muss erteilt sein, damit Erinnerungen funktionieren."
 
-#: app/(app)/settings.tsx:793
-#: app/(app)/settings.tsx:817
-#: app/(app)/settings.tsx:841
-#: app/(app)/settings.tsx:864
-#: app/(app)/settings.tsx:887
-#: app/(app)/settings.tsx:911
-#: app/(app)/settings.tsx:966
-#: app/(app)/settings.tsx:1044
-#: app/(app)/settings.tsx:1235
+#: app/(app)/settings.tsx:796
+#: app/(app)/settings.tsx:820
+#: app/(app)/settings.tsx:844
+#: app/(app)/settings.tsx:867
+#: app/(app)/settings.tsx:890
+#: app/(app)/settings.tsx:914
+#: app/(app)/settings.tsx:969
+#: app/(app)/settings.tsx:1047
+#: app/(app)/settings.tsx:1238
 msgid "Enabled"
 msgstr "Aktiviert"
+
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:59
+msgid "Enter a name for the custom metric."
+msgstr "Gib einen Namen für den eigenen Messwert ein."
+
+#: app/(app)/(tabs)/(stats)/measurements.tsx:98
+msgid "Enter at least one measurement to log."
+msgstr "Gib mindestens einen Messwert ein."
 
 #: app/(app)/custom-exercise.tsx:392
 msgid "Enter description"
@@ -1475,9 +1541,17 @@ msgstr "Beschreibung eingeben"
 msgid "Enter exercise name"
 msgstr "Übungsname eingeben"
 
-#: app/(app)/settings.tsx:1010
+#: app/(app)/settings.tsx:1013
 msgid "Enter weight per dumbbell/cable, not total"
 msgstr "Gewicht pro Hantel/Kabel eingeben, nicht gesamt"
+
+#: app/(app)/(tabs)/(stats)/_layout.tsx:26
+msgid "Entry Detail"
+msgstr "Eintragsdetails"
+
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:125
+msgid "Entry not found."
+msgstr "Eintrag nicht gefunden."
 
 #: app/(app)/custom-exercise.tsx:518
 msgid "Equipment *"
@@ -1498,8 +1572,8 @@ msgstr "Gerät:"
 #: app/(app)/(create-plan)/image-search.tsx:43
 #: app/(app)/(tabs)/(plans)/overview.tsx:115
 #: app/(app)/(tabs)/(plans)/standalone-workout.tsx:91
-#: app/(app)/(workout)/index.tsx:764
-#: app/(app)/(workout)/index.tsx:958
+#: app/(app)/(workout)/index.tsx:766
+#: app/(app)/(workout)/index.tsx:960
 #: app/(app)/custom-exercise.tsx:141
 #: app/(app)/custom-exercise.tsx:190
 #: app/(app)/custom-exercise.tsx:298
@@ -1535,18 +1609,18 @@ msgstr "Fehler beim Laden der Übungen: {0}"
 msgid "Error loading plans"
 msgstr "Fehler beim Laden der Pläne"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:308
+#: app/(app)/(tabs)/(stats)/index.tsx:315
 msgid "Error loading stats. Please try again."
 msgstr "Fehler beim Laden der Statistiken. Bitte versuche es erneut."
 
-#: app/(app)/(workout)/index.tsx:781
+#: app/(app)/(workout)/index.tsx:783
 msgid "Error saving workout"
 msgstr "Fehler beim Speichern des Trainings"
 
 #. placeholder {0}: error.message
 #. placeholder {0}: settingsError.message
 #: app/(app)/(tabs)/(plans)/overview.tsx:155
-#: app/(app)/(workout)/workout-session.tsx:1245
+#: app/(app)/(workout)/workout-session.tsx:1246
 #: components/WorkoutDetailsScreen.tsx:171
 msgid "Error: {0}"
 msgstr "Fehler: {0}"
@@ -1556,11 +1630,11 @@ msgstr "Fehler: {0}"
 msgid "Estimated Duration: {0}"
 msgstr "Geschätzte Dauer: {0}"
 
-#: app/(app)/settings.tsx:962
+#: app/(app)/settings.tsx:965
 msgid "Exclude warmup sets from stats"
 msgstr "Aufwärmsätze aus den Statistiken ausschließen"
 
-#: app/(app)/settings.tsx:1133
+#: app/(app)/settings.tsx:1136
 msgid "Exercise"
 msgstr "Übung"
 
@@ -1585,7 +1659,7 @@ msgstr "Übungsbibliothek"
 msgid "Exercise Timer"
 msgstr "Übungstimer"
 
-#: app/(app)/settings.tsx:773
+#: app/(app)/settings.tsx:776
 msgid "Exercise timer countdown"
 msgstr "Übungstimer-Countdown"
 
@@ -1660,8 +1734,8 @@ msgstr "Eigene Übung konnte nicht gespeichert werden. Bitte versuche es erneut.
 msgid "Failed to save the image. Please try again."
 msgstr "Bild konnte nicht gespeichert werden. Bitte versuche es erneut."
 
-#: app/(app)/(workout)/index.tsx:765
-#: app/(app)/(workout)/index.tsx:959
+#: app/(app)/(workout)/index.tsx:767
+#: app/(app)/(workout)/index.tsx:961
 msgid "Failed to save workout. Please try again."
 msgstr "Training konnte nicht gespeichert werden. Bitte versuche es erneut."
 
@@ -1681,11 +1755,11 @@ msgstr "Lieblingsübungen"
 msgid "feet"
 msgstr "Füße"
 
-#: app/(app)/(workout)/index.tsx:873
+#: app/(app)/(workout)/index.tsx:875
 msgid "Finish"
 msgstr "Beenden"
 
-#: app/(app)/settings.tsx:1407
+#: app/(app)/settings.tsx:1410
 msgid "Follow MuscleQuest on Instagram"
 msgstr "MuscleQuest auf Instagram folgen"
 
@@ -1717,7 +1791,7 @@ msgstr "Freitag"
 msgid "Get Ready..."
 msgstr "Mach dich bereit..."
 
-#: app/(app)/(workout)/index.tsx:918
+#: app/(app)/(workout)/index.tsx:920
 msgid "Give it a name to save it as a reusable workout."
 msgstr "Gib einen Namen ein, um es als wiederverwendbares Training zu speichern."
 
@@ -1781,14 +1855,24 @@ msgstr "Oberschenkelrückseite"
 msgid "Help & Info"
 msgstr "Hilfe & Info"
 
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:81
+msgid "Hide"
+msgstr "Ausblenden"
+
 #: components/Onboarding.tsx:57
 msgid "Hide / Show Onboarding"
 msgstr "Einführung ein-/ausblenden"
+
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:76
+msgid "Hide metric"
+msgstr "Messwert ausblenden"
 
 #: constants/dbTranslations.ts:48
 msgid "hip flexors"
 msgstr "Hüftbeuger"
 
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:176
+#: app/(app)/(tabs)/(stats)/measurements.tsx:217
 #: app/(app)/exercise-info.tsx:181
 msgid "History"
 msgstr "Verlauf"
@@ -1813,7 +1897,7 @@ msgstr "Bilder von Unsplash"
 msgid "Info"
 msgstr "Info"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:372
+#: app/(app)/(tabs)/(stats)/index.tsx:379
 #: constants/HelpData.ts:93
 msgid "Insights"
 msgstr "Einblicke"
@@ -1826,7 +1910,7 @@ msgstr "Starte deine Fitnessreise mit professionell gestalteten Trainingsplänen
 msgid "Keep editing"
 msgstr "Weiter bearbeiten"
 
-#: app/(app)/settings.tsx:907
+#: app/(app)/settings.tsx:910
 msgid "Keep screen on during workout"
 msgstr "Bildschirm während des Trainings eingeschaltet lassen"
 
@@ -1839,7 +1923,7 @@ msgid "kettlebell"
 msgstr "Kettlebell"
 
 #. placeholder {0}: lastBackupDate.toLocaleDateString()
-#: app/(app)/settings.tsx:580
+#: app/(app)/settings.tsx:581
 msgid "Last backup: {0}"
 msgstr "Letzte Sicherung: {0}"
 
@@ -1864,6 +1948,10 @@ msgstr "Lats"
 msgid "legs"
 msgstr "Beine"
 
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:48
+msgid "Length"
+msgstr "Länge"
+
 #: constants/dbTranslations.ts:75
 msgid "leverage machine"
 msgstr "Hebelmaschine"
@@ -1881,11 +1969,16 @@ msgstr "Plan wird geladen..."
 msgid "Loading..."
 msgstr "Wird geladen..."
 
-#: app/(app)/settings.tsx:503
+#: app/(app)/(tabs)/(stats)/measurements.tsx:133
+#: app/(app)/(tabs)/(stats)/measurements.tsx:208
+msgid "Log Entry"
+msgstr "Eintrag erfassen"
+
+#: app/(app)/settings.tsx:504
 msgid "Log in to secure your data"
 msgstr "Melde dich an, um deine Daten zu sichern"
 
-#: app/(app)/settings.tsx:986
+#: app/(app)/settings.tsx:989
 msgid "Log one side only for single-arm/leg exercises"
 msgstr "Trage nur eine Seite bei Einarm-/Einbeinübungen ein"
 
@@ -1909,13 +2002,33 @@ msgstr "Unterschenkel"
 msgid "Make sure to track your progress!"
 msgstr "Vergiss nicht, deinen Fortschritt zu verfolgen!"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:493
+#: app/(app)/(tabs)/(stats)/index.tsx:500
 msgid "Manage"
 msgstr "Verwalten"
+
+#: app/(app)/(tabs)/(stats)/measurements.tsx:145
+msgid "Manage metrics"
+msgstr "Messwerte verwalten"
+
+#: app/(app)/(tabs)/(stats)/_layout.tsx:30
+msgid "Manage Metrics"
+msgstr "Messwerte verwalten"
+
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:47
+msgid "Mass"
+msgstr "Masse"
 
 #: components/EditSetModal.tsx:345
 msgid "Max Reps"
 msgstr "Max. Wdh."
+
+#: app/(app)/(tabs)/(stats)/_layout.tsx:23
+msgid "Measurements"
+msgstr "Messungen"
+
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:122
+msgid "Metric name"
+msgstr "Name des Messwerts"
 
 #: components/EditSetModal.tsx:314
 msgid "Min Reps"
@@ -1956,7 +2069,7 @@ msgstr "MuscleQuest"
 msgid "MuscleQuest Introduction"
 msgstr "MuscleQuest-Einführung"
 
-#: app/(app)/settings.tsx:1389
+#: app/(app)/settings.tsx:1392
 msgid "MuscleQuest.app"
 msgstr "MuscleQuest.app"
 
@@ -1980,6 +2093,10 @@ msgstr "Name *"
 msgid "Name is required."
 msgstr "Name ist erforderlich."
 
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:59
+msgid "Name required"
+msgstr "Name erforderlich"
+
 #: constants/dbTranslations.ts:12
 msgid "neck"
 msgstr "Nacken"
@@ -1996,8 +2113,8 @@ msgstr "Neues Training"
 msgid "Next"
 msgstr "Weiter"
 
-#: app/(app)/(workout)/workout-session.tsx:1305
-#: app/(app)/(workout)/workout-session.tsx:1374
+#: app/(app)/(workout)/workout-session.tsx:1306
+#: app/(app)/(workout)/workout-session.tsx:1375
 msgid "Next: "
 msgstr "Weiter: "
 
@@ -2007,12 +2124,12 @@ msgstr "Weiter: "
 msgid "Next: {workoutName} on {0}"
 msgstr "Weiter: {workoutName} am {0}"
 
-#: app/(app)/(workout)/index.tsx:796
-#: app/(app)/(workout)/index.tsx:816
+#: app/(app)/(workout)/index.tsx:798
+#: app/(app)/(workout)/index.tsx:818
 msgid "No"
 msgstr "Nein"
 
-#: app/(app)/settings.tsx:581
+#: app/(app)/settings.tsx:582
 msgid "No backups found"
 msgstr "Keine Sicherungen gefunden"
 
@@ -2032,13 +2149,21 @@ msgstr "Noch keine Übungen hinzugefügt"
 msgid "No exercises in this workout yet."
 msgstr "Noch keine Übungen in diesem Training."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:513
+#: app/(app)/(tabs)/(stats)/index.tsx:520
 msgid "No exercises tracked yet. Tap + Add to start."
 msgstr "Noch keine Übungen verfolgt. Tippe auf + Hinzufügen, um zu starten."
 
 #: app/(app)/exercise-info.tsx:371
 msgid "No history yet"
 msgstr "Noch kein Verlauf"
+
+#: app/(app)/(tabs)/(stats)/measurements.tsx:222
+msgid "No measurements yet. Log your first entry above."
+msgstr "Noch keine Messungen. Erfasse deinen ersten Eintrag oben."
+
+#: app/(app)/(tabs)/(stats)/index.tsx:564
+msgid "No measurements yet. Tap to log your first entry."
+msgstr "Noch keine Messungen. Tippe, um deinen ersten Eintrag zu erfassen."
 
 #: app/(app)/help.tsx:168
 msgid "No results for “{query}”"
@@ -2061,7 +2186,11 @@ msgstr "Keine Sätze verfügbar"
 msgid "No training plans found"
 msgstr "Keine Trainingspläne gefunden"
 
-#: app/(app)/(workout)/index.tsx:841
+#: app/(app)/(tabs)/(stats)/measurements.tsx:97
+msgid "No values entered"
+msgstr "Keine Werte eingegeben"
+
+#: app/(app)/(workout)/index.tsx:843
 msgid "No workout available"
 msgstr "Kein Training verfügbar"
 
@@ -2086,7 +2215,7 @@ msgstr "Schräge Bauchmuskeln"
 #: app/(app)/(create-plan)/image-search.tsx:44
 #: app/(app)/(workout)/exercises.tsx:98
 #: app/(app)/(workout)/exercises.tsx:119
-#: app/(app)/(workout)/index.tsx:766
+#: app/(app)/(workout)/index.tsx:768
 #: app/(app)/custom-exercise.tsx:142
 #: app/(app)/custom-exercise.tsx:191
 #: app/(app)/custom-exercise.tsx:239
@@ -2105,7 +2234,7 @@ msgstr "Noch ein Training bis zu deinem Ziel!"
 msgid "Oops!"
 msgstr "Hoppla!"
 
-#: app/(app)/settings.tsx:362
+#: app/(app)/settings.tsx:363
 msgid "Open Settings"
 msgstr "Einstellungen öffnen"
 
@@ -2140,12 +2269,16 @@ msgstr "Brustmuskeln"
 msgid "Per week (avg)"
 msgstr "Pro Woche (Ø)"
 
-#: app/(app)/settings.tsx:340
-#: app/(app)/settings.tsx:359
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:49
+msgid "Percent"
+msgstr "Prozent"
+
+#: app/(app)/settings.tsx:341
+#: app/(app)/settings.tsx:360
 msgid "Permission Required"
 msgstr "Berechtigung erforderlich"
 
-#: app/(app)/settings.tsx:487
+#: app/(app)/settings.tsx:488
 msgid "Personal"
 msgstr "Persönlich"
 
@@ -2167,15 +2300,15 @@ msgstr "Pläne"
 msgid "Plans are structured training programmes made up of workouts. To create one, go to the Plans tab, tap New Plan, give it a name, and pick a cover image. Add workouts to the plan, then add exercises to each workout with target sets and reps. Use the up/down arrow buttons on a workout card to reorder it, or the X button to remove it; both are in the top right of the card. Assign workouts to specific days of the week in the schedule editor: tap any day to pick a workout or leave it as a rest day, and use the auto-suggest button to space them out evenly. Once your plan is ready, open it and tap Activate. You can also add notes to a plan from the plan overview screen. Each workout card shows an estimated duration alongside the exercise count so you can gauge the session length at a glance. Your progress in the plan editor is automatically saved as a draft, so if you leave mid-edit you will be prompted to continue where you left off or discard and start from the last saved state."
 msgstr "Pläne sind strukturierte Trainingsprogramme aus mehreren Trainings. Um einen zu erstellen, gehe zum Pläne-Tab, tippe auf Neuer Plan, gib einen Namen ein und wähle ein Titelbild. Füge Trainings zum Plan hinzu und dann Übungen zu jedem Training mit Ziel-Sätzen und Wiederholungen. Nutze die Hoch/Runter-Pfeile auf einer Trainingskarte, um sie neu anzuordnen, oder die X-Schaltfläche, um sie zu entfernen, beide befinden sich oben rechts auf der Karte. Weise Trainings im Zeitplan-Editor bestimmten Wochentagen zu: Tippe auf einen Tag, um ein Training auszuwählen oder ihn als Ruhetag zu lassen, und nutze den Auto-Vorschlag, um sie gleichmäßig zu verteilen. Wenn dein Plan fertig ist, öffne ihn und tippe auf Aktivieren. Du kannst vom Planübersichtsbildschirm auch Notizen zum Plan hinzufügen. Jede Trainingskarte zeigt eine geschätzte Dauer neben der Übungsanzahl, damit du die Länge der Einheit auf einen Blick abschätzen kannst. Dein Fortschritt im Plan-Editor wird automatisch als Entwurf gespeichert, wenn du ihn mittendrin verlässt, wirst du gefragt, ob du weitermachen oder verwerfen und vom letzten gespeicherten Stand starten möchtest."
 
-#: app/(app)/settings.tsx:789
+#: app/(app)/settings.tsx:792
 msgid "Play countdown beeps (Exercise Timer)"
 msgstr "Countdown-Töne abspielen (Übungstimer)"
 
-#: app/(app)/settings.tsx:813
+#: app/(app)/settings.tsx:816
 msgid "Play goal achieved sound (Exercise Timer)"
 msgstr "Ziel-erreicht-Ton abspielen (Übungstimer)"
 
-#: app/(app)/settings.tsx:861
+#: app/(app)/settings.tsx:864
 msgid "Play sound after rest"
 msgstr "Ton nach der Pause abspielen"
 
@@ -2191,12 +2324,12 @@ msgstr "Vorgefertigte Pläne"
 msgid "Premade Plans"
 msgstr "Vorgefertigte Pläne"
 
-#: app/(app)/(workout)/workout-session.tsx:1307
-#: app/(app)/(workout)/workout-session.tsx:1376
+#: app/(app)/(workout)/workout-session.tsx:1308
+#: app/(app)/(workout)/workout-session.tsx:1377
 msgid "Prev: "
 msgstr "Zurück: "
 
-#: app/(app)/settings.tsx:1441
+#: app/(app)/settings.tsx:1444
 msgid "Privacy policy"
 msgstr "Datenschutzrichtlinie"
 
@@ -2209,7 +2342,7 @@ msgid "quads"
 msgstr "Quads"
 
 #: app/(app)/(tabs)/index.tsx:566
-#: app/(app)/(workout)/index.tsx:936
+#: app/(app)/(workout)/index.tsx:938
 msgid "Quick Workout"
 msgstr "Schnelltraining"
 
@@ -2225,15 +2358,15 @@ msgstr "Letzte Einheiten"
 msgid "Reload"
 msgstr "Neu laden"
 
-#: app/(app)/settings.tsx:1065
+#: app/(app)/settings.tsx:1068
 msgid "Reminder days"
 msgstr "Erinnerungstage"
 
-#: app/(app)/settings.tsx:1119
+#: app/(app)/settings.tsx:1122
 msgid "Reminder time"
 msgstr "Erinnerungszeit"
 
-#: app/(app)/settings.tsx:1030
+#: app/(app)/settings.tsx:1033
 msgid "Reminders"
 msgstr "Erinnerungen"
 
@@ -2246,7 +2379,7 @@ msgstr "Entfernen"
 msgid "Remove Exercise"
 msgstr "Übung entfernen"
 
-#: app/(app)/(workout)/index.tsx:545
+#: app/(app)/(workout)/index.tsx:547
 #: components/WorkoutCard.tsx:307
 msgid "Remove Superset"
 msgstr "Supersatz entfernen"
@@ -2259,7 +2392,7 @@ msgstr "Training entfernen"
 msgid "Rep PR"
 msgstr "Wiederholungs-PR"
 
-#: app/(app)/(workout)/index.tsx:540
+#: app/(app)/(workout)/index.tsx:542
 #: components/WorkoutCard.tsx:299
 msgid "Replace"
 msgstr "Ersetzen"
@@ -2281,7 +2414,7 @@ msgstr "Wdh."
 msgid "Reps: {repRange}"
 msgstr "Wdh.: {repRange}"
 
-#: app/(app)/settings.tsx:1355
+#: app/(app)/settings.tsx:1358
 msgid "Request or vote for new features"
 msgstr "Neue Funktionen anfragen oder abstimmen"
 
@@ -2300,8 +2433,8 @@ msgstr "Ruhetag"
 msgid "Rest Time (Minutes:Seconds)"
 msgstr "Pausenzeit (Minuten:Sekunden)"
 
-#: app/(app)/(workout)/index.tsx:1020
-#: app/(app)/(workout)/workout-session.tsx:1398
+#: app/(app)/(workout)/index.tsx:1028
+#: app/(app)/(workout)/workout-session.tsx:1399
 msgid "Rest Time Left:"
 msgstr "Verbleibende Pausenzeit:"
 
@@ -2314,11 +2447,11 @@ msgstr "Pausenzeit: {restMinutes}:{0}"
 msgid "Rest Timer"
 msgstr "Pausentimer"
 
-#: app/(app)/settings.tsx:748
+#: app/(app)/settings.tsx:751
 msgid "Rest timer increment"
 msgstr "Pausentimer-Schritt"
 
-#: app/(app)/(workout)/index.tsx:893
+#: app/(app)/(workout)/index.tsx:895
 msgid "Restart"
 msgstr "Neu starten"
 
@@ -2326,20 +2459,20 @@ msgstr "Neu starten"
 msgid "Restart App"
 msgstr "App neu starten"
 
-#: app/(app)/(workout)/index.tsx:813
+#: app/(app)/(workout)/index.tsx:815
 msgid "Restart Workout"
 msgstr "Training neu starten"
 
-#: app/(app)/settings.tsx:440
-#: app/(app)/settings.tsx:597
+#: app/(app)/settings.tsx:441
+#: app/(app)/settings.tsx:598
 msgid "Restore"
 msgstr "Wiederherstellen"
 
-#: app/(app)/settings.tsx:435
+#: app/(app)/settings.tsx:436
 msgid "Restore Backup"
 msgstr "Sicherung wiederherstellen"
 
-#: app/(app)/settings.tsx:607
+#: app/(app)/settings.tsx:608
 msgid "Restoring. Please wait..."
 msgstr "Wird wiederhergestellt. Bitte warten..."
 
@@ -2376,8 +2509,8 @@ msgstr "Samstag"
 
 #: app/(app)/(create-plan)/create-workout.tsx:255
 #: app/(app)/(create-plan)/create.tsx:360
-#: app/(app)/(workout)/index.tsx:736
-#: app/(app)/(workout)/index.tsx:964
+#: app/(app)/(workout)/index.tsx:738
+#: app/(app)/(workout)/index.tsx:966
 #: app/(app)/custom-exercise.tsx:651
 #: components/SettingsModal.tsx:322
 msgid "Save"
@@ -2387,11 +2520,15 @@ msgstr "Speichern"
 msgid "Save and select"
 msgstr "Speichern und auswählen"
 
-#: app/(app)/(workout)/index.tsx:698
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:235
+msgid "Save Changes"
+msgstr "Änderungen speichern"
+
+#: app/(app)/(workout)/index.tsx:700
 msgid "Save Changes to Plan?"
 msgstr "Änderungen im Plan speichern?"
 
-#: app/(app)/(workout)/index.tsx:731
+#: app/(app)/(workout)/index.tsx:733
 msgid "Save Changes to Workout?"
 msgstr "Änderungen im Training speichern?"
 
@@ -2399,11 +2536,11 @@ msgstr "Änderungen im Training speichern?"
 msgid "Save Set"
 msgstr "Satz speichern"
 
-#: app/(app)/(workout)/index.tsx:915
+#: app/(app)/(workout)/index.tsx:917
 msgid "Save this workout?"
 msgstr "Dieses Training speichern?"
 
-#: app/(app)/(workout)/index.tsx:703
+#: app/(app)/(workout)/index.tsx:705
 msgid "Save to Plan"
 msgstr "Im Plan speichern"
 
@@ -2411,7 +2548,7 @@ msgstr "Im Plan speichern"
 msgid "Saving Plan..."
 msgstr "Plan wird gespeichert..."
 
-#: app/(app)/(workout)/index.tsx:855
+#: app/(app)/(workout)/index.tsx:857
 msgid "Saving Workout..."
 msgstr "Training wird gespeichert..."
 
@@ -2450,7 +2587,7 @@ msgstr "Wähle einen Tag, um Trainings anzuzeigen."
 msgid "Select a workout to view"
 msgstr "Wähle ein Training zur Anzeige"
 
-#: app/(app)/settings.tsx:1096
+#: app/(app)/settings.tsx:1099
 msgid "Select at least one day"
 msgstr "Wähle mindestens einen Tag aus"
 
@@ -2474,7 +2611,7 @@ msgstr "Zielmuskel auswählen"
 msgid "Select tracking type"
 msgstr "Tracking-Typ auswählen"
 
-#: app/(app)/settings.tsx:883
+#: app/(app)/settings.tsx:886
 msgid "Send notification in background after rest"
 msgstr "Hintergrundbenachrichtigung nach Pause senden"
 
@@ -2525,7 +2662,7 @@ msgstr "Einstellungen"
 
 #: app/(app)/_layout.tsx:39
 #: components/AppMenu.tsx:171
-#: constants/HelpData.ts:113
+#: constants/HelpData.ts:118
 msgid "Settings"
 msgstr "Einstellungen"
 
@@ -2538,28 +2675,28 @@ msgstr "Schienbeine"
 msgid "shoulders"
 msgstr "Schultern"
 
-#: app/(app)/settings.tsx:1232
+#: app/(app)/settings.tsx:1235
 msgid "Show onboarding on home screen"
 msgstr "Einführung auf Startbildschirm anzeigen"
 
-#: app/(app)/settings.tsx:507
+#: app/(app)/settings.tsx:508
 msgid "Sign in"
 msgstr "Anmelden"
 
-#: app/(app)/settings.tsx:500
+#: app/(app)/settings.tsx:501
 msgid "Sign in with Google"
 msgstr "Mit Google anmelden"
 
-#: constants/HelpData.ts:134
+#: constants/HelpData.ts:139
 msgid "Sign in with Google in Settings to enable cloud backups of all your workout data. Tap Backup at any time to save a snapshot; the date of your last backup is shown beneath the button. Tap Restore to download and apply your latest backup; confirm the prompt and the app will reload with your restored data. Your backups are stored securely and are tied to your Google account. If you switch devices or reinstall the app, simply sign in with the same Google account and tap Restore to get your data back."
 msgstr "Melde dich in den Einstellungen mit Google an, um Cloud-Sicherungen all deiner Trainingsdaten zu aktivieren. Tippe jederzeit auf Sichern, um eine Momentaufnahme zu speichern; das Datum deiner letzten Sicherung wird unter der Schaltfläche angezeigt. Tippe auf Wiederherstellen, um deine neueste Sicherung herunterzuladen und anzuwenden; bestätige die Eingabeaufforderung und die App lädt mit deinen wiederhergestellten Daten neu. Deine Sicherungen werden sicher gespeichert und sind mit deinem Google-Konto verknüpft. Wenn du das Gerät wechselst oder die App neu installierst, melde dich einfach mit demselben Google-Konto an und tippe auf Wiederherstellen."
 
 #. placeholder {0}: user.displayName || user.email
-#: app/(app)/settings.tsx:513
+#: app/(app)/settings.tsx:514
 msgid "Signed in as {0}"
 msgstr "Angemeldet als {0}"
 
-#: constants/HelpData.ts:128
+#: constants/HelpData.ts:133
 msgid "Signing In"
 msgstr "Anmelden"
 
@@ -2572,7 +2709,11 @@ msgstr "Einzel- & Schnelltrainings"
 msgid "Single-arm / single-leg"
 msgstr "Einarmig / einbeinig"
 
-#: app/(app)/settings.tsx:1193
+#: app/(app)/settings.tsx:692
+msgid "Size unit"
+msgstr "Größeneinheit"
+
+#: app/(app)/settings.tsx:1196
 msgid "Size: ~100MB"
 msgstr "Größe: ~100 MB"
 
@@ -2641,7 +2782,7 @@ msgstr "Heimtrainer"
 
 #: app/(app)/(tabs)/_layout.tsx:73
 #: app/(app)/(tabs)/(stats)/_layout.tsx:15
-#: app/(app)/settings.tsx:951
+#: app/(app)/settings.tsx:954
 msgid "Stats"
 msgstr "Statistiken"
 
@@ -2674,7 +2815,7 @@ msgstr "So"
 msgid "Success"
 msgstr "Erfolg"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:388
+#: app/(app)/(tabs)/(stats)/index.tsx:395
 msgid "Summary"
 msgstr "Zusammenfassung"
 
@@ -2697,8 +2838,8 @@ msgstr "Supersatz"
 
 #. placeholder {0}: outgoingSnapshot.isFirstInSuperset ? "A" : "B"
 #. placeholder {0}: ss.isFirstInSuperset ? "A" : "B"
-#: app/(app)/(workout)/workout-session.tsx:1295
-#: app/(app)/(workout)/workout-session.tsx:1363
+#: app/(app)/(workout)/workout-session.tsx:1296
+#: app/(app)/(workout)/workout-session.tsx:1364
 msgid "Superset {0}"
 msgstr "Supersatz {0}"
 
@@ -2710,7 +2851,7 @@ msgstr "Supersätze"
 msgid "Take full control of your training by designing your own personalised plan. Select exercises, set rep ranges, rest times, and more to create a plan that aligns perfectly with your fitness goals."
 msgstr "Übernimm die volle Kontrolle über dein Training, indem du deinen eigenen personalisierten Plan erstellst. Wähle Übungen, lege Wiederholungsbereiche, Pausenzeiten und mehr fest, um einen Plan zu erstellen, der perfekt zu deinen Fitnesszielen passt."
 
-#: constants/HelpData.ts:129
+#: constants/HelpData.ts:134
 msgid "Tap Sign In With Google in Settings to connect your account. Signing in enables cloud backups so your data is safe if you switch devices or reinstall the app, and your name is shown in the home screen greeting. The app works fully offline without signing in, but cloud backups are unavailable. Your data is stored locally on your device and is not shared with anyone unless you choose to share it yourself."
 msgstr "Tippe in den Einstellungen auf Mit Google anmelden, um dein Konto zu verbinden. Die Anmeldung ermöglicht Cloud-Sicherungen, damit deine Daten sicher sind, wenn du das Gerät wechselst oder die App neu installierst, und dein Name wird in der Startbildschirmbegrüßung angezeigt. Die App funktioniert vollständig offline ohne Anmeldung, aber Cloud-Sicherungen sind nicht verfügbar. Deine Daten werden lokal auf deinem Gerät gespeichert und nicht mit anderen geteilt, sofern du es nicht selbst tust."
 
@@ -2816,11 +2957,11 @@ msgstr "Zeit-PR"
 msgid "Time: {0}"
 msgstr "Zeit: {0}"
 
-#: app/(app)/settings.tsx:341
+#: app/(app)/settings.tsx:342
 msgid "To enable rest timer notifications, grant notification permissions in your device settings."
 msgstr "Um Pausentimer-Benachrichtigungen zu aktivieren, erteile Benachrichtigungsberechtigungen in deinen Geräteeinstellungen."
 
-#: app/(app)/settings.tsx:360
+#: app/(app)/settings.tsx:361
 msgid "To enable workout reminders, grant notification permissions in your device settings."
 msgstr "Um Trainingserinnerungen zu aktivieren, erteile Benachrichtigungsberechtigungen in deinen Geräteeinstellungen."
 
@@ -2846,7 +2987,7 @@ msgstr "Heute"
 msgid "Top PR Sets"
 msgstr "Beste PR-Sätze"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:403
+#: app/(app)/(tabs)/(stats)/index.tsx:410
 msgid "Total Time"
 msgstr "Gesamtzeit"
 
@@ -2854,6 +2995,10 @@ msgstr "Gesamtzeit"
 #: app/(app)/(tabs)/(stats)/exercises.tsx:189
 msgid "Track ({0})"
 msgstr "Verfolgen ({0})"
+
+#: constants/HelpData.ts:109
+msgid "Track your body composition over time from the Measurements section in the Stats tab. Use the Log Entry form to record values for any active metric, then tap a past entry in the History list to review or edit it. On the entry detail screen, tap a metric chip to switch the chart between different measurements and use the time range selector to zoom in or out. Metrics are split into three types: mass (weight, in kg or lbs), length (circumferences like waist and hips, in cm or in), and percentage (body fat). Units follow your weight and size preferences in Settings. To control which metrics appear in the entry form, tap Manage Metrics at the top of the Log Entry section. Built-in metrics can be toggled on or off; you can also create your own custom metrics and choose their type. Custom metrics can be hidden from the form at any time, and your historical data for them is always preserved."
+msgstr "Verfolge deine Körperzusammensetzung im Zeitverlauf im Bereich Messungen des Stats-Tabs. Verwende das Formular „Eintrag erfassen\", um Werte für jeden aktiven Messwert einzutragen, und tippe dann auf einen vergangenen Eintrag in der Verlaufsliste, um ihn anzusehen oder zu bearbeiten. Tippe auf dem Eintragsdetailbildschirm auf einen Messwert-Chip, um das Diagramm zwischen verschiedenen Messwerten zu wechseln, und nutze die Zeitbereichsauswahl zum Vergrößern oder Verkleinern. Messwerte sind in drei Typen unterteilt: Masse (Gewicht, in kg oder lbs), Länge (Umfänge wie Taille und Hüften, in cm oder Zoll) und Prozent (Körperfettanteil). Einheiten folgen deinen Gewichts- und Größeneinstellungen. Tippe auf „Messwerte verwalten\" oben im Bereich „Eintrag erfassen\", um zu steuern, welche Messwerte im Formular erscheinen. Integrierte Messwerte können ein- oder ausgeschaltet werden; du kannst auch eigene Messwerte erstellen und deren Typ auswählen. Eigene Messwerte können jederzeit ausgeblendet werden, und deine historischen Daten bleiben stets erhalten."
 
 #: components/Onboarding.tsx:27
 msgid "Track Your Progress"
@@ -2869,7 +3014,7 @@ msgstr ""
 "\n"
 "Wische durch die Einführungskarten, um mehr über die App zu erfahren."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:484
+#: app/(app)/(tabs)/(stats)/index.tsx:491
 msgid "Tracked Exercises"
 msgstr "Verfolgte Übungen"
 
@@ -2911,7 +3056,7 @@ msgstr "Trainingsplan"
 msgid "Training Plan Name"
 msgstr "Name des Trainingsplans"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:471
+#: app/(app)/(tabs)/(stats)/index.tsx:478
 msgid "Training Split (by sets)"
 msgstr "Trainings-Split (nach Sätzen)"
 
@@ -2958,11 +3103,11 @@ msgstr "Tippe, um Hilfethemen zu filtern"
 msgid "Unable to check for updates. The app will continue to work normally."
 msgstr "Updates konnten nicht geprüft werden. Die App funktioniert weiterhin normal."
 
-#: app/(app)/(workout)/index.tsx:782
+#: app/(app)/(workout)/index.tsx:784
 msgid "Unable to save your workout. Please try again later."
 msgstr "Dein Training konnte nicht gespeichert werden. Bitte versuche es später erneut."
 
-#: app/(app)/settings.tsx:622
+#: app/(app)/settings.tsx:623
 msgid "Units of measurement"
 msgstr "Maßeinheiten"
 
@@ -2970,7 +3115,7 @@ msgstr "Maßeinheiten"
 msgid "Unknown"
 msgstr "Unbekannt"
 
-#: app/(app)/settings.tsx:606
+#: app/(app)/settings.tsx:607
 msgid "Uploading. Please wait..."
 msgstr "Hochladen. Bitte warten..."
 
@@ -2994,17 +3139,25 @@ msgstr "obere Brust"
 msgid "upper legs"
 msgstr "Oberschenkel"
 
-#: app/(app)/settings.tsx:936
+#: app/(app)/settings.tsx:939
 msgid "Using history from same workout"
 msgstr "Historie aus demselben Training"
 
-#: app/(app)/settings.tsx:935
+#: app/(app)/settings.tsx:938
 msgid "Using most recent from any workout"
 msgstr "Aktuellste aus beliebigem Training"
 
-#: app/(app)/settings.tsx:837
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:148
+msgid "Values"
+msgstr "Werte"
+
+#: app/(app)/settings.tsx:840
 msgid "Vibrate after rest"
 msgstr "Nach Pause vibrieren"
+
+#: app/(app)/(tabs)/(stats)/index.tsx:539
+msgid "View All"
+msgstr "Alle anzeigen"
 
 #: components/WorkoutCard.tsx:325
 msgid "View Details"
@@ -3024,11 +3177,11 @@ msgstr "Anzeigen/Bearbeiten"
 msgid "Volume"
 msgstr "Volumen"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:397
+#: app/(app)/(tabs)/(stats)/index.tsx:404
 msgid "Volume ({volumeUnit})"
 msgstr "Volumen ({volumeUnit})"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:455
+#: app/(app)/(tabs)/(stats)/index.tsx:462
 msgid "Volume per Week ({volumeUnit})"
 msgstr "Volumen pro Woche ({volumeUnit})"
 
@@ -3082,7 +3235,7 @@ msgstr "Mittwoch"
 msgid "Week streak"
 msgstr "Wochenserie"
 
-#: app/(app)/settings.tsx:532
+#: app/(app)/settings.tsx:533
 msgid "Weekly goal"
 msgstr "Wochenziel"
 
@@ -3101,11 +3254,11 @@ msgstr "Wochenplan"
 msgid "Weight"
 msgstr "Gewicht"
 
-#: app/(app)/settings.tsx:721
+#: app/(app)/settings.tsx:724
 msgid "Weight increment"
 msgstr "Gewichtsschritt"
 
-#: app/(app)/settings.tsx:641
+#: app/(app)/settings.tsx:642
 msgid "Weight unit"
 msgstr "Gewichtseinheit"
 
@@ -3135,7 +3288,7 @@ msgstr "Arbeits-"
 
 #: app/(app)/(tabs)/(plans)/_layout.tsx:17
 #: app/(app)/(workout)/_layout.tsx:16
-#: app/(app)/settings.tsx:701
+#: app/(app)/settings.tsx:704
 #: components/RestDayCard.tsx:38
 #: components/WeeklyScheduleDisplay.tsx:84
 #: components/WorkoutDoneCard.tsx:47
@@ -3163,7 +3316,7 @@ msgstr "Training abgeschlossen!"
 msgid "Workout Details"
 msgstr "Trainingsdetails"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:419
+#: app/(app)/(tabs)/(stats)/index.tsx:426
 msgid "Workout History"
 msgstr "Trainingshistorie"
 
@@ -3171,7 +3324,7 @@ msgstr "Trainingshistorie"
 msgid "Workout in progress"
 msgstr "Training läuft"
 
-#: app/(app)/(workout)/index.tsx:922
+#: app/(app)/(workout)/index.tsx:924
 #: components/WorkoutCard.tsx:422
 msgid "Workout name"
 msgstr "Trainingsname"
@@ -3182,11 +3335,11 @@ msgstr "Trainingsname"
 msgid "Workout not found."
 msgstr "Training nicht gefunden."
 
-#: app/(app)/settings.tsx:1041
+#: app/(app)/settings.tsx:1044
 msgid "Workout reminders"
 msgstr "Trainingserinnerungen"
 
-#: constants/HelpData.ts:118
+#: constants/HelpData.ts:123
 msgid "Workout Reminders"
 msgstr "Trainingserinnerungen"
 
@@ -3194,13 +3347,13 @@ msgstr "Trainingserinnerungen"
 msgid "Workout Summary"
 msgstr "Trainingsübersicht"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:392
+#: app/(app)/(tabs)/(stats)/index.tsx:399
 #: components/WeeklySummaryCard.tsx:271
 #: constants/HelpData.ts:38
 msgid "Workouts"
 msgstr "Trainings"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:442
+#: app/(app)/(tabs)/(stats)/index.tsx:449
 msgid "Workouts per Week"
 msgstr "Trainings pro Woche"
 
@@ -3221,8 +3374,8 @@ msgstr "Handgelenke"
 msgid "x {0} reps "
 msgstr "x {0} Wdh. "
 
-#: app/(app)/(workout)/index.tsx:798
-#: app/(app)/(workout)/index.tsx:818
+#: app/(app)/(workout)/index.tsx:800
+#: app/(app)/(workout)/index.tsx:820
 msgid "Yes"
 msgstr "Ja"
 
@@ -3252,12 +3405,12 @@ msgstr "Du hast nicht gespeicherte Änderungen aus deiner letzten Sitzung. Möch
 msgid "You have unsaved changes. Are you sure you want to discard them?"
 msgstr "Du hast nicht gespeicherte Änderungen. Möchtest du sie wirklich verwerfen?"
 
-#: app/(app)/(workout)/index.tsx:699
-#: app/(app)/(workout)/index.tsx:732
+#: app/(app)/(workout)/index.tsx:701
+#: app/(app)/(workout)/index.tsx:734
 msgid "You modified this workout. Save those changes for future sessions?"
 msgstr "Du hast dieses Training geändert. Änderungen für zukünftige Sitzungen speichern?"
 
-#: app/(app)/settings.tsx:576
+#: app/(app)/settings.tsx:577
 msgid "You need to sign in to use this feature"
 msgstr "Du musst dich anmelden, um diese Funktion zu nutzen"
 
