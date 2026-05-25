@@ -1993,6 +1993,9 @@ export const updateBodyMeasurementSession = async (
 ): Promise<void> => {
   try {
     const db = await openDatabase("userData.db");
+    const weightMetric = await db.getFirstAsync<{ id: number }>(
+      `SELECT id FROM body_metric_definitions WHERE key = 'weight'`,
+    );
     await db.withExclusiveTransactionAsync(async (txn) => {
       if (values.length === 0) {
         await txn.runAsync(
@@ -2012,6 +2015,26 @@ export const updateBodyMeasurementSession = async (
           [entry_id, v.metric_id, v.value],
         );
       }
+      // Mirror weight changes to legacy tables
+      if (weightMetric) {
+        const weightValue = values.find((v) => v.metric_id === weightMetric.id);
+        if (weightValue) {
+          const entry = await txn.getFirstAsync<{ recorded_at: string }>(
+            `SELECT recorded_at FROM body_measurement_entries WHERE id = ?`,
+            [entry_id],
+          );
+          if (entry) {
+            await txn.runAsync(
+              `UPDATE body_measurements SET body_weight = ? WHERE date = ?`,
+              [weightValue.value, entry.recorded_at],
+            );
+            await txn.runAsync(
+              `INSERT OR REPLACE INTO settings (key, value) VALUES ('bodyWeight', ?)`,
+              [weightValue.value.toString()],
+            );
+          }
+        }
+      }
     });
   } catch (error: any) {
     console.error("Error updating body measurement session:", error);
@@ -2025,7 +2048,22 @@ export const deleteBodyMeasurementSession = async (
 ): Promise<void> => {
   try {
     const db = await openDatabase("userData.db");
+    const weightMetric = await db.getFirstAsync<{ id: number }>(
+      `SELECT id FROM body_metric_definitions WHERE key = 'weight'`,
+    );
     await db.withExclusiveTransactionAsync(async (txn) => {
+      // Read the entry's timestamp and weight value before deleting
+      const entry = await txn.getFirstAsync<{
+        recorded_at: string;
+        weight: number | null;
+      }>(
+        `SELECT e.recorded_at, v.value AS weight
+         FROM body_measurement_entries e
+         LEFT JOIN body_measurement_values v
+           ON v.entry_id = e.id AND v.metric_id = ?
+         WHERE e.id = ?`,
+        [weightMetric?.id ?? -1, entry_id],
+      );
       await txn.runAsync(
         `DELETE FROM body_measurement_values WHERE entry_id = ?`,
         [entry_id],
@@ -2033,6 +2071,34 @@ export const deleteBodyMeasurementSession = async (
       await txn.runAsync(`DELETE FROM body_measurement_entries WHERE id = ?`, [
         entry_id,
       ]);
+      if (entry) {
+        await txn.runAsync(`DELETE FROM body_measurements WHERE date = ?`, [
+          entry.recorded_at,
+        ]);
+        if (entry.weight !== null) {
+          const currentSetting = await txn.getFirstAsync<{ value: string }>(
+            `SELECT value FROM settings WHERE key = 'bodyWeight'`,
+          );
+          if (
+            currentSetting &&
+            Math.abs(parseFloat(currentSetting.value) - entry.weight) < 0.001
+          ) {
+            const nextWeight = await txn.getFirstAsync<{
+              body_weight: number;
+            }>(
+              `SELECT body_weight FROM body_measurements
+               WHERE body_weight IS NOT NULL
+               ORDER BY date DESC LIMIT 1`,
+            );
+            if (nextWeight) {
+              await txn.runAsync(
+                `INSERT OR REPLACE INTO settings (key, value) VALUES ('bodyWeight', ?)`,
+                [nextWeight.body_weight.toString()],
+              );
+            }
+          }
+        }
+      }
     });
   } catch (error: any) {
     console.error("Error deleting body measurement session:", error);
