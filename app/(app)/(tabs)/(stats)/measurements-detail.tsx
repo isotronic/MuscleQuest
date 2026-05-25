@@ -59,8 +59,14 @@ export default function MeasurementDetailScreen() {
   const [selectedMetric, setSelectedMetric] =
     useState<BodyMetricDefinition | null>(null);
 
-  // Initialise inputs from session values (once)
   const [initialised, setInitialised] = useState(false);
+
+  // Reset the initialised flag whenever the viewed entry changes
+  useEffect(() => {
+    setInitialised(false);
+  }, [entryId]);
+
+  // Initialise inputs from session values (once per entry)
   useEffect(() => {
     if (session && !initialised) {
       const initial: Record<number, string> = {};
