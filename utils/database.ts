@@ -2147,10 +2147,11 @@ export const saveBodyWeightMeasurement = async (
 ): Promise<void> => {
   try {
     const db = await openDatabase("userData.db");
+    const now = new Date().toISOString();
     // Legacy table — keeps useExerciseHistoryQuery.ts working unchanged
     await db.runAsync(
-      `INSERT INTO body_measurements (date, body_weight) VALUES (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), ?)`,
-      [weightKg],
+      `INSERT INTO body_measurements (date, body_weight) VALUES (?, ?)`,
+      [now, weightKg],
     );
     // New measurement tables
     const weightMetric = await db.getFirstAsync<{ id: number }>(
@@ -2158,7 +2159,8 @@ export const saveBodyWeightMeasurement = async (
     );
     if (weightMetric) {
       const result = await db.runAsync(
-        `INSERT INTO body_measurement_entries (recorded_at) VALUES (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`,
+        `INSERT INTO body_measurement_entries (recorded_at) VALUES (?)`,
+        [now],
       );
       await db.runAsync(
         `INSERT INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
