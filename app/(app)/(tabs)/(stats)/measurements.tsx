@@ -26,6 +26,10 @@ import { useInsertBodyMeasurementMutation } from "@/hooks/useBodyMeasurementMuta
 import { BodyMeasurementSession } from "@/utils/database";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
 
+const DECIMAL_SEP =
+  new Intl.NumberFormat().formatToParts(1.1).find((p) => p.type === "decimal")
+    ?.value ?? ".";
+
 function parseDbDate(recorded_at: string): Date {
   return new Date(
     recorded_at.includes("T") ? recorded_at : recorded_at.replace(" ", "T"),
@@ -33,17 +37,22 @@ function parseDbDate(recorded_at: string): Date {
 }
 
 function formatEntryDate(recorded_at: string): string {
-  return format(parseDbDate(recorded_at), "MMM d, yyyy");
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(parseDbDate(recorded_at));
 }
 
 function formatHistoryDate(recorded_at: string): string {
   const date = parseDbDate(recorded_at);
-  const datePart = format(date, "MMM d, yyyy");
-  const timePart = new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
     hour: "numeric",
     minute: "2-digit",
   }).format(date);
-  return `${datePart}, ${timePart}`;
 }
 
 function latestValueForMetric(
@@ -91,7 +100,10 @@ export default function MeasurementsScreen() {
           next[metric.id] = prev[metric.id];
         } else {
           const latest = latestValueForMetric(sessions, metric.id);
-          next[metric.id] = latest !== undefined ? String(latest) : "";
+          next[metric.id] =
+            latest !== undefined
+              ? String(latest).replace(".", DECIMAL_SEP)
+              : "";
         }
       }
       return next;
@@ -102,13 +114,13 @@ export default function MeasurementsScreen() {
     if (!metrics) return;
     const values = metrics
       .filter((m) => {
-        const v = parseFloat(inputValues[m.id] ?? "");
+        const v = parseFloat((inputValues[m.id] ?? "").replace(",", "."));
         return !isNaN(v);
       })
       .map((m) => ({
         metric_id: m.id,
         value_kind: m.value_kind,
-        displayValue: parseFloat(inputValues[m.id]),
+        displayValue: parseFloat((inputValues[m.id] ?? "").replace(",", ".")),
       }));
 
     if (values.length === 0) {

@@ -12,7 +12,6 @@ import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { ActivityIndicator, Button, Card } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { format } from "date-fns";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
@@ -27,6 +26,10 @@ import {
 } from "@/hooks/useBodyMeasurementMutations";
 import { BodyMetricDefinition } from "@/utils/database";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
+
+const DECIMAL_SEP =
+  new Intl.NumberFormat().formatToParts(1.1).find((p) => p.type === "decimal")
+    ?.value ?? ".";
 
 function parseDbDate(recorded_at: string): Date {
   return new Date(
@@ -71,7 +74,7 @@ export default function MeasurementDetailScreen() {
     if (session && !initialised) {
       const initial: Record<number, string> = {};
       for (const v of session.values) {
-        initial[v.metric.id] = String(v.displayValue);
+        initial[v.metric.id] = String(v.displayValue).replace(".", DECIMAL_SEP);
       }
       setInputValues(initial);
       setSelectedMetric(session.values[0]?.metric ?? null);
@@ -90,7 +93,9 @@ export default function MeasurementDetailScreen() {
       .map((v) => ({
         metric_id: v.metric.id,
         value_kind: v.metric.value_kind,
-        displayValue: parseFloat(inputValues[v.metric.id] ?? ""),
+        displayValue: parseFloat(
+          (inputValues[v.metric.id] ?? "").replace(",", "."),
+        ),
       }))
       .filter((v) => !isNaN(v.displayValue));
 
@@ -140,7 +145,13 @@ export default function MeasurementDetailScreen() {
   }
 
   const entryDate = parseDbDate(session.entry.recorded_at);
-  const entryDateStr = `${format(entryDate, "MMM d, yyyy")}, ${new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(entryDate)}`;
+  const entryDateStr = new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(entryDate);
 
   return (
     <ThemedView style={{ flex: 1 }}>
