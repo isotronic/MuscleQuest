@@ -22,11 +22,7 @@ import {
 } from "@/hooks/useBodyMetricMutations";
 import { ValueKind } from "@/utils/database";
 
-const VALUE_KINDS: { label: string; value: ValueKind }[] = [
-  { label: t`Mass`, value: "mass" },
-  { label: t`Length`, value: "length" },
-  { label: t`Percent`, value: "percent" },
-];
+const VALUE_KINDS: ValueKind[] = ["mass", "length", "percent"];
 
 const KIND_UNIT: Record<ValueKind, string> = {
   mass: "kg/lbs",
@@ -43,6 +39,12 @@ export default function MeasurementsManageScreen() {
   const [addExpanded, setAddExpanded] = useState(false);
   const [newLabel, setNewLabel] = useState("");
   const [newKind, setNewKind] = useState<ValueKind>("length");
+
+  const kindLabel: Record<ValueKind, string> = {
+    mass: t`Mass`,
+    length: t`Length`,
+    percent: t`Percent`,
+  };
 
   const handleToggle = (id: number, is_active: boolean) => {
     toggleActiveMutation.mutate({ id, is_active: !is_active });
@@ -121,12 +123,12 @@ export default function MeasurementsManageScreen() {
               />
               <View style={styles.kindRow}>
                 {VALUE_KINDS.map((k) => {
-                  const active = newKind === k.value;
+                  const active = newKind === k;
                   return (
                     <TouchableOpacity
-                      key={k.value}
+                      key={k}
                       style={[styles.kindChip, active && styles.kindChipActive]}
-                      onPress={() => setNewKind(k.value)}
+                      onPress={() => setNewKind(k)}
                       activeOpacity={0.7}
                     >
                       <ThemedText
@@ -135,10 +137,10 @@ export default function MeasurementsManageScreen() {
                           active && styles.kindChipTextActive,
                         ]}
                       >
-                        {k.label}
+                        {kindLabel[k]}
                       </ThemedText>
                       <ThemedText style={styles.kindUnit}>
-                        {KIND_UNIT[k.value]}
+                        {KIND_UNIT[k]}
                       </ThemedText>
                     </TouchableOpacity>
                   );
