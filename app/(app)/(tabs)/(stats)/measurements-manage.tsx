@@ -15,6 +15,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { useAllBodyMetricDefinitionsQuery } from "@/hooks/useBodyMetricDefinitionsQuery";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import {
   useToggleBodyMetricActiveMutation,
   useInsertCustomBodyMetricMutation,
@@ -24,14 +25,16 @@ import { ValueKind } from "@/utils/database";
 
 const VALUE_KINDS: ValueKind[] = ["mass", "length", "percent"];
 
-const KIND_UNIT: Record<ValueKind, string> = {
-  mass: "kg/lbs",
-  length: "cm/in",
-  percent: "%",
-};
-
 export default function MeasurementsManageScreen() {
   const { data: metrics, isLoading } = useAllBodyMetricDefinitionsQuery();
+  const { data: settings } = useSettingsQuery();
+  const weightUnit = settings?.weightUnit ?? "kg";
+  const sizeUnit = settings?.sizeUnit ?? "cm";
+  const KIND_UNIT: Record<ValueKind, string> = {
+    mass: weightUnit,
+    length: sizeUnit,
+    percent: "%",
+  };
   const toggleActiveMutation = useToggleBodyMetricActiveMutation();
   const insertMutation = useInsertCustomBodyMetricMutation();
   const softDeleteMutation = useSoftDeleteCustomBodyMetricMutation();
