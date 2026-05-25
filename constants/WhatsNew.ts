@@ -251,6 +251,19 @@ Set fields now pre-fill more intelligently. If an exercise has no history in the
 A new setting in the Workout section lets you always use the most recent history across all workouts, regardless of which routine it came from.
 `,
   },
+  {
+    version: 2630,
+    message: msg`
+📏 New: Body Measurements!
+
+Track your body composition alongside your training from the new Measurements section in the Stats tab.
+
+• Log weight, body fat %, waist, hips, chest, and more
+• Tap any past entry to edit values or view a chart of that metric over time
+• Manage which metrics appear and add your own custom metrics
+• Units follow your weight and size preferences in Settings
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
