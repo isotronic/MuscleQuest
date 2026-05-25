@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { Trans } from "@lingui/react/macro";
-import { t } from "@lingui/core/macro";
+import { t, plural } from "@lingui/core/macro";
 import { ActivityIndicator, Button, Divider } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
@@ -244,7 +244,10 @@ export default function MeasurementsScreen() {
                 ))}
                 {session.values.length > 3 && (
                   <ThemedText style={styles.sessionMore}>
-                    +{session.values.length - 3} more
+                    {plural(session.values.length - 3, {
+                      one: "+# more",
+                      other: "+# more",
+                    })}
                   </ThemedText>
                 )}
               </View>
