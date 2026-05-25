@@ -507,19 +507,25 @@ export async function initUserDataDB() {
       }>(
         `SELECT date, body_weight FROM body_measurements WHERE body_weight IS NOT NULL ORDER BY date ASC`,
       );
-      for (const row of rows) {
-        const result = await db.runAsync(
-          `INSERT INTO body_measurement_entries (recorded_at) VALUES (?)`,
-          [row.date],
+      await db.withExclusiveTransactionAsync(async (txn) => {
+        for (const row of rows) {
+          const result = await txn.runAsync(
+            `INSERT INTO body_measurement_entries (recorded_at) VALUES (?)`,
+            [row.date],
+          );
+          await txn.runAsync(
+            `INSERT OR IGNORE INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
+            [result.lastInsertRowId, weightMetric.id, row.body_weight],
+          );
+        }
+        await txn.runAsync(
+          `INSERT OR REPLACE INTO settings (key, value) VALUES ('body_measurements_backfill_v1', 'true')`,
         );
-        await db.runAsync(
-          `INSERT OR IGNORE INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
-          [result.lastInsertRowId, weightMetric.id, row.body_weight],
-        );
-      }
+      });
+    } else {
+      await db.runAsync(
+        `INSERT OR REPLACE INTO settings (key, value) VALUES ('body_measurements_backfill_v1', 'true')`,
+      );
     }
-    await db.runAsync(
-      `INSERT OR REPLACE INTO settings (key, value) VALUES ('body_measurements_backfill_v1', 'true')`,
-    );
   }
 }
