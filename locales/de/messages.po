@@ -475,7 +475,7 @@ msgstr " (bis zum Versagen)"
 msgid " (to Failure) "
 msgstr " (bis zum Versagen) "
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:77
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:80
 msgid "\"{label}\" will be hidden from the entry form. Your historical data is preserved."
 msgstr "„{label}“ wird aus dem Eingabeformular ausgeblendet. Deine historischen Daten bleiben erhalten."
 
@@ -522,7 +522,7 @@ msgid "{0, plural, one {# Set} other {# Sets}}"
 msgstr "{0, plural, one {# Satz} other {# Sätze}}"
 
 #. placeholder {0}: session.values.length - 3
-#: app/(app)/(tabs)/(stats)/measurements.tsx:247
+#: app/(app)/(tabs)/(stats)/measurements.tsx:266
 msgid "{0, plural, one {+# more} other {+# more}}"
 msgstr "{0, plural, one {+# mehr} other {+# mehr}}"
 
@@ -713,7 +713,7 @@ msgstr "• Herausforderungen und Abzeichen *"
 msgid "• Share your training plans with others *"
 msgstr "• Trainingspläne mit anderen teilen *"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:502
+#: app/(app)/(tabs)/(stats)/index.tsx:505
 msgid "+ Add"
 msgstr "+ Hinzufügen"
 
@@ -818,7 +818,7 @@ msgstr "Aktiver Plan: {0}"
 msgid "Active Workout"
 msgstr "Aktives Training"
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:161
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:164
 #: components/Notes.tsx:86
 msgid "Add"
 msgstr "Hinzufügen"
@@ -837,7 +837,7 @@ msgstr "Notiz hinzufügen..."
 msgid "Add a workout to get started"
 msgstr "Füge ein Training hinzu, um loszulegen"
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:113
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:116
 msgid "Add custom metric"
 msgstr "Eigenen Messwert hinzufügen"
 
@@ -957,7 +957,7 @@ msgstr "Möchtest du wirklich alle animierten Bilder löschen? Einzelbilder werd
 msgid "Are you sure you want to delete this exercise?"
 msgstr "Möchtest du diese Übung wirklich löschen?"
 
-#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:97
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:100
 msgid "Are you sure you want to delete this measurement entry?"
 msgstr "Bist du sicher, dass du diesen Messeintrag löschen möchtest?"
 
@@ -1023,7 +1023,7 @@ msgstr "Assistenz "
 msgid "Assistance/Reps"
 msgstr "Assistenz/Wdh."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:416
+#: app/(app)/(tabs)/(stats)/index.tsx:419
 msgid "Avg Duration"
 msgstr "Ø Dauer"
 
@@ -1044,7 +1044,7 @@ msgstr "Sichern & Wiederherstellen"
 msgid "Backup and restore"
 msgstr "Sichern und wiederherstellen"
 
-#: constants/dbTranslations.ts:68
+#: constants/dbTranslations.ts:83
 msgid "barbell"
 msgstr "Langhantel"
 
@@ -1083,7 +1083,11 @@ msgstr "Bester Zuwachs"
 msgid "biceps"
 msgstr "Bizeps"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:529
+#: constants/dbTranslations.ts:69
+msgid "Body Fat"
+msgstr "Körperfett"
+
+#: app/(app)/(tabs)/(stats)/index.tsx:532
 #: constants/HelpData.ts:108
 msgid "Body Measurements"
 msgstr "Körpermaße"
@@ -1100,12 +1104,16 @@ msgstr "Körperteil ist erforderlich."
 msgid "Body Parts"
 msgstr "Körperteile"
 
-#: constants/dbTranslations.ts:69
+#: constants/dbTranslations.ts:84
 msgid "body weight"
 msgstr "Körpergewicht"
 
 #: app/(app)/settings.tsx:554
 msgid "Body weight"
+msgstr "Körpergewicht"
+
+#: constants/dbTranslations.ts:68
+msgid "Body Weight"
 msgstr "Körpergewicht"
 
 #: constants/dbTranslations.ts:42
@@ -1116,7 +1124,7 @@ msgstr "Brachialis"
 msgid "Browse almost 1,000 exercises and filter by body part, target muscle, or equipment. When replacing an exercise, the filter automatically preselects the matching target muscle to help you find alternatives faster. Tap any exercise to view its animated demonstration, the muscles targeted, and a full history of every time you have performed it, including weights, reps, time, or distance per set. Download all exercise animations (~100 MB) in Settings for offline access."
 msgstr "Durchsuche fast 1.000 Übungen und filtere nach Körperteil, Zielmuskel oder Gerät. Wenn du eine Übung ersetzt, wählt der Filter automatisch den passenden Zielmuskel vor, damit du schneller Alternativen findest. Tippe auf eine Übung, um die animierte Demo, die angesprochenen Muskeln und eine vollständige Historie jeder Durchführung mit Gewicht, Wiederholungen, Zeit oder Distanz pro Satz anzuzeigen. Lade alle Übungsanimationen (~100 MB) in den Einstellungen für den Offline-Zugriff herunter."
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:169
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:172
 msgid "Built-in Metrics"
 msgstr "Integrierte Messwerte"
 
@@ -1132,9 +1140,17 @@ msgstr "Kauf mir einen Kaffee"
 msgid "Buy Me a Coffee"
 msgstr "Kauf mir einen Kaffee"
 
-#: constants/dbTranslations.ts:70
+#: constants/dbTranslations.ts:85
 msgid "cable"
 msgstr "Kabelzug"
+
+#: constants/dbTranslations.ts:78
+msgid "Calf (L)"
+msgstr "Wade (L)"
+
+#: constants/dbTranslations.ts:79
+msgid "Calf (R)"
+msgstr "Wade (R)"
 
 #: constants/dbTranslations.ts:24
 msgid "calves"
@@ -1146,8 +1162,8 @@ msgstr "Waden"
 #: app/(app)/(tabs)/(plans)/overview.tsx:102
 #: app/(app)/(tabs)/(plans)/standalone-workout.tsx:80
 #: app/(app)/(tabs)/(stats)/history-details.tsx:171
-#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:99
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:79
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:102
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:82
 #: app/(app)/(workout)/index.tsx:339
 #: app/(app)/(workout)/index.tsx:902
 #: app/(app)/(workout)/workout-session.tsx:677
@@ -1188,6 +1204,10 @@ msgstr "Sicherungen werden gesucht..."
 #: constants/dbTranslations.ts:8
 #: constants/dbTranslations.ts:43
 msgid "chest"
+msgstr "Brust"
+
+#: constants/dbTranslations.ts:72
+msgid "Chest"
 msgstr "Brust"
 
 #: app/(app)/(create-plan)/image-search.tsx:71
@@ -1284,7 +1304,7 @@ msgstr "Erstelle eigene Übungen über die Übungsauswahl. Gib einen Namen, ein 
 msgid "Custom Exercises"
 msgstr "Eigene Übungen"
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:196
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:201
 msgid "Custom Metrics"
 msgstr "Eigene Messwerte"
 
@@ -1311,7 +1331,7 @@ msgstr "Standard-Sätze"
 #: app/(app)/(tabs)/(plans)/overview.tsx:106
 #: app/(app)/(tabs)/(plans)/standalone-workout.tsx:82
 #: app/(app)/(tabs)/(stats)/history-details.tsx:173
-#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:101
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:104
 #: app/(app)/(workout)/index.tsx:341
 #: app/(app)/(workout)/index.tsx:535
 #: app/(app)/(workout)/workout-session.tsx:679
@@ -1324,8 +1344,8 @@ msgstr "Löschen"
 msgid "Delete Complete"
 msgstr "Löschen abgeschlossen"
 
-#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:96
-#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:245
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:99
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:254
 msgid "Delete Entry"
 msgstr "Eintrag löschen"
 
@@ -1478,7 +1498,7 @@ msgstr "Dropsatz"
 msgid "Drop set, "
 msgstr "Dropsatz, "
 
-#: constants/dbTranslations.ts:71
+#: constants/dbTranslations.ts:86
 msgid "dumbbell"
 msgstr "Kurzhantel"
 
@@ -1510,7 +1530,7 @@ msgstr "Plan bearbeiten"
 msgid "Edit Workout"
 msgstr "Training bearbeiten"
 
-#: constants/dbTranslations.ts:72
+#: constants/dbTranslations.ts:87
 msgid "elliptical machine"
 msgstr "Crosstrainer"
 
@@ -1530,11 +1550,11 @@ msgstr "Richte wiederkehrende Trainingserinnerungen in den Einstellungen ein. W�
 msgid "Enabled"
 msgstr "Aktiviert"
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:59
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:62
 msgid "Enter a name for the custom metric."
 msgstr "Gib einen Namen für den eigenen Messwert ein."
 
-#: app/(app)/(tabs)/(stats)/measurements.tsx:98
+#: app/(app)/(tabs)/(stats)/measurements.tsx:111
 msgid "Enter at least one measurement to log."
 msgstr "Gib mindestens einen Messwert ein."
 
@@ -1554,7 +1574,7 @@ msgstr "Gewicht pro Hantel/Kabel eingeben, nicht gesamt"
 msgid "Entry Detail"
 msgstr "Eintragsdetails"
 
-#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:125
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:128
 msgid "Entry not found."
 msgstr "Eintrag nicht gefunden."
 
@@ -1614,7 +1634,7 @@ msgstr "Fehler beim Laden der Übungen: {0}"
 msgid "Error loading plans"
 msgstr "Fehler beim Laden der Pläne"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:315
+#: app/(app)/(tabs)/(stats)/index.tsx:318
 msgid "Error loading stats. Please try again."
 msgstr "Fehler beim Laden der Statistiken. Bitte versuche es erneut."
 
@@ -1687,7 +1707,7 @@ msgstr "Pläne erkunden"
 msgid "Explore Ready-Made Plans"
 msgstr "Fertige Pläne erkunden"
 
-#: constants/dbTranslations.ts:73
+#: constants/dbTranslations.ts:88
 msgid "ez barbell"
 msgstr "EZ-Stange"
 
@@ -1860,7 +1880,7 @@ msgstr "Oberschenkelrückseite"
 msgid "Help & Info"
 msgstr "Hilfe & Info"
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:81
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:84
 msgid "Hide"
 msgstr "Ausblenden"
 
@@ -1868,7 +1888,7 @@ msgstr "Ausblenden"
 msgid "Hide / Show Onboarding"
 msgstr "Einführung ein-/ausblenden"
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:76
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:79
 msgid "Hide metric"
 msgstr "Messwert ausblenden"
 
@@ -1876,8 +1896,12 @@ msgstr "Messwert ausblenden"
 msgid "hip flexors"
 msgstr "Hüftbeuger"
 
-#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:176
-#: app/(app)/(tabs)/(stats)/measurements.tsx:217
+#: constants/dbTranslations.ts:71
+msgid "Hips"
+msgstr "Hüften"
+
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:179
+#: app/(app)/(tabs)/(stats)/measurements.tsx:230
 #: app/(app)/exercise-info.tsx:181
 msgid "History"
 msgstr "Verlauf"
@@ -1902,7 +1926,7 @@ msgstr "Bilder von Unsplash"
 msgid "Info"
 msgstr "Info"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:379
+#: app/(app)/(tabs)/(stats)/index.tsx:382
 #: constants/HelpData.ts:93
 msgid "Insights"
 msgstr "Einblicke"
@@ -1923,7 +1947,7 @@ msgstr "Bildschirm während des Trainings eingeschaltet lassen"
 msgid "Keep the momentum going!"
 msgstr "Halt den Schwung aufrecht!"
 
-#: constants/dbTranslations.ts:74
+#: constants/dbTranslations.ts:89
 msgid "kettlebell"
 msgstr "Kettlebell"
 
@@ -1953,11 +1977,11 @@ msgstr "Lats"
 msgid "legs"
 msgstr "Beine"
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:48
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:51
 msgid "Length"
 msgstr "Länge"
 
-#: constants/dbTranslations.ts:75
+#: constants/dbTranslations.ts:90
 msgid "leverage machine"
 msgstr "Hebelmaschine"
 
@@ -1974,8 +1998,8 @@ msgstr "Plan wird geladen..."
 msgid "Loading..."
 msgstr "Wird geladen..."
 
-#: app/(app)/(tabs)/(stats)/measurements.tsx:133
-#: app/(app)/(tabs)/(stats)/measurements.tsx:208
+#: app/(app)/(tabs)/(stats)/measurements.tsx:146
+#: app/(app)/(tabs)/(stats)/measurements.tsx:221
 msgid "Log Entry"
 msgstr "Eintrag erfassen"
 
@@ -2007,11 +2031,11 @@ msgstr "Unterschenkel"
 msgid "Make sure to track your progress!"
 msgstr "Vergiss nicht, deinen Fortschritt zu verfolgen!"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:500
+#: app/(app)/(tabs)/(stats)/index.tsx:503
 msgid "Manage"
 msgstr "Verwalten"
 
-#: app/(app)/(tabs)/(stats)/measurements.tsx:145
+#: app/(app)/(tabs)/(stats)/measurements.tsx:158
 msgid "Manage metrics"
 msgstr "Messwerte verwalten"
 
@@ -2019,7 +2043,7 @@ msgstr "Messwerte verwalten"
 msgid "Manage Metrics"
 msgstr "Messwerte verwalten"
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:47
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:50
 msgid "Mass"
 msgstr "Masse"
 
@@ -2031,7 +2055,7 @@ msgstr "Max. Wdh."
 msgid "Measurements"
 msgstr "Messungen"
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:122
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:125
 msgid "Metric name"
 msgstr "Name des Messwerts"
 
@@ -2098,13 +2122,17 @@ msgstr "Name *"
 msgid "Name is required."
 msgstr "Name ist erforderlich."
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:59
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:62
 msgid "Name required"
 msgstr "Name erforderlich"
 
 #: constants/dbTranslations.ts:12
 msgid "neck"
 msgstr "Nacken"
+
+#: constants/dbTranslations.ts:73
+msgid "Neck"
+msgstr "Hals"
 
 #: app/(app)/(tabs)/(plans)/index.tsx:91
 msgid "New Plan"
@@ -2158,7 +2186,7 @@ msgstr "Noch keine Übungen hinzugefügt"
 msgid "No exercises in this workout yet."
 msgstr "Noch keine Übungen in diesem Training."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:520
+#: app/(app)/(tabs)/(stats)/index.tsx:523
 msgid "No exercises tracked yet. Tap + Add to start."
 msgstr "Noch keine Übungen verfolgt. Tippe auf + Hinzufügen, um zu starten."
 
@@ -2166,11 +2194,11 @@ msgstr "Noch keine Übungen verfolgt. Tippe auf + Hinzufügen, um zu starten."
 msgid "No history yet"
 msgstr "Noch kein Verlauf"
 
-#: app/(app)/(tabs)/(stats)/measurements.tsx:222
+#: app/(app)/(tabs)/(stats)/measurements.tsx:235
 msgid "No measurements yet. Log your first entry above."
 msgstr "Noch keine Messungen. Erfasse deinen ersten Eintrag oben."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:564
+#: app/(app)/(tabs)/(stats)/index.tsx:573
 msgid "No measurements yet. Tap to log your first entry."
 msgstr "Noch keine Messungen. Tippe, um deinen ersten Eintrag zu erfassen."
 
@@ -2195,7 +2223,7 @@ msgstr "Keine Sätze verfügbar"
 msgid "No training plans found"
 msgstr "Keine Trainingspläne gefunden"
 
-#: app/(app)/(tabs)/(stats)/measurements.tsx:97
+#: app/(app)/(tabs)/(stats)/measurements.tsx:110
 msgid "No values entered"
 msgstr "Keine Werte eingegeben"
 
@@ -2278,7 +2306,7 @@ msgstr "Brustmuskeln"
 msgid "Per week (avg)"
 msgstr "Pro Woche (Ø)"
 
-#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:49
+#: app/(app)/(tabs)/(stats)/measurements-manage.tsx:52
 msgid "Percent"
 msgstr "Prozent"
 
@@ -2493,7 +2521,7 @@ msgstr "Fortsetzen"
 msgid "rhomboids"
 msgstr "Rhomboiden"
 
-#: constants/dbTranslations.ts:76
+#: constants/dbTranslations.ts:91
 msgid "rope"
 msgstr "Seil"
 
@@ -2529,7 +2557,7 @@ msgstr "Speichern"
 msgid "Save and select"
 msgstr "Speichern und auswählen"
 
-#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:235
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:244
 msgid "Save Changes"
 msgstr "Änderungen speichern"
 
@@ -2734,11 +2762,11 @@ msgstr "Alle überspringen"
 msgid "Skip login"
 msgstr "Anmeldung überspringen"
 
-#: constants/dbTranslations.ts:77
+#: constants/dbTranslations.ts:92
 msgid "sled machine"
 msgstr "Schlittenmaschine"
 
-#: constants/dbTranslations.ts:78
+#: constants/dbTranslations.ts:93
 msgid "smith machine"
 msgstr "Smith-Maschine"
 
@@ -2785,7 +2813,7 @@ msgstr "Training starten"
 msgid "Starting Workout..."
 msgstr "Training wird gestartet..."
 
-#: constants/dbTranslations.ts:79
+#: constants/dbTranslations.ts:94
 msgid "stationary bike"
 msgstr "Heimtrainer"
 
@@ -2803,7 +2831,7 @@ msgstr "Statistiken & Verlauf"
 msgid "Stats Options"
 msgstr "Statistikoptionen"
 
-#: constants/dbTranslations.ts:80
+#: constants/dbTranslations.ts:95
 msgid "stepmill machine"
 msgstr "Treppensteiger"
 
@@ -2824,7 +2852,7 @@ msgstr "So"
 msgid "Success"
 msgstr "Erfolg"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:395
+#: app/(app)/(tabs)/(stats)/index.tsx:398
 msgid "Summary"
 msgstr "Zusammenfassung"
 
@@ -2912,6 +2940,14 @@ msgstr "Der Pausentimer startet nach jedem Satz automatisch und zählt bis null 
 msgid "The Stats tab shows total workouts, total volume, total time, and average session duration over a selectable time range, with a period-over-period delta for each metric. Charts display weekly volume and your training split by body part. Browse your full workout history and tap any session to review every set in detail, including weights, reps, time, or distance. You can edit or delete completed workouts from the history details screen. Tap the calendar icon in the Workout History section to open a calendar view: days with workouts are highlighted with a yellow circle, and tapping any day shows the workouts logged on that date."
 msgstr "Der Statistiken-Tab zeigt Gesamttrainings, Gesamtvolumen, Gesamtzeit und durchschnittliche Einheitsdauer über einen auswählbaren Zeitraum, mit einer Periode-zu-Periode-Differenz für jede Kennzahl. Diagramme zeigen wöchentliches Volumen und deinen Trainings-Split nach Körperteil. Durchsuche deine vollständige Trainingshistorie und tippe auf eine Einheit, um jeden Satz im Detail einzusehen, einschließlich Gewichte, Wiederholungen, Zeit oder Distanz. Du kannst abgeschlossene Trainings vom Verlaufsdetailsbildschirm bearbeiten oder löschen. Tippe auf das Kalendersymbol im Bereich Trainingshistorie, um eine Kalenderansicht zu öffnen: Tage mit Trainings sind mit einem gelben Kreis hervorgehoben, und ein Tippen auf einen Tag zeigt die an diesem Datum protokollierten Trainings."
 
+#: constants/dbTranslations.ts:76
+msgid "Thigh (L)"
+msgstr "Oberschenkel (L)"
+
+#: constants/dbTranslations.ts:77
+msgid "Thigh (R)"
+msgstr "Oberschenkel (R)"
+
 #: app/(app)/(create-plan)/exercises.tsx:138
 #: app/(app)/(create-plan)/exercises.tsx:167
 #: app/(app)/(workout)/exercises.tsx:97
@@ -2996,7 +3032,7 @@ msgstr "Heute"
 msgid "Top PR Sets"
 msgstr "Beste PR-Sätze"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:410
+#: app/(app)/(tabs)/(stats)/index.tsx:413
 msgid "Total Time"
 msgstr "Gesamtzeit"
 
@@ -3023,7 +3059,7 @@ msgstr ""
 "\n"
 "Wische durch die Einführungskarten, um mehr über die App zu erfahren."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:491
+#: app/(app)/(tabs)/(stats)/index.tsx:494
 msgid "Tracked Exercises"
 msgstr "Verfolgte Übungen"
 
@@ -3065,11 +3101,11 @@ msgstr "Trainingsplan"
 msgid "Training Plan Name"
 msgstr "Name des Trainingsplans"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:478
+#: app/(app)/(tabs)/(stats)/index.tsx:481
 msgid "Training Split (by sets)"
 msgstr "Trainings-Split (nach Sätzen)"
 
-#: constants/dbTranslations.ts:81
+#: constants/dbTranslations.ts:96
 msgid "trap bar"
 msgstr "Trapezstange"
 
@@ -3081,7 +3117,7 @@ msgstr "Trapezmuskel"
 msgid "traps"
 msgstr "Trapez"
 
-#: constants/dbTranslations.ts:82
+#: constants/dbTranslations.ts:97
 msgid "treadmill"
 msgstr "Laufband"
 
@@ -3128,6 +3164,14 @@ msgstr "Unbekannt"
 msgid "Uploading. Please wait..."
 msgstr "Hochladen. Bitte warten..."
 
+#: constants/dbTranslations.ts:74
+msgid "Upper Arm (L)"
+msgstr "Oberarm (L)"
+
+#: constants/dbTranslations.ts:75
+msgid "Upper Arm (R)"
+msgstr "Oberarm (R)"
+
 #: constants/dbTranslations.ts:14
 msgid "upper arms"
 msgstr "Oberarme"
@@ -3136,7 +3180,7 @@ msgstr "Oberarme"
 msgid "upper back"
 msgstr "oberer Rücken"
 
-#: constants/dbTranslations.ts:83
+#: constants/dbTranslations.ts:98
 msgid "upper body ergometer"
 msgstr "Oberkörperergometer"
 
@@ -3156,7 +3200,7 @@ msgstr "Historie aus demselben Training"
 msgid "Using most recent from any workout"
 msgstr "Aktuellste aus beliebigem Training"
 
-#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:148
+#: app/(app)/(tabs)/(stats)/measurements-detail.tsx:149
 msgid "Values"
 msgstr "Werte"
 
@@ -3164,7 +3208,7 @@ msgstr "Werte"
 msgid "Vibrate after rest"
 msgstr "Nach Pause vibrieren"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:539
+#: app/(app)/(tabs)/(stats)/index.tsx:542
 msgid "View All"
 msgstr "Alle anzeigen"
 
@@ -3186,11 +3230,11 @@ msgstr "Anzeigen/Bearbeiten"
 msgid "Volume"
 msgstr "Volumen"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:404
+#: app/(app)/(tabs)/(stats)/index.tsx:407
 msgid "Volume ({volumeUnit})"
 msgstr "Volumen ({volumeUnit})"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:462
+#: app/(app)/(tabs)/(stats)/index.tsx:465
 msgid "Volume per Week ({volumeUnit})"
 msgstr "Volumen pro Woche ({volumeUnit})"
 
@@ -3205,6 +3249,10 @@ msgstr "vs. letztes \"{0}\""
 
 #: constants/dbTranslations.ts:16
 msgid "waist"
+msgstr "Taille"
+
+#: constants/dbTranslations.ts:70
+msgid "Waist"
 msgstr "Taille"
 
 #: components/SessionSetInfo.tsx:252
@@ -3325,7 +3373,7 @@ msgstr "Training abgeschlossen!"
 msgid "Workout Details"
 msgstr "Trainingsdetails"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:426
+#: app/(app)/(tabs)/(stats)/index.tsx:429
 msgid "Workout History"
 msgstr "Trainingshistorie"
 
@@ -3356,13 +3404,13 @@ msgstr "Trainingserinnerungen"
 msgid "Workout Summary"
 msgstr "Trainingsübersicht"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:399
+#: app/(app)/(tabs)/(stats)/index.tsx:402
 #: components/WeeklySummaryCard.tsx:271
 #: constants/HelpData.ts:38
 msgid "Workouts"
 msgstr "Trainings"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:449
+#: app/(app)/(tabs)/(stats)/index.tsx:452
 msgid "Workouts per Week"
 msgstr "Trainings pro Woche"
 
