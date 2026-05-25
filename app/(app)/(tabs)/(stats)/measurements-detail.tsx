@@ -131,10 +131,8 @@ export default function MeasurementDetailScreen() {
     );
   }
 
-  const entryDateStr = format(
-    parseDbDate(session.entry.recorded_at),
-    "MMM d, yyyy",
-  );
+  const entryDate = parseDbDate(session.entry.recorded_at);
+  const entryDateStr = `${format(entryDate, "MMM d, yyyy")}, ${new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(entryDate)}`;
 
   return (
     <ThemedView style={{ flex: 1 }}>

@@ -36,6 +36,16 @@ function formatEntryDate(recorded_at: string): string {
   return format(parseDbDate(recorded_at), "MMM d, yyyy");
 }
 
+function formatHistoryDate(recorded_at: string): string {
+  const date = parseDbDate(recorded_at);
+  const datePart = format(date, "MMM d, yyyy");
+  const timePart = new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+  return `${datePart}, ${timePart}`;
+}
+
 function latestValueForMetric(
   sessions: BodyMeasurementSession[],
   metricId: number,
@@ -238,7 +248,7 @@ export default function MeasurementsScreen() {
             >
               <View style={styles.sessionContent}>
                 <ThemedText style={styles.sessionDate}>
-                  {formatEntryDate(session.entry.recorded_at)}
+                  {formatHistoryDate(session.entry.recorded_at)}
                 </ThemedText>
                 <View style={styles.sessionValues}>
                   {session.values.slice(0, 3).map((v) => {
