@@ -1918,7 +1918,7 @@ export const fetchBodyMeasurementSessions = async (
       `SELECT
          bme.id          AS entry_id,
          bme.recorded_at,
-         bmd.id          AS metric_id,
+         bmd.id,
          bmd.key,
          bmd.label,
          bmd.value_kind,
