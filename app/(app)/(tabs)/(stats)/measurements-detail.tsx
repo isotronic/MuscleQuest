@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import { ActivityIndicator, Button, Card } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { format } from "date-fns";
@@ -25,6 +26,7 @@ import {
   useDeleteBodyMeasurementMutation,
 } from "@/hooks/useBodyMeasurementMutations";
 import { BodyMetricDefinition } from "@/utils/database";
+import { bodyMetricTranslations } from "@/constants/dbTranslations";
 
 function parseDbDate(recorded_at: string): Date {
   return new Date(
@@ -33,6 +35,7 @@ function parseDbDate(recorded_at: string): Date {
 }
 
 export default function MeasurementDetailScreen() {
+  const { _ } = useLingui();
   const { entryId } = useLocalSearchParams<{ entryId: string }>();
   const router = useRouter();
 
@@ -150,7 +153,9 @@ export default function MeasurementDetailScreen() {
           {session.values.map((v) => (
             <View key={v.metric.id} style={styles.metricRow}>
               <ThemedText style={styles.metricLabel}>
-                {v.metric.label}
+                {bodyMetricTranslations[v.metric.key]
+                  ? _(bodyMetricTranslations[v.metric.key])
+                  : v.metric.label}
               </ThemedText>
               <View style={styles.metricInputWrap}>
                 <TextInput
@@ -194,7 +199,9 @@ export default function MeasurementDetailScreen() {
                   <ThemedText
                     style={[styles.chipText, active && styles.chipTextActive]}
                   >
-                    {v.metric.label}
+                    {bodyMetricTranslations[v.metric.key]
+                      ? _(bodyMetricTranslations[v.metric.key])
+                      : v.metric.label}
                   </ThemedText>
                 </TouchableOpacity>
               );
@@ -215,7 +222,11 @@ export default function MeasurementDetailScreen() {
                       ? "%"
                       : sizeUnit
                 }
-                metricLabel={selectedMetric.label}
+                metricLabel={
+                  bodyMetricTranslations[selectedMetric.key]
+                    ? _(bodyMetricTranslations[selectedMetric.key])
+                    : selectedMetric.label
+                }
               />
             </Card>
           )}

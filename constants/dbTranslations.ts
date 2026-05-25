@@ -64,6 +64,21 @@ export const muscleTranslations: Record<string, MessageDescriptor> = {
   wrists: msg`wrists`,
 };
 
+export const bodyMetricTranslations: Record<string, MessageDescriptor> = {
+  weight: msg`Body Weight`,
+  body_fat_pct: msg`Body Fat`,
+  waist: msg`Waist`,
+  hips: msg`Hips`,
+  chest: msg`Chest`,
+  neck: msg`Neck`,
+  upper_arm_left: msg`Upper Arm (L)`,
+  upper_arm_right: msg`Upper Arm (R)`,
+  thigh_left: msg`Thigh (L)`,
+  thigh_right: msg`Thigh (R)`,
+  calf_left: msg`Calf (L)`,
+  calf_right: msg`Calf (R)`,
+};
+
 export const equipmentTranslations: Record<string, MessageDescriptor> = {
   barbell: msg`barbell`,
   "body weight": msg`body weight`,

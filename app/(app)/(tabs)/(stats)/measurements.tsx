@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t, plural } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import { ActivityIndicator, Button, Divider } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
@@ -23,6 +24,7 @@ import { useActiveBodyMetricDefinitionsQuery } from "@/hooks/useBodyMetricDefini
 import { useBodyMeasurementSessionsQuery } from "@/hooks/useBodyMeasurementSessionsQuery";
 import { useInsertBodyMeasurementMutation } from "@/hooks/useBodyMeasurementMutations";
 import { BodyMeasurementSession } from "@/utils/database";
+import { bodyMetricTranslations } from "@/constants/dbTranslations";
 
 function parseDbDate(recorded_at: string): Date {
   return new Date(
@@ -46,6 +48,7 @@ function latestValueForMetric(
 }
 
 export default function MeasurementsScreen() {
+  const { _ } = useLingui();
   const router = useRouter();
   const { data: settings } = useSettingsQuery();
   const weightUnit = (settings?.weightUnit || "kg") as "kg" | "lbs";
@@ -238,11 +241,16 @@ export default function MeasurementsScreen() {
                   {formatEntryDate(session.entry.recorded_at)}
                 </ThemedText>
                 <View style={styles.sessionValues}>
-                  {session.values.slice(0, 3).map((v) => (
-                    <ThemedText key={v.metric.id} style={styles.sessionValue}>
-                      {v.metric.label}: {v.displayValue} {v.displayUnit}
-                    </ThemedText>
-                  ))}
+                  {session.values.slice(0, 3).map((v) => {
+                    const label = bodyMetricTranslations[v.metric.key]
+                      ? _(bodyMetricTranslations[v.metric.key])
+                      : v.metric.label;
+                    return (
+                      <ThemedText key={v.metric.id} style={styles.sessionValue}>
+                        {label}: {v.displayValue} {v.displayUnit}
+                      </ThemedText>
+                    );
+                  })}
                   {session.values.length > 3 && (
                     <ThemedText style={styles.sessionMore}>
                       {plural(session.values.length - 3, {

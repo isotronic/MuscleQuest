@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import { ActivityIndicator, Button, Switch } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
@@ -22,10 +23,12 @@ import {
   useSoftDeleteCustomBodyMetricMutation,
 } from "@/hooks/useBodyMetricMutations";
 import { type ValueKind } from "@/utils/measurementConversions";
+import { bodyMetricTranslations } from "@/constants/dbTranslations";
 
 const VALUE_KINDS: ValueKind[] = ["mass", "length", "percent"];
 
 export default function MeasurementsManageScreen() {
+  const { _ } = useLingui();
   const { data: metrics, isLoading } = useAllBodyMetricDefinitionsQuery();
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit ?? "kg";
@@ -174,7 +177,9 @@ export default function MeasurementsManageScreen() {
             <View key={metric.id} style={styles.metricRow}>
               <View style={styles.metricInfo}>
                 <ThemedText style={styles.metricLabel}>
-                  {metric.label}
+                  {bodyMetricTranslations[metric.key]
+                    ? _(bodyMetricTranslations[metric.key])
+                    : metric.label}
                 </ThemedText>
                 <ThemedText style={styles.metricKind}>
                   {KIND_UNIT[metric.value_kind]}

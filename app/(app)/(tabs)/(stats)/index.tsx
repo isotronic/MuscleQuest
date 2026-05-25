@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import {
   ActivityIndicator,
   Button,
@@ -36,6 +37,7 @@ import BodyPartChart from "@/components/charts/BodyPartChart";
 import { updateSettings } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatToHoursMinutes } from "@/utils/utility";
+import { bodyMetricTranslations } from "@/constants/dbTranslations";
 import Bugsnag from "@bugsnag/expo";
 
 const computeStats = (
@@ -88,6 +90,7 @@ const computeStats = (
 };
 
 export default function StatsScreen() {
+  const { _ } = useLingui();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: settings } = useSettingsQuery();
@@ -550,7 +553,11 @@ export default function StatsScreen() {
               <View style={styles.measurementGrid}>
                 {latestMeasurements[0].values.map((v) => (
                   <ThemedText key={v.metric.id} style={styles.measurementValue}>
-                    {v.metric.label}: {v.displayValue} {v.displayUnit}
+                    {bodyMetricTranslations[v.metric.key]
+                      ? _(bodyMetricTranslations[v.metric.key])
+                      : v.metric.label}
+                    {": "}
+                    {v.displayValue} {v.displayUnit}
                   </ThemedText>
                 ))}
               </View>
