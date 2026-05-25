@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   View,
   ScrollView,
@@ -61,15 +61,17 @@ export default function MeasurementDetailScreen() {
 
   // Initialise inputs from session values (once)
   const [initialised, setInitialised] = useState(false);
-  if (session && !initialised) {
-    const initial: Record<number, string> = {};
-    for (const v of session.values) {
-      initial[v.metric.id] = String(v.displayValue);
+  useEffect(() => {
+    if (session && !initialised) {
+      const initial: Record<number, string> = {};
+      for (const v of session.values) {
+        initial[v.metric.id] = String(v.displayValue);
+      }
+      setInputValues(initial);
+      setSelectedMetric(session.values[0]?.metric ?? null);
+      setInitialised(true);
     }
-    setInputValues(initial);
-    setSelectedMetric(session.values[0]?.metric ?? null);
-    setInitialised(true);
-  }
+  }, [session, entryId, initialised]);
 
   const { data: chartData } = useBodyMeasurementChartQuery(
     selectedMetric?.id ?? 0,
