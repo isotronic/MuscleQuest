@@ -1949,6 +1949,9 @@ export const insertBodyMeasurementSession = async (
 ): Promise<number> => {
   try {
     const db = await openDatabase("userData.db");
+    const weightMetric = await db.getFirstAsync<{ id: number }>(
+      `SELECT id FROM body_metric_definitions WHERE key = 'weight'`,
+    );
     let entryId = 0;
     await db.withExclusiveTransactionAsync(async (txn) => {
       const result = await txn.runAsync(
@@ -1961,6 +1964,19 @@ export const insertBodyMeasurementSession = async (
           `INSERT OR IGNORE INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
           [entryId, v.metric_id, v.value],
         );
+      }
+      if (weightMetric) {
+        const weightValue = values.find((v) => v.metric_id === weightMetric.id);
+        if (weightValue) {
+          await txn.runAsync(
+            `INSERT INTO body_measurements (date, body_weight) VALUES (?, ?)`,
+            [recorded_at, weightValue.value],
+          );
+          await txn.runAsync(
+            `INSERT OR REPLACE INTO settings (key, value) VALUES ('bodyWeight', ?)`,
+            [weightValue.value.toString()],
+          );
+        }
       }
     });
     return entryId;
