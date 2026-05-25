@@ -2033,6 +2033,19 @@ export const updateBodyMeasurementSession = async (
               [weightValue.value.toString()],
             );
           }
+        } else {
+          // Weight metric was removed from this entry — clear legacy mirrors
+          const entry = await txn.getFirstAsync<{ recorded_at: string }>(
+            `SELECT recorded_at FROM body_measurement_entries WHERE id = ?`,
+            [entry_id],
+          );
+          if (entry) {
+            await txn.runAsync(
+              `UPDATE body_measurements SET body_weight = NULL WHERE date = ?`,
+              [entry.recorded_at],
+            );
+            await txn.runAsync(`DELETE FROM settings WHERE key = 'bodyWeight'`);
+          }
         }
       }
     });
@@ -2094,6 +2107,10 @@ export const deleteBodyMeasurementSession = async (
               await txn.runAsync(
                 `INSERT OR REPLACE INTO settings (key, value) VALUES ('bodyWeight', ?)`,
                 [nextWeight.body_weight.toString()],
+              );
+            } else {
+              await txn.runAsync(
+                `DELETE FROM settings WHERE key = 'bodyWeight'`,
               );
             }
           }
