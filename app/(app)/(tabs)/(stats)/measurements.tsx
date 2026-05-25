@@ -126,25 +126,25 @@ export default function MeasurementsScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Manage button row */}
-        <View style={styles.manageRow}>
-          <Button
-            mode="text"
-            compact
-            labelStyle={{ color: Colors.dark.tint, fontSize: 13 }}
-            onPress={() =>
-              router.push("/(app)/(tabs)/(stats)/measurements-manage" as never)
-            }
-          >
-            <Trans>Manage metrics</Trans>
-          </Button>
-        </View>
-
         {/* Entry form */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>
-            <Trans>Log Entry</Trans>
-          </ThemedText>
+          <View style={styles.sectionHeader}>
+            <ThemedText style={styles.sectionTitle}>
+              <Trans>Log Entry</Trans>
+            </ThemedText>
+            <Button
+              mode="text"
+              compact
+              labelStyle={{ color: Colors.dark.tint, fontSize: 13 }}
+              onPress={() =>
+                router.push(
+                  "/(app)/(tabs)/(stats)/measurements-manage" as never,
+                )
+              }
+            >
+              <Trans>Manage metrics</Trans>
+            </Button>
+          </View>
 
           {/* Date row */}
           <TouchableOpacity
@@ -304,17 +304,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
   },
-  manageRow: {
-    alignItems: "flex-end",
-    marginBottom: 4,
-  },
   section: {
     marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 17,
     fontWeight: "bold",
-    marginBottom: 12,
   },
   dateRow: {
     flexDirection: "row",
