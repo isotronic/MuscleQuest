@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   ScrollView,
@@ -74,10 +74,16 @@ export default function MeasurementsScreen() {
   const [inputValues, setInputValues] = useState<Record<number, string>>({});
   const [entryDate, setEntryDate] = useState(new Date().toISOString());
   const [calendarVisible, setCalendarVisible] = useState(false);
+  // Skip one repopulation after the form is deliberately cleared on success
+  const skipPopulateRef = useRef(false);
 
   // Pre-fill with most recent values for each metric
   useEffect(() => {
     if (!metrics || !sessions) return;
+    if (skipPopulateRef.current) {
+      skipPopulateRef.current = false;
+      return;
+    }
     setInputValues((prev) => {
       const next: Record<number, string> = {};
       for (const metric of metrics) {
@@ -117,6 +123,7 @@ export default function MeasurementsScreen() {
       { recorded_at: entryDate, values },
       {
         onSuccess: () => {
+          skipPopulateRef.current = true;
           setInputValues({});
           setEntryDate(new Date().toISOString());
         },
