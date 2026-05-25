@@ -210,14 +210,23 @@ export const BodyMeasurementLineChart: React.FC<
 > = ({ data, timeRange, unit, metricLabel }) => {
   const { width: screenWidth } = useWindowDimensions();
 
-  const chartData = useMemo(() => {
+  const { chartData, yAxisOffset, yAxisMax } = useMemo(() => {
     const buckets = groupMeasurementsByTime(data, timeRange);
     // Only include buckets with actual data — measurements are point-in-time
     // snapshots, so gaps between measurements are real and should not be filled
     const dataPoints = buckets.filter((b) => b.hasData);
-    if (dataPoints.length === 0) return [];
+    if (dataPoints.length === 0)
+      return { chartData: [], yAxisOffset: 0, yAxisMax: 100 };
 
-    return dataPoints.map((bucket) => {
+    const values = dataPoints.map((b) => b.value ?? 0);
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
+    const range = maxVal - minVal;
+    const padding = Math.max(range * 0.15, 0.5);
+    const yMin = minVal - padding;
+    const yMax = maxVal + padding;
+
+    const points = dataPoints.map((bucket) => {
       const labelComponent = bucket.labelLine2
         ? () => (
             <View style={styles.twoLineLabel}>
@@ -234,6 +243,8 @@ export const BodyMeasurementLineChart: React.FC<
         dataPointRadius: 4,
       };
     });
+
+    return { chartData: points, yAxisOffset: yMin, yAxisMax: yMax - yMin };
   }, [data, timeRange]);
 
   // 30d uses "4 May" labels (~28px at size 9), needs more room than single-digit labels
@@ -279,6 +290,8 @@ export const BodyMeasurementLineChart: React.FC<
         xAxisColor={Colors.dark.subText}
         hideRules
         noOfSections={3}
+        yAxisOffset={yAxisOffset}
+        maxValue={yAxisMax}
       />
     </View>
   );
