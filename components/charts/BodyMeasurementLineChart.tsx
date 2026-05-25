@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Text, View, StyleSheet, useWindowDimensions } from "react-native";
+import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { LineChart } from "react-native-gifted-charts";
 import { Colors } from "@/constants/Colors";
@@ -60,7 +61,10 @@ export const groupMeasurementsByTime = (
     }
 
     for (const pt of points) {
-      const d = new Date(pt.recorded_at);
+      const iso = pt.recorded_at.includes("T")
+        ? pt.recorded_at
+        : pt.recorded_at.replace(" ", "T");
+      const d = new Date(iso);
       const weekStart = new Date(d);
       weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
       const internalKey = `${weekStart.getFullYear()}-${weekStart.getMonth()}-${weekStart.getDate()}`;
@@ -99,7 +103,10 @@ export const groupMeasurementsByTime = (
     }
 
     for (const pt of points) {
-      const d = new Date(pt.recorded_at);
+      const iso = pt.recorded_at.includes("T")
+        ? pt.recorded_at
+        : pt.recorded_at.replace(" ", "T");
+      const d = new Date(iso);
       const internalKey = `${d.getFullYear()}-${d.getMonth()}`;
       const idx = keyToIndex.get(internalKey);
       if (idx !== undefined) {
@@ -115,8 +122,10 @@ export const groupMeasurementsByTime = (
   if (timeRange === "0") {
     if (points.length === 0) return [];
 
-    const earliest = new Date(points[0].recorded_at);
-    const latest = new Date(points[points.length - 1].recorded_at);
+    const parseTs = (s: string) =>
+      new Date(s.includes("T") ? s : s.replace(" ", "T"));
+    const earliest = parseTs(points[0].recorded_at);
+    const latest = parseTs(points[points.length - 1].recorded_at);
     const spanYears =
       (latest.getTime() - earliest.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
 
@@ -179,7 +188,7 @@ export const groupMeasurementsByTime = (
     }
 
     for (const pt of points) {
-      const internalKey = getKey(new Date(pt.recorded_at));
+      const internalKey = getKey(parseTs(pt.recorded_at));
       const idx = keyToIndex.get(internalKey);
       if (idx !== undefined) {
         buckets[idx].value = pt.displayValue;
@@ -241,7 +250,7 @@ export const BodyMeasurementLineChart: React.FC<
     return (
       <View style={styles.empty}>
         <ThemedText style={styles.emptyText}>
-          No data for this period
+          {t`No data for this period`}
         </ThemedText>
       </View>
     );
