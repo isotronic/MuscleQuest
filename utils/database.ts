@@ -1972,10 +1972,19 @@ export const insertBodyMeasurementSession = async (
             `INSERT INTO body_measurements (date, body_weight) VALUES (?, ?)`,
             [recorded_at, weightValue.value],
           );
-          await txn.runAsync(
-            `INSERT OR REPLACE INTO settings (key, value) VALUES ('bodyWeight', ?)`,
-            [weightValue.value.toString()],
+          // Recompute settings.bodyWeight from the latest remaining weight so
+          // inserting a past-dated entry doesn't overwrite a newer one.
+          const latestWeight = await txn.getFirstAsync<{ body_weight: number }>(
+            `SELECT body_weight FROM body_measurements
+             WHERE body_weight IS NOT NULL
+             ORDER BY date DESC LIMIT 1`,
           );
+          if (latestWeight) {
+            await txn.runAsync(
+              `INSERT OR REPLACE INTO settings (key, value) VALUES ('bodyWeight', ?)`,
+              [latestWeight.body_weight.toString()],
+            );
+          }
         }
       }
     });
