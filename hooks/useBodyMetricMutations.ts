@@ -4,8 +4,8 @@ import {
   toggleBodyMetricActive,
   insertCustomBodyMetricDefinition,
   softDeleteCustomBodyMetricDefinition,
-  ValueKind,
 } from "@/utils/database";
+import { type ValueKind } from "@/utils/measurementConversions";
 
 const invalidateDefinitions = (
   queryClient: ReturnType<typeof useQueryClient>,

@@ -24,7 +24,7 @@ type Bucket = {
   hasData: boolean;
 };
 
-const groupMeasurementsByTime = (
+export const groupMeasurementsByTime = (
   points: DataPoint[],
   timeRange: string,
 ): Bucket[] => {

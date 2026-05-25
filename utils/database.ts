@@ -2,6 +2,11 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { UserExercise, Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import * as SQLite from "expo-sqlite";
+import {
+  toDisplayValue,
+  type ValueKind,
+  type MeasurementDisplayOptions,
+} from "@/utils/measurementConversions";
 
 export interface Exercise {
   exercise_id: number;
@@ -1695,8 +1700,6 @@ export const fetchSetDurationsForExercises = async (
 
 // ─── Body Measurements ────────────────────────────────────────────────────────
 
-export type ValueKind = "mass" | "length" | "percent";
-
 export interface BodyMetricDefinition {
   id: number;
   key: string;
@@ -1711,11 +1714,6 @@ export interface BodyMetricDefinition {
 export interface BodyMeasurementEntry {
   id: number;
   recorded_at: string;
-}
-
-export interface MeasurementDisplayOptions {
-  weightUnit: "kg" | "lbs";
-  sizeUnit: "cm" | "in";
 }
 
 export interface BodyMeasurementSession {
@@ -1752,63 +1750,6 @@ function rowToMetricDefinition(
     is_deleted: row.is_deleted === 1,
     sort_order: row.sort_order,
   };
-}
-
-export function toDisplayValue(
-  canonicalValue: number,
-  value_kind: ValueKind,
-  options: MeasurementDisplayOptions,
-): { displayValue: number; displayUnit: string } {
-  switch (value_kind) {
-    case "mass":
-      if (options.weightUnit === "lbs") {
-        return {
-          displayValue: parseFloat((canonicalValue * 2.2046226).toFixed(1)),
-          displayUnit: "lbs",
-        };
-      }
-      return {
-        displayValue: parseFloat(canonicalValue.toFixed(1)),
-        displayUnit: "kg",
-      };
-    case "length":
-      if (options.sizeUnit === "in") {
-        return {
-          displayValue: parseFloat((canonicalValue / 2.54).toFixed(1)),
-          displayUnit: "in",
-        };
-      }
-      return {
-        displayValue: parseFloat(canonicalValue.toFixed(1)),
-        displayUnit: "cm",
-      };
-    case "percent":
-      return {
-        displayValue: parseFloat(canonicalValue.toFixed(1)),
-        displayUnit: "%",
-      };
-  }
-}
-
-export function toCanonicalValue(
-  displayValue: number,
-  value_kind: ValueKind,
-  options: MeasurementDisplayOptions,
-): number {
-  switch (value_kind) {
-    case "mass":
-      if (options.weightUnit === "lbs") {
-        return parseFloat((displayValue * 0.45359237).toFixed(4));
-      }
-      return displayValue;
-    case "length":
-      if (options.sizeUnit === "in") {
-        return parseFloat((displayValue * 2.54).toFixed(4));
-      }
-      return displayValue;
-    case "percent":
-      return displayValue;
-  }
 }
 
 export const fetchActiveBodyMetricDefinitions = async (): Promise<

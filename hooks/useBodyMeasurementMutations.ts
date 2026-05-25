@@ -4,10 +4,12 @@ import {
   insertBodyMeasurementSession,
   updateBodyMeasurementSession,
   deleteBodyMeasurementSession,
-  toCanonicalValue,
-  ValueKind,
-  MeasurementDisplayOptions,
 } from "@/utils/database";
+import {
+  toCanonicalValue,
+  type ValueKind,
+  type MeasurementDisplayOptions,
+} from "@/utils/measurementConversions";
 
 type DisplayValue = {
   metric_id: number;

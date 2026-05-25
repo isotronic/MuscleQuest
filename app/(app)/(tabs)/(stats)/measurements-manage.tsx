@@ -21,7 +21,7 @@ import {
   useInsertCustomBodyMetricMutation,
   useSoftDeleteCustomBodyMetricMutation,
 } from "@/hooks/useBodyMetricMutations";
-import { ValueKind } from "@/utils/database";
+import { type ValueKind } from "@/utils/measurementConversions";
 
 const VALUE_KINDS: ValueKind[] = ["mass", "length", "percent"];
 

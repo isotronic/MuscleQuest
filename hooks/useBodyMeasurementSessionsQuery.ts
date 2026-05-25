@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchBodyMeasurementSessions,
   fetchBodyMeasurementSessionsForChart,
-  MeasurementDisplayOptions,
 } from "@/utils/database";
+import { type MeasurementDisplayOptions } from "@/utils/measurementConversions";
 
 export const useBodyMeasurementSessionsQuery = (
   options: MeasurementDisplayOptions,
