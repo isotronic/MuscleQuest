@@ -477,7 +477,7 @@ msgstr " (bis zum Versagen) "
 
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:77
 msgid "\"{label}\" will be hidden from the entry form. Your historical data is preserved."
-msgstr "„{label}\" wird aus dem Eingabeformular ausgeblendet. Deine historischen Daten bleiben erhalten."
+msgstr "„{label}“ wird aus dem Eingabeformular ausgeblendet. Deine historischen Daten bleiben erhalten."
 
 #: components/WorkoutCard.tsx:263
 #: components/WorkoutDetailsScreen.tsx:141
@@ -520,6 +520,11 @@ msgstr "{0, plural, one {# Satz} other {# Sätze}}"
 #: components/WorkoutCard.tsx:259
 msgid "{0, plural, one {# Set} other {# Sets}}"
 msgstr "{0, plural, one {# Satz} other {# Sätze}}"
+
+#. placeholder {0}: session.values.length - 3
+#: app/(app)/(tabs)/(stats)/measurements.tsx:247
+msgid "{0, plural, one {+# more} other {+# more}}"
+msgstr "{0, plural, one {+# mehr} other {+# mehr}}"
 
 #. placeholder {0}: Math.abs(setsDiff)
 #: app/(app)/(workout)/workout-summary.tsx:526
@@ -2137,6 +2142,10 @@ msgstr "Keine Sicherungen gefunden"
 msgid "No data available."
 msgstr "Keine Daten verfügbar."
 
+#: components/charts/BodyMeasurementLineChart.tsx:253
+msgid "No data for this period"
+msgstr "Keine Daten für diesen Zeitraum"
+
 #: app/(app)/(tabs)/(stats)/exercise-detail.tsx:217
 msgid "No data for this period."
 msgstr "Keine Daten für diesen Zeitraum."
@@ -2998,7 +3007,7 @@ msgstr "Verfolgen ({0})"
 
 #: constants/HelpData.ts:109
 msgid "Track your body composition over time from the Measurements section in the Stats tab. Use the Log Entry form to record values for any active metric, then tap a past entry in the History list to review or edit it. On the entry detail screen, tap a metric chip to switch the chart between different measurements and use the time range selector to zoom in or out. Metrics are split into three types: mass (weight, in kg or lbs), length (circumferences like waist and hips, in cm or in), and percentage (body fat). Units follow your weight and size preferences in Settings. To control which metrics appear in the entry form, tap Manage Metrics at the top of the Log Entry section. Built-in metrics can be toggled on or off; you can also create your own custom metrics and choose their type. Custom metrics can be hidden from the form at any time, and your historical data for them is always preserved."
-msgstr "Verfolge deine Körperzusammensetzung im Zeitverlauf im Bereich Messungen des Stats-Tabs. Verwende das Formular „Eintrag erfassen\", um Werte für jeden aktiven Messwert einzutragen, und tippe dann auf einen vergangenen Eintrag in der Verlaufsliste, um ihn anzusehen oder zu bearbeiten. Tippe auf dem Eintragsdetailbildschirm auf einen Messwert-Chip, um das Diagramm zwischen verschiedenen Messwerten zu wechseln, und nutze die Zeitbereichsauswahl zum Vergrößern oder Verkleinern. Messwerte sind in drei Typen unterteilt: Masse (Gewicht, in kg oder lbs), Länge (Umfänge wie Taille und Hüften, in cm oder Zoll) und Prozent (Körperfettanteil). Einheiten folgen deinen Gewichts- und Größeneinstellungen. Tippe auf „Messwerte verwalten\" oben im Bereich „Eintrag erfassen\", um zu steuern, welche Messwerte im Formular erscheinen. Integrierte Messwerte können ein- oder ausgeschaltet werden; du kannst auch eigene Messwerte erstellen und deren Typ auswählen. Eigene Messwerte können jederzeit ausgeblendet werden, und deine historischen Daten bleiben stets erhalten."
+msgstr "Verfolge deine Körperzusammensetzung im Zeitverlauf im Bereich Messungen des Stats-Tabs. Verwende das Formular „Eintrag erfassen“, um Werte für jeden aktiven Messwert einzutragen, und tippe dann auf einen vergangenen Eintrag in der Verlaufsliste, um ihn anzusehen oder zu bearbeiten. Tippe auf dem Eintragsdetailbildschirm auf einen Messwert-Chip, um das Diagramm zwischen verschiedenen Messwerten zu wechseln, und nutze die Zeitbereichsauswahl zum Vergrößern oder Verkleinern. Messwerte sind in drei Typen unterteilt: Masse (Gewicht, in kg oder lbs), Länge (Umfänge wie Taille und Hüften, in cm oder Zoll) und Prozent (Körperfettanteil). Einheiten folgen deinen Gewichts- und Größeneinstellungen. Tippe auf „Messwerte verwalten“ oben im Bereich „Eintrag erfassen“, um zu steuern, welche Messwerte im Formular erscheinen. Integrierte Messwerte können ein- oder ausgeschaltet werden; du kannst auch eigene Messwerte erstellen und deren Typ auswählen. Eigene Messwerte können jederzeit ausgeblendet werden, und deine historischen Daten bleiben stets erhalten."
 
 #: components/Onboarding.tsx:27
 msgid "Track Your Progress"

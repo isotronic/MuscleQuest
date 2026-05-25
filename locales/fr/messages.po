@@ -315,12 +315,12 @@ msgstr ""
 "\n"
 "📏 Nouveau : Mesures corporelles !\n"
 "\n"
-"Suivez votre composition corporelle en parallèle de vos entraînements depuis la nouvelle section Mesures de l'onglet Statistiques.\n"
+"Suis ta composition corporelle en parallèle de tes entraînements depuis la nouvelle section Mesures de l'onglet Statistiques.\n"
 "\n"
-"• Enregistrez poids, % de masse grasse, tour de taille, hanches, poitrine et plus\n"
-"• Appuyez sur une entrée passée pour modifier les valeurs ou consulter un graphique\n"
-"• Gérez les mesures affichées et ajoutez vos propres mesures personnalisées\n"
-"• Les unités suivent vos préférences de poids et de taille dans Paramètres\n"
+"• Enregistre poids, % de masse grasse, tour de taille, hanches, poitrine et plus\n"
+"• Appuie sur une entrée passée pour modifier les valeurs ou consulter un graphique\n"
+"• Gère les mesures affichées et ajoute tes propres mesures personnalisées\n"
+"• Les unités suivent tes préférences de poids et de taille dans Paramètres\n"
 ""
 
 #: constants/WhatsNew.ts:142
@@ -477,7 +477,7 @@ msgstr " (jusqu'à l'échec) "
 
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:77
 msgid "\"{label}\" will be hidden from the entry form. Your historical data is preserved."
-msgstr "« {label} » sera masqué du formulaire de saisie. Vos données historiques sont conservées."
+msgstr "« {label} » sera masqué du formulaire de saisie. Tes données historiques sont conservées."
 
 #: components/WorkoutCard.tsx:263
 #: components/WorkoutDetailsScreen.tsx:141
@@ -520,6 +520,11 @@ msgstr "{0, plural, one {# série} other {# séries}}"
 #: components/WorkoutCard.tsx:259
 msgid "{0, plural, one {# Set} other {# Sets}}"
 msgstr "{0, plural, one {# Série} other {# Séries}}"
+
+#. placeholder {0}: session.values.length - 3
+#: app/(app)/(tabs)/(stats)/measurements.tsx:247
+msgid "{0, plural, one {+# more} other {+# more}}"
+msgstr "{0, plural, one {+# de plus} other {+# de plus}}"
 
 #. placeholder {0}: Math.abs(setsDiff)
 #: app/(app)/(workout)/workout-summary.tsx:526
@@ -954,7 +959,7 @@ msgstr "Tu es sûr de vouloir supprimer cet exercice ?"
 
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:97
 msgid "Are you sure you want to delete this measurement entry?"
-msgstr "Êtes-vous sûr de vouloir supprimer cette entrée de mesure ?"
+msgstr "Es-tu sûr de vouloir supprimer cette entrée de mesure ?"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:99
 msgid "Are you sure you want to delete this plan?"
@@ -1220,7 +1225,7 @@ msgstr "entraînements terminés"
 
 #: constants/HelpData.ts:119
 msgid "Configure weight, size, and distance units, default sets per exercise, default rest time, and the weight increment used by the ± buttons during a session. Adjust workout button size (Standard, Large, or XLarge) and toggle Keep Screen On to prevent the display sleeping mid-workout. Under Stats, you can exclude warmup sets from volume, double reps for unilateral exercises, or double the weight for paired implements, useful if you prefer logging per-dumbbell weight rather than the total. Set your body weight here; it is used to calculate effective load for assisted exercises."
-msgstr "Configurez les unités de poids, de taille et de distance, le nombre de séries par défaut par exercice, le temps de repos par défaut et l'incrément de poids des boutons ± pendant la séance. Ajustez la taille des boutons d'entraînement (Standard, Grand ou Très grand) et activez Garder l'écran allumé pour éviter que l'écran se mette en veille. Dans Statistiques, vous pouvez exclure les séries d'échauffement du volume, doubler les répétitions pour les exercices unilatéraux ou doubler le poids pour les appareils appariés, utile si vous préférez noter le poids d'une seule haltère plutôt que le total. Renseignez votre poids corporel ici ; il est utilisé pour calculer la charge effective des exercices assistés."
+msgstr "Configure les unités de poids, de taille et de distance, le nombre de séries par défaut par exercice, le temps de repos par défaut et l'incrément de poids des boutons ± pendant la séance. Ajuste la taille des boutons d'entraînement (Standard, Grand ou Très grand) et active Garder l'écran allumé pour éviter que l'écran se mette en veille. Dans Statistiques, tu peux exclure les séries d'échauffement du volume, doubler les répétitions pour les exercices unilatéraux ou doubler le poids pour les appareils appariés, utile si tu préfères noter le poids d'une seule haltère plutôt que le total. Renseigne ton poids corporel ici ; il est utilisé pour calculer la charge effective des exercices assistés."
 
 #: app/(app)/(create-plan)/create-workout.tsx:95
 #: app/(app)/(create-plan)/create.tsx:106
@@ -2137,6 +2142,10 @@ msgstr "Aucune sauvegarde trouvée"
 msgid "No data available."
 msgstr "Aucune donnée disponible."
 
+#: components/charts/BodyMeasurementLineChart.tsx:253
+msgid "No data for this period"
+msgstr "Aucune donnée pour cette période"
+
 #: app/(app)/(tabs)/(stats)/exercise-detail.tsx:217
 msgid "No data for this period."
 msgstr "Aucune donnée pour cette période."
@@ -2159,11 +2168,11 @@ msgstr "Aucun historique"
 
 #: app/(app)/(tabs)/(stats)/measurements.tsx:222
 msgid "No measurements yet. Log your first entry above."
-msgstr "Aucune mesure pour l'instant. Enregistrez votre première entrée ci-dessus."
+msgstr "Aucune mesure pour l'instant. Enregistre ta première entrée ci-dessus."
 
 #: app/(app)/(tabs)/(stats)/index.tsx:564
 msgid "No measurements yet. Tap to log your first entry."
-msgstr "Aucune mesure pour l'instant. Appuyez pour enregistrer votre première entrée."
+msgstr "Aucune mesure pour l'instant. Appuie pour enregistrer ta première entrée."
 
 #: app/(app)/help.tsx:168
 msgid "No results for “{query}”"
@@ -2998,7 +3007,7 @@ msgstr "Suivre ({0})"
 
 #: constants/HelpData.ts:109
 msgid "Track your body composition over time from the Measurements section in the Stats tab. Use the Log Entry form to record values for any active metric, then tap a past entry in the History list to review or edit it. On the entry detail screen, tap a metric chip to switch the chart between different measurements and use the time range selector to zoom in or out. Metrics are split into three types: mass (weight, in kg or lbs), length (circumferences like waist and hips, in cm or in), and percentage (body fat). Units follow your weight and size preferences in Settings. To control which metrics appear in the entry form, tap Manage Metrics at the top of the Log Entry section. Built-in metrics can be toggled on or off; you can also create your own custom metrics and choose their type. Custom metrics can be hidden from the form at any time, and your historical data for them is always preserved."
-msgstr "Suivez votre composition corporelle dans le temps depuis la section Mesures de l'onglet Statistiques. Utilisez le formulaire Saisir une entrée pour enregistrer des valeurs pour chaque mesure active, puis appuyez sur une entrée passée dans l'historique pour la consulter ou la modifier. Sur l'écran de détail de l'entrée, appuyez sur un chip de mesure pour basculer le graphique entre différentes mesures et utilisez le sélecteur de plage de temps pour zoomer ou dézoomer. Les mesures sont divisées en trois types : masse (poids, en kg ou lbs), longueur (circonférences comme la taille et les hanches, en cm ou pouces) et pourcentage (masse grasse). Les unités suivent vos préférences de poids et de taille dans Paramètres. Pour contrôler quelles mesures apparaissent dans le formulaire, appuyez sur Gérer les mesures en haut de la section Saisir une entrée. Les mesures intégrées peuvent être activées ou désactivées ; vous pouvez également créer vos propres mesures personnalisées et choisir leur type. Les mesures personnalisées peuvent être masquées du formulaire à tout moment, et vos données historiques sont toujours conservées."
+msgstr "Suis ta composition corporelle dans le temps depuis la section Mesures de l'onglet Statistiques. Utilise le formulaire Saisir une entrée pour enregistrer des valeurs pour chaque mesure active, puis appuie sur une entrée passée dans l'historique pour la consulter ou la modifier. Sur l'écran de détail de l'entrée, appuie sur un chip de mesure pour basculer le graphique entre différentes mesures et utilise le sélecteur de plage de temps pour zoomer ou dézoomer. Les mesures sont divisées en trois types : masse (poids, en kg ou lbs), longueur (circonférences comme la taille et les hanches, en cm ou pouces) et pourcentage (masse grasse). Les unités suivent tes préférences de poids et de taille dans Paramètres. Pour contrôler quelles mesures apparaissent dans le formulaire, appuie sur Gérer les mesures en haut de la section Saisir une entrée. Les mesures intégrées peuvent être activées ou désactivées ; tu peux également créer tes propres mesures personnalisées et choisir leur type. Les mesures personnalisées peuvent être masquées du formulaire à tout moment, et tes données historiques sont toujours conservées."
 
 #: components/Onboarding.tsx:27
 msgid "Track Your Progress"

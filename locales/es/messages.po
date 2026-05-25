@@ -521,6 +521,11 @@ msgstr "{0, plural, one {# serie} other {# series}}"
 msgid "{0, plural, one {# Set} other {# Sets}}"
 msgstr "{0, plural, one {# Serie} other {# Series}}"
 
+#. placeholder {0}: session.values.length - 3
+#: app/(app)/(tabs)/(stats)/measurements.tsx:247
+msgid "{0, plural, one {+# more} other {+# more}}"
+msgstr "{0, plural, one {+# más} other {+# más}}"
+
 #. placeholder {0}: Math.abs(setsDiff)
 #: app/(app)/(workout)/workout-summary.tsx:526
 msgid "{0, plural, one {set} other {sets}}"
@@ -1789,7 +1794,7 @@ msgstr "Viernes"
 
 #: components/ExerciseTimerModal.tsx:157
 msgid "Get Ready..."
-msgstr "¡Prepárate..."
+msgstr "¡Prepárate...!"
 
 #: app/(app)/(workout)/index.tsx:920
 msgid "Give it a name to save it as a reusable workout."
@@ -2136,6 +2141,10 @@ msgstr "No se encontraron copias de seguridad"
 #: components/charts/BodyPartChart.tsx:204
 msgid "No data available."
 msgstr "No hay datos disponibles."
+
+#: components/charts/BodyMeasurementLineChart.tsx:253
+msgid "No data for this period"
+msgstr "No hay datos para este período"
 
 #: app/(app)/(tabs)/(stats)/exercise-detail.tsx:217
 msgid "No data for this period."
