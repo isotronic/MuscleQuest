@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 import {
   ActivityIndicator,
   Button,
@@ -27,6 +28,7 @@ import { StatsTile } from "@/components/stats/StatsTile";
 import { ExerciseCompactCard } from "@/components/stats/ExerciseCompactCard";
 import { useRouter } from "expo-router";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useBodyMeasurementSessionsQuery } from "@/hooks/useBodyMeasurementSessionsQuery";
 import { useTrackedExercisesQuery } from "@/hooks/useTrackedExercisesQuery";
 import { useStatsInsights } from "@/hooks/useStatsInsights";
 import { WorkoutBarChart } from "@/components/charts/WorkoutBarChart";
@@ -35,6 +37,7 @@ import BodyPartChart from "@/components/charts/BodyPartChart";
 import { updateSettings } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatToHoursMinutes } from "@/utils/utility";
+import { bodyMetricTranslations } from "@/constants/dbTranslations";
 import Bugsnag from "@bugsnag/expo";
 
 const computeStats = (
@@ -87,11 +90,13 @@ const computeStats = (
 };
 
 export default function StatsScreen() {
+  const { _ } = useLingui();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
+  const sizeUnit = (settings?.sizeUnit || "cm") as "cm" | "in";
   const excludeWarmup = settings?.excludeWarmupSets === "true";
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
@@ -134,6 +139,11 @@ export default function StatsScreen() {
     weightUnit,
     distanceUnit,
     parseInt(selectedTimeRange),
+  );
+
+  const { data: latestMeasurements } = useBodyMeasurementSessionsQuery(
+    { weightUnit: weightUnit as "kg" | "lbs", sizeUnit },
+    1,
   );
 
   const {
@@ -514,6 +524,57 @@ export default function StatsScreen() {
             </ThemedText>
           )}
         </View>
+
+        {/* Body Measurements */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <ThemedText style={styles.sectionTitle}>
+              <Trans>Body Measurements</Trans>
+            </ThemedText>
+            <Button
+              mode="text"
+              compact
+              labelStyle={{ color: Colors.dark.tint, fontSize: 13 }}
+              onPress={() =>
+                router.push("/(app)/(tabs)/(stats)/measurements" as never)
+              }
+            >
+              <Trans>View All</Trans>
+            </Button>
+          </View>
+          {latestMeasurements && latestMeasurements.length > 0 ? (
+            <TouchableOpacity
+              style={styles.measurementTile}
+              activeOpacity={0.7}
+              onPress={() =>
+                router.push("/(app)/(tabs)/(stats)/measurements" as never)
+              }
+            >
+              <View style={styles.measurementGrid}>
+                {latestMeasurements[0].values.map((v) => (
+                  <ThemedText key={v.metric.id} style={styles.measurementValue}>
+                    {bodyMetricTranslations[v.metric.key]
+                      ? _(bodyMetricTranslations[v.metric.key])
+                      : v.metric.label}
+                    {": "}
+                    {v.displayValue} {v.displayUnit}
+                  </ThemedText>
+                ))}
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() =>
+                router.push("/(app)/(tabs)/(stats)/measurements" as never)
+              }
+            >
+              <ThemedText style={{ color: Colors.dark.subText }}>
+                <Trans>No measurements yet. Tap to log your first entry.</Trans>
+              </ThemedText>
+            </TouchableOpacity>
+          )}
+        </View>
       </ScrollView>
       <WorkoutCalendarModal
         visible={historyVisible}
@@ -566,5 +627,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
+  },
+  measurementTile: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: Colors.dark.cardBackground,
+  },
+  measurementGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  measurementValue: {
+    width: "50%",
+    fontSize: 13,
+    lineHeight: 19,
+    color: Colors.dark.subText,
   },
 });

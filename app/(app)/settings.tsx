@@ -27,7 +27,7 @@ import { SettingsModal } from "@/components/SettingsModal";
 // import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 import { useImageManagement } from "@/hooks/useImageManagement";
 import { useQueryClient } from "@tanstack/react-query";
-import { openDatabase } from "@/utils/database";
+import { saveBodyWeightMeasurement } from "@/utils/database";
 import { AuthContext } from "@/context/AuthProvider";
 import { signInWithGoogle } from "@/utils/auth";
 import Bugsnag from "@bugsnag/expo";
@@ -136,10 +136,16 @@ export default function SettingsScreen() {
         .padStart(2, "0")} minutes`
     : "";
 
-  // When weightUnit or distanceUnit changes, refetch completed workouts
+  // When unit settings change, refetch completed workouts and body measurements
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
-  }, [settings?.weightUnit, settings?.distanceUnit, queryClient]);
+    queryClient.invalidateQueries({ queryKey: ["bodyMeasurements"] });
+  }, [
+    settings?.weightUnit,
+    settings?.distanceUnit,
+    settings?.sizeUnit,
+    queryClient,
+  ]);
 
   // Sync local states with fetched settings data on load
   useEffect(() => {
@@ -228,26 +234,21 @@ export default function SettingsScreen() {
           console.error("Failed to reschedule workout reminders:", err);
         });
       } else if (currentSettingKey === "bodyWeight") {
-        // Convert to kg if the unit is lbs
-        const db = await openDatabase("userData.db");
         let bodyWeightInKg = inputValue as number;
 
         if (settings?.weightUnit === "lbs") {
           bodyWeightInKg = Number(
             ((inputValue as number) / 2.2046226).toFixed(1),
-          ); // Convert lbs to kg
+          );
         }
 
-        // Save body weight to body_measurements table
-        await db.runAsync(
-          `INSERT INTO body_measurements (date, body_weight) VALUES (datetime('now'), ?)`,
-          [bodyWeightInKg],
-        );
+        // Dual-write to body_measurements (legacy) and new measurement tables
+        await saveBodyWeightMeasurement(bodyWeightInKg);
 
-        // Save the body weight setting
+        // Save the body weight setting (React Query cache invalidation)
         updateSetting({
           key: currentSettingKey as string,
-          value: bodyWeightInKg.toString(), // Save in kg
+          value: bodyWeightInKg.toString(), // canonical kg
         });
       } else {
         updateSetting({
@@ -671,12 +672,12 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
-          {/* <TouchableOpacity
+          <TouchableOpacity
             style={styles.item}
             onPress={() =>
-              showOverlay("sizeUnit", settings?.sizeUnit || "", "radio", [
-                "Centimeters",
-                "Inches",
+              showOverlay("sizeUnit", settings?.sizeUnit || "cm", "radio", [
+                "cm",
+                "in",
               ])
             }
           >
@@ -687,12 +688,14 @@ export default function SettingsScreen() {
               style={styles.icon}
             />
             <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>Size unit</ThemedText>
+              <ThemedText style={styles.itemText}>
+                <Trans>Size unit</Trans>
+              </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.sizeUnit}
+                {settings?.sizeUnit || "cm"}
               </ThemedText>
             </View>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
         </View>
         <Divider style={styles.divider} />
 
