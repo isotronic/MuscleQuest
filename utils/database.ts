@@ -1692,3 +1692,405 @@ export const fetchSetDurationsForExercises = async (
     throw error;
   }
 };
+
+// ─── Body Measurements ────────────────────────────────────────────────────────
+
+export type ValueKind = "mass" | "length" | "percent";
+
+export interface BodyMetricDefinition {
+  id: number;
+  key: string;
+  label: string;
+  value_kind: ValueKind;
+  is_builtin: boolean;
+  is_active: boolean;
+  is_deleted: boolean;
+  sort_order: number;
+}
+
+export interface BodyMeasurementEntry {
+  id: number;
+  recorded_at: string;
+}
+
+export interface MeasurementDisplayOptions {
+  weightUnit: "kg" | "lbs";
+  sizeUnit: "cm" | "in";
+}
+
+export interface BodyMeasurementSession {
+  entry: BodyMeasurementEntry;
+  values: {
+    metric: BodyMetricDefinition;
+    canonicalValue: number;
+    displayValue: number;
+    displayUnit: string;
+  }[];
+}
+
+type RawMetricDefinitionRow = {
+  id: number;
+  key: string;
+  label: string;
+  value_kind: string;
+  is_builtin: number;
+  is_active: number;
+  is_deleted: number;
+  sort_order: number;
+};
+
+function rowToMetricDefinition(
+  row: RawMetricDefinitionRow,
+): BodyMetricDefinition {
+  return {
+    id: row.id,
+    key: row.key,
+    label: row.label,
+    value_kind: row.value_kind as ValueKind,
+    is_builtin: row.is_builtin === 1,
+    is_active: row.is_active === 1,
+    is_deleted: row.is_deleted === 1,
+    sort_order: row.sort_order,
+  };
+}
+
+export function toDisplayValue(
+  canonicalValue: number,
+  value_kind: ValueKind,
+  options: MeasurementDisplayOptions,
+): { displayValue: number; displayUnit: string } {
+  switch (value_kind) {
+    case "mass":
+      if (options.weightUnit === "lbs") {
+        return {
+          displayValue: parseFloat((canonicalValue * 2.2046226).toFixed(1)),
+          displayUnit: "lbs",
+        };
+      }
+      return {
+        displayValue: parseFloat(canonicalValue.toFixed(1)),
+        displayUnit: "kg",
+      };
+    case "length":
+      if (options.sizeUnit === "in") {
+        return {
+          displayValue: parseFloat((canonicalValue / 2.54).toFixed(1)),
+          displayUnit: "in",
+        };
+      }
+      return {
+        displayValue: parseFloat(canonicalValue.toFixed(1)),
+        displayUnit: "cm",
+      };
+    case "percent":
+      return {
+        displayValue: parseFloat(canonicalValue.toFixed(1)),
+        displayUnit: "%",
+      };
+  }
+}
+
+export function toCanonicalValue(
+  displayValue: number,
+  value_kind: ValueKind,
+  options: MeasurementDisplayOptions,
+): number {
+  switch (value_kind) {
+    case "mass":
+      if (options.weightUnit === "lbs") {
+        return parseFloat((displayValue * 0.45359237).toFixed(4));
+      }
+      return displayValue;
+    case "length":
+      if (options.sizeUnit === "in") {
+        return parseFloat((displayValue * 2.54).toFixed(4));
+      }
+      return displayValue;
+    case "percent":
+      return displayValue;
+  }
+}
+
+export const fetchActiveBodyMetricDefinitions = async (): Promise<
+  BodyMetricDefinition[]
+> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const rows = (await db.getAllAsync(
+      `SELECT * FROM body_metric_definitions
+       WHERE is_active = 1 AND is_deleted = 0
+       ORDER BY sort_order ASC`,
+    )) as RawMetricDefinitionRow[];
+    return rows.map(rowToMetricDefinition);
+  } catch (error: any) {
+    console.error("Error fetching active body metric definitions:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const fetchAllBodyMetricDefinitions = async (): Promise<
+  BodyMetricDefinition[]
+> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const rows = (await db.getAllAsync(
+      `SELECT * FROM body_metric_definitions
+       WHERE is_deleted = 0
+       ORDER BY is_builtin DESC, sort_order ASC`,
+    )) as RawMetricDefinitionRow[];
+    return rows.map(rowToMetricDefinition);
+  } catch (error: any) {
+    console.error("Error fetching all body metric definitions:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const insertCustomBodyMetricDefinition = async (
+  label: string,
+  value_kind: ValueKind,
+): Promise<number> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const key =
+      label.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "") +
+      "_" +
+      Date.now();
+    const maxOrderRow = await db.getFirstAsync<{ max_order: number | null }>(
+      `SELECT MAX(sort_order) AS max_order FROM body_metric_definitions WHERE is_deleted = 0`,
+    );
+    const sortOrder = (maxOrderRow?.max_order ?? 11) + 1;
+    const result = await db.runAsync(
+      `INSERT INTO body_metric_definitions (key, label, value_kind, is_builtin, is_active, is_deleted, sort_order)
+       VALUES (?, ?, ?, 0, 1, 0, ?)`,
+      [key, label, value_kind, sortOrder],
+    );
+    return result.lastInsertRowId;
+  } catch (error: any) {
+    console.error("Error inserting custom body metric definition:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const toggleBodyMetricActive = async (
+  id: number,
+  is_active: boolean,
+): Promise<void> => {
+  try {
+    const db = await openDatabase("userData.db");
+    await db.runAsync(
+      `UPDATE body_metric_definitions SET is_active = ? WHERE id = ?`,
+      [is_active ? 1 : 0, id],
+    );
+  } catch (error: any) {
+    console.error("Error toggling body metric active state:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const softDeleteCustomBodyMetricDefinition = async (
+  id: number,
+): Promise<void> => {
+  try {
+    const db = await openDatabase("userData.db");
+    await db.runAsync(
+      `UPDATE body_metric_definitions SET is_deleted = 1, is_active = 0 WHERE id = ? AND is_builtin = 0`,
+      [id],
+    );
+  } catch (error: any) {
+    console.error("Error soft-deleting body metric definition:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const fetchBodyMeasurementSessions = async (
+  options: MeasurementDisplayOptions,
+  limit?: number,
+): Promise<BodyMeasurementSession[]> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const limitClause = limit !== undefined ? `LIMIT ${limit}` : "";
+    const rows = (await db.getAllAsync(
+      `SELECT
+         bme.id          AS entry_id,
+         bme.recorded_at,
+         bmd.id          AS metric_id,
+         bmd.key,
+         bmd.label,
+         bmd.value_kind,
+         bmd.is_builtin,
+         bmd.is_active,
+         bmd.is_deleted,
+         bmd.sort_order,
+         bmv.value
+       FROM (
+         SELECT id, recorded_at FROM body_measurement_entries
+         ORDER BY recorded_at DESC
+         ${limitClause}
+       ) bme
+       JOIN body_measurement_values bmv ON bmv.entry_id = bme.id
+       JOIN body_metric_definitions bmd ON bmd.id = bmv.metric_id
+       ORDER BY bme.recorded_at DESC, bmd.sort_order ASC`,
+    )) as (RawMetricDefinitionRow & {
+      entry_id: number;
+      recorded_at: string;
+      value: number;
+    })[];
+
+    const sessionMap = new Map<number, BodyMeasurementSession>();
+    for (const row of rows) {
+      if (!sessionMap.has(row.entry_id)) {
+        sessionMap.set(row.entry_id, {
+          entry: { id: row.entry_id, recorded_at: row.recorded_at },
+          values: [],
+        });
+      }
+      const metric = rowToMetricDefinition(row);
+      const { displayValue, displayUnit } = toDisplayValue(
+        row.value,
+        metric.value_kind,
+        options,
+      );
+      sessionMap.get(row.entry_id)!.values.push({
+        metric,
+        canonicalValue: row.value,
+        displayValue,
+        displayUnit,
+      });
+    }
+    return Array.from(sessionMap.values());
+  } catch (error: any) {
+    console.error("Error fetching body measurement sessions:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const fetchBodyMeasurementSessionsForChart = async (
+  metricId: number,
+  options: MeasurementDisplayOptions,
+): Promise<{ recorded_at: string; displayValue: number }[]> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const metricRow = await db.getFirstAsync<RawMetricDefinitionRow>(
+      `SELECT * FROM body_metric_definitions WHERE id = ?`,
+      [metricId],
+    );
+    if (!metricRow) return [];
+    const metric = rowToMetricDefinition(metricRow);
+    const rows = (await db.getAllAsync(
+      `SELECT bme.recorded_at, bmv.value
+       FROM body_measurement_values bmv
+       JOIN body_measurement_entries bme ON bme.id = bmv.entry_id
+       WHERE bmv.metric_id = ?
+       ORDER BY bme.recorded_at ASC`,
+      [metricId],
+    )) as { recorded_at: string; value: number }[];
+    return rows.map((row) => ({
+      recorded_at: row.recorded_at,
+      displayValue: toDisplayValue(row.value, metric.value_kind, options)
+        .displayValue,
+    }));
+  } catch (error: any) {
+    console.error("Error fetching body measurement sessions for chart:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const insertBodyMeasurementSession = async (
+  recorded_at: string,
+  values: { metric_id: number; value: number }[],
+): Promise<number> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const result = await db.runAsync(
+      `INSERT INTO body_measurement_entries (recorded_at) VALUES (?)`,
+      [recorded_at],
+    );
+    const entryId = result.lastInsertRowId;
+    for (const v of values) {
+      await db.runAsync(
+        `INSERT OR IGNORE INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
+        [entryId, v.metric_id, v.value],
+      );
+    }
+    return entryId;
+  } catch (error: any) {
+    console.error("Error inserting body measurement session:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const updateBodyMeasurementSession = async (
+  entry_id: number,
+  values: { metric_id: number; value: number }[],
+): Promise<void> => {
+  try {
+    const db = await openDatabase("userData.db");
+    for (const v of values) {
+      await db.runAsync(
+        `INSERT OR REPLACE INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
+        [entry_id, v.metric_id, v.value],
+      );
+    }
+  } catch (error: any) {
+    console.error("Error updating body measurement session:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const deleteBodyMeasurementSession = async (
+  entry_id: number,
+): Promise<void> => {
+  try {
+    const db = await openDatabase("userData.db");
+    await db.runAsync(
+      `DELETE FROM body_measurement_values WHERE entry_id = ?`,
+      [entry_id],
+    );
+    await db.runAsync(`DELETE FROM body_measurement_entries WHERE id = ?`, [
+      entry_id,
+    ]);
+  } catch (error: any) {
+    console.error("Error deleting body measurement session:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const saveBodyWeightMeasurement = async (
+  weightKg: number,
+): Promise<void> => {
+  try {
+    const db = await openDatabase("userData.db");
+    // Legacy table — keeps useExerciseHistoryQuery.ts working unchanged
+    await db.runAsync(
+      `INSERT INTO body_measurements (date, body_weight) VALUES (datetime('now'), ?)`,
+      [weightKg],
+    );
+    // New measurement tables
+    const weightMetric = await db.getFirstAsync<{ id: number }>(
+      `SELECT id FROM body_metric_definitions WHERE key = 'weight'`,
+    );
+    if (weightMetric) {
+      const result = await db.runAsync(
+        `INSERT INTO body_measurement_entries (recorded_at) VALUES (datetime('now'))`,
+      );
+      await db.runAsync(
+        `INSERT INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
+        [result.lastInsertRowId, weightMetric.id, weightKg],
+      );
+    }
+  } catch (error: any) {
+    console.error("Error saving body weight measurement:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};

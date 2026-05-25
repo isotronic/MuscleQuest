@@ -143,6 +143,61 @@ export async function initUserDataDB() {
   `);
 
   await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS body_metric_definitions (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      key        TEXT    NOT NULL UNIQUE,
+      label      TEXT    NOT NULL,
+      value_kind TEXT    NOT NULL CHECK(value_kind IN ('mass','length','percent')),
+      is_builtin INTEGER NOT NULL DEFAULT 0,
+      is_active  INTEGER NOT NULL DEFAULT 1,
+      is_deleted INTEGER NOT NULL DEFAULT 0,
+      sort_order INTEGER NOT NULL DEFAULT 0
+    );
+  `);
+
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS body_measurement_entries (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      recorded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS body_measurement_values (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      entry_id  INTEGER NOT NULL REFERENCES body_measurement_entries(id),
+      metric_id INTEGER NOT NULL REFERENCES body_metric_definitions(id),
+      value     REAL    NOT NULL,
+      UNIQUE(entry_id, metric_id)
+    );
+  `);
+
+  await db.execAsync(
+    `CREATE INDEX IF NOT EXISTS idx_bmv_entry  ON body_measurement_values(entry_id);`,
+  );
+  await db.execAsync(
+    `CREATE INDEX IF NOT EXISTS idx_bmv_metric ON body_measurement_values(metric_id);`,
+  );
+
+  await db.execAsync(`
+    INSERT OR IGNORE INTO body_metric_definitions
+      (key, label, value_kind, is_builtin, is_active, sort_order)
+    VALUES
+      ('weight',          'Body Weight',   'mass',    1, 1,  0),
+      ('body_fat_pct',    'Body Fat %',    'percent', 1, 1,  1),
+      ('waist',           'Waist',         'length',  1, 1,  2),
+      ('hips',            'Hips',          'length',  1, 1,  3),
+      ('chest',           'Chest',         'length',  1, 1,  4),
+      ('neck',            'Neck',          'length',  1, 0,  5),
+      ('upper_arm_left',  'Upper Arm (L)', 'length',  1, 0,  6),
+      ('upper_arm_right', 'Upper Arm (R)', 'length',  1, 0,  7),
+      ('thigh_left',      'Thigh (L)',     'length',  1, 0,  8),
+      ('thigh_right',     'Thigh (R)',     'length',  1, 0,  9),
+      ('calf_left',       'Calf (L)',      'length',  1, 0, 10),
+      ('calf_right',      'Calf (R)',      'length',  1, 0, 11);
+  `);
+
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS notes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       note TEXT NOT NULL,
@@ -428,4 +483,43 @@ export async function initUserDataDB() {
   await db.runAsync(
     `UPDATE settings SET value = 'm' WHERE key = 'distanceUnit' AND value = 'km';`,
   );
+
+  // Migrate sizeUnit from legacy full-word values (the old commented-out settings UI used these)
+  await db.runAsync(
+    `UPDATE settings SET value = 'cm' WHERE key = 'sizeUnit' AND value = 'Centimeters';`,
+  );
+  await db.runAsync(
+    `UPDATE settings SET value = 'in' WHERE key = 'sizeUnit' AND value = 'Inches';`,
+  );
+
+  // Backfill existing body_measurements rows into the new measurement tables (runs once)
+  const bwBackfillDone = await db.getFirstAsync<{ value: string }>(
+    `SELECT value FROM settings WHERE key = 'body_measurements_backfill_v1'`,
+  );
+  if (!bwBackfillDone) {
+    const weightMetric = await db.getFirstAsync<{ id: number }>(
+      `SELECT id FROM body_metric_definitions WHERE key = 'weight'`,
+    );
+    if (weightMetric) {
+      const rows = await db.getAllAsync<{
+        date: string;
+        body_weight: number;
+      }>(
+        `SELECT date, body_weight FROM body_measurements WHERE body_weight IS NOT NULL ORDER BY date ASC`,
+      );
+      for (const row of rows) {
+        const result = await db.runAsync(
+          `INSERT INTO body_measurement_entries (recorded_at) VALUES (?)`,
+          [row.date],
+        );
+        await db.runAsync(
+          `INSERT OR IGNORE INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
+          [result.lastInsertRowId, weightMetric.id, row.body_weight],
+        );
+      }
+    }
+    await db.runAsync(
+      `INSERT OR REPLACE INTO settings (key, value) VALUES ('body_measurements_backfill_v1', 'true')`,
+    );
+  }
 }
