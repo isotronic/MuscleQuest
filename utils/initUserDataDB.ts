@@ -184,7 +184,7 @@ export async function initUserDataDB() {
       (key, label, value_kind, is_builtin, is_active, sort_order)
     VALUES
       ('weight',          'Body Weight',   'mass',    1, 1,  0),
-      ('body_fat_pct',    'Body Fat %',    'percent', 1, 1,  1),
+      ('body_fat_pct',    'Body Fat',      'percent', 1, 1,  1),
       ('waist',           'Waist',         'length',  1, 1,  2),
       ('hips',            'Hips',          'length',  1, 1,  3),
       ('chest',           'Chest',         'length',  1, 1,  4),
@@ -490,6 +490,11 @@ export async function initUserDataDB() {
   );
   await db.runAsync(
     `UPDATE settings SET value = 'in' WHERE key = 'sizeUnit' AND value = 'Inches';`,
+  );
+
+  // Remove redundant % sign from body fat label (unit already shown after value)
+  await db.runAsync(
+    `UPDATE body_metric_definitions SET label = 'Body Fat' WHERE key = 'body_fat_pct' AND label = 'Body Fat %';`,
   );
 
   // Backfill existing body_measurements rows into the new measurement tables (runs once)
