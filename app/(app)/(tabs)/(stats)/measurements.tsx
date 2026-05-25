@@ -185,7 +185,11 @@ export default function MeasurementsScreen() {
           {/* Metric inputs */}
           {metrics?.map((metric) => (
             <View key={metric.id} style={styles.metricRow}>
-              <ThemedText style={styles.metricLabel}>{metric.label}</ThemedText>
+              <ThemedText style={styles.metricLabel}>
+                {bodyMetricTranslations[metric.key]
+                  ? _(bodyMetricTranslations[metric.key])
+                  : metric.label}
+              </ThemedText>
               <View style={styles.metricInputWrap}>
                 <TextInput
                   style={styles.metricInput}
