@@ -233,23 +233,25 @@ export default function MeasurementsScreen() {
                 )
               }
             >
-              <ThemedText style={styles.sessionDate}>
-                {formatEntryDate(session.entry.recorded_at)}
-              </ThemedText>
-              <View style={styles.sessionValues}>
-                {session.values.slice(0, 3).map((v) => (
-                  <ThemedText key={v.metric.id} style={styles.sessionValue}>
-                    {v.metric.label}: {v.displayValue} {v.displayUnit}
-                  </ThemedText>
-                ))}
-                {session.values.length > 3 && (
-                  <ThemedText style={styles.sessionMore}>
-                    {plural(session.values.length - 3, {
-                      one: "+# more",
-                      other: "+# more",
-                    })}
-                  </ThemedText>
-                )}
+              <View style={styles.sessionContent}>
+                <ThemedText style={styles.sessionDate}>
+                  {formatEntryDate(session.entry.recorded_at)}
+                </ThemedText>
+                <View style={styles.sessionValues}>
+                  {session.values.slice(0, 3).map((v) => (
+                    <ThemedText key={v.metric.id} style={styles.sessionValue}>
+                      {v.metric.label}: {v.displayValue} {v.displayUnit}
+                    </ThemedText>
+                  ))}
+                  {session.values.length > 3 && (
+                    <ThemedText style={styles.sessionMore}>
+                      {plural(session.values.length - 3, {
+                        one: "+# more",
+                        other: "+# more",
+                      })}
+                    </ThemedText>
+                  )}
+                </View>
               </View>
               <MaterialCommunityIcons
                 name="chevron-right"
@@ -381,22 +383,26 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.dark.subText + "40",
   },
+  sessionContent: {
+    flex: 1,
+    gap: 4,
+  },
   sessionDate: {
     fontSize: 14,
     fontWeight: "600",
     color: Colors.dark.text,
-    width: 100,
   },
   sessionValues: {
-    flex: 1,
-    gap: 2,
+    gap: 0,
   },
   sessionValue: {
     fontSize: 12,
+    lineHeight: 16,
     color: Colors.dark.subText,
   },
   sessionMore: {
     fontSize: 12,
+    lineHeight: 16,
     color: Colors.dark.tint,
   },
   modalBackdrop: {

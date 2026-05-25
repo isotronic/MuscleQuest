@@ -547,11 +547,13 @@ export default function StatsScreen() {
                 router.push("/(app)/(tabs)/(stats)/measurements" as never)
               }
             >
-              {latestMeasurements[0].values.map((v) => (
-                <ThemedText key={v.metric.id} style={styles.measurementValue}>
-                  {v.metric.label}: {v.displayValue} {v.displayUnit}
-                </ThemedText>
-              ))}
+              <View style={styles.measurementGrid}>
+                {latestMeasurements[0].values.map((v) => (
+                  <ThemedText key={v.metric.id} style={styles.measurementValue}>
+                    {v.metric.label}: {v.displayValue} {v.displayUnit}
+                  </ThemedText>
+                ))}
+              </View>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -623,10 +625,15 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     backgroundColor: Colors.dark.cardBackground,
-    gap: 4,
+  },
+  measurementGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
   measurementValue: {
+    width: "50%",
     fontSize: 13,
+    lineHeight: 19,
     color: Colors.dark.subText,
   },
 });
