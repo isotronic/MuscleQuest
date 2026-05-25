@@ -193,7 +193,6 @@ const groupMeasurementsByTime = (
   return [];
 };
 
-const INITIAL_SPACING = 10;
 const Y_AXIS_WIDTH = 40;
 const HORIZONTAL_INSETS = 16 * 2 + 16 * 2;
 
@@ -228,12 +227,14 @@ export const BodyMeasurementLineChart: React.FC<
     });
   }, [data, timeRange]);
 
+  // 30d uses "4 May" labels (~28px at size 9), needs more room than single-digit labels
+  const initialSpacing = timeRange === "30" ? 20 : 10;
   const chartWidth =
-    screenWidth - HORIZONTAL_INSETS - Y_AXIS_WIDTH - INITIAL_SPACING;
+    screenWidth - HORIZONTAL_INSETS - Y_AXIS_WIDTH - initialSpacing;
   const n = chartData.length;
   const spacing =
     n > 1
-      ? Math.max(1, Math.floor((chartWidth - 2 * INITIAL_SPACING) / (n - 1)))
+      ? Math.max(1, Math.floor((chartWidth - 2 * initialSpacing) / (n - 1)))
       : 30;
 
   if (chartData.length === 0) {
@@ -255,8 +256,8 @@ export const BodyMeasurementLineChart: React.FC<
         data={chartData}
         width={chartWidth}
         spacing={spacing}
-        initialSpacing={INITIAL_SPACING}
-        endSpacing={INITIAL_SPACING}
+        initialSpacing={initialSpacing}
+        endSpacing={initialSpacing}
         thickness={2}
         color={Colors.dark.tint}
         isAnimated
