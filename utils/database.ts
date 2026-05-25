@@ -1949,17 +1949,20 @@ export const insertBodyMeasurementSession = async (
 ): Promise<number> => {
   try {
     const db = await openDatabase("userData.db");
-    const result = await db.runAsync(
-      `INSERT INTO body_measurement_entries (recorded_at) VALUES (?)`,
-      [recorded_at],
-    );
-    const entryId = result.lastInsertRowId;
-    for (const v of values) {
-      await db.runAsync(
-        `INSERT OR IGNORE INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
-        [entryId, v.metric_id, v.value],
+    let entryId = 0;
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      const result = await txn.runAsync(
+        `INSERT INTO body_measurement_entries (recorded_at) VALUES (?)`,
+        [recorded_at],
       );
-    }
+      entryId = result.lastInsertRowId;
+      for (const v of values) {
+        await txn.runAsync(
+          `INSERT OR IGNORE INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
+          [entryId, v.metric_id, v.value],
+        );
+      }
+    });
     return entryId;
   } catch (error: any) {
     console.error("Error inserting body measurement session:", error);
