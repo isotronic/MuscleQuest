@@ -38,6 +38,8 @@ export function toDisplayValue(
         displayValue: parseFloat(canonicalValue.toFixed(1)),
         displayUnit: "%",
       };
+    default:
+      throw new Error(`Unsupported value_kind: ${value_kind}`);
   }
 }
 
@@ -59,5 +61,7 @@ export function toCanonicalValue(
       return displayValue;
     case "percent":
       return displayValue;
+    default:
+      throw new Error(`Unsupported value_kind: ${value_kind}`);
   }
 }
