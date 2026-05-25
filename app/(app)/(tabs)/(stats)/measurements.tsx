@@ -1,0 +1,409 @@
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  Alert,
+} from "react-native";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+import { ActivityIndicator, Button, Divider } from "react-native-paper";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Calendar } from "react-native-calendars";
+import { useRouter } from "expo-router";
+import { format } from "date-fns";
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
+import { Colors } from "@/constants/Colors";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useActiveBodyMetricDefinitionsQuery } from "@/hooks/useBodyMetricDefinitionsQuery";
+import { useBodyMeasurementSessionsQuery } from "@/hooks/useBodyMeasurementSessionsQuery";
+import { useInsertBodyMeasurementMutation } from "@/hooks/useBodyMeasurementMutations";
+import { BodyMeasurementSession } from "@/utils/database";
+
+function parseDbDate(recorded_at: string): Date {
+  return new Date(
+    recorded_at.includes("T") ? recorded_at : recorded_at.replace(" ", "T"),
+  );
+}
+
+function formatEntryDate(recorded_at: string): string {
+  return format(parseDbDate(recorded_at), "MMM d, yyyy");
+}
+
+function latestValueForMetric(
+  sessions: BodyMeasurementSession[],
+  metricId: number,
+): number | undefined {
+  for (const s of sessions) {
+    const v = s.values.find((v) => v.metric.id === metricId);
+    if (v !== undefined) return v.displayValue;
+  }
+  return undefined;
+}
+
+export default function MeasurementsScreen() {
+  const router = useRouter();
+  const { data: settings } = useSettingsQuery();
+  const weightUnit = (settings?.weightUnit || "kg") as "kg" | "lbs";
+  const sizeUnit = (settings?.sizeUnit || "cm") as "cm" | "in";
+  const displayOptions = { weightUnit, sizeUnit };
+
+  const { data: metrics, isLoading: metricsLoading } =
+    useActiveBodyMetricDefinitionsQuery();
+  const { data: sessions, isLoading: sessionsLoading } =
+    useBodyMeasurementSessionsQuery(displayOptions, 20);
+  const insertMutation = useInsertBodyMeasurementMutation(displayOptions);
+
+  const [inputValues, setInputValues] = useState<Record<number, string>>({});
+  const [entryDate, setEntryDate] = useState(new Date().toISOString());
+  const [calendarVisible, setCalendarVisible] = useState(false);
+
+  // Pre-fill with most recent values for each metric
+  useEffect(() => {
+    if (!metrics || !sessions) return;
+    setInputValues((prev) => {
+      const next: Record<number, string> = {};
+      for (const metric of metrics) {
+        if (prev[metric.id] !== undefined) {
+          next[metric.id] = prev[metric.id];
+        } else {
+          const latest = latestValueForMetric(sessions, metric.id);
+          next[metric.id] = latest !== undefined ? String(latest) : "";
+        }
+      }
+      return next;
+    });
+  }, [metrics, sessions]);
+
+  const handleLogEntry = useCallback(() => {
+    if (!metrics) return;
+    const values = metrics
+      .filter((m) => {
+        const v = parseFloat(inputValues[m.id] ?? "");
+        return !isNaN(v);
+      })
+      .map((m) => ({
+        metric_id: m.id,
+        value_kind: m.value_kind,
+        displayValue: parseFloat(inputValues[m.id]),
+      }));
+
+    if (values.length === 0) {
+      Alert.alert(
+        t`No values entered`,
+        t`Enter at least one measurement to log.`,
+      );
+      return;
+    }
+
+    insertMutation.mutate(
+      { recorded_at: entryDate, values },
+      {
+        onSuccess: () => {
+          setInputValues({});
+          setEntryDate(new Date().toISOString());
+        },
+      },
+    );
+  }, [metrics, inputValues, entryDate, insertMutation]);
+
+  const handleDayPress = useCallback((day: { dateString: string }) => {
+    const d = new Date(day.dateString + "T12:00:00.000");
+    setEntryDate(d.toISOString());
+    setCalendarVisible(false);
+  }, []);
+
+  const isLoading = metricsLoading || sessionsLoading;
+
+  return (
+    <ThemedView style={{ flex: 1 }}>
+      <ScrollView
+        style={styles.container}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Manage button row */}
+        <View style={styles.manageRow}>
+          <Button
+            mode="text"
+            compact
+            labelStyle={{ color: Colors.dark.tint, fontSize: 13 }}
+            onPress={() =>
+              router.push("/(app)/(tabs)/(stats)/measurements-manage" as never)
+            }
+          >
+            <Trans>Manage metrics</Trans>
+          </Button>
+        </View>
+
+        {/* Entry form */}
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>
+            <Trans>Log Entry</Trans>
+          </ThemedText>
+
+          {/* Date row */}
+          <TouchableOpacity
+            style={styles.dateRow}
+            onPress={() => setCalendarVisible(true)}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons
+              name="calendar"
+              size={18}
+              color={Colors.dark.tint}
+            />
+            <ThemedText style={styles.dateText}>
+              {formatEntryDate(entryDate)}
+            </ThemedText>
+            <MaterialCommunityIcons
+              name="chevron-down"
+              size={16}
+              color={Colors.dark.subText}
+            />
+          </TouchableOpacity>
+
+          {isLoading && <ActivityIndicator color={Colors.dark.text} />}
+
+          {/* Metric inputs */}
+          {metrics?.map((metric) => (
+            <View key={metric.id} style={styles.metricRow}>
+              <ThemedText style={styles.metricLabel}>{metric.label}</ThemedText>
+              <View style={styles.metricInputWrap}>
+                <TextInput
+                  style={styles.metricInput}
+                  value={inputValues[metric.id] ?? ""}
+                  onChangeText={(text: string) =>
+                    setInputValues((prev) => ({ ...prev, [metric.id]: text }))
+                  }
+                  keyboardType="numeric"
+                  placeholder="—"
+                  placeholderTextColor={Colors.dark.subText}
+                  returnKeyType="done"
+                />
+                <ThemedText style={styles.metricUnit}>
+                  {metric.value_kind === "mass"
+                    ? weightUnit
+                    : metric.value_kind === "percent"
+                      ? "%"
+                      : sizeUnit}
+                </ThemedText>
+              </View>
+            </View>
+          ))}
+
+          <Button
+            mode="contained"
+            style={styles.logButton}
+            buttonColor={Colors.dark.tint}
+            textColor={Colors.dark.background}
+            loading={insertMutation.isPending}
+            disabled={insertMutation.isPending}
+            onPress={handleLogEntry}
+          >
+            <Trans>Log Entry</Trans>
+          </Button>
+        </View>
+
+        <Divider style={styles.divider} />
+
+        {/* Session history */}
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>
+            <Trans>History</Trans>
+          </ThemedText>
+          {sessionsLoading && <ActivityIndicator color={Colors.dark.text} />}
+          {!sessionsLoading && (sessions?.length ?? 0) === 0 && (
+            <ThemedText style={styles.empty}>
+              <Trans>No measurements yet. Log your first entry above.</Trans>
+            </ThemedText>
+          )}
+          {sessions?.map((session) => (
+            <TouchableOpacity
+              key={session.entry.id}
+              style={styles.sessionRow}
+              activeOpacity={0.7}
+              onPress={() =>
+                router.push(
+                  `/(app)/(tabs)/(stats)/measurements-detail?entryId=${session.entry.id}` as never,
+                )
+              }
+            >
+              <ThemedText style={styles.sessionDate}>
+                {formatEntryDate(session.entry.recorded_at)}
+              </ThemedText>
+              <View style={styles.sessionValues}>
+                {session.values.slice(0, 3).map((v) => (
+                  <ThemedText key={v.metric.id} style={styles.sessionValue}>
+                    {v.metric.label}: {v.displayValue} {v.displayUnit}
+                  </ThemedText>
+                ))}
+                {session.values.length > 3 && (
+                  <ThemedText style={styles.sessionMore}>
+                    +{session.values.length - 3} more
+                  </ThemedText>
+                )}
+              </View>
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={20}
+                color={Colors.dark.subText}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* Date picker modal */}
+      <Modal
+        visible={calendarVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCalendarVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalBackdrop}
+          activeOpacity={1}
+          onPress={() => setCalendarVisible(false)}
+        >
+          <View style={styles.calendarCard}>
+            <Calendar
+              onDayPress={handleDayPress}
+              markedDates={{
+                [format(parseDbDate(entryDate), "yyyy-MM-dd")]: {
+                  selected: true,
+                  selectedColor: Colors.dark.tint,
+                },
+              }}
+              theme={{
+                backgroundColor: Colors.dark.cardBackground,
+                calendarBackground: Colors.dark.cardBackground,
+                dayTextColor: Colors.dark.text,
+                textDisabledColor: Colors.dark.subText,
+                monthTextColor: Colors.dark.text,
+                arrowColor: Colors.dark.tint,
+                todayTextColor: Colors.dark.tint,
+                selectedDayBackgroundColor: Colors.dark.tint,
+                selectedDayTextColor: Colors.dark.background,
+              }}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </ThemedView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  manageRow: {
+    alignItems: "flex-end",
+    marginBottom: 4,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: "bold",
+    marginBottom: 12,
+  },
+  dateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  dateText: {
+    fontSize: 15,
+    flex: 1,
+    color: Colors.dark.text,
+  },
+  metricRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.dark.subText + "40",
+  },
+  metricLabel: {
+    flex: 1,
+    fontSize: 15,
+  },
+  metricInputWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  metricInput: {
+    width: 80,
+    textAlign: "right",
+    fontSize: 15,
+    color: Colors.dark.text,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    backgroundColor: Colors.dark.cardBackground,
+  },
+  metricUnit: {
+    fontSize: 13,
+    color: Colors.dark.subText,
+    width: 28,
+  },
+  logButton: {
+    marginTop: 16,
+    borderRadius: 8,
+  },
+  divider: {
+    marginBottom: 24,
+  },
+  empty: {
+    color: Colors.dark.subText,
+    fontSize: 14,
+  },
+  sessionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.dark.subText + "40",
+  },
+  sessionDate: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.dark.text,
+    width: 100,
+  },
+  sessionValues: {
+    flex: 1,
+    gap: 2,
+  },
+  sessionValue: {
+    fontSize: 12,
+    color: Colors.dark.subText,
+  },
+  sessionMore: {
+    fontSize: 12,
+    color: Colors.dark.tint,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  calendarCard: {
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: Colors.dark.cardBackground,
+  },
+});
