@@ -1,5 +1,8 @@
 import { groupMeasurementsByTime } from "../BodyMeasurementLineChart";
 
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray) => s[0],
+}));
 jest.mock("react-native-gifted-charts", () => ({}));
 jest.mock("@/components/ThemedText", () => ({ ThemedText: () => null }));
 jest.mock("@/constants/Colors", () => ({
