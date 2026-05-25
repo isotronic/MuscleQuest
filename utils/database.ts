@@ -1993,12 +1993,26 @@ export const updateBodyMeasurementSession = async (
 ): Promise<void> => {
   try {
     const db = await openDatabase("userData.db");
-    for (const v of values) {
-      await db.runAsync(
-        `INSERT OR REPLACE INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
-        [entry_id, v.metric_id, v.value],
-      );
-    }
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      if (values.length === 0) {
+        await txn.runAsync(
+          `DELETE FROM body_measurement_values WHERE entry_id = ?`,
+          [entry_id],
+        );
+      } else {
+        const placeholders = values.map(() => "?").join(", ");
+        await txn.runAsync(
+          `DELETE FROM body_measurement_values WHERE entry_id = ? AND metric_id NOT IN (${placeholders})`,
+          [entry_id, ...values.map((v) => v.metric_id)],
+        );
+      }
+      for (const v of values) {
+        await txn.runAsync(
+          `INSERT OR REPLACE INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
+          [entry_id, v.metric_id, v.value],
+        );
+      }
+    });
   } catch (error: any) {
     console.error("Error updating body measurement session:", error);
     Bugsnag.notify(error);
@@ -2011,13 +2025,15 @@ export const deleteBodyMeasurementSession = async (
 ): Promise<void> => {
   try {
     const db = await openDatabase("userData.db");
-    await db.runAsync(
-      `DELETE FROM body_measurement_values WHERE entry_id = ?`,
-      [entry_id],
-    );
-    await db.runAsync(`DELETE FROM body_measurement_entries WHERE id = ?`, [
-      entry_id,
-    ]);
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        `DELETE FROM body_measurement_values WHERE entry_id = ?`,
+        [entry_id],
+      );
+      await txn.runAsync(`DELETE FROM body_measurement_entries WHERE id = ?`, [
+        entry_id,
+      ]);
+    });
   } catch (error: any) {
     console.error("Error deleting body measurement session:", error);
     Bugsnag.notify(error);
