@@ -2018,32 +2018,35 @@ export const updateBodyMeasurementSession = async (
       // Mirror weight changes to legacy tables
       if (weightMetric) {
         const weightValue = values.find((v) => v.metric_id === weightMetric.id);
-        if (weightValue) {
-          const entry = await txn.getFirstAsync<{ recorded_at: string }>(
-            `SELECT recorded_at FROM body_measurement_entries WHERE id = ?`,
-            [entry_id],
-          );
-          if (entry) {
+        const entry = await txn.getFirstAsync<{ recorded_at: string }>(
+          `SELECT recorded_at FROM body_measurement_entries WHERE id = ?`,
+          [entry_id],
+        );
+        if (entry) {
+          if (weightValue) {
             await txn.runAsync(
               `UPDATE body_measurements SET body_weight = ? WHERE date = ?`,
               [weightValue.value, entry.recorded_at],
             );
-            await txn.runAsync(
-              `INSERT OR REPLACE INTO settings (key, value) VALUES ('bodyWeight', ?)`,
-              [weightValue.value.toString()],
-            );
-          }
-        } else {
-          // Weight metric was removed from this entry — clear legacy mirrors
-          const entry = await txn.getFirstAsync<{ recorded_at: string }>(
-            `SELECT recorded_at FROM body_measurement_entries WHERE id = ?`,
-            [entry_id],
-          );
-          if (entry) {
+          } else {
+            // Weight metric was removed from this entry — NULL out legacy row
             await txn.runAsync(
               `UPDATE body_measurements SET body_weight = NULL WHERE date = ?`,
               [entry.recorded_at],
             );
+          }
+          // Recompute settings.bodyWeight from the latest remaining weight
+          const latestWeight = await txn.getFirstAsync<{ body_weight: number }>(
+            `SELECT body_weight FROM body_measurements
+             WHERE body_weight IS NOT NULL
+             ORDER BY date DESC LIMIT 1`,
+          );
+          if (latestWeight) {
+            await txn.runAsync(
+              `INSERT OR REPLACE INTO settings (key, value) VALUES ('bodyWeight', ?)`,
+              [latestWeight.body_weight.toString()],
+            );
+          } else {
             await txn.runAsync(`DELETE FROM settings WHERE key = 'bodyWeight'`);
           }
         }
