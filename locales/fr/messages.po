@@ -1552,11 +1552,11 @@ msgstr "Activé"
 
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:62
 msgid "Enter a name for the custom metric."
-msgstr "Entrez un nom pour la mesure personnalisée."
+msgstr "Entre un nom pour la mesure personnalisée."
 
 #: app/(app)/(tabs)/(stats)/measurements.tsx:111
 msgid "Enter at least one measurement to log."
-msgstr "Entrez au moins une mesure à enregistrer."
+msgstr "Entre au moins une mesure à enregistrer."
 
 #: app/(app)/custom-exercise.tsx:392
 msgid "Enter description"
