@@ -2024,10 +2024,16 @@ export const updateBodyMeasurementSession = async (
         );
         if (entry) {
           if (weightValue) {
-            await txn.runAsync(
+            const updateResult = await txn.runAsync(
               `UPDATE body_measurements SET body_weight = ? WHERE date = ?`,
               [weightValue.value, entry.recorded_at],
             );
+            if (updateResult.changes === 0) {
+              await txn.runAsync(
+                `INSERT INTO body_measurements (date, body_weight) VALUES (?, ?)`,
+                [entry.recorded_at, weightValue.value],
+              );
+            }
           } else {
             // Weight metric was removed from this entry — NULL out legacy row
             await txn.runAsync(
