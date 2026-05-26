@@ -222,23 +222,23 @@ const groupSetsByTime = (
 
 const INITIAL_SPACING = 10;
 const Y_AXIS_WIDTH = 40;
+const POINTER_LABEL_WIDTH = 65;
 // screen paddingHorizontal 16 each side + card padding 16 each side
 const HORIZONTAL_INSETS = 16 * 2 + 16 * 2;
 
 export const ExerciseProgressionChart: React.FC<
   ExerciseProgressionChartProps
-> = ({
-  exercise,
-  timeRange,
-  weightUnit,
-  distanceUnit,
-  prValue,
-  preRangeBaseline,
-}) => {
+> = ({ exercise, timeRange, weightUnit, distanceUnit, preRangeBaseline }) => {
   const { width: screenWidth } = useWindowDimensions();
   const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
 
-  const chartData = useMemo(() => {
+  const { chartData, yAxisOffset, yAxisMax } = useMemo(() => {
+    const empty = {
+      chartData: [],
+      yAxisOffset: 0,
+      yAxisMax: undefined as number | undefined,
+    };
+
     const buckets = groupSetsByTime(
       exercise.completed_sets,
       timeRange,
@@ -246,7 +246,7 @@ export const ExerciseProgressionChart: React.FC<
       conversionFactor,
     );
 
-    if (buckets.length === 0) return [];
+    if (buckets.length === 0) return empty;
 
     // Forward-fill: empty buckets after first data carry the last known value
     let lastValue: number | null = null;
@@ -276,17 +276,10 @@ export const ExerciseProgressionChart: React.FC<
       }
     }
 
-    if (!buckets.some((b) => b.value !== null)) return [];
+    if (!buckets.some((b) => b.value !== null)) return empty;
 
-    const convertedPR =
-      prValue != null && prValue > 0 ? prValue * conversionFactor : undefined;
-
-    return buckets.map((bucket) => {
+    const chartData = buckets.map((bucket) => {
       const metric = bucket.value ?? 0;
-      const isPR =
-        bucket.hasData &&
-        convertedPR != null &&
-        Math.abs(metric - convertedPR) < 0.5;
       const labelComponent = bucket.labelLine2
         ? () => (
             <View style={styles.twoLineLabel}>
@@ -299,20 +292,34 @@ export const ExerciseProgressionChart: React.FC<
         value: metric,
         label: labelComponent ? undefined : bucket.label,
         labelComponent,
-        dataPointColor: !bucket.hasData
-          ? "transparent"
-          : isPR
-            ? Colors.dark.tint
-            : Colors.dark.highlight,
-        dataPointRadius: !bucket.hasData ? 0 : isPR ? 6 : 4,
+        dataPointColor: bucket.hasData ? Colors.dark.tint : "transparent",
+        dataPointRadius: 4,
       };
     });
+
+    const vals = chartData.map((p) => p.value);
+    const minVal = Math.min(...vals);
+    const maxVal = Math.max(...vals);
+
+    let yAxisOffset: number;
+    let yAxisMax: number;
+    if (minVal > 0) {
+      const range = maxVal - minVal;
+      const padding = Math.max(range * 0.15, 0.5);
+      yAxisOffset = minVal - padding;
+      yAxisMax = maxVal + padding - yAxisOffset;
+    } else {
+      const padding = Math.max(maxVal * 0.15, 0.5);
+      yAxisOffset = 0;
+      yAxisMax = maxVal + padding;
+    }
+
+    return { chartData, yAxisOffset, yAxisMax };
   }, [
     exercise.completed_sets,
     timeRange,
     exercise.tracking_type,
     conversionFactor,
-    prValue,
     preRangeBaseline,
   ]);
 
@@ -350,6 +357,15 @@ export const ExerciseProgressionChart: React.FC<
       ? latestSet.weight * conversionFactor
       : latestSet?.weight;
 
+  const tooltipUnit =
+    exercise.tracking_type === "time"
+      ? "s"
+      : exercise.tracking_type === "reps"
+        ? ""
+        : exercise.tracking_type === "distance"
+          ? distanceUnit
+          : weightUnitLabel;
+
   // Fixed chart width; spacing computed to fit with equal margins on both sides
   const chartWidth =
     screenWidth - HORIZONTAL_INSETS - Y_AXIS_WIDTH - INITIAL_SPACING;
@@ -385,23 +401,56 @@ export const ExerciseProgressionChart: React.FC<
           </>
         )}
         <LineChart
+          key={timeRange}
           data={chartData}
           width={chartWidth}
           spacing={spacing}
           initialSpacing={INITIAL_SPACING}
           endSpacing={INITIAL_SPACING}
           thickness={2}
-          color={Colors.dark.highlight}
+          color={Colors.dark.tint}
           isAnimated
           areaChart
-          startFillColor={chartTheme.negativeAreaStartFill}
-          endFillColor="rgba(231,64,67,0.08)"
+          startFillColor={chartTheme.areaStartFill}
+          endFillColor="rgba(235,170,57,0.08)"
           yAxisColor="transparent"
           yAxisTextStyle={styles.yAxisLabel}
           xAxisLabelTextStyle={styles.xAxisLabel}
           xAxisColor={Colors.dark.subText}
           hideRules
           noOfSections={3}
+          yAxisOffset={yAxisOffset}
+          maxValue={yAxisMax}
+          pointerConfig={{
+            activatePointersInstantlyOnTouch: true,
+            persistPointer: true,
+            showPointerStrip: true,
+            pointerStripColor: "rgba(255,255,255,0.15)",
+            pointerStripWidth: 1,
+            pointerColor: Colors.dark.highlight,
+            radius: 5,
+            pointerLabelWidth: POINTER_LABEL_WIDTH,
+            pointerLabelHeight: 34,
+            autoAdjustPointerLabelPosition: true,
+            shiftPointerLabelY: -44,
+            pointerLabelComponent: (
+              items: { value: number }[],
+              _secondary: unknown,
+              idx: number,
+            ) => {
+              const val = items[0]?.value;
+              if (val == null) return null;
+              const display = Number.isInteger(val) ? `${val}` : val.toFixed(1);
+              const isLast = idx === n - 1 && n > 1;
+              return (
+                <View style={[styles.tooltip, isLast && styles.tooltipLast]}>
+                  <Text style={styles.tooltipText}>
+                    {tooltipUnit ? `${display} ${tooltipUnit}` : display}
+                  </Text>
+                </View>
+              );
+            },
+          }}
         />
       </View>
     </Card>
@@ -447,5 +496,21 @@ const styles = StyleSheet.create({
   twoLineLabelText: {
     fontSize: 9,
     color: Colors.dark.subText,
+  },
+  tooltip: {
+    alignSelf: "center",
+    backgroundColor: Colors.dark.cardBackground2,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  tooltipLast: {
+    alignSelf: "flex-start",
+    marginLeft: -(POINTER_LABEL_WIDTH / 1.5),
+  },
+  tooltipText: {
+    color: Colors.dark.text,
+    fontSize: 13,
+    fontWeight: "600",
   },
 });
