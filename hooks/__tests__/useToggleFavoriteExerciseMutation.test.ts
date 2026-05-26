@@ -21,13 +21,6 @@ describe("useToggleFavoriteExerciseMutation", () => {
   let capturedArgs: any;
 
   beforeEach(() => {
-    (useQueryClient as jest.Mock).mockReturnValue({
-      invalidateQueries: mockInvalidateQueries,
-    });
-    (useMutation as jest.Mock).mockImplementation((args: any) => {
-      capturedArgs = args;
-      return { mutate: jest.fn() };
-    });
     jest.clearAllMocks();
     mockRunAsync.mockResolvedValue(undefined);
     (openDatabase as jest.Mock).mockResolvedValue({ runAsync: mockRunAsync });

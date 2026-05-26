@@ -26,16 +26,6 @@ describe("useSetActivePlanMutation", () => {
   let capturedArgs: any;
 
   beforeEach(() => {
-    (updateActivePlan as jest.Mock).mockResolvedValue(undefined);
-    (fetchPlanSchedule as jest.Mock).mockResolvedValue([]);
-    (updateSettings as jest.Mock).mockResolvedValue(undefined);
-    (useQueryClient as jest.Mock).mockReturnValue({
-      invalidateQueries: mockInvalidateQueries,
-    });
-    (useMutation as jest.Mock).mockImplementation((args: any) => {
-      capturedArgs = args;
-      return { mutate: jest.fn() };
-    });
     jest.clearAllMocks();
     (updateActivePlan as jest.Mock).mockResolvedValue(undefined);
     (fetchPlanSchedule as jest.Mock).mockResolvedValue([]);
