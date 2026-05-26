@@ -418,13 +418,17 @@ export const useWorkoutSessionHistoryQuery = (
 };
 
 const fetchGlobalExerciseHistoryForSession = async (
+  exerciseIds: number[],
   weightUnit: string,
   distanceUnit: string,
 ): Promise<CompletedWorkout[]> => {
+  if (exerciseIds.length === 0) return [];
+
   try {
     const db = await openDatabase("userData.db");
     const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
     const distanceConversionFactor = distanceUnit === "ft" ? 3.28084 : 1;
+    const placeholders = exerciseIds.map(() => "?").join(", ");
 
     const query = `
       SELECT
@@ -448,20 +452,29 @@ const fetchGlobalExerciseHistoryForSession = async (
         cs.distance,
         cs.is_warmup,
         cs.set_duration
-      FROM (
-        SELECT * FROM completed_workouts
-        WHERE is_deleted = FALSE
-        ORDER BY date_completed DESC
-        LIMIT 10
-      ) AS cw
-      LEFT JOIN completed_exercises ce ON ce.completed_workout_id = cw.id
-      LEFT JOIN exercises e ON e.exercise_id = ce.exercise_id
-      LEFT JOIN completed_sets cs ON cs.completed_exercise_id = ce.id
+      FROM completed_exercises ce
+      JOIN completed_workouts cw ON cw.id = ce.completed_workout_id
+      JOIN exercises e ON e.exercise_id = ce.exercise_id
+      JOIN completed_sets cs ON cs.completed_exercise_id = ce.id
       LEFT JOIN user_workouts uw ON uw.id = cw.workout_id
+      WHERE cw.is_deleted = FALSE
+        AND ce.exercise_id IN (${placeholders})
+        AND cw.id = (
+          SELECT cw2.id
+          FROM completed_workouts cw2
+          JOIN completed_exercises ce2 ON ce2.completed_workout_id = cw2.id
+          WHERE cw2.is_deleted = FALSE
+            AND ce2.exercise_id = ce.exercise_id
+          ORDER BY cw2.date_completed DESC, cw2.id DESC
+          LIMIT 1
+        )
       ORDER BY cw.date_completed DESC, ce.id, cs.set_number
     `;
 
-    const results = (await db.getAllAsync(query, [])) as WorkoutResult[];
+    const results = (await db.getAllAsync(
+      query,
+      exerciseIds,
+    )) as WorkoutResult[];
 
     const workoutsMap = new Map<number, CompletedWorkout>();
     const workoutsArray: CompletedWorkout[] = [];
@@ -545,13 +558,24 @@ const fetchGlobalExerciseHistoryForSession = async (
 };
 
 export const useGlobalExerciseHistoryForSessionQuery = (
+  exerciseIds: number[],
   weightUnit: string,
   distanceUnit: string = "m",
 ) => {
   return useQuery<CompletedWorkout[]>({
-    queryKey: ["globalExerciseHistoryForSession", weightUnit, distanceUnit],
+    queryKey: [
+      "globalExerciseHistoryForSession",
+      exerciseIds,
+      weightUnit,
+      distanceUnit,
+    ],
     queryFn: () =>
-      fetchGlobalExerciseHistoryForSession(weightUnit, distanceUnit),
+      fetchGlobalExerciseHistoryForSession(
+        exerciseIds,
+        weightUnit,
+        distanceUnit,
+      ),
+    enabled: exerciseIds.length > 0,
     staleTime: 5 * 60 * 1000,
   });
 };
