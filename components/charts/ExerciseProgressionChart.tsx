@@ -1,5 +1,11 @@
-import React, { useMemo } from "react";
-import { Text, View, StyleSheet, useWindowDimensions } from "react-native";
+import React, { useMemo, useState } from "react";
+import {
+  Text,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+} from "react-native";
 import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { LineChart } from "react-native-gifted-charts";
@@ -232,15 +238,37 @@ export const ExerciseProgressionChart: React.FC<
   const { width: screenWidth } = useWindowDimensions();
   const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
 
+  // Only weight and null (default weight) exercises have two meaningful metrics
+  const showMetricToggle =
+    exercise.tracking_type === null || exercise.tracking_type === "weight";
+  const [metricMode, setMetricMode] = useState<"1rm" | "weight">("1rm");
+
   const { chartData, yAxisOffset, yAxisMax } = useMemo(() => {
     const empty = {
-      chartData: [],
+      chartData: [] as {
+        value: number;
+        label: string | undefined;
+        labelComponent: (() => React.JSX.Element) | undefined;
+        dataPointColor: string;
+        dataPointRadius: number;
+        hasData: boolean;
+      }[],
       yAxisOffset: 0,
       yAxisMax: undefined as number | undefined,
     };
 
+    // In weight mode, substitute progressionMetric with the raw weight so the
+    // chart plots the heaviest weight lifted rather than the estimated 1RM.
+    const setsForChart =
+      metricMode === "weight" && showMetricToggle
+        ? exercise.completed_sets.map((s) => ({
+            ...s,
+            progressionMetric: s.weight,
+          }))
+        : exercise.completed_sets;
+
     const buckets = groupSetsByTime(
-      exercise.completed_sets,
+      setsForChart,
       timeRange,
       exercise.tracking_type,
       conversionFactor,
@@ -257,13 +285,14 @@ export const ExerciseProgressionChart: React.FC<
         buckets[i] = { ...buckets[i], value: lastValue };
       }
     }
-    // Pre-data buckets: use the last known value from before the time range if available, else 0
+    // Pre-data buckets: use the last known value from before the time range.
+    // Skip the baseline in weight mode — preRangeBaseline is a 1RM value.
     const isWeightTypePre =
       exercise.tracking_type === null ||
       exercise.tracking_type === "weight" ||
       exercise.tracking_type === "assisted";
     const rawBaseline =
-      preRangeBaseline != null
+      metricMode === "1rm" && preRangeBaseline != null
         ? isWeightTypePre
           ? preRangeBaseline * conversionFactor
           : preRangeBaseline
@@ -294,6 +323,7 @@ export const ExerciseProgressionChart: React.FC<
         labelComponent,
         dataPointColor: bucket.hasData ? Colors.dark.tint : "transparent",
         dataPointRadius: 4,
+        hasData: bucket.hasData,
       };
     });
 
@@ -321,6 +351,8 @@ export const ExerciseProgressionChart: React.FC<
     exercise.tracking_type,
     conversionFactor,
     preRangeBaseline,
+    metricMode,
+    showMetricToggle,
   ]);
 
   const latestSet = exercise.completed_sets[0];
@@ -339,7 +371,9 @@ export const ExerciseProgressionChart: React.FC<
         ? t`Reps`
         : exercise.tracking_type === "distance"
           ? t`Distance (${distanceUnit})`
-          : t`1RM (${weightUnitLabel})`;
+          : metricMode === "weight"
+            ? t`Weight (${weightUnitLabel})`
+            : t`1RM (${weightUnitLabel})`;
 
   const latestMetric =
     exercise.tracking_type === "reps"
@@ -348,9 +382,13 @@ export const ExerciseProgressionChart: React.FC<
         ? latestSet?.time
         : exercise.tracking_type === "distance"
           ? latestSet?.progressionMetric
-          : latestSet?.oneRepMax !== undefined
-            ? latestSet.oneRepMax * conversionFactor
-            : undefined;
+          : metricMode === "weight"
+            ? latestSet?.weight !== undefined
+              ? latestSet.weight * conversionFactor
+              : undefined
+            : latestSet?.oneRepMax !== undefined
+              ? latestSet.oneRepMax * conversionFactor
+              : undefined;
 
   const latestWeight =
     latestSet?.weight !== undefined && isWeightType
@@ -378,9 +416,6 @@ export const ExerciseProgressionChart: React.FC<
   return (
     <Card style={styles.card}>
       <View>
-        <ThemedText style={styles.exerciseName}>
-          {exercise.name} ({metricLabel})
-        </ThemedText>
         {latestSet && (
           <>
             <ThemedText style={styles.latestMetric}>
@@ -400,8 +435,33 @@ export const ExerciseProgressionChart: React.FC<
             </ThemedText>
           </>
         )}
+        {showMetricToggle && (
+          <View style={styles.metricToggleRow}>
+            {(["1rm", "weight"] as const).map((mode) => {
+              const active = metricMode === mode;
+              const label = mode === "1rm" ? "1RM" : t`Weight`;
+              return (
+                <TouchableOpacity
+                  key={mode}
+                  onPress={() => setMetricMode(mode)}
+                  style={[styles.metricPill, active && styles.metricPillActive]}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.metricPillLabel,
+                      active && styles.metricPillLabelActive,
+                    ]}
+                  >
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
         <LineChart
-          key={timeRange}
+          key={`${exercise.exercise_id}-${timeRange}-${metricMode}`}
           data={chartData}
           width={chartWidth}
           spacing={spacing}
@@ -438,6 +498,7 @@ export const ExerciseProgressionChart: React.FC<
               _secondary: unknown,
               idx: number,
             ) => {
+              if (!chartData[idx]?.hasData) return null;
               const val = items[0]?.value;
               if (val == null) return null;
               const display = Number.isInteger(val) ? `${val}` : val.toFixed(1);
@@ -464,11 +525,6 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: Colors.dark.cardBackground,
   },
-  exerciseName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
   latestMetric: {
     fontSize: 16,
     fontWeight: "bold",
@@ -478,7 +534,7 @@ const styles = StyleSheet.create({
   additionalInfo: {
     fontSize: 12,
     color: Colors.dark.subText,
-    marginBottom: 16,
+    marginBottom: 8,
   },
   yAxisLabel: {
     fontSize: 12,
@@ -488,6 +544,30 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: Colors.dark.text,
     marginTop: 4,
+  },
+  metricToggleRow: {
+    flexDirection: "row",
+    gap: 6,
+    marginBottom: 12,
+  },
+  metricPill: {
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: Colors.dark.cardBackground2,
+  },
+  metricPillActive: {
+    backgroundColor: Colors.dark.tint + "25",
+    borderWidth: 1,
+    borderColor: Colors.dark.tint,
+  },
+  metricPillLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: Colors.dark.subText,
+  },
+  metricPillLabelActive: {
+    color: Colors.dark.tint,
   },
   twoLineLabel: {
     alignItems: "center",
