@@ -124,7 +124,8 @@ describe("biggestGain", () => {
         "lbs",
       ),
     );
-    expect(result.current.biggestGainValue).toMatch(/^\+\d+\.\d lbs$/);
+    const numStr = result.current.biggestGainValue!.replace(/[^0-9.]/g, "");
+    expect(parseFloat(numStr)).toBeCloseTo(20 * 2.2046226, 1);
   });
 
   it("formats reps gain", () => {

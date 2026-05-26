@@ -57,6 +57,7 @@ describe("useToggleFavoriteExerciseMutation", () => {
 
     const sql = mockRunAsync.mock.calls[0][0];
     expect(sql).toContain("favorite = 1");
+    expect(sql).toContain("WHERE exercise_id = 42");
   });
 
   it("mutationFn sets favorite to 0 when currentStatus is 1", async () => {
@@ -66,6 +67,7 @@ describe("useToggleFavoriteExerciseMutation", () => {
 
     const sql = mockRunAsync.mock.calls[0][0];
     expect(sql).toContain("favorite = 0");
+    expect(sql).toContain("WHERE exercise_id = 42");
   });
 
   it("onSuccess invalidates ['exercises'] and ['exercise-info', exerciseId]", () => {

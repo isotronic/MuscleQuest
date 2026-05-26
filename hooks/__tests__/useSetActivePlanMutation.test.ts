@@ -62,6 +62,7 @@ describe("useSetActivePlanMutation", () => {
 
     await capturedArgs.onSuccess(undefined, 5);
 
+    expect(fetchPlanSchedule).toHaveBeenCalledWith(5);
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["activePlan"],
     });

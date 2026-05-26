@@ -1,5 +1,4 @@
 import { useCompletedWorkoutsQuery } from "../useCompletedWorkoutsQuery";
-import { openDatabase } from "@/utils/database";
 import { useQuery } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 
@@ -162,5 +161,16 @@ describe("useCompletedWorkoutsQuery", () => {
     const result = await queryFn();
 
     expect(result[0].exercises[0].sets[0].weight).toBeNull();
+  });
+
+  it("queryFn notifies Bugsnag and rethrows when DB query fails", async () => {
+    const error = new Error("DB failure");
+    mockDb.getAllAsync.mockRejectedValueOnce(error);
+
+    useCompletedWorkoutsQuery("kg", "m", 30);
+    const { queryFn } = (useQuery as jest.Mock).mock.calls[0][0];
+
+    await expect(queryFn()).rejects.toThrow();
+    expect(Bugsnag.notify).toHaveBeenCalledWith(error);
   });
 });

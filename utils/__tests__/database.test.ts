@@ -213,6 +213,13 @@ describe("deleteCompletedWorkout", () => {
       [42],
     );
   });
+
+  it("propagates when the transaction fails", async () => {
+    const error = new Error("transaction failed");
+    mockDb.withExclusiveTransactionAsync.mockRejectedValue(error);
+
+    await expect(deleteCompletedWorkout(42)).rejects.toBe(error);
+  });
 });
 
 // ---------------------------------------------------------------------------

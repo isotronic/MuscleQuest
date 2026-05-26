@@ -1,5 +1,8 @@
 import { act } from "@testing-library/react-native";
 import { useSoundStore } from "../soundStore";
+import { reportError } from "@/utils/utility";
+import { Vibration } from "react-native";
+import { createAudioPlayer } from "expo-audio";
 
 const mockPlay = jest.fn();
 const mockSeekTo = jest.fn().mockResolvedValue(undefined);
@@ -42,8 +45,6 @@ describe("useSoundStore", () => {
 
   describe("triggerVibration", () => {
     it("calls Vibration.vibrate with default pattern", () => {
-      const { Vibration } = require("react-native");
-
       act(() => {
         useSoundStore.getState().triggerVibration();
       });
@@ -54,8 +55,6 @@ describe("useSoundStore", () => {
     });
 
     it("calls Vibration.vibrate with custom pattern", () => {
-      const { Vibration } = require("react-native");
-
       act(() => {
         useSoundStore.getState().triggerVibration([0, 200]);
       });
@@ -64,8 +63,6 @@ describe("useSoundStore", () => {
     });
 
     it("calls Vibration.vibrate with a single number pattern", () => {
-      const { Vibration } = require("react-native");
-
       act(() => {
         useSoundStore.getState().triggerVibration(500);
       });
@@ -76,8 +73,6 @@ describe("useSoundStore", () => {
 
   describe("loadSound", () => {
     it("creates a new audio player and updates state", async () => {
-      const { createAudioPlayer } = require("expo-audio");
-
       await act(async () => {
         await useSoundStore.getState().loadSound();
       });
@@ -99,8 +94,7 @@ describe("useSoundStore", () => {
     });
 
     it("returns null and resets state on error", async () => {
-      const { createAudioPlayer } = require("expo-audio");
-      createAudioPlayer.mockImplementationOnce(() => {
+      (createAudioPlayer as jest.Mock).mockImplementationOnce(() => {
         throw new Error("audio init failed");
       });
 
@@ -111,6 +105,7 @@ describe("useSoundStore", () => {
 
       expect(result).toBeNull();
       expect(useSoundStore.getState().isLoaded).toBe(false);
+      expect(reportError).toHaveBeenCalledWith(expect.any(Error));
     });
   });
 

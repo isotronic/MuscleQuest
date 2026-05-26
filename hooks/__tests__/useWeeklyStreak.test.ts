@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
 import { useWeeklyStreak } from "../useWeeklyStreak";
 import { getWeeklyCompletions, upsertWeeklyCompletion } from "@/utils/database";
+import { startOfWeek, subWeeks, format } from "date-fns";
 
 jest.mock("@/utils/database", () => ({
   getWeeklyCompletions: jest.fn(),
@@ -77,8 +78,14 @@ describe("useWeeklyStreak", () => {
     await waitFor(() => expect(getWeeklyCompletions).toHaveBeenCalled());
     // Exactly one upsert: for the previous week with goal_reached=false
     expect(upsertWeeklyCompletion).toHaveBeenCalledTimes(1);
+    const expectedLastWeekStart = format(
+      subWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), 1),
+      "yyyy-MM-dd",
+    );
+    const weekStartArg = (upsertWeeklyCompletion as jest.Mock).mock.calls[0][0];
+    expect(weekStartArg).toBe(expectedLastWeekStart);
     expect(upsertWeeklyCompletion).toHaveBeenCalledWith(
-      expect.any(String),
+      expectedLastWeekStart,
       3,
       0,
       false,
