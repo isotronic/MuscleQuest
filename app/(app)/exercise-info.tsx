@@ -24,7 +24,10 @@ import { formatSetMetric } from "@/utils/formatSetMetric";
 import Bugsnag from "@bugsnag/expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Notes } from "@/components/Notes";
-import { useState } from "react";
+import { ExerciseProgressionChart } from "@/components/charts/ExerciseProgressionChart";
+import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
+import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
+import { useMemo, useState } from "react";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
@@ -62,9 +65,12 @@ export default function ExerciseInfoScreen() {
     isError: historyError,
   } = useExerciseHistoryQuery(Number(exercise_id));
 
+  const [timeRange, setTimeRange] = useState("90");
+
   const { data: settings } = useSettingsQuery();
   const { _ } = useLingui();
   const weightUnit = settings?.weightUnit ?? "kg";
+  const distanceUnit = settings?.distanceUnit ?? "m";
   const bwUnitMultiplier = weightUnit === "lbs" ? 2.2046226 : 1;
   // Fallback body weight in user's unit, used only when no historical measurement exists.
   const currentBodyWeight = Number(settings?.bodyWeight ?? 0);
@@ -96,6 +102,19 @@ export default function ExerciseInfoScreen() {
       description = [];
     }
   }
+
+  const chartExercise = useMemo<TrackedExerciseWithSets | null>(() => {
+    if (!historyData?.chartSets?.length || !exerciseData) return null;
+    return {
+      id: exerciseData.exercise_id,
+      exercise_id: exerciseData.exercise_id,
+      date_added: "",
+      name: exerciseData.name,
+      tracking_type: historyData.trackingType,
+      completed_sets: historyData.chartSets,
+      allTimePR: 0,
+    } as TrackedExerciseWithSets;
+  }, [historyData, exerciseData]);
 
   if (exerciseLoading) {
     return (
@@ -301,6 +320,23 @@ export default function ExerciseInfoScreen() {
             styles.historyContent,
             sections.length === 0 && styles.historyEmpty,
           ]}
+          ListHeaderComponent={
+            chartExercise ? (
+              <View style={styles.chartHeader}>
+                <TimeRangeSelector
+                  selected={timeRange}
+                  onChange={setTimeRange}
+                />
+                <ExerciseProgressionChart
+                  exercise={chartExercise}
+                  timeRange={timeRange}
+                  weightUnit={weightUnit}
+                  distanceUnit={distanceUnit}
+                  preRangeBaseline={null}
+                />
+              </View>
+            ) : null
+          }
           renderSectionHeader={({ section }: { section: HistorySection }) => (
             <View style={styles.sectionHeader}>
               <ThemedText style={styles.sectionDate}>{section.date}</ThemedText>
@@ -478,6 +514,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   // History tab
+  chartHeader: {
+    marginBottom: 8,
+  },
   historyContent: {
     paddingHorizontal: 16,
     paddingBottom: 50,

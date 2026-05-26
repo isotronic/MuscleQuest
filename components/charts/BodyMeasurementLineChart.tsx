@@ -204,20 +204,30 @@ export const groupMeasurementsByTime = (
 
 const Y_AXIS_WIDTH = 40;
 const HORIZONTAL_INSETS = 16 * 2 + 16 * 2;
+const POINTER_LABEL_WIDTH = 65;
 
 export const BodyMeasurementLineChart: React.FC<
   BodyMeasurementLineChartProps
 > = ({ data, timeRange, unit, metricLabel }) => {
   const { width: screenWidth } = useWindowDimensions();
 
-  const chartData = useMemo(() => {
+  const { chartData, yAxisOffset, yAxisMax } = useMemo(() => {
     const buckets = groupMeasurementsByTime(data, timeRange);
     // Only include buckets with actual data — measurements are point-in-time
     // snapshots, so gaps between measurements are real and should not be filled
     const dataPoints = buckets.filter((b) => b.hasData);
-    if (dataPoints.length === 0) return [];
+    if (dataPoints.length === 0)
+      return { chartData: [], yAxisOffset: 0, yAxisMax: 100 };
 
-    return dataPoints.map((bucket) => {
+    const values = dataPoints.map((b) => b.value ?? 0);
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
+    const range = maxVal - minVal;
+    const padding = Math.max(range * 0.15, 0.5);
+    const yMin = minVal - padding;
+    const yMax = maxVal + padding;
+
+    const points = dataPoints.map((bucket) => {
       const labelComponent = bucket.labelLine2
         ? () => (
             <View style={styles.twoLineLabel}>
@@ -234,6 +244,8 @@ export const BodyMeasurementLineChart: React.FC<
         dataPointRadius: 4,
       };
     });
+
+    return { chartData: points, yAxisOffset: yMin, yAxisMax: yMax - yMin };
   }, [data, timeRange]);
 
   // 30d uses "4 May" labels (~28px at size 9), needs more room than single-digit labels
@@ -262,6 +274,7 @@ export const BodyMeasurementLineChart: React.FC<
         {metricLabel} ({unit})
       </ThemedText>
       <LineChart
+        key={timeRange}
         data={chartData}
         width={chartWidth}
         spacing={spacing}
@@ -279,6 +292,38 @@ export const BodyMeasurementLineChart: React.FC<
         xAxisColor={Colors.dark.subText}
         hideRules
         noOfSections={3}
+        yAxisOffset={yAxisOffset}
+        maxValue={yAxisMax}
+        pointerConfig={{
+          activatePointersInstantlyOnTouch: true,
+          persistPointer: true,
+          showPointerStrip: true,
+          pointerStripColor: "rgba(255,255,255,0.15)",
+          pointerStripWidth: 1,
+          pointerColor: Colors.dark.highlight,
+          radius: 5,
+          pointerLabelWidth: POINTER_LABEL_WIDTH,
+          pointerLabelHeight: 34,
+          autoAdjustPointerLabelPosition: true,
+          shiftPointerLabelY: -44,
+          pointerLabelComponent: (
+            items: { value: number }[],
+            _secondary: unknown,
+            idx: number,
+          ) => {
+            const val = items[0]?.value;
+            if (val == null) return null;
+            const display = Number.isInteger(val) ? `${val}` : val.toFixed(1);
+            const isLast = idx === n - 1 && n > 1;
+            return (
+              <View style={[styles.tooltip, isLast && styles.tooltipLast]}>
+                <Text style={styles.tooltipText}>
+                  {display} {unit}
+                </Text>
+              </View>
+            );
+          },
+        }}
       />
     </View>
   );
@@ -315,5 +360,21 @@ const styles = StyleSheet.create({
   twoLineLabelText: {
     fontSize: 9,
     color: Colors.dark.subText,
+  },
+  tooltip: {
+    alignSelf: "center",
+    backgroundColor: Colors.dark.cardBackground2,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  tooltipLast: {
+    alignSelf: "flex-start",
+    marginLeft: -(POINTER_LABEL_WIDTH / 1.5),
+  },
+  tooltipText: {
+    color: Colors.dark.text,
+    fontSize: 13,
+    fontWeight: "600",
   },
 });

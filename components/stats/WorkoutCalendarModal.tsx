@@ -26,6 +26,7 @@ interface WorkoutCalendarModalProps {
   onWorkoutPress: (id: number) => void;
   excludeWarmup?: boolean;
   loading?: boolean;
+  pastScrollRange?: number;
 }
 
 // 16px modal margin + 16px padding on each side = 64px total
@@ -54,6 +55,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
   onWorkoutPress,
   excludeWarmup = false,
   loading = false,
+  pastScrollRange = 24,
 }) => {
   const formattedHeading = selectedDate
     ? format(parseISO(selectedDate), "EEEE, d MMMM")
@@ -81,6 +83,11 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
     currentMonthRef.current = targetDate;
     setCalendarCurrentDate(targetDate);
   }, [visible, selectedDate]);
+
+  const handleDayPress = useCallback(
+    (day: DateData) => onDayPress(day.dateString),
+    [onDayPress],
+  );
 
   const navigateMonth = useCallback((dir: "next" | "prev") => {
     const next = format(
@@ -131,13 +138,15 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
             ref={calendarRef}
             current={calendarCurrentDate}
             markedDates={markedDates}
-            onDayPress={(day: DateData) => onDayPress(day.dateString)}
+            onDayPress={handleDayPress}
             theme={calendarTheme}
             markingType="custom"
             horizontal
             pagingEnabled
             firstDay={1}
             calendarWidth={CALENDAR_WIDTH}
+            pastScrollRange={pastScrollRange}
+            futureScrollRange={1}
             showScrollIndicator={false}
             hideArrows={false}
             onVisibleMonthsChange={handleVisibleMonthsChange}

@@ -200,7 +200,11 @@ export default function HistoryDetailsScreen() {
               color={Colors.dark.icon}
             />
             <ThemedText style={styles.summaryText}>
-              <Plural value={Math.round(workout.duration / 60)} one="# min" other="# mins" />
+              <Plural
+                value={Math.round(workout.duration / 60)}
+                one="# min"
+                other="# mins"
+              />
             </ThemedText>
           </View>
           <View style={styles.summaryItem}>
@@ -210,7 +214,11 @@ export default function HistoryDetailsScreen() {
               color={Colors.dark.icon}
             />
             <ThemedText style={styles.summaryText}>
-              <Plural value={workout.total_sets_completed} one="# set" other="# sets" />
+              <Plural
+                value={workout.total_sets_completed}
+                one="# set"
+                other="# sets"
+              />
             </ThemedText>
           </View>
           <View style={styles.summaryItem}>
@@ -266,7 +274,11 @@ export default function HistoryDetailsScreen() {
                       </ThemedText>
                     ) : exercise.exercise_tracking_type === "reps" ? (
                       <ThemedText style={styles.setText}>
-                        <Plural value={set.reps} one="# Rep" other="# Reps" />
+                        {set.reps != null ? (
+                          <Plural value={set.reps} one="# Rep" other="# Reps" />
+                        ) : (
+                          "—"
+                        )}
                       </ThemedText>
                     ) : exercise.exercise_tracking_type === "distance" ? (
                       <ThemedText style={styles.setText}>
@@ -275,7 +287,8 @@ export default function HistoryDetailsScreen() {
                     ) : exercise.exercise_tracking_type === "weight" ? (
                       <ThemedText style={styles.setText}>
                         <Trans>
-                          {set.weight} {settings?.weightUnit} | {set.reps} Reps
+                          {set.weight} {settings?.weightUnit} | {set.reps ?? 0}{" "}
+                          Reps
                         </Trans>
                       </ThemedText>
                     ) : (
@@ -283,7 +296,7 @@ export default function HistoryDetailsScreen() {
                         <Trans>
                           Assist {set.weight} {settings?.weightUnit} | Resist{" "}
                           {bodyWeight - (set.weight || 0)}{" "}
-                          {settings?.weightUnit} | {set.reps} Reps
+                          {settings?.weightUnit} | {set.reps ?? 0} Reps
                         </Trans>
                       </ThemedText>
                     )}

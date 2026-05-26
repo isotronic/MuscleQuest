@@ -1,5 +1,11 @@
-import React, { useMemo } from "react";
-import { Text, View, StyleSheet, useWindowDimensions } from "react-native";
+import React, { useMemo, useState } from "react";
+import {
+  Text,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+} from "react-native";
 import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { LineChart } from "react-native-gifted-charts";
@@ -222,31 +228,53 @@ const groupSetsByTime = (
 
 const INITIAL_SPACING = 10;
 const Y_AXIS_WIDTH = 40;
+const POINTER_LABEL_WIDTH = 65;
 // screen paddingHorizontal 16 each side + card padding 16 each side
 const HORIZONTAL_INSETS = 16 * 2 + 16 * 2;
 
 export const ExerciseProgressionChart: React.FC<
   ExerciseProgressionChartProps
-> = ({
-  exercise,
-  timeRange,
-  weightUnit,
-  distanceUnit,
-  prValue,
-  preRangeBaseline,
-}) => {
+> = ({ exercise, timeRange, weightUnit, distanceUnit, preRangeBaseline }) => {
   const { width: screenWidth } = useWindowDimensions();
   const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
 
-  const chartData = useMemo(() => {
+  // Only weight and null (default weight) exercises have two meaningful metrics
+  const showMetricToggle =
+    exercise.tracking_type === null || exercise.tracking_type === "weight";
+  const [metricMode, setMetricMode] = useState<"1rm" | "weight">("1rm");
+
+  const { chartData, yAxisOffset, yAxisMax } = useMemo(() => {
+    const empty = {
+      chartData: [] as {
+        value: number;
+        label: string | undefined;
+        labelComponent: (() => React.JSX.Element) | undefined;
+        dataPointColor: string;
+        dataPointRadius: number;
+        hasData: boolean;
+      }[],
+      yAxisOffset: 0,
+      yAxisMax: undefined as number | undefined,
+    };
+
+    // In weight mode, substitute progressionMetric with the raw weight so the
+    // chart plots the heaviest weight lifted rather than the estimated 1RM.
+    const setsForChart =
+      metricMode === "weight" && showMetricToggle
+        ? exercise.completed_sets.map((s) => ({
+            ...s,
+            progressionMetric: s.weight,
+          }))
+        : exercise.completed_sets;
+
     const buckets = groupSetsByTime(
-      exercise.completed_sets,
+      setsForChart,
       timeRange,
       exercise.tracking_type,
       conversionFactor,
     );
 
-    if (buckets.length === 0) return [];
+    if (buckets.length === 0) return empty;
 
     // Forward-fill: empty buckets after first data carry the last known value
     let lastValue: number | null = null;
@@ -257,13 +285,14 @@ export const ExerciseProgressionChart: React.FC<
         buckets[i] = { ...buckets[i], value: lastValue };
       }
     }
-    // Pre-data buckets: use the last known value from before the time range if available, else 0
+    // Pre-data buckets: use the last known value from before the time range.
+    // Skip the baseline in weight mode — preRangeBaseline is a 1RM value.
     const isWeightTypePre =
       exercise.tracking_type === null ||
       exercise.tracking_type === "weight" ||
       exercise.tracking_type === "assisted";
     const rawBaseline =
-      preRangeBaseline != null
+      metricMode === "1rm" && preRangeBaseline != null
         ? isWeightTypePre
           ? preRangeBaseline * conversionFactor
           : preRangeBaseline
@@ -276,17 +305,10 @@ export const ExerciseProgressionChart: React.FC<
       }
     }
 
-    if (!buckets.some((b) => b.value !== null)) return [];
+    if (!buckets.some((b) => b.value !== null)) return empty;
 
-    const convertedPR =
-      prValue != null && prValue > 0 ? prValue * conversionFactor : undefined;
-
-    return buckets.map((bucket) => {
+    const chartData = buckets.map((bucket) => {
       const metric = bucket.value ?? 0;
-      const isPR =
-        bucket.hasData &&
-        convertedPR != null &&
-        Math.abs(metric - convertedPR) < 0.5;
       const labelComponent = bucket.labelLine2
         ? () => (
             <View style={styles.twoLineLabel}>
@@ -299,21 +321,38 @@ export const ExerciseProgressionChart: React.FC<
         value: metric,
         label: labelComponent ? undefined : bucket.label,
         labelComponent,
-        dataPointColor: !bucket.hasData
-          ? "transparent"
-          : isPR
-            ? Colors.dark.tint
-            : Colors.dark.highlight,
-        dataPointRadius: !bucket.hasData ? 0 : isPR ? 6 : 4,
+        dataPointColor: bucket.hasData ? Colors.dark.tint : "transparent",
+        dataPointRadius: 4,
+        hasData: bucket.hasData,
       };
     });
+
+    const vals = chartData.map((p) => p.value);
+    const minVal = Math.min(...vals);
+    const maxVal = Math.max(...vals);
+
+    let yAxisOffset: number;
+    let yAxisMax: number;
+    if (minVal > 0) {
+      const range = maxVal - minVal;
+      const padding = Math.max(range * 0.15, 0.5);
+      yAxisOffset = minVal - padding;
+      yAxisMax = maxVal + padding - yAxisOffset;
+    } else {
+      const padding = Math.max(maxVal * 0.15, 0.5);
+      yAxisOffset = 0;
+      yAxisMax = maxVal + padding;
+    }
+
+    return { chartData, yAxisOffset, yAxisMax };
   }, [
     exercise.completed_sets,
     timeRange,
     exercise.tracking_type,
     conversionFactor,
-    prValue,
     preRangeBaseline,
+    metricMode,
+    showMetricToggle,
   ]);
 
   const latestSet = exercise.completed_sets[0];
@@ -332,7 +371,9 @@ export const ExerciseProgressionChart: React.FC<
         ? t`Reps`
         : exercise.tracking_type === "distance"
           ? t`Distance (${distanceUnit})`
-          : t`1RM (${weightUnitLabel})`;
+          : metricMode === "weight"
+            ? t`Weight (${weightUnitLabel})`
+            : t`1RM (${weightUnitLabel})`;
 
   const latestMetric =
     exercise.tracking_type === "reps"
@@ -341,14 +382,27 @@ export const ExerciseProgressionChart: React.FC<
         ? latestSet?.time
         : exercise.tracking_type === "distance"
           ? latestSet?.progressionMetric
-          : latestSet?.oneRepMax !== undefined
-            ? latestSet.oneRepMax * conversionFactor
-            : undefined;
+          : metricMode === "weight"
+            ? latestSet?.weight !== undefined
+              ? latestSet.weight * conversionFactor
+              : undefined
+            : latestSet?.oneRepMax !== undefined
+              ? latestSet.oneRepMax * conversionFactor
+              : undefined;
 
   const latestWeight =
     latestSet?.weight !== undefined && isWeightType
       ? latestSet.weight * conversionFactor
       : latestSet?.weight;
+
+  const tooltipUnit =
+    exercise.tracking_type === "time"
+      ? "s"
+      : exercise.tracking_type === "reps"
+        ? ""
+        : exercise.tracking_type === "distance"
+          ? distanceUnit
+          : weightUnitLabel;
 
   // Fixed chart width; spacing computed to fit with equal margins on both sides
   const chartWidth =
@@ -362,9 +416,6 @@ export const ExerciseProgressionChart: React.FC<
   return (
     <Card style={styles.card}>
       <View>
-        <ThemedText style={styles.exerciseName}>
-          {exercise.name} ({metricLabel})
-        </ThemedText>
         {latestSet && (
           <>
             <ThemedText style={styles.latestMetric}>
@@ -384,24 +435,83 @@ export const ExerciseProgressionChart: React.FC<
             </ThemedText>
           </>
         )}
+        {showMetricToggle && (
+          <View style={styles.metricToggleRow}>
+            {(["1rm", "weight"] as const).map((mode) => {
+              const active = metricMode === mode;
+              const label = mode === "1rm" ? "1RM" : t`Weight`;
+              return (
+                <TouchableOpacity
+                  key={mode}
+                  onPress={() => setMetricMode(mode)}
+                  style={[styles.metricPill, active && styles.metricPillActive]}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.metricPillLabel,
+                      active && styles.metricPillLabelActive,
+                    ]}
+                  >
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
         <LineChart
+          key={`${exercise.exercise_id}-${timeRange}-${metricMode}`}
           data={chartData}
           width={chartWidth}
           spacing={spacing}
           initialSpacing={INITIAL_SPACING}
           endSpacing={INITIAL_SPACING}
           thickness={2}
-          color={Colors.dark.highlight}
+          color={Colors.dark.tint}
           isAnimated
           areaChart
-          startFillColor={chartTheme.negativeAreaStartFill}
-          endFillColor="rgba(231,64,67,0.08)"
+          startFillColor={chartTheme.areaStartFill}
+          endFillColor="rgba(235,170,57,0.08)"
           yAxisColor="transparent"
           yAxisTextStyle={styles.yAxisLabel}
           xAxisLabelTextStyle={styles.xAxisLabel}
           xAxisColor={Colors.dark.subText}
           hideRules
           noOfSections={3}
+          yAxisOffset={yAxisOffset}
+          maxValue={yAxisMax}
+          pointerConfig={{
+            activatePointersInstantlyOnTouch: true,
+            persistPointer: true,
+            showPointerStrip: true,
+            pointerStripColor: "rgba(255,255,255,0.15)",
+            pointerStripWidth: 1,
+            pointerColor: Colors.dark.highlight,
+            radius: 5,
+            pointerLabelWidth: POINTER_LABEL_WIDTH,
+            pointerLabelHeight: 34,
+            autoAdjustPointerLabelPosition: true,
+            shiftPointerLabelY: -44,
+            pointerLabelComponent: (
+              items: { value: number }[],
+              _secondary: unknown,
+              idx: number,
+            ) => {
+              if (!chartData[idx]?.hasData) return null;
+              const val = items[0]?.value;
+              if (val == null) return null;
+              const display = Number.isInteger(val) ? `${val}` : val.toFixed(1);
+              const isLast = idx === n - 1 && n > 1;
+              return (
+                <View style={[styles.tooltip, isLast && styles.tooltipLast]}>
+                  <Text style={styles.tooltipText}>
+                    {tooltipUnit ? `${display} ${tooltipUnit}` : display}
+                  </Text>
+                </View>
+              );
+            },
+          }}
         />
       </View>
     </Card>
@@ -415,11 +525,6 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: Colors.dark.cardBackground,
   },
-  exerciseName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
   latestMetric: {
     fontSize: 16,
     fontWeight: "bold",
@@ -429,7 +534,7 @@ const styles = StyleSheet.create({
   additionalInfo: {
     fontSize: 12,
     color: Colors.dark.subText,
-    marginBottom: 16,
+    marginBottom: 8,
   },
   yAxisLabel: {
     fontSize: 12,
@@ -440,6 +545,30 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     marginTop: 4,
   },
+  metricToggleRow: {
+    flexDirection: "row",
+    gap: 6,
+    marginBottom: 12,
+  },
+  metricPill: {
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: Colors.dark.cardBackground2,
+  },
+  metricPillActive: {
+    backgroundColor: Colors.dark.tint + "25",
+    borderWidth: 1,
+    borderColor: Colors.dark.tint,
+  },
+  metricPillLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: Colors.dark.subText,
+  },
+  metricPillLabelActive: {
+    color: Colors.dark.tint,
+  },
   twoLineLabel: {
     alignItems: "center",
     marginTop: 4,
@@ -447,5 +576,21 @@ const styles = StyleSheet.create({
   twoLineLabelText: {
     fontSize: 9,
     color: Colors.dark.subText,
+  },
+  tooltip: {
+    alignSelf: "center",
+    backgroundColor: Colors.dark.cardBackground2,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  tooltipLast: {
+    alignSelf: "flex-start",
+    marginLeft: -(POINTER_LABEL_WIDTH / 1.5),
+  },
+  tooltipText: {
+    color: Colors.dark.text,
+    fontSize: 13,
+    fontWeight: "600",
   },
 });

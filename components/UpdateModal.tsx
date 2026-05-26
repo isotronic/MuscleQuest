@@ -7,7 +7,7 @@ import { useAppUpdates } from "@/hooks/useAppUpdates";
 import { t } from "@lingui/core/macro";
 
 export const UpdateModal = () => {
-  const { status, errorMessage, reloadApp, dismissError } = useAppUpdates();
+  const { status, errorType, reloadApp, dismissError } = useAppUpdates();
 
   // Only show modal when downloading, ready, or error (skip checking state to avoid flash)
   if (status === "idle" || status === "checking" || status === "no-update") {
@@ -18,27 +18,47 @@ export const UpdateModal = () => {
     switch (status) {
       case "downloading":
         return {
-          title: t`⬇️ Downloading Update`,
+          title: t`Downloading Update`,
           message: t`Please wait while we download the latest version...`,
           showButton: false,
         };
       case "ready":
         return {
-          title: t`✨ Update Ready!`,
+          title: t`Update Ready`,
           message: t`A new version has been downloaded. Tap the button below to restart and apply the update.`,
           showButton: true,
+          buttonText: t`Restart App`,
+          onPress: reloadApp,
         };
-      case "error":
-        return {
-          title: t`⚠️ Update Failed`,
-          message:
-            errorMessage ||
-            t`Unable to check for updates. The app will continue to work normally.`,
-          showButton: true,
-          buttonText: t`Dismiss`,
-        };
+      case "error": {
+        switch (errorType) {
+          case "download-failed":
+            return {
+              title: t`Download Failed`,
+              message: t`The update couldn't be downloaded. Check your internet connection and reopen the app to try again.`,
+              showButton: true,
+              buttonText: t`Dismiss`,
+              onPress: dismissError,
+            };
+          case "reload-failed":
+            return {
+              title: t`Restart Failed`,
+              message: t`The update is ready but the app couldn't restart automatically. Try tapping the button below, or close and reopen the app manually.`,
+              showButton: true,
+              buttonText: t`Try Again`,
+              onPress: reloadApp,
+            };
+          default:
+            return {
+              title: t`Download Failed`,
+              message: t`The update couldn't be downloaded. Check your internet connection and reopen the app to try again.`,
+              showButton: true,
+              buttonText: t`Dismiss`,
+              onPress: dismissError,
+            };
+        }
+      }
       default: {
-        // Ensure this switch stays exhaustive if new statuses are added
         const _exhaustiveCheck: never = status;
         return _exhaustiveCheck;
       }
@@ -71,10 +91,10 @@ export const UpdateModal = () => {
           {content.showButton && (
             <Button
               mode="contained"
-              onPress={status === "error" ? dismissError : reloadApp}
+              onPress={content.onPress}
               style={styles.button}
             >
-              {"buttonText" in content ? content.buttonText : t`Restart App`}
+              {content.buttonText}
             </Button>
           )}
         </View>

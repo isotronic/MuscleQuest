@@ -151,7 +151,13 @@ export default function WorkoutOverviewScreen() {
     }
   }, [sessionHistory, initializeWeightAndReps]);
 
+  const exerciseIds = useMemo(
+    () => workout?.exercises.map((e) => e.exercise_id) ?? [],
+    [workout?.exercises],
+  );
+
   const { data: globalHistory } = useGlobalExerciseHistoryForSessionQuery(
+    exerciseIds,
     weightUnit,
     distanceUnit,
   );

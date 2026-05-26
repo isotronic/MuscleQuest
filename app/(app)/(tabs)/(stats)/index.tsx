@@ -17,7 +17,12 @@ import {
   useCompletedWorkoutsQuery,
   usePreviousPeriodWorkoutsQuery,
 } from "@/hooks/useCompletedWorkoutsQuery";
-import { startOfWeek, endOfWeek, format } from "date-fns";
+import {
+  startOfWeek,
+  endOfWeek,
+  format,
+  differenceInCalendarMonths,
+} from "date-fns";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { Colors } from "@/constants/Colors";
@@ -210,19 +215,30 @@ export default function StatsScreen() {
     [router],
   );
 
-  const workoutsByDate = useMemo(() => {
+  const allWorkoutsByDate = useMemo(() => {
     const map: Record<string, CompletedWorkout[]> = {};
-    for (const w of completedWorkouts ?? []) {
+    for (const w of allWorkouts ?? []) {
       const key = format(new Date(w.date_completed), "yyyy-MM-dd");
       (map[key] ??= []).push(w);
     }
     return map;
-  }, [completedWorkouts]);
+  }, [allWorkouts]);
+
+  const calendarPastScrollRange = useMemo(() => {
+    if (!allWorkouts?.length) return 12;
+    const oldest = allWorkouts.reduce((min, w) =>
+      new Date(w.date_completed) < new Date(min.date_completed) ? w : min,
+    );
+    return (
+      differenceInCalendarMonths(new Date(), new Date(oldest.date_completed)) +
+      1
+    );
+  }, [allWorkouts]);
 
   const markedDates = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
     const marks: Record<string, object> = {};
-    for (const date of Object.keys(workoutsByDate)) {
+    for (const date of Object.keys(allWorkoutsByDate)) {
       marks[date] = {
         customStyles: {
           container: {
@@ -266,14 +282,14 @@ export default function StatsScreen() {
       };
     }
     return marks;
-  }, [workoutsByDate, selectedDate]);
+  }, [allWorkoutsByDate, selectedDate]);
 
   const handleOpenCalendar = useCallback(() => {
     const today = format(new Date(), "yyyy-MM-dd");
-    const fallback = Object.keys(workoutsByDate).sort().reverse()[0] ?? null;
-    setSelectedDate(workoutsByDate[today] ? today : fallback);
+    const fallback = Object.keys(allWorkoutsByDate).sort().reverse()[0] ?? null;
+    setSelectedDate(allWorkoutsByDate[today] ? today : fallback);
     setHistoryVisible(true);
-  }, [workoutsByDate]);
+  }, [allWorkoutsByDate]);
 
   const handleExercisePress = useCallback(
     (exerciseId: number, name: string) =>
@@ -583,7 +599,7 @@ export default function StatsScreen() {
         selectedDate={selectedDate}
         onDayPress={(dateString) => setSelectedDate(dateString)}
         workoutsForSelectedDate={
-          selectedDate ? (workoutsByDate[selectedDate] ?? []) : []
+          selectedDate ? (allWorkoutsByDate[selectedDate] ?? []) : []
         }
         onWorkoutPress={(id) => {
           setHistoryVisible(false);
@@ -591,6 +607,7 @@ export default function StatsScreen() {
         }}
         excludeWarmup={excludeWarmup}
         loading={isLoadingWorkouts}
+        pastScrollRange={calendarPastScrollRange}
       />
     </ThemedView>
   );

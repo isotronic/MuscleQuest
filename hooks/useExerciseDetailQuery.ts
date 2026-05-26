@@ -153,7 +153,7 @@ const fetchExerciseDetail = async (
       exercise_id: exerciseId,
       date_added: "",
       name: exerciseNameRow?.name ?? "",
-      tracking_type: trackingType ?? "",
+      tracking_type: trackingType,
       completed_sets: completedSets,
       allTimePR,
     };
