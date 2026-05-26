@@ -110,7 +110,7 @@ export default function ExerciseInfoScreen() {
       exercise_id: exerciseData.exercise_id,
       date_added: "",
       name: exerciseData.name,
-      tracking_type: historyData.trackingType as string,
+      tracking_type: historyData.trackingType,
       completed_sets: historyData.chartSets,
       allTimePR: 0,
     } as TrackedExerciseWithSets;

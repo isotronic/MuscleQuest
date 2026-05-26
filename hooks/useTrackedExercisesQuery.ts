@@ -21,7 +21,7 @@ export interface CompletedSet {
 
 export interface TrackedExerciseWithSets extends TrackedExercise {
   name: string;
-  tracking_type: string;
+  tracking_type: string | null;
   completed_sets: CompletedSet[];
   allTimePR: number;
 }
@@ -76,7 +76,9 @@ const fetchTrackedExercises = async (
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
     `;
 
-    const warmupFilter = excludeWarmup ? ` AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)` : "";
+    const warmupFilter = excludeWarmup
+      ? ` AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)`
+      : "";
     if (timeRange !== "0") {
       query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) AND (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter} `;
     } else {
@@ -175,8 +177,20 @@ export const useTrackedExercisesQuery = (
   doubleWeightForPaired: boolean = false,
 ) => {
   return useQuery<TrackedExerciseWithSets[], Error>({
-    queryKey: ["trackedExercises", timeRange, excludeWarmup, countUnilateralDouble, doubleWeightForPaired],
-    queryFn: () => fetchTrackedExercises(timeRange, excludeWarmup, countUnilateralDouble, doubleWeightForPaired),
+    queryKey: [
+      "trackedExercises",
+      timeRange,
+      excludeWarmup,
+      countUnilateralDouble,
+      doubleWeightForPaired,
+    ],
+    queryFn: () =>
+      fetchTrackedExercises(
+        timeRange,
+        excludeWarmup,
+        countUnilateralDouble,
+        doubleWeightForPaired,
+      ),
     staleTime: 0,
     gcTime: 0,
   });
