@@ -71,7 +71,7 @@ export const HELP_DATA: GroupData[] = [
       {
         icon: "search-outline",
         title: msg`Exercise Library`,
-        body: msg`Browse almost 1,000 exercises and filter by body part, target muscle, or equipment. When replacing an exercise, the filter automatically preselects the matching target muscle to help you find alternatives faster. Tap any exercise to view its animated demonstration, the muscles targeted, and a full history of every time you have performed it, including weights, reps, time, or distance per set. Download all exercise animations (~100 MB) in Settings for offline access.`,
+        body: msg`Browse almost 1,000 exercises and filter by body part, target muscle, or equipment. Use the sort chips at the top to order exercises by Default, Active Plan, Recent, or Frequent, so the exercises most relevant to you appear first. When replacing an exercise, the filter automatically preselects the matching target muscle to help you find alternatives faster. Tap any exercise to view its animated demonstration, the muscles targeted, and a full history of every time you have performed it, including weights, reps, time, or distance per set. Download all exercise animations (~100 MB) in Settings for offline access.`,
       },
       {
         icon: "star-outline",
@@ -82,6 +82,11 @@ export const HELP_DATA: GroupData[] = [
         icon: "create-outline",
         title: msg`Custom Exercises`,
         body: msg`Create your own exercises from the exercise picker. Give it a name, an optional image, body part, target muscles, secondary muscles, and equipment. Choose a tracking type: weight + reps, time, distance, reps only, or assisted (which factors in your body weight for movements like assisted pull-ups). Toggle Unilateral for single-arm or single-leg exercises; reps can be automatically doubled in your stats. Toggle Paired Implements if you track the weight of one implement rather than the total: for example, if you log 20 kg for one dumbbell, the app counts 40 kg toward your volume.`,
+      },
+      {
+        icon: "barbell-outline",
+        title: msg`Weight Tracking for Bodyweight Exercises`,
+        body: msg`Bodyweight exercises like pull-ups or dips track reps only by default. If you want to log added weight, such as a weight belt or vest, open the sets overview for that exercise in the workout or plan editor and toggle Track Weight on. The toggle is saved per workout, so you can have some workouts use bodyweight-only and others track the additional load. Progression charts and history will reflect the logged weight once the toggle is on.`,
       },
     ],
   },
