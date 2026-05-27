@@ -157,9 +157,9 @@ export default function SetsOverviewScreen() {
                 {item.isWarmup ? t`Warm-up, ` : ""}
                 {item.isDropSet ? t`Drop set, ` : ""}
                 {item.isToFailure ? t`To failure, ` : ""}
-                {trackingType === "time"
+                {effectiveTrackingType === "time"
                   ? `${formattedTime}, `
-                  : trackingType === "distance"
+                  : effectiveTrackingType === "distance"
                     ? item.distance !== undefined
                       ? `${item.distance} ${distanceUnit}, `
                       : ""
