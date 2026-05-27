@@ -1,4 +1,4 @@
-import type { ViewStyle } from "react-native";
+import type { ViewStyle } from "react-native/Libraries/StyleSheet/StyleSheetTypes";
 
 export const elevation: { card: ViewStyle; modal: ViewStyle } = {
   card: {

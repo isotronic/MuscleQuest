@@ -1,25 +1,25 @@
-import type { ViewStyle } from "react-native";
+import type { ViewStyle } from "react-native/Libraries/StyleSheet/StyleSheetTypes";
 
 export type ThemeName = "classic" | "rpg";
 
 export interface AppThemeColors {
   // Backgrounds
-  background: string;       // nav bar / header
-  surface: string;          // screen background
-  card: string;             // card background
-  cardSecondary: string;    // nested / secondary card
-  cardActive: string;       // selected / active card
+  background: string; // nav bar / header
+  surface: string; // screen background
+  card: string; // card background
+  cardSecondary: string; // nested / secondary card
+  cardActive: string; // selected / active card
 
   // Content
-  contentPrimary: string;   // main text
+  contentPrimary: string; // main text
   contentSecondary: string; // sub-text, secondary icons
-  contentDisabled: string;  // disabled text
+  contentDisabled: string; // disabled text
 
   // Interactive
-  accent: string;           // primary action color
-  onAccent: string;         // text/icon rendered on top of accent
-  danger: string;           // destructive actions
-  success: string;          // completed / positive states
+  accent: string; // primary action color
+  onAccent: string; // text/icon rendered on top of accent
+  danger: string; // destructive actions
+  success: string; // completed / positive states
 
   // Control states
   controlDisabledBg: string;
