@@ -264,6 +264,22 @@ Track your body composition alongside your training from the new Measurements se
 • Units follow your weight and size preferences in Settings
 `,
   },
+  {
+    version: 2631,
+    message: msg`
+🔃 New: Sort the Exercise Library!
+
+The exercise library now has sort chips so you can find exercises faster. Sort by Default, Active Plan, Recent, or Frequent to see the exercises most relevant to you at the top.
+`,
+  },
+  {
+    version: 2632,
+    message: msg`
+⚖️ New: Track Weight for Bodyweight Exercises!
+
+For bodyweight exercises like pull-ups or dips, you can now toggle on weight tracking per workout. Perfect for weighted variations, so you can log the added weight and track progression over time.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
