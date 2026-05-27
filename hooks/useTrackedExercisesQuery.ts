@@ -148,7 +148,8 @@ const fetchTrackedExercises = async (
             row.tracking_type === null
               ? row.reps
               : undefined,
-          time: row.tracking_type === "time" ? row.time : undefined,
+          time:
+            row.tracking_type === "time" ? row.progression_metric : undefined,
           distance: row.tracking_type === "distance" ? row.distance : undefined,
           date_completed: row.date_completed,
           oneRepMax:
