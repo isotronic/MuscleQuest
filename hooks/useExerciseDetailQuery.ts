@@ -139,7 +139,7 @@ const fetchExerciseDetail = async (
 
     const completedSets: CompletedSet[] = setsRows
       .filter((r) => r.progression_metric !== null)
-      .map((r) => mapRowToCompletedSet(r, trackingType));
+      .map((r) => mapRowToCompletedSet(r, r.tracking_type ?? null));
 
     // Fetch all-time PR
     const allTimePRQuery = `
@@ -179,7 +179,8 @@ const fetchExerciseDetail = async (
       SELECT
         cs.weight, cs.reps, cs.time, cs.distance, cs.set_number,
         DATE(cw.date_completed) AS date_completed,
-        ${progressionMetricCase} AS progression_metric
+        ${progressionMetricCase} AS progression_metric,
+        COALESCE(uwe.tracking_type_override, e.tracking_type) AS tracking_type
       FROM exercises e
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
@@ -193,7 +194,7 @@ const fetchExerciseDetail = async (
     `;
     const topPRRows = (await db.getAllAsync(topPRQuery, [exerciseId])) as any[];
     const topPRSets: PRSet[] = topPRRows.map((r) => ({
-      ...mapRowToCompletedSet(r, trackingType),
+      ...mapRowToCompletedSet(r, r.tracking_type ?? null),
       date_completed: r.date_completed,
     }));
 
@@ -202,7 +203,8 @@ const fetchExerciseDetail = async (
       SELECT
         DATE(cw.date_completed) AS date_completed,
         cs.weight, cs.reps, cs.time, cs.distance, cs.set_number,
-        MAX(${progressionMetricCase}) AS progression_metric
+        MAX(${progressionMetricCase}) AS progression_metric,
+        COALESCE(uwe.tracking_type_override, e.tracking_type) AS tracking_type
       FROM exercises e
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
@@ -220,7 +222,7 @@ const fetchExerciseDetail = async (
     ])) as any[];
     const recentSessions: RecentSession[] = recentRows.map((r) => ({
       date_completed: r.date_completed,
-      bestSet: mapRowToCompletedSet(r, trackingType),
+      bestSet: mapRowToCompletedSet(r, r.tracking_type ?? null),
     }));
 
     const latestMetric =
