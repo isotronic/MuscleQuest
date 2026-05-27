@@ -7,6 +7,7 @@ import { Colors } from "@/constants/Colors";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useSoundStore } from "@/store/soundStore";
+import { radii } from "@/theme";
 const RING_SIZE = 220;
 const STROKE_WIDTH = 14;
 const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 6,
+    borderRadius: radii.md,
     paddingVertical: 40,
     paddingHorizontal: 40,
     alignItems: "center",
@@ -278,7 +279,7 @@ const styles = StyleSheet.create({
   },
   stopButton: {
     backgroundColor: Colors.dark.highlight,
-    borderRadius: 12,
+    borderRadius: radii.lg,
     paddingVertical: 14,
     paddingHorizontal: 48,
   },

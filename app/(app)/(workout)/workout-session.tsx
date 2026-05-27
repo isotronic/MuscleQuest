@@ -41,6 +41,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { radii } from "@/theme";
 
 // Reanimated 4: Animated.View types don't include children in strict TS
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
@@ -1476,7 +1477,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 8,
+    borderRadius: radii.md,
     paddingHorizontal: 14,
     paddingVertical: 8,
     marginBottom: 8,
@@ -1510,7 +1511,7 @@ const styles = StyleSheet.create({
   timerAdjustButton: {
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.cardBackground2,
   },
   timerAdjustText: {

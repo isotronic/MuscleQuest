@@ -26,6 +26,7 @@ import {
 } from "@/hooks/useBodyMeasurementMutations";
 import { BodyMetricDefinition } from "@/utils/database";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
+import { radii } from "@/theme";
 
 const DECIMAL_SEP =
   new Intl.NumberFormat().formatToParts(1.1).find((p) => p.type === "decimal")
@@ -325,7 +326,7 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     paddingVertical: 4,
     paddingHorizontal: 8,
-    borderRadius: 6,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.cardBackground,
   },
   metricUnit: {
@@ -339,7 +340,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: radii.full,
     backgroundColor: Colors.dark.cardBackground,
     marginRight: 8,
   },

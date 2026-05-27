@@ -6,6 +6,7 @@ import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { bodyPartTranslations } from "@/constants/dbTranslations";
 import { capitalizeWords } from "@/utils/utility";
+import { radii } from "@/theme";
 
 interface InsightPill {
   label: string;
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
   pill: {
     flex: 1,
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 6,
+    borderRadius: radii.md,
     paddingVertical: 10,
     paddingHorizontal: 14,
     alignItems: "center",
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
   },
   tooltip: {
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 6,
+    borderRadius: radii.md,
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderWidth: 1,

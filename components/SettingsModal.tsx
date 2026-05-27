@@ -17,6 +17,7 @@ import { formatTimeInput } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
 import { Dropdown } from "react-native-element-dropdown";
 import SliderLib, { SliderProps } from "@react-native-community/slider";
+import { radii } from "@/theme";
 const Slider = SliderLib as unknown as React.ComponentType<SliderProps>;
 
 // Utility function to format setting keys
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: Colors.dark.cardBackground,
     padding: 20,
-    borderRadius: 8,
+    borderRadius: radii.md,
     width: "90%",
     alignItems: "center",
   },
@@ -366,7 +367,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: Colors.dark.text,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     color: Colors.dark.text,
     textAlign: "center",
     fontSize: 18,
@@ -382,7 +383,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: Colors.dark.text,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     color: Colors.dark.text,
     textAlign: "center",
     fontSize: 18,
@@ -415,14 +416,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.cardBackground,
     borderColor: Colors.dark.text,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     height: 50,
     paddingHorizontal: 12,
   },
   dropdownListContainer: {
     backgroundColor: Colors.dark.cardBackground,
     borderColor: Colors.dark.cardBackground,
-    borderRadius: 8,
+    borderRadius: radii.md,
     padding: 4,
     elevation: 4,
   },

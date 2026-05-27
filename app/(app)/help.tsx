@@ -15,6 +15,7 @@ import { HELP_DATA } from "@/constants/HelpData";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
+import { radii } from "@/theme";
 
 function highlightTokens(text: string, tokens: string[]) {
   if (tokens.length === 0) return <Text>{text}</Text>;
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 10,
+    borderRadius: radii.md,
     marginHorizontal: 16,
     marginTop: 12,
     marginBottom: 4,

@@ -7,6 +7,7 @@ import { capitalizeWords } from "@/utils/utility";
 import { fetchAllRecords, fetchMusclesByFilters } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { radii } from "@/theme";
 
 interface OptionItem {
   label: string;
@@ -268,14 +269,14 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     backgroundColor: Colors.dark.screenBackground,
-    borderRadius: 8,
+    borderRadius: radii.md,
     height: 50,
     paddingHorizontal: 8,
   },
   dropdownListContainer: {
     backgroundColor: Colors.dark.cardBackground,
     borderColor: Colors.dark.cardBackground,
-    borderRadius: 8,
+    borderRadius: radii.md,
     padding: 4,
     elevation: 4,
   },

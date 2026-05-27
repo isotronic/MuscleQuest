@@ -13,6 +13,7 @@ import { Colors } from "@/constants/Colors";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
+import { radii } from "@/theme";
 
 export const WhatsNewModal = () => {
   const [visible, setVisible] = useState(false);
@@ -83,7 +84,7 @@ export const WhatsNewModal = () => {
             backgroundColor: Colors.dark.cardBackground2,
             padding: 16,
             margin: 16,
-            borderRadius: 12,
+            borderRadius: radii.lg,
           }}
         >
           <View

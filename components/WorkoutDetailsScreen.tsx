@@ -13,6 +13,7 @@ import { Colors } from "@/constants/Colors";
 import Bugsnag from "@bugsnag/expo";
 import { Notes } from "@/components/Notes";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { radii } from "@/theme";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -213,13 +214,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.cardBackground,
     padding: 16,
     marginBottom: 10,
-    borderRadius: 8,
+    borderRadius: radii.md,
   },
   exerciseImage: {
     width: 70,
     height: 70,
     marginRight: 16,
-    borderRadius: 8,
+    borderRadius: radii.md,
   },
   exerciseInfo: {
     flex: 1,

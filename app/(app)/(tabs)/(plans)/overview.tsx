@@ -32,6 +32,7 @@ import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import type { Workout } from "@/store/workoutStore";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { radii } from "@/theme";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -252,7 +253,11 @@ export default function PlanOverviewScreen() {
           labelStyle={styles.buttonLabel}
           disabled={isEditing}
         >
-          {plan?.app_plan_id ? <Trans>Customise Plan</Trans> : <Trans>Edit Plan</Trans>}
+          {plan?.app_plan_id ? (
+            <Trans>Customise Plan</Trans>
+          ) : (
+            <Trans>Edit Plan</Trans>
+          )}
         </Button>
       </View>
       <Snackbar
@@ -288,7 +293,7 @@ const styles = StyleSheet.create({
   planImage: {
     width: "100%",
     height: 200,
-    borderRadius: 8,
+    borderRadius: radii.md,
   },
   planName: {
     fontSize: 24,
@@ -300,7 +305,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.cardBackground,
     padding: 16,
     marginBottom: 10,
-    borderRadius: 8,
+    borderRadius: radii.md,
   },
   workoutTitle: {
     fontSize: 18,
@@ -328,7 +333,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.completed,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: radii.sm,
     position: "absolute",
     top: 10,
     right: 10,

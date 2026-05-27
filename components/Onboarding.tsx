@@ -5,6 +5,7 @@ import { type Href, useRouter } from "expo-router";
 import { t } from "@lingui/core/macro";
 import { Colors } from "@/constants/Colors";
 import { ThemedText } from "./ThemedText";
+import { radii } from "@/theme";
 
 const Onboarding = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -132,7 +133,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
     paddingVertical: 24,
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 8,
+    borderRadius: radii.md,
     elevation: 5,
   },
   title: {

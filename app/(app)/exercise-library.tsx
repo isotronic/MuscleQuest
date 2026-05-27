@@ -18,6 +18,7 @@ import ExerciseSortChips, {
   type SortMode,
 } from "@/components/ExerciseSortChips";
 import Bugsnag from "@bugsnag/expo";
+import { radii } from "@/theme";
 
 export default function ExerciseLibraryScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderColor: Colors.dark.text,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.screenBackground,
     paddingRight: 8,
     marginBottom: 4,

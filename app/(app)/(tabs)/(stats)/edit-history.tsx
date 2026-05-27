@@ -15,6 +15,7 @@ import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQue
 import { formatFromTotalSeconds, convertToTotalSeconds } from "@/utils/utility";
 import { TimeInput } from "@/components/TimeInput";
 import Bugsnag from "@bugsnag/expo";
+import { radii } from "@/theme";
 
 export default function EditCompletedWorkoutScreen() {
   const { id } = useLocalSearchParams();
@@ -309,7 +310,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: Colors.dark.subText,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     color: Colors.dark.text,
     fontSize: 18,
     textAlign: "right",
@@ -319,7 +320,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: Colors.dark.subText,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     color: Colors.dark.text,
     fontSize: 18,
     textAlign: "center",

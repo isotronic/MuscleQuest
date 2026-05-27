@@ -3,8 +3,9 @@ import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { Card } from "react-native-paper";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
-import { chartTheme } from "./chartTheme";
-import { Colors } from "@/constants/Colors";
+import { useChartTheme } from "./chartTheme";
+import { useAppTheme } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface WorkoutBarChartProps {
   completedWorkouts: CompletedWorkout[];
@@ -162,6 +163,9 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
   timeRange,
 }) => {
   const { width: screenWidth } = useWindowDimensions();
+  const chartTheme = useChartTheme();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const buckets = useMemo(
     () => groupWorkoutsByTime(completedWorkouts, timeRange),
@@ -197,7 +201,7 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
         barWidth={barWidth}
         spacing={barSpacing}
         isAnimated
-        frontColor={chartTheme.primaryColor}
+        frontColor={chartTheme.primary}
         roundedTop
         barBorderRadius={chartTheme.barBorderRadius}
         yAxisTextStyle={styles.yAxisLabel}
@@ -214,29 +218,31 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    width: "100%",
-    marginBottom: 8,
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  yAxisLabel: {
-    fontSize: 10,
-    color: Colors.dark.subText,
-  },
-  xAxisLabel: {
-    fontSize: 9,
-    color: Colors.dark.subText,
-    marginTop: 4,
-  },
-  twoLineLabel: {
-    alignItems: "center",
-    marginTop: 4,
-  },
-  twoLineLabelText: {
-    fontSize: 9,
-    color: Colors.dark.subText,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    card: {
+      width: "100%",
+      marginBottom: 8,
+      paddingVertical: 16,
+      paddingHorizontal: 8,
+      backgroundColor: colors.card,
+    },
+    yAxisLabel: {
+      fontSize: 10,
+      color: colors.contentSecondary,
+    },
+    xAxisLabel: {
+      fontSize: 9,
+      color: colors.contentSecondary,
+      marginTop: 4,
+    },
+    twoLineLabel: {
+      alignItems: "center",
+      marginTop: 4,
+    },
+    twoLineLabelText: {
+      fontSize: 9,
+      color: colors.contentSecondary,
+    },
+  });
+}

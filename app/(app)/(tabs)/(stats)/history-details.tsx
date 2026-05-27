@@ -22,6 +22,7 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useDeleteCompletedWorkoutMutation } from "@/hooks/useDeleteCompletedWorkoutMutation";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import Bugsnag from "@bugsnag/expo";
+import { radii } from "@/theme";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -350,7 +351,7 @@ const styles = StyleSheet.create({
   },
   exerciseCard: {
     marginBottom: 16,
-    borderRadius: 8,
+    borderRadius: radii.md,
     paddingBottom: 8,
     elevation: 2, // For Android
     boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)", // For iOS
@@ -364,7 +365,7 @@ const styles = StyleSheet.create({
   exerciseImage: {
     width: 60,
     height: 60,
-    borderRadius: 8,
+    borderRadius: radii.md,
     marginRight: 16,
   },
   exerciseName: {

@@ -5,6 +5,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { useAppUpdates } from "@/hooks/useAppUpdates";
 import { t } from "@lingui/core/macro";
+import { radii } from "@/theme";
 
 export const UpdateModal = () => {
   const { status, errorType, reloadApp, dismissError } = useAppUpdates();
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.cardBackground2,
     padding: 24,
     margin: 16,
-    borderRadius: 12,
+    borderRadius: radii.lg,
     alignItems: "center",
   },
   spinner: {

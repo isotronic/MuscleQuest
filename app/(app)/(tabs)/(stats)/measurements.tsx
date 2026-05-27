@@ -25,6 +25,7 @@ import { useBodyMeasurementSessionsQuery } from "@/hooks/useBodyMeasurementSessi
 import { useInsertBodyMeasurementMutation } from "@/hooks/useBodyMeasurementMutations";
 import { BodyMeasurementSession } from "@/utils/database";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
+import { radii } from "@/theme";
 
 const DECIMAL_SEP =
   new Intl.NumberFormat().formatToParts(1.1).find((p) => p.type === "decimal")
@@ -398,7 +399,7 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     paddingVertical: 4,
     paddingHorizontal: 8,
-    borderRadius: 6,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.cardBackground,
   },
   metricUnit: {
@@ -408,7 +409,7 @@ const styles = StyleSheet.create({
   },
   logButton: {
     marginTop: 16,
-    borderRadius: 8,
+    borderRadius: radii.md,
   },
   divider: {
     marginBottom: 24,
@@ -453,7 +454,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   calendarCard: {
-    borderRadius: 12,
+    borderRadius: radii.lg,
     overflow: "hidden",
     backgroundColor: Colors.dark.cardBackground,
   },

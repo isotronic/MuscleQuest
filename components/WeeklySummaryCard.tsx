@@ -8,6 +8,7 @@ import { Colors } from "@/constants/Colors";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t, plural } from "@lingui/core/macro";
+import { radii } from "@/theme";
 
 interface Props {
   workoutsThisWeek: CompletedWorkout[];
@@ -328,7 +329,11 @@ export default function WeeklySummaryCard({
               <Trans>Streak</Trans>
             </ThemedText>
             <ThemedText style={[styles.statValue, styles.streakValue]}>
-              <Plural value={streak} one="# week in a row" other="# weeks in a row" />
+              <Plural
+                value={streak}
+                one="# week in a row"
+                other="# weeks in a row"
+              />
             </ThemedText>
           </View>
         )}
@@ -339,7 +344,7 @@ export default function WeeklySummaryCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
+    borderRadius: radii.lg,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,

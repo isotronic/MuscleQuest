@@ -9,6 +9,7 @@ import { Workout } from "@/store/workoutStore";
 import { Trans } from "@lingui/react/macro";
 import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
+import { radii } from "@/theme";
 
 const DAY_NAMES = [
   msg`Monday`,
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 12,
+    borderRadius: radii.lg,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,

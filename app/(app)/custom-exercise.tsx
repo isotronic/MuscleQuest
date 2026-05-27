@@ -24,6 +24,7 @@ import { useWorkoutStore } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { radii } from "@/theme";
 
 export default function AddCustomExerciseScreen() {
   const queryClient = useQueryClient();
@@ -642,7 +643,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: Colors.dark.subText,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     color: Colors.dark.text,
     fontSize: 18,
     marginBottom: 8,
@@ -656,14 +657,14 @@ const styles = StyleSheet.create({
   imagePreview: {
     width: "100%",
     height: 160,
-    borderRadius: 12,
+    borderRadius: radii.lg,
     marginBottom: 12,
   },
   dropdown: {
     backgroundColor: Colors.dark.screenBackground,
     borderColor: Colors.dark.subText,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     paddingHorizontal: 12,
     height: 50,
     marginBottom: 8,
@@ -671,7 +672,7 @@ const styles = StyleSheet.create({
   dropdownList: {
     backgroundColor: Colors.dark.screenBackground,
     borderColor: Colors.dark.subText,
-    borderRadius: 8,
+    borderRadius: radii.md,
     overflow: "hidden",
   },
   dropdownPlaceholder: {
@@ -690,12 +691,12 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     backgroundColor: Colors.dark.screenBackground,
     borderColor: Colors.dark.subText,
-    borderRadius: 8,
+    borderRadius: radii.md,
     fontSize: 16,
   },
   dropdownSelectedChip: {
     borderColor: Colors.dark.tint,
-    borderRadius: 8,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.cardBackground,
   },
   dropdownError: {

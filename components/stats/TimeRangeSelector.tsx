@@ -4,6 +4,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
 import { msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
+import { radii } from "@/theme";
 
 const RANGES = [
   { label: msg`30d`, value: "30" },
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
   pill: {
     flex: 1,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: radii.full,
     alignItems: "center",
     backgroundColor: Colors.dark.cardBackground,
   },

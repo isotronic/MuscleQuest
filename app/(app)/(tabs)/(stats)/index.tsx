@@ -44,6 +44,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { formatToHoursMinutes } from "@/utils/utility";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
 import Bugsnag from "@bugsnag/expo";
+import { radii } from "@/theme";
 
 const computeStats = (
   workouts: CompletedWorkout[],
@@ -244,7 +245,7 @@ export default function StatsScreen() {
           container: {
             borderWidth: 1.5,
             borderColor: Colors.dark.tint,
-            borderRadius: 16,
+            borderRadius: radii.xl,
           },
           text: {
             color: date === today ? Colors.dark.tint : Colors.dark.text,
@@ -271,7 +272,7 @@ export default function StatsScreen() {
         customStyles: {
           container: {
             backgroundColor: Colors.dark.tint,
-            borderRadius: 16,
+            borderRadius: radii.xl,
           },
           text: {
             color: Colors.dark.background,
@@ -647,7 +648,7 @@ const styles = StyleSheet.create({
   },
   measurementTile: {
     padding: 12,
-    borderRadius: 8,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.cardBackground,
   },
   measurementGrid: {

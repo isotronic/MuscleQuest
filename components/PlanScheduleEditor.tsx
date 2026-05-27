@@ -9,6 +9,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
+import { radii } from "@/theme";
 
 const DAY_LABELS = [
   msg`Mon`,
@@ -203,7 +204,11 @@ export default function PlanScheduleEditor({
         labelStyle={styles.autoButtonLabel}
         textColor={Colors.dark.tint}
       >
-        <Plural value={weeklyGoal} one="Auto-suggest (# day)" other="Auto-suggest (# days)" />
+        <Plural
+          value={weeklyGoal}
+          one="Auto-suggest (# day)"
+          other="Auto-suggest (# days)"
+        />
       </Button>
     </ThemedView>
   );
@@ -213,7 +218,7 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 24,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: radii.lg,
     backgroundColor: Colors.dark.background,
   },
   header: {
@@ -240,7 +245,7 @@ const styles = StyleSheet.create({
   },
   dayTile: {
     width: "100%",
-    borderRadius: 15,
+    borderRadius: radii.xl,
     borderWidth: 1,
     borderColor: Colors.dark.icon,
     alignItems: "center",
@@ -274,7 +279,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 12,
+    borderRadius: radii.lg,
     width: "75%",
     maxHeight: "60%",
     overflow: "hidden",

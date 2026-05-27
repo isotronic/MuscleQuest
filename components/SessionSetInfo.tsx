@@ -18,6 +18,7 @@ import { formatFromTotalSeconds, formatTimeInput } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
 import { useContinuousPress } from "@/hooks/useContinuousPress";
 import { ExerciseTimerModal } from "./ExerciseTimerModal";
+import { radii } from "@/theme";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -542,7 +543,7 @@ const styles = StyleSheet.create({
   animatedImage: {
     width: 70,
     height: 70,
-    borderRadius: 10,
+    borderRadius: radii.md,
     marginRight: 16,
   },
   titleContainer: {
@@ -591,7 +592,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: radii.md,
   },
   setTypeBadgeWarmup: {
     backgroundColor: Colors.dark.badgeWarmup,
@@ -619,7 +620,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: "#ccc",
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     textAlign: "center",
     fontSize: 26,
     color: Colors.dark.text,

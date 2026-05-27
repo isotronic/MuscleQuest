@@ -2,7 +2,6 @@ import React, { useMemo, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Exercise } from "@/utils/database";
 import { Card } from "react-native-paper";
@@ -10,6 +9,8 @@ import { capitalizeWords } from "@/utils/utility";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
 import { bodyPartTranslations } from "@/constants/dbTranslations";
+import { useAppTheme } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 // Define the props for the component
 interface BodyPartChartProps {
@@ -24,6 +25,8 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
   excludeWarmup = false,
 }) => {
   const { _ } = useLingui();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
   const [selectedPercentage, setSelectedPercentage] = useState<number | null>(
     null,
@@ -172,7 +175,7 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
               innerRadius={110}
               onPress={handleChartPress}
               sectionAutoFocus
-              innerCircleColor={Colors.dark.cardBackground}
+              innerCircleColor={colors.card}
               centerLabelComponent={() => (
                 <View
                   style={{ justifyContent: "center", alignItems: "center" }}
@@ -210,39 +213,41 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
 
 export default BodyPartChart;
 
-const styles = StyleSheet.create({
-  card: {
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  pieChartLabel: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  pieChartCenterLabel: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  legendContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    marginTop: 8,
-  },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-    marginRight: 8,
-  },
-  legendText: {
-    fontSize: 12,
-  },
-  selectedLegendText: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    card: {
+      width: "100%",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 16,
+      backgroundColor: colors.card,
+    },
+    pieChartLabel: {
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    pieChartCenterLabel: {
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    legendContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      marginTop: 8,
+    },
+    legendItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 4,
+      marginRight: 8,
+    },
+    legendText: {
+      fontSize: 12,
+    },
+    selectedLegendText: {
+      fontSize: 14,
+      fontWeight: "bold",
+    },
+  });
+}

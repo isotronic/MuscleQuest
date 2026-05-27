@@ -15,6 +15,7 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Colors } from "@/constants/Colors";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { radii } from "@/theme";
 
 interface WorkoutCalendarModalProps {
   visible: boolean;
@@ -204,7 +205,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 8,
+    borderRadius: radii.md,
     margin: 16,
     maxHeight: "82%",
     padding: 16,

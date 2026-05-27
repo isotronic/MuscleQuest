@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
+import { radii } from "@/theme";
 
 const DAY_LABELS = [
   msg`Mon`,
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 20,
     padding: 16,
-    borderRadius: 8,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.cardBackground,
   },
   header: {
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
   },
   dayTile: {
     width: "100%",
-    borderRadius: 15,
+    borderRadius: radii.xl,
     borderWidth: 1,
     borderColor: Colors.dark.icon,
     alignItems: "center",

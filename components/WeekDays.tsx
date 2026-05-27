@@ -3,6 +3,7 @@ import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { ThemedText } from "./ThemedText";
 import { Colors } from "@/constants/Colors";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import { radii } from "@/theme";
 
 interface WeekDaysProps {
   completedWorkoutsThisWeek?: CompletedWorkout[];
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
   circle: {
     width: 45,
     height: 45,
-    borderRadius: 15,
+    borderRadius: radii.xl,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",

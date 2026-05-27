@@ -11,6 +11,7 @@ import {
   bodyPartTranslations,
   equipmentTranslations,
 } from "@/constants/dbTranslations";
+import { radii } from "@/theme";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -75,13 +76,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#3B4252",
     padding: 12,
-    borderRadius: 8,
+    borderRadius: radii.md,
     marginBottom: 12,
   },
   exerciseImage: {
     width: 60,
     height: 60,
-    borderRadius: 8,
+    borderRadius: radii.md,
   },
   exerciseInfo: {
     marginLeft: 12,

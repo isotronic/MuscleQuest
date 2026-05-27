@@ -19,6 +19,7 @@ import { EditSetModal } from "@/components/EditSetModal";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
+import { radii } from "@/theme";
 
 export default function SetsOverviewScreen() {
   const { exerciseId, workoutIndex, trackingType } = useLocalSearchParams();
@@ -291,7 +292,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 8,
+    borderRadius: radii.md,
     paddingHorizontal: 14,
     paddingVertical: 10,
     marginTop: 8,
@@ -312,7 +313,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.cardBackground,
     borderLeftWidth: 3,
     borderLeftColor: Colors.dark.tint,
-    borderRadius: 8,
+    borderRadius: radii.md,
     paddingHorizontal: 14,
     paddingVertical: 10,
     marginBottom: 12,
@@ -332,7 +333,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.cardBackground,
     padding: 16,
     marginBottom: 10,
-    borderRadius: 8,
+    borderRadius: radii.md,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

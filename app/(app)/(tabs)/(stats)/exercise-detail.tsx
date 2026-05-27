@@ -11,6 +11,7 @@ import { useExerciseDetailQuery } from "@/hooks/useExerciseDetailQuery";
 import { ExerciseProgressionChart } from "@/components/charts/ExerciseProgressionChart";
 import { Colors } from "@/constants/Colors";
 import { formatToHoursMinutes } from "@/utils/utility";
+import { radii } from "@/theme";
 
 export default function ExerciseDetailScreen() {
   const { exerciseId, name } = useLocalSearchParams<{
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
   pillRow: {
     flexDirection: "row",
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 10,
+    borderRadius: radii.md,
     marginBottom: 20,
     paddingVertical: 14,
     justifyContent: "space-evenly",

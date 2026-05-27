@@ -59,6 +59,7 @@ import Animated, {
 import { useTimer } from "react-timer-hook";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSoundStore } from "@/store/soundStore";
+import { radii } from "@/theme";
 
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
   style?: any;
@@ -1082,7 +1083,7 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: 10,
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 10,
+    borderRadius: radii.md,
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
@@ -1101,7 +1102,7 @@ const styles = StyleSheet.create({
   numberContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: radii.full,
     borderWidth: 2,
     borderColor: Colors.dark.text,
     justifyContent: "center",
@@ -1133,7 +1134,7 @@ const styles = StyleSheet.create({
   saveModal: {
     backgroundColor: Colors.dark.cardBackground,
     margin: 24,
-    borderRadius: 12,
+    borderRadius: radii.lg,
     padding: 24,
   },
   saveModalTitle: {
@@ -1149,7 +1150,7 @@ const styles = StyleSheet.create({
   saveModalInput: {
     borderWidth: 1,
     borderColor: Colors.dark.subText,
-    borderRadius: 8,
+    borderRadius: radii.md,
     padding: 10,
     color: Colors.dark.text,
     fontSize: 14,
@@ -1259,7 +1260,7 @@ const styles = StyleSheet.create({
   timerAdjustButton: {
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.cardBackground2,
   },
   timerAdjustText: {

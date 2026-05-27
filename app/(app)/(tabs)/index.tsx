@@ -35,6 +35,7 @@ import {
   prioritizeScheduledWorkout,
 } from "@/utils/planHelpers";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
+import { radii } from "@/theme";
 
 function WorkoutDurationInfo({
   exercises,
@@ -620,7 +621,7 @@ const styles = StyleSheet.create({
   },
   workoutCard: {
     marginBottom: 10,
-    borderRadius: 10,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.cardBackground,
     padding: 16,
   },
@@ -654,7 +655,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   startWorkoutButton: {
-    borderRadius: 15,
+    borderRadius: radii.xl,
     width: "100%",
     height: 50,
   },
@@ -665,7 +666,7 @@ const styles = StyleSheet.create({
   pickerModal: {
     backgroundColor: Colors.dark.cardBackground,
     margin: 24,
-    borderRadius: 12,
+    borderRadius: radii.lg,
     padding: 20,
   },
   pickerTitle: {

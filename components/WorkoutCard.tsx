@@ -14,6 +14,7 @@ import { formatFromTotalSeconds } from "@/utils/utility";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
+import { radii } from "@/theme";
 
 // Each item fed to Sortable.Grid is either a solo exercise or an adjacent superset pair.
 // The pair is treated as a single draggable unit so both exercises move together.
@@ -255,9 +256,11 @@ export default function WorkoutCard({
             <View style={styles.exerciseInfo}>
               <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
               <ThemedText style={styles.setsAndReps}>
-                {item?.sets?.length
-                  ? <Plural value={item.sets.length} one="# Set" other="# Sets" />
-                  : t`No Sets Available`}
+                {item?.sets?.length ? (
+                  <Plural value={item.sets.length} one="# Set" other="# Sets" />
+                ) : (
+                  t`No Sets Available`
+                )}
                 {item.tracking_type === "time"
                   ? timeRange
                     ? ` | ${timeRange} ${isToFailure ? t`(to Failure)` : ""}`
@@ -475,7 +478,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: Colors.dark.subText,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     color: Colors.dark.text,
     marginTop: 10,
     fontSize: 14,
@@ -494,7 +497,7 @@ const styles = StyleSheet.create({
   image: {
     width: 60,
     height: 60,
-    borderRadius: 20,
+    borderRadius: radii.full,
     marginRight: 10,
   },
   emptyText: {
@@ -505,7 +508,7 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: Colors.dark.cardBackground,
     padding: 16,
-    borderRadius: 8,
+    borderRadius: radii.md,
     marginBottom: 16,
     overflow: "visible",
   },
@@ -537,7 +540,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: Colors.dark.cardBackground2,
     marginBottom: 8,
-    borderRadius: 8,
+    borderRadius: radii.md,
     overflow: "visible",
   },
   activeExerciseItem: {
@@ -550,7 +553,7 @@ const styles = StyleSheet.create({
   },
   removeWorkoutButton: {
     padding: 4,
-    borderRadius: 50,
+    borderRadius: radii.full,
   },
   dragIcon: {
     marginRight: 10,

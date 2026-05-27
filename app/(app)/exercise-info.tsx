@@ -5,6 +5,7 @@ import {
   SectionList,
   TouchableOpacity,
 } from "react-native";
+import { radii } from "@/theme";
 import { ActivityIndicator, IconButton, Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { router, Stack, useLocalSearchParams } from "expo-router";
@@ -441,7 +442,7 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    borderRadius: 12,
+    borderRadius: radii.lg,
   },
   tabBar: {
     flexDirection: "row",
@@ -452,7 +453,7 @@ const styles = StyleSheet.create({
   tabPill: {
     flex: 1,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: radii.full,
     alignItems: "center",
     backgroundColor: Colors.dark.cardBackground,
   },
@@ -478,7 +479,7 @@ const styles = StyleSheet.create({
   detailsContainer: {
     padding: 16,
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 12,
+    borderRadius: radii.lg,
   },
   title: {
     fontSize: 22,
@@ -546,7 +547,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: radii.md,
     marginBottom: 4,
     backgroundColor: Colors.dark.cardBackground,
     gap: 8,

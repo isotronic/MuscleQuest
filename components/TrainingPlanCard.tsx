@@ -10,6 +10,7 @@ import { ThemedView } from "./ThemedView";
 import { Colors } from "@/constants/Colors";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
+import { radii } from "@/theme";
 
 export default function TrainingPlanCard({
   title,
@@ -59,7 +60,7 @@ export default function TrainingPlanCard({
         <Animated.View style={[styles.card, cardStyle]}>
           <Card style={styles.card}>
             <Card.Cover
-              style={{ borderRadius: 10 }}
+              style={{ borderRadius: radii.md }}
               source={{
                 uri: imageUrl,
               }}
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
   card: {
     height: 190,
     width: 300,
-    borderRadius: 10,
+    borderRadius: radii.md,
     overflow: "hidden",
   },
   floatingTitleContainer: {
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.completed,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: radii.sm,
   },
   activeBadgeText: {
     color: Colors.dark.text,

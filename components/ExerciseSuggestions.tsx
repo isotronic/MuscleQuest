@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Colors } from "@/constants/Colors";
 import type { AutocompleteSuggestion } from "@/utils/exerciseSearch";
+import { radii } from "@/theme";
 
 interface ExerciseSuggestionsProps {
   suggestions: AutocompleteSuggestion[];
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 16,
+    borderRadius: radii.xl,
     paddingHorizontal: 12,
     paddingVertical: 6,
     maxWidth: 200,

@@ -3,6 +3,7 @@ import { StyleSheet } from "react-native";
 import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
+import { radii } from "@/theme";
 
 interface StatsTileProps {
   label: string;
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingVertical: 14,
     paddingHorizontal: 12,
-    borderRadius: 6,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.cardBackground,
     alignItems: "center",
   },

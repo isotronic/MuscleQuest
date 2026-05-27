@@ -4,6 +4,7 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Colors } from "@/constants/Colors";
 import { t } from "@lingui/core/macro";
 import { Plural } from "@lingui/react/macro";
+import { radii } from "@/theme";
 
 interface WorkoutCardProps {
   workout: CompletedWorkout;
@@ -68,7 +69,7 @@ export default function WorkoutHistoryCard({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 8,
+    borderRadius: radii.md,
     overflow: "hidden",
   },
   containerHorizontal: {
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: 14,
-    borderRadius: 8,
+    borderRadius: radii.md,
     borderLeftWidth: 3,
     borderLeftColor: Colors.dark.tint,
     shadowColor: "#000",
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     backgroundColor: "rgba(255, 255, 255, 0.12)",
-    borderRadius: 4,
+    borderRadius: radii.sm,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },

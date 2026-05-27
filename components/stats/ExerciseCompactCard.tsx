@@ -5,6 +5,7 @@ import { SparklineChart } from "@/components/charts/SparklineChart";
 import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
 import { Colors } from "@/constants/Colors";
 import { t, plural } from "@lingui/core/macro";
+import { radii } from "@/theme";
 
 interface ExerciseCompactCardProps {
   exercise: TrackedExerciseWithSets;
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 6,
+    borderRadius: radii.md,
     paddingVertical: 12,
     paddingHorizontal: 14,
     marginBottom: 8,

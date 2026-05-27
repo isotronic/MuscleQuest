@@ -37,6 +37,7 @@ import SaveIcon from "@/components/SaveIcon";
 import PlanScheduleEditor from "@/components/PlanScheduleEditor";
 import { fetchPlanSchedule } from "@/utils/database";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { radii } from "@/theme";
 
 type ScrollViewType = typeof ScrollView;
 
@@ -463,7 +464,7 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    borderRadius: 10,
+    borderRadius: radii.md,
     overflow: "hidden",
   },
   overlayIcon: {
@@ -476,7 +477,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: Colors.dark.subText,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     color: Colors.dark.text,
     fontSize: 18,
     lineHeight: 24,
@@ -488,7 +489,7 @@ const styles = StyleSheet.create({
   },
   addWorkoutButton: {
     marginTop: 16,
-    borderRadius: 8,
+    borderRadius: radii.md,
   },
   buttonLabel: {
     fontSize: 16,

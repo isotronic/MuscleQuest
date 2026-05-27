@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { t } from "@lingui/core/macro";
 import { Colors } from "@/constants/Colors";
+import { radii } from "@/theme";
 
 export type SortMode = "default" | "activePlan" | "recent" | "frequent";
 
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 16,
+    borderRadius: radii.xl,
     paddingHorizontal: 14,
     paddingVertical: 7,
   },

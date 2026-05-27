@@ -24,6 +24,7 @@ import {
 } from "@/hooks/useBodyMetricMutations";
 import { type ValueKind } from "@/utils/measurementConversions";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
+import { radii } from "@/theme";
 
 const VALUE_KINDS: ValueKind[] = ["mass", "length", "percent"];
 
@@ -268,7 +269,7 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.cardBackground,
   },
   kindRow: {
@@ -279,7 +280,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 8,
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.cardBackground,
   },
   kindChipActive: {

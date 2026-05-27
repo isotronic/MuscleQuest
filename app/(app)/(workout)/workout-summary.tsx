@@ -30,6 +30,7 @@ import {
   type CompletedWorkout,
 } from "@/hooks/useCompletedWorkoutsQuery";
 import { startOfWeek, endOfWeek } from "date-fns";
+import { radii } from "@/theme";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -114,7 +115,7 @@ function ConfettiParticle({ config }: { config: ParticleConfig }) {
       width: size,
       height: Math.ceil(size * 0.5),
       backgroundColor: color,
-      borderRadius: 2,
+      borderRadius: radii.sm,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       transform: [
         { translateX: x },
@@ -656,7 +657,7 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: "row",
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 12,
+    borderRadius: radii.lg,
     paddingVertical: 16,
     paddingHorizontal: 8,
     marginBottom: 16,
@@ -682,7 +683,7 @@ const styles = StyleSheet.create({
   },
   progressionCard: {
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 12,
+    borderRadius: radii.lg,
     paddingTop: 14,
     paddingBottom: 16,
     paddingHorizontal: 8,
@@ -723,7 +724,7 @@ const styles = StyleSheet.create({
   },
   exerciseCard: {
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 10,
+    borderRadius: radii.md,
     marginBottom: 8,
     overflow: "hidden",
   },
@@ -765,7 +766,7 @@ const styles = StyleSheet.create({
   },
   doneButton: {
     marginTop: 24,
-    borderRadius: 8,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.tint,
   },
   doneButtonLabel: {
@@ -777,7 +778,7 @@ const styles = StyleSheet.create({
   weeklyGoalCard: {
     backgroundColor: Colors.dark.cardBackground,
     alignItems: "center",
-    borderRadius: 12,
+    borderRadius: radii.lg,
     padding: 14,
     marginBottom: 16,
     gap: 10,
@@ -798,7 +799,7 @@ const styles = StyleSheet.create({
   pip: {
     width: 28,
     height: 6,
-    borderRadius: 3,
+    borderRadius: radii.sm,
   },
   weeklyGoalMessage: {
     fontSize: 13,

@@ -22,6 +22,7 @@ import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { UserExercise } from "@/store/workoutStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import Bugsnag from "@bugsnag/expo";
+import { radii } from "@/theme";
 
 export default function ExercisesScreen() {
   const { workout, replaceExercise, appendExercise, createSuperset } =
@@ -297,7 +298,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderColor: Colors.dark.text,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     backgroundColor: Colors.dark.screenBackground,
     paddingRight: 8,
     marginBottom: 4,
@@ -327,6 +328,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   bottomButton: {
-    borderRadius: 8,
+    borderRadius: radii.md,
   },
 });

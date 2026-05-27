@@ -22,6 +22,7 @@ import {
   convertToTotalSeconds,
 } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
+import { radii } from "@/theme";
 
 interface EditSetModalProps {
   visible: boolean;
@@ -470,7 +471,7 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: Colors.dark.cardBackground,
     padding: 16,
-    borderRadius: 8,
+    borderRadius: radii.md,
     width: "90%",
   },
   label: {
@@ -490,7 +491,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: Colors.dark.text,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radii.md,
     color: Colors.dark.text,
     fontSize: 18,
     textAlign: "center",

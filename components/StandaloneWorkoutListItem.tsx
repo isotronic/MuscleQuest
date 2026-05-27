@@ -6,6 +6,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import { Plural } from "@lingui/react/macro";
+import { radii } from "@/theme";
 
 interface StandaloneWorkoutListItemProps {
   workout: Workout;
@@ -38,7 +39,11 @@ export default function StandaloneWorkoutListItem({
           {workout.name}
         </ThemedText>
         <ThemedText style={styles.subtitle}>
-          <Plural value={workout.exercises.length} one="# exercise" other="# exercises" />
+          <Plural
+            value={workout.exercises.length}
+            one="# exercise"
+            other="# exercises"
+          />
           {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
         </ThemedText>
       </View>
@@ -56,14 +61,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 8,
+    borderRadius: radii.md,
     padding: 12,
     marginBottom: 10,
   },
   imageContainer: {
     width: 52,
     height: 52,
-    borderRadius: 8,
+    borderRadius: radii.md,
     overflow: "hidden",
     marginRight: 14,
   },
@@ -71,7 +76,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     backgroundColor: Colors.dark.cardBackground2,
-    borderRadius: 8,
+    borderRadius: radii.md,
     justifyContent: "center",
     alignItems: "center",
   },

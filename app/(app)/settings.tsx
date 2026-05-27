@@ -41,6 +41,7 @@ import {
   rescheduleWorkoutReminders,
   requestNotificationPermission,
 } from "@/utils/workoutReminder";
+import { radii } from "@/theme";
 // import { clearActivePlanStatus } from "@/utils/clearUserData";
 
 const REMINDER_DAY_LABELS = [
@@ -1507,7 +1508,7 @@ const styles = StyleSheet.create({
   dayChip: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: radii.xl,
     borderWidth: 1,
     borderColor: Colors.dark.subText,
     alignItems: "center",
