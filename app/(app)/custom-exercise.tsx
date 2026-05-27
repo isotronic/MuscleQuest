@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { Button, Divider, Switch } from "react-native-paper";
-import DropDownPicker from "react-native-dropdown-picker";
+import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 import { ThemedText } from "@/components/ThemedText";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
@@ -32,20 +32,10 @@ export default function AddCustomExerciseScreen() {
   const { exercise_id } = useLocalSearchParams();
   const isEditing = !!exercise_id;
 
-  // Single state controls which dropdown is open; opening one closes all others
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-
-  // Tracks whether the user has made any changes since the screen mounted
   const isDirtyRef = useRef(false);
   const markDirty = () => {
     isDirtyRef.current = true;
   };
-
-  const makeSetOpen =
-    (key: string) => (v: boolean | ((prev: boolean) => boolean)) => {
-      const next = typeof v === "function" ? v(openDropdown === key) : v;
-      setOpenDropdown(next ? key : null);
-    };
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -70,13 +60,13 @@ export default function AddCustomExerciseScreen() {
   const [equipmentOptions, setEquipmentOptions] = useState<
     { label: string; value: string }[]
   >([]);
-  const [trackingTypeOptions, setTrackingTypeOptions] = useState([
+  const trackingTypeOptions = [
     { label: t`Weight/Reps`, value: "weight" },
     { label: t`Assistance/Reps`, value: "assisted" },
     { label: t`Reps`, value: "reps" },
     { label: t`Time`, value: "time" },
     { label: t`Distance`, value: "distance" },
-  ]);
+  ];
 
   useEffect(() => {
     navigation.setOptions({
@@ -304,36 +294,6 @@ export default function AddCustomExerciseScreen() {
     }
   };
 
-  // Shared props spread onto every DropDownPicker
-  const commonDropdownProps = {
-    listMode: "SCROLLVIEW" as const,
-    scrollViewProps: { nestedScrollEnabled: true },
-    placeholderStyle: styles.dropdownPlaceholder,
-    textStyle: { color: Colors.dark.text, fontSize: 18 } as const,
-    dropDownContainerStyle: styles.dropdownContainer,
-    arrowIconStyle: { tintColor: Colors.dark.text } as const,
-    tickIconStyle: { tintColor: Colors.dark.text } as const,
-    listItemLabelStyle: { color: Colors.dark.text } as const,
-    selectedItemLabelStyle: { color: Colors.dark.text } as const,
-  };
-
-  // Extra props for searchable dropdowns
-  const searchProps = {
-    searchable: true,
-    searchPlaceholder: t`Search...`,
-    searchTextInputStyle: {
-      color: Colors.dark.text,
-      borderColor: Colors.dark.subText,
-      borderRadius: 8,
-      fontSize: 16,
-      paddingHorizontal: 8,
-    } as const,
-    searchContainerStyle: {
-      borderBottomColor: Colors.dark.subText,
-      paddingVertical: 4,
-    } as const,
-  };
-
   return (
     <ThemedView>
       <KeyboardAvoidingView
@@ -343,7 +303,6 @@ export default function AddCustomExerciseScreen() {
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
-          nestedScrollEnabled={true}
           keyboardShouldPersistTaps="handled"
         >
           {/* ── Basics ─────────────────────────────────────── */}
@@ -411,97 +370,99 @@ export default function AddCustomExerciseScreen() {
               <Trans>Muscles</Trans>
             </ThemedText>
 
-            <View style={{ zIndex: 4000 }}>
-              <ThemedText style={styles.fieldLabel}>
-                <Trans>Body Part *</Trans>
+            <ThemedText style={styles.fieldLabel}>
+              <Trans>Body Part *</Trans>
+            </ThemedText>
+            <Dropdown
+              data={bodyPartOptions}
+              labelField="label"
+              valueField="value"
+              value={bodyPart}
+              onChange={(item) => {
+                setBodyPart(item.value);
+                markDirty();
+                setErrors((p) => ({ ...p, bodyPart: "" }));
+              }}
+              placeholder={t`Select body part`}
+              style={[
+                styles.dropdown,
+                errors.bodyPart ? styles.dropdownError : null,
+              ]}
+              containerStyle={styles.dropdownList}
+              placeholderStyle={styles.dropdownPlaceholder}
+              selectedTextStyle={styles.dropdownSelectedText}
+              itemTextStyle={styles.dropdownItemText}
+              activeColor={Colors.dark.cardBackground}
+              iconColor={Colors.dark.text}
+              maxHeight={220}
+            />
+            {errors.bodyPart ? (
+              <ThemedText style={styles.errorText}>
+                {errors.bodyPart}
               </ThemedText>
-              <DropDownPicker
-                {...commonDropdownProps}
-                zIndex={4000}
-                zIndexInverse={1000}
-                open={openDropdown === "bodyPart"}
-                value={bodyPart}
-                items={bodyPartOptions}
-                setOpen={makeSetOpen("bodyPart")}
-                setValue={setBodyPart}
-                setItems={setBodyPartOptions}
-                placeholder={t`Select body part`}
-                style={[
-                  styles.dropdown,
-                  errors.bodyPart ? styles.dropdownError : null,
-                ]}
-                onSelectItem={() => {
-                  markDirty();
-                  setErrors((p) => ({ ...p, bodyPart: "" }));
-                }}
-              />
-              {errors.bodyPart ? (
-                <ThemedText style={styles.errorText}>
-                  {errors.bodyPart}
-                </ThemedText>
-              ) : null}
-            </View>
+            ) : null}
 
-            <View style={{ zIndex: 3000 }}>
-              <ThemedText style={styles.fieldLabel}>
-                <Trans>Target Muscle *</Trans>
+            <ThemedText style={styles.fieldLabel}>
+              <Trans>Target Muscle *</Trans>
+            </ThemedText>
+            <Dropdown
+              data={muscleOptions}
+              labelField="label"
+              valueField="value"
+              value={targetMuscle}
+              onChange={(item) => {
+                setTargetMuscle(item.value);
+                markDirty();
+                setErrors((p) => ({ ...p, targetMuscle: "" }));
+              }}
+              search
+              searchPlaceholder={t`Search...`}
+              inputSearchStyle={styles.dropdownSearchInput}
+              placeholder={t`Select target muscle`}
+              style={[
+                styles.dropdown,
+                errors.targetMuscle ? styles.dropdownError : null,
+              ]}
+              containerStyle={styles.dropdownList}
+              placeholderStyle={styles.dropdownPlaceholder}
+              selectedTextStyle={styles.dropdownSelectedText}
+              itemTextStyle={styles.dropdownItemText}
+              activeColor={Colors.dark.cardBackground}
+              iconColor={Colors.dark.text}
+              maxHeight={220}
+            />
+            {errors.targetMuscle ? (
+              <ThemedText style={styles.errorText}>
+                {errors.targetMuscle}
               </ThemedText>
-              <DropDownPicker
-                {...commonDropdownProps}
-                {...searchProps}
-                zIndex={3000}
-                zIndexInverse={2000}
-                open={openDropdown === "targetMuscle"}
-                value={targetMuscle}
-                items={muscleOptions}
-                setOpen={makeSetOpen("targetMuscle")}
-                setValue={setTargetMuscle}
-                setItems={setMuscleOptions}
-                placeholder={t`Select target muscle`}
-                style={[
-                  styles.dropdown,
-                  errors.targetMuscle ? styles.dropdownError : null,
-                ]}
-                onSelectItem={() => {
-                  markDirty();
-                  setErrors((p) => ({ ...p, targetMuscle: "" }));
-                }}
-              />
-              {errors.targetMuscle ? (
-                <ThemedText style={styles.errorText}>
-                  {errors.targetMuscle}
-                </ThemedText>
-              ) : null}
-            </View>
+            ) : null}
 
-            <View style={{ zIndex: 2000 }}>
-              <ThemedText style={styles.fieldLabel}>
-                <Trans>Secondary Muscles</Trans>
-              </ThemedText>
-              <DropDownPicker
-                {...commonDropdownProps}
-                {...searchProps}
-                zIndex={2000}
-                zIndexInverse={3000}
-                open={openDropdown === "secondaryMuscles"}
-                value={secondaryMuscles}
-                items={muscleOptions}
-                setOpen={makeSetOpen("secondaryMuscles")}
-                setValue={setSecondaryMuscles}
-                setItems={setMuscleOptions}
-                multiple={true}
-                min={0}
-                max={5}
-                mode="BADGE"
-                badgeDotColors={[Colors.dark.tint]}
-                badgeColors={Colors.dark.cardBackground}
-                badgeTextStyle={{ color: Colors.dark.text, fontSize: 13 }}
-                placeholder={t`Select secondary muscles`}
-                style={styles.dropdown}
-                listItemLabelStyle={{ color: Colors.dark.text, fontSize: 18 }}
-                onSelectItem={markDirty}
-              />
-            </View>
+            <ThemedText style={styles.fieldLabel}>
+              <Trans>Secondary Muscles</Trans>
+            </ThemedText>
+            <MultiSelect
+              data={muscleOptions}
+              labelField="label"
+              valueField="value"
+              value={secondaryMuscles}
+              onChange={(items) => {
+                setSecondaryMuscles(items);
+                markDirty();
+              }}
+              search
+              searchPlaceholder={t`Search...`}
+              inputSearchStyle={styles.dropdownSearchInput}
+              placeholder={t`Select secondary muscles`}
+              style={styles.dropdown}
+              containerStyle={styles.dropdownList}
+              placeholderStyle={styles.dropdownPlaceholder}
+              selectedTextStyle={styles.dropdownSelectedText}
+              itemTextStyle={styles.dropdownItemText}
+              activeColor={Colors.dark.cardBackground}
+              selectedStyle={styles.dropdownSelectedChip}
+              iconColor={Colors.dark.text}
+              maxHeight={220}
+            />
           </View>
 
           <Divider style={styles.divider} />
@@ -512,84 +473,78 @@ export default function AddCustomExerciseScreen() {
               <Trans>Equipment & Tracking</Trans>
             </ThemedText>
 
-            <View
-              style={{ zIndex: openDropdown === "equipment" ? 5000 : 1500 }}
-            >
-              <ThemedText style={styles.fieldLabel}>
-                <Trans>Equipment *</Trans>
-              </ThemedText>
-              <DropDownPicker
-                {...commonDropdownProps}
-                {...searchProps}
-                zIndex={openDropdown === "equipment" ? 5000 : 1500}
-                zIndexInverse={2500}
-                open={openDropdown === "equipment"}
-                value={equipment}
-                items={equipmentOptions}
-                setOpen={makeSetOpen("equipment")}
-                setValue={setEquipment}
-                setItems={setEquipmentOptions}
-                placeholder={t`Select equipment`}
-                dropDownContainerStyle={{
-                  ...styles.dropdownContainer,
-                  minHeight: 200,
-                }}
-                style={[
-                  styles.dropdown,
-                  errors.equipment ? styles.dropdownError : null,
-                ]}
-                onSelectItem={() => {
-                  markDirty();
-                  setErrors((p) => ({ ...p, equipment: "" }));
-                }}
-              />
-              {errors.equipment ? (
-                <ThemedText style={styles.errorText}>
-                  {errors.equipment}
-                </ThemedText>
-              ) : null}
-            </View>
-
-            <View
-              style={{
-                zIndex: openDropdown === "trackingType" ? 5000 : 1000,
+            <ThemedText style={styles.fieldLabel}>
+              <Trans>Equipment *</Trans>
+            </ThemedText>
+            <Dropdown
+              data={equipmentOptions}
+              labelField="label"
+              valueField="value"
+              value={equipment}
+              onChange={(item) => {
+                setEquipment(item.value);
+                markDirty();
+                setErrors((p) => ({ ...p, equipment: "" }));
               }}
-            >
-              <ThemedText style={styles.fieldLabel}>
-                <Trans>Tracking Type *</Trans>
+              search
+              searchPlaceholder={t`Search...`}
+              inputSearchStyle={styles.dropdownSearchInput}
+              placeholder={t`Select equipment`}
+              style={[
+                styles.dropdown,
+                errors.equipment ? styles.dropdownError : null,
+              ]}
+              containerStyle={styles.dropdownList}
+              placeholderStyle={styles.dropdownPlaceholder}
+              selectedTextStyle={styles.dropdownSelectedText}
+              itemTextStyle={styles.dropdownItemText}
+              activeColor={Colors.dark.cardBackground}
+              iconColor={Colors.dark.text}
+              maxHeight={220}
+            />
+            {errors.equipment ? (
+              <ThemedText style={styles.errorText}>
+                {errors.equipment}
               </ThemedText>
-              <DropDownPicker
-                {...commonDropdownProps}
-                zIndex={openDropdown === "trackingType" ? 5000 : 1000}
-                zIndexInverse={4000}
-                open={openDropdown === "trackingType"}
-                value={trackingType}
-                items={trackingTypeOptions}
-                setOpen={makeSetOpen("trackingType")}
-                setValue={setTrackingType}
-                setItems={setTrackingTypeOptions}
-                placeholder={t`Select tracking type`}
-                disabled={isEditing}
-                style={[
-                  styles.dropdown,
-                  errors.trackingType ? styles.dropdownError : null,
-                  isEditing ? styles.dropdownDisabled : null,
-                ]}
-                onSelectItem={() => {
-                  markDirty();
-                  setErrors((p) => ({ ...p, trackingType: "" }));
-                }}
-              />
-              {isEditing ? (
-                <ThemedText style={styles.helperText}>
-                  <Trans>Tracking type cannot be changed after creation.</Trans>
-                </ThemedText>
-              ) : errors.trackingType ? (
-                <ThemedText style={styles.errorText}>
-                  {errors.trackingType}
-                </ThemedText>
-              ) : null}
-            </View>
+            ) : null}
+
+            <ThemedText style={styles.fieldLabel}>
+              <Trans>Tracking Type *</Trans>
+            </ThemedText>
+            <Dropdown
+              data={trackingTypeOptions}
+              labelField="label"
+              valueField="value"
+              value={trackingType}
+              onChange={(item) => {
+                setTrackingType(item.value);
+                markDirty();
+                setErrors((p) => ({ ...p, trackingType: "" }));
+              }}
+              placeholder={t`Select tracking type`}
+              disable={isEditing}
+              style={[
+                styles.dropdown,
+                errors.trackingType ? styles.dropdownError : null,
+                isEditing ? styles.dropdownDisabled : null,
+              ]}
+              containerStyle={styles.dropdownList}
+              placeholderStyle={styles.dropdownPlaceholder}
+              selectedTextStyle={styles.dropdownSelectedText}
+              itemTextStyle={styles.dropdownItemText}
+              activeColor={Colors.dark.cardBackground}
+              iconColor={Colors.dark.text}
+              maxHeight={220}
+            />
+            {isEditing ? (
+              <ThemedText style={styles.helperText}>
+                <Trans>Tracking type cannot be changed after creation.</Trans>
+              </ThemedText>
+            ) : errors.trackingType ? (
+              <ThemedText style={styles.errorText}>
+                {errors.trackingType}
+              </ThemedText>
+            ) : null}
           </View>
 
           <Divider style={styles.divider} />
@@ -707,15 +662,41 @@ const styles = StyleSheet.create({
   dropdown: {
     backgroundColor: Colors.dark.screenBackground,
     borderColor: Colors.dark.subText,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    height: 50,
     marginBottom: 8,
   },
-  dropdownContainer: {
+  dropdownList: {
     backgroundColor: Colors.dark.screenBackground,
-    borderColor: Colors.dark.text,
+    borderColor: Colors.dark.subText,
+    borderRadius: 8,
+    overflow: "hidden",
   },
   dropdownPlaceholder: {
     color: Colors.dark.subText,
     fontSize: 18,
+  },
+  dropdownSelectedText: {
+    color: Colors.dark.text,
+    fontSize: 18,
+  },
+  dropdownItemText: {
+    color: Colors.dark.text,
+    fontSize: 16,
+  },
+  dropdownSearchInput: {
+    color: Colors.dark.text,
+    backgroundColor: Colors.dark.screenBackground,
+    borderColor: Colors.dark.subText,
+    borderRadius: 8,
+    fontSize: 16,
+  },
+  dropdownSelectedChip: {
+    borderColor: Colors.dark.tint,
+    borderRadius: 8,
+    backgroundColor: Colors.dark.cardBackground,
   },
   dropdownError: {
     borderColor: Colors.dark.highlight,
