@@ -5,7 +5,10 @@ import {
   signInWithCredential,
   getAuth,
 } from "@react-native-firebase/auth";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import { Alert } from "react-native";
 
 describe("signInWithGoogle", () => {
@@ -54,15 +57,16 @@ describe("signInWithGoogle", () => {
 
   it("should handle user cancellation gracefully and notify Bugsnag", async () => {
     (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
-    (GoogleSignin.signIn as jest.Mock).mockRejectedValue({ code: "12501" });
+    (GoogleSignin.signIn as jest.Mock).mockRejectedValue({
+      code: statusCodes.SIGN_IN_CANCELLED,
+    });
 
-    await expect(signInWithGoogle()).rejects.toEqual({ code: "12501" });
+    await expect(signInWithGoogle()).rejects.toEqual({
+      code: statusCodes.SIGN_IN_CANCELLED,
+    });
 
     expect(GoogleSignin.signIn).toHaveBeenCalled();
-    expect(Bugsnag.notify).toHaveBeenCalledWith(
-      expect.objectContaining({ code: "12501" }),
-      expect.any(Function),
-    ); // Ensure cancellation is logged
+    expect(Bugsnag.notify).not.toHaveBeenCalled(); // Cancellations are not logged
     expect(Alert.alert).not.toHaveBeenCalled(); // No alert for cancellations
   });
 

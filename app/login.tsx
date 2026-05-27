@@ -4,7 +4,10 @@ import {
   GoogleAuthProvider,
   signInWithCredential,
 } from "@react-native-firebase/auth";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import { openDatabase } from "@/utils/database";
 import { Alert, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
@@ -53,8 +56,8 @@ export default function LoginScreen() {
       await saveLoginShown(); // Save setting to avoid showing login again
       router.replace("/");
     } catch (error: any) {
-      // Code 12501 means user cancelled sign in - don't report to Bugsnag
-      if (error?.code === "12501") {
+      // User cancelled sign in — don't report to Bugsnag
+      if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
         return;
       }
       console.error("handleSignIn error", error);
