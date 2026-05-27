@@ -1,10 +1,11 @@
+import { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { format } from "date-fns";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
-import { Colors } from "@/constants/Colors";
 import { t } from "@lingui/core/macro";
 import { Plural } from "@lingui/react/macro";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface WorkoutCardProps {
   workout: CompletedWorkout;
@@ -19,6 +20,8 @@ export default function WorkoutHistoryCard({
   excludeWarmup = false,
   variant = "horizontal",
 }: WorkoutCardProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const setsCount = excludeWarmup
     ? workout.exercises.reduce(
         (acc, e) => acc + e.sets.filter((s) => !s.is_warmup).length,
@@ -67,70 +70,72 @@ export default function WorkoutHistoryCard({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: radii.md,
-    overflow: "hidden",
-  },
-  containerHorizontal: {
-    width: 180,
-    marginRight: 8,
-  },
-  containerVertical: {
-    width: "100%",
-    marginBottom: 8,
-  },
-  card: {
-    padding: 14,
-    borderRadius: radii.md,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.dark.tint,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  cardHorizontal: {
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  cardVertical: {
-    backgroundColor: Colors.dark.cardBackground2,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  name: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: "bold",
-    color: Colors.dark.text,
-  },
-  chevron: {
-    fontSize: 20,
-    color: Colors.dark.subText,
-    marginLeft: 4,
-  },
-  date: {
-    marginTop: 4,
-    fontSize: 12,
-    color: Colors.dark.subText,
-  },
-  chips: {
-    flexDirection: "row",
-    gap: 6,
-    marginTop: 10,
-  },
-  chip: {
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
-    borderRadius: radii.sm,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  chipText: {
-    fontSize: 12,
-    color: Colors.dark.text,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      borderRadius: radii.md,
+      overflow: "hidden",
+    },
+    containerHorizontal: {
+      width: 180,
+      marginRight: 8,
+    },
+    containerVertical: {
+      width: "100%",
+      marginBottom: 8,
+    },
+    card: {
+      padding: 14,
+      borderRadius: radii.md,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.accent,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.15,
+      shadowRadius: 3,
+      elevation: 3,
+    },
+    cardHorizontal: {
+      backgroundColor: colors.card,
+    },
+    cardVertical: {
+      backgroundColor: colors.cardSecondary,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    name: {
+      flex: 1,
+      fontSize: 15,
+      fontWeight: "bold",
+      color: colors.contentPrimary,
+    },
+    chevron: {
+      fontSize: 20,
+      color: colors.contentSecondary,
+      marginLeft: 4,
+    },
+    date: {
+      marginTop: 4,
+      fontSize: 12,
+      color: colors.contentSecondary,
+    },
+    chips: {
+      flexDirection: "row",
+      gap: 6,
+      marginTop: 10,
+    },
+    chip: {
+      backgroundColor: "rgba(255, 255, 255, 0.12)",
+      borderRadius: radii.sm,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+    },
+    chipText: {
+      fontSize: 12,
+      color: colors.contentPrimary,
+    },
+  });
+}

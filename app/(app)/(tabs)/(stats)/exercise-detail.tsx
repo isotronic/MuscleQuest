@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { ActivityIndicator, Divider } from "react-native-paper";
@@ -9,11 +9,13 @@ import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useExerciseDetailQuery } from "@/hooks/useExerciseDetailQuery";
 import { ExerciseProgressionChart } from "@/components/charts/ExerciseProgressionChart";
-import { Colors } from "@/constants/Colors";
 import { formatToHoursMinutes } from "@/utils/utility";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 export default function ExerciseDetailScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { exerciseId, name } = useLocalSearchParams<{
     exerciseId: string;
     name: string;
@@ -69,7 +71,7 @@ export default function ExerciseDetailScreen() {
   if (isLoading) {
     return (
       <ThemedView style={styles.centered}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
+        <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
   }
@@ -113,8 +115,8 @@ export default function ExerciseDetailScreen() {
                     {
                       color:
                         parseFloat(deltaPercent) >= 0
-                          ? Colors.dark.completed
-                          : Colors.dark.highlight,
+                          ? colors.success
+                          : colors.danger,
                     },
                   ]}
                 >
@@ -213,7 +215,7 @@ export default function ExerciseDetailScreen() {
 
         {!data?.trackedExercise && (
           <ThemedText
-            style={{ color: Colors.dark.subText, textAlign: "center" }}
+            style={{ color: colors.contentSecondary, textAlign: "center" }}
           >
             <Trans>No data for this period.</Trans>
           </ThemedText>
@@ -223,39 +225,45 @@ export default function ExerciseDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 50,
-  },
-  divider: { marginBottom: 16 },
-  pillRow: {
-    flexDirection: "row",
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: radii.md,
-    marginBottom: 20,
-    paddingVertical: 14,
-    justifyContent: "space-evenly",
-    alignItems: "center",
-  },
-  pill: { alignItems: "center", flex: 1 },
-  pillLabel: { fontSize: 11, color: Colors.dark.subText, marginBottom: 4 },
-  pillValue: { fontSize: 16, fontWeight: "bold" },
-  pillDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: Colors.dark.subText + "40",
-  },
-  section: { marginBottom: 24 },
-  sectionTitle: { fontSize: 16, fontWeight: "bold", marginBottom: 10 },
-  listRow: {
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.dark.cardBackground,
-  },
-  listMain: { fontSize: 14, fontWeight: "600" },
-  listSub: { fontSize: 12, color: Colors.dark.subText, marginTop: 2 },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+    container: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 50,
+    },
+    divider: { marginBottom: 16 },
+    pillRow: {
+      flexDirection: "row",
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      marginBottom: 20,
+      paddingVertical: 14,
+      justifyContent: "space-evenly",
+      alignItems: "center",
+    },
+    pill: { alignItems: "center", flex: 1 },
+    pillLabel: {
+      fontSize: 11,
+      color: colors.contentSecondary,
+      marginBottom: 4,
+    },
+    pillValue: { fontSize: 16, fontWeight: "bold" },
+    pillDivider: {
+      width: 1,
+      height: 30,
+      backgroundColor: colors.contentSecondary + "40",
+    },
+    section: { marginBottom: 24 },
+    sectionTitle: { fontSize: 16, fontWeight: "bold", marginBottom: 10 },
+    listRow: {
+      paddingVertical: 10,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.card,
+    },
+    listMain: { fontSize: 14, fontWeight: "600" },
+    listSub: { fontSize: 12, color: colors.contentSecondary, marginTop: 2 },
+  });
+}

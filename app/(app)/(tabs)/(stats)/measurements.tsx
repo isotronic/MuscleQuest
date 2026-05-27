@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   ScrollView,
@@ -18,14 +18,14 @@ import { useRouter } from "expo-router";
 import { format } from "date-fns";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useActiveBodyMetricDefinitionsQuery } from "@/hooks/useBodyMetricDefinitionsQuery";
 import { useBodyMeasurementSessionsQuery } from "@/hooks/useBodyMeasurementSessionsQuery";
 import { useInsertBodyMeasurementMutation } from "@/hooks/useBodyMeasurementMutations";
 import { BodyMeasurementSession } from "@/utils/database";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const DECIMAL_SEP =
   new Intl.NumberFormat().formatToParts(1.1).find((p) => p.type === "decimal")
@@ -68,6 +68,8 @@ function latestValueForMetric(
 }
 
 export default function MeasurementsScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const router = useRouter();
   const { data: settings } = useSettingsQuery();
@@ -168,7 +170,7 @@ export default function MeasurementsScreen() {
             <Button
               mode="text"
               compact
-              labelStyle={{ color: Colors.dark.tint, fontSize: 13 }}
+              labelStyle={{ color: colors.accent, fontSize: 13 }}
               onPress={() =>
                 router.push(
                   "/(app)/(tabs)/(stats)/measurements-manage" as never,
@@ -188,7 +190,7 @@ export default function MeasurementsScreen() {
             <MaterialCommunityIcons
               name="calendar"
               size={18}
-              color={Colors.dark.tint}
+              color={colors.accent}
             />
             <ThemedText style={styles.dateText}>
               {formatEntryDate(entryDate)}
@@ -196,11 +198,11 @@ export default function MeasurementsScreen() {
             <MaterialCommunityIcons
               name="chevron-down"
               size={16}
-              color={Colors.dark.subText}
+              color={colors.contentSecondary}
             />
           </TouchableOpacity>
 
-          {isLoading && <ActivityIndicator color={Colors.dark.text} />}
+          {isLoading && <ActivityIndicator color={colors.contentPrimary} />}
 
           {/* Metric inputs */}
           {metrics?.map((metric) => (
@@ -219,7 +221,7 @@ export default function MeasurementsScreen() {
                   }
                   keyboardType="numeric"
                   placeholder="—"
-                  placeholderTextColor={Colors.dark.subText}
+                  placeholderTextColor={colors.contentSecondary}
                   returnKeyType="done"
                 />
                 <ThemedText style={styles.metricUnit}>
@@ -236,8 +238,8 @@ export default function MeasurementsScreen() {
           <Button
             mode="contained"
             style={styles.logButton}
-            buttonColor={Colors.dark.tint}
-            textColor={Colors.dark.background}
+            buttonColor={colors.accent}
+            textColor={colors.background}
             loading={insertMutation.isPending}
             disabled={insertMutation.isPending}
             onPress={handleLogEntry}
@@ -253,7 +255,9 @@ export default function MeasurementsScreen() {
           <ThemedText style={styles.sectionTitle}>
             <Trans>History</Trans>
           </ThemedText>
-          {sessionsLoading && <ActivityIndicator color={Colors.dark.text} />}
+          {sessionsLoading && (
+            <ActivityIndicator color={colors.contentPrimary} />
+          )}
           {!sessionsLoading && (sessions?.length ?? 0) === 0 && (
             <ThemedText style={styles.empty}>
               <Trans>No measurements yet. Log your first entry above.</Trans>
@@ -298,7 +302,7 @@ export default function MeasurementsScreen() {
               <MaterialCommunityIcons
                 name="chevron-right"
                 size={20}
-                color={Colors.dark.subText}
+                color={colors.contentSecondary}
               />
             </TouchableOpacity>
           ))}
@@ -323,19 +327,19 @@ export default function MeasurementsScreen() {
               markedDates={{
                 [format(parseDbDate(entryDate), "yyyy-MM-dd")]: {
                   selected: true,
-                  selectedColor: Colors.dark.tint,
+                  selectedColor: colors.accent,
                 },
               }}
               theme={{
-                backgroundColor: Colors.dark.cardBackground,
-                calendarBackground: Colors.dark.cardBackground,
-                dayTextColor: Colors.dark.text,
-                textDisabledColor: Colors.dark.subText,
-                monthTextColor: Colors.dark.text,
-                arrowColor: Colors.dark.tint,
-                todayTextColor: Colors.dark.tint,
-                selectedDayBackgroundColor: Colors.dark.tint,
-                selectedDayTextColor: Colors.dark.background,
+                backgroundColor: colors.card,
+                calendarBackground: colors.card,
+                dayTextColor: colors.contentPrimary,
+                textDisabledColor: colors.contentSecondary,
+                monthTextColor: colors.contentPrimary,
+                arrowColor: colors.accent,
+                todayTextColor: colors.accent,
+                selectedDayBackgroundColor: colors.accent,
+                selectedDayTextColor: colors.background,
               }}
             />
           </View>
@@ -345,117 +349,119 @@ export default function MeasurementsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: "bold",
-  },
-  dateRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 8,
-    marginBottom: 12,
-  },
-  dateText: {
-    fontSize: 15,
-    flex: 1,
-    color: Colors.dark.text,
-  },
-  metricRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.dark.subText + "40",
-  },
-  metricLabel: {
-    flex: 1,
-    fontSize: 15,
-  },
-  metricInputWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  metricInput: {
-    width: 80,
-    textAlign: "right",
-    fontSize: 15,
-    color: Colors.dark.text,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: radii.md,
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  metricUnit: {
-    fontSize: 13,
-    color: Colors.dark.subText,
-    width: 28,
-  },
-  logButton: {
-    marginTop: 16,
-    borderRadius: radii.md,
-  },
-  divider: {
-    marginBottom: 24,
-  },
-  empty: {
-    color: Colors.dark.subText,
-    fontSize: 14,
-  },
-  sessionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.dark.subText + "40",
-  },
-  sessionContent: {
-    flex: 1,
-    gap: 4,
-  },
-  sessionDate: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.dark.text,
-  },
-  sessionValues: {
-    gap: 0,
-  },
-  sessionValue: {
-    fontSize: 12,
-    lineHeight: 16,
-    color: Colors.dark.subText,
-  },
-  sessionMore: {
-    fontSize: 12,
-    lineHeight: 16,
-    color: Colors.dark.tint,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "center",
-    paddingHorizontal: 16,
-  },
-  calendarCard: {
-    borderRadius: radii.lg,
-    overflow: "hidden",
-    backgroundColor: Colors.dark.cardBackground,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
+    section: {
+      marginBottom: 24,
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 12,
+    },
+    sectionTitle: {
+      fontSize: 17,
+      fontWeight: "bold",
+    },
+    dateRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingVertical: 8,
+      marginBottom: 12,
+    },
+    dateText: {
+      fontSize: 15,
+      flex: 1,
+      color: colors.contentPrimary,
+    },
+    metricRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.contentSecondary + "40",
+    },
+    metricLabel: {
+      flex: 1,
+      fontSize: 15,
+    },
+    metricInputWrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    metricInput: {
+      width: 80,
+      textAlign: "right",
+      fontSize: 15,
+      color: colors.contentPrimary,
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      borderRadius: radii.md,
+      backgroundColor: colors.card,
+    },
+    metricUnit: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+      width: 28,
+    },
+    logButton: {
+      marginTop: 16,
+      borderRadius: radii.md,
+    },
+    divider: {
+      marginBottom: 24,
+    },
+    empty: {
+      color: colors.contentSecondary,
+      fontSize: 14,
+    },
+    sessionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.contentSecondary + "40",
+    },
+    sessionContent: {
+      flex: 1,
+      gap: 4,
+    },
+    sessionDate: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.contentPrimary,
+    },
+    sessionValues: {
+      gap: 0,
+    },
+    sessionValue: {
+      fontSize: 12,
+      lineHeight: 16,
+      color: colors.contentSecondary,
+    },
+    sessionMore: {
+      fontSize: 12,
+      lineHeight: 16,
+      color: colors.accent,
+    },
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.6)",
+      justifyContent: "center",
+      paddingHorizontal: 16,
+    },
+    calendarCard: {
+      borderRadius: radii.lg,
+      overflow: "hidden",
+      backgroundColor: colors.card,
+    },
+  });
+}

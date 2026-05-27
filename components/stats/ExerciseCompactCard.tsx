@@ -3,9 +3,9 @@ import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { SparklineChart } from "@/components/charts/SparklineChart";
 import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
-import { Colors } from "@/constants/Colors";
 import { t, plural } from "@lingui/core/macro";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface ExerciseCompactCardProps {
   exercise: TrackedExerciseWithSets;
@@ -49,6 +49,8 @@ const formatPRLabel = (
 
 export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
   React.memo(({ exercise, weightUnit, distanceUnit, onPress }) => {
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => createStyles(colors), [colors]);
     const latestSet = exercise.completed_sets[0];
     const daysAgo = latestSet ? formatDaysAgo(latestSet.date_completed) : null;
     const prLabel = formatPRLabel(exercise, weightUnit, distanceUnit);
@@ -86,37 +88,39 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
   });
 ExerciseCompactCard.displayName = "ExerciseCompactCard";
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: radii.md,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginBottom: 8,
-  },
-  left: {
-    flex: 1,
-    marginRight: 8,
-  },
-  name: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  sub: {
-    fontSize: 12,
-    color: Colors.dark.subText,
-    marginTop: 2,
-  },
-  right: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  chevron: {
-    fontSize: 22,
-    color: Colors.dark.subText,
-    lineHeight: 26,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      marginBottom: 8,
+    },
+    left: {
+      flex: 1,
+      marginRight: 8,
+    },
+    name: {
+      fontSize: 14,
+      fontWeight: "bold",
+    },
+    sub: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+      marginTop: 2,
+    },
+    right: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    chevron: {
+      fontSize: 22,
+      color: colors.contentSecondary,
+      lineHeight: 26,
+    },
+  });
+}

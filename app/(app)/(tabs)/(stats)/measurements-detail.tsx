@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   View,
   ScrollView,
@@ -14,7 +14,6 @@ import { ActivityIndicator, Button, Card } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
 import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
 import { BodyMeasurementLineChart } from "@/components/charts/BodyMeasurementLineChart";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
@@ -26,7 +25,8 @@ import {
 } from "@/hooks/useBodyMeasurementMutations";
 import { BodyMetricDefinition } from "@/utils/database";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const DECIMAL_SEP =
   new Intl.NumberFormat().formatToParts(1.1).find((p) => p.type === "decimal")
@@ -39,6 +39,8 @@ function parseDbDate(recorded_at: string): Date {
 }
 
 export default function MeasurementDetailScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const { entryId } = useLocalSearchParams<{ entryId: string }>();
   const router = useRouter();
@@ -130,7 +132,7 @@ export default function MeasurementDetailScreen() {
   if (isLoading) {
     return (
       <ThemedView style={styles.centered}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
+        <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
   }
@@ -254,8 +256,8 @@ export default function MeasurementDetailScreen() {
         <View style={styles.actions}>
           <Button
             mode="contained"
-            buttonColor={Colors.dark.tint}
-            textColor={Colors.dark.background}
+            buttonColor={colors.accent}
+            textColor={colors.background}
             style={{ flex: 1 }}
             loading={updateMutation.isPending}
             disabled={updateMutation.isPending || deleteMutation.isPending}
@@ -265,7 +267,7 @@ export default function MeasurementDetailScreen() {
           </Button>
           <Button
             mode="outlined"
-            textColor={Colors.dark.highlight}
+            textColor={colors.danger}
             style={[styles.deleteButton, { flex: 1 }]}
             loading={deleteMutation.isPending}
             disabled={updateMutation.isPending || deleteMutation.isPending}
@@ -279,95 +281,97 @@ export default function MeasurementDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  dateHeader: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-  metricRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.dark.subText + "40",
-  },
-  metricLabel: {
-    flex: 1,
-    fontSize: 15,
-  },
-  metricInputWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  metricInput: {
-    width: 80,
-    textAlign: "right",
-    fontSize: 15,
-    color: Colors.dark.text,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: radii.md,
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  metricUnit: {
-    fontSize: 13,
-    color: Colors.dark.subText,
-    width: 28,
-  },
-  chipScroll: {
-    marginBottom: 8,
-  },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radii.full,
-    backgroundColor: Colors.dark.cardBackground,
-    marginRight: 8,
-  },
-  chipActive: {
-    backgroundColor: Colors.dark.tint + "25",
-    borderWidth: 1,
-    borderColor: Colors.dark.tint,
-  },
-  chipText: {
-    fontSize: 12,
-    color: Colors.dark.subText,
-    fontWeight: "600",
-  },
-  chipTextActive: {
-    color: Colors.dark.tint,
-  },
-  chartCard: {
-    padding: 16,
-    backgroundColor: Colors.dark.cardBackground,
-    marginTop: 8,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 32,
-  },
-  deleteButton: {
-    borderColor: Colors.dark.highlight + "80",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    centered: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    container: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
+    dateHeader: {
+      fontSize: 20,
+      fontWeight: "bold",
+      marginBottom: 16,
+    },
+    section: {
+      marginBottom: 24,
+    },
+    sectionTitle: {
+      fontSize: 17,
+      fontWeight: "bold",
+      marginBottom: 12,
+    },
+    metricRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.contentSecondary + "40",
+    },
+    metricLabel: {
+      flex: 1,
+      fontSize: 15,
+    },
+    metricInputWrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    metricInput: {
+      width: 80,
+      textAlign: "right",
+      fontSize: 15,
+      color: colors.contentPrimary,
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      borderRadius: radii.md,
+      backgroundColor: colors.card,
+    },
+    metricUnit: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+      width: 28,
+    },
+    chipScroll: {
+      marginBottom: 8,
+    },
+    chip: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: radii.full,
+      backgroundColor: colors.card,
+      marginRight: 8,
+    },
+    chipActive: {
+      backgroundColor: colors.accent + "25",
+      borderWidth: 1,
+      borderColor: colors.accent,
+    },
+    chipText: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+      fontWeight: "600",
+    },
+    chipTextActive: {
+      color: colors.accent,
+    },
+    chartCard: {
+      padding: 16,
+      backgroundColor: colors.card,
+      marginTop: 8,
+    },
+    actions: {
+      flexDirection: "row",
+      gap: 12,
+      marginBottom: 32,
+    },
+    deleteButton: {
+      borderColor: colors.danger + "80",
+    },
+  });
+}

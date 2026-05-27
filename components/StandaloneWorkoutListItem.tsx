@@ -1,12 +1,13 @@
+import { useMemo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
 import { Workout } from "@/store/workoutStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import { Plural } from "@lingui/react/macro";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface StandaloneWorkoutListItemProps {
   workout: Workout;
@@ -19,6 +20,8 @@ export default function StandaloneWorkoutListItem({
   onPress,
   countUnilateralDouble = false,
 }: StandaloneWorkoutListItemProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { estimate } = useWorkoutDurationEstimate(
     workout.exercises,
     countUnilateralDouble,
@@ -30,7 +33,7 @@ export default function StandaloneWorkoutListItem({
           <MaterialCommunityIcons
             name="weight-lifter"
             size={32}
-            color={Colors.dark.subText}
+            color={colors.contentSecondary}
           />
         </View>
       </View>
@@ -50,46 +53,48 @@ export default function StandaloneWorkoutListItem({
       <MaterialCommunityIcons
         name="chevron-right"
         size={22}
-        color={Colors.dark.subText}
+        color={colors.contentSecondary}
       />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: radii.md,
-    padding: 12,
-    marginBottom: 10,
-  },
-  imageContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: radii.md,
-    overflow: "hidden",
-    marginRight: 14,
-  },
-  imagePlaceholder: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: Colors.dark.cardBackground2,
-    borderRadius: radii.md,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  textContainer: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: Colors.dark.subText,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      padding: 12,
+      marginBottom: 10,
+    },
+    imageContainer: {
+      width: 52,
+      height: 52,
+      borderRadius: radii.md,
+      overflow: "hidden",
+      marginRight: 14,
+    },
+    imagePlaceholder: {
+      width: "100%",
+      height: "100%",
+      backgroundColor: colors.cardSecondary,
+      borderRadius: radii.md,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    textContainer: {
+      flex: 1,
+    },
+    name: {
+      fontSize: 16,
+      fontWeight: "600",
+      marginBottom: 2,
+    },
+    subtitle: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+    },
+  });
+}

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useMemo } from "react";
 import { Trans } from "@lingui/react/macro";
 import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
@@ -20,7 +20,8 @@ import {
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
+import { useAppTheme } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import { SettingsModal } from "@/components/SettingsModal";
@@ -56,6 +57,8 @@ const REMINDER_DAY_LABELS = [
 const REMINDER_DAY_VALUES = [1, 2, 3, 4, 5, 6, 0];
 
 export default function SettingsScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const user = useContext(AuthContext);
   const queryClient = useQueryClient();
@@ -461,7 +464,7 @@ export default function SettingsScreen() {
   if (isLoading) {
     return (
       <ThemedView style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
+        <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
   }
@@ -492,7 +495,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="account"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             {!user ? (
@@ -526,7 +529,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="target"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -547,7 +550,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="scale-bathroom"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -566,7 +569,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="cloud-upload"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -612,7 +615,7 @@ export default function SettingsScreen() {
                 animatedValue={
                   isBackupLoading ? backupProgress / 100 : restoreProgress / 100
                 }
-                color={Colors.dark.tint}
+                color={colors.accent}
               />
             </View>
           )}
@@ -635,7 +638,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="weight"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -661,7 +664,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="map-marker-distance"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -685,7 +688,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="tape-measure"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -717,7 +720,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="plus"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -744,7 +747,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="timer"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -769,7 +772,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="timer-play-outline"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -785,7 +788,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="volume-high"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -801,7 +804,7 @@ export default function SettingsScreen() {
             <Switch
               value={toggleValues.timerCountdownSound === "true"}
               onValueChange={toggleCountdownSound}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -809,7 +812,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="volume-high"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -825,7 +828,7 @@ export default function SettingsScreen() {
             <Switch
               value={toggleValues.timerGoalSound === "true"}
               onValueChange={toggleGoalSound}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -833,7 +836,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="vibrate"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -849,7 +852,7 @@ export default function SettingsScreen() {
             <Switch
               value={toggleValues.restTimerVibration === "true"}
               onValueChange={toggleVibration}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -857,7 +860,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="volume-high"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -871,7 +874,7 @@ export default function SettingsScreen() {
             <Switch
               value={settings?.restTimerSound === "true"}
               onValueChange={toggleSound}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -879,7 +882,7 @@ export default function SettingsScreen() {
             <MaterialIcons
               name="notifications-active"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -895,7 +898,7 @@ export default function SettingsScreen() {
             <Switch
               value={settings?.restTimerNotification === "true"}
               onValueChange={toggleNotification}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -903,7 +906,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="cellphone"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -919,7 +922,7 @@ export default function SettingsScreen() {
             <Switch
               value={toggleValues.keepScreenOn === "true"}
               onValueChange={toggleKeepScreenOn}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -927,7 +930,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="history"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -943,7 +946,7 @@ export default function SettingsScreen() {
             <Switch
               value={toggleValues.alwaysUseGlobalHistory === "true"}
               onValueChange={toggleAlwaysUseGlobalHistory}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -958,7 +961,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="fire-off"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -974,7 +977,7 @@ export default function SettingsScreen() {
             <Switch
               value={toggleValues.excludeWarmupSets === "true"}
               onValueChange={toggleExcludeWarmupSets}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -982,7 +985,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="arm-flex"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -998,7 +1001,7 @@ export default function SettingsScreen() {
             <Switch
               value={toggleValues.countUnilateralDouble === "true"}
               onValueChange={toggleCountUnilateralDouble}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -1006,7 +1009,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="dumbbell"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1022,7 +1025,7 @@ export default function SettingsScreen() {
             <Switch
               value={toggleValues.doubleWeightForPaired === "true"}
               onValueChange={toggleDoubleWeightForPaired}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -1037,7 +1040,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="bell"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1051,7 +1054,7 @@ export default function SettingsScreen() {
             <Switch
               value={workoutReminderEnabled}
               onValueChange={toggleWorkoutReminder}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -1061,7 +1064,7 @@ export default function SettingsScreen() {
                 <MaterialCommunityIcons
                   name="calendar-week"
                   size={24}
-                  color={Colors.dark.icon}
+                  color={colors.contentSecondary}
                   style={[styles.icon, { marginTop: 2 }]}
                 />
                 <View style={styles.textContainer}>
@@ -1115,7 +1118,7 @@ export default function SettingsScreen() {
                 <MaterialCommunityIcons
                   name="clock-outline"
                   size={24}
-                  color={Colors.dark.icon}
+                  color={colors.contentSecondary}
                   style={styles.icon}
                 />
                 <View style={styles.textContainer}>
@@ -1145,7 +1148,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="numeric"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1170,7 +1173,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="clock"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1186,7 +1189,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="cloud-download"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1200,7 +1203,7 @@ export default function SettingsScreen() {
             <Switch
               value={isDownloadToggled === "true"}
               onValueChange={toggleDownloadImages}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -1213,7 +1216,7 @@ export default function SettingsScreen() {
               </ThemedText>
               <ProgressBar
                 animatedValue={progress}
-                color={isDownloading ? Colors.dark.tint : Colors.dark.highlight}
+                color={isDownloading ? colors.accent : colors.danger}
               />
             </View>
           )}
@@ -1228,7 +1231,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="view-dashboard"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1242,7 +1245,7 @@ export default function SettingsScreen() {
             <Switch
               value={settings?.showOnboarding === "true"}
               onValueChange={toggleOnboarding}
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.switch}
             />
           </View>
@@ -1259,7 +1262,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="resize"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1283,7 +1286,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="delete"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1299,7 +1302,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="delete"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1315,7 +1318,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="bug"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1326,7 +1329,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="bug"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1351,7 +1354,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="vote"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1369,7 +1372,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="coffee"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1385,7 +1388,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="web"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1403,7 +1406,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="instagram"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1419,7 +1422,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="account"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1437,7 +1440,7 @@ export default function SettingsScreen() {
             <MaterialCommunityIcons
               name="shield-lock"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
               style={styles.icon}
             />
             <View style={styles.textContainer}>
@@ -1452,83 +1455,85 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
-  section: {
-    paddingTop: 16,
-  },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: Colors.dark.text,
-  },
-  item: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 16,
-    justifyContent: "space-between",
-  },
-  textContainer: {
-    flex: 1,
-    marginLeft: 8,
-  },
-  itemText: {
-    fontSize: 16,
-    color: Colors.dark.text,
-  },
-  currentSetting: {
-    fontSize: 14,
-    color: Colors.dark.subText,
-  },
-  icon: {
-    marginRight: 8,
-  },
-  divider: {
-    marginVertical: 8,
-  },
-  switch: {
-    marginLeft: "auto",
-  },
-  progressBar: {
-    marginVertical: 16,
-  },
-  progressBarText: {},
-  backupButton: {
-    marginRight: 4,
-  },
-  dayChipsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    marginTop: 8,
-  },
-  dayChip: {
-    width: 36,
-    height: 36,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    borderColor: Colors.dark.subText,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dayChipSelected: {
-    backgroundColor: Colors.dark.tint,
-    borderColor: Colors.dark.tint,
-  },
-  dayChipText: {
-    fontSize: 12,
-    color: Colors.dark.subText,
-  },
-  dayChipTextSelected: {
-    color: Colors.dark.background,
-    fontWeight: "bold",
-  },
-  reminderHint: {
-    fontSize: 12,
-    color: Colors.dark.highlight,
-    marginTop: 6,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      padding: 16,
+    },
+    section: {
+      paddingTop: 16,
+    },
+    sectionHeader: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 8,
+      color: colors.contentPrimary,
+    },
+    item: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 16,
+      justifyContent: "space-between",
+    },
+    textContainer: {
+      flex: 1,
+      marginLeft: 8,
+    },
+    itemText: {
+      fontSize: 16,
+      color: colors.contentPrimary,
+    },
+    currentSetting: {
+      fontSize: 14,
+      color: colors.contentSecondary,
+    },
+    icon: {
+      marginRight: 8,
+    },
+    divider: {
+      marginVertical: 8,
+    },
+    switch: {
+      marginLeft: "auto",
+    },
+    progressBar: {
+      marginVertical: 16,
+    },
+    progressBarText: {},
+    backupButton: {
+      marginRight: 4,
+    },
+    dayChipsRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6,
+      marginTop: 8,
+    },
+    dayChip: {
+      width: 36,
+      height: 36,
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: colors.contentSecondary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    dayChipSelected: {
+      backgroundColor: colors.accent,
+      borderColor: colors.accent,
+    },
+    dayChipText: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+    },
+    dayChipTextSelected: {
+      color: colors.background,
+      fontWeight: "bold",
+    },
+    reminderHint: {
+      fontSize: 12,
+      color: colors.danger,
+      marginTop: 6,
+    },
+  });
+}

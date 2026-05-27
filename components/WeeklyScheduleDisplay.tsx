@@ -1,14 +1,14 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
 import { PlanScheduleEntry } from "@/utils/database";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const DAY_LABELS = [
   msg`Mon`,
@@ -34,6 +34,8 @@ export default function WeeklyScheduleDisplay({
   workouts,
   scheduleEntries,
 }: Props) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const scheduleMap = useMemo(() => {
     const workoutById = new Map(
@@ -59,7 +61,7 @@ export default function WeeklyScheduleDisplay({
         <MaterialCommunityIcons
           name="calendar-blank-outline"
           size={14}
-          color={Colors.dark.icon}
+          color={colors.contentSecondary}
           style={styles.emptyIcon}
         />
         <ThemedText style={styles.emptyText}>
@@ -111,80 +113,82 @@ export default function WeeklyScheduleDisplay({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 20,
-    padding: 16,
-    borderRadius: radii.md,
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: Colors.dark.text,
-  },
-  summary: {
-    fontSize: 12,
-    color: Colors.dark.icon,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "nowrap",
-    gap: 4,
-  },
-  tileWrapper: {
-    flex: 1,
-    alignItems: "center",
-  },
-  dayLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: Colors.dark.icon,
-    marginBottom: 4,
-  },
-  dayLabelActive: {
-    color: Colors.dark.tint,
-  },
-  dayTile: {
-    width: "100%",
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    borderColor: Colors.dark.icon,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 2,
-    paddingHorizontal: 2,
-    minHeight: 45,
-  },
-  dayTileActive: {
-    borderColor: Colors.dark.tint,
-    backgroundColor: Colors.dark.tint + "22",
-  },
-  workoutLabel: {
-    fontSize: 8,
-    color: Colors.dark.icon,
-    textAlign: "center",
-  },
-  workoutLabelActive: {
-    color: Colors.dark.text,
-  },
-  emptyContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 16,
-    paddingHorizontal: 4,
-  },
-  emptyIcon: {
-    marginRight: 5,
-  },
-  emptyText: {
-    fontSize: 13,
-    color: Colors.dark.icon,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      marginTop: 20,
+      padding: 16,
+      borderRadius: radii.md,
+      backgroundColor: colors.card,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    title: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: colors.contentPrimary,
+    },
+    summary: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+    },
+    grid: {
+      flexDirection: "row",
+      flexWrap: "nowrap",
+      gap: 4,
+    },
+    tileWrapper: {
+      flex: 1,
+      alignItems: "center",
+    },
+    dayLabel: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: colors.contentSecondary,
+      marginBottom: 4,
+    },
+    dayLabelActive: {
+      color: colors.accent,
+    },
+    dayTile: {
+      width: "100%",
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: colors.contentSecondary,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 2,
+      paddingHorizontal: 2,
+      minHeight: 45,
+    },
+    dayTileActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accent + "22",
+    },
+    workoutLabel: {
+      fontSize: 8,
+      color: colors.contentSecondary,
+      textAlign: "center",
+    },
+    workoutLabelActive: {
+      color: colors.contentPrimary,
+    },
+    emptyContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 16,
+      paddingHorizontal: 4,
+    },
+    emptyIcon: {
+      marginRight: 5,
+    },
+    emptyText: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+    },
+  });
+}

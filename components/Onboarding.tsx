@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
 import { Button, Text, Card } from "react-native-paper";
 import { type Href, useRouter } from "expo-router";
 import { t } from "@lingui/core/macro";
-import { Colors } from "@/constants/Colors";
 import { ThemedText } from "./ThemedText";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const Onboarding = () => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const router = useRouter();
 
@@ -121,39 +123,41 @@ const Onboarding = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingBottom: 16,
-  },
-  card: {
-    width: 320,
-    marginRight: 16,
-    paddingVertical: 24,
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: radii.md,
-    elevation: 5,
-  },
-  title: {
-    textAlign: "center",
-    marginBottom: 16,
-    color: Colors.dark.text,
-  },
-  description: {
-    textAlign: "center",
-    marginBottom: 24,
-    color: Colors.dark.text,
-  },
-  button: {
-    marginTop: 8,
-  },
-  pagination: {
-    fontSize: 20,
-    textAlign: "center",
-    color: Colors.dark.text,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingBottom: 16,
+    },
+    card: {
+      width: 320,
+      marginRight: 16,
+      paddingVertical: 24,
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      elevation: 5,
+    },
+    title: {
+      textAlign: "center",
+      marginBottom: 16,
+      color: colors.contentPrimary,
+    },
+    description: {
+      textAlign: "center",
+      marginBottom: 24,
+      color: colors.contentPrimary,
+    },
+    button: {
+      marginTop: 8,
+    },
+    pagination: {
+      fontSize: 20,
+      textAlign: "center",
+      color: colors.contentPrimary,
+    },
+  });
+}
 
 export default Onboarding;

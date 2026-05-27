@@ -17,13 +17,17 @@ import { t } from "@lingui/core/macro";
 import { Button } from "react-native-paper";
 import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { Colors } from "@/constants/Colors";
 import Bugsnag from "@bugsnag/expo";
 import { ScrollView } from "react-native";
+import { useMemo } from "react";
+import { useAppTheme } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const logo = require("@/assets/images/icon.png");
 
 export default function LoginScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
 
   async function saveLoginShown() {
@@ -127,43 +131,45 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-    backgroundColor: Colors.dark.background,
-  },
-  logo: {
-    width: 200,
-    height: 200,
-    alignSelf: "center",
-    marginBottom: 20,
-  },
-  welcomeText: {
-    fontSize: 26,
-    lineHeight: 26,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  benefitsText: {
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  benefit: {
-    marginBottom: 5,
-  },
-  info: {
-    fontStyle: "italic",
-    marginVertical: 5,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 20,
-  },
-  loginButton: {},
-  skipButton: {
-    marginRight: 10,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      padding: 20,
+      backgroundColor: colors.background,
+    },
+    logo: {
+      width: 200,
+      height: 200,
+      alignSelf: "center",
+      marginBottom: 20,
+    },
+    welcomeText: {
+      fontSize: 26,
+      lineHeight: 26,
+      fontWeight: "bold",
+      marginBottom: 20,
+    },
+    benefitsText: {
+      fontWeight: "bold",
+      marginBottom: 10,
+    },
+    benefit: {
+      marginBottom: 5,
+    },
+    info: {
+      fontStyle: "italic",
+      marginVertical: 5,
+    },
+    buttonRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginVertical: 20,
+    },
+    loginButton: {},
+    skipButton: {
+      marginRight: 10,
+    },
+  });
+}

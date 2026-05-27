@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, StyleSheet, Text, Pressable, ScrollView } from "react-native";
 import { Button, Modal, Portal } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Colors } from "@/constants/Colors";
 import { Workout } from "@/store/workoutStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const DAY_LABELS = [
   msg`Mon`,
@@ -44,6 +44,8 @@ export default function PlanScheduleEditor({
   schedule,
   onChange,
 }: Props) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const disabled = workouts.length === 0;
   const [pickerDow, setPickerDow] = useState<number | null>(null);
@@ -160,7 +162,7 @@ export default function PlanScheduleEditor({
                     <MaterialCommunityIcons
                       name="check"
                       size={18}
-                      color={Colors.dark.text}
+                      color={colors.contentPrimary}
                     />
                   )}
                 </Pressable>
@@ -188,7 +190,7 @@ export default function PlanScheduleEditor({
                 <MaterialCommunityIcons
                   name="check"
                   size={18}
-                  color={Colors.dark.text}
+                  color={colors.contentPrimary}
                 />
               )}
             </Pressable>
@@ -202,7 +204,7 @@ export default function PlanScheduleEditor({
         disabled={disabled}
         style={styles.autoButton}
         labelStyle={styles.autoButtonLabel}
-        textColor={Colors.dark.tint}
+        textColor={colors.accent}
       >
         <Plural
           value={weeklyGoal}
@@ -214,114 +216,116 @@ export default function PlanScheduleEditor({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 24,
-    padding: 16,
-    borderRadius: radii.lg,
-    backgroundColor: Colors.dark.background,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 16,
-  },
-  summary: {
-    fontSize: 13,
-    color: Colors.dark.icon,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "nowrap",
-    gap: 4,
-  },
-  tileWrapper: {
-    flex: 1,
-    alignItems: "center",
-  },
-  dayTile: {
-    width: "100%",
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    borderColor: Colors.dark.icon,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 2,
-    paddingHorizontal: 2,
-    minHeight: 45,
-  },
-  dayTileActive: {
-    borderColor: Colors.dark.tint,
-    backgroundColor: Colors.dark.tint + "22",
-  },
-  dayTileDisabled: {
-    opacity: 0.4,
-  },
-  dayLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: Colors.dark.icon,
-  },
-  dayLabelActive: {
-    color: Colors.dark.tint,
-  },
-  workoutLabel: {
-    fontSize: 8,
-    color: Colors.dark.icon,
-    textAlign: "center",
-  },
-  workoutLabelActive: {
-    color: Colors.dark.text,
-  },
-  modalContent: {
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: radii.lg,
-    width: "75%",
-    maxHeight: "60%",
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: Colors.dark.cardBackground,
-    alignSelf: "center",
-  },
-  modalTitleContainer: {
-    backgroundColor: Colors.dark.screenBackground,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.dark.subText,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  pickerItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.dark.subText,
-  },
-  pickerItemLast: {
-    borderBottomWidth: 0,
-  },
-  pickerItemSelected: {
-    backgroundColor: Colors.dark.cardBackground2,
-  },
-  pickerItemText: {
-    color: Colors.dark.text,
-    fontSize: 15,
-  },
-  autoButton: {
-    marginTop: 14,
-    borderColor: Colors.dark.tint,
-  },
-  autoButtonLabel: {
-    fontSize: 13,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      marginTop: 24,
+      padding: 16,
+      borderRadius: radii.lg,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    title: {
+      fontSize: 16,
+    },
+    summary: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+    },
+    grid: {
+      flexDirection: "row",
+      flexWrap: "nowrap",
+      gap: 4,
+    },
+    tileWrapper: {
+      flex: 1,
+      alignItems: "center",
+    },
+    dayTile: {
+      width: "100%",
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: colors.contentSecondary,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 2,
+      paddingHorizontal: 2,
+      minHeight: 45,
+    },
+    dayTileActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accent + "22",
+    },
+    dayTileDisabled: {
+      opacity: 0.4,
+    },
+    dayLabel: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: colors.contentSecondary,
+    },
+    dayLabelActive: {
+      color: colors.accent,
+    },
+    workoutLabel: {
+      fontSize: 8,
+      color: colors.contentSecondary,
+      textAlign: "center",
+    },
+    workoutLabelActive: {
+      color: colors.contentPrimary,
+    },
+    modalContent: {
+      backgroundColor: colors.card,
+      borderRadius: radii.lg,
+      width: "75%",
+      maxHeight: "60%",
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: colors.card,
+      alignSelf: "center",
+    },
+    modalTitleContainer: {
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.contentSecondary,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+    },
+    pickerItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.contentSecondary,
+    },
+    pickerItemLast: {
+      borderBottomWidth: 0,
+    },
+    pickerItemSelected: {
+      backgroundColor: colors.cardSecondary,
+    },
+    pickerItemText: {
+      color: colors.contentPrimary,
+      fontSize: 15,
+    },
+    autoButton: {
+      marginTop: 14,
+      borderColor: colors.accent,
+    },
+    autoButtonLabel: {
+      fontSize: 13,
+    },
+  });
+}

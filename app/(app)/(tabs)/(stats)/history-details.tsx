@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Alert } from "react-native";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -6,7 +6,6 @@ import { Image } from "expo-image";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { ActivityIndicator, Card, IconButton } from "react-native-paper";
-import { Colors } from "@/constants/Colors";
 import {
   router,
   Stack,
@@ -22,11 +21,14 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useDeleteCompletedWorkoutMutation } from "@/hooks/useDeleteCompletedWorkoutMutation";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import Bugsnag from "@bugsnag/expo";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
 export default function HistoryDetailsScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { id } = useLocalSearchParams();
   const [workout, setWorkout] = useState<CompletedWorkout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -117,7 +119,7 @@ export default function HistoryDetailsScreen() {
   if (isLoading || settingsLoading) {
     return (
       <ThemedView style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
+        <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
   }
@@ -148,7 +150,7 @@ export default function HistoryDetailsScreen() {
                 icon="file-document-edit-outline"
                 size={25}
                 style={{ marginRight: 0 }}
-                iconColor={Colors.dark.text}
+                iconColor={colors.contentPrimary}
                 onPressIn={() =>
                   router.push({
                     pathname: "/(app)/(tabs)/(stats)/edit-history",
@@ -160,7 +162,7 @@ export default function HistoryDetailsScreen() {
                 icon="trash-can-outline"
                 size={25}
                 style={{ marginRight: 0 }}
-                iconColor={Colors.dark.highlight}
+                iconColor={colors.danger}
                 onPressIn={() => {
                   if (typeof id !== "string" || !/^\d+$/.test(id)) return;
                   const parsedId = parseInt(id, 10);
@@ -198,7 +200,7 @@ export default function HistoryDetailsScreen() {
             <MaterialCommunityIcons
               name="clock"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
             />
             <ThemedText style={styles.summaryText}>
               <Plural
@@ -212,7 +214,7 @@ export default function HistoryDetailsScreen() {
             <MaterialCommunityIcons
               name="numeric"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
             />
             <ThemedText style={styles.summaryText}>
               <Plural
@@ -226,7 +228,7 @@ export default function HistoryDetailsScreen() {
             <MaterialCommunityIcons
               name="scale"
               size={24}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
             />
             <ThemedText style={styles.summaryText}>
               {totalVolume} {settings?.weightUnit}
@@ -312,75 +314,77 @@ export default function HistoryDetailsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  topSection: {
-    marginBottom: 24,
-    alignItems: "center",
-  },
-  workoutName: {
-    fontSize: 28,
-    lineHeight: 28,
-    fontWeight: "bold",
-  },
-  workoutDate: {
-    fontSize: 16,
-    marginTop: 4,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 16,
-  },
-  summaryItem: {
-    alignItems: "center",
-  },
-  summaryText: {
-    fontSize: 16,
-    marginTop: 4,
-  },
-  exerciseList: {
-    marginBottom: 50,
-  },
-  exerciseCard: {
-    marginBottom: 16,
-    borderRadius: radii.md,
-    paddingBottom: 8,
-    elevation: 2, // For Android
-    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)", // For iOS
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  exerciseHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-  },
-  exerciseImage: {
-    width: 60,
-    height: 60,
-    borderRadius: radii.md,
-    marginRight: 16,
-  },
-  exerciseName: {
-    fontSize: 20,
-    fontWeight: "bold",
-    flex: 1,
-    flexWrap: "wrap",
-  },
-  setRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 4,
-    paddingHorizontal: 16,
-  },
-  setText: {
-    fontSize: 16,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    headerRight: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    container: {
+      flex: 1,
+      padding: 16,
+    },
+    topSection: {
+      marginBottom: 24,
+      alignItems: "center",
+    },
+    workoutName: {
+      fontSize: 28,
+      lineHeight: 28,
+      fontWeight: "bold",
+    },
+    workoutDate: {
+      fontSize: 16,
+      marginTop: 4,
+    },
+    summaryRow: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      marginBottom: 16,
+    },
+    summaryItem: {
+      alignItems: "center",
+    },
+    summaryText: {
+      fontSize: 16,
+      marginTop: 4,
+    },
+    exerciseList: {
+      marginBottom: 50,
+    },
+    exerciseCard: {
+      marginBottom: 16,
+      borderRadius: radii.md,
+      paddingBottom: 8,
+      elevation: 2,
+      boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+      backgroundColor: colors.card,
+    },
+    exerciseHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 16,
+    },
+    exerciseImage: {
+      width: 60,
+      height: 60,
+      borderRadius: radii.md,
+      marginRight: 16,
+    },
+    exerciseName: {
+      fontSize: 20,
+      fontWeight: "bold",
+      flex: 1,
+      flexWrap: "wrap",
+    },
+    setRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: 4,
+      paddingHorizontal: 16,
+    },
+    setText: {
+      fontSize: 16,
+    },
+  });
+}

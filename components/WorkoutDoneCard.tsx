@@ -1,15 +1,15 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Colors } from "@/constants/Colors";
 import { PlanScheduleEntry } from "@/utils/database";
 import { Workout } from "@/store/workoutStore";
 import { Trans } from "@lingui/react/macro";
 import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const DAY_NAMES = [
   msg`Monday`,
@@ -34,6 +34,8 @@ export default function WorkoutDoneCard({
   todayDow,
   onPress,
 }: Props) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const todayEntry = schedule.find((e) => e.day_of_week === todayDow);
   const todayWorkoutName =
@@ -57,7 +59,7 @@ export default function WorkoutDoneCard({
         <MaterialCommunityIcons
           name="check-circle-outline"
           size={28}
-          color={Colors.dark.completed}
+          color={colors.success}
           style={styles.icon}
         />
         <View style={styles.textContainer}>
@@ -76,7 +78,7 @@ export default function WorkoutDoneCard({
           <MaterialCommunityIcons
             name="chevron-right"
             size={20}
-            color={Colors.dark.icon}
+            color={colors.contentSecondary}
           />
         )}
       </ThemedView>
@@ -84,28 +86,30 @@ export default function WorkoutDoneCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: radii.lg,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.dark.completed,
-  },
-  icon: {
-    marginRight: 14,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 16,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: Colors.dark.icon,
-    marginTop: 2,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderRadius: radii.lg,
+      padding: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.success,
+    },
+    icon: {
+      marginRight: 14,
+    },
+    textContainer: {
+      flex: 1,
+    },
+    title: {
+      fontSize: 16,
+    },
+    subtitle: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+      marginTop: 2,
+    },
+  });
+}

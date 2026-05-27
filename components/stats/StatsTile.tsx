@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet } from "react-native";
 import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface StatsTileProps {
   label: string;
@@ -18,13 +18,14 @@ const DeltaText: React.FC<{
   label?: string;
   deltaText?: string;
 }> = ({ delta, label, deltaText }) => {
+  const { colors } = useAppTheme();
   const isPositive = delta > 0;
   const isNeutral = delta === 0;
   const color = isNeutral
-    ? Colors.dark.subText
+    ? colors.contentSecondary
     : isPositive
-      ? Colors.dark.completed
-      : Colors.dark.highlight;
+      ? colors.success
+      : colors.danger;
   const prefix = isNeutral ? "─" : isPositive ? "▲" : "▼";
   const absVal = Math.abs(delta);
   const formatted = deltaText ?? (label ? `${absVal}${label}` : absVal);
@@ -40,6 +41,9 @@ export const StatsTile: React.FC<StatsTileProps> = ({
   deltaLabel,
   deltaText,
 }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <Card style={styles.card}>
       <ThemedText style={styles.value}>{value}</ThemedText>
@@ -52,26 +56,6 @@ export const StatsTile: React.FC<StatsTileProps> = ({
 };
 
 const styles = StyleSheet.create({
-  card: {
-    flexBasis: "47%",
-    flexGrow: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderRadius: radii.md,
-    backgroundColor: Colors.dark.cardBackground,
-    alignItems: "center",
-  },
-  value: {
-    fontSize: 22,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  label: {
-    fontSize: 12,
-    textAlign: "center",
-    color: Colors.dark.subText,
-    marginTop: 2,
-  },
   delta: {
     fontSize: 12,
     textAlign: "center",
@@ -79,3 +63,34 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    card: {
+      flexBasis: "47%",
+      flexGrow: 1,
+      paddingVertical: 14,
+      paddingHorizontal: 12,
+      borderRadius: radii.md,
+      backgroundColor: colors.card,
+      alignItems: "center",
+    },
+    value: {
+      fontSize: 22,
+      fontWeight: "bold",
+      textAlign: "center",
+    },
+    label: {
+      fontSize: 12,
+      textAlign: "center",
+      color: colors.contentSecondary,
+      marginTop: 2,
+    },
+    delta: {
+      fontSize: 12,
+      textAlign: "center",
+      marginTop: 4,
+      fontWeight: "600",
+    },
+  });
+}

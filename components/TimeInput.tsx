@@ -1,7 +1,8 @@
 // TimeInput.tsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import { Colors } from "@/constants/Colors";
+import { useAppTheme } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface TimeInputProps {
   value: string;
@@ -31,6 +32,8 @@ function normalizeSeconds(raw: string): string {
 }
 
 export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { minutes: initM, seconds: initS } = parseValue(value);
   const [minutes, setMinutes] = useState(initM === "0" ? "" : initM);
   const [seconds, setSeconds] = useState(initS === "00" ? "" : initS);
@@ -78,7 +81,7 @@ export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
       <TextInput
         value={minutes}
         placeholder="0"
-        placeholderTextColor={Colors.dark.subText}
+        placeholderTextColor={colors.contentSecondary}
         onChangeText={handleMinutesChange}
         onFocus={handleFocus}
         onBlur={handleMinutesBlur}
@@ -92,7 +95,7 @@ export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
         ref={secondsRef}
         value={seconds}
         placeholder="00"
-        placeholderTextColor={Colors.dark.subText}
+        placeholderTextColor={colors.contentSecondary}
         onChangeText={handleSecondsChange}
         onFocus={handleFocus}
         onBlur={handleSecondsBlur}
@@ -105,23 +108,25 @@ export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  minutesField: {
-    textAlign: "center",
-    marginRight: 3,
-  },
-  secondsField: {
-    textAlign: "center",
-    marginLeft: 3,
-  },
-  separator: {
-    color: Colors.dark.text,
-    fontSize: 18,
-    marginHorizontal: 2,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    minutesField: {
+      textAlign: "center",
+      marginRight: 3,
+    },
+    secondsField: {
+      textAlign: "center",
+      marginLeft: 3,
+    },
+    separator: {
+      color: colors.contentPrimary,
+      fontSize: 18,
+      marginHorizontal: 2,
+    },
+  });
+}

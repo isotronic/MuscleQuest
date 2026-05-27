@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { ScrollView, TextInput, StyleSheet, View } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { Divider, IconButton } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Colors } from "@/constants/Colors";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
@@ -15,9 +14,12 @@ import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQue
 import { formatFromTotalSeconds, convertToTotalSeconds } from "@/utils/utility";
 import { TimeInput } from "@/components/TimeInput";
 import Bugsnag from "@bugsnag/expo";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 export default function EditCompletedWorkoutScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { id } = useLocalSearchParams();
 
   const {
@@ -92,7 +94,7 @@ export default function EditCompletedWorkoutScreen() {
   if (isWorkoutLoading || !exercises || settingsLoading) {
     return (
       <ThemedView style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
+        <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
   }
@@ -114,7 +116,7 @@ export default function EditCompletedWorkoutScreen() {
               {editWorkout.isPending ? (
                 <ActivityIndicator
                   size={24}
-                  color={Colors.dark.tint}
+                  color={colors.accent}
                   style={{ marginRight: 12 }}
                 />
               ) : (
@@ -122,7 +124,7 @@ export default function EditCompletedWorkoutScreen() {
                   icon="content-save-outline"
                   size={35}
                   style={{ marginRight: 0 }}
-                  iconColor={Colors.dark.tint}
+                  iconColor={colors.accent}
                   onPressIn={handleSave}
                 />
               )}
@@ -168,7 +170,7 @@ export default function EditCompletedWorkoutScreen() {
                         value={
                           weightInputs[`${exerciseIndex}-${setIndex}`] || ""
                         }
-                        placeholderTextColor={Colors.dark.subText}
+                        placeholderTextColor={colors.contentSecondary}
                         selectTextOnFocus={true}
                         keyboardType="numeric"
                         onChangeText={(value: string) => {
@@ -202,7 +204,7 @@ export default function EditCompletedWorkoutScreen() {
                         style={styles.input}
                         placeholder={t`Reps`}
                         value={String(set.reps || "")}
-                        placeholderTextColor={Colors.dark.subText}
+                        placeholderTextColor={colors.contentSecondary}
                         selectTextOnFocus={true}
                         keyboardType="numeric"
                         onChangeText={(value: string) => {
@@ -243,7 +245,7 @@ export default function EditCompletedWorkoutScreen() {
                       style={styles.input}
                       placeholder={t`Reps`}
                       value={String(set.reps || "")}
-                      placeholderTextColor={Colors.dark.subText}
+                      placeholderTextColor={colors.contentSecondary}
                       selectTextOnFocus={true}
                       keyboardType="numeric"
                       onChangeText={(value: string) => {
@@ -265,7 +267,7 @@ export default function EditCompletedWorkoutScreen() {
                       style={styles.input}
                       placeholder={t`Distance`}
                       value={set.distance != null ? String(set.distance) : ""}
-                      placeholderTextColor={Colors.dark.subText}
+                      placeholderTextColor={colors.contentSecondary}
                       selectTextOnFocus={true}
                       keyboardType="numeric"
                       onChangeText={(value: string) => {
@@ -288,41 +290,45 @@ export default function EditCompletedWorkoutScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  exerciseContainer: { marginBottom: 16 },
-  setContainer: { marginBottom: 8 },
-  exerciseName: { fontSize: 20, fontWeight: "bold", marginBottom: 8 },
-  setNumber: { fontWeight: "bold" },
-  divider: { marginBottom: 8 },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
-    marginBottom: 8,
-  },
-  label: {
-    width: 120,
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    padding: 10,
-    borderColor: Colors.dark.subText,
-    borderWidth: 1,
-    borderRadius: radii.md,
-    color: Colors.dark.text,
-    fontSize: 18,
-    textAlign: "right",
-  },
-  timeInput: {
-    width: 96,
-    padding: 10,
-    borderColor: Colors.dark.subText,
-    borderWidth: 1,
-    borderRadius: radii.md,
-    color: Colors.dark.text,
-    fontSize: 18,
-    textAlign: "center",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {},
+    headerRight: {},
+    exerciseContainer: { marginBottom: 16 },
+    setContainer: { marginBottom: 8 },
+    exerciseName: { fontSize: 20, fontWeight: "bold", marginBottom: 8 },
+    setNumber: { fontWeight: "bold" },
+    divider: { marginBottom: 8 },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      width: "100%",
+      marginBottom: 8,
+    },
+    label: {
+      width: 120,
+      marginRight: 10,
+    },
+    input: {
+      flex: 1,
+      padding: 10,
+      borderColor: colors.contentSecondary,
+      borderWidth: 1,
+      borderRadius: radii.md,
+      color: colors.contentPrimary,
+      fontSize: 18,
+      textAlign: "right",
+    },
+    timeInput: {
+      width: 96,
+      padding: 10,
+      borderColor: colors.contentSecondary,
+      borderWidth: 1,
+      borderRadius: radii.md,
+      color: colors.contentPrimary,
+      fontSize: 18,
+      textAlign: "center",
+    },
+  });
+}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   ScrollView,
@@ -14,7 +14,6 @@ import { ActivityIndicator, Button, Switch } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
 import { useAllBodyMetricDefinitionsQuery } from "@/hooks/useBodyMetricDefinitionsQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import {
@@ -24,11 +23,14 @@ import {
 } from "@/hooks/useBodyMetricMutations";
 import { type ValueKind } from "@/utils/measurementConversions";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const VALUE_KINDS: ValueKind[] = ["mass", "length", "percent"];
 
 export default function MeasurementsManageScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const { data: metrics, isLoading } = useAllBodyMetricDefinitionsQuery();
   const { data: settings } = useSettingsQuery();
@@ -93,7 +95,7 @@ export default function MeasurementsManageScreen() {
   if (isLoading) {
     return (
       <ThemedView style={styles.centered}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
+        <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
   }
@@ -110,7 +112,7 @@ export default function MeasurementsManageScreen() {
           <Button
             mode="outlined"
             icon={addExpanded ? "chevron-up" : "plus"}
-            textColor={Colors.dark.tint}
+            textColor={colors.accent}
             style={styles.addButton}
             onPress={() => setAddExpanded((v) => !v)}
           >
@@ -124,7 +126,7 @@ export default function MeasurementsManageScreen() {
                 value={newLabel}
                 onChangeText={setNewLabel}
                 placeholder={t`Metric name`}
-                placeholderTextColor={Colors.dark.subText}
+                placeholderTextColor={colors.contentSecondary}
                 returnKeyType="done"
                 autoFocus
               />
@@ -155,8 +157,8 @@ export default function MeasurementsManageScreen() {
               </View>
               <Button
                 mode="contained"
-                buttonColor={Colors.dark.tint}
-                textColor={Colors.dark.background}
+                buttonColor={colors.accent}
+                textColor={colors.background}
                 loading={insertMutation.isPending}
                 disabled={insertMutation.isPending}
                 onPress={handleAddMetric}
@@ -189,7 +191,7 @@ export default function MeasurementsManageScreen() {
               <Switch
                 value={metric.is_active}
                 onValueChange={() => handleToggle(metric.id, metric.is_active)}
-                color={Colors.dark.tint}
+                color={colors.accent}
                 disabled={toggleActiveMutation.isPending}
               />
             </View>
@@ -219,7 +221,7 @@ export default function MeasurementsManageScreen() {
                       onValueChange={() =>
                         handleToggle(metric.id, metric.is_active)
                       }
-                      color={Colors.dark.tint}
+                      color={colors.accent}
                       disabled={toggleActiveMutation.isPending}
                     />
                     <TouchableOpacity
@@ -230,7 +232,7 @@ export default function MeasurementsManageScreen() {
                       <MaterialCommunityIcons
                         name="trash-can-outline"
                         size={20}
-                        color={Colors.dark.highlight}
+                        color={colors.danger}
                       />
                     </TouchableOpacity>
                   </View>
@@ -243,96 +245,98 @@ export default function MeasurementsManageScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  addSection: {
-    marginBottom: 20,
-  },
-  addButton: {
-    borderColor: Colors.dark.tint,
-  },
-  addForm: {
-    marginTop: 12,
-    gap: 8,
-  },
-  addInput: {
-    fontSize: 15,
-    color: Colors.dark.text,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: radii.md,
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  kindRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  kindChip: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: "center",
-    borderRadius: radii.md,
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  kindChipActive: {
-    backgroundColor: Colors.dark.tint + "25",
-    borderWidth: 1,
-    borderColor: Colors.dark.tint,
-  },
-  kindChipText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.dark.subText,
-  },
-  kindChipTextActive: {
-    color: Colors.dark.tint,
-  },
-  kindUnit: {
-    fontSize: 11,
-    color: Colors.dark.subText,
-    marginTop: 2,
-  },
-  groupHeader: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.dark.subText,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 4,
-  },
-  metricRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.dark.subText + "40",
-  },
-  metricInfo: {
-    flex: 1,
-  },
-  metricLabel: {
-    fontSize: 15,
-  },
-  metricKind: {
-    fontSize: 12,
-    color: Colors.dark.subText,
-    marginTop: 2,
-  },
-  customActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  deleteIcon: {
-    padding: 4,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    centered: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    container: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
+    addSection: {
+      marginBottom: 20,
+    },
+    addButton: {
+      borderColor: colors.accent,
+    },
+    addForm: {
+      marginTop: 12,
+      gap: 8,
+    },
+    addInput: {
+      fontSize: 15,
+      color: colors.contentPrimary,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: radii.md,
+      backgroundColor: colors.card,
+    },
+    kindRow: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    kindChip: {
+      flex: 1,
+      paddingVertical: 8,
+      alignItems: "center",
+      borderRadius: radii.md,
+      backgroundColor: colors.card,
+    },
+    kindChipActive: {
+      backgroundColor: colors.accent + "25",
+      borderWidth: 1,
+      borderColor: colors.accent,
+    },
+    kindChipText: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.contentSecondary,
+    },
+    kindChipTextActive: {
+      color: colors.accent,
+    },
+    kindUnit: {
+      fontSize: 11,
+      color: colors.contentSecondary,
+      marginTop: 2,
+    },
+    groupHeader: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.contentSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 0.8,
+      marginBottom: 4,
+    },
+    metricRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.contentSecondary + "40",
+    },
+    metricInfo: {
+      flex: 1,
+    },
+    metricLabel: {
+      fontSize: 15,
+    },
+    metricKind: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+      marginTop: 2,
+    },
+    customActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    deleteIcon: {
+      padding: 4,
+    },
+  });
+}

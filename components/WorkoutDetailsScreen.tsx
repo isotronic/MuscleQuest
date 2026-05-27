@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { View, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Trans } from "@lingui/react/macro";
@@ -9,15 +10,17 @@ import { UserExercise } from "@/store/workoutStore";
 import { Image } from "expo-image";
 import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
 import { classifySupersetPosition } from "@/utils/supersetUtils";
-import { Colors } from "@/constants/Colors";
 import Bugsnag from "@bugsnag/expo";
 import { Notes } from "@/components/Notes";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
 export default function WorkoutDetailsScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { workoutIndex, planId } = useLocalSearchParams();
   const { data: plan, isLoading, error } = usePlanQuery(Number(planId));
   const { data: settings } = useSettingsQuery();
@@ -199,70 +202,72 @@ export default function WorkoutDetailsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingTop: 16,
-    paddingBottom: 30,
-    paddingHorizontal: 16,
-  },
-  exerciseItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.dark.cardBackground,
-    padding: 16,
-    marginBottom: 10,
-    borderRadius: radii.md,
-  },
-  exerciseImage: {
-    width: 70,
-    height: 70,
-    marginRight: 16,
-    borderRadius: radii.md,
-  },
-  exerciseInfo: {
-    flex: 1,
-  },
-  exerciseName: {
-    fontSize: 18,
-    color: Colors.dark.text,
-  },
-  exerciseSets: {
-    fontSize: 14,
-    color: Colors.dark.text,
-  },
-  supersetHeader: {
-    paddingHorizontal: 4,
-    paddingBottom: 0,
-    marginTop: -8,
-  },
-  supersetHeaderText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: Colors.dark.tint,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  supersetConnector: {
-    width: 3,
-    height: 6,
-    backgroundColor: Colors.dark.tint,
-    marginLeft: 27,
-  },
-  supersetExerciseItem: {
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.dark.tint,
-  },
-  supersetExerciseFirst: {
-    marginBottom: 0,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  supersetExerciseLast: {
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    marginBottom: 8,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    contentContainer: {
+      paddingTop: 16,
+      paddingBottom: 30,
+      paddingHorizontal: 16,
+    },
+    exerciseItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      padding: 16,
+      marginBottom: 10,
+      borderRadius: radii.md,
+    },
+    exerciseImage: {
+      width: 70,
+      height: 70,
+      marginRight: 16,
+      borderRadius: radii.md,
+    },
+    exerciseInfo: {
+      flex: 1,
+    },
+    exerciseName: {
+      fontSize: 18,
+      color: colors.contentPrimary,
+    },
+    exerciseSets: {
+      fontSize: 14,
+      color: colors.contentPrimary,
+    },
+    supersetHeader: {
+      paddingHorizontal: 4,
+      paddingBottom: 0,
+      marginTop: -8,
+    },
+    supersetHeaderText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.accent,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+    supersetConnector: {
+      width: 3,
+      height: 6,
+      backgroundColor: colors.accent,
+      marginLeft: 27,
+    },
+    supersetExerciseItem: {
+      borderLeftWidth: 3,
+      borderLeftColor: colors.accent,
+    },
+    supersetExerciseFirst: {
+      marginBottom: 0,
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
+    },
+    supersetExerciseLast: {
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+      marginBottom: 8,
+    },
+  });
+}

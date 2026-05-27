@@ -18,7 +18,7 @@ import {
   useLocalSearchParams,
   useNavigation,
 } from "expo-router";
-import { Colors } from "@/constants/Colors";
+import { useAppTheme } from "@/theme";
 import WorkoutCard from "@/components/WorkoutCard";
 import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
@@ -30,6 +30,7 @@ import {
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 
 export default function CreateWorkoutScreen() {
+  const { colors } = useAppTheme();
   const navigation = useNavigation();
   const queryClient = useQueryClient();
   const { workoutId: workoutIdParam } = useLocalSearchParams<{
@@ -228,7 +229,7 @@ export default function CreateWorkoutScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: Colors.dark.screenBackground }}
+      style={{ flex: 1, backgroundColor: colors.surface }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
@@ -274,7 +275,7 @@ export default function CreateWorkoutScreen() {
             />
           ) : (
             <ActivityIndicator
-              color={Colors.dark.text}
+              color={colors.contentPrimary}
               style={{ marginTop: 40 }}
             />
           )}

@@ -9,15 +9,19 @@ import {
   View,
 } from "react-native";
 import { Divider } from "react-native-paper";
-import { Colors } from "@/constants/Colors";
 import { ThemedView } from "@/components/ThemedView";
 import { HELP_DATA } from "@/constants/HelpData";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
-function highlightTokens(text: string, tokens: string[]) {
+function highlightTokens(
+  text: string,
+  tokens: string[],
+  highlightColor: string,
+) {
   if (tokens.length === 0) return <Text>{text}</Text>;
   const escaped = tokens.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
   const pattern = new RegExp(`(${escaped.join("|")})`, "gi");
@@ -26,7 +30,7 @@ function highlightTokens(text: string, tokens: string[]) {
     <Text>
       {parts.map((part, i) =>
         tokens.some((t) => part.toLowerCase() === t.toLowerCase()) ? (
-          <Text key={i} style={styles.highlight}>
+          <Text key={i} style={{ color: highlightColor, fontWeight: "600" }}>
             {part}
           </Text>
         ) : (
@@ -38,6 +42,8 @@ function highlightTokens(text: string, tokens: string[]) {
 }
 
 function GroupHeader({ label }: { label: string }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.groupHeader}>
       <Text style={styles.groupHeaderText}>{label}</Text>
@@ -52,13 +58,15 @@ type SectionProps = {
 };
 
 function Section({ icon, title, body }: SectionProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Ionicons
           name={icon}
           size={20}
-          color={Colors.dark.tint}
+          color={colors.accent}
           style={styles.sectionIcon}
         />
         <Text style={styles.sectionTitle}>{title}</Text>
@@ -69,6 +77,8 @@ function Section({ icon, title, body }: SectionProps) {
 }
 
 export default function HelpScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [query, setQuery] = useState("");
   const { _ } = useLingui();
 
@@ -112,13 +122,13 @@ export default function HelpScreen() {
         <Ionicons
           name="search-outline"
           size={18}
-          color={Colors.dark.subText}
+          color={colors.contentSecondary}
           style={styles.searchIcon}
         />
         <TextInput
           style={styles.searchInput}
           placeholder={t`Search help…`}
-          placeholderTextColor={Colors.dark.subText}
+          placeholderTextColor={colors.contentSecondary}
           value={query}
           onChangeText={setQuery}
           returnKeyType="search"
@@ -138,7 +148,7 @@ export default function HelpScreen() {
             <Ionicons
               name="close-circle"
               size={18}
-              color={Colors.dark.subText}
+              color={colors.contentSecondary}
               style={styles.clearIcon}
             />
           </TouchableOpacity>
@@ -166,7 +176,7 @@ export default function HelpScreen() {
         {filtered.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>
-              <Trans>No results for “{query}”</Trans>
+              <Trans>No results for "{query}"</Trans>
             </Text>
           </View>
         ) : (
@@ -180,10 +190,12 @@ export default function HelpScreen() {
                     title={highlightTokens(
                       section.title,
                       isSearching ? tokens : [],
+                      colors.accent,
                     )}
                     body={highlightTokens(
                       section.body,
                       isSearching ? tokens : [],
+                      colors.accent,
                     )}
                   />
                   {i < group.sections.length - 1 && (
@@ -201,97 +213,95 @@ export default function HelpScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: radii.md,
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 4,
-    paddingHorizontal: 10,
-  },
-  searchIcon: {
-    marginRight: 6,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: Colors.dark.text,
-  },
-  clearIcon: {
-    marginLeft: 6,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingTop: 12,
-  },
-  intro: {
-    fontSize: 15,
-    color: Colors.dark.subText,
-    lineHeight: 22,
-    marginBottom: 16,
-  },
-  topDivider: {
-    backgroundColor: Colors.dark.cardBackground,
-    marginBottom: 16,
-  },
-  groupHeader: {
-    marginTop: 24,
-    marginBottom: 8,
-    paddingHorizontal: 2,
-  },
-  groupHeaderText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: Colors.dark.subText,
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
-  },
-  section: {
-    marginBottom: 4,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  sectionIcon: {
-    marginRight: 10,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.dark.text,
-  },
-  sectionBody: {
-    fontSize: 14,
-    color: Colors.dark.subText,
-    lineHeight: 21,
-    paddingLeft: 30,
-  },
-  divider: {
-    backgroundColor: Colors.dark.cardBackground,
-    marginVertical: 16,
-  },
-  highlight: {
-    color: Colors.dark.tint,
-    fontWeight: "600",
-  },
-  emptyState: {
-    marginTop: 60,
-    alignItems: "center",
-  },
-  emptyStateText: {
-    fontSize: 15,
-    color: Colors.dark.subText,
-  },
-  bottomPadding: {
-    height: 32,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      marginHorizontal: 16,
+      marginTop: 12,
+      marginBottom: 4,
+      paddingHorizontal: 10,
+    },
+    searchIcon: {
+      marginRight: 6,
+    },
+    searchInput: {
+      flex: 1,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: colors.contentPrimary,
+    },
+    clearIcon: {
+      marginLeft: 6,
+    },
+    scrollContent: {
+      padding: 20,
+      paddingTop: 12,
+    },
+    intro: {
+      fontSize: 15,
+      color: colors.contentSecondary,
+      lineHeight: 22,
+      marginBottom: 16,
+    },
+    topDivider: {
+      backgroundColor: colors.card,
+      marginBottom: 16,
+    },
+    groupHeader: {
+      marginTop: 24,
+      marginBottom: 8,
+      paddingHorizontal: 2,
+    },
+    groupHeaderText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.contentSecondary,
+      letterSpacing: 1.2,
+      textTransform: "uppercase",
+    },
+    section: {
+      marginBottom: 4,
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    sectionIcon: {
+      marginRight: 10,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.contentPrimary,
+    },
+    sectionBody: {
+      fontSize: 14,
+      color: colors.contentSecondary,
+      lineHeight: 21,
+      paddingLeft: 30,
+    },
+    divider: {
+      backgroundColor: colors.card,
+      marginVertical: 16,
+    },
+    emptyState: {
+      marginTop: 60,
+      alignItems: "center",
+    },
+    emptyStateText: {
+      fontSize: 15,
+      color: colors.contentSecondary,
+    },
+    bottomPadding: {
+      height: 32,
+    },
+  });
+}

@@ -1,15 +1,15 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Colors } from "@/constants/Colors";
 import { PlanScheduleEntry } from "@/utils/database";
 import { Workout } from "@/store/workoutStore";
 import { Trans } from "@lingui/react/macro";
 import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const DAY_NAMES = [
   msg`Monday`,
@@ -28,6 +28,8 @@ interface Props {
 }
 
 export default function RestDayCard({ schedule, workouts, todayDow }: Props) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   // Find next scheduled workout day (looking forward, wrapping the week)
   let nextLabel: string | null = null;
@@ -47,7 +49,7 @@ export default function RestDayCard({ schedule, workouts, todayDow }: Props) {
       <MaterialCommunityIcons
         name="sleep"
         size={28}
-        color={Colors.dark.icon}
+        color={colors.contentSecondary}
         style={styles.icon}
       />
       <View style={styles.textContainer}>
@@ -62,28 +64,30 @@ export default function RestDayCard({ schedule, workouts, todayDow }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: radii.lg,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.dark.icon,
-  },
-  icon: {
-    marginRight: 14,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 16,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: Colors.dark.icon,
-    marginTop: 2,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderRadius: radii.lg,
+      padding: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.contentSecondary,
+    },
+    icon: {
+      marginRight: 14,
+    },
+    textContainer: {
+      flex: 1,
+    },
+    title: {
+      fontSize: 16,
+    },
+    subtitle: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+      marginTop: 2,
+    },
+  });
+}

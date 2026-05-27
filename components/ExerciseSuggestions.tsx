@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   ScrollView,
   TouchableOpacity,
@@ -6,9 +6,9 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { Colors } from "@/constants/Colors";
 import type { AutocompleteSuggestion } from "@/utils/exerciseSearch";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface ExerciseSuggestionsProps {
   suggestions: AutocompleteSuggestion[];
@@ -21,6 +21,9 @@ export default function ExerciseSuggestions({
   query,
   onSelect,
 }: ExerciseSuggestionsProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   if (suggestions.length === 0) return null;
 
   const normalizedQuery = query.trim().toLowerCase();
@@ -65,30 +68,32 @@ export default function ExerciseSuggestions({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.dark.screenBackground,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.dark.cardBackground,
-  },
-  scrollContent: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    gap: 6,
-  },
-  chip: {
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: radii.xl,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    maxWidth: 200,
-  },
-  chipText: {
-    color: Colors.dark.text,
-    fontSize: 13,
-  },
-  bold: {
-    fontWeight: "700",
-    color: Colors.dark.tint,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.card,
+    },
+    scrollContent: {
+      paddingHorizontal: 8,
+      paddingVertical: 6,
+      gap: 6,
+    },
+    chip: {
+      backgroundColor: colors.card,
+      borderRadius: radii.xl,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      maxWidth: 200,
+    },
+    chipText: {
+      color: colors.contentPrimary,
+      fontSize: 13,
+    },
+    bold: {
+      fontWeight: "700",
+      color: colors.accent,
+    },
+  });
+}

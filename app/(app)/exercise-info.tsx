@@ -5,12 +5,12 @@ import {
   SectionList,
   TouchableOpacity,
 } from "react-native";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 import { ActivityIndicator, IconButton, Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
-import { Colors } from "@/constants/Colors";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { ThemedView } from "@/components/ThemedView";
 import { useExerciseInfoQuery } from "@/hooks/useExerciseInfoQuery";
@@ -42,6 +42,8 @@ const fallbackImage = require("@/assets/images/placeholder.webp");
 type Tab = "info" | "history";
 
 export default function ExerciseInfoScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { exercise_id } = useLocalSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>("info");
 
@@ -162,7 +164,7 @@ export default function ExerciseInfoScreen() {
               <IconButton
                 icon={exerciseData.favorite ? "star" : "star-outline"}
                 iconColor={
-                  exerciseData.favorite ? Colors.dark.tint : Colors.dark.text
+                  exerciseData.favorite ? colors.accent : colors.contentPrimary
                 }
                 size={25}
                 onPressIn={handleToggleFavorite}
@@ -359,7 +361,7 @@ export default function ExerciseInfoScreen() {
                 <MaterialCommunityIcons
                   name="trophy"
                   size={14}
-                  color={Colors.dark.tint}
+                  color={colors.accent}
                   style={styles.trophyIcon}
                 />
               )}
@@ -391,7 +393,7 @@ export default function ExerciseInfoScreen() {
                 <MaterialCommunityIcons
                   name="alert-circle-outline"
                   size={48}
-                  color={Colors.dark.subText}
+                  color={colors.contentSecondary}
                 />
                 <ThemedText style={styles.emptyText}>
                   <Trans>Failed to load history</Trans>
@@ -402,7 +404,7 @@ export default function ExerciseInfoScreen() {
                 <MaterialCommunityIcons
                   name="history"
                   size={48}
-                  color={Colors.dark.subText}
+                  color={colors.contentSecondary}
                 />
                 <ThemedText style={styles.emptyText}>
                   <Trans>No history yet</Trans>
@@ -419,175 +421,177 @@ export default function ExerciseInfoScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  centered: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.dark.screenBackground,
-  },
-  errorText: {
-    color: Colors.dark.text,
-  },
-  imageContainer: {
-    alignItems: "center",
-    height: 350,
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 4,
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-    borderRadius: radii.lg,
-  },
-  tabBar: {
-    flexDirection: "row",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  tabPill: {
-    flex: 1,
-    paddingVertical: 6,
-    borderRadius: radii.full,
-    alignItems: "center",
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  tabPillActive: {
-    backgroundColor: Colors.dark.tint + "25",
-    borderWidth: 1,
-    borderColor: Colors.dark.tint,
-  },
-  tabLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.dark.subText,
-  },
-  tabLabelActive: {
-    color: Colors.dark.tint,
-  },
-  // Info tab
-  infoContent: {
-    padding: 16,
-    paddingBottom: 50,
-    backgroundColor: Colors.dark.screenBackground,
-  },
-  detailsContainer: {
-    padding: 16,
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: radii.lg,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  infoText: {
-    fontSize: 16,
-    marginHorizontal: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  descriptionText: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  icon: {
-    color: Colors.dark.text,
-  },
-  editButton: {
-    marginTop: 20,
-  },
-  buttonLabel: {
-    fontSize: 16,
-  },
-  // History tab
-  chartHeader: {
-    marginBottom: 8,
-  },
-  historyContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 50,
-    backgroundColor: Colors.dark.screenBackground,
-  },
-  historyEmpty: {
-    flexGrow: 1,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingTop: 16,
-    paddingBottom: 6,
-  },
-  sectionDate: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.dark.text,
-  },
-  sectionWorkout: {
-    fontSize: 12,
-    color: Colors.dark.subText,
-  },
-  setRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: radii.md,
-    marginBottom: 4,
-    backgroundColor: Colors.dark.cardBackground,
-    gap: 8,
-  },
-  setRowPR: {
-    backgroundColor: Colors.dark.tint + "18",
-  },
-  setBadge: {
-    minWidth: 44,
-  },
-  setBadgeText: {
-    fontSize: 12,
-    color: Colors.dark.subText,
-    fontWeight: "600",
-  },
-  trophyIcon: {
-    marginRight: 2,
-  },
-  metricText: {
-    flex: 1,
-    textAlign: "right",
-    fontSize: 15,
-    fontWeight: "600",
-    color: Colors.dark.text,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-    gap: 8,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.dark.subText,
-  },
-  emptySubText: {
-    fontSize: 13,
-    color: Colors.dark.subText,
-    opacity: 0.7,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    screen: {
+      flex: 1,
+    },
+    centered: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surface,
+    },
+    errorText: {
+      color: colors.contentPrimary,
+    },
+    imageContainer: {
+      alignItems: "center",
+      height: 350,
+      marginHorizontal: 16,
+      marginTop: 12,
+      marginBottom: 4,
+    },
+    image: {
+      width: "100%",
+      height: "100%",
+      borderRadius: radii.lg,
+    },
+    tabBar: {
+      flexDirection: "row",
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+    tabPill: {
+      flex: 1,
+      paddingVertical: 6,
+      borderRadius: radii.full,
+      alignItems: "center",
+      backgroundColor: colors.card,
+    },
+    tabPillActive: {
+      backgroundColor: colors.accent + "25",
+      borderWidth: 1,
+      borderColor: colors.accent,
+    },
+    tabLabel: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.contentSecondary,
+    },
+    tabLabelActive: {
+      color: colors.accent,
+    },
+    // Info tab
+    infoContent: {
+      padding: 16,
+      paddingBottom: 50,
+      backgroundColor: colors.surface,
+    },
+    detailsContainer: {
+      padding: 16,
+      backgroundColor: colors.card,
+      borderRadius: radii.lg,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: "bold",
+      marginBottom: 16,
+    },
+    infoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 10,
+    },
+    infoText: {
+      fontSize: 16,
+      marginHorizontal: 8,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    descriptionText: {
+      fontSize: 16,
+      lineHeight: 24,
+    },
+    icon: {
+      color: colors.contentPrimary,
+    },
+    editButton: {
+      marginTop: 20,
+    },
+    buttonLabel: {
+      fontSize: 16,
+    },
+    // History tab
+    chartHeader: {
+      marginBottom: 8,
+    },
+    historyContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 50,
+      backgroundColor: colors.surface,
+    },
+    historyEmpty: {
+      flexGrow: 1,
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingTop: 16,
+      paddingBottom: 6,
+    },
+    sectionDate: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.contentPrimary,
+    },
+    sectionWorkout: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+    },
+    setRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: radii.md,
+      marginBottom: 4,
+      backgroundColor: colors.card,
+      gap: 8,
+    },
+    setRowPR: {
+      backgroundColor: colors.accent + "18",
+    },
+    setBadge: {
+      minWidth: 44,
+    },
+    setBadgeText: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+      fontWeight: "600",
+    },
+    trophyIcon: {
+      marginRight: 2,
+    },
+    metricText: {
+      flex: 1,
+      textAlign: "right",
+      fontSize: 15,
+      fontWeight: "600",
+      color: colors.contentPrimary,
+    },
+    emptyState: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 60,
+      gap: 8,
+    },
+    emptyText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.contentSecondary,
+    },
+    emptySubText: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+      opacity: 0.7,
+    },
+  });
+}

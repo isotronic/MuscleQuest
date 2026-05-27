@@ -1,9 +1,10 @@
+import { useMemo } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
 import { ThemedText } from "./ThemedText";
-import { Colors } from "@/constants/Colors";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface WeekDaysProps {
   completedWorkoutsThisWeek?: CompletedWorkout[];
@@ -14,6 +15,8 @@ export default function WeekDays({
   completedWorkoutsThisWeek,
   onDayPress,
 }: WeekDaysProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const today = new Date();
   const start = startOfWeek(today, { weekStartsOn: 1 });
   const days = Array.from({ length: 7 }).map((_, i) => addDays(start, i));
@@ -64,44 +67,46 @@ export default function WeekDays({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  dayContainer: {
-    flex: 1,
-    alignItems: "center",
-  },
-  dayName: {
-    fontSize: 16,
-    marginBottom: 4,
-    color: Colors.dark.subText,
-  },
-  todayDayName: {
-    fontWeight: "900",
-    color: Colors.dark.text,
-  },
-  circle: {
-    width: 45,
-    height: 45,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    borderColor: Colors.dark.text,
-  },
-  todayCircle: {},
-  workoutCompletedCircle: {
-    borderColor: Colors.dark.completed,
-    borderWidth: 2,
-  },
-  dayNumber: {
-    fontSize: 16,
-  },
-  todayDayNumber: {
-    fontWeight: "900",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+    },
+    dayContainer: {
+      flex: 1,
+      alignItems: "center",
+    },
+    dayName: {
+      fontSize: 16,
+      marginBottom: 4,
+      color: colors.contentSecondary,
+    },
+    todayDayName: {
+      fontWeight: "900",
+      color: colors.contentPrimary,
+    },
+    circle: {
+      width: 45,
+      height: 45,
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      borderColor: colors.contentPrimary,
+    },
+    todayCircle: {},
+    workoutCompletedCircle: {
+      borderColor: colors.success,
+      borderWidth: 2,
+    },
+    dayNumber: {
+      fontSize: 16,
+    },
+    todayDayNumber: {
+      fontWeight: "900",
+    },
+  });
+}

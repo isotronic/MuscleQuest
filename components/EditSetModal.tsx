@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -14,7 +14,6 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Colors } from "@/constants/Colors";
 import { useWorkoutStore } from "@/store/workoutStore";
 import {
   formatTimeInput,
@@ -22,7 +21,8 @@ import {
   convertToTotalSeconds,
 } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface EditSetModalProps {
   visible: boolean;
@@ -53,6 +53,8 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
   trackingType,
   distanceUnit = "m",
 }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const updateSetInExercise = useWorkoutStore(
     (state) => state.updateSetInExercise,
   );
@@ -275,7 +277,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                     <MaterialCommunityIcons
                       name="minus"
                       size={32}
-                      color={Colors.dark.text}
+                      color={colors.contentPrimary}
                       onPress={() =>
                         setDistance((prev) =>
                           String(Math.max(parseFloat(prev || "0") - 1, 0)),
@@ -300,7 +302,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                     <MaterialCommunityIcons
                       name="plus"
                       size={32}
-                      color={Colors.dark.text}
+                      color={colors.contentPrimary}
                       onPress={() =>
                         setDistance((prev) =>
                           String(parseFloat(prev || "0") + 1),
@@ -318,7 +320,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                     <MaterialCommunityIcons
                       name="minus"
                       size={32}
-                      color={Colors.dark.text}
+                      color={colors.contentPrimary}
                       onPress={() =>
                         setRepsMin((prev) =>
                           String(Math.max(Number(prev) - 1, 0)),
@@ -335,7 +337,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                     <MaterialCommunityIcons
                       name="plus"
                       size={32}
-                      color={Colors.dark.text}
+                      color={colors.contentPrimary}
                       onPress={() =>
                         setRepsMin((prev) => String(Number(prev) + 1))
                       }
@@ -349,7 +351,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                     <MaterialCommunityIcons
                       name="minus"
                       size={32}
-                      color={Colors.dark.text}
+                      color={colors.contentPrimary}
                       onPress={() =>
                         setRepsMax((prev) =>
                           String(Math.max(Number(prev) - 1, 0)),
@@ -366,7 +368,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                     <MaterialCommunityIcons
                       name="plus"
                       size={32}
-                      color={Colors.dark.text}
+                      color={colors.contentPrimary}
                       onPress={() =>
                         setRepsMax((prev) => String(Number(prev) + 1))
                       }
@@ -389,7 +391,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
               <View style={styles.checkboxContainer}>
                 <Checkbox
                   status={isWarmup ? "checked" : "unchecked"}
-                  uncheckedColor={Colors.dark.subText}
+                  uncheckedColor={colors.contentSecondary}
                   onPress={() => setIsWarmup(!isWarmup)}
                 />
                 <ThemedText style={styles.checkboxLabel}>
@@ -400,7 +402,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
               <View style={styles.checkboxContainer}>
                 <Checkbox
                   status={isDropSet ? "checked" : "unchecked"}
-                  uncheckedColor={Colors.dark.subText}
+                  uncheckedColor={colors.contentSecondary}
                   onPress={() => setIsDropSet(!isDropSet)}
                 />
                 <ThemedText style={styles.checkboxLabel}>
@@ -411,7 +413,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
               <View style={styles.checkboxContainer}>
                 <Checkbox
                   status={isToFailure ? "checked" : "unchecked"}
-                  uncheckedColor={Colors.dark.subText}
+                  uncheckedColor={colors.contentSecondary}
                   onPress={handleToFailureChange}
                 />
                 <ThemedText style={styles.checkboxLabel}>
@@ -424,7 +426,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
               <View style={styles.checkboxContainer}>
                 <Checkbox
                   status={applyToAllSets ? "checked" : "unchecked"}
-                  uncheckedColor={Colors.dark.subText}
+                  uncheckedColor={colors.contentSecondary}
                   onPress={() => {
                     setApplyToAllSets(!applyToAllSets);
                   }}
@@ -461,55 +463,58 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
     </Modal>
   );
 };
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.65)",
-  },
-  modalContent: {
-    backgroundColor: Colors.dark.cardBackground,
-    padding: 16,
-    borderRadius: radii.md,
-    width: "90%",
-  },
-  label: {
-    fontSize: 16,
-    color: Colors.dark.text,
-    marginBottom: 4,
-    textAlign: "center",
-  },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  input: {
-    flex: 1,
-    padding: 10,
-    borderColor: Colors.dark.text,
-    borderWidth: 1,
-    borderRadius: radii.md,
-    color: Colors.dark.text,
-    fontSize: 18,
-    textAlign: "center",
-  },
-  checkboxContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  checkboxLabel: {
-    fontSize: 16,
-    color: Colors.dark.text,
-  },
-  button: {
-    marginTop: 16,
-    flex: 1,
-    marginHorizontal: 8,
-  },
-  buttonLabel: {
-    fontSize: 16,
-  },
-});
+
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    modalContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0,0,0,0.65)",
+    },
+    modalContent: {
+      backgroundColor: colors.card,
+      padding: 16,
+      borderRadius: radii.md,
+      width: "90%",
+    },
+    label: {
+      fontSize: 16,
+      color: colors.contentPrimary,
+      marginBottom: 4,
+      textAlign: "center",
+    },
+    inputRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 16,
+    },
+    input: {
+      flex: 1,
+      padding: 10,
+      borderColor: colors.contentPrimary,
+      borderWidth: 1,
+      borderRadius: radii.md,
+      color: colors.contentPrimary,
+      fontSize: 18,
+      textAlign: "center",
+    },
+    checkboxContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    checkboxLabel: {
+      fontSize: 16,
+      color: colors.contentPrimary,
+    },
+    button: {
+      marginTop: 16,
+      flex: 1,
+      marginHorizontal: 8,
+    },
+    buttonLabel: {
+      fontSize: 16,
+    },
+  });
+}

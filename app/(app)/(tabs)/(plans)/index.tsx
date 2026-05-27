@@ -1,6 +1,6 @@
+import { useMemo } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Colors } from "@/constants/Colors";
 import { useEffect } from "react";
 import { router, Stack } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
@@ -14,8 +14,12 @@ import Bugsnag from "@bugsnag/expo";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { useAppTheme } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 export default function PlansScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: plans, isLoading, isError, error } = useAllPlansQuery();
   const { data: settings } = useSettingsQuery();
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
@@ -54,7 +58,7 @@ export default function PlansScreen() {
   if (isLoading) {
     return (
       <ThemedView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
+        <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
   }
@@ -110,7 +114,7 @@ export default function PlansScreen() {
             <Trans>Your workouts</Trans>
           </ThemedText>
           {standaloneIsLoading ? (
-            <ActivityIndicator size="small" color={Colors.dark.text} />
+            <ActivityIndicator size="small" color={colors.contentPrimary} />
           ) : standaloneIsError ? (
             <ThemedText style={styles.emptyText}>
               <Trans>Failed to load workouts</Trans>
@@ -135,40 +139,42 @@ export default function PlansScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  workoutsSection: {
-    paddingHorizontal: 16,
-    marginTop: 8,
-  },
-  emptyText: {
-    color: Colors.dark.subText,
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 12,
-    color: Colors.dark.text,
-  },
-  headerButtons: {
-    flexDirection: "row",
-    gap: 8,
-    marginRight: 4,
-  },
-  buttonContent: {
-    height: 34,
-  },
-  buttonLabel: {
-    fontSize: 14,
-    marginVertical: 0,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    workoutsSection: {
+      paddingHorizontal: 16,
+      marginTop: 8,
+    },
+    emptyText: {
+      color: colors.contentSecondary,
+      fontSize: 14,
+      marginBottom: 8,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      marginBottom: 12,
+      color: colors.contentPrimary,
+    },
+    headerButtons: {
+      flexDirection: "row",
+      gap: 8,
+      marginRight: 4,
+    },
+    buttonContent: {
+      height: 34,
+    },
+    buttonLabel: {
+      fontSize: 14,
+      marginVertical: 0,
+    },
+  });
+}
