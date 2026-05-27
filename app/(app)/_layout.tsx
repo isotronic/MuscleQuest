@@ -1,10 +1,11 @@
-import { Colors } from "@/constants/Colors";
 import { Redirect, Stack } from "expo-router";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { ThemedView } from "@/components/ThemedView";
 import { t } from "@lingui/core/macro";
+import { useAppTheme } from "@/theme";
 
 export default function AppLayout() {
+  const { colors } = useAppTheme();
   const { data: settings, isLoading: settingsLoading } = useSettingsQuery();
 
   if (settingsLoading) {
@@ -19,9 +20,9 @@ export default function AppLayout() {
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: Colors.dark.background,
+          backgroundColor: colors.background,
         },
-        headerTintColor: Colors.dark.text,
+        headerTintColor: colors.contentPrimary,
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
