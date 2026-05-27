@@ -23,10 +23,12 @@ export const signInWithGoogle = async () => {
     const typedError = error as { code?: string };
 
     // Code 12501 means user cancelled sign in
-    if (typedError.code !== "12501") {
-      console.error("Sign in error", error);
-      Alert.alert("Error", "Failed to sign in. Please try again.");
+    if (typedError.code === "12501") {
+      throw error;
     }
+
+    console.error("Sign in error", error);
+    Alert.alert("Error", "Failed to sign in. Please try again.");
 
     // Log detailed error info to Bugsnag for debugging
     Bugsnag.notify(error, (event) => {

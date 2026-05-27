@@ -53,6 +53,10 @@ export default function LoginScreen() {
       await saveLoginShown(); // Save setting to avoid showing login again
       router.replace("/");
     } catch (error: any) {
+      // Code 12501 means user cancelled sign in - don't report to Bugsnag
+      if (error?.code === "12501") {
+        return;
+      }
       console.error("handleSignIn error", error);
       Bugsnag.notify(error);
       Alert.alert(t`Error`, t`Failed to sign in. Please try again.`, [
