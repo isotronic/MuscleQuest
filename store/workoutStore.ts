@@ -24,6 +24,7 @@ export interface UserExercise extends Exercise {
   exercise_order?: number;
   is_deleted?: boolean;
   supersetGroupId?: string;
+  tracking_type_override?: string;
 }
 
 export interface Workout {
@@ -85,6 +86,11 @@ interface WorkoutStore {
     workoutIndex: number,
     exerciseId: number,
     setIndex: number,
+  ) => void;
+  setExerciseTrackingTypeOverride: (
+    workoutIndex: number,
+    exerciseId: number,
+    override: string | undefined,
   ) => void;
   createSuperset: (
     workoutIndex: number,
@@ -436,6 +442,23 @@ const useWorkoutStore = create<WorkoutStore>()(
           return { workouts };
         });
       },
+      setExerciseTrackingTypeOverride: (workoutIndex, exerciseId, override) =>
+        set((state) => ({
+          workouts: state.workouts.map((w, i) => {
+            if (i !== workoutIndex) return w;
+            return {
+              ...w,
+              exercises: w.exercises.map((e) => {
+                if (e.exercise_id !== exerciseId) return e;
+                const { tracking_type_override: _, ...rest } = e;
+                return override !== undefined
+                  ? { ...rest, tracking_type_override: override }
+                  : (rest as UserExercise);
+              }),
+            };
+          }),
+        })),
+
       createSuperset: (workoutIndex, exerciseIndex, newExercise) =>
         set((state) => {
           const groupId = Crypto.randomUUID();

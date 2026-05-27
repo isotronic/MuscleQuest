@@ -463,6 +463,14 @@ export async function initUserDataDB() {
       ALTER TABLE user_workout_exercises ADD COLUMN superset_group_id TEXT;
     `);
   }
+  const trackingTypeOverrideExists = user_workout_exercisesResult.some(
+    (col: any) => col.name === "tracking_type_override",
+  );
+  if (!trackingTypeOverrideExists) {
+    await db.execAsync(`
+      ALTER TABLE user_workout_exercises ADD COLUMN tracking_type_override TEXT;
+    `);
+  }
 
   const weeklyCompletionsResult = await db.getAllAsync(`
     PRAGMA table_info(weekly_completions);

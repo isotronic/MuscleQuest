@@ -30,6 +30,7 @@ import {
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
+import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 import { UserExercise } from "@/store/workoutStore";
 import { useSoundStore } from "@/store/soundStore";
 import Animated, {
@@ -290,6 +291,7 @@ export default function WorkoutSessionScreen() {
     currentSetStartedAt,
     setCurrentSetStartedAt,
     recordSetDuration,
+    setExerciseTrackingTypeOverride,
   } = useActiveWorkoutStore();
 
   const {
@@ -831,7 +833,7 @@ export default function WorkoutSessionScreen() {
       isWarmup: set.isWarmup || false,
       isDropSet: set.isDropSet || false,
       isToFailure: set.isToFailure || false,
-      trackingType: exercise.tracking_type || "weight",
+      trackingType: resolvedTrackingType(exercise),
       isLastSetOfLastExercise: isLast,
       isFirstSetOfFirstExercise: isFirst,
     };
@@ -1055,7 +1057,7 @@ export default function WorkoutSessionScreen() {
       isWarmup: currentSet.isWarmup || false,
       isDropSet: currentSet.isDropSet || false,
       isToFailure: currentSet.isToFailure || false,
-      trackingType: currentExercise.tracking_type || "weight",
+      trackingType: resolvedTrackingType(currentExercise),
       isInSuperset,
       isFirstInSuperset,
       partnerName: isInSuperset
@@ -1342,6 +1344,21 @@ export default function WorkoutSessionScreen() {
                             removeSet={handleRemoveSet}
                             addSet={addSet}
                             onToggleSetType={handleToggleSetType}
+                            baseTrackingType={
+                              currentExercise?.tracking_type || "weight"
+                            }
+                            isWeightedOverrideEnabled={
+                              currentExercise?.tracking_type_override ===
+                              "weight"
+                            }
+                            onToggleWeighted={() => {
+                              const current =
+                                currentExercise?.tracking_type_override;
+                              setExerciseTrackingTypeOverride(
+                                currentExerciseIndex,
+                                current === "weight" ? undefined : "weight",
+                              );
+                            }}
                           />
                         ) : (
                           <SessionSetInfo {...p} />

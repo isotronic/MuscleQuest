@@ -88,6 +88,7 @@ function hasStructuralChanges(current: Workout, original: Workout): boolean {
         exercise_id: e.exercise_id,
         sets: e.sets,
         supersetGroupId: e.supersetGroupId ?? null,
+        tracking_type_override: e.tracking_type_override ?? null,
       })),
     );
   return toKey(current.exercises) !== toKey(original.exercises);

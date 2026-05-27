@@ -29,11 +29,12 @@ export interface TrackedExerciseWithSets extends TrackedExercise {
 const buildTrackedProgressionCase = (
   countUnilateralDouble: boolean,
   doubleWeightForPaired: boolean,
+  trackingTypeExpr = "e.tracking_type",
 ) => {
   const wM = doubleWeightForPaired ? 2 : 1;
   const rM = countUnilateralDouble ? 2 : 1;
   return `
-    CASE e.tracking_type
+    CASE ${trackingTypeExpr}
       WHEN 'weight' THEN (cs.weight * CASE WHEN e.double_weight = 1 THEN ${wM} ELSE 1 END) * (1 + cs.reps / 30.0)
       WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
       WHEN 'reps' THEN cs.reps * CASE WHEN e.is_unilateral = 1 THEN ${rM} ELSE 1 END
@@ -52,16 +53,19 @@ const fetchTrackedExercises = async (
 ): Promise<TrackedExerciseWithSets[]> => {
   try {
     const db = await openDatabase("userData.db");
+    const effectiveTrackingTypeExpr =
+      "COALESCE(uwe.tracking_type_override, e.tracking_type)";
     const progressionCase = buildTrackedProgressionCase(
       countUnilateralDouble,
       doubleWeightForPaired,
+      effectiveTrackingTypeExpr,
     );
 
     let query = `
       SELECT
         te.*,
         e.name,
-        e.tracking_type,
+        COALESCE(uwe.tracking_type_override, e.tracking_type) AS tracking_type,
         cs.weight,
         cs.reps,
         cs.time,
@@ -74,6 +78,9 @@ const fetchTrackedExercises = async (
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
+      LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id
+        AND uwe.exercise_id = te.exercise_id
+        AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
     `;
 
     const warmupFilter = excludeWarmup
@@ -102,6 +109,9 @@ const fetchTrackedExercises = async (
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
+      LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id
+        AND uwe.exercise_id = te.exercise_id
+        AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
       WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${excludeWarmup ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)" : ""}
       GROUP BY te.exercise_id
     `;

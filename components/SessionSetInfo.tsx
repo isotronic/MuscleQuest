@@ -63,6 +63,9 @@ interface SessionSetInfoProps {
   removeSet: (currentSetIndex: number) => void;
   addSet: () => void;
   onToggleSetType: (type: "isWarmup" | "isDropSet" | "isToFailure") => void;
+  baseTrackingType?: string;
+  isWeightedOverrideEnabled?: boolean;
+  onToggleWeighted?: () => void;
 }
 
 export default function SessionSetInfo({
@@ -107,6 +110,9 @@ export default function SessionSetInfo({
   removeSet,
   addSet,
   onToggleSetType,
+  baseTrackingType,
+  isWeightedOverrideEnabled,
+  onToggleWeighted,
 }: SessionSetInfoProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [timerModalVisible, setTimerModalVisible] = useState(false);
@@ -268,6 +274,16 @@ export default function SessionSetInfo({
             title={t`To Failure`}
             leadingIcon={isToFailure ? "check" : undefined}
           />
+          {baseTrackingType === "reps" && !!onToggleWeighted && (
+            <Menu.Item
+              onPress={() => {
+                onToggleWeighted();
+                closeMenu();
+              }}
+              title={t`Add Weight`}
+              leadingIcon={isWeightedOverrideEnabled ? "check" : undefined}
+            />
+          )}
         </Menu>
       </View>
       {/* Set Navigation */}
