@@ -55,7 +55,7 @@ describe("signInWithGoogle", () => {
     consoleSpy.mockRestore(); // Restore original console.error
   });
 
-  it("should handle user cancellation gracefully and notify Bugsnag", async () => {
+  it("should handle user cancellation gracefully and not notify Bugsnag", async () => {
     (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
     (GoogleSignin.signIn as jest.Mock).mockRejectedValue({
       code: statusCodes.SIGN_IN_CANCELLED,
