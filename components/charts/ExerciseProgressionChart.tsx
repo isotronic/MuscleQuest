@@ -391,9 +391,9 @@ export const ExerciseProgressionChart: React.FC<
               : undefined;
 
   const latestWeight =
-    latestSet?.weight !== undefined && isWeightType
+    isWeightType && latestSet?.weight !== undefined
       ? latestSet.weight * conversionFactor
-      : latestSet?.weight;
+      : undefined;
 
   const tooltipUnit =
     exercise.tracking_type === "time"
@@ -426,12 +426,17 @@ export const ExerciseProgressionChart: React.FC<
             </ThemedText>
 
             <ThemedText style={styles.additionalInfo}>
-              {latestWeight !== undefined &&
+              {isWeightType &&
+                latestWeight !== undefined &&
                 `${latestWeight.toFixed(1)}${weightUnitLabel} `}
               {exercise.tracking_type === "assisted" && t`assistance `}
-              {latestSet.reps !== undefined && t`x ${latestSet.reps} reps `}
-              {latestSet.time !== undefined && t`for ${latestSet.time}s `}(
-              {new Date(latestSet.date_completed).toLocaleDateString()})
+              {(isWeightType || exercise.tracking_type === "reps") &&
+                latestSet.reps !== undefined &&
+                t`x ${latestSet.reps} reps `}
+              {exercise.tracking_type === "time" &&
+                latestSet.time !== undefined &&
+                t`for ${latestSet.time}s `}
+              ({new Date(latestSet.date_completed).toLocaleDateString()})
             </ThemedText>
           </>
         )}
