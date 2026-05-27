@@ -321,7 +321,7 @@ export const ExerciseProgressionChart: React.FC<
         value: metric,
         label: labelComponent ? undefined : bucket.label,
         labelComponent,
-        dataPointColor: bucket.hasData ? Colors.dark.tint : "transparent",
+        dataPointColor: bucket.hasData ? Colors.dark.text : "transparent",
         dataPointRadius: 4,
         hasData: bucket.hasData,
       };
