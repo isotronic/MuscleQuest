@@ -314,8 +314,11 @@ export default function WorkoutSessionScreen() {
 
   const { selectedExerciseIndex } = useLocalSearchParams();
 
+  const selectedExerciseIndexApplied = useRef(false);
   useEffect(() => {
+    if (selectedExerciseIndexApplied.current) return;
     if (workout && selectedExerciseIndex !== undefined) {
+      selectedExerciseIndexApplied.current = true;
       setCurrentExerciseIndex(Number(selectedExerciseIndex));
     }
   }, [selectedExerciseIndex, setCurrentExerciseIndex, workout]);
