@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, TextInput, StyleSheet, Alert } from "react-native";
 import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
 import { useExerciseSearch } from "@/hooks/useExerciseSearch";
+import { useExerciseSort } from "@/hooks/useExerciseSort";
+import { useExerciseUsageQuery } from "@/hooks/useExerciseUsageQuery";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { Button, ActivityIndicator } from "react-native-paper";
@@ -15,6 +17,9 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
 import ExerciseSuggestions from "@/components/ExerciseSuggestions";
+import ExerciseSortChips, {
+  type SortMode,
+} from "@/components/ExerciseSortChips";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExercisesScreen() {
@@ -33,12 +38,15 @@ export default function ExercisesScreen() {
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
   >(initialTargetMuscle);
+  const [sortMode, setSortMode] = useState<SortMode>("default");
 
   const {
     data: exercises,
     isLoading: exercisesLoading,
     error: exercisesError,
-  } = useExercisesQuery(false, true);
+  } = useExercisesQuery(sortMode === "activePlan", true);
+
+  const { data: usageData } = useExerciseUsageQuery();
   const {
     workouts,
     addExercise,
@@ -254,6 +262,12 @@ export default function ExercisesScreen() {
     searchQuery,
   );
 
+  const { sortedExercises, sectionTitles } = useExerciseSort(
+    sortMode,
+    filteredExercises,
+    usageData,
+  );
+
   if (exercisesError || settingsError) {
     const error = exercisesError || settingsError;
     if (error !== null) {
@@ -315,17 +329,19 @@ export default function ExercisesScreen() {
           setSelectedTargetMuscle={setSelectedTargetMuscle}
           onReady={onFilterReady}
         />
+        <ExerciseSortChips sortMode={sortMode} onSortModeChange={setSortMode} />
         <ExerciseList
-          exercises={filteredExercises}
+          exercises={sortedExercises}
           selectedExercises={selectedExercises}
           onSelect={handleSelectExercise}
-          scrollKey={debouncedQuery}
+          scrollKey={`${debouncedQuery}-${sortMode}`}
           onPressItem={(item) => {
             router.push({
               pathname: "/(app)/exercise-info",
               params: { exercise_id: item.exercise_id.toString() },
             });
           }}
+          sectionTitles={sectionTitles}
         />
         {!replacing && !supersetMode && (
           <View style={styles.bottomButtons}>

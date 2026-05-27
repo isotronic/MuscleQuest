@@ -4,7 +4,10 @@ import {
   GoogleAuthProvider,
   signInWithCredential,
 } from "@react-native-firebase/auth";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import { Alert } from "react-native";
 
 export const signInWithGoogle = async () => {
@@ -22,11 +25,13 @@ export const signInWithGoogle = async () => {
   } catch (error: any) {
     const typedError = error as { code?: string };
 
-    // Code 12501 means user cancelled sign in
-    if (typedError.code !== "12501") {
-      console.error("Sign in error", error);
-      Alert.alert("Error", "Failed to sign in. Please try again.");
+    // User cancelled sign in — rethrow silently without logging
+    if (typedError.code === statusCodes.SIGN_IN_CANCELLED) {
+      throw error;
     }
+
+    console.error("Sign in error", error);
+    Alert.alert("Error", "Failed to sign in. Please try again.");
 
     // Log detailed error info to Bugsnag for debugging
     Bugsnag.notify(error, (event) => {

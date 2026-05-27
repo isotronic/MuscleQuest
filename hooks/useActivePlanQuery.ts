@@ -28,6 +28,7 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
         exercises.target_muscle,
         exercises.secondary_muscles,
         exercises.tracking_type,
+        user_workout_exercises.tracking_type_override,
         user_workout_exercises.sets,
         user_workout_exercises.exercise_order,
         user_workout_exercises.superset_group_id
@@ -75,6 +76,7 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
             ? JSON.parse(row.secondary_muscles)
             : [],
           tracking_type: row.tracking_type || "",
+          tracking_type_override: row.tracking_type_override ?? undefined,
           sets: row.sets ? JSON.parse(row.sets) : [],
           supersetGroupId: row.superset_group_id ?? undefined,
         });

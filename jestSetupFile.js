@@ -114,6 +114,12 @@ jest.mock("@react-native-google-signin/google-signin", () => ({
     hasPlayServices: jest.fn().mockResolvedValue(true), // Default to resolved
     signIn: jest.fn().mockResolvedValue({ idToken: "mockIdToken" }),
   },
+  statusCodes: {
+    SIGN_IN_CANCELLED: "12501",
+    IN_PROGRESS: "12502",
+    PLAY_SERVICES_NOT_AVAILABLE: "12503",
+    SIGN_IN_REQUIRED: "4",
+  },
 }));
 
 // Prevent RN 0.79's DevMenu getter from crashing when react-native is spread

@@ -4,7 +4,10 @@ import {
   GoogleAuthProvider,
   signInWithCredential,
 } from "@react-native-firebase/auth";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import { openDatabase } from "@/utils/database";
 import { Alert, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
@@ -53,6 +56,10 @@ export default function LoginScreen() {
       await saveLoginShown(); // Save setting to avoid showing login again
       router.replace("/");
     } catch (error: any) {
+      // User cancelled sign in — don't report to Bugsnag
+      if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
+        return;
+      }
       console.error("handleSignIn error", error);
       Bugsnag.notify(error);
       Alert.alert(t`Error`, t`Failed to sign in. Please try again.`, [

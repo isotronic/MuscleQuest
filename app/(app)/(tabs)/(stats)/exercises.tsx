@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useExerciseSearch } from "@/hooks/useExerciseSearch";
+import { useExerciseSort } from "@/hooks/useExerciseSort";
+import { useExerciseUsageQuery } from "@/hooks/useExerciseUsageQuery";
 import { useLocalSearchParams, router } from "expo-router";
 import { View, TextInput, StyleSheet } from "react-native";
 import { Trans } from "@lingui/react/macro";
@@ -12,6 +14,9 @@ import { Colors } from "@/constants/Colors";
 import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
 import ExerciseSuggestions from "@/components/ExerciseSuggestions";
+import ExerciseSortChips, {
+  type SortMode,
+} from "@/components/ExerciseSortChips";
 import { openDatabase } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
@@ -34,12 +39,15 @@ export default function ExercisesScreen() {
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
   >(null);
+  const [sortMode, setSortMode] = useState<SortMode>("default");
 
   const {
     data: exercises,
     isLoading: exercisesLoading,
     error: exercisesError,
   } = useExercisesQuery(true, false);
+
+  const { data: usageData } = useExerciseUsageQuery();
 
   const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
 
@@ -120,6 +128,12 @@ export default function ExercisesScreen() {
     searchQuery,
   );
 
+  const { sortedExercises, sectionTitles } = useExerciseSort(
+    sortMode,
+    filteredExercises,
+    usageData,
+  );
+
   if (exercisesLoading) {
     return (
       <ThemedView style={styles.container}>
@@ -165,17 +179,19 @@ export default function ExercisesScreen() {
         selectedTargetMuscle={selectedTargetMuscle}
         setSelectedTargetMuscle={setSelectedTargetMuscle}
       />
+      <ExerciseSortChips sortMode={sortMode} onSortModeChange={setSortMode} />
       <ExerciseList
-        exercises={filteredExercises}
+        exercises={sortedExercises}
         selectedExercises={selectedExercises}
         onSelect={handleSelectExercise}
-        scrollKey={debouncedQuery}
+        scrollKey={`${debouncedQuery}-${sortMode}`}
         onPressItem={(item) => {
           router.push({
             pathname: "/(app)/exercise-info",
             params: { exercise_id: item.exercise_id.toString() },
           });
         }}
+        sectionTitles={sectionTitles}
       />
       <View style={styles.bottomButtons}>
         <Button

@@ -32,6 +32,7 @@ export interface RawPlan {
   target_muscle: string | null;
   secondary_muscles: string | null;
   tracking_type: string | null;
+  tracking_type_override: string | null;
   sets: string | null;
   exercise_order: number | null;
   superset_group_id?: string | null;
@@ -85,7 +86,9 @@ export const transformRawPlans = (
           ? JSON.parse(rawPlan.secondary_muscles)
           : [],
         tracking_type: rawPlan.tracking_type || "",
+        tracking_type_override: rawPlan.tracking_type_override ?? undefined,
         sets: rawPlan.sets ? JSON.parse(rawPlan.sets) : [],
+        supersetGroupId: rawPlan.superset_group_id ?? undefined,
       });
     }
   }
@@ -123,8 +126,10 @@ export const fetchPlans = async (): Promise<{
         exercises.target_muscle,
         exercises.secondary_muscles,
         exercises.tracking_type,
+        user_workout_exercises.tracking_type_override,
         user_workout_exercises.sets,
-        user_workout_exercises.exercise_order
+        user_workout_exercises.exercise_order,
+        user_workout_exercises.superset_group_id
       FROM user_plans
       LEFT JOIN user_workouts ON user_workouts.plan_id = user_plans.id
       LEFT JOIN user_workout_exercises ON user_workout_exercises.workout_id = user_workouts.id

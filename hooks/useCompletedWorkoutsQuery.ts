@@ -75,7 +75,14 @@ const fetchCompletedWorkouts = async (
         completed_exercises.exercise_id,
         exercises.name AS exercise_name,
         exercises.image AS exercise_image,
-        exercises.tracking_type AS exercise_tracking_type,
+        COALESCE(
+          completed_exercises.resolved_tracking_type,
+          (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
+           WHERE uwe.workout_id = completed_workouts.workout_id
+             AND uwe.exercise_id = completed_exercises.exercise_id
+             AND uwe.is_deleted IS NOT TRUE LIMIT 1),
+          exercises.tracking_type
+        ) AS exercise_tracking_type,
         exercises.is_unilateral,
         exercises.double_weight,
         completed_sets.id AS set_id,
@@ -294,7 +301,14 @@ const fetchWorkoutHistoryForSession = async (
         cw.total_sets_completed,
         ce.exercise_id,
         e.name AS exercise_name,
-        e.tracking_type AS exercise_tracking_type,
+        COALESCE(
+          ce.resolved_tracking_type,
+          (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
+           WHERE uwe.workout_id = cw.workout_id
+             AND uwe.exercise_id = ce.exercise_id
+             AND uwe.is_deleted IS NOT TRUE LIMIT 1),
+          e.tracking_type
+        ) AS exercise_tracking_type,
         e.is_unilateral,
         e.double_weight,
         cs.id AS set_id,
@@ -441,7 +455,14 @@ const fetchGlobalExerciseHistoryForSession = async (
         cw.total_sets_completed,
         ce.exercise_id,
         e.name AS exercise_name,
-        e.tracking_type AS exercise_tracking_type,
+        COALESCE(
+          ce.resolved_tracking_type,
+          (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
+           WHERE uwe.workout_id = cw.workout_id
+             AND uwe.exercise_id = ce.exercise_id
+             AND uwe.is_deleted IS NOT TRUE LIMIT 1),
+          e.tracking_type
+        ) AS exercise_tracking_type,
         e.is_unilateral,
         e.double_weight,
         cs.id AS set_id,

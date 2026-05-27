@@ -240,7 +240,7 @@ export const BodyMeasurementLineChart: React.FC<
         value: bucket.value ?? 0,
         label: labelComponent ? undefined : bucket.label,
         labelComponent,
-        dataPointColor: Colors.dark.tint,
+        dataPointColor: Colors.dark.text,
         dataPointRadius: 4,
       };
     });

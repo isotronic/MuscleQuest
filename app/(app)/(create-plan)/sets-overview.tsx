@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { StyleSheet, FlatList, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  View,
+  Switch,
+} from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { Button, Divider } from "react-native-paper";
@@ -12,6 +18,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { EditSetModal } from "@/components/EditSetModal";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatFromTotalSeconds } from "@/utils/utility";
+import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 
 export default function SetsOverviewScreen() {
   const { exerciseId, workoutIndex, trackingType } = useLocalSearchParams();
@@ -41,6 +48,21 @@ export default function SetsOverviewScreen() {
     : null;
 
   const sets = exercise?.sets || [];
+  const effectiveTrackingType = exercise
+    ? resolvedTrackingType(exercise)
+    : trackingType?.toString() || "weight";
+  const isBodyweightExercise = exercise?.tracking_type === "reps";
+  const isWeightedOverride = exercise?.tracking_type_override === "weight";
+
+  const handleToggleWeighted = () => {
+    useWorkoutStore
+      .getState()
+      .setExerciseTrackingTypeOverride(
+        Number(workoutIndex),
+        Number(exerciseId),
+        isWeightedOverride ? undefined : "weight",
+      );
+  };
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSetIndex, setSelectedSetIndex] = useState<number | null>(null);
@@ -135,9 +157,9 @@ export default function SetsOverviewScreen() {
                 {item.isWarmup ? t`Warm-up, ` : ""}
                 {item.isDropSet ? t`Drop set, ` : ""}
                 {item.isToFailure ? t`To failure, ` : ""}
-                {trackingType === "time"
+                {effectiveTrackingType === "time"
                   ? `${formattedTime}, `
-                  : trackingType === "distance"
+                  : effectiveTrackingType === "distance"
                     ? item.distance !== undefined
                       ? `${item.distance} ${distanceUnit}, `
                       : ""
@@ -193,7 +215,33 @@ export default function SetsOverviewScreen() {
         renderItem={renderSetItem}
         keyExtractor={(_: any, index: number) => index.toString()}
         contentContainerStyle={styles.flatListContent}
+        style={styles.flatList}
       />
+      {isBodyweightExercise && (
+        <View style={styles.weightedToggleRow}>
+          <View style={styles.weightedToggleLeft}>
+            <MaterialCommunityIcons
+              name="weight-kilogram"
+              size={20}
+              color={
+                isWeightedOverride ? Colors.dark.tint : Colors.dark.subText
+              }
+              style={{ marginRight: 10 }}
+            />
+            <ThemedText style={styles.weightedToggleLabel}>
+              <Trans>Track Weight</Trans>
+            </ThemedText>
+          </View>
+          <Switch
+            value={isWeightedOverride}
+            onValueChange={handleToggleWeighted}
+            trackColor={{
+              false: Colors.dark.screenBackground,
+              true: Colors.dark.tint,
+            }}
+          />
+        </View>
+      )}
       <View style={styles.buttonRow}>
         <Button
           mode="outlined"
@@ -223,7 +271,7 @@ export default function SetsOverviewScreen() {
         defaultTotalSeconds={defaultTotalSeconds}
         defaultTime={defaultTime}
         defaultDistance={defaultDistance}
-        trackingType={trackingType?.toString() || "weight"}
+        trackingType={effectiveTrackingType}
         distanceUnit={distanceUnit}
       />
     </ThemedView>
@@ -234,6 +282,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  flatList: {
+    flex: 1,
+  },
+  weightedToggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.dark.cardBackground,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  weightedToggleLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  weightedToggleLabel: {
+    fontSize: 14,
+    color: Colors.dark.text,
   },
   supersetBanner: {
     flexDirection: "row",
@@ -296,7 +366,7 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
   },
   flatListContent: {
-    paddingBottom: 50,
+    paddingBottom: 8,
   },
   buttonRow: {
     flexDirection: "row",

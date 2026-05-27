@@ -88,6 +88,7 @@ function hasStructuralChanges(current: Workout, original: Workout): boolean {
         exercise_id: e.exercise_id,
         sets: e.sets,
         supersetGroupId: e.supersetGroupId ?? null,
+        tracking_type_override: e.tracking_type_override ?? null,
       })),
     );
   return toKey(current.exercises) !== toKey(original.exercises);
@@ -667,7 +668,14 @@ export default function WorkoutOverviewScreen() {
                   setDurations?.[index]?.[parseInt(setIndex)] ?? null,
               }));
 
-            return { exercise_id: exercise.exercise_id, sets };
+            return {
+              exercise_id: exercise.exercise_id,
+              resolved_tracking_type:
+                exercise.tracking_type_override ??
+                exercise.tracking_type ??
+                null,
+              sets,
+            };
           })
           .filter((exercise) => exercise !== null);
 

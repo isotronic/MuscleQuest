@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useExerciseSearch } from "@/hooks/useExerciseSearch";
+import { useExerciseSort } from "@/hooks/useExerciseSort";
+import { useExerciseUsageQuery } from "@/hooks/useExerciseUsageQuery";
 import { router } from "expo-router";
 import { View, TextInput, StyleSheet } from "react-native";
 import { t } from "@lingui/core/macro";
@@ -12,6 +14,9 @@ import { Colors } from "@/constants/Colors";
 import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
 import ExerciseSuggestions from "@/components/ExerciseSuggestions";
+import ExerciseSortChips, {
+  type SortMode,
+} from "@/components/ExerciseSortChips";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExerciseLibraryScreen() {
@@ -23,12 +28,15 @@ export default function ExerciseLibraryScreen() {
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
   >(null);
+  const [sortMode, setSortMode] = useState<SortMode>("default");
 
   const {
     data: exercises,
     isLoading: exercisesLoading,
     error: exercisesError,
-  } = useExercisesQuery(false, false);
+  } = useExercisesQuery(sortMode === "activePlan", false);
+
+  const { data: usageData } = useExerciseUsageQuery();
 
   const { filteredExercises, suggestions, debouncedQuery } = useExerciseSearch(
     exercises,
@@ -38,6 +46,12 @@ export default function ExerciseLibraryScreen() {
       targetMuscle: selectedTargetMuscle,
     },
     searchQuery,
+  );
+
+  const { sortedExercises, sectionTitles } = useExerciseSort(
+    sortMode,
+    filteredExercises,
+    usageData,
   );
 
   useEffect(() => {
@@ -90,11 +104,12 @@ export default function ExerciseLibraryScreen() {
         selectedTargetMuscle={selectedTargetMuscle}
         setSelectedTargetMuscle={setSelectedTargetMuscle}
       />
+      <ExerciseSortChips sortMode={sortMode} onSortModeChange={setSortMode} />
       <ExerciseList
-        exercises={filteredExercises}
+        exercises={sortedExercises}
         selectedExercises={[]}
         onSelect={() => {}}
-        scrollKey={debouncedQuery}
+        scrollKey={`${debouncedQuery}-${sortMode}`}
         onPressItem={(item) => {
           router.push({
             pathname: "/(app)/exercise-info",
@@ -102,6 +117,7 @@ export default function ExerciseLibraryScreen() {
           });
         }}
         showCheckbox={false}
+        sectionTitles={sectionTitles}
       />
     </ThemedView>
   );

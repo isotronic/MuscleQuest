@@ -19,6 +19,7 @@ export interface WorkoutRecord {
     target_muscle: string;
     secondary_muscles: string[];
     tracking_type: string;
+    tracking_type_override?: string;
     sets: {
       repsMin: number;
       repsMax: number;
@@ -47,6 +48,7 @@ export interface RawWorkoutRecord {
   target_muscle: string | null;
   secondary_muscles: string | null;
   tracking_type: string | null;
+  tracking_type_override: string | null;
   sets: string | null;
   exercise_order: number | null;
   superset_group_id: string | null;
@@ -83,6 +85,7 @@ const fetchWorkoutsForPlan = async (
         exercises.target_muscle,
         exercises.secondary_muscles,
         exercises.tracking_type,
+        user_workout_exercises.tracking_type_override,
         user_workout_exercises.sets,
         user_workout_exercises.exercise_order,
         user_workout_exercises.superset_group_id
@@ -135,6 +138,7 @@ const parseWorkouts = (rawWorkouts: RawWorkoutRecord[]) => {
           ? JSON.parse(rawWorkout.secondary_muscles)
           : [],
         tracking_type: rawWorkout.tracking_type || "",
+        tracking_type_override: rawWorkout.tracking_type_override ?? undefined,
         sets: rawWorkout.sets ? JSON.parse(rawWorkout.sets) : [],
         supersetGroupId: rawWorkout.superset_group_id ?? undefined,
       });

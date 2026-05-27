@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { formatFromTotalSeconds } from "@/utils/utility";
+import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import Bugsnag from "@bugsnag/expo";
 
@@ -127,6 +128,10 @@ interface ActiveWorkoutStore {
     setIndex: number,
     duration: number | null,
   ) => void;
+  setExerciseTrackingTypeOverride: (
+    exerciseIndex: number,
+    override: string | undefined,
+  ) => void;
   clearPersistedStore: () => void;
   resumeWorkout: () => void;
   isWorkoutInProgress: () => boolean;
@@ -239,7 +244,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           }
 
           const currentExercise = workout.exercises[currentExerciseIndex];
-          const trackingType = currentExercise.tracking_type || "weight";
+          const trackingType = resolvedTrackingType(currentExercise);
           const currentSetIndex = currentSetIndices[currentExerciseIndex] || 0;
           const nextSetIndex = currentSetIndex + 1;
 
@@ -259,7 +264,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             fromSetIndex: number,
             toSetIndex: number,
           ) => {
-            const exTrackingType = exercise.tracking_type || "weight";
+            const exTrackingType = resolvedTrackingType(exercise);
             const isWarmup = exercise.sets[fromSetIndex]?.isWarmup || false;
             const isDropSet = exercise.sets[fromSetIndex]?.isDropSet || false;
             const isNextDropSet =
@@ -582,7 +587,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           const currentExercise = workout.exercises[currentExerciseIndex];
           const lastSetIndex = currentExercise.sets.length - 1;
           const lastSet = currentExercise.sets[lastSetIndex];
-          const trackingType = currentExercise.tracking_type || "weight";
+          const trackingType = resolvedTrackingType(currentExercise);
 
           // Create a new set by copying the last set
           const newSet = { ...lastSet };
@@ -719,8 +724,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       ) =>
         set((state) => {
           const exerciseData = state.weightAndReps[exerciseIndex] || {};
-          const trackingType =
-            state.workout?.exercises[exerciseIndex].tracking_type || "weight";
+          const exercise = state.workout?.exercises[exerciseIndex];
+          const trackingType = exercise
+            ? resolvedTrackingType(exercise)
+            : "weight";
 
           const updatedValues: {
             weight?: string;
@@ -1125,6 +1132,19 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             },
           },
         })),
+
+      setExerciseTrackingTypeOverride: (exerciseIndex, override) =>
+        set((state) => {
+          if (!state.workout) return state;
+          const exercises = state.workout.exercises.map((e, i) => {
+            if (i !== exerciseIndex) return e;
+            const { tracking_type_override: _, ...rest } = e;
+            return override !== undefined
+              ? { ...rest, tracking_type_override: override }
+              : (rest as UserExercise);
+          });
+          return { workout: { ...state.workout, exercises } };
+        }),
 
       clearPersistedStore: () => {
         // Reset the store to initial values and remove from AsyncStorage
