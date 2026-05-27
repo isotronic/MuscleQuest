@@ -33,6 +33,7 @@ export interface SavedWorkout {
   totalSetsCompleted: number;
   exercises: {
     exercise_id: number;
+    resolved_tracking_type?: string | null;
     sets: {
       set_number: number;
       weight: number | null;
@@ -817,6 +818,7 @@ export const saveCompletedWorkout = async (
   totalSetsCompleted: number,
   exercises: {
     exercise_id: number;
+    resolved_tracking_type?: string | null;
     sets: {
       set_number: number;
       weight: number | null;
@@ -847,8 +849,12 @@ export const saveCompletedWorkout = async (
     for (const exercise of exercises) {
       // Insert each completed exercise
       const completedExerciseResult = await db.runAsync(
-        `INSERT INTO completed_exercises (completed_workout_id, exercise_id) VALUES (?, ?)`,
-        [completedWorkoutId, exercise.exercise_id],
+        `INSERT INTO completed_exercises (completed_workout_id, exercise_id, resolved_tracking_type) VALUES (?, ?, ?)`,
+        [
+          completedWorkoutId,
+          exercise.exercise_id,
+          exercise.resolved_tracking_type ?? null,
+        ],
       );
 
       const completedExerciseId = completedExerciseResult.lastInsertRowId;
@@ -959,7 +965,7 @@ export const fetchCompletedWorkoutById = async (
         e.exercise_id as exercise_id, 
         e.name as exercise_name, 
         e.image as exercise_image, 
-        COALESCE(uwe.tracking_type_override, e.tracking_type) as exercise_tracking_type,
+        COALESCE(ce.resolved_tracking_type, uwe.tracking_type_override, e.tracking_type) as exercise_tracking_type,
         e.is_unilateral,
         e.double_weight,
         cs.id as set_id,

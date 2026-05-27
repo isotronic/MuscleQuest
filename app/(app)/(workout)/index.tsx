@@ -668,7 +668,14 @@ export default function WorkoutOverviewScreen() {
                   setDurations?.[index]?.[parseInt(setIndex)] ?? null,
               }));
 
-            return { exercise_id: exercise.exercise_id, sets };
+            return {
+              exercise_id: exercise.exercise_id,
+              resolved_tracking_type:
+                exercise.tracking_type_override ??
+                exercise.tracking_type ??
+                null,
+              sets,
+            };
           })
           .filter((exercise) => exercise !== null);
 

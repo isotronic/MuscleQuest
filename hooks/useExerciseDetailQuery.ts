@@ -84,7 +84,7 @@ const fetchExerciseDetail = async (
     const weightM =
       doubleWeightForPaired && exerciseFlags?.double_weight ? 2 : 1;
     const effectiveTrackingTypeExpr =
-      "COALESCE(uwe.tracking_type_override, e.tracking_type)";
+      "COALESCE(ce.resolved_tracking_type, uwe.tracking_type_override, e.tracking_type)";
     const progressionMetricCase = buildProgressionMetricCase(
       weightM,
       repM,
@@ -97,7 +97,7 @@ const fetchExerciseDetail = async (
     let setsQuery = `
       WITH best_sets AS (
         SELECT
-          COALESCE(uwe.tracking_type_override, e.tracking_type) AS tracking_type,
+          COALESCE(ce.resolved_tracking_type, uwe.tracking_type_override, e.tracking_type) AS tracking_type,
           cs.weight,
           cs.reps,
           cs.time,

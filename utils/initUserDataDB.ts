@@ -99,6 +99,7 @@ export async function initUserDataDB() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       completed_workout_id INTEGER, -- Reference to the completed_workouts table
       exercise_id INTEGER, -- Reference to the original exercise from user_workout_exercises
+      resolved_tracking_type TEXT, -- Snapshot of tracking type at completion time
       is_deleted BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (completed_workout_id) REFERENCES completed_workouts(id),
       FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id)
@@ -471,6 +472,19 @@ export async function initUserDataDB() {
       ALTER TABLE user_workout_exercises ADD COLUMN tracking_type_override TEXT;
     `);
   }
+
+  const completed_exercisesResult = await db.getAllAsync(`
+    PRAGMA table_info(completed_exercises);
+  `);
+  const resolvedTrackingTypeExists = completed_exercisesResult.some(
+    (col: any) => col.name === "resolved_tracking_type",
+  );
+  if (!resolvedTrackingTypeExists) {
+    await db.execAsync(`
+      ALTER TABLE completed_exercises ADD COLUMN resolved_tracking_type TEXT;
+    `);
+  }
+
 
   const weeklyCompletionsResult = await db.getAllAsync(`
     PRAGMA table_info(weekly_completions);

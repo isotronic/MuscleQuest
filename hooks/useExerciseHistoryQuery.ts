@@ -65,7 +65,7 @@ const fetchExerciseHistory = async (
         DATE(cw.date_completed) AS date_completed,
         cw.id                   AS workout_id,
         uw.name                 AS workout_name,
-        e.tracking_type,
+        COALESCE(ce.resolved_tracking_type, e.tracking_type) AS tracking_type,
         COALESCE(
           (SELECT bm.body_weight FROM body_measurements bm
            WHERE bm.date <= cw.date_completed
@@ -145,7 +145,11 @@ const fetchExerciseHistory = async (
   for (const row of rows) {
     const key = `${row.date_completed}__${row.workout_id}`;
     if (!sectionMap.has(key)) {
-      sectionMap.set(key, { date: row.date_completed, workout_name: row.workout_name, sets: [] });
+      sectionMap.set(key, {
+        date: row.date_completed,
+        workout_name: row.workout_name,
+        sets: [],
+      });
     }
     const isPR =
       allTimePR !== null &&

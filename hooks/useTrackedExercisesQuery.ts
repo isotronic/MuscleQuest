@@ -54,7 +54,7 @@ const fetchTrackedExercises = async (
   try {
     const db = await openDatabase("userData.db");
     const effectiveTrackingTypeExpr =
-      "COALESCE(uwe.tracking_type_override, e.tracking_type)";
+      "COALESCE(ce.resolved_tracking_type, uwe.tracking_type_override, e.tracking_type)";
     const progressionCase = buildTrackedProgressionCase(
       countUnilateralDouble,
       doubleWeightForPaired,
@@ -65,7 +65,7 @@ const fetchTrackedExercises = async (
       SELECT
         te.*,
         e.name,
-        COALESCE(uwe.tracking_type_override, e.tracking_type) AS tracking_type,
+        COALESCE(ce.resolved_tracking_type, uwe.tracking_type_override, e.tracking_type) AS tracking_type,
         cs.weight,
         cs.reps,
         cs.time,
