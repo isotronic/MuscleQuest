@@ -1,5 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useExerciseSearch } from "@/hooks/useExerciseSearch";
+import { useExerciseSort } from "@/hooks/useExerciseSort";
+import { useExerciseUsageQuery } from "@/hooks/useExerciseUsageQuery";
 import { router } from "expo-router";
 import { View, TextInput, StyleSheet } from "react-native";
 import { t } from "@lingui/core/macro";
@@ -8,7 +10,6 @@ import { ActivityIndicator } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
-import { useExerciseUsageQuery } from "@/hooks/useExerciseUsageQuery";
 import { Colors } from "@/constants/Colors";
 import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
@@ -47,49 +48,11 @@ export default function ExerciseLibraryScreen() {
     searchQuery,
   );
 
-  const sortedExercises = useMemo(() => {
-    if (sortMode === "default" || sortMode === "activePlan") {
-      return filteredExercises;
-    }
-
-    const usageMap = new Map(usageData?.map((u) => [u.exerciseId, u]) ?? []);
-    const allExercises = [
-      ...filteredExercises.activePlanExercises,
-      ...filteredExercises.favoriteExercises,
-      ...filteredExercises.otherExercises,
-    ];
-
-    const withUsage = allExercises.filter((e) => usageMap.has(e.exercise_id));
-    const withoutUsage = allExercises.filter(
-      (e) => !usageMap.has(e.exercise_id),
-    );
-
-    if (sortMode === "recent") {
-      withUsage.sort((a, b) =>
-        usageMap
-          .get(b.exercise_id)!
-          .lastUsed.localeCompare(usageMap.get(a.exercise_id)!.lastUsed),
-      );
-    } else {
-      withUsage.sort(
-        (a, b) =>
-          usageMap.get(b.exercise_id)!.useCount -
-          usageMap.get(a.exercise_id)!.useCount,
-      );
-    }
-
-    return {
-      activePlanExercises: withUsage,
-      favoriteExercises: [],
-      otherExercises: withoutUsage,
-    };
-  }, [sortMode, filteredExercises, usageData]);
-
-  const sectionTitles = useMemo(() => {
-    if (sortMode === "recent") return { activePlan: t`Recently Used` };
-    if (sortMode === "frequent") return { activePlan: t`Most Used` };
-    return undefined;
-  }, [sortMode]);
+  const { sortedExercises, sectionTitles } = useExerciseSort(
+    sortMode,
+    filteredExercises,
+    usageData,
+  );
 
   useEffect(() => {
     if (exercisesError) {
