@@ -1,5 +1,6 @@
 import { ScrollViewStyleReset } from "expo-router/html";
 import { type PropsWithChildren } from "react";
+import { palette } from "@/theme/tokens/palette";
 
 /**
  * This file is web-only and used to configure the root HTML for every web page during static rendering.
@@ -33,5 +34,5 @@ export default function Root({ children }: PropsWithChildren) {
 
 const responsiveBackground = `
 body {
-  background-color: #22222d;
+  background-color: ${palette.void};
 }`;

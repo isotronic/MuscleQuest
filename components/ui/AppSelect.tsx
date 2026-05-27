@@ -15,9 +15,13 @@ interface AppSelectBaseProps {
   data: SelectOption[];
   placeholder?: string;
   searchable?: boolean;
+  searchPlaceholder?: string;
   style?: StyleProp<ViewStyle>;
   renderItem?: (item: SelectOption, selected?: boolean) => React.ReactElement;
   autoScroll?: boolean;
+  flatListProps?: Record<string, unknown>;
+  maxHeight?: number;
+  disabled?: boolean;
 }
 
 interface AppSelectSingleProps extends AppSelectBaseProps {
@@ -30,6 +34,7 @@ interface AppSelectMultiProps extends AppSelectBaseProps {
   multiple: true;
   value: string[];
   onChange: (values: string[]) => void;
+  selectedStyle?: StyleProp<ViewStyle>;
 }
 
 type AppSelectProps = AppSelectSingleProps | AppSelectMultiProps;
@@ -61,7 +66,13 @@ export function AppSelect(props: AppSelectProps) {
     renderItem: props.renderItem,
     autoScroll: props.autoScroll ?? false,
     search: props.searchable ?? false,
+    searchPlaceholder: props.searchPlaceholder,
     inputSearchStyle: styles.searchInput,
+    flatListProps: props.flatListProps,
+    maxHeight: props.maxHeight,
+    disable: props.disabled,
+    activeColor: colors.cardSecondary,
+    iconColor: inputs.dropdownText,
   };
 
   if (props.multiple) {
@@ -70,6 +81,7 @@ export function AppSelect(props: AppSelectProps) {
         {...sharedProps}
         value={props.value}
         onChange={props.onChange}
+        selectedStyle={props.selectedStyle ?? styles.selectedChip}
       />
     );
   }
@@ -120,6 +132,11 @@ function createStyles(
       fontSize: 14,
       backgroundColor: searchBg,
       borderRadius: radii.sm,
+    },
+    selectedChip: {
+      borderColor: dropdownBorder,
+      borderRadius: radii.md,
+      backgroundColor: dropdownBg,
     },
   });
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   ScrollView,
   TextInput,
@@ -10,13 +10,11 @@ import {
   View,
 } from "react-native";
 import { Button, Divider, Switch } from "react-native-paper";
-import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 import { ThemedText } from "@/components/ThemedText";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { Exercise, fetchAllRecords, openDatabase } from "@/utils/database";
 import { capitalizeWords } from "@/utils/utility";
-import { Colors } from "@/constants/Colors";
 import { ThemedView } from "@/components/ThemedView";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -24,9 +22,14 @@ import { useWorkoutStore } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { radii } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
+import { AppSelect, type SelectOption } from "@/components/ui/AppSelect";
+import type { AppThemeColors } from "@/theme/types";
 
 export default function AddCustomExerciseScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const queryClient = useQueryClient();
   const navigation = useNavigation();
   const { setNewExerciseId } = useWorkoutStore();
@@ -52,16 +55,10 @@ export default function AddCustomExerciseScreen() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [bodyPartOptions, setBodyPartOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [muscleOptions, setMuscleOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [equipmentOptions, setEquipmentOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const trackingTypeOptions = [
+  const [bodyPartOptions, setBodyPartOptions] = useState<SelectOption[]>([]);
+  const [muscleOptions, setMuscleOptions] = useState<SelectOption[]>([]);
+  const [equipmentOptions, setEquipmentOptions] = useState<SelectOption[]>([]);
+  const trackingTypeOptions: SelectOption[] = [
     { label: t`Weight/Reps`, value: "weight" },
     { label: t`Assistance/Reps`, value: "assisted" },
     { label: t`Reps`, value: "reps" },
@@ -339,7 +336,7 @@ export default function AddCustomExerciseScreen() {
                 if (errors.name) setErrors((p) => ({ ...p, name: "" }));
               }}
               selectTextOnFocus={true}
-              placeholderTextColor={Colors.dark.subText}
+              placeholderTextColor={colors.contentSecondary}
               style={[styles.input, errors.name ? styles.inputError : null]}
             />
             {errors.name ? (
@@ -358,7 +355,7 @@ export default function AddCustomExerciseScreen() {
               }}
               multiline
               numberOfLines={2}
-              placeholderTextColor={Colors.dark.subText}
+              placeholderTextColor={colors.contentSecondary}
               style={[styles.input, styles.multilineInput]}
             />
           </View>
@@ -374,27 +371,16 @@ export default function AddCustomExerciseScreen() {
             <ThemedText style={styles.fieldLabel}>
               <Trans>Body Part *</Trans>
             </ThemedText>
-            <Dropdown
+            <AppSelect
               data={bodyPartOptions}
-              labelField="label"
-              valueField="value"
               value={bodyPart}
-              onChange={(item) => {
-                setBodyPart(item.value);
+              onChange={(v) => {
+                setBodyPart(v);
                 markDirty();
                 setErrors((p) => ({ ...p, bodyPart: "" }));
               }}
               placeholder={t`Select body part`}
-              style={[
-                styles.dropdown,
-                errors.bodyPart ? styles.dropdownError : null,
-              ]}
-              containerStyle={styles.dropdownList}
-              placeholderStyle={styles.dropdownPlaceholder}
-              selectedTextStyle={styles.dropdownSelectedText}
-              itemTextStyle={styles.dropdownItemText}
-              activeColor={Colors.dark.cardBackground}
-              iconColor={Colors.dark.text}
+              style={errors.bodyPart ? styles.dropdownError : undefined}
               maxHeight={220}
             />
             {errors.bodyPart ? (
@@ -406,30 +392,18 @@ export default function AddCustomExerciseScreen() {
             <ThemedText style={styles.fieldLabel}>
               <Trans>Target Muscle *</Trans>
             </ThemedText>
-            <Dropdown
+            <AppSelect
               data={muscleOptions}
-              labelField="label"
-              valueField="value"
               value={targetMuscle}
-              onChange={(item) => {
-                setTargetMuscle(item.value);
+              onChange={(v) => {
+                setTargetMuscle(v);
                 markDirty();
                 setErrors((p) => ({ ...p, targetMuscle: "" }));
               }}
-              search
+              searchable
               searchPlaceholder={t`Search...`}
-              inputSearchStyle={styles.dropdownSearchInput}
               placeholder={t`Select target muscle`}
-              style={[
-                styles.dropdown,
-                errors.targetMuscle ? styles.dropdownError : null,
-              ]}
-              containerStyle={styles.dropdownList}
-              placeholderStyle={styles.dropdownPlaceholder}
-              selectedTextStyle={styles.dropdownSelectedText}
-              itemTextStyle={styles.dropdownItemText}
-              activeColor={Colors.dark.cardBackground}
-              iconColor={Colors.dark.text}
+              style={errors.targetMuscle ? styles.dropdownError : undefined}
               maxHeight={220}
             />
             {errors.targetMuscle ? (
@@ -441,27 +415,17 @@ export default function AddCustomExerciseScreen() {
             <ThemedText style={styles.fieldLabel}>
               <Trans>Secondary Muscles</Trans>
             </ThemedText>
-            <MultiSelect
+            <AppSelect
+              multiple
               data={muscleOptions}
-              labelField="label"
-              valueField="value"
               value={secondaryMuscles}
               onChange={(items) => {
                 setSecondaryMuscles(items);
                 markDirty();
               }}
-              search
+              searchable
               searchPlaceholder={t`Search...`}
-              inputSearchStyle={styles.dropdownSearchInput}
               placeholder={t`Select secondary muscles`}
-              style={styles.dropdown}
-              containerStyle={styles.dropdownList}
-              placeholderStyle={styles.dropdownPlaceholder}
-              selectedTextStyle={styles.dropdownSelectedText}
-              itemTextStyle={styles.dropdownItemText}
-              activeColor={Colors.dark.cardBackground}
-              selectedStyle={styles.dropdownSelectedChip}
-              iconColor={Colors.dark.text}
               maxHeight={220}
             />
           </View>
@@ -477,30 +441,18 @@ export default function AddCustomExerciseScreen() {
             <ThemedText style={styles.fieldLabel}>
               <Trans>Equipment *</Trans>
             </ThemedText>
-            <Dropdown
+            <AppSelect
               data={equipmentOptions}
-              labelField="label"
-              valueField="value"
               value={equipment}
-              onChange={(item) => {
-                setEquipment(item.value);
+              onChange={(v) => {
+                setEquipment(v);
                 markDirty();
                 setErrors((p) => ({ ...p, equipment: "" }));
               }}
-              search
+              searchable
               searchPlaceholder={t`Search...`}
-              inputSearchStyle={styles.dropdownSearchInput}
               placeholder={t`Select equipment`}
-              style={[
-                styles.dropdown,
-                errors.equipment ? styles.dropdownError : null,
-              ]}
-              containerStyle={styles.dropdownList}
-              placeholderStyle={styles.dropdownPlaceholder}
-              selectedTextStyle={styles.dropdownSelectedText}
-              itemTextStyle={styles.dropdownItemText}
-              activeColor={Colors.dark.cardBackground}
-              iconColor={Colors.dark.text}
+              style={errors.equipment ? styles.dropdownError : undefined}
               maxHeight={220}
             />
             {errors.equipment ? (
@@ -512,29 +464,20 @@ export default function AddCustomExerciseScreen() {
             <ThemedText style={styles.fieldLabel}>
               <Trans>Tracking Type *</Trans>
             </ThemedText>
-            <Dropdown
+            <AppSelect
               data={trackingTypeOptions}
-              labelField="label"
-              valueField="value"
               value={trackingType}
-              onChange={(item) => {
-                setTrackingType(item.value);
+              onChange={(v) => {
+                setTrackingType(v);
                 markDirty();
                 setErrors((p) => ({ ...p, trackingType: "" }));
               }}
               placeholder={t`Select tracking type`}
-              disable={isEditing}
+              disabled={isEditing}
               style={[
-                styles.dropdown,
-                errors.trackingType ? styles.dropdownError : null,
-                isEditing ? styles.dropdownDisabled : null,
+                errors.trackingType ? styles.dropdownError : undefined,
+                isEditing ? styles.dropdownDisabled : undefined,
               ]}
-              containerStyle={styles.dropdownList}
-              placeholderStyle={styles.dropdownPlaceholder}
-              selectedTextStyle={styles.dropdownSelectedText}
-              itemTextStyle={styles.dropdownItemText}
-              activeColor={Colors.dark.cardBackground}
-              iconColor={Colors.dark.text}
               maxHeight={220}
             />
             {isEditing ? (
@@ -573,7 +516,6 @@ export default function AddCustomExerciseScreen() {
                   setIsUnilateral(v);
                   markDirty();
                 }}
-                color={Colors.dark.tint}
               />
             </View>
 
@@ -594,7 +536,6 @@ export default function AddCustomExerciseScreen() {
                   setDoubleWeight(v);
                   markDirty();
                 }}
-                color={Colors.dark.tint}
               />
             </View>
           </View>
@@ -613,121 +554,83 @@ export default function AddCustomExerciseScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  section: {
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 12,
-    color: Colors.dark.text,
-  },
-  divider: {
-    marginVertical: 12,
-    backgroundColor: Colors.dark.subText,
-    opacity: 0.4,
-  },
-  fieldLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.dark.text,
-    marginBottom: 6,
-  },
-  input: {
-    padding: 10,
-    borderColor: Colors.dark.subText,
-    borderWidth: 1,
-    borderRadius: radii.md,
-    color: Colors.dark.text,
-    fontSize: 18,
-    marginBottom: 8,
-  },
-  multilineInput: {
-    textAlignVertical: "top",
-  },
-  inputError: {
-    borderColor: Colors.dark.highlight,
-  },
-  imagePreview: {
-    width: "100%",
-    height: 160,
-    borderRadius: radii.lg,
-    marginBottom: 12,
-  },
-  dropdown: {
-    backgroundColor: Colors.dark.screenBackground,
-    borderColor: Colors.dark.subText,
-    borderWidth: 1,
-    borderRadius: radii.md,
-    paddingHorizontal: 12,
-    height: 50,
-    marginBottom: 8,
-  },
-  dropdownList: {
-    backgroundColor: Colors.dark.screenBackground,
-    borderColor: Colors.dark.subText,
-    borderRadius: radii.md,
-    overflow: "hidden",
-  },
-  dropdownPlaceholder: {
-    color: Colors.dark.subText,
-    fontSize: 18,
-  },
-  dropdownSelectedText: {
-    color: Colors.dark.text,
-    fontSize: 18,
-  },
-  dropdownItemText: {
-    color: Colors.dark.text,
-    fontSize: 16,
-  },
-  dropdownSearchInput: {
-    color: Colors.dark.text,
-    backgroundColor: Colors.dark.screenBackground,
-    borderColor: Colors.dark.subText,
-    borderRadius: radii.md,
-    fontSize: 16,
-  },
-  dropdownSelectedChip: {
-    borderColor: Colors.dark.tint,
-    borderRadius: radii.md,
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  dropdownError: {
-    borderColor: Colors.dark.highlight,
-  },
-  dropdownDisabled: {
-    opacity: 0.5,
-  },
-  errorText: {
-    color: Colors.dark.highlight,
-    fontSize: 12,
-    marginBottom: 8,
-    marginTop: -2,
-  },
-  helperText: {
-    fontSize: 12,
-    color: Colors.dark.subText,
-    marginBottom: 8,
-    marginTop: -2,
-  },
-  buttonLabel: {
-    fontSize: 16,
-  },
-  switchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  switchTextContainer: {
-    flex: 1,
-    marginRight: 12,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    scrollContent: {
+      padding: 16,
+      paddingBottom: 32,
+    },
+    section: {
+      paddingTop: 8,
+      paddingBottom: 4,
+    },
+    sectionHeader: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 12,
+    },
+    divider: {
+      marginVertical: 12,
+      backgroundColor: colors.contentSecondary,
+      opacity: 0.4,
+    },
+    fieldLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      marginBottom: 6,
+    },
+    input: {
+      padding: 10,
+      borderColor: colors.contentSecondary,
+      borderWidth: 1,
+      borderRadius: radii.md,
+      color: colors.contentPrimary,
+      fontSize: 18,
+      marginBottom: 8,
+    },
+    multilineInput: {
+      textAlignVertical: "top",
+    },
+    inputError: {
+      borderColor: colors.danger,
+    },
+    imagePreview: {
+      width: "100%",
+      height: 160,
+      borderRadius: radii.lg,
+      marginBottom: 12,
+    },
+    dropdownError: {
+      borderColor: colors.danger,
+      borderWidth: 1,
+    },
+    dropdownDisabled: {
+      opacity: 0.5,
+    },
+    errorText: {
+      color: colors.danger,
+      fontSize: 12,
+      marginBottom: 8,
+      marginTop: -2,
+    },
+    helperText: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+      marginBottom: 8,
+      marginTop: -2,
+    },
+    buttonLabel: {
+      fontSize: 16,
+    },
+    switchRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 16,
+    },
+    switchTextContainer: {
+      flex: 1,
+      marginRight: 12,
+    },
+  });
+}
