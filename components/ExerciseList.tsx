@@ -17,6 +17,11 @@ interface ExerciseListProps {
   onPressItem: (item: Exercise) => void;
   showCheckbox?: boolean;
   scrollKey?: string;
+  sectionTitles?: {
+    activePlan?: string;
+    favorites?: string;
+    other?: string;
+  };
 }
 
 const ExerciseList = ({
@@ -26,11 +31,15 @@ const ExerciseList = ({
   onPressItem,
   showCheckbox = true,
   scrollKey,
+  sectionTitles,
 }: ExerciseListProps) => {
   const listData = [];
 
   if (exercises.favoriteExercises.length > 0) {
-    listData.push({ type: "title", title: t`Favorites` });
+    listData.push({
+      type: "title",
+      title: sectionTitles?.favorites ?? t`Favorites`,
+    });
     listData.push(
       ...exercises.favoriteExercises.map((item) => ({
         type: "exercise",
@@ -40,7 +49,10 @@ const ExerciseList = ({
   }
 
   if (exercises.activePlanExercises.length > 0) {
-    listData.push({ type: "title", title: t`Active Plan Exercises` });
+    listData.push({
+      type: "title",
+      title: sectionTitles?.activePlan ?? t`Active Plan Exercises`,
+    });
     listData.push(
       ...exercises.activePlanExercises.map((item) => ({
         type: "exercise",
@@ -62,7 +74,10 @@ const ExerciseList = ({
         })),
       );
     } else {
-      listData.push({ type: "title", title: t`Other Exercises` });
+      listData.push({
+        type: "title",
+        title: sectionTitles?.other ?? t`Other Exercises`,
+      });
       listData.push(
         ...exercises.otherExercises.map((item) => ({
           type: "exercise",

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useExerciseSearch } from "@/hooks/useExerciseSearch";
 import { router } from "expo-router";
 import { View, TextInput, StyleSheet } from "react-native";
@@ -8,10 +8,14 @@ import { ActivityIndicator } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
+import { useExerciseUsageQuery } from "@/hooks/useExerciseUsageQuery";
 import { Colors } from "@/constants/Colors";
 import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
 import ExerciseSuggestions from "@/components/ExerciseSuggestions";
+import ExerciseSortChips, {
+  type SortMode,
+} from "@/components/ExerciseSortChips";
 import Bugsnag from "@bugsnag/expo";
 
 export default function ExerciseLibraryScreen() {
@@ -23,12 +27,15 @@ export default function ExerciseLibraryScreen() {
   const [selectedTargetMuscle, setSelectedTargetMuscle] = useState<
     string | null
   >(null);
+  const [sortMode, setSortMode] = useState<SortMode>("default");
 
   const {
     data: exercises,
     isLoading: exercisesLoading,
     error: exercisesError,
-  } = useExercisesQuery(false, false);
+  } = useExercisesQuery(sortMode === "activePlan", false);
+
+  const { data: usageData } = useExerciseUsageQuery();
 
   const { filteredExercises, suggestions, debouncedQuery } = useExerciseSearch(
     exercises,
@@ -39,6 +46,50 @@ export default function ExerciseLibraryScreen() {
     },
     searchQuery,
   );
+
+  const sortedExercises = useMemo(() => {
+    if (sortMode === "default" || sortMode === "activePlan") {
+      return filteredExercises;
+    }
+
+    const usageMap = new Map(usageData?.map((u) => [u.exerciseId, u]) ?? []);
+    const allExercises = [
+      ...filteredExercises.activePlanExercises,
+      ...filteredExercises.favoriteExercises,
+      ...filteredExercises.otherExercises,
+    ];
+
+    const withUsage = allExercises.filter((e) => usageMap.has(e.exercise_id));
+    const withoutUsage = allExercises.filter(
+      (e) => !usageMap.has(e.exercise_id),
+    );
+
+    if (sortMode === "recent") {
+      withUsage.sort((a, b) =>
+        usageMap
+          .get(b.exercise_id)!
+          .lastUsed.localeCompare(usageMap.get(a.exercise_id)!.lastUsed),
+      );
+    } else {
+      withUsage.sort(
+        (a, b) =>
+          usageMap.get(b.exercise_id)!.useCount -
+          usageMap.get(a.exercise_id)!.useCount,
+      );
+    }
+
+    return {
+      activePlanExercises: withUsage,
+      favoriteExercises: [],
+      otherExercises: withoutUsage,
+    };
+  }, [sortMode, filteredExercises, usageData]);
+
+  const sectionTitles = useMemo(() => {
+    if (sortMode === "recent") return { activePlan: t`Recently Used` };
+    if (sortMode === "frequent") return { activePlan: t`Most Used` };
+    return undefined;
+  }, [sortMode]);
 
   useEffect(() => {
     if (exercisesError) {
@@ -90,11 +141,12 @@ export default function ExerciseLibraryScreen() {
         selectedTargetMuscle={selectedTargetMuscle}
         setSelectedTargetMuscle={setSelectedTargetMuscle}
       />
+      <ExerciseSortChips sortMode={sortMode} onSortModeChange={setSortMode} />
       <ExerciseList
-        exercises={filteredExercises}
+        exercises={sortedExercises}
         selectedExercises={[]}
         onSelect={() => {}}
-        scrollKey={debouncedQuery}
+        scrollKey={`${debouncedQuery}-${sortMode}`}
         onPressItem={(item) => {
           router.push({
             pathname: "/(app)/exercise-info",
@@ -102,6 +154,7 @@ export default function ExerciseLibraryScreen() {
           });
         }}
         showCheckbox={false}
+        sectionTitles={sectionTitles}
       />
     </ThemedView>
   );
