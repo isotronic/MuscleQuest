@@ -307,6 +307,7 @@ export default function AddCustomExerciseScreen() {
   // Shared props spread onto every DropDownPicker
   const commonDropdownProps = {
     listMode: "SCROLLVIEW" as const,
+    scrollViewProps: { nestedScrollEnabled: true },
     placeholderStyle: styles.dropdownPlaceholder,
     textStyle: { color: Colors.dark.text, fontSize: 18 } as const,
     dropDownContainerStyle: styles.dropdownContainer,
