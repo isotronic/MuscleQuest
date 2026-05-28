@@ -49,9 +49,14 @@ export default function PlansScreen() {
   }, [settings?.plansViewMode]);
 
   const handleViewModeChange = async (mode: PlanViewMode) => {
+    const prev = viewMode;
     setViewMode(mode);
-    await updateSettings("plansViewMode", mode);
-    queryClient.invalidateQueries({ queryKey: ["settings"] });
+    try {
+      await updateSettings("plansViewMode", mode);
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+    } catch {
+      setViewMode(prev);
+    }
   };
 
   const handleCreatePlan = () => {
