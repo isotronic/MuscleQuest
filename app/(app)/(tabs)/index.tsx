@@ -294,7 +294,7 @@ export default function HomeScreen() {
         <Portal>
           <Modal visible={isStartingWorkout} dismissable={false}>
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="white" />
+              <ActivityIndicator size="large" color={colors.contentPrimary} />
               <ThemedText style={styles.loadingText}>
                 <Trans>Starting Workout...</Trans>
               </ThemedText>
@@ -308,7 +308,7 @@ export default function HomeScreen() {
             visible={pickerWorkouts.length > 0}
             onDismiss={() => setPickerWorkouts([])}
             contentContainerStyle={styles.pickerModal}
-            theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
+            theme={{ colors: { backdrop: colors.modalBackdrop } }}
           >
             <ThemedText type="subtitle" style={styles.pickerTitle}>
               <Trans>Select a workout to view</Trans>
@@ -585,7 +585,7 @@ function createStyles(colors: AppThemeColors) {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      backgroundColor: colors.modalBackdrop,
       position: "absolute",
       width: "100%",
       height: "100%",
@@ -593,7 +593,7 @@ function createStyles(colors: AppThemeColors) {
     loadingText: {
       marginTop: 10,
       fontSize: 18,
-      color: "white",
+      color: colors.contentPrimary,
     },
     weekContainer: {
       flexDirection: "column",

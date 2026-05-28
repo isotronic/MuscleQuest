@@ -77,7 +77,7 @@ export const WhatsNewModal = () => {
       <Modal
         visible={visible}
         onDismiss={handleNext}
-        theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
+        theme={{ colors: { backdrop: colors.modalBackdrop } }}
       >
         <View
           style={{

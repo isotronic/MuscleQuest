@@ -71,6 +71,17 @@ export const classicTheme: AppTheme = {
     dataPointRadius: 4,
     innerCircleColor: palette.slate,
     noOfSections: 3,
+    bodyPartColors: {
+      back: palette.deepOrange,
+      chest: palette.indigo,
+      shoulders: palette.teal,
+      neck: palette.charcoal,
+      arms: palette.fern,
+      legs: palette.brown,
+      waist: palette.amber,
+      cardio: palette.violet,
+    },
+    bodyPartFallbackColor: palette.magenta,
   },
 
   gradients: {

@@ -31,6 +31,17 @@ export const palette = {
   // Exercise highlight (appears in exercises.tsx screens, not in Colors.ts)
   coral: "#FF6F61",
 
+  // Body part chart slice colors
+  deepOrange: "#FF5722",
+  indigo: "#3F51B5",
+  teal: "#009688",
+  charcoal: "#9E9E9E",
+  fern: "#43A047",
+  brown: "#5D4037",
+  amber: "#FDD835",
+  violet: "#8E24AA",
+  magenta: "#CC44FF",
+
   // Overlay
   blackOverlay65: "rgba(0, 0, 0, 0.65)",
   blackOverlay15: "rgba(0, 0, 0, 0.15)",

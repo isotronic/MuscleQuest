@@ -461,9 +461,9 @@ export default function WorkoutOverviewScreen() {
               ]}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="white" />
+                <ActivityIndicator size="small" color={colors.contentPrimary} />
               ) : allSetsCompleted ? (
-                <MaterialCommunityIcons name="check" size={24} color="white" />
+                <MaterialCommunityIcons name="check" size={24} color={colors.contentPrimary} />
               ) : (
                 <ThemedText style={styles.numberText}>{label}</ThemedText>
               )}
@@ -494,9 +494,9 @@ export default function WorkoutOverviewScreen() {
               ]}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="white" />
+                <ActivityIndicator size="small" color={colors.contentPrimary} />
               ) : allSetsCompleted ? (
-                <MaterialCommunityIcons name="check" size={24} color="white" />
+                <MaterialCommunityIcons name="check" size={24} color={colors.contentPrimary} />
               ) : (
                 <ThemedText style={styles.numberText}>{label}</ThemedText>
               )}
@@ -872,7 +872,7 @@ export default function WorkoutOverviewScreen() {
         <Portal>
           <Modal visible={isSaving} dismissable={false}>
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="white" />
+              <ActivityIndicator size="large" color={colors.contentPrimary} />
               <ThemedText style={styles.loadingText}>
                 <Trans>Saving Workout...</Trans>
               </ThemedText>
@@ -931,7 +931,7 @@ export default function WorkoutOverviewScreen() {
           visible={showSaveModal}
           onDismiss={handleExitSaveModal}
           contentContainerStyle={styles.saveModal}
-          theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
+          theme={{ colors: { backdrop: colors.modalBackdrop } }}
         >
           <ThemedText style={styles.saveModalTitle}>
             <Trans>Save this workout?</Trans>
@@ -1184,7 +1184,7 @@ function createStyles(colors: AppThemeColors) {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      backgroundColor: colors.modalBackdrop,
       position: "absolute",
       width: "100%",
       height: "100%",
@@ -1192,7 +1192,7 @@ function createStyles(colors: AppThemeColors) {
     loadingText: {
       marginTop: 10,
       fontSize: 18,
-      color: "white",
+      color: colors.contentPrimary,
     },
     addExerciseButton: {
       marginTop: 8,

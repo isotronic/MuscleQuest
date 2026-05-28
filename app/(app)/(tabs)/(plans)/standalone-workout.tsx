@@ -213,8 +213,8 @@ export default function StandaloneWorkoutScreen() {
         <Portal>
           <Modal visible={isStarting} dismissable={false}>
             <View style={styles.centered}>
-              <ActivityIndicator size="large" color="white" />
-              <ThemedText style={{ marginTop: 12, color: "white" }}>
+              <ActivityIndicator size="large" color={colors.contentPrimary} />
+              <ThemedText style={{ marginTop: 12, color: colors.contentPrimary }}>
                 <Trans>Starting Workout...</Trans>
               </ThemedText>
             </View>

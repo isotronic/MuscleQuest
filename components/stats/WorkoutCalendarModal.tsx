@@ -121,7 +121,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
         visible={visible}
         onDismiss={onDismiss}
         contentContainerStyle={styles.container}
-        theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
+        theme={{ colors: { backdrop: colors.modalBackdrop } }}
       >
         <View style={styles.header}>
           <ThemedText style={styles.title}>

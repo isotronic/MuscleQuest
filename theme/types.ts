@@ -115,6 +115,8 @@ export interface AppThemeCharts {
   dataPointRadius: number;
   innerCircleColor: string;
   noOfSections: number;
+  bodyPartColors: Record<string, string>;
+  bodyPartFallbackColor: string;
 }
 
 export interface AppThemeGradients {

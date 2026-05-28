@@ -10,6 +10,7 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
 import { bodyPartTranslations } from "@/constants/dbTranslations";
 import { useAppTheme } from "@/theme";
+import { useChartTheme } from "./chartTheme";
 import type { AppThemeColors } from "@/theme/types";
 
 // Define the props for the component
@@ -26,22 +27,12 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
 }) => {
   const { _ } = useLingui();
   const { colors } = useAppTheme();
+  const charts = useChartTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
   const [selectedPercentage, setSelectedPercentage] = useState<number | null>(
     null,
   );
-
-  const chartColors: Record<string, string> = {
-    back: "#FF5722", // Deep Orange
-    chest: "#3F51B5", // Indigo
-    shoulders: "#009688", // Teal
-    neck: "#9E9E9E", // Gray
-    arms: "#43A047", // Green
-    legs: "#5D4037", // Brown
-    waist: "#FDD835", // Yellow
-    cardio: "#8E24AA", // Purple
-  };
 
   // Map exercise_id to body_part
   const exerciseIdToBodyPartMap = useMemo(() => {
@@ -108,7 +99,7 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
   const chartData = bodyPartPercentages.map((item) => ({
     text: item.name,
     value: parseFloat(item.percentage),
-    color: chartColors[item.name] || "#c4f",
+    color: charts.bodyPartColors[item.name] ?? charts.bodyPartFallbackColor,
     focused: item.name === selectedBodyPart,
   }));
 

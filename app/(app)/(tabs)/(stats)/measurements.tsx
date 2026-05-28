@@ -454,7 +454,7 @@ function createStyles(colors: AppThemeColors) {
     },
     modalBackdrop: {
       flex: 1,
-      backgroundColor: "rgba(0,0,0,0.6)",
+      backgroundColor: colors.modalBackdrop,
       justifyContent: "center",
       paddingHorizontal: 16,
     },

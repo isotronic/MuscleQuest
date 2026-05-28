@@ -241,7 +241,7 @@ function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: "rgba(0,0,0,0.75)",
+      backgroundColor: colors.modalBackdrop,
       justifyContent: "center",
       alignItems: "center",
     },

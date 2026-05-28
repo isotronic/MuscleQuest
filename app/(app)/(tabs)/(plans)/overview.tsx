@@ -168,7 +168,7 @@ export default function PlanOverviewScreen() {
         <Portal>
           <Modal visible={isEditing} dismissable={false}>
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="white" />
+              <ActivityIndicator size="large" color={colors.contentPrimary} />
               <ThemedText style={styles.loadingText}>
                 <Trans>Loading Plan...</Trans>
               </ThemedText>
@@ -351,7 +351,7 @@ function createStyles(colors: AppThemeColors) {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      backgroundColor: colors.modalBackdrop,
       position: "absolute",
       width: "100%",
       height: "100%",
@@ -359,7 +359,7 @@ function createStyles(colors: AppThemeColors) {
     loadingText: {
       marginTop: 10,
       fontSize: 18,
-      color: "white",
+      color: colors.contentPrimary,
     },
   });
 }

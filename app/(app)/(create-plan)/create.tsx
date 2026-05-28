@@ -342,7 +342,7 @@ export default function CreatePlanScreen() {
         <Portal>
           <Modal visible={isSaving} dismissable={false}>
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="white" />
+              <ActivityIndicator size="large" color={colors.contentPrimary} />
               <ThemedText style={styles.loadingText}>
                 <Trans>Saving Plan...</Trans>
               </ThemedText>
@@ -501,7 +501,7 @@ function createStyles(colors: AppThemeColors) {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      backgroundColor: colors.modalBackdrop,
       position: "absolute",
       width: "100%",
       height: "100%",
@@ -509,7 +509,7 @@ function createStyles(colors: AppThemeColors) {
     loadingText: {
       marginTop: 10,
       fontSize: 18,
-      color: "white",
+      color: colors.contentPrimary,
     },
   });
 }

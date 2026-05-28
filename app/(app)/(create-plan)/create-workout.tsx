@@ -237,7 +237,7 @@ export default function CreateWorkoutScreen() {
         <Portal>
           <Modal visible={isSaving} dismissable={false}>
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="white" />
+              <ActivityIndicator size="large" color={colors.contentPrimary} />
             </View>
           </Modal>
         </Portal>

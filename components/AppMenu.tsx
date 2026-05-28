@@ -235,7 +235,7 @@ function createMenuItemStyles(colors: AppThemeColors) {
 function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({
     backdrop: {
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      backgroundColor: colors.modalBackdrop,
     },
     panel: {
       position: "absolute",

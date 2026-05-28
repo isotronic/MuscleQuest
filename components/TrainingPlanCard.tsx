@@ -109,7 +109,7 @@ function createStyles(colors: AppThemeColors) {
     },
     floatingTitleText: {
       fontSize: 22,
-      color: "white",
+      color: colors.contentPrimary,
       fontWeight: "bold",
       textAlign: "center",
       textShadow: "2px 2px 4px rgba(0, 0, 0, 0.75)",
