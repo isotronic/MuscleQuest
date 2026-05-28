@@ -1,4 +1,3 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useMemo, useState } from "react";
 import {
   ScrollView,
@@ -11,6 +10,7 @@ import {
 import { Divider } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { HELP_DATA } from "@/constants/HelpData";
+import { AppIcon } from "@/components/ui";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
@@ -52,7 +52,7 @@ function GroupHeader({ label }: { label: string }) {
 }
 
 type SectionProps = {
-  icon: React.ComponentProps<typeof Ionicons>["name"];
+  icon: Extract<React.ComponentProps<typeof AppIcon>, { set: "ion" }>["name"];
   title: React.ReactNode;
   body: React.ReactNode;
 };
@@ -63,7 +63,8 @@ function Section({ icon, title, body }: SectionProps) {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Ionicons
+        <AppIcon
+          set="ion"
           name={icon}
           size={20}
           color={colors.accent}
@@ -119,7 +120,8 @@ export default function HelpScreen() {
   return (
     <ThemedView style={styles.container}>
       <View style={styles.searchContainer}>
-        <Ionicons
+        <AppIcon
+          set="ion"
           name="search-outline"
           size={18}
           color={colors.contentSecondary}
@@ -145,7 +147,8 @@ export default function HelpScreen() {
             accessibilityRole="button"
             accessibilityHint={t`Clears the search field`}
           >
-            <Ionicons
+            <AppIcon
+              set="ion"
               name="close-circle"
               size={18}
               color={colors.contentSecondary}

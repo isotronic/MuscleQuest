@@ -1,8 +1,13 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { IconProps } from "react-native-paper/lib/typescript/components/MaterialCommunityIcon";
 
 const SaveIcon = (props: IconProps) => (
-  <MaterialCommunityIcons {...props} size={25} name="content-save-outline" />
+  <AppIcon
+    set="mci"
+    name="content-save-outline"
+    size={props.size}
+    color={props.color}
+  />
 );
 
 export default SaveIcon;

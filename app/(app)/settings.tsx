@@ -17,7 +17,6 @@ import {
   ProgressBar,
   Button,
 } from "react-native-paper";
-import { MaterialIcons } from "@expo/vector-icons";
 import { AppIcon } from "@/components/ui";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -894,8 +893,9 @@ export default function SettingsScreen() {
             />
           </View>
           <View style={styles.item}>
-            <MaterialIcons
-              name="notifications-active"
+            <AppIcon
+              set="mci"
+              name="bell-ring"
               size={24}
               color={colors.contentSecondary}
               style={styles.icon}

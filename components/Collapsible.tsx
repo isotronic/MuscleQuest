@@ -1,9 +1,9 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { PropsWithChildren, useState } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { AppIcon } from "@/components/ui";
 import { useAppTheme } from "@/theme";
 
 export function Collapsible({
@@ -20,7 +20,8 @@ export function Collapsible({
         onPress={() => setIsOpen((value) => !value)}
         activeOpacity={0.8}
       >
-        <Ionicons
+        <AppIcon
+          set="ion"
           name={isOpen ? "chevron-down" : "chevron-forward-outline"}
           size={18}
           color={colors.contentSecondary}
