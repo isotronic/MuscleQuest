@@ -5,7 +5,7 @@ import {
   BottomSheetTextInput,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useNotes, NoteType } from "@/hooks/useNotes";
@@ -108,7 +108,8 @@ export const Notes: React.FC<NotesProps> = ({
               onPress={handleClose}
               style={{ alignSelf: "flex-start" }}
             >
-              <MaterialCommunityIcons
+              <AppIcon
+                set="mci"
                 name="chevron-down"
                 size={28}
                 color={colors.contentPrimary}

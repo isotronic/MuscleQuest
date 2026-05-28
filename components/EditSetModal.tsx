@@ -13,7 +13,7 @@ import { Button, Checkbox, Divider } from "react-native-paper";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { useWorkoutStore } from "@/store/workoutStore";
 import {
   formatTimeInput,
@@ -274,7 +274,8 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                     <Trans>Target Distance ({distanceUnit})</Trans>
                   </ThemedText>
                   <View style={styles.inputRow}>
-                    <MaterialCommunityIcons
+                    <AppIcon
+                      set="mci"
                       name="minus"
                       size={32}
                       color={colors.contentPrimary}
@@ -299,7 +300,8 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                       keyboardType="numeric"
                       selectTextOnFocus={true}
                     />
-                    <MaterialCommunityIcons
+                    <AppIcon
+                      set="mci"
                       name="plus"
                       size={32}
                       color={colors.contentPrimary}
@@ -317,7 +319,8 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                     <Trans>Min Reps</Trans>
                   </ThemedText>
                   <View style={styles.inputRow}>
-                    <MaterialCommunityIcons
+                    <AppIcon
+                      set="mci"
                       name="minus"
                       size={32}
                       color={colors.contentPrimary}
@@ -334,7 +337,8 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                       keyboardType="numeric"
                       selectTextOnFocus={true}
                     />
-                    <MaterialCommunityIcons
+                    <AppIcon
+                      set="mci"
                       name="plus"
                       size={32}
                       color={colors.contentPrimary}
@@ -348,7 +352,8 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                     <Trans>Max Reps</Trans>
                   </ThemedText>
                   <View style={styles.inputRow}>
-                    <MaterialCommunityIcons
+                    <AppIcon
+                      set="mci"
                       name="minus"
                       size={32}
                       color={colors.contentPrimary}
@@ -365,7 +370,8 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
                       keyboardType="numeric"
                       selectTextOnFocus={true}
                     />
-                    <MaterialCommunityIcons
+                    <AppIcon
+                      set="mci"
                       name="plus"
                       size={32}
                       color={colors.contentPrimary}

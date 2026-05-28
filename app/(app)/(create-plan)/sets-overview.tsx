@@ -15,7 +15,7 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useWorkoutStore, Set } from "@/store/workoutStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { EditSetModal } from "@/components/EditSetModal";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 import { useAppTheme, radii } from "@/theme";
@@ -174,7 +174,8 @@ export default function SetsOverviewScreen() {
               </ThemedText>
             </ThemedView>
           </TouchableOpacity>
-          <MaterialCommunityIcons
+          <AppIcon
+            set="mci"
             name="close"
             size={24}
             color={colors.contentPrimary}
@@ -223,7 +224,8 @@ export default function SetsOverviewScreen() {
       {isBodyweightExercise && (
         <View style={styles.weightedToggleRow}>
           <View style={styles.weightedToggleLeft}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="weight-kilogram"
               size={20}
               color={

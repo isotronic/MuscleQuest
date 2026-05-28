@@ -3,7 +3,7 @@ import { View, StyleSheet, Text } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { PlanScheduleEntry } from "@/utils/database";
 
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
@@ -58,7 +58,8 @@ export default function WeeklyScheduleDisplay({
   if (scheduleEntries.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <MaterialCommunityIcons
+        <AppIcon
+          set="mci"
           name="calendar-blank-outline"
           size={14}
           color={colors.contentSecondary}

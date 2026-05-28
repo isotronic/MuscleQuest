@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { PlanScheduleEntry } from "@/utils/database";
@@ -46,7 +46,8 @@ export default function RestDayCard({ schedule, workouts, todayDow }: Props) {
 
   return (
     <ThemedView style={styles.card}>
-      <MaterialCommunityIcons
+      <AppIcon
+        set="mci"
         name="sleep"
         size={28}
         color={colors.contentSecondary}

@@ -12,7 +12,7 @@ import { Trans } from "@lingui/react/macro";
 import { t, plural } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { ActivityIndicator, Button, Divider } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { Calendar } from "react-native-calendars";
 import { useRouter } from "expo-router";
 import { format } from "date-fns";
@@ -187,7 +187,8 @@ export default function MeasurementsScreen() {
             onPress={() => setCalendarVisible(true)}
             activeOpacity={0.7}
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="calendar"
               size={18}
               color={colors.accent}
@@ -195,7 +196,8 @@ export default function MeasurementsScreen() {
             <ThemedText style={styles.dateText}>
               {formatEntryDate(entryDate)}
             </ThemedText>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="chevron-down"
               size={16}
               color={colors.contentSecondary}
@@ -299,7 +301,8 @@ export default function MeasurementsScreen() {
                   )}
                 </View>
               </View>
-              <MaterialCommunityIcons
+              <AppIcon
+                set="mci"
                 name="chevron-right"
                 size={20}
                 color={colors.contentSecondary}

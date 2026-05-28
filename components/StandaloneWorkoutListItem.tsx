@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Workout } from "@/store/workoutStore";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import { Plural } from "@lingui/react/macro";
@@ -30,7 +30,8 @@ export default function StandaloneWorkoutListItem({
     <Pressable style={styles.container} onPress={onPress}>
       <View style={styles.imageContainer}>
         <View style={styles.imagePlaceholder}>
-          <MaterialCommunityIcons
+          <AppIcon
+            set="mci"
             name="weight-lifter"
             size={32}
             color={colors.contentSecondary}
@@ -50,7 +51,8 @@ export default function StandaloneWorkoutListItem({
           {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
         </ThemedText>
       </View>
-      <MaterialCommunityIcons
+      <AppIcon
+        set="mci"
         name="chevron-right"
         size={22}
         color={colors.contentSecondary}

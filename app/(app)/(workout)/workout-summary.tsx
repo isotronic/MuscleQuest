@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Button } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t, plural } from "@lingui/core/macro";
 import Animated, {
@@ -228,13 +228,13 @@ function StatChip({
 }: {
   label: string;
   value: string;
-  icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+  icon: Extract<React.ComponentProps<typeof AppIcon>, { set: "mci" }>["name"];
 }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.statChip}>
-      <MaterialCommunityIcons name={icon} size={22} color={colors.accent} />
+      <AppIcon set="mci" name={icon} size={22} color={colors.accent} />
       <ThemedText type="defaultSemiBold" style={styles.statValue}>
         {value}
       </ThemedText>
@@ -310,7 +310,8 @@ function ExerciseRow({
             {bestLabel ? ` · ${bestLabel}` : ""}
           </ThemedText>
         </View>
-        <MaterialCommunityIcons
+        <AppIcon
+          set="mci"
           name={expanded ? "chevron-up" : "chevron-down"}
           size={20}
           color={colors.contentSecondary}
@@ -368,7 +369,8 @@ function WeeklyGoalBanner({
   return (
     <View style={styles.weeklyGoalCard}>
       <View style={styles.weeklyGoalTop}>
-        <MaterialCommunityIcons
+        <AppIcon
+          set="mci"
           name={goalReached ? "check-decagram" : "fire"}
           size={18}
           color={accentColor}
@@ -549,11 +551,7 @@ export default function WorkoutSummaryScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.headerSection}>
-          <MaterialCommunityIcons
-            name="trophy"
-            size={56}
-            color={colors.accent}
-          />
+          <AppIcon set="mci" name="trophy" size={56} color={colors.accent} />
           <ThemedText type="title" style={styles.completeTitle}>
             <Trans>Workout Complete!</Trans>
           </ThemedText>

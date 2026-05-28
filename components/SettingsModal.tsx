@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button, RadioButton } from "react-native-paper";
 import { Trans } from "@lingui/react/macro";
 import { ThemedText } from "@/components/ThemedText";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import {
   StyleSheet,
   View,
@@ -136,7 +136,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       >
         <Text style={styles.dropdownItemText}>{item.label}</Text>
         {item.value === inputValue && (
-          <MaterialCommunityIcons
+          <AppIcon
+            set="mci"
             name="check"
             size={18}
             color={colors.contentPrimary}
@@ -165,7 +166,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {settingType === "number" && (
                 <View style={styles.labeledInput}>
                   <View style={styles.inputRow}>
-                    <MaterialCommunityIcons
+                    <AppIcon
+                      set="mci"
                       name="minus"
                       size={32}
                       color={colors.contentPrimary}
@@ -181,7 +183,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       selectTextOnFocus={true}
                       onSubmitEditing={onSave}
                     />
-                    <MaterialCommunityIcons
+                    <AppIcon
+                      set="mci"
                       name="plus"
                       size={32}
                       color={colors.contentPrimary}

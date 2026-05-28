@@ -4,7 +4,7 @@ import { t } from "@lingui/core/macro";
 import { capitalizeWords } from "@/utils/utility";
 import { fetchAllRecords, fetchMusclesByFilters } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { useAppTheme } from "@/theme";
 import { AppSelect, type SelectOption } from "@/components/ui/AppSelect";
 import type { AppThemeColors } from "@/theme/types";
@@ -157,7 +157,8 @@ function FilterRow({
     >
       <Text style={styles.customItemText}>{item.label}</Text>
       {selected && item.value !== "all" && (
-        <MaterialCommunityIcons
+        <AppIcon
+          set="mci"
           name="check"
           size={18}
           color={colors.contentPrimary}

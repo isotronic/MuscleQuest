@@ -23,7 +23,7 @@ import {
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { formatSetMetric } from "@/utils/formatSetMetric";
 import Bugsnag from "@bugsnag/expo";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { Notes } from "@/components/Notes";
 import { ExerciseProgressionChart } from "@/components/charts/ExerciseProgressionChart";
 import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
@@ -214,11 +214,7 @@ export default function ExerciseInfoScreen() {
             <ThemedText style={styles.title}>{exerciseData.name}</ThemedText>
 
             <View style={styles.infoRow}>
-              <MaterialCommunityIcons
-                name="target"
-                size={20}
-                style={styles.icon}
-              />
+              <AppIcon set="mci" name="target" size={20} style={styles.icon} />
               <ThemedText style={styles.infoText}>
                 {t`Target muscle:`}{" "}
                 {muscleTranslations[exerciseData.target_muscle]
@@ -229,11 +225,7 @@ export default function ExerciseInfoScreen() {
 
             {secondaryMuscles.length > 0 && (
               <View style={styles.infoRow}>
-                <MaterialCommunityIcons
-                  name="plus"
-                  size={20}
-                  style={styles.icon}
-                />
+                <AppIcon set="mci" name="plus" size={20} style={styles.icon} />
                 <ThemedText style={styles.infoText}>
                   {t`Secondary muscles:`}{" "}
                   {secondaryMuscles
@@ -246,7 +238,8 @@ export default function ExerciseInfoScreen() {
             )}
 
             <View style={styles.infoRow}>
-              <MaterialCommunityIcons
+              <AppIcon
+                set="mci"
                 name="dumbbell"
                 size={20}
                 style={styles.icon}
@@ -261,7 +254,8 @@ export default function ExerciseInfoScreen() {
 
             {!!exerciseData.is_unilateral && (
               <View style={styles.infoRow}>
-                <MaterialCommunityIcons
+                <AppIcon
+                  set="mci"
                   name="arm-flex"
                   size={20}
                   style={styles.icon}
@@ -274,7 +268,8 @@ export default function ExerciseInfoScreen() {
 
             {!!exerciseData.double_weight && (
               <View style={styles.infoRow}>
-                <MaterialCommunityIcons
+                <AppIcon
+                  set="mci"
                   name="scale-balance"
                   size={20}
                   style={styles.icon}
@@ -358,7 +353,8 @@ export default function ExerciseInfoScreen() {
                 </ThemedText>
               </View>
               {item.is_pr && (
-                <MaterialCommunityIcons
+                <AppIcon
+                  set="mci"
                   name="trophy"
                   size={14}
                   color={colors.accent}
@@ -390,7 +386,8 @@ export default function ExerciseInfoScreen() {
               </View>
             ) : historyError ? (
               <View style={styles.emptyState}>
-                <MaterialCommunityIcons
+                <AppIcon
+                  set="mci"
                   name="alert-circle-outline"
                   size={48}
                   color={colors.contentSecondary}
@@ -401,7 +398,8 @@ export default function ExerciseInfoScreen() {
               </View>
             ) : (
               <View style={styles.emptyState}>
-                <MaterialCommunityIcons
+                <AppIcon
+                  set="mci"
                   name="history"
                   size={48}
                   color={colors.contentSecondary}

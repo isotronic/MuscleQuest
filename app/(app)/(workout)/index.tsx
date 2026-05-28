@@ -26,7 +26,7 @@ import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useFocusEffect } from "expo-router";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
 import {
   useWorkoutSessionHistoryQuery,
@@ -448,7 +448,8 @@ export default function WorkoutOverviewScreen() {
             onTap={() => handleExercisePress(exerciseIndex)}
             style={styles.cardTouchable}
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="drag"
               size={20}
               color={colors.contentSecondary}
@@ -463,7 +464,12 @@ export default function WorkoutOverviewScreen() {
               {isLoading ? (
                 <ActivityIndicator size="small" color={colors.contentPrimary} />
               ) : allSetsCompleted ? (
-                <MaterialCommunityIcons name="check" size={24} color={colors.contentPrimary} />
+                <AppIcon
+                  set="mci"
+                  name="check"
+                  size={24}
+                  color={colors.contentPrimary}
+                />
               ) : (
                 <ThemedText style={styles.numberText}>{label}</ThemedText>
               )}
@@ -481,7 +487,8 @@ export default function WorkoutOverviewScreen() {
           </Sortable.Touchable>
         ) : (
           <View style={styles.cardTouchable}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="drag"
               size={20}
               color={colors.contentSecondary}
@@ -496,7 +503,12 @@ export default function WorkoutOverviewScreen() {
               {isLoading ? (
                 <ActivityIndicator size="small" color={colors.contentPrimary} />
               ) : allSetsCompleted ? (
-                <MaterialCommunityIcons name="check" size={24} color={colors.contentPrimary} />
+                <AppIcon
+                  set="mci"
+                  name="check"
+                  size={24}
+                  color={colors.contentPrimary}
+                />
               ) : (
                 <ThemedText style={styles.numberText}>{label}</ThemedText>
               )}
@@ -1001,7 +1013,8 @@ export default function WorkoutOverviewScreen() {
         />
         {isQuickWorkout && workout.exercises.length === 0 && (
           <View style={styles.emptyQuickWorkout}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="dumbbell"
               size={48}
               color={colors.contentSecondary}

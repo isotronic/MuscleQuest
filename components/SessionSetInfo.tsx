@@ -12,7 +12,7 @@ import { Image } from "expo-image";
 import { ThemedText } from "@/components/ThemedText";
 import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { formatFromTotalSeconds, formatTimeInput } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
 import { useContinuousPress } from "@/hooks/useContinuousPress";
@@ -321,7 +321,8 @@ export default function SessionSetInfo({
               accessibilityLabel={t`Warm-up set`}
               accessibilityRole="text"
             >
-              <MaterialCommunityIcons
+              <AppIcon
+                set="mci"
                 name="speedometer-slow"
                 size={16}
                 color={colors.contentPrimary}
@@ -339,7 +340,8 @@ export default function SessionSetInfo({
               accessibilityLabel={t`Drop set`}
               accessibilityRole="text"
             >
-              <MaterialCommunityIcons
+              <AppIcon
+                set="mci"
                 name="arrow-down-bold"
                 size={16}
                 color={colors.contentPrimary}
@@ -357,7 +359,8 @@ export default function SessionSetInfo({
               accessibilityLabel={t`To failure`}
               accessibilityRole="text"
             >
-              <MaterialCommunityIcons
+              <AppIcon
+                set="mci"
                 name="fire"
                 size={16}
                 color={colors.contentPrimary}

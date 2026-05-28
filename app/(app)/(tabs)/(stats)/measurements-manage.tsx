@@ -11,7 +11,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { ActivityIndicator, Button, Switch } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useAllBodyMetricDefinitionsQuery } from "@/hooks/useBodyMetricDefinitionsQuery";
@@ -229,7 +229,8 @@ export default function MeasurementsManageScreen() {
                       style={styles.deleteIcon}
                       activeOpacity={0.7}
                     >
-                      <MaterialCommunityIcons
+                      <AppIcon
+                        set="mci"
                         name="trash-can-outline"
                         size={20}
                         color={colors.danger}

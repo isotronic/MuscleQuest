@@ -6,7 +6,7 @@ import { Card, Button, Menu, IconButton } from "react-native-paper";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { router } from "expo-router";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import Sortable from "react-native-sortables";
 import type { SortableGridRenderItem } from "react-native-sortables";
 import { formatFromTotalSeconds } from "@/utils/utility";
@@ -249,7 +249,8 @@ export default function WorkoutCard({
             }
             style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="drag"
               size={24}
               color={colors.contentPrimary}
@@ -401,19 +402,22 @@ export default function WorkoutCard({
             <Trans>Workout {index + 1}</Trans>
           </ThemedText>
           <View style={styles.workoutHeaderActions}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="chevron-up"
               onPress={isFirst ? undefined : onMoveUp}
               size={24}
               color={isFirst ? colors.contentSecondary : colors.contentPrimary}
             />
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="chevron-down"
               onPress={isLast ? undefined : onMoveDown}
               size={24}
               color={isLast ? colors.contentSecondary : colors.contentPrimary}
             />
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="close"
               onPress={() => onRemove(index)}
               size={24}

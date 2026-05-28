@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { startOfWeek, endOfWeek, subWeeks } from "date-fns";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -252,7 +252,8 @@ export default function WeeklySummaryCard({
   return (
     <ThemedView style={styles.card}>
       <View style={styles.header}>
-        <MaterialCommunityIcons
+        <AppIcon
+          set="mci"
           name="trophy-outline"
           size={22}
           color={colors.accent}
@@ -266,7 +267,8 @@ export default function WeeklySummaryCard({
 
       <View style={styles.statsGrid}>
         <View style={styles.statRow}>
-          <MaterialCommunityIcons
+          <AppIcon
+            set="mci"
             name="calendar-check-outline"
             size={16}
             color={colors.contentSecondary}
@@ -280,7 +282,8 @@ export default function WeeklySummaryCard({
         </View>
 
         <View style={styles.statRow}>
-          <MaterialCommunityIcons
+          <AppIcon
+            set="mci"
             name="weight-kilogram"
             size={16}
             color={colors.contentSecondary}
@@ -292,7 +295,8 @@ export default function WeeklySummaryCard({
         </View>
 
         <View style={styles.statRow}>
-          <MaterialCommunityIcons
+          <AppIcon
+            set="mci"
             name="timer-outline"
             size={16}
             color={colors.contentSecondary}
@@ -307,7 +311,8 @@ export default function WeeklySummaryCard({
 
         {achievementFormatted && (
           <View style={styles.statRow}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="trending-up"
               size={16}
               color={colors.contentSecondary}
@@ -323,11 +328,7 @@ export default function WeeklySummaryCard({
 
         {streak > 0 && (
           <View style={styles.statRow}>
-            <MaterialCommunityIcons
-              name="fire"
-              size={16}
-              color={colors.accent}
-            />
+            <AppIcon set="mci" name="fire" size={16} color={colors.accent} />
             <ThemedText style={styles.statLabel}>
               <Trans>Streak</Trans>
             </ThemedText>

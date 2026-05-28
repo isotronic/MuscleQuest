@@ -4,7 +4,7 @@ import { Button, Modal, Portal } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Workout } from "@/store/workoutStore";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
@@ -159,7 +159,8 @@ export default function PlanScheduleEditor({
                     {w.name || t`Workout ${idx + 1}`}
                   </Text>
                   {isSelected && (
-                    <MaterialCommunityIcons
+                    <AppIcon
+                      set="mci"
                       name="check"
                       size={18}
                       color={colors.contentPrimary}
@@ -187,7 +188,8 @@ export default function PlanScheduleEditor({
             >
               <Text style={styles.pickerItemText}>{t`Rest`}</Text>
               {pickerDow !== null && schedule[pickerDow] === undefined && (
-                <MaterialCommunityIcons
+                <AppIcon
+                  set="mci"
                   name="check"
                   size={18}
                   color={colors.contentPrimary}

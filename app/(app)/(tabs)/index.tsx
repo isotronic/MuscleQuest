@@ -5,7 +5,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { startOfWeek, endOfWeek, getDay, format } from "date-fns";
 import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import WeekDays from "@/components/WeekDays";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { AuthContext } from "@/context/AuthProvider";
@@ -418,7 +418,8 @@ export default function HomeScreen() {
               onPress={() => router.push("/(app)/(workout)")}
             >
               <View style={styles.workoutCardContent}>
-                <MaterialCommunityIcons
+                <AppIcon
+                  set="mci"
                   name={
                     activeWorkout?.planId != null ? "weight-lifter" : "arm-flex"
                   }
@@ -498,7 +499,8 @@ export default function HomeScreen() {
                     }
                   >
                     <View style={styles.workoutCardContent}>
-                      <MaterialCommunityIcons
+                      <AppIcon
+                        set="mci"
                         name={workoutCompleted ? "check" : "weight-lifter"}
                         size={30}
                         color={

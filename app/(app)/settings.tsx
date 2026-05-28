@@ -17,7 +17,8 @@ import {
   ProgressBar,
   Button,
 } from "react-native-paper";
-import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useAppTheme } from "@/theme";
@@ -492,7 +493,8 @@ export default function SettingsScreen() {
             <Trans>Personal</Trans>
           </ThemedText>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="account"
               size={24}
               color={colors.contentSecondary}
@@ -526,7 +528,8 @@ export default function SettingsScreen() {
               showOverlay("weeklyGoal", settings?.weeklyGoal || "1", "slider")
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="target"
               size={24}
               color={colors.contentSecondary}
@@ -547,7 +550,8 @@ export default function SettingsScreen() {
               showOverlay("bodyWeight", settings?.bodyWeight || "", "number")
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="scale-bathroom"
               size={24}
               color={colors.contentSecondary}
@@ -566,7 +570,8 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="cloud-upload"
               size={24}
               color={colors.contentSecondary}
@@ -635,7 +640,8 @@ export default function SettingsScreen() {
               ])
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="weight"
               size={24}
               color={colors.contentSecondary}
@@ -661,7 +667,8 @@ export default function SettingsScreen() {
               )
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="map-marker-distance"
               size={24}
               color={colors.contentSecondary}
@@ -685,7 +692,8 @@ export default function SettingsScreen() {
               ])
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="tape-measure"
               size={24}
               color={colors.contentSecondary}
@@ -717,7 +725,8 @@ export default function SettingsScreen() {
               )
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="plus"
               size={24}
               color={colors.contentSecondary}
@@ -744,7 +753,8 @@ export default function SettingsScreen() {
               )
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="timer"
               size={24}
               color={colors.contentSecondary}
@@ -769,7 +779,8 @@ export default function SettingsScreen() {
               )
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="timer-play-outline"
               size={24}
               color={colors.contentSecondary}
@@ -785,7 +796,8 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="volume-high"
               size={24}
               color={colors.contentSecondary}
@@ -809,7 +821,8 @@ export default function SettingsScreen() {
             />
           </View>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="volume-high"
               size={24}
               color={colors.contentSecondary}
@@ -833,7 +846,8 @@ export default function SettingsScreen() {
             />
           </View>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="vibrate"
               size={24}
               color={colors.contentSecondary}
@@ -857,7 +871,8 @@ export default function SettingsScreen() {
             />
           </View>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="volume-high"
               size={24}
               color={colors.contentSecondary}
@@ -903,7 +918,8 @@ export default function SettingsScreen() {
             />
           </View>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="cellphone"
               size={24}
               color={colors.contentSecondary}
@@ -927,7 +943,8 @@ export default function SettingsScreen() {
             />
           </View>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="history"
               size={24}
               color={colors.contentSecondary}
@@ -958,7 +975,8 @@ export default function SettingsScreen() {
             <Trans>Stats</Trans>
           </ThemedText>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="fire-off"
               size={24}
               color={colors.contentSecondary}
@@ -982,7 +1000,8 @@ export default function SettingsScreen() {
             />
           </View>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="arm-flex"
               size={24}
               color={colors.contentSecondary}
@@ -1006,7 +1025,8 @@ export default function SettingsScreen() {
             />
           </View>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="dumbbell"
               size={24}
               color={colors.contentSecondary}
@@ -1037,7 +1057,8 @@ export default function SettingsScreen() {
             <Trans>Reminders</Trans>
           </ThemedText>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="bell"
               size={24}
               color={colors.contentSecondary}
@@ -1061,7 +1082,8 @@ export default function SettingsScreen() {
           {workoutReminderEnabled && (
             <>
               <View style={[styles.item, { alignItems: "flex-start" }]}>
-                <MaterialCommunityIcons
+                <AppIcon
+                  set="mci"
                   name="calendar-week"
                   size={24}
                   color={colors.contentSecondary}
@@ -1115,7 +1137,8 @@ export default function SettingsScreen() {
                   )
                 }
               >
-                <MaterialCommunityIcons
+                <AppIcon
+                  set="mci"
                   name="clock-outline"
                   size={24}
                   color={colors.contentSecondary}
@@ -1145,7 +1168,8 @@ export default function SettingsScreen() {
               showOverlay("defaultSets", settings?.defaultSets || "", "number")
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="numeric"
               size={24}
               color={colors.contentSecondary}
@@ -1170,7 +1194,8 @@ export default function SettingsScreen() {
               )
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="clock"
               size={24}
               color={colors.contentSecondary}
@@ -1186,7 +1211,8 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="cloud-download"
               size={24}
               color={colors.contentSecondary}
@@ -1228,7 +1254,8 @@ export default function SettingsScreen() {
             <Trans>Appearance</Trans>
           </ThemedText>
           <View style={styles.item}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="view-dashboard"
               size={24}
               color={colors.contentSecondary}
@@ -1259,7 +1286,8 @@ export default function SettingsScreen() {
               ])
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="resize"
               size={24}
               color={colors.contentSecondary}
@@ -1283,7 +1311,7 @@ export default function SettingsScreen() {
             style={styles.item}
             // onPress={confirmClearDatabase}
           >
-            <MaterialCommunityIcons
+            <AppIcon set="mci"
               name="delete"
               size={24}
               color={colors.contentSecondary}
@@ -1299,7 +1327,7 @@ export default function SettingsScreen() {
             style={styles.item}
             // onPress={resetLoginShownSetting}
           >
-            <MaterialCommunityIcons
+            <AppIcon set="mci"
               name="delete"
               size={24}
               color={colors.contentSecondary}
@@ -1315,7 +1343,7 @@ export default function SettingsScreen() {
             style={styles.item}
             onPress={() => Bugsnag.notify(new Error("Settings test error"))}
           >
-            <MaterialCommunityIcons
+            <AppIcon set="mci"
               name="bug"
               size={24}
               color={colors.contentSecondary}
@@ -1326,7 +1354,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity style={styles.item} onPress={clearActivePlanStatus}>
-            <MaterialCommunityIcons
+            <AppIcon set="mci"
               name="bug"
               size={24}
               color={colors.contentSecondary}
@@ -1351,7 +1379,8 @@ export default function SettingsScreen() {
               Linking.openURL("https://www.featurize.io/p/musclequest")
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="vote"
               size={24}
               color={colors.contentSecondary}
@@ -1369,7 +1398,8 @@ export default function SettingsScreen() {
               Linking.openURL("https://buymeacoffee.com/musclequest")
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="coffee"
               size={24}
               color={colors.contentSecondary}
@@ -1385,7 +1415,8 @@ export default function SettingsScreen() {
             style={styles.item}
             onPress={() => Linking.openURL("https://musclequest.app")}
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="web"
               size={24}
               color={colors.contentSecondary}
@@ -1403,7 +1434,8 @@ export default function SettingsScreen() {
               Linking.openURL("https://www.instagram.com/musclequest.app/")
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="instagram"
               size={24}
               color={colors.contentSecondary}
@@ -1419,7 +1451,8 @@ export default function SettingsScreen() {
             style={styles.item}
             onPress={() => Linking.openURL("https://joseph.bouqdib.com")}
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="account"
               size={24}
               color={colors.contentSecondary}
@@ -1437,7 +1470,8 @@ export default function SettingsScreen() {
               Linking.openURL("https://musclequest.app/privacy-policy")
             }
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="shield-lock"
               size={24}
               color={colors.contentSecondary}

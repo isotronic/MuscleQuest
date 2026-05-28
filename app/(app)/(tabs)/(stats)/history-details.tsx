@@ -14,7 +14,7 @@ import {
 } from "expo-router";
 import { byteArrayToBase64 } from "@/utils/utility";
 import { parseISO, format } from "date-fns";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { fetchCompletedWorkoutById } from "@/utils/database";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
@@ -197,7 +197,8 @@ export default function HistoryDetailsScreen() {
         </View>
         <View style={styles.summaryRow}>
           <View style={styles.summaryItem}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="clock"
               size={24}
               color={colors.contentSecondary}
@@ -211,7 +212,8 @@ export default function HistoryDetailsScreen() {
             </ThemedText>
           </View>
           <View style={styles.summaryItem}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="numeric"
               size={24}
               color={colors.contentSecondary}
@@ -225,7 +227,8 @@ export default function HistoryDetailsScreen() {
             </ThemedText>
           </View>
           <View style={styles.summaryItem}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="scale"
               size={24}
               color={colors.contentSecondary}

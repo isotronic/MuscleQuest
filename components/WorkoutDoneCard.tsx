@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { PlanScheduleEntry } from "@/utils/database";
@@ -56,7 +56,8 @@ export default function WorkoutDoneCard({
   return (
     <Pressable onPress={onPress} disabled={!onPress}>
       <ThemedView style={styles.card}>
-        <MaterialCommunityIcons
+        <AppIcon
+          set="mci"
           name="check-circle-outline"
           size={28}
           color={colors.success}
@@ -75,7 +76,8 @@ export default function WorkoutDoneCard({
           )}
         </View>
         {onPress && (
-          <MaterialCommunityIcons
+          <AppIcon
+            set="mci"
             name="chevron-right"
             size={20}
             color={colors.contentSecondary}
