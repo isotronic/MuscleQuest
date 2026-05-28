@@ -338,6 +338,11 @@ export default function HomeScreen() {
           <WeekDays
             completedWorkoutsThisWeek={completedWorkoutsThisWeek}
             onDayPress={handleDayPress}
+            scheduledDayIndices={
+              planScheduleEntries?.length
+                ? new Set(planScheduleEntries.map((e) => e.day_of_week))
+                : undefined
+            }
           />
         </View>
         <View style={styles.summaryContainer}>
