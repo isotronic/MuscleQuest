@@ -413,9 +413,9 @@ export const ExerciseProgressionChart: React.FC<
   // Fixed chart width; spacing computed to fit with equal margins on both sides
   // 30d labels are "17 May" (~36px wide) centered on the first point; give
   // extra left room so they are not clipped by the y-axis.
-  const initialSpacing = timeRange === "30" ? 17 : INITIAL_SPACING;
+  const initialSpacing = timeRange === "30" ? 18 : INITIAL_SPACING;
   const chartWidth =
-    screenWidth - HORIZONTAL_INSETS - Y_AXIS_WIDTH - INITIAL_SPACING;
+    screenWidth - HORIZONTAL_INSETS - Y_AXIS_WIDTH - initialSpacing;
   const n = chartData.length;
   const spacing =
     n > 1
