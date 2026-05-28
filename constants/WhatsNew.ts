@@ -280,6 +280,14 @@ The exercise library now has sort chips so you can find exercises faster. Sort b
 For bodyweight exercises like pull-ups or dips, you can now toggle on weight tracking per workout. Perfect for weighted variations, so you can log the added weight and track progression over time.
 `,
   },
+  {
+    version: 2633,
+    message: msg`
+🗂️ New: Plan View Options!
+
+The Plans screen now has three display modes. Use the icons next to the "Your Training Plans" heading to switch between Carousel, List, and Grid view. Your preferred layout is saved automatically.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
