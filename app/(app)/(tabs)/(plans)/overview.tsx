@@ -269,7 +269,7 @@ export default function PlanOverviewScreen() {
         onDismiss={() => setSnackbarVisible(false)}
         duration={2000}
         style={{
-          backgroundColor: snackbarError ? "red" : colors.success,
+          backgroundColor: snackbarError ? colors.danger : colors.success,
         }}
         action={{
           label: t`DISMISS`,
