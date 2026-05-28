@@ -1,9 +1,8 @@
-import { Text, TextProps, StyleSheet } from "react-native";
+import { type ComponentProps } from "react";
+import { Text, StyleSheet } from "react-native";
 import { useAppTheme } from "@/theme";
 
-type TextPropsType = typeof TextProps;
-
-export type ThemedTextProps = TextPropsType & {
+export type ThemedTextProps = ComponentProps<typeof Text> & {
   type?: "default" | "title" | "defaultSemiBold" | "subtitle" | "link";
 };
 
