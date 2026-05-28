@@ -42,9 +42,13 @@ export const palette = {
   violet: "#8E24AA",
   magenta: "#CC44FF",
 
-  // Overlay
+  // Overlays
   blackOverlay65: "rgba(0, 0, 0, 0.65)",
   blackOverlay15: "rgba(0, 0, 0, 0.15)",
+  whiteOverlay12: "rgba(255, 255, 255, 0.12)",
+
+  // Muted variants
+  crimsonMuted: "#e7404380",
 
   transparent: "transparent",
   white: "#FFFFFF",

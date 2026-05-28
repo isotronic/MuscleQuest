@@ -29,6 +29,8 @@ export const classicTheme: AppTheme = {
     badgeFailure: palette.ember,
     exerciseHighlight: palette.coral,
     modalBackdrop: palette.blackOverlay65,
+    surfaceHighlight: palette.whiteOverlay12,
+    dangerMuted: palette.crimsonMuted,
   },
 
   typography,
@@ -63,7 +65,7 @@ export const classicTheme: AppTheme = {
     labelSize: 10,
     gridColor: palette.transparent,
     areaStartFill: "rgba(235, 170, 57, 0.4)",
-    areaEndFill: "rgba(235, 170, 57, 0)",
+    areaEndFill: "rgba(235, 170, 57, 0.08)",
     negativeAreaStartFill: "rgba(231, 64, 67, 0.4)",
     negativeAreaEndFill: "rgba(231, 64, 67, 0)",
     thickness: 2,
@@ -82,6 +84,7 @@ export const classicTheme: AppTheme = {
       cardio: palette.violet,
     },
     bodyPartFallbackColor: palette.magenta,
+    pointerStripColor: "rgba(255,255,255,0.15)",
   },
 
   gradients: {

@@ -289,7 +289,7 @@ export const BodyMeasurementLineChart: React.FC<
         isAnimated
         areaChart
         startFillColor={chartTheme.areaStartFill}
-        endFillColor="rgba(235,170,57,0.08)"
+        endFillColor={chartTheme.areaEndFill}
         yAxisColor="transparent"
         yAxisTextStyle={styles.yAxisLabel}
         xAxisLabelTextStyle={styles.xAxisLabel}
@@ -302,7 +302,7 @@ export const BodyMeasurementLineChart: React.FC<
           activatePointersInstantlyOnTouch: true,
           persistPointer: true,
           showPointerStrip: true,
-          pointerStripColor: "rgba(255,255,255,0.15)",
+          pointerStripColor: chartTheme.pointerStripColor,
           pointerStripWidth: 1,
           pointerColor: colors.danger,
           radius: 5,

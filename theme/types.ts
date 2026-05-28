@@ -33,6 +33,8 @@ export interface AppThemeColors {
   // Miscellaneous / special
   exerciseHighlight: string; // category highlight in exercise lists (#FF6F61)
   modalBackdrop: string;
+  surfaceHighlight: string; // semi-transparent surface tint for chips/tags
+  dangerMuted: string; // danger at ~50% opacity for subtle borders
 }
 
 export interface AppThemeTypography {
@@ -117,6 +119,7 @@ export interface AppThemeCharts {
   noOfSections: number;
   bodyPartColors: Record<string, string>;
   bodyPartFallbackColor: string;
+  pointerStripColor: string;
 }
 
 export interface AppThemeGradients {

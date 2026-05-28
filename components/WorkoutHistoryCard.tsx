@@ -128,7 +128,7 @@ function createStyles(colors: AppThemeColors) {
       marginTop: 10,
     },
     chip: {
-      backgroundColor: "rgba(255, 255, 255, 0.12)",
+      backgroundColor: colors.surfaceHighlight,
       borderRadius: radii.sm,
       paddingHorizontal: 8,
       paddingVertical: 3,

@@ -371,7 +371,7 @@ function createStyles(colors: AppThemeColors) {
       marginBottom: 32,
     },
     deleteButton: {
-      borderColor: colors.danger + "80",
+      borderColor: colors.dangerMuted,
     },
   });
 }
