@@ -205,7 +205,7 @@ function createStyles(colors: AppThemeColors) {
       paddingHorizontal: 14,
       alignItems: "center",
       borderWidth: 1,
-      borderColor: colors.accent + "40",
+      borderColor: colors.accentBorder,
     },
     pillLabelRow: {
       flexDirection: "row",
@@ -235,7 +235,7 @@ function createStyles(colors: AppThemeColors) {
       paddingVertical: 5,
       paddingHorizontal: 10,
       borderWidth: 1,
-      borderColor: colors.accent + "60",
+      borderColor: colors.accentBorderStrong,
       zIndex: 10,
     },
     tooltipText: {

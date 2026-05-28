@@ -35,6 +35,9 @@ export interface AppThemeColors {
   modalBackdrop: string;
   surfaceHighlight: string; // semi-transparent surface tint for chips/tags
   dangerMuted: string; // danger at ~50% opacity for subtle borders
+  accentSubtle: string; // accent at ~15% opacity for selection/highlight backgrounds
+  accentBorder: string; // accent at ~25% opacity for subtle borders
+  accentBorderStrong: string; // accent at ~38% opacity for more visible borders
 }
 
 export interface AppThemeTypography {

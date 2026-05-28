@@ -288,7 +288,7 @@ function createStyles(colors: AppThemeColors) {
       backgroundColor: colors.card,
     },
     kindChipActive: {
-      backgroundColor: colors.accent + "25",
+      backgroundColor: colors.accentSubtle,
       borderWidth: 1,
       borderColor: colors.accent,
     },

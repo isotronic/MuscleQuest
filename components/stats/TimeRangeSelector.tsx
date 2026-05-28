@@ -61,7 +61,7 @@ function createStyles(colors: AppThemeColors) {
       backgroundColor: colors.card,
     },
     pillActive: {
-      backgroundColor: colors.accent + "25",
+      backgroundColor: colors.accentSubtle,
       borderWidth: 1,
       borderColor: colors.accent,
     },

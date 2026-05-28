@@ -47,8 +47,11 @@ export const palette = {
   blackOverlay15: "rgba(0, 0, 0, 0.15)",
   whiteOverlay12: "rgba(255, 255, 255, 0.12)",
 
-  // Muted variants
+  // Muted / alpha variants
   crimsonMuted: "#e7404380",
+  goldAlpha25: "#ebaa3925",
+  goldAlpha40: "#ebaa3940",
+  goldAlpha60: "#ebaa3960",
 
   transparent: "transparent",
   white: "#FFFFFF",

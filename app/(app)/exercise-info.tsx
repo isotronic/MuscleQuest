@@ -458,7 +458,7 @@ function createStyles(colors: AppThemeColors) {
       backgroundColor: colors.card,
     },
     tabPillActive: {
-      backgroundColor: colors.accent + "25",
+      backgroundColor: colors.accentSubtle,
       borderWidth: 1,
       borderColor: colors.accent,
     },
@@ -553,7 +553,7 @@ function createStyles(colors: AppThemeColors) {
       gap: 8,
     },
     setRowPR: {
-      backgroundColor: colors.accent + "18",
+      backgroundColor: colors.accentSubtle,
     },
     setBadge: {
       minWidth: 44,

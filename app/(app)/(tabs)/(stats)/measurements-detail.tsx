@@ -348,7 +348,7 @@ function createStyles(colors: AppThemeColors) {
       marginRight: 8,
     },
     chipActive: {
-      backgroundColor: colors.accent + "25",
+      backgroundColor: colors.accentSubtle,
       borderWidth: 1,
       borderColor: colors.accent,
     },

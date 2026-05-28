@@ -31,6 +31,9 @@ export const classicTheme: AppTheme = {
     modalBackdrop: palette.blackOverlay65,
     surfaceHighlight: palette.whiteOverlay12,
     dangerMuted: palette.crimsonMuted,
+    accentSubtle: palette.goldAlpha25,
+    accentBorder: palette.goldAlpha40,
+    accentBorderStrong: palette.goldAlpha60,
   },
 
   typography,

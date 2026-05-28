@@ -567,7 +567,7 @@ function createStyles(colors: AppThemeColors) {
       backgroundColor: colors.cardSecondary,
     },
     metricPillActive: {
-      backgroundColor: colors.accent + "25",
+      backgroundColor: colors.accentSubtle,
       borderWidth: 1,
       borderColor: colors.accent,
     },

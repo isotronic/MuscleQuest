@@ -261,7 +261,7 @@ function createStyles(colors: AppThemeColors) {
     },
     dayTileActive: {
       borderColor: colors.accent,
-      backgroundColor: colors.accent + "22",
+      backgroundColor: colors.accentSubtle,
     },
     dayTileDisabled: {
       opacity: 0.4,
