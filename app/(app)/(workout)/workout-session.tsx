@@ -1464,7 +1464,6 @@ function createStyles(colors: AppThemeColors) {
       bottom: 0,
       right: 16,
       left: 16,
-      width: "100%",
       paddingTop: 8,
       paddingBottom: 8,
       backgroundColor: colors.card,

@@ -1,13 +1,15 @@
-import { DefaultTheme } from "react-native-paper";
+import { MD3LightTheme, MD3DarkTheme } from "react-native-paper";
 import type { MD3Theme } from "react-native-paper";
 import type { AppTheme } from "../types";
 
 export function derivePaperTheme(theme: AppTheme): MD3Theme {
+  const base = theme.mode === "dark" ? MD3DarkTheme : MD3LightTheme;
   return {
-    ...DefaultTheme,
+    ...base,
+    dark: theme.mode === "dark",
     roundness: theme.paper.roundness,
     colors: {
-      ...DefaultTheme.colors,
+      ...base.colors,
       primary: theme.colors.accent,
       primaryContainer: theme.colors.accent,
       onPrimary: theme.colors.onAccent,

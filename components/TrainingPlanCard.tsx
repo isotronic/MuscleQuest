@@ -112,7 +112,9 @@ function createStyles(colors: AppThemeColors) {
       color: colors.contentPrimary,
       fontWeight: "bold",
       textAlign: "center",
-      textShadow: "2px 2px 4px rgba(0, 0, 0, 0.75)",
+      textShadowColor: "rgba(0, 0, 0, 0.75)",
+      textShadowOffset: { width: 2, height: 2 },
+      textShadowRadius: 4,
     },
     activeBadge: {
       position: "absolute",

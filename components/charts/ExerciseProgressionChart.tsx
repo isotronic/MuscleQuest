@@ -357,6 +357,8 @@ export const ExerciseProgressionChart: React.FC<
     preRangeBaseline,
     metricMode,
     showMetricToggle,
+    styles,
+    colors.contentPrimary,
   ]);
 
   const latestSet = exercise.completed_sets[0];

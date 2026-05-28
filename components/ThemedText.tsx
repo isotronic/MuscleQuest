@@ -4,15 +4,11 @@ import { useAppTheme } from "@/theme";
 type TextPropsType = typeof TextProps;
 
 export type ThemedTextProps = TextPropsType & {
-  lightColor?: string;
-  darkColor?: string;
   type?: "default" | "title" | "defaultSemiBold" | "subtitle" | "link";
 };
 
 export function ThemedText({
   style,
-  lightColor: _lightColor,
-  darkColor: _darkColor,
   type = "default",
   ...rest
 }: ThemedTextProps) {

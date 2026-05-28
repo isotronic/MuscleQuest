@@ -8,6 +8,7 @@ import { elevation } from "../tokens/elevation";
 
 export const classicTheme: AppTheme = {
   name: "classic",
+  mode: "dark",
 
   colors: {
     background: palette.void,

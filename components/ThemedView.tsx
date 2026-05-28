@@ -3,17 +3,9 @@ import { useAppTheme } from "@/theme";
 
 type ViewPropsType = typeof ViewProps;
 
-export type ThemedViewProps = ViewPropsType & {
-  lightColor?: string;
-  darkColor?: string;
-};
+export type ThemedViewProps = ViewPropsType;
 
-export function ThemedView({
-  style,
-  lightColor: _lightColor,
-  darkColor: _darkColor,
-  ...otherProps
-}: ThemedViewProps) {
+export function ThemedView({ style, ...otherProps }: ThemedViewProps) {
   const { colors } = useAppTheme();
 
   return (

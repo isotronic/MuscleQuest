@@ -181,7 +181,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       keyboardType="numeric"
                       style={styles.numberInput}
                       selectTextOnFocus={true}
-                      onSubmitEditing={onSave}
+                      onSubmitEditing={() => onSave(inputValue)}
                     />
                     <AppIcon
                       set="mci"

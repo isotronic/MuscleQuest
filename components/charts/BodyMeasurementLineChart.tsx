@@ -250,7 +250,7 @@ export const BodyMeasurementLineChart: React.FC<
     });
 
     return { chartData: points, yAxisOffset: yMin, yAxisMax: yMax - yMin };
-  }, [data, timeRange]);
+  }, [data, timeRange, styles, colors.contentPrimary]);
 
   // 30d uses "4 May" labels (~28px at size 9), needs more room than single-digit labels
   const initialSpacing = timeRange === "30" ? 20 : 10;

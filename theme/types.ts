@@ -2,6 +2,8 @@ import type { ViewStyle } from "react-native/Libraries/StyleSheet/StyleSheetType
 
 export type ThemeName = "classic" | "rpg";
 
+export type ThemeMode = "dark" | "light";
+
 export interface AppThemeColors {
   // Backgrounds
   background: string; // nav bar / header
@@ -143,6 +145,7 @@ export interface AppThemeInputs {
 
 export interface AppTheme {
   name: ThemeName;
+  mode: ThemeMode;
   colors: AppThemeColors;
   typography: AppThemeTypography;
   spacing: AppThemeSpacing;

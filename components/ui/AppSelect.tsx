@@ -4,7 +4,7 @@ import type { StyleProp } from "react-native/Libraries/StyleSheet/StyleSheet";
 import type { ViewStyle } from "react-native/Libraries/StyleSheet/StyleSheetTypes";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 import { useAppTheme } from "@/theme";
-import { radii } from "@/theme";
+import type { AppThemeRadii } from "@/theme/types";
 
 export interface SelectOption {
   label: string;
@@ -40,7 +40,7 @@ interface AppSelectMultiProps extends AppSelectBaseProps {
 type AppSelectProps = AppSelectSingleProps | AppSelectMultiProps;
 
 export function AppSelect(props: AppSelectProps) {
-  const { inputs, colors } = useAppTheme();
+  const { inputs, colors, radii } = useAppTheme();
 
   const styles = useMemo(
     () =>
@@ -49,8 +49,9 @@ export function AppSelect(props: AppSelectProps) {
         inputs.dropdownText,
         inputs.dropdownBorder,
         colors.surface,
+        radii,
       ),
-    [inputs, colors.surface],
+    [inputs, colors.surface, radii],
   );
 
   const sharedProps = {
@@ -100,6 +101,7 @@ function createStyles(
   dropdownText: string,
   dropdownBorder: string,
   searchBg: string,
+  radii: AppThemeRadii,
 ) {
   return StyleSheet.create({
     dropdown: {
