@@ -10,7 +10,6 @@ import type { AppThemeColors } from "@/theme/types";
 import { ActivityIndicator, IconButton, Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { Image } from "expo-image";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { ThemedView } from "@/components/ThemedView";
 import { useExerciseInfoQuery } from "@/hooks/useExerciseInfoQuery";
@@ -23,7 +22,7 @@ import {
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { formatSetMetric } from "@/utils/formatSetMetric";
 import Bugsnag from "@bugsnag/expo";
-import { AppIcon } from "@/components/ui";
+import { AppIcon, AppImage } from "@/components/ui";
 import { Notes } from "@/components/Notes";
 import { ExerciseProgressionChart } from "@/components/charts/ExerciseProgressionChart";
 import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
@@ -179,7 +178,7 @@ export default function ExerciseInfoScreen() {
         {animatedImageLoading ? (
           <ActivityIndicator size="large" />
         ) : (
-          <Image
+          <AppImage
             style={styles.image}
             source={animatedUrl ? { uri: animatedUrl } : fallbackImage}
           />

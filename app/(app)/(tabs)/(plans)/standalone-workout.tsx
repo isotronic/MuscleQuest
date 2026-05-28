@@ -10,7 +10,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { UserExercise } from "@/store/workoutStore";
-import { Image } from "expo-image";
+import { AppImage } from "@/components/ui";
 import {
   ActivityIndicator,
   Button,
@@ -158,14 +158,17 @@ export default function StandaloneWorkoutScreen() {
       >
         <View style={styles.exerciseItem}>
           {base64Image ? (
-            <Image style={styles.exerciseImage} source={{ uri: base64Image }} />
+            <AppImage
+              style={styles.exerciseImage}
+              source={{ uri: base64Image }}
+            />
           ) : item.local_animated_uri ? (
-            <Image
+            <AppImage
               style={styles.exerciseImage}
               source={{ uri: item.local_animated_uri }}
             />
           ) : (
-            <Image style={styles.exerciseImage} source={fallbackImage} />
+            <AppImage style={styles.exerciseImage} source={fallbackImage} />
           )}
           <View style={styles.exerciseInfo}>
             <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
@@ -214,7 +217,9 @@ export default function StandaloneWorkoutScreen() {
           <Modal visible={isStarting} dismissable={false}>
             <View style={styles.centered}>
               <ActivityIndicator size="large" color={colors.contentPrimary} />
-              <ThemedText style={{ marginTop: 12, color: colors.contentPrimary }}>
+              <ThemedText
+                style={{ marginTop: 12, color: colors.contentPrimary }}
+              >
                 <Trans>Starting Workout...</Trans>
               </ThemedText>
             </View>

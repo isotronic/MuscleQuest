@@ -16,7 +16,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { Button } from "react-native-paper";
 import { useQueryClient } from "@tanstack/react-query";
-import { Image } from "expo-image";
+import { AppImage } from "@/components/ui";
 import Bugsnag from "@bugsnag/expo";
 import { ScrollView } from "react-native";
 import { useMemo } from "react";
@@ -80,7 +80,7 @@ export default function LoginScreen() {
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-        <Image source={logo} style={styles.logo} />
+        <AppImage source={logo} style={styles.logo} />
         <ThemedText style={styles.welcomeText}>
           <Trans>Welcome to MuscleQuest!</Trans>
         </ThemedText>

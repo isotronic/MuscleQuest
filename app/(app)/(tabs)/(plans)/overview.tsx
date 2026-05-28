@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { Image } from "expo-image";
+import { AppImage } from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
@@ -200,7 +200,7 @@ export default function PlanOverviewScreen() {
       )}
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.planHeader}>
-          <Image source={imageSource} style={styles.planImage} />
+          <AppImage source={imageSource} style={styles.planImage} />
           <ThemedText style={styles.planName}>{plan?.name}</ThemedText>
           {plan?.is_active === 1 && (
             <View style={styles.activeBadge}>

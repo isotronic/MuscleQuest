@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { Checkbox } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
-import { Image } from "expo-image";
+import { AppImage } from "@/components/ui";
 import { capitalizeWords } from "@/utils/utility";
 import { Exercise } from "@/utils/database";
 import { useLingui } from "@lingui/react";
@@ -39,9 +39,12 @@ const ExerciseItem = ({
     <TouchableOpacity onPress={() => onPress(item)}>
       <View key={item.exercise_id} style={styles.exerciseItem}>
         {item.image ? (
-          <Image style={styles.exerciseImage} source={{ uri: base64Image }} />
+          <AppImage
+            style={styles.exerciseImage}
+            source={{ uri: base64Image }}
+          />
         ) : (
-          <Image style={styles.exerciseImage} source={fallbackImage} />
+          <AppImage style={styles.exerciseImage} source={fallbackImage} />
         )}
         <View style={styles.exerciseInfo}>
           <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>

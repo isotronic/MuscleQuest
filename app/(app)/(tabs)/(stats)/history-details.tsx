@@ -2,7 +2,6 @@ import { useMemo, useState, useCallback, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Alert } from "react-native";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { Image } from "expo-image";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { ActivityIndicator, Card, IconButton } from "react-native-paper";
@@ -14,7 +13,7 @@ import {
 } from "expo-router";
 import { byteArrayToBase64 } from "@/utils/utility";
 import { parseISO, format } from "date-fns";
-import { AppIcon } from "@/components/ui";
+import { AppIcon, AppImage } from "@/components/ui";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { fetchCompletedWorkoutById } from "@/utils/database";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
@@ -252,12 +251,12 @@ export default function HistoryDetailsScreen() {
               <Card key={exercise.exercise_id} style={styles.exerciseCard}>
                 <View style={styles.exerciseHeader}>
                   {imageUri ? (
-                    <Image
+                    <AppImage
                       source={{ uri: imageUri }}
                       style={styles.exerciseImage}
                     />
                   ) : (
-                    <Image
+                    <AppImage
                       source={fallbackImage}
                       style={styles.exerciseImage}
                     />

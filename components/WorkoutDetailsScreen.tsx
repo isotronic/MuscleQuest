@@ -7,7 +7,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { UserExercise } from "@/store/workoutStore";
-import { Image } from "expo-image";
+import { AppImage } from "@/components/ui";
 import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
 import { classifySupersetPosition } from "@/utils/supersetUtils";
 import Bugsnag from "@bugsnag/expo";
@@ -122,17 +122,17 @@ export default function WorkoutDetailsScreen() {
             ]}
           >
             {item.image.length > 0 ? (
-              <Image
+              <AppImage
                 style={styles.exerciseImage}
                 source={{ uri: base64Image }}
               />
             ) : item.local_animated_uri ? (
-              <Image
+              <AppImage
                 style={styles.exerciseImage}
                 source={item.local_animated_uri}
               />
             ) : (
-              <Image style={styles.exerciseImage} source={fallbackImage} />
+              <AppImage style={styles.exerciseImage} source={fallbackImage} />
             )}
             <View style={styles.exerciseInfo}>
               <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>

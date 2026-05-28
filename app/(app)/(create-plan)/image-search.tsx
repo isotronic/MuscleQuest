@@ -6,7 +6,7 @@ import {
   View,
   Alert,
 } from "react-native";
-import { Image } from "expo-image";
+import { AppImage } from "@/components/ui";
 import { useNavigation } from "expo-router";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -60,7 +60,7 @@ export default function ImageSearchScreen() {
         renderItem={({ item }: { item: { id: string; uri: string } }) => (
           <View style={styles.imageContainer}>
             <TouchableOpacity onPress={() => handleImageSelect(item.uri)}>
-              <Image source={{ uri: item.uri }} style={styles.image} />
+              <AppImage source={{ uri: item.uri }} style={styles.image} />
             </TouchableOpacity>
           </View>
         )}

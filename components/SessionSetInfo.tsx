@@ -8,11 +8,10 @@ import {
   Button,
   Menu,
 } from "react-native-paper";
-import { Image } from "expo-image";
+import { AppImage, AppIcon } from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
 import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
-import { AppIcon } from "@/components/ui";
 import { formatFromTotalSeconds, formatTimeInput } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
 import { useContinuousPress } from "@/hooks/useContinuousPress";
@@ -173,11 +172,11 @@ export default function SessionSetInfo({
             <ActivityIndicator size="small" color={colors.contentPrimary} />
           ) : animatedImageError ? (
             <TouchableOpacity onPress={handleImagePress}>
-              <Image style={styles.animatedImage} source={fallbackImage} />
+              <AppImage style={styles.animatedImage} source={fallbackImage} />
             </TouchableOpacity>
           ) : animatedUrl ? (
             <TouchableOpacity onPress={handleImagePress}>
-              <Image
+              <AppImage
                 style={styles.animatedImage}
                 source={{
                   uri: animatedUrl,
@@ -186,7 +185,7 @@ export default function SessionSetInfo({
             </TouchableOpacity>
           ) : (
             <TouchableOpacity onPress={handleImagePress}>
-              <Image style={styles.animatedImage} source={fallbackImage} />
+              <AppImage style={styles.animatedImage} source={fallbackImage} />
             </TouchableOpacity>
           )}
           <View style={styles.titleContainer}>
