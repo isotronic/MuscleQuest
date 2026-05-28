@@ -1,17 +1,19 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useEffect } from "react";
 import { router, Stack } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button } from "react-native-paper";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAllPlansQuery, Plan } from "@/hooks/useAllPlansQuery";
-import { PlanList } from "@/components/PlanList";
+import { PlanList, PlanViewMode } from "@/components/PlanList";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 import StandaloneWorkoutListItem from "@/components/StandaloneWorkoutListItem";
 import { Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { updateSettings } from "@/utils/database";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useAppTheme } from "@/theme";
@@ -20,9 +22,13 @@ import type { AppThemeColors } from "@/theme/types";
 export default function PlansScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const queryClient = useQueryClient();
   const { data: plans, isLoading, isError, error } = useAllPlansQuery();
   const { data: settings } = useSettingsQuery();
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
+  const [viewMode, setViewMode] = useState<PlanViewMode>(
+    (settings?.plansViewMode as PlanViewMode) ?? "carousel",
+  );
   const {
     data: standaloneWorkouts,
     isLoading: standaloneIsLoading,
@@ -35,6 +41,18 @@ export default function PlansScreen() {
       Bugsnag.notify(standaloneError as Error);
     }
   }, [standaloneIsError, standaloneError]);
+
+  useEffect(() => {
+    if (settings?.plansViewMode) {
+      setViewMode(settings.plansViewMode as PlanViewMode);
+    }
+  }, [settings?.plansViewMode]);
+
+  const handleViewModeChange = async (mode: PlanViewMode) => {
+    setViewMode(mode);
+    await updateSettings("plansViewMode", mode);
+    queryClient.invalidateQueries({ queryKey: ["settings"] });
+  };
 
   const handleCreatePlan = () => {
     router.push("/(app)/(create-plan)/create");
@@ -103,11 +121,15 @@ export default function PlansScreen() {
           title={t`Your training plans`}
           data={plans?.userPlans}
           onPressItem={handleViewPlan}
+          viewMode={viewMode}
+          showViewToggle
+          onViewModeChange={handleViewModeChange}
         />
         <PlanList
           title={t`Premade plans`}
           data={plans?.appPlans}
           onPressItem={handleViewPlan}
+          viewMode={viewMode}
         />
         <View style={styles.workoutsSection}>
           <ThemedText style={styles.sectionTitle}>

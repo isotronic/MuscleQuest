@@ -17,14 +17,16 @@ export default function TrainingPlanCard({
   imageUrl,
   onPress,
   isActive,
+  width = 300,
 }: {
   title?: string;
   imageUrl?: string;
   onPress: () => void;
   isActive: boolean;
+  width?: number;
 }) {
   const { colors } = useAppTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors, width), [colors, width]);
   const animatedValue = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -86,15 +88,16 @@ export default function TrainingPlanCard({
   );
 }
 
-function createStyles(colors: AppThemeColors) {
+function createStyles(colors: AppThemeColors, width: number) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      margin: 10,
+      marginVertical: 5,
+      marginLeft: 10,
     },
     card: {
       height: 190,
-      width: 300,
+      width,
       borderRadius: radii.md,
       overflow: "hidden",
     },

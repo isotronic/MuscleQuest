@@ -1202,6 +1202,7 @@ export interface Settings {
   timerCountdownSound: string;
   timerGoalSound: string;
   alwaysUseGlobalHistory: string;
+  plansViewMode: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
