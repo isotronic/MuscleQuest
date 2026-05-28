@@ -292,6 +292,7 @@ export const BodyMeasurementLineChart: React.FC<
         endFillColor={chartTheme.areaEndFill}
         yAxisColor="transparent"
         yAxisTextStyle={styles.yAxisLabel}
+        formatYLabel={(label) => String(Math.round(Number(label)))}
         xAxisLabelTextStyle={styles.xAxisLabel}
         xAxisColor={colors.contentSecondary}
         hideRules
