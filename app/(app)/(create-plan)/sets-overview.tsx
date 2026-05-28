@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   StyleSheet,
   FlatList,
@@ -13,14 +13,17 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useWorkoutStore, Set } from "@/store/workoutStore";
-import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { EditSetModal } from "@/components/EditSetModal";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 export default function SetsOverviewScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { exerciseId, workoutIndex, trackingType } = useLocalSearchParams();
   const workouts = useWorkoutStore((state) => state.workouts);
 
@@ -171,10 +174,11 @@ export default function SetsOverviewScreen() {
               </ThemedText>
             </ThemedView>
           </TouchableOpacity>
-          <MaterialCommunityIcons
+          <AppIcon
+            set="mci"
             name="close"
             size={24}
-            color={Colors.dark.text}
+            color={colors.contentPrimary}
             onPress={() => handleDeleteSet(index)}
             style={styles.deleteIcon}
           />
@@ -220,11 +224,12 @@ export default function SetsOverviewScreen() {
       {isBodyweightExercise && (
         <View style={styles.weightedToggleRow}>
           <View style={styles.weightedToggleLeft}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="weight-kilogram"
               size={20}
               color={
-                isWeightedOverride ? Colors.dark.tint : Colors.dark.subText
+                isWeightedOverride ? colors.accent : colors.contentSecondary
               }
               style={{ marginRight: 10 }}
             />
@@ -236,8 +241,8 @@ export default function SetsOverviewScreen() {
             value={isWeightedOverride}
             onValueChange={handleToggleWeighted}
             trackColor={{
-              false: Colors.dark.screenBackground,
-              true: Colors.dark.tint,
+              false: colors.surface,
+              true: colors.accent,
             }}
           />
         </View>
@@ -278,105 +283,107 @@ export default function SetsOverviewScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  flatList: {
-    flex: 1,
-  },
-  weightedToggleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  weightedToggleLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  weightedToggleLabel: {
-    fontSize: 14,
-    color: Colors.dark.text,
-  },
-  supersetBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: Colors.dark.cardBackground,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.dark.tint,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 12,
-  },
-  supersetBannerLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: Colors.dark.tint,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  supersetBannerPartner: {
-    fontSize: 13,
-    color: Colors.dark.subText,
-  },
-  setItem: {
-    backgroundColor: Colors.dark.cardBackground,
-    padding: 16,
-    marginBottom: 10,
-    borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  warmupSetItem: {
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.dark.badgeWarmup,
-  },
-  groupDivider: {
-    marginBottom: 8,
-    backgroundColor: Colors.dark.subText,
-  },
-  setContent: {
-    flex: 1,
-  },
-  setTextContainer: {
-    flex: 1,
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  setTitle: {
-    fontSize: 18,
-    color: Colors.dark.text,
-    fontWeight: "bold",
-  },
-  setInfo: {
-    fontSize: 16,
-    color: Colors.dark.text,
-    marginTop: 5,
-  },
-  deleteIcon: {
-    paddingLeft: 16,
-  },
-  flatListContent: {
-    paddingBottom: 8,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 8,
-    paddingBottom: 16,
-  },
-  addSetButton: {
-    flex: 1,
-  },
-  buttonLabel: {
-    fontSize: 16,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 16,
+    },
+    flatList: {
+      flex: 1,
+    },
+    weightedToggleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      marginTop: 8,
+      marginBottom: 12,
+    },
+    weightedToggleLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    weightedToggleLabel: {
+      fontSize: 14,
+      color: colors.contentPrimary,
+    },
+    supersetBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.card,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.accent,
+      borderRadius: radii.md,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      marginBottom: 12,
+    },
+    supersetBannerLabel: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: colors.accent,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+    supersetBannerPartner: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+    },
+    setItem: {
+      backgroundColor: colors.card,
+      padding: 16,
+      marginBottom: 10,
+      borderRadius: radii.md,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    warmupSetItem: {
+      borderLeftWidth: 3,
+      borderLeftColor: colors.badgeWarmup,
+    },
+    groupDivider: {
+      marginBottom: 8,
+      backgroundColor: colors.contentSecondary,
+    },
+    setContent: {
+      flex: 1,
+    },
+    setTextContainer: {
+      flex: 1,
+      backgroundColor: colors.card,
+    },
+    setTitle: {
+      fontSize: 18,
+      color: colors.contentPrimary,
+      fontWeight: "bold",
+    },
+    setInfo: {
+      fontSize: 16,
+      color: colors.contentPrimary,
+      marginTop: 5,
+    },
+    deleteIcon: {
+      paddingLeft: 16,
+    },
+    flatListContent: {
+      paddingBottom: 8,
+    },
+    buttonRow: {
+      flexDirection: "row",
+      gap: 8,
+      paddingBottom: 16,
+    },
+    addSetButton: {
+      flex: 1,
+    },
+    buttonLabel: {
+      fontSize: 16,
+    },
+  });
+}

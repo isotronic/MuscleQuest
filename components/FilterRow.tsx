@@ -1,17 +1,13 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { View, StyleSheet, Alert, Text } from "react-native";
-import { Dropdown } from "react-native-element-dropdown";
 import { t } from "@lingui/core/macro";
-import { Colors } from "@/constants/Colors";
 import { capitalizeWords } from "@/utils/utility";
 import { fetchAllRecords, fetchMusclesByFilters } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-
-interface OptionItem {
-  label: string;
-  value: string;
-}
+import { AppIcon } from "@/components/ui";
+import { useAppTheme } from "@/theme";
+import { AppSelect, type SelectOption } from "@/components/ui/AppSelect";
+import type { AppThemeColors } from "@/theme/types";
 
 interface FilterRowProps {
   selectedEquipment: string | null;
@@ -32,10 +28,12 @@ function FilterRow({
   setSelectedTargetMuscle,
   onReady,
 }: FilterRowProps) {
-  const [bodyPartOptions, setBodyPartOptions] = useState<OptionItem[]>([]);
-  const [allMuscleOptions, setAllMuscleOptions] = useState<OptionItem[]>([]);
-  const [muscleOptions, setMuscleOptions] = useState<OptionItem[]>([]);
-  const [equipmentOptions, setEquipmentOptions] = useState<OptionItem[]>([]);
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const [bodyPartOptions, setBodyPartOptions] = useState<SelectOption[]>([]);
+  const [allMuscleOptions, setAllMuscleOptions] = useState<SelectOption[]>([]);
+  const [muscleOptions, setMuscleOptions] = useState<SelectOption[]>([]);
+  const [equipmentOptions, setEquipmentOptions] = useState<SelectOption[]>([]);
   const hasCalledReadyRef = useRef(false);
 
   useEffect(() => {
@@ -44,9 +42,7 @@ function FilterRow({
         const bodyParts = (await fetchAllRecords(
           "userData.db",
           "body_parts",
-        )) as {
-          body_part: string;
-        }[];
+        )) as { body_part: string }[];
         const muscles = (await fetchAllRecords("userData.db", "muscles")) as {
           muscle: string;
         }[];
@@ -55,32 +51,29 @@ function FilterRow({
           "equipment_list",
         )) as { equipment: string }[];
 
-        const bodyPartOptions = [
+        setBodyPartOptions([
           { label: t`All body parts`, value: "all" },
-          ...bodyParts.map((bodyPart) => ({
-            label: capitalizeWords(bodyPart.body_part),
-            value: bodyPart.body_part,
+          ...bodyParts.map((b) => ({
+            label: capitalizeWords(b.body_part),
+            value: b.body_part,
           })),
-        ];
-        const muscleOptions = [
+        ]);
+        const allMuscles = [
           { label: t`All target muscles`, value: "all" },
-          ...muscles.map((muscle) => ({
-            label: capitalizeWords(muscle.muscle),
-            value: muscle.muscle,
+          ...muscles.map((m) => ({
+            label: capitalizeWords(m.muscle),
+            value: m.muscle,
           })),
         ];
-        const equipmentOptions = [
+        setAllMuscleOptions(allMuscles);
+        setMuscleOptions(allMuscles);
+        setEquipmentOptions([
           { label: t`All equipment`, value: "all" },
-          ...equipmentList.map((equipment) => ({
-            label: capitalizeWords(equipment.equipment),
-            value: equipment.equipment,
+          ...equipmentList.map((e) => ({
+            label: capitalizeWords(e.equipment),
+            value: e.equipment,
           })),
-        ];
-
-        setBodyPartOptions(bodyPartOptions);
-        setAllMuscleOptions(muscleOptions);
-        setMuscleOptions(muscleOptions);
-        setEquipmentOptions(equipmentOptions);
+        ]);
 
         if (onReady && !hasCalledReadyRef.current) {
           hasCalledReadyRef.current = true;
@@ -155,50 +148,36 @@ function FilterRow({
     setSelectedTargetMuscle,
   ]);
 
-  const dropdownPlaceholders = {
-    equipment: t`All equipment`,
-    bodyPart: t`All body parts`,
-    targetMuscle: t`All target muscles`,
-  };
-
-  const renderListItem = (item: OptionItem, selected?: boolean) => {
-    return (
-      <View
-        style={[
-          styles.customItemContainer,
-          selected && styles.selectedItemContainer,
-        ]}
-      >
-        <Text style={styles.customItemText}>{item.label}</Text>
-        {selected && item.value !== "all" && (
-          <MaterialCommunityIcons
-            name="check"
-            size={18}
-            color={Colors.dark.text}
-            style={styles.checkmark}
-          />
-        )}
-      </View>
-    );
-  };
+  const renderListItem = (item: SelectOption, selected?: boolean) => (
+    <View
+      style={[
+        styles.customItemContainer,
+        selected && styles.selectedItemContainer,
+      ]}
+    >
+      <Text style={styles.customItemText}>{item.label}</Text>
+      {selected && item.value !== "all" && (
+        <AppIcon
+          set="mci"
+          name="check"
+          size={18}
+          color={colors.contentPrimary}
+          style={styles.checkmark}
+        />
+      )}
+    </View>
+  );
 
   const ItemSeparator = () => <View style={styles.itemSeparator} />;
 
   return (
     <View style={styles.row}>
       <View style={styles.dropdownContainer}>
-        <Dropdown
-          autoScroll={false}
+        <AppSelect
           data={equipmentOptions}
-          labelField="label"
-          valueField="value"
-          placeholder={dropdownPlaceholders.equipment}
-          placeholderStyle={styles.placeholder}
-          style={styles.dropdown}
-          containerStyle={styles.dropdownListContainer}
-          selectedTextStyle={styles.selectedText}
+          placeholder={t`All equipment`}
           value={selectedEquipment}
-          onChange={(item) => setSelectedEquipment(item.value)}
+          onChange={setSelectedEquipment}
           renderItem={renderListItem}
           flatListProps={{
             nestedScrollEnabled: true,
@@ -207,18 +186,11 @@ function FilterRow({
         />
       </View>
       <View style={styles.dropdownContainer}>
-        <Dropdown
-          autoScroll={false}
+        <AppSelect
           data={bodyPartOptions}
-          labelField="label"
-          valueField="value"
-          placeholder={dropdownPlaceholders.bodyPart}
-          placeholderStyle={styles.placeholder}
-          style={styles.dropdown}
-          containerStyle={styles.dropdownListContainer}
-          selectedTextStyle={styles.text}
+          placeholder={t`All body parts`}
           value={selectedBodyPart}
-          onChange={(item) => setSelectedBodyPart(item.value)}
+          onChange={setSelectedBodyPart}
           renderItem={renderListItem}
           flatListProps={{
             nestedScrollEnabled: true,
@@ -227,18 +199,11 @@ function FilterRow({
         />
       </View>
       <View style={styles.dropdownContainerNoMargin}>
-        <Dropdown
-          autoScroll={false}
+        <AppSelect
           data={muscleOptions}
-          labelField="label"
-          valueField="value"
-          placeholder={dropdownPlaceholders.targetMuscle}
-          placeholderStyle={styles.placeholder}
-          style={styles.dropdown}
-          containerStyle={styles.dropdownListContainer}
-          selectedTextStyle={styles.text}
+          placeholder={t`All target muscles`}
           value={selectedTargetMuscle}
-          onChange={(item) => setSelectedTargetMuscle(item.value)}
+          onChange={setSelectedTargetMuscle}
           renderItem={renderListItem}
           flatListProps={{
             nestedScrollEnabled: true,
@@ -250,69 +215,45 @@ function FilterRow({
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingBottom: 8,
-    backgroundColor: Colors.dark.screenBackground,
-    paddingHorizontal: 16,
-    elevation: 10,
-  },
-  dropdownContainer: {
-    flex: 1,
-    marginRight: 4,
-  },
-  dropdownContainerNoMargin: {
-    flex: 1,
-  },
-  dropdown: {
-    backgroundColor: Colors.dark.screenBackground,
-    borderRadius: 8,
-    height: 50,
-    paddingHorizontal: 8,
-  },
-  dropdownListContainer: {
-    backgroundColor: Colors.dark.cardBackground,
-    borderColor: Colors.dark.cardBackground,
-    borderRadius: 8,
-    padding: 4,
-    elevation: 4,
-  },
-  placeholder: {
-    color: Colors.dark.text,
-    fontSize: 14,
-  },
-  text: {
-    color: Colors.dark.text,
-    fontSize: 14,
-  },
-  selectedText: {
-    backgroundColor: Colors.dark.screenBackground,
-    color: Colors.dark.text,
-    fontSize: 14,
-  },
-  customItemContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-  },
-  selectedItemContainer: {
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  customItemText: {
-    color: Colors.dark.text,
-    fontSize: 14,
-  },
-  checkmark: {
-    marginLeft: 10,
-  },
-  itemSeparator: {
-    height: 1,
-    backgroundColor: Colors.dark.subText,
-  },
-});
-
 export default React.memo(FilterRow);
+
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingBottom: 8,
+      backgroundColor: colors.surface,
+      paddingHorizontal: 16,
+      elevation: 10,
+    },
+    dropdownContainer: {
+      flex: 1,
+      marginRight: 4,
+    },
+    dropdownContainerNoMargin: {
+      flex: 1,
+    },
+    customItemContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 8,
+      paddingHorizontal: 8,
+    },
+    selectedItemContainer: {
+      backgroundColor: colors.card,
+    },
+    customItemText: {
+      color: colors.contentPrimary,
+      fontSize: 14,
+    },
+    checkmark: {
+      marginLeft: 10,
+    },
+    itemSeparator: {
+      height: 1,
+      backgroundColor: colors.contentSecondary,
+    },
+  });
+}

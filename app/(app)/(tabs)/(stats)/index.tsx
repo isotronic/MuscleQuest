@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -25,7 +25,6 @@ import {
 } from "date-fns";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
-import { Colors } from "@/constants/Colors";
 import { WorkoutHistorySection } from "@/components/stats/WorkoutHistorySection";
 import { WorkoutCalendarModal } from "@/components/stats/WorkoutCalendarModal";
 import { InsightsStrip } from "@/components/stats/InsightsStrip";
@@ -44,6 +43,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { formatToHoursMinutes } from "@/utils/utility";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
 import Bugsnag from "@bugsnag/expo";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const computeStats = (
   workouts: CompletedWorkout[],
@@ -95,6 +96,8 @@ const computeStats = (
 };
 
 export default function StatsScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -243,11 +246,11 @@ export default function StatsScreen() {
         customStyles: {
           container: {
             borderWidth: 1.5,
-            borderColor: Colors.dark.tint,
-            borderRadius: 16,
+            borderColor: colors.accent,
+            borderRadius: radii.xl,
           },
           text: {
-            color: date === today ? Colors.dark.tint : Colors.dark.text,
+            color: date === today ? colors.accent : colors.contentPrimary,
             fontWeight:
               date === today ? ("bold" as const) : ("normal" as const),
           },
@@ -260,7 +263,7 @@ export default function StatsScreen() {
         customStyles: {
           container: {},
           text: {
-            color: Colors.dark.tint,
+            color: colors.accent,
             fontWeight: "bold" as const,
           },
         },
@@ -270,11 +273,11 @@ export default function StatsScreen() {
       marks[selectedDate] = {
         customStyles: {
           container: {
-            backgroundColor: Colors.dark.tint,
-            borderRadius: 16,
+            backgroundColor: colors.accent,
+            borderRadius: radii.xl,
           },
           text: {
-            color: Colors.dark.background,
+            color: colors.background,
             fontWeight:
               selectedDate === today ? ("bold" as const) : ("normal" as const),
           },
@@ -282,7 +285,7 @@ export default function StatsScreen() {
       };
     }
     return marks;
-  }, [allWorkoutsByDate, selectedDate]);
+  }, [allWorkoutsByDate, selectedDate, colors]);
 
   const handleOpenCalendar = useCallback(() => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -321,7 +324,7 @@ export default function StatsScreen() {
   if (isLoading) {
     return (
       <ThemedView style={styles.centered}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
+        <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
   }
@@ -448,7 +451,7 @@ export default function StatsScreen() {
               <IconButton
                 icon="calendar-month"
                 size={20}
-                iconColor={Colors.dark.tint}
+                iconColor={colors.accent}
                 style={{ margin: 0 }}
                 onPress={handleOpenCalendar}
               />
@@ -512,7 +515,7 @@ export default function StatsScreen() {
             <Button
               mode="text"
               compact
-              labelStyle={{ color: Colors.dark.tint, fontSize: 13 }}
+              labelStyle={{ color: colors.accent, fontSize: 13 }}
               onPress={handleManageExercisesPress}
             >
               {trackedExercises && trackedExercises.length > 0 ? (
@@ -535,7 +538,7 @@ export default function StatsScreen() {
               />
             ))
           ) : (
-            <ThemedText style={{ color: Colors.dark.subText }}>
+            <ThemedText style={{ color: colors.contentSecondary }}>
               <Trans>No exercises tracked yet. Tap + Add to start.</Trans>
             </ThemedText>
           )}
@@ -550,7 +553,7 @@ export default function StatsScreen() {
             <Button
               mode="text"
               compact
-              labelStyle={{ color: Colors.dark.tint, fontSize: 13 }}
+              labelStyle={{ color: colors.accent, fontSize: 13 }}
               onPress={() =>
                 router.push("/(app)/(tabs)/(stats)/measurements" as never)
               }
@@ -585,7 +588,7 @@ export default function StatsScreen() {
                 router.push("/(app)/(tabs)/(stats)/measurements" as never)
               }
             >
-              <ThemedText style={{ color: Colors.dark.subText }}>
+              <ThemedText style={{ color: colors.contentSecondary }}>
                 <Trans>No measurements yet. Tap to log your first entry.</Trans>
               </ThemedText>
             </TouchableOpacity>
@@ -613,51 +616,53 @@ export default function StatsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 50,
-  },
-  divider: {
-    marginBottom: 16,
-  },
-  section: {
-    marginBottom: 28,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: "bold",
-  },
-  tileGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  measurementTile: {
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  measurementGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  measurementValue: {
-    width: "50%",
-    fontSize: 13,
-    lineHeight: 19,
-    color: Colors.dark.subText,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    centered: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    container: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 50,
+    },
+    divider: {
+      marginBottom: 16,
+    },
+    section: {
+      marginBottom: 28,
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    sectionTitle: {
+      fontSize: 17,
+      fontWeight: "bold",
+    },
+    tileGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+    },
+    measurementTile: {
+      padding: 12,
+      borderRadius: radii.md,
+      backgroundColor: colors.card,
+    },
+    measurementGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+    },
+    measurementValue: {
+      width: "50%",
+      fontSize: 13,
+      lineHeight: 19,
+      color: colors.contentSecondary,
+    },
+  });
+}

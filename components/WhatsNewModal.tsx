@@ -9,12 +9,13 @@ import {
   WHATS_NEW_ENTRIES,
   WhatsNewEntry,
 } from "@/constants/WhatsNew";
-import { Colors } from "@/constants/Colors";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
+import { useAppTheme, radii } from "@/theme";
 
 export const WhatsNewModal = () => {
+  const { colors } = useAppTheme();
   const [visible, setVisible] = useState(false);
   const [entriesToShow, setEntriesToShow] = useState<WhatsNewEntry[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -76,14 +77,14 @@ export const WhatsNewModal = () => {
       <Modal
         visible={visible}
         onDismiss={handleNext}
-        theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
+        theme={{ colors: { backdrop: colors.modalBackdrop } }}
       >
         <View
           style={{
-            backgroundColor: Colors.dark.cardBackground2,
+            backgroundColor: colors.cardSecondary,
             padding: 16,
             margin: 16,
-            borderRadius: 12,
+            borderRadius: radii.lg,
           }}
         >
           <View

@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { Modal, Portal, Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
 import { useAppUpdates } from "@/hooks/useAppUpdates";
 import { t } from "@lingui/core/macro";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 export const UpdateModal = () => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { status, errorType, reloadApp, dismissError } = useAppUpdates();
 
   // Only show modal when downloading, ready, or error (skip checking state to avoid flash)
@@ -73,7 +76,7 @@ export const UpdateModal = () => {
         visible={true}
         dismissable={status === "error"}
         onDismiss={status === "error" ? dismissError : undefined}
-        theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
+        theme={{ colors: { backdrop: colors.modalBackdrop } }}
       >
         <View style={styles.container}>
           <ThemedText type="subtitle">{content.title}</ThemedText>
@@ -81,7 +84,7 @@ export const UpdateModal = () => {
           {!content.showButton && (
             <ActivityIndicator
               size="large"
-              color={Colors.dark.tint}
+              color={colors.accent}
               style={styles.spinner}
             />
           )}
@@ -103,24 +106,26 @@ export const UpdateModal = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.dark.cardBackground2,
-    padding: 24,
-    margin: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  spinner: {
-    marginVertical: 24,
-  },
-  message: {
-    textAlign: "center",
-    marginTop: 16,
-    lineHeight: 20,
-  },
-  button: {
-    marginTop: 24,
-    width: "100%",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: colors.cardSecondary,
+      padding: 24,
+      margin: 16,
+      borderRadius: radii.lg,
+      alignItems: "center",
+    },
+    spinner: {
+      marginVertical: 24,
+    },
+    message: {
+      textAlign: "center",
+      marginTop: 16,
+      lineHeight: 20,
+    },
+    button: {
+      marginTop: 24,
+      width: "100%",
+    },
+  });
+}

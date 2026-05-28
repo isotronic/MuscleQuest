@@ -2,7 +2,6 @@ import React, { useMemo, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Exercise } from "@/utils/database";
 import { Card } from "react-native-paper";
@@ -10,6 +9,9 @@ import { capitalizeWords } from "@/utils/utility";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
 import { bodyPartTranslations } from "@/constants/dbTranslations";
+import { useAppTheme } from "@/theme";
+import { useChartTheme } from "./chartTheme";
+import type { AppThemeColors } from "@/theme/types";
 
 // Define the props for the component
 interface BodyPartChartProps {
@@ -24,21 +26,13 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
   excludeWarmup = false,
 }) => {
   const { _ } = useLingui();
+  const { colors } = useAppTheme();
+  const charts = useChartTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
   const [selectedPercentage, setSelectedPercentage] = useState<number | null>(
     null,
   );
-
-  const chartColors: Record<string, string> = {
-    back: "#FF5722", // Deep Orange
-    chest: "#3F51B5", // Indigo
-    shoulders: "#009688", // Teal
-    neck: "#9E9E9E", // Gray
-    arms: "#43A047", // Green
-    legs: "#5D4037", // Brown
-    waist: "#FDD835", // Yellow
-    cardio: "#8E24AA", // Purple
-  };
 
   // Map exercise_id to body_part
   const exerciseIdToBodyPartMap = useMemo(() => {
@@ -105,7 +99,7 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
   const chartData = bodyPartPercentages.map((item) => ({
     text: item.name,
     value: parseFloat(item.percentage),
-    color: chartColors[item.name] || "#c4f",
+    color: charts.bodyPartColors[item.name] ?? charts.bodyPartFallbackColor,
     focused: item.name === selectedBodyPart,
   }));
 
@@ -172,7 +166,7 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
               innerRadius={110}
               onPress={handleChartPress}
               sectionAutoFocus
-              innerCircleColor={Colors.dark.cardBackground}
+              innerCircleColor={colors.card}
               centerLabelComponent={() => (
                 <View
                   style={{ justifyContent: "center", alignItems: "center" }}
@@ -210,39 +204,41 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
 
 export default BodyPartChart;
 
-const styles = StyleSheet.create({
-  card: {
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  pieChartLabel: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  pieChartCenterLabel: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  legendContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    marginTop: 8,
-  },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-    marginRight: 8,
-  },
-  legendText: {
-    fontSize: 12,
-  },
-  selectedLegendText: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    card: {
+      width: "100%",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 16,
+      backgroundColor: colors.card,
+    },
+    pieChartLabel: {
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    pieChartCenterLabel: {
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    legendContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      marginTop: 8,
+    },
+    legendItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 4,
+      marginRight: 8,
+    },
+    legendText: {
+      fontSize: 12,
+    },
+    selectedLegendText: {
+      fontSize: 14,
+      fontWeight: "bold",
+    },
+  });
+}

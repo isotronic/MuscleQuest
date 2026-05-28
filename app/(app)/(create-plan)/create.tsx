@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import {
   StyleSheet,
   View,
@@ -26,7 +26,6 @@ import {
   useLocalSearchParams,
   useNavigation,
 } from "expo-router";
-import { Colors } from "@/constants/Colors";
 import { useCreatePlan } from "@/hooks/useCreatePlan";
 import WorkoutCard from "@/components/WorkoutCard";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
@@ -37,10 +36,14 @@ import SaveIcon from "@/components/SaveIcon";
 import PlanScheduleEditor from "@/components/PlanScheduleEditor";
 import { fetchPlanSchedule } from "@/utils/database";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 type ScrollViewType = typeof ScrollView;
 
 export default function CreatePlanScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -331,7 +334,7 @@ export default function CreatePlanScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: Colors.dark.screenBackground }}
+      style={{ flex: 1, backgroundColor: colors.surface }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
@@ -339,7 +342,7 @@ export default function CreatePlanScreen() {
         <Portal>
           <Modal visible={isSaving} dismissable={false}>
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="white" />
+              <ActivityIndicator size="large" color={colors.contentPrimary} />
               <ThemedText style={styles.loadingText}>
                 <Trans>Saving Plan...</Trans>
               </ThemedText>
@@ -368,7 +371,7 @@ export default function CreatePlanScreen() {
       >
         {!dataLoaded ? (
           <ThemedView style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.dark.text} />
+            <ActivityIndicator size="large" color={colors.contentPrimary} />
           </ThemedView>
         ) : (
           <ThemedView style={styles.container}>
@@ -381,7 +384,7 @@ export default function CreatePlanScreen() {
                   <IconButton
                     icon="pen"
                     size={20}
-                    iconColor={Colors.dark.tint}
+                    iconColor={colors.accent}
                     style={styles.overlayIcon}
                     onPress={handleImageSearch}
                   />
@@ -389,7 +392,7 @@ export default function CreatePlanScreen() {
               </View>
               <TextInput
                 style={styles.input}
-                placeholderTextColor={Colors.dark.subText}
+                placeholderTextColor={colors.contentSecondary}
                 placeholder={t`Training Plan Name`}
                 value={planName}
                 onChangeText={setPlanName}
@@ -438,73 +441,75 @@ export default function CreatePlanScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    overflow: "visible",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  imageContainer: {
-    position: "relative",
-    width: 60,
-    height: 60,
-    marginRight: 10,
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 10,
-    overflow: "hidden",
-  },
-  overlayIcon: {
-    position: "absolute",
-    top: 5,
-    right: 5,
-  },
-  input: {
-    flex: 1,
-    padding: 10,
-    borderColor: Colors.dark.subText,
-    borderWidth: 1,
-    borderRadius: 8,
-    color: Colors.dark.text,
-    fontSize: 18,
-    lineHeight: 24,
-    height: 45,
-  },
-  emptyText: {
-    fontSize: 18,
-    color: Colors.dark.text,
-  },
-  addWorkoutButton: {
-    marginTop: 16,
-    borderRadius: 8,
-  },
-  buttonLabel: {
-    fontSize: 16,
-  },
-  loadingOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark transparent overlay
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 18,
-    color: "white",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 16,
+      overflow: "visible",
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 20,
+    },
+    imageContainer: {
+      position: "relative",
+      width: 60,
+      height: 60,
+      marginRight: 10,
+    },
+    image: {
+      width: "100%",
+      height: "100%",
+      borderRadius: radii.md,
+      overflow: "hidden",
+    },
+    overlayIcon: {
+      position: "absolute",
+      top: 5,
+      right: 5,
+    },
+    input: {
+      flex: 1,
+      padding: 10,
+      borderColor: colors.contentSecondary,
+      borderWidth: 1,
+      borderRadius: radii.md,
+      color: colors.contentPrimary,
+      fontSize: 18,
+      lineHeight: 24,
+      height: 45,
+    },
+    emptyText: {
+      fontSize: 18,
+      color: colors.contentPrimary,
+    },
+    addWorkoutButton: {
+      marginTop: 16,
+      borderRadius: radii.md,
+    },
+    buttonLabel: {
+      fontSize: 16,
+    },
+    loadingOverlay: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: colors.modalBackdrop,
+      position: "absolute",
+      width: "100%",
+      height: "100%",
+    },
+    loadingText: {
+      marginTop: 10,
+      fontSize: 18,
+      color: colors.contentPrimary,
+    },
+  });
+}

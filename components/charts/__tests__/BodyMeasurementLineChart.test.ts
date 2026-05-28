@@ -5,11 +5,12 @@ jest.mock("@lingui/core/macro", () => ({
 }));
 jest.mock("react-native-gifted-charts", () => ({}));
 jest.mock("@/components/ThemedText", () => ({ ThemedText: () => null }));
-jest.mock("@/constants/Colors", () => ({
-  Colors: { dark: { tint: "#fff", subText: "#aaa" } },
-}));
 jest.mock("../chartTheme", () => ({
-  chartTheme: { areaStartFill: "rgba(0,0,0,0)" },
+  useChartTheme: () => ({
+    areaStartFill: "rgba(0,0,0,0)",
+    areaEndFill: "rgba(0,0,0,0)",
+    pointerStripColor: "rgba(255,255,255,0.15)",
+  }),
 }));
 
 // Fix time to a known Monday so week-alignment is predictable.

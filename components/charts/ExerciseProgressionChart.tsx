@@ -9,8 +9,9 @@ import {
 import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { LineChart } from "react-native-gifted-charts";
-import { Colors } from "@/constants/Colors";
-import { chartTheme } from "./chartTheme";
+import { useChartTheme } from "./chartTheme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 import {
   TrackedExerciseWithSets,
   CompletedSet,
@@ -236,6 +237,9 @@ export const ExerciseProgressionChart: React.FC<
   ExerciseProgressionChartProps
 > = ({ exercise, timeRange, weightUnit, distanceUnit, preRangeBaseline }) => {
   const { width: screenWidth } = useWindowDimensions();
+  const chartTheme = useChartTheme();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
 
   // Only weight and null (default weight) exercises have two meaningful metrics
@@ -321,7 +325,7 @@ export const ExerciseProgressionChart: React.FC<
         value: metric,
         label: labelComponent ? undefined : bucket.label,
         labelComponent,
-        dataPointColor: bucket.hasData ? Colors.dark.text : "transparent",
+        dataPointColor: bucket.hasData ? colors.contentPrimary : "transparent",
         dataPointRadius: 4,
         hasData: bucket.hasData,
       };
@@ -353,6 +357,8 @@ export const ExerciseProgressionChart: React.FC<
     preRangeBaseline,
     metricMode,
     showMetricToggle,
+    styles,
+    colors.contentPrimary,
   ]);
 
   const latestSet = exercise.completed_sets[0];
@@ -473,15 +479,15 @@ export const ExerciseProgressionChart: React.FC<
           initialSpacing={INITIAL_SPACING}
           endSpacing={INITIAL_SPACING}
           thickness={2}
-          color={Colors.dark.tint}
+          color={colors.accent}
           isAnimated
           areaChart
           startFillColor={chartTheme.areaStartFill}
-          endFillColor="rgba(235,170,57,0.08)"
+          endFillColor={chartTheme.areaEndFill}
           yAxisColor="transparent"
           yAxisTextStyle={styles.yAxisLabel}
           xAxisLabelTextStyle={styles.xAxisLabel}
-          xAxisColor={Colors.dark.subText}
+          xAxisColor={colors.contentSecondary}
           hideRules
           noOfSections={3}
           yAxisOffset={yAxisOffset}
@@ -490,9 +496,9 @@ export const ExerciseProgressionChart: React.FC<
             activatePointersInstantlyOnTouch: true,
             persistPointer: true,
             showPointerStrip: true,
-            pointerStripColor: "rgba(255,255,255,0.15)",
+            pointerStripColor: chartTheme.pointerStripColor,
             pointerStripWidth: 1,
-            pointerColor: Colors.dark.highlight,
+            pointerColor: colors.danger,
             radius: 5,
             pointerLabelWidth: POINTER_LABEL_WIDTH,
             pointerLabelHeight: 34,
@@ -523,79 +529,81 @@ export const ExerciseProgressionChart: React.FC<
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    width: "100%",
-    marginBottom: 8,
-    padding: 16,
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  latestMetric: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 4,
-    color: Colors.dark.text,
-  },
-  additionalInfo: {
-    fontSize: 12,
-    color: Colors.dark.subText,
-    marginBottom: 8,
-  },
-  yAxisLabel: {
-    fontSize: 12,
-    color: Colors.dark.text,
-  },
-  xAxisLabel: {
-    fontSize: 9,
-    color: Colors.dark.text,
-    marginTop: 4,
-  },
-  metricToggleRow: {
-    flexDirection: "row",
-    gap: 6,
-    marginBottom: 12,
-  },
-  metricPill: {
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: Colors.dark.cardBackground2,
-  },
-  metricPillActive: {
-    backgroundColor: Colors.dark.tint + "25",
-    borderWidth: 1,
-    borderColor: Colors.dark.tint,
-  },
-  metricPillLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: Colors.dark.subText,
-  },
-  metricPillLabelActive: {
-    color: Colors.dark.tint,
-  },
-  twoLineLabel: {
-    alignItems: "center",
-    marginTop: 4,
-  },
-  twoLineLabelText: {
-    fontSize: 9,
-    color: Colors.dark.subText,
-  },
-  tooltip: {
-    alignSelf: "center",
-    backgroundColor: Colors.dark.cardBackground2,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  tooltipLast: {
-    alignSelf: "flex-start",
-    marginLeft: -(POINTER_LABEL_WIDTH / 1.5),
-  },
-  tooltipText: {
-    color: Colors.dark.text,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    card: {
+      width: "100%",
+      marginBottom: 8,
+      padding: 16,
+      backgroundColor: colors.card,
+    },
+    latestMetric: {
+      fontSize: 16,
+      fontWeight: "bold",
+      marginBottom: 4,
+      color: colors.contentPrimary,
+    },
+    additionalInfo: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+      marginBottom: 8,
+    },
+    yAxisLabel: {
+      fontSize: 12,
+      color: colors.contentPrimary,
+    },
+    xAxisLabel: {
+      fontSize: 9,
+      color: colors.contentPrimary,
+      marginTop: 4,
+    },
+    metricToggleRow: {
+      flexDirection: "row",
+      gap: 6,
+      marginBottom: 12,
+    },
+    metricPill: {
+      paddingVertical: 4,
+      paddingHorizontal: 12,
+      borderRadius: radii.full,
+      backgroundColor: colors.cardSecondary,
+    },
+    metricPillActive: {
+      backgroundColor: colors.accentSubtle,
+      borderWidth: 1,
+      borderColor: colors.accent,
+    },
+    metricPillLabel: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: colors.contentSecondary,
+    },
+    metricPillLabelActive: {
+      color: colors.accent,
+    },
+    twoLineLabel: {
+      alignItems: "center",
+      marginTop: 4,
+    },
+    twoLineLabelText: {
+      fontSize: 9,
+      color: colors.contentSecondary,
+    },
+    tooltip: {
+      alignSelf: "center",
+      backgroundColor: colors.cardSecondary,
+      borderRadius: radii.md,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+    },
+    tooltipLast: {
+      alignSelf: "flex-start",
+      marginLeft: -(POINTER_LABEL_WIDTH / 1.5),
+    },
+    tooltipText: {
+      color: colors.contentPrimary,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+  });
+}

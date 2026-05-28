@@ -5,11 +5,10 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { startOfWeek, endOfWeek, getDay, format } from "date-fns";
 import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import WeekDays from "@/components/WeekDays";
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { AuthContext } from "@/context/AuthProvider";
-import { Colors } from "@/constants/Colors";
 import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
 import { router } from "expo-router";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
@@ -35,6 +34,8 @@ import {
   prioritizeScheduledWorkout,
 } from "@/utils/planHelpers";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 function WorkoutDurationInfo({
   exercises,
@@ -60,6 +61,8 @@ function WorkoutDurationInfo({
 }
 
 export default function HomeScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
   const [pickerWorkouts, setPickerWorkouts] = useState<CompletedWorkout[]>([]);
   const user = useContext(AuthContext);
@@ -146,7 +149,7 @@ export default function HomeScreen() {
   ) {
     return (
       <ThemedView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
+        <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
   } else if (activePlanError || settingsError || completedWorkoutsError) {
@@ -291,7 +294,7 @@ export default function HomeScreen() {
         <Portal>
           <Modal visible={isStartingWorkout} dismissable={false}>
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="white" />
+              <ActivityIndicator size="large" color={colors.contentPrimary} />
               <ThemedText style={styles.loadingText}>
                 <Trans>Starting Workout...</Trans>
               </ThemedText>
@@ -305,7 +308,7 @@ export default function HomeScreen() {
             visible={pickerWorkouts.length > 0}
             onDismiss={() => setPickerWorkouts([])}
             contentContainerStyle={styles.pickerModal}
-            theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
+            theme={{ colors: { backdrop: colors.modalBackdrop } }}
           >
             <ThemedText type="subtitle" style={styles.pickerTitle}>
               <Trans>Select a workout to view</Trans>
@@ -408,19 +411,20 @@ export default function HomeScreen() {
                 styles.workoutCard,
                 {
                   borderWidth: 1,
-                  borderColor: Colors.dark.tint,
+                  borderColor: colors.accent,
                   marginBottom: 32,
                 },
               ]}
               onPress={() => router.push("/(app)/(workout)")}
             >
               <View style={styles.workoutCardContent}>
-                <MaterialCommunityIcons
+                <AppIcon
+                  set="mci"
                   name={
                     activeWorkout?.planId != null ? "weight-lifter" : "arm-flex"
                   }
                   size={30}
-                  color={Colors.dark.tint}
+                  color={colors.accent}
                 />
                 <View style={styles.workoutTextContainer}>
                   <ThemedText type="subtitle" style={styles.workoutCardTitle}>
@@ -433,7 +437,7 @@ export default function HomeScreen() {
                 <View style={styles.smallButtonGroup}>
                   <Button
                     mode="contained"
-                    theme={{ colors: { primary: Colors.dark.tint } }}
+                    theme={{ colors: { primary: colors.accent } }}
                     onPress={() => router.push("/(app)/(workout)")}
                     labelStyle={styles.smallButtonLabel}
                   >
@@ -480,7 +484,7 @@ export default function HomeScreen() {
                       shouldHighlightCard
                         ? {
                             borderWidth: 1,
-                            borderColor: Colors.dark.tint,
+                            borderColor: colors.accent,
                           }
                         : null,
                     ]}
@@ -495,13 +499,14 @@ export default function HomeScreen() {
                     }
                   >
                     <View style={styles.workoutCardContent}>
-                      <MaterialCommunityIcons
+                      <AppIcon
+                        set="mci"
                         name={workoutCompleted ? "check" : "weight-lifter"}
                         size={30}
                         color={
                           workoutCompleted
-                            ? Colors.dark.completed
-                            : Colors.dark.icon
+                            ? colors.success
+                            : colors.contentSecondary
                         }
                       />
                       <View style={styles.workoutTextContainer}>
@@ -553,7 +558,7 @@ export default function HomeScreen() {
         <View style={styles.buttonContainer}>
           <Button
             mode="outlined"
-            textColor={Colors.dark.tint}
+            textColor={colors.accent}
             onPress={() => {
               if (isStartingWorkout) return;
               confirmStartWorkout(setIsStartingWorkout, () => {
@@ -571,121 +576,123 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark transparent overlay
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 18,
-    color: "white",
-  },
-  weekContainer: {
-    flexDirection: "column",
-    alignItems: "center",
-    backgroundColor: Colors.dark.background,
-  },
-  summaryContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    backgroundColor: Colors.dark.background,
-  },
-  summaryText: {
-    fontSize: 16,
-    textAlign: "right",
-  },
-  welcomeContainer: {
-    padding: 16,
-  },
-  restDayContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  cardContainer: {
-    padding: 16,
-  },
-  sectionTitle: {
-    marginBottom: 10,
-  },
-  workoutCard: {
-    marginBottom: 10,
-    borderRadius: 10,
-    backgroundColor: Colors.dark.cardBackground,
-    padding: 16,
-  },
-  workoutCardContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  workoutTextContainer: {
-    marginLeft: 10,
-    flex: 1,
-  },
-  workoutCardTitle: {
-    color: Colors.dark.text,
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  exerciseInfo: {
-    color: Colors.dark.subText,
-    fontSize: 14,
-  },
-  smallButtonGroup: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-  },
-  smallButtonLabel: {
-    paddingVertical: 0,
-  },
-  buttonContainer: {
-    padding: 16,
-  },
-  startWorkoutButton: {
-    borderRadius: 15,
-    width: "100%",
-    height: 50,
-  },
-  buttonLabel: {
-    fontSize: 18,
-    lineHeight: 27,
-  },
-  pickerModal: {
-    backgroundColor: Colors.dark.cardBackground,
-    margin: 24,
-    borderRadius: 12,
-    padding: 20,
-  },
-  pickerTitle: {
-    marginBottom: 12,
-  },
-  pickerItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderTopColor: Colors.dark.background,
-  },
-  pickerItemName: {
-    fontSize: 16,
-    flex: 1,
-  },
-  pickerItemTime: {
-    fontSize: 14,
-    color: Colors.dark.subText,
-    marginLeft: 8,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    loadingOverlay: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: colors.modalBackdrop,
+      position: "absolute",
+      width: "100%",
+      height: "100%",
+    },
+    loadingText: {
+      marginTop: 10,
+      fontSize: 18,
+      color: colors.contentPrimary,
+    },
+    weekContainer: {
+      flexDirection: "column",
+      alignItems: "center",
+      backgroundColor: colors.background,
+    },
+    summaryContainer: {
+      paddingHorizontal: 16,
+      paddingBottom: 10,
+      backgroundColor: colors.background,
+    },
+    summaryText: {
+      fontSize: 16,
+      textAlign: "right",
+    },
+    welcomeContainer: {
+      padding: 16,
+    },
+    restDayContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+    cardContainer: {
+      padding: 16,
+    },
+    sectionTitle: {
+      marginBottom: 10,
+    },
+    workoutCard: {
+      marginBottom: 10,
+      borderRadius: radii.md,
+      backgroundColor: colors.card,
+      padding: 16,
+    },
+    workoutCardContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    workoutTextContainer: {
+      marginLeft: 10,
+      flex: 1,
+    },
+    workoutCardTitle: {
+      color: colors.contentPrimary,
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    exerciseInfo: {
+      color: colors.contentSecondary,
+      fontSize: 14,
+    },
+    smallButtonGroup: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+    },
+    smallButtonLabel: {
+      paddingVertical: 0,
+    },
+    buttonContainer: {
+      padding: 16,
+    },
+    startWorkoutButton: {
+      borderRadius: radii.xl,
+      width: "100%",
+      height: 50,
+    },
+    buttonLabel: {
+      fontSize: 18,
+      lineHeight: 27,
+    },
+    pickerModal: {
+      backgroundColor: colors.card,
+      margin: 24,
+      borderRadius: radii.lg,
+      padding: 20,
+    },
+    pickerTitle: {
+      marginBottom: 12,
+    },
+    pickerItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 14,
+      borderTopWidth: 1,
+      borderTopColor: colors.background,
+    },
+    pickerItemName: {
+      fontSize: 16,
+      flex: 1,
+    },
+    pickerItemTime: {
+      fontSize: 14,
+      color: colors.contentSecondary,
+      marginLeft: 8,
+    },
+  });
+}

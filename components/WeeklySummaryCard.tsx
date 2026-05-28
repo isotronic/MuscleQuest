@@ -1,13 +1,14 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { startOfWeek, endOfWeek, subWeeks } from "date-fns";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Colors } from "@/constants/Colors";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t, plural } from "@lingui/core/macro";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface Props {
   workoutsThisWeek: CompletedWorkout[];
@@ -189,6 +190,9 @@ export default function WeeklySummaryCard({
   countUnilateralDouble = false,
   doubleWeightForPaired = false,
 }: Props) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const totalDuration = useMemo(
     () => workoutsThisWeek.reduce((sum, w) => sum + (w.duration ?? 0), 0),
     [workoutsThisWeek],
@@ -248,10 +252,11 @@ export default function WeeklySummaryCard({
   return (
     <ThemedView style={styles.card}>
       <View style={styles.header}>
-        <MaterialCommunityIcons
+        <AppIcon
+          set="mci"
           name="trophy-outline"
           size={22}
-          color={Colors.dark.tint}
+          color={colors.accent}
         />
         <ThemedText type="subtitle" style={styles.title}>
           <Trans>Weekly Goal Complete!</Trans>
@@ -262,10 +267,11 @@ export default function WeeklySummaryCard({
 
       <View style={styles.statsGrid}>
         <View style={styles.statRow}>
-          <MaterialCommunityIcons
+          <AppIcon
+            set="mci"
             name="calendar-check-outline"
             size={16}
-            color={Colors.dark.icon}
+            color={colors.contentSecondary}
           />
           <ThemedText style={styles.statLabel}>
             <Trans>Workouts</Trans>
@@ -276,10 +282,11 @@ export default function WeeklySummaryCard({
         </View>
 
         <View style={styles.statRow}>
-          <MaterialCommunityIcons
+          <AppIcon
+            set="mci"
             name="weight-kilogram"
             size={16}
-            color={Colors.dark.icon}
+            color={colors.contentSecondary}
           />
           <ThemedText style={styles.statLabel}>
             <Trans>Volume</Trans>
@@ -288,10 +295,11 @@ export default function WeeklySummaryCard({
         </View>
 
         <View style={styles.statRow}>
-          <MaterialCommunityIcons
+          <AppIcon
+            set="mci"
             name="timer-outline"
             size={16}
-            color={Colors.dark.icon}
+            color={colors.contentSecondary}
           />
           <ThemedText style={styles.statLabel}>
             <Trans>Time</Trans>
@@ -303,10 +311,11 @@ export default function WeeklySummaryCard({
 
         {achievementFormatted && (
           <View style={styles.statRow}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="trending-up"
               size={16}
-              color={Colors.dark.icon}
+              color={colors.contentSecondary}
             />
             <ThemedText style={styles.statLabel}>
               {achievementFormatted.label}
@@ -319,16 +328,16 @@ export default function WeeklySummaryCard({
 
         {streak > 0 && (
           <View style={styles.statRow}>
-            <MaterialCommunityIcons
-              name="fire"
-              size={16}
-              color={Colors.dark.tint}
-            />
+            <AppIcon set="mci" name="fire" size={16} color={colors.accent} />
             <ThemedText style={styles.statLabel}>
               <Trans>Streak</Trans>
             </ThemedText>
             <ThemedText style={[styles.statValue, styles.streakValue]}>
-              <Plural value={streak} one="# week in a row" other="# weeks in a row" />
+              <Plural
+                value={streak}
+                one="# week in a row"
+                other="# weeks in a row"
+              />
             </ThemedText>
           </View>
         )}
@@ -337,52 +346,54 @@ export default function WeeklySummaryCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.dark.tint,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 16,
-    color: Colors.dark.tint,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.dark.tint,
-    opacity: 0.2,
-    marginBottom: 12,
-  },
-  statsGrid: {
-    gap: 10,
-  },
-  statRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  statLabel: {
-    flex: 1,
-    fontSize: 13,
-    color: Colors.dark.icon,
-  },
-  statValue: {
-    fontSize: 13,
-    textAlign: "right",
-  },
-  achievementValue: {
-    flex: 2,
-    textAlign: "right",
-  },
-  streakValue: {
-    color: Colors.dark.tint,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    card: {
+      borderRadius: radii.lg,
+      padding: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.accent,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 12,
+    },
+    title: {
+      fontSize: 16,
+      color: colors.accent,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.accent,
+      opacity: 0.2,
+      marginBottom: 12,
+    },
+    statsGrid: {
+      gap: 10,
+    },
+    statRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    statLabel: {
+      flex: 1,
+      fontSize: 13,
+      color: colors.contentSecondary,
+    },
+    statValue: {
+      fontSize: 13,
+      textAlign: "right",
+    },
+    achievementValue: {
+      flex: 2,
+      textAlign: "right",
+    },
+    streakValue: {
+      color: colors.accent,
+    },
+  });
+}

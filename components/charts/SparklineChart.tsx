@@ -7,7 +7,7 @@ import Svg, {
   LinearGradient,
   Stop,
 } from "react-native-svg";
-import { chartTheme } from "./chartTheme";
+import { useChartTheme } from "./chartTheme";
 
 interface SparklineChartProps {
   data: { value: number }[];
@@ -20,6 +20,7 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
   width = 120,
   height = 44,
 }) => {
+  const chartTheme = useChartTheme();
   if (data.length < 2) return null;
 
   const values = data.map((d) => d.value);
@@ -60,12 +61,12 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
           <LinearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
             <Stop
               offset="0"
-              stopColor={chartTheme.primaryColor}
+              stopColor={chartTheme.primary}
               stopOpacity="0.45"
             />
             <Stop
               offset="1"
-              stopColor={chartTheme.primaryColor}
+              stopColor={chartTheme.primary}
               stopOpacity="0.03"
             />
           </LinearGradient>
@@ -74,7 +75,7 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
         <Polyline
           points={linePoints}
           fill="none"
-          stroke={chartTheme.primaryColor}
+          stroke={chartTheme.primary}
           strokeWidth={2.5}
           strokeLinejoin="round"
           strokeLinecap="round"

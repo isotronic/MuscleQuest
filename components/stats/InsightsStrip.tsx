@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { bodyPartTranslations } from "@/constants/dbTranslations";
 import { capitalizeWords } from "@/utils/utility";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface InsightPill {
   label: string;
@@ -29,6 +30,8 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
   topBodyPart,
   streak,
 }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const [tooltipText, setTooltipText] = useState<string | null>(null);
   const [tooltipLeft, setTooltipLeft] = useState(0);
@@ -180,62 +183,64 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  strip: {
-    paddingVertical: 4,
-    gap: 10,
-  },
-  grid: {
-    gap: 8,
-    paddingVertical: 4,
-  },
-  row: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  pill: {
-    flex: 1,
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: Colors.dark.tint + "40",
-  },
-  pillLabelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-    marginBottom: 2,
-  },
-  pillLabel: {
-    fontSize: 11,
-    color: Colors.dark.subText,
-    textAlign: "center",
-  },
-  infoIcon: {
-    fontSize: 10,
-    color: Colors.dark.subText,
-    lineHeight: 13,
-  },
-  pillValue: {
-    fontSize: 14,
-    fontWeight: "bold",
-    textAlign: "center",
-    color: Colors.dark.tint,
-  },
-  tooltip: {
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 6,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: Colors.dark.tint + "60",
-    zIndex: 10,
-  },
-  tooltipText: {
-    fontSize: 12,
-    color: Colors.dark.text,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    strip: {
+      paddingVertical: 4,
+      gap: 10,
+    },
+    grid: {
+      gap: 8,
+      paddingVertical: 4,
+    },
+    row: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    pill: {
+      flex: 1,
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.accentBorder,
+    },
+    pillLabelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 3,
+      marginBottom: 2,
+    },
+    pillLabel: {
+      fontSize: 11,
+      color: colors.contentSecondary,
+      textAlign: "center",
+    },
+    infoIcon: {
+      fontSize: 10,
+      color: colors.contentSecondary,
+      lineHeight: 13,
+    },
+    pillValue: {
+      fontSize: 14,
+      fontWeight: "bold",
+      textAlign: "center",
+      color: colors.accent,
+    },
+    tooltip: {
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      paddingVertical: 5,
+      paddingHorizontal: 10,
+      borderWidth: 1,
+      borderColor: colors.accentBorderStrong,
+      zIndex: 10,
+    },
+    tooltipText: {
+      fontSize: 12,
+      color: colors.contentPrimary,
+    },
+  });
+}

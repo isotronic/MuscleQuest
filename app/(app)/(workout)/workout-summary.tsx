@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   View,
   ScrollView,
@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Button } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t, plural } from "@lingui/core/macro";
 import Animated, {
@@ -18,9 +18,9 @@ import Animated, {
   withTiming,
   withDelay,
 } from "react-native-reanimated";
+import React from "react";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "@/constants/Colors";
 import { ThemedText } from "@/components/ThemedText";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
@@ -30,6 +30,8 @@ import {
   type CompletedWorkout,
 } from "@/hooks/useCompletedWorkoutsQuery";
 import { startOfWeek, endOfWeek } from "date-fns";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -114,7 +116,7 @@ function ConfettiParticle({ config }: { config: ParticleConfig }) {
       width: size,
       height: Math.ceil(size * 0.5),
       backgroundColor: color,
-      borderRadius: 2,
+      borderRadius: radii.sm,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       transform: [
         { translateX: x },
@@ -226,11 +228,13 @@ function StatChip({
 }: {
   label: string;
   value: string;
-  icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+  icon: Extract<React.ComponentProps<typeof AppIcon>, { set: "mci" }>["name"];
 }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.statChip}>
-      <MaterialCommunityIcons name={icon} size={22} color={Colors.dark.tint} />
+      <AppIcon set="mci" name={icon} size={22} color={colors.accent} />
       <ThemedText type="defaultSemiBold" style={styles.statValue}>
         {value}
       </ThemedText>
@@ -252,12 +256,14 @@ function DiffChip({
   higherIsBetter: boolean;
   neutral?: boolean;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const isNeutral = diff === 0 || neutral;
   const isPositive = diff > 0;
   const color =
     !isNeutral && isPositive === higherIsBetter
-      ? Colors.dark.completed
-      : Colors.dark.subText;
+      ? colors.success
+      : colors.contentSecondary;
 
   const sign = diff > 0 ? "+" : "";
   const displayVal = Number.isInteger(diff)
@@ -283,6 +289,8 @@ function ExerciseRow({
   weightUnit: string;
   distanceUnit: string;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [expanded, setExpanded] = useState(false);
   const bestLabel = getBestSetLabel(exercise, weightUnit, distanceUnit);
 
@@ -302,10 +310,11 @@ function ExerciseRow({
             {bestLabel ? ` · ${bestLabel}` : ""}
           </ThemedText>
         </View>
-        <MaterialCommunityIcons
+        <AppIcon
+          set="mci"
           name={expanded ? "chevron-up" : "chevron-down"}
           size={20}
-          color={Colors.dark.icon}
+          color={colors.contentSecondary}
         />
       </TouchableOpacity>
       {expanded && (
@@ -352,13 +361,16 @@ function WeeklyGoalBanner({
   completed: number;
   goal: number;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const goalReached = completed >= goal;
-  const accentColor = goalReached ? Colors.dark.completed : Colors.dark.tint;
+  const accentColor = goalReached ? colors.success : colors.accent;
 
   return (
     <View style={styles.weeklyGoalCard}>
       <View style={styles.weeklyGoalTop}>
-        <MaterialCommunityIcons
+        <AppIcon
+          set="mci"
           name={goalReached ? "check-decagram" : "fire"}
           size={18}
           color={accentColor}
@@ -379,7 +391,7 @@ function WeeklyGoalBanner({
               styles.pip,
               {
                 backgroundColor:
-                  i < completed ? accentColor : Colors.dark.cardBackground2,
+                  i < completed ? accentColor : colors.cardSecondary,
               },
             ]}
           />
@@ -395,6 +407,8 @@ function WeeklyGoalBanner({
 // --- Main screen ---
 
 export default function WorkoutSummaryScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { completedWorkoutId, fresh } = useLocalSearchParams<{
     completedWorkoutId: string;
     fresh?: string;
@@ -487,7 +501,7 @@ export default function WorkoutSummaryScreen() {
       <View
         style={[styles.container, styles.center, { paddingTop: insets.top }]}
       >
-        <ActivityIndicator size="large" color={Colors.dark.tint} />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
@@ -537,11 +551,7 @@ export default function WorkoutSummaryScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.headerSection}>
-          <MaterialCommunityIcons
-            name="trophy"
-            size={56}
-            color={Colors.dark.tint}
-          />
+          <AppIcon set="mci" name="trophy" size={56} color={colors.accent} />
           <ThemedText type="title" style={styles.completeTitle}>
             <Trans>Workout Complete!</Trans>
           </ThemedText>
@@ -626,182 +636,184 @@ export default function WorkoutSummaryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.dark.background,
-  },
-  center: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scrollContent: {
-    padding: 20,
-    paddingTop: 32,
-  },
-  headerSection: {
-    alignItems: "center",
-    marginBottom: 28,
-    gap: 8,
-  },
-  completeTitle: {
-    marginTop: 8,
-    textAlign: "center",
-  },
-  workoutName: {
-    color: Colors.dark.subText,
-    textAlign: "center",
-    fontSize: 16,
-  },
-  statsRow: {
-    flexDirection: "row",
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    marginBottom: 16,
-    alignItems: "center",
-  },
-  statChip: {
-    flex: 1,
-    alignItems: "center",
-    gap: 4,
-  },
-  statValue: {
-    fontSize: 18,
-    color: Colors.dark.text,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: Colors.dark.subText,
-  },
-  statsDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: Colors.dark.cardBackground2,
-  },
-  progressionCard: {
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 12,
-    paddingTop: 14,
-    paddingBottom: 16,
-    paddingHorizontal: 8,
-    marginBottom: 16,
-    gap: 14,
-  },
-  progressionTitle: {
-    color: Colors.dark.subText,
-    textAlign: "center",
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    paddingHorizontal: 6,
-  },
-  diffRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  diffChip: {
-    flex: 1,
-    alignItems: "center",
-    gap: 4,
-  },
-  diffValue: {
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  diffLabel: {
-    fontSize: 12,
-    color: Colors.dark.subText,
-  },
-  sectionTitle: {
-    marginBottom: 10,
-    fontSize: 12,
-    color: Colors.dark.subText,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  exerciseCard: {
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 10,
-    marginBottom: 8,
-    overflow: "hidden",
-  },
-  exerciseHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 14,
-  },
-  exerciseHeaderText: {
-    flex: 1,
-  },
-  exerciseName: {
-    fontSize: 15,
-    color: Colors.dark.text,
-  },
-  exerciseMeta: {
-    fontSize: 13,
-    color: Colors.dark.subText,
-    marginTop: 2,
-  },
-  setsContainer: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.dark.cardBackground2,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  setRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 5,
-  },
-  setNumber: {
-    fontSize: 13,
-    color: Colors.dark.subText,
-  },
-  setValue: {
-    fontSize: 13,
-    color: Colors.dark.text,
-  },
-  doneButton: {
-    marginTop: 24,
-    borderRadius: 8,
-    backgroundColor: Colors.dark.tint,
-  },
-  doneButtonLabel: {
-    color: Colors.dark.background,
-    fontSize: 16,
-    fontWeight: "700",
-    paddingVertical: 4,
-  },
-  weeklyGoalCard: {
-    backgroundColor: Colors.dark.cardBackground,
-    alignItems: "center",
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 16,
-    gap: 10,
-  },
-  weeklyGoalTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-  },
-  weeklyGoalCount: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  weeklyGoalPips: {
-    flexDirection: "row",
-    gap: 6,
-  },
-  pip: {
-    width: 28,
-    height: 6,
-    borderRadius: 3,
-  },
-  weeklyGoalMessage: {
-    fontSize: 13,
-    color: Colors.dark.subText,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    center: {
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    scrollContent: {
+      padding: 20,
+      paddingTop: 32,
+    },
+    headerSection: {
+      alignItems: "center",
+      marginBottom: 28,
+      gap: 8,
+    },
+    completeTitle: {
+      marginTop: 8,
+      textAlign: "center",
+    },
+    workoutName: {
+      color: colors.contentSecondary,
+      textAlign: "center",
+      fontSize: 16,
+    },
+    statsRow: {
+      flexDirection: "row",
+      backgroundColor: colors.card,
+      borderRadius: radii.lg,
+      paddingVertical: 16,
+      paddingHorizontal: 8,
+      marginBottom: 16,
+      alignItems: "center",
+    },
+    statChip: {
+      flex: 1,
+      alignItems: "center",
+      gap: 4,
+    },
+    statValue: {
+      fontSize: 18,
+      color: colors.contentPrimary,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+    },
+    statsDivider: {
+      width: 1,
+      height: 40,
+      backgroundColor: colors.cardSecondary,
+    },
+    progressionCard: {
+      backgroundColor: colors.card,
+      borderRadius: radii.lg,
+      paddingTop: 14,
+      paddingBottom: 16,
+      paddingHorizontal: 8,
+      marginBottom: 16,
+      gap: 14,
+    },
+    progressionTitle: {
+      color: colors.contentSecondary,
+      textAlign: "center",
+      fontSize: 12,
+      textTransform: "uppercase",
+      letterSpacing: 0.8,
+      paddingHorizontal: 6,
+    },
+    diffRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    diffChip: {
+      flex: 1,
+      alignItems: "center",
+      gap: 4,
+    },
+    diffValue: {
+      fontSize: 20,
+      fontWeight: "700",
+    },
+    diffLabel: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+    },
+    sectionTitle: {
+      marginBottom: 10,
+      fontSize: 12,
+      color: colors.contentSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 0.8,
+    },
+    exerciseCard: {
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      marginBottom: 8,
+      overflow: "hidden",
+    },
+    exerciseHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 14,
+    },
+    exerciseHeaderText: {
+      flex: 1,
+    },
+    exerciseName: {
+      fontSize: 15,
+      color: colors.contentPrimary,
+    },
+    exerciseMeta: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+      marginTop: 2,
+    },
+    setsContainer: {
+      borderTopWidth: 1,
+      borderTopColor: colors.cardSecondary,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+    },
+    setRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: 5,
+    },
+    setNumber: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+    },
+    setValue: {
+      fontSize: 13,
+      color: colors.contentPrimary,
+    },
+    doneButton: {
+      marginTop: 24,
+      borderRadius: radii.md,
+      backgroundColor: colors.accent,
+    },
+    doneButtonLabel: {
+      color: colors.background,
+      fontSize: 16,
+      fontWeight: "700",
+      paddingVertical: 4,
+    },
+    weeklyGoalCard: {
+      backgroundColor: colors.card,
+      alignItems: "center",
+      borderRadius: radii.lg,
+      padding: 14,
+      marginBottom: 16,
+      gap: 10,
+    },
+    weeklyGoalTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 7,
+    },
+    weeklyGoalCount: {
+      fontSize: 15,
+      fontWeight: "600",
+    },
+    weeklyGoalPips: {
+      flexDirection: "row",
+      gap: 6,
+    },
+    pip: {
+      width: 28,
+      height: 6,
+      borderRadius: radii.sm,
+    },
+    weeklyGoalMessage: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+    },
+  });
+}

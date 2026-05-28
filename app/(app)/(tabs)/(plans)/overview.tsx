@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -5,11 +6,10 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { Image } from "expo-image";
+import { AppImage } from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
-import { Colors } from "@/constants/Colors";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
 import { useDeletePlanMutation } from "@/hooks/useDeletePlanMutation";
@@ -23,7 +23,6 @@ import {
   Modal,
   ActivityIndicator,
 } from "react-native-paper";
-import { useState } from "react";
 import Bugsnag from "@bugsnag/expo";
 import { Notes } from "@/components/Notes";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
@@ -32,6 +31,8 @@ import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import type { Workout } from "@/store/workoutStore";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -46,6 +47,8 @@ function PlanWorkoutCard({
   planId: string | string[];
   countUnilateralDouble: boolean;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { estimate } = useWorkoutDurationEstimate(
     workout.exercises,
     countUnilateralDouble,
@@ -77,6 +80,8 @@ function PlanWorkoutCard({
 }
 
 export default function PlanOverviewScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { planId } = useLocalSearchParams();
   const { data: plan, isLoading, error } = usePlanQuery(Number(planId));
   const { data: scheduleEntries = [] } = usePlanScheduleQuery(Number(planId));
@@ -163,7 +168,7 @@ export default function PlanOverviewScreen() {
         <Portal>
           <Modal visible={isEditing} dismissable={false}>
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="white" />
+              <ActivityIndicator size="large" color={colors.contentPrimary} />
               <ThemedText style={styles.loadingText}>
                 <Trans>Loading Plan...</Trans>
               </ThemedText>
@@ -185,7 +190,7 @@ export default function PlanOverviewScreen() {
                   icon="trash-can-outline"
                   size={25}
                   style={{ marginRight: 0 }}
-                  iconColor={Colors.dark.highlight}
+                  iconColor={colors.danger}
                   onPressIn={handleDeletePlan}
                 />
               </>
@@ -195,7 +200,7 @@ export default function PlanOverviewScreen() {
       )}
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.planHeader}>
-          <Image source={imageSource} style={styles.planImage} />
+          <AppImage source={imageSource} style={styles.planImage} />
           <ThemedText style={styles.planName}>{plan?.name}</ThemedText>
           {plan?.is_active === 1 && (
             <View style={styles.activeBadge}>
@@ -252,7 +257,11 @@ export default function PlanOverviewScreen() {
           labelStyle={styles.buttonLabel}
           disabled={isEditing}
         >
-          {plan?.app_plan_id ? <Trans>Customise Plan</Trans> : <Trans>Edit Plan</Trans>}
+          {plan?.app_plan_id ? (
+            <Trans>Customise Plan</Trans>
+          ) : (
+            <Trans>Edit Plan</Trans>
+          )}
         </Button>
       </View>
       <Snackbar
@@ -260,7 +269,7 @@ export default function PlanOverviewScreen() {
         onDismiss={() => setSnackbarVisible(false)}
         duration={2000}
         style={{
-          backgroundColor: snackbarError ? "red" : Colors.dark.completed,
+          backgroundColor: snackbarError ? colors.danger : colors.success,
         }}
         action={{
           label: t`DISMISS`,
@@ -275,80 +284,82 @@ export default function PlanOverviewScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: 16,
-    paddingBottom: 50,
-    paddingHorizontal: 16,
-  },
-  planHeader: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  planImage: {
-    width: "100%",
-    height: 200,
-    borderRadius: 8,
-  },
-  planName: {
-    fontSize: 24,
-    lineHeight: 27,
-    color: Colors.dark.text,
-    marginTop: 10,
-  },
-  workoutCard: {
-    backgroundColor: Colors.dark.cardBackground,
-    padding: 16,
-    marginBottom: 10,
-    borderRadius: 8,
-  },
-  workoutTitle: {
-    fontSize: 18,
-    color: Colors.dark.text,
-    fontWeight: "bold",
-  },
-  workoutInfo: {
-    fontSize: 16,
-    color: Colors.dark.text,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 16,
-    backgroundColor: Colors.dark.background,
-  },
-  paperButton: {
-    flex: 1,
-    marginRight: 10,
-  },
-  buttonLabel: {
-    paddingVertical: 0,
-  },
-  activeBadge: {
-    backgroundColor: Colors.dark.completed,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    position: "absolute",
-    top: 10,
-    right: 10,
-  },
-  activeBadgeText: {
-    color: Colors.dark.text,
-    fontWeight: "bold",
-  },
-  loadingOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark transparent overlay
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 18,
-    color: "white",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      paddingTop: 16,
+      paddingBottom: 50,
+      paddingHorizontal: 16,
+    },
+    planHeader: {
+      alignItems: "center",
+      marginBottom: 20,
+    },
+    planImage: {
+      width: "100%",
+      height: 200,
+      borderRadius: radii.md,
+    },
+    planName: {
+      fontSize: 24,
+      lineHeight: 27,
+      color: colors.contentPrimary,
+      marginTop: 10,
+    },
+    workoutCard: {
+      backgroundColor: colors.card,
+      padding: 16,
+      marginBottom: 10,
+      borderRadius: radii.md,
+    },
+    workoutTitle: {
+      fontSize: 18,
+      color: colors.contentPrimary,
+      fontWeight: "bold",
+    },
+    workoutInfo: {
+      fontSize: 16,
+      color: colors.contentPrimary,
+    },
+    buttonContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 16,
+      backgroundColor: colors.background,
+    },
+    paperButton: {
+      flex: 1,
+      marginRight: 10,
+    },
+    buttonLabel: {
+      paddingVertical: 0,
+    },
+    activeBadge: {
+      backgroundColor: colors.success,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: radii.sm,
+      position: "absolute",
+      top: 10,
+      right: 10,
+    },
+    activeBadgeText: {
+      color: colors.contentPrimary,
+      fontWeight: "bold",
+    },
+    loadingOverlay: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: colors.modalBackdrop,
+      position: "absolute",
+      width: "100%",
+      height: "100%",
+    },
+    loadingText: {
+      marginTop: 10,
+      fontSize: 18,
+      color: colors.contentPrimary,
+    },
+  });
+}

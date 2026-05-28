@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   ScrollView,
   TouchableOpacity,
@@ -7,7 +7,8 @@ import {
   View,
 } from "react-native";
 import { t } from "@lingui/core/macro";
-import { Colors } from "@/constants/Colors";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 export type SortMode = "default" | "activePlan" | "recent" | "frequent";
 
@@ -20,6 +21,8 @@ export default function ExerciseSortChips({
   sortMode,
   onSortModeChange,
 }: ExerciseSortChipsProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const chips: { mode: SortMode; label: string }[] = [
     { mode: "default", label: t`Default` },
     { mode: "activePlan", label: t`Active Plan` },
@@ -57,31 +60,33 @@ export default function ExerciseSortChips({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.dark.screenBackground,
-    paddingBottom: 8,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  chip: {
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-  },
-  chipActive: {
-    backgroundColor: Colors.dark.tint,
-  },
-  chipText: {
-    color: Colors.dark.text,
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  chipTextActive: {
-    color: Colors.dark.background,
-    fontWeight: "700",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: colors.surface,
+      paddingBottom: 8,
+    },
+    scrollContent: {
+      paddingHorizontal: 16,
+      gap: 8,
+    },
+    chip: {
+      backgroundColor: colors.card,
+      borderRadius: radii.xl,
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+    },
+    chipActive: {
+      backgroundColor: colors.accent,
+    },
+    chipText: {
+      color: colors.contentPrimary,
+      fontSize: 13,
+      fontWeight: "500",
+    },
+    chipTextActive: {
+      color: colors.background,
+      fontWeight: "700",
+    },
+  });
+}

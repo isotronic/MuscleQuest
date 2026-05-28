@@ -18,13 +18,8 @@ import "@formatjs/intl-pluralrules/locale-data/fr.js";
 import Bugsnag from "@bugsnag/expo";
 import React, { useEffect, useState } from "react";
 import { Slot } from "expo-router";
-import { DarkTheme, ThemeProvider } from "@react-navigation/native";
-import {
-  ActivityIndicator,
-  Button,
-  Provider as PaperProvider,
-} from "react-native-paper";
-import { paperTheme } from "@/utils/paperTheme";
+import { ActivityIndicator, Button } from "react-native-paper";
+import { AppThemeProvider } from "@/theme";
 import { useFonts } from "expo-font";
 import * as Updates from "expo-updates";
 import "react-native-reanimated";
@@ -209,19 +204,17 @@ function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={DarkTheme}>
+      <AppThemeProvider>
         <SafeAreaProvider>
-          <PaperProvider theme={paperTheme}>
-            <AuthProvider>
-              <GestureHandlerRootView>
-                <BottomSheetModalProvider>
-                  <Slot />
-                </BottomSheetModalProvider>
-              </GestureHandlerRootView>
-            </AuthProvider>
-          </PaperProvider>
+          <AuthProvider>
+            <GestureHandlerRootView>
+              <BottomSheetModalProvider>
+                <Slot />
+              </BottomSheetModalProvider>
+            </GestureHandlerRootView>
+          </AuthProvider>
         </SafeAreaProvider>
-      </ThemeProvider>
+      </AppThemeProvider>
     </QueryClientProvider>
   );
 }

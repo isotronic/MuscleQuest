@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -10,7 +10,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { UserExercise } from "@/store/workoutStore";
-import { Image } from "expo-image";
+import { AppImage } from "@/components/ui";
 import {
   ActivityIndicator,
   Button,
@@ -20,7 +20,6 @@ import {
 } from "react-native-paper";
 import { Notes } from "@/components/Notes";
 import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
-import { Colors } from "@/constants/Colors";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 import { useDeleteStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
@@ -29,10 +28,14 @@ import { confirmStartWorkout } from "@/utils/startWorkout";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
 export default function StandaloneWorkoutScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { workoutId: workoutIdParam } = useLocalSearchParams<{
     workoutId: string;
   }>();
@@ -155,14 +158,17 @@ export default function StandaloneWorkoutScreen() {
       >
         <View style={styles.exerciseItem}>
           {base64Image ? (
-            <Image style={styles.exerciseImage} source={{ uri: base64Image }} />
+            <AppImage
+              style={styles.exerciseImage}
+              source={{ uri: base64Image }}
+            />
           ) : item.local_animated_uri ? (
-            <Image
+            <AppImage
               style={styles.exerciseImage}
               source={{ uri: item.local_animated_uri }}
             />
           ) : (
-            <Image style={styles.exerciseImage} source={fallbackImage} />
+            <AppImage style={styles.exerciseImage} source={fallbackImage} />
           )}
           <View style={styles.exerciseInfo}>
             <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
@@ -189,7 +195,7 @@ export default function StandaloneWorkoutScreen() {
   if (isLoading) {
     return (
       <ThemedView style={styles.centered}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
+        <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
   }
@@ -210,8 +216,10 @@ export default function StandaloneWorkoutScreen() {
         <Portal>
           <Modal visible={isStarting} dismissable={false}>
             <View style={styles.centered}>
-              <ActivityIndicator size="large" color="white" />
-              <ThemedText style={{ marginTop: 12, color: "white" }}>
+              <ActivityIndicator size="large" color={colors.contentPrimary} />
+              <ThemedText
+                style={{ marginTop: 12, color: colors.contentPrimary }}
+              >
                 <Trans>Starting Workout...</Trans>
               </ThemedText>
             </View>
@@ -231,7 +239,7 @@ export default function StandaloneWorkoutScreen() {
               <IconButton
                 icon="trash-can-outline"
                 size={25}
-                iconColor={Colors.dark.highlight}
+                iconColor={colors.danger}
                 onPress={handleDelete}
               />
             </>
@@ -252,7 +260,7 @@ export default function StandaloneWorkoutScreen() {
           mode="contained"
           onPress={handleStart}
           disabled={isStarting || workout.exercises.length === 0}
-          theme={{ colors: { primary: Colors.dark.tint } }}
+          theme={{ colors: { primary: colors.accent } }}
           style={styles.startButton}
           labelStyle={styles.startButtonLabel}
         >
@@ -261,7 +269,7 @@ export default function StandaloneWorkoutScreen() {
         <Button
           mode="outlined"
           onPress={handleEdit}
-          theme={{ colors: { primary: Colors.dark.tint } }}
+          theme={{ colors: { primary: colors.accent } }}
           style={styles.editButton}
           labelStyle={styles.startButtonLabel}
         >
@@ -272,71 +280,73 @@ export default function StandaloneWorkoutScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  exerciseItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.dark.cardBackground,
-    padding: 16,
-    marginBottom: 10,
-    borderRadius: 8,
-  },
-  exerciseImage: {
-    width: 70,
-    height: 70,
-    marginRight: 16,
-    borderRadius: 8,
-  },
-  exerciseInfo: {
-    flex: 1,
-  },
-  exerciseName: {
-    fontSize: 18,
-    color: Colors.dark.text,
-  },
-  exerciseSets: {
-    fontSize: 14,
-    color: Colors.dark.subText,
-  },
-  emptyText: {
-    textAlign: "center",
-    color: Colors.dark.subText,
-    marginTop: 40,
-  },
-  startButtonContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 16,
-    paddingBottom: 24,
-    backgroundColor: Colors.dark.screenBackground,
-  },
-  startButton: {
-    flex: 1,
-    marginRight: 8,
-    borderRadius: 8,
-  },
-  editButton: {
-    flex: 1,
-    borderRadius: 8,
-  },
-  startButtonLabel: {
-    fontSize: 16,
-    paddingVertical: 4,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    centered: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    scrollContent: {
+      padding: 16,
+      paddingBottom: 100,
+    },
+    exerciseItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      padding: 16,
+      marginBottom: 10,
+      borderRadius: radii.md,
+    },
+    exerciseImage: {
+      width: 70,
+      height: 70,
+      marginRight: 16,
+      borderRadius: radii.md,
+    },
+    exerciseInfo: {
+      flex: 1,
+    },
+    exerciseName: {
+      fontSize: 18,
+      color: colors.contentPrimary,
+    },
+    exerciseSets: {
+      fontSize: 14,
+      color: colors.contentSecondary,
+    },
+    emptyText: {
+      textAlign: "center",
+      color: colors.contentSecondary,
+      marginTop: 40,
+    },
+    startButtonContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 16,
+      paddingBottom: 24,
+      backgroundColor: colors.surface,
+    },
+    startButton: {
+      flex: 1,
+      marginRight: 8,
+      borderRadius: radii.md,
+    },
+    editButton: {
+      flex: 1,
+      borderRadius: radii.md,
+    },
+    startButtonLabel: {
+      fontSize: 16,
+      paddingVertical: 4,
+    },
+  });
+}

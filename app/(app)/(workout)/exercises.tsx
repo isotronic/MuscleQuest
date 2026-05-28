@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useExerciseSearch } from "@/hooks/useExerciseSearch";
 import { useExerciseSort } from "@/hooks/useExerciseSort";
 import { useExerciseUsageQuery } from "@/hooks/useExerciseUsageQuery";
@@ -11,7 +11,6 @@ import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { router, useLocalSearchParams } from "expo-router";
-import { Colors } from "@/constants/Colors";
 import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
 import ExerciseSuggestions from "@/components/ExerciseSuggestions";
@@ -22,8 +21,12 @@ import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { UserExercise } from "@/store/workoutStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import Bugsnag from "@bugsnag/expo";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 export default function ExercisesScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { workout, replaceExercise, appendExercise, createSuperset } =
     useActiveWorkoutStore();
   const {
@@ -208,7 +211,7 @@ export default function ExercisesScreen() {
       {isLoading && (
         <ActivityIndicator
           size="large"
-          color={Colors.dark.text}
+          color={colors.contentPrimary}
           style={{
             position: "absolute",
             top: "50%",
@@ -226,7 +229,7 @@ export default function ExercisesScreen() {
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
-            placeholderTextColor={Colors.dark.text}
+            placeholderTextColor={colors.contentPrimary}
             placeholder={t`Search`}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -286,47 +289,49 @@ export default function ExercisesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.dark.screenBackground,
-    paddingTop: 16,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderColor: Colors.dark.text,
-    borderWidth: 1,
-    borderRadius: 8,
-    backgroundColor: Colors.dark.screenBackground,
-    paddingRight: 8,
-    marginBottom: 4,
-    marginHorizontal: 16,
-  },
-  searchInput: {
-    flex: 1,
-    padding: 10,
-    color: Colors.dark.text,
-  },
-  addButtonLabel: {
-    fontWeight: "bold",
-  },
-  errorText: {
-    fontSize: 18,
-    color: "#FF6F61",
-  },
-  bottomButtons: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingBottom: 28,
-    backgroundColor: Colors.dark.screenBackground,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  bottomButton: {
-    borderRadius: 8,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      paddingTop: 16,
+    },
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderColor: colors.contentPrimary,
+      borderWidth: 1,
+      borderRadius: radii.md,
+      backgroundColor: colors.surface,
+      paddingRight: 8,
+      marginBottom: 4,
+      marginHorizontal: 16,
+    },
+    searchInput: {
+      flex: 1,
+      padding: 10,
+      color: colors.contentPrimary,
+    },
+    addButtonLabel: {
+      fontWeight: "bold",
+    },
+    errorText: {
+      fontSize: 18,
+      color: colors.exerciseHighlight,
+    },
+    bottomButtons: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      paddingBottom: 28,
+      backgroundColor: colors.surface,
+      elevation: 10,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: -3 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+    },
+    bottomButton: {
+      borderRadius: radii.md,
+    },
+  });
+}

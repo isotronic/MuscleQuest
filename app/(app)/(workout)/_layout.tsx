@@ -1,15 +1,16 @@
-import { Colors } from "@/constants/Colors";
 import { Stack } from "expo-router";
 import { t } from "@lingui/core/macro";
+import { useAppTheme } from "@/theme";
 
 export default function WorkoutLayout() {
+  const { colors } = useAppTheme();
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: Colors.dark.background,
+          backgroundColor: colors.background,
         },
-        headerTintColor: Colors.dark.text,
+        headerTintColor: colors.contentPrimary,
       }}
     >
       <Stack.Screen name="index" options={{ title: t`Overview` }} />

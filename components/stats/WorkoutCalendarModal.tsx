@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
+import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -12,9 +12,10 @@ import { addMonths, format, parseISO, subMonths } from "date-fns";
 import { ThemedText } from "@/components/ThemedText";
 import WorkoutHistoryCard from "@/components/WorkoutHistoryCard";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
-import { Colors } from "@/constants/Colors";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface WorkoutCalendarModalProps {
   visible: boolean;
@@ -32,19 +33,6 @@ interface WorkoutCalendarModalProps {
 // 16px modal margin + 16px padding on each side = 64px total
 const CALENDAR_WIDTH = Dimensions.get("window").width - 64;
 
-const calendarTheme = {
-  backgroundColor: Colors.dark.cardBackground,
-  calendarBackground: Colors.dark.cardBackground,
-  dayTextColor: Colors.dark.text,
-  todayTextColor: Colors.dark.tint,
-  selectedDayBackgroundColor: Colors.dark.tint,
-  selectedDayTextColor: Colors.dark.background,
-  monthTextColor: Colors.dark.text,
-  arrowColor: Colors.dark.tint,
-  textDisabledColor: Colors.dark.subText,
-  textSectionTitleColor: Colors.dark.subText,
-};
-
 export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
   visible,
   onDismiss,
@@ -57,6 +45,24 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
   loading = false,
   pastScrollRange = 24,
 }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const calendarTheme = useMemo(
+    () => ({
+      backgroundColor: colors.card,
+      calendarBackground: colors.card,
+      dayTextColor: colors.contentPrimary,
+      todayTextColor: colors.accent,
+      selectedDayBackgroundColor: colors.accent,
+      selectedDayTextColor: colors.background,
+      monthTextColor: colors.contentPrimary,
+      arrowColor: colors.accent,
+      textDisabledColor: colors.contentSecondary,
+      textSectionTitleColor: colors.contentSecondary,
+    }),
+    [colors],
+  );
+
   const formattedHeading = selectedDate
     ? format(parseISO(selectedDate), "EEEE, d MMMM")
     : null;
@@ -115,7 +121,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
         visible={visible}
         onDismiss={onDismiss}
         contentContainerStyle={styles.container}
-        theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
+        theme={{ colors: { backdrop: colors.modalBackdrop } }}
       >
         <View style={styles.header}>
           <ThemedText style={styles.title}>
@@ -124,7 +130,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
           <IconButton
             icon="close"
             size={20}
-            iconColor={Colors.dark.subText}
+            iconColor={colors.contentSecondary}
             style={styles.closeButton}
             onPress={onDismiss}
           />
@@ -155,7 +161,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
           />
           {showSpinner && (
             <View style={styles.calendarOverlay}>
-              <ActivityIndicator size="large" color={Colors.dark.tint} />
+              <ActivityIndicator size="large" color={colors.accent} />
             </View>
           )}
         </View>
@@ -201,50 +207,52 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 8,
-    margin: 16,
-    maxHeight: "82%",
-    padding: 16,
-    overflow: "hidden",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: "bold",
-  },
-  closeButton: {
-    margin: 0,
-  },
-  divider: {
-    marginVertical: 8,
-  },
-  calendarContainer: {
-    position: "relative",
-  },
-  calendarOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.dark.cardBackground,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  listContainer: {
-    flexGrow: 0,
-  },
-  dateHeading: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: Colors.dark.subText,
-    marginBottom: 8,
-  },
-  emptyText: {
-    color: Colors.dark.subText,
-    marginTop: 4,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      margin: 16,
+      maxHeight: "82%",
+      padding: 16,
+      overflow: "hidden",
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    title: {
+      fontSize: 17,
+      fontWeight: "bold",
+    },
+    closeButton: {
+      margin: 0,
+    },
+    divider: {
+      marginVertical: 8,
+    },
+    calendarContainer: {
+      position: "relative",
+    },
+    calendarOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: colors.card,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    listContainer: {
+      flexGrow: 0,
+    },
+    dateHeading: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: colors.contentSecondary,
+      marginBottom: 8,
+    },
+    emptyText: {
+      color: colors.contentSecondary,
+      marginTop: 4,
+    },
+  });
+}

@@ -12,7 +12,6 @@ import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { router, useLocalSearchParams } from "expo-router";
 import { useWorkoutStore } from "@/store/workoutStore";
-import { Colors } from "@/constants/Colors";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
@@ -21,8 +20,12 @@ import ExerciseSortChips, {
   type SortMode,
 } from "@/components/ExerciseSortChips";
 import Bugsnag from "@bugsnag/expo";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 export default function ExercisesScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const {
     initialTargetMuscle,
     isPreselectLoading,
@@ -210,17 +213,18 @@ export default function ExercisesScreen() {
       }
     },
     [
+      workouts,
+      currentWorkoutIndex,
       supersetMode,
-      supersetForExerciseIndex,
       replacing,
       allExercises,
-      replaceExerciseIndex,
+      supersetForExerciseIndex,
       defaultTimeSets,
+      defaultDistanceSets,
       defaultSets,
-      replaceExercise,
       createSuperset,
-      currentWorkoutIndex,
-      workouts,
+      replaceExerciseIndex,
+      replaceExercise,
     ],
   );
 
@@ -290,7 +294,7 @@ export default function ExercisesScreen() {
       {isLoading && (
         <ActivityIndicator
           size="large"
-          color={Colors.dark.text}
+          color={colors.contentPrimary}
           style={{
             position: "absolute",
             top: "50%",
@@ -308,7 +312,7 @@ export default function ExercisesScreen() {
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
-            placeholderTextColor={Colors.dark.text}
+            placeholderTextColor={colors.contentPrimary}
             placeholder={t`Search`}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -372,53 +376,55 @@ export default function ExercisesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.dark.screenBackground,
-    paddingTop: 16,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderColor: Colors.dark.text,
-    borderWidth: 1,
-    borderRadius: 8,
-    backgroundColor: Colors.dark.screenBackground,
-    paddingRight: 8,
-    marginBottom: 4,
-    marginHorizontal: 16,
-  },
-  searchInput: {
-    flex: 1,
-    padding: 10,
-    color: Colors.dark.text,
-  },
-  filterIconButton: {
-    margin: 0,
-  },
-  addButtonLabel: {
-    fontWeight: "bold",
-  },
-  errorText: {
-    fontSize: 18,
-    color: "#FF6F61",
-  },
-  bottomButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingBottom: 28,
-    gap: 12,
-    backgroundColor: Colors.dark.screenBackground,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  bottomButton: {
-    flex: 1,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      paddingTop: 16,
+    },
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderColor: colors.contentPrimary,
+      borderWidth: 1,
+      borderRadius: radii.md,
+      backgroundColor: colors.surface,
+      paddingRight: 8,
+      marginBottom: 4,
+      marginHorizontal: 16,
+    },
+    searchInput: {
+      flex: 1,
+      padding: 10,
+      color: colors.contentPrimary,
+    },
+    filterIconButton: {
+      margin: 0,
+    },
+    addButtonLabel: {
+      fontWeight: "bold",
+    },
+    errorText: {
+      fontSize: 18,
+      color: colors.exerciseHighlight,
+    },
+    bottomButtons: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      paddingBottom: 28,
+      gap: 12,
+      backgroundColor: colors.surface,
+      elevation: 10,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: -3 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+    },
+    bottomButton: {
+      flex: 1,
+    },
+  });
+}

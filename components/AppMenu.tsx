@@ -1,6 +1,5 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   BackHandler,
   Linking,
@@ -20,8 +19,10 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { t } from "@lingui/core/macro";
-import { Colors } from "@/constants/Colors";
 import { useMenuStore } from "@/store/menuStore";
+import { AppIcon } from "@/components/ui";
+import { useAppTheme } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 // Reanimated 4: Animated.View types don't include children in strict TS
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
@@ -32,13 +33,15 @@ const AnimatedView = Animated.View as unknown as React.ComponentType<{
 const ANIMATION_DURATION = 260;
 
 type MenuItemProps = {
-  icon: React.ComponentProps<typeof Ionicons>["name"];
+  icon: Extract<React.ComponentProps<typeof AppIcon>, { set: "ion" }>["name"];
   label: string;
   onPress: () => void;
   hint?: string;
 };
 
 function MenuItem({ icon, label, onPress, hint }: MenuItemProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createMenuItemStyles(colors), [colors]);
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -46,23 +49,33 @@ function MenuItem({ icon, label, onPress, hint }: MenuItemProps) {
       accessibilityRole="button"
       accessibilityHint={hint}
     >
-      <Ionicons
+      <AppIcon
+        set="ion"
         name={icon}
         size={22}
-        color={Colors.dark.tint}
+        color={colors.accent}
         style={styles.menuItemIcon}
       />
       <Text style={styles.menuItemLabel}>{label}</Text>
-      <Ionicons name="chevron-forward" size={16} color={Colors.dark.subText} />
+      <AppIcon
+        set="ion"
+        name="chevron-forward"
+        size={16}
+        color={colors.contentSecondary}
+      />
     </TouchableOpacity>
   );
 }
 
 function MenuDivider() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createMenuItemStyles(colors), [colors]);
   return <View style={styles.divider} />;
 }
 
 export function AppMenu() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { isMenuOpen, closeMenu } = useMenuStore();
   const { width: screenWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -155,7 +168,12 @@ export function AppMenu() {
             accessibilityLabel={t`Close menu`}
             accessibilityRole="button"
           >
-            <Ionicons name="close" size={24} color={Colors.dark.text} />
+            <AppIcon
+              set="ion"
+              name="close"
+              size={24}
+              color={colors.contentPrimary}
+            />
           </TouchableOpacity>
         </View>
 
@@ -196,56 +214,63 @@ export function AppMenu() {
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  panel: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: Colors.dark.background,
-    paddingLeft: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: -4, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 16,
-  },
-  panelHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  panelTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: Colors.dark.tint,
-    letterSpacing: 0.3,
-  },
-  closeButton: {
-    padding: 4,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.dark.cardBackground,
-    marginVertical: 8,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 4,
-  },
-  menuItemIcon: {
-    marginRight: 14,
-    width: 24,
-  },
-  menuItemLabel: {
-    flex: 1,
-    fontSize: 16,
-    color: Colors.dark.text,
-  },
-});
+function createMenuItemStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 14,
+      paddingHorizontal: 4,
+    },
+    menuItemIcon: {
+      marginRight: 14,
+      width: 24,
+    },
+    menuItemLabel: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.contentPrimary,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.card,
+      marginVertical: 8,
+    },
+  });
+}
+
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    backdrop: {
+      backgroundColor: colors.modalBackdrop,
+    },
+    panel: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: colors.background,
+      paddingLeft: 16,
+      shadowColor: "#000",
+      shadowOffset: { width: -4, height: 0 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 16,
+    },
+    panelHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 16,
+    },
+    panelTitle: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: colors.accent,
+      letterSpacing: 0.3,
+    },
+    closeButton: {
+      padding: 4,
+    },
+  });
+}

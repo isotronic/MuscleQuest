@@ -26,8 +26,7 @@ import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useFocusEffect } from "expo-router";
-import { Colors } from "@/constants/Colors";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/ui";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
 import {
   useWorkoutSessionHistoryQuery,
@@ -59,6 +58,9 @@ import Animated, {
 import { useTimer } from "react-timer-hook";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSoundStore } from "@/store/soundStore";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
+import React from "react";
 
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
   style?: any;
@@ -95,6 +97,8 @@ function hasStructuralChanges(current: Workout, original: Workout): boolean {
 }
 
 export default function WorkoutOverviewScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: settings } = useSettingsQuery();
   const queryClient = useQueryClient();
   const {
@@ -444,10 +448,11 @@ export default function WorkoutOverviewScreen() {
             onTap={() => handleExercisePress(exerciseIndex)}
             style={styles.cardTouchable}
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="drag"
               size={20}
-              color={Colors.dark.subText}
+              color={colors.contentSecondary}
               style={styles.dragIcon}
             />
             <View
@@ -457,9 +462,14 @@ export default function WorkoutOverviewScreen() {
               ]}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="white" />
+                <ActivityIndicator size="small" color={colors.contentPrimary} />
               ) : allSetsCompleted ? (
-                <MaterialCommunityIcons name="check" size={24} color="white" />
+                <AppIcon
+                  set="mci"
+                  name="check"
+                  size={24}
+                  color={colors.contentPrimary}
+                />
               ) : (
                 <ThemedText style={styles.numberText}>{label}</ThemedText>
               )}
@@ -477,10 +487,11 @@ export default function WorkoutOverviewScreen() {
           </Sortable.Touchable>
         ) : (
           <View style={styles.cardTouchable}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="drag"
               size={20}
-              color={Colors.dark.subText}
+              color={colors.contentSecondary}
               style={styles.dragIcon}
             />
             <View
@@ -490,9 +501,14 @@ export default function WorkoutOverviewScreen() {
               ]}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="white" />
+                <ActivityIndicator size="small" color={colors.contentPrimary} />
               ) : allSetsCompleted ? (
-                <MaterialCommunityIcons name="check" size={24} color="white" />
+                <AppIcon
+                  set="mci"
+                  name="check"
+                  size={24}
+                  color={colors.contentPrimary}
+                />
               ) : (
                 <ThemedText style={styles.numberText}>{label}</ThemedText>
               )}
@@ -530,7 +546,7 @@ export default function WorkoutOverviewScreen() {
                   size={24}
                   onPress={() => handleMenuOpen(exerciseIndex)}
                   style={styles.optionsButton}
-                  iconColor={Colors.dark.text}
+                  iconColor={colors.contentPrimary}
                 />
               }
             >
@@ -604,6 +620,8 @@ export default function WorkoutOverviewScreen() {
       handleRemoveSuperset,
       handleExercisePress,
       itemLabels,
+      styles,
+      colors,
     ],
   );
 
@@ -866,7 +884,7 @@ export default function WorkoutOverviewScreen() {
         <Portal>
           <Modal visible={isSaving} dismissable={false}>
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="white" />
+              <ActivityIndicator size="large" color={colors.contentPrimary} />
               <ThemedText style={styles.loadingText}>
                 <Trans>Saving Workout...</Trans>
               </ThemedText>
@@ -897,7 +915,7 @@ export default function WorkoutOverviewScreen() {
                     size={24}
                     onPressIn={() => handleMenuOpen(69420)}
                     style={styles.optionsButton}
-                    iconColor={Colors.dark.text}
+                    iconColor={colors.contentPrimary}
                   />
                 }
               >
@@ -925,7 +943,7 @@ export default function WorkoutOverviewScreen() {
           visible={showSaveModal}
           onDismiss={handleExitSaveModal}
           contentContainerStyle={styles.saveModal}
-          theme={{ colors: { backdrop: "rgba(0, 0, 0, 0.65)" } }}
+          theme={{ colors: { backdrop: colors.modalBackdrop } }}
         >
           <ThemedText style={styles.saveModalTitle}>
             <Trans>Save this workout?</Trans>
@@ -936,7 +954,7 @@ export default function WorkoutOverviewScreen() {
           <TextInput
             style={styles.saveModalInput}
             placeholder={t`Workout name`}
-            placeholderTextColor={Colors.dark.subText}
+            placeholderTextColor={colors.contentSecondary}
             value={saveWorkoutName}
             onChangeText={setSaveWorkoutName}
             autoFocus
@@ -947,7 +965,7 @@ export default function WorkoutOverviewScreen() {
             </Button>
             <Button
               mode="contained"
-              theme={{ colors: { primary: Colors.dark.tint } }}
+              theme={{ colors: { primary: colors.accent } }}
               onPress={async () => {
                 const name = saveWorkoutName.trim() || t`Quick Workout`;
                 try {
@@ -995,10 +1013,11 @@ export default function WorkoutOverviewScreen() {
         />
         {isQuickWorkout && workout.exercises.length === 0 && (
           <View style={styles.emptyQuickWorkout}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="dumbbell"
               size={48}
-              color={Colors.dark.subText}
+              color={colors.contentSecondary}
             />
             <ThemedText style={styles.emptyQuickWorkoutText}>
               <Trans>Add exercises to get started</Trans>
@@ -1067,212 +1086,214 @@ export default function WorkoutOverviewScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  buttonLabel: {
-    fontSize: 16,
-  },
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  card: {
-    marginBottom: 10,
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  cardTouchable: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  dragIcon: {
-    marginRight: 8,
-  },
-  numberContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: Colors.dark.text,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  numberContainerCompleted: {
-    backgroundColor: Colors.dark.completed,
-    borderColor: Colors.dark.completed,
-  },
-  numberText: {
-    fontSize: 18,
-    color: Colors.dark.text,
-  },
-  exerciseInfo: {
-    flex: 1,
-  },
-  emptyQuickWorkout: {
-    alignItems: "center",
-    marginTop: 60,
-    marginBottom: 20,
-    gap: 12,
-  },
-  emptyQuickWorkoutText: {
-    fontSize: 16,
-    color: Colors.dark.subText,
-    textAlign: "center",
-  },
-  saveModal: {
-    backgroundColor: Colors.dark.cardBackground,
-    margin: 24,
-    borderRadius: 12,
-    padding: 24,
-  },
-  saveModalTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  saveModalSubtitle: {
-    fontSize: 14,
-    color: Colors.dark.subText,
-    marginBottom: 16,
-  },
-  saveModalInput: {
-    borderWidth: 1,
-    borderColor: Colors.dark.subText,
-    borderRadius: 8,
-    padding: 10,
-    color: Colors.dark.text,
-    fontSize: 14,
-    marginBottom: 20,
-  },
-  saveModalButtons: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 12,
-  },
-  exerciseName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.dark.text,
-  },
-  setInfo: {
-    fontSize: 14,
-    color: Colors.dark.subText,
-  },
-  optionsButton: {
-    padding: 0,
-    marginRight: 0,
-  },
-  loadingOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark transparent overlay
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 18,
-    color: "white",
-  },
-  addExerciseButton: {
-    marginTop: 8,
-    marginBottom: 50,
-  },
-  supersetHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-    marginTop: 8,
-    paddingHorizontal: 4,
-  },
-  supersetHeaderText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: Colors.dark.tint,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  supersetConnector: {
-    width: 3,
-    height: 8,
-    backgroundColor: Colors.dark.tint,
-    marginLeft: 27,
-    marginBottom: 0,
-  },
-  supersetCard: {
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.dark.tint,
-  },
-  supersetCardFirst: {
-    marginBottom: 0,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  supersetCardLast: {
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-  },
-  timerContainer: {
-    position: "absolute",
-    bottom: 0,
-    right: 16,
-    left: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-    backgroundColor: Colors.dark.cardBackground,
-    alignItems: "center",
-    justifyContent: "center",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-    marginBottom: 0,
-  },
-  timerLabel: {
-    fontSize: 14,
-    color: Colors.dark.text,
-    marginBottom: 4,
-    textAlign: "center",
-  },
-  timerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 16,
-  },
-  timerAdjustButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: Colors.dark.cardBackground2,
-  },
-  timerAdjustText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.dark.text,
-  },
-  timerText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: Colors.dark.text,
-    textAlign: "center",
-    lineHeight: 32,
-    marginBottom: 8,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    headerRight: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    buttonLabel: {
+      fontSize: 16,
+    },
+    container: {
+      flex: 1,
+      padding: 16,
+    },
+    card: {
+      marginBottom: 10,
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+    },
+    cardRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    cardTouchable: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    dragIcon: {
+      marginRight: 8,
+    },
+    numberContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: radii.full,
+      borderWidth: 2,
+      borderColor: colors.contentPrimary,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+    },
+    numberContainerCompleted: {
+      backgroundColor: colors.success,
+      borderColor: colors.success,
+    },
+    numberText: {
+      fontSize: 18,
+      color: colors.contentPrimary,
+    },
+    exerciseInfo: {
+      flex: 1,
+    },
+    emptyQuickWorkout: {
+      alignItems: "center",
+      marginTop: 60,
+      marginBottom: 20,
+      gap: 12,
+    },
+    emptyQuickWorkoutText: {
+      fontSize: 16,
+      color: colors.contentSecondary,
+      textAlign: "center",
+    },
+    saveModal: {
+      backgroundColor: colors.card,
+      margin: 24,
+      borderRadius: radii.lg,
+      padding: 24,
+    },
+    saveModalTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      marginBottom: 8,
+    },
+    saveModalSubtitle: {
+      fontSize: 14,
+      color: colors.contentSecondary,
+      marginBottom: 16,
+    },
+    saveModalInput: {
+      borderWidth: 1,
+      borderColor: colors.contentSecondary,
+      borderRadius: radii.md,
+      padding: 10,
+      color: colors.contentPrimary,
+      fontSize: 14,
+      marginBottom: 20,
+    },
+    saveModalButtons: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: 12,
+    },
+    exerciseName: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: colors.contentPrimary,
+    },
+    setInfo: {
+      fontSize: 14,
+      color: colors.contentSecondary,
+    },
+    optionsButton: {
+      padding: 0,
+      marginRight: 0,
+    },
+    loadingOverlay: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: colors.modalBackdrop,
+      position: "absolute",
+      width: "100%",
+      height: "100%",
+    },
+    loadingText: {
+      marginTop: 10,
+      fontSize: 18,
+      color: colors.contentPrimary,
+    },
+    addExerciseButton: {
+      marginTop: 8,
+      marginBottom: 50,
+    },
+    supersetHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 4,
+      marginTop: 8,
+      paddingHorizontal: 4,
+    },
+    supersetHeaderText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.accent,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+    supersetConnector: {
+      width: 3,
+      height: 8,
+      backgroundColor: colors.accent,
+      marginLeft: 27,
+      marginBottom: 0,
+    },
+    supersetCard: {
+      borderLeftWidth: 3,
+      borderLeftColor: colors.accent,
+    },
+    supersetCardFirst: {
+      marginBottom: 0,
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
+    },
+    supersetCardLast: {
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+    },
+    timerContainer: {
+      position: "absolute",
+      bottom: 0,
+      right: 16,
+      left: 16,
+      paddingTop: 8,
+      paddingBottom: 8,
+      backgroundColor: colors.card,
+      alignItems: "center",
+      justifyContent: "center",
+      borderTopLeftRadius: 10,
+      borderTopRightRadius: 10,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 5,
+      marginBottom: 0,
+    },
+    timerLabel: {
+      fontSize: 14,
+      color: colors.contentPrimary,
+      marginBottom: 4,
+      textAlign: "center",
+    },
+    timerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 16,
+    },
+    timerAdjustButton: {
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      borderRadius: radii.md,
+      backgroundColor: colors.cardSecondary,
+    },
+    timerAdjustText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.contentPrimary,
+    },
+    timerText: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: colors.contentPrimary,
+      textAlign: "center",
+      lineHeight: 32,
+      marginBottom: 8,
+    },
+  });
+}

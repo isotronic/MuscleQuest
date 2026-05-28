@@ -1,12 +1,20 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
 import Svg, { Circle, Text as SvgText } from "react-native-svg";
 import { Trans } from "@lingui/react/macro";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useSoundStore } from "@/store/soundStore";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
+
 const RING_SIZE = 220;
 const STROKE_WIDTH = 14;
 const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
@@ -25,6 +33,8 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
   onStop,
   onCancel,
 }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: settings } = useSettingsQuery();
   const countdownFrom = parseInt(settings?.timerCountdown ?? "5", 10) || 5;
   const { playCountdownSound, playGoalSound } = useSoundStore();
@@ -134,9 +144,7 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
     : 0;
   const isVisuallyComplete = hasGoal && progress >= 1;
   const strokeDashoffset = CIRCUMFERENCE * (1 - progress);
-  const progressColor = isVisuallyComplete
-    ? Colors.dark.completed
-    : Colors.dark.tint;
+  const progressColor = isVisuallyComplete ? colors.success : colors.accent;
 
   return (
     <Modal
@@ -166,7 +174,7 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
                     cx={RING_SIZE / 2}
                     cy={RING_SIZE / 2}
                     r={RADIUS}
-                    stroke={Colors.dark.cardBackground2}
+                    stroke={colors.cardSecondary}
                     strokeWidth={STROKE_WIDTH}
                     fill="none"
                   />
@@ -193,8 +201,8 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
                     fontWeight="bold"
                     fill={
                       isVisuallyComplete
-                        ? Colors.dark.completed
-                        : Colors.dark.text
+                        ? colors.success
+                        : colors.contentPrimary
                     }
                   >
                     {formatFromTotalSeconds(elapsedSeconds)}
@@ -229,62 +237,64 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.75)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  card: {
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 6,
-    paddingVertical: 40,
-    paddingHorizontal: 40,
-    alignItems: "center",
-    width: "85%",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: Colors.dark.subText,
-    marginBottom: 24,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  getReadyText: {
-    fontSize: 22,
-    color: Colors.dark.subText,
-    marginBottom: 16,
-  },
-  countdownText: {
-    fontSize: 96,
-    fontWeight: "bold",
-    color: Colors.dark.tint,
-    lineHeight: 96,
-  },
-  ringContainer: {
-    width: RING_SIZE,
-    height: RING_SIZE,
-    marginBottom: 20,
-  },
-  goalText: {
-    fontSize: 16,
-    color: Colors.dark.subText,
-    marginBottom: 28,
-  },
-  goalTextReached: {
-    color: Colors.dark.completed,
-  },
-  stopButton: {
-    backgroundColor: Colors.dark.highlight,
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 48,
-  },
-  stopButtonText: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#fff",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.modalBackdrop,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      paddingVertical: 40,
+      paddingHorizontal: 40,
+      alignItems: "center",
+      width: "85%",
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: colors.contentSecondary,
+      marginBottom: 24,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+    getReadyText: {
+      fontSize: 22,
+      color: colors.contentSecondary,
+      marginBottom: 16,
+    },
+    countdownText: {
+      fontSize: 96,
+      fontWeight: "bold",
+      color: colors.accent,
+      lineHeight: 96,
+    },
+    ringContainer: {
+      width: RING_SIZE,
+      height: RING_SIZE,
+      marginBottom: 20,
+    },
+    goalText: {
+      fontSize: 16,
+      color: colors.contentSecondary,
+      marginBottom: 28,
+    },
+    goalTextReached: {
+      color: colors.success,
+    },
+    stopButton: {
+      backgroundColor: colors.danger,
+      borderRadius: radii.lg,
+      paddingVertical: 14,
+      paddingHorizontal: 48,
+    },
+    stopButtonText: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: colors.contentPrimary,
+    },
+  });
+}

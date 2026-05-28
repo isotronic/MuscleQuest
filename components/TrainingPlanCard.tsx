@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useMemo, useRef, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -7,9 +7,10 @@ import {
 } from "react-native";
 import { Card, Text } from "react-native-paper";
 import { ThemedView } from "./ThemedView";
-import { Colors } from "@/constants/Colors";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 export default function TrainingPlanCard({
   title,
@@ -22,6 +23,8 @@ export default function TrainingPlanCard({
   onPress: () => void;
   isActive: boolean;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const animatedValue = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -59,7 +62,7 @@ export default function TrainingPlanCard({
         <Animated.View style={[styles.card, cardStyle]}>
           <Card style={styles.card}>
             <Card.Cover
-              style={{ borderRadius: 10 }}
+              style={{ borderRadius: radii.md }}
               source={{
                 uri: imageUrl,
               }}
@@ -83,44 +86,48 @@ export default function TrainingPlanCard({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    margin: 10,
-  },
-  card: {
-    height: 190,
-    width: 300,
-    borderRadius: 10,
-    overflow: "hidden",
-  },
-  floatingTitleContainer: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    paddingVertical: 5,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  floatingTitleText: {
-    fontSize: 22,
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-    textShadow: "2px 2px 4px rgba(0, 0, 0, 0.75)",
-  },
-  activeBadge: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: Colors.dark.completed,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  activeBadgeText: {
-    color: Colors.dark.text,
-    fontWeight: "bold",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      margin: 10,
+    },
+    card: {
+      height: 190,
+      width: 300,
+      borderRadius: radii.md,
+      overflow: "hidden",
+    },
+    floatingTitleContainer: {
+      position: "absolute",
+      bottom: 0,
+      width: "100%",
+      paddingVertical: 5,
+      backgroundColor: "rgba(0, 0, 0, 0.4)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    floatingTitleText: {
+      fontSize: 22,
+      color: colors.contentPrimary,
+      fontWeight: "bold",
+      textAlign: "center",
+      textShadowColor: "rgba(0, 0, 0, 0.75)",
+      textShadowOffset: { width: 2, height: 2 },
+      textShadowRadius: 4,
+    },
+    activeBadge: {
+      position: "absolute",
+      top: 10,
+      right: 10,
+      backgroundColor: colors.success,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: radii.sm,
+    },
+    activeBadgeText: {
+      color: colors.contentPrimary,
+      fontWeight: "bold",
+    },
+  });
+}

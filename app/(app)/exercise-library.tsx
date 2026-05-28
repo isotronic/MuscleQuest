@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useExerciseSearch } from "@/hooks/useExerciseSearch";
 import { useExerciseSort } from "@/hooks/useExerciseSort";
 import { useExerciseUsageQuery } from "@/hooks/useExerciseUsageQuery";
@@ -10,7 +10,6 @@ import { ActivityIndicator } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
-import { Colors } from "@/constants/Colors";
 import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
 import ExerciseSuggestions from "@/components/ExerciseSuggestions";
@@ -18,8 +17,12 @@ import ExerciseSortChips, {
   type SortMode,
 } from "@/components/ExerciseSortChips";
 import Bugsnag from "@bugsnag/expo";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 export default function ExerciseLibraryScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEquipment, setSelectedEquipment] = useState<string | null>(
     null,
@@ -64,7 +67,7 @@ export default function ExerciseLibraryScreen() {
   if (exercisesLoading) {
     return (
       <ThemedView style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
+        <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
   }
@@ -84,7 +87,7 @@ export default function ExerciseLibraryScreen() {
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholderTextColor={Colors.dark.text}
+          placeholderTextColor={colors.contentPrimary}
           placeholder={t`Search`}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -123,30 +126,32 @@ export default function ExerciseLibraryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.dark.screenBackground,
-    paddingTop: 16,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderColor: Colors.dark.text,
-    borderWidth: 1,
-    borderRadius: 8,
-    backgroundColor: Colors.dark.screenBackground,
-    paddingRight: 8,
-    marginBottom: 4,
-    marginHorizontal: 16,
-  },
-  searchInput: {
-    flex: 1,
-    padding: 10,
-    color: Colors.dark.text,
-  },
-  errorText: {
-    fontSize: 18,
-    color: "#FF6F61",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      paddingTop: 16,
+    },
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderColor: colors.contentPrimary,
+      borderWidth: 1,
+      borderRadius: radii.md,
+      backgroundColor: colors.surface,
+      paddingRight: 8,
+      marginBottom: 4,
+      marginHorizontal: 16,
+    },
+    searchInput: {
+      flex: 1,
+      padding: 10,
+      color: colors.contentPrimary,
+    },
+    errorText: {
+      fontSize: 18,
+      color: colors.exerciseHighlight,
+    },
+  });
+}

@@ -16,7 +16,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import SessionSetInfo from "@/components/SessionSetInfo";
 import { useTimer } from "react-timer-hook";
-import { Colors } from "@/constants/Colors";
+import { useAppTheme } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
@@ -41,6 +42,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { radii } from "@/theme";
 
 // Reanimated 4: Animated.View types don't include children in strict TS
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
@@ -205,6 +207,8 @@ function snapshotToProps(snapshot: OutgoingSnapshot) {
 }
 
 export default function WorkoutSessionScreen() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
 
   // Animation shared values — all hooks must be before any early returns
@@ -1238,7 +1242,7 @@ export default function WorkoutSessionScreen() {
   if (settingsLoading) {
     return (
       <ThemedView style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.dark.text} />
+        <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
   }
@@ -1444,86 +1448,87 @@ export default function WorkoutSessionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "space-between",
-    padding: 16,
-  },
-  panelContainer: {
-    flex: 1,
-    overflow: "hidden",
-  },
-  timerContainer: {
-    position: "absolute",
-    bottom: 0,
-    right: 16,
-    left: 16,
-    width: "100%",
-    paddingTop: 8,
-    paddingBottom: 8,
-    backgroundColor: Colors.dark.cardBackground,
-    alignItems: "center",
-    justifyContent: "center",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.3)",
-    elevation: 5,
-    marginBottom: 0,
-  },
-  supersetBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: Colors.dark.cardBackground,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginBottom: 8,
-  },
-  supersetLabel: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.dark.tint,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  supersetPartner: {
-    fontSize: 13,
-    color: Colors.dark.subText,
-    flexShrink: 1,
-    textAlign: "right",
-    marginLeft: 8,
-  },
-  timerLabel: {
-    fontSize: 14,
-    color: Colors.dark.text,
-    marginBottom: 4,
-    textAlign: "center",
-  },
-  timerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 16,
-  },
-  timerAdjustButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: Colors.dark.cardBackground2,
-  },
-  timerAdjustText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.dark.text,
-  },
-  timerText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: Colors.dark.text,
-    textAlign: "center",
-    lineHeight: 32,
-    marginBottom: 8,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "space-between",
+      padding: 16,
+    },
+    panelContainer: {
+      flex: 1,
+      overflow: "hidden",
+    },
+    timerContainer: {
+      position: "absolute",
+      bottom: 0,
+      right: 16,
+      left: 16,
+      paddingTop: 8,
+      paddingBottom: 8,
+      backgroundColor: colors.card,
+      alignItems: "center",
+      justifyContent: "center",
+      borderTopLeftRadius: 10,
+      borderTopRightRadius: 10,
+      boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.3)",
+      elevation: 5,
+      marginBottom: 0,
+    },
+    supersetBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      marginBottom: 8,
+    },
+    supersetLabel: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: colors.accent,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+    supersetPartner: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+      flexShrink: 1,
+      textAlign: "right",
+      marginLeft: 8,
+    },
+    timerLabel: {
+      fontSize: 14,
+      color: colors.contentPrimary,
+      marginBottom: 4,
+      textAlign: "center",
+    },
+    timerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 16,
+    },
+    timerAdjustButton: {
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      borderRadius: radii.md,
+      backgroundColor: colors.cardSecondary,
+    },
+    timerAdjustText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.contentPrimary,
+    },
+    timerText: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: colors.contentPrimary,
+      textAlign: "center",
+      lineHeight: 32,
+      marginBottom: 8,
+    },
+  });
+}

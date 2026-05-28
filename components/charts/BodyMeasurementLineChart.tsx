@@ -3,8 +3,9 @@ import { Text, View, StyleSheet, useWindowDimensions } from "react-native";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { LineChart } from "react-native-gifted-charts";
-import { Colors } from "@/constants/Colors";
-import { chartTheme } from "./chartTheme";
+import { useChartTheme } from "./chartTheme";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 interface DataPoint {
   recorded_at: string;
@@ -210,6 +211,9 @@ export const BodyMeasurementLineChart: React.FC<
   BodyMeasurementLineChartProps
 > = ({ data, timeRange, unit, metricLabel }) => {
   const { width: screenWidth } = useWindowDimensions();
+  const chartTheme = useChartTheme();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { chartData, yAxisOffset, yAxisMax } = useMemo(() => {
     const buckets = groupMeasurementsByTime(data, timeRange);
@@ -240,13 +244,13 @@ export const BodyMeasurementLineChart: React.FC<
         value: bucket.value ?? 0,
         label: labelComponent ? undefined : bucket.label,
         labelComponent,
-        dataPointColor: Colors.dark.text,
+        dataPointColor: colors.contentPrimary,
         dataPointRadius: 4,
       };
     });
 
     return { chartData: points, yAxisOffset: yMin, yAxisMax: yMax - yMin };
-  }, [data, timeRange]);
+  }, [data, timeRange, styles, colors.contentPrimary]);
 
   // 30d uses "4 May" labels (~28px at size 9), needs more room than single-digit labels
   const initialSpacing = timeRange === "30" ? 20 : 10;
@@ -281,15 +285,15 @@ export const BodyMeasurementLineChart: React.FC<
         initialSpacing={initialSpacing}
         endSpacing={initialSpacing}
         thickness={2}
-        color={Colors.dark.tint}
+        color={colors.accent}
         isAnimated
         areaChart
         startFillColor={chartTheme.areaStartFill}
-        endFillColor="rgba(235,170,57,0.08)"
+        endFillColor={chartTheme.areaEndFill}
         yAxisColor="transparent"
         yAxisTextStyle={styles.yAxisLabel}
         xAxisLabelTextStyle={styles.xAxisLabel}
-        xAxisColor={Colors.dark.subText}
+        xAxisColor={colors.contentSecondary}
         hideRules
         noOfSections={3}
         yAxisOffset={yAxisOffset}
@@ -298,9 +302,9 @@ export const BodyMeasurementLineChart: React.FC<
           activatePointersInstantlyOnTouch: true,
           persistPointer: true,
           showPointerStrip: true,
-          pointerStripColor: "rgba(255,255,255,0.15)",
+          pointerStripColor: chartTheme.pointerStripColor,
           pointerStripWidth: 1,
-          pointerColor: Colors.dark.highlight,
+          pointerColor: colors.danger,
           radius: 5,
           pointerLabelWidth: POINTER_LABEL_WIDTH,
           pointerLabelHeight: 34,
@@ -329,52 +333,54 @@ export const BodyMeasurementLineChart: React.FC<
   );
 };
 
-const styles = StyleSheet.create({
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.dark.subText,
-    marginBottom: 8,
-  },
-  empty: {
-    alignItems: "center",
-    paddingVertical: 24,
-  },
-  emptyText: {
-    color: Colors.dark.subText,
-    fontSize: 14,
-  },
-  yAxisLabel: {
-    fontSize: 12,
-    color: Colors.dark.text,
-  },
-  xAxisLabel: {
-    fontSize: 9,
-    color: Colors.dark.text,
-    marginTop: 4,
-  },
-  twoLineLabel: {
-    alignItems: "center",
-    marginTop: 4,
-  },
-  twoLineLabelText: {
-    fontSize: 9,
-    color: Colors.dark.subText,
-  },
-  tooltip: {
-    alignSelf: "center",
-    backgroundColor: Colors.dark.cardBackground2,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  tooltipLast: {
-    alignSelf: "flex-start",
-    marginLeft: -(POINTER_LABEL_WIDTH / 1.5),
-  },
-  tooltipText: {
-    color: Colors.dark.text,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    label: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.contentSecondary,
+      marginBottom: 8,
+    },
+    empty: {
+      alignItems: "center",
+      paddingVertical: 24,
+    },
+    emptyText: {
+      color: colors.contentSecondary,
+      fontSize: 14,
+    },
+    yAxisLabel: {
+      fontSize: 12,
+      color: colors.contentPrimary,
+    },
+    xAxisLabel: {
+      fontSize: 9,
+      color: colors.contentPrimary,
+      marginTop: 4,
+    },
+    twoLineLabel: {
+      alignItems: "center",
+      marginTop: 4,
+    },
+    twoLineLabelText: {
+      fontSize: 9,
+      color: colors.contentSecondary,
+    },
+    tooltip: {
+      alignSelf: "center",
+      backgroundColor: colors.cardSecondary,
+      borderRadius: radii.md,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+    },
+    tooltipLast: {
+      alignSelf: "flex-start",
+      marginLeft: -(POINTER_LABEL_WIDTH / 1.5),
+    },
+    tooltipText: {
+      color: colors.contentPrimary,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+  });
+}

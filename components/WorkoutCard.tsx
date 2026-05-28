@@ -6,14 +6,15 @@ import { Card, Button, Menu, IconButton } from "react-native-paper";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { router } from "expo-router";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Colors } from "@/constants/Colors";
+import { AppIcon } from "@/components/ui";
 import Sortable from "react-native-sortables";
 import type { SortableGridRenderItem } from "react-native-sortables";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 // Each item fed to Sortable.Grid is either a solo exercise or an adjacent superset pair.
 // The pair is treated as a single draggable unit so both exercises move together.
@@ -56,6 +57,8 @@ export default function WorkoutCard({
   onNameChange,
   onAddExercise,
 }: WorkoutCardProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { workouts } = useWorkoutStore();
   const { data: settings } = useSettingsQuery();
   const distanceUnit = settings?.distanceUnit || "m";
@@ -246,18 +249,21 @@ export default function WorkoutCard({
             }
             style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
           >
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="drag"
               size={24}
-              color="#ECEFF4"
+              color={colors.contentPrimary}
               style={styles.dragIcon}
             />
             <View style={styles.exerciseInfo}>
               <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
               <ThemedText style={styles.setsAndReps}>
-                {item?.sets?.length
-                  ? <Plural value={item.sets.length} one="# Set" other="# Sets" />
-                  : t`No Sets Available`}
+                {item?.sets?.length ? (
+                  <Plural value={item.sets.length} one="# Set" other="# Sets" />
+                ) : (
+                  t`No Sets Available`
+                )}
                 {item.tracking_type === "time"
                   ? timeRange
                     ? ` | ${timeRange} ${isToFailure ? t`(to Failure)` : ""}`
@@ -280,7 +286,7 @@ export default function WorkoutCard({
                 icon="dots-vertical"
                 size={24}
                 onPress={() => openMenu(item.exercise_id)}
-                iconColor={Colors.dark.text}
+                iconColor={colors.contentPrimary}
               />
             }
           >
@@ -396,23 +402,26 @@ export default function WorkoutCard({
             <Trans>Workout {index + 1}</Trans>
           </ThemedText>
           <View style={styles.workoutHeaderActions}>
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="chevron-up"
               onPress={isFirst ? undefined : onMoveUp}
               size={24}
-              color={isFirst ? Colors.dark.subText : Colors.dark.text}
+              color={isFirst ? colors.contentSecondary : colors.contentPrimary}
             />
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="chevron-down"
               onPress={isLast ? undefined : onMoveDown}
               size={24}
-              color={isLast ? Colors.dark.subText : Colors.dark.text}
+              color={isLast ? colors.contentSecondary : colors.contentPrimary}
             />
-            <MaterialCommunityIcons
+            <AppIcon
+              set="mci"
               name="close"
               onPress={() => onRemove(index)}
               size={24}
-              color={Colors.dark.text}
+              color={colors.contentPrimary}
               style={styles.removeWorkoutButton}
             />
           </View>
@@ -420,7 +429,7 @@ export default function WorkoutCard({
       )}
       <TextInput
         placeholder={t`Workout name`}
-        placeholderTextColor={Colors.dark.subText}
+        placeholderTextColor={colors.contentSecondary}
         style={styles.input}
         value={workout.name}
         onChangeText={(text: string) => onNameChange(index, text)}
@@ -459,142 +468,144 @@ export default function WorkoutCard({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    overflow: "visible",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  input: {
-    flex: 1,
-    padding: 10,
-    borderColor: Colors.dark.subText,
-    borderWidth: 1,
-    borderRadius: 8,
-    color: Colors.dark.text,
-    marginTop: 10,
-    fontSize: 14,
-    lineHeight: 18,
-    height: 40,
-  },
-  durationEstimate: {
-    fontSize: 13,
-    color: Colors.dark.subText,
-    marginTop: 4,
-    marginBottom: 4,
-  },
-  addButton: {
-    marginTop: 8,
-  },
-  image: {
-    width: 60,
-    height: 60,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  emptyText: {
-    fontSize: 18,
-    color: Colors.dark.text,
-  },
-  workoutCard: {
-    width: "100%",
-    backgroundColor: Colors.dark.cardBackground,
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 16,
-    overflow: "visible",
-  },
-  workoutHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  workoutHeaderActions: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  workoutDay: {
-    fontSize: 16,
-  },
-  workoutName: {
-    fontSize: 18,
-    color: Colors.dark.text,
-  },
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 15,
-  },
-  exerciseItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    backgroundColor: Colors.dark.cardBackground2,
-    marginBottom: 8,
-    borderRadius: 8,
-    overflow: "visible",
-  },
-  activeExerciseItem: {
-    backgroundColor: Colors.dark.activeCardBackground,
-    zIndex: 9999,
-  },
-  exerciseName: {
-    color: "#ECEFF4",
-    fontSize: 16,
-  },
-  removeWorkoutButton: {
-    padding: 4,
-    borderRadius: 50,
-  },
-  dragIcon: {
-    marginRight: 10,
-  },
-  exerciseInfo: {
-    flex: 1,
-  },
-  setsAndReps: {
-    fontSize: 14,
-    color: "#D8DEE9",
-  },
-  closeIcon: {
-    marginLeft: "auto",
-  },
-  supersetHeader: {
-    paddingHorizontal: 4,
-    paddingBottom: 0,
-    marginTop: -7,
-  },
-  supersetHeaderText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: Colors.dark.tint,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  supersetConnector: {
-    width: 3,
-    height: 6,
-    backgroundColor: Colors.dark.tint,
-    marginLeft: 27,
-  },
-  supersetExerciseItem: {
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.dark.tint,
-  },
-  supersetExerciseFirst: {
-    marginBottom: 0,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  supersetExerciseLast: {
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    marginBottom: 8,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      paddingHorizontal: 16,
+      overflow: "visible",
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 20,
+    },
+    input: {
+      flex: 1,
+      padding: 10,
+      borderColor: colors.contentSecondary,
+      borderWidth: 1,
+      borderRadius: radii.md,
+      color: colors.contentPrimary,
+      marginTop: 10,
+      fontSize: 14,
+      lineHeight: 18,
+      height: 40,
+    },
+    durationEstimate: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+      marginTop: 4,
+      marginBottom: 4,
+    },
+    addButton: {
+      marginTop: 8,
+    },
+    image: {
+      width: 60,
+      height: 60,
+      borderRadius: radii.full,
+      marginRight: 10,
+    },
+    emptyText: {
+      fontSize: 18,
+      color: colors.contentPrimary,
+    },
+    workoutCard: {
+      width: "100%",
+      backgroundColor: colors.card,
+      padding: 16,
+      borderRadius: radii.md,
+      marginBottom: 16,
+      overflow: "visible",
+    },
+    workoutHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    workoutHeaderActions: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    workoutDay: {
+      fontSize: 16,
+    },
+    workoutName: {
+      fontSize: 18,
+      color: colors.contentPrimary,
+    },
+    fab: {
+      position: "absolute",
+      right: 20,
+      bottom: 15,
+    },
+    exerciseItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 12,
+      paddingHorizontal: 10,
+      backgroundColor: colors.cardSecondary,
+      marginBottom: 8,
+      borderRadius: radii.md,
+      overflow: "visible",
+    },
+    activeExerciseItem: {
+      backgroundColor: colors.cardActive,
+      zIndex: 9999,
+    },
+    exerciseName: {
+      color: colors.contentPrimary,
+      fontSize: 16,
+    },
+    removeWorkoutButton: {
+      padding: 4,
+      borderRadius: radii.full,
+    },
+    dragIcon: {
+      marginRight: 10,
+    },
+    exerciseInfo: {
+      flex: 1,
+    },
+    setsAndReps: {
+      fontSize: 14,
+      color: colors.contentSecondary,
+    },
+    closeIcon: {
+      marginLeft: "auto",
+    },
+    supersetHeader: {
+      paddingHorizontal: 4,
+      paddingBottom: 0,
+      marginTop: -7,
+    },
+    supersetHeaderText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: colors.accent,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+    supersetConnector: {
+      width: 3,
+      height: 6,
+      backgroundColor: colors.accent,
+      marginLeft: 27,
+    },
+    supersetExerciseItem: {
+      borderLeftWidth: 3,
+      borderLeftColor: colors.accent,
+    },
+    supersetExerciseFirst: {
+      marginBottom: 0,
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
+    },
+    supersetExerciseLast: {
+      borderTopLeftRadius: 0,
+      borderTopRightRadius: 0,
+      marginBottom: 8,
+    },
+  });
+}

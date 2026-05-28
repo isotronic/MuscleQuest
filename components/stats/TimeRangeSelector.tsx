@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
 import { msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const RANGES = [
   { label: msg`30d`, value: "30" },
@@ -21,6 +22,8 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   selected,
   onChange,
 }) => {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   return (
     <View style={styles.row}>
@@ -43,30 +46,32 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    gap: 8,
-    paddingVertical: 8,
-  },
-  pill: {
-    flex: 1,
-    paddingVertical: 6,
-    borderRadius: 20,
-    alignItems: "center",
-    backgroundColor: Colors.dark.cardBackground,
-  },
-  pillActive: {
-    backgroundColor: Colors.dark.tint + "25",
-    borderWidth: 1,
-    borderColor: Colors.dark.tint,
-  },
-  label: {
-    fontSize: 12,
-    color: Colors.dark.subText,
-    fontWeight: "600",
-  },
-  labelActive: {
-    color: Colors.dark.tint,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      gap: 8,
+      paddingVertical: 8,
+    },
+    pill: {
+      flex: 1,
+      paddingVertical: 6,
+      borderRadius: radii.full,
+      alignItems: "center",
+      backgroundColor: colors.card,
+    },
+    pillActive: {
+      backgroundColor: colors.accentSubtle,
+      borderWidth: 1,
+      borderColor: colors.accent,
+    },
+    label: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+      fontWeight: "600",
+    },
+    labelActive: {
+      color: colors.accent,
+    },
+  });
+}

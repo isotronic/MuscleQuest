@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -8,16 +8,16 @@ import {
   Button,
   Menu,
 } from "react-native-paper";
-import { Image } from "expo-image";
+import { AppImage, AppIcon } from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
-import { Colors } from "@/constants/Colors";
 import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatFromTotalSeconds, formatTimeInput } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
 import { useContinuousPress } from "@/hooks/useContinuousPress";
 import { ExerciseTimerModal } from "./ExerciseTimerModal";
+import { useAppTheme, radii } from "@/theme";
+import type { AppThemeColors } from "@/theme/types";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -114,6 +114,8 @@ export default function SessionSetInfo({
   isWeightedOverrideEnabled,
   onToggleWeighted,
 }: SessionSetInfoProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [menuVisible, setMenuVisible] = useState(false);
   const [timerModalVisible, setTimerModalVisible] = useState(false);
 
@@ -167,14 +169,14 @@ export default function SessionSetInfo({
       <View style={styles.headerContainer}>
         <View style={styles.headerContent}>
           {animatedImageLoading ? (
-            <ActivityIndicator size="small" color={Colors.dark.text} />
+            <ActivityIndicator size="small" color={colors.contentPrimary} />
           ) : animatedImageError ? (
             <TouchableOpacity onPress={handleImagePress}>
-              <Image style={styles.animatedImage} source={fallbackImage} />
+              <AppImage style={styles.animatedImage} source={fallbackImage} />
             </TouchableOpacity>
           ) : animatedUrl ? (
             <TouchableOpacity onPress={handleImagePress}>
-              <Image
+              <AppImage
                 style={styles.animatedImage}
                 source={{
                   uri: animatedUrl,
@@ -183,7 +185,7 @@ export default function SessionSetInfo({
             </TouchableOpacity>
           ) : (
             <TouchableOpacity onPress={handleImagePress}>
-              <Image style={styles.animatedImage} source={fallbackImage} />
+              <AppImage style={styles.animatedImage} source={fallbackImage} />
             </TouchableOpacity>
           )}
           <View style={styles.titleContainer}>
@@ -231,7 +233,7 @@ export default function SessionSetInfo({
               icon="dots-vertical"
               onPress={openMenu}
               size={30}
-              iconColor={Colors.dark.text}
+              iconColor={colors.contentPrimary}
               style={styles.menuButton}
             />
           }
@@ -293,7 +295,7 @@ export default function SessionSetInfo({
           onPress={handlePreviousSet}
           size={buttonSize}
           disabled={isFirstSetOfFirstExercise}
-          iconColor={Colors.dark.text}
+          iconColor={colors.contentPrimary}
         />
         <ThemedText style={styles.setNavigationText}>
           <Trans>
@@ -305,7 +307,7 @@ export default function SessionSetInfo({
           onPress={handleNextSet}
           size={buttonSize}
           disabled={isLastSetOfLastExercise}
-          iconColor={Colors.dark.text}
+          iconColor={colors.contentPrimary}
         />
       </View>
       {/* Set Type Indicators */}
@@ -318,10 +320,11 @@ export default function SessionSetInfo({
               accessibilityLabel={t`Warm-up set`}
               accessibilityRole="text"
             >
-              <MaterialCommunityIcons
+              <AppIcon
+                set="mci"
                 name="speedometer-slow"
                 size={16}
-                color="#fff"
+                color={colors.contentPrimary}
                 style={styles.setIcon}
               />
               <ThemedText style={styles.setTypeLabel}>
@@ -336,10 +339,11 @@ export default function SessionSetInfo({
               accessibilityLabel={t`Drop set`}
               accessibilityRole="text"
             >
-              <MaterialCommunityIcons
+              <AppIcon
+                set="mci"
                 name="arrow-down-bold"
                 size={16}
-                color="#fff"
+                color={colors.contentPrimary}
                 style={styles.setIcon}
               />
               <ThemedText style={styles.setTypeLabel}>
@@ -354,10 +358,11 @@ export default function SessionSetInfo({
               accessibilityLabel={t`To failure`}
               accessibilityRole="text"
             >
-              <MaterialCommunityIcons
+              <AppIcon
+                set="mci"
                 name="fire"
                 size={16}
-                color="#fff"
+                color={colors.contentPrimary}
                 style={styles.setIcon}
               />
               <ThemedText style={styles.setTypeLabel}>
@@ -384,11 +389,11 @@ export default function SessionSetInfo({
               icon="minus"
               {...weightMinusPress}
               size={buttonSize}
-              iconColor={Colors.dark.text}
+              iconColor={colors.contentPrimary}
               style={styles.iconButton}
             />
             <TextInput
-              placeholderTextColor={Colors.dark.text}
+              placeholderTextColor={colors.contentPrimary}
               value={weight}
               onChangeText={(text: string) => handleWeightInputChange(text)}
               keyboardType="numeric"
@@ -399,7 +404,7 @@ export default function SessionSetInfo({
               icon="plus"
               {...weightPlusPress}
               size={buttonSize}
-              iconColor={Colors.dark.text}
+              iconColor={colors.contentPrimary}
               style={styles.iconButton}
             />
           </View>
@@ -417,11 +422,11 @@ export default function SessionSetInfo({
               icon="minus"
               {...repsMinusPress}
               size={buttonSize}
-              iconColor={Colors.dark.text}
+              iconColor={colors.contentPrimary}
               style={styles.iconButton}
             />
             <TextInput
-              placeholderTextColor={Colors.dark.text}
+              placeholderTextColor={colors.contentPrimary}
               value={reps}
               onChangeText={(text: string) => handleRepsInputChange(text)}
               keyboardType="numeric"
@@ -432,7 +437,7 @@ export default function SessionSetInfo({
               icon="plus"
               {...repsPlusPress}
               size={buttonSize}
-              iconColor={Colors.dark.text}
+              iconColor={colors.contentPrimary}
               style={styles.iconButton}
             />
           </View>
@@ -488,11 +493,11 @@ export default function SessionSetInfo({
               icon="minus"
               {...distanceMinusPress}
               size={buttonSize}
-              iconColor={Colors.dark.text}
+              iconColor={colors.contentPrimary}
               style={styles.iconButton}
             />
             <TextInput
-              placeholderTextColor={Colors.dark.text}
+              placeholderTextColor={colors.contentPrimary}
               value={distance}
               onChangeText={(text: string) => handleDistanceInputChange(text)}
               keyboardType="numeric"
@@ -503,7 +508,7 @@ export default function SessionSetInfo({
               icon="plus"
               {...distancePlusPress}
               size={buttonSize}
-              iconColor={Colors.dark.text}
+              iconColor={colors.contentPrimary}
               style={styles.iconButton}
             />
           </View>
@@ -528,124 +533,126 @@ export default function SessionSetInfo({
   );
 }
 
-const styles = StyleSheet.create({
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  animatedImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 10,
-    marginRight: 16,
-  },
-  titleContainer: {
-    flexShrink: 1,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  headerText: {
-    fontSize: 14,
-    color: Colors.dark.subText,
-    marginBottom: -5,
-  },
-  menuButton: {
-    marginLeft: "auto",
-  },
-  centeredLabelContainer: {
-    alignItems: "center",
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  setNavigationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  setTypeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 16,
-  },
-  setTypeBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  setTypeBadgeWarmup: {
-    backgroundColor: Colors.dark.badgeWarmup,
-  },
-  setTypeBadgeDrop: {
-    backgroundColor: Colors.dark.badgeDrop,
-  },
-  setTypeBadgeFailure: {
-    backgroundColor: Colors.dark.badgeFailure,
-  },
-  setTypeLabel: {
-    fontSize: 13,
-    color: "#fff",
-    fontWeight: "600",
-  },
-  setIcon: {
-    marginRight: 4,
-  },
-  setNavigationText: {
-    fontSize: 18,
-    marginHorizontal: 8,
-  },
-  input: {
-    flex: 1,
-    padding: 10,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 8,
-    textAlign: "center",
-    fontSize: 26,
-    color: Colors.dark.text,
-  },
-  startTimerButton: {
-    marginBottom: 12,
-  },
-  completeButton: {
-    marginTop: 16,
-  },
-  largeButton: {
-    height: 55,
-  },
-  disabledButton: {
-    backgroundColor: Colors.dark.disabledButtonBackground,
-  },
-  buttonLabel: {
-    fontSize: 18,
-    lineHeight: 25,
-  },
-  largeButtonLabel: {
-    fontSize: 24,
-    lineHeight: 31,
-  },
-  loadingText: {
-    fontSize: 18,
-    color: Colors.dark.text,
-  },
-});
+function createStyles(colors: AppThemeColors) {
+  return StyleSheet.create({
+    headerContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 16,
+    },
+    headerContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    animatedImage: {
+      width: 70,
+      height: 70,
+      borderRadius: radii.md,
+      marginRight: 16,
+    },
+    titleContainer: {
+      flexShrink: 1,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: "bold",
+    },
+    headerText: {
+      fontSize: 14,
+      color: colors.contentSecondary,
+      marginBottom: -5,
+    },
+    menuButton: {
+      marginLeft: "auto",
+    },
+    centeredLabelContainer: {
+      alignItems: "center",
+    },
+    label: {
+      fontSize: 16,
+      fontWeight: "bold",
+      marginBottom: 5,
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    setNavigationContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    setTypeContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      flexWrap: "wrap",
+      gap: 8,
+      marginBottom: 16,
+    },
+    setTypeBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: radii.md,
+    },
+    setTypeBadgeWarmup: {
+      backgroundColor: colors.badgeWarmup,
+    },
+    setTypeBadgeDrop: {
+      backgroundColor: colors.badgeDrop,
+    },
+    setTypeBadgeFailure: {
+      backgroundColor: colors.badgeFailure,
+    },
+    setTypeLabel: {
+      fontSize: 13,
+      color: colors.contentPrimary,
+      fontWeight: "600",
+    },
+    setIcon: {
+      marginRight: 4,
+    },
+    setNavigationText: {
+      fontSize: 18,
+      marginHorizontal: 8,
+    },
+    input: {
+      flex: 1,
+      padding: 10,
+      borderColor: colors.contentSecondary,
+      borderWidth: 1,
+      borderRadius: radii.md,
+      textAlign: "center",
+      fontSize: 26,
+      color: colors.contentPrimary,
+    },
+    startTimerButton: {
+      marginBottom: 12,
+    },
+    completeButton: {
+      marginTop: 16,
+    },
+    largeButton: {
+      height: 55,
+    },
+    disabledButton: {
+      backgroundColor: colors.controlDisabledBg,
+    },
+    buttonLabel: {
+      fontSize: 18,
+      lineHeight: 25,
+    },
+    largeButtonLabel: {
+      fontSize: 24,
+      lineHeight: 31,
+    },
+    loadingText: {
+      fontSize: 18,
+      color: colors.contentPrimary,
+    },
+  });
+}

@@ -4,11 +4,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppMenu } from "@/components/AppMenu";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
-import { Colors } from "@/constants/Colors";
 import { useMenuStore } from "@/store/menuStore";
 import { t } from "@lingui/core/macro";
+import { useAppTheme } from "@/theme";
 
 export default function TabLayout() {
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const openMenu = useMenuStore((s) => s.openMenu);
 
@@ -17,15 +18,15 @@ export default function TabLayout() {
       <Tabs
         screenOptions={{
           tabBarStyle: {
-            backgroundColor: Colors.dark.background,
+            backgroundColor: colors.background,
             height: 50 + insets.bottom,
             paddingBottom: insets.bottom,
           },
-          tabBarActiveTintColor: Colors.dark.tint,
+          tabBarActiveTintColor: colors.accent,
           headerStyle: {
-            backgroundColor: Colors.dark.background,
+            backgroundColor: colors.background,
           },
-          headerTintColor: Colors.dark.text,
+          headerTintColor: colors.contentPrimary,
         }}
       >
         <Tabs.Screen
