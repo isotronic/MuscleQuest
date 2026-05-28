@@ -288,7 +288,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       ? handleSaveRestTime
                       : settingType === "reminderTime"
                         ? handleSaveReminderTime
-                        : onSave
+                        : () => onSave(inputValue)
                   }
                   labelStyle={styles.buttonLabel}
                   style={styles.saveButton}
