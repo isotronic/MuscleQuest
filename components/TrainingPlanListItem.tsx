@@ -23,7 +23,12 @@ export default function TrainingPlanListItem({
   const isActive = plan.is_active === 1 || plan.is_active === true;
 
   return (
-    <Pressable style={styles.container} onPress={onPress}>
+    <Pressable
+      style={styles.container}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Training plan ${plan.name}`}
+    >
       <View style={styles.imageContainer}>
         {plan.image_url ? (
           <Card.Cover style={styles.image} source={{ uri: plan.image_url }} />

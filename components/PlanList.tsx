@@ -113,6 +113,9 @@ export const PlanList: React.FC<PlanListProps> = ({
             <TouchableOpacity
               onPress={() => onViewModeChange("carousel")}
               style={styles.toggleButton}
+              accessibilityRole="button"
+              accessibilityLabel="Switch to carousel view"
+              accessibilityState={{ selected: viewMode === "carousel" }}
             >
               <AppIcon
                 set="mci"
@@ -126,6 +129,9 @@ export const PlanList: React.FC<PlanListProps> = ({
             <TouchableOpacity
               onPress={() => onViewModeChange("list")}
               style={styles.toggleButton}
+              accessibilityRole="button"
+              accessibilityLabel="Switch to list view"
+              accessibilityState={{ selected: viewMode === "list" }}
             >
               <AppIcon
                 set="mci"
@@ -137,6 +143,9 @@ export const PlanList: React.FC<PlanListProps> = ({
             <TouchableOpacity
               onPress={() => onViewModeChange("grid")}
               style={styles.toggleButton}
+              accessibilityRole="button"
+              accessibilityLabel="Switch to grid view"
+              accessibilityState={{ selected: viewMode === "grid" }}
             >
               <AppIcon
                 set="mci"
