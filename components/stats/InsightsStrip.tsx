@@ -122,6 +122,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
     </Pressable>
   );
 
+  const useFullRow = pills.length === 3;
   const useGrid = pills.length >= 4;
 
   const rows: InsightPill[][] = [];
@@ -168,6 +169,10 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
               {row.map((pill) => renderPill(pill))}
             </View>
           ))}
+        </View>
+      ) : useFullRow ? (
+        <View style={styles.row} onLayout={onLayout}>
+          {pills.map((pill) => renderPill(pill))}
         </View>
       ) : (
         <ScrollView
