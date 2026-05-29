@@ -128,6 +128,7 @@ export default function SettingsScreen() {
     timerGoalSound: settings?.timerGoalSound,
     alwaysUseGlobalHistory: settings?.alwaysUseGlobalHistory,
     adaptive_progression_enabled: settings?.adaptive_progression_enabled,
+    exclude_deload_from_stats: settings?.exclude_deload_from_stats,
   });
 
   const [workoutReminderEnabled, setWorkoutReminderEnabled] = useState(false);
@@ -168,6 +169,7 @@ export default function SettingsScreen() {
         timerGoalSound: settings?.timerGoalSound,
         alwaysUseGlobalHistory: settings?.alwaysUseGlobalHistory,
         adaptive_progression_enabled: settings?.adaptive_progression_enabled,
+        exclude_deload_from_stats: settings?.exclude_deload_from_stats,
       });
       setWorkoutReminderEnabled(settings.workoutReminderEnabled === "true");
       try {
@@ -320,6 +322,12 @@ export default function SettingsScreen() {
       adaptive_progression_enabled: strValue,
     });
     updateSetting({ key: "adaptive_progression_enabled", value: strValue });
+  };
+
+  const toggleExcludeDeloadFromStats = (value: boolean) => {
+    const strValue = value ? "1" : "0";
+    setToggleValues({ ...toggleValues, exclude_deload_from_stats: strValue });
+    updateSetting({ key: "exclude_deload_from_stats", value: strValue });
   };
 
   const toggleVibration = (value: boolean) => {
@@ -1200,6 +1208,33 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          {toggleValues.adaptive_progression_enabled === "1" && (
+            <View style={styles.item}>
+              <AppIcon
+                set="ion"
+                name="calendar-clear-outline"
+                size={24}
+                color={colors.contentSecondary}
+                style={styles.icon}
+              />
+              <View style={styles.textContainer}>
+                <ThemedText style={styles.itemText}>
+                  <Trans>Exclude deload workouts from exercise stats</Trans>
+                </ThemedText>
+                <ThemedText style={styles.currentSetting}>
+                  {toggleValues.exclude_deload_from_stats === "1"
+                    ? t`Enabled`
+                    : t`Disabled`}
+                </ThemedText>
+              </View>
+              <Switch
+                value={toggleValues.exclude_deload_from_stats === "1"}
+                onValueChange={toggleExcludeDeloadFromStats}
+                color={colors.accent}
+                style={styles.switch}
+              />
+            </View>
+          )}
         </View>
         <Divider style={styles.divider} />
 

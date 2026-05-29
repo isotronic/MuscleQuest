@@ -228,6 +228,9 @@ export async function initUserDataDB() {
   const completed_setsResult = await db.getAllAsync(`
     PRAGMA table_info(completed_sets);
   `);
+  const completed_workoutsResult = await db.getAllAsync(`
+    PRAGMA table_info(completed_workouts);
+  `);
   const user_plansResult = await db.getAllAsync(`
     PRAGMA table_info(user_plans);
   `);
@@ -278,6 +281,9 @@ export async function initUserDataDB() {
   );
   const doubleWeightExists = exercisesResult.some(
     (column: any) => column.name === "double_weight",
+  );
+  const isDeloadExists = completed_workoutsResult.some(
+    (column: any) => column.name === "is_deload",
   );
 
   // If the column does not exist, add it
@@ -452,6 +458,11 @@ export async function initUserDataDB() {
       ALTER TABLE exercises ADD COLUMN double_weight BOOLEAN DEFAULT FALSE;
     `);
   }
+  if (!isDeloadExists) {
+    await db.execAsync(`
+      ALTER TABLE completed_workouts ADD COLUMN is_deload INTEGER NOT NULL DEFAULT 0;
+    `);
+  }
 
   const user_workout_exercisesResult = await db.getAllAsync(`
     PRAGMA table_info(user_workout_exercises);
@@ -613,5 +624,8 @@ export async function initUserDataDB() {
   );
   await db.execAsync(
     `INSERT OR IGNORE INTO settings (key, value) VALUES ('progression_increment_machine_kg', '2.5');`,
+  );
+  await db.execAsync(
+    `INSERT OR IGNORE INTO settings (key, value) VALUES ('exclude_deload_from_stats', '0');`,
   );
 }

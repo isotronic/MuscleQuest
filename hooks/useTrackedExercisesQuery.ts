@@ -50,6 +50,7 @@ const fetchTrackedExercises = async (
   excludeWarmup: boolean = false,
   countUnilateralDouble: boolean = false,
   doubleWeightForPaired: boolean = false,
+  excludeDeload: boolean = false,
 ): Promise<TrackedExerciseWithSets[]> => {
   try {
     const db = await openDatabase("userData.db");
@@ -86,10 +87,11 @@ const fetchTrackedExercises = async (
     const warmupFilter = excludeWarmup
       ? ` AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)`
       : "";
+    const deloadFilter = excludeDeload ? ` AND (cw.is_deload = 0 OR cw.is_deload IS NULL)` : "";
     if (timeRange !== "0") {
-      query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) AND (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter} `;
+      query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) AND (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter}${deloadFilter} `;
     } else {
-      query += `WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter} `;
+      query += `WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter}${deloadFilter} `;
     }
 
     query += `
@@ -112,7 +114,7 @@ const fetchTrackedExercises = async (
       LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id
         AND uwe.exercise_id = te.exercise_id
         AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
-      WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${excludeWarmup ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)" : ""}
+      WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${excludeWarmup ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)" : ""}${excludeDeload ? " AND (cw.is_deload = 0 OR cw.is_deload IS NULL)" : ""}
       GROUP BY te.exercise_id
     `;
     const allTimePRRows = (await db.getAllAsync(allTimePRQuery)) as {
@@ -186,6 +188,7 @@ export const useTrackedExercisesQuery = (
   excludeWarmup: boolean = false,
   countUnilateralDouble: boolean = false,
   doubleWeightForPaired: boolean = false,
+  excludeDeload: boolean = false,
 ) => {
   return useQuery<TrackedExerciseWithSets[], Error>({
     queryKey: [
@@ -194,6 +197,7 @@ export const useTrackedExercisesQuery = (
       excludeWarmup,
       countUnilateralDouble,
       doubleWeightForPaired,
+      excludeDeload,
     ],
     queryFn: () =>
       fetchTrackedExercises(
@@ -201,6 +205,7 @@ export const useTrackedExercisesQuery = (
         excludeWarmup,
         countUnilateralDouble,
         doubleWeightForPaired,
+        excludeDeload,
       ),
     staleTime: 0,
     gcTime: 0,

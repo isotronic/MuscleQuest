@@ -66,11 +66,15 @@ const fetchExerciseDetail = async (
   excludeWarmup = false,
   countUnilateralDouble = false,
   doubleWeightForPaired = false,
+  excludeDeload = false,
 ): Promise<ExerciseDetail | null> => {
   try {
     const db = await openDatabase("userData.db");
     const warmupFilter = excludeWarmup
       ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)"
+      : "";
+    const deloadFilter = excludeDeload
+      ? " AND (cw.is_deload = 0 OR cw.is_deload IS NULL)"
       : "";
 
     const exerciseFlags = await db.getFirstAsync<{
@@ -116,7 +120,7 @@ const fetchExerciseDetail = async (
         LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id
           AND uwe.exercise_id = e.exercise_id
           AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
-        WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}
+        WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}${deloadFilter}
     `;
 
     if (timeRange !== "0") {
@@ -241,7 +245,7 @@ const fetchExerciseDetail = async (
           AND uwe.exercise_id = e.exercise_id
           AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
         WHERE e.exercise_id = ?
-          AND cw.is_deleted = FALSE${warmupFilter}
+          AND cw.is_deleted = FALSE${warmupFilter}${deloadFilter}
           AND DATE(cw.date_completed) < DATE('now', '-${timeRange} days')
         GROUP BY DATE(cw.date_completed)
         ORDER BY DATE(cw.date_completed) DESC
@@ -278,6 +282,7 @@ export const useExerciseDetailQuery = (
   excludeWarmup = false,
   countUnilateralDouble = false,
   doubleWeightForPaired = false,
+  excludeDeload = false,
 ) => {
   return useQuery<ExerciseDetail | null>({
     queryKey: [
@@ -288,6 +293,7 @@ export const useExerciseDetailQuery = (
       excludeWarmup,
       countUnilateralDouble,
       doubleWeightForPaired,
+      excludeDeload,
     ],
     queryFn: () =>
       fetchExerciseDetail(
@@ -296,6 +302,7 @@ export const useExerciseDetailQuery = (
         excludeWarmup,
         countUnilateralDouble,
         doubleWeightForPaired,
+        excludeDeload,
       ),
     enabled: exerciseId > 0,
     staleTime: 0,

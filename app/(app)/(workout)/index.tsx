@@ -68,6 +68,7 @@ import { usePendingRecoveryQuery } from "@/hooks/usePendingRecoveryQuery";
 import { useRecoveryCheckInMutation } from "@/hooks/useRecoveryCheckInMutation";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
+import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
   style?: any;
@@ -134,6 +135,9 @@ export default function WorkoutOverviewScreen() {
   const recoverySheetRef = useRef<BottomSheetModal>(null);
   const recoveryShownRef = useRef(false);
   const progressionSettings = useProgressionSettingsQuery();
+  const { isCurrentWeekDeload } = useDeloadWeekQuery(
+    activeWorkout?.planId ?? undefined,
+  );
   const { data: pendingRecovery } = usePendingRecoveryQuery(
     activeWorkout?.workoutId ?? undefined,
   );
@@ -774,6 +778,7 @@ export default function WorkoutOverviewScreen() {
               workoutId: workoutId ?? null,
               duration,
               totalSetsCompleted,
+              isDeload: planId != null && isCurrentWeekDeload,
               exercises,
             },
             {

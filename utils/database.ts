@@ -40,6 +40,7 @@ export interface SavedWorkout {
   workoutId: number | null;
   duration: number;
   totalSetsCompleted: number;
+  isDeload?: boolean;
   exercises: {
     exercise_id: number;
     resolved_tracking_type?: string | null;
@@ -825,6 +826,7 @@ export const saveCompletedWorkout = async (
   workoutId: number | null,
   duration: number,
   totalSetsCompleted: number,
+  isDeload: boolean = false,
   exercises: {
     exercise_id: number;
     resolved_tracking_type?: string | null;
@@ -849,8 +851,8 @@ export const saveCompletedWorkout = async (
 
     // Insert the completed workout
     const completedWorkoutResult = await db.runAsync(
-      `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed) VALUES (?, ?, datetime('now'), ?, ?)`,
-      [planId, workoutId, duration, totalSetsCompleted],
+      `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed, is_deload) VALUES (?, ?, datetime('now'), ?, ?, ?)`,
+      [planId, workoutId, duration, totalSetsCompleted, isDeload ? 1 : 0],
     );
 
     const completedWorkoutId = completedWorkoutResult.lastInsertRowId;
@@ -1223,6 +1225,7 @@ export interface Settings {
   progression_increment_dumbbell_kg: string;
   progression_increment_cable_kg: string;
   progression_increment_machine_kg: string;
+  exclude_deload_from_stats: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
