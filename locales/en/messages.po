@@ -558,7 +558,7 @@ msgid "{0, plural, one {# Set} other {# Sets}}"
 msgstr "{0, plural, one {# Set} other {# Sets}}"
 
 #. placeholder {0}: plan.workouts.length
-#: components/TrainingPlanListItem.tsx:55
+#: components/TrainingPlanListItem.tsx:60
 msgid "{0, plural, one {# workout} other {# workouts}}"
 msgstr "{0, plural, one {# workout} other {# workouts}}"
 
@@ -649,17 +649,17 @@ msgid "{0} workouts"
 msgstr "{0} workouts"
 
 #. placeholder {0}: a.exerciseName
-#: components/WeeklySummaryCard.tsx:165
+#: components/WeeklySummaryCard.tsx:158
 msgid "{0}: {best} {best, plural, one {rep} other {reps}} (+{delta}, {pctStr})"
 msgstr "{0}: {best} {best, plural, one {rep} other {reps}} (+{delta}, {pctStr})"
 
 #. placeholder {0}: a.exerciseName
-#: components/WeeklySummaryCard.tsx:180
+#: components/WeeklySummaryCard.tsx:173
 msgid "{0}: {best}{unit} (+{delta}{unit}, {pctStr})"
 msgstr "{0}: {best}{unit} (+{delta}{unit}, {pctStr})"
 
 #. placeholder {0}: a.exerciseName
-#: components/WeeklySummaryCard.tsx:173
+#: components/WeeklySummaryCard.tsx:166
 msgid "{0}: {best}s (+{delta}s, {pctStr})"
 msgstr "{0}: {best}s (+{delta}s, {pctStr})"
 
@@ -717,7 +717,7 @@ msgstr "{scheduledDays, plural, one {# day/week} other {# days/week}}"
 msgid "{setsCount, plural, one {# set} other {# sets}}"
 msgstr "{setsCount, plural, one {# set} other {# sets}}"
 
-#: components/WeeklySummaryCard.tsx:337
+#: components/WeeklySummaryCard.tsx:330
 msgid "{streak, plural, one {# week in a row} other {# weeks in a row}}"
 msgstr "{streak, plural, one {# week in a row} other {# weeks in a row}}"
 
@@ -768,7 +768,7 @@ msgstr "−{restTimerIncrement}s"
 msgid "🎉 What's New"
 msgstr "🎉 What's New"
 
-#: components/WeeklySummaryCard.tsx:179
+#: components/WeeklySummaryCard.tsx:172
 msgid "1RM"
 msgstr "1RM"
 
@@ -823,7 +823,7 @@ msgstr "Account"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:208
 #: components/TrainingPlanCard.tsx:80
-#: components/TrainingPlanListItem.tsx:49
+#: components/TrainingPlanListItem.tsx:54
 msgid "Active"
 msgstr "Active"
 
@@ -1682,7 +1682,7 @@ msgstr "Error loading exercise details"
 msgid "Error loading exercises: {0}"
 msgstr "Error loading exercises: {0}"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:88
+#: app/(app)/(tabs)/(plans)/index.tsx:93
 msgid "Error loading plans"
 msgstr "Error loading plans"
 
@@ -1795,7 +1795,7 @@ msgstr "Failed to load exercise details."
 msgid "Failed to load history"
 msgstr "Failed to load history"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:142
+#: app/(app)/(tabs)/(plans)/index.tsx:147
 msgid "Failed to load workouts"
 msgstr "Failed to load workouts"
 
@@ -2194,11 +2194,11 @@ msgstr "neck"
 msgid "Neck"
 msgstr "Neck"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:113
+#: app/(app)/(tabs)/(plans)/index.tsx:118
 msgid "New Plan"
 msgstr "New Plan"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:105
+#: app/(app)/(tabs)/(plans)/index.tsx:110
 msgid "New Workout"
 msgstr "New Workout"
 
@@ -2299,7 +2299,7 @@ msgstr "No workouts completed yet. Start your first workout!"
 msgid "No workouts on this day."
 msgstr "No workouts on this day."
 
-#: app/(app)/(tabs)/(plans)/index.tsx:155
+#: app/(app)/(tabs)/(plans)/index.tsx:160
 msgid "No workouts yet"
 msgstr "No workouts yet"
 
@@ -2413,7 +2413,7 @@ msgstr "Play sound after rest"
 msgid "Please wait while we download the latest version..."
 msgstr "Please wait while we download the latest version..."
 
-#: app/(app)/(tabs)/(plans)/index.tsx:129
+#: app/(app)/(tabs)/(plans)/index.tsx:134
 msgid "Premade plans"
 msgstr "Premade plans"
 
@@ -2493,7 +2493,7 @@ msgstr "Remove Superset"
 msgid "Remove Workout"
 msgstr "Remove Workout"
 
-#: components/WeeklySummaryCard.tsx:164
+#: components/WeeklySummaryCard.tsx:157
 msgid "Rep PR"
 msgstr "Rep PR"
 
@@ -2913,7 +2913,7 @@ msgstr "stepmill machine"
 msgid "Stop"
 msgstr "Stop"
 
-#: components/WeeklySummaryCard.tsx:334
+#: components/WeeklySummaryCard.tsx:327
 msgid "Streak"
 msgstr "Streak"
 
@@ -3054,7 +3054,7 @@ msgid "Thursday"
 msgstr "Thursday"
 
 #: app/(app)/custom-exercise.tsx:65
-#: components/WeeklySummaryCard.tsx:306
+#: components/WeeklySummaryCard.tsx:299
 msgid "Time"
 msgstr "Time"
 
@@ -3076,7 +3076,7 @@ msgstr "Time (Minutes:Seconds)"
 msgid "Time (s)"
 msgstr "Time (s)"
 
-#: components/WeeklySummaryCard.tsx:172
+#: components/WeeklySummaryCard.tsx:165
 msgid "Time PR"
 msgstr "Time PR"
 
@@ -3317,7 +3317,7 @@ msgstr "View/Edit"
 
 #: app/(app)/(workout)/workout-summary.tsx:576
 #: app/(app)/(workout)/workout-summary.tsx:601
-#: components/WeeklySummaryCard.tsx:293
+#: components/WeeklySummaryCard.tsx:286
 msgid "Volume"
 msgstr "Volume"
 
@@ -3387,7 +3387,7 @@ msgstr "Week streak"
 msgid "Weekly goal"
 msgstr "Weekly goal"
 
-#: components/WeeklySummaryCard.tsx:263
+#: components/WeeklySummaryCard.tsx:256
 msgid "Weekly Goal Complete!"
 msgstr "Weekly Goal Complete!"
 
@@ -3505,7 +3505,7 @@ msgid "Workout Summary"
 msgstr "Workout Summary"
 
 #: app/(app)/(tabs)/(stats)/index.tsx:421
-#: components/WeeklySummaryCard.tsx:278
+#: components/WeeklySummaryCard.tsx:271
 #: constants/HelpData.ts:38
 msgid "Workouts"
 msgstr "Workouts"
@@ -3583,10 +3583,10 @@ msgstr "You've hit your weekly goal. Incredible work!"
 msgid "Your journey to Swoletown begins today!"
 msgstr "Your journey to Swoletown begins today!"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:121
+#: app/(app)/(tabs)/(plans)/index.tsx:126
 msgid "Your training plans"
 msgstr "Your training plans"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:136
+#: app/(app)/(tabs)/(plans)/index.tsx:141
 msgid "Your workouts"
 msgstr "Your workouts"
