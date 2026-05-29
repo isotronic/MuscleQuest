@@ -743,11 +743,11 @@ msgstr "{setsCount, plural, one {# set} other {# sets}}"
 msgid "{streak, plural, one {# week in a row} other {# weeks in a row}}"
 msgstr "{streak, plural, one {# week in a row} other {# weeks in a row}}"
 
-#: components/ProgressionSuggestionChip.tsx:31
+#: components/ProgressionSuggestionChip.tsx:33
 msgid "{suggestedRepsMin} reps suggested"
 msgstr "{suggestedRepsMin} reps suggested"
 
-#: components/ProgressionSuggestionChip.tsx:32
+#: components/ProgressionSuggestionChip.tsx:34
 msgid "{suggestedRepsMin}-{suggestedRepsMax} reps suggested"
 msgstr "{suggestedRepsMin}-{suggestedRepsMax} reps suggested"
 
@@ -789,9 +789,9 @@ msgstr "+ Add"
 msgid "+{restTimerIncrement}s"
 msgstr "+{restTimerIncrement}s"
 
-#: components/ProgressionSuggestionChip.tsx:27
-msgid "+{unit} suggested"
-msgstr "+{unit} suggested"
+#: components/ProgressionSuggestionChip.tsx:28
+msgid "+{suggestedWeight}{unit} suggested"
+msgstr "+{suggestedWeight}{unit} suggested"
 
 #: app/(app)/(workout)/index.tsx:1142
 #: app/(app)/(workout)/workout-session.tsx:1548
@@ -922,7 +922,7 @@ msgstr "Add ({0})"
 msgid "Add a note..."
 msgstr "Add a note..."
 
-#: components/ProgressionSuggestionChip.tsx:38
+#: components/ProgressionSuggestionChip.tsx:40
 msgid "Add a set"
 msgstr "Add a set"
 
@@ -2190,7 +2190,7 @@ msgstr "Length"
 msgid "leverage machine"
 msgstr "leverage machine"
 
-#: components/ProgressionSuggestionChip.tsx:27
+#: components/ProgressionSuggestionChip.tsx:29
 msgid "Load up"
 msgstr "Load up"
 
@@ -2307,7 +2307,7 @@ msgstr "Monitor your fitness journey with detailed stats and insights. Keep trac
 msgid "More"
 msgstr "More"
 
-#: components/ProgressionSuggestionChip.tsx:34
+#: components/ProgressionSuggestionChip.tsx:36
 msgid "More reps suggested"
 msgstr "More reps suggested"
 
@@ -2678,7 +2678,7 @@ msgstr "Recently Used"
 msgid "Recovery Check-in"
 msgstr "Recovery Check-in"
 
-#: components/ProgressionSuggestionChip.tsx:36
+#: components/ProgressionSuggestionChip.tsx:38
 msgid "Reduce load"
 msgstr "Reduce load"
 
@@ -2703,7 +2703,7 @@ msgstr "Reminders"
 msgid "Remove"
 msgstr "Remove"
 
-#: components/ProgressionSuggestionChip.tsx:40
+#: components/ProgressionSuggestionChip.tsx:42
 msgid "Remove a set"
 msgstr "Remove a set"
 

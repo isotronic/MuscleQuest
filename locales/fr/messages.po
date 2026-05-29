@@ -744,11 +744,11 @@ msgstr "{setsCount, plural, one {# série} other {# séries}}"
 msgid "{streak, plural, one {# week in a row} other {# weeks in a row}}"
 msgstr "{streak, plural, one {# semaine d'affilée} other {# semaines d'affilée}}"
 
-#: components/ProgressionSuggestionChip.tsx:31
+#: components/ProgressionSuggestionChip.tsx:33
 msgid "{suggestedRepsMin} reps suggested"
 msgstr "{suggestedRepsMin} reps suggérées"
 
-#: components/ProgressionSuggestionChip.tsx:32
+#: components/ProgressionSuggestionChip.tsx:34
 msgid "{suggestedRepsMin}-{suggestedRepsMax} reps suggested"
 msgstr "{suggestedRepsMin}-{suggestedRepsMax} reps suggérées"
 
@@ -790,9 +790,9 @@ msgstr "+ Ajouter"
 msgid "+{restTimerIncrement}s"
 msgstr "+{restTimerIncrement}s"
 
-#: components/ProgressionSuggestionChip.tsx:27
-msgid "+{unit} suggested"
-msgstr "+{unit} suggéré"
+#: components/ProgressionSuggestionChip.tsx:28
+msgid "+{suggestedWeight}{unit} suggested"
+msgstr "+{suggestedWeight}{unit} suggéré"
 
 #: app/(app)/(workout)/index.tsx:1142
 #: app/(app)/(workout)/workout-session.tsx:1548
@@ -923,7 +923,7 @@ msgstr "Ajouter ({0})"
 msgid "Add a note..."
 msgstr "Ajouter une note..."
 
-#: components/ProgressionSuggestionChip.tsx:38
+#: components/ProgressionSuggestionChip.tsx:40
 msgid "Add a set"
 msgstr "Ajouter une série"
 
@@ -2191,7 +2191,7 @@ msgstr "Longueur"
 msgid "leverage machine"
 msgstr "machine à levier"
 
-#: components/ProgressionSuggestionChip.tsx:27
+#: components/ProgressionSuggestionChip.tsx:29
 msgid "Load up"
 msgstr "Augmenter la charge"
 
@@ -2308,7 +2308,7 @@ msgstr "Suis ton parcours fitness avec des stats et des aperçus détaillés. Co
 msgid "More"
 msgstr "Plus"
 
-#: components/ProgressionSuggestionChip.tsx:34
+#: components/ProgressionSuggestionChip.tsx:36
 msgid "More reps suggested"
 msgstr "Plus de reps suggérées"
 
@@ -2679,7 +2679,7 @@ msgstr "Récemment utilisé"
 msgid "Recovery Check-in"
 msgstr "Bilan de récupération"
 
-#: components/ProgressionSuggestionChip.tsx:36
+#: components/ProgressionSuggestionChip.tsx:38
 msgid "Reduce load"
 msgstr "Réduire la charge"
 
@@ -2704,7 +2704,7 @@ msgstr "Rappels"
 msgid "Remove"
 msgstr "Supprimer"
 
-#: components/ProgressionSuggestionChip.tsx:40
+#: components/ProgressionSuggestionChip.tsx:42
 msgid "Remove a set"
 msgstr "Supprimer une série"
 
