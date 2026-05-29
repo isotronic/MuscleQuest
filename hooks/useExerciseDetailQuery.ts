@@ -87,13 +87,31 @@ const fetchExerciseDetail = async (
     const repM = countUnilateralDouble && exerciseFlags?.is_unilateral ? 2 : 1;
     const weightM =
       doubleWeightForPaired && exerciseFlags?.double_weight ? 2 : 1;
+    // Use current effective tracking type (plan override > base type). Sessions
+    // that were completed under a different tracking type are excluded by the
+    // filter below so metrics stay comparable.
     const effectiveTrackingTypeExpr =
-      "COALESCE(NULLIF(ce.resolved_tracking_type, ''), NULLIF(uwe.tracking_type_override, ''), e.tracking_type)";
+      "COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type)";
     const progressionMetricCase = buildProgressionMetricCase(
       weightM,
       repM,
       effectiveTrackingTypeExpr,
     );
+
+    // Only include sessions whose historical type matches the current effective
+    // type. Pre-migration rows (resolved_tracking_type IS NULL) are included only
+    // when no override is set, meaning the base type has always been the effective type.
+    const trackingTypeFilter = `
+      AND (
+        (
+          ce.resolved_tracking_type IS NOT NULL
+          AND ce.resolved_tracking_type = COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type)
+        )
+        OR (
+          ce.resolved_tracking_type IS NULL
+          AND (uwe.tracking_type_override IS NULL OR uwe.tracking_type_override = '')
+        )
+      )`;
 
     // Fetch the best set per day for this exercise (time-range filtered).
     // ROW_NUMBER() deterministically picks the highest-metric set per date,
@@ -101,7 +119,7 @@ const fetchExerciseDetail = async (
     let setsQuery = `
       WITH best_sets AS (
         SELECT
-          COALESCE(NULLIF(ce.resolved_tracking_type, ''), NULLIF(uwe.tracking_type_override, ''), e.tracking_type) AS tracking_type,
+          COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type) AS tracking_type,
           cs.weight,
           cs.reps,
           cs.time,
@@ -120,7 +138,7 @@ const fetchExerciseDetail = async (
         LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id
           AND uwe.exercise_id = e.exercise_id
           AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
-        WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}${deloadFilter}
+        WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}${deloadFilter}${trackingTypeFilter}
     `;
 
     if (timeRange !== "0") {
@@ -145,7 +163,7 @@ const fetchExerciseDetail = async (
       .filter((r) => r.progression_metric !== null)
       .map((r) => mapRowToCompletedSet(r, r.tracking_type ?? null));
 
-    // Fetch all-time PR
+    // Fetch all-time PR (only sessions matching the current effective tracking type)
     const allTimePRQuery = `
       SELECT MAX(${progressionMetricCase}) AS all_time_pr
       FROM exercises e
@@ -155,7 +173,7 @@ const fetchExerciseDetail = async (
       LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id
         AND uwe.exercise_id = e.exercise_id
         AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
-      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}
+      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}${trackingTypeFilter}
     `;
     const prRow = (await db.getFirstAsync(allTimePRQuery, [exerciseId])) as {
       all_time_pr: number | null;
@@ -178,13 +196,13 @@ const fetchExerciseDetail = async (
       allTimePR,
     };
 
-    // Top 5 PR sets (highest progressionMetric, all time)
+    // Top 5 PR sets (highest progressionMetric, all time, current tracking type only)
     const topPRQuery = `
       SELECT
         cs.weight, cs.reps, cs.time, cs.distance, cs.set_number,
         DATE(cw.date_completed) AS date_completed,
         ${progressionMetricCase} AS progression_metric,
-        COALESCE(uwe.tracking_type_override, e.tracking_type) AS tracking_type
+        COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type) AS tracking_type
       FROM exercises e
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
@@ -192,7 +210,7 @@ const fetchExerciseDetail = async (
       LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id
         AND uwe.exercise_id = e.exercise_id
         AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
-      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}
+      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}${trackingTypeFilter}
       ORDER BY progression_metric DESC
       LIMIT 5
     `;
@@ -202,13 +220,13 @@ const fetchExerciseDetail = async (
       date_completed: r.date_completed,
     }));
 
-    // Recent 5 sessions (distinct workout days)
+    // Recent 5 sessions (distinct workout days, current tracking type only)
     const recentQuery = `
       SELECT
         DATE(cw.date_completed) AS date_completed,
         cs.weight, cs.reps, cs.time, cs.distance, cs.set_number,
         MAX(${progressionMetricCase}) AS progression_metric,
-        COALESCE(uwe.tracking_type_override, e.tracking_type) AS tracking_type
+        COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type) AS tracking_type
       FROM exercises e
       LEFT JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
@@ -216,7 +234,7 @@ const fetchExerciseDetail = async (
       LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id
         AND uwe.exercise_id = e.exercise_id
         AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
-      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}
+      WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}${trackingTypeFilter}
       GROUP BY DATE(cw.date_completed)
       ORDER BY cw.date_completed DESC
       LIMIT 5
@@ -245,7 +263,7 @@ const fetchExerciseDetail = async (
           AND uwe.exercise_id = e.exercise_id
           AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
         WHERE e.exercise_id = ?
-          AND cw.is_deleted = FALSE${warmupFilter}${deloadFilter}
+          AND cw.is_deleted = FALSE${warmupFilter}${deloadFilter}${trackingTypeFilter}
           AND DATE(cw.date_completed) < DATE('now', '-${timeRange} days')
         GROUP BY DATE(cw.date_completed)
         ORDER BY DATE(cw.date_completed) DESC

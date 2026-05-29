@@ -54,19 +54,39 @@ const fetchTrackedExercises = async (
 ): Promise<TrackedExerciseWithSets[]> => {
   try {
     const db = await openDatabase("userData.db");
+    // Use the current effective tracking type (plan override > base type).
+    // ce.resolved_tracking_type is intentionally NOT used here because we filter
+    // sessions by whether their historical type matches the current effective type below.
     const effectiveTrackingTypeExpr =
-      "COALESCE(NULLIF(ce.resolved_tracking_type, ''), NULLIF(uwe.tracking_type_override, ''), e.tracking_type)";
+      "COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type)";
     const progressionCase = buildTrackedProgressionCase(
       countUnilateralDouble,
       doubleWeightForPaired,
       effectiveTrackingTypeExpr,
     );
 
+    // Only include completed sessions whose historical tracking type matches the
+    // current effective type. Pre-migration rows have resolved_tracking_type = NULL;
+    // they are included only when no override is active (meaning the base type was
+    // and still is the effective type).
+    const trackingTypeFilter = `
+      AND (
+        cw.id IS NULL
+        OR (
+          ce.resolved_tracking_type IS NOT NULL
+          AND ce.resolved_tracking_type = COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type)
+        )
+        OR (
+          ce.resolved_tracking_type IS NULL
+          AND (uwe.tracking_type_override IS NULL OR uwe.tracking_type_override = '')
+        )
+      )`;
+
     let query = `
       SELECT
         te.*,
         e.name,
-        COALESCE(NULLIF(ce.resolved_tracking_type, ''), NULLIF(uwe.tracking_type_override, ''), e.tracking_type) AS tracking_type,
+        COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type) AS tracking_type,
         cs.weight,
         cs.reps,
         cs.time,
@@ -87,11 +107,13 @@ const fetchTrackedExercises = async (
     const warmupFilter = excludeWarmup
       ? ` AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)`
       : "";
-    const deloadFilter = excludeDeload ? ` AND (cw.is_deload = 0 OR cw.is_deload IS NULL)` : "";
+    const deloadFilter = excludeDeload
+      ? ` AND (cw.is_deload = 0 OR cw.is_deload IS NULL)`
+      : "";
     if (timeRange !== "0") {
-      query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) AND (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter}${deloadFilter} `;
+      query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) AND (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter}${deloadFilter}${trackingTypeFilter} `;
     } else {
-      query += `WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter}${deloadFilter} `;
+      query += `WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter}${deloadFilter}${trackingTypeFilter} `;
     }
 
     query += `
@@ -115,6 +137,16 @@ const fetchTrackedExercises = async (
         AND uwe.exercise_id = te.exercise_id
         AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
       WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${excludeWarmup ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)" : ""}${excludeDeload ? " AND (cw.is_deload = 0 OR cw.is_deload IS NULL)" : ""}
+        AND (
+          (
+            ce.resolved_tracking_type IS NOT NULL
+            AND ce.resolved_tracking_type = COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type)
+          )
+          OR (
+            ce.resolved_tracking_type IS NULL
+            AND (uwe.tracking_type_override IS NULL OR uwe.tracking_type_override = '')
+          )
+        )
       GROUP BY te.exercise_id
     `;
     const allTimePRRows = (await db.getAllAsync(allTimePRQuery)) as {
