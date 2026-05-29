@@ -579,7 +579,7 @@ export default function WorkoutSummaryScreen() {
           <StatChip label={t`Volume`} value={volumeDisplay} icon="scale" />
         </View>
 
-        {prevWorkout && (
+        {prevWorkout && !workout.is_deload && !prevWorkout.is_deload && (
           <View style={styles.progressionCard}>
             <ThemedText style={styles.progressionTitle}>
               <Trans>vs. last "{workout.workout_name}"</Trans>
@@ -607,6 +607,20 @@ export default function WorkoutSummaryScreen() {
                 higherIsBetter={true}
               />
             </View>
+          </View>
+        )}
+        {prevWorkout && !!workout.is_deload && (
+          <View style={styles.deloadNote}>
+            <ThemedText style={styles.deloadNoteText}>
+              <Trans>Deload week — comparison paused.</Trans>
+            </ThemedText>
+          </View>
+        )}
+        {prevWorkout && !workout.is_deload && !!prevWorkout.is_deload && (
+          <View style={styles.deloadNote}>
+            <ThemedText style={styles.deloadNoteText}>
+              <Trans>Last session was a deload — comparison skipped.</Trans>
+            </ThemedText>
           </View>
         )}
 
@@ -733,6 +747,18 @@ function createStyles(colors: AppThemeColors) {
     },
     diffLabel: {
       fontSize: 12,
+      color: colors.contentSecondary,
+    },
+    deloadNote: {
+      backgroundColor: colors.card,
+      borderRadius: radii.lg,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      marginBottom: 16,
+      alignItems: "center",
+    },
+    deloadNoteText: {
+      fontSize: 13,
       color: colors.contentSecondary,
     },
     sectionTitle: {

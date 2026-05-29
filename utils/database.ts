@@ -935,6 +935,7 @@ interface CompletedWorkoutRow {
   plan_id: number;
   workout_id: number;
   workout_name: string;
+  is_deload: number;
   date_completed: string;
   duration: number;
   total_sets_completed: number;
@@ -966,13 +967,14 @@ export const fetchCompletedWorkoutById = async (
     const result = (await db.getAllAsync(
       `
       SELECT 
-        cw.id, 
+        cw.id,
         cw.plan_id as plan_id,
         cw.workout_id as workout_id,
         COALESCE(uw.name, 'Quick Workout') as workout_name,
-        cw.date_completed, 
-        cw.duration, 
-        cw.total_sets_completed, 
+        cw.date_completed,
+        cw.duration,
+        cw.total_sets_completed,
+        cw.is_deload,
         e.exercise_id as exercise_id, 
         e.name as exercise_name, 
         e.image as exercise_image, 
@@ -1015,6 +1017,7 @@ export const fetchCompletedWorkoutById = async (
       date_completed: result[0]?.date_completed || "",
       duration: result[0]?.duration || 0,
       total_sets_completed: result[0]?.total_sets_completed || 0,
+      is_deload: result[0]?.is_deload ?? 0,
       exercises: [],
     };
 
