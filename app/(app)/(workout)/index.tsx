@@ -61,6 +61,11 @@ import { useSoundStore } from "@/store/soundStore";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import React from "react";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import RecoveryCheckInSheet from "@/components/RecoveryCheckInSheet";
+import { usePendingRecoveryQuery } from "@/hooks/usePendingRecoveryQuery";
+import { useRecoveryCheckInMutation } from "@/hooks/useRecoveryCheckInMutation";
+import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
   style?: any;
@@ -122,6 +127,27 @@ export default function WorkoutOverviewScreen() {
     stopTimer,
     startTimer,
   } = useActiveWorkoutStore();
+
+  const recoverySheetRef = useRef<BottomSheetModal>(null);
+  const recoveryShownRef = useRef(false);
+  const progressionSettings = useProgressionSettingsQuery();
+  const { data: pendingRecovery } = usePendingRecoveryQuery(
+    activeWorkout?.workoutId ?? undefined,
+  );
+  const { mutate: submitRecovery } = useRecoveryCheckInMutation();
+
+  useEffect(() => {
+    if (
+      !recoveryShownRef.current &&
+      progressionSettings.enabled &&
+      activeWorkout?.planId != null &&
+      pendingRecovery &&
+      pendingRecovery.length > 0
+    ) {
+      recoveryShownRef.current = true;
+      recoverySheetRef.current?.present();
+    }
+  }, [pendingRecovery, progressionSettings.enabled, activeWorkout?.planId]);
 
   const stableKeyMapRef = useRef(new WeakMap<UserExercise, string>());
   const getStableKey = useCallback((exercise: UserExercise): string => {
@@ -1082,6 +1108,13 @@ export default function WorkoutOverviewScreen() {
           </TouchableOpacity>
         </View>
       </AnimatedView>
+      {pendingRecovery && pendingRecovery.length > 0 && (
+        <RecoveryCheckInSheet
+          ref={recoverySheetRef}
+          pendingCheckIns={pendingRecovery}
+          onSubmit={(payloads) => submitRecovery(payloads)}
+        />
+      )}
     </ThemedView>
   );
 }

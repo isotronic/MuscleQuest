@@ -2628,3 +2628,78 @@ export const getPendingRecoveryCheckIns = async (
     throw error;
   }
 };
+
+export interface ExerciseProgressionContext {
+  exerciseId: number;
+  trackingType: string;
+  equipment: string;
+  currentSets: import("@/store/workoutStore").Set[];
+  recentWorkingWeight: number | null;
+  latestFeedback: ExerciseFeedback | null;
+  consecutiveDirectionCount: number;
+}
+
+export const getExerciseProgressionContext = async (
+  userWorkoutExerciseId: number,
+): Promise<ExerciseProgressionContext | null> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const row = await db.getFirstAsync<{
+      exercise_id: number;
+      sets: string | null;
+      tracking_type_override: string | null;
+      tracking_type: string | null;
+      equipment: string;
+      recent_weight: number | null;
+    }>(
+      `SELECT
+        e.exercise_id,
+        uwe.sets,
+        uwe.tracking_type_override,
+        e.tracking_type,
+        e.equipment,
+        (
+          SELECT MAX(cs.weight)
+          FROM completed_sets cs
+          JOIN completed_exercises ce ON cs.completed_exercise_id = ce.id
+          JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
+          WHERE ce.exercise_id = e.exercise_id
+            AND cw.workout_id = uwe.workout_id
+            AND cs.is_warmup = 0
+            AND cs.weight IS NOT NULL
+        ) AS recent_weight
+      FROM user_workout_exercises uwe
+      JOIN exercises e ON e.exercise_id = uwe.exercise_id
+      WHERE uwe.id = ?`,
+      [userWorkoutExerciseId],
+    );
+    if (!row) return null;
+
+    let currentSets: import("@/store/workoutStore").Set[] = [];
+    try {
+      currentSets = row.sets ? JSON.parse(row.sets) : [];
+    } catch {
+      /* empty */
+    }
+
+    const feedbackRows = await getRecentExerciseFeedback(
+      userWorkoutExerciseId,
+      1,
+    );
+    const state = await getProgressionState(userWorkoutExerciseId);
+
+    return {
+      exerciseId: row.exercise_id,
+      trackingType: row.tracking_type_override ?? row.tracking_type ?? "weight",
+      equipment: row.equipment,
+      currentSets,
+      recentWorkingWeight: row.recent_weight ?? null,
+      latestFeedback: feedbackRows[0] ?? null,
+      consecutiveDirectionCount: state?.consecutiveDirectionCount ?? 1,
+    };
+  } catch (error: any) {
+    console.error("Error fetching exercise progression context:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};

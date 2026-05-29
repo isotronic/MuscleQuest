@@ -39,6 +39,7 @@ import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery
 import { useProgressionStateQuery } from "@/hooks/useProgressionStateQuery";
 import { useExerciseFeedbackMutation } from "@/hooks/useExerciseFeedbackMutation";
 import { ExerciseFeedbackPayload } from "@/types/progression";
+import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import { useSoundStore } from "@/store/soundStore";
 import Animated, {
   useSharedValue,
@@ -319,6 +320,9 @@ export default function WorkoutSessionScreen() {
   } = useSettingsQuery();
 
   const progressionSettings = useProgressionSettingsQuery();
+  const { isCurrentWeekDeload } = useDeloadWeekQuery(
+    activeWorkout?.planId ?? undefined,
+  );
   const { mutate: submitFeedback } = useExerciseFeedbackMutation();
 
   const parsedIncrement = parseFloat(settings?.weightIncrement ?? "");
@@ -958,7 +962,12 @@ export default function WorkoutSessionScreen() {
   const buildFeedbackContext = () => {
     if (!currentExercise) return null;
     const uweId = currentExercise.id;
-    if (!uweId || !progressionSettings.enabled || activeWorkout?.planId == null)
+    if (
+      !uweId ||
+      !progressionSettings.enabled ||
+      activeWorkout?.planId == null ||
+      isCurrentWeekDeload
+    )
       return null;
 
     const workingSets = currentExercise.sets

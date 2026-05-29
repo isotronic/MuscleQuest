@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -33,6 +33,10 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import { useDeloadWeekMutation } from "@/hooks/useDeloadWeekMutation";
+import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
+import { getCurrentISOWeek } from "@/utils/isoWeek";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -89,6 +93,15 @@ export default function PlanOverviewScreen() {
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const deletePlanMutation = useDeletePlanMutation();
   const setActivePlanMutation = useSetActivePlanMutation();
+  const progressionSettings = useProgressionSettingsQuery();
+  const { isCurrentWeekDeload } = useDeloadWeekQuery(
+    Number(planId) || undefined,
+  );
+  const deloadMutation = useDeloadWeekMutation(Number(planId));
+
+  const handleToggleDeload = useCallback(() => {
+    deloadMutation.mutate(isCurrentWeekDeload ? null : getCurrentISOWeek());
+  }, [isCurrentWeekDeload, deloadMutation]);
 
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -263,6 +276,25 @@ export default function PlanOverviewScreen() {
             <Trans>Edit Plan</Trans>
           )}
         </Button>
+        {progressionSettings.enabled && (
+          <Button
+            mode={isCurrentWeekDeload ? "contained" : "outlined"}
+            onPress={handleToggleDeload}
+            style={styles.paperButton}
+            labelStyle={styles.buttonLabel}
+            buttonColor={isCurrentWeekDeload ? colors.accentSubtle : undefined}
+            textColor={
+              isCurrentWeekDeload ? colors.accent : colors.contentSecondary
+            }
+            icon={isCurrentWeekDeload ? "check" : undefined}
+          >
+            {isCurrentWeekDeload ? (
+              <Trans>Deload Week Active</Trans>
+            ) : (
+              <Trans>Mark as Deload Week</Trans>
+            )}
+          </Button>
+        )}
       </View>
       <Snackbar
         visible={snackbarVisible}
