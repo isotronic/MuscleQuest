@@ -47,10 +47,8 @@ export function computeLoadIncrement(
 export function computeReducedLoad(currentWeight: number): number {
   if (currentWeight <= 0) return 0;
   const reduced = currentWeight * 0.95;
-  // Round down to nearest 0.5 kg
   const rounded = Math.floor(reduced / 0.5) * 0.5;
-  // Ensure at least 0.5 kg reduction
-  return Math.min(rounded, currentWeight - 0.5);
+  return Math.max(0, Math.min(rounded, currentWeight - 0.5));
 }
 
 function getWorkingSets(sets: PlanSet[]): PlanSet[] {
@@ -153,15 +151,6 @@ export function evaluateProgression(
 
     if (consecutiveDirectionCount >= 2) {
       if (shouldIncreaseRepsBeforeLoad(currentSets, trackingType)) {
-        return {
-          action: "increase_reps",
-          ruleKey: "EASY_TARGET_REPS",
-          explanation: RULE_EXPLANATIONS.EASY_TARGET_REPS,
-          ...computeIncreasedReps(currentSets),
-        };
-      }
-
-      if (trackingType === "reps") {
         return {
           action: "increase_reps",
           ruleKey: "EASY_TARGET_REPS",
