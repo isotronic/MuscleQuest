@@ -32,6 +32,8 @@ import {
 import { startOfWeek, endOfWeek } from "date-fns";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import ProgressionSummaryCard from "@/components/ProgressionSummaryCard";
+import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -418,6 +420,7 @@ export default function WorkoutSummaryScreen() {
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit ?? "kg";
   const distanceUnit = settings?.distanceUnit ?? "m";
+  const progressionSettings = useProgressionSettingsQuery();
   const excludeWarmup = settings?.excludeWarmupSets === "true";
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
@@ -622,6 +625,13 @@ export default function WorkoutSummaryScreen() {
             distanceUnit={distanceUnit}
           />
         ))}
+
+        {progressionSettings.enabled && workoutId > 0 && (
+          <ProgressionSummaryCard
+            workoutId={workoutId}
+            weightUnit={weightUnit}
+          />
+        )}
 
         <Button
           mode="contained"

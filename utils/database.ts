@@ -2703,3 +2703,79 @@ export const getExerciseProgressionContext = async (
     throw error;
   }
 };
+
+export interface WorkoutProgressionStateRow {
+  id: number;
+  userWorkoutExerciseId: number;
+  exerciseName: string;
+  suggestionAction: ProgressionAction;
+  suggestedWeight?: number;
+  suggestedRepsMin?: number;
+  suggestedRepsMax?: number;
+  suggestedSets?: number;
+  ruleExplanation: string;
+  consecutiveDirectionCount: number;
+  isApplied: boolean;
+  isDismissed: boolean;
+}
+
+export const getProgressionStatesForWorkout = async (
+  workoutId: number,
+): Promise<WorkoutProgressionStateRow[]> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const rows = await db.getAllAsync<{
+      id: number;
+      user_workout_exercise_id: number;
+      exercise_name: string;
+      suggestion_action: string;
+      suggested_weight: number | null;
+      suggested_reps_min: number | null;
+      suggested_reps_max: number | null;
+      suggested_sets: number | null;
+      rule_explanation: string;
+      consecutive_direction_count: number;
+      is_applied: number;
+      is_dismissed: number;
+    }>(
+      `SELECT
+        eps.id,
+        eps.user_workout_exercise_id,
+        e.name AS exercise_name,
+        eps.suggestion_action,
+        eps.suggested_weight,
+        eps.suggested_reps_min,
+        eps.suggested_reps_max,
+        eps.suggested_sets,
+        eps.rule_explanation,
+        eps.consecutive_direction_count,
+        eps.is_applied,
+        eps.is_dismissed
+      FROM exercise_progression_state eps
+      JOIN user_workout_exercises uwe ON uwe.id = eps.user_workout_exercise_id
+      JOIN exercises e ON e.exercise_id = uwe.exercise_id
+      WHERE uwe.workout_id = ?
+        AND eps.is_dismissed = 0
+      ORDER BY uwe.exercise_order ASC`,
+      [workoutId],
+    );
+    return rows.map((row) => ({
+      id: row.id,
+      userWorkoutExerciseId: row.user_workout_exercise_id,
+      exerciseName: row.exercise_name,
+      suggestionAction: row.suggestion_action as ProgressionAction,
+      suggestedWeight: row.suggested_weight ?? undefined,
+      suggestedRepsMin: row.suggested_reps_min ?? undefined,
+      suggestedRepsMax: row.suggested_reps_max ?? undefined,
+      suggestedSets: row.suggested_sets ?? undefined,
+      ruleExplanation: row.rule_explanation,
+      consecutiveDirectionCount: row.consecutive_direction_count,
+      isApplied: row.is_applied === 1,
+      isDismissed: row.is_dismissed === 1,
+    }));
+  } catch (error: any) {
+    console.error("Error fetching workout progression states:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};

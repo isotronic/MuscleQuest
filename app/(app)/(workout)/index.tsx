@@ -63,9 +63,11 @@ import type { AppThemeColors } from "@/theme/types";
 import React from "react";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import RecoveryCheckInSheet from "@/components/RecoveryCheckInSheet";
+import ProgressionSuggestionChip from "@/components/ProgressionSuggestionChip";
 import { usePendingRecoveryQuery } from "@/hooks/usePendingRecoveryQuery";
 import { useRecoveryCheckInMutation } from "@/hooks/useRecoveryCheckInMutation";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
+import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
 
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
   style?: any;
@@ -120,6 +122,7 @@ export default function WorkoutOverviewScreen() {
     restartWorkout,
     initializeWeightAndReps,
     initializeGlobalHistory,
+    loadProgressionSuggestions,
     removeFromSuperset,
     setDurations,
     timerRunning,
@@ -181,6 +184,28 @@ export default function WorkoutOverviewScreen() {
       initializeWeightAndReps(sessionHistory);
     }
   }, [sessionHistory, initializeWeightAndReps]);
+
+  const { data: workoutProgressionStates } = useWorkoutProgressionStatesQuery(
+    progressionSettings.enabled
+      ? (activeWorkout?.workoutId ?? undefined)
+      : undefined,
+  );
+
+  useEffect(() => {
+    if (!sessionHistory || !workoutProgressionStates?.length) return;
+    loadProgressionSuggestions(workoutProgressionStates);
+  }, [sessionHistory, workoutProgressionStates, loadProgressionSuggestions]);
+
+  const progressionStatesByUweId = useMemo(
+    () =>
+      new Map(
+        (workoutProgressionStates ?? []).map((s) => [
+          s.userWorkoutExerciseId,
+          s,
+        ]),
+      ),
+    [workoutProgressionStates],
+  );
 
   const exerciseIds = useMemo(
     () => workout?.exercises.map((e) => e.exercise_id) ?? [],
@@ -469,6 +494,20 @@ export default function WorkoutOverviewScreen() {
         const allSetsCompleted = completedCount === exercise.sets.length;
         const isLoading = loadingExerciseIndex === exerciseIndex;
 
+        const progressionState =
+          exercise.id != null
+            ? progressionStatesByUweId.get(exercise.id)
+            : undefined;
+        const progressionChip =
+          progressionState && progressionState.suggestionAction !== "hold" ? (
+            <ProgressionSuggestionChip
+              action={progressionState.suggestionAction}
+              suggestedWeight={progressionState.suggestedWeight}
+              suggestedRepsMin={progressionState.suggestedRepsMin}
+              suggestedRepsMax={progressionState.suggestedRepsMax}
+            />
+          ) : null;
+
         const inner = isTappable ? (
           <Sortable.Touchable
             onTap={() => handleExercisePress(exerciseIndex)}
@@ -509,6 +548,7 @@ export default function WorkoutOverviewScreen() {
                   {completedCount}/{exercise.sets.length} sets completed
                 </Trans>
               </ThemedText>
+              {progressionChip}
             </View>
           </Sortable.Touchable>
         ) : (
@@ -548,6 +588,7 @@ export default function WorkoutOverviewScreen() {
                   {completedCount}/{exercise.sets.length} sets completed
                 </Trans>
               </ThemedText>
+              {progressionChip}
             </View>
           </View>
         );
@@ -646,6 +687,7 @@ export default function WorkoutOverviewScreen() {
       handleRemoveSuperset,
       handleExercisePress,
       itemLabels,
+      progressionStatesByUweId,
       styles,
       colors,
     ],
