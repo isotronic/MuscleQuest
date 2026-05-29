@@ -581,6 +581,40 @@ export async function initUserDataDB() {
     );
   `);
 
+  // Remove completed_exercise_id from exercise_feedback if it exists — early schema had it NOT NULL
+  // but feedback is captured mid-workout before completed_exercises rows are written.
+  const feedbackCols = await db.getAllAsync<{ name: string }>(
+    `PRAGMA table_info(exercise_feedback)`,
+  );
+  if (feedbackCols.some((c) => c.name === "completed_exercise_id")) {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.execAsync(`
+        CREATE TABLE IF NOT EXISTS exercise_feedback_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_workout_exercise_id INTEGER NOT NULL,
+          effort_rating TEXT NOT NULL CHECK(effort_rating IN ('easy','moderate','hard','failed')),
+          pain_flag TEXT NOT NULL DEFAULT 'none' CHECK(pain_flag IN ('none','discomfort','pain')),
+          progression_intent TEXT CHECK(progression_intent IN ('progress','hold')),
+          performance_ratio REAL NOT NULL,
+          notes TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          is_deleted INTEGER NOT NULL DEFAULT 0
+        );
+      `);
+      await txn.execAsync(`
+        INSERT INTO exercise_feedback_new
+          (id, user_workout_exercise_id, effort_rating, pain_flag, progression_intent, performance_ratio, notes, created_at, is_deleted)
+        SELECT
+          id, user_workout_exercise_id, effort_rating, pain_flag, progression_intent, performance_ratio, notes, created_at, is_deleted
+        FROM exercise_feedback;
+      `);
+      await txn.execAsync(`DROP TABLE exercise_feedback;`);
+      await txn.execAsync(
+        `ALTER TABLE exercise_feedback_new RENAME TO exercise_feedback;`,
+      );
+    });
+  }
+
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS exercise_progression_state (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
