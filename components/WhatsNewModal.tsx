@@ -103,7 +103,9 @@ export const WhatsNewModal = () => {
               >{`${currentIndex + 1}/${entriesToShow.length}`}</ThemedText>
             )}
           </View>
-          <Divider style={{ marginTop: 12 }} />
+          <Divider
+            style={{ marginTop: 12, backgroundColor: colors.contentSecondary }}
+          />
           <ThemedText>{_(currentEntry.message)}</ThemedText>
           <View
             style={{

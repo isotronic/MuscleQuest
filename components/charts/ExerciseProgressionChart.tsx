@@ -411,12 +411,18 @@ export const ExerciseProgressionChart: React.FC<
           : weightUnitLabel;
 
   // Fixed chart width; spacing computed to fit with equal margins on both sides
+  // 30d labels are "17 May" (~36px wide) centered on the first point; give
+  // extra left room so they are not clipped by the y-axis.
+  const initialSpacing = timeRange === "30" ? 18 : INITIAL_SPACING;
   const chartWidth =
-    screenWidth - HORIZONTAL_INSETS - Y_AXIS_WIDTH - INITIAL_SPACING;
+    screenWidth - HORIZONTAL_INSETS - Y_AXIS_WIDTH - initialSpacing;
   const n = chartData.length;
   const spacing =
     n > 1
-      ? Math.max(1, Math.floor((chartWidth - 2 * INITIAL_SPACING) / (n - 1)))
+      ? Math.max(
+          1,
+          Math.floor((chartWidth - initialSpacing - INITIAL_SPACING) / (n - 1)),
+        )
       : 30;
 
   return (
@@ -476,7 +482,7 @@ export const ExerciseProgressionChart: React.FC<
           data={chartData}
           width={chartWidth}
           spacing={spacing}
-          initialSpacing={INITIAL_SPACING}
+          initialSpacing={initialSpacing}
           endSpacing={INITIAL_SPACING}
           thickness={2}
           color={colors.accent}
@@ -486,6 +492,7 @@ export const ExerciseProgressionChart: React.FC<
           endFillColor={chartTheme.areaEndFill}
           yAxisColor="transparent"
           yAxisTextStyle={styles.yAxisLabel}
+          formatYLabel={(label) => String(Math.round(Number(label)))}
           xAxisLabelTextStyle={styles.xAxisLabel}
           xAxisColor={colors.contentSecondary}
           hideRules

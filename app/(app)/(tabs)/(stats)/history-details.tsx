@@ -11,7 +11,7 @@ import {
   useLocalSearchParams,
   useFocusEffect,
 } from "expo-router";
-import { byteArrayToBase64 } from "@/utils/utility";
+import { byteArrayToBase64, formatToHoursMinutes } from "@/utils/utility";
 import { parseISO, format } from "date-fns";
 import { AppIcon, AppImage } from "@/components/ui";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
@@ -203,11 +203,7 @@ export default function HistoryDetailsScreen() {
               color={colors.contentSecondary}
             />
             <ThemedText style={styles.summaryText}>
-              <Plural
-                value={Math.round(workout.duration / 60)}
-                one="# min"
-                other="# mins"
-              />
+              {formatToHoursMinutes(workout.duration)}
             </ThemedText>
           </View>
           <View style={styles.summaryItem}>

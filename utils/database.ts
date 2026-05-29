@@ -1147,6 +1147,7 @@ export const insertDefaultSettings = async () => {
     { key: "timerCountdownSound", value: "false" },
     { key: "timerGoalSound", value: "false" },
     { key: "alwaysUseGlobalHistory", value: "false" },
+    { key: "plansViewMode", value: "carousel" },
   ];
 
   // Loop through each default setting
@@ -1202,6 +1203,7 @@ export interface Settings {
   timerCountdownSound: string;
   timerGoalSound: string;
   alwaysUseGlobalHistory: string;
+  plansViewMode: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

@@ -8,6 +8,7 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t, plural } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
+import { formatToHoursMinutes } from "@/utils/utility";
 import type { AppThemeColors } from "@/theme/types";
 
 interface Props {
@@ -19,13 +20,6 @@ interface Props {
   excludeWarmup?: boolean;
   countUnilateralDouble?: boolean;
   doubleWeightForPaired?: boolean;
-}
-
-function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
 }
 
 function getProgressionMetric(
@@ -305,7 +299,7 @@ export default function WeeklySummaryCard({
             <Trans>Time</Trans>
           </ThemedText>
           <ThemedText style={styles.statValue}>
-            {formatDuration(totalDuration)}
+            {formatToHoursMinutes(totalDuration)}
           </ThemedText>
         </View>
 

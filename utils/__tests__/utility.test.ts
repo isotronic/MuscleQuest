@@ -93,20 +93,28 @@ describe("Utility Functions", () => {
   });
 
   describe("formatToHoursMinutes", () => {
-    it("should format 0 seconds as 00:00", () => {
-      expect(formatToHoursMinutes(0)).toBe("00:00");
+    it("should format 0 seconds as 0m", () => {
+      expect(formatToHoursMinutes(0)).toBe("0m");
+    });
+
+    it("should format minutes only", () => {
+      expect(formatToHoursMinutes(2700)).toBe("45m");
     });
 
     it("should format exactly 1 hour", () => {
-      expect(formatToHoursMinutes(3600)).toBe("01:00");
+      expect(formatToHoursMinutes(3600)).toBe("1h");
     });
 
-    it("should format hours and minutes correctly", () => {
-      expect(formatToHoursMinutes(3665)).toBe("01:01");
+    it("should format hours and minutes", () => {
+      expect(formatToHoursMinutes(4800)).toBe("1h20m");
+    });
+
+    it("should format hours and minutes when seconds remain", () => {
+      expect(formatToHoursMinutes(3665)).toBe("1h1m");
     });
 
     it("should format large numbers of seconds", () => {
-      expect(formatToHoursMinutes(90000)).toBe("25:00");
+      expect(formatToHoursMinutes(90000)).toBe("25h");
     });
   });
 

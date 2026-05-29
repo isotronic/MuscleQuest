@@ -9,11 +9,13 @@ import type { AppThemeColors } from "@/theme/types";
 interface WeekDaysProps {
   completedWorkoutsThisWeek?: CompletedWorkout[];
   onDayPress?: (completedWorkouts: CompletedWorkout[]) => void;
+  scheduledDayIndices?: Set<number>; // 0=Mon … 6=Sun
 }
 
 export default function WeekDays({
   completedWorkoutsThisWeek,
   onDayPress,
+  scheduledDayIndices,
 }: WeekDaysProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -29,13 +31,15 @@ export default function WeekDays({
           isSameDay(new Date(workout.date_completed), day),
         );
         const isWorkoutCompleted = !!completedOnDay?.length;
+        const isScheduledIncomplete =
+          (scheduledDayIndices?.has(index) ?? false) && !isWorkoutCompleted;
 
         const circle = (
           <View
             style={[
               styles.circle,
+              isScheduledIncomplete && styles.scheduledCircle,
               isWorkoutCompleted && styles.workoutCompletedCircle,
-              isToday && styles.todayCircle,
             ]}
           >
             <ThemedText
@@ -97,7 +101,9 @@ function createStyles(colors: AppThemeColors) {
       justifyContent: "center",
       borderColor: colors.contentPrimary,
     },
-    todayCircle: {},
+    scheduledCircle: {
+      borderColor: colors.accent,
+    },
     workoutCompletedCircle: {
       borderColor: colors.success,
       borderWidth: 2,

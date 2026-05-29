@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { format } from "date-fns";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
-import { t } from "@lingui/core/macro";
 import { Plural } from "@lingui/react/macro";
+import { formatToHoursMinutes } from "@/utils/utility";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -29,7 +29,7 @@ export default function WorkoutHistoryCard({
       )
     : workout.total_sets_completed;
 
-  const durationMin = Math.round(workout.duration / 60);
+  const durationFormatted = formatToHoursMinutes(workout.duration);
   const dateLabel = format(new Date(workout.date_completed), "EEE, d MMM");
   const isVertical = variant === "vertical";
 
@@ -57,7 +57,7 @@ export default function WorkoutHistoryCard({
         <Text style={styles.date}>{dateLabel}</Text>
         <View style={styles.chips}>
           <View style={styles.chip}>
-            <Text style={styles.chipText}>{t`${durationMin} min`}</Text>
+            <Text style={styles.chipText}>{durationFormatted}</Text>
           </View>
           <View style={styles.chip}>
             <Text style={styles.chipText}>
