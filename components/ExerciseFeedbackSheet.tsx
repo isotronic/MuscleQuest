@@ -29,6 +29,7 @@ interface ExerciseFeedbackSheetProps {
   userWorkoutExerciseId: number;
   performanceRatio: number;
   onSubmit: (payload: ExerciseFeedbackPayload) => void;
+  onAfterDismiss?: () => void;
 }
 
 function getEffortOptions(): { value: EffortRating; label: string }[] {
@@ -89,7 +90,13 @@ const ExerciseFeedbackSheet = React.forwardRef<
   BottomSheetModal,
   ExerciseFeedbackSheetProps
 >(function ExerciseFeedbackSheet(
-  { exerciseName, userWorkoutExerciseId, performanceRatio, onSubmit },
+  {
+    exerciseName,
+    userWorkoutExerciseId,
+    performanceRatio,
+    onSubmit,
+    onAfterDismiss,
+  },
   ref,
 ) {
   const { colors } = useAppTheme();
@@ -109,7 +116,8 @@ const ExerciseFeedbackSheet = React.forwardRef<
 
   const handleDismiss = useCallback(() => {
     reset();
-  }, [reset]);
+    onAfterDismiss?.();
+  }, [reset, onAfterDismiss]);
 
   const canSubmit = effortRating !== null && painFlag !== null;
 
