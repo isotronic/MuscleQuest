@@ -1167,6 +1167,7 @@ export const insertDefaultSettings = async () => {
     { key: "progression_increment_dumbbell_kg", value: "2.0" },
     { key: "progression_increment_cable_kg", value: "2.5" },
     { key: "progression_increment_machine_kg", value: "2.5" },
+    { key: "exclude_deload_from_stats", value: "0" },
   ];
 
   // Loop through each default setting
