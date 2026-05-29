@@ -75,7 +75,7 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
           secondary_muscles: row.secondary_muscles
             ? JSON.parse(row.secondary_muscles)
             : [],
-          tracking_type: row.tracking_type || "",
+          tracking_type: row.tracking_type ?? undefined,
           tracking_type_override: row.tracking_type_override ?? undefined,
           sets: row.sets ? JSON.parse(row.sets) : [],
           supersetGroupId: row.superset_group_id ?? undefined,

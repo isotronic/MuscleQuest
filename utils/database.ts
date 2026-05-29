@@ -1402,7 +1402,7 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
             return [];
           }
         })(),
-        tracking_type: row.tracking_type || "",
+        tracking_type: row.tracking_type ?? undefined,
         tracking_type_override: row.tracking_type_override ?? undefined,
         sets: (() => {
           try {
