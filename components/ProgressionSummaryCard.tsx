@@ -48,9 +48,9 @@ export default function ProgressionSummaryCard({
 
   if (actionable.length === 0) return null;
 
-  const handleAcceptAll = () => {
+  const handleAcceptAll = async () => {
     for (const s of actionable) {
-      applyMutation.mutate({
+      await applyMutation.mutateAsync({
         userWorkoutExerciseId: s.userWorkoutExerciseId,
         suggestedRepsMin: s.suggestedRepsMin,
         suggestedRepsMax: s.suggestedRepsMax,
