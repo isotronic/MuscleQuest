@@ -241,6 +241,12 @@ export default function WorkoutSessionScreen() {
     performanceRatio: number;
     exerciseContext: import("@/hooks/useExerciseFeedbackMutation").ExerciseContext;
   } | null>(null);
+
+  useEffect(() => {
+    if (pendingFeedbackCtx) {
+      feedbackSheetRef.current?.present();
+    }
+  }, [pendingFeedbackCtx]);
   const [currentSlotIndex, setCurrentSlotIndex] = useState(0);
   const [slots, setSlots] = useState<[SlotData, SlotData, SlotData]>([
     { exerciseIndex: 0, setIndex: 0 },
@@ -1128,7 +1134,6 @@ export default function WorkoutSessionScreen() {
       nextSet();
       if (feedbackCtx) {
         setPendingFeedbackCtx(feedbackCtx);
-        feedbackSheetRef.current?.present();
       }
       return;
     }
@@ -1199,7 +1204,6 @@ export default function WorkoutSessionScreen() {
     nextSet();
     if (feedbackCtx) {
       setPendingFeedbackCtx(feedbackCtx);
-      feedbackSheetRef.current?.present();
     }
     if (
       isFirstInSuperset ||
