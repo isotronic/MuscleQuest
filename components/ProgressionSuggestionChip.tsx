@@ -24,7 +24,9 @@ function chipLabel(
   const unit = weightUnit ?? "kg";
   switch (action) {
     case "increase_load":
-      return suggestedWeight != null ? t`+${unit} suggested` : t`Load up`;
+      return suggestedWeight != null
+        ? t`+${suggestedWeight}${unit} suggested`
+        : t`Load up`;
     case "increase_reps":
       if (suggestedRepsMin != null && suggestedRepsMax != null) {
         return suggestedRepsMin === suggestedRepsMax
