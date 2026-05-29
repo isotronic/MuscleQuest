@@ -11,6 +11,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { RecoveryCheckInPayload, RecoveryRating } from "@/types/progression";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 
 interface PendingCheckIn {
   userWorkoutExerciseId: number;
@@ -23,11 +25,13 @@ interface RecoveryCheckInSheetProps {
   onSubmit: (payloads: RecoveryCheckInPayload[]) => void;
 }
 
-const RECOVERY_OPTIONS: { value: RecoveryRating; label: string }[] = [
-  { value: "fresh", label: "Fresh, fully recovered" },
-  { value: "mild", label: "Mild soreness" },
-  { value: "sore", label: "Still very sore" },
-];
+function getRecoveryOptions(): { value: RecoveryRating; label: string }[] {
+  return [
+    { value: "fresh", label: t`Fresh, fully recovered` },
+    { value: "mild", label: t`Mild soreness` },
+    { value: "sore", label: t`Still very sore` },
+  ];
+}
 
 function MuscleQuestion({
   muscle,
@@ -44,7 +48,7 @@ function MuscleQuestion({
     <View style={styles.questionBlock}>
       <ThemedText style={styles.muscleName}>{muscle}</ThemedText>
       <View style={styles.optionsRow}>
-        {RECOVERY_OPTIONS.map((opt) => (
+        {getRecoveryOptions().map((opt) => (
           <TouchableOpacity
             key={opt.value}
             onPress={() => onChange(opt.value)}
@@ -144,9 +148,13 @@ const RecoveryCheckInSheet = React.forwardRef<
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <ThemedText style={styles.title}>Recovery Check-in</ThemedText>
+          <ThemedText style={styles.title}>
+            <Trans>Recovery Check-in</Trans>
+          </ThemedText>
           <ThemedText style={styles.subtitle}>
-            How are these muscles feeling since your last session?
+            <Trans>
+              How are these muscles feeling since your last session?
+            </Trans>
           </ThemedText>
 
           {muscleGroups.map((group) => (
@@ -170,7 +178,7 @@ const RecoveryCheckInSheet = React.forwardRef<
               onPress={handleSkip}
               textColor={colors.contentSecondary}
             >
-              Skip for now
+              <Trans>Skip for now</Trans>
             </Button>
             <Button
               mode="contained"
@@ -180,7 +188,7 @@ const RecoveryCheckInSheet = React.forwardRef<
               textColor={colors.onAccent}
               style={styles.submitButton}
             >
-              Done
+              <Trans>Done</Trans>
             </Button>
           </View>
         </ScrollView>

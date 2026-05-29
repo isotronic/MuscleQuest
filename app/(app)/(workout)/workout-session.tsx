@@ -548,8 +548,8 @@ export default function WorkoutSessionScreen() {
       if (settings?.restTimerNotification === "true") {
         await scheduleRestNotificationWithCancellation(
           totalSeconds,
-          "Rest Timer Finished!",
-          "Time to do your next set!",
+          t`Rest Timer Finished!`,
+          t`Time to do your next set!`,
           "rest-timer1",
         );
       } else {

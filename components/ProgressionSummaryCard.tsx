@@ -7,6 +7,27 @@ import { useAppTheme } from "@/theme";
 import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
 import { useApplyProgressionMutation } from "@/hooks/useApplyProgressionMutation";
 import { WorkoutProgressionStateRow } from "@/utils/database";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+
+function getRuleExplanation(ruleKey: string): string {
+  const map: Record<string, string> = {
+    PAIN_BLOCK: t`Pain reported. Keeping load unchanged until you feel better.`,
+    FAILED_SETS: t`You couldn't complete all sets. Reducing load slightly for next time.`,
+    POOR_RECOVERY: t`Still recovering. Hold this load for now.`,
+    BELOW_TARGET: t`Rep target not met. Hold steady for now.`,
+    EASY_TARGET_LOAD: t`You've been hitting targets easily. Time to add a little more weight.`,
+    EASY_TARGET_REPS: t`Good pace. Try adding one rep per set before bumping the load.`,
+    EASY_FIRST_SIGNAL: t`Felt easy this time. Hold for now and confirm next session.`,
+    EASY_HOLD_REQUESTED: t`You chose to keep it steady. Hold this load.`,
+    MODERATE_TARGET: t`Solid session. Keep this load.`,
+    HARD_TARGET: t`You finished everything at the limit. Stay here and own it.`,
+    UNSUPPORTED_TRACKING: t`No progression tracking for this exercise type.`,
+    NO_PRIOR_WEIGHT: t`No prior weight data. Hold steady for now.`,
+    DEFAULT: t`Hold steady this session.`,
+  };
+  return map[ruleKey] ?? t`Hold steady this session.`;
+}
 
 interface ProgressionSummaryCardProps {
   workoutId: number;
@@ -40,7 +61,9 @@ export default function ProgressionSummaryCard({
   return (
     <View style={[styles.card, { backgroundColor: colors.card }]}>
       <View style={styles.header}>
-        <ThemedText style={styles.title}>Next Session</ThemedText>
+        <ThemedText style={styles.title}>
+          <Trans>Next Session</Trans>
+        </ThemedText>
         {actionable.length > 1 && (
           <Button
             mode="text"
@@ -49,7 +72,7 @@ export default function ProgressionSummaryCard({
             textColor={colors.accent}
             style={styles.acceptAllButton}
           >
-            Accept all
+            <Trans>Accept all</Trans>
           </Button>
         )}
       </View>
@@ -107,7 +130,7 @@ function SuggestionRow({
         <ThemedText
           style={[styles.explanation, { color: colors.contentSecondary }]}
         >
-          {state.ruleExplanation}
+          {getRuleExplanation(state.ruleKey)}
         </ThemedText>
       </View>
       <View style={styles.rowActions}>
@@ -119,7 +142,7 @@ function SuggestionRow({
           textColor={colors.onAccent}
           style={styles.actionButton}
         >
-          Accept
+          <Trans>Accept</Trans>
         </Button>
         <Button
           mode="text"
@@ -127,7 +150,7 @@ function SuggestionRow({
           onPress={onDismiss}
           textColor={colors.contentSecondary}
         >
-          Dismiss
+          <Trans>Dismiss</Trans>
         </Button>
       </View>
     </View>

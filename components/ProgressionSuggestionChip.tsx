@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useAppTheme } from "@/theme";
 import { ProgressionAction } from "@/types/progression";
+import { t } from "@lingui/core/macro";
 
 interface ProgressionSuggestionChipProps {
   action: ProgressionAction;
@@ -23,20 +24,20 @@ function chipLabel(
   const unit = weightUnit ?? "kg";
   switch (action) {
     case "increase_load":
-      return suggestedWeight != null ? `+${unit} suggested` : "Load up";
+      return suggestedWeight != null ? t`+${unit} suggested` : t`Load up`;
     case "increase_reps":
       if (suggestedRepsMin != null && suggestedRepsMax != null) {
         return suggestedRepsMin === suggestedRepsMax
-          ? `${suggestedRepsMin} reps suggested`
-          : `${suggestedRepsMin}-${suggestedRepsMax} reps suggested`;
+          ? t`${suggestedRepsMin} reps suggested`
+          : t`${suggestedRepsMin}-${suggestedRepsMax} reps suggested`;
       }
-      return "More reps suggested";
+      return t`More reps suggested`;
     case "reduce_load":
-      return "Reduce load";
+      return t`Reduce load`;
     case "add_set":
-      return "Add a set";
+      return t`Add a set`;
     case "remove_set":
-      return "Remove a set";
+      return t`Remove a set`;
     case "hold":
     default:
       return null;

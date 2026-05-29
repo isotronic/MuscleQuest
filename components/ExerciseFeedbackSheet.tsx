@@ -21,6 +21,8 @@ import {
   ExerciseFeedbackPayload,
   PainFlag,
 } from "@/types/progression";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 
 interface ExerciseFeedbackSheetProps {
   exerciseName: string;
@@ -29,18 +31,22 @@ interface ExerciseFeedbackSheetProps {
   onSubmit: (payload: ExerciseFeedbackPayload) => void;
 }
 
-const EFFORT_OPTIONS: { value: EffortRating; label: string }[] = [
-  { value: "easy", label: "Easy, could do more" },
-  { value: "moderate", label: "About right" },
-  { value: "hard", label: "Hard, near limit" },
-  { value: "failed", label: "Couldn't finish all sets" },
-];
+function getEffortOptions(): { value: EffortRating; label: string }[] {
+  return [
+    { value: "easy", label: t`Easy, could do more` },
+    { value: "moderate", label: t`About right` },
+    { value: "hard", label: t`Hard, near limit` },
+    { value: "failed", label: t`Couldn't finish all sets` },
+  ];
+}
 
-const PAIN_OPTIONS: { value: PainFlag; label: string }[] = [
-  { value: "none", label: "No pain" },
-  { value: "discomfort", label: "Minor discomfort" },
-  { value: "pain", label: "Pain or form issues" },
-];
+function getPainOptions(): { value: PainFlag; label: string }[] {
+  return [
+    { value: "none", label: t`No pain` },
+    { value: "discomfort", label: t`Minor discomfort` },
+    { value: "pain", label: t`Pain or form issues` },
+  ];
+}
 
 function OptionChip({
   label,
@@ -163,9 +169,11 @@ const ExerciseFeedbackSheet = React.forwardRef<
         >
           <ThemedText style={styles.title}>{exerciseName}</ThemedText>
 
-          <ThemedText style={styles.question}>How did that feel?</ThemedText>
+          <ThemedText style={styles.question}>
+            <Trans>How did that feel?</Trans>
+          </ThemedText>
           <View style={styles.optionsGrid}>
-            {EFFORT_OPTIONS.map((opt) => (
+            {getEffortOptions().map((opt) => (
               <OptionChip
                 key={opt.value}
                 label={opt.label}
@@ -180,10 +188,10 @@ const ExerciseFeedbackSheet = React.forwardRef<
           </View>
 
           <ThemedText style={styles.question}>
-            Any pain or form breakdown?
+            <Trans>Any pain or form breakdown?</Trans>
           </ThemedText>
           <View style={styles.optionsRow}>
-            {PAIN_OPTIONS.map((opt) => (
+            {getPainOptions().map((opt) => (
               <OptionChip
                 key={opt.value}
                 label={opt.label}
@@ -200,17 +208,17 @@ const ExerciseFeedbackSheet = React.forwardRef<
           {effortRating === "easy" && (
             <>
               <ThemedText style={styles.question}>
-                Push harder next time?
+                <Trans>Push harder next time?</Trans>
               </ThemedText>
               <View style={styles.optionsRow}>
                 <OptionChip
-                  label="Yes, increase the challenge"
+                  label={t`Yes, increase the challenge`}
                   selected={progressionIntent === "progress"}
                   onPress={() => setProgressionIntent("progress")}
                   colors={colors}
                 />
                 <OptionChip
-                  label="No, keep it the same"
+                  label={t`No, keep it the same`}
                   selected={progressionIntent === "hold"}
                   onPress={() => setProgressionIntent("hold")}
                   colors={colors}
@@ -222,7 +230,7 @@ const ExerciseFeedbackSheet = React.forwardRef<
           {painFlag === "pain" && (
             <>
               <ThemedText style={styles.question}>
-                Where did you feel it?
+                <Trans>Where did you feel it?</Trans>
               </ThemedText>
               <TextInput
                 style={[
@@ -232,7 +240,7 @@ const ExerciseFeedbackSheet = React.forwardRef<
                     borderColor: colors.accentBorder,
                   },
                 ]}
-                placeholder="Optional description"
+                placeholder={t`Optional description`}
                 placeholderTextColor={colors.contentSecondary}
                 value={painNotes}
                 onChangeText={setPainNotes}
@@ -250,7 +258,7 @@ const ExerciseFeedbackSheet = React.forwardRef<
               textColor={colors.onAccent ?? colors.background}
               style={styles.submitButton}
             >
-              Done
+              <Trans>Done</Trans>
             </Button>
           </View>
         </ScrollView>

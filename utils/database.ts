@@ -2713,6 +2713,7 @@ export interface WorkoutProgressionStateRow {
   suggestedRepsMin?: number;
   suggestedRepsMax?: number;
   suggestedSets?: number;
+  ruleKey: string;
   ruleExplanation: string;
   consecutiveDirectionCount: number;
   isApplied: boolean;
@@ -2733,6 +2734,7 @@ export const getProgressionStatesForWorkout = async (
       suggested_reps_min: number | null;
       suggested_reps_max: number | null;
       suggested_sets: number | null;
+      rule_key: string;
       rule_explanation: string;
       consecutive_direction_count: number;
       is_applied: number;
@@ -2747,6 +2749,7 @@ export const getProgressionStatesForWorkout = async (
         eps.suggested_reps_min,
         eps.suggested_reps_max,
         eps.suggested_sets,
+        eps.rule_key,
         eps.rule_explanation,
         eps.consecutive_direction_count,
         eps.is_applied,
@@ -2768,6 +2771,7 @@ export const getProgressionStatesForWorkout = async (
       suggestedRepsMin: row.suggested_reps_min ?? undefined,
       suggestedRepsMax: row.suggested_reps_max ?? undefined,
       suggestedSets: row.suggested_sets ?? undefined,
+      ruleKey: row.rule_key,
       ruleExplanation: row.rule_explanation,
       consecutiveDirectionCount: row.consecutive_direction_count,
       isApplied: row.is_applied === 1,
