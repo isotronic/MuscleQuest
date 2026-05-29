@@ -20,7 +20,7 @@ export const useRecoveryCheckInMutation = () => {
     mutationFn: async (payloads: RecoveryCheckInPayload[]) => {
       const progressionSettings = await getProgressionSettings();
 
-      await Promise.all(
+      await Promise.allSettled(
         payloads.map(async ({ userWorkoutExerciseId, recoveryRating }) => {
           await updateProgressionStateRecovery(
             userWorkoutExerciseId,
