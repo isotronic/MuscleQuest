@@ -160,7 +160,6 @@ function SuggestionRow({
 const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
-    marginHorizontal: 16,
     marginBottom: 16,
     paddingVertical: 12,
     paddingHorizontal: 16,
