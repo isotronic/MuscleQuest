@@ -48,9 +48,6 @@ function makeFeedback(
   overrides: Partial<ExerciseFeedbackPayload> = {},
 ): ExerciseFeedbackPayload {
   return {
-    completedExerciseId: 1,
-    exerciseId: 100,
-    completedWorkoutId: 10,
     userWorkoutExerciseId: 42,
     effortRating: "moderate",
     painFlag: "none",

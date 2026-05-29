@@ -19,9 +19,6 @@ export interface UserProgressionIncrements {
 }
 
 export interface ExerciseFeedbackPayload {
-  completedExerciseId: number;
-  exerciseId: number;
-  completedWorkoutId: number;
   userWorkoutExerciseId: number;
   effortRating: EffortRating;
   painFlag: PainFlag;

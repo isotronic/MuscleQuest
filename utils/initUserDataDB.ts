@@ -559,9 +559,6 @@ export async function initUserDataDB() {
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS exercise_feedback (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      completed_exercise_id INTEGER NOT NULL REFERENCES completed_exercises(id),
-      exercise_id INTEGER NOT NULL,
-      completed_workout_id INTEGER NOT NULL REFERENCES completed_workouts(id),
       user_workout_exercise_id INTEGER NOT NULL,
       effort_rating TEXT NOT NULL CHECK(effort_rating IN ('easy','moderate','hard','failed')),
       pain_flag TEXT NOT NULL DEFAULT 'none' CHECK(pain_flag IN ('none','discomfort','pain')),

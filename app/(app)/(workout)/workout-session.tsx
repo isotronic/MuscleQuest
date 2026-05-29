@@ -33,6 +33,12 @@ import { Notes } from "@/components/Notes";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 import { UserExercise } from "@/store/workoutStore";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import ExerciseFeedbackSheet from "@/components/ExerciseFeedbackSheet";
+import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
+import { useProgressionStateQuery } from "@/hooks/useProgressionStateQuery";
+import { useExerciseFeedbackMutation } from "@/hooks/useExerciseFeedbackMutation";
+import { ExerciseFeedbackPayload } from "@/types/progression";
 import { useSoundStore } from "@/store/soundStore";
 import Animated, {
   useSharedValue,
@@ -227,6 +233,13 @@ export default function WorkoutSessionScreen() {
 
   const [outgoingSnapshot, setOutgoingSnapshot] =
     useState<OutgoingSnapshot | null>(null);
+  const feedbackSheetRef = useRef<BottomSheetModal>(null);
+  const [pendingFeedbackCtx, setPendingFeedbackCtx] = useState<{
+    userWorkoutExerciseId: number;
+    exerciseName: string;
+    performanceRatio: number;
+    exerciseContext: import("@/hooks/useExerciseFeedbackMutation").ExerciseContext;
+  } | null>(null);
   const [currentSlotIndex, setCurrentSlotIndex] = useState(0);
   const [slots, setSlots] = useState<[SlotData, SlotData, SlotData]>([
     { exerciseIndex: 0, setIndex: 0 },
@@ -274,6 +287,7 @@ export default function WorkoutSessionScreen() {
 
   const {
     workout,
+    activeWorkout,
     currentExerciseIndex,
     currentSetIndices,
     weightAndReps,
@@ -304,6 +318,9 @@ export default function WorkoutSessionScreen() {
     error: settingsError,
   } = useSettingsQuery();
 
+  const progressionSettings = useProgressionSettingsQuery();
+  const { mutate: submitFeedback } = useExerciseFeedbackMutation();
+
   const parsedIncrement = parseFloat(settings?.weightIncrement ?? "");
   const weightIncrement = Number.isNaN(parsedIncrement) ? 1 : parsedIncrement;
   const parsedRestIncrement = parseInt(settings?.restTimerIncrement ?? "", 10);
@@ -332,6 +349,10 @@ export default function WorkoutSessionScreen() {
   const currentExercise = workout?.exercises[currentExerciseIndex];
   const currentSetIndex = currentSetIndices[currentExerciseIndex] || 0;
   const currentSet = currentExercise?.sets[currentSetIndex];
+
+  const { data: currentProgressionState } = useProgressionStateQuery(
+    currentExercise?.id,
+  );
   const currentSetCompleted =
     completedSets[currentExerciseIndex] &&
     typeof completedSets[currentExerciseIndex][currentSetIndex] === "boolean"
@@ -934,11 +955,73 @@ export default function WorkoutSessionScreen() {
   const isFirstInSuperset =
     isInSuperset && currentExerciseIndex < supersetPartnerIndex;
 
+  const buildFeedbackContext = () => {
+    if (!currentExercise) return null;
+    const uweId = currentExercise.id;
+    if (!uweId || !progressionSettings.enabled || activeWorkout?.planId == null)
+      return null;
+
+    const workingSets = currentExercise.sets
+      .map((set, idx) => ({ set, idx }))
+      .filter(({ set }) => !set.isWarmup);
+
+    const updatedCompleted = {
+      ...completedSets,
+      [currentExerciseIndex]: {
+        ...(completedSets[currentExerciseIndex] || {}),
+        [currentSetIndex]: true,
+      },
+    };
+    const allWorkingSetsDone = workingSets.every(
+      ({ idx }) => updatedCompleted[currentExerciseIndex]?.[idx] === true,
+    );
+    if (!allWorkingSetsDone) return null;
+
+    const targetReps = workingSets.reduce(
+      (sum, { set }) => sum + (set.repsMax ?? set.repsMin ?? 0),
+      0,
+    );
+    const actualReps = workingSets.reduce((sum, { idx }) => {
+      const r = parseInt(
+        weightAndReps[currentExerciseIndex]?.[idx]?.reps ?? "0",
+        10,
+      );
+      return sum + (isNaN(r) ? 0 : r);
+    }, 0);
+    const performanceRatio =
+      targetReps > 0 ? Math.min(actualReps / targetReps, 1.5) : 1.0;
+
+    const maxWeight = workingSets
+      .map(({ idx }) =>
+        parseFloat(weightAndReps[currentExerciseIndex]?.[idx]?.weight ?? ""),
+      )
+      .filter((w) => !isNaN(w));
+
+    const trackingType = resolvedTrackingType(currentExercise);
+
+    return {
+      userWorkoutExerciseId: uweId,
+      exerciseName: currentExercise.name,
+      performanceRatio,
+      exerciseContext: {
+        exerciseId: currentExercise.exercise_id,
+        trackingType,
+        equipment: currentExercise.equipment,
+        currentSets: currentExercise.sets,
+        recentWorkingWeight:
+          maxWeight.length > 0 ? Math.max(...maxWeight) : null,
+      },
+    };
+  };
+
   const handleCompleteSet = () => {
     if (!currentExercise || !currentSet) {
       return;
     }
     if (outgoingSnapshot || isTransitioning.value) return;
+
+    // Capture feedback context before any state changes
+    const feedbackCtx = buildFeedbackContext();
 
     const weightStr =
       weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight ??
@@ -1034,6 +1117,10 @@ export default function WorkoutSessionScreen() {
       recordSetDuration(currentExerciseIndex, currentSetIndex, durationNoAnim);
       setCurrentSetStartedAt(null);
       nextSet();
+      if (feedbackCtx) {
+        setPendingFeedbackCtx(feedbackCtx);
+        feedbackSheetRef.current?.present();
+      }
       return;
     }
 
@@ -1101,6 +1188,10 @@ export default function WorkoutSessionScreen() {
     recordSetDuration(currentExerciseIndex, currentSetIndex, durationAnim);
     setCurrentSetStartedAt(null);
     nextSet();
+    if (feedbackCtx) {
+      setPendingFeedbackCtx(feedbackCtx);
+      feedbackSheetRef.current?.present();
+    }
     if (
       isFirstInSuperset ||
       (hasNextSet &&
@@ -1363,6 +1454,9 @@ export default function WorkoutSessionScreen() {
                                 current === "weight" ? undefined : "weight",
                               );
                             }}
+                            progressionSuggestion={
+                              currentProgressionState ?? null
+                            }
                           />
                         ) : (
                           <SessionSetInfo {...p} />
@@ -1411,6 +1505,20 @@ export default function WorkoutSessionScreen() {
           </View>
         </GestureDetector>
       </KeyboardAvoidingView>
+      {pendingFeedbackCtx && (
+        <ExerciseFeedbackSheet
+          ref={feedbackSheetRef}
+          exerciseName={pendingFeedbackCtx.exerciseName}
+          userWorkoutExerciseId={pendingFeedbackCtx.userWorkoutExerciseId}
+          performanceRatio={pendingFeedbackCtx.performanceRatio}
+          onSubmit={(payload: ExerciseFeedbackPayload) => {
+            submitFeedback({
+              feedback: payload,
+              exerciseContext: pendingFeedbackCtx.exerciseContext,
+            });
+          }}
+        />
+      )}
       <AnimatedView
         style={[
           styles.timerContainer,

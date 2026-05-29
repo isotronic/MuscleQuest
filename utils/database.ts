@@ -1157,6 +1157,11 @@ export const insertDefaultSettings = async () => {
     { key: "timerGoalSound", value: "false" },
     { key: "alwaysUseGlobalHistory", value: "false" },
     { key: "plansViewMode", value: "carousel" },
+    { key: "adaptive_progression_enabled", value: "0" },
+    { key: "progression_increment_barbell_kg", value: "2.5" },
+    { key: "progression_increment_dumbbell_kg", value: "2.0" },
+    { key: "progression_increment_cable_kg", value: "2.5" },
+    { key: "progression_increment_machine_kg", value: "2.5" },
   ];
 
   // Loop through each default setting
@@ -1213,6 +1218,11 @@ export interface Settings {
   timerGoalSound: string;
   alwaysUseGlobalHistory: string;
   plansViewMode: string;
+  adaptive_progression_enabled: string;
+  progression_increment_barbell_kg: string;
+  progression_increment_dumbbell_kg: string;
+  progression_increment_cable_kg: string;
+  progression_increment_machine_kg: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
@@ -2333,14 +2343,10 @@ export const insertExerciseFeedback = async (
     const db = await openDatabase("userData.db");
     const result = await db.runAsync(
       `INSERT INTO exercise_feedback (
-        completed_exercise_id, exercise_id, completed_workout_id,
         user_workout_exercise_id, effort_rating, pain_flag,
         progression_intent, performance_ratio, notes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?)`,
       [
-        payload.completedExerciseId,
-        payload.exerciseId,
-        payload.completedWorkoutId,
         payload.userWorkoutExerciseId,
         payload.effortRating,
         payload.painFlag,
