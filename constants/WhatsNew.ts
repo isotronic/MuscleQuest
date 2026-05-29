@@ -288,6 +288,18 @@ For bodyweight exercises like pull-ups or dips, you can now toggle on weight tra
 The Plans screen now has three display modes. Use the icons next to the "Your Training Plans" heading to switch between Carousel, List, and Grid view. Your preferred layout is saved automatically.
 `,
   },
+  {
+    version: 2634,
+    message: msg`
+📈 New: Adaptive Progression!
+
+MuscleQuest can now suggest when to increase your weight or reps based on how your sessions feel. After each exercise, answer two quick questions about effort and pain. Once you have reported the same signal for two sessions in a row, the app suggests a change. All suggestions appear in the Workout Summary screen, where you can accept or dismiss each one individually. Accepted suggestions are pre-filled into your next session automatically.
+
+A Recovery Check-in at the start of your next workout lets you factor in soreness before any suggestion is applied. You can also mark a full week as a Deload from the plan overview, which pauses feedback and progression tracking for that week.
+
+Enable it in Settings under Adaptive Progression, and configure your preferred load increment per equipment category.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

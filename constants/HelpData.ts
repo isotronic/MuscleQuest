@@ -61,6 +61,36 @@ export const HELP_DATA: GroupData[] = [
     ],
   },
   {
+    group: msg`Adaptive Progression`,
+    sections: [
+      {
+        icon: "trending-up-outline",
+        title: msg`Overview`,
+        body: msg`Adaptive Progression analyses your effort feedback over consecutive sessions and suggests when to increase your weight, reps, or sets. Enable it in Settings under Adaptive Progression. Once on, a short feedback prompt appears after each exercise in plan-based workouts. The engine requires two sessions with the same signal before recommending an upward change, filtering out one-off easy days and ensuring consistent performance before suggesting an increase. Pain or failed sets act immediately regardless of your session history. A suggestion is never applied to your workout without your explicit approval. You can also configure your preferred load increment per equipment category in the same section of Settings, for example 2.5 kg for barbell exercises and 2.0 kg for dumbbells.`,
+      },
+      {
+        icon: "chatbox-ellipses-outline",
+        title: msg`Post-Exercise Feedback`,
+        body: msg`After completing the last working set of an exercise, a feedback sheet slides up with two questions. The first asks how the effort felt: Easy (you could have done more), About right, Hard (near your limit), or Couldn't finish all sets. The second asks about pain: No pain, Minor discomfort, or Pain or form issues. If you answer Easy, a third question appears asking whether you want to push harder next time. This lets you deliberately hold the current load even when a session felt light, so the engine respects your intent. If you answer Pain, an optional text field lets you note where you felt it for your own reference. The sheet can be dismissed without answering if you prefer not to log feedback for that exercise in that session.`,
+      },
+      {
+        icon: "checkbox-outline",
+        title: msg`Progression Suggestions`,
+        body: msg`After finishing a workout, the Workout Summary screen shows a Next Session card listing actionable suggestions for your exercises. Each row shows the exercise name, the proposed change (a new target weight, a wider rep range, or a note to reduce load), and a short explanation of why the change is being suggested. Tap Accept to apply the suggestion to that exercise for your next session, or Dismiss to ignore it. Accepted suggestions are pre-filled into the weight and rep fields the next time you open that workout, so you start the session already targeting the right load. The Accept All button at the top applies every suggestion at once. Suggestions that recommend holding the current load do not appear in the card, as no action is needed for those.`,
+      },
+      {
+        icon: "heart-circle-outline",
+        title: msg`Recovery Check-in`,
+        body: msg`When you open a workout that contains exercises you trained recently, a Recovery Check-in sheet appears if those exercises have a pending progression suggestion and your last session was at least 12 hours ago. For each relevant muscle group, you choose one of three options: Fresh (fully recovered), Mild soreness, or Still very sore. If a muscle is marked as still very sore, any upward progression suggestion for exercises targeting that muscle is paused and held at the current load until you re-evaluate at the start of the following session. Fresh or Mild soreness does not affect suggestions. Tap Skip for now to bypass the check-in entirely; a skipped check-in is treated the same as fresh recovery, so pending suggestions are unaffected.`,
+      },
+      {
+        icon: "calendar-clear-outline",
+        title: msg`Deload Week`,
+        body: msg`A deload is a planned recovery week where you train at reduced intensity to let your body fully recover before the next training block. Tap Mark as Deload Week on the plan overview screen to flag the current week as a deload. While the deload is active, the post-exercise feedback sheet does not appear and no new progression states are created or updated, so your suggestion history is not disrupted by the lighter sessions. The deload resets automatically at the start of the following week, and normal feedback and progression tracking resume without any manual action. If you change your mind, tapping the button again while the deload is active will clear it.`,
+      },
+    ],
+  },
+  {
     group: msg`Sets & Exercises`,
     sections: [
       {
