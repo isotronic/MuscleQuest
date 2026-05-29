@@ -485,7 +485,6 @@ export async function initUserDataDB() {
     `);
   }
 
-
   const weeklyCompletionsResult = await db.getAllAsync(`
     PRAGMA table_info(weekly_completions);
   `);
@@ -555,4 +554,67 @@ export async function initUserDataDB() {
       );
     }
   }
+
+  // Adaptive progression tables
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS exercise_feedback (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      completed_exercise_id INTEGER NOT NULL REFERENCES completed_exercises(id),
+      exercise_id INTEGER NOT NULL,
+      completed_workout_id INTEGER NOT NULL REFERENCES completed_workouts(id),
+      user_workout_exercise_id INTEGER NOT NULL,
+      effort_rating TEXT NOT NULL CHECK(effort_rating IN ('easy','moderate','hard','failed')),
+      pain_flag TEXT NOT NULL DEFAULT 'none' CHECK(pain_flag IN ('none','discomfort','pain')),
+      progression_intent TEXT CHECK(progression_intent IN ('progress','hold')),
+      performance_ratio REAL NOT NULL,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      is_deleted INTEGER NOT NULL DEFAULT 0
+    );
+  `);
+
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS exercise_progression_state (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_workout_exercise_id INTEGER NOT NULL UNIQUE,
+      suggestion_action TEXT NOT NULL CHECK(suggestion_action IN (
+        'increase_load','increase_reps','hold','reduce_load','add_set','remove_set'
+      )),
+      suggested_weight REAL,
+      suggested_reps_min INTEGER,
+      suggested_reps_max INTEGER,
+      suggested_sets INTEGER,
+      rule_key TEXT NOT NULL,
+      rule_explanation TEXT NOT NULL,
+      source_feedback_id INTEGER REFERENCES exercise_feedback(id),
+      recovery_rating TEXT CHECK(recovery_rating IN ('fresh','mild','sore')),
+      recovery_checked_at TEXT,
+      consecutive_direction_count INTEGER NOT NULL DEFAULT 1,
+      is_applied INTEGER NOT NULL DEFAULT 0,
+      is_dismissed INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+
+  // Feature flag and default increments.
+  // Dumbbell default depends on whether the user already tracks weight per implement.
+  await db.execAsync(
+    `INSERT OR IGNORE INTO settings (key, value) VALUES ('adaptive_progression_enabled', '0');`,
+  );
+  await db.execAsync(
+    `INSERT OR IGNORE INTO settings (key, value) VALUES ('progression_increment_barbell_kg', '2.5');`,
+  );
+  await db.execAsync(`
+    INSERT OR IGNORE INTO settings (key, value)
+    SELECT 'progression_increment_dumbbell_kg',
+      CASE WHEN (SELECT value FROM settings WHERE key = 'doubleWeightForPaired') = 'true'
+        THEN '1.0' ELSE '2.0' END;
+  `);
+  await db.execAsync(
+    `INSERT OR IGNORE INTO settings (key, value) VALUES ('progression_increment_cable_kg', '2.5');`,
+  );
+  await db.execAsync(
+    `INSERT OR IGNORE INTO settings (key, value) VALUES ('progression_increment_machine_kg', '2.5');`,
+  );
 }

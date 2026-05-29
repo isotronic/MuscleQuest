@@ -7,6 +7,15 @@ import {
   type ValueKind,
   type MeasurementDisplayOptions,
 } from "@/utils/measurementConversions";
+import {
+  ExerciseFeedback,
+  ExerciseFeedbackPayload,
+  ExerciseProgressionState,
+  ProgressionAction,
+  ProgressionRuleResult,
+  RecoveryRating,
+  UserProgressionIncrements,
+} from "@/types/progression";
 
 export interface Exercise {
   exercise_id: number;
@@ -2189,6 +2198,426 @@ export const saveBodyWeightMeasurement = async (
     }
   } catch (error: any) {
     console.error("Error saving body weight measurement:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Adaptive Progression
+// ---------------------------------------------------------------------------
+
+export interface ProgressionSettings {
+  enabled: boolean;
+  increments: UserProgressionIncrements;
+}
+
+export const getProgressionSettings =
+  async (): Promise<ProgressionSettings> => {
+    try {
+      const db = await openDatabase("userData.db");
+      const rows = await db.getAllAsync<{ key: string; value: string }>(
+        `SELECT key, value FROM settings WHERE key IN (
+        'adaptive_progression_enabled',
+        'progression_increment_barbell_kg',
+        'progression_increment_dumbbell_kg',
+        'progression_increment_cable_kg',
+        'progression_increment_machine_kg'
+      )`,
+      );
+      const map: Record<string, string> = {};
+      for (const row of rows) {
+        map[row.key] = row.value;
+      }
+      return {
+        enabled: map["adaptive_progression_enabled"] === "1",
+        increments: {
+          barbellKg: parseFloat(
+            map["progression_increment_barbell_kg"] ?? "2.5",
+          ),
+          dumbbellKg: parseFloat(
+            map["progression_increment_dumbbell_kg"] ?? "2.0",
+          ),
+          cableKg: parseFloat(map["progression_increment_cable_kg"] ?? "2.5"),
+          machineKg: parseFloat(
+            map["progression_increment_machine_kg"] ?? "2.5",
+          ),
+        },
+      };
+    } catch (error: any) {
+      console.error("Error fetching progression settings:", error);
+      Bugsnag.notify(error);
+      throw error;
+    }
+  };
+
+export const setProgressionSetting = async (
+  key: string,
+  value: string,
+): Promise<void> => {
+  try {
+    const db = await openDatabase("userData.db");
+    await db.runAsync(
+      `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`,
+      [key, value],
+    );
+  } catch (error: any) {
+    console.error("Error setting progression setting:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const getDeloadWeek = async (planId: number): Promise<string | null> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const row = await db.getFirstAsync<{ value: string }>(
+      `SELECT value FROM settings WHERE key = ?`,
+      [`plan_${planId}_deload_week`],
+    );
+    return row?.value ?? null;
+  } catch (error: any) {
+    console.error("Error fetching deload week:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const setDeloadWeek = async (
+  planId: number,
+  isoWeek: string | null,
+): Promise<void> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const key = `plan_${planId}_deload_week`;
+    if (isoWeek === null) {
+      await db.runAsync(`DELETE FROM settings WHERE key = ?`, [key]);
+    } else {
+      await db.runAsync(
+        `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`,
+        [key, isoWeek],
+      );
+    }
+  } catch (error: any) {
+    console.error("Error setting deload week:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const getMaxWorkingWeightForCompletedExercise = async (
+  completedExerciseId: number,
+): Promise<number | null> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const row = await db.getFirstAsync<{ weight: number }>(
+      `SELECT MAX(weight) AS weight
+       FROM completed_sets
+       WHERE completed_exercise_id = ?
+         AND is_warmup = 0
+         AND weight IS NOT NULL`,
+      [completedExerciseId],
+    );
+    return row?.weight ?? null;
+  } catch (error: any) {
+    console.error("Error fetching max working weight:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const insertExerciseFeedback = async (
+  payload: ExerciseFeedbackPayload,
+): Promise<number> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const result = await db.runAsync(
+      `INSERT INTO exercise_feedback (
+        completed_exercise_id, exercise_id, completed_workout_id,
+        user_workout_exercise_id, effort_rating, pain_flag,
+        progression_intent, performance_ratio, notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        payload.completedExerciseId,
+        payload.exerciseId,
+        payload.completedWorkoutId,
+        payload.userWorkoutExerciseId,
+        payload.effortRating,
+        payload.painFlag,
+        payload.progressionIntent ?? null,
+        payload.performanceRatio,
+        payload.notes ?? null,
+      ],
+    );
+    return result.lastInsertRowId;
+  } catch (error: any) {
+    console.error("Error inserting exercise feedback:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const getRecentExerciseFeedback = async (
+  userWorkoutExerciseId: number,
+  limit: number = 3,
+): Promise<ExerciseFeedback[]> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const rows = await db.getAllAsync<{
+      id: number;
+      effort_rating: string;
+      pain_flag: string;
+      progression_intent: string | null;
+      performance_ratio: number;
+      created_at: string;
+    }>(
+      `SELECT id, effort_rating, pain_flag, progression_intent, performance_ratio, created_at
+       FROM exercise_feedback
+       WHERE user_workout_exercise_id = ? AND is_deleted = 0
+       ORDER BY created_at DESC
+       LIMIT ?`,
+      [userWorkoutExerciseId, limit],
+    );
+    return rows.map((row) => ({
+      id: row.id,
+      effortRating: row.effort_rating as ExerciseFeedback["effortRating"],
+      painFlag: row.pain_flag as ExerciseFeedback["painFlag"],
+      progressionIntent:
+        (row.progression_intent as ExerciseFeedback["progressionIntent"]) ??
+        undefined,
+      performanceRatio: row.performance_ratio,
+      createdAt: row.created_at,
+    }));
+  } catch (error: any) {
+    console.error("Error fetching exercise feedback:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const upsertProgressionState = async (
+  userWorkoutExerciseId: number,
+  result: ProgressionRuleResult,
+  sourceFeedbackId: number,
+  consecutiveDirectionCount: number,
+): Promise<void> => {
+  try {
+    const db = await openDatabase("userData.db");
+    await db.runAsync(
+      `INSERT INTO exercise_progression_state (
+        user_workout_exercise_id, suggestion_action, suggested_weight,
+        suggested_reps_min, suggested_reps_max, suggested_sets,
+        rule_key, rule_explanation, source_feedback_id,
+        consecutive_direction_count, is_applied, is_dismissed,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, datetime('now'))
+      ON CONFLICT(user_workout_exercise_id) DO UPDATE SET
+        suggestion_action = excluded.suggestion_action,
+        suggested_weight = excluded.suggested_weight,
+        suggested_reps_min = excluded.suggested_reps_min,
+        suggested_reps_max = excluded.suggested_reps_max,
+        suggested_sets = excluded.suggested_sets,
+        rule_key = excluded.rule_key,
+        rule_explanation = excluded.rule_explanation,
+        source_feedback_id = excluded.source_feedback_id,
+        consecutive_direction_count = excluded.consecutive_direction_count,
+        is_applied = 0,
+        is_dismissed = 0,
+        updated_at = datetime('now')`,
+      [
+        userWorkoutExerciseId,
+        result.action,
+        result.suggestedWeight ?? null,
+        result.suggestedRepsMin ?? null,
+        result.suggestedRepsMax ?? null,
+        result.suggestedSets ?? null,
+        result.ruleKey,
+        result.explanation,
+        sourceFeedbackId,
+        consecutiveDirectionCount,
+      ],
+    );
+  } catch (error: any) {
+    console.error("Error upserting progression state:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const getProgressionState = async (
+  userWorkoutExerciseId: number,
+): Promise<ExerciseProgressionState | null> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const row = await db.getFirstAsync<{
+      id: number;
+      user_workout_exercise_id: number;
+      suggestion_action: string;
+      suggested_weight: number | null;
+      suggested_reps_min: number | null;
+      suggested_reps_max: number | null;
+      suggested_sets: number | null;
+      rule_key: string;
+      rule_explanation: string;
+      source_feedback_id: number | null;
+      recovery_rating: string | null;
+      recovery_checked_at: string | null;
+      consecutive_direction_count: number;
+      is_applied: number;
+      is_dismissed: number;
+      created_at: string;
+      updated_at: string;
+    }>(
+      `SELECT * FROM exercise_progression_state WHERE user_workout_exercise_id = ?`,
+      [userWorkoutExerciseId],
+    );
+    if (!row) return null;
+    return {
+      id: row.id,
+      userWorkoutExerciseId: row.user_workout_exercise_id,
+      suggestionAction: row.suggestion_action as ProgressionAction,
+      suggestedWeight: row.suggested_weight ?? undefined,
+      suggestedRepsMin: row.suggested_reps_min ?? undefined,
+      suggestedRepsMax: row.suggested_reps_max ?? undefined,
+      suggestedSets: row.suggested_sets ?? undefined,
+      ruleKey: row.rule_key,
+      ruleExplanation: row.rule_explanation,
+      sourceFeedbackId: row.source_feedback_id ?? undefined,
+      recoveryRating: (row.recovery_rating as RecoveryRating) ?? undefined,
+      recoveryCheckedAt: row.recovery_checked_at ?? undefined,
+      consecutiveDirectionCount: row.consecutive_direction_count,
+      isApplied: row.is_applied === 1,
+      isDismissed: row.is_dismissed === 1,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+  } catch (error: any) {
+    console.error("Error fetching progression state:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const updateProgressionStateRecovery = async (
+  userWorkoutExerciseId: number,
+  recoveryRating: RecoveryRating,
+): Promise<void> => {
+  try {
+    const db = await openDatabase("userData.db");
+    await db.runAsync(
+      `UPDATE exercise_progression_state
+       SET recovery_rating = ?, recovery_checked_at = datetime('now'), updated_at = datetime('now')
+       WHERE user_workout_exercise_id = ?`,
+      [recoveryRating, userWorkoutExerciseId],
+    );
+  } catch (error: any) {
+    console.error("Error updating recovery rating:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const applyProgressionToExercise = async (
+  userWorkoutExerciseId: number,
+  suggestedRepsMin: number | undefined,
+  suggestedRepsMax: number | undefined,
+): Promise<void> => {
+  try {
+    const db = await openDatabase("userData.db");
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      const row = await txn.getFirstAsync<{ sets: string | null }>(
+        `SELECT sets FROM user_workout_exercises WHERE id = ?`,
+        [userWorkoutExerciseId],
+      );
+      if (!row?.sets) return;
+
+      let sets: { repsMin?: number; repsMax?: number }[];
+      try {
+        sets = JSON.parse(row.sets);
+      } catch {
+        return;
+      }
+
+      const updated = sets.map((s) => ({
+        ...s,
+        ...(suggestedRepsMin !== undefined
+          ? { repsMin: suggestedRepsMin }
+          : {}),
+        ...(suggestedRepsMax !== undefined
+          ? { repsMax: suggestedRepsMax }
+          : {}),
+      }));
+
+      await txn.runAsync(
+        `UPDATE user_workout_exercises SET sets = ? WHERE id = ?`,
+        [JSON.stringify(updated), userWorkoutExerciseId],
+      );
+      await txn.runAsync(
+        `UPDATE exercise_progression_state SET is_applied = 1, updated_at = datetime('now')
+         WHERE user_workout_exercise_id = ?`,
+        [userWorkoutExerciseId],
+      );
+    });
+  } catch (error: any) {
+    console.error("Error applying progression to exercise:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+export const dismissProgressionState = async (
+  userWorkoutExerciseId: number,
+): Promise<void> => {
+  try {
+    const db = await openDatabase("userData.db");
+    await db.runAsync(
+      `UPDATE exercise_progression_state
+       SET is_dismissed = 1, updated_at = datetime('now')
+       WHERE user_workout_exercise_id = ?`,
+      [userWorkoutExerciseId],
+    );
+  } catch (error: any) {
+    console.error("Error dismissing progression state:", error);
+    Bugsnag.notify(error);
+    throw error;
+  }
+};
+
+interface PendingRecoveryRow {
+  userWorkoutExerciseId: number;
+  exerciseId: number;
+  targetMuscle: string;
+}
+
+export const getPendingRecoveryCheckIns = async (
+  workoutId: number,
+): Promise<PendingRecoveryRow[]> => {
+  try {
+    const db = await openDatabase("userData.db");
+    const rows = await db.getAllAsync<{
+      user_workout_exercise_id: number;
+      exercise_id: number;
+      target_muscle: string;
+    }>(
+      `SELECT eps.user_workout_exercise_id, uwe.exercise_id, e.target_muscle
+       FROM exercise_progression_state eps
+       JOIN user_workout_exercises uwe ON uwe.id = eps.user_workout_exercise_id
+       JOIN exercises e ON e.exercise_id = uwe.exercise_id
+       JOIN exercise_feedback ef ON ef.id = eps.source_feedback_id
+       WHERE uwe.workout_id = ?
+         AND uwe.is_deleted = 0
+         AND eps.recovery_rating IS NULL
+         AND eps.is_dismissed = 0
+         AND (julianday('now') - julianday(ef.created_at)) * 24 > 12`,
+      [workoutId],
+    );
+    return rows.map((row) => ({
+      userWorkoutExerciseId: row.user_workout_exercise_id,
+      exerciseId: row.exercise_id,
+      targetMuscle: row.target_muscle,
+    }));
+  } catch (error: any) {
+    console.error("Error fetching pending recovery check-ins:", error);
     Bugsnag.notify(error);
     throw error;
   }
