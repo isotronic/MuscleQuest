@@ -267,37 +267,44 @@ export default function StandaloneWorkoutScreen() {
           workout.exercises.map((exercise) => renderExercise(exercise))
         )}
         {showShareToggle && (
-          <TouchableOpacity
-            onPress={() => publishMutation.mutate(!isPublished)}
-            style={styles.shareRow}
-            activeOpacity={0.7}
-            disabled={publishMutation.isPending || isPublishLoading}
-          >
-            <View style={styles.shareLeft}>
-              <AppIcon
-                set="mci"
-                name="cloud-outline"
-                size={20}
-                color={isPublished ? colors.accent : colors.contentSecondary}
-                style={{ marginRight: 10 }}
-              />
-              <ThemedText
-                style={[
-                  styles.shareTitle,
-                  isPublished && { color: colors.accent },
-                ]}
-              >
-                <Trans>Share Workout</Trans>
-              </ThemedText>
-            </View>
-            {publishMutation.isPending || isPublishLoading ? (
-              <ActivityIndicator size="small" color={colors.accent} />
-            ) : (
-              <View pointerEvents="none">
-                <Switch value={isPublished} color={colors.accent} />
+          <>
+            <TouchableOpacity
+              onPress={() => publishMutation.mutate(!isPublished)}
+              style={styles.shareRow}
+              activeOpacity={0.7}
+              disabled={publishMutation.isPending || isPublishLoading}
+            >
+              <View style={styles.shareLeft}>
+                <AppIcon
+                  set="mci"
+                  name="cloud-outline"
+                  size={20}
+                  color={isPublished ? colors.accent : colors.contentSecondary}
+                  style={{ marginRight: 10 }}
+                />
+                <ThemedText
+                  style={[
+                    styles.shareTitle,
+                    isPublished && { color: colors.accent },
+                  ]}
+                >
+                  <Trans>Share Workout</Trans>
+                </ThemedText>
               </View>
+              {publishMutation.isPending || isPublishLoading ? (
+                <ActivityIndicator size="small" color={colors.accent} />
+              ) : (
+                <View pointerEvents="none">
+                  <Switch value={isPublished} color={colors.accent} />
+                </View>
+              )}
+            </TouchableOpacity>
+            {publishMutation.isError && (
+              <ThemedText style={[styles.shareError, { color: colors.danger }]}>
+                <Trans>Failed to update sharing. Please try again.</Trans>
+              </ThemedText>
             )}
-          </TouchableOpacity>
+          </>
         )}
       </ScrollView>
       <View style={styles.startButtonContainer}>
@@ -410,6 +417,11 @@ function createStyles(colors: AppThemeColors) {
     shareTitle: {
       fontSize: 15,
       fontWeight: "600",
+    },
+    shareError: {
+      fontSize: 13,
+      paddingHorizontal: 16,
+      paddingBottom: 8,
     },
   });
 }
