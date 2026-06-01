@@ -20,50 +20,46 @@ export const useRecoveryCheckInMutation = () => {
     mutationFn: async (payloads: RecoveryCheckInPayload[]) => {
       const progressionSettings = await getProgressionSettings();
 
-      await Promise.allSettled(
-        payloads.map(async ({ userWorkoutExerciseId, recoveryRating }) => {
-          await updateProgressionStateRecovery(
-            userWorkoutExerciseId,
-            recoveryRating,
-          );
+      for (const { userWorkoutExerciseId, recoveryRating } of payloads) {
+        await updateProgressionStateRecovery(
+          userWorkoutExerciseId,
+          recoveryRating,
+        );
 
-          const ctx = await getExerciseProgressionContext(
-            userWorkoutExerciseId,
-          );
-          if (!ctx?.latestFeedback) return;
+        const ctx = await getExerciseProgressionContext(userWorkoutExerciseId);
+        if (!ctx?.latestFeedback) continue;
 
-          const latestFeedback: ExerciseFeedbackPayload = {
-            userWorkoutExerciseId,
-            effortRating: ctx.latestFeedback.effortRating,
-            painFlag: ctx.latestFeedback.painFlag,
-            progressionIntent: ctx.latestFeedback.progressionIntent,
-            performanceRatio: ctx.latestFeedback.performanceRatio,
-          };
+        const latestFeedback: ExerciseFeedbackPayload = {
+          userWorkoutExerciseId,
+          effortRating: ctx.latestFeedback.effortRating,
+          painFlag: ctx.latestFeedback.painFlag,
+          progressionIntent: ctx.latestFeedback.progressionIntent,
+          performanceRatio: ctx.latestFeedback.performanceRatio,
+        };
 
-          const engineInputs: ProgressionEngineInputs = {
-            userWorkoutExerciseId,
-            exerciseId: ctx.exerciseId,
-            trackingType: ctx.trackingType,
-            equipment: ctx.equipment,
-            currentSets: ctx.currentSets,
-            recentWorkingWeight: ctx.recentWorkingWeight,
-            latestFeedback,
-            priorFeedbackHistory: [],
-            recoveryRating: recoveryRating as RecoveryRating,
-            consecutiveDirectionCount: ctx.consecutiveDirectionCount,
-            userIncrements: progressionSettings.increments,
-          };
+        const engineInputs: ProgressionEngineInputs = {
+          userWorkoutExerciseId,
+          exerciseId: ctx.exerciseId,
+          trackingType: ctx.trackingType,
+          equipment: ctx.equipment,
+          currentSets: ctx.currentSets,
+          recentWorkingWeight: ctx.recentWorkingWeight,
+          latestFeedback,
+          priorFeedbackHistory: [],
+          recoveryRating: recoveryRating as RecoveryRating,
+          consecutiveDirectionCount: ctx.consecutiveDirectionCount,
+          userIncrements: progressionSettings.increments,
+        };
 
-          const result = evaluateProgression(engineInputs);
+        const result = evaluateProgression(engineInputs);
 
-          await upsertProgressionState(
-            userWorkoutExerciseId,
-            result,
-            ctx.latestFeedback.id,
-            ctx.consecutiveDirectionCount,
-          );
-        }),
-      );
+        await upsertProgressionState(
+          userWorkoutExerciseId,
+          result,
+          ctx.latestFeedback.id,
+          ctx.consecutiveDirectionCount,
+        );
+      }
     },
     onSuccess: (_data, payloads) => {
       for (const { userWorkoutExerciseId } of payloads) {
