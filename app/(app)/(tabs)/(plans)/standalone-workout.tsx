@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -10,13 +10,14 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { UserExercise } from "@/store/workoutStore";
-import { AppImage } from "@/components/ui";
+import { AppIcon, AppImage } from "@/components/ui";
 import {
   ActivityIndicator,
   Button,
   IconButton,
   Portal,
   Modal,
+  Switch,
 } from "react-native-paper";
 import { Notes } from "@/components/Notes";
 import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
@@ -30,6 +31,10 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { AuthContext } from "@/context/AuthProvider";
+import { useSocialStore } from "@/store/socialStore";
+import { useWorkoutPublishQuery } from "@/hooks/useWorkoutPublishQuery";
+import { useWorkoutPublishMutation } from "@/hooks/useWorkoutPublishMutation";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -46,6 +51,13 @@ export default function StandaloneWorkoutScreen() {
   const deleteMutation = useDeleteStandaloneWorkout();
   const { data: settings } = useSettingsQuery();
   const distanceUnit = settings?.distanceUnit || "m";
+
+  const user = useContext(AuthContext);
+  const { privacySettings } = useSocialStore();
+  const showShareToggle = !!user && !!privacySettings?.shareStandaloneWorkouts;
+  const { data: isPublished = false, isLoading: isPublishLoading } =
+    useWorkoutPublishQuery(showShareToggle ? workoutId : null);
+  const publishMutation = useWorkoutPublishMutation(workoutId);
 
   if (!Number.isInteger(workoutId) || workoutId <= 0) {
     return (
@@ -254,6 +266,39 @@ export default function StandaloneWorkoutScreen() {
         ) : (
           workout.exercises.map((exercise) => renderExercise(exercise))
         )}
+        {showShareToggle && (
+          <TouchableOpacity
+            onPress={() => publishMutation.mutate(!isPublished)}
+            style={styles.shareRow}
+            activeOpacity={0.7}
+            disabled={publishMutation.isPending || isPublishLoading}
+          >
+            <View style={styles.shareLeft}>
+              <AppIcon
+                set="mci"
+                name="cloud-outline"
+                size={20}
+                color={isPublished ? colors.accent : colors.contentSecondary}
+                style={{ marginRight: 10 }}
+              />
+              <ThemedText
+                style={[
+                  styles.shareTitle,
+                  isPublished && { color: colors.accent },
+                ]}
+              >
+                <Trans>Share Workout</Trans>
+              </ThemedText>
+            </View>
+            {publishMutation.isPending || isPublishLoading ? (
+              <ActivityIndicator size="small" color={colors.accent} />
+            ) : (
+              <View pointerEvents="none">
+                <Switch value={isPublished} color={colors.accent} />
+              </View>
+            )}
+          </TouchableOpacity>
+        )}
       </ScrollView>
       <View style={styles.startButtonContainer}>
         <Button
@@ -347,6 +392,24 @@ function createStyles(colors: AppThemeColors) {
     startButtonLabel: {
       fontSize: 16,
       paddingVertical: 4,
+    },
+    shareRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      padding: 14,
+      marginTop: 16,
+    },
+    shareLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    shareTitle: {
+      fontSize: 15,
+      fontWeight: "600",
     },
   });
 }

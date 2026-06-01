@@ -1,3 +1,4 @@
+import { useContext } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createStandaloneWorkout,
@@ -6,6 +7,9 @@ import {
 } from "@/utils/database";
 import { UserExercise } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
+import { AuthContext } from "@/context/AuthProvider";
+import firestore from "@react-native-firebase/firestore";
+import { publishStandaloneWorkout } from "@/utils/sharing";
 
 export const useCreateStandaloneWorkout = () => {
   const queryClient = useQueryClient();
@@ -27,6 +31,7 @@ export const useCreateStandaloneWorkout = () => {
 };
 
 export const useUpdateStandaloneWorkout = () => {
+  const user = useContext(AuthContext);
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -38,8 +43,25 @@ export const useUpdateStandaloneWorkout = () => {
       name: string;
       exercises: UserExercise[];
     }) => updateStandaloneWorkout(workoutId, name, exercises),
-    onSuccess: () => {
+    onSuccess: (_, { workoutId }) => {
       queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
+      if (user) {
+        const ref = firestore()
+          .collection("users")
+          .doc(user.uid)
+          .collection("sharedStandaloneWorkouts")
+          .doc(String(workoutId));
+        ref
+          .get()
+          .then((snap) => {
+            if ((snap as any).exists) {
+              publishStandaloneWorkout(user.uid, workoutId).catch((err) =>
+                Bugsnag.notify(err),
+              );
+            }
+          })
+          .catch((err) => Bugsnag.notify(err));
+      }
     },
     onError: (error: Error) => {
       Bugsnag.notify(error);
