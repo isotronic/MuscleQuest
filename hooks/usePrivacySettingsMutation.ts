@@ -10,7 +10,8 @@ export const usePrivacySettingsMutation = () => {
 
   return useMutation({
     mutationFn: async (patch: Partial<FirestorePrivateSettings>) => {
-      if (!user) throw new Error("Not authenticated");
+      if (!user)
+        throw new Error("usePrivacySettingsMutation: user not authenticated");
       await firestore()
         .collection("users")
         .doc(user.uid)
