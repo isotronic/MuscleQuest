@@ -1073,7 +1073,7 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>
-            <Trans>Adaptive Progression</Trans>
+            <Trans>Adaptive Progression (beta)</Trans>
           </ThemedText>
           <View style={styles.item}>
             <AppIcon
