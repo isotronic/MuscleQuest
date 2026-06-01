@@ -82,8 +82,9 @@ Bugsnag.start({
   codeBundleId,
 });
 
-const bugsnagNavPlugin = new BugsnagPluginReactNavigationNativePerformance();
-BugsnagPerformance.start({ plugins: [bugsnagNavPlugin] });
+BugsnagPerformance.start({
+  plugins: [new BugsnagPluginReactNavigationNativePerformance()],
+});
 
 const ErrorBoundary = Bugsnag.getPlugin("react").createErrorBoundary(React);
 
