@@ -16,8 +16,10 @@ import "@formatjs/intl-pluralrules/locale-data/es.js";
 import "@formatjs/intl-pluralrules/locale-data/fr.js";
 
 import Bugsnag from "@bugsnag/expo";
+import BugsnagPerformance from "@bugsnag/expo-performance";
+import BugsnagPluginReactNavigationNativePerformance from "@bugsnag/plugin-react-navigation-performance";
 import React, { useEffect, useState } from "react";
-import { Slot } from "expo-router";
+import { Slot, useNavigationContainerRef } from "expo-router";
 import { ActivityIndicator, Button } from "react-native-paper";
 import { AppThemeProvider } from "@/theme";
 import { useFonts } from "expo-font";
@@ -79,6 +81,9 @@ Bugsnag.start({
   apiKey: process.env.EXPO_PUBLIC_BUGSNAG_API_KEY,
   codeBundleId,
 });
+
+const bugsnagNavPlugin = new BugsnagPluginReactNavigationNativePerformance();
+BugsnagPerformance.start({ plugins: [bugsnagNavPlugin] });
 
 const ErrorBoundary = Bugsnag.getPlugin("react").createErrorBoundary(React);
 
