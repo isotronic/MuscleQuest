@@ -16,7 +16,7 @@ export const usePlanPublishQuery = (planId: number | null) => {
         .collection("sharedPlans")
         .doc(String(planId))
         .get();
-      return !!(doc as any).exists;
+      return doc.exists();
     },
     enabled: !!user && !!planId,
     staleTime: Infinity,

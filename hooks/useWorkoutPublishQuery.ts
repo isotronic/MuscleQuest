@@ -16,7 +16,7 @@ export const useWorkoutPublishQuery = (workoutId: number | null) => {
         .collection("sharedStandaloneWorkouts")
         .doc(String(workoutId))
         .get();
-      return !!(doc as any).exists;
+      return doc.exists();
     },
     enabled: !!user && !!workoutId,
     staleTime: Infinity,

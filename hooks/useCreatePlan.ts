@@ -70,7 +70,7 @@ export const useCreatePlan = (existingPlan?: Plan) => {
             .collection("sharedPlans")
             .doc(String(planId));
           const snap = await docRef.get();
-          if ((snap as any).exists) {
+          if (snap.exists()) {
             publishPlan(user.uid, planId).catch((err) => Bugsnag.notify(err));
           }
         }

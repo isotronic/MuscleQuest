@@ -30,12 +30,12 @@ export const upsertUserProfile = async (
       email: user.email ?? "",
       photoURL: user.photoURL ?? "",
     };
-    if (!userDoc.exists) {
+    if (!userDoc.exists()) {
       profileData.createdAt = firestore.FieldValue.serverTimestamp();
     }
 
     const writes: Promise<void>[] = [userRef.set(profileData, { merge: true })];
-    if (!settingsDoc.exists) {
+    if (!settingsDoc.exists()) {
       writes.push(privateSettingsRef.set(DEFAULT_PRIVACY_SETTINGS));
     }
 
