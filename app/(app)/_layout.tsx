@@ -45,6 +45,19 @@ export default function AppLayout() {
         name="exercise-library"
         options={{ title: t`Exercise Library` }}
       />
+      <Stack.Screen
+        name="friend-profile"
+        options={{ title: t`Friend Profile` }}
+      />
+      <Stack.Screen name="friend-plan" options={{ title: t`Plan Details` }} />
+      <Stack.Screen
+        name="friend-workout"
+        options={{ title: t`Workout Details` }}
+      />
+      <Stack.Screen
+        name="friend-exercise"
+        options={{ title: t`Exercise Details` }}
+      />
       <Stack.Screen name="+not-found" />
     </Stack>
   );

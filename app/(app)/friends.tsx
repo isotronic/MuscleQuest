@@ -4,7 +4,6 @@ import {
   FlatList,
   TextInput,
   StyleSheet,
-  Alert,
   ScrollView,
 } from "react-native";
 import { Button, Avatar } from "react-native-paper";
@@ -91,11 +90,11 @@ export default function FriendsScreen() {
       {activeTab === "friends" && (
         <FriendsTab
           friends={friends}
-          onFriendPress={() => {
-            Alert.alert(
-              t`Coming soon`,
-              t`Friend profiles will be available in a future update.`,
-            );
+          onFriendPress={(uid) => {
+            router.push({
+              pathname: "/(app)/friend-profile",
+              params: { friendUid: uid },
+            } as unknown as Parameters<typeof router.push>[0]);
           }}
           colors={colors}
         />
