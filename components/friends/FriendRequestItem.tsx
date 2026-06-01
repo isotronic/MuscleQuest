@@ -16,6 +16,7 @@ export const FriendRequestItem = ({ request }: Props) => {
   const { colors, borders } = useAppTheme();
   const acceptMutation = useAcceptFriendRequestMutation();
   const declineMutation = useDeclineFriendRequestMutation();
+  const isBusy = acceptMutation.isPending || declineMutation.isPending;
 
   return (
     <View style={[styles.container, { borderBottomColor: borders.divider }]}>
@@ -39,6 +40,7 @@ export const FriendRequestItem = ({ request }: Props) => {
         <Button
           mode="contained"
           compact
+          disabled={isBusy}
           loading={acceptMutation.isPending}
           onPress={() => acceptMutation.mutate(request.fromUid)}
         >
@@ -47,6 +49,7 @@ export const FriendRequestItem = ({ request }: Props) => {
         <Button
           mode="outlined"
           compact
+          disabled={isBusy}
           loading={declineMutation.isPending}
           onPress={() => declineMutation.mutate(request.fromUid)}
         >

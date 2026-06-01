@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Button, Avatar } from "react-native-paper";
 import { Stack, useRouter } from "expo-router";
+import Bugsnag from "@bugsnag/expo";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { AppText, AppIcon } from "@/components/ui";
@@ -97,7 +98,6 @@ export default function FriendsScreen() {
             );
           }}
           colors={colors}
-          borders={borders}
         />
       )}
       {activeTab === "search" && (
@@ -119,7 +119,6 @@ interface FriendsTabProps {
   friends: FriendInfo[];
   onFriendPress: (uid: string) => void;
   colors: AppThemeColors;
-  borders: AppThemeBorders;
 }
 
 function FriendsTab({ friends, onFriendPress, colors }: FriendsTabProps) {
@@ -171,6 +170,7 @@ function SearchTab({ currentUid, colors, borders }: SearchTabProps) {
     undefined,
   );
   const [requestSent, setRequestSent] = useState(false);
+  const [searchError, setSearchError] = useState(false);
   const sendMutation = useSendFriendRequestMutation();
   const { friends, sentRequests } = useSocialStore();
 
@@ -184,9 +184,13 @@ function SearchTab({ currentUid, colors, borders }: SearchTabProps) {
     setLoading(true);
     setResult(undefined);
     setRequestSent(false);
+    setSearchError(false);
     try {
       const found = await searchUserByEmail(email, currentUid);
       setResult(found);
+    } catch (error) {
+      Bugsnag.notify(error as Error);
+      setSearchError(true);
     } finally {
       setLoading(false);
     }
@@ -220,6 +224,15 @@ function SearchTab({ currentUid, colors, borders }: SearchTabProps) {
           style={{ color: colors.contentSecondary, marginTop: 16 }}
         >
           <Trans>No user found with that email address.</Trans>
+        </AppText>
+      )}
+
+      {searchError && (
+        <AppText
+          variant="caption"
+          style={{ color: colors.danger, marginTop: 16 }}
+        >
+          <Trans>Something went wrong. Please try again.</Trans>
         </AppText>
       )}
 

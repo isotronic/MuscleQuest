@@ -7,7 +7,7 @@ export interface UserSearchResult {
   photoURL: string;
 }
 
-// Always uses setDoc (overwrite) so a re-request after decline replaces the
+// Always uses .set() (overwrite) so a re-request after decline replaces the
 // existing document rather than failing or creating a duplicate.
 export const sendFriendRequest = async (
   fromUid: string,
@@ -70,6 +70,11 @@ export const removeFriend = async (
   batch.delete(
     db.collection("users").doc(friendUid).collection("friends").doc(myUid),
   );
+
+  // Also clean up the friend request document in both possible directions.
+  // We don't know which user initiated the original request, so delete both.
+  batch.delete(db.collection("friendRequests").doc(`${myUid}_${friendUid}`));
+  batch.delete(db.collection("friendRequests").doc(`${friendUid}_${myUid}`));
 
   await batch.commit();
 };
