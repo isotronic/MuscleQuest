@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function areFriends(uid1, uid2) {
+      return exists(/databases/$(database)/documents/users/$(uid1)/friends/$(uid2));
+    }
+
+    // Public profiles: any authenticated user can read (email search).
+    // Owner can write.
+    match /users/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+
+      // Private settings: owner only
+      match /private/{doc} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // Friends subcollection.
+      // Readable by owner or the named friend.
+      // Writable by owner OR by the user whose UID matches the document ID —
+      // this lets B write to A's friends/{B} during request acceptance without
+      // a Cloud Function.
+      match /friends/{friendUid} {
+        allow read: if request.auth != null &&
+          (request.auth.uid == uid || request.auth.uid == friendUid);
+        allow write: if request.auth != null &&
+          (request.auth.uid == uid || request.auth.uid == friendUid);
+      }
+
+      // All shared-content subcollections: friends can read, owner can write.
+      match /sharedPlans/{docId} {
+        allow read: if request.auth != null && areFriends(uid, request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /sharedStandaloneWorkouts/{docId} {
+        allow read: if request.auth != null && areFriends(uid, request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /sharedCustomExercises/{docId} {
+        allow read: if request.auth != null && areFriends(uid, request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /sharedWorkouts/{docId} {
+        allow read: if request.auth != null && areFriends(uid, request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /sharedMeasurements/{docId} {
+        allow read: if request.auth != null && areFriends(uid, request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /sharedStrength/{docId} {
+        allow read: if request.auth != null && areFriends(uid, request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Friend requests.
+    // Sender can create/overwrite (enables re-request after decline).
+    // Both sender and receiver can read.
+    // Only receiver can update, and only the `status` field.
+    match /friendRequests/{requestId} {
+      allow create: if request.auth != null &&
+        request.auth.uid == request.resource.data.from;
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.from ||
+         request.auth.uid == resource.data.to);
+      allow update: if request.auth != null &&
+        request.auth.uid == resource.data.to &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+    }
+  }
+}
