@@ -95,8 +95,11 @@ export default function SettingsScreen() {
             setIsDeletingSharedData(true);
             try {
               await deleteAllSharedData(user.uid);
-            } catch (error: any) {
-              Bugsnag.notify(error);
+              Alert.alert(t`Done`, t`All shared data has been removed.`);
+            } catch (error: unknown) {
+              Bugsnag.notify(
+                error instanceof Error ? error : new Error(String(error)),
+              );
             } finally {
               setIsDeletingSharedData(false);
             }
