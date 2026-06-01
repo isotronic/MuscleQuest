@@ -5,9 +5,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { AppText } from "@/components/ui";
 import { useAppTheme } from "@/theme";
 import { AppThemeColors, AppThemeBorders } from "@/theme/types";
@@ -135,6 +137,11 @@ export default function FriendExerciseScreen() {
           onPress={() =>
             importExercise.mutate(exercise, {
               onSuccess: () => setImported(true),
+              onError: () =>
+                Alert.alert(
+                  t`Import failed`,
+                  t`Could not add this exercise. Please try again.`,
+                ),
             })
           }
           disabled={imported || importExercise.isPending}
