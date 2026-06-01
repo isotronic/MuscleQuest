@@ -3,10 +3,12 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { ThemedView } from "@/components/ThemedView";
 import { t } from "@lingui/core/macro";
 import { useAppTheme } from "@/theme";
+import { useSocialListeners } from "../../hooks/useSocialListeners";
 
 export default function AppLayout() {
   const { colors } = useAppTheme();
   const { data: settings, isLoading: settingsLoading } = useSettingsQuery();
+  useSocialListeners();
 
   if (settingsLoading) {
     return <ThemedView style={{ flex: 1 }}></ThemedView>;
