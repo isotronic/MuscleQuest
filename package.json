@@ -37,6 +37,8 @@
   },
   "dependencies": {
     "@bugsnag/expo": "^54.0.0",
+    "@bugsnag/expo-performance": "^54.0.0",
+    "@bugsnag/plugin-react-navigation-performance": "^3.4.1",
     "@expo-google-fonts/inter": "^0.2.3",
     "@expo/vector-icons": "^15.0.3",
     "@formatjs/intl-locale": "^5.3.8",
