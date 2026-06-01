@@ -7,7 +7,7 @@ export const usePublishedPlanIdsQuery = () => {
   const user = useContext(AuthContext);
 
   return useQuery({
-    queryKey: ["publishedPlanIds"],
+    queryKey: ["publishedPlanIds", user?.uid],
     queryFn: async (): Promise<string[]> => {
       if (!user) return [];
       const snap = await firestore()

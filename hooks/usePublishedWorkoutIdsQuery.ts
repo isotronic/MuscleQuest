@@ -7,7 +7,7 @@ export const usePublishedWorkoutIdsQuery = () => {
   const user = useContext(AuthContext);
 
   return useQuery({
-    queryKey: ["publishedWorkoutIds"],
+    queryKey: ["publishedWorkoutIds", user?.uid],
     queryFn: async (): Promise<string[]> => {
       if (!user) return [];
       const snap = await firestore()
