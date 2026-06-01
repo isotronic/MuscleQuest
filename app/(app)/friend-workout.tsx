@@ -61,7 +61,7 @@ export default function FriendWorkoutScreen() {
         >
           <Trans>
             Updated{" "}
-            {formatDistanceToNow(workout.updatedAt.toDate(), {
+            {formatDistanceToNow(workout.updatedAt?.toDate() ?? new Date(), {
               addSuffix: true,
             })}
           </Trans>
@@ -82,7 +82,13 @@ export default function FriendWorkoutScreen() {
               >
                 {exercise.sets.length} <Trans>sets</Trans>
                 {exercise.sets[0]?.repsMin != null &&
-                  ` · ${exercise.sets[0].repsMin}–${exercise.sets[0].repsMax} reps`}
+                  exercise.sets[0]?.repsMax != null && (
+                    <>
+                      {" "}
+                      · {exercise.sets[0].repsMin}–{exercise.sets[0].repsMax}{" "}
+                      <Trans>reps</Trans>
+                    </>
+                  )}
               </AppText>
             </View>
           </View>

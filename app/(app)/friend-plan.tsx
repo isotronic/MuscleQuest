@@ -123,7 +123,13 @@ export default function FriendPlanScreen() {
                     >
                       {exercise.sets.length} <Trans>sets</Trans>
                       {exercise.sets[0]?.repsMin != null &&
-                        ` · ${exercise.sets[0].repsMin}–${exercise.sets[0].repsMax} reps`}
+                        exercise.sets[0]?.repsMax != null && (
+                          <>
+                            {" "}
+                            · {exercise.sets[0].repsMin}–
+                            {exercise.sets[0].repsMax} <Trans>reps</Trans>
+                          </>
+                        )}
                     </AppText>
                   </View>
                 </View>
