@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -106,6 +106,7 @@ const ExerciseFeedbackSheet = React.forwardRef<
     "progress" | "hold" | null
   >(null);
   const [painNotes, setPainNotes] = useState("");
+  const submittingRef = useRef(false);
 
   const reset = useCallback(() => {
     setEffortRating(null);
@@ -122,7 +123,8 @@ const ExerciseFeedbackSheet = React.forwardRef<
   const canSubmit = effortRating !== null && painFlag !== null;
 
   const handleSubmit = useCallback(() => {
-    if (!canSubmit) return;
+    if (!canSubmit || submittingRef.current) return;
+    submittingRef.current = true;
 
     const payload: ExerciseFeedbackPayload = {
       userWorkoutExerciseId,
@@ -133,9 +135,13 @@ const ExerciseFeedbackSheet = React.forwardRef<
       notes: painNotes.trim() || undefined,
     };
 
-    reset();
-    (ref as React.RefObject<BottomSheetModal>)?.current?.dismiss();
-    onSubmit(payload);
+    try {
+      reset();
+      (ref as React.RefObject<BottomSheetModal>)?.current?.dismiss();
+      onSubmit(payload);
+    } finally {
+      submittingRef.current = false;
+    }
   }, [
     canSubmit,
     userWorkoutExerciseId,
