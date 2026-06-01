@@ -130,6 +130,14 @@ function RootLayout() {
     Inter_900Black,
   });
 
+  const navigationRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    BugsnagPerformance.getPlugin(
+      BugsnagPluginReactNavigationNativePerformance,
+    )?.registerNavigationContainerRef(navigationRef);
+  }, [navigationRef]);
+
   useEffect(() => {
     async function initializeDatabase() {
       const databaseRestored = await getAsyncStorageItem("databaseRestored");
