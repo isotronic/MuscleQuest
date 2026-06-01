@@ -127,6 +127,8 @@ export default function SettingsScreen() {
     timerCountdownSound: settings?.timerCountdownSound,
     timerGoalSound: settings?.timerGoalSound,
     alwaysUseGlobalHistory: settings?.alwaysUseGlobalHistory,
+    adaptive_progression_enabled: settings?.adaptive_progression_enabled,
+    exclude_deload_from_stats: settings?.exclude_deload_from_stats,
   });
 
   const [workoutReminderEnabled, setWorkoutReminderEnabled] = useState(false);
@@ -166,6 +168,8 @@ export default function SettingsScreen() {
         timerCountdownSound: settings?.timerCountdownSound,
         timerGoalSound: settings?.timerGoalSound,
         alwaysUseGlobalHistory: settings?.alwaysUseGlobalHistory,
+        adaptive_progression_enabled: settings?.adaptive_progression_enabled,
+        exclude_deload_from_stats: settings?.exclude_deload_from_stats,
       });
       setWorkoutReminderEnabled(settings.workoutReminderEnabled === "true");
       try {
@@ -309,6 +313,21 @@ export default function SettingsScreen() {
       alwaysUseGlobalHistory: value.toString(),
     });
     updateSetting({ key: "alwaysUseGlobalHistory", value: value.toString() });
+  };
+
+  const toggleAdaptiveProgression = (value: boolean) => {
+    const strValue = value ? "1" : "0";
+    setToggleValues({
+      ...toggleValues,
+      adaptive_progression_enabled: strValue,
+    });
+    updateSetting({ key: "adaptive_progression_enabled", value: strValue });
+  };
+
+  const toggleExcludeDeloadFromStats = (value: boolean) => {
+    const strValue = value ? "1" : "0";
+    setToggleValues({ ...toggleValues, exclude_deload_from_stats: strValue });
+    updateSetting({ key: "exclude_deload_from_stats", value: strValue });
   };
 
   const toggleVibration = (value: boolean) => {
@@ -1049,6 +1068,176 @@ export default function SettingsScreen() {
               style={styles.switch}
             />
           </View>
+        </View>
+        <Divider style={styles.divider} />
+
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionHeader}>
+            <Trans>Adaptive Progression (beta)</Trans>
+          </ThemedText>
+          <View style={styles.item}>
+            <AppIcon
+              set="mci"
+              name="trending-up"
+              size={24}
+              color={colors.contentSecondary}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                <Trans>Suggest load and rep adjustments</Trans>
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {toggleValues.adaptive_progression_enabled === "1"
+                  ? t`Enabled`
+                  : t`Disabled`}
+              </ThemedText>
+            </View>
+            <Switch
+              value={toggleValues.adaptive_progression_enabled === "1"}
+              onValueChange={toggleAdaptiveProgression}
+              color={colors.accent}
+              style={styles.switch}
+            />
+          </View>
+          {toggleValues.adaptive_progression_enabled === "1" && (
+            <>
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() =>
+                  showOverlay(
+                    "progression_increment_barbell_kg",
+                    settings?.progression_increment_barbell_kg || "2.5",
+                    "number",
+                  )
+                }
+              >
+                <AppIcon
+                  set="mci"
+                  name="weight-lifter"
+                  size={24}
+                  color={colors.contentSecondary}
+                  style={styles.icon}
+                />
+                <View style={styles.textContainer}>
+                  <ThemedText style={styles.itemText}>
+                    <Trans>Barbell load increment</Trans>
+                  </ThemedText>
+                  <ThemedText style={styles.currentSetting}>
+                    {settings?.progression_increment_barbell_kg || "2.5"}{" "}
+                    {settings?.weightUnit || "kg"}
+                  </ThemedText>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() =>
+                  showOverlay(
+                    "progression_increment_dumbbell_kg",
+                    settings?.progression_increment_dumbbell_kg || "2.0",
+                    "number",
+                  )
+                }
+              >
+                <AppIcon
+                  set="mci"
+                  name="dumbbell"
+                  size={24}
+                  color={colors.contentSecondary}
+                  style={styles.icon}
+                />
+                <View style={styles.textContainer}>
+                  <ThemedText style={styles.itemText}>
+                    <Trans>Dumbbell load increment</Trans>
+                  </ThemedText>
+                  <ThemedText style={styles.currentSetting}>
+                    {settings?.progression_increment_dumbbell_kg || "2.0"}{" "}
+                    {settings?.weightUnit || "kg"}
+                  </ThemedText>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() =>
+                  showOverlay(
+                    "progression_increment_cable_kg",
+                    settings?.progression_increment_cable_kg || "2.5",
+                    "number",
+                  )
+                }
+              >
+                <AppIcon
+                  set="mci"
+                  name="plus"
+                  size={24}
+                  color={colors.contentSecondary}
+                  style={styles.icon}
+                />
+                <View style={styles.textContainer}>
+                  <ThemedText style={styles.itemText}>
+                    <Trans>Cable load increment</Trans>
+                  </ThemedText>
+                  <ThemedText style={styles.currentSetting}>
+                    {settings?.progression_increment_cable_kg || "2.5"}{" "}
+                    {settings?.weightUnit || "kg"}
+                  </ThemedText>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() =>
+                  showOverlay(
+                    "progression_increment_machine_kg",
+                    settings?.progression_increment_machine_kg || "2.5",
+                    "number",
+                  )
+                }
+              >
+                <AppIcon
+                  set="mci"
+                  name="seat-recline-extra"
+                  size={24}
+                  color={colors.contentSecondary}
+                  style={styles.icon}
+                />
+                <View style={styles.textContainer}>
+                  <ThemedText style={styles.itemText}>
+                    <Trans>Machine load increment</Trans>
+                  </ThemedText>
+                  <ThemedText style={styles.currentSetting}>
+                    {settings?.progression_increment_machine_kg || "2.5"}{" "}
+                    {settings?.weightUnit || "kg"}
+                  </ThemedText>
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.item}>
+                <AppIcon
+                  set="ion"
+                  name="arrow-down"
+                  size={24}
+                  color={colors.contentSecondary}
+                  style={styles.icon}
+                />
+                <View style={styles.textContainer}>
+                  <ThemedText style={styles.itemText}>
+                    <Trans>Exclude deload workouts from exercise stats</Trans>
+                  </ThemedText>
+                  <ThemedText style={styles.currentSetting}>
+                    {toggleValues.exclude_deload_from_stats === "1"
+                      ? t`Enabled`
+                      : t`Disabled`}
+                  </ThemedText>
+                </View>
+                <Switch
+                  value={toggleValues.exclude_deload_from_stats === "1"}
+                  onValueChange={toggleExcludeDeloadFromStats}
+                  color={colors.accent}
+                  style={styles.switch}
+                />
+              </View>
+            </>
+          )}
         </View>
         <Divider style={styles.divider} />
 

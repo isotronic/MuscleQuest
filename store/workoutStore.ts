@@ -20,6 +20,7 @@ export interface Set {
 }
 
 export interface UserExercise extends Exercise {
+  id?: number;
   sets: Set[];
   exercise_order?: number;
   is_deleted?: boolean;

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react";
+import ProgressionSuggestionChip from "@/components/ProgressionSuggestionChip";
 import { View, TextInput, StyleSheet } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -66,6 +67,9 @@ interface SessionSetInfoProps {
   baseTrackingType?: string;
   isWeightedOverrideEnabled?: boolean;
   onToggleWeighted?: () => void;
+  progressionSuggestion?:
+    | import("@/types/progression").ExerciseProgressionState
+    | null;
 }
 
 export default function SessionSetInfo({
@@ -113,6 +117,7 @@ export default function SessionSetInfo({
   baseTrackingType,
   isWeightedOverrideEnabled,
   onToggleWeighted,
+  progressionSuggestion,
 }: SessionSetInfoProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -372,6 +377,19 @@ export default function SessionSetInfo({
           )}
         </View>
       )}
+      {progressionSuggestion &&
+        progressionSuggestion.suggestionAction !== "hold" && (
+          <View style={styles.progressionChipRow}>
+            <ProgressionSuggestionChip
+              action={progressionSuggestion.suggestionAction}
+              suggestedWeight={progressionSuggestion.suggestedWeight}
+              suggestedRepsMin={progressionSuggestion.suggestedRepsMin}
+              suggestedRepsMax={progressionSuggestion.suggestedRepsMax}
+              weightUnit={weightUnit}
+            />
+          </View>
+        )}
+
       {/* Conditionally Render Weight/Assistance, Reps, or Time Input Fields */}
       {trackingType === "weight" ||
       trackingType === "assisted" ||
@@ -591,6 +609,10 @@ function createStyles(colors: AppThemeColors) {
       flexWrap: "wrap",
       gap: 8,
       marginBottom: 16,
+    },
+    progressionChipRow: {
+      alignItems: "center",
+      marginBottom: 12,
     },
     setTypeBadge: {
       flexDirection: "row",

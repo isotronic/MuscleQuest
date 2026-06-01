@@ -7,6 +7,7 @@ interface WorkoutResult {
   plan_id: number;
   workout_id: number;
   workout_name: string | null;
+  is_deload: number;
   date_completed: string;
   duration: number;
   total_sets_completed: number;
@@ -34,6 +35,7 @@ export interface CompletedWorkout {
   date_completed: string;
   duration: number;
   total_sets_completed: number;
+  is_deload?: number;
   exercises: {
     exercise_id: number;
     exercise_name: string;
@@ -174,6 +176,7 @@ const fetchAndOrganize = async (
           date_completed,
           duration,
           total_sets_completed,
+          is_deload: item.is_deload ?? 0,
           exercises: [],
         };
         workoutsMap.set(id, workout);
@@ -299,6 +302,7 @@ const fetchWorkoutHistoryForSession = async (
         cw.date_completed,
         cw.duration,
         cw.total_sets_completed,
+        cw.is_deload,
         ce.exercise_id,
         e.name AS exercise_name,
         COALESCE(
@@ -370,6 +374,7 @@ const fetchWorkoutHistoryForSession = async (
           date_completed,
           duration,
           total_sets_completed,
+          is_deload: item.is_deload ?? 0,
           exercises: [],
         };
         workoutsMap.set(id, workout);
@@ -531,6 +536,7 @@ const fetchGlobalExerciseHistoryForSession = async (
           date_completed,
           duration,
           total_sets_completed,
+          is_deload: item.is_deload ?? 0,
           exercises: [],
         };
         workoutsMap.set(id, workout);

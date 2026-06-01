@@ -65,7 +65,7 @@ const fetchExerciseHistory = async (
         DATE(cw.date_completed) AS date_completed,
         cw.id                   AS workout_id,
         uw.name                 AS workout_name,
-        COALESCE(ce.resolved_tracking_type, e.tracking_type) AS tracking_type,
+        COALESCE(NULLIF(ce.resolved_tracking_type, ''), e.tracking_type) AS tracking_type,
         COALESCE(
           (SELECT bm.body_weight FROM body_measurements bm
            WHERE bm.date <= cw.date_completed

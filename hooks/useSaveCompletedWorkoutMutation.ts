@@ -27,6 +27,7 @@ const saveCompletedWorkoutWithConversion = async (
     workoutDataConverted.workoutId,
     workoutDataConverted.duration,
     workoutDataConverted.totalSetsCompleted,
+    workoutDataConverted.isDeload ?? false,
     workoutDataConverted.exercises,
   );
 };

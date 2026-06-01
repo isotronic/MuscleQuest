@@ -32,6 +32,8 @@ import {
 import { startOfWeek, endOfWeek } from "date-fns";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import ProgressionSummaryCard from "@/components/ProgressionSummaryCard";
+import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -418,6 +420,7 @@ export default function WorkoutSummaryScreen() {
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit ?? "kg";
   const distanceUnit = settings?.distanceUnit ?? "m";
+  const progressionSettings = useProgressionSettingsQuery();
   const excludeWarmup = settings?.excludeWarmupSets === "true";
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
@@ -576,7 +579,7 @@ export default function WorkoutSummaryScreen() {
           <StatChip label={t`Volume`} value={volumeDisplay} icon="scale" />
         </View>
 
-        {prevWorkout && (
+        {prevWorkout && !workout.is_deload && !prevWorkout.is_deload && (
           <View style={styles.progressionCard}>
             <ThemedText style={styles.progressionTitle}>
               <Trans>vs. last "{workout.workout_name}"</Trans>
@@ -606,6 +609,20 @@ export default function WorkoutSummaryScreen() {
             </View>
           </View>
         )}
+        {prevWorkout && !!workout.is_deload && (
+          <View style={styles.deloadNote}>
+            <ThemedText style={styles.deloadNoteText}>
+              <Trans>Deload week — comparison paused.</Trans>
+            </ThemedText>
+          </View>
+        )}
+        {prevWorkout && !workout.is_deload && !!prevWorkout.is_deload && (
+          <View style={styles.deloadNote}>
+            <ThemedText style={styles.deloadNoteText}>
+              <Trans>Last session was a deload — comparison skipped.</Trans>
+            </ThemedText>
+          </View>
+        )}
 
         {weeklyGoal > 0 && (
           <WeeklyGoalBanner completed={workoutsThisWeek} goal={weeklyGoal} />
@@ -622,6 +639,13 @@ export default function WorkoutSummaryScreen() {
             distanceUnit={distanceUnit}
           />
         ))}
+
+        {progressionSettings.enabled && workoutId > 0 && (
+          <ProgressionSummaryCard
+            workoutId={workoutId}
+            weightUnit={weightUnit}
+          />
+        )}
 
         <Button
           mode="contained"
@@ -723,6 +747,18 @@ function createStyles(colors: AppThemeColors) {
     },
     diffLabel: {
       fontSize: 12,
+      color: colors.contentSecondary,
+    },
+    deloadNote: {
+      backgroundColor: colors.card,
+      borderRadius: radii.lg,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      marginBottom: 16,
+      alignItems: "center",
+    },
+    deloadNoteText: {
+      fontSize: 13,
       color: colors.contentSecondary,
     },
     sectionTitle: {

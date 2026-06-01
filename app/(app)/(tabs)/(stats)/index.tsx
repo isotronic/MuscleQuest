@@ -108,6 +108,7 @@ export default function StatsScreen() {
   const excludeWarmup = settings?.excludeWarmupSets === "true";
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
+  const excludeDeload = settings?.exclude_deload_from_stats === "1";
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>(
     settings?.timeRange || "30",
   );
@@ -132,6 +133,7 @@ export default function StatsScreen() {
     excludeWarmup,
     countUnilateralDouble,
     doubleWeightForPaired,
+    excludeDeload,
   );
   const {
     data: completedWorkouts,

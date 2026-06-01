@@ -34,6 +34,8 @@ import {
   prioritizeScheduledWorkout,
 } from "@/utils/planHelpers";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
+import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -139,6 +141,11 @@ export default function HomeScreen() {
     Number(settings?.weeklyGoal ?? 0),
     uniqueWorkoutDaysCount,
     weeklyGoalReached,
+  );
+
+  const progressionSettings = useProgressionSettingsQuery();
+  const { isCurrentWeekDeload } = useDeloadWeekQuery(
+    activePlan?.id ?? undefined,
   );
 
   if (
@@ -455,9 +462,18 @@ export default function HomeScreen() {
           {activePlan && settings ? (
             <>
               {settings.showOnboarding === "true" && <Onboarding />}
-              <ThemedText type="default" style={styles.sectionTitle}>
-                <Trans>Active Plan: {activePlan.name}</Trans>
-              </ThemedText>
+              <View style={styles.planTitleRow}>
+                <ThemedText type="default" style={styles.sectionTitle}>
+                  <Trans>Active Plan: {activePlan.name}</Trans>
+                </ThemedText>
+                {progressionSettings.enabled && isCurrentWeekDeload && (
+                  <View style={styles.deloadBadge}>
+                    <ThemedText style={styles.deloadBadgeText}>
+                      <Trans>Deload Week</Trans>
+                    </ThemedText>
+                  </View>
+                )}
+              </View>
 
               {workoutsToDisplay.map((workout, index) => {
                 const target = perWorkoutTarget.get(workout.id!);
@@ -626,8 +642,24 @@ function createStyles(colors: AppThemeColors) {
     cardContainer: {
       padding: 16,
     },
-    sectionTitle: {
+    planTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: 8,
       marginBottom: 10,
+    },
+    sectionTitle: {},
+    deloadBadge: {
+      backgroundColor: colors.accentSubtle,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: radii.sm,
+    },
+    deloadBadgeText: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: colors.accent,
     },
     workoutCard: {
       marginBottom: 10,

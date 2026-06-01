@@ -10,13 +10,14 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
 
     const rawResult = (await db.getAllAsync(
       `
-      SELECT 
-        user_plans.id, 
-        user_plans.name, 
-        user_plans.image_url, 
-        user_plans.is_active, 
-        user_workouts.id AS workout_id, 
-        user_workouts.name AS workout_name, 
+      SELECT
+        user_plans.id,
+        user_plans.name,
+        user_plans.image_url,
+        user_plans.is_active,
+        user_workouts.id AS workout_id,
+        user_workouts.name AS workout_name,
+        user_workout_exercises.id AS user_workout_exercise_id,
         user_workout_exercises.exercise_id AS exercise_id,
         exercises.name AS exercise_name,
         exercises.description,
@@ -63,6 +64,7 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
 
       if (workout && row.exercise_id && row.exercise_name) {
         workout.exercises.push({
+          id: row.user_workout_exercise_id ?? undefined,
           exercise_id: row.exercise_id,
           name: row.exercise_name || "Unnamed Exercise",
           description: row.description || "",
@@ -75,7 +77,7 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
           secondary_muscles: row.secondary_muscles
             ? JSON.parse(row.secondary_muscles)
             : [],
-          tracking_type: row.tracking_type || "",
+          tracking_type: row.tracking_type ?? undefined,
           tracking_type_override: row.tracking_type_override ?? undefined,
           sets: row.sets ? JSON.parse(row.sets) : [],
           supersetGroupId: row.superset_group_id ?? undefined,

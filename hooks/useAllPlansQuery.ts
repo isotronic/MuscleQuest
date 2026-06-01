@@ -36,6 +36,7 @@ export interface RawPlan {
   sets: string | null;
   exercise_order: number | null;
   superset_group_id?: string | null;
+  user_workout_exercise_id?: number | null;
 }
 
 export const transformRawPlans = (

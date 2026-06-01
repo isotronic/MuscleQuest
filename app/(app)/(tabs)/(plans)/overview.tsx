@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { AppImage } from "@/components/ui";
+import { AppImage, AppIcon } from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
@@ -21,6 +21,7 @@ import {
   IconButton,
   Portal,
   Modal,
+  Switch,
   ActivityIndicator,
 } from "react-native-paper";
 import Bugsnag from "@bugsnag/expo";
@@ -33,6 +34,10 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import { useDeloadWeekMutation } from "@/hooks/useDeloadWeekMutation";
+import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
+import { getCurrentISOWeek } from "@/utils/isoWeek";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -89,6 +94,15 @@ export default function PlanOverviewScreen() {
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const deletePlanMutation = useDeletePlanMutation();
   const setActivePlanMutation = useSetActivePlanMutation();
+  const progressionSettings = useProgressionSettingsQuery();
+  const { isCurrentWeekDeload } = useDeloadWeekQuery(
+    Number(planId) || undefined,
+  );
+  const deloadMutation = useDeloadWeekMutation(Number(planId));
+
+  const handleToggleDeload = useCallback(() => {
+    deloadMutation.mutate(isCurrentWeekDeload ? null : getCurrentISOWeek());
+  }, [isCurrentWeekDeload, deloadMutation]);
 
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -225,6 +239,37 @@ export default function PlanOverviewScreen() {
           workouts={plan?.workouts ?? []}
           scheduleEntries={scheduleEntries}
         />
+
+        {plan?.is_active === 1 && progressionSettings.enabled && (
+          <TouchableOpacity
+            onPress={handleToggleDeload}
+            style={[styles.deloadRow]}
+            activeOpacity={0.7}
+          >
+            <View style={styles.deloadLeft}>
+              <AppIcon
+                set="ion"
+                name="calendar-clear-outline"
+                size={20}
+                color={
+                  isCurrentWeekDeload ? colors.accent : colors.contentSecondary
+                }
+                style={{ marginRight: 10 }}
+              />
+              <ThemedText
+                style={[
+                  styles.deloadTitle,
+                  isCurrentWeekDeload && { color: colors.accent },
+                ]}
+              >
+                <Trans>Deload Week</Trans>
+              </ThemedText>
+            </View>
+            <View pointerEvents="none">
+              <Switch value={isCurrentWeekDeload} color={colors.accent} />
+            </View>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       <View style={styles.buttonContainer}>
@@ -323,16 +368,40 @@ function createStyles(colors: AppThemeColors) {
     },
     buttonContainer: {
       flexDirection: "row",
-      justifyContent: "space-between",
       padding: 16,
+      gap: 10,
       backgroundColor: colors.background,
     },
     paperButton: {
       flex: 1,
-      marginRight: 10,
     },
     buttonLabel: {
       paddingVertical: 0,
+    },
+    deloadRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.card,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: "transparent",
+      padding: 14,
+      marginTop: 16,
+    },
+    deloadLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    deloadTitle: {
+      fontSize: 15,
+      fontWeight: "600",
+    },
+    deloadSubtitle: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+      marginTop: 2,
     },
     activeBadge: {
       backgroundColor: colors.success,

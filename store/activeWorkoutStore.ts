@@ -136,6 +136,14 @@ interface ActiveWorkoutStore {
   resumeWorkout: () => void;
   isWorkoutInProgress: () => boolean;
   getActiveWorkoutId: () => number | null;
+  loadProgressionSuggestions: (
+    states: {
+      userWorkoutExerciseId: number;
+      suggestionAction: string;
+      suggestedWeight?: number;
+      isApplied: boolean;
+    }[],
+  ) => void;
 }
 
 const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
@@ -1184,6 +1192,40 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         return Boolean(activeWorkout && workout); // Returns true if there's an active workout
       },
       getActiveWorkoutId: () => get().activeWorkout?.workoutId ?? null,
+      loadProgressionSuggestions: (states) => {
+        set((state) => {
+          if (!state.workout) return state;
+          const newWeightAndReps = { ...state.weightAndReps };
+          for (const suggestion of states) {
+            if (!suggestion.isApplied) continue;
+            if (
+              suggestion.suggestionAction !== "increase_load" &&
+              suggestion.suggestionAction !== "reduce_load"
+            )
+              continue;
+            if (suggestion.suggestedWeight == null) continue;
+            const exerciseIndex = state.workout.exercises.findIndex(
+              (e) => e.id === suggestion.userWorkoutExerciseId,
+            );
+            if (exerciseIndex === -1) continue;
+            const exercise = state.workout.exercises[exerciseIndex];
+            const workingSetIndices = exercise.sets
+              .map((s, idx) => ({ s, idx }))
+              .filter(({ s }) => !s.isWarmup)
+              .map(({ idx }) => idx);
+            for (const idx of workingSetIndices) {
+              newWeightAndReps[exerciseIndex] = {
+                ...(newWeightAndReps[exerciseIndex] || {}),
+                [idx]: {
+                  ...(newWeightAndReps[exerciseIndex]?.[idx] || {}),
+                  weight: suggestion.suggestedWeight!.toString(),
+                },
+              };
+            }
+          }
+          return { weightAndReps: newWeightAndReps };
+        });
+      },
     }),
     {
       name: "active-workout-store", // Key for AsyncStorage
