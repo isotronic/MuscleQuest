@@ -291,7 +291,7 @@ The Plans screen now has three display modes. Use the icons next to the "Your Tr
   {
     version: 2634,
     message: msg`
-📈 New: Adaptive Progression!
+📈 Beta: Adaptive Progression!
 
 MuscleQuest can now suggest when to increase your weight or reps based on how your sessions feel. After each exercise, answer two quick questions about effort and pain. Once you have reported the same signal for two sessions in a row, the app suggests a change. All suggestions appear in the Workout Summary screen, where you can accept or dismiss each one individually. Accepted suggestions are pre-filled into your next session automatically.
 

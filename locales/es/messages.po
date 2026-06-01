@@ -224,7 +224,7 @@ msgstr ""
 #: constants/WhatsNew.ts:293
 msgid ""
 "\n"
-"📈 New: Adaptive Progression!\n"
+"📈 Beta: Adaptive Progression!\n"
 "\n"
 "MuscleQuest can now suggest when to increase your weight or reps based on how your sessions feel. After each exercise, answer two quick questions about effort and pain. Once you have reported the same signal for two sessions in a row, the app suggests a change. All suggestions appear in the Workout Summary screen, where you can accept or dismiss each one individually. Accepted suggestions are pre-filled into your next session automatically.\n"
 "\n"
@@ -234,7 +234,7 @@ msgid ""
 ""
 msgstr ""
 "\n"
-"📈 Nuevo: ¡Progresión adaptativa!\n"
+"📈 Beta: ¡Progresión adaptativa!\n"
 "\n"
 "MuscleQuest ahora puede sugerirte cuándo aumentar tu peso o reps según cómo se sienten tus sesiones. Después de cada ejercicio, responde dos preguntas rápidas sobre esfuerzo y dolor. Cuando hayas reportado la misma señal dos sesiones seguidas, la app sugiere un cambio. Todas las sugerencias aparecen en la pantalla de Resumen del entrenamiento, donde puedes aceptar o descartar cada una por separado. Las sugerencias aceptadas se prerellenan en tu próxima sesión automáticamente.\n"
 "\n"
@@ -656,7 +656,7 @@ msgid "{0} seconds"
 msgstr "{0} segundos"
 
 #. placeholder {0}: settings?.defaultSets
-#: app/(app)/settings.tsx:1369
+#: app/(app)/settings.tsx:1372
 msgid "{0} sets"
 msgstr "{0} series"
 
@@ -786,7 +786,7 @@ msgid "+ Add"
 msgstr "+ Añadir"
 
 #: app/(app)/(workout)/index.tsx:1153
-#: app/(app)/(workout)/workout-session.tsx:1559
+#: app/(app)/(workout)/workout-session.tsx:1591
 msgid "+{restTimerIncrement}s"
 msgstr "+{restTimerIncrement}s"
 
@@ -795,7 +795,7 @@ msgid "+{suggestedWeight}{unit} suggested"
 msgstr "+{suggestedWeight}{unit} sugerido"
 
 #: app/(app)/(workout)/index.tsx:1142
-#: app/(app)/(workout)/workout-session.tsx:1548
+#: app/(app)/(workout)/workout-session.tsx:1580
 msgid "−{restTimerIncrement}s"
 msgstr "−{restTimerIncrement}s"
 
@@ -844,15 +844,15 @@ msgstr "Se ha producido un error de renderizado. Pulsa el botón para recargar."
 msgid "abductors"
 msgstr "abductores"
 
-#: app/(app)/settings.tsx:1560
+#: app/(app)/settings.tsx:1563
 msgid "About"
 msgstr "Acerca de"
 
-#: components/ExerciseFeedbackSheet.tsx:37
+#: components/ExerciseFeedbackSheet.tsx:38
 msgid "About right"
 msgstr "Más o menos bien"
 
-#: app/(app)/settings.tsx:1649
+#: app/(app)/settings.tsx:1652
 msgid "About the developer"
 msgstr "Acerca del desarrollador"
 
@@ -899,10 +899,13 @@ msgstr "Plan activo: {0}"
 msgid "Active Workout"
 msgstr "Entrenamiento activo"
 
-#: app/(app)/settings.tsx:1076
 #: constants/HelpData.ts:64
 msgid "Adaptive Progression"
 msgstr "Progresión adaptativa"
+
+#: app/(app)/settings.tsx:1076
+msgid "Adaptive Progression (beta)"
+msgstr "Progresión adaptativa (beta)"
 
 #: constants/HelpData.ts:69
 msgid "Adaptive Progression analyses your effort feedback over consecutive sessions and suggests when to increase your weight, reps, or sets. Enable it in Settings under Adaptive Progression. Once on, a short feedback prompt appears after each exercise in plan-based workouts. The engine requires two sessions with the same signal before recommending an upward change, filtering out one-off easy days and ensuring consistent performance before suggesting an increase. Pain or failed sets act immediately regardless of your session history. A suggestion is never applied to your workout without your explicit approval. You can also configure your preferred load increment per equipment category in the same section of Settings, for example 2.5 kg for barbell exercises and 2.0 kg for dumbbells."
@@ -1037,11 +1040,11 @@ msgstr "estabilizadores del tobillo"
 msgid "ankles"
 msgstr "tobillos"
 
-#: components/ExerciseFeedbackSheet.tsx:191
+#: components/ExerciseFeedbackSheet.tsx:205
 msgid "Any pain or form breakdown?"
 msgstr "¿Algún dolor o problema de técnica?"
 
-#: app/(app)/settings.tsx:1440
+#: app/(app)/settings.tsx:1443
 msgid "Appearance"
 msgstr "Apariencia"
 
@@ -1075,7 +1078,7 @@ msgstr "¿Estás seguro de que quieres eliminar este registro de medición?"
 msgid "Are you sure you want to delete this plan?"
 msgstr "¿Estás seguro de que quieres eliminar este plan?"
 
-#: app/(app)/(workout)/workout-session.tsx:710
+#: app/(app)/(workout)/workout-session.tsx:717
 msgid "Are you sure you want to delete this set?"
 msgstr "¿Estás seguro de que quieres eliminar esta serie?"
 
@@ -1158,7 +1161,7 @@ msgstr "Copia de seguridad y restauración"
 msgid "barbell"
 msgstr "barra"
 
-#: app/(app)/settings.tsx:1122
+#: app/(app)/settings.tsx:1124
 msgid "Barbell load increment"
 msgstr "Incremento de carga para barra"
 
@@ -1246,11 +1249,11 @@ msgstr "Explora casi 1.000 ejercicios y filtra por parte del cuerpo, músculo ob
 msgid "Built-in Metrics"
 msgstr "Métricas integradas"
 
-#: app/(app)/settings.tsx:1484
+#: app/(app)/settings.tsx:1487
 msgid "Button size during workout"
 msgstr "Tamaño de botones durante el entrenamiento"
 
-#: app/(app)/settings.tsx:1596
+#: app/(app)/settings.tsx:1599
 msgid "Buy me a coffee"
 msgstr "Invítame a un café"
 
@@ -1262,7 +1265,7 @@ msgstr "Invítame a un café"
 msgid "cable"
 msgstr "cable"
 
-#: app/(app)/settings.tsx:1176
+#: app/(app)/settings.tsx:1178
 msgid "Cable load increment"
 msgstr "Incremento de carga para cable"
 
@@ -1288,7 +1291,7 @@ msgstr "gemelos"
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:85
 #: app/(app)/(workout)/index.tsx:405
 #: app/(app)/(workout)/index.tsx:1007
-#: app/(app)/(workout)/workout-session.tsx:711
+#: app/(app)/(workout)/workout-session.tsx:718
 #: app/(app)/settings.tsx:387
 #: app/(app)/settings.tsx:462
 #: components/EditSetModal.tsx:454
@@ -1383,7 +1386,7 @@ msgstr "¿Continuar editando?"
 msgid "core"
 msgstr "core"
 
-#: components/ExerciseFeedbackSheet.tsx:39
+#: components/ExerciseFeedbackSheet.tsx:40
 msgid "Couldn't finish all sets"
 msgstr "No pude terminar todas las series"
 
@@ -1450,11 +1453,11 @@ msgstr "Personaliza tus ajustes"
 msgid "Default"
 msgstr "Predeterminado"
 
-#: app/(app)/settings.tsx:1392
+#: app/(app)/settings.tsx:1395
 msgid "Default rest time"
 msgstr "Tiempo de descanso predeterminado"
 
-#: app/(app)/settings.tsx:1366
+#: app/(app)/settings.tsx:1369
 msgid "Default sets"
 msgstr "Series predeterminadas"
 
@@ -1464,7 +1467,7 @@ msgstr "Series predeterminadas"
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:120
 #: app/(app)/(workout)/index.tsx:407
 #: app/(app)/(workout)/index.tsx:629
-#: app/(app)/(workout)/workout-session.tsx:713
+#: app/(app)/(workout)/workout-session.tsx:720
 #: components/WorkoutCard.tsx:298
 #: hooks/useImageManagement.ts:46
 msgid "Delete"
@@ -1487,7 +1490,7 @@ msgstr "Eliminar ejercicio"
 msgid "Delete Plan"
 msgstr "Eliminar plan"
 
-#: app/(app)/(workout)/workout-session.tsx:710
+#: app/(app)/(workout)/workout-session.tsx:717
 #: components/SessionSetInfo.tsx:251
 msgid "Delete Set"
 msgstr "Eliminar serie"
@@ -1497,7 +1500,7 @@ msgstr "Eliminar serie"
 msgid "Delete Workout"
 msgstr "Eliminar entrenamiento"
 
-#: app/(app)/settings.tsx:1427
+#: app/(app)/settings.tsx:1430
 msgid "Deleting. Please wait..."
 msgstr "Eliminando. Por favor, espera..."
 
@@ -1541,9 +1544,9 @@ msgstr "Detalles"
 #: app/(app)/settings.tsx:1036
 #: app/(app)/settings.tsx:1061
 #: app/(app)/settings.tsx:1093
-#: app/(app)/settings.tsx:1227
-#: app/(app)/settings.tsx:1258
-#: app/(app)/settings.tsx:1455
+#: app/(app)/settings.tsx:1229
+#: app/(app)/settings.tsx:1261
+#: app/(app)/settings.tsx:1458
 msgid "Disabled"
 msgstr "Desactivado"
 
@@ -1596,7 +1599,7 @@ msgid "Distance unit"
 msgstr "Unidad de distancia"
 
 #: app/(app)/(workout)/workout-summary.tsx:656
-#: components/ExerciseFeedbackSheet.tsx:261
+#: components/ExerciseFeedbackSheet.tsx:275
 #: components/RecoveryCheckInSheet.tsx:191
 msgid "Done"
 msgstr "Listo"
@@ -1613,7 +1616,7 @@ msgstr "Doblando el peso para los cálculos de volumen"
 msgid "Download"
 msgstr "Descargar"
 
-#: app/(app)/settings.tsx:1409
+#: app/(app)/settings.tsx:1412
 msgid "Download all exercise animations"
 msgstr "Descargar todas las animaciones de ejercicios"
 
@@ -1635,7 +1638,7 @@ msgstr "Descargar imágenes"
 msgid "Downloading Update"
 msgstr "Descargando actualización"
 
-#: app/(app)/settings.tsx:1426
+#: app/(app)/settings.tsx:1429
 msgid "Downloading. Please wait..."
 msgstr "Descargando. Por favor, espera..."
 
@@ -1657,7 +1660,7 @@ msgstr "Serie descendente, "
 msgid "dumbbell"
 msgstr "mancuerna"
 
-#: app/(app)/settings.tsx:1149
+#: app/(app)/settings.tsx:1151
 msgid "Dumbbell load increment"
 msgstr "Incremento de carga para mancuerna"
 
@@ -1674,7 +1677,7 @@ msgstr "Durante una sesión, desliza a izquierda/derecha o usa los botones de fl
 msgid "Each set can be flagged as a Warm-up, Drop Set, To Failure, or any combination of these. The badge shown next to a set displays its current type. To change the type during a session, tap the menu (⋮) and toggle the relevant option on or off. When building a plan, use the checkboxes in the set editor; tap Add Warm-up to insert a dedicated warm-up set at the top of the list. Warm-up sets are visually grouped and separated from working sets, and the Apply to All option in the edit modal only affects sets of the same type. Warm-up sets can be excluded from volume and stats calculations in Settings."
 msgstr "Cada serie puede marcarse como Calentamiento, Serie descendente, Al fallo o cualquier combinación de estas. La insignia junto a una serie muestra su tipo actual. Para cambiar el tipo durante una sesión, toca el menú (⋮) y activa o desactiva la opción correspondiente. Al crear un plan, usa las casillas en el editor de series; toca Añadir calentamiento para insertar una serie de calentamiento al principio de la lista. Las series de calentamiento se agrupan y separan visualmente de las series de trabajo, y la opción Aplicar a todas en el modal de edición solo afecta a series del mismo tipo. Las series de calentamiento se pueden excluir de los cálculos de volumen y estadísticas en Ajustes."
 
-#: components/ExerciseFeedbackSheet.tsx:36
+#: components/ExerciseFeedbackSheet.tsx:37
 msgid "Easy, could do more"
 msgstr "Fácil, podría haber hecho más"
 
@@ -1709,9 +1712,9 @@ msgstr "Activa los recordatorios de entrenamiento recurrentes desde Ajustes. Sel
 #: app/(app)/settings.tsx:953
 #: app/(app)/settings.tsx:1010
 #: app/(app)/settings.tsx:1092
-#: app/(app)/settings.tsx:1226
-#: app/(app)/settings.tsx:1258
-#: app/(app)/settings.tsx:1455
+#: app/(app)/settings.tsx:1228
+#: app/(app)/settings.tsx:1261
+#: app/(app)/settings.tsx:1458
 msgid "Enabled"
 msgstr "Activado"
 
@@ -1810,7 +1813,7 @@ msgstr "Error al guardar el entrenamiento"
 #. placeholder {0}: error.message
 #. placeholder {0}: settingsError.message
 #: app/(app)/(tabs)/(plans)/overview.tsx:174
-#: app/(app)/(workout)/workout-session.tsx:1355
+#: app/(app)/(workout)/workout-session.tsx:1386
 #: components/WorkoutDetailsScreen.tsx:175
 msgid "Error: {0}"
 msgstr "Error: {0}"
@@ -1820,7 +1823,7 @@ msgstr "Error: {0}"
 msgid "Estimated Duration: {0}"
 msgstr "Duración estimada: {0}"
 
-#: app/(app)/settings.tsx:1222
+#: app/(app)/settings.tsx:1224
 msgid "Exclude deload workouts from exercise stats"
 msgstr "Excluir entrenamientos de descarga de las estadísticas de ejercicios"
 
@@ -1828,7 +1831,7 @@ msgstr "Excluir entrenamientos de descarga de las estadísticas de ejercicios"
 msgid "Exclude warmup sets from stats"
 msgstr "Excluir series de calentamiento de las estadísticas"
 
-#: app/(app)/settings.tsx:1349
+#: app/(app)/settings.tsx:1352
 msgid "Exercise"
 msgstr "Ejercicio"
 
@@ -1957,7 +1960,7 @@ msgstr "Se sintió fácil. Mantener por ahora y confirmar en la siguiente sesió
 msgid "Finish"
 msgstr "Finalizar"
 
-#: app/(app)/settings.tsx:1632
+#: app/(app)/settings.tsx:1635
 msgid "Follow MuscleQuest on Instagram"
 msgstr "Síguenos en Instagram"
 
@@ -2060,7 +2063,7 @@ msgstr "Agrupa dos ejercicios en una superserie para que alternen automáticamen
 msgid "hamstrings"
 msgstr "isquiotibiales"
 
-#: components/ExerciseFeedbackSheet.tsx:38
+#: components/ExerciseFeedbackSheet.tsx:39
 msgid "Hard, near limit"
 msgstr "Difícil, cerca del límite"
 
@@ -2112,7 +2115,7 @@ msgstr "Pantalla de inicio y objetivo semanal"
 msgid "How are these muscles feeling since your last session?"
 msgstr "¿Cómo se sienten estos músculos desde tu última sesión?"
 
-#: components/ExerciseFeedbackSheet.tsx:173
+#: components/ExerciseFeedbackSheet.tsx:187
 msgid "How did that feel?"
 msgstr "¿Cómo te fue?"
 
@@ -2237,7 +2240,7 @@ msgstr "lumbar"
 msgid "lower legs"
 msgstr "piernas inferiores"
 
-#: app/(app)/settings.tsx:1203
+#: app/(app)/settings.tsx:1205
 msgid "Machine load increment"
 msgstr "Incremento de carga para máquina"
 
@@ -2281,7 +2284,7 @@ msgstr "Dolor muscular leve"
 msgid "Min Reps"
 msgstr "Reps mín."
 
-#: components/ExerciseFeedbackSheet.tsx:46
+#: components/ExerciseFeedbackSheet.tsx:47
 msgid "Minor discomfort"
 msgstr "Molestia leve"
 
@@ -2328,7 +2331,7 @@ msgstr "MuscleQuest"
 msgid "MuscleQuest Introduction"
 msgstr "Introducción a MuscleQuest"
 
-#: app/(app)/settings.tsx:1613
+#: app/(app)/settings.tsx:1616
 msgid "MuscleQuest.app"
 msgstr "MuscleQuest.app"
 
@@ -2380,8 +2383,8 @@ msgstr "Siguiente"
 msgid "Next Session"
 msgstr "Próxima sesión"
 
-#: app/(app)/(workout)/workout-session.tsx:1415
-#: app/(app)/(workout)/workout-session.tsx:1502
+#: app/(app)/(workout)/workout-session.tsx:1446
+#: app/(app)/(workout)/workout-session.tsx:1533
 msgid "Next: "
 msgstr "Siguiente: "
 
@@ -2436,7 +2439,7 @@ msgstr "Aún no hay medidas. Registra tu primera entrada arriba."
 msgid "No measurements yet. Tap to log your first entry."
 msgstr "Aún no hay medidas. Toca para registrar tu primera entrada."
 
-#: components/ExerciseFeedbackSheet.tsx:45
+#: components/ExerciseFeedbackSheet.tsx:46
 msgid "No pain"
 msgstr "Sin dolor"
 
@@ -2489,7 +2492,7 @@ msgstr "No hay entrenamientos este día."
 msgid "No workouts yet"
 msgstr "Aún no hay entrenamientos"
 
-#: components/ExerciseFeedbackSheet.tsx:221
+#: components/ExerciseFeedbackSheet.tsx:235
 msgid "No, keep it the same"
 msgstr "No, dejarlo igual"
 
@@ -2530,7 +2533,7 @@ msgstr "Abrir Ajustes"
 msgid "Opens in your browser"
 msgstr "Se abre en tu navegador"
 
-#: components/ExerciseFeedbackSheet.tsx:243
+#: components/ExerciseFeedbackSheet.tsx:257
 msgid "Optional description"
 msgstr "Descripción opcional"
 
@@ -2543,7 +2546,7 @@ msgstr "Otros ejercicios"
 msgid "Overview"
 msgstr "Vista general"
 
-#: components/ExerciseFeedbackSheet.tsx:47
+#: components/ExerciseFeedbackSheet.tsx:48
 msgid "Pain or form issues"
 msgstr "Dolor o problemas de técnica"
 
@@ -2628,12 +2631,12 @@ msgstr "Planes prediseñados"
 msgid "Premade Plans"
 msgstr "Planes prediseñados"
 
-#: app/(app)/(workout)/workout-session.tsx:1417
-#: app/(app)/(workout)/workout-session.tsx:1504
+#: app/(app)/(workout)/workout-session.tsx:1448
+#: app/(app)/(workout)/workout-session.tsx:1535
 msgid "Prev: "
 msgstr "Anterior: "
 
-#: app/(app)/settings.tsx:1668
+#: app/(app)/settings.tsx:1671
 msgid "Privacy policy"
 msgstr "Política de privacidad"
 
@@ -2641,7 +2644,7 @@ msgstr "Política de privacidad"
 msgid "Progression Suggestions"
 msgstr "Sugerencias de progresión"
 
-#: components/ExerciseFeedbackSheet.tsx:211
+#: components/ExerciseFeedbackSheet.tsx:225
 msgid "Push harder next time?"
 msgstr "¿Más intensidad la próxima vez?"
 
@@ -2687,15 +2690,15 @@ msgstr "Reducir peso"
 msgid "Reload"
 msgstr "Recargar"
 
-#: app/(app)/settings.tsx:1280
+#: app/(app)/settings.tsx:1283
 msgid "Reminder days"
 msgstr "Días de recordatorio"
 
-#: app/(app)/settings.tsx:1335
+#: app/(app)/settings.tsx:1338
 msgid "Reminder time"
 msgstr "Hora del recordatorio"
 
-#: app/(app)/settings.tsx:1243
+#: app/(app)/settings.tsx:1246
 msgid "Reminders"
 msgstr "Recordatorios"
 
@@ -2751,7 +2754,7 @@ msgstr "Reps"
 msgid "Reps: {repRange}"
 msgstr "Reps: {repRange}"
 
-#: app/(app)/settings.tsx:1577
+#: app/(app)/settings.tsx:1580
 msgid "Request or vote for new features"
 msgstr "Solicita o vota por nuevas funciones"
 
@@ -2771,7 +2774,7 @@ msgid "Rest Time (Minutes:Seconds)"
 msgstr "Tiempo de descanso (Minutos:Segundos)"
 
 #: app/(app)/(workout)/index.tsx:1134
-#: app/(app)/(workout)/workout-session.tsx:1540
+#: app/(app)/(workout)/workout-session.tsx:1572
 msgid "Rest Time Left:"
 msgstr "Tiempo de descanso restante:"
 
@@ -2784,7 +2787,7 @@ msgstr "Tiempo de descanso: {restMinutes}:{0}"
 msgid "Rest Timer"
 msgstr "Temporizador de descanso"
 
-#: app/(app)/(workout)/workout-session.tsx:551
+#: app/(app)/(workout)/workout-session.tsx:558
 msgid "Rest Timer Finished!"
 msgstr "¡Temporizador de descanso finalizado!"
 
@@ -2934,7 +2937,7 @@ msgstr "Selecciona un día para ver los entrenamientos."
 msgid "Select a workout to view"
 msgstr "Selecciona un entrenamiento para ver"
 
-#: app/(app)/settings.tsx:1311
+#: app/(app)/settings.tsx:1314
 msgid "Select at least one day"
 msgstr "Selecciona al menos un día"
 
@@ -3022,7 +3025,7 @@ msgstr "espinillas"
 msgid "shoulders"
 msgstr "hombros"
 
-#: app/(app)/settings.tsx:1452
+#: app/(app)/settings.tsx:1455
 msgid "Show onboarding on home screen"
 msgstr "Mostrar onboarding en la pantalla de inicio"
 
@@ -3060,7 +3063,7 @@ msgstr "Un solo brazo / una sola pierna"
 msgid "Size unit"
 msgstr "Unidad de tamaño"
 
-#: app/(app)/settings.tsx:1412
+#: app/(app)/settings.tsx:1415
 msgid "Size: ~100MB"
 msgstr "Tamaño: ~100 MB"
 
@@ -3205,8 +3208,8 @@ msgstr "Superserie"
 
 #. placeholder {0}: outgoingSnapshot.isFirstInSuperset ? "A" : "B"
 #. placeholder {0}: ss.isFirstInSuperset ? "A" : "B"
-#: app/(app)/(workout)/workout-session.tsx:1405
-#: app/(app)/(workout)/workout-session.tsx:1491
+#: app/(app)/(workout)/workout-session.tsx:1436
+#: app/(app)/(workout)/workout-session.tsx:1522
 msgid "Superset {0}"
 msgstr "Superserie {0}"
 
@@ -3336,7 +3339,7 @@ msgstr "Tiempo (s)"
 msgid "Time PR"
 msgstr "PR de tiempo"
 
-#: app/(app)/(workout)/workout-session.tsx:552
+#: app/(app)/(workout)/workout-session.tsx:559
 msgid "Time to do your next set!"
 msgstr "¡Es hora de tu próxima serie!"
 
@@ -3703,7 +3706,7 @@ msgstr "Bienvenido/a{userName}"
 msgid "When you open a workout that contains exercises you trained recently, a Recovery Check-in sheet appears if those exercises have a pending progression suggestion and your last session was at least 12 hours ago. For each relevant muscle group, you choose one of three options: Fresh (fully recovered), Mild soreness, or Still very sore. If a muscle is marked as still very sore, any upward progression suggestion for exercises targeting that muscle is paused and held at the current load until you re-evaluate at the start of the following session. Fresh or Mild soreness does not affect suggestions. Tap Skip for now to bypass the check-in entirely; a skipped check-in is treated the same as fresh recovery, so pending suggestions are unaffected."
 msgstr "Cuando abres un entrenamiento con ejercicios que entrenaste recientemente, aparece un cuestionario de Control de recuperación si esos ejercicios tienen una sugerencia de progresión pendiente y tu última sesión fue hace al menos 12 horas. Para cada grupo muscular relevante, eliges una de tres opciones: Fresco (completamente recuperado), Dolor muscular leve o Todavía muy dolorido. Si un músculo se marca como todavía muy dolorido, cualquier sugerencia de progresión ascendente para los ejercicios que trabajan ese músculo se pausa y se mantiene en la carga actual hasta que lo reevalúes al inicio de la siguiente sesión. Fresco o Dolor muscular leve no afectan a las sugerencias. Toca Omitir por ahora para saltarte el control completamente; un control omitido se trata igual que la recuperación completa, por lo que las sugerencias pendientes no se ven afectadas."
 
-#: components/ExerciseFeedbackSheet.tsx:233
+#: components/ExerciseFeedbackSheet.tsx:247
 msgid "Where did you feel it?"
 msgstr "¿Dónde lo sentiste?"
 
@@ -3760,7 +3763,7 @@ msgstr "Nombre del entrenamiento"
 msgid "Workout not found."
 msgstr "Entrenamiento no encontrado."
 
-#: app/(app)/settings.tsx:1255
+#: app/(app)/settings.tsx:1258
 msgid "Workout reminders"
 msgstr "Recordatorios de entrenamiento"
 
@@ -3804,7 +3807,7 @@ msgstr "x {0} reps "
 msgid "Yes"
 msgstr "Sí"
 
-#: components/ExerciseFeedbackSheet.tsx:215
+#: components/ExerciseFeedbackSheet.tsx:229
 msgid "Yes, increase the challenge"
 msgstr "Sí, aumentar el reto"
 
