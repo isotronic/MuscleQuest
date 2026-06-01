@@ -78,54 +78,44 @@ export const publishPlan = async (
   uid: string,
   planId: number,
 ): Promise<void> => {
-  try {
-    const data = await fetchFullPlanForSharing(planId);
-    if (!data) return;
+  const data = await fetchFullPlanForSharing(planId);
+  if (!data) return;
 
-    const now = firestore.FieldValue.serverTimestamp();
-    const db = firestore();
-    const ref = db
-      .collection("users")
-      .doc(uid)
-      .collection("sharedPlans")
-      .doc(String(planId));
+  const now = firestore.FieldValue.serverTimestamp();
+  const db = firestore();
+  const ref = db
+    .collection("users")
+    .doc(uid)
+    .collection("sharedPlans")
+    .doc(String(planId));
 
-    const existing = await ref.get();
-    const publishedAt = (existing as any).exists
-      ? existing.data()?.publishedAt
-      : now;
+  const existing = await ref.get();
+  const publishedAt = existing.exists() ? existing.data()?.publishedAt : now;
 
-    await ref.set({
-      localPlanId: planId,
-      name: data.plan.name,
-      imageUrl: data.plan.image_url ?? null,
-      publishedAt,
-      updatedAt: now,
-      workouts: data.workouts.map((w) => ({
-        name: w.workout_name,
-        workoutOrder: w.workout_order,
-        exercises: w.exercises.map(buildSharedExercise),
-      })),
-    });
-  } catch (error) {
-    Bugsnag.notify(error as Error);
-  }
+  await ref.set({
+    localPlanId: planId,
+    name: data.plan.name,
+    imageUrl: data.plan.image_url ?? null,
+    publishedAt,
+    updatedAt: now,
+    workouts: data.workouts.map((w) => ({
+      name: w.workout_name,
+      workoutOrder: w.workout_order,
+      exercises: w.exercises.map(buildSharedExercise),
+    })),
+  });
 };
 
 export const unpublishPlan = async (
   uid: string,
   planId: number,
 ): Promise<void> => {
-  try {
-    await firestore()
-      .collection("users")
-      .doc(uid)
-      .collection("sharedPlans")
-      .doc(String(planId))
-      .delete();
-  } catch (error) {
-    Bugsnag.notify(error as Error);
-  }
+  await firestore()
+    .collection("users")
+    .doc(uid)
+    .collection("sharedPlans")
+    .doc(String(planId))
+    .delete();
 };
 
 // ─── standalone workouts ──────────────────────────────────────────────────────
@@ -134,50 +124,40 @@ export const publishStandaloneWorkout = async (
   uid: string,
   workoutId: number,
 ): Promise<void> => {
-  try {
-    const data = await fetchStandaloneWorkoutForSharing(workoutId);
-    if (!data) return;
+  const data = await fetchStandaloneWorkoutForSharing(workoutId);
+  if (!data) return;
 
-    const now = firestore.FieldValue.serverTimestamp();
-    const db = firestore();
-    const ref = db
-      .collection("users")
-      .doc(uid)
-      .collection("sharedStandaloneWorkouts")
-      .doc(String(workoutId));
+  const now = firestore.FieldValue.serverTimestamp();
+  const db = firestore();
+  const ref = db
+    .collection("users")
+    .doc(uid)
+    .collection("sharedStandaloneWorkouts")
+    .doc(String(workoutId));
 
-    const existing = await ref.get();
-    const publishedAt = (existing as any).exists
-      ? existing.data()?.publishedAt
-      : now;
+  const existing = await ref.get();
+  const publishedAt = existing.exists() ? existing.data()?.publishedAt : now;
 
-    await ref.set({
-      localWorkoutId: workoutId,
-      name: data.workout_name,
-      imageUrl: data.image_url ?? null,
-      publishedAt,
-      updatedAt: now,
-      exercises: data.exercises.map(buildSharedExercise),
-    });
-  } catch (error) {
-    Bugsnag.notify(error as Error);
-  }
+  await ref.set({
+    localWorkoutId: workoutId,
+    name: data.workout_name,
+    imageUrl: data.image_url ?? null,
+    publishedAt,
+    updatedAt: now,
+    exercises: data.exercises.map(buildSharedExercise),
+  });
 };
 
 export const unpublishStandaloneWorkout = async (
   uid: string,
   workoutId: number,
 ): Promise<void> => {
-  try {
-    await firestore()
-      .collection("users")
-      .doc(uid)
-      .collection("sharedStandaloneWorkouts")
-      .doc(String(workoutId))
-      .delete();
-  } catch (error) {
-    Bugsnag.notify(error as Error);
-  }
+  await firestore()
+    .collection("users")
+    .doc(uid)
+    .collection("sharedStandaloneWorkouts")
+    .doc(String(workoutId))
+    .delete();
 };
 
 // ─── custom exercises ─────────────────────────────────────────────────────────
