@@ -4,6 +4,7 @@ import {
   onAuthStateChanged,
   FirebaseAuthTypes,
 } from "@react-native-firebase/auth";
+import { upsertUserProfile } from "../utils/userProfile";
 
 export const AuthContext = createContext<FirebaseAuthTypes.User | null>(null);
 
@@ -14,6 +15,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const auth = getAuth();
     return onAuthStateChanged(auth, (userState) => {
       setUser(userState);
+      if (userState) {
+        upsertUserProfile(userState);
+      }
     });
   }, []);
 
