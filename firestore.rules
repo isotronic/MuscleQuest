@@ -19,14 +19,20 @@ service cloud.firestore {
 
       // Friends subcollection.
       // Readable by owner or the named friend.
-      // Writable by owner OR by the user whose UID matches the document ID —
-      // this lets B write to A's friends/{B} during request acceptance without
-      // a Cloud Function.
+      // Owner can write freely (create/update/delete their own records).
+      // The named friend (friendUid) may only create if a pending request exists
+      // in either direction — this lets B write to A/friends/B on acceptance
+      // without a Cloud Function, while blocking unsolicited self-additions.
+      // The named friend may also delete, which is needed for mutual removal.
       match /friends/{friendUid} {
         allow read: if request.auth != null &&
           (request.auth.uid == uid || request.auth.uid == friendUid);
-        allow write: if request.auth != null &&
-          (request.auth.uid == uid || request.auth.uid == friendUid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+        allow create: if request.auth != null &&
+          request.auth.uid == friendUid &&
+          (exists(/databases/$(database)/documents/friendRequests/$(uid + '_' + friendUid)) ||
+           exists(/databases/$(database)/documents/friendRequests/$(friendUid + '_' + uid)));
+        allow delete: if request.auth != null && request.auth.uid == friendUid;
       }
 
       // All shared-content subcollections: friends can read, owner can write.
