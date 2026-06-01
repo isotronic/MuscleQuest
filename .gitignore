@@ -36,6 +36,7 @@ expo-env.d.ts
 # @end expo-cli
 
 coverage/
+docs/
 .claude/
 *copilot-instructions.md
 *EXPO_SDK_52_UPGRADE_PLAN.md
