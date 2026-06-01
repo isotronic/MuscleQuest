@@ -978,6 +978,8 @@ export default function WorkoutSessionScreen() {
       .map((set, idx) => ({ set, idx }))
       .filter(({ set }) => !set.isWarmup);
 
+    if (workingSets.length === 0) return null;
+
     const allWorkingSetsDone = workingSets.every(
       ({ idx }) => simulatedCompleted[exIdx]?.[idx] === true,
     );
