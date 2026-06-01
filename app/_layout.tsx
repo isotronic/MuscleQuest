@@ -232,7 +232,7 @@ function RootLayout() {
   );
 }
 
-export default function App() {
+function App() {
   return (
     <I18nProvider i18n={i18n}>
       <ErrorBoundary FallbackComponent={ErrorView}>
@@ -241,3 +241,5 @@ export default function App() {
     </I18nProvider>
   );
 }
+
+export default BugsnagPerformance.withInstrumentedAppStarts(App);
