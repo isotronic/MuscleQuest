@@ -6,14 +6,18 @@ import {
   updateSettings,
   updateWorkoutPlan,
 } from "@/utils/database";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Alert } from "react-native";
 import { Plan } from "./useAllPlansQuery";
 import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
+import { AuthContext } from "@/context/AuthProvider";
+import firestore from "@react-native-firebase/firestore";
+import { publishPlan } from "@/utils/sharing";
 
 export const useCreatePlan = (existingPlan?: Plan) => {
   const queryClient = useQueryClient();
+  const user = useContext(AuthContext);
   const [planSaved, setPlanSaved] = useState(false);
   const [planName, setPlanName] = useState("");
   const [isError, setIsError] = useState(false);
@@ -57,6 +61,20 @@ export const useCreatePlan = (existingPlan?: Plan) => {
       } else {
         await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
         savedPlanId = planId;
+
+        // Auto re-publish if already shared
+        if (user) {
+          const docRef = firestore()
+            .collection("users")
+            .doc(user.uid)
+            .collection("sharedPlans")
+            .doc(String(planId));
+          const snap = await docRef.get();
+          if ((snap as any).exists) {
+            publishPlan(user.uid, planId).catch((err) => Bugsnag.notify(err));
+          }
+        }
+
         queryClient.invalidateQueries({ queryKey: ["plan", planId] });
       }
 
