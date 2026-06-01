@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useContext } from "react";
 import {
   ScrollView,
   TextInput,
@@ -14,6 +14,9 @@ import { ThemedText } from "@/components/ThemedText";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { Exercise, fetchAllRecords, openDatabase } from "@/utils/database";
+import { AuthContext } from "@/context/AuthProvider";
+import { useSocialStore } from "@/store/socialStore";
+import { pushCustomExercise } from "@/utils/sharing";
 import { capitalizeWords } from "@/utils/utility";
 import { ThemedView } from "@/components/ThemedView";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
@@ -32,6 +35,8 @@ export default function AddCustomExerciseScreen() {
 
   const queryClient = useQueryClient();
   const navigation = useNavigation();
+  const user = useContext(AuthContext);
+  const { privacySettings } = useSocialStore();
   const { setNewExerciseId } = useWorkoutStore();
   const { exercise_id } = useLocalSearchParams();
   const isEditing = !!exercise_id;
@@ -233,6 +238,8 @@ export default function AddCustomExerciseScreen() {
     try {
       const db = await openDatabase("userData.db");
 
+      let newExerciseResult: { exercise_id: number } | null = null;
+
       if (isEditing) {
         await db.runAsync(
           `UPDATE exercises SET name = ?, description = ?, local_animated_uri = ?, body_part = ?, target_muscle = ?, equipment = ?, secondary_muscles = ?, is_unilateral = ?, double_weight = ? WHERE exercise_id = ?`,
@@ -266,10 +273,10 @@ export default function AddCustomExerciseScreen() {
           ],
         );
 
-        const result = (await db.getFirstAsync(
+        newExerciseResult = (await db.getFirstAsync(
           `SELECT exercise_id FROM exercises ORDER BY exercise_id DESC LIMIT 1`,
         )) as { exercise_id: number };
-        setNewExerciseId(result?.exercise_id);
+        setNewExerciseId(newExerciseResult?.exercise_id);
       }
 
       queryClient.invalidateQueries({ queryKey: ["plan"] });
@@ -280,6 +287,25 @@ export default function AddCustomExerciseScreen() {
         });
       }
       isDirtyRef.current = false;
+
+      if (user && privacySettings?.shareCustomExercises) {
+        const savedExerciseId = isEditing
+          ? Number(exercise_id)
+          : newExerciseResult?.exercise_id;
+        if (savedExerciseId) {
+          const sharingDb = await openDatabase("userData.db");
+          const savedExercise = await sharingDb.getFirstAsync<Exercise>(
+            `SELECT * FROM exercises WHERE exercise_id = ?`,
+            [savedExerciseId],
+          );
+          if (savedExercise) {
+            pushCustomExercise(user.uid, savedExercise).catch((err) =>
+              Bugsnag.notify(err),
+            );
+          }
+        }
+      }
+
       router.back();
     } catch (error: any) {
       Alert.alert(
