@@ -6,18 +6,24 @@ import {
   PendingRequest,
   SentRequest,
 } from "../store/socialStore";
-import { FriendInfo } from "../types/firestore";
+import { FriendInfo, FirestorePrivateSettings } from "../types/firestore";
 import Bugsnag from "@bugsnag/expo";
 
 export const useSocialListeners = () => {
   const user = useContext(AuthContext);
-  const { setPendingRequests, setSentRequests, setFriends } = useSocialStore();
+  const {
+    setPendingRequests,
+    setSentRequests,
+    setFriends,
+    setPrivacySettings,
+  } = useSocialStore();
 
   useEffect(() => {
     if (!user) {
       setPendingRequests([]);
       setSentRequests([]);
       setFriends([]);
+      setPrivacySettings(null);
       return;
     }
 
@@ -130,10 +136,30 @@ export const useSocialListeners = () => {
         },
       );
 
+    // Privacy settings
+    const unsubSettings = db
+      .collection("users")
+      .doc(user.uid)
+      .collection("private")
+      .doc("settings")
+      .onSnapshot(
+        (doc) => {
+          if (doc.exists()) {
+            setPrivacySettings(doc.data() as FirestorePrivateSettings);
+          } else {
+            setPrivacySettings(null);
+          }
+        },
+        (error) => {
+          Bugsnag.notify(error);
+        },
+      );
+
     return () => {
       unsubPending();
       unsubSent();
       unsubFriends();
+      unsubSettings();
     };
   }, [user?.uid]);
 };
