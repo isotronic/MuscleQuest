@@ -24,6 +24,8 @@ interface PlanListProps {
   viewMode?: PlanViewMode;
   showViewToggle?: boolean;
   onViewModeChange?: (mode: PlanViewMode) => void;
+  publishedPlanIds?: string[];
+  sharePlansEnabled?: boolean;
 }
 
 export const PlanList: React.FC<PlanListProps> = ({
@@ -33,6 +35,8 @@ export const PlanList: React.FC<PlanListProps> = ({
   viewMode = "carousel",
   showViewToggle = false,
   onViewModeChange,
+  publishedPlanIds,
+  sharePlansEnabled,
 }) => {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -56,6 +60,10 @@ export const PlanList: React.FC<PlanListProps> = ({
               key={item.id?.toString() ?? index.toString()}
               plan={item}
               onPress={() => onPressItem(item)}
+              isPublished={
+                !!sharePlansEnabled &&
+                !!publishedPlanIds?.includes(String(item.id))
+              }
             />
           ))}
         </View>
@@ -75,6 +83,10 @@ export const PlanList: React.FC<PlanListProps> = ({
                 imageUrl={item.image_url}
                 onPress={() => onPressItem(item)}
                 isActive={item.is_active === 1}
+                isPublished={
+                  !!sharePlansEnabled &&
+                  !!publishedPlanIds?.includes(String(item.id))
+                }
                 width={gridCardWidth}
               />
             </View>
@@ -97,6 +109,10 @@ export const PlanList: React.FC<PlanListProps> = ({
             imageUrl={item.image_url}
             onPress={() => onPressItem(item)}
             isActive={item.is_active === 1}
+            isPublished={
+              !!sharePlansEnabled &&
+              !!publishedPlanIds?.includes(String(item.id))
+            }
           />
         )}
         keyExtractor={(item: any, index: number) => index.toString()}

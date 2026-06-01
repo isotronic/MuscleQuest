@@ -12,11 +12,13 @@ import type { AppThemeColors } from "@/theme/types";
 interface TrainingPlanListItemProps {
   plan: Plan;
   onPress: () => void;
+  isPublished?: boolean;
 }
 
 export default function TrainingPlanListItem({
   plan,
   onPress,
+  isPublished,
 }: TrainingPlanListItemProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -54,6 +56,15 @@ export default function TrainingPlanListItem({
                 <Trans>Active</Trans>
               </ThemedText>
             </View>
+          )}
+          {isPublished && (
+            <AppIcon
+              set="mci"
+              name="cloud-check"
+              size={16}
+              color={colors.accent}
+              style={{ marginLeft: 4 }}
+            />
           )}
         </View>
         <ThemedText style={styles.subtitle}>
