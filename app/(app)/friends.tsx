@@ -171,11 +171,14 @@ function SearchTab({ currentUid, colors, borders }: SearchTabProps) {
   const [requestSent, setRequestSent] = useState(false);
   const [searchError, setSearchError] = useState(false);
   const sendMutation = useSendFriendRequestMutation();
-  const { friends, sentRequests } = useSocialStore();
+  const { friends, sentRequests, pendingRequests } = useSocialStore();
 
   const isFriend = result ? friends.some((f) => f.uid === result.uid) : false;
   const hasPendingSent = result
     ? sentRequests.some((r) => r.toUid === result.uid)
+    : false;
+  const hasIncoming = result
+    ? pendingRequests.some((r) => r.fromUid === result.uid)
     : false;
 
   const handleSearch = async () => {
@@ -266,6 +269,13 @@ function SearchTab({ currentUid, colors, borders }: SearchTabProps) {
               style={{ color: colors.contentSecondary }}
             >
               <Trans>Sent</Trans>
+            </AppText>
+          ) : hasIncoming ? (
+            <AppText
+              variant="caption"
+              style={{ color: colors.contentSecondary }}
+            >
+              <Trans>Incoming</Trans>
             </AppText>
           ) : (
             <Button
