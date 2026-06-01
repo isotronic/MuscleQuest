@@ -2,6 +2,33 @@ import { useSaveCompletedWorkoutMutation } from "../useSaveCompletedWorkoutMutat
 import { saveCompletedWorkout } from "@/utils/database";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+jest.mock("react", () => ({
+  ...jest.requireActual("react"),
+  useContext: jest.fn().mockReturnValue(null),
+}));
+jest.mock("@/context/AuthProvider", () => {
+  const React = jest.requireActual("react");
+  return { AuthContext: React.createContext(null) };
+});
+jest.mock("@react-native-firebase/firestore", () => {
+  const mockFirestore: any = jest.fn(() => ({ collection: jest.fn() }));
+  mockFirestore.FieldValue = { serverTimestamp: jest.fn() };
+  mockFirestore.Timestamp = {
+    fromDate: jest.fn((d: Date) => ({ toDate: () => d })),
+  };
+  return mockFirestore;
+});
+jest.mock("@/store/socialStore", () => ({
+  useSocialStore: jest.fn(() => ({ privacySettings: null })),
+}));
+jest.mock("@/utils/sharing", () => ({
+  pushCompletedWorkout: jest.fn(() => Promise.resolve()),
+  pushStrengthPRs: jest.fn(() => Promise.resolve()),
+}));
+jest.mock("@bugsnag/expo", () => ({
+  __esModule: true,
+  default: { notify: jest.fn() },
+}));
 jest.mock("@/utils/database", () => ({
   saveCompletedWorkout: jest.fn(),
 }));
