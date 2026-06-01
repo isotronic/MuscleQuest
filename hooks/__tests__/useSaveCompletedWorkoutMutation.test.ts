@@ -61,6 +61,7 @@ describe("useSaveCompletedWorkoutMutation", () => {
       2, // workoutId
       3600, // duration
       3, // totalSetsCompleted
+      false, // isDeload
       expect.arrayContaining([
         expect.objectContaining({
           sets: expect.arrayContaining([
@@ -81,6 +82,7 @@ describe("useSaveCompletedWorkoutMutation", () => {
       expect.anything(),
       expect.anything(),
       expect.anything(),
+      expect.anything(), // isDeload
       expect.arrayContaining([
         expect.objectContaining({
           sets: expect.arrayContaining([
@@ -120,6 +122,7 @@ describe("useSaveCompletedWorkoutMutation", () => {
       expect.anything(),
       expect.anything(),
       expect.anything(),
+      expect.anything(), // isDeload
       expect.arrayContaining([
         expect.objectContaining({
           sets: expect.arrayContaining([
@@ -159,6 +162,7 @@ describe("useSaveCompletedWorkoutMutation", () => {
       expect.anything(),
       expect.anything(),
       expect.anything(),
+      expect.anything(), // isDeload
       expect.arrayContaining([
         expect.objectContaining({
           sets: expect.arrayContaining([

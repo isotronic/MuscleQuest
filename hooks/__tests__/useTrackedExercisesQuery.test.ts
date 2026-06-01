@@ -46,7 +46,7 @@ describe("useTrackedExercisesQuery", () => {
 
     expect(useQuery).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ["trackedExercises", "30", false, false, false],
+        queryKey: ["trackedExercises", "30", false, false, false, false],
       }),
     );
   });
