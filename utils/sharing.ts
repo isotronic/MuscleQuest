@@ -176,9 +176,7 @@ export const pushCustomExercise = async (
       .doc(String(exercise.exercise_id));
 
     const existing = await ref.get();
-    const publishedAt = (existing as any).exists
-      ? existing.data()?.publishedAt
-      : now;
+    const publishedAt = existing.exists() ? existing.data()?.publishedAt : now;
 
     await ref.set({
       localExerciseId: exercise.exercise_id,
@@ -300,38 +298,43 @@ export const pushStrengthPRs = async (
     if (prData.length === 0) return;
 
     const db = firestore();
-    const batch = db.batch();
+    const BATCH_LIMIT = 500;
 
-    for (const pr of prData) {
-      const docId =
-        pr.app_exercise_id != null
-          ? `app_${pr.app_exercise_id}`
-          : `custom_${pr.exercise_id}`;
-      const ref = db
-        .collection("users")
-        .doc(uid)
-        .collection("sharedStrength")
-        .doc(docId);
+    for (let i = 0; i < prData.length; i += BATCH_LIMIT) {
+      const chunk = prData.slice(i, i + BATCH_LIMIT);
+      const batch = db.batch();
 
-      batch.set(ref, {
-        exerciseName: pr.exercise_name,
-        appExerciseId: pr.app_exercise_id,
-        trackingType: pr.tracking_type,
-        allTimePR: pr.all_time_pr,
-        allTimePRDate: firestore.Timestamp.fromDate(
-          new Date(pr.all_time_pr_date),
-        ),
-        topPRSets: pr.top_sets.map((s) => ({
-          weight: s.weight,
-          reps: s.reps,
-          time: s.time,
-          distance: s.distance,
-          date: firestore.Timestamp.fromDate(new Date(s.date_completed)),
-        })),
-      });
+      for (const pr of chunk) {
+        const docId =
+          pr.app_exercise_id != null
+            ? `app_${pr.app_exercise_id}`
+            : `custom_${pr.exercise_id}`;
+        const ref = db
+          .collection("users")
+          .doc(uid)
+          .collection("sharedStrength")
+          .doc(docId);
+
+        batch.set(ref, {
+          exerciseName: pr.exercise_name,
+          appExerciseId: pr.app_exercise_id,
+          trackingType: pr.tracking_type,
+          allTimePR: pr.all_time_pr,
+          allTimePRDate: firestore.Timestamp.fromDate(
+            new Date(pr.all_time_pr_date),
+          ),
+          topPRSets: pr.top_sets.map((s) => ({
+            weight: s.weight,
+            reps: s.reps,
+            time: s.time,
+            distance: s.distance,
+            date: firestore.Timestamp.fromDate(new Date(s.date_completed)),
+          })),
+        });
+      }
+
+      await batch.commit();
     }
-
-    await batch.commit();
   } catch (error) {
     Bugsnag.notify(error as Error);
   }
