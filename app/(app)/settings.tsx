@@ -34,6 +34,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { saveBodyWeightMeasurement } from "@/utils/database";
 import { AuthContext } from "@/context/AuthProvider";
 import { signInWithGoogle } from "@/utils/auth";
+import { getAuth } from "@react-native-firebase/auth";
+import Constants from "expo-constants";
 import Bugsnag from "@bugsnag/expo";
 import {
   fetchLastBackupDate,
@@ -64,6 +66,16 @@ export default function SettingsScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const user = useContext(AuthContext);
+  const isDev = Constants.expoConfig?.extra?.appVariant === "development";
+
+  const handleSignOut = async () => {
+    try {
+      await getAuth().signOut();
+    } catch (error: unknown) {
+      Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
+    }
+  };
+
   const queryClient = useQueryClient();
   const { data: settings, isLoading, isError, error } = useSettingsQuery();
   const { mutate: updateSetting } = useUpdateSettingsMutation();
@@ -569,11 +581,18 @@ export default function SettingsScreen() {
                 </Button>
               </>
             ) : (
-              <View style={styles.textContainer}>
-                <ThemedText style={styles.itemText}>
-                  <Trans>Signed in as {user.displayName || user.email}</Trans>
-                </ThemedText>
-              </View>
+              <>
+                <View style={styles.textContainer}>
+                  <ThemedText style={styles.itemText}>
+                    <Trans>Signed in as {user.displayName || user.email}</Trans>
+                  </ThemedText>
+                </View>
+                {isDev && (
+                  <Button mode="outlined" compact onPress={handleSignOut}>
+                    Sign out
+                  </Button>
+                )}
+              </>
             )}
           </View>
           <TouchableOpacity
