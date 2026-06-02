@@ -36,7 +36,6 @@ import { AuthContext } from "@/context/AuthProvider";
 import { signInWithGoogle } from "@/utils/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { getAuth, signOut } from "@react-native-firebase/auth";
-import Constants from "expo-constants";
 import Bugsnag from "@bugsnag/expo";
 import {
   fetchLastBackupDate,
@@ -67,14 +66,22 @@ export default function SettingsScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const user = useContext(AuthContext);
-  const isDev = Constants.expoConfig?.extra?.appVariant === "development";
 
   const handleSignOut = async () => {
     try {
       await GoogleSignin.signOut();
+    } catch (error: unknown) {
+      Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
+      Alert.alert(
+        t`Error`,
+        t`Failed to sign out of Google. Continuing sign-out.`,
+      );
+    }
+    try {
       await signOut(getAuth());
     } catch (error: unknown) {
       Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
+      Alert.alert(t`Error`, t`Failed to sign out. Please try again.`);
     }
   };
 
@@ -589,11 +596,9 @@ export default function SettingsScreen() {
                     <Trans>Signed in as {user.displayName || user.email}</Trans>
                   </ThemedText>
                 </View>
-                {isDev && (
-                  <Button mode="outlined" compact onPress={handleSignOut}>
-                    Sign out
-                  </Button>
-                )}
+                <Button mode="outlined" compact onPress={handleSignOut}>
+                  <Trans>Sign out</Trans>
+                </Button>
               </>
             )}
           </View>
