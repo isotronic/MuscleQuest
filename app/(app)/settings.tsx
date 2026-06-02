@@ -34,7 +34,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { saveBodyWeightMeasurement } from "@/utils/database";
 import { AuthContext } from "@/context/AuthProvider";
 import { signInWithGoogle } from "@/utils/auth";
-import { getAuth } from "@react-native-firebase/auth";
+import { getAuth, signOut } from "@react-native-firebase/auth";
 import Constants from "expo-constants";
 import Bugsnag from "@bugsnag/expo";
 import {
@@ -70,7 +70,7 @@ export default function SettingsScreen() {
 
   const handleSignOut = async () => {
     try {
-      await getAuth().signOut();
+      await signOut(getAuth());
     } catch (error: unknown) {
       Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
     }
