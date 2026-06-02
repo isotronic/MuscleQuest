@@ -300,6 +300,18 @@ A Recovery Check-in at the start of your next workout lets you factor in sorenes
 Enable it in Settings under Adaptive Progression, and configure your preferred load increment per equipment category.
 `,
   },
+  {
+    version: 2635,
+    message: msg`
+👥 New: Friends & Social Sharing!
+
+Add friends by searching for their username from the Friends tab in the menu. Send a request, and once accepted you can browse each other's shared content. A badge on the Friends menu item shows pending incoming requests.
+
+Share your plans, standalone workouts, custom exercises, body measurements, and strength PRs by toggling Share in the relevant screen or from Privacy Settings in the Account section of Settings. Shared content syncs automatically whenever it changes, and a cloud icon on plan and workout cards shows what is currently published. You can delete all shared data for any category from Privacy Settings at any time.
+
+Tap any accepted friend's name to open their profile and import their plans, standalone workouts, or custom exercises directly into your own library.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

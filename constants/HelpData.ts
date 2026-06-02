@@ -161,6 +161,26 @@ export const HELP_DATA: GroupData[] = [
     ],
   },
   {
+    group: msg`Friends & Social`,
+    sections: [
+      {
+        icon: "people-outline",
+        title: msg`Adding Friends`,
+        body: msg`Open the Friends tab from the menu to manage your connections. Use the search bar to find other users by username and send them a friend request. Incoming requests appear in the Requests tab; tap Accept to confirm or Decline to ignore. A badge on the Friends menu item shows how many pending requests are waiting. Once a request is accepted, both users appear in each other's Friends list and can view each other's shared content.`,
+      },
+      {
+        icon: "share-social-outline",
+        title: msg`Sharing Your Content`,
+        body: msg`You can share plans, standalone workouts, custom exercises, body measurements, and strength PRs with your friends. All five categories have a global toggle in Privacy Settings, found in the Account section of Settings. Enabling the global toggle for a category shares all items in that category and syncs new data automatically whenever it changes. Plans and standalone workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. To remove shared data, disable the toggle in Privacy Settings and tap Delete Shared Data for that category. You can also delete all shared data for every category from the same screen.`,
+      },
+      {
+        icon: "download-outline",
+        title: msg`Importing from Friends`,
+        body: msg`Tap any accepted friend in your Friends list to open their profile. Their profile shows the plans, standalone workouts, and custom exercises they have chosen to share. Tap Import on any item to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts.`,
+      },
+    ],
+  },
+  {
     group: msg`Account`,
     sections: [
       {
