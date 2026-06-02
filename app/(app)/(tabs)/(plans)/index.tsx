@@ -18,6 +18,8 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { usePublishedPlanIdsQuery } from "@/hooks/usePublishedPlanIdsQuery";
+import { useSocialStore } from "@/store/socialStore";
 
 export default function PlansScreen() {
   const { colors } = useAppTheme();
@@ -35,6 +37,8 @@ export default function PlansScreen() {
     isError: standaloneIsError,
     error: standaloneError,
   } = useStandaloneWorkoutsQuery();
+  const { data: publishedPlanIds } = usePublishedPlanIdsQuery();
+  const { privacySettings } = useSocialStore();
 
   useEffect(() => {
     if (standaloneIsError && standaloneError) {
@@ -129,6 +133,8 @@ export default function PlansScreen() {
           viewMode={viewMode}
           showViewToggle
           onViewModeChange={handleViewModeChange}
+          publishedPlanIds={publishedPlanIds}
+          sharePlansEnabled={!!privacySettings?.sharePlans}
         />
         <PlanList
           title={t`Premade plans`}

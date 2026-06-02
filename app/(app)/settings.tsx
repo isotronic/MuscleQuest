@@ -24,6 +24,9 @@ import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
+import { useSocialStore } from "@/store/socialStore";
+import { usePrivacySettingsMutation } from "@/hooks/usePrivacySettingsMutation";
+import { deleteAllSharedData } from "@/utils/sharing";
 import { SettingsModal } from "@/components/SettingsModal";
 // import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 import { useImageManagement } from "@/hooks/useImageManagement";
@@ -72,6 +75,39 @@ export default function SettingsScreen() {
     progress,
     toggleDownloadImages,
   } = useImageManagement(updateSetting, settings?.downloadImages);
+
+  const { privacySettings } = useSocialStore();
+  const { mutate: updatePrivacy, isPending: isPrivacyPending } =
+    usePrivacySettingsMutation();
+  const [isDeletingSharedData, setIsDeletingSharedData] = useState(false);
+
+  const handleDeleteAllSharedData = () => {
+    if (!user) return;
+    Alert.alert(
+      t`Delete all shared data?`,
+      t`This removes all content you have shared with friends. Your friends and friend list are not affected.`,
+      [
+        { text: t`Cancel`, style: "cancel" },
+        {
+          text: t`Delete`,
+          style: "destructive",
+          onPress: async () => {
+            setIsDeletingSharedData(true);
+            try {
+              await deleteAllSharedData(user.uid);
+              Alert.alert(t`Done`, t`All shared data has been removed.`);
+            } catch (error: unknown) {
+              Bugsnag.notify(
+                error instanceof Error ? error : new Error(String(error)),
+              );
+            } finally {
+              setIsDeletingSharedData(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const [isBackupLoading, setIsBackupLoading] = useState(false);
   const [isRestoreLoading, setIsRestoreLoading] = useState(false);
@@ -1558,6 +1594,280 @@ export default function SettingsScreen() {
         </View>
         <Divider style={styles.divider} /> */}
 
+        {user && (
+          <>
+            <View style={styles.section}>
+              <ThemedText style={styles.sectionHeader}>
+                <Trans>Privacy</Trans>
+              </ThemedText>
+              <ThemedText style={styles.rowSubtitle}>
+                <Trans>
+                  Previously shared data always remains visible to your friends
+                  until you delete it below.
+                </Trans>
+              </ThemedText>
+
+              {/* Share Plans */}
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() =>
+                  updatePrivacy({ sharePlans: !privacySettings?.sharePlans })
+                }
+                disabled={isPrivacyPending}
+              >
+                <View style={styles.rowLeft}>
+                  <ThemedText style={styles.rowTitle}>
+                    <Trans>Share plans with friends</Trans>
+                  </ThemedText>
+                  {privacySettings?.sharePlans ? (
+                    <ThemedText style={styles.rowSubtitle}>
+                      <Trans>Enables a per-plan publish toggle.</Trans>
+                    </ThemedText>
+                  ) : (
+                    <ThemedText style={styles.rowSubtitle}>
+                      <Trans>
+                        Enable to add a publish toggle to each plan.
+                      </Trans>
+                    </ThemedText>
+                  )}
+                </View>
+                <Switch
+                  value={!!privacySettings?.sharePlans}
+                  onValueChange={(v: boolean) =>
+                    updatePrivacy({ sharePlans: v })
+                  }
+                  disabled={isPrivacyPending}
+                  color={colors.accent}
+                  style={styles.switch}
+                />
+              </TouchableOpacity>
+
+              {/* Share Standalone Workouts */}
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() =>
+                  updatePrivacy({
+                    shareStandaloneWorkouts:
+                      !privacySettings?.shareStandaloneWorkouts,
+                  })
+                }
+                disabled={isPrivacyPending}
+              >
+                <View style={styles.rowLeft}>
+                  <ThemedText style={styles.rowTitle}>
+                    <Trans>Share standalone workouts with friends</Trans>
+                  </ThemedText>
+                  {privacySettings?.shareStandaloneWorkouts ? (
+                    <ThemedText style={styles.rowSubtitle}>
+                      <Trans>Enables a per-workout publish toggle.</Trans>
+                    </ThemedText>
+                  ) : (
+                    <ThemedText style={styles.rowSubtitle}>
+                      <Trans>
+                        Enable to add a publish toggle to each standalone
+                        workout.
+                      </Trans>
+                    </ThemedText>
+                  )}
+                </View>
+                <Switch
+                  value={!!privacySettings?.shareStandaloneWorkouts}
+                  onValueChange={(v: boolean) =>
+                    updatePrivacy({ shareStandaloneWorkouts: v })
+                  }
+                  disabled={isPrivacyPending}
+                  color={colors.accent}
+                  style={styles.switch}
+                />
+              </TouchableOpacity>
+
+              {/* Share Custom Exercises */}
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() =>
+                  updatePrivacy({
+                    shareCustomExercises:
+                      !privacySettings?.shareCustomExercises,
+                  })
+                }
+                disabled={isPrivacyPending}
+              >
+                <View style={styles.rowLeft}>
+                  <ThemedText style={styles.rowTitle}>
+                    <Trans>Share custom exercises with friends</Trans>
+                  </ThemedText>
+                  {privacySettings?.shareCustomExercises ? (
+                    <ThemedText style={styles.rowSubtitle}>
+                      <Trans>
+                        Custom exercises you create or edit are shared
+                        automatically.
+                      </Trans>
+                    </ThemedText>
+                  ) : (
+                    <ThemedText style={styles.rowSubtitle}>
+                      <Trans>
+                        Enable to automatically share custom exercises you
+                        create or edit.
+                      </Trans>
+                    </ThemedText>
+                  )}
+                </View>
+                <Switch
+                  value={!!privacySettings?.shareCustomExercises}
+                  onValueChange={(v: boolean) =>
+                    updatePrivacy({ shareCustomExercises: v })
+                  }
+                  disabled={isPrivacyPending}
+                  color={colors.accent}
+                  style={styles.switch}
+                />
+              </TouchableOpacity>
+
+              {/* Share Completed Workouts */}
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() =>
+                  updatePrivacy({
+                    shareCompletedWorkouts:
+                      !privacySettings?.shareCompletedWorkouts,
+                  })
+                }
+                disabled={isPrivacyPending}
+              >
+                <View style={styles.rowLeft}>
+                  <ThemedText style={styles.rowTitle}>
+                    <Trans>Share completed workouts with friends</Trans>
+                  </ThemedText>
+                  {privacySettings?.shareCompletedWorkouts ? (
+                    <ThemedText style={styles.rowSubtitle}>
+                      <Trans>
+                        Each workout you complete is shared automatically.
+                      </Trans>
+                    </ThemedText>
+                  ) : (
+                    <ThemedText style={styles.rowSubtitle}>
+                      <Trans>
+                        Enable to automatically share each workout you complete.
+                      </Trans>
+                    </ThemedText>
+                  )}
+                </View>
+                <Switch
+                  value={!!privacySettings?.shareCompletedWorkouts}
+                  onValueChange={(v: boolean) =>
+                    updatePrivacy({ shareCompletedWorkouts: v })
+                  }
+                  disabled={isPrivacyPending}
+                  color={colors.accent}
+                  style={styles.switch}
+                />
+              </TouchableOpacity>
+
+              {/* Share Body Measurements */}
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() =>
+                  updatePrivacy({
+                    shareBodyMeasurements:
+                      !privacySettings?.shareBodyMeasurements,
+                  })
+                }
+                disabled={isPrivacyPending}
+              >
+                <View style={styles.rowLeft}>
+                  <ThemedText style={styles.rowTitle}>
+                    <Trans>Share body measurements with friends</Trans>
+                  </ThemedText>
+                  {privacySettings?.shareBodyMeasurements ? (
+                    <ThemedText style={styles.rowSubtitle}>
+                      <Trans>
+                        Each measurement entry you record is shared
+                        automatically.
+                      </Trans>
+                    </ThemedText>
+                  ) : (
+                    <ThemedText style={styles.rowSubtitle}>
+                      <Trans>
+                        Enable to automatically share each body measurement you
+                        record.
+                      </Trans>
+                    </ThemedText>
+                  )}
+                </View>
+                <Switch
+                  value={!!privacySettings?.shareBodyMeasurements}
+                  onValueChange={(v: boolean) =>
+                    updatePrivacy({ shareBodyMeasurements: v })
+                  }
+                  disabled={isPrivacyPending}
+                  color={colors.accent}
+                  style={styles.switch}
+                />
+              </TouchableOpacity>
+
+              {/* Share Strength PRs */}
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() =>
+                  updatePrivacy({
+                    shareStrengthProgress:
+                      !privacySettings?.shareStrengthProgress,
+                  })
+                }
+                disabled={isPrivacyPending}
+              >
+                <View style={styles.rowLeft}>
+                  <ThemedText style={styles.rowTitle}>
+                    <Trans>Share strength PRs with friends</Trans>
+                  </ThemedText>
+                  {privacySettings?.shareStrengthProgress ? (
+                    <ThemedText style={styles.rowSubtitle}>
+                      <Trans>
+                        Strength PRs are shared automatically after each
+                        workout.
+                      </Trans>
+                    </ThemedText>
+                  ) : (
+                    <ThemedText style={styles.rowSubtitle}>
+                      <Trans>
+                        Enable to automatically share strength PRs after each
+                        workout.
+                      </Trans>
+                    </ThemedText>
+                  )}
+                </View>
+                <Switch
+                  value={!!privacySettings?.shareStrengthProgress}
+                  onValueChange={(v: boolean) =>
+                    updatePrivacy({ shareStrengthProgress: v })
+                  }
+                  disabled={isPrivacyPending}
+                  color={colors.accent}
+                  style={styles.switch}
+                />
+              </TouchableOpacity>
+
+              {/* Delete all shared data */}
+              <TouchableOpacity
+                style={[styles.item, { justifyContent: "center" }]}
+                onPress={handleDeleteAllSharedData}
+                disabled={isDeletingSharedData}
+              >
+                {isDeletingSharedData ? (
+                  <ActivityIndicator size="small" />
+                ) : (
+                  <ThemedText
+                    style={{ color: colors.danger, fontWeight: "600" }}
+                  >
+                    <Trans>Delete all shared data</Trans>
+                  </ThemedText>
+                )}
+              </TouchableOpacity>
+            </View>
+            <Divider style={styles.divider} />
+          </>
+        )}
+
         <View style={styles.section}>
           <ThemedText style={styles.sectionHeader}>
             <Trans>About</Trans>
@@ -1757,6 +2067,27 @@ function createStyles(colors: AppThemeColors) {
       fontSize: 12,
       color: colors.danger,
       marginTop: 6,
+    },
+    progressContainer: {
+      marginTop: 8,
+    },
+    progressText: {
+      fontSize: 14,
+      color: colors.contentSecondary,
+      marginBottom: 4,
+    },
+    rowLeft: {
+      flex: 1,
+      marginRight: 8,
+    },
+    rowTitle: {
+      fontSize: 16,
+      color: colors.contentPrimary,
+    },
+    rowSubtitle: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+      marginTop: 2,
     },
   });
 }

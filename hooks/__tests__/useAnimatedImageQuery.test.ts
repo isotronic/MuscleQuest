@@ -101,8 +101,8 @@ describe("useAnimatedImageQuery Tests", () => {
         queryKey: ["animatedImage", animatedUrlPath],
         queryFn: expect.any(Function),
         enabled: !!animatedUrlPath,
-        staleTime: Infinity,
-        gcTime: 1000 * 60 * 60 * 24,
+        staleTime: 1000 * 60 * 60,
+        gcTime: 1000 * 60 * 60,
       });
     });
   });

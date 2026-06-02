@@ -3,7 +3,7 @@ import { openDatabase } from "./database";
 import { SQLiteDatabase } from "expo-sqlite";
 import Bugsnag from "@bugsnag/expo";
 
-const ensureAppExercisesExist = async (
+export const ensureAppExercisesExist = async (
   userDb: SQLiteDatabase,
   appExerciseIds: number[],
 ): Promise<void> => {

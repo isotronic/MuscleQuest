@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { Card, Text } from "react-native-paper";
 import { ThemedView } from "./ThemedView";
+import { AppIcon } from "@/components/ui";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useAppTheme, radii } from "@/theme";
@@ -17,12 +18,14 @@ export default function TrainingPlanCard({
   imageUrl,
   onPress,
   isActive,
+  isPublished,
   width = 300,
 }: {
   title?: string;
   imageUrl?: string;
   onPress: () => void;
   isActive: boolean;
+  isPublished?: boolean;
   width?: number;
 }) {
   const { colors } = useAppTheme();
@@ -81,6 +84,16 @@ export default function TrainingPlanCard({
                 </Text>
               </View>
             )}
+            {isPublished && (
+              <View style={styles.publishedBadge}>
+                <AppIcon
+                  set="mci"
+                  name="cloud-check"
+                  size={16}
+                  color={colors.contentPrimary}
+                />
+              </View>
+            )}
           </Card>
         </Animated.View>
       </TouchableWithoutFeedback>
@@ -131,6 +144,14 @@ function createStyles(colors: AppThemeColors, width: number) {
     activeBadgeText: {
       color: colors.contentPrimary,
       fontWeight: "bold",
+    },
+    publishedBadge: {
+      position: "absolute",
+      top: 10,
+      left: 10,
+      backgroundColor: "rgba(0,0,0,0.45)",
+      padding: 4,
+      borderRadius: radii.sm,
     },
   });
 }

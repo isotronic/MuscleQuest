@@ -3,10 +3,12 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { ThemedView } from "@/components/ThemedView";
 import { t } from "@lingui/core/macro";
 import { useAppTheme } from "@/theme";
+import { useSocialListeners } from "../../hooks/useSocialListeners";
 
 export default function AppLayout() {
   const { colors } = useAppTheme();
   const { data: settings, isLoading: settingsLoading } = useSettingsQuery();
+  useSocialListeners();
 
   if (settingsLoading) {
     return <ThemedView style={{ flex: 1 }}></ThemedView>;
@@ -42,6 +44,19 @@ export default function AppLayout() {
       <Stack.Screen
         name="exercise-library"
         options={{ title: t`Exercise Library` }}
+      />
+      <Stack.Screen
+        name="friend-profile"
+        options={{ title: t`Friend Profile` }}
+      />
+      <Stack.Screen name="friend-plan" options={{ title: t`Plan Details` }} />
+      <Stack.Screen
+        name="friend-workout"
+        options={{ title: t`Workout Details` }}
+      />
+      <Stack.Screen
+        name="friend-exercise"
+        options={{ title: t`Exercise Details` }}
       />
       <Stack.Screen name="+not-found" />
     </Stack>

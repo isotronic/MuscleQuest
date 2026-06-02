@@ -1,0 +1,107 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function areFriends(uid1, uid2) {
+      return exists(/databases/$(database)/documents/users/$(uid1)/friends/$(uid2));
+    }
+
+    // Returns true only when a friendRequest document from→to exists with status "pending"
+    // and the stored from/to fields match the expected UIDs (defence-in-depth).
+    function hasPendingRequest(fromUid, toUid) {
+      let doc = get(/databases/$(database)/documents/friendRequests/$(fromUid + '_' + toUid));
+      return doc != null &&
+             doc.data.status == 'pending' &&
+             doc.data.from == fromUid &&
+             doc.data.to == toUid;
+    }
+
+    // Public profiles: any authenticated user can read (email search).
+    // Owner can write.
+    match /users/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+
+      // Private settings: owner only
+      match /private/{doc} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // Friends subcollection.
+      // Readable by owner or the named friend.
+      // Owner can write freely (create/update/delete their own records).
+      // The named friend (friendUid) may only create if the owner previously sent
+      // them a pending request — hasPendingRequest(uid, friendUid) checks
+      // friendRequests/{uid}_{friendUid}.
+      // The named friend may also delete, which is needed for mutual removal.
+      match /friends/{friendUid} {
+        allow read: if request.auth != null &&
+          (request.auth.uid == uid || request.auth.uid == friendUid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+        allow create: if request.auth != null &&
+          request.auth.uid == friendUid &&
+          hasPendingRequest(uid, friendUid);
+        allow delete: if request.auth != null && request.auth.uid == friendUid;
+      }
+
+      // All shared-content subcollections: friends can read, owner can write.
+      match /sharedPlans/{docId} {
+        allow read: if request.auth != null && areFriends(uid, request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /sharedStandaloneWorkouts/{docId} {
+        allow read: if request.auth != null && areFriends(uid, request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /sharedCustomExercises/{docId} {
+        allow read: if request.auth != null && areFriends(uid, request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /sharedWorkouts/{docId} {
+        allow read: if request.auth != null && areFriends(uid, request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /sharedMeasurements/{docId} {
+        allow read: if request.auth != null && areFriends(uid, request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /sharedStrength/{docId} {
+        allow read: if request.auth != null && areFriends(uid, request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Friend requests.
+    // Sender creates with a fixed id = from_to, status must be "pending".
+    // Re-sending after accept/decline uses .set() which triggers update, handled
+    // by the sender re-send branch below.
+    // Only receiver can flip status from "pending" → "accepted"/"declined".
+    match /friendRequests/{requestId} {
+      allow create: if request.auth != null &&
+        request.auth.uid == request.resource.data.from &&
+        requestId == request.resource.data.from + '_' + request.resource.data.to &&
+        request.resource.data.to != request.auth.uid &&
+        request.resource.data.status == 'pending';
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.from ||
+         request.auth.uid == resource.data.to);
+      allow update: if request.auth != null &&
+        (
+          // receiver accepts or declines a pending request
+          (request.auth.uid == resource.data.to &&
+           resource.data.status == 'pending' &&
+           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+           (request.resource.data.status == 'accepted' ||
+            request.resource.data.status == 'declined'))
+          ||
+          // sender re-sends after accept/decline (.set() on existing doc = update);
+          // from/to must be unchanged and new status must be "pending"
+          (request.auth.uid == resource.data.from &&
+           resource.data.status != 'pending' &&
+           request.resource.data.from == resource.data.from &&
+           request.resource.data.to == resource.data.to &&
+           request.resource.data.status == 'pending')
+        );
+    }
+  }
+}

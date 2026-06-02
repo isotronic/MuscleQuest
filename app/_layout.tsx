@@ -16,8 +16,10 @@ import "@formatjs/intl-pluralrules/locale-data/es.js";
 import "@formatjs/intl-pluralrules/locale-data/fr.js";
 
 import Bugsnag from "@bugsnag/expo";
+import BugsnagPerformance from "@bugsnag/expo-performance";
+import BugsnagPluginReactNavigationNativePerformance from "@bugsnag/plugin-react-navigation-performance";
 import React, { useEffect, useState } from "react";
-import { Slot } from "expo-router";
+import { Slot, useNavigationContainerRef } from "expo-router";
 import { ActivityIndicator, Button } from "react-native-paper";
 import { AppThemeProvider } from "@/theme";
 import { useFonts } from "expo-font";
@@ -80,6 +82,10 @@ Bugsnag.start({
   codeBundleId,
 });
 
+BugsnagPerformance.start({
+  plugins: [new BugsnagPluginReactNavigationNativePerformance()],
+});
+
 const ErrorBoundary = Bugsnag.getPlugin("react").createErrorBoundary(React);
 
 const ErrorView = ({ clearError }: { clearError: () => void }) => {
@@ -124,6 +130,14 @@ function RootLayout() {
     Inter_800ExtraBold,
     Inter_900Black,
   });
+
+  const navigationRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    BugsnagPerformance.getPlugin(
+      BugsnagPluginReactNavigationNativePerformance,
+    )?.registerNavigationContainerRef(navigationRef);
+  }, [navigationRef]);
 
   useEffect(() => {
     async function initializeDatabase() {
@@ -219,7 +233,7 @@ function RootLayout() {
   );
 }
 
-export default function App() {
+function App() {
   return (
     <I18nProvider i18n={i18n}>
       <ErrorBoundary FallbackComponent={ErrorView}>
@@ -228,3 +242,5 @@ export default function App() {
     </I18nProvider>
   );
 }
+
+export default BugsnagPerformance.withInstrumentedAppStarts(App);

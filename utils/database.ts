@@ -2790,3 +2790,385 @@ export const getProgressionStatesForWorkout = async (
     throw error;
   }
 };
+
+// ---------------------------------------------------------------------------
+// Sharing helpers
+// ---------------------------------------------------------------------------
+
+interface RawPlanRow {
+  id: number;
+  name: string;
+  image_url: string | null;
+  is_active: number;
+  app_plan_id: number | null;
+}
+
+interface RawPlanWorkoutRow {
+  workout_id: number;
+  workout_name: string;
+  workout_order: number;
+  exercise_id: number | null;
+  app_exercise_id: number | null;
+  exercise_name: string | null;
+  animated_url: string | null;
+  equipment: string | null;
+  body_part: string | null;
+  target_muscle: string | null;
+  secondary_muscles: string | null;
+  tracking_type: string | null;
+  is_unilateral: number;
+  double_weight: number;
+  tracking_type_override: string | null;
+  sets: string | null;
+  exercise_order: number;
+  superset_group_id: string | null;
+}
+
+export const fetchFullPlanForSharing = async (
+  planId: number,
+): Promise<{
+  plan: RawPlanRow;
+  workouts: {
+    workout_id: number;
+    workout_name: string;
+    workout_order: number;
+    exercises: RawPlanWorkoutRow[];
+  }[];
+} | null> => {
+  const db = await openDatabase("userData.db");
+
+  const plan = await db.getFirstAsync<RawPlanRow>(
+    `SELECT id, name, image_url, is_active, app_plan_id FROM user_plans WHERE id = ? AND is_deleted = FALSE`,
+    [planId],
+  );
+  if (!plan) return null;
+
+  const rows = await db.getAllAsync<RawPlanWorkoutRow>(
+    `SELECT
+       uw.id AS workout_id, uw.name AS workout_name, uw.workout_order,
+       e.exercise_id, e.app_exercise_id, e.name AS exercise_name,
+       e.animated_url, e.equipment, e.body_part, e.target_muscle,
+       e.secondary_muscles, e.tracking_type, e.is_unilateral, e.double_weight,
+       uwe.tracking_type_override, uwe.sets, uwe.exercise_order,
+       uwe.superset_group_id
+     FROM user_workouts uw
+     LEFT JOIN user_workout_exercises uwe
+       ON uwe.workout_id = uw.id AND uwe.is_deleted = FALSE
+     LEFT JOIN exercises e ON e.exercise_id = uwe.exercise_id
+     WHERE uw.plan_id = ? AND uw.is_deleted = FALSE
+     ORDER BY uw.workout_order, uwe.exercise_order`,
+    [planId],
+  );
+
+  const workoutsMap = new Map<
+    number,
+    {
+      workout_id: number;
+      workout_name: string;
+      workout_order: number;
+      exercises: RawPlanWorkoutRow[];
+    }
+  >();
+  for (const row of rows) {
+    if (!workoutsMap.has(row.workout_id)) {
+      workoutsMap.set(row.workout_id, {
+        workout_id: row.workout_id,
+        workout_name: row.workout_name,
+        workout_order: row.workout_order,
+        exercises: [],
+      });
+    }
+    if (row.exercise_id) {
+      workoutsMap.get(row.workout_id)!.exercises.push(row);
+    }
+  }
+
+  return { plan, workouts: Array.from(workoutsMap.values()) };
+};
+
+interface RawStandaloneWorkoutRow {
+  workout_id: number;
+  workout_name: string;
+  image_url: string | null;
+  exercise_id: number | null;
+  app_exercise_id: number | null;
+  exercise_name: string | null;
+  animated_url: string | null;
+  equipment: string | null;
+  body_part: string | null;
+  target_muscle: string | null;
+  secondary_muscles: string | null;
+  tracking_type: string | null;
+  is_unilateral: number;
+  double_weight: number;
+  tracking_type_override: string | null;
+  sets: string | null;
+  exercise_order: number;
+  superset_group_id: string | null;
+}
+
+export const fetchStandaloneWorkoutForSharing = async (
+  workoutId: number,
+): Promise<{
+  workout_id: number;
+  workout_name: string;
+  image_url: string | null;
+  exercises: RawStandaloneWorkoutRow[];
+} | null> => {
+  const db = await openDatabase("userData.db");
+
+  const wRow = await db.getFirstAsync<{
+    id: number;
+    name: string;
+    image_url: string | null;
+  }>(
+    `SELECT id, name, image_url FROM user_workouts WHERE id = ? AND plan_id IS NULL AND is_deleted = FALSE`,
+    [workoutId],
+  );
+  if (!wRow) return null;
+
+  const rows = await db.getAllAsync<RawStandaloneWorkoutRow>(
+    `SELECT
+       uw.id AS workout_id, uw.name AS workout_name, uw.image_url,
+       e.exercise_id, e.app_exercise_id, e.name AS exercise_name,
+       e.animated_url, e.equipment, e.body_part, e.target_muscle,
+       e.secondary_muscles, e.tracking_type, e.is_unilateral, e.double_weight,
+       uwe.tracking_type_override, uwe.sets, uwe.exercise_order,
+       uwe.superset_group_id
+     FROM user_workouts uw
+     LEFT JOIN user_workout_exercises uwe
+       ON uwe.workout_id = uw.id AND uwe.is_deleted = FALSE
+     LEFT JOIN exercises e ON e.exercise_id = uwe.exercise_id
+     WHERE uw.id = ? AND uw.is_deleted = FALSE
+     ORDER BY uwe.exercise_order`,
+    [workoutId],
+  );
+
+  const exercises = rows.filter((r) => r.exercise_id != null);
+  return {
+    workout_id: wRow.id,
+    workout_name: wRow.name,
+    image_url: wRow.image_url,
+    exercises,
+  };
+};
+
+export const fetchCompletedWorkoutForSharing = async (
+  completedWorkoutId: number,
+): Promise<{
+  id: number;
+  plan_name: string | null;
+  workout_name: string | null;
+  date_completed: string;
+  duration: number;
+  total_sets_completed: number;
+  is_deload: number;
+  exercises: {
+    completed_exercise_id: number;
+    exercise_name: string;
+    sets: {
+      set_number: number;
+      weight: number | null;
+      reps: number | null;
+      time: number | null;
+      distance: number | null;
+      is_warmup: number;
+      is_drop_set: number;
+      is_to_failure: number;
+    }[];
+  }[];
+} | null> => {
+  const db = await openDatabase("userData.db");
+
+  const cw = await db.getFirstAsync<{
+    id: number;
+    plan_name: string | null;
+    workout_name: string | null;
+    date_completed: string;
+    duration: number;
+    total_sets_completed: number;
+    is_deload: number;
+  }>(
+    `SELECT cw.id, up.name AS plan_name, uw.name AS workout_name,
+            cw.date_completed, cw.duration, cw.total_sets_completed, cw.is_deload
+     FROM completed_workouts cw
+     LEFT JOIN user_plans up ON up.id = cw.plan_id
+     LEFT JOIN user_workouts uw ON uw.id = cw.workout_id
+     WHERE cw.id = ? AND cw.is_deleted = 0`,
+    [completedWorkoutId],
+  );
+  if (!cw) return null;
+
+  const setRows = await db.getAllAsync<{
+    completed_exercise_id: number;
+    exercise_name: string;
+    set_number: number;
+    weight: number | null;
+    reps: number | null;
+    time: number | null;
+    distance: number | null;
+    is_warmup: number;
+    is_drop_set: number;
+    is_to_failure: number;
+  }>(
+    `SELECT ce.id AS completed_exercise_id, e.name AS exercise_name,
+            cs.set_number, cs.weight, cs.reps, cs.time, cs.distance,
+            cs.is_warmup, cs.is_drop_set, cs.is_to_failure
+     FROM completed_exercises ce
+     JOIN exercises e ON e.exercise_id = ce.exercise_id
+     JOIN completed_sets cs ON cs.completed_exercise_id = ce.id AND cs.is_deleted = 0
+     WHERE ce.completed_workout_id = ? AND ce.is_deleted = 0
+     ORDER BY ce.id, cs.set_number`,
+    [completedWorkoutId],
+  );
+
+  const exMap = new Map<
+    number,
+    {
+      completed_exercise_id: number;
+      exercise_name: string;
+      sets: typeof setRows;
+    }
+  >();
+  for (const row of setRows) {
+    if (!exMap.has(row.completed_exercise_id)) {
+      exMap.set(row.completed_exercise_id, {
+        completed_exercise_id: row.completed_exercise_id,
+        exercise_name: row.exercise_name,
+        sets: [],
+      });
+    }
+    exMap.get(row.completed_exercise_id)!.sets.push(row);
+  }
+
+  return { ...cw, exercises: Array.from(exMap.values()) };
+};
+
+export const fetchBodyMeasurementEntryForSharing = async (
+  entryId: number,
+): Promise<{
+  id: number;
+  recorded_at: string;
+  values: Record<string, number>;
+} | null> => {
+  const db = await openDatabase("userData.db");
+
+  const entry = await db.getFirstAsync<{ id: number; recorded_at: string }>(
+    `SELECT id, recorded_at FROM body_measurement_entries WHERE id = ?`,
+    [entryId],
+  );
+  if (!entry) return null;
+
+  const valueRows = await db.getAllAsync<{ key: string; value: number }>(
+    `SELECT bmd.key, bmv.value
+     FROM body_measurement_values bmv
+     JOIN body_metric_definitions bmd ON bmd.id = bmv.metric_id
+     WHERE bmv.entry_id = ?`,
+    [entryId],
+  );
+
+  const values: Record<string, number> = {};
+  for (const v of valueRows) {
+    values[v.key] = v.value;
+  }
+
+  return { id: entry.id, recorded_at: entry.recorded_at, values };
+};
+
+export interface ExercisePRData {
+  exercise_id: number;
+  app_exercise_id: number | null;
+  exercise_name: string;
+  tracking_type: string;
+  all_time_pr: number;
+  all_time_pr_date: string;
+  top_sets: {
+    weight: number | null;
+    reps: number | null;
+    time: number | null;
+    distance: number | null;
+    date_completed: string;
+  }[];
+}
+
+export const fetchPRDataForExercises = async (
+  exerciseIds: number[],
+): Promise<ExercisePRData[]> => {
+  if (exerciseIds.length === 0) return [];
+  const db = await openDatabase("userData.db");
+  const placeholders = exerciseIds.map(() => "?").join(", ");
+
+  const pmExpr = `CASE e.tracking_type
+    WHEN 'weight' THEN (COALESCE(cs.weight, 0) * CASE WHEN e.double_weight = 1 THEN 2 ELSE 1 END) * (1.0 + COALESCE(cs.reps, 0) / 30.0)
+    WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - COALESCE(cs.weight, 0)) * (1.0 + COALESCE(cs.reps, 0) / 30.0)
+    WHEN 'reps' THEN CAST(COALESCE(cs.reps, 0) AS REAL)
+    WHEN 'time' THEN CAST(COALESCE(cs.time, 0) AS REAL)
+    WHEN 'distance' THEN CAST(COALESCE(cs.distance, 0) AS REAL)
+    ELSE (COALESCE(cs.weight, 0) * CASE WHEN e.double_weight = 1 THEN 2 ELSE 1 END) * (1.0 + COALESCE(cs.reps, 0) / 30.0)
+  END`;
+
+  const rows = await db.getAllAsync<{
+    exercise_id: number;
+    app_exercise_id: number | null;
+    exercise_name: string;
+    tracking_type: string;
+    weight: number | null;
+    reps: number | null;
+    time: number | null;
+    distance: number | null;
+    date_completed: string;
+    pm: number;
+    all_time_pr: number;
+    rn: number;
+  }>(
+    `SELECT * FROM (
+       SELECT
+         e.exercise_id, e.app_exercise_id, e.name AS exercise_name, e.tracking_type,
+         cs.weight, cs.reps, cs.time, cs.distance,
+         DATE(cw.date_completed) AS date_completed,
+         ${pmExpr} AS pm,
+         MAX(${pmExpr}) OVER (PARTITION BY e.exercise_id) AS all_time_pr,
+         ROW_NUMBER() OVER (PARTITION BY e.exercise_id ORDER BY ${pmExpr} DESC) AS rn
+       FROM exercises e
+       JOIN completed_exercises ce ON ce.exercise_id = e.exercise_id AND ce.is_deleted = 0
+       JOIN completed_sets cs ON cs.completed_exercise_id = ce.id
+         AND cs.is_warmup = 0 AND cs.is_deleted = 0
+       JOIN completed_workouts cw ON cw.id = ce.completed_workout_id AND cw.is_deleted = 0
+       WHERE e.exercise_id IN (${placeholders})
+     )
+     WHERE rn <= 5`,
+    exerciseIds,
+  );
+
+  const exerciseMap = new Map<number, ExercisePRData>();
+  for (const row of rows) {
+    if (!exerciseMap.has(row.exercise_id)) {
+      exerciseMap.set(row.exercise_id, {
+        exercise_id: row.exercise_id,
+        app_exercise_id: row.app_exercise_id,
+        exercise_name: row.exercise_name,
+        tracking_type: row.tracking_type,
+        all_time_pr: row.all_time_pr,
+        all_time_pr_date: row.date_completed,
+        top_sets: [],
+      });
+    }
+    const entry = exerciseMap.get(row.exercise_id)!;
+    // Keep the earliest date where the all-time PR was achieved
+    if (
+      row.pm >= row.all_time_pr &&
+      row.date_completed < entry.all_time_pr_date
+    ) {
+      entry.all_time_pr_date = row.date_completed;
+    }
+    entry.top_sets.push({
+      weight: row.weight,
+      reps: row.reps,
+      time: row.time,
+      distance: row.distance,
+      date_completed: row.date_completed,
+    });
+  }
+
+  return Array.from(exerciseMap.values());
+};

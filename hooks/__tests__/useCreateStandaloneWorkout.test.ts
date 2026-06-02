@@ -11,6 +11,47 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 
+jest.mock("react", () => ({
+  ...jest.requireActual("react"),
+  useContext: jest.fn().mockReturnValue(null),
+}));
+jest.mock("@/context/AuthProvider", () => {
+  const React = jest.requireActual("react");
+  return { AuthContext: React.createContext(null) };
+});
+jest.mock("@react-native-firebase/firestore", () => {
+  const mockFirestore: any = jest.fn(() => ({
+    collection: jest.fn(() => ({
+      doc: jest.fn(() => ({
+        get: jest.fn(() =>
+          Promise.resolve({ exists: false, data: jest.fn(() => null) }),
+        ),
+        set: jest.fn(() => Promise.resolve()),
+        update: jest.fn(() => Promise.resolve()),
+        delete: jest.fn(() => Promise.resolve()),
+        onSnapshot: jest.fn(() => jest.fn()),
+        collection: jest.fn(() => ({ doc: jest.fn() })),
+      })),
+    })),
+    batch: jest.fn(() => ({
+      set: jest.fn(),
+      delete: jest.fn(),
+      commit: jest.fn(() => Promise.resolve()),
+    })),
+  }));
+  mockFirestore.FieldValue = { serverTimestamp: jest.fn() };
+  mockFirestore.Timestamp = {
+    fromDate: jest.fn((d: Date) => ({ toDate: () => d })),
+  };
+  return mockFirestore;
+});
+jest.mock("@/store/socialStore", () => ({
+  useSocialStore: jest.fn(() => ({ privacySettings: null })),
+}));
+jest.mock("@/utils/sharing", () => ({
+  publishStandaloneWorkout: jest.fn(() => Promise.resolve()),
+  unpublishStandaloneWorkout: jest.fn(() => Promise.resolve()),
+}));
 jest.mock("@/utils/database", () => ({
   createStandaloneWorkout: jest.fn(),
   updateStandaloneWorkout: jest.fn(),
@@ -124,7 +165,11 @@ describe("useUpdateStandaloneWorkout", () => {
 
   it("onSuccess invalidates ['standaloneWorkouts']", () => {
     useUpdateStandaloneWorkout();
-    capturedArgs.onSuccess();
+    capturedArgs.onSuccess(undefined, {
+      workoutId: 42,
+      name: "Updated",
+      exercises: [],
+    });
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["standaloneWorkouts"],
     });

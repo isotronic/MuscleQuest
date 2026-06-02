@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useContext } from "react";
 import {
   View,
   StyleSheet,
@@ -38,6 +38,10 @@ import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import { useDeloadWeekMutation } from "@/hooks/useDeloadWeekMutation";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { getCurrentISOWeek } from "@/utils/isoWeek";
+import { AuthContext } from "@/context/AuthProvider";
+import { useSocialStore } from "@/store/socialStore";
+import { usePlanPublishQuery } from "@/hooks/usePlanPublishQuery";
+import { usePlanPublishMutation } from "@/hooks/usePlanPublishMutation";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -99,6 +103,13 @@ export default function PlanOverviewScreen() {
     Number(planId) || undefined,
   );
   const deloadMutation = useDeloadWeekMutation(Number(planId));
+
+  const user = useContext(AuthContext);
+  const { privacySettings } = useSocialStore();
+  const showShareToggle = !!user && !!privacySettings?.sharePlans;
+  const { data: isPublished = false, isLoading: isPublishLoading } =
+    usePlanPublishQuery(showShareToggle ? Number(planId) : null);
+  const publishMutation = usePlanPublishMutation(Number(planId));
 
   const handleToggleDeload = useCallback(() => {
     deloadMutation.mutate(isCurrentWeekDeload ? null : getCurrentISOWeek());
@@ -268,6 +279,40 @@ export default function PlanOverviewScreen() {
             <View pointerEvents="none">
               <Switch value={isCurrentWeekDeload} color={colors.accent} />
             </View>
+          </TouchableOpacity>
+        )}
+
+        {showShareToggle && (
+          <TouchableOpacity
+            onPress={() => publishMutation.mutate(!isPublished)}
+            style={[styles.deloadRow]}
+            activeOpacity={0.7}
+            disabled={publishMutation.isPending || isPublishLoading}
+          >
+            <View style={styles.deloadLeft}>
+              <AppIcon
+                set="mci"
+                name="cloud-outline"
+                size={20}
+                color={isPublished ? colors.accent : colors.contentSecondary}
+                style={{ marginRight: 10 }}
+              />
+              <ThemedText
+                style={[
+                  styles.deloadTitle,
+                  isPublished && { color: colors.accent },
+                ]}
+              >
+                <Trans>Share Plan</Trans>
+              </ThemedText>
+            </View>
+            {publishMutation.isPending || isPublishLoading ? (
+              <ActivityIndicator size="small" color={colors.accent} />
+            ) : (
+              <View pointerEvents="none">
+                <Switch value={isPublished} color={colors.accent} />
+              </View>
+            )}
           </TouchableOpacity>
         )}
       </ScrollView>

@@ -1,10 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useContext } from "react";
 import Bugsnag from "@bugsnag/expo";
 import {
   insertBodyMeasurementSession,
   updateBodyMeasurementSession,
   deleteBodyMeasurementSession,
 } from "@/utils/database";
+import { AuthContext } from "@/context/AuthProvider";
+import { useSocialStore } from "@/store/socialStore";
+import { pushBodyMeasurement } from "@/utils/sharing";
 import {
   toCanonicalValue,
   type ValueKind,
@@ -27,6 +31,8 @@ export const useInsertBodyMeasurementMutation = (
   options: MeasurementDisplayOptions,
 ) => {
   const queryClient = useQueryClient();
+  const user = useContext(AuthContext);
+  const { privacySettings } = useSocialStore();
   return useMutation({
     mutationFn: ({
       recorded_at,
@@ -43,9 +49,14 @@ export const useInsertBodyMeasurementMutation = (
         }));
       return insertBodyMeasurementSession(recorded_at, canonicalValues);
     },
-    onSuccess: () => {
+    onSuccess: (entryId) => {
       invalidateBodyMeasurements(queryClient);
       queryClient.invalidateQueries({ queryKey: ["settings"] });
+      if (user && privacySettings?.shareBodyMeasurements && entryId) {
+        pushBodyMeasurement(user.uid, entryId).catch((err) =>
+          Bugsnag.notify(err),
+        );
+      }
     },
     onError: (error) => {
       console.error("Failed to insert body measurement session:", error);

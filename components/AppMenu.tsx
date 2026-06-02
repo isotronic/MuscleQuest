@@ -20,6 +20,7 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import { t } from "@lingui/core/macro";
 import { useMenuStore } from "@/store/menuStore";
+import { useSocialStore } from "@/store/socialStore";
 import { AppIcon } from "@/components/ui";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
@@ -37,9 +38,10 @@ type MenuItemProps = {
   label: string;
   onPress: () => void;
   hint?: string;
+  badge?: number;
 };
 
-function MenuItem({ icon, label, onPress, hint }: MenuItemProps) {
+function MenuItem({ icon, label, onPress, hint, badge }: MenuItemProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createMenuItemStyles(colors), [colors]);
   return (
@@ -49,13 +51,20 @@ function MenuItem({ icon, label, onPress, hint }: MenuItemProps) {
       accessibilityRole="button"
       accessibilityHint={hint}
     >
-      <AppIcon
-        set="ion"
-        name={icon}
-        size={22}
-        color={colors.accent}
-        style={styles.menuItemIcon}
-      />
+      <View style={styles.menuItemIconWrapper}>
+        <AppIcon
+          set="ion"
+          name={icon}
+          size={22}
+          color={colors.accent}
+          style={styles.menuItemIcon}
+        />
+        {!!badge && badge > 0 && (
+          <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+            <Text style={styles.badgeText}>{badge > 9 ? "9+" : badge}</Text>
+          </View>
+        )}
+      </View>
       <Text style={styles.menuItemLabel}>{label}</Text>
       <AppIcon
         set="ion"
@@ -77,6 +86,7 @@ export function AppMenu() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { isMenuOpen, closeMenu } = useMenuStore();
+  const { pendingRequests } = useSocialStore();
   const { width: screenWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -180,6 +190,14 @@ export function AppMenu() {
         <MenuDivider />
 
         <MenuItem
+          icon="people-outline"
+          label={t`Friends`}
+          onPress={() => navigate("/(app)/friends")}
+          badge={pendingRequests.length}
+        />
+        <MenuDivider />
+
+        <MenuItem
           icon="barbell-outline"
           label={t`Exercise Library`}
           onPress={() => navigate("/(app)/exercise-library")}
@@ -222,9 +240,32 @@ function createMenuItemStyles(colors: AppThemeColors) {
       paddingVertical: 14,
       paddingHorizontal: 4,
     },
+    menuItemIconWrapper: {
+      position: "relative",
+      width: 28,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     menuItemIcon: {
       marginRight: 14,
       width: 24,
+    },
+    badge: {
+      position: "absolute",
+      top: -4,
+      right: -6,
+      minWidth: 16,
+      height: 16,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 3,
+    },
+    badgeText: {
+      color: "#fff",
+      fontSize: 10,
+      fontWeight: "700",
+      lineHeight: 12,
     },
     menuItemLabel: {
       flex: 1,

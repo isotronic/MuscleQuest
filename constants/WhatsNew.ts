@@ -291,13 +291,25 @@ The Plans screen now has three display modes. Use the icons next to the "Your Tr
   {
     version: 2634,
     message: msg`
-📈 New: Adaptive Progression!
+📈 Beta: Adaptive Progression!
 
 MuscleQuest can now suggest when to increase your weight or reps based on how your sessions feel. After each exercise, answer two quick questions about effort and pain. Once you have reported the same signal for two sessions in a row, the app suggests a change. All suggestions appear in the Workout Summary screen, where you can accept or dismiss each one individually. Accepted suggestions are pre-filled into your next session automatically.
 
 A Recovery Check-in at the start of your next workout lets you factor in soreness before any suggestion is applied. You can also mark a full week as a Deload from the plan overview, which pauses feedback and progression tracking for that week.
 
 Enable it in Settings under Adaptive Progression, and configure your preferred load increment per equipment category.
+`,
+  },
+  {
+    version: 2635,
+    message: msg`
+👥 New: Friends & Social Sharing!
+
+Add friends by searching for their username from the Friends tab in the menu. Send a request, and once accepted you can browse each other's shared content. A badge on the Friends menu item shows pending incoming requests.
+
+Share your plans, standalone workouts, custom exercises, body measurements, and strength PRs by toggling Share in the relevant screen or from Privacy Settings in the Account section of Settings. Shared content syncs automatically whenever it changes, and a cloud icon on plan and workout cards shows what is currently published. You can delete all shared data for any category from Privacy Settings at any time.
+
+Tap any accepted friend's name to open their profile and import their plans, standalone workouts, or custom exercises directly into your own library.
 `,
   },
 ];

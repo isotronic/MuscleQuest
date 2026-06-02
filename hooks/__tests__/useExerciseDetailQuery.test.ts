@@ -92,6 +92,7 @@ describe("useExerciseDetailQuery — configuration", () => {
       true,
       true,
       false,
+      false, // excludeDeload default
     ]);
   });
 
