@@ -78,6 +78,9 @@ export default function FriendsScreen() {
               key={key}
               onPress={() => setActiveTab(key)}
               style={styles.tabButton}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={label}
             >
               <AppText
                 variant="label"
