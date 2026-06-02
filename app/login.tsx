@@ -106,8 +106,8 @@ export default function LoginScreen() {
 
         <ThemedText style={styles.info}>
           <Trans>
-            You can login at any time from the settings screen, if you choose to
-            skip it now.
+            You can log in at any time from the settings screen, if you choose
+            to skip it now.
           </Trans>
         </ThemedText>
 

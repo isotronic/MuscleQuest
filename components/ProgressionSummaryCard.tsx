@@ -28,7 +28,7 @@ function getRuleExplanation(ruleKey: string): string {
     MODERATE_TARGET: t`Solid session. Keep this load.`,
     HARD_TARGET: t`You finished everything at the limit. Stay here and own it.`,
     UNSUPPORTED_TRACKING: t`No progression tracking for this exercise type.`,
-    NO_RANGE: t`No rep range defined. Add a rep range (e.g. 8-12) to enable auto-progression.`,
+    NO_RANGE: t`No per-set rep target defined. Add a rep target (e.g. 8) for each set to enable auto-progression.`,
     NO_PRIOR_WEIGHT: t`No prior weight data. Hold steady for now.`,
     DEFAULT: t`Hold steady this session.`,
   };
