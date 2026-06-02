@@ -14,12 +14,13 @@ jest.mock("@tanstack/react-query", () => ({ useQuery: jest.fn() }));
 // Helpers to build a mock DB for fetchExerciseDetail
 //
 // Call order (timeRange = "0"):
-//   1. getFirstAsync  – exercise flags (is_unilateral, double_weight)
-//   2. getAllAsync     – main best-sets CTE
-//   3. getFirstAsync  – all-time PR
-//   4. getFirstAsync  – exercise name
-//   5. getAllAsync     – top 5 PR sets
-//   6. getAllAsync     – recent 5 sessions
+//   1. getFirstAsync  – exercise flags (is_unilateral, double_weight, tracking_type)
+//   2. getFirstAsync  – current tracking type override lookup
+//   3. getAllAsync     – main best-sets CTE
+//   4. getFirstAsync  – all-time PR
+//   5. getFirstAsync  – exercise name
+//   6. getAllAsync     – top 5 PR sets
+//   7. getAllAsync     – recent 5 sessions
 // ---------------------------------------------------------------------------
 
 const makeRow = (overrides: Partial<any> = {}) => ({
@@ -39,20 +40,23 @@ function buildMockDb(rows: any[] = [makeRow()]) {
     getFirstAsync: jest.fn(),
     getAllAsync: jest.fn(),
   };
-  // Call 1: flags
+  // Call 1: flags (now includes tracking_type)
   db.getFirstAsync.mockResolvedValueOnce({
     is_unilateral: 0,
     double_weight: 0,
+    tracking_type: "weight",
   });
-  // Call 2: main sets CTE
+  // Call 2: tracking type override lookup (null = no override)
+  db.getFirstAsync.mockResolvedValueOnce(null);
+  // Call 3: main sets CTE
   db.getAllAsync.mockResolvedValueOnce(rows);
-  // Call 3: all-time PR
+  // Call 4: all-time PR
   db.getFirstAsync.mockResolvedValueOnce({ all_time_pr: 116.7 });
-  // Call 4: exercise name
+  // Call 5: exercise name
   db.getFirstAsync.mockResolvedValueOnce({ name: "Bench Press" });
-  // Call 5: top 5 PR sets
+  // Call 6: top 5 PR sets
   db.getAllAsync.mockResolvedValueOnce([makeRow()]);
-  // Call 6: recent 5 sessions
+  // Call 7: recent 5 sessions
   db.getAllAsync.mockResolvedValueOnce([makeRow()]);
   return db;
 }
@@ -178,7 +182,9 @@ describe("useExerciseDetailQuery — queryFn", () => {
     freshDb.getFirstAsync.mockResolvedValueOnce({
       is_unilateral: 0,
       double_weight: 0,
+      tracking_type: "reps",
     });
+    freshDb.getFirstAsync.mockResolvedValueOnce(null); // override lookup
     freshDb.getAllAsync.mockResolvedValueOnce([repsRow]);
     freshDb.getFirstAsync.mockResolvedValueOnce({ all_time_pr: 20 });
     freshDb.getFirstAsync.mockResolvedValueOnce({ name: "Pull-up" });
@@ -202,7 +208,7 @@ describe("useExerciseDetailQuery — queryFn", () => {
 
   it("fetches pre-range baseline when timeRange is not '0'", async () => {
     const freshDb = buildMockDb();
-    // Add baseline call (7th call to getFirstAsync)
+    // Add baseline call (8th call to getFirstAsync, after the 7 standard calls)
     (freshDb.getFirstAsync as jest.Mock).mockResolvedValueOnce({
       baseline_metric: 90,
     });
