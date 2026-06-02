@@ -102,7 +102,10 @@ export const fetchLastBackupDate = async (): Promise<Date | null> => {
     }
 
     return null;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === "storage/object-not-found") {
+      return null;
+    }
     console.error("Error fetching last backup date:", error);
     return null;
   }
