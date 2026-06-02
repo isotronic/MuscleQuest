@@ -21,12 +21,6 @@ import Bugsnag from "@bugsnag/expo";
 type QDocSnap = FirebaseFirestoreTypes.QueryDocumentSnapshot;
 type DocSnap = FirebaseFirestoreTypes.DocumentSnapshot;
 
-const notifyError = (error: unknown) => {
-  if ((error as any)?.code !== "firestore/permission-denied") {
-    Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
-  }
-};
-
 export const useSocialListeners = () => {
   const user = useContext(AuthContext);
   const {
@@ -35,6 +29,17 @@ export const useSocialListeners = () => {
     setFriends,
     setPrivacySettings,
   } = useSocialStore();
+
+  const notifyError = (error: unknown) => {
+    if ((error as any)?.code === "firestore/permission-denied") {
+      setPendingRequests([]);
+      setSentRequests([]);
+      setFriends([]);
+      setPrivacySettings(null);
+      return;
+    }
+    Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
+  };
 
   useEffect(() => {
     if (!user) {
