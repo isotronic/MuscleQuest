@@ -1,4 +1,16 @@
-import firestore from "@react-native-firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  writeBatch,
+  query,
+  where,
+  limit,
+  serverTimestamp,
+} from "@react-native-firebase/firestore";
 
 export interface UserSearchResult {
   uid: string;
@@ -7,18 +19,19 @@ export interface UserSearchResult {
   photoURL: string;
 }
 
-// Always uses .set() (overwrite) so a re-request after decline replaces the
+// Always uses setDoc (overwrite) so a re-request after decline replaces the
 // existing document rather than failing or creating a duplicate.
 export const sendFriendRequest = async (
   fromUid: string,
   toUid: string,
 ): Promise<void> => {
   const requestId = `${fromUid}_${toUid}`;
-  await firestore().collection("friendRequests").doc(requestId).set({
+  const db = getFirestore();
+  await setDoc(doc(db, "friendRequests", requestId), {
     from: fromUid,
     to: toUid,
     status: "pending",
-    createdAt: firestore.FieldValue.serverTimestamp(),
+    createdAt: serverTimestamp(),
   });
 };
 
@@ -27,21 +40,13 @@ export const acceptFriendRequest = async (
   myUid: string,
 ): Promise<void> => {
   const requestId = `${fromUid}_${myUid}`;
-  const db = firestore();
-  const now = firestore.FieldValue.serverTimestamp();
-  const batch = db.batch();
+  const db = getFirestore();
+  const now = serverTimestamp();
+  const batch = writeBatch(db);
 
-  batch.set(
-    db.collection("users").doc(myUid).collection("friends").doc(fromUid),
-    { since: now },
-  );
-  batch.set(
-    db.collection("users").doc(fromUid).collection("friends").doc(myUid),
-    { since: now },
-  );
-  batch.update(db.collection("friendRequests").doc(requestId), {
-    status: "accepted",
-  });
+  batch.set(doc(db, "users", myUid, "friends", fromUid), { since: now });
+  batch.set(doc(db, "users", fromUid, "friends", myUid), { since: now });
+  batch.update(doc(db, "friendRequests", requestId), { status: "accepted" });
 
   await batch.commit();
 };
@@ -51,30 +56,24 @@ export const declineFriendRequest = async (
   myUid: string,
 ): Promise<void> => {
   const requestId = `${fromUid}_${myUid}`;
-  await firestore()
-    .collection("friendRequests")
-    .doc(requestId)
-    .update({ status: "declined" });
+  const db = getFirestore();
+  await updateDoc(doc(db, "friendRequests", requestId), { status: "declined" });
 };
 
 export const removeFriend = async (
   myUid: string,
   friendUid: string,
 ): Promise<void> => {
-  const db = firestore();
-  const batch = db.batch();
+  const db = getFirestore();
+  const batch = writeBatch(db);
 
-  batch.delete(
-    db.collection("users").doc(myUid).collection("friends").doc(friendUid),
-  );
-  batch.delete(
-    db.collection("users").doc(friendUid).collection("friends").doc(myUid),
-  );
+  batch.delete(doc(db, "users", myUid, "friends", friendUid));
+  batch.delete(doc(db, "users", friendUid, "friends", myUid));
 
   // Also clean up the friend request document in both possible directions.
   // We don't know which user initiated the original request, so delete both.
-  batch.delete(db.collection("friendRequests").doc(`${myUid}_${friendUid}`));
-  batch.delete(db.collection("friendRequests").doc(`${friendUid}_${myUid}`));
+  batch.delete(doc(db, "friendRequests", `${myUid}_${friendUid}`));
+  batch.delete(doc(db, "friendRequests", `${friendUid}_${myUid}`));
 
   await batch.commit();
 };
@@ -84,20 +83,23 @@ export const searchUserByEmail = async (
   email: string,
   currentUid: string,
 ): Promise<UserSearchResult | null> => {
-  const snapshot = await firestore()
-    .collection("users")
-    .where("email", "==", email.toLowerCase().trim())
-    .limit(1)
-    .get();
+  const db = getFirestore();
+  const snapshot = await getDocs(
+    query(
+      collection(db, "users"),
+      where("email", "==", email.toLowerCase().trim()),
+      limit(1),
+    ),
+  );
 
   if (snapshot.empty) return null;
 
-  const doc = snapshot.docs[0];
-  if (doc.id === currentUid) return null;
+  const firstDoc = snapshot.docs[0];
+  if (firstDoc.id === currentUid) return null;
 
-  const data = doc.data();
+  const data = firstDoc.data();
   return {
-    uid: doc.id,
+    uid: firstDoc.id,
     displayName: data.displayName,
     email: data.email,
     photoURL: data.photoURL,

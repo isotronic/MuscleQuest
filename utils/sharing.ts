@@ -1,4 +1,17 @@
-import firestore from "@react-native-firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  deleteDoc,
+  writeBatch,
+  query,
+  limit,
+  serverTimestamp,
+  Timestamp,
+} from "@react-native-firebase/firestore";
 import Bugsnag from "@bugsnag/expo";
 import {
   fetchFullPlanForSharing,
@@ -81,18 +94,14 @@ export const publishPlan = async (
   const data = await fetchFullPlanForSharing(planId);
   if (!data) return;
 
-  const now = firestore.FieldValue.serverTimestamp();
-  const db = firestore();
-  const ref = db
-    .collection("users")
-    .doc(uid)
-    .collection("sharedPlans")
-    .doc(String(planId));
+  const now = serverTimestamp();
+  const db = getFirestore();
+  const ref = doc(db, "users", uid, "sharedPlans", String(planId));
 
-  const existing = await ref.get();
+  const existing = await getDoc(ref);
   const publishedAt = existing.exists() ? existing.data()?.publishedAt : now;
 
-  await ref.set({
+  await setDoc(ref, {
     localPlanId: planId,
     name: data.plan.name,
     imageUrl: data.plan.image_url ?? null,
@@ -110,12 +119,8 @@ export const unpublishPlan = async (
   uid: string,
   planId: number,
 ): Promise<void> => {
-  await firestore()
-    .collection("users")
-    .doc(uid)
-    .collection("sharedPlans")
-    .doc(String(planId))
-    .delete();
+  const db = getFirestore();
+  await deleteDoc(doc(db, "users", uid, "sharedPlans", String(planId)));
 };
 
 // ─── standalone workouts ──────────────────────────────────────────────────────
@@ -127,18 +132,20 @@ export const publishStandaloneWorkout = async (
   const data = await fetchStandaloneWorkoutForSharing(workoutId);
   if (!data) return;
 
-  const now = firestore.FieldValue.serverTimestamp();
-  const db = firestore();
-  const ref = db
-    .collection("users")
-    .doc(uid)
-    .collection("sharedStandaloneWorkouts")
-    .doc(String(workoutId));
+  const now = serverTimestamp();
+  const db = getFirestore();
+  const ref = doc(
+    db,
+    "users",
+    uid,
+    "sharedStandaloneWorkouts",
+    String(workoutId),
+  );
 
-  const existing = await ref.get();
+  const existing = await getDoc(ref);
   const publishedAt = existing.exists() ? existing.data()?.publishedAt : now;
 
-  await ref.set({
+  await setDoc(ref, {
     localWorkoutId: workoutId,
     name: data.workout_name,
     imageUrl: data.image_url ?? null,
@@ -152,12 +159,10 @@ export const unpublishStandaloneWorkout = async (
   uid: string,
   workoutId: number,
 ): Promise<void> => {
-  await firestore()
-    .collection("users")
-    .doc(uid)
-    .collection("sharedStandaloneWorkouts")
-    .doc(String(workoutId))
-    .delete();
+  const db = getFirestore();
+  await deleteDoc(
+    doc(db, "users", uid, "sharedStandaloneWorkouts", String(workoutId)),
+  );
 };
 
 // ─── custom exercises ─────────────────────────────────────────────────────────
@@ -167,18 +172,20 @@ export const pushCustomExercise = async (
   exercise: Exercise,
 ): Promise<void> => {
   try {
-    const now = firestore.FieldValue.serverTimestamp();
-    const db = firestore();
-    const ref = db
-      .collection("users")
-      .doc(uid)
-      .collection("sharedCustomExercises")
-      .doc(String(exercise.exercise_id));
+    const now = serverTimestamp();
+    const db = getFirestore();
+    const ref = doc(
+      db,
+      "users",
+      uid,
+      "sharedCustomExercises",
+      String(exercise.exercise_id),
+    );
 
-    const existing = await ref.get();
+    const existing = await getDoc(ref);
     const publishedAt = existing.exists() ? existing.data()?.publishedAt : now;
 
-    await ref.set({
+    await setDoc(ref, {
       localExerciseId: exercise.exercise_id,
       name: exercise.name,
       equipment: exercise.equipment ?? "",
@@ -207,12 +214,10 @@ export const removeCustomExercise = async (
   exerciseId: number,
 ): Promise<void> => {
   try {
-    await firestore()
-      .collection("users")
-      .doc(uid)
-      .collection("sharedCustomExercises")
-      .doc(String(exerciseId))
-      .delete();
+    const db = getFirestore();
+    await deleteDoc(
+      doc(db, "users", uid, "sharedCustomExercises", String(exerciseId)),
+    );
   } catch (error) {
     Bugsnag.notify(error as Error);
   }
@@ -228,18 +233,14 @@ export const pushCompletedWorkout = async (
     const data = await fetchCompletedWorkoutForSharing(completedWorkoutId);
     if (!data) return;
 
-    await firestore()
-      .collection("users")
-      .doc(uid)
-      .collection("sharedWorkouts")
-      .doc(String(completedWorkoutId))
-      .set({
+    const db = getFirestore();
+    await setDoc(
+      doc(db, "users", uid, "sharedWorkouts", String(completedWorkoutId)),
+      {
         localWorkoutId: completedWorkoutId,
         planName: data.plan_name ?? null,
         workoutName: data.workout_name ?? null,
-        dateCompleted: firestore.Timestamp.fromDate(
-          new Date(data.date_completed),
-        ),
+        dateCompleted: Timestamp.fromDate(new Date(data.date_completed)),
         durationSeconds: data.duration,
         totalSetsCompleted: data.total_sets_completed,
         isDeload: !!data.is_deload,
@@ -256,7 +257,8 @@ export const pushCompletedWorkout = async (
             isToFailure: !!s.is_to_failure,
           })),
         })),
-      });
+      },
+    );
   } catch (error) {
     Bugsnag.notify(error as Error);
   }
@@ -272,16 +274,12 @@ export const pushBodyMeasurement = async (
     const data = await fetchBodyMeasurementEntryForSharing(entryId);
     if (!data) return;
 
-    await firestore()
-      .collection("users")
-      .doc(uid)
-      .collection("sharedMeasurements")
-      .doc(String(entryId))
-      .set({
-        localEntryId: entryId,
-        recordedAt: firestore.Timestamp.fromDate(new Date(data.recorded_at)),
-        values: data.values,
-      });
+    const db = getFirestore();
+    await setDoc(doc(db, "users", uid, "sharedMeasurements", String(entryId)), {
+      localEntryId: entryId,
+      recordedAt: Timestamp.fromDate(new Date(data.recorded_at)),
+      values: data.values,
+    });
   } catch (error) {
     Bugsnag.notify(error as Error);
   }
@@ -297,38 +295,32 @@ export const pushStrengthPRs = async (
     const prData = await fetchPRDataForExercises(exerciseIds);
     if (prData.length === 0) return;
 
-    const db = firestore();
+    const db = getFirestore();
     const BATCH_LIMIT = 500;
 
     for (let i = 0; i < prData.length; i += BATCH_LIMIT) {
       const chunk = prData.slice(i, i + BATCH_LIMIT);
-      const batch = db.batch();
+      const batch = writeBatch(db);
 
       for (const pr of chunk) {
         const docId =
           pr.app_exercise_id != null
             ? `app_${pr.app_exercise_id}`
             : `custom_${pr.exercise_id}`;
-        const ref = db
-          .collection("users")
-          .doc(uid)
-          .collection("sharedStrength")
-          .doc(docId);
+        const ref = doc(db, "users", uid, "sharedStrength", docId);
 
         batch.set(ref, {
           exerciseName: pr.exercise_name,
           appExerciseId: pr.app_exercise_id,
           trackingType: pr.tracking_type,
           allTimePR: pr.all_time_pr,
-          allTimePRDate: firestore.Timestamp.fromDate(
-            new Date(pr.all_time_pr_date),
-          ),
+          allTimePRDate: Timestamp.fromDate(new Date(pr.all_time_pr_date)),
           topPRSets: pr.top_sets.map((s) => ({
             weight: s.weight,
             reps: s.reps,
             time: s.time,
             distance: s.distance,
-            date: firestore.Timestamp.fromDate(new Date(s.date_completed)),
+            date: Timestamp.fromDate(new Date(s.date_completed)),
           })),
         });
       }
@@ -346,18 +338,18 @@ const deleteSubcollection = async (
   uid: string,
   subcollection: string,
 ): Promise<void> => {
-  const db = firestore();
-  const collRef = db.collection("users").doc(uid).collection(subcollection);
+  const db = getFirestore();
+  const collRef = collection(db, "users", uid, subcollection);
 
-  let snapshot = await collRef.limit(500).get();
+  let snapshot = await getDocs(query(collRef, limit(500)));
   while (!snapshot.empty) {
-    const batch = db.batch();
-    for (const doc of snapshot.docs) {
-      batch.delete(doc.ref);
+    const batch = writeBatch(db);
+    for (const docSnap of snapshot.docs) {
+      batch.delete(docSnap.ref);
     }
     await batch.commit();
     if (snapshot.docs.length < 500) break;
-    snapshot = await collRef.limit(500).get();
+    snapshot = await getDocs(query(collRef, limit(500)));
   }
 };
 

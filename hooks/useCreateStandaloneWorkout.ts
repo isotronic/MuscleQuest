@@ -8,7 +8,7 @@ import {
 import { UserExercise } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import { AuthContext } from "@/context/AuthProvider";
-import firestore from "@react-native-firebase/firestore";
+import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
 import { publishStandaloneWorkout } from "@/utils/sharing";
 
 export const useCreateStandaloneWorkout = () => {
@@ -46,15 +46,17 @@ export const useUpdateStandaloneWorkout = () => {
     onSuccess: (_, { workoutId }) => {
       queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
       if (user) {
-        const ref = firestore()
-          .collection("users")
-          .doc(user.uid)
-          .collection("sharedStandaloneWorkouts")
-          .doc(String(workoutId));
-        ref
-          .get()
+        const db = getFirestore();
+        const docRef = doc(
+          db,
+          "users",
+          user.uid,
+          "sharedStandaloneWorkouts",
+          String(workoutId),
+        );
+        getDoc(docRef)
           .then((snap) => {
-            if ((snap as any).exists) {
+            if (snap.exists()) {
               publishStandaloneWorkout(user.uid, workoutId).catch((err) =>
                 Bugsnag.notify(err),
               );
