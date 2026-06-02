@@ -14,7 +14,7 @@ export const useFriendSharedStandaloneWorkoutsQuery = (
 ) => {
   const user = useContext(AuthContext);
   return useQuery({
-    queryKey: ["friendSharedStandaloneWorkouts", friendUid],
+    queryKey: ["friendSharedStandaloneWorkouts", user?.uid, friendUid],
     queryFn: async (): Promise<SharedStandaloneWorkout[]> => {
       if (!user || !friendUid) return [];
       const db = getFirestore();

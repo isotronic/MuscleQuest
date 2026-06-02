@@ -7,7 +7,7 @@ export const usePlanPublishQuery = (planId: number | null) => {
   const user = useContext(AuthContext);
 
   return useQuery({
-    queryKey: ["planPublished", planId],
+    queryKey: ["planPublished", user?.uid, planId],
     queryFn: async () => {
       if (!user || !planId) return false;
       const db = getFirestore();

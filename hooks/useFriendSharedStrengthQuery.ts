@@ -12,7 +12,7 @@ import { SharedStrengthPR } from "@/types/firestore";
 export const useFriendSharedStrengthQuery = (friendUid: string | null) => {
   const user = useContext(AuthContext);
   return useQuery({
-    queryKey: ["friendSharedStrength", friendUid],
+    queryKey: ["friendSharedStrength", user?.uid, friendUid],
     queryFn: async (): Promise<SharedStrengthPR[]> => {
       if (!user || !friendUid) return [];
       const db = getFirestore();

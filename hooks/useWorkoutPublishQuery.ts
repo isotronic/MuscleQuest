@@ -7,7 +7,7 @@ export const useWorkoutPublishQuery = (workoutId: number | null) => {
   const user = useContext(AuthContext);
 
   return useQuery({
-    queryKey: ["workoutPublished", workoutId],
+    queryKey: ["workoutPublished", user?.uid, workoutId],
     queryFn: async () => {
       if (!user || !workoutId) return false;
       const db = getFirestore();
