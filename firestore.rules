@@ -9,10 +9,11 @@ service cloud.firestore {
     // Returns true only when a friendRequest document from→to exists with status "pending"
     // and the stored from/to fields match the expected UIDs (defence-in-depth).
     function hasPendingRequest(fromUid, toUid) {
-      return exists(/databases/$(database)/documents/friendRequests/$(fromUid + '_' + toUid)) &&
-             get(/databases/$(database)/documents/friendRequests/$(fromUid + '_' + toUid)).data.status == 'pending' &&
-             get(/databases/$(database)/documents/friendRequests/$(fromUid + '_' + toUid)).data.from == fromUid &&
-             get(/databases/$(database)/documents/friendRequests/$(fromUid + '_' + toUid)).data.to == toUid;
+      let doc = get(/databases/$(database)/documents/friendRequests/$(fromUid + '_' + toUid));
+      return doc != null &&
+             doc.data.status == 'pending' &&
+             doc.data.from == fromUid &&
+             doc.data.to == toUid;
     }
 
     // Public profiles: any authenticated user can read (email search).
