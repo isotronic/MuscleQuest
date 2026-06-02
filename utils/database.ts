@@ -2419,16 +2419,15 @@ export const upsertProgressionState = async (
     await db.runAsync(
       `INSERT INTO exercise_progression_state (
         user_workout_exercise_id, suggestion_action, suggested_weight,
-        suggested_reps_min, suggested_reps_max, suggested_sets,
+        suggested_reps_per_set, suggested_sets,
         rule_key, rule_explanation, source_feedback_id,
         consecutive_direction_count, is_applied, is_dismissed,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, datetime('now'))
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, datetime('now'))
       ON CONFLICT(user_workout_exercise_id) DO UPDATE SET
         suggestion_action = excluded.suggestion_action,
         suggested_weight = excluded.suggested_weight,
-        suggested_reps_min = excluded.suggested_reps_min,
-        suggested_reps_max = excluded.suggested_reps_max,
+        suggested_reps_per_set = excluded.suggested_reps_per_set,
         suggested_sets = excluded.suggested_sets,
         rule_key = excluded.rule_key,
         rule_explanation = excluded.rule_explanation,
@@ -2441,8 +2440,9 @@ export const upsertProgressionState = async (
         userWorkoutExerciseId,
         result.action,
         result.suggestedWeight ?? null,
-        result.suggestedRepsMin ?? null,
-        result.suggestedRepsMax ?? null,
+        result.suggestedRepsPerSet != null
+          ? JSON.stringify(result.suggestedRepsPerSet)
+          : null,
         result.suggestedSets ?? null,
         result.ruleKey,
         result.explanation,
@@ -2467,8 +2467,7 @@ export const getProgressionState = async (
       user_workout_exercise_id: number;
       suggestion_action: string;
       suggested_weight: number | null;
-      suggested_reps_min: number | null;
-      suggested_reps_max: number | null;
+      suggested_reps_per_set: string | null;
       suggested_sets: number | null;
       rule_key: string;
       rule_explanation: string;
@@ -2485,13 +2484,20 @@ export const getProgressionState = async (
       [userWorkoutExerciseId],
     );
     if (!row) return null;
+    let parsedRepsPerSet: number[] | undefined;
+    if (row.suggested_reps_per_set) {
+      try {
+        parsedRepsPerSet = JSON.parse(row.suggested_reps_per_set);
+      } catch {
+        parsedRepsPerSet = undefined;
+      }
+    }
     return {
       id: row.id,
       userWorkoutExerciseId: row.user_workout_exercise_id,
       suggestionAction: row.suggestion_action as ProgressionAction,
       suggestedWeight: row.suggested_weight ?? undefined,
-      suggestedRepsMin: row.suggested_reps_min ?? undefined,
-      suggestedRepsMax: row.suggested_reps_max ?? undefined,
+      suggestedRepsPerSet: parsedRepsPerSet,
       suggestedSets: row.suggested_sets ?? undefined,
       ruleKey: row.rule_key,
       ruleExplanation: row.rule_explanation,
@@ -2532,45 +2538,14 @@ export const updateProgressionStateRecovery = async (
 
 export const applyProgressionToExercise = async (
   userWorkoutExerciseId: number,
-  suggestedRepsMin: number | undefined,
-  suggestedRepsMax: number | undefined,
 ): Promise<void> => {
   try {
     const db = await openDatabase("userData.db");
-    await db.withExclusiveTransactionAsync(async (txn) => {
-      const row = await txn.getFirstAsync<{ sets: string | null }>(
-        `SELECT sets FROM user_workout_exercises WHERE id = ?`,
-        [userWorkoutExerciseId],
-      );
-      if (!row?.sets) return;
-
-      let sets: { repsMin?: number; repsMax?: number }[];
-      try {
-        sets = JSON.parse(row.sets);
-      } catch {
-        return;
-      }
-
-      const updated = sets.map((s) => ({
-        ...s,
-        ...(suggestedRepsMin !== undefined
-          ? { repsMin: suggestedRepsMin }
-          : {}),
-        ...(suggestedRepsMax !== undefined
-          ? { repsMax: suggestedRepsMax }
-          : {}),
-      }));
-
-      await txn.runAsync(
-        `UPDATE user_workout_exercises SET sets = ? WHERE id = ?`,
-        [JSON.stringify(updated), userWorkoutExerciseId],
-      );
-      await txn.runAsync(
-        `UPDATE exercise_progression_state SET is_applied = 1, updated_at = datetime('now')
-         WHERE user_workout_exercise_id = ?`,
-        [userWorkoutExerciseId],
-      );
-    });
+    await db.runAsync(
+      `UPDATE exercise_progression_state SET is_applied = 1, updated_at = datetime('now')
+       WHERE user_workout_exercise_id = ?`,
+      [userWorkoutExerciseId],
+    );
   } catch (error: any) {
     console.error("Error applying progression to exercise:", error);
     Bugsnag.notify(error);
@@ -2717,8 +2692,8 @@ export interface WorkoutProgressionStateRow {
   exerciseName: string;
   suggestionAction: ProgressionAction;
   suggestedWeight?: number;
-  suggestedRepsMin?: number;
-  suggestedRepsMax?: number;
+  /** Per-set suggested rep targets (one per working set, in order). */
+  suggestedRepsPerSet?: number[];
   suggestedSets?: number;
   ruleKey: string;
   ruleExplanation: string;
@@ -2738,8 +2713,7 @@ export const getProgressionStatesForWorkout = async (
       exercise_name: string;
       suggestion_action: string;
       suggested_weight: number | null;
-      suggested_reps_min: number | null;
-      suggested_reps_max: number | null;
+      suggested_reps_per_set: string | null;
       suggested_sets: number | null;
       rule_key: string;
       rule_explanation: string;
@@ -2753,8 +2727,7 @@ export const getProgressionStatesForWorkout = async (
         e.name AS exercise_name,
         eps.suggestion_action,
         eps.suggested_weight,
-        eps.suggested_reps_min,
-        eps.suggested_reps_max,
+        eps.suggested_reps_per_set,
         eps.suggested_sets,
         eps.rule_key,
         eps.rule_explanation,
@@ -2769,21 +2742,30 @@ export const getProgressionStatesForWorkout = async (
       ORDER BY uwe.exercise_order ASC`,
       [workoutId],
     );
-    return rows.map((row) => ({
-      id: row.id,
-      userWorkoutExerciseId: row.user_workout_exercise_id,
-      exerciseName: row.exercise_name,
-      suggestionAction: row.suggestion_action as ProgressionAction,
-      suggestedWeight: row.suggested_weight ?? undefined,
-      suggestedRepsMin: row.suggested_reps_min ?? undefined,
-      suggestedRepsMax: row.suggested_reps_max ?? undefined,
-      suggestedSets: row.suggested_sets ?? undefined,
-      ruleKey: row.rule_key,
-      ruleExplanation: row.rule_explanation,
-      consecutiveDirectionCount: row.consecutive_direction_count,
-      isApplied: row.is_applied === 1,
-      isDismissed: row.is_dismissed === 1,
-    }));
+    return rows.map((row) => {
+      let parsedRepsPerSet: number[] | undefined;
+      if (row.suggested_reps_per_set) {
+        try {
+          parsedRepsPerSet = JSON.parse(row.suggested_reps_per_set);
+        } catch {
+          parsedRepsPerSet = undefined;
+        }
+      }
+      return {
+        id: row.id,
+        userWorkoutExerciseId: row.user_workout_exercise_id,
+        exerciseName: row.exercise_name,
+        suggestionAction: row.suggestion_action as ProgressionAction,
+        suggestedWeight: row.suggested_weight ?? undefined,
+        suggestedRepsPerSet: parsedRepsPerSet,
+        suggestedSets: row.suggested_sets ?? undefined,
+        ruleKey: row.rule_key,
+        ruleExplanation: row.rule_explanation,
+        consecutiveDirectionCount: row.consecutive_direction_count,
+        isApplied: row.is_applied === 1,
+        isDismissed: row.is_dismissed === 1,
+      };
+    });
   } catch (error: any) {
     console.error("Error fetching workout progression states:", error);
     Bugsnag.notify(error);

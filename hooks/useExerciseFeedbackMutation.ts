@@ -20,6 +20,7 @@ export interface ExerciseContext {
   equipment: string;
   currentSets: PlanSet[];
   recentWorkingWeight: number | null;
+  completedRepsPerSet?: (number | null)[];
 }
 
 interface SubmitFeedbackInput {
@@ -90,6 +91,7 @@ export const useExerciseFeedbackMutation = () => {
         recoveryRating: existingState?.recoveryRating ?? null,
         consecutiveDirectionCount: consecutiveCount,
         userIncrements: progressionSettings.increments,
+        completedRepsPerSet: exerciseContext.completedRepsPerSet,
       };
 
       const result = evaluateProgression(engineInputs);

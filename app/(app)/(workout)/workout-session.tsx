@@ -1000,6 +1000,11 @@ export default function WorkoutSessionScreen() {
       .map(({ idx }) => parseFloat(weightAndReps[exIdx]?.[idx]?.weight ?? ""))
       .filter((w) => !isNaN(w));
 
+    const completedRepsPerSet = workingSets.map(({ idx }) => {
+      const r = parseInt(weightAndReps[exIdx]?.[idx]?.reps ?? "", 10);
+      return isNaN(r) ? null : r;
+    });
+
     return {
       userWorkoutExerciseId: exercise.id,
       exerciseName: exercise.name,
@@ -1011,6 +1016,7 @@ export default function WorkoutSessionScreen() {
         currentSets: exercise.sets,
         recentWorkingWeight:
           maxWeight.length > 0 ? Math.max(...maxWeight) : null,
+        completedRepsPerSet,
       },
     };
   };

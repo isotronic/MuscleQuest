@@ -52,8 +52,6 @@ export default function ProgressionSummaryCard({
     for (const s of actionable) {
       await applyMutation.mutateAsync({
         userWorkoutExerciseId: s.userWorkoutExerciseId,
-        suggestedRepsMin: s.suggestedRepsMin,
-        suggestedRepsMax: s.suggestedRepsMax,
       });
     }
   };
@@ -86,8 +84,6 @@ export default function ProgressionSummaryCard({
             onAccept={() =>
               applyMutation.mutate({
                 userWorkoutExerciseId: state.userWorkoutExerciseId,
-                suggestedRepsMin: state.suggestedRepsMin,
-                suggestedRepsMax: state.suggestedRepsMax,
               })
             }
             onDismiss={() =>
@@ -123,8 +119,7 @@ function SuggestionRow({
         <ProgressionSuggestionChip
           action={state.suggestionAction}
           suggestedWeight={state.suggestedWeight}
-          suggestedRepsMin={state.suggestedRepsMin}
-          suggestedRepsMax={state.suggestedRepsMax}
+          suggestedRepsPerSet={state.suggestedRepsPerSet}
           weightUnit={weightUnit}
         />
         <ThemedText

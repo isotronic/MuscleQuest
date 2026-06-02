@@ -383,8 +383,15 @@ export default function SessionSetInfo({
             <ProgressionSuggestionChip
               action={progressionSuggestion.suggestionAction}
               suggestedWeight={progressionSuggestion.suggestedWeight}
-              suggestedRepsMin={progressionSuggestion.suggestedRepsMin}
-              suggestedRepsMax={progressionSuggestion.suggestedRepsMax}
+              suggestedRepsPerSet={
+                progressionSuggestion.suggestedRepsPerSet != null
+                  ? [
+                      progressionSuggestion.suggestedRepsPerSet[
+                        currentSetIndex
+                      ],
+                    ].filter((v): v is number => v != null)
+                  : undefined
+              }
               weightUnit={weightUnit}
             />
           </View>

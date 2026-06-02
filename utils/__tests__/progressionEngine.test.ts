@@ -306,7 +306,15 @@ describe("evaluateProgression — unsupported tracking types", () => {
 // evaluateProgression — easy + on target (progressive rules)
 // ---------------------------------------------------------------------------
 describe("evaluateProgression — easy on target", () => {
-  it("EASY_FIRST_SIGNAL: holds on first easy session (consecutive = 1)", () => {
+  it("EASY_TARGET_REPS: suggests per-set rep targets on first easy session when reps not at max", () => {
+    const setWith12Max: Set = {
+      repsMin: 8,
+      repsMax: 12,
+      restMinutes: 2,
+      restSeconds: 0,
+      time: undefined,
+      isWarmup: false,
+    };
     const result = evaluateProgression(
       makeInputs({
         latestFeedback: makeFeedback({
@@ -314,28 +322,77 @@ describe("evaluateProgression — easy on target", () => {
           performanceRatio: 1.0,
         }),
         consecutiveDirectionCount: 1,
+        currentSets: [setWith12Max],
+        completedRepsPerSet: [10],
       }),
     );
-    expect(result.action).toBe("hold");
-    expect(result.ruleKey).toBe("EASY_FIRST_SIGNAL");
+    expect(result.action).toBe("increase_reps");
+    expect(result.ruleKey).toBe("EASY_TARGET_REPS");
+    expect(result.suggestedRepsPerSet).toEqual([11]);
   });
 
-  it("EASY_TARGET_LOAD: increases load on second consecutive easy session", () => {
+  it("EASY_TARGET_REPS: caps per-set suggestion at repsMax", () => {
+    const setAtMax: Set = {
+      repsMin: 8,
+      repsMax: 12,
+      restMinutes: 2,
+      restSeconds: 0,
+      time: undefined,
+      isWarmup: false,
+    };
+    // completed 12 which equals repsMax on the first (and only) set → should increase load
     const result = evaluateProgression(
       makeInputs({
         latestFeedback: makeFeedback({
           effortRating: "easy",
           performanceRatio: 1.0,
         }),
-        consecutiveDirectionCount: 2,
+        consecutiveDirectionCount: 1,
+        currentSets: [setAtMax],
+        completedRepsPerSet: [12],
         recentWorkingWeight: 100,
+        equipment: "barbell",
+      }),
+    );
+    expect(result.action).toBe("increase_load");
+    expect(result.suggestedWeight).toBe(102.5);
+  });
+
+  it("EASY_TARGET_LOAD: increases load when first two sets are at repsMax", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          effortRating: "easy",
+          performanceRatio: 1.0,
+        }),
+        consecutiveDirectionCount: 1,
         currentSets: [FIXED_REP_SET],
+        completedRepsPerSet: [10],
+        recentWorkingWeight: 100,
         equipment: "barbell",
       }),
     );
     expect(result.action).toBe("increase_load");
     expect(result.ruleKey).toBe("EASY_TARGET_LOAD");
     expect(result.suggestedWeight).toBe(102.5);
+  });
+
+  it("EASY_TARGET_LOAD: falls back to load increase when no completed reps data", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          effortRating: "easy",
+          performanceRatio: 1.0,
+        }),
+        consecutiveDirectionCount: 1,
+        currentSets: [FIXED_REP_SET],
+        recentWorkingWeight: 80,
+        equipment: "barbell",
+        completedRepsPerSet: undefined,
+      }),
+    );
+    expect(result.action).toBe("increase_load");
+    expect(result.suggestedWeight).toBe(82.5);
   });
 
   it("EASY_TARGET_LOAD: uses dumbbell increment for dumbbell equipment", () => {
@@ -345,49 +402,15 @@ describe("evaluateProgression — easy on target", () => {
           effortRating: "easy",
           performanceRatio: 1.0,
         }),
-        consecutiveDirectionCount: 2,
-        recentWorkingWeight: 20,
+        consecutiveDirectionCount: 1,
         currentSets: [FIXED_REP_SET],
+        completedRepsPerSet: [10],
+        recentWorkingWeight: 20,
         equipment: "dumbbell",
       }),
     );
     expect(result.action).toBe("increase_load");
     expect(result.suggestedWeight).toBe(22);
-  });
-
-  it("EASY_TARGET_REPS: increases reps when sets have a narrow rep range", () => {
-    const result = evaluateProgression(
-      makeInputs({
-        latestFeedback: makeFeedback({
-          effortRating: "easy",
-          performanceRatio: 1.0,
-        }),
-        consecutiveDirectionCount: 2,
-        currentSets: [NARROW_RANGE_SET],
-        equipment: "barbell",
-      }),
-    );
-    expect(result.action).toBe("increase_reps");
-    expect(result.ruleKey).toBe("EASY_TARGET_REPS");
-    expect(result.suggestedRepsMin).toBe(9);
-    expect(result.suggestedRepsMax).toBe(11);
-  });
-
-  it("EASY_TARGET_LOAD: increases load when sets have fixed reps (no range)", () => {
-    const result = evaluateProgression(
-      makeInputs({
-        latestFeedback: makeFeedback({
-          effortRating: "easy",
-          performanceRatio: 1.0,
-        }),
-        consecutiveDirectionCount: 2,
-        currentSets: [FIXED_REP_SET],
-        recentWorkingWeight: 80,
-        equipment: "barbell",
-      }),
-    );
-    expect(result.action).toBe("increase_load");
-    expect(result.suggestedWeight).toBe(82.5);
   });
 
   it("EASY_HOLD_REQUESTED: holds when user explicitly chose to keep it steady", () => {
@@ -405,7 +428,15 @@ describe("evaluateProgression — easy on target", () => {
     expect(result.ruleKey).toBe("EASY_HOLD_REQUESTED");
   });
 
-  it("EASY_TARGET_REPS: increases reps for reps tracking type", () => {
+  it("EASY_TARGET_REPS: suggests per-set reps for reps-only tracking when not at max", () => {
+    const bodyweightSet: Set = {
+      repsMin: 8,
+      repsMax: 12,
+      restMinutes: 2,
+      restSeconds: 0,
+      time: undefined,
+      isWarmup: false,
+    };
     const result = evaluateProgression(
       makeInputs({
         trackingType: "reps",
@@ -414,14 +445,14 @@ describe("evaluateProgression — easy on target", () => {
           effortRating: "easy",
           performanceRatio: 1.0,
         }),
-        consecutiveDirectionCount: 2,
+        consecutiveDirectionCount: 1,
         recentWorkingWeight: null,
-        currentSets: [WORKING_SET],
+        currentSets: [bodyweightSet],
+        completedRepsPerSet: [10],
       }),
     );
     expect(result.action).toBe("increase_reps");
-    expect(result.suggestedRepsMin).toBe(9);
-    expect(result.suggestedRepsMax).toBe(13);
+    expect(result.suggestedRepsPerSet).toEqual([11]);
   });
 
   it("UNSUPPORTED_TRACKING: holds for body weight equipment with weight tracking", () => {
@@ -433,12 +464,99 @@ describe("evaluateProgression — easy on target", () => {
           effortRating: "easy",
           performanceRatio: 1.0,
         }),
-        consecutiveDirectionCount: 2,
+        consecutiveDirectionCount: 1,
         currentSets: [FIXED_REP_SET],
+        completedRepsPerSet: [10],
       }),
     );
     expect(result.action).toBe("hold");
     expect(result.ruleKey).toBe("UNSUPPORTED_TRACKING");
+  });
+
+  it("multi-set: suggests per-set targets for each set individually", () => {
+    const sets: Set[] = [
+      {
+        repsMin: 8,
+        repsMax: 12,
+        restMinutes: 2,
+        restSeconds: 0,
+        time: undefined,
+        isWarmup: false,
+      },
+      {
+        repsMin: 8,
+        repsMax: 12,
+        restMinutes: 2,
+        restSeconds: 0,
+        time: undefined,
+        isWarmup: false,
+      },
+      {
+        repsMin: 8,
+        repsMax: 12,
+        restMinutes: 2,
+        restSeconds: 0,
+        time: undefined,
+        isWarmup: false,
+      },
+    ];
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          effortRating: "easy",
+          performanceRatio: 1.0,
+        }),
+        consecutiveDirectionCount: 1,
+        currentSets: sets,
+        completedRepsPerSet: [11, 10, 9],
+      }),
+    );
+    expect(result.action).toBe("increase_reps");
+    expect(result.suggestedRepsPerSet).toEqual([12, 11, 10]);
+  });
+
+  it("multi-set: increases load when first two sets hit repsMax, even if third set lags", () => {
+    const sets: Set[] = [
+      {
+        repsMin: 8,
+        repsMax: 12,
+        restMinutes: 2,
+        restSeconds: 0,
+        time: undefined,
+        isWarmup: false,
+      },
+      {
+        repsMin: 8,
+        repsMax: 12,
+        restMinutes: 2,
+        restSeconds: 0,
+        time: undefined,
+        isWarmup: false,
+      },
+      {
+        repsMin: 8,
+        repsMax: 12,
+        restMinutes: 2,
+        restSeconds: 0,
+        time: undefined,
+        isWarmup: false,
+      },
+    ];
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          effortRating: "easy",
+          performanceRatio: 1.0,
+        }),
+        consecutiveDirectionCount: 1,
+        currentSets: sets,
+        completedRepsPerSet: [12, 12, 9],
+        recentWorkingWeight: 100,
+        equipment: "barbell",
+      }),
+    );
+    expect(result.action).toBe("increase_load");
+    expect(result.suggestedWeight).toBe(102.5);
   });
 });
 
@@ -496,8 +614,9 @@ describe("evaluateProgression — recovery context", () => {
           effortRating: "easy",
           performanceRatio: 1.0,
         }),
-        consecutiveDirectionCount: 2,
+        consecutiveDirectionCount: 1,
         currentSets: [FIXED_REP_SET],
+        completedRepsPerSet: [10],
         recoveryRating: "fresh",
         recentWorkingWeight: 100,
       }),
@@ -512,8 +631,9 @@ describe("evaluateProgression — recovery context", () => {
           effortRating: "easy",
           performanceRatio: 1.0,
         }),
-        consecutiveDirectionCount: 2,
+        consecutiveDirectionCount: 1,
         currentSets: [FIXED_REP_SET],
+        completedRepsPerSet: [10],
         recoveryRating: "mild",
         recentWorkingWeight: 100,
       }),
@@ -529,8 +649,9 @@ describe("evaluateProgression — recovery context", () => {
           effortRating: "easy",
           performanceRatio: 1.0,
         }),
-        consecutiveDirectionCount: 2,
+        consecutiveDirectionCount: 1,
         currentSets: [FIXED_REP_SET],
+        completedRepsPerSet: [10],
         recoveryRating: null,
         recentWorkingWeight: 100,
       }),
@@ -544,7 +665,7 @@ describe("evaluateProgression — recovery context", () => {
 // evaluateProgression — 3-week progressive overload scenario
 // ---------------------------------------------------------------------------
 describe("evaluateProgression — 3-week progressive overload scenario", () => {
-  it("week 1: first easy session holds (signal not confirmed)", () => {
+  it("week 1: first easy session suggests load increase (consecutive = 1, all at max)", () => {
     const result = evaluateProgression(
       makeInputs({
         latestFeedback: makeFeedback({
@@ -553,31 +674,15 @@ describe("evaluateProgression — 3-week progressive overload scenario", () => {
         }),
         consecutiveDirectionCount: 1,
         currentSets: [FIXED_REP_SET],
+        completedRepsPerSet: [10],
         recentWorkingWeight: 80,
-      }),
-    );
-    expect(result.action).toBe("hold");
-    expect(result.ruleKey).toBe("EASY_FIRST_SIGNAL");
-  });
-
-  it("week 2: second consecutive easy session triggers load increase", () => {
-    const result = evaluateProgression(
-      makeInputs({
-        latestFeedback: makeFeedback({
-          effortRating: "easy",
-          performanceRatio: 1.0,
-        }),
-        consecutiveDirectionCount: 2,
-        currentSets: [FIXED_REP_SET],
-        recentWorkingWeight: 80,
-        equipment: "barbell",
       }),
     );
     expect(result.action).toBe("increase_load");
     expect(result.suggestedWeight).toBe(82.5);
   });
 
-  it("week 3: moderate effort after increase → hold (consolidate)", () => {
+  it("week 2: moderate effort after increase → hold (consolidate)", () => {
     const result = evaluateProgression(
       makeInputs({
         latestFeedback: makeFeedback({

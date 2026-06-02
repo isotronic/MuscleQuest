@@ -8,8 +8,7 @@ import { t } from "@lingui/core/macro";
 interface ProgressionSuggestionChipProps {
   action: ProgressionAction;
   suggestedWeight?: number;
-  suggestedRepsMin?: number;
-  suggestedRepsMax?: number;
+  suggestedRepsPerSet?: number[];
   weightUnit?: string;
   onPress?: () => void;
 }
@@ -17,8 +16,7 @@ interface ProgressionSuggestionChipProps {
 function chipLabel(
   action: ProgressionAction,
   suggestedWeight?: number,
-  suggestedRepsMin?: number,
-  suggestedRepsMax?: number,
+  suggestedRepsPerSet?: number[],
   weightUnit?: string,
 ): string | null {
   const unit = weightUnit ?? "kg";
@@ -27,13 +25,13 @@ function chipLabel(
       return suggestedWeight != null
         ? t`+${suggestedWeight}${unit} suggested`
         : t`Load up`;
-    case "increase_reps":
-      if (suggestedRepsMin != null && suggestedRepsMax != null) {
-        return suggestedRepsMin === suggestedRepsMax
-          ? t`${suggestedRepsMin} reps suggested`
-          : t`${suggestedRepsMin}-${suggestedRepsMax} reps suggested`;
+    case "increase_reps": {
+      if (suggestedRepsPerSet && suggestedRepsPerSet.length > 0) {
+        const joined = suggestedRepsPerSet.join(", ");
+        return t`Try: ${joined} reps`;
       }
       return t`More reps suggested`;
+    }
     case "reduce_load":
       return t`Reduce load`;
     case "add_set":
@@ -49,8 +47,7 @@ function chipLabel(
 export default function ProgressionSuggestionChip({
   action,
   suggestedWeight,
-  suggestedRepsMin,
-  suggestedRepsMax,
+  suggestedRepsPerSet,
   weightUnit,
   onPress,
 }: ProgressionSuggestionChipProps) {
@@ -58,8 +55,7 @@ export default function ProgressionSuggestionChip({
   const label = chipLabel(
     action,
     suggestedWeight,
-    suggestedRepsMin,
-    suggestedRepsMax,
+    suggestedRepsPerSet,
     weightUnit,
   );
 

@@ -507,8 +507,7 @@ export default function WorkoutOverviewScreen() {
             <ProgressionSuggestionChip
               action={progressionState.suggestionAction}
               suggestedWeight={progressionState.suggestedWeight}
-              suggestedRepsMin={progressionState.suggestedRepsMin}
-              suggestedRepsMax={progressionState.suggestedRepsMax}
+              suggestedRepsPerSet={progressionState.suggestedRepsPerSet}
             />
           ) : null;
 

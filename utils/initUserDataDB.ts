@@ -639,6 +639,16 @@ export async function initUserDataDB() {
     );
   `);
 
+  // Migration: add suggested_reps_per_set column (replaces suggested_reps_min/max)
+  const progressionCols = await db.getAllAsync<{ name: string }>(
+    `PRAGMA table_info(exercise_progression_state)`,
+  );
+  if (!progressionCols.some((c) => c.name === "suggested_reps_per_set")) {
+    await db.execAsync(
+      `ALTER TABLE exercise_progression_state ADD COLUMN suggested_reps_per_set TEXT`,
+    );
+  }
+
   // Feature flag and default increments.
   // Dumbbell default depends on whether the user already tracks weight per implement.
   await db.execAsync(
