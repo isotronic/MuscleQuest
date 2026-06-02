@@ -8,6 +8,10 @@ import {
 
 const RULE_EXPLANATIONS: Record<string, string> = {
   PAIN_BLOCK: "Pain reported. Keeping load unchanged until you feel better.",
+  PAIN_LOAD:
+    "Pain reported again. Consider reducing load to help your recovery.",
+  FAILED_FIRST_SIGNAL:
+    "Tough session. Holding steady for now. If it happens again, the load will be reduced.",
   FAILED_SETS:
     "You couldn't complete all sets. Reducing load slightly for next time.",
   POOR_RECOVERY: "Still recovering. Hold this load for now.",
@@ -120,25 +124,38 @@ export function evaluateProgression(
     return hold("UNSUPPORTED_TRACKING");
   }
 
-  // Rule 1: Pain blocks everything
+  // Rule 1: Pain — hold on first report; reduce load on second consecutive
   if (latestFeedback.painFlag === "pain") {
+    if (consecutiveDirectionCount >= 2) {
+      if (trackingType !== "reps" && recentWorkingWeight !== null) {
+        return {
+          action: "reduce_load",
+          ruleKey: "PAIN_LOAD",
+          explanation: RULE_EXPLANATIONS.PAIN_LOAD,
+          suggestedWeight: computeReducedLoad(recentWorkingWeight),
+        };
+      }
+    }
     return hold("PAIN_BLOCK");
   }
 
-  // Rule 2: Failed sets — reduce load (immediate, no consecutive wait)
+  // Rule 2: Failed sets — hold on first failure; reduce load on second consecutive
   if (latestFeedback.effortRating === "failed") {
-    if (trackingType === "reps") {
-      return hold("FAILED_SETS");
+    if (consecutiveDirectionCount >= 2) {
+      if (trackingType === "reps") {
+        return hold("FAILED_SETS");
+      }
+      if (recentWorkingWeight === null) {
+        return hold("NO_PRIOR_WEIGHT");
+      }
+      return {
+        action: "reduce_load",
+        ruleKey: "FAILED_SETS",
+        explanation: RULE_EXPLANATIONS.FAILED_SETS,
+        suggestedWeight: computeReducedLoad(recentWorkingWeight),
+      };
     }
-    if (recentWorkingWeight === null) {
-      return hold("NO_PRIOR_WEIGHT");
-    }
-    return {
-      action: "reduce_load",
-      ruleKey: "FAILED_SETS",
-      explanation: RULE_EXPLANATIONS.FAILED_SETS,
-      suggestedWeight: computeReducedLoad(recentWorkingWeight),
-    };
+    return hold("FAILED_FIRST_SIGNAL");
   }
 
   // Rule 3: Poor recovery — hold

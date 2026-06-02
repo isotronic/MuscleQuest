@@ -13,12 +13,13 @@ import { t } from "@lingui/core/macro";
 function getRuleExplanation(ruleKey: string): string {
   const map: Record<string, string> = {
     PAIN_BLOCK: t`Pain reported. Keeping load unchanged until you feel better.`,
+    PAIN_LOAD: t`Pain reported again. Consider reducing load to help your recovery.`,
+    FAILED_FIRST_SIGNAL: t`Tough session. Holding steady for now. If it happens again, the load will be reduced.`,
     FAILED_SETS: t`You couldn't complete all sets. Reducing load slightly for next time.`,
     POOR_RECOVERY: t`Still recovering. Hold this load for now.`,
     BELOW_TARGET: t`Rep target not met. Hold steady for now.`,
     EASY_TARGET_LOAD: t`You've been hitting targets easily. Time to add a little more weight.`,
     EASY_TARGET_REPS: t`Good pace. Try adding one rep per set before bumping the load.`,
-    EASY_FIRST_SIGNAL: t`Felt easy this time. Hold for now and confirm next session.`,
     EASY_HOLD_REQUESTED: t`You chose to keep it steady. Hold this load.`,
     MODERATE_TARGET: t`Solid session. Keep this load.`,
     HARD_TARGET: t`You finished everything at the limit. Stay here and own it.`,

@@ -9,7 +9,6 @@ import { evaluateProgression } from "@/utils/progressionEngine";
 import {
   ExerciseFeedbackPayload,
   ExerciseProgressionState,
-  ProgressionAction,
   ProgressionEngineInputs,
 } from "@/types/progression";
 import { Set as PlanSet } from "@/store/workoutStore";
@@ -31,6 +30,7 @@ interface SubmitFeedbackInput {
 function feedbackDirection(
   f: ExerciseFeedbackPayload,
 ): "up" | "down" | "neutral" {
+  if (f.painFlag === "pain") return "down";
   if (
     f.effortRating === "easy" &&
     f.performanceRatio >= 1.0 &&
@@ -41,14 +41,31 @@ function feedbackDirection(
   return "neutral";
 }
 
-function actionDirection(action: ProgressionAction): "up" | "down" | "neutral" {
+/**
+ * Determines the directional intent of the previous engine result.
+ * "Hold" actions caused by a first failure or pain signal still count as
+ * "down" so that a second consecutive event correctly increments the counter.
+ */
+function prevStateDirection(
+  state: ExerciseProgressionState,
+): "up" | "down" | "neutral" {
   if (
-    action === "increase_load" ||
-    action === "increase_reps" ||
-    action === "add_set"
+    state.suggestionAction === "hold" &&
+    (state.ruleKey === "FAILED_FIRST_SIGNAL" || state.ruleKey === "PAIN_BLOCK")
+  ) {
+    return "down";
+  }
+  if (
+    state.suggestionAction === "increase_load" ||
+    state.suggestionAction === "increase_reps" ||
+    state.suggestionAction === "add_set"
   )
     return "up";
-  if (action === "reduce_load" || action === "remove_set") return "down";
+  if (
+    state.suggestionAction === "reduce_load" ||
+    state.suggestionAction === "remove_set"
+  )
+    return "down";
   return "neutral";
 }
 
@@ -58,7 +75,7 @@ function computeConsecutiveCount(
 ): number {
   if (!existingState) return 1;
   const currentDir = feedbackDirection(feedback);
-  const prevDir = actionDirection(existingState.suggestionAction);
+  const prevDir = prevStateDirection(existingState);
   if (currentDir !== "neutral" && currentDir === prevDir) {
     return existingState.consecutiveDirectionCount + 1;
   }

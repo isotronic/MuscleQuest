@@ -172,7 +172,7 @@ describe("computeReducedLoad", () => {
 // evaluateProgression — safety rules
 // ---------------------------------------------------------------------------
 describe("evaluateProgression — safety rules", () => {
-  it("PAIN_BLOCK: returns hold when pain flag is 'pain', regardless of effort", () => {
+  it("PAIN_BLOCK: holds on first pain report", () => {
     const result = evaluateProgression(
       makeInputs({
         latestFeedback: makeFeedback({
@@ -180,29 +180,44 @@ describe("evaluateProgression — safety rules", () => {
           effortRating: "easy",
           performanceRatio: 1.0,
         }),
-        consecutiveDirectionCount: 5,
+        consecutiveDirectionCount: 1,
       }),
     );
     expect(result.action).toBe("hold");
     expect(result.ruleKey).toBe("PAIN_BLOCK");
   });
 
-  it("PAIN_BLOCK: fires even when recovery is fresh and performance is perfect", () => {
+  it("PAIN_LOAD: reduces load on second consecutive pain report", () => {
     const result = evaluateProgression(
       makeInputs({
         latestFeedback: makeFeedback({
           painFlag: "pain",
           effortRating: "easy",
+          performanceRatio: 1.0,
         }),
-        recoveryRating: "fresh",
-        consecutiveDirectionCount: 10,
+        consecutiveDirectionCount: 2,
+        recentWorkingWeight: 100,
+      }),
+    );
+    expect(result.action).toBe("reduce_load");
+    expect(result.ruleKey).toBe("PAIN_LOAD");
+    expect(result.suggestedWeight).toBe(95);
+  });
+
+  it("PAIN_BLOCK: holds for reps-only even on second consecutive pain", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        trackingType: "reps",
+        latestFeedback: makeFeedback({ painFlag: "pain" }),
+        recentWorkingWeight: null,
+        consecutiveDirectionCount: 2,
       }),
     );
     expect(result.action).toBe("hold");
     expect(result.ruleKey).toBe("PAIN_BLOCK");
   });
 
-  it("FAILED_SETS: reduces load immediately (consecutive = 1)", () => {
+  it("FAILED_FIRST_SIGNAL: holds on first failed session", () => {
     const result = evaluateProgression(
       makeInputs({
         latestFeedback: makeFeedback({
@@ -211,6 +226,21 @@ describe("evaluateProgression — safety rules", () => {
         }),
         recentWorkingWeight: 100,
         consecutiveDirectionCount: 1,
+      }),
+    );
+    expect(result.action).toBe("hold");
+    expect(result.ruleKey).toBe("FAILED_FIRST_SIGNAL");
+  });
+
+  it("FAILED_SETS: reduces load on second consecutive failed session", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          effortRating: "failed",
+          performanceRatio: 0.7,
+        }),
+        recentWorkingWeight: 100,
+        consecutiveDirectionCount: 2,
       }),
     );
     expect(result.action).toBe("reduce_load");
@@ -224,17 +254,19 @@ describe("evaluateProgression — safety rules", () => {
         trackingType: "reps",
         latestFeedback: makeFeedback({ effortRating: "failed" }),
         recentWorkingWeight: null,
+        consecutiveDirectionCount: 2,
       }),
     );
     expect(result.action).toBe("hold");
     expect(result.ruleKey).toBe("FAILED_SETS");
   });
 
-  it("FAILED_SETS: holds when no prior weight data", () => {
+  it("FAILED_SETS: holds when no prior weight data on second failure", () => {
     const result = evaluateProgression(
       makeInputs({
         latestFeedback: makeFeedback({ effortRating: "failed" }),
         recentWorkingWeight: null,
+        consecutiveDirectionCount: 2,
       }),
     );
     expect(result.action).toBe("hold");
