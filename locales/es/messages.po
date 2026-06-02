@@ -787,21 +787,21 @@ msgstr "{weeklyGoal, plural, one {Sugerencia automática (# día)} other {Sugere
 msgid "{weeks, plural, one {# week ago} other {# weeks ago}}"
 msgstr "{weeks, plural, one {hace # semana} other {hace # semanas}}"
 
-#: app/login.tsx:101
-msgid "* features in development"
-msgstr "* funciones en desarrollo"
+#: app/login.tsx:94
+msgid "• Add friends and browse their shared content"
+msgstr "• Añadir amigos y explorar su contenido compartido"
 
 #: app/login.tsx:91
-msgid "• Backup and restore data"
-msgstr "• Copia de seguridad y restauración de datos"
+msgid "• Back up and restore all your workout data"
+msgstr "• Hacer copia de seguridad y restaurar todos tus datos de entrenamiento"
+
+#: app/login.tsx:102
+msgid "• Import plans and workouts from friends into your library"
+msgstr "• Importar planes y entrenamientos de amigos a tu biblioteca"
 
 #: app/login.tsx:97
-msgid "• Challenges and badges *"
-msgstr "• Desafíos y medallas *"
-
-#: app/login.tsx:94
-msgid "• Share your training plans with others *"
-msgstr "• Comparte tus planes de entrenamiento con otros *"
+msgid "• Share your plans, workouts, exercises, and body measurements"
+msgstr "• Compartir tus planes, entrenamientos, ejercicios y medidas corporales"
 
 #: app/(app)/(tabs)/(stats)/index.tsx:526
 msgid "+ Add"
@@ -2211,8 +2211,8 @@ msgstr "Objetivo: {goalLabel}{0}"
 msgid "Good pace. Try adding one rep per set before bumping the load."
 msgstr "Buen ritmo. Intenta añadir una rep por serie antes de subir el peso."
 
-#: app/login.tsx:124
-#: app/login.tsx:126
+#: app/login.tsx:127
+#: app/login.tsx:129
 msgid "Google sign in"
 msgstr "Iniciar sesión con Google"
 
@@ -3401,7 +3401,7 @@ msgstr "Omitir todo"
 msgid "Skip for now"
 msgstr "Omitir por ahora"
 
-#: app/login.tsx:117
+#: app/login.tsx:120
 msgid "Skip login"
 msgstr "Omitir inicio de sesión"
 
@@ -4201,7 +4201,7 @@ msgstr "Has activado este plan."
 msgid "You can hide this onboarding screen at any time from the settings page in the appearance section. If you ever want to revisit the onboarding, you can enable it again from the same settings page."
 msgstr "Puedes ocultar esta pantalla de introducción en cualquier momento desde la página de ajustes, en la sección de apariencia. Si quieres volver a verla, puedes activarla de nuevo desde la misma página de ajustes."
 
-#: app/login.tsx:105
+#: app/login.tsx:108
 msgid "You can login at any time from the settings screen, if you choose to skip it now."
 msgstr "Puedes iniciar sesión en cualquier momento desde la pantalla de ajustes, si decides saltarte este paso ahora."
 
