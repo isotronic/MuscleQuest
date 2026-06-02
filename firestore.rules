@@ -26,9 +26,9 @@ service cloud.firestore {
       // Friends subcollection.
       // Readable by owner or the named friend.
       // Owner can write freely (create/update/delete their own records).
-      // The named friend (friendUid) may only create if a pending request exists
-      // in either direction — this lets B write to A/friends/B on acceptance
-      // without a Cloud Function, while blocking unsolicited self-additions.
+      // The named friend (friendUid) may only create if the owner previously sent
+      // them a pending request — hasPendingRequest(uid, friendUid) checks
+      // friendRequests/{uid}_{friendUid}.
       // The named friend may also delete, which is needed for mutual removal.
       match /friends/{friendUid} {
         allow read: if request.auth != null &&
@@ -36,7 +36,7 @@ service cloud.firestore {
         allow write: if request.auth != null && request.auth.uid == uid;
         allow create: if request.auth != null &&
           request.auth.uid == friendUid &&
-          (hasPendingRequest(uid, friendUid) || hasPendingRequest(friendUid, uid));
+          hasPendingRequest(uid, friendUid);
         allow delete: if request.auth != null && request.auth.uid == friendUid;
       }
 
