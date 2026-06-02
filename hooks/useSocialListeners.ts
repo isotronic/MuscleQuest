@@ -21,6 +21,12 @@ import Bugsnag from "@bugsnag/expo";
 type QDocSnap = FirebaseFirestoreTypes.QueryDocumentSnapshot;
 type DocSnap = FirebaseFirestoreTypes.DocumentSnapshot;
 
+const notifyError = (error: unknown) => {
+  if ((error as any)?.code !== "firestore/permission-denied") {
+    Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
+  }
+};
+
 export const useSocialListeners = () => {
   const user = useContext(AuthContext);
   const {
@@ -67,11 +73,11 @@ export const useSocialListeners = () => {
           );
           setPendingRequests(requests);
         } catch (error) {
-          Bugsnag.notify(error as Error);
+          notifyError(error);
         }
       },
       (error) => {
-        Bugsnag.notify(error);
+        notifyError(error);
       },
     );
 
@@ -101,11 +107,11 @@ export const useSocialListeners = () => {
           );
           setSentRequests(requests);
         } catch (error) {
-          Bugsnag.notify(error as Error);
+          notifyError(error);
         }
       },
       (error) => {
-        Bugsnag.notify(error);
+        notifyError(error);
       },
     );
 
@@ -130,11 +136,11 @@ export const useSocialListeners = () => {
           );
           setFriends(friends);
         } catch (error) {
-          Bugsnag.notify(error as Error);
+          notifyError(error);
         }
       },
       (error) => {
-        Bugsnag.notify(error);
+        notifyError(error);
       },
     );
 
@@ -149,7 +155,7 @@ export const useSocialListeners = () => {
         }
       },
       (error) => {
-        Bugsnag.notify(error);
+        notifyError(error);
       },
     );
 
