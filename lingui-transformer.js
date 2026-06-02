@@ -24,6 +24,11 @@ const sharedDir = path.join(path.dirname(linguiExpoEntry), "..", "shared");
 const sharedFile = fs
   .readdirSync(sharedDir)
   .find((f) => f.endsWith(".cjs") && f.startsWith("metro-transformer"));
+if (!sharedFile) {
+  throw new Error(
+    `Could not locate metro-transformer .cjs in sharedDir: ${sharedDir}`,
+  );
+}
 const { createLinguiMetroTransformer } = require(
   path.join(sharedDir, sharedFile),
 );
