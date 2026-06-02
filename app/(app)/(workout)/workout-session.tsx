@@ -872,6 +872,9 @@ export default function WorkoutSessionScreen() {
       trackingType: resolvedTrackingType(exercise),
       isLastSetOfLastExercise: isLast,
       isFirstSetOfFirstExercise: isFirst,
+      workingSetOrdinal: set.isWarmup
+        ? undefined
+        : exercise.sets.slice(0, setIndex).filter((s) => !s.isWarmup).length,
     };
   };
 
