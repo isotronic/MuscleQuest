@@ -13,6 +13,9 @@ import { classifySupersetPosition } from "@/utils/supersetUtils";
 import Bugsnag from "@bugsnag/expo";
 import { Notes } from "@/components/Notes";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
+import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
+import ProgressionSuggestionChip from "@/components/ProgressionSuggestionChip";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -25,8 +28,21 @@ export default function WorkoutDetailsScreen() {
   const { data: plan, isLoading, error } = usePlanQuery(Number(planId));
   const { data: settings } = useSettingsQuery();
   const distanceUnit = settings?.distanceUnit || "m";
+  const weightUnit = settings?.weightUnit || "kg";
+  const progressionSettings = useProgressionSettingsQuery();
 
   const workout = plan?.workouts[Number(workoutIndex)];
+  const { data: progressionStates } = useWorkoutProgressionStatesQuery(
+    progressionSettings.enabled && workout?.id != null ? workout.id : undefined,
+  );
+
+  const appliedSuggestions = useMemo(
+    () =>
+      (progressionStates ?? []).filter(
+        (s) => s.isApplied && s.suggestionAction !== "hold",
+      ),
+    [progressionStates],
+  );
 
   const renderExerciseItem = ({
     item,
@@ -177,6 +193,31 @@ export default function WorkoutDetailsScreen() {
     );
   }
 
+  const previewHeader =
+    appliedSuggestions.length > 0 ? (
+      <View style={[styles.previewCard, { backgroundColor: colors.card }]}>
+        <ThemedText style={styles.previewTitle}>
+          <Trans>Changes for this session</Trans>
+        </ThemedText>
+        {appliedSuggestions.map((s) => (
+          <View key={s.userWorkoutExerciseId} style={styles.previewRow}>
+            <ThemedText
+              style={[styles.previewExercise, { color: colors.contentPrimary }]}
+              numberOfLines={1}
+            >
+              {s.exerciseName}
+            </ThemedText>
+            <ProgressionSuggestionChip
+              action={s.suggestionAction}
+              suggestedWeight={s.suggestedWeight}
+              suggestedRepsPerSet={s.suggestedRepsPerSet}
+              weightUnit={weightUnit}
+            />
+          </View>
+        ))}
+      </View>
+    ) : null;
+
   return (
     <ThemedView>
       <Stack.Screen
@@ -197,6 +238,7 @@ export default function WorkoutDetailsScreen() {
         data={workout?.exercises}
         renderItem={renderExerciseItem}
         keyExtractor={(item: any, index: number) => index.toString()}
+        ListHeaderComponent={previewHeader}
       />
     </ThemedView>
   );
@@ -254,6 +296,29 @@ function createStyles(colors: AppThemeColors) {
       height: 6,
       backgroundColor: colors.accent,
       marginLeft: 27,
+    },
+    previewCard: {
+      borderRadius: radii.md,
+      padding: 14,
+      marginBottom: 12,
+      gap: 10,
+    },
+    previewTitle: {
+      fontSize: 13,
+      fontWeight: "700",
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+      color: colors.accent,
+    },
+    previewRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 8,
+    },
+    previewExercise: {
+      flex: 1,
+      fontSize: 14,
     },
     supersetExerciseItem: {
       borderLeftWidth: 3,

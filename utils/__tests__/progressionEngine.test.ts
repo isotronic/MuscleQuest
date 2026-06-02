@@ -26,15 +26,6 @@ const WORKING_SET: Set = {
   isWarmup: false,
 };
 
-const NARROW_RANGE_SET: Set = {
-  repsMin: 8,
-  repsMax: 10,
-  restMinutes: 2,
-  restSeconds: 0,
-  time: undefined,
-  isWarmup: false,
-};
-
 const FIXED_REP_SET: Set = {
   repsMin: 10,
   repsMax: 10,
@@ -70,6 +61,7 @@ function makeInputs(
     priorFeedbackHistory: [],
     recoveryRating: null,
     consecutiveDirectionCount: 1,
+    discomfortStreakCount: 0,
     userIncrements: DEFAULT_INCREMENTS,
     ...overrides,
   };
@@ -312,6 +304,133 @@ describe("evaluateProgression — safety rules", () => {
       }),
     );
     expect(result.ruleKey).not.toBe("BELOW_TARGET");
+  });
+
+  it("NEAR_TARGET: fires for performance in 0.85–0.99 range", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          effortRating: "moderate",
+          performanceRatio: 0.9,
+        }),
+        consecutiveDirectionCount: 5,
+      }),
+    );
+    expect(result.action).toBe("hold");
+    expect(result.ruleKey).toBe("NEAR_TARGET");
+  });
+
+  it("NEAR_TARGET: fires at exactly 0.85", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          effortRating: "hard",
+          performanceRatio: 0.85,
+        }),
+      }),
+    );
+    expect(result.ruleKey).toBe("NEAR_TARGET");
+  });
+
+  it("NEAR_TARGET: does not fire at exactly 1.0 (easy effort proceeds to progression)", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          effortRating: "easy",
+          performanceRatio: 1.0,
+        }),
+        consecutiveDirectionCount: 1,
+        currentSets: [FIXED_REP_SET],
+        completedRepsPerSet: [10],
+        recentWorkingWeight: 100,
+      }),
+    );
+    expect(result.ruleKey).not.toBe("NEAR_TARGET");
+    expect(result.action).toBe("increase_load");
+  });
+
+  it("NEAR_TARGET: takes priority over MODERATE_TARGET when ratio is 0.85–0.99", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          effortRating: "moderate",
+          performanceRatio: 0.95,
+        }),
+      }),
+    );
+    expect(result.ruleKey).toBe("NEAR_TARGET");
+    expect(result.ruleKey).not.toBe("MODERATE_TARGET");
+  });
+
+  it("DISCOMFORT_SIGNAL: holds on first discomfort report (streak = 1)", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({ painFlag: "discomfort" }),
+        discomfortStreakCount: 1,
+        consecutiveDirectionCount: 5,
+      }),
+    );
+    expect(result.action).toBe("hold");
+    expect(result.ruleKey).toBe("DISCOMFORT_SIGNAL");
+  });
+
+  it("DISCOMFORT_RECURRING: holds on second consecutive discomfort (streak = 2)", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({ painFlag: "discomfort" }),
+        discomfortStreakCount: 2,
+      }),
+    );
+    expect(result.action).toBe("hold");
+    expect(result.ruleKey).toBe("DISCOMFORT_RECURRING");
+  });
+
+  it("DISCOMFORT_RECURRING: fires for any streak >= 2", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({ painFlag: "discomfort" }),
+        discomfortStreakCount: 5,
+      }),
+    );
+    expect(result.ruleKey).toBe("DISCOMFORT_RECURRING");
+  });
+
+  it("discomfort: never reduces load regardless of streak", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({ painFlag: "discomfort" }),
+        discomfortStreakCount: 10,
+        recentWorkingWeight: 100,
+      }),
+    );
+    expect(result.action).toBe("hold");
+    expect(result.action).not.toBe("reduce_load");
+  });
+
+  it("pain takes priority over discomfort", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({ painFlag: "pain" }),
+        discomfortStreakCount: 5,
+        consecutiveDirectionCount: 1,
+      }),
+    );
+    expect(result.ruleKey).toBe("PAIN_BLOCK");
+  });
+
+  it("discomfort: fires regardless of effort rating and performance", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          painFlag: "discomfort",
+          effortRating: "easy",
+          performanceRatio: 1.5,
+        }),
+        discomfortStreakCount: 1,
+        consecutiveDirectionCount: 5,
+      }),
+    );
+    expect(result.ruleKey).toBe("DISCOMFORT_SIGNAL");
   });
 });
 
@@ -775,6 +894,20 @@ describe("evaluateProgression — explanation strings", () => {
         latestFeedback: makeFeedback({
           effortRating: "hard",
           performanceRatio: 1.0,
+        }),
+      },
+      {
+        latestFeedback: makeFeedback({ painFlag: "discomfort" }),
+        discomfortStreakCount: 1,
+      },
+      {
+        latestFeedback: makeFeedback({ painFlag: "discomfort" }),
+        discomfortStreakCount: 2,
+      },
+      {
+        latestFeedback: makeFeedback({
+          effortRating: "moderate",
+          performanceRatio: 0.9,
         }),
       },
     ];

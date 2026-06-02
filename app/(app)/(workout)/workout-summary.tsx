@@ -628,6 +628,13 @@ export default function WorkoutSummaryScreen() {
           <WeeklyGoalBanner completed={workoutsThisWeek} goal={weeklyGoal} />
         )}
 
+        {progressionSettings.enabled && workoutId > 0 && (
+          <ProgressionSummaryCard
+            workoutId={workoutId}
+            weightUnit={weightUnit}
+          />
+        )}
+
         <ThemedText style={styles.sectionTitle}>
           <Trans>Exercises</Trans>
         </ThemedText>
@@ -639,13 +646,6 @@ export default function WorkoutSummaryScreen() {
             distanceUnit={distanceUnit}
           />
         ))}
-
-        {progressionSettings.enabled && workoutId > 0 && (
-          <ProgressionSummaryCard
-            workoutId={workoutId}
-            weightUnit={weightUnit}
-          />
-        )}
 
         <Button
           mode="contained"

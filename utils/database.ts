@@ -2408,11 +2408,19 @@ export const getRecentExerciseFeedback = async (
   }
 };
 
+export interface UpsertProgressionExtras {
+  discomfortStreakCount: number;
+  consecutiveHoldCount: number;
+  plateauAdvisory: boolean;
+  lastProgressionAt: string | null;
+}
+
 export const upsertProgressionState = async (
   userWorkoutExerciseId: number,
   result: ProgressionRuleResult,
   sourceFeedbackId: number,
   consecutiveDirectionCount: number,
+  extras: UpsertProgressionExtras,
 ): Promise<void> => {
   try {
     const db = await openDatabase("userData.db");
@@ -2422,8 +2430,9 @@ export const upsertProgressionState = async (
         suggested_reps_per_set, suggested_sets,
         rule_key, rule_explanation, source_feedback_id,
         consecutive_direction_count, is_applied, is_dismissed,
-        updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, datetime('now'))
+        discomfort_streak_count, consecutive_hold_count, plateau_advisory,
+        last_progression_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?, ?, ?, datetime('now'))
       ON CONFLICT(user_workout_exercise_id) DO UPDATE SET
         suggestion_action = excluded.suggestion_action,
         suggested_weight = excluded.suggested_weight,
@@ -2435,6 +2444,10 @@ export const upsertProgressionState = async (
         consecutive_direction_count = excluded.consecutive_direction_count,
         is_applied = 0,
         is_dismissed = 0,
+        discomfort_streak_count = excluded.discomfort_streak_count,
+        consecutive_hold_count = excluded.consecutive_hold_count,
+        plateau_advisory = excluded.plateau_advisory,
+        last_progression_at = excluded.last_progression_at,
         updated_at = datetime('now')`,
       [
         userWorkoutExerciseId,
@@ -2448,6 +2461,10 @@ export const upsertProgressionState = async (
         result.explanation,
         sourceFeedbackId,
         consecutiveDirectionCount,
+        extras.discomfortStreakCount,
+        extras.consecutiveHoldCount,
+        extras.plateauAdvisory ? 1 : 0,
+        extras.lastProgressionAt,
       ],
     );
   } catch (error: any) {
@@ -2475,6 +2492,10 @@ export const getProgressionState = async (
       recovery_rating: string | null;
       recovery_checked_at: string | null;
       consecutive_direction_count: number;
+      discomfort_streak_count: number;
+      consecutive_hold_count: number;
+      plateau_advisory: number;
+      last_progression_at: string | null;
       is_applied: number;
       is_dismissed: number;
       created_at: string;
@@ -2505,6 +2526,10 @@ export const getProgressionState = async (
       recoveryRating: (row.recovery_rating as RecoveryRating) ?? undefined,
       recoveryCheckedAt: row.recovery_checked_at ?? undefined,
       consecutiveDirectionCount: row.consecutive_direction_count,
+      discomfortStreakCount: row.discomfort_streak_count ?? 0,
+      consecutiveHoldCount: row.consecutive_hold_count ?? 0,
+      plateauAdvisory: row.plateau_advisory === 1,
+      lastProgressionAt: row.last_progression_at ?? undefined,
       isApplied: row.is_applied === 1,
       isDismissed: row.is_dismissed === 1,
       createdAt: row.created_at,
@@ -2619,6 +2644,7 @@ export interface ExerciseProgressionContext {
   recentWorkingWeight: number | null;
   latestFeedback: ExerciseFeedback | null;
   consecutiveDirectionCount: number;
+  discomfortStreakCount: number;
 }
 
 export const getExerciseProgressionContext = async (
@@ -2678,6 +2704,7 @@ export const getExerciseProgressionContext = async (
       recentWorkingWeight: row.recent_weight ?? null,
       latestFeedback: feedbackRows[0] ?? null,
       consecutiveDirectionCount: state?.consecutiveDirectionCount ?? 1,
+      discomfortStreakCount: state?.discomfortStreakCount ?? 0,
     };
   } catch (error: any) {
     console.error("Error fetching exercise progression context:", error);
@@ -2698,6 +2725,9 @@ export interface WorkoutProgressionStateRow {
   ruleKey: string;
   ruleExplanation: string;
   consecutiveDirectionCount: number;
+  plateauAdvisory: boolean;
+  lastProgressionAt?: string;
+  recoveryRating?: string;
   isApplied: boolean;
   isDismissed: boolean;
 }
@@ -2718,6 +2748,9 @@ export const getProgressionStatesForWorkout = async (
       rule_key: string;
       rule_explanation: string;
       consecutive_direction_count: number;
+      plateau_advisory: number;
+      last_progression_at: string | null;
+      recovery_rating: string | null;
       is_applied: number;
       is_dismissed: number;
     }>(
@@ -2732,6 +2765,9 @@ export const getProgressionStatesForWorkout = async (
         eps.rule_key,
         eps.rule_explanation,
         eps.consecutive_direction_count,
+        eps.plateau_advisory,
+        eps.last_progression_at,
+        eps.recovery_rating,
         eps.is_applied,
         eps.is_dismissed
       FROM exercise_progression_state eps
@@ -2762,6 +2798,9 @@ export const getProgressionStatesForWorkout = async (
         ruleKey: row.rule_key,
         ruleExplanation: row.rule_explanation,
         consecutiveDirectionCount: row.consecutive_direction_count,
+        plateauAdvisory: row.plateau_advisory === 1,
+        lastProgressionAt: row.last_progression_at ?? undefined,
+        recoveryRating: row.recovery_rating ?? undefined,
         isApplied: row.is_applied === 1,
         isDismissed: row.is_dismissed === 1,
       };

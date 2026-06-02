@@ -10,12 +10,18 @@ const RULE_EXPLANATIONS: Record<string, string> = {
   PAIN_BLOCK: "Pain reported. Keeping load unchanged until you feel better.",
   PAIN_LOAD:
     "Pain reported again. Consider reducing load to help your recovery.",
+  DISCOMFORT_SIGNAL: "Some discomfort noted. Keeping load steady to monitor.",
+  DISCOMFORT_RECURRING:
+    "Recurring discomfort. Consider adjusting form or consulting a coach.",
   FAILED_FIRST_SIGNAL:
     "Tough session. Holding steady for now. If it happens again, the load will be reduced.",
   FAILED_SETS:
     "You couldn't complete all sets. Reducing load slightly for next time.",
   POOR_RECOVERY: "Still recovering. Hold this load for now.",
-  BELOW_TARGET: "Rep target not met. Hold steady for now.",
+  BELOW_TARGET:
+    "Significantly short of the target. Hold and focus on hitting all reps before progressing.",
+  NEAR_TARGET:
+    "Almost there. Just missed the rep target. Hold and try again next session.",
   EASY_TARGET_LOAD:
     "You've been hitting targets easily. Time to add a little more weight.",
   EASY_TARGET_REPS: "Good pace. Try adding one more rep per set next session.",
@@ -115,6 +121,7 @@ export function evaluateProgression(
     latestFeedback,
     recoveryRating,
     consecutiveDirectionCount,
+    discomfortStreakCount,
     userIncrements,
     completedRepsPerSet,
   } = inputs;
@@ -158,17 +165,30 @@ export function evaluateProgression(
     return hold("FAILED_FIRST_SIGNAL");
   }
 
-  // Rule 3: Poor recovery — hold
+  // Rule 3: Discomfort — softer than pain, never reduces load
+  if (latestFeedback.painFlag === "discomfort") {
+    if (discomfortStreakCount >= 2) {
+      return hold("DISCOMFORT_RECURRING");
+    }
+    return hold("DISCOMFORT_SIGNAL");
+  }
+
+  // Rule 4: Poor recovery — hold
   if (recoveryRating === "sore") {
     return hold("POOR_RECOVERY");
   }
 
-  // Rule 4: Below target — hold
+  // Rule 5: Below target — hold (graduated by how far off)
   if (latestFeedback.performanceRatio < 0.85) {
     return hold("BELOW_TARGET");
   }
 
-  // Rules 5-6: Easy + on target
+  // Rule 6: Near target — hold with encouraging message
+  if (latestFeedback.performanceRatio < 1.0) {
+    return hold("NEAR_TARGET");
+  }
+
+  // Rules 7-8: Easy + on target (performanceRatio >= 1.0 already guaranteed above)
   if (
     latestFeedback.effortRating === "easy" &&
     latestFeedback.performanceRatio >= 1.0
@@ -246,7 +266,7 @@ export function evaluateProgression(
     }
   }
 
-  // Rule 7: Moderate + on target — hold
+  // Rule 9: Moderate + on target — hold
   if (
     latestFeedback.effortRating === "moderate" &&
     latestFeedback.performanceRatio >= 1.0
@@ -254,7 +274,7 @@ export function evaluateProgression(
     return hold("MODERATE_TARGET");
   }
 
-  // Rule 8: Hard + on target — hold
+  // Rule 10: Hard + on target — hold
   if (
     latestFeedback.effortRating === "hard" &&
     latestFeedback.performanceRatio >= 1.0

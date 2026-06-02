@@ -10,8 +10,22 @@ import {
   ExerciseFeedbackPayload,
   ExerciseProgressionState,
   ProgressionEngineInputs,
+  ProgressionAction,
 } from "@/types/progression";
 import { Set as PlanSet } from "@/store/workoutStore";
+
+const STAGNATION_HOLD_RULES = new Set([
+  "MODERATE_TARGET",
+  "HARD_TARGET",
+  "BELOW_TARGET",
+  "NEAR_TARGET",
+]);
+
+const PROGRESSION_ACTIONS = new Set<ProgressionAction>([
+  "increase_load",
+  "increase_reps",
+  "add_set",
+]);
 
 export interface ExerciseContext {
   exerciseId: number;
@@ -96,6 +110,11 @@ export const useExerciseFeedbackMutation = () => {
 
       const consecutiveCount = computeConsecutiveCount(feedback, existingState);
 
+      const newDiscomfortStreakCount =
+        feedback.painFlag === "discomfort"
+          ? (existingState?.discomfortStreakCount ?? 0) + 1
+          : 0;
+
       const engineInputs: ProgressionEngineInputs = {
         userWorkoutExerciseId: feedback.userWorkoutExerciseId,
         exerciseId: exerciseContext.exerciseId,
@@ -107,17 +126,39 @@ export const useExerciseFeedbackMutation = () => {
         priorFeedbackHistory: [],
         recoveryRating: existingState?.recoveryRating ?? null,
         consecutiveDirectionCount: consecutiveCount,
+        discomfortStreakCount: newDiscomfortStreakCount,
         userIncrements: progressionSettings.increments,
         completedRepsPerSet: exerciseContext.completedRepsPerSet,
       };
 
       const result = evaluateProgression(engineInputs);
 
+      const isProgression = PROGRESSION_ACTIONS.has(result.action);
+      const isStagnationHold = STAGNATION_HOLD_RULES.has(result.ruleKey);
+
+      const newConsecutiveHoldCount = isProgression
+        ? 0
+        : isStagnationHold
+          ? (existingState?.consecutiveHoldCount ?? 0) + 1
+          : (existingState?.consecutiveHoldCount ?? 0);
+
+      const plateauAdvisory = isStagnationHold && newConsecutiveHoldCount >= 4;
+
+      const lastProgressionAt = isProgression
+        ? new Date().toISOString()
+        : (existingState?.lastProgressionAt ?? null);
+
       await upsertProgressionState(
         feedback.userWorkoutExerciseId,
         result,
         feedbackId,
         consecutiveCount,
+        {
+          discomfortStreakCount: newDiscomfortStreakCount,
+          consecutiveHoldCount: newConsecutiveHoldCount,
+          plateauAdvisory,
+          lastProgressionAt,
+        },
       );
     },
     onSuccess: (_data, { feedback }) => {

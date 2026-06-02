@@ -648,6 +648,26 @@ export async function initUserDataDB() {
       `ALTER TABLE exercise_progression_state ADD COLUMN suggested_reps_per_set TEXT`,
     );
   }
+  if (!progressionCols.some((c) => c.name === "discomfort_streak_count")) {
+    await db.execAsync(
+      `ALTER TABLE exercise_progression_state ADD COLUMN discomfort_streak_count INTEGER NOT NULL DEFAULT 0`,
+    );
+  }
+  if (!progressionCols.some((c) => c.name === "consecutive_hold_count")) {
+    await db.execAsync(
+      `ALTER TABLE exercise_progression_state ADD COLUMN consecutive_hold_count INTEGER NOT NULL DEFAULT 0`,
+    );
+  }
+  if (!progressionCols.some((c) => c.name === "plateau_advisory")) {
+    await db.execAsync(
+      `ALTER TABLE exercise_progression_state ADD COLUMN plateau_advisory INTEGER NOT NULL DEFAULT 0`,
+    );
+  }
+  if (!progressionCols.some((c) => c.name === "last_progression_at")) {
+    await db.execAsync(
+      `ALTER TABLE exercise_progression_state ADD COLUMN last_progression_at TEXT DEFAULT NULL`,
+    );
+  }
 
   // Feature flag and default increments.
   // Dumbbell default depends on whether the user already tracks weight per implement.

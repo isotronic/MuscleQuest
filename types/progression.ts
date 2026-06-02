@@ -53,6 +53,7 @@ export interface ProgressionEngineInputs {
   priorFeedbackHistory: ExerciseFeedback[];
   recoveryRating: RecoveryRating | null;
   consecutiveDirectionCount: number;
+  discomfortStreakCount: number;
   userIncrements: UserProgressionIncrements;
   /** Actual reps completed per working set (non-warmup), in order. */
   completedRepsPerSet?: (number | null)[];
@@ -82,6 +83,10 @@ export interface ExerciseProgressionState {
   recoveryRating?: RecoveryRating;
   recoveryCheckedAt?: string;
   consecutiveDirectionCount: number;
+  discomfortStreakCount: number;
+  consecutiveHoldCount: number;
+  plateauAdvisory: boolean;
+  lastProgressionAt?: string;
   isApplied: boolean;
   isDismissed: boolean;
   createdAt: string;
