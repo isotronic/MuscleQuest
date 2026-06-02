@@ -35,9 +35,11 @@ function getRuleExplanation(ruleKey: string): string {
   return map[ruleKey] ?? t`Hold steady this session.`;
 }
 
-function formatLastProgression(isoDate: string): string {
-  const diffMs = Date.now() - new Date(isoDate).getTime();
-  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+function formatLastProgression(isoDate: string | null | undefined): string {
+  if (!isoDate) return t`Last increased: unknown`;
+  const ms = new Date(isoDate).getTime();
+  if (!isFinite(ms)) return t`Last increased: unknown`;
+  const days = Math.floor((Date.now() - ms) / (1000 * 60 * 60 * 24));
   if (days === 0) return t`Last increased: today`;
   if (days === 1) return t`Last increased: yesterday`;
   if (days < 7) return t`Last increased: ${days} days ago`;
