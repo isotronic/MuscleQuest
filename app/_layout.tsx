@@ -108,7 +108,7 @@ const queryClient = new QueryClient();
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 GoogleSignin.configure({
-  webClientId: googleServices.client[0].oauth_client[1].client_id,
+  webClientId: googleServices.client[0].oauth_client[2].client_id,
 });
 
 setupAppCheck().catch((error) => {
