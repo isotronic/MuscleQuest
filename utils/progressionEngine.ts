@@ -133,15 +133,6 @@ export function evaluateProgression(
     return hold("UNSUPPORTED_TRACKING");
   }
 
-  // Reps-only with no defined range — nothing to progress toward
-  if (trackingType === "reps") {
-    const workingSets = getWorkingSets(currentSets);
-    const hasRange = workingSets.some(
-      (s) => s.repsMin != null && s.repsMax != null && s.repsMin !== s.repsMax,
-    );
-    if (!hasRange) return hold("NO_RANGE");
-  }
-
   // Rule 1: Pain — hold on first report; reduce load on second consecutive
   if (latestFeedback.painFlag === "pain") {
     if (consecutiveDirectionCount >= 2) {
@@ -187,6 +178,15 @@ export function evaluateProgression(
   // Rule 4: Poor recovery — hold
   if (recoveryRating === "sore") {
     return hold("POOR_RECOVERY");
+  }
+
+  // Reps-only with no defined range — nothing to progress toward (checked after safety rules)
+  if (trackingType === "reps") {
+    const workingSets = getWorkingSets(currentSets);
+    const hasRange = workingSets.some(
+      (s) => s.repsMin != null && s.repsMax != null && s.repsMin !== s.repsMax,
+    );
+    if (!hasRange) return hold("NO_RANGE");
   }
 
   // Rule 5: Below target — hold (graduated by how far off)
@@ -258,11 +258,8 @@ export function evaluateProgression(
         };
       }
 
-      // For reps-only tracking: always suggest more reps (no load to increase)
+      // For reps-only tracking: suggest per-set rep increases wherever sets still have room
       if (trackingType === "reps") {
-        if (firstTwoSetsAtMax(workingSets, completed)) {
-          return hold("DEFAULT");
-        }
         const perSetTargets = computePerSetRepTargets(workingSets, completed);
         if (perSetTargets !== null) {
           return {
