@@ -74,8 +74,12 @@ export const useRecoveryCheckInMutation = () => {
 
         const isProgression = PROGRESSION_ACTIONS.has(result.action);
         const isStagnationHold = STAGNATION_HOLD_RULES.has(result.ruleKey);
-        const consecutiveHoldCount = existingState?.consecutiveHoldCount ?? 0;
-        const plateauAdvisory = isStagnationHold && consecutiveHoldCount >= 4;
+        const newConsecutiveHoldCount = isProgression
+          ? 0
+          : isStagnationHold
+            ? (existingState?.consecutiveHoldCount ?? 0) + 1
+            : (existingState?.consecutiveHoldCount ?? 0);
+        const plateauAdvisory = newConsecutiveHoldCount >= 4;
         const lastProgressionAt = isProgression
           ? new Date().toISOString()
           : (existingState?.lastProgressionAt ?? null);
@@ -87,7 +91,7 @@ export const useRecoveryCheckInMutation = () => {
           ctx.consecutiveDirectionCount,
           {
             discomfortStreakCount: ctx.discomfortStreakCount,
-            consecutiveHoldCount,
+            consecutiveHoldCount: newConsecutiveHoldCount,
             plateauAdvisory,
             lastProgressionAt,
           },
