@@ -29,6 +29,8 @@ const RULE_EXPLANATIONS: Record<string, string> = {
   MODERATE_TARGET: "Solid session. Keep this load.",
   HARD_TARGET: "You finished everything at the limit. Stay here and own it.",
   UNSUPPORTED_TRACKING: "No progression tracking for this exercise type in v1.",
+  NO_RANGE:
+    "No rep range defined. Add a rep range (e.g. 8-12) to enable auto-progression.",
   NO_PRIOR_WEIGHT: "No prior weight data. Hold steady for now.",
   DEFAULT: "Hold steady this session.",
 };
@@ -129,6 +131,15 @@ export function evaluateProgression(
   // Unsupported tracking types
   if (trackingType === "time" || trackingType === "distance") {
     return hold("UNSUPPORTED_TRACKING");
+  }
+
+  // Reps-only with no defined range — nothing to progress toward
+  if (trackingType === "reps") {
+    const workingSets = getWorkingSets(currentSets);
+    const hasRange = workingSets.some(
+      (s) => s.repsMin != null && s.repsMax != null && s.repsMin !== s.repsMax,
+    );
+    if (!hasRange) return hold("NO_RANGE");
   }
 
   // Rule 1: Pain — hold on first report; reduce load on second consecutive

@@ -451,6 +451,54 @@ describe("evaluateProgression — unsupported tracking types", () => {
     expect(result.action).toBe("hold");
     expect(result.ruleKey).toBe("UNSUPPORTED_TRACKING");
   });
+
+  it("NO_RANGE: holds for reps-only with fixed rep count (repsMin === repsMax)", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        trackingType: "reps",
+        currentSets: [FIXED_REP_SET],
+        latestFeedback: makeFeedback({
+          effortRating: "easy",
+          performanceRatio: 1.0,
+        }),
+        consecutiveDirectionCount: 2,
+      }),
+    );
+    expect(result.action).toBe("hold");
+    expect(result.ruleKey).toBe("NO_RANGE");
+  });
+
+  it("NO_RANGE: does not fire for weight tracking with fixed reps (load can still progress)", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        trackingType: "weight",
+        currentSets: [FIXED_REP_SET],
+        latestFeedback: makeFeedback({
+          effortRating: "easy",
+          performanceRatio: 1.0,
+        }),
+        consecutiveDirectionCount: 2,
+        completedRepsPerSet: [10],
+      }),
+    );
+    expect(result.ruleKey).not.toBe("NO_RANGE");
+  });
+
+  it("NO_RANGE: does not fire when at least one set has a rep range", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        trackingType: "reps",
+        currentSets: [FIXED_REP_SET, WORKING_SET],
+        latestFeedback: makeFeedback({
+          effortRating: "easy",
+          performanceRatio: 1.0,
+        }),
+        consecutiveDirectionCount: 2,
+        completedRepsPerSet: [10, 10],
+      }),
+    );
+    expect(result.ruleKey).not.toBe("NO_RANGE");
+  });
 });
 
 // ---------------------------------------------------------------------------
