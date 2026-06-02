@@ -872,6 +872,9 @@ export default function WorkoutSessionScreen() {
       trackingType: resolvedTrackingType(exercise),
       isLastSetOfLastExercise: isLast,
       isFirstSetOfFirstExercise: isFirst,
+      workingSetOrdinal: set.isWarmup
+        ? undefined
+        : exercise.sets.slice(0, setIndex).filter((s) => !s.isWarmup).length,
     };
   };
 
@@ -974,11 +977,27 @@ export default function WorkoutSessionScreen() {
     const exercise = workout.exercises[exIdx];
     if (!exercise?.id) return null;
 
+    const trackingType = resolvedTrackingType(exercise);
+
+    // Skip feedback for unsupported tracking types
+    if (trackingType === "time" || trackingType === "distance") return null;
+
     const workingSets = exercise.sets
       .map((set, idx) => ({ set, idx }))
       .filter(({ set }) => !set.isWarmup);
 
     if (workingSets.length === 0) return null;
+
+    // Skip feedback for reps-only exercises with no defined range
+    if (trackingType === "reps") {
+      const hasRange = workingSets.some(
+        ({ set }) =>
+          set.repsMin != null &&
+          set.repsMax != null &&
+          set.repsMin !== set.repsMax,
+      );
+      if (!hasRange) return null;
+    }
 
     const allWorkingSetsDone = workingSets.every(
       ({ idx }) => simulatedCompleted[exIdx]?.[idx] === true,
@@ -1000,17 +1019,23 @@ export default function WorkoutSessionScreen() {
       .map(({ idx }) => parseFloat(weightAndReps[exIdx]?.[idx]?.weight ?? ""))
       .filter((w) => !isNaN(w));
 
+    const completedRepsPerSet = workingSets.map(({ idx }) => {
+      const r = parseInt(weightAndReps[exIdx]?.[idx]?.reps ?? "", 10);
+      return isNaN(r) ? null : r;
+    });
+
     return {
       userWorkoutExerciseId: exercise.id,
       exerciseName: exercise.name,
       performanceRatio,
       exerciseContext: {
         exerciseId: exercise.exercise_id,
-        trackingType: resolvedTrackingType(exercise),
+        trackingType,
         equipment: exercise.equipment,
         currentSets: exercise.sets,
         recentWorkingWeight:
           maxWeight.length > 0 ? Math.max(...maxWeight) : null,
+        completedRepsPerSet,
       },
     };
   };

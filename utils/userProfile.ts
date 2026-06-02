@@ -1,5 +1,11 @@
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+} from "@react-native-firebase/firestore";
 import Bugsnag from "@bugsnag/expo";
 import { FirestorePrivateSettings } from "../types/firestore";
 
@@ -16,13 +22,19 @@ export const upsertUserProfile = async (
   user: FirebaseAuthTypes.User,
 ): Promise<void> => {
   try {
-    const db = firestore();
-    const userRef = db.collection("users").doc(user.uid);
-    const privateSettingsRef = userRef.collection("private").doc("settings");
+    const db = getFirestore();
+    const userRef = doc(db, "users", user.uid);
+    const privateSettingsRef = doc(
+      db,
+      "users",
+      user.uid,
+      "private",
+      "settings",
+    );
 
     const [userDoc, settingsDoc] = await Promise.all([
-      userRef.get(),
-      privateSettingsRef.get(),
+      getDoc(userRef),
+      getDoc(privateSettingsRef),
     ]);
 
     const profileData: Record<string, unknown> = {
@@ -31,12 +43,14 @@ export const upsertUserProfile = async (
       photoURL: user.photoURL ?? "",
     };
     if (!userDoc.exists()) {
-      profileData.createdAt = firestore.FieldValue.serverTimestamp();
+      profileData.createdAt = serverTimestamp();
     }
 
-    const writes: Promise<void>[] = [userRef.set(profileData, { merge: true })];
+    const writes: Promise<void>[] = [
+      setDoc(userRef, profileData, { merge: true }),
+    ];
     if (!settingsDoc.exists()) {
-      writes.push(privateSettingsRef.set(DEFAULT_PRIVACY_SETTINGS));
+      writes.push(setDoc(privateSettingsRef, DEFAULT_PRIVACY_SETTINGS));
     }
 
     await Promise.all(writes);

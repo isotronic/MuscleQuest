@@ -53,7 +53,10 @@ export interface ProgressionEngineInputs {
   priorFeedbackHistory: ExerciseFeedback[];
   recoveryRating: RecoveryRating | null;
   consecutiveDirectionCount: number;
+  discomfortStreakCount: number;
   userIncrements: UserProgressionIncrements;
+  /** Actual reps completed per working set (non-warmup), in order. */
+  completedRepsPerSet?: (number | null)[];
 }
 
 export interface ProgressionRuleResult {
@@ -61,8 +64,8 @@ export interface ProgressionRuleResult {
   ruleKey: string;
   explanation: string;
   suggestedWeight?: number;
-  suggestedRepsMin?: number;
-  suggestedRepsMax?: number;
+  /** Per-set suggested rep targets (one per working set, in order). */
+  suggestedRepsPerSet?: number[];
   suggestedSets?: number;
 }
 
@@ -71,8 +74,8 @@ export interface ExerciseProgressionState {
   userWorkoutExerciseId: number;
   suggestionAction: ProgressionAction;
   suggestedWeight?: number;
-  suggestedRepsMin?: number;
-  suggestedRepsMax?: number;
+  /** Per-set suggested rep targets (one per working set, in order). */
+  suggestedRepsPerSet?: number[];
   suggestedSets?: number;
   ruleKey: string;
   ruleExplanation: string;
@@ -80,6 +83,10 @@ export interface ExerciseProgressionState {
   recoveryRating?: RecoveryRating;
   recoveryCheckedAt?: string;
   consecutiveDirectionCount: number;
+  discomfortStreakCount: number;
+  consecutiveHoldCount: number;
+  plateauAdvisory: boolean;
+  lastProgressionAt?: string;
   isApplied: boolean;
   isDismissed: boolean;
   createdAt: string;

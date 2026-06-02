@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import firestore from "@react-native-firebase/firestore";
+import { getFirestore, doc, updateDoc } from "@react-native-firebase/firestore";
 import Bugsnag from "@bugsnag/expo";
 import { useContext } from "react";
 import { AuthContext } from "@/context/AuthProvider";
@@ -12,12 +12,8 @@ export const usePrivacySettingsMutation = () => {
     mutationFn: async (patch: Partial<FirestorePrivateSettings>) => {
       if (!user)
         throw new Error("usePrivacySettingsMutation: user not authenticated");
-      await firestore()
-        .collection("users")
-        .doc(user.uid)
-        .collection("private")
-        .doc("settings")
-        .update(patch);
+      const db = getFirestore();
+      await updateDoc(doc(db, "users", user.uid, "private", "settings"), patch);
     },
     onError: (error: Error) => {
       Bugsnag.notify(error);

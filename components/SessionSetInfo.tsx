@@ -67,6 +67,7 @@ interface SessionSetInfoProps {
   baseTrackingType?: string;
   isWeightedOverrideEnabled?: boolean;
   onToggleWeighted?: () => void;
+  workingSetOrdinal?: number;
   progressionSuggestion?:
     | import("@/types/progression").ExerciseProgressionState
     | null;
@@ -117,6 +118,7 @@ export default function SessionSetInfo({
   baseTrackingType,
   isWeightedOverrideEnabled,
   onToggleWeighted,
+  workingSetOrdinal,
   progressionSuggestion,
 }: SessionSetInfoProps) {
   const { colors } = useAppTheme();
@@ -383,8 +385,16 @@ export default function SessionSetInfo({
             <ProgressionSuggestionChip
               action={progressionSuggestion.suggestionAction}
               suggestedWeight={progressionSuggestion.suggestedWeight}
-              suggestedRepsMin={progressionSuggestion.suggestedRepsMin}
-              suggestedRepsMax={progressionSuggestion.suggestedRepsMax}
+              suggestedRepsPerSet={
+                progressionSuggestion.suggestedRepsPerSet != null &&
+                workingSetOrdinal != null
+                  ? [
+                      progressionSuggestion.suggestedRepsPerSet[
+                        workingSetOrdinal
+                      ],
+                    ].filter((v): v is number => v != null)
+                  : undefined
+              }
               weightUnit={weightUnit}
             />
           </View>

@@ -12,7 +12,7 @@ import { Plan } from "./useAllPlansQuery";
 import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 import { AuthContext } from "@/context/AuthProvider";
-import firestore from "@react-native-firebase/firestore";
+import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
 import { publishPlan } from "@/utils/sharing";
 
 export const useCreatePlan = (existingPlan?: Plan) => {
@@ -64,12 +64,15 @@ export const useCreatePlan = (existingPlan?: Plan) => {
 
         // Auto re-publish if already shared
         if (user) {
-          const docRef = firestore()
-            .collection("users")
-            .doc(user.uid)
-            .collection("sharedPlans")
-            .doc(String(planId));
-          const snap = await docRef.get();
+          const db = getFirestore();
+          const docRef = doc(
+            db,
+            "users",
+            user.uid,
+            "sharedPlans",
+            String(planId),
+          );
+          const snap = await getDoc(docRef);
           if (snap.exists()) {
             publishPlan(user.uid, planId).catch((err) => Bugsnag.notify(err));
           }

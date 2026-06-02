@@ -88,23 +88,26 @@ export default function LoginScreen() {
           <Trans>Benefits of logging in:</Trans>
         </ThemedText>
         <ThemedText style={styles.benefit}>
-          <Trans>• Backup and restore data</Trans>
+          <Trans>• Back up and restore all your workout data</Trans>
         </ThemedText>
         <ThemedText style={styles.benefit}>
-          <Trans>• Share your training plans with others *</Trans>
+          <Trans>• Add friends and browse their shared content</Trans>
         </ThemedText>
         <ThemedText style={styles.benefit}>
-          <Trans>• Challenges and badges *</Trans>
+          <Trans>
+            • Share your plans, workouts, exercises, and body measurements
+          </Trans>
         </ThemedText>
-
-        <ThemedText style={styles.info}>
-          <Trans>* features in development</Trans>
+        <ThemedText style={styles.benefit}>
+          <Trans>
+            • Import plans and workouts from friends into your library
+          </Trans>
         </ThemedText>
 
         <ThemedText style={styles.info}>
           <Trans>
-            You can login at any time from the settings screen, if you choose to
-            skip it now.
+            You can log in at any time from the settings screen, if you choose
+            to skip it now.
           </Trans>
         </ThemedText>
 
@@ -137,6 +140,7 @@ function createStyles(colors: AppThemeColors) {
       flex: 1,
       justifyContent: "center",
       padding: 20,
+      paddingTop: 60,
       backgroundColor: colors.background,
     },
     logo: {

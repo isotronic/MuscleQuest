@@ -6,7 +6,7 @@ const { transformer, resolver } = config;
 
 config.transformer = {
   ...transformer,
-  babelTransformerPath: require.resolve("@lingui/metro-transformer/expo"),
+  babelTransformerPath: require.resolve("./lingui-transformer"),
 };
 config.resolver = {
   ...resolver,

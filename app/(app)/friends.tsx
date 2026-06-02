@@ -5,6 +5,7 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
+  Pressable,
 } from "react-native";
 import { Button, Avatar } from "react-native-paper";
 import { Stack, useRouter } from "expo-router";
@@ -73,16 +74,33 @@ export default function FriendsScreen() {
         {tabs.map(({ key, label, badge }) => {
           const isActive = activeTab === key;
           return (
-            <Button
+            <Pressable
               key={key}
-              mode={isActive ? "contained" : "text"}
-              compact
               onPress={() => setActiveTab(key)}
               style={styles.tabButton}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={label}
             >
-              {label}
-              {badge ? ` (${badge})` : ""}
-            </Button>
+              <AppText
+                variant="label"
+                style={{
+                  color: isActive ? colors.accent : colors.contentSecondary,
+                  paddingBottom: 10,
+                }}
+              >
+                {label}
+                {badge ? ` (${badge})` : ""}
+              </AppText>
+              {isActive && (
+                <View
+                  style={[
+                    styles.tabIndicator,
+                    { backgroundColor: colors.accent },
+                  ]}
+                />
+              )}
+            </Pressable>
           );
         })}
       </View>
@@ -397,9 +415,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderBottomWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 8,
-    paddingVertical: 4,
   },
-  tabButton: { flex: 1 },
+  tabButton: {
+    flex: 1,
+    alignItems: "center",
+    paddingTop: 20,
+  },
+  tabIndicator: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    borderRadius: 1,
+  },
   searchContainer: { padding: 16 },
   searchRow: { flexDirection: "row", gap: 8, alignItems: "center" },
   input: {

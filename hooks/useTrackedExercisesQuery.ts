@@ -54,31 +54,46 @@ const fetchTrackedExercises = async (
 ): Promise<TrackedExerciseWithSets[]> => {
   try {
     const db = await openDatabase("userData.db");
-    // Use the current effective tracking type (plan override > base type).
-    // ce.resolved_tracking_type is intentionally NOT used here because we filter
-    // sessions by whether their historical type matches the current effective type below.
-    const effectiveTrackingTypeExpr =
-      "COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type)";
+    // Determine the current effective tracking type per exercise via a correlated
+    // subquery over user_workout_exercises. This avoids the per-session uwe join
+    // (uwe.workout_id = cw.workout_id) which fails when an old completed workout
+    // references a plan workout that was later deleted or reorganised, causing
+    // uwe = NULL and the override to be silently ignored.
+    const currentTypeExpr = `
+      COALESCE(
+        NULLIF(
+          (SELECT uwe2.tracking_type_override
+           FROM user_workout_exercises uwe2
+           WHERE uwe2.exercise_id = te.exercise_id
+             AND (uwe2.is_deleted = FALSE OR uwe2.is_deleted IS NULL)
+             AND uwe2.tracking_type_override IS NOT NULL
+             AND uwe2.tracking_type_override != ''
+           LIMIT 1),
+          ''
+        ),
+        e.tracking_type
+      )`;
+
+    const effectiveTrackingTypeExpr = currentTypeExpr;
     const progressionCase = buildTrackedProgressionCase(
       countUnilateralDouble,
       doubleWeightForPaired,
       effectiveTrackingTypeExpr,
     );
 
-    // Only include completed sessions whose historical tracking type matches the
-    // current effective type. Pre-migration rows have resolved_tracking_type = NULL;
-    // they are included only when no override is active (meaning the base type was
-    // and still is the effective type).
+    // Include a session only when its historical tracking type matches the
+    // current effective type. Pre-migration rows (resolved = NULL) are included
+    // when no override is active, i.e. the base type equals the current type.
     const trackingTypeFilter = `
       AND (
         cw.id IS NULL
         OR (
           ce.resolved_tracking_type IS NOT NULL
-          AND ce.resolved_tracking_type = COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type)
+          AND ce.resolved_tracking_type = ${currentTypeExpr}
         )
         OR (
           ce.resolved_tracking_type IS NULL
-          AND (uwe.tracking_type_override IS NULL OR uwe.tracking_type_override = '')
+          AND e.tracking_type = ${currentTypeExpr}
         )
       )`;
 
@@ -86,7 +101,7 @@ const fetchTrackedExercises = async (
       SELECT
         te.*,
         e.name,
-        COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type) AS tracking_type,
+        ${currentTypeExpr} AS tracking_type,
         cs.weight,
         cs.reps,
         cs.time,
@@ -99,9 +114,6 @@ const fetchTrackedExercises = async (
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-      LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id
-        AND uwe.exercise_id = te.exercise_id
-        AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
     `;
 
     const warmupFilter = excludeWarmup
@@ -133,18 +145,15 @@ const fetchTrackedExercises = async (
       LEFT JOIN completed_exercises ce ON te.exercise_id = ce.exercise_id
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-      LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id
-        AND uwe.exercise_id = te.exercise_id
-        AND (uwe.is_deleted = FALSE OR uwe.is_deleted IS NULL)
       WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${excludeWarmup ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)" : ""}${excludeDeload ? " AND (cw.is_deload = 0 OR cw.is_deload IS NULL)" : ""}
         AND (
           (
             ce.resolved_tracking_type IS NOT NULL
-            AND ce.resolved_tracking_type = COALESCE(NULLIF(uwe.tracking_type_override, ''), e.tracking_type)
+            AND ce.resolved_tracking_type = ${currentTypeExpr}
           )
           OR (
             ce.resolved_tracking_type IS NULL
-            AND (uwe.tracking_type_override IS NULL OR uwe.tracking_type_override = '')
+            AND e.tracking_type = ${currentTypeExpr}
           )
         )
       GROUP BY te.exercise_id

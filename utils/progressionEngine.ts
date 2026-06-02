@@ -8,20 +8,29 @@ import {
 
 const RULE_EXPLANATIONS: Record<string, string> = {
   PAIN_BLOCK: "Pain reported. Keeping load unchanged until you feel better.",
+  PAIN_LOAD:
+    "Pain reported again. Consider reducing load to help your recovery.",
+  DISCOMFORT_SIGNAL: "Some discomfort noted. Keeping load steady to monitor.",
+  DISCOMFORT_RECURRING:
+    "Recurring discomfort. Consider adjusting form or consulting a coach.",
+  FAILED_FIRST_SIGNAL:
+    "Tough session. Holding steady for now. If it happens again, the load will be reduced.",
   FAILED_SETS:
     "You couldn't complete all sets. Reducing load slightly for next time.",
   POOR_RECOVERY: "Still recovering. Hold this load for now.",
-  BELOW_TARGET: "Rep target not met. Hold steady for now.",
+  BELOW_TARGET:
+    "Significantly short of the target. Hold and focus on hitting all reps before progressing.",
+  NEAR_TARGET:
+    "Almost there. Just missed the rep target. Hold and try again next session.",
   EASY_TARGET_LOAD:
     "You've been hitting targets easily. Time to add a little more weight.",
-  EASY_TARGET_REPS:
-    "Good pace. Try adding one rep per set before bumping the load.",
-  EASY_FIRST_SIGNAL:
-    "Felt easy this time. Hold for now and confirm next session.",
+  EASY_TARGET_REPS: "Good pace. Try adding one more rep per set next session.",
   EASY_HOLD_REQUESTED: "You chose to keep it steady. Hold this load.",
   MODERATE_TARGET: "Solid session. Keep this load.",
   HARD_TARGET: "You finished everything at the limit. Stay here and own it.",
   UNSUPPORTED_TRACKING: "No progression tracking for this exercise type in v1.",
+  NO_RANGE:
+    "No rep range defined. Add a rep range (e.g. 8-12) to enable auto-progression.",
   NO_PRIOR_WEIGHT: "No prior weight data. Hold steady for now.",
   DEFAULT: "Hold steady this session.",
 };
@@ -55,31 +64,44 @@ function getWorkingSets(sets: PlanSet[]): PlanSet[] {
   return sets.filter((s) => !s.isWarmup);
 }
 
-function shouldIncreaseRepsBeforeLoad(
-  currentSets: PlanSet[],
-  trackingType: string,
-): boolean {
-  if (trackingType === "reps") return true;
-  if (trackingType !== "weight" && trackingType !== "assisted") return false;
-  const working = getWorkingSets(currentSets);
-  if (working.length === 0) return false;
-  return working.every((s) => {
-    const min = s.repsMin ?? 0;
-    const max = s.repsMax ?? 0;
-    return max > min && max - min <= 3;
+/**
+ * Given completed reps per working set and the plan sets, computes per-set
+ * suggested reps (+1 each, capped at repsMax).  Returns null if data is
+ * missing or if every set has already reached its repsMax (load increase
+ * should be suggested instead).
+ */
+function computePerSetRepTargets(
+  workingSets: PlanSet[],
+  completedRepsPerSet: (number | null)[],
+): number[] | null {
+  if (completedRepsPerSet.length < workingSets.length) return null;
+
+  const suggested = workingSets.map((s, i) => {
+    const actual = completedRepsPerSet[i] ?? 0;
+    const cap = s.repsMax ?? Infinity;
+    return Math.min(actual + 1, cap);
   });
+
+  return suggested;
 }
 
-function computeIncreasedReps(currentSets: PlanSet[]): {
-  suggestedRepsMin: number;
-  suggestedRepsMax: number;
-} {
-  const working = getWorkingSets(currentSets);
-  const ref = working[0] ?? currentSets[0];
-  return {
-    suggestedRepsMin: (ref?.repsMin ?? 0) + 1,
-    suggestedRepsMax: (ref?.repsMax ?? 0) + 1,
-  };
+/**
+ * Returns true when the first two working sets (or all sets if fewer than two)
+ * were completed at or above their repsMax, meaning the next step should be to
+ * increase load rather than reps.
+ */
+function firstTwoSetsAtMax(
+  workingSets: PlanSet[],
+  completedRepsPerSet: (number | null)[],
+): boolean {
+  if (completedRepsPerSet.length < workingSets.length) return false;
+  const checkCount = Math.min(2, workingSets.length);
+  for (let i = 0; i < checkCount; i++) {
+    const actual = completedRepsPerSet[i] ?? 0;
+    const max = workingSets[i].repsMax;
+    if (max == null || actual < max) return false;
+  }
+  return true;
 }
 
 function hold(ruleKey: string): ProgressionRuleResult {
@@ -101,7 +123,9 @@ export function evaluateProgression(
     latestFeedback,
     recoveryRating,
     consecutiveDirectionCount,
+    discomfortStreakCount,
     userIncrements,
+    completedRepsPerSet,
   } = inputs;
 
   // Unsupported tracking types
@@ -109,38 +133,73 @@ export function evaluateProgression(
     return hold("UNSUPPORTED_TRACKING");
   }
 
-  // Rule 1: Pain blocks everything
+  // Rule 1: Pain — hold on first report; reduce load on second consecutive
   if (latestFeedback.painFlag === "pain") {
+    if (consecutiveDirectionCount >= 2) {
+      if (trackingType !== "reps" && recentWorkingWeight !== null) {
+        return {
+          action: "reduce_load",
+          ruleKey: "PAIN_LOAD",
+          explanation: RULE_EXPLANATIONS.PAIN_LOAD,
+          suggestedWeight: computeReducedLoad(recentWorkingWeight),
+        };
+      }
+    }
     return hold("PAIN_BLOCK");
   }
 
-  // Rule 2: Failed sets — reduce load (immediate, no consecutive wait)
+  // Rule 2: Failed sets — hold on first failure; reduce load on second consecutive
   if (latestFeedback.effortRating === "failed") {
-    if (trackingType === "reps") {
-      return hold("FAILED_SETS");
+    if (consecutiveDirectionCount >= 2) {
+      if (trackingType === "reps") {
+        return hold("FAILED_SETS");
+      }
+      if (recentWorkingWeight === null) {
+        return hold("NO_PRIOR_WEIGHT");
+      }
+      return {
+        action: "reduce_load",
+        ruleKey: "FAILED_SETS",
+        explanation: RULE_EXPLANATIONS.FAILED_SETS,
+        suggestedWeight: computeReducedLoad(recentWorkingWeight),
+      };
     }
-    if (recentWorkingWeight === null) {
-      return hold("NO_PRIOR_WEIGHT");
-    }
-    return {
-      action: "reduce_load",
-      ruleKey: "FAILED_SETS",
-      explanation: RULE_EXPLANATIONS.FAILED_SETS,
-      suggestedWeight: computeReducedLoad(recentWorkingWeight),
-    };
+    return hold("FAILED_FIRST_SIGNAL");
   }
 
-  // Rule 3: Poor recovery — hold
+  // Rule 3: Discomfort — softer than pain, never reduces load
+  if (latestFeedback.painFlag === "discomfort") {
+    if (discomfortStreakCount >= 2) {
+      return hold("DISCOMFORT_RECURRING");
+    }
+    return hold("DISCOMFORT_SIGNAL");
+  }
+
+  // Rule 4: Poor recovery — hold
   if (recoveryRating === "sore") {
     return hold("POOR_RECOVERY");
   }
 
-  // Rule 4: Below target — hold
+  // Reps-only with no defined range — nothing to progress toward (checked after safety rules)
+  if (trackingType === "reps") {
+    const workingSets = getWorkingSets(currentSets);
+    const hasRange = workingSets.some(
+      (s) => s.repsMin != null && s.repsMax != null && s.repsMin !== s.repsMax,
+    );
+    if (!hasRange) return hold("NO_RANGE");
+  }
+
+  // Rule 5: Below target — hold (graduated by how far off)
   if (latestFeedback.performanceRatio < 0.85) {
     return hold("BELOW_TARGET");
   }
 
-  // Rules 5-6: Easy + on target
+  // Rule 6: Near target — hold with encouraging message
+  if (latestFeedback.performanceRatio < 1.0) {
+    return hold("NEAR_TARGET");
+  }
+
+  // Rules 7-8: Easy + on target (performanceRatio >= 1.0 already guaranteed above)
   if (
     latestFeedback.effortRating === "easy" &&
     latestFeedback.performanceRatio >= 1.0
@@ -149,36 +208,73 @@ export function evaluateProgression(
       return hold("EASY_HOLD_REQUESTED");
     }
 
-    if (consecutiveDirectionCount >= 2) {
-      if (shouldIncreaseRepsBeforeLoad(currentSets, trackingType)) {
+    if (consecutiveDirectionCount >= 1) {
+      const workingSets = getWorkingSets(currentSets);
+      const completed = completedRepsPerSet ?? [];
+
+      // For weight/assisted: check if all sets are at the rep ceiling → load up
+      if (trackingType === "weight" || trackingType === "assisted") {
+        if (firstTwoSetsAtMax(workingSets, completed)) {
+          // All sets hit repsMax → increase load instead of reps
+          const increment = computeLoadIncrement(equipment, userIncrements);
+          if (increment === 0) {
+            return hold("UNSUPPORTED_TRACKING");
+          }
+          if (recentWorkingWeight === null) {
+            return hold("NO_PRIOR_WEIGHT");
+          }
+          return {
+            action: "increase_load",
+            ruleKey: "EASY_TARGET_LOAD",
+            explanation: RULE_EXPLANATIONS.EASY_TARGET_LOAD,
+            suggestedWeight: recentWorkingWeight + increment,
+          };
+        }
+
+        // Not all at max — suggest per-set rep targets
+        const perSetTargets = computePerSetRepTargets(workingSets, completed);
+        if (perSetTargets !== null) {
+          return {
+            action: "increase_reps",
+            ruleKey: "EASY_TARGET_REPS",
+            explanation: RULE_EXPLANATIONS.EASY_TARGET_REPS,
+            suggestedRepsPerSet: perSetTargets,
+          };
+        }
+
+        // No completed rep data — fall back to load increase
+        const increment = computeLoadIncrement(equipment, userIncrements);
+        if (increment === 0) {
+          return hold("UNSUPPORTED_TRACKING");
+        }
+        if (recentWorkingWeight === null) {
+          return hold("NO_PRIOR_WEIGHT");
+        }
         return {
-          action: "increase_reps",
-          ruleKey: "EASY_TARGET_REPS",
-          explanation: RULE_EXPLANATIONS.EASY_TARGET_REPS,
-          ...computeIncreasedReps(currentSets),
+          action: "increase_load",
+          ruleKey: "EASY_TARGET_LOAD",
+          explanation: RULE_EXPLANATIONS.EASY_TARGET_LOAD,
+          suggestedWeight: recentWorkingWeight + increment,
         };
       }
 
-      const increment = computeLoadIncrement(equipment, userIncrements);
-      if (increment === 0) {
-        return hold("UNSUPPORTED_TRACKING");
+      // For reps-only tracking: suggest per-set rep increases wherever sets still have room
+      if (trackingType === "reps") {
+        const perSetTargets = computePerSetRepTargets(workingSets, completed);
+        if (perSetTargets !== null) {
+          return {
+            action: "increase_reps",
+            ruleKey: "EASY_TARGET_REPS",
+            explanation: RULE_EXPLANATIONS.EASY_TARGET_REPS,
+            suggestedRepsPerSet: perSetTargets,
+          };
+        }
+        return hold("DEFAULT");
       }
-      if (recentWorkingWeight === null) {
-        return hold("NO_PRIOR_WEIGHT");
-      }
-
-      return {
-        action: "increase_load",
-        ruleKey: "EASY_TARGET_LOAD",
-        explanation: RULE_EXPLANATIONS.EASY_TARGET_LOAD,
-        suggestedWeight: recentWorkingWeight + increment,
-      };
     }
-
-    return hold("EASY_FIRST_SIGNAL");
   }
 
-  // Rule 7: Moderate + on target — hold
+  // Rule 9: Moderate + on target — hold
   if (
     latestFeedback.effortRating === "moderate" &&
     latestFeedback.performanceRatio >= 1.0
@@ -186,7 +282,7 @@ export function evaluateProgression(
     return hold("MODERATE_TARGET");
   }
 
-  // Rule 8: Hard + on target — hold
+  // Rule 10: Hard + on target — hold
   if (
     latestFeedback.effortRating === "hard" &&
     latestFeedback.performanceRatio >= 1.0

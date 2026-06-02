@@ -18,18 +18,9 @@ export const useApplyProgressionMutation = () => {
   const applyMutation = useMutation({
     mutationFn: ({
       userWorkoutExerciseId,
-      suggestedRepsMin,
-      suggestedRepsMax,
     }: {
       userWorkoutExerciseId: number;
-      suggestedRepsMin?: number;
-      suggestedRepsMax?: number;
-    }) =>
-      applyProgressionToExercise(
-        userWorkoutExerciseId,
-        suggestedRepsMin,
-        suggestedRepsMax,
-      ),
+    }) => applyProgressionToExercise(userWorkoutExerciseId),
     onSuccess: (_data, { userWorkoutExerciseId }) => {
       invalidate(userWorkoutExerciseId);
     },
