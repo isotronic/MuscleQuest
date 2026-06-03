@@ -4,7 +4,7 @@ import { reorderTrackedExercises } from "@/utils/database";
 
 export const useReorderTrackedExercisesMutation = () => {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useMutation<void, Error, number[]>({
     mutationFn: (exerciseIds: number[]) => reorderTrackedExercises(exerciseIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
