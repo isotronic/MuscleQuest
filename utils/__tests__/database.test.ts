@@ -436,6 +436,12 @@ describe("fetchAllStandaloneWorkoutIds", () => {
       expect.stringContaining("user_workouts"),
     );
   });
+
+  it("returns empty array when no standalone workouts", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+    const result = await fetchAllStandaloneWorkoutIds();
+    expect(result).toEqual([]);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -469,5 +475,11 @@ describe("fetchAllCustomExercisesForSharing", () => {
     expect(mockDb.getAllAsync).toHaveBeenCalledWith(
       expect.stringContaining("app_exercise_id IS NULL"),
     );
+  });
+
+  it("returns empty array when no custom exercises", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+    const result = await fetchAllCustomExercisesForSharing();
+    expect(result).toEqual([]);
   });
 });
