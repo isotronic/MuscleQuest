@@ -30,7 +30,7 @@ import { WorkoutCalendarModal } from "@/components/stats/WorkoutCalendarModal";
 import { InsightsStrip } from "@/components/stats/InsightsStrip";
 import { StatsTile } from "@/components/stats/StatsTile";
 import { ExerciseCompactCard } from "@/components/stats/ExerciseCompactCard";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useBodyMeasurementSessionsQuery } from "@/hooks/useBodyMeasurementSessionsQuery";
 import { useTrackedExercisesQuery } from "@/hooks/useTrackedExercisesQuery";
@@ -321,6 +321,23 @@ export default function StatsScreen() {
     });
   }, [router, trackedExercises]);
 
+  const handleReorderDragEnd = useCallback(
+    ({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => {
+      if (fromIndex === toIndex) return;
+      const reordered = [...(trackedExercises ?? [])];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+      reorderMutation.mutate(reordered.map((e) => e.exercise_id));
+    },
+    [trackedExercises, reorderMutation],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => setIsReorderMode(false);
+    }, []),
+  );
+
   const isLoading =
     isLoadingWorkouts ||
     isLoadingExercises ||
@@ -518,7 +535,7 @@ export default function StatsScreen() {
             <ThemedText style={styles.sectionTitle}>
               <Trans>Tracked Exercises</Trans>
             </ThemedText>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={styles.exerciseHeaderButtons}>
               {!isReorderMode && (
                 <Button
                   mode="text"
@@ -563,13 +580,7 @@ export default function StatsScreen() {
                     onPress={() => {}}
                   />
                 )}
-                onDragEnd={({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => {
-                  if (fromIndex === toIndex) return;
-                  const reordered = [...trackedExercises];
-                  const [moved] = reordered.splice(fromIndex, 1);
-                  reordered.splice(toIndex, 0, moved);
-                  reorderMutation.mutate(reordered.map((e) => e.exercise_id));
-                }}
+                onDragEnd={handleReorderDragEnd}
                 showDropIndicator
               />
             ) : (
@@ -696,6 +707,10 @@ function createStyles(colors: AppThemeColors) {
       flexDirection: "row",
       flexWrap: "wrap",
       gap: 8,
+    },
+    exerciseHeaderButtons: {
+      flexDirection: "row",
+      alignItems: "center",
     },
     measurementTile: {
       padding: 12,
