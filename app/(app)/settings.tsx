@@ -26,6 +26,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import { useSocialStore } from "@/store/socialStore";
 import { usePrivacySettingsMutation } from "@/hooks/usePrivacySettingsMutation";
+import type { FirestorePrivateSettings } from "@/types/firestore";
 import { deleteAllSharedData } from "@/utils/sharing";
 import { SettingsModal } from "@/components/SettingsModal";
 // import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
@@ -98,8 +99,9 @@ export default function SettingsScreen() {
   } = useImageManagement(updateSetting, settings?.downloadImages);
 
   const { privacySettings } = useSocialStore();
-  const { mutate: updatePrivacy, isPending: isPrivacyPending } =
-    usePrivacySettingsMutation();
+  const { mutate: updatePrivacy } = usePrivacySettingsMutation();
+  const [localPrivacySettings, setLocalPrivacySettings] =
+    useState<FirestorePrivateSettings | null>(privacySettings);
   const [isDeletingSharedData, setIsDeletingSharedData] = useState(false);
 
   const handleDeleteAllSharedData = () => {
@@ -209,6 +211,15 @@ export default function SettingsScreen() {
     settings?.sizeUnit,
     queryClient,
   ]);
+
+  useEffect(() => {
+    if (privacySettings) setLocalPrivacySettings(privacySettings);
+  }, [privacySettings]);
+
+  const handlePrivacyToggle = (patch: Partial<FirestorePrivateSettings>) => {
+    setLocalPrivacySettings((prev) => (prev ? { ...prev, ...patch } : prev));
+    updatePrivacy(patch);
+  };
 
   // Sync local states with fetched settings data on load
   useEffect(() => {
@@ -1637,15 +1648,16 @@ export default function SettingsScreen() {
               <TouchableOpacity
                 style={styles.item}
                 onPress={() =>
-                  updatePrivacy({ sharePlans: !privacySettings?.sharePlans })
+                  handlePrivacyToggle({
+                    sharePlans: !localPrivacySettings?.sharePlans,
+                  })
                 }
-                disabled={isPrivacyPending}
               >
                 <View style={styles.rowLeft}>
                   <ThemedText style={styles.rowTitle}>
                     <Trans>Share plans with friends</Trans>
                   </ThemedText>
-                  {privacySettings?.sharePlans ? (
+                  {localPrivacySettings?.sharePlans ? (
                     <ThemedText style={styles.rowSubtitle}>
                       <Trans>Enables a per-plan publish toggle.</Trans>
                     </ThemedText>
@@ -1658,11 +1670,10 @@ export default function SettingsScreen() {
                   )}
                 </View>
                 <Switch
-                  value={!!privacySettings?.sharePlans}
+                  value={!!localPrivacySettings?.sharePlans}
                   onValueChange={(v: boolean) =>
-                    updatePrivacy({ sharePlans: v })
+                    handlePrivacyToggle({ sharePlans: v })
                   }
-                  disabled={isPrivacyPending}
                   color={colors.accent}
                   style={styles.switch}
                 />
@@ -1672,18 +1683,17 @@ export default function SettingsScreen() {
               <TouchableOpacity
                 style={styles.item}
                 onPress={() =>
-                  updatePrivacy({
+                  handlePrivacyToggle({
                     shareStandaloneWorkouts:
-                      !privacySettings?.shareStandaloneWorkouts,
+                      !localPrivacySettings?.shareStandaloneWorkouts,
                   })
                 }
-                disabled={isPrivacyPending}
               >
                 <View style={styles.rowLeft}>
                   <ThemedText style={styles.rowTitle}>
                     <Trans>Share standalone workouts with friends</Trans>
                   </ThemedText>
-                  {privacySettings?.shareStandaloneWorkouts ? (
+                  {localPrivacySettings?.shareStandaloneWorkouts ? (
                     <ThemedText style={styles.rowSubtitle}>
                       <Trans>Enables a per-workout publish toggle.</Trans>
                     </ThemedText>
@@ -1697,11 +1707,10 @@ export default function SettingsScreen() {
                   )}
                 </View>
                 <Switch
-                  value={!!privacySettings?.shareStandaloneWorkouts}
+                  value={!!localPrivacySettings?.shareStandaloneWorkouts}
                   onValueChange={(v: boolean) =>
-                    updatePrivacy({ shareStandaloneWorkouts: v })
+                    handlePrivacyToggle({ shareStandaloneWorkouts: v })
                   }
-                  disabled={isPrivacyPending}
                   color={colors.accent}
                   style={styles.switch}
                 />
@@ -1711,18 +1720,17 @@ export default function SettingsScreen() {
               <TouchableOpacity
                 style={styles.item}
                 onPress={() =>
-                  updatePrivacy({
+                  handlePrivacyToggle({
                     shareCustomExercises:
-                      !privacySettings?.shareCustomExercises,
+                      !localPrivacySettings?.shareCustomExercises,
                   })
                 }
-                disabled={isPrivacyPending}
               >
                 <View style={styles.rowLeft}>
                   <ThemedText style={styles.rowTitle}>
                     <Trans>Share custom exercises with friends</Trans>
                   </ThemedText>
-                  {privacySettings?.shareCustomExercises ? (
+                  {localPrivacySettings?.shareCustomExercises ? (
                     <ThemedText style={styles.rowSubtitle}>
                       <Trans>
                         Custom exercises you create or edit are shared
@@ -1739,11 +1747,10 @@ export default function SettingsScreen() {
                   )}
                 </View>
                 <Switch
-                  value={!!privacySettings?.shareCustomExercises}
+                  value={!!localPrivacySettings?.shareCustomExercises}
                   onValueChange={(v: boolean) =>
-                    updatePrivacy({ shareCustomExercises: v })
+                    handlePrivacyToggle({ shareCustomExercises: v })
                   }
-                  disabled={isPrivacyPending}
                   color={colors.accent}
                   style={styles.switch}
                 />
@@ -1753,18 +1760,17 @@ export default function SettingsScreen() {
               <TouchableOpacity
                 style={styles.item}
                 onPress={() =>
-                  updatePrivacy({
+                  handlePrivacyToggle({
                     shareCompletedWorkouts:
-                      !privacySettings?.shareCompletedWorkouts,
+                      !localPrivacySettings?.shareCompletedWorkouts,
                   })
                 }
-                disabled={isPrivacyPending}
               >
                 <View style={styles.rowLeft}>
                   <ThemedText style={styles.rowTitle}>
                     <Trans>Share completed workouts with friends</Trans>
                   </ThemedText>
-                  {privacySettings?.shareCompletedWorkouts ? (
+                  {localPrivacySettings?.shareCompletedWorkouts ? (
                     <ThemedText style={styles.rowSubtitle}>
                       <Trans>
                         Each workout you complete is shared automatically.
@@ -1779,11 +1785,10 @@ export default function SettingsScreen() {
                   )}
                 </View>
                 <Switch
-                  value={!!privacySettings?.shareCompletedWorkouts}
+                  value={!!localPrivacySettings?.shareCompletedWorkouts}
                   onValueChange={(v: boolean) =>
-                    updatePrivacy({ shareCompletedWorkouts: v })
+                    handlePrivacyToggle({ shareCompletedWorkouts: v })
                   }
-                  disabled={isPrivacyPending}
                   color={colors.accent}
                   style={styles.switch}
                 />
@@ -1793,18 +1798,17 @@ export default function SettingsScreen() {
               <TouchableOpacity
                 style={styles.item}
                 onPress={() =>
-                  updatePrivacy({
+                  handlePrivacyToggle({
                     shareBodyMeasurements:
-                      !privacySettings?.shareBodyMeasurements,
+                      !localPrivacySettings?.shareBodyMeasurements,
                   })
                 }
-                disabled={isPrivacyPending}
               >
                 <View style={styles.rowLeft}>
                   <ThemedText style={styles.rowTitle}>
                     <Trans>Share body measurements with friends</Trans>
                   </ThemedText>
-                  {privacySettings?.shareBodyMeasurements ? (
+                  {localPrivacySettings?.shareBodyMeasurements ? (
                     <ThemedText style={styles.rowSubtitle}>
                       <Trans>
                         Each measurement entry you record is shared
@@ -1821,11 +1825,10 @@ export default function SettingsScreen() {
                   )}
                 </View>
                 <Switch
-                  value={!!privacySettings?.shareBodyMeasurements}
+                  value={!!localPrivacySettings?.shareBodyMeasurements}
                   onValueChange={(v: boolean) =>
-                    updatePrivacy({ shareBodyMeasurements: v })
+                    handlePrivacyToggle({ shareBodyMeasurements: v })
                   }
-                  disabled={isPrivacyPending}
                   color={colors.accent}
                   style={styles.switch}
                 />
@@ -1835,18 +1838,17 @@ export default function SettingsScreen() {
               <TouchableOpacity
                 style={styles.item}
                 onPress={() =>
-                  updatePrivacy({
+                  handlePrivacyToggle({
                     shareStrengthProgress:
-                      !privacySettings?.shareStrengthProgress,
+                      !localPrivacySettings?.shareStrengthProgress,
                   })
                 }
-                disabled={isPrivacyPending}
               >
                 <View style={styles.rowLeft}>
                   <ThemedText style={styles.rowTitle}>
                     <Trans>Share strength PRs with friends</Trans>
                   </ThemedText>
-                  {privacySettings?.shareStrengthProgress ? (
+                  {localPrivacySettings?.shareStrengthProgress ? (
                     <ThemedText style={styles.rowSubtitle}>
                       <Trans>
                         Strength PRs are shared automatically after each
@@ -1863,11 +1865,10 @@ export default function SettingsScreen() {
                   )}
                 </View>
                 <Switch
-                  value={!!privacySettings?.shareStrengthProgress}
+                  value={!!localPrivacySettings?.shareStrengthProgress}
                   onValueChange={(v: boolean) =>
-                    updatePrivacy({ shareStrengthProgress: v })
+                    handlePrivacyToggle({ shareStrengthProgress: v })
                   }
-                  disabled={isPrivacyPending}
                   color={colors.accent}
                   style={styles.switch}
                 />
