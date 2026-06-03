@@ -674,11 +674,11 @@ export async function initUserDataDB() {
     `PRAGMA table_info(tracked_exercises)`,
   );
   if (!trackedExercisesResult.some((c) => c.name === "sort_order")) {
-    await db.withTransactionAsync(async () => {
-      await db.execAsync(
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.execAsync(
         `ALTER TABLE tracked_exercises ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`,
       );
-      await db.execAsync(
+      await txn.execAsync(
         `UPDATE tracked_exercises SET sort_order = rowid`,
       );
     });
