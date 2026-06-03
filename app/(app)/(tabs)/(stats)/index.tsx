@@ -34,7 +34,9 @@ import { useRouter } from "expo-router";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useBodyMeasurementSessionsQuery } from "@/hooks/useBodyMeasurementSessionsQuery";
 import { useTrackedExercisesQuery } from "@/hooks/useTrackedExercisesQuery";
+import { useReorderTrackedExercisesMutation } from "@/hooks/useReorderTrackedExercisesMutation";
 import { useStatsInsights } from "@/hooks/useStatsInsights";
+import Sortable from "react-native-sortables";
 import { WorkoutBarChart } from "@/components/charts/WorkoutBarChart";
 import { VolumeBarChart } from "@/components/charts/VolumeBarChart";
 import BodyPartChart from "@/components/charts/BodyPartChart";
@@ -114,6 +116,8 @@ export default function StatsScreen() {
   );
   const [historyVisible, setHistoryVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isReorderMode, setIsReorderMode] = useState(false);
+  const reorderMutation = useReorderTrackedExercisesMutation();
 
   useEffect(() => {
     if (settings?.timeRange) setSelectedTimeRange(settings.timeRange);
@@ -514,31 +518,73 @@ export default function StatsScreen() {
             <ThemedText style={styles.sectionTitle}>
               <Trans>Tracked Exercises</Trans>
             </ThemedText>
-            <Button
-              mode="text"
-              compact
-              labelStyle={{ color: colors.accent, fontSize: 13 }}
-              onPress={handleManageExercisesPress}
-            >
-              {trackedExercises && trackedExercises.length > 0 ? (
-                <Trans>Manage</Trans>
-              ) : (
-                <Trans>+ Add</Trans>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              {!isReorderMode && (
+                <Button
+                  mode="text"
+                  compact
+                  labelStyle={{ color: colors.accent, fontSize: 13 }}
+                  onPress={handleManageExercisesPress}
+                >
+                  {trackedExercises && trackedExercises.length > 0 ? (
+                    <Trans>Manage</Trans>
+                  ) : (
+                    <Trans>+ Add</Trans>
+                  )}
+                </Button>
               )}
-            </Button>
+              {trackedExercises && trackedExercises.length > 1 && (
+                <Button
+                  mode="text"
+                  compact
+                  labelStyle={{
+                    color: isReorderMode ? colors.accent : colors.contentSecondary,
+                    fontSize: 13,
+                  }}
+                  onPress={() => setIsReorderMode((v) => !v)}
+                >
+                  {isReorderMode ? <Trans>Done</Trans> : <Trans>Reorder</Trans>}
+                </Button>
+              )}
+            </View>
           </View>
           {trackedExercises && trackedExercises.length > 0 ? (
-            trackedExercises.map((exercise) => (
-              <ExerciseCompactCard
-                key={exercise.exercise_id}
-                exercise={exercise}
-                weightUnit={weightUnit}
-                distanceUnit={distanceUnit}
-                onPress={() =>
-                  handleExercisePress(exercise.exercise_id, exercise.name)
-                }
+            isReorderMode ? (
+              <Sortable.Grid
+                columns={1}
+                data={trackedExercises}
+                keyExtractor={(item) => item.exercise_id.toString()}
+                renderItem={({ item }) => (
+                  <ExerciseCompactCard
+                    exercise={item}
+                    weightUnit={weightUnit}
+                    distanceUnit={distanceUnit}
+                    isReorderMode
+                    onPress={() => {}}
+                  />
+                )}
+                onDragEnd={({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => {
+                  if (fromIndex === toIndex) return;
+                  const reordered = [...trackedExercises];
+                  const [moved] = reordered.splice(fromIndex, 1);
+                  reordered.splice(toIndex, 0, moved);
+                  reorderMutation.mutate(reordered.map((e) => e.exercise_id));
+                }}
+                showDropIndicator
               />
-            ))
+            ) : (
+              trackedExercises.map((exercise) => (
+                <ExerciseCompactCard
+                  key={exercise.exercise_id}
+                  exercise={exercise}
+                  weightUnit={weightUnit}
+                  distanceUnit={distanceUnit}
+                  onPress={() =>
+                    handleExercisePress(exercise.exercise_id, exercise.name)
+                  }
+                />
+              ))
+            )
           ) : (
             <ThemedText style={{ color: colors.contentSecondary }}>
               <Trans>No exercises tracked yet. Tap + Add to start.</Trans>
