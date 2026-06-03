@@ -669,6 +669,21 @@ export async function initUserDataDB() {
     );
   }
 
+  // Migration: add sort_order to tracked_exercises for user-defined display order
+  const trackedExercisesResult = await db.getAllAsync<{ name: string }>(
+    `PRAGMA table_info(tracked_exercises)`,
+  );
+  if (!trackedExercisesResult.some((c) => c.name === "sort_order")) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(
+        `ALTER TABLE tracked_exercises ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`,
+      );
+      await db.execAsync(
+        `UPDATE tracked_exercises SET sort_order = rowid`,
+      );
+    });
+  }
+
   // Feature flag and default increments.
   // Dumbbell default depends on whether the user already tracks weight per implement.
   await db.execAsync(
