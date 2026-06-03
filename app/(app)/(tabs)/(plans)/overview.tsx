@@ -39,7 +39,6 @@ import { useDeloadWeekMutation } from "@/hooks/useDeloadWeekMutation";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { getCurrentISOWeek } from "@/utils/isoWeek";
 import { AuthContext } from "@/context/AuthProvider";
-import { useSocialStore } from "@/store/socialStore";
 import { usePlanPublishQuery } from "@/hooks/usePlanPublishQuery";
 import { usePlanPublishMutation } from "@/hooks/usePlanPublishMutation";
 
@@ -105,8 +104,7 @@ export default function PlanOverviewScreen() {
   const deloadMutation = useDeloadWeekMutation(Number(planId));
 
   const user = useContext(AuthContext);
-  const { privacySettings } = useSocialStore();
-  const showShareToggle = !!user && !!privacySettings?.sharePlans;
+  const showShareToggle = !!user;
   const { data: isPublished = false, isLoading: isPublishLoading } =
     usePlanPublishQuery(showShareToggle ? Number(planId) : null);
   const publishMutation = usePlanPublishMutation(Number(planId));
