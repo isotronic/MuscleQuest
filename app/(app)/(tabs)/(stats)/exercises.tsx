@@ -95,10 +95,8 @@ export default function ExercisesScreen() {
       // Insert new exercises into the tracked_exercises table
       for (const exerciseId of newExercises) {
         await db.runAsync(
-          `
-          INSERT INTO tracked_exercises (exercise_id)
-          VALUES (?)
-        `,
+          `INSERT INTO tracked_exercises (exercise_id, sort_order)
+           VALUES (?, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM tracked_exercises))`,
           [exerciseId],
         );
       }
