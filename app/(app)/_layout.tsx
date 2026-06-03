@@ -4,11 +4,13 @@ import { ThemedView } from "@/components/ThemedView";
 import { t } from "@lingui/core/macro";
 import { useAppTheme } from "@/theme";
 import { useSocialListeners } from "../../hooks/useSocialListeners";
+import { useSocialSyncOnStartup } from "../../hooks/useSocialSyncOnStartup";
 
 export default function AppLayout() {
   const { colors } = useAppTheme();
   const { data: settings, isLoading: settingsLoading } = useSettingsQuery();
   useSocialListeners();
+  useSocialSyncOnStartup();
 
   if (settingsLoading) {
     return <ThemedView style={{ flex: 1 }}></ThemedView>;
