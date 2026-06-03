@@ -118,7 +118,8 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
           {localPrivacySettings?.sharePlans ? (
             <ThemedText style={styles.rowSubtitle}>
               <Trans>
-                All plans are published and new ones are published automatically.
+                All plans are published and new ones are published
+                automatically.
               </Trans>
             </ThemedText>
           ) : (
@@ -132,9 +133,7 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
         </View>
         <Switch
           value={!!localPrivacySettings?.sharePlans}
-          onValueChange={(v: boolean) =>
-            handlePrivacyToggle({ sharePlans: v })
-          }
+          onValueChange={(v: boolean) => handlePrivacyToggle({ sharePlans: v })}
           color={colors.accent}
           style={styles.switch}
         />
