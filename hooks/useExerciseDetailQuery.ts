@@ -120,7 +120,7 @@ const fetchExerciseDetail = async (
     const trackingTypeFilter = `
       AND (
         ce.resolved_tracking_type = '${currentType}'
-        OR (ce.resolved_tracking_type IS NULL AND e.tracking_type = '${currentType}')
+        OR (ce.resolved_tracking_type IS NULL AND COALESCE(e.tracking_type, 'weight') = '${currentType}')
       )`;
 
     // Fetch the best set per day for this exercise (time-range filtered).
