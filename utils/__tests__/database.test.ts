@@ -9,6 +9,7 @@ import {
   fetchPlanSchedule,
   fetchActiveBodyMetricDefinitions,
   fetchAllBodyMetricDefinitions,
+  reorderTrackedExercises,
 } from "../database";
 
 // Undo the global mock from jestSetupFile.js so we can test the real implementation
@@ -336,5 +337,54 @@ describe("fetchAllBodyMetricDefinitions", () => {
       "all metrics failed",
     );
     expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// reorderTrackedExercises
+// ---------------------------------------------------------------------------
+
+describe("reorderTrackedExercises", () => {
+  it("updates sort_order for each exercise ID in the given order", async () => {
+    const txn = { runAsync: jest.fn().mockResolvedValue({ changes: 1 }) };
+    mockDb = makeDb({
+      withExclusiveTransactionAsync: jest.fn(async (cb: (t: typeof txn) => Promise<void>) => {
+        await cb(txn);
+      }),
+    });
+    (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(mockDb);
+
+    await reorderTrackedExercises([3, 1, 2]);
+
+    expect(txn.runAsync).toHaveBeenCalledTimes(3);
+    expect(txn.runAsync).toHaveBeenNthCalledWith(
+      1,
+      `UPDATE tracked_exercises SET sort_order = ? WHERE exercise_id = ?`,
+      [0, 3],
+    );
+    expect(txn.runAsync).toHaveBeenNthCalledWith(
+      2,
+      `UPDATE tracked_exercises SET sort_order = ? WHERE exercise_id = ?`,
+      [1, 1],
+    );
+    expect(txn.runAsync).toHaveBeenNthCalledWith(
+      3,
+      `UPDATE tracked_exercises SET sort_order = ? WHERE exercise_id = ?`,
+      [2, 2],
+    );
+  });
+
+  it("does nothing when given an empty array", async () => {
+    const txn = { runAsync: jest.fn().mockResolvedValue({ changes: 0 }) };
+    mockDb = makeDb({
+      withExclusiveTransactionAsync: jest.fn(async (cb: (t: typeof txn) => Promise<void>) => {
+        await cb(txn);
+      }),
+    });
+    (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(mockDb);
+
+    await reorderTrackedExercises([]);
+
+    expect(txn.runAsync).not.toHaveBeenCalled();
   });
 });

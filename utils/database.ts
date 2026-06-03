@@ -3193,3 +3193,15 @@ export const fetchPRDataForExercises = async (
 
   return Array.from(exerciseMap.values());
 };
+
+export const reorderTrackedExercises = async (exerciseIds: number[]): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    for (let i = 0; i < exerciseIds.length; i++) {
+      await txn.runAsync(
+        `UPDATE tracked_exercises SET sort_order = ? WHERE exercise_id = ?`,
+        [i, exerciseIds[i]],
+      );
+    }
+  });
+};
