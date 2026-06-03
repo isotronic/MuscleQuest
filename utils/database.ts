@@ -3195,6 +3195,7 @@ export const fetchPRDataForExercises = async (
 };
 
 export const reorderTrackedExercises = async (exerciseIds: number[]): Promise<void> => {
+  if (exerciseIds.length === 0) return;
   const db = await openDatabase("userData.db");
   await db.withExclusiveTransactionAsync(async (txn) => {
     for (let i = 0; i < exerciseIds.length; i++) {

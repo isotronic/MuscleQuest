@@ -386,5 +386,15 @@ describe("reorderTrackedExercises", () => {
     await reorderTrackedExercises([]);
 
     expect(txn.runAsync).not.toHaveBeenCalled();
+    expect(mockDb.withExclusiveTransactionAsync).not.toHaveBeenCalled();
+  });
+
+  it("propagates when the transaction fails", async () => {
+    mockDb = makeDb({
+      withExclusiveTransactionAsync: jest.fn().mockRejectedValue(new Error("db error")),
+    });
+    (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(mockDb);
+
+    await expect(reorderTrackedExercises([1])).rejects.toThrow("db error");
   });
 });
