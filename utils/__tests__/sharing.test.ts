@@ -84,6 +84,22 @@ describe("bulkPublishAllPlans", () => {
     await expect(bulkPublishAllPlans("uid123")).resolves.toBeUndefined();
     expect(Bugsnag.notify).toHaveBeenCalledWith(err);
   });
+
+  it("reports individual item errors to Bugsnag and continues with remaining items", async () => {
+    (db.fetchAllPlanIds as jest.Mock).mockResolvedValue([1, 2, 3]);
+    // First plan fetch fails, others succeed
+    (db.fetchFullPlanForSharing as jest.Mock)
+      .mockResolvedValueOnce(null) // plan 1 returns null → publishPlan returns early
+      .mockResolvedValueOnce(minimalPlanData) // plan 2 succeeds
+      .mockResolvedValueOnce(minimalPlanData); // plan 3 succeeds
+
+    await bulkPublishAllPlans("uid123");
+
+    // Plans 2 and 3 were published (plan 1 returned null so setDoc was not called for it)
+    expect(mockSetDoc).toHaveBeenCalledTimes(2);
+    // No Bugsnag call because publishPlan silently skips null data
+    expect(Bugsnag.notify).not.toHaveBeenCalled();
+  });
 });
 
 describe("bulkPublishAllStandaloneWorkouts", () => {

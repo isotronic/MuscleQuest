@@ -380,6 +380,7 @@ export const bulkPublishAllCustomExercises = async (
 ): Promise<void> => {
   try {
     const exercises = await fetchAllCustomExercisesForSharing();
+    // pushCustomExercise catches its own errors and reports to Bugsnag, so allSettled sees fulfilled
     const results = await Promise.allSettled(
       exercises.map((ex) => pushCustomExercise(uid, ex)),
     );
