@@ -29,6 +29,7 @@ export const useSocialSyncOnStartup = () => {
 
   useEffect(() => {
     if (!user || !privacySettings || hasSynced.current) return;
+    // Set before the async call so re-renders during the sync don't trigger a second run
     hasSynced.current = true;
 
     const sync = async () => {
