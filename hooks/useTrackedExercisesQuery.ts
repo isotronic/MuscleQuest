@@ -139,6 +139,7 @@ const fetchTrackedExercises = async (
         SELECT te.*, e.name, ${currentTypeExpr} AS tracking_type
         FROM tracked_exercises te
         LEFT JOIN exercises e ON te.exercise_id = e.exercise_id
+        ORDER BY te.sort_order ASC
       `),
     ]);
 
@@ -236,7 +237,9 @@ const fetchTrackedExercises = async (
       }
     });
 
-    return Object.values(groupedExercises);
+    return (allTrackedRows as any[])
+      .map((row: any) => groupedExercises[row.exercise_id])
+      .filter(Boolean);
   } catch (error: any) {
     console.error("Error fetching tracked exercises:", error);
     Bugsnag.notify(error);
