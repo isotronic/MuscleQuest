@@ -14,10 +14,12 @@ import Bugsnag from "@bugsnag/expo";
 import { AuthContext } from "@/context/AuthProvider";
 import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
 import { publishPlan } from "@/utils/sharing";
+import { useSocialStore } from "@/store/socialStore";
 
 export const useCreatePlan = (existingPlan?: Plan) => {
   const queryClient = useQueryClient();
   const user = useContext(AuthContext);
+  const { privacySettings } = useSocialStore();
   const [planSaved, setPlanSaved] = useState(false);
   const [planName, setPlanName] = useState("");
   const [isError, setIsError] = useState(false);
@@ -58,6 +60,10 @@ export const useCreatePlan = (existingPlan?: Plan) => {
         if (newPlanId == null)
           throw new Error("insertWorkoutPlan returned null");
         savedPlanId = newPlanId;
+
+        if (user && privacySettings?.sharePlans) {
+          publishPlan(user.uid, newPlanId).catch((err) => Bugsnag.notify(err));
+        }
       } else {
         await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
         savedPlanId = planId;
