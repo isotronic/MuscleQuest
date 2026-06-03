@@ -497,6 +497,31 @@ export const fetchActivePlan = async () => {
   );
 };
 
+export const fetchAllPlanIds = async (): Promise<number[]> => {
+  const db = await openDatabase("userData.db");
+  const rows = await db.getAllAsync<{ id: number }>(
+    `SELECT id FROM user_plans WHERE is_deleted = FALSE`,
+  );
+  return rows.map((r) => r.id);
+};
+
+export const fetchAllStandaloneWorkoutIds = async (): Promise<number[]> => {
+  const db = await openDatabase("userData.db");
+  const rows = await db.getAllAsync<{ id: number }>(
+    `SELECT id FROM user_workouts WHERE plan_id IS NULL AND is_deleted = FALSE`,
+  );
+  return rows.map((r) => r.id);
+};
+
+export const fetchAllCustomExercisesForSharing = async (): Promise<
+  Exercise[]
+> => {
+  const db = await openDatabase("userData.db");
+  return db.getAllAsync<Exercise>(
+    `SELECT * FROM exercises WHERE app_exercise_id IS NULL AND is_deleted = FALSE`,
+  );
+};
+
 export const updateActivePlan = async (id: number) => {
   const db = await openDatabase("userData.db");
   await db.runAsync(

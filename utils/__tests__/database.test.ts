@@ -10,6 +10,9 @@ import {
   fetchActiveBodyMetricDefinitions,
   fetchAllBodyMetricDefinitions,
   reorderTrackedExercises,
+  fetchAllPlanIds,
+  fetchAllStandaloneWorkoutIds,
+  fetchAllCustomExercisesForSharing,
 } from "../database";
 
 // Undo the global mock from jestSetupFile.js so we can test the real implementation
@@ -396,5 +399,75 @@ describe("reorderTrackedExercises", () => {
     (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(mockDb);
 
     await expect(reorderTrackedExercises([1])).rejects.toThrow("db error");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fetchAllPlanIds
+// ---------------------------------------------------------------------------
+
+describe("fetchAllPlanIds", () => {
+  it("returns all non-deleted plan IDs", async () => {
+    mockDb.getAllAsync.mockResolvedValue([{ id: 1 }, { id: 3 }]);
+    const result = await fetchAllPlanIds();
+    expect(result).toEqual([1, 3]);
+    expect(mockDb.getAllAsync).toHaveBeenCalledWith(
+      expect.stringContaining("user_plans"),
+    );
+  });
+
+  it("returns empty array when no plans", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+    const result = await fetchAllPlanIds();
+    expect(result).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fetchAllStandaloneWorkoutIds
+// ---------------------------------------------------------------------------
+
+describe("fetchAllStandaloneWorkoutIds", () => {
+  it("returns all non-deleted standalone workout IDs", async () => {
+    mockDb.getAllAsync.mockResolvedValue([{ id: 5 }, { id: 7 }]);
+    const result = await fetchAllStandaloneWorkoutIds();
+    expect(result).toEqual([5, 7]);
+    expect(mockDb.getAllAsync).toHaveBeenCalledWith(
+      expect.stringContaining("user_workouts"),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fetchAllCustomExercisesForSharing
+// ---------------------------------------------------------------------------
+
+describe("fetchAllCustomExercisesForSharing", () => {
+  it("returns all custom exercises (app_exercise_id IS NULL)", async () => {
+    const exercises = [
+      {
+        exercise_id: 10,
+        name: "Custom Curl",
+        app_exercise_id: null,
+        equipment: "barbell",
+        body_part: "arms",
+        target_muscle: "biceps",
+        secondary_muscles: "[]",
+        description: null,
+        tracking_type: "weight",
+        is_unilateral: 0,
+        double_weight: 0,
+        animated_url: null,
+        local_animated_uri: null,
+        image: null,
+        is_deleted: 0,
+      },
+    ];
+    mockDb.getAllAsync.mockResolvedValue(exercises);
+    const result = await fetchAllCustomExercisesForSharing();
+    expect(result).toEqual(exercises);
+    expect(mockDb.getAllAsync).toHaveBeenCalledWith(
+      expect.stringContaining("app_exercise_id IS NULL"),
+    );
   });
 });
