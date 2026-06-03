@@ -96,6 +96,12 @@ describe("bulkPublishAllStandaloneWorkouts", () => {
     expect(mockSetDoc).toHaveBeenCalledTimes(2);
   });
 
+  it("does nothing when there are no workouts", async () => {
+    (db.fetchAllStandaloneWorkoutIds as jest.Mock).mockResolvedValue([]);
+    await bulkPublishAllStandaloneWorkouts("uid123");
+    expect(mockSetDoc).not.toHaveBeenCalled();
+  });
+
   it("reports fetch errors to Bugsnag and does not throw", async () => {
     const err = new Error("db fail");
     (db.fetchAllStandaloneWorkoutIds as jest.Mock).mockRejectedValue(err);
@@ -121,6 +127,12 @@ describe("bulkPublishAllCustomExercises", () => {
 
     expect(db.fetchAllCustomExercisesForSharing).toHaveBeenCalledTimes(1);
     expect(mockSetDoc).toHaveBeenCalledTimes(2);
+  });
+
+  it("does nothing when there are no custom exercises", async () => {
+    (db.fetchAllCustomExercisesForSharing as jest.Mock).mockResolvedValue([]);
+    await bulkPublishAllCustomExercises("uid123");
+    expect(mockSetDoc).not.toHaveBeenCalled();
   });
 
   it("reports fetch errors to Bugsnag and does not throw", async () => {
