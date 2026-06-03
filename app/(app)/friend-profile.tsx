@@ -9,7 +9,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Avatar } from "react-native-paper";
 import { Trans } from "@lingui/react/macro";
-import { formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { AppText, AppIcon } from "@/components/ui";
 import { useAppTheme } from "@/theme";
 import { AuthContext } from "@/context/AuthProvider";
@@ -119,8 +119,7 @@ export default function FriendProfileScreen() {
             style={{ color: colors.contentSecondary, marginTop: 4 }}
           >
             <Trans>
-              Friends since{" "}
-              {formatDistanceToNow(friend.since.toDate(), { addSuffix: true })}
+              Friends since {format(friend.since.toDate(), "MMM d, yyyy")}
             </Trans>
           </AppText>
         )}
