@@ -166,7 +166,7 @@ export default function FriendsScreen() {
               onPress={() => setPrivacyModalVisible(false)}
             />
           </View>
-          <ScrollView>
+          <ScrollView contentContainerStyle={{ paddingHorizontal: 16 }}>
             <PrivacySettings hideDeleteSection />
           </ScrollView>
         </Modal>
