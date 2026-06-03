@@ -351,9 +351,11 @@ describe("reorderTrackedExercises", () => {
   it("updates sort_order for each exercise ID in the given order", async () => {
     const txn = { runAsync: jest.fn().mockResolvedValue({ changes: 1 }) };
     mockDb = makeDb({
-      withExclusiveTransactionAsync: jest.fn(async (cb: (t: typeof txn) => Promise<void>) => {
-        await cb(txn);
-      }),
+      withExclusiveTransactionAsync: jest.fn(
+        async (cb: (t: typeof txn) => Promise<void>) => {
+          await cb(txn);
+        },
+      ),
     });
     (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(mockDb);
 
@@ -380,9 +382,11 @@ describe("reorderTrackedExercises", () => {
   it("does nothing when given an empty array", async () => {
     const txn = { runAsync: jest.fn().mockResolvedValue({ changes: 0 }) };
     mockDb = makeDb({
-      withExclusiveTransactionAsync: jest.fn(async (cb: (t: typeof txn) => Promise<void>) => {
-        await cb(txn);
-      }),
+      withExclusiveTransactionAsync: jest.fn(
+        async (cb: (t: typeof txn) => Promise<void>) => {
+          await cb(txn);
+        },
+      ),
     });
     (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(mockDb);
 
@@ -394,7 +398,9 @@ describe("reorderTrackedExercises", () => {
 
   it("propagates when the transaction fails", async () => {
     mockDb = makeDb({
-      withExclusiveTransactionAsync: jest.fn().mockRejectedValue(new Error("db error")),
+      withExclusiveTransactionAsync: jest
+        .fn()
+        .mockRejectedValue(new Error("db error")),
     });
     (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(mockDb);
 
@@ -407,7 +413,7 @@ describe("reorderTrackedExercises", () => {
 // ---------------------------------------------------------------------------
 
 describe("fetchAllPlanIds", () => {
-  it("returns all non-deleted plan IDs", async () => {
+  it("returns all non-deleted user-created plan IDs (excludes premade)", async () => {
     mockDb.getAllAsync.mockResolvedValue([{ id: 1 }, { id: 3 }]);
     const result = await fetchAllPlanIds();
     expect(result).toEqual([1, 3]);

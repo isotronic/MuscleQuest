@@ -95,7 +95,7 @@ export const publishPlan = async (
   planId: number,
 ): Promise<void> => {
   const data = await fetchFullPlanForSharing(planId);
-  if (!data) return;
+  if (!data || data.plan.app_plan_id !== null) return;
 
   const now = serverTimestamp();
   const db = getFirestore();

@@ -104,7 +104,7 @@ export default function PlanOverviewScreen() {
   const deloadMutation = useDeloadWeekMutation(Number(planId));
 
   const user = useContext(AuthContext);
-  const showShareToggle = !!user;
+  const showShareToggle = !!user && !plan?.app_plan_id;
   const { data: isPublished = false, isLoading: isPublishLoading } =
     usePlanPublishQuery(showShareToggle ? Number(planId) : null);
   const publishMutation = usePlanPublishMutation(Number(planId));

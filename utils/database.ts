@@ -500,7 +500,7 @@ export const fetchActivePlan = async () => {
 export const fetchAllPlanIds = async (): Promise<number[]> => {
   const db = await openDatabase("userData.db");
   const rows = await db.getAllAsync<{ id: number }>(
-    `SELECT id FROM user_plans WHERE is_deleted = FALSE`,
+    `SELECT id FROM user_plans WHERE app_plan_id IS NULL AND is_deleted = FALSE`,
   );
   return rows.map((r) => r.id);
 };
