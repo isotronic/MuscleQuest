@@ -1,12 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Alert,
-  TextInput,
-  TouchableOpacity,
-} from "react-native";
+import { View, ScrollView, StyleSheet, Alert, TextInput } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import Sortable from "react-native-sortables";
@@ -50,14 +43,14 @@ import {
 import { convertTimeStrToSeconds } from "@/utils/utility";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserExercise, Workout } from "@/store/workoutStore";
-import Animated, {
+import {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
 import { useTimer } from "react-timer-hook";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSoundStore } from "@/store/soundStore";
+import RestTimerOverlay from "@/components/RestTimerOverlay";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import React from "react";
@@ -69,13 +62,6 @@ import { useRecoveryCheckInMutation } from "@/hooks/useRecoveryCheckInMutation";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
-
-const AnimatedView = Animated.View as unknown as React.ComponentType<{
-  style?: any;
-  pointerEvents?: "auto" | "none" | "box-none" | "box-only";
-  children?: React.ReactNode;
-  onLayout?: (event: any) => void;
-}>;
 
 type SingleItem = {
   type: "single";
@@ -241,8 +227,14 @@ export default function WorkoutOverviewScreen() {
     Number.isFinite(parsedIncrement) && parsedIncrement > 0
       ? parsedIncrement
       : 15;
+  const buttonSize = settings
+    ? settings.buttonSize === "Standard"
+      ? 40
+      : settings.buttonSize === "Large"
+        ? 60
+        : 80
+    : 40;
   const { playSound, triggerVibration } = useSoundStore();
-  const insets = useSafeAreaInsets();
 
   const isFocusedRef = useRef(true);
   useFocusEffect(
@@ -1120,40 +1112,16 @@ export default function WorkoutOverviewScreen() {
           <Trans>Add Exercise</Trans>
         </Button>
       </ScrollView>
-      <AnimatedView
-        pointerEvents={timerRunning ? "auto" : "none"}
+      <RestTimerOverlay
+        minutes={minutes}
+        seconds={seconds}
+        increment={restTimerIncrement}
+        timerRunning={timerRunning}
+        animStyle={timerAnimStyle}
+        buttonSize={buttonSize}
+        onAdjust={(delta) => void adjustTimerOverview(delta)}
         onLayout={(e) => setTimerHeight(e.nativeEvent.layout.height)}
-        style={[
-          styles.timerContainer,
-          { paddingBottom: insets.bottom },
-          timerAnimStyle,
-        ]}
-      >
-        <ThemedText style={styles.timerLabel}>
-          <Trans>Rest Time Left:</Trans>
-        </ThemedText>
-        <View style={styles.timerRow}>
-          <TouchableOpacity
-            style={styles.timerAdjustButton}
-            onPress={() => void adjustTimerOverview(-restTimerIncrement)}
-          >
-            <ThemedText style={styles.timerAdjustText}>
-              <Trans>−{restTimerIncrement}s</Trans>
-            </ThemedText>
-          </TouchableOpacity>
-          <ThemedText style={styles.timerText}>
-            {minutes}:{seconds.toString().padStart(2, "0")}
-          </ThemedText>
-          <TouchableOpacity
-            style={styles.timerAdjustButton}
-            onPress={() => void adjustTimerOverview(restTimerIncrement)}
-          >
-            <ThemedText style={styles.timerAdjustText}>
-              <Trans>+{restTimerIncrement}s</Trans>
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
-      </AnimatedView>
+      />
       {pendingRecovery && pendingRecovery.length > 0 && (
         <RecoveryCheckInSheet
           ref={recoverySheetRef}
@@ -1323,56 +1291,6 @@ function createStyles(colors: AppThemeColors) {
     supersetCardLast: {
       borderTopLeftRadius: 0,
       borderTopRightRadius: 0,
-    },
-    timerContainer: {
-      position: "absolute",
-      bottom: 0,
-      right: 16,
-      left: 16,
-      paddingTop: 8,
-      paddingBottom: 8,
-      backgroundColor: colors.card,
-      alignItems: "center",
-      justifyContent: "center",
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
-      elevation: 5,
-      marginBottom: 0,
-    },
-    timerLabel: {
-      fontSize: 14,
-      color: colors.contentPrimary,
-      marginBottom: 4,
-      textAlign: "center",
-    },
-    timerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 16,
-    },
-    timerAdjustButton: {
-      paddingHorizontal: 14,
-      paddingVertical: 6,
-      borderRadius: radii.md,
-      backgroundColor: colors.cardSecondary,
-    },
-    timerAdjustText: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: colors.contentPrimary,
-    },
-    timerText: {
-      fontSize: 32,
-      fontWeight: "bold",
-      color: colors.contentPrimary,
-      textAlign: "center",
-      lineHeight: 32,
-      marginBottom: 8,
     },
   });
 }
