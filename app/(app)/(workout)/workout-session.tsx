@@ -1085,6 +1085,7 @@ export default function WorkoutSessionScreen() {
     if (!currentExercise || !currentSet) {
       return;
     }
+    if (currentSetCompleted) return;
     if (outgoingSnapshot || isTransitioning.value) return;
 
     // Capture feedback contexts before any state changes

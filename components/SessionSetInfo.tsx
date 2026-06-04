@@ -543,7 +543,7 @@ export default function SessionSetInfo({
         </>
       ) : null}
       <Button
-        mode="contained"
+        mode={currentSetCompleted ? "outlined" : "contained"}
         onPress={handleCompleteSet}
         labelStyle={
           buttonSize === 40 ? styles.buttonLabel : styles.largeButtonLabel
@@ -551,11 +551,9 @@ export default function SessionSetInfo({
         style={[
           styles.completeButton,
           buttonSize === 40 ? "" : styles.largeButton,
-          currentSetCompleted && styles.disabledButton,
         ]}
-        disabled={currentSetCompleted}
       >
-        <Trans>Complete Set</Trans>
+        {currentSetCompleted ? <Trans>Update</Trans> : <Trans>Complete Set</Trans>}
       </Button>
     </View>
   );
@@ -670,9 +668,6 @@ function createStyles(colors: AppThemeColors) {
     },
     largeButton: {
       height: 55,
-    },
-    disabledButton: {
-      backgroundColor: colors.controlDisabledBg,
     },
     buttonLabel: {
       fontSize: 18,
