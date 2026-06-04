@@ -1055,12 +1055,12 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                <Trans>Log one side only for single-arm/leg exercises</Trans>
+                <Trans>Single-side rep logging</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {toggleValues.countUnilateralDouble === "true"
-                  ? t`Counting reps ×2 for these exercises`
-                  : t`Disabled`}
+                  ? t`On — log one side; app doubles reps for volume`
+                  : t`Off — log total reps across both sides`}
               </ThemedText>
             </View>
             <Switch
@@ -1080,12 +1080,12 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                <Trans>Enter weight per dumbbell/cable, not total</Trans>
+                <Trans>Per-side weight entry</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {toggleValues.doubleWeightForPaired === "true"
-                  ? t`Doubling weight for volume calculations`
-                  : t`Disabled`}
+                  ? t`On — log per dumbbell/cable; app doubles weight for volume`
+                  : t`Off — log total weight across both sides`}
               </ThemedText>
             </View>
             <Switch
