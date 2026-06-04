@@ -90,7 +90,7 @@ export default function TrainingPlanCard({
                   set="mci"
                   name="cloud-check"
                   size={16}
-                  color={colors.contentPrimary}
+                  color={colors.accent}
                 />
               </View>
             )}
