@@ -807,22 +807,38 @@ export default function WorkoutOverviewScreen() {
                         { text: t`Discard`, onPress: navigateToSummary },
                         {
                           text: t`Save to Plan`,
-                          onPress: async () => {
-                            try {
-                              await updatePlanWorkoutExercises(
-                                workoutId,
-                                workout!.exercises,
-                              );
-                              await queryClient.invalidateQueries({
-                                queryKey: ["plan", planId],
-                              });
-                              await queryClient.invalidateQueries({
-                                queryKey: ["activePlan"],
-                              });
-                            } catch (e) {
-                              Bugsnag.notify(e as Error);
-                            }
-                            navigateToSummary();
+                          onPress: () => {
+                            Alert.alert(
+                              t`Confirm Save to Plan`,
+                              t`This will update the workout for all future sessions in this plan.`,
+                              [
+                                {
+                                  text: t`Cancel`,
+                                  style: "cancel",
+                                  onPress: navigateToSummary,
+                                },
+                                {
+                                  text: t`Confirm`,
+                                  onPress: async () => {
+                                    try {
+                                      await updatePlanWorkoutExercises(
+                                        workoutId,
+                                        workout!.exercises,
+                                      );
+                                      await queryClient.invalidateQueries({
+                                        queryKey: ["plan", planId],
+                                      });
+                                      await queryClient.invalidateQueries({
+                                        queryKey: ["activePlan"],
+                                      });
+                                    } catch (e) {
+                                      Bugsnag.notify(e as Error);
+                                    }
+                                    navigateToSummary();
+                                  },
+                                },
+                              ],
+                            );
                           },
                         },
                       ],
@@ -840,20 +856,36 @@ export default function WorkoutOverviewScreen() {
                         { text: t`Discard`, onPress: navigateToSummary },
                         {
                           text: t`Save`,
-                          onPress: async () => {
-                            try {
-                              await updateStandaloneWorkout(
-                                workoutId,
-                                workout!.name,
-                                workout!.exercises,
-                              );
-                              await queryClient.invalidateQueries({
-                                queryKey: ["standaloneWorkouts"],
-                              });
-                            } catch (e) {
-                              Bugsnag.notify(e as Error);
-                            }
-                            navigateToSummary();
+                          onPress: () => {
+                            Alert.alert(
+                              t`Confirm Save`,
+                              t`This will update the workout for all future sessions.`,
+                              [
+                                {
+                                  text: t`Cancel`,
+                                  style: "cancel",
+                                  onPress: navigateToSummary,
+                                },
+                                {
+                                  text: t`Confirm`,
+                                  onPress: async () => {
+                                    try {
+                                      await updateStandaloneWorkout(
+                                        workoutId,
+                                        workout!.name,
+                                        workout!.exercises,
+                                      );
+                                      await queryClient.invalidateQueries({
+                                        queryKey: ["standaloneWorkouts"],
+                                      });
+                                    } catch (e) {
+                                      Bugsnag.notify(e as Error);
+                                    }
+                                    navigateToSummary();
+                                  },
+                                },
+                              ],
+                            );
                           },
                         },
                       ],
