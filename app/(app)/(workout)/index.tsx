@@ -117,6 +117,7 @@ export default function WorkoutOverviewScreen() {
     timerExpiry,
     stopTimer,
     startTimer,
+    feedbackSubmittedUweIds,
   } = useActiveWorkoutStore();
 
   const recoverySheetRef = useRef<BottomSheetModal>(null);
@@ -496,8 +497,12 @@ export default function WorkoutOverviewScreen() {
           exercise.id != null
             ? progressionStatesByUweId.get(exercise.id)
             : undefined;
+        const suppressedByFeedback =
+          exercise.id != null && feedbackSubmittedUweIds.includes(exercise.id);
         const progressionChip =
-          progressionState && progressionState.suggestionAction !== "hold" ? (
+          progressionState &&
+          progressionState.suggestionAction !== "hold" &&
+          !suppressedByFeedback ? (
             <ProgressionSuggestionChip
               action={progressionState.suggestionAction}
               suggestedWeight={progressionState.suggestedWeight}
@@ -685,6 +690,7 @@ export default function WorkoutOverviewScreen() {
       handleExercisePress,
       itemLabels,
       progressionStatesByUweId,
+      feedbackSubmittedUweIds,
       styles,
       colors,
     ],

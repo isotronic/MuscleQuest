@@ -732,8 +732,8 @@ msgid "{completed} workouts this week. You've smashed your goal!"
 msgstr "{completed} workouts this week. You've smashed your goal!"
 
 #. placeholder {0}: exercise.sets.length
-#: app/(app)/(workout)/index.tsx:544
-#: app/(app)/(workout)/index.tsx:584
+#: app/(app)/(workout)/index.tsx:549
+#: app/(app)/(workout)/index.tsx:589
 msgid "{completedCount}/{0} sets completed"
 msgstr "{completedCount}/{0} sets completed"
 
@@ -764,6 +764,10 @@ msgstr "{setsCount, plural, one {# set} other {# sets}}"
 #: components/WeeklySummaryCard.tsx:330
 msgid "{streak, plural, one {# week in a row} other {# weeks in a row}}"
 msgstr "{streak, plural, one {# week in a row} other {# weeks in a row}}"
+
+#: components/ProgressionSuggestionChip.tsx:26
+msgid "{suggestedWeight}{unit} suggested"
+msgstr "{suggestedWeight}{unit} suggested"
 
 #. placeholder {0}: settings?.weeklyGoal
 #: app/(app)/(tabs)/index.tsx:357
@@ -808,8 +812,8 @@ msgstr "+{increment}s"
 #~ msgstr "+{restTimerIncrement}s"
 
 #: components/ProgressionSuggestionChip.tsx:26
-msgid "+{suggestedWeight}{unit} suggested"
-msgstr "+{suggestedWeight}{unit} suggested"
+#~ msgid "+{suggestedWeight}{unit} suggested"
+#~ msgstr "+{suggestedWeight}{unit} suggested"
 
 #: components/RestTimerOverlay.tsx:69
 msgid "−{increment}s"
@@ -882,11 +886,11 @@ msgid "abs"
 msgstr "abs"
 
 #: components/friends/FriendRequestItem.tsx:47
-#: components/ProgressionSummaryCard.tsx:216
+#: components/ProgressionSummaryCard.tsx:218
 msgid "Accept"
 msgstr "Accept"
 
-#: components/ProgressionSummaryCard.tsx:103
+#: components/ProgressionSummaryCard.tsx:105
 msgid "Accept all"
 msgstr "Accept all"
 
@@ -968,12 +972,12 @@ msgstr "Add a workout to get started"
 msgid "Add custom metric"
 msgstr "Add custom metric"
 
-#: app/(app)/(workout)/index.tsx:1114
+#: app/(app)/(workout)/index.tsx:1120
 #: components/WorkoutCard.tsx:465
 msgid "Add Exercise"
 msgstr "Add Exercise"
 
-#: app/(app)/(workout)/index.tsx:1089
+#: app/(app)/(workout)/index.tsx:1095
 msgid "Add exercises to get started"
 msgstr "Add exercises to get started"
 
@@ -1141,7 +1145,7 @@ msgstr "Appearance"
 msgid "Apply to all {0} sets"
 msgstr "Apply to all {0} sets"
 
-#: app/(app)/(workout)/index.tsx:894
+#: app/(app)/(workout)/index.tsx:900
 msgid "Are you sure you want to cancel and delete this workout?"
 msgstr "Are you sure you want to cancel and delete this workout?"
 
@@ -1154,7 +1158,7 @@ msgstr "Are you sure you want to delete \"{0}\"?"
 msgid "Are you sure you want to delete all animated images? Single images will be automatically re-downloaded when viewed."
 msgstr "Are you sure you want to delete all animated images? Single images will be automatically re-downloaded when viewed."
 
-#: app/(app)/(workout)/index.tsx:397
+#: app/(app)/(workout)/index.tsx:398
 msgid "Are you sure you want to delete this exercise?"
 msgstr "Are you sure you want to delete this exercise?"
 
@@ -1166,7 +1170,7 @@ msgstr "Are you sure you want to delete this measurement entry?"
 msgid "Are you sure you want to delete this plan?"
 msgstr "Are you sure you want to delete this plan?"
 
-#: app/(app)/(workout)/workout-session.tsx:717
+#: app/(app)/(workout)/workout-session.tsx:722
 msgid "Are you sure you want to delete this set?"
 msgstr "Are you sure you want to delete this set?"
 
@@ -1187,7 +1191,7 @@ msgstr "Are you sure you want to remove {0}?"
 msgid "Are you sure you want to remove this workout?"
 msgstr "Are you sure you want to remove this workout?"
 
-#: app/(app)/(workout)/index.tsx:914
+#: app/(app)/(workout)/index.tsx:920
 msgid "Are you sure you want to restart this workout?"
 msgstr "Are you sure you want to restart this workout?"
 
@@ -1382,9 +1386,9 @@ msgstr "calves"
 #: app/(app)/(tabs)/(stats)/history-details.tsx:173
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:118
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:85
-#: app/(app)/(workout)/index.tsx:399
-#: app/(app)/(workout)/index.tsx:1000
-#: app/(app)/(workout)/workout-session.tsx:718
+#: app/(app)/(workout)/index.tsx:400
+#: app/(app)/(workout)/index.tsx:1006
+#: app/(app)/(workout)/workout-session.tsx:723
 #: app/(app)/settings.tsx:409
 #: app/(app)/settings.tsx:484
 #: components/EditSetModal.tsx:454
@@ -1397,7 +1401,7 @@ msgstr "calves"
 msgid "Cancel"
 msgstr "Cancel"
 
-#: app/(app)/(workout)/index.tsx:893
+#: app/(app)/(workout)/index.tsx:899
 msgid "Cancel Workout"
 msgstr "Cancel Workout"
 
@@ -1518,7 +1522,7 @@ msgstr "Create Exercise"
 msgid "Create Plan"
 msgstr "Create Plan"
 
-#: app/(app)/(workout)/index.tsx:639
+#: app/(app)/(workout)/index.tsx:644
 #: components/WorkoutCard.tsx:321
 msgid "Create Superset"
 msgstr "Create Superset"
@@ -1577,9 +1581,9 @@ msgstr "Default sets"
 #: app/(app)/(tabs)/(plans)/standalone-workout.tsx:95
 #: app/(app)/(tabs)/(stats)/history-details.tsx:175
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:120
-#: app/(app)/(workout)/index.tsx:401
-#: app/(app)/(workout)/index.tsx:622
-#: app/(app)/(workout)/workout-session.tsx:720
+#: app/(app)/(workout)/index.tsx:402
+#: app/(app)/(workout)/index.tsx:627
+#: app/(app)/(workout)/workout-session.tsx:725
 #: components/PrivacySettings.tsx:73
 #: components/WorkoutCard.tsx:298
 #: hooks/useImageManagement.ts:46
@@ -1603,7 +1607,7 @@ msgstr "Delete Complete"
 msgid "Delete Entry"
 msgstr "Delete Entry"
 
-#: app/(app)/(workout)/index.tsx:396
+#: app/(app)/(workout)/index.tsx:397
 msgid "Delete Exercise"
 msgstr "Delete Exercise"
 
@@ -1611,7 +1615,7 @@ msgstr "Delete Exercise"
 msgid "Delete Plan"
 msgstr "Delete Plan"
 
-#: app/(app)/(workout)/workout-session.tsx:717
+#: app/(app)/(workout)/workout-session.tsx:722
 #: components/SessionSetInfo.tsx:253
 msgid "Delete Set"
 msgstr "Delete Set"
@@ -1672,9 +1676,9 @@ msgstr "Disabled"
 
 #: app/(app)/(create-plan)/create-workout.tsx:176
 #: app/(app)/(create-plan)/create.tsx:236
-#: app/(app)/(workout)/index.tsx:801
-#: app/(app)/(workout)/index.tsx:834
-#: app/(app)/(workout)/index.tsx:1030
+#: app/(app)/(workout)/index.tsx:807
+#: app/(app)/(workout)/index.tsx:840
+#: app/(app)/(workout)/index.tsx:1036
 #: app/(app)/custom-exercise.tsx:90
 msgid "Discard"
 msgstr "Discard"
@@ -1693,7 +1697,7 @@ msgstr "Discard changes?"
 msgid "Discard Changes?"
 msgstr "Discard Changes?"
 
-#: components/ProgressionSummaryCard.tsx:224
+#: components/ProgressionSummaryCard.tsx:226
 #: components/UpdateModal.tsx:43
 #: components/UpdateModal.tsx:59
 msgid "Dismiss"
@@ -1943,8 +1947,8 @@ msgstr "Equipment:"
 #: app/(app)/(create-plan)/image-search.tsx:43
 #: app/(app)/(tabs)/(plans)/overview.tsx:143
 #: app/(app)/(tabs)/(plans)/standalone-workout.tsx:104
-#: app/(app)/(workout)/index.tsx:864
-#: app/(app)/(workout)/index.tsx:1058
+#: app/(app)/(workout)/index.tsx:870
+#: app/(app)/(workout)/index.tsx:1064
 #: app/(app)/custom-exercise.tsx:134
 #: app/(app)/custom-exercise.tsx:183
 #: app/(app)/custom-exercise.tsx:312
@@ -1986,14 +1990,14 @@ msgstr "Error loading plans"
 msgid "Error loading stats. Please try again."
 msgstr "Error loading stats. Please try again."
 
-#: app/(app)/(workout)/index.tsx:881
+#: app/(app)/(workout)/index.tsx:887
 msgid "Error saving workout"
 msgstr "Error saving workout"
 
 #. placeholder {0}: error.message
 #. placeholder {0}: settingsError.message
 #: app/(app)/(tabs)/(plans)/overview.tsx:183
-#: app/(app)/(workout)/workout-session.tsx:1412
+#: app/(app)/(workout)/workout-session.tsx:1417
 #: components/WorkoutDetailsScreen.tsx:191
 msgid "Error: {0}"
 msgstr "Error: {0}"
@@ -2119,8 +2123,8 @@ msgstr "Failed to save custom exercise. Please try again."
 msgid "Failed to save the image. Please try again."
 msgstr "Failed to save the image. Please try again."
 
-#: app/(app)/(workout)/index.tsx:865
-#: app/(app)/(workout)/index.tsx:1059
+#: app/(app)/(workout)/index.tsx:871
+#: app/(app)/(workout)/index.tsx:1065
 msgid "Failed to save workout. Please try again."
 msgstr "Failed to save workout. Please try again."
 
@@ -2152,7 +2156,7 @@ msgstr "Favourite Exercises"
 msgid "feet"
 msgstr "feet"
 
-#: app/(app)/(workout)/index.tsx:973
+#: app/(app)/(workout)/index.tsx:979
 msgid "Finish"
 msgstr "Finish"
 
@@ -2217,7 +2221,7 @@ msgstr "Friends since {0}"
 msgid "Get Ready..."
 msgstr "Get Ready..."
 
-#: app/(app)/(workout)/index.tsx:1018
+#: app/(app)/(workout)/index.tsx:1024
 msgid "Give it a name to save it as a reusable workout."
 msgstr "Give it a name to save it as a reusable workout."
 
@@ -2250,6 +2254,10 @@ msgstr "Goal: {goalLabel}{0}"
 #: components/ProgressionSummaryCard.tsx:26
 msgid "Good pace. Try adding one rep per set before bumping the load."
 msgstr "Good pace. Try adding one rep per set before bumping the load."
+
+#: components/ProgressionSummaryCard.tsx:30
+msgid "Good session. Try adding one more rep to one set next time."
+msgstr "Good session. Try adding one more rep to one set next time."
 
 #: app/login.tsx:127
 #: app/login.tsx:129
@@ -2315,8 +2323,8 @@ msgstr "Hips"
 msgid "History"
 msgstr "History"
 
-#: components/ProgressionSummaryCard.tsx:33
 #: components/ProgressionSummaryCard.tsx:35
+#: components/ProgressionSummaryCard.tsx:37
 msgid "Hold steady this session."
 msgstr "Hold steady this session."
 
@@ -2391,36 +2399,36 @@ msgstr "kettlebell"
 msgid "Last backup: {0}"
 msgstr "Last backup: {0}"
 
-#: components/ProgressionSummaryCard.tsx:45
+#: components/ProgressionSummaryCard.tsx:47
 msgid "Last increased: {days} days ago"
 msgstr "Last increased: {days} days ago"
 
-#: components/ProgressionSummaryCard.tsx:51
+#: components/ProgressionSummaryCard.tsx:53
 msgid "Last increased: {months} months ago"
 msgstr "Last increased: {months} months ago"
 
-#: components/ProgressionSummaryCard.tsx:48
+#: components/ProgressionSummaryCard.tsx:50
 msgid "Last increased: {weeks} weeks ago"
 msgstr "Last increased: {weeks} weeks ago"
 
-#: components/ProgressionSummaryCard.tsx:50
+#: components/ProgressionSummaryCard.tsx:52
 msgid "Last increased: 1 month ago"
 msgstr "Last increased: 1 month ago"
 
-#: components/ProgressionSummaryCard.tsx:47
+#: components/ProgressionSummaryCard.tsx:49
 msgid "Last increased: 1 week ago"
 msgstr "Last increased: 1 week ago"
 
-#: components/ProgressionSummaryCard.tsx:43
+#: components/ProgressionSummaryCard.tsx:45
 msgid "Last increased: today"
 msgstr "Last increased: today"
 
-#: components/ProgressionSummaryCard.tsx:39
 #: components/ProgressionSummaryCard.tsx:41
+#: components/ProgressionSummaryCard.tsx:43
 msgid "Last increased: unknown"
 msgstr "Last increased: unknown"
 
-#: components/ProgressionSummaryCard.tsx:44
+#: components/ProgressionSummaryCard.tsx:46
 msgid "Last increased: yesterday"
 msgstr "Last increased: yesterday"
 
@@ -2586,7 +2594,7 @@ msgstr "Most trained"
 msgid "Most Used"
 msgstr "Most Used"
 
-#: components/ProgressionSummaryCard.tsx:137
+#: components/ProgressionSummaryCard.tsx:139
 msgid "Multiple exercises showing fatigue signs. A deload week may help you recover and come back stronger."
 msgstr "Multiple exercises showing fatigue signs. A deload week may help you recover and come back stronger."
 
@@ -2646,12 +2654,12 @@ msgstr "New Workout"
 msgid "Next"
 msgstr "Next"
 
-#: components/ProgressionSummaryCard.tsx:93
+#: components/ProgressionSummaryCard.tsx:95
 msgid "Next Session"
 msgstr "Next Session"
 
-#: app/(app)/(workout)/workout-session.tsx:1472
-#: app/(app)/(workout)/workout-session.tsx:1559
+#: app/(app)/(workout)/workout-session.tsx:1477
+#: app/(app)/(workout)/workout-session.tsx:1569
 msgid "Next: "
 msgstr "Next: "
 
@@ -2661,8 +2669,8 @@ msgstr "Next: "
 msgid "Next: {workoutName} on {0}"
 msgstr "Next: {workoutName} on {0}"
 
-#: app/(app)/(workout)/index.tsx:896
-#: app/(app)/(workout)/index.tsx:916
+#: app/(app)/(workout)/index.tsx:902
+#: app/(app)/(workout)/index.tsx:922
 msgid "No"
 msgstr "No"
 
@@ -2738,15 +2746,15 @@ msgstr "No pending friend requests."
 msgid "No plans shared yet"
 msgstr "No plans shared yet"
 
-#: components/ProgressionSummaryCard.tsx:32
+#: components/ProgressionSummaryCard.tsx:34
 msgid "No prior weight data. Hold steady for now."
 msgstr "No prior weight data. Hold steady for now."
 
-#: components/ProgressionSummaryCard.tsx:30
+#: components/ProgressionSummaryCard.tsx:32
 msgid "No progression tracking for this exercise type."
 msgstr "No progression tracking for this exercise type."
 
-#: components/ProgressionSummaryCard.tsx:31
+#: components/ProgressionSummaryCard.tsx:33
 msgid "No rep range defined. Add a rep range (e.g. 8-12) to enable auto-progression."
 msgstr "No rep range defined. Add a rep range (e.g. 8-12) to enable auto-progression."
 
@@ -2783,7 +2791,7 @@ msgstr "No user found with that email address."
 msgid "No values entered"
 msgstr "No values entered"
 
-#: app/(app)/(workout)/index.tsx:941
+#: app/(app)/(workout)/index.tsx:947
 msgid "No workout available"
 msgstr "No workout available"
 
@@ -2824,7 +2832,7 @@ msgstr "Off — log total weight across both sides"
 #: app/(app)/(create-plan)/image-search.tsx:44
 #: app/(app)/(workout)/exercises.tsx:109
 #: app/(app)/(workout)/exercises.tsx:130
-#: app/(app)/(workout)/index.tsx:866
+#: app/(app)/(workout)/index.tsx:872
 #: app/(app)/custom-exercise.tsx:135
 #: app/(app)/custom-exercise.tsx:184
 #: app/(app)/custom-exercise.tsx:232
@@ -2983,8 +2991,8 @@ msgstr "Premade plans"
 msgid "Premade Plans"
 msgstr "Premade Plans"
 
-#: app/(app)/(workout)/workout-session.tsx:1474
-#: app/(app)/(workout)/workout-session.tsx:1561
+#: app/(app)/(workout)/workout-session.tsx:1479
+#: app/(app)/(workout)/workout-session.tsx:1571
 msgid "Prev: "
 msgstr "Prev: "
 
@@ -3021,7 +3029,7 @@ msgid "quads"
 msgstr "quads"
 
 #: app/(app)/(tabs)/index.tsx:592
-#: app/(app)/(workout)/index.tsx:1036
+#: app/(app)/(workout)/index.tsx:1042
 msgid "Quick Workout"
 msgstr "Quick Workout"
 
@@ -3088,7 +3096,7 @@ msgstr "Remove a set"
 msgid "Remove Exercise"
 msgstr "Remove Exercise"
 
-#: app/(app)/(workout)/index.tsx:634
+#: app/(app)/(workout)/index.tsx:639
 #: components/WorkoutCard.tsx:313
 msgid "Remove Superset"
 msgstr "Remove Superset"
@@ -3109,7 +3117,7 @@ msgstr "Reorder"
 msgid "Rep PR"
 msgstr "Rep PR"
 
-#: app/(app)/(workout)/index.tsx:629
+#: app/(app)/(workout)/index.tsx:634
 #: components/WorkoutCard.tsx:305
 msgid "Replace"
 msgstr "Replace"
@@ -3172,7 +3180,7 @@ msgstr "Rest Time: {restMinutes}:{0}"
 msgid "Rest Timer"
 msgstr "Rest Timer"
 
-#: app/(app)/(workout)/workout-session.tsx:558
+#: app/(app)/(workout)/workout-session.tsx:563
 msgid "Rest Timer Finished!"
 msgstr "Rest Timer Finished!"
 
@@ -3180,7 +3188,7 @@ msgstr "Rest Timer Finished!"
 msgid "Rest timer increment"
 msgstr "Rest timer increment"
 
-#: app/(app)/(workout)/index.tsx:993
+#: app/(app)/(workout)/index.tsx:999
 msgid "Restart"
 msgstr "Restart"
 
@@ -3192,7 +3200,7 @@ msgstr "Restart App"
 msgid "Restart Failed"
 msgstr "Restart Failed"
 
-#: app/(app)/(workout)/index.tsx:913
+#: app/(app)/(workout)/index.tsx:919
 msgid "Restart Workout"
 msgstr "Restart Workout"
 
@@ -3242,8 +3250,8 @@ msgstr "Saturday"
 
 #: app/(app)/(create-plan)/create-workout.tsx:256
 #: app/(app)/(create-plan)/create.tsx:363
-#: app/(app)/(workout)/index.tsx:836
-#: app/(app)/(workout)/index.tsx:1064
+#: app/(app)/(workout)/index.tsx:842
+#: app/(app)/(workout)/index.tsx:1070
 #: app/(app)/custom-exercise.tsx:575
 #: components/SettingsModal.tsx:296
 msgid "Save"
@@ -3257,11 +3265,11 @@ msgstr "Save and select"
 msgid "Save Changes"
 msgstr "Save Changes"
 
-#: app/(app)/(workout)/index.tsx:798
+#: app/(app)/(workout)/index.tsx:804
 msgid "Save Changes to Plan?"
 msgstr "Save Changes to Plan?"
 
-#: app/(app)/(workout)/index.tsx:831
+#: app/(app)/(workout)/index.tsx:837
 msgid "Save Changes to Workout?"
 msgstr "Save Changes to Workout?"
 
@@ -3269,11 +3277,11 @@ msgstr "Save Changes to Workout?"
 msgid "Save Set"
 msgstr "Save Set"
 
-#: app/(app)/(workout)/index.tsx:1015
+#: app/(app)/(workout)/index.tsx:1021
 msgid "Save this workout?"
 msgstr "Save this workout?"
 
-#: app/(app)/(workout)/index.tsx:803
+#: app/(app)/(workout)/index.tsx:809
 msgid "Save to Plan"
 msgstr "Save to Plan"
 
@@ -3281,7 +3289,7 @@ msgstr "Save to Plan"
 msgid "Saving Plan..."
 msgstr "Saving Plan..."
 
-#: app/(app)/(workout)/index.tsx:955
+#: app/(app)/(workout)/index.tsx:961
 msgid "Saving Workout..."
 msgstr "Saving Workout..."
 
@@ -3545,6 +3553,10 @@ msgstr "smith machine"
 msgid "soleus"
 msgstr "soleus"
 
+#: components/ProgressionSummaryCard.tsx:29
+msgid "Solid session and you hit the rep ceiling. Time to add a little more weight."
+msgstr "Solid session and you hit the rep ceiling. Time to add a little more weight."
+
 #: components/ProgressionSummaryCard.tsx:28
 msgid "Solid session. Keep this load."
 msgstr "Solid session. Keep this load."
@@ -3682,8 +3694,8 @@ msgstr "Superset"
 
 #. placeholder {0}: outgoingSnapshot.isFirstInSuperset ? "A" : "B"
 #. placeholder {0}: ss.isFirstInSuperset ? "A" : "B"
-#: app/(app)/(workout)/workout-session.tsx:1462
-#: app/(app)/(workout)/workout-session.tsx:1548
+#: app/(app)/(workout)/workout-session.tsx:1467
+#: app/(app)/(workout)/workout-session.tsx:1558
 msgid "Superset {0}"
 msgstr "Superset {0}"
 
@@ -3772,7 +3784,7 @@ msgstr "Thigh (L)"
 msgid "Thigh (R)"
 msgstr "Thigh (R)"
 
-#: components/ProgressionSummaryCard.tsx:193
+#: components/ProgressionSummaryCard.tsx:195
 msgid "This exercise has held steady for 4 sessions. A technique check or a brief deload may help break the plateau."
 msgstr "This exercise has held steady for 4 sessions. A technique check or a brief deload may help break the plateau."
 
@@ -3833,7 +3845,7 @@ msgstr "Time (s)"
 msgid "Time PR"
 msgstr "Time PR"
 
-#: app/(app)/(workout)/workout-session.tsx:559
+#: app/(app)/(workout)/workout-session.tsx:564
 msgid "Time to do your next set!"
 msgstr "Time to do your next set!"
 
@@ -4004,7 +4016,7 @@ msgstr "Tuesday"
 msgid "Type to filter help topics"
 msgstr "Type to filter help topics"
 
-#: app/(app)/(workout)/index.tsx:882
+#: app/(app)/(workout)/index.tsx:888
 msgid "Unable to save your workout. Please try again later."
 msgstr "Unable to save your workout. Please try again later."
 
@@ -4090,7 +4102,7 @@ msgstr "Vibrate after rest"
 msgid "View All"
 msgstr "View All"
 
-#: components/ProgressionSummaryCard.tsx:151
+#: components/ProgressionSummaryCard.tsx:153
 msgid "View Deload Option"
 msgstr "View Deload Option"
 
@@ -4281,7 +4293,7 @@ msgstr "Workout History"
 msgid "Workout in progress"
 msgstr "Workout in progress"
 
-#: app/(app)/(workout)/index.tsx:1022
+#: app/(app)/(workout)/index.tsx:1028
 #: components/WorkoutCard.tsx:431
 msgid "Workout name"
 msgstr "Workout name"
@@ -4332,8 +4344,8 @@ msgstr "wrists"
 msgid "x {0} reps "
 msgstr "x {0} reps "
 
-#: app/(app)/(workout)/index.tsx:898
-#: app/(app)/(workout)/index.tsx:918
+#: app/(app)/(workout)/index.tsx:904
+#: app/(app)/(workout)/index.tsx:924
 msgid "Yes"
 msgstr "Yes"
 
@@ -4369,7 +4381,7 @@ msgstr "You chose to keep it steady. Hold this load."
 msgid "You couldn't complete all sets. Reducing load slightly for next time."
 msgstr "You couldn't complete all sets. Reducing load slightly for next time."
 
-#: components/ProgressionSummaryCard.tsx:29
+#: components/ProgressionSummaryCard.tsx:31
 msgid "You finished everything at the limit. Stay here and own it."
 msgstr "You finished everything at the limit. Stay here and own it."
 
@@ -4383,8 +4395,8 @@ msgstr "You have unsaved changes from your last session. Would you like to conti
 msgid "You have unsaved changes. Are you sure you want to discard them?"
 msgstr "You have unsaved changes. Are you sure you want to discard them?"
 
-#: app/(app)/(workout)/index.tsx:799
-#: app/(app)/(workout)/index.tsx:832
+#: app/(app)/(workout)/index.tsx:805
+#: app/(app)/(workout)/index.tsx:838
 msgid "You modified this workout. Save those changes for future sessions?"
 msgstr "You modified this workout. Save those changes for future sessions?"
 

@@ -219,7 +219,7 @@ const ExerciseFeedbackSheet = React.forwardRef<
             ))}
           </View>
 
-          {effortRating === "easy" && (
+          {effortRating === "moderate" && (
             <>
               <ThemedText style={styles.question}>
                 <Trans>Push harder next time?</Trans>

@@ -144,6 +144,8 @@ interface ActiveWorkoutStore {
       isApplied: boolean;
     }[],
   ) => void;
+  feedbackSubmittedUweIds: number[];
+  recordFeedbackSubmitted: (uweId: number) => void;
 }
 
 const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
@@ -165,6 +167,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       currentSetStartedAt: null,
       setDurations: {},
       appendedExerciseIndices: [],
+      feedbackSubmittedUweIds: [],
 
       setWorkout: (workout, planId, workoutId, name) =>
         set({
@@ -184,6 +187,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           currentSetStartedAt: null,
           setDurations: {},
           appendedExerciseIndices: [],
+          feedbackSubmittedUweIds: [],
         }),
 
       startQuickWorkout: () =>
@@ -1006,6 +1010,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           currentSetStartedAt: null,
           setDurations: {},
           appendedExerciseIndices: [],
+          feedbackSubmittedUweIds: [],
         });
       },
 
@@ -1171,6 +1176,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           currentSetStartedAt: null,
           setDurations: {},
           appendedExerciseIndices: [],
+          feedbackSubmittedUweIds: [],
         });
         // Clear from AsyncStorage
         AsyncStorage.removeItem("active-workout-store");
@@ -1226,28 +1232,39 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           return { weightAndReps: newWeightAndReps };
         });
       },
+
+      recordFeedbackSubmitted: (uweId) =>
+        set((state) => ({
+          feedbackSubmittedUweIds: state.feedbackSubmittedUweIds.includes(uweId)
+            ? state.feedbackSubmittedUweIds
+            : [...state.feedbackSubmittedUweIds, uweId],
+        })),
     }),
     {
       name: "active-workout-store", // Key for AsyncStorage
       storage: createJSONStorage(() => AsyncStorage),
       // Add parsing for date objects during rehydration
-      partialize: (state) => ({
-        ...state,
-        startTime:
-          state.startTime instanceof Date
-            ? state.startTime.toISOString()
-            : state.startTime,
-        timerExpiry: state.timerExpiry
-          ? state.timerExpiry instanceof Date
-            ? state.timerExpiry.toISOString()
-            : state.timerExpiry
-          : null,
-        currentSetStartedAt: state.currentSetStartedAt
-          ? state.currentSetStartedAt instanceof Date
-            ? state.currentSetStartedAt.toISOString()
-            : state.currentSetStartedAt
-          : null,
-      }),
+      partialize: (state) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { feedbackSubmittedUweIds: _transient, ...rest } = state;
+        return {
+          ...rest,
+          startTime:
+            state.startTime instanceof Date
+              ? state.startTime.toISOString()
+              : state.startTime,
+          timerExpiry: state.timerExpiry
+            ? state.timerExpiry instanceof Date
+              ? state.timerExpiry.toISOString()
+              : state.timerExpiry
+            : null,
+          currentSetStartedAt: state.currentSetStartedAt
+            ? state.currentSetStartedAt instanceof Date
+              ? state.currentSetStartedAt.toISOString()
+              : state.currentSetStartedAt
+            : null,
+        };
+      },
       onRehydrateStorage: () => (state) => {
         // Convert strings back to Date objects after rehydration
         if (state) {

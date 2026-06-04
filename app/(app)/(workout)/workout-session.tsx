@@ -6,7 +6,6 @@ import {
   StyleSheet,
   View,
   Alert,
-  TouchableOpacity,
 } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -330,6 +329,12 @@ export default function WorkoutSessionScreen() {
     activeWorkout?.planId ?? undefined,
   );
   const { mutate: submitFeedback } = useExerciseFeedbackMutation();
+  const feedbackSubmittedUweIds = useActiveWorkoutStore(
+    (s) => s.feedbackSubmittedUweIds,
+  );
+  const recordFeedbackSubmitted = useActiveWorkoutStore(
+    (s) => s.recordFeedbackSubmitted,
+  );
 
   const parsedIncrement = parseFloat(settings?.weightIncrement ?? "");
   const weightIncrement = Number.isNaN(parsedIncrement) ? 1 : parsedIncrement;
@@ -1521,7 +1526,12 @@ export default function WorkoutSessionScreen() {
                               );
                             }}
                             progressionSuggestion={
-                              currentProgressionState ?? null
+                              currentExercise?.id != null &&
+                              feedbackSubmittedUweIds.includes(
+                                currentExercise.id,
+                              )
+                                ? null
+                                : (currentProgressionState ?? null)
                             }
                           />
                         ) : (
@@ -1578,6 +1588,7 @@ export default function WorkoutSessionScreen() {
           userWorkoutExerciseId={feedbackQueue[0].userWorkoutExerciseId}
           performanceRatio={feedbackQueue[0].performanceRatio}
           onSubmit={(payload: ExerciseFeedbackPayload) => {
+            recordFeedbackSubmitted(feedbackQueue[0].userWorkoutExerciseId);
             submitFeedback({
               feedback: payload,
               exerciseContext: feedbackQueue[0].exerciseContext,

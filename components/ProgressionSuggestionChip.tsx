@@ -23,7 +23,7 @@ function chipLabel(
   switch (action) {
     case "increase_load":
       return suggestedWeight != null
-        ? t`+${suggestedWeight}${unit} suggested`
+        ? t`${suggestedWeight}${unit} suggested`
         : t`Load up`;
     case "increase_reps": {
       if (suggestedRepsPerSet && suggestedRepsPerSet.length > 0) {
