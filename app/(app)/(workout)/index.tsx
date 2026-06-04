@@ -26,6 +26,7 @@ import {
   useGlobalExerciseHistoryForSessionQuery,
 } from "@/hooks/useCompletedWorkoutsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
+import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
@@ -221,6 +222,7 @@ export default function WorkoutOverviewScreen() {
   const lastCompletedWorkoutIdRef = useRef<number | null>(null);
 
   useKeepScreenOn();
+  useWorkoutImmersiveMode();
 
   const parsedIncrement = parseInt(settings?.restTimerIncrement || "15", 10);
   const restTimerIncrement =

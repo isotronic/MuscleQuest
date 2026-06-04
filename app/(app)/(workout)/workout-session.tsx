@@ -22,6 +22,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
+import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
 import RestTimerOverlay from "@/components/RestTimerOverlay";
 import WorkoutTimer from "@/components/WorkoutTimer";
 import Bugsnag from "@bugsnag/expo";
@@ -462,6 +463,7 @@ export default function WorkoutSessionScreen() {
   );
 
   useKeepScreenOn();
+  useWorkoutImmersiveMode();
 
   const expiryTimestampRef = useRef<Date | null>(null);
   const lastCompletedSetRef = useRef<{
