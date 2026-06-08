@@ -6,12 +6,15 @@ import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
 import { t, plural } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import Sortable from "react-native-sortables";
+import { AppIcon } from "@/components/ui";
 
 interface ExerciseCompactCardProps {
   exercise: TrackedExerciseWithSets;
   weightUnit: string;
   distanceUnit: string;
   onPress: () => void;
+  isReorderMode?: boolean;
 }
 
 const formatDaysAgo = (dateStr: string): string => {
@@ -48,7 +51,7 @@ const formatPRLabel = (
 };
 
 export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
-  React.memo(({ exercise, weightUnit, distanceUnit, onPress }) => {
+  React.memo(({ exercise, weightUnit, distanceUnit, onPress, isReorderMode = false }) => {
     const { colors } = useAppTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
     const latestSet = exercise.completed_sets[0];
@@ -64,12 +67,34 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
       [exercise.completed_sets],
     );
 
+    if (isReorderMode) {
+      return (
+        <Sortable.Touchable style={styles.card}>
+          <AppIcon
+            set="mci"
+            name="drag"
+            size={24}
+            color={colors.contentSecondary}
+            style={styles.dragIcon}
+          />
+          <View style={styles.left}>
+            <ThemedText style={styles.name} numberOfLines={1}>
+              {exercise.name}
+            </ThemedText>
+            <ThemedText style={styles.sub}>
+              {prLabel}
+              {daysAgo ? `  ·  ${daysAgo}` : ""}
+            </ThemedText>
+          </View>
+          <View style={styles.right}>
+            <SparklineChart data={sparkData} width={100} height={44} />
+          </View>
+        </Sortable.Touchable>
+      );
+    }
+
     return (
-      <TouchableOpacity
-        onPress={onPress}
-        activeOpacity={0.7}
-        style={styles.card}
-      >
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={styles.card}>
         <View style={styles.left}>
           <ThemedText style={styles.name} numberOfLines={1}>
             {exercise.name}
@@ -121,6 +146,9 @@ function createStyles(colors: AppThemeColors) {
       fontSize: 22,
       color: colors.contentSecondary,
       lineHeight: 26,
+    },
+    dragIcon: {
+      marginRight: 8,
     },
   });
 }

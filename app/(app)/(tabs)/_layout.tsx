@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppMenu } from "@/components/AppMenu";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { useMenuStore } from "@/store/menuStore";
+import { useSocialStore } from "@/store/socialStore";
 import { t } from "@lingui/core/macro";
 import { useAppTheme } from "@/theme";
 
@@ -12,6 +13,7 @@ export default function TabLayout() {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const openMenu = useMenuStore((s) => s.openMenu);
+  const { pendingRequests } = useSocialStore();
 
   return (
     <>
@@ -90,6 +92,8 @@ export default function TabLayout() {
           }}
           options={{
             title: t`More`,
+            tabBarBadge:
+              pendingRequests.length > 0 ? pendingRequests.length : undefined,
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
                 name={

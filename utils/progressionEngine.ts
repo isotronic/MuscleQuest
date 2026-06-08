@@ -27,6 +27,10 @@ const RULE_EXPLANATIONS: Record<string, string> = {
   EASY_TARGET_REPS: "Good pace. Try adding one more rep per set next session.",
   EASY_HOLD_REQUESTED: "You chose to keep it steady. Hold this load.",
   MODERATE_TARGET: "Solid session. Keep this load.",
+  MODERATE_TARGET_LOAD:
+    "Solid session and you hit the rep ceiling. Time to add a little more weight.",
+  MODERATE_TARGET_REPS:
+    "Good session. Try adding one more rep to one set next time.",
   HARD_TARGET: "You finished everything at the limit. Stay here and own it.",
   UNSUPPORTED_TRACKING: "No progression tracking for this exercise type in v1.",
   NO_RANGE:
@@ -102,6 +106,31 @@ function firstTwoSetsAtMax(
     if (max == null || actual < max) return false;
   }
   return true;
+}
+
+/**
+ * Returns per-set suggested reps where only the first working set still below
+ * its repsMax gets +1. Other sets keep their completed count. Returns null if
+ * all sets are already at their ceiling (caller should increase load instead).
+ */
+function computeSingleSetRepTarget(
+  workingSets: PlanSet[],
+  completedRepsPerSet: (number | null)[],
+): number[] | null {
+  if (completedRepsPerSet.length < workingSets.length) return null;
+
+  const firstBelowMax = workingSets.findIndex((s, i) => {
+    const actual = completedRepsPerSet[i] ?? 0;
+    return s.repsMax != null && actual < s.repsMax;
+  });
+
+  if (firstBelowMax === -1) return null;
+
+  return workingSets.map((s, i) => {
+    const actual = completedRepsPerSet[i] ?? 0;
+    if (i === firstBelowMax) return Math.min(actual + 1, s.repsMax ?? Infinity);
+    return actual;
+  });
 }
 
 function hold(ruleKey: string): ProgressionRuleResult {
@@ -204,52 +233,14 @@ export function evaluateProgression(
     latestFeedback.effortRating === "easy" &&
     latestFeedback.performanceRatio >= 1.0
   ) {
-    if (latestFeedback.progressionIntent === "hold") {
-      return hold("EASY_HOLD_REQUESTED");
-    }
+    const workingSets = getWorkingSets(currentSets);
+    const completed = completedRepsPerSet ?? [];
 
-    if (consecutiveDirectionCount >= 1) {
-      const workingSets = getWorkingSets(currentSets);
-      const completed = completedRepsPerSet ?? [];
-
-      // For weight/assisted: check if all sets are at the rep ceiling → load up
-      if (trackingType === "weight" || trackingType === "assisted") {
-        if (firstTwoSetsAtMax(workingSets, completed)) {
-          // All sets hit repsMax → increase load instead of reps
-          const increment = computeLoadIncrement(equipment, userIncrements);
-          if (increment === 0) {
-            return hold("UNSUPPORTED_TRACKING");
-          }
-          if (recentWorkingWeight === null) {
-            return hold("NO_PRIOR_WEIGHT");
-          }
-          return {
-            action: "increase_load",
-            ruleKey: "EASY_TARGET_LOAD",
-            explanation: RULE_EXPLANATIONS.EASY_TARGET_LOAD,
-            suggestedWeight: recentWorkingWeight + increment,
-          };
-        }
-
-        // Not all at max — suggest per-set rep targets
-        const perSetTargets = computePerSetRepTargets(workingSets, completed);
-        if (perSetTargets !== null) {
-          return {
-            action: "increase_reps",
-            ruleKey: "EASY_TARGET_REPS",
-            explanation: RULE_EXPLANATIONS.EASY_TARGET_REPS,
-            suggestedRepsPerSet: perSetTargets,
-          };
-        }
-
-        // No completed rep data — fall back to load increase
+    if (trackingType === "weight" || trackingType === "assisted") {
+      if (firstTwoSetsAtMax(workingSets, completed)) {
         const increment = computeLoadIncrement(equipment, userIncrements);
-        if (increment === 0) {
-          return hold("UNSUPPORTED_TRACKING");
-        }
-        if (recentWorkingWeight === null) {
-          return hold("NO_PRIOR_WEIGHT");
-        }
+        if (increment === 0) return hold("UNSUPPORTED_TRACKING");
+        if (recentWorkingWeight === null) return hold("NO_PRIOR_WEIGHT");
         return {
           action: "increase_load",
           ruleKey: "EASY_TARGET_LOAD",
@@ -258,28 +249,104 @@ export function evaluateProgression(
         };
       }
 
-      // For reps-only tracking: suggest per-set rep increases wherever sets still have room
-      if (trackingType === "reps") {
-        const perSetTargets = computePerSetRepTargets(workingSets, completed);
-        if (perSetTargets !== null) {
-          return {
-            action: "increase_reps",
-            ruleKey: "EASY_TARGET_REPS",
-            explanation: RULE_EXPLANATIONS.EASY_TARGET_REPS,
-            suggestedRepsPerSet: perSetTargets,
-          };
-        }
-        return hold("DEFAULT");
+      const perSetTargets = computePerSetRepTargets(workingSets, completed);
+      if (perSetTargets !== null) {
+        return {
+          action: "increase_reps",
+          ruleKey: "EASY_TARGET_REPS",
+          explanation: RULE_EXPLANATIONS.EASY_TARGET_REPS,
+          suggestedRepsPerSet: perSetTargets,
+        };
       }
+
+      // No completed rep data — fall back to load increase
+      const increment = computeLoadIncrement(equipment, userIncrements);
+      if (increment === 0) return hold("UNSUPPORTED_TRACKING");
+      if (recentWorkingWeight === null) return hold("NO_PRIOR_WEIGHT");
+      return {
+        action: "increase_load",
+        ruleKey: "EASY_TARGET_LOAD",
+        explanation: RULE_EXPLANATIONS.EASY_TARGET_LOAD,
+        suggestedWeight: recentWorkingWeight + increment,
+      };
+    }
+
+    if (trackingType === "reps") {
+      const perSetTargets = computePerSetRepTargets(workingSets, completed);
+      if (
+        perSetTargets !== null &&
+        perSetTargets.some((t, i) => t > (completed[i] ?? 0))
+      ) {
+        return {
+          action: "increase_reps",
+          ruleKey: "EASY_TARGET_REPS",
+          explanation: RULE_EXPLANATIONS.EASY_TARGET_REPS,
+          suggestedRepsPerSet: perSetTargets,
+        };
+      }
+      return hold("DEFAULT");
     }
   }
 
-  // Rule 9: Moderate + on target — hold
+  // Rule 9: Moderate + on target — progress conservatively, unless user opted to hold
   if (
     latestFeedback.effortRating === "moderate" &&
     latestFeedback.performanceRatio >= 1.0
   ) {
-    return hold("MODERATE_TARGET");
+    if (latestFeedback.progressionIntent === "hold") {
+      return hold("EASY_HOLD_REQUESTED");
+    }
+
+    const workingSets = getWorkingSets(currentSets);
+    const completed = completedRepsPerSet ?? [];
+
+    if (trackingType === "weight" || trackingType === "assisted") {
+      if (firstTwoSetsAtMax(workingSets, completed)) {
+        const increment = computeLoadIncrement(equipment, userIncrements);
+        if (increment === 0) return hold("UNSUPPORTED_TRACKING");
+        if (recentWorkingWeight === null) return hold("NO_PRIOR_WEIGHT");
+        return {
+          action: "increase_load",
+          ruleKey: "MODERATE_TARGET_LOAD",
+          explanation: RULE_EXPLANATIONS.MODERATE_TARGET_LOAD,
+          suggestedWeight: recentWorkingWeight + increment,
+        };
+      }
+
+      const perSetTargets = computeSingleSetRepTarget(workingSets, completed);
+      if (perSetTargets !== null) {
+        return {
+          action: "increase_reps",
+          ruleKey: "MODERATE_TARGET_REPS",
+          explanation: RULE_EXPLANATIONS.MODERATE_TARGET_REPS,
+          suggestedRepsPerSet: perSetTargets,
+        };
+      }
+
+      // No rep data — fall back to load increase
+      const increment = computeLoadIncrement(equipment, userIncrements);
+      if (increment === 0) return hold("UNSUPPORTED_TRACKING");
+      if (recentWorkingWeight === null) return hold("NO_PRIOR_WEIGHT");
+      return {
+        action: "increase_load",
+        ruleKey: "MODERATE_TARGET_LOAD",
+        explanation: RULE_EXPLANATIONS.MODERATE_TARGET_LOAD,
+        suggestedWeight: recentWorkingWeight + increment,
+      };
+    }
+
+    if (trackingType === "reps") {
+      const perSetTargets = computeSingleSetRepTarget(workingSets, completed);
+      if (perSetTargets !== null) {
+        return {
+          action: "increase_reps",
+          ruleKey: "MODERATE_TARGET_REPS",
+          explanation: RULE_EXPLANATIONS.MODERATE_TARGET_REPS,
+          suggestedRepsPerSet: perSetTargets,
+        };
+      }
+      return hold("DEFAULT");
+    }
   }
 
   // Rule 10: Hard + on target — hold

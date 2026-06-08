@@ -26,6 +26,8 @@ function getRuleExplanation(ruleKey: string): string {
     EASY_TARGET_REPS: t`Good pace. Try adding one rep per set before bumping the load.`,
     EASY_HOLD_REQUESTED: t`You chose to keep it steady. Hold this load.`,
     MODERATE_TARGET: t`Solid session. Keep this load.`,
+    MODERATE_TARGET_LOAD: t`Solid session and you hit the rep ceiling. Time to add a little more weight.`,
+    MODERATE_TARGET_REPS: t`Good session. Try adding one more rep to one set next time.`,
     HARD_TARGET: t`You finished everything at the limit. Stay here and own it.`,
     UNSUPPORTED_TRACKING: t`No progression tracking for this exercise type.`,
     NO_RANGE: t`No rep range defined. Add a rep range (e.g. 8-12) to enable auto-progression.`,

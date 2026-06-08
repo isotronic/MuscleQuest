@@ -19,7 +19,7 @@ export const usePlanPublishMutation = (planId: number) => {
       return publish;
     },
     onSuccess: (published) => {
-      queryClient.setQueryData(["planPublished", planId], published);
+      queryClient.setQueryData(["planPublished", user?.uid, planId], published);
       queryClient.invalidateQueries({ queryKey: ["publishedPlanIds"] });
     },
     onError: (error: Error) => {

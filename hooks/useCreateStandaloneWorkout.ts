@@ -10,9 +10,13 @@ import Bugsnag from "@bugsnag/expo";
 import { AuthContext } from "@/context/AuthProvider";
 import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
 import { publishStandaloneWorkout } from "@/utils/sharing";
+import { useSocialStore } from "@/store/socialStore";
 
 export const useCreateStandaloneWorkout = () => {
   const queryClient = useQueryClient();
+  const user = useContext(AuthContext);
+  const { privacySettings } = useSocialStore();
+
   return useMutation({
     mutationFn: ({
       name,
@@ -21,8 +25,15 @@ export const useCreateStandaloneWorkout = () => {
       name: string;
       exercises: UserExercise[];
     }) => createStandaloneWorkout(name, exercises),
-    onSuccess: () => {
+    onSuccess: (workoutId) => {
       queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
+      if (user && privacySettings?.shareStandaloneWorkouts) {
+        publishStandaloneWorkout(user.uid, workoutId)
+          .then(() =>
+            queryClient.invalidateQueries({ queryKey: ["publishedWorkouts"] }),
+          )
+          .catch((err) => Bugsnag.notify(err));
+      }
     },
     onError: (error: Error) => {
       Bugsnag.notify(error);

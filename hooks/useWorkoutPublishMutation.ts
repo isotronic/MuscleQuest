@@ -22,7 +22,7 @@ export const useWorkoutPublishMutation = (workoutId: number) => {
       return publish;
     },
     onSuccess: (published) => {
-      queryClient.setQueryData(["workoutPublished", workoutId], published);
+      queryClient.setQueryData(["workoutPublished", user?.uid, workoutId], published);
       queryClient.invalidateQueries({ queryKey: ["publishedWorkoutIds"] });
     },
     onError: (error: Error) => {

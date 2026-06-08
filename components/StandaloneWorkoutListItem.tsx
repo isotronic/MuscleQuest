@@ -13,12 +13,14 @@ interface StandaloneWorkoutListItemProps {
   workout: Workout;
   onPress: () => void;
   countUnilateralDouble?: boolean;
+  isPublished?: boolean;
 }
 
 export default function StandaloneWorkoutListItem({
   workout,
   onPress,
   countUnilateralDouble = false,
+  isPublished,
 }: StandaloneWorkoutListItemProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -39,9 +41,20 @@ export default function StandaloneWorkoutListItem({
         </View>
       </View>
       <View style={styles.textContainer}>
-        <ThemedText style={styles.name} numberOfLines={1}>
-          {workout.name}
-        </ThemedText>
+        <View style={styles.nameRow}>
+          <ThemedText style={styles.name} numberOfLines={1}>
+            {workout.name}
+          </ThemedText>
+          {isPublished && (
+            <AppIcon
+              set="mci"
+              name="cloud-check"
+              size={16}
+              color={colors.accent}
+              style={{ marginLeft: 4 }}
+            />
+          )}
+        </View>
         <ThemedText style={styles.subtitle}>
           <Plural
             value={workout.exercises.length}
@@ -89,10 +102,15 @@ function createStyles(colors: AppThemeColors) {
     textContainer: {
       flex: 1,
     },
+    nameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 2,
+    },
     name: {
       fontSize: 16,
       fontWeight: "600",
-      marginBottom: 2,
+      flexShrink: 1,
     },
     subtitle: {
       fontSize: 13,

@@ -7,7 +7,8 @@ import {
   ScrollView,
   Pressable,
 } from "react-native";
-import { Button, Avatar } from "react-native-paper";
+import { Button, Avatar, IconButton, Modal, Portal } from "react-native-paper";
+import { PrivacySettings } from "@/components/PrivacySettings";
 import { Stack, useRouter } from "expo-router";
 import Bugsnag from "@bugsnag/expo";
 import { t } from "@lingui/core/macro";
@@ -33,6 +34,7 @@ export default function FriendsScreen() {
   const user = useContext(AuthContext);
   const { friends, pendingRequests, sentRequests } = useSocialStore();
   const [activeTab, setActiveTab] = useState<Tab>("friends");
+  const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
 
   if (!user) {
     return (
@@ -67,7 +69,19 @@ export default function FriendsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Stack.Screen options={{ title: t`Friends` }} />
+      <Stack.Screen
+        options={{
+          title: t`Friends`,
+          headerRight: () => (
+            <IconButton
+              icon="cog"
+              size={24}
+              iconColor={colors.contentPrimary}
+              onPress={() => setPrivacyModalVisible(true)}
+            />
+          ),
+        }}
+      />
 
       {/* Internal tab bar */}
       <View style={[styles.tabBar, { borderBottomColor: borders.divider }]}>
@@ -128,6 +142,35 @@ export default function FriendsScreen() {
           borders={borders}
         />
       )}
+
+      <Portal>
+        <Modal
+          visible={privacyModalVisible}
+          onDismiss={() => setPrivacyModalVisible(false)}
+          contentContainerStyle={[
+            styles.modalContainer,
+            { backgroundColor: colors.background },
+          ]}
+        >
+          <View style={styles.modalHeader}>
+            <AppText
+              variant="title"
+              style={{ color: colors.contentPrimary, flex: 1 }}
+            >
+              <Trans>Privacy Settings</Trans>
+            </AppText>
+            <IconButton
+              icon="close"
+              size={20}
+              iconColor={colors.contentPrimary}
+              onPress={() => setPrivacyModalVisible(false)}
+            />
+          </View>
+          <ScrollView contentContainerStyle={{ paddingHorizontal: 16 }}>
+            <PrivacySettings hideDeleteSection />
+          </ScrollView>
+        </Modal>
+      </Portal>
     </View>
   );
 }
@@ -462,5 +505,18 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  modalContainer: {
+    margin: 20,
+    borderRadius: 12,
+    maxHeight: "85%",
+    overflow: "hidden",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 4,
   },
 });

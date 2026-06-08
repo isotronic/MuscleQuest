@@ -93,7 +93,7 @@ const fetchTrackedExercises = async (
         )
         OR (
           ce.resolved_tracking_type IS NULL
-          AND e.tracking_type = ${currentTypeExpr}
+          AND e.tracking_type IS ${currentTypeExpr}
         )
       )`;
 
@@ -133,7 +133,15 @@ const fetchTrackedExercises = async (
       ORDER BY cw.date_completed DESC, progression_metric DESC
     `;
 
-    const trackedExercises = await db.getAllAsync(query);
+    const [trackedExercises, allTrackedRows] = await Promise.all([
+      db.getAllAsync(query),
+      db.getAllAsync(`
+        SELECT te.*, e.name, ${currentTypeExpr} AS tracking_type
+        FROM tracked_exercises te
+        LEFT JOIN exercises e ON te.exercise_id = e.exercise_id
+        ORDER BY te.sort_order ASC
+      `),
+    ]);
 
     // Fetch all-time PR for each tracked exercise (unfiltered by time range)
     const allTimePRQuery = `
@@ -153,7 +161,7 @@ const fetchTrackedExercises = async (
           )
           OR (
             ce.resolved_tracking_type IS NULL
-            AND e.tracking_type = ${currentTypeExpr}
+            AND e.tracking_type IS ${currentTypeExpr}
           )
         )
       GROUP BY te.exercise_id
@@ -169,10 +177,23 @@ const fetchTrackedExercises = async (
       }
     });
 
-    // Group the sets by the exercise
+    // Seed groupedExercises with every tracked exercise so exercises whose
+    // sessions all fail the tracking-type filter still appear in the list.
     const groupedExercises: Record<number, TrackedExerciseWithSets> = {};
 
-    trackedExercises.forEach((row: any) => {
+    (allTrackedRows as any[]).forEach((row: any) => {
+      groupedExercises[row.exercise_id] = {
+        id: row.id,
+        exercise_id: row.exercise_id,
+        date_added: row.date_added,
+        completed_sets: [],
+        name: row.name,
+        tracking_type: row.tracking_type,
+        allTimePR: allTimePRMap[row.exercise_id] ?? 0,
+      };
+    });
+
+    (trackedExercises as any[]).forEach((row: any) => {
       if (!groupedExercises[row.exercise_id]) {
         groupedExercises[row.exercise_id] = {
           id: row.id,
@@ -216,7 +237,9 @@ const fetchTrackedExercises = async (
       }
     });
 
-    return Object.values(groupedExercises);
+    return (allTrackedRows as any[])
+      .map((row: any) => groupedExercises[row.exercise_id])
+      .filter(Boolean);
   } catch (error: any) {
     console.error("Error fetching tracked exercises:", error);
     Bugsnag.notify(error);

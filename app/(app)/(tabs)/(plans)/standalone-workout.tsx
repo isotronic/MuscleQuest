@@ -32,7 +32,6 @@ import { t } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { AuthContext } from "@/context/AuthProvider";
-import { useSocialStore } from "@/store/socialStore";
 import { useWorkoutPublishQuery } from "@/hooks/useWorkoutPublishQuery";
 import { useWorkoutPublishMutation } from "@/hooks/useWorkoutPublishMutation";
 
@@ -53,8 +52,7 @@ export default function StandaloneWorkoutScreen() {
   const distanceUnit = settings?.distanceUnit || "m";
 
   const user = useContext(AuthContext);
-  const { privacySettings } = useSocialStore();
-  const showShareToggle = !!user && !!privacySettings?.shareStandaloneWorkouts;
+  const showShareToggle = !!user;
   const { data: isPublished = false, isLoading: isPublishLoading } =
     useWorkoutPublishQuery(showShareToggle ? workoutId : null);
   const publishMutation = useWorkoutPublishMutation(workoutId);

@@ -19,6 +19,9 @@ import {
   fetchCompletedWorkoutForSharing,
   fetchBodyMeasurementEntryForSharing,
   fetchPRDataForExercises,
+  fetchAllPlanIds,
+  fetchAllStandaloneWorkoutIds,
+  fetchAllCustomExercisesForSharing,
 } from "./database";
 import type { Exercise } from "./database";
 
@@ -92,7 +95,7 @@ export const publishPlan = async (
   planId: number,
 ): Promise<void> => {
   const data = await fetchFullPlanForSharing(planId);
-  if (!data) return;
+  if (!data || data.plan.app_plan_id !== null) return;
 
   const now = serverTimestamp();
   const db = getFirestore();
@@ -327,6 +330,67 @@ export const pushStrengthPRs = async (
 
       await batch.commit();
     }
+  } catch (error) {
+    Bugsnag.notify(error as Error);
+  }
+};
+
+// ─── bulk publish ─────────────────────────────────────────────────────────────
+
+export const bulkPublishAllPlans = async (uid: string): Promise<void> => {
+  try {
+    const planIds = await fetchAllPlanIds();
+    const results = await Promise.allSettled(
+      planIds.map((id) => publishPlan(uid, id)),
+    );
+    results
+      .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+      .forEach((r) =>
+        Bugsnag.notify(
+          r.reason instanceof Error ? r.reason : new Error(String(r.reason)),
+        ),
+      );
+  } catch (error) {
+    Bugsnag.notify(error as Error);
+  }
+};
+
+export const bulkPublishAllStandaloneWorkouts = async (
+  uid: string,
+): Promise<void> => {
+  try {
+    const workoutIds = await fetchAllStandaloneWorkoutIds();
+    const results = await Promise.allSettled(
+      workoutIds.map((id) => publishStandaloneWorkout(uid, id)),
+    );
+    results
+      .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+      .forEach((r) =>
+        Bugsnag.notify(
+          r.reason instanceof Error ? r.reason : new Error(String(r.reason)),
+        ),
+      );
+  } catch (error) {
+    Bugsnag.notify(error as Error);
+  }
+};
+
+export const bulkPublishAllCustomExercises = async (
+  uid: string,
+): Promise<void> => {
+  try {
+    const exercises = await fetchAllCustomExercisesForSharing();
+    // pushCustomExercise catches its own errors and reports to Bugsnag, so allSettled sees fulfilled
+    const results = await Promise.allSettled(
+      exercises.map((ex) => pushCustomExercise(uid, ex)),
+    );
+    results
+      .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+      .forEach((r) =>
+        Bugsnag.notify(
+          r.reason instanceof Error ? r.reason : new Error(String(r.reason)),
+        ),
+      );
   } catch (error) {
     Bugsnag.notify(error as Error);
   }

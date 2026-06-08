@@ -120,7 +120,11 @@ export default function FriendProfileScreen() {
           >
             <Trans>
               Friends since{" "}
-              {formatDistanceToNow(friend.since.toDate(), { addSuffix: true })}
+              {friend.since.toDate().toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
             </Trans>
           </AppText>
         )}

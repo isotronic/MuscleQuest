@@ -92,26 +92,24 @@ export default function ExercisesScreen() {
         (exerciseId) => !selectedExercises.includes(exerciseId),
       );
 
-      // Insert new exercises into the tracked_exercises table
-      for (const exerciseId of newExercises) {
-        await db.runAsync(
-          `
-          INSERT INTO tracked_exercises (exercise_id)
-          VALUES (?)
-        `,
-          [exerciseId],
-        );
-      }
+      await db.withExclusiveTransactionAsync(async (txn) => {
+        // Insert new exercises into the tracked_exercises table
+        for (const exerciseId of newExercises) {
+          await txn.runAsync(
+            `INSERT INTO tracked_exercises (exercise_id, sort_order)
+             VALUES (?, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM tracked_exercises))`,
+            [exerciseId],
+          );
+        }
 
-      // Delete unselected exercises from the tracked_exercises table
-      for (const exerciseId of removedExercises) {
-        await db.runAsync(
-          `
-          DELETE FROM tracked_exercises WHERE exercise_id = ?
-        `,
-          [exerciseId],
-        );
-      }
+        // Delete unselected exercises from the tracked_exercises table
+        for (const exerciseId of removedExercises) {
+          await txn.runAsync(
+            `DELETE FROM tracked_exercises WHERE exercise_id = ?`,
+            [exerciseId],
+          );
+        }
+      });
 
       queryclient.invalidateQueries({ queryKey: ["trackedExercises"] });
       router.back();

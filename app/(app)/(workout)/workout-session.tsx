@@ -6,7 +6,6 @@ import {
   StyleSheet,
   View,
   Alert,
-  TouchableOpacity,
 } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -22,7 +21,8 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
+import RestTimerOverlay from "@/components/RestTimerOverlay";
 import WorkoutTimer from "@/components/WorkoutTimer";
 import Bugsnag from "@bugsnag/expo";
 import {
@@ -216,8 +216,6 @@ function snapshotToProps(snapshot: OutgoingSnapshot) {
 export default function WorkoutSessionScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const insets = useSafeAreaInsets();
-
   // Animation shared values — all hooks must be before any early returns
   const offsetX = useSharedValue(0);
   const snapshotOffsetX = useSharedValue(0);
@@ -331,6 +329,12 @@ export default function WorkoutSessionScreen() {
     activeWorkout?.planId ?? undefined,
   );
   const { mutate: submitFeedback } = useExerciseFeedbackMutation();
+  const feedbackSubmittedUweIds = useActiveWorkoutStore(
+    (s) => s.feedbackSubmittedUweIds,
+  );
+  const recordFeedbackSubmitted = useActiveWorkoutStore(
+    (s) => s.recordFeedbackSubmitted,
+  );
 
   const parsedIncrement = parseFloat(settings?.weightIncrement ?? "");
   const weightIncrement = Number.isNaN(parsedIncrement) ? 1 : parsedIncrement;
@@ -464,6 +468,7 @@ export default function WorkoutSessionScreen() {
   );
 
   useKeepScreenOn();
+  useWorkoutImmersiveMode();
 
   const expiryTimestampRef = useRef<Date | null>(null);
   const lastCompletedSetRef = useRef<{
@@ -1085,6 +1090,7 @@ export default function WorkoutSessionScreen() {
     if (!currentExercise || !currentSet) {
       return;
     }
+    if (currentSetCompleted) return;
     if (outgoingSnapshot || isTransitioning.value) return;
 
     // Capture feedback contexts before any state changes
@@ -1520,7 +1526,12 @@ export default function WorkoutSessionScreen() {
                               );
                             }}
                             progressionSuggestion={
-                              currentProgressionState ?? null
+                              currentExercise?.id != null &&
+                              feedbackSubmittedUweIds.includes(
+                                currentExercise.id,
+                              )
+                                ? null
+                                : (currentProgressionState ?? null)
                             }
                           />
                         ) : (
@@ -1577,6 +1588,7 @@ export default function WorkoutSessionScreen() {
           userWorkoutExerciseId={feedbackQueue[0].userWorkoutExerciseId}
           performanceRatio={feedbackQueue[0].performanceRatio}
           onSubmit={(payload: ExerciseFeedbackPayload) => {
+            recordFeedbackSubmitted(feedbackQueue[0].userWorkoutExerciseId);
             submitFeedback({
               feedback: payload,
               exerciseContext: feedbackQueue[0].exerciseContext,
@@ -1585,39 +1597,15 @@ export default function WorkoutSessionScreen() {
           onAfterDismiss={() => setFeedbackQueue((q) => q.slice(1))}
         />
       )}
-      <AnimatedView
-        style={[
-          styles.timerContainer,
-          { paddingBottom: insets.bottom },
-          timerAnimStyle,
-          { pointerEvents: timerRunning ? "auto" : "none" },
-        ]}
-      >
-        <ThemedText style={styles.timerLabel}>
-          <Trans>Rest Time Left:</Trans>
-        </ThemedText>
-        <View style={styles.timerRow}>
-          <TouchableOpacity
-            style={styles.timerAdjustButton}
-            onPress={() => void adjustTimer(-restTimerIncrement)}
-          >
-            <ThemedText style={styles.timerAdjustText}>
-              <Trans>−{restTimerIncrement}s</Trans>
-            </ThemedText>
-          </TouchableOpacity>
-          <ThemedText style={styles.timerText}>
-            {minutes}:{seconds.toString().padStart(2, "0")}
-          </ThemedText>
-          <TouchableOpacity
-            style={styles.timerAdjustButton}
-            onPress={() => void adjustTimer(restTimerIncrement)}
-          >
-            <ThemedText style={styles.timerAdjustText}>
-              <Trans>+{restTimerIncrement}s</Trans>
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
-      </AnimatedView>
+      <RestTimerOverlay
+        minutes={minutes}
+        seconds={seconds}
+        increment={restTimerIncrement}
+        timerRunning={timerRunning}
+        animStyle={timerAnimStyle}
+        buttonSize={buttonSize}
+        onAdjust={(delta) => void adjustTimer(delta)}
+      />
     </ThemedView>
   );
 }
@@ -1632,22 +1620,6 @@ function createStyles(colors: AppThemeColors) {
     panelContainer: {
       flex: 1,
       overflow: "hidden",
-    },
-    timerContainer: {
-      position: "absolute",
-      bottom: 0,
-      right: 16,
-      left: 16,
-      paddingTop: 8,
-      paddingBottom: 8,
-      backgroundColor: colors.card,
-      alignItems: "center",
-      justifyContent: "center",
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.3)",
-      elevation: 5,
-      marginBottom: 0,
     },
     supersetBanner: {
       flexDirection: "row",
@@ -1672,37 +1644,6 @@ function createStyles(colors: AppThemeColors) {
       flexShrink: 1,
       textAlign: "right",
       marginLeft: 8,
-    },
-    timerLabel: {
-      fontSize: 14,
-      color: colors.contentPrimary,
-      marginBottom: 4,
-      textAlign: "center",
-    },
-    timerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 16,
-    },
-    timerAdjustButton: {
-      paddingHorizontal: 14,
-      paddingVertical: 6,
-      borderRadius: radii.md,
-      backgroundColor: colors.cardSecondary,
-    },
-    timerAdjustText: {
-      fontSize: 14,
-      fontWeight: "600",
-      color: colors.contentPrimary,
-    },
-    timerText: {
-      fontSize: 32,
-      fontWeight: "bold",
-      color: colors.contentPrimary,
-      textAlign: "center",
-      lineHeight: 32,
-      marginBottom: 8,
     },
   });
 }
