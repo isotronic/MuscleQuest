@@ -28,9 +28,11 @@ export const useCreateStandaloneWorkout = () => {
     onSuccess: (workoutId) => {
       queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
       if (user && privacySettings?.shareStandaloneWorkouts) {
-        publishStandaloneWorkout(user.uid, workoutId).catch((err) =>
-          Bugsnag.notify(err),
-        );
+        publishStandaloneWorkout(user.uid, workoutId)
+          .then(() =>
+            queryClient.invalidateQueries({ queryKey: ["publishedWorkouts"] }),
+          )
+          .catch((err) => Bugsnag.notify(err));
       }
     },
     onError: (error: Error) => {

@@ -16,7 +16,7 @@ const AnimatedView = Animated.View as unknown as React.ComponentType<{
   style?: any;
   children?: React.ReactNode;
   pointerEvents?: "auto" | "none" | "box-none" | "box-only";
-  onLayout?: (event: typeof LayoutChangeEvent) => void;
+  onLayout?: (event: LayoutChangeEvent) => void;
 }>;
 
 interface RestTimerOverlayProps {
@@ -27,7 +27,7 @@ interface RestTimerOverlayProps {
   animStyle: any;
   buttonSize?: number;
   onAdjust: (delta: number) => void;
-  onLayout?: (event: typeof LayoutChangeEvent) => void;
+  onLayout?: (event: LayoutChangeEvent) => void;
 }
 
 export default function RestTimerOverlay({
@@ -101,7 +101,10 @@ function createStyles(colors: AppThemeColors) {
       justifyContent: "center",
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
-      boxShadow: "0px -2px 4px rgba(0, 0, 0, 0.3)",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
       elevation: 5,
     },
     label: {

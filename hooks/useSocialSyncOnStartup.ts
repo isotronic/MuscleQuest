@@ -3,7 +3,6 @@ import {
   getFirestore,
   collection,
   getDocs,
-  FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
 import Bugsnag from "@bugsnag/expo";
 import { AuthContext } from "@/context/AuthProvider";
@@ -12,15 +11,12 @@ import {
   fetchAllPlanIds,
   fetchAllStandaloneWorkoutIds,
   fetchAllCustomExercisesForSharing,
-  Exercise,
 } from "@/utils/database";
 import {
   publishPlan,
   publishStandaloneWorkout,
   pushCustomExercise,
 } from "@/utils/sharing";
-
-type QDocSnap = FirebaseFirestoreTypes.QueryDocumentSnapshot;
 
 export const useSocialSyncOnStartup = () => {
   const user = useContext(AuthContext);
@@ -43,9 +39,9 @@ export const useSocialSyncOnStartup = () => {
             fetchAllPlanIds(),
             getDocs(collection(db, "users", uid, "sharedPlans")),
           ]);
-          const published = new Set(snap.docs.map((d: QDocSnap) => d.id));
-          const missing = localIds.filter((id: number) => !published.has(String(id)));
-          await Promise.allSettled(missing.map((id: number) => publishPlan(uid, id)));
+          const published = new Set(snap.docs.map((d) => d.id));
+          const missing = localIds.filter((id) => !published.has(String(id)));
+          await Promise.allSettled(missing.map((id) => publishPlan(uid, id)));
         })(),
 
         (async () => {
@@ -54,10 +50,10 @@ export const useSocialSyncOnStartup = () => {
             fetchAllStandaloneWorkoutIds(),
             getDocs(collection(db, "users", uid, "sharedStandaloneWorkouts")),
           ]);
-          const published = new Set(snap.docs.map((d: QDocSnap) => d.id));
-          const missing = localIds.filter((id: number) => !published.has(String(id)));
+          const published = new Set(snap.docs.map((d) => d.id));
+          const missing = localIds.filter((id) => !published.has(String(id)));
           await Promise.allSettled(
-            missing.map((id: number) => publishStandaloneWorkout(uid, id)),
+            missing.map((id) => publishStandaloneWorkout(uid, id)),
           );
         })(),
 
@@ -67,14 +63,14 @@ export const useSocialSyncOnStartup = () => {
             fetchAllCustomExercisesForSharing(),
             getDocs(collection(db, "users", uid, "sharedCustomExercises")),
           ]);
-          const published = new Set(snap.docs.map((d: QDocSnap) => d.id));
+          const published = new Set(snap.docs.map((d) => d.id));
           const missing = exercises.filter(
-            (ex: Exercise) =>
+            (ex) =>
               ex.exercise_id != null &&
               !published.has(String(ex.exercise_id)),
           );
           await Promise.allSettled(
-            missing.map((ex: Exercise) => pushCustomExercise(uid, ex)),
+            missing.map((ex) => pushCustomExercise(uid, ex)),
           );
         })(),
       ]);

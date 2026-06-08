@@ -43,10 +43,9 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
   }, [privacySettings]);
 
   const handlePrivacyToggle = (patch: Partial<FirestorePrivateSettings>) => {
+    if (!user) return;
     setLocalPrivacySettings((prev) => (prev ? { ...prev, ...patch } : prev));
     updatePrivacy(patch);
-
-    if (!user) return;
     if (patch.sharePlans === true) {
       bulkPublishAllPlans(user.uid).catch((err) => Bugsnag.notify(err));
     }

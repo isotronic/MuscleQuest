@@ -273,7 +273,10 @@ export function evaluateProgression(
 
     if (trackingType === "reps") {
       const perSetTargets = computePerSetRepTargets(workingSets, completed);
-      if (perSetTargets !== null) {
+      if (
+        perSetTargets !== null &&
+        perSetTargets.some((t, i) => t > (completed[i] ?? 0))
+      ) {
         return {
           action: "increase_reps",
           ruleKey: "EASY_TARGET_REPS",

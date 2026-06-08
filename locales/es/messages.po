@@ -1717,11 +1717,11 @@ msgstr "¿Descartar cambios?"
 #: components/UpdateModal.tsx:43
 #: components/UpdateModal.tsx:59
 msgid "Dismiss"
-msgstr "Cerrar"
+msgstr "Descartar"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:363
 msgid "DISMISS"
-msgstr "CERRAR"
+msgstr "DESCARTAR"
 
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:268
 #: app/(app)/custom-exercise.tsx:71

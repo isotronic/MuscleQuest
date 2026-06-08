@@ -62,7 +62,14 @@ export const useCreatePlan = (existingPlan?: Plan) => {
         savedPlanId = newPlanId;
 
         if (user && privacySettings?.sharePlans) {
-          publishPlan(user.uid, newPlanId).catch((err) => Bugsnag.notify(err));
+          publishPlan(user.uid, newPlanId)
+            .then(() => {
+              queryClient.invalidateQueries({ queryKey: ["publishedPlanIds"] });
+              queryClient.invalidateQueries({
+                queryKey: ["planPublished", user.uid, newPlanId],
+              });
+            })
+            .catch((err) => Bugsnag.notify(err));
         }
       } else {
         await updateWorkoutPlan(planId, planName, planImageUrl, workouts);

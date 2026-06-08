@@ -647,6 +647,32 @@ describe("evaluateProgression — easy on target", () => {
     expect(result.suggestedRepsPerSet).toEqual([11]);
   });
 
+  it("EASY_TARGET_REPS: holds when already at repsMax (rep ceiling)", () => {
+    const ceilingSet: Set = {
+      repsMin: 8,
+      repsMax: 12,
+      restMinutes: 2,
+      restSeconds: 0,
+      time: undefined,
+      isWarmup: false,
+    };
+    const result = evaluateProgression(
+      makeInputs({
+        trackingType: "reps",
+        equipment: "body weight",
+        latestFeedback: makeFeedback({
+          effortRating: "easy",
+          performanceRatio: 1.0,
+        }),
+        recentWorkingWeight: null,
+        currentSets: [ceilingSet],
+        completedRepsPerSet: [12],
+      }),
+    );
+    expect(result.action).toBe("hold");
+    expect(result.action).not.toBe("increase_reps");
+  });
+
   it("UNSUPPORTED_TRACKING: holds for body weight equipment with weight tracking", () => {
     const result = evaluateProgression(
       makeInputs({

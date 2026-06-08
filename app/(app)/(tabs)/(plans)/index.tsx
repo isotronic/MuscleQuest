@@ -162,7 +162,7 @@ export default function PlansScreen() {
                 onPress={() => handleViewWorkout(item)}
                 countUnilateralDouble={countUnilateralDouble}
                 isPublished={
-                  !!privacySettings?.sharePlans &&
+                  !!privacySettings?.shareStandaloneWorkouts &&
                   !!publishedWorkoutIds?.includes(String(item.id))
                 }
               />
