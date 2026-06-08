@@ -20,12 +20,13 @@ import {
 
 export const useSocialSyncOnStartup = () => {
   const user = useContext(AuthContext);
-  const { privacySettings } = useSocialStore();
+  const { privacySettings, publishedPlanIds, publishedWorkoutIds } =
+    useSocialStore();
   const hasSynced = useRef(false);
 
   useEffect(() => {
     if (!user || !privacySettings || hasSynced.current) return;
-    // Set before the async call so re-renders during the sync don't trigger a second run
+    if (publishedPlanIds === null || publishedWorkoutIds === null) return;
     hasSynced.current = true;
 
     const sync = async () => {
@@ -35,22 +36,16 @@ export const useSocialSyncOnStartup = () => {
       await Promise.allSettled([
         (async () => {
           if (!privacySettings.sharePlans) return;
-          const [localIds, snap] = await Promise.all([
-            fetchAllPlanIds(),
-            getDocs(collection(db, "users", uid, "sharedPlans")),
-          ]);
-          const published = new Set(snap.docs.map((d) => d.id));
+          const localIds = await fetchAllPlanIds();
+          const published = new Set(publishedPlanIds);
           const missing = localIds.filter((id) => !published.has(String(id)));
           await Promise.allSettled(missing.map((id) => publishPlan(uid, id)));
         })(),
 
         (async () => {
           if (!privacySettings.shareStandaloneWorkouts) return;
-          const [localIds, snap] = await Promise.all([
-            fetchAllStandaloneWorkoutIds(),
-            getDocs(collection(db, "users", uid, "sharedStandaloneWorkouts")),
-          ]);
-          const published = new Set(snap.docs.map((d) => d.id));
+          const localIds = await fetchAllStandaloneWorkoutIds();
+          const published = new Set(publishedWorkoutIds);
           const missing = localIds.filter((id) => !published.has(String(id)));
           await Promise.allSettled(
             missing.map((id) => publishStandaloneWorkout(uid, id)),
@@ -77,5 +72,5 @@ export const useSocialSyncOnStartup = () => {
     };
 
     sync().catch((err) => Bugsnag.notify(err));
-  }, [user, privacySettings]);
+  }, [user, privacySettings, publishedPlanIds, publishedWorkoutIds]);
 };
