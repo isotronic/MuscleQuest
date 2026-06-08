@@ -4,6 +4,7 @@ import {
   collection,
   doc,
   getDoc,
+  updateDoc,
   query,
   where,
   onSnapshot,
@@ -147,13 +148,17 @@ export const useSocialListeners = () => {
             try {
               const friendDoc = await getDoc(doc(db, "users", docSnap.id));
               const friend = friendDoc.data();
-              return {
-                uid: docSnap.id,
+              const profile = {
                 displayName: friend?.displayName ?? "",
                 email: friend?.email ?? "",
                 photoURL: friend?.photoURL ?? "",
-                since: data.since,
               };
+              // Backfill so future loads use the fast inline path.
+              updateDoc(
+                doc(db, "users", user.uid, "friends", docSnap.id),
+                profile,
+              ).catch(() => {});
+              return { uid: docSnap.id, ...profile, since: data.since };
             } catch {
               return {
                 uid: docSnap.id,
