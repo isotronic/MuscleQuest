@@ -1,6 +1,7 @@
 import { getApp } from "@react-native-firebase/app";
 import {
   initializeAppCheck,
+  getToken,
   ReactNativeFirebaseAppCheckProvider,
 } from "@react-native-firebase/app-check";
 import Constants from "expo-constants";
@@ -27,10 +28,17 @@ export async function setupAppCheck(): Promise<void> {
       },
     });
 
-    await initializeAppCheck(getApp(), {
+    const appCheckInstance = await initializeAppCheck(getApp(), {
       provider: rnfbProvider,
       isTokenAutoRefreshEnabled: true,
     });
+
+    // Force-fetch the first token so this promise only resolves once Play
+    // Integrity / DeviceCheck has actually completed. Without this,
+    // initializeAppCheck returns as soon as the provider is configured but
+    // the attestation round-trip is still in-flight, causing Firestore and
+    // Storage requests that fire immediately after to go out without a token.
+    await getToken(appCheckInstance);
   } catch (error) {
     console.error("Failed to initialize App Check", error);
     throw error;

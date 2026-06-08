@@ -111,7 +111,11 @@ GoogleSignin.configure({
   webClientId: googleServices.client[0].oauth_client[2].client_id,
 });
 
-setupAppCheck().catch((error) => {
+// Start App Check as early as possible (before any React render).
+// The promise is awaited inside initializeDatabase so the app never mounts
+// Firebase-dependent components until a Play Integrity / DeviceCheck token
+// is in hand. Errors are swallowed so a failed attestation doesn't block startup.
+const appCheckReady = setupAppCheck().catch((error) => {
   console.error(error);
   Bugsnag.notify(error);
 });
@@ -140,24 +144,29 @@ function RootLayout() {
   }, [navigationRef]);
 
   useEffect(() => {
-    async function initializeDatabase() {
+    const initializeDatabase = async () => {
       const databaseRestored = await getAsyncStorageItem("databaseRestored");
       console.log("Restore complete:", databaseRestored);
       if (databaseRestored === "true") {
+        await appCheckReady;
         setIsDatabaseInitialized(true);
         setIsInitializing(false);
         return;
       }
 
       try {
-        await initializeAppData();
-        await initUserDataDB();
-        await copyDataFromAppDataToUserData();
-        await updateAppExerciseIds();
-        await insertDefaultSettings();
-        await loadPremadePlans();
-        await syncExerciseFlagsFromAppData();
-        // Set the database initialization state to true after setup is complete
+        await Promise.all([
+          appCheckReady,
+          (async () => {
+            await initializeAppData();
+            await initUserDataDB();
+            await copyDataFromAppDataToUserData();
+            await updateAppExerciseIds();
+            await insertDefaultSettings();
+            await loadPremadePlans();
+            await syncExerciseFlagsFromAppData();
+          })(),
+        ]);
         setIsDatabaseInitialized(true);
       } catch (error) {
         console.error("Database initialization error:", error);
@@ -166,7 +175,7 @@ function RootLayout() {
       } finally {
         setIsInitializing(false);
       }
-    }
+    };
 
     initializeDatabase();
     removeAsyncStorageItem("databaseRestored");
