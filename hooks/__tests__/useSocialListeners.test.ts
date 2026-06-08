@@ -14,7 +14,7 @@ jest.mock("@react-native-firebase/firestore", () => ({
   doc: jest.fn((_db, ...parts) => parts.join("/")),
   query: jest.fn((ref) => ref),
   where: jest.fn(),
-  onSnapshot: (...args: any[]) => mockOnSnapshot(...args),
+  onSnapshot: (...args: any[]) => (mockOnSnapshot as any)(...args),
   getDoc: jest.fn(),
   updateDoc: (...args: any[]) => mockUpdateDoc(...args),
 }));
@@ -69,7 +69,11 @@ describe("useSocialListeners - friends snapshot", () => {
       snapshotCallbacks[ref] = cb;
       return jest.fn();
     });
-    mockFetchFriendProfile.mockResolvedValue({ displayName: "", email: "", photoURL: "" });
+    mockFetchFriendProfile.mockResolvedValue({
+      displayName: "",
+      email: "",
+      photoURL: "",
+    });
     mockUpdateDoc.mockResolvedValue(undefined);
   });
 
@@ -77,12 +81,13 @@ describe("useSocialListeners - friends snapshot", () => {
 
   it("calls setFriends immediately using inline profile data when displayName is present", () => {
     useSocialListeners();
+    const sinceDate = new Date("2024-01-01");
     const snapshot = {
       docs: [
         {
           id: "friend-uid",
           data: () => ({
-            since: "2024-01-01",
+            since: { toDate: () => sinceDate },
             displayName: "Alice",
             email: "alice@example.com",
             photoURL: "https://example.com/alice.jpg",
@@ -99,7 +104,7 @@ describe("useSocialListeners - friends snapshot", () => {
         displayName: "Alice",
         email: "alice@example.com",
         photoURL: "https://example.com/alice.jpg",
-        since: "2024-01-01",
+        since: sinceDate.getTime(),
       },
     ]);
     expect(mockFetchFriendProfile).not.toHaveBeenCalled();
@@ -107,8 +112,14 @@ describe("useSocialListeners - friends snapshot", () => {
 
   it("calls setFriends immediately with empty profile when displayName is absent", () => {
     useSocialListeners();
+    const sinceDate = new Date("2024-01-01");
     const snapshot = {
-      docs: [{ id: "friend-uid", data: () => ({ since: "2024-01-01" }) }],
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({ since: { toDate: () => sinceDate } }),
+        },
+      ],
     };
 
     snapshotCallbacks[friendsRef](snapshot);
@@ -119,10 +130,19 @@ describe("useSocialListeners - friends snapshot", () => {
   });
 
   it("calls fetchFriendProfile in background for docs without displayName", () => {
-    mockFetchFriendProfile.mockResolvedValue({ displayName: "Alice", email: "", photoURL: "" });
+    mockFetchFriendProfile.mockResolvedValue({
+      displayName: "Alice",
+      email: "",
+      photoURL: "",
+    });
     useSocialListeners();
     const snapshot = {
-      docs: [{ id: "friend-uid", data: () => ({ since: "2024-01-01" }) }],
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({ since: { toDate: () => new Date("2024-01-01") } }),
+        },
+      ],
     };
 
     snapshotCallbacks[friendsRef](snapshot);
@@ -139,7 +159,12 @@ describe("useSocialListeners - friends snapshot", () => {
     mockFetchFriendProfile.mockResolvedValue(profile);
     useSocialListeners();
     const snapshot = {
-      docs: [{ id: "friend-uid", data: () => ({ since: "2024-01-01" }) }],
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({ since: { toDate: () => new Date("2024-01-01") } }),
+        },
+      ],
     };
 
     snapshotCallbacks[friendsRef](snapshot);
@@ -156,7 +181,12 @@ describe("useSocialListeners - friends snapshot", () => {
     mockFetchFriendProfile.mockRejectedValue(new Error("unreachable"));
     useSocialListeners();
     const snapshot = {
-      docs: [{ id: "friend-uid", data: () => ({ since: "2024-01-01" }) }],
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({ since: { toDate: () => new Date("2024-01-01") } }),
+        },
+      ],
     };
 
     snapshotCallbacks[friendsRef](snapshot);

@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FriendInfo, FirestorePrivateSettings } from "../types/firestore";
 
 export interface PendingRequest {
@@ -41,21 +43,39 @@ interface SocialStore {
   setPublishedWorkoutIds: (ids: string[] | null) => void;
 }
 
-export const useSocialStore = create<SocialStore>((set) => ({
-  pendingRequests: [],
-  sentRequests: [],
-  friends: [],
-  privacySettings: null,
-  publishedPlanIds: null,
-  publishedWorkoutIds: null,
-  setPendingRequests: (pendingRequests) => set({ pendingRequests }),
-  setSentRequests: (sentRequests) => set({ sentRequests }),
-  setFriends: (friends) => set({ friends }),
-  updateFriendProfile: (uid, profile) =>
-    set((state) => ({
-      friends: state.friends.map((f) => (f.uid === uid ? { ...f, ...profile } : f)),
-    })),
-  setPrivacySettings: (privacySettings) => set({ privacySettings }),
-  setPublishedPlanIds: (publishedPlanIds) => set({ publishedPlanIds }),
-  setPublishedWorkoutIds: (publishedWorkoutIds) => set({ publishedWorkoutIds }),
-}));
+export const useSocialStore = create<SocialStore>()(
+  persist(
+    (set) => ({
+      pendingRequests: [],
+      sentRequests: [],
+      friends: [],
+      privacySettings: null,
+      publishedPlanIds: null,
+      publishedWorkoutIds: null,
+      setPendingRequests: (pendingRequests) => set({ pendingRequests }),
+      setSentRequests: (sentRequests) => set({ sentRequests }),
+      setFriends: (friends) => set({ friends }),
+      updateFriendProfile: (uid, profile) =>
+        set((state) => ({
+          friends: state.friends.map((f) =>
+            f.uid === uid ? { ...f, ...profile } : f,
+          ),
+        })),
+      setPrivacySettings: (privacySettings) => set({ privacySettings }),
+      setPublishedPlanIds: (publishedPlanIds) => set({ publishedPlanIds }),
+      setPublishedWorkoutIds: (publishedWorkoutIds) =>
+        set({ publishedWorkoutIds }),
+    }),
+    {
+      name: "social-store",
+      storage: createJSONStorage(() => AsyncStorage),
+      version: 1,
+      partialize: (state) => ({
+        friends: state.friends,
+        privacySettings: state.privacySettings,
+        publishedPlanIds: state.publishedPlanIds,
+        publishedWorkoutIds: state.publishedWorkoutIds,
+      }),
+    },
+  ),
+);

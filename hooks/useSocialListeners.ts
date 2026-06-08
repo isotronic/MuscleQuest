@@ -142,7 +142,7 @@ export const useSocialListeners = () => {
             displayName: data.displayName ?? "",
             email: data.email ?? "",
             photoURL: data.photoURL ?? "",
-            since: data.since,
+            since: data.since ? data.since.toDate().getTime() : Date.now(),
           };
         });
         setFriends(friends);
@@ -155,7 +155,7 @@ export const useSocialListeners = () => {
                 updateFriendProfile(docSnap.id, profile);
                 updateDoc(
                   doc(db, "users", user.uid, "friends", docSnap.id),
-                  profile,
+                  profile as unknown as Record<string, unknown>,
                 ).catch(() => {});
               })
               .catch(() => {});
@@ -184,13 +184,13 @@ export const useSocialListeners = () => {
 
     const unsubPublishedPlans = onSnapshot(
       collection(db, "users", user.uid, "sharedPlans"),
-      (snap) => setPublishedPlanIds(snap.docs.map((d) => d.id)),
+      (snap) => setPublishedPlanIds(snap.docs.map((d: QDocSnap) => d.id)),
       (error) => notifyError(error),
     );
 
     const unsubPublishedWorkouts = onSnapshot(
       collection(db, "users", user.uid, "sharedStandaloneWorkouts"),
-      (snap) => setPublishedWorkoutIds(snap.docs.map((d) => d.id)),
+      (snap) => setPublishedWorkoutIds(snap.docs.map((d: QDocSnap) => d.id)),
       (error) => notifyError(error),
     );
 
