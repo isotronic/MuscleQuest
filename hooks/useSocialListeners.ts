@@ -16,6 +16,7 @@ import {
   PendingRequest,
   SentRequest,
 } from "../store/socialStore";
+import { fetchFriendProfile } from "../utils/fetchFriendProfile";
 import { FriendInfo, FirestorePrivateSettings } from "../types/firestore";
 import Bugsnag from "@bugsnag/expo";
 
@@ -28,6 +29,7 @@ export const useSocialListeners = () => {
     setPendingRequests,
     setSentRequests,
     setFriends,
+    updateFriendProfile,
     setPrivacySettings,
     setPublishedPlanIds,
     setPublishedWorkoutIds,
@@ -127,50 +129,38 @@ export const useSocialListeners = () => {
       },
     );
 
-    // Friends list
+    // Friends list — synchronous pass first (renders immediately), then background
+    // retry for any docs that lack inline profile data (old friendships).
     const unsubFriends = onSnapshot(
       collection(db, "users", user.uid, "friends"),
-      async (snapshot) => {
-        const friends: FriendInfo[] = await Promise.all(
-          snapshot.docs.map(async (docSnap: QDocSnap) => {
-            const data = docSnap.data();
-            // Profile data stored inline for new friendships — no extra round trip needed.
-            if (data.displayName != null) {
-              return {
-                uid: docSnap.id,
-                displayName: data.displayName,
-                email: data.email ?? "",
-                photoURL: data.photoURL ?? "",
-                since: data.since,
-              };
-            }
-            // Fallback for existing friendships written before this change.
-            try {
-              const friendDoc = await getDoc(doc(db, "users", docSnap.id));
-              const friend = friendDoc.data();
-              const profile = {
-                displayName: friend?.displayName ?? "",
-                email: friend?.email ?? "",
-                photoURL: friend?.photoURL ?? "",
-              };
-              // Backfill so future loads use the fast inline path.
-              updateDoc(
-                doc(db, "users", user.uid, "friends", docSnap.id),
-                profile,
-              ).catch(() => {});
-              return { uid: docSnap.id, ...profile, since: data.since };
-            } catch {
-              return {
-                uid: docSnap.id,
-                displayName: "",
-                email: "",
-                photoURL: "",
-                since: data.since,
-              };
-            }
-          }),
-        );
+      (snapshot) => {
+        // Populate store immediately from whatever the snapshot contains.
+        const friends: FriendInfo[] = snapshot.docs.map((docSnap: QDocSnap) => {
+          const data = docSnap.data();
+          return {
+            uid: docSnap.id,
+            displayName: data.displayName ?? "",
+            email: data.email ?? "",
+            photoURL: data.photoURL ?? "",
+            since: data.since,
+          };
+        });
         setFriends(friends);
+
+        // For docs without inline profile data, fetch with retry in background.
+        snapshot.docs.forEach((docSnap: QDocSnap) => {
+          if (docSnap.data().displayName == null) {
+            fetchFriendProfile(docSnap.id)
+              .then((profile) => {
+                updateFriendProfile(docSnap.id, profile);
+                updateDoc(
+                  doc(db, "users", user.uid, "friends", docSnap.id),
+                  profile,
+                ).catch(() => {});
+              })
+              .catch(() => {});
+          }
+        });
       },
       (error) => {
         notifyError(error);

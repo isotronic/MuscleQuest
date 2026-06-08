@@ -19,6 +19,12 @@ export interface SentRequest {
   createdAt: Date;
 }
 
+interface FriendProfile {
+  displayName: string;
+  email: string;
+  photoURL: string;
+}
+
 interface SocialStore {
   pendingRequests: PendingRequest[];
   sentRequests: SentRequest[];
@@ -29,6 +35,7 @@ interface SocialStore {
   setPendingRequests: (requests: PendingRequest[]) => void;
   setSentRequests: (requests: SentRequest[]) => void;
   setFriends: (friends: FriendInfo[]) => void;
+  updateFriendProfile: (uid: string, profile: FriendProfile) => void;
   setPrivacySettings: (settings: FirestorePrivateSettings | null) => void;
   setPublishedPlanIds: (ids: string[] | null) => void;
   setPublishedWorkoutIds: (ids: string[] | null) => void;
@@ -44,6 +51,10 @@ export const useSocialStore = create<SocialStore>((set) => ({
   setPendingRequests: (pendingRequests) => set({ pendingRequests }),
   setSentRequests: (sentRequests) => set({ sentRequests }),
   setFriends: (friends) => set({ friends }),
+  updateFriendProfile: (uid, profile) =>
+    set((state) => ({
+      friends: state.friends.map((f) => (f.uid === uid ? { ...f, ...profile } : f)),
+    })),
   setPrivacySettings: (privacySettings) => set({ privacySettings }),
   setPublishedPlanIds: (publishedPlanIds) => set({ publishedPlanIds }),
   setPublishedWorkoutIds: (publishedWorkoutIds) => set({ publishedWorkoutIds }),
