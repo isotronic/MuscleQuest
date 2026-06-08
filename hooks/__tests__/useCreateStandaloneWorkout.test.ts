@@ -46,7 +46,11 @@ jest.mock("@react-native-firebase/firestore", () => {
   return mockFirestore;
 });
 jest.mock("@/store/socialStore", () => ({
-  useSocialStore: jest.fn(() => ({ privacySettings: null })),
+  useSocialStore: jest.fn(() => ({
+    privacySettings: null,
+    publishedPlanIds: null,
+    publishedWorkoutIds: null,
+  })),
 }));
 jest.mock("@/utils/sharing", () => ({
   publishStandaloneWorkout: jest.fn(() => Promise.resolve()),

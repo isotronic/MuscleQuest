@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { View, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Trans } from "@lingui/react/macro";
@@ -17,6 +17,9 @@ import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery
 import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
 import ProgressionSuggestionChip from "@/components/ProgressionSuggestionChip";
 import { useAppTheme, radii } from "@/theme";
+import { Snackbar, IconButton } from "react-native-paper";
+import { useCreateStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
+import { CopyWorkoutModal } from "@/components/CopyWorkoutModal";
 import type { AppThemeColors } from "@/theme/types";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
@@ -43,6 +46,30 @@ export default function WorkoutDetailsScreen() {
       ),
     [progressionStates],
   );
+
+  const createStandaloneWorkoutMutation = useCreateStandaloneWorkout();
+  const [isCopyModalVisible, setIsCopyModalVisible] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarError, setSnackbarError] = useState(false);
+
+  const handleCopyWorkout = async (name: string) => {
+    if (!workout) return;
+    try {
+      await createStandaloneWorkoutMutation.mutateAsync({
+        name,
+        exercises: workout.exercises,
+      });
+      setIsCopyModalVisible(false);
+      setSnackbarMessage(t`Workout copied to standalone workouts`);
+      setSnackbarError(false);
+      setSnackbarVisible(true);
+    } catch (error: any) {
+      setSnackbarMessage(t`Failed to copy workout. Please try again.`);
+      setSnackbarError(true);
+      setSnackbarVisible(true);
+    }
+  };
 
   const renderExerciseItem = ({
     item,
@@ -224,11 +251,20 @@ export default function WorkoutDetailsScreen() {
         options={{
           title: workout?.name,
           headerRight: () => (
-            <Notes
-              noteType="workout"
-              referenceId={workout?.id || 0}
-              buttonType="icon"
-            />
+            <>
+              <Notes
+                noteType="workout"
+                referenceId={workout?.id || 0}
+                buttonType="icon"
+              />
+              <IconButton
+                icon="content-copy"
+                size={25}
+                iconColor={colors.contentSecondary}
+                onPress={() => setIsCopyModalVisible(true)}
+                style={{ margin: 0 }}
+              />
+            </>
           ),
         }}
       />
@@ -240,6 +276,27 @@ export default function WorkoutDetailsScreen() {
         keyExtractor={(item: any, index: number) => index.toString()}
         ListHeaderComponent={previewHeader}
       />
+      <CopyWorkoutModal
+        visible={isCopyModalVisible}
+        defaultName={workout?.name ?? ""}
+        onConfirm={handleCopyWorkout}
+        onDismiss={() => setIsCopyModalVisible(false)}
+        isPending={createStandaloneWorkoutMutation.isPending}
+      />
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={2000}
+        style={{
+          backgroundColor: snackbarError ? colors.danger : colors.success,
+        }}
+        action={{
+          label: t`DISMISS`,
+          onPress: () => setSnackbarVisible(false),
+        }}
+      >
+        {snackbarMessage}
+      </Snackbar>
     </ThemedView>
   );
 }

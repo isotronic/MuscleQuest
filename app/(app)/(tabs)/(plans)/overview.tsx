@@ -41,6 +41,8 @@ import { getCurrentISOWeek } from "@/utils/isoWeek";
 import { AuthContext } from "@/context/AuthProvider";
 import { usePlanPublishQuery } from "@/hooks/usePlanPublishQuery";
 import { usePlanPublishMutation } from "@/hooks/usePlanPublishMutation";
+import { useCreateStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
+import { CopyWorkoutModal } from "@/components/CopyWorkoutModal";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -49,11 +51,13 @@ function PlanWorkoutCard({
   index,
   planId,
   countUnilateralDouble,
+  onCopyPress,
 }: {
   workout: Workout;
   index: number;
   planId: string | string[];
   countUnilateralDouble: boolean;
+  onCopyPress: () => void;
 }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -62,28 +66,37 @@ function PlanWorkoutCard({
     countUnilateralDouble,
   );
   return (
-    <TouchableOpacity
-      onPress={() =>
-        router.push({
-          pathname: "/workout-details",
-          params: {
-            planId: String(planId),
-            workoutIndex: String(index),
-          },
-        })
-      }
-      style={styles.workoutCard}
-    >
-      <ThemedText style={styles.workoutTitle}>
-        {workout.name || `Day ${index + 1}`}
-      </ThemedText>
-      <ThemedText style={styles.workoutInfo}>
-        <Trans>
-          {workout.exercises.length} Exercises
-          {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
-        </Trans>
-      </ThemedText>
-    </TouchableOpacity>
+    <View style={styles.workoutCardRow}>
+      <TouchableOpacity
+        onPress={() =>
+          router.push({
+            pathname: "/workout-details",
+            params: {
+              planId: String(planId),
+              workoutIndex: String(index),
+            },
+          })
+        }
+        style={styles.workoutCardContent}
+      >
+        <ThemedText style={styles.workoutTitle}>
+          {workout.name || `Day ${index + 1}`}
+        </ThemedText>
+        <ThemedText style={styles.workoutInfo}>
+          <Trans>
+            {workout.exercises.length} Exercises
+            {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
+          </Trans>
+        </ThemedText>
+      </TouchableOpacity>
+      <IconButton
+        icon="content-copy"
+        size={20}
+        iconColor={colors.contentSecondary}
+        onPress={onCopyPress}
+        style={{ margin: 0 }}
+      />
+    </View>
   );
 }
 
@@ -118,6 +131,27 @@ export default function PlanOverviewScreen() {
   const [snackbarError, setSnackbarError] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
+
+  const [copyTarget, setCopyTarget] = useState<Workout | null>(null);
+  const createStandaloneWorkoutMutation = useCreateStandaloneWorkout();
+
+  const handleCopyWorkout = async (name: string) => {
+    if (!copyTarget) return;
+    try {
+      await createStandaloneWorkoutMutation.mutateAsync({
+        name,
+        exercises: copyTarget.exercises,
+      });
+      setCopyTarget(null);
+      setSnackbarMessage(t`Workout copied to standalone workouts`);
+      setSnackbarError(false);
+      setSnackbarVisible(true);
+    } catch (error: any) {
+      setSnackbarMessage(t`Failed to copy workout. Please try again.`);
+      setSnackbarError(true);
+      setSnackbarVisible(true);
+    }
+  };
 
   const imageSource = plan?.image_url ? { uri: plan.image_url } : fallbackImage;
 
@@ -241,6 +275,7 @@ export default function PlanOverviewScreen() {
             index={index}
             planId={planId}
             countUnilateralDouble={countUnilateralDouble}
+            onCopyPress={() => setCopyTarget(workout)}
           />
         ))}
 
@@ -368,6 +403,13 @@ export default function PlanOverviewScreen() {
       >
         {snackbarMessage}
       </Snackbar>
+      <CopyWorkoutModal
+        visible={copyTarget !== null}
+        defaultName={copyTarget?.name ?? ""}
+        onConfirm={handleCopyWorkout}
+        onDismiss={() => setCopyTarget(null)}
+        isPending={createStandaloneWorkoutMutation.isPending}
+      />
     </ThemedView>
   );
 }
@@ -394,11 +436,17 @@ function createStyles(colors: AppThemeColors) {
       color: colors.contentPrimary,
       marginTop: 10,
     },
-    workoutCard: {
+    workoutCardRow: {
+      flexDirection: "row",
+      alignItems: "center",
       backgroundColor: colors.card,
-      padding: 16,
-      marginBottom: 10,
       borderRadius: radii.md,
+      marginBottom: 10,
+      paddingRight: 4,
+    },
+    workoutCardContent: {
+      flex: 1,
+      padding: 16,
     },
     workoutTitle: {
       fontSize: 18,

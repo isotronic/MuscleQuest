@@ -28,6 +28,8 @@ export const useSocialListeners = () => {
     setSentRequests,
     setFriends,
     setPrivacySettings,
+    setPublishedPlanIds,
+    setPublishedWorkoutIds,
   } = useSocialStore();
 
   const notifyError = (error: unknown) => {
@@ -36,6 +38,8 @@ export const useSocialListeners = () => {
       setSentRequests([]);
       setFriends([]);
       setPrivacySettings(null);
+      setPublishedPlanIds(null);
+      setPublishedWorkoutIds(null);
       return;
     }
     Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
@@ -47,6 +51,8 @@ export const useSocialListeners = () => {
       setSentRequests([]);
       setFriends([]);
       setPrivacySettings(null);
+      setPublishedPlanIds(null);
+      setPublishedWorkoutIds(null);
       return;
     }
 
@@ -164,11 +170,25 @@ export const useSocialListeners = () => {
       },
     );
 
+    const unsubPublishedPlans = onSnapshot(
+      collection(db, "users", user.uid, "sharedPlans"),
+      (snap) => setPublishedPlanIds(snap.docs.map((d) => d.id)),
+      (error) => notifyError(error),
+    );
+
+    const unsubPublishedWorkouts = onSnapshot(
+      collection(db, "users", user.uid, "sharedStandaloneWorkouts"),
+      (snap) => setPublishedWorkoutIds(snap.docs.map((d) => d.id)),
+      (error) => notifyError(error),
+    );
+
     return () => {
       unsubPending();
       unsubSent();
       unsubFriends();
       unsubSettings();
+      unsubPublishedPlans();
+      unsubPublishedWorkouts();
     };
   }, [user?.uid]);
 };

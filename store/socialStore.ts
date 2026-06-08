@@ -24,10 +24,14 @@ interface SocialStore {
   sentRequests: SentRequest[];
   friends: FriendInfo[];
   privacySettings: FirestorePrivateSettings | null;
+  publishedPlanIds: string[] | null;
+  publishedWorkoutIds: string[] | null;
   setPendingRequests: (requests: PendingRequest[]) => void;
   setSentRequests: (requests: SentRequest[]) => void;
   setFriends: (friends: FriendInfo[]) => void;
   setPrivacySettings: (settings: FirestorePrivateSettings | null) => void;
+  setPublishedPlanIds: (ids: string[] | null) => void;
+  setPublishedWorkoutIds: (ids: string[] | null) => void;
 }
 
 export const useSocialStore = create<SocialStore>((set) => ({
@@ -35,8 +39,12 @@ export const useSocialStore = create<SocialStore>((set) => ({
   sentRequests: [],
   friends: [],
   privacySettings: null,
+  publishedPlanIds: null,
+  publishedWorkoutIds: null,
   setPendingRequests: (pendingRequests) => set({ pendingRequests }),
   setSentRequests: (sentRequests) => set({ sentRequests }),
   setFriends: (friends) => set({ friends }),
   setPrivacySettings: (privacySettings) => set({ privacySettings }),
+  setPublishedPlanIds: (publishedPlanIds) => set({ publishedPlanIds }),
+  setPublishedWorkoutIds: (publishedWorkoutIds) => set({ publishedWorkoutIds }),
 }));

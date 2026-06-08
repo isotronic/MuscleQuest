@@ -41,7 +41,7 @@ jest.mock("@react-native-firebase/firestore", () => ({
 }));
 
 const minimalPlanData = {
-  plan: { name: "Test Plan", image_url: null },
+  plan: { name: "Test Plan", image_url: null, app_plan_id: null },
   workouts: [],
 };
 
