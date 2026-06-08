@@ -18,8 +18,6 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
-import { usePublishedPlanIdsQuery } from "@/hooks/usePublishedPlanIdsQuery";
-import { usePublishedWorkoutIdsQuery } from "@/hooks/usePublishedWorkoutIdsQuery";
 import { useSocialStore } from "@/store/socialStore";
 
 export default function PlansScreen() {
@@ -38,9 +36,8 @@ export default function PlansScreen() {
     isError: standaloneIsError,
     error: standaloneError,
   } = useStandaloneWorkoutsQuery();
-  const { data: publishedPlanIds } = usePublishedPlanIdsQuery();
-  const { data: publishedWorkoutIds } = usePublishedWorkoutIdsQuery();
-  const { privacySettings } = useSocialStore();
+  const { privacySettings, publishedPlanIds, publishedWorkoutIds } =
+    useSocialStore();
 
   useEffect(() => {
     if (standaloneIsError && standaloneError) {
