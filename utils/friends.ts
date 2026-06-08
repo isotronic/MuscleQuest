@@ -35,17 +35,35 @@ export const sendFriendRequest = async (
   });
 };
 
+interface FriendProfile {
+  displayName: string;
+  email: string;
+  photoURL: string;
+}
+
 export const acceptFriendRequest = async (
   fromUid: string,
   myUid: string,
+  fromProfile: FriendProfile,
+  myProfile: FriendProfile,
 ): Promise<void> => {
   const requestId = `${fromUid}_${myUid}`;
   const db = getFirestore();
   const now = serverTimestamp();
   const batch = writeBatch(db);
 
-  batch.set(doc(db, "users", myUid, "friends", fromUid), { since: now });
-  batch.set(doc(db, "users", fromUid, "friends", myUid), { since: now });
+  batch.set(doc(db, "users", myUid, "friends", fromUid), {
+    since: now,
+    displayName: fromProfile.displayName,
+    email: fromProfile.email,
+    photoURL: fromProfile.photoURL,
+  });
+  batch.set(doc(db, "users", fromUid, "friends", myUid), {
+    since: now,
+    displayName: myProfile.displayName,
+    email: myProfile.email,
+    photoURL: myProfile.photoURL,
+  });
   batch.update(doc(db, "friendRequests", requestId), { status: "accepted" });
 
   await batch.commit();

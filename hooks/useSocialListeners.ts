@@ -130,10 +130,21 @@ export const useSocialListeners = () => {
     const unsubFriends = onSnapshot(
       collection(db, "users", user.uid, "friends"),
       async (snapshot) => {
-        try {
-          const friends: FriendInfo[] = await Promise.all(
-            snapshot.docs.map(async (docSnap: QDocSnap) => {
-              const data = docSnap.data();
+        const friends: FriendInfo[] = await Promise.all(
+          snapshot.docs.map(async (docSnap: QDocSnap) => {
+            const data = docSnap.data();
+            // Profile data stored inline for new friendships — no extra round trip needed.
+            if (data.displayName != null) {
+              return {
+                uid: docSnap.id,
+                displayName: data.displayName,
+                email: data.email ?? "",
+                photoURL: data.photoURL ?? "",
+                since: data.since,
+              };
+            }
+            // Fallback for existing friendships written before this change.
+            try {
               const friendDoc = await getDoc(doc(db, "users", docSnap.id));
               const friend = friendDoc.data();
               return {
@@ -143,12 +154,18 @@ export const useSocialListeners = () => {
                 photoURL: friend?.photoURL ?? "",
                 since: data.since,
               };
-            }),
-          );
-          setFriends(friends);
-        } catch (error) {
-          notifyError(error);
-        }
+            } catch {
+              return {
+                uid: docSnap.id,
+                displayName: "",
+                email: "",
+                photoURL: "",
+                since: data.since,
+              };
+            }
+          }),
+        );
+        setFriends(friends);
       },
       (error) => {
         notifyError(error);
