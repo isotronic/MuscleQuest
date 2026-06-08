@@ -43,6 +43,7 @@ export function CopyWorkoutModal({
         onDismiss={onDismiss}
         dismissable={!isPending}
         contentContainerStyle={styles.modal}
+        style={{ backgroundColor: colors.modalBackdrop }}
       >
         <ThemedText style={styles.title}>
           <Trans>Copy Workout</Trans>
@@ -51,7 +52,7 @@ export function CopyWorkoutModal({
           key={inputKey}
           style={styles.input}
           defaultValue={defaultName}
-          onChangeText={(text) => {
+          onChangeText={(text: string) => {
             nameRef.current = text;
             setIsEmpty(!text.trim());
           }}
@@ -60,7 +61,12 @@ export function CopyWorkoutModal({
           autoFocus
         />
         <View style={styles.actions}>
-          <Button mode="text" onPress={onDismiss} disabled={isPending} testID="copy-modal-cancel">
+          <Button
+            mode="text"
+            onPress={onDismiss}
+            disabled={isPending}
+            testID="copy-modal-cancel"
+          >
             <Trans>Cancel</Trans>
           </Button>
           <Button
