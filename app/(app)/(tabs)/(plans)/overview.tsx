@@ -39,8 +39,8 @@ import { useDeloadWeekMutation } from "@/hooks/useDeloadWeekMutation";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { getCurrentISOWeek } from "@/utils/isoWeek";
 import { AuthContext } from "@/context/AuthProvider";
-import { usePlanPublishQuery } from "@/hooks/usePlanPublishQuery";
 import { usePlanPublishMutation } from "@/hooks/usePlanPublishMutation";
+import { useSocialStore } from "@/store/socialStore";
 import { useCreateStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
 import { CopyWorkoutModal } from "@/components/CopyWorkoutModal";
 
@@ -117,9 +117,9 @@ export default function PlanOverviewScreen() {
   const deloadMutation = useDeloadWeekMutation(Number(planId));
 
   const user = useContext(AuthContext);
+  const { publishedPlanIds } = useSocialStore();
   const showShareToggle = !!user && !plan?.app_plan_id;
-  const { data: isPublished = false, isLoading: isPublishLoading } =
-    usePlanPublishQuery(showShareToggle ? Number(planId) : null);
+  const isPublished = publishedPlanIds?.includes(String(planId)) ?? false;
   const publishMutation = usePlanPublishMutation(Number(planId));
 
   const handleToggleDeload = useCallback(() => {
@@ -320,7 +320,7 @@ export default function PlanOverviewScreen() {
             onPress={() => publishMutation.mutate(!isPublished)}
             style={[styles.deloadRow]}
             activeOpacity={0.7}
-            disabled={publishMutation.isPending || isPublishLoading}
+            disabled={publishMutation.isPending}
           >
             <View style={styles.deloadLeft}>
               <AppIcon
@@ -339,7 +339,7 @@ export default function PlanOverviewScreen() {
                 <Trans>Share Plan</Trans>
               </ThemedText>
             </View>
-            {publishMutation.isPending || isPublishLoading ? (
+            {publishMutation.isPending ? (
               <ActivityIndicator size="small" color={colors.accent} />
             ) : (
               <View pointerEvents="none">

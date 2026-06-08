@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useContext } from "react";
 import { AuthContext } from "@/context/AuthProvider";
 import Bugsnag from "@bugsnag/expo";
@@ -9,7 +9,6 @@ import {
 
 export const useWorkoutPublishMutation = (workoutId: number) => {
   const user = useContext(AuthContext);
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (publish: boolean) => {
@@ -21,10 +20,7 @@ export const useWorkoutPublishMutation = (workoutId: number) => {
       }
       return publish;
     },
-    onSuccess: (published) => {
-      queryClient.setQueryData(["workoutPublished", user?.uid, workoutId], published);
-      queryClient.invalidateQueries({ queryKey: ["publishedWorkoutIds"] });
-    },
+    onSuccess: () => {},
     onError: (error: Error) => {
       Bugsnag.notify(error);
     },

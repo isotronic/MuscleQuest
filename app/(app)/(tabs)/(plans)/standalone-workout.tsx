@@ -32,8 +32,8 @@ import { t } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { AuthContext } from "@/context/AuthProvider";
-import { useWorkoutPublishQuery } from "@/hooks/useWorkoutPublishQuery";
 import { useWorkoutPublishMutation } from "@/hooks/useWorkoutPublishMutation";
+import { useSocialStore } from "@/store/socialStore";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -52,9 +52,9 @@ export default function StandaloneWorkoutScreen() {
   const distanceUnit = settings?.distanceUnit || "m";
 
   const user = useContext(AuthContext);
+  const { publishedWorkoutIds } = useSocialStore();
   const showShareToggle = !!user;
-  const { data: isPublished = false, isLoading: isPublishLoading } =
-    useWorkoutPublishQuery(showShareToggle ? workoutId : null);
+  const isPublished = publishedWorkoutIds?.includes(String(workoutId)) ?? false;
   const publishMutation = useWorkoutPublishMutation(workoutId);
 
   if (!Number.isInteger(workoutId) || workoutId <= 0) {
@@ -270,7 +270,7 @@ export default function StandaloneWorkoutScreen() {
               onPress={() => publishMutation.mutate(!isPublished)}
               style={styles.shareRow}
               activeOpacity={0.7}
-              disabled={publishMutation.isPending || isPublishLoading}
+              disabled={publishMutation.isPending}
             >
               <View style={styles.shareLeft}>
                 <AppIcon
@@ -289,7 +289,7 @@ export default function StandaloneWorkoutScreen() {
                   <Trans>Share Workout</Trans>
                 </ThemedText>
               </View>
-              {publishMutation.isPending || isPublishLoading ? (
+              {publishMutation.isPending ? (
                 <ActivityIndicator size="small" color={colors.accent} />
               ) : (
                 <View pointerEvents="none">

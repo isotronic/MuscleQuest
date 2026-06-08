@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useContext } from "react";
 import { AuthContext } from "@/context/AuthProvider";
 import Bugsnag from "@bugsnag/expo";
@@ -6,7 +6,6 @@ import { publishPlan, unpublishPlan } from "@/utils/sharing";
 
 export const usePlanPublishMutation = (planId: number) => {
   const user = useContext(AuthContext);
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (publish: boolean) => {
@@ -18,10 +17,7 @@ export const usePlanPublishMutation = (planId: number) => {
       }
       return publish;
     },
-    onSuccess: (published) => {
-      queryClient.setQueryData(["planPublished", user?.uid, planId], published);
-      queryClient.invalidateQueries({ queryKey: ["publishedPlanIds"] });
-    },
+    onSuccess: () => {},
     onError: (error: Error) => {
       Bugsnag.notify(error);
     },
