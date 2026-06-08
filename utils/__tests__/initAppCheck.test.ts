@@ -69,10 +69,16 @@ describe("setupAppCheck", () => {
     expect(resolved).toBe(true);
   });
 
-  it("throws if getToken fails", async () => {
+  it("resolves without throwing when getToken fails", async () => {
     mockGetToken.mockRejectedValueOnce(new Error("Play Integrity unavailable"));
 
-    await expect(setupAppCheck()).rejects.toThrow("Play Integrity unavailable");
+    await expect(setupAppCheck()).resolves.toBeUndefined();
+  });
+
+  it("throws if initializeAppCheck fails", async () => {
+    mockInitializeAppCheck.mockRejectedValueOnce(new Error("Firebase init failed"));
+
+    await expect(setupAppCheck()).rejects.toThrow("Firebase init failed");
   });
 
   it("uses playIntegrity provider on production builds", async () => {
