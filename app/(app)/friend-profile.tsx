@@ -552,14 +552,16 @@ export default function FriendProfileScreen() {
                       })}
                 </AppText>
               </View>
-              <AppText
-                variant="caption"
-                style={{ color: colors.contentSecondary }}
-              >
-                {formatDistanceToNow(m.recordedAt.toDate(), {
-                  addSuffix: true,
-                })}
-              </AppText>
+              {Object.keys(m.values).length > 0 && (
+                <AppText
+                  variant="caption"
+                  style={{ color: colors.contentSecondary }}
+                >
+                  {formatDistanceToNow(m.recordedAt.toDate(), {
+                    addSuffix: true,
+                  })}
+                </AppText>
+              )}
             </View>
           ))}
         </View>
