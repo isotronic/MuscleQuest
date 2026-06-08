@@ -9,9 +9,10 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Avatar } from "react-native-paper";
 import { Trans } from "@lingui/react/macro";
+import { plural } from "@lingui/core/macro";
 import { formatDistanceToNow } from "date-fns";
 import { AppText, AppIcon } from "@/components/ui";
-import { useAppTheme } from "@/theme";
+import { useAppTheme, radii } from "@/theme";
 import { AuthContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
 import { useFriendSharedPlansQuery } from "@/hooks/useFriendSharedPlansQuery";
@@ -23,7 +24,36 @@ import { useFriendSharedStrengthQuery } from "@/hooks/useFriendSharedStrengthQue
 import { useImportPlanMutation } from "@/hooks/useImportPlanMutation";
 import { useImportStandaloneWorkoutMutation } from "@/hooks/useImportStandaloneWorkoutMutation";
 import { useImportCustomExerciseMutation } from "@/hooks/useImportCustomExerciseMutation";
-import { AppThemeColors } from "@/theme/types";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import type { AppThemeColors, AppThemeBorders } from "@/theme/types";
+import type { SharedStrengthPR } from "@/types/firestore";
+
+function formatPR(pr: SharedStrengthPR, weightUnit: string): string {
+  const convFactor = weightUnit === "lbs" ? 2.2046226 : 1;
+  switch (pr.trackingType) {
+    case "reps":
+      return plural(Math.round(pr.allTimePR), {
+        one: "# rep",
+        other: "# reps",
+      });
+    case "time":
+      return `${Math.round(pr.allTimePR)}s`;
+    case "distance":
+      return `${pr.allTimePR.toFixed(1)} m`;
+    default:
+      return `1RM ${(pr.allTimePR * convFactor).toFixed(1)} ${weightUnit}`;
+  }
+}
+
+function formatMeasurementSummary(values: Record<string, number>): string {
+  return Object.entries(values)
+    .slice(0, 3)
+    .map(
+      ([k, v]) =>
+        `${k.charAt(0).toUpperCase() + k.slice(1)}: ${parseFloat(v.toFixed(1))}`,
+    )
+    .join("  ·  ");
+}
 
 export default function FriendProfileScreen() {
   const { friendUid } = useLocalSearchParams<{ friendUid: string }>();
@@ -31,6 +61,8 @@ export default function FriendProfileScreen() {
   const router = useRouter();
   const user = useContext(AuthContext);
   const { friends } = useSocialStore();
+  const { data: settings } = useSettingsQuery();
+  const weightUnit = settings?.weightUnit ?? "kg";
 
   const friend = friends.find((f) => f.uid === friendUid) ?? null;
 
@@ -61,113 +93,147 @@ export default function FriendProfileScreen() {
     new Set(),
   );
 
-  const [expandedSections, setExpandedSections] = useState<
-    Record<string, boolean>
-  >({
-    plans: true,
-    workouts: true,
-    exercises: true,
-    completedWorkouts: false,
-    measurements: false,
-    strength: false,
-  });
-
-  const toggleSection = (key: string) =>
-    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
-
   if (!user) return null;
 
-  const allLoading =
-    plansLoading ||
-    workoutsLoading ||
-    exercisesLoading ||
-    completedLoading ||
-    measurementsLoading ||
-    strengthLoading;
-  const allEmpty =
-    !allLoading &&
-    plans.length === 0 &&
-    workouts.length === 0 &&
-    exercises.length === 0 &&
-    completedWorkouts.length === 0 &&
-    measurements.length === 0 &&
-    strength.length === 0;
+  const sharedCount = plans.length + workouts.length + exercises.length;
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.surface }}
-      contentContainerStyle={styles.container}
+      contentContainerStyle={{ paddingBottom: 40 }}
     >
-      <View style={styles.header}>
+      {/* Profile header */}
+      <View
+        style={[
+          styles.profileHeader,
+          {
+            backgroundColor: colors.card,
+            borderBottomColor: colors.accentBorder,
+          },
+        ]}
+      >
         {friend?.photoURL ? (
-          <Avatar.Image size={72} source={{ uri: friend.photoURL }} />
+          <Avatar.Image size={64} source={{ uri: friend.photoURL }} />
         ) : (
           <Avatar.Text
-            size={72}
+            size={64}
             label={(friend?.displayName ?? "?").charAt(0).toUpperCase()}
           />
         )}
-        <AppText
-          variant="title"
-          style={{ marginTop: 12, color: colors.contentPrimary }}
-        >
-          {friend?.displayName ?? friendUid}
-        </AppText>
-        {friend && (
-          <AppText
-            variant="caption"
-            style={{ color: colors.contentSecondary, marginTop: 4 }}
-          >
-            <Trans>
-              Friends since{" "}
-              {friend.since.toDate().toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
-            </Trans>
+        <View style={styles.profileInfo}>
+          <AppText variant="title" style={{ color: colors.contentPrimary }}>
+            {friend?.displayName ?? friendUid}
           </AppText>
-        )}
+          {friend && (
+            <AppText
+              variant="caption"
+              style={{ color: colors.contentSecondary, marginTop: 2 }}
+            >
+              <Trans>
+                Friends since{" "}
+                {friend.since.toDate().toLocaleDateString(undefined, {
+                  year: "numeric",
+                  month: "short",
+                })}
+              </Trans>
+            </AppText>
+          )}
+          <View style={styles.statChips}>
+            <StatChip
+              value={strength.length}
+              label={<Trans>PRs</Trans>}
+              colors={colors}
+            />
+            <StatChip
+              value={completedWorkouts.length}
+              label={<Trans>Workouts</Trans>}
+              colors={colors}
+            />
+            <StatChip
+              value={sharedCount}
+              label={<Trans>Shared</Trans>}
+              colors={colors}
+            />
+          </View>
+        </View>
       </View>
 
-      {allLoading && <ActivityIndicator style={{ marginTop: 32 }} />}
-
-      {allEmpty && (
-        <AppText
-          variant="body"
-          style={{
-            color: colors.contentSecondary,
-            textAlign: "center",
-            marginTop: 32,
-          }}
-        >
-          <Trans>This friend hasn't shared any content yet.</Trans>
-        </AppText>
+      {/* Strength PRs */}
+      <ZoneLabel
+        title={<Trans>Strength PRs</Trans>}
+        colors={colors}
+        borders={borders}
+      />
+      {strengthLoading ? (
+        <ActivityIndicator style={styles.sectionSpinner} />
+      ) : strength.length === 0 ? (
+        <EmptyState
+          label={<Trans>No strength data shared yet</Trans>}
+          colors={colors}
+        />
+      ) : (
+        <View style={styles.cardGroup}>
+          {strength.map((pr) => (
+            <View
+              key={`${pr.appExerciseId ?? "c"}_${pr.exerciseName}`}
+              style={[styles.card, { backgroundColor: colors.card }]}
+            >
+              <View style={{ flex: 1 }}>
+                <AppText
+                  variant="bodyBold"
+                  style={{ color: colors.contentPrimary }}
+                >
+                  {pr.exerciseName}
+                </AppText>
+                <AppText
+                  variant="caption"
+                  style={{ color: colors.contentSecondary, marginTop: 2 }}
+                >
+                  {formatDistanceToNow(pr.allTimePRDate.toDate(), {
+                    addSuffix: true,
+                  })}
+                </AppText>
+              </View>
+              <View
+                style={[
+                  styles.prBadge,
+                  {
+                    backgroundColor: colors.accentSubtle,
+                    borderColor: colors.accentBorder,
+                  },
+                ]}
+              >
+                <AppText
+                  variant="caption"
+                  style={{ color: colors.accent, fontWeight: "700" }}
+                >
+                  {formatPR(pr, weightUnit)}
+                </AppText>
+              </View>
+            </View>
+          ))}
+        </View>
       )}
 
       {/* Plans */}
-      <SectionHeader
+      <ZoneLabel
         title={<Trans>Plans</Trans>}
-        expanded={expandedSections.plans}
-        onToggle={() => toggleSection("plans")}
         colors={colors}
+        borders={borders}
       />
-      {expandedSections.plans &&
-        (plansLoading ? (
-          <ActivityIndicator style={{ margin: 16 }} />
-        ) : plans.length === 0 ? (
-          <EmptyState
-            label={<Trans>No plans shared yet</Trans>}
-            colors={colors}
-          />
-        ) : (
-          plans.map((plan) => (
+      {plansLoading ? (
+        <ActivityIndicator style={styles.sectionSpinner} />
+      ) : plans.length === 0 ? (
+        <EmptyState
+          label={<Trans>No plans shared yet</Trans>}
+          colors={colors}
+        />
+      ) : (
+        <View style={styles.cardGroup}>
+          {plans.map((plan) => (
             <TouchableOpacity
               key={plan.localPlanId}
-              style={[
-                styles.contentRow,
-                { borderBottomColor: borders.divider },
-              ]}
+              style={[styles.card, { backgroundColor: colors.card }]}
               onPress={() =>
                 router.push({
                   pathname: "/(app)/friend-plan",
@@ -177,14 +243,14 @@ export default function FriendProfileScreen() {
             >
               <View style={{ flex: 1 }}>
                 <AppText
-                  variant="body"
+                  variant="bodyBold"
                   style={{ color: colors.contentPrimary }}
                 >
                   {plan.name}
                 </AppText>
                 <AppText
                   variant="caption"
-                  style={{ color: colors.contentSecondary }}
+                  style={{ color: colors.contentSecondary, marginTop: 2 }}
                 >
                   <Trans>
                     Updated{" "}
@@ -214,6 +280,7 @@ export default function FriendProfileScreen() {
                     color: importedPlanIds.has(plan.localPlanId)
                       ? colors.contentSecondary
                       : colors.accent,
+                    fontWeight: "600",
                   }}
                 >
                   {importedPlanIds.has(plan.localPlanId) ? (
@@ -230,32 +297,29 @@ export default function FriendProfileScreen() {
                 color={colors.contentSecondary}
               />
             </TouchableOpacity>
-          ))
-        ))}
+          ))}
+        </View>
+      )}
 
       {/* Standalone Workouts */}
-      <SectionHeader
+      <ZoneLabel
         title={<Trans>Standalone Workouts</Trans>}
-        expanded={expandedSections.workouts}
-        onToggle={() => toggleSection("workouts")}
         colors={colors}
+        borders={borders}
       />
-      {expandedSections.workouts &&
-        (workoutsLoading ? (
-          <ActivityIndicator style={{ margin: 16 }} />
-        ) : workouts.length === 0 ? (
-          <EmptyState
-            label={<Trans>No workouts shared yet</Trans>}
-            colors={colors}
-          />
-        ) : (
-          workouts.map((workout) => (
+      {workoutsLoading ? (
+        <ActivityIndicator style={styles.sectionSpinner} />
+      ) : workouts.length === 0 ? (
+        <EmptyState
+          label={<Trans>No workouts shared yet</Trans>}
+          colors={colors}
+        />
+      ) : (
+        <View style={styles.cardGroup}>
+          {workouts.map((workout) => (
             <TouchableOpacity
               key={workout.localWorkoutId}
-              style={[
-                styles.contentRow,
-                { borderBottomColor: borders.divider },
-              ]}
+              style={[styles.card, { backgroundColor: colors.card }]}
               onPress={() =>
                 router.push({
                   pathname: "/(app)/friend-workout",
@@ -268,14 +332,14 @@ export default function FriendProfileScreen() {
             >
               <View style={{ flex: 1 }}>
                 <AppText
-                  variant="body"
+                  variant="bodyBold"
                   style={{ color: colors.contentPrimary }}
                 >
                   {workout.name}
                 </AppText>
                 <AppText
                   variant="caption"
-                  style={{ color: colors.contentSecondary }}
+                  style={{ color: colors.contentSecondary, marginTop: 2 }}
                 >
                   <Trans>
                     Updated{" "}
@@ -306,6 +370,7 @@ export default function FriendProfileScreen() {
                     color: importedWorkoutIds.has(workout.localWorkoutId)
                       ? colors.contentSecondary
                       : colors.accent,
+                    fontWeight: "600",
                   }}
                 >
                   {importedWorkoutIds.has(workout.localWorkoutId) ? (
@@ -322,32 +387,29 @@ export default function FriendProfileScreen() {
                 color={colors.contentSecondary}
               />
             </TouchableOpacity>
-          ))
-        ))}
+          ))}
+        </View>
+      )}
 
       {/* Custom Exercises */}
-      <SectionHeader
+      <ZoneLabel
         title={<Trans>Custom Exercises</Trans>}
-        expanded={expandedSections.exercises}
-        onToggle={() => toggleSection("exercises")}
         colors={colors}
+        borders={borders}
       />
-      {expandedSections.exercises &&
-        (exercisesLoading ? (
-          <ActivityIndicator style={{ margin: 16 }} />
-        ) : exercises.length === 0 ? (
-          <EmptyState
-            label={<Trans>No custom exercises shared yet</Trans>}
-            colors={colors}
-          />
-        ) : (
-          exercises.map((exercise) => (
+      {exercisesLoading ? (
+        <ActivityIndicator style={styles.sectionSpinner} />
+      ) : exercises.length === 0 ? (
+        <EmptyState
+          label={<Trans>No custom exercises shared yet</Trans>}
+          colors={colors}
+        />
+      ) : (
+        <View style={styles.cardGroup}>
+          {exercises.map((exercise) => (
             <TouchableOpacity
               key={exercise.localExerciseId}
-              style={[
-                styles.contentRow,
-                { borderBottomColor: borders.divider },
-              ]}
+              style={[styles.card, { backgroundColor: colors.card }]}
               onPress={() =>
                 router.push({
                   pathname: "/(app)/friend-exercise",
@@ -360,14 +422,14 @@ export default function FriendProfileScreen() {
             >
               <View style={{ flex: 1 }}>
                 <AppText
-                  variant="body"
+                  variant="bodyBold"
                   style={{ color: colors.contentPrimary }}
                 >
                   {exercise.name}
                 </AppText>
                 <AppText
                   variant="caption"
-                  style={{ color: colors.contentSecondary }}
+                  style={{ color: colors.contentSecondary, marginTop: 2 }}
                 >
                   {exercise.equipment} · {exercise.targetMuscle}
                 </AppText>
@@ -393,6 +455,7 @@ export default function FriendProfileScreen() {
                     color: importedExerciseIds.has(exercise.localExerciseId)
                       ? colors.contentSecondary
                       : colors.accent,
+                    fontWeight: "600",
                   }}
                 >
                   {importedExerciseIds.has(exercise.localExerciseId) ? (
@@ -409,43 +472,47 @@ export default function FriendProfileScreen() {
                 color={colors.contentSecondary}
               />
             </TouchableOpacity>
-          ))
-        ))}
+          ))}
+        </View>
+      )}
 
-      {/* Recent Workouts — read-only */}
-      <SectionHeader
-        title={<Trans>Recent Workouts</Trans>}
-        expanded={expandedSections.completedWorkouts}
-        onToggle={() => toggleSection("completedWorkouts")}
+      {/* Activity */}
+      <ZoneLabel
+        title={<Trans>Activity</Trans>}
         colors={colors}
+        borders={borders}
       />
-      {expandedSections.completedWorkouts &&
-        (completedLoading ? (
-          <ActivityIndicator style={{ margin: 16 }} />
-        ) : completedWorkouts.length === 0 ? (
-          <EmptyState
-            label={<Trans>No completed workouts shared yet</Trans>}
-            colors={colors}
-          />
-        ) : (
-          completedWorkouts.slice(0, 10).map((w) => (
+      {completedLoading || measurementsLoading ? (
+        <ActivityIndicator style={styles.sectionSpinner} />
+      ) : completedWorkouts.length === 0 && measurements.length === 0 ? (
+        <EmptyState
+          label={<Trans>No activity shared yet</Trans>}
+          colors={colors}
+        />
+      ) : (
+        <View style={styles.cardGroup}>
+          {completedWorkouts.slice(0, 10).map((w) => (
             <View
               key={w.localWorkoutId}
-              style={[
-                styles.contentRow,
-                { borderBottomColor: borders.divider },
-              ]}
+              style={[styles.card, { backgroundColor: colors.card }]}
             >
+              <AppIcon
+                set="ion"
+                name="barbell-outline"
+                size={16}
+                color={colors.contentSecondary}
+                style={{ marginRight: 4 }}
+              />
               <View style={{ flex: 1 }}>
                 <AppText
-                  variant="body"
+                  variant="bodyBold"
                   style={{ color: colors.contentPrimary }}
                 >
                   {w.workoutName}
                 </AppText>
                 <AppText
                   variant="caption"
-                  style={{ color: colors.contentSecondary }}
+                  style={{ color: colors.contentSecondary, marginTop: 2 }}
                 >
                   {w.planName} ·{" "}
                   {formatDistanceToNow(w.dateCompleted.toDate(), {
@@ -454,119 +521,109 @@ export default function FriendProfileScreen() {
                 </AppText>
               </View>
             </View>
-          ))
-        ))}
-
-      {/* Body Measurements — read-only */}
-      <SectionHeader
-        title={<Trans>Body Measurements</Trans>}
-        expanded={expandedSections.measurements}
-        onToggle={() => toggleSection("measurements")}
-        colors={colors}
-      />
-      {expandedSections.measurements &&
-        (measurementsLoading ? (
-          <ActivityIndicator style={{ margin: 16 }} />
-        ) : measurements.length === 0 ? (
-          <EmptyState
-            label={<Trans>No measurements shared yet</Trans>}
-            colors={colors}
-          />
-        ) : (
-          measurements.slice(0, 10).map((m) => (
+          ))}
+          {measurements.slice(0, 5).map((m) => (
             <View
               key={m.localEntryId}
-              style={[
-                styles.contentRow,
-                { borderBottomColor: borders.divider },
-              ]}
+              style={[styles.card, { backgroundColor: colors.card }]}
             >
-              <AppText variant="body" style={{ color: colors.contentPrimary }}>
+              <AppIcon
+                set="ion"
+                name="body-outline"
+                size={16}
+                color={colors.contentSecondary}
+                style={{ marginRight: 4 }}
+              />
+              <View style={{ flex: 1 }}>
+                <AppText
+                  variant="bodyBold"
+                  style={{ color: colors.contentPrimary }}
+                >
+                  <Trans>Measurements</Trans>
+                </AppText>
+                <AppText
+                  variant="caption"
+                  style={{ color: colors.contentSecondary, marginTop: 2 }}
+                >
+                  {Object.keys(m.values).length > 0
+                    ? formatMeasurementSummary(m.values)
+                    : formatDistanceToNow(m.recordedAt.toDate(), {
+                        addSuffix: true,
+                      })}
+                </AppText>
+              </View>
+              <AppText
+                variant="caption"
+                style={{ color: colors.contentSecondary }}
+              >
                 {formatDistanceToNow(m.recordedAt.toDate(), {
                   addSuffix: true,
                 })}
               </AppText>
             </View>
-          ))
-        ))}
-
-      {/* Strength PRs — read-only */}
-      <SectionHeader
-        title={<Trans>Strength PRs</Trans>}
-        expanded={expandedSections.strength}
-        onToggle={() => toggleSection("strength")}
-        colors={colors}
-      />
-      {expandedSections.strength &&
-        (strengthLoading ? (
-          <ActivityIndicator style={{ margin: 16 }} />
-        ) : strength.length === 0 ? (
-          <EmptyState
-            label={<Trans>No strength data shared yet</Trans>}
-            colors={colors}
-          />
-        ) : (
-          strength.map((pr) => (
-            <View
-              key={`${pr.appExerciseId ?? "c"}_${pr.exerciseName}`}
-              style={[
-                styles.contentRow,
-                { borderBottomColor: borders.divider },
-              ]}
-            >
-              <View style={{ flex: 1 }}>
-                <AppText
-                  variant="body"
-                  style={{ color: colors.contentPrimary }}
-                >
-                  {pr.exerciseName}
-                </AppText>
-                <AppText
-                  variant="caption"
-                  style={{ color: colors.contentSecondary }}
-                >
-                  PR: {pr.allTimePR}
-                </AppText>
-              </View>
-            </View>
-          ))
-        ))}
-
-      <View style={{ height: 32 }} />
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 }
 
-function SectionHeader({
+function ZoneLabel({
   title,
-  expanded,
-  onToggle,
   colors,
+  borders,
 }: {
   title: React.ReactNode;
-  expanded: boolean;
-  onToggle: () => void;
   colors: AppThemeColors;
+  borders: AppThemeBorders;
 }) {
   return (
-    <TouchableOpacity
-      style={[styles.sectionHeader, { backgroundColor: colors.card }]}
-      onPress={onToggle}
-      activeOpacity={0.7}
-    >
+    <View style={styles.zoneLabel}>
       <AppText
-        variant="label"
-        style={{ color: colors.contentPrimary, flex: 1 }}
+        variant="caption"
+        style={{
+          color: colors.contentSecondary,
+          textTransform: "uppercase",
+          letterSpacing: 0.8,
+          fontWeight: "700",
+        }}
       >
         {title}
       </AppText>
-      <AppIcon
-        set="ion"
-        name={expanded ? "chevron-up" : "chevron-down"}
-        size={16}
-        color={colors.contentSecondary}
-      />
-    </TouchableOpacity>
+      <View style={[styles.zoneLine, { backgroundColor: borders.divider }]} />
+    </View>
+  );
+}
+
+function StatChip({
+  value,
+  label,
+  colors,
+}: {
+  value: number;
+  label: React.ReactNode;
+  colors: AppThemeColors;
+}) {
+  return (
+    <View
+      style={[
+        styles.statChip,
+        {
+          backgroundColor: colors.accentSubtle,
+          borderColor: colors.accentBorder,
+        },
+      ]}
+    >
+      <AppText
+        variant="bodyBold"
+        style={{ color: colors.accent, fontSize: 15 }}
+      >
+        {value}
+      </AppText>
+      <AppText variant="caption" style={{ color: colors.contentSecondary }}>
+        {label}
+      </AppText>
+    </View>
   );
 }
 
@@ -587,22 +644,68 @@ function EmptyState({
 }
 
 const styles = StyleSheet.create({
-  container: { paddingBottom: 32 },
-  header: { alignItems: "center", paddingVertical: 24 },
-  sectionHeader: {
+  profileHeader: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 18,
+    gap: 14,
+    borderBottomWidth: 2,
   },
-  contentRow: {
+  profileInfo: {
+    flex: 1,
+  },
+  statChips: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 10,
+  },
+  statChip: {
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radii.md,
+    borderWidth: 1,
+  },
+  zoneLabel: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    paddingTop: 20,
+    paddingBottom: 6,
     gap: 8,
   },
-  addButton: { paddingHorizontal: 8, paddingVertical: 4 },
-  emptyState: { paddingHorizontal: 16, paddingVertical: 12 },
+  zoneLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  cardGroup: {
+    paddingHorizontal: 12,
+    gap: 6,
+  },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: radii.md,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    gap: 8,
+  },
+  prBadge: {
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  addButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  sectionSpinner: {
+    marginVertical: 16,
+  },
+  emptyState: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
 });
