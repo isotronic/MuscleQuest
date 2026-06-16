@@ -665,7 +665,12 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           const lastSet = currentExercise.sets[lastSetIndex];
           const trackingType = resolvedTrackingType(currentExercise);
 
-          const newSet = { ...lastSet, isDropSet: true };
+          const newSet = {
+            ...lastSet,
+            isDropSet: true,
+            restMinutes: 0,
+            restSeconds: 10,
+          };
 
           const updatedExercises = [...workout.exercises];
           updatedExercises[currentExerciseIndex].sets.push(newSet);
