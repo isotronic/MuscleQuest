@@ -312,6 +312,22 @@ Share your plans, standalone workouts, custom exercises, body measurements, and 
 Tap any accepted friend's name to open their profile and import their plans, standalone workouts, or custom exercises directly into your own library.
 `,
   },
+  {
+    version: 2636,
+    message: msg`
+📋 New: Duplicate a Plan!
+
+You can now duplicate any of your training plans directly from the plan overview screen. A full copy is created instantly with all workouts and exercises, ready for you to rename and customise.
+`,
+  },
+  {
+    version: 2637,
+    message: msg`
+🔃 Improved: Drop Set Flow!
+
+Adding a drop set during a session now appends a brand new set rather than flagging the current one, giving you full control over your drop set structure. The new set is pre-filled with weight and 10 second rest time automatically.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
