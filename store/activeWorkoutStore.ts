@@ -8,6 +8,7 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
+import { findHistoricalSetByOrdinal } from "@/utils/historyUtils";
 import Bugsnag from "@bugsnag/expo";
 
 /**
@@ -288,11 +289,17 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               exercise.sets[toSetIndex]?.isDropSet;
             const currentSetValues =
               weightAndReps[exerciseIndex]?.[fromSetIndex] || {};
-            const previousExData = previousWorkoutData
-              ?.flatMap((w) => w.exercises)
-              .find((prevEx) => prevEx.exercise_id === exercise.exercise_id);
-            const nextHistorical =
-              previousExData?.sets[toSetIndex] || undefined;
+            const historyExercises =
+              previousWorkoutData
+                ?.flatMap((w) => w.exercises)
+                .filter(
+                  (prevEx) => prevEx.exercise_id === exercise.exercise_id,
+                ) ?? [];
+            const nextHistorical = findHistoricalSetByOrdinal(
+              exercise.sets,
+              toSetIndex,
+              historyExercises,
+            );
 
             return {
               ...(exTrackingType === "weight" ||
@@ -477,16 +484,20 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             [currentExerciseIndex]: nextSetIndex,
           };
 
-          const previousExerciseData = previousWorkoutData
-            ?.flatMap((workout) => workout.exercises)
-            .find(
-              (prevEx) => prevEx.exercise_id === currentExercise.exercise_id,
-            );
+          const historyExercises =
+            previousWorkoutData
+              ?.flatMap((workout) => workout.exercises)
+              .filter(
+                (prevEx) => prevEx.exercise_id === currentExercise.exercise_id,
+              ) ?? [];
 
           const currentSetValues =
             weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
-          const nextSetValues =
-            previousExerciseData?.sets[nextSetIndex] || undefined;
+          const nextSetValues = findHistoricalSetByOrdinal(
+            currentExercise.sets,
+            nextSetIndex,
+            historyExercises,
+          );
 
           const updatedNextSetValues = {
             ...(trackingType === "weight" || trackingType === ""
