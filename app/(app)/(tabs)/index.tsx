@@ -123,6 +123,10 @@ export default function HomeScreen() {
       new Date(workout.date_completed) <= endOfWeekDate,
   );
 
+  const completedAnyWorkoutToday = (completedWorkoutsThisWeek ?? []).some(
+    (w) => new Date(w.date_completed).toDateString() === today.toDateString(),
+  );
+
   // Create a Set to track unique workout dates
   const uniqueWorkoutDays = new Set(
     completedWorkoutsThisWeek?.map((workout) =>
@@ -291,7 +295,7 @@ export default function HomeScreen() {
     !!activePlan &&
     !showResumeCard &&
     !!todayScheduledEntry &&
-    completedTodayWorkoutIds.has(todayScheduledEntry.workout_id);
+    completedAnyWorkoutToday;
 
   return (
     <ThemedView>
@@ -496,7 +500,7 @@ export default function HomeScreen() {
                   index === 0 &&
                   !weeklyGoalReached &&
                   !isRestDay &&
-                  completedTodayWorkoutIds.size === 0;
+                  !completedAnyWorkoutToday;
                 return (
                   <Pressable
                     key={index}
