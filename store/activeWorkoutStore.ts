@@ -91,6 +91,7 @@ interface ActiveWorkoutStore {
   setCurrentExerciseIndex: (index: number) => void;
   setCurrentSetIndex: (exerciseIndex: number, setIndex: number) => void;
   addSet: () => void;
+  addDropSet: () => void;
   removeSet: (setIndex: number) => void;
   updateWeightAndReps: (
     exerciseIndex: number,
@@ -626,6 +627,65 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           };
 
           // Update the store with the new set in weightAndReps and completedSets
+          return {
+            workout: { ...workout, exercises: updatedExercises },
+            weightAndReps: {
+              ...weightAndReps,
+              [currentExerciseIndex]: {
+                ...(weightAndReps[currentExerciseIndex] || {}),
+                [updatedExercises[currentExerciseIndex].sets.length - 1]:
+                  newSetValues,
+              },
+            },
+            completedSets: {
+              ...completedSets,
+              [currentExerciseIndex]: {
+                ...(completedSets[currentExerciseIndex] || {}),
+                [updatedExercises[currentExerciseIndex].sets.length - 1]: false,
+              },
+            },
+          };
+        }),
+
+      addDropSet: () =>
+        set((state) => {
+          const {
+            workout,
+            weightAndReps,
+            completedSets,
+            currentExerciseIndex,
+          } = state;
+
+          if (!workout) {
+            return state;
+          }
+
+          const currentExercise = workout.exercises[currentExerciseIndex];
+          const lastSetIndex = currentExercise.sets.length - 1;
+          const lastSet = currentExercise.sets[lastSetIndex];
+          const trackingType = resolvedTrackingType(currentExercise);
+
+          const newSet = { ...lastSet, isDropSet: true };
+
+          const updatedExercises = [...workout.exercises];
+          updatedExercises[currentExerciseIndex].sets.push(newSet);
+
+          const lastSetValues =
+            weightAndReps[currentExerciseIndex]?.[lastSetIndex] || {};
+          const newSetValues = {
+            ...(trackingType === "weight" || trackingType === ""
+              ? { weight: lastSetValues.weight, reps: lastSetValues.reps }
+              : {}),
+            ...(trackingType === "assisted"
+              ? { weight: lastSetValues.weight, reps: lastSetValues.reps }
+              : {}),
+            ...(trackingType === "reps" ? { reps: lastSetValues.reps } : {}),
+            ...(trackingType === "time" ? { time: lastSetValues.time } : {}),
+            ...(trackingType === "distance"
+              ? { distance: lastSetValues.distance }
+              : {}),
+          };
+
           return {
             workout: { ...workout, exercises: updatedExercises },
             weightAndReps: {

@@ -63,7 +63,8 @@ interface SessionSetInfoProps {
   handleCompleteSet: () => void;
   removeSet: (currentSetIndex: number) => void;
   addSet: () => void;
-  onToggleSetType: (type: "isWarmup" | "isDropSet" | "isToFailure") => void;
+  onAddDropSet: () => void;
+  onToggleSetType: (type: "isWarmup" | "isToFailure") => void;
   baseTrackingType?: string;
   isWeightedOverrideEnabled?: boolean;
   onToggleWeighted?: () => void;
@@ -114,6 +115,7 @@ export default function SessionSetInfo({
   handleCompleteSet,
   removeSet,
   addSet,
+  onAddDropSet,
   onToggleSetType,
   baseTrackingType,
   isWeightedOverrideEnabled,
@@ -261,19 +263,18 @@ export default function SessionSetInfo({
           />
           <Menu.Item
             onPress={() => {
+              onAddDropSet();
+              closeMenu();
+            }}
+            title={t`Add Drop Set`}
+          />
+          <Menu.Item
+            onPress={() => {
               onToggleSetType("isWarmup");
               closeMenu();
             }}
             title={t`Warm-up`}
             leadingIcon={isWarmup ? "check" : undefined}
-          />
-          <Menu.Item
-            onPress={() => {
-              onToggleSetType("isDropSet");
-              closeMenu();
-            }}
-            title={t`Drop Set`}
-            leadingIcon={isDropSet ? "check" : undefined}
           />
           <Menu.Item
             onPress={() => {
@@ -553,7 +554,11 @@ export default function SessionSetInfo({
           buttonSize === 40 ? "" : styles.largeButton,
         ]}
       >
-        {currentSetCompleted ? <Trans>Update</Trans> : <Trans>Complete Set</Trans>}
+        {currentSetCompleted ? (
+          <Trans>Update</Trans>
+        ) : (
+          <Trans>Complete Set</Trans>
+        )}
       </Button>
     </View>
   );

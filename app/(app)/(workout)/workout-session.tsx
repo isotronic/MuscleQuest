@@ -180,7 +180,7 @@ function getPrevSlotData(
 
 const noop = () => {};
 const noopNum = (_: number) => {};
-const noopType = (_: "isWarmup" | "isDropSet" | "isToFailure") => {};
+const noopType = (_: "isWarmup" | "isToFailure") => {};
 
 const READONLY_PANEL_DEFAULTS = {
   animatedUrl: undefined,
@@ -200,6 +200,7 @@ const READONLY_PANEL_DEFAULTS = {
   handleCompleteSet: noop,
   removeSet: noopNum,
   addSet: noop,
+  onAddDropSet: noop,
   onToggleSetType: noopType,
 } as const;
 
@@ -310,6 +311,7 @@ export default function WorkoutSessionScreen() {
     stopTimer,
     removeSet,
     addSet,
+    addDropSet,
     updateSetRestTime,
     updateSetType,
     currentSetStartedAt,
@@ -712,7 +714,7 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleToggleSetType = (
-    type: "isWarmup" | "isDropSet" | "isToFailure",
+    type: "isWarmup" | "isToFailure",
   ) => {
     const currentVal = currentSet?.[type] || false;
     updateSetType(currentExerciseIndex, currentSetIndex, type, !currentVal);
@@ -759,6 +761,30 @@ export default function WorkoutSessionScreen() {
 
   const handleAddSet = () => {
     addSet();
+    const st = useActiveWorkoutStore.getState();
+    const newExerciseIndex = st.currentExerciseIndex;
+    const newSetIndex = st.currentSetIndices[newExerciseIndex] ?? 0;
+    const exercises = st.workout?.exercises;
+    if (exercises) {
+      setSlots((prev) => {
+        const u = [...prev] as [SlotData, SlotData, SlotData];
+        const nextSlotIdx = (currentSlotIndex + 1) % 3;
+        const prevSlotIdx = (currentSlotIndex + 2) % 3;
+        const fallback = {
+          exerciseIndex: newExerciseIndex,
+          setIndex: newSetIndex,
+        };
+        u[nextSlotIdx] =
+          getNextSlotData(exercises, newExerciseIndex, newSetIndex) ?? fallback;
+        u[prevSlotIdx] =
+          getPrevSlotData(exercises, newExerciseIndex, newSetIndex) ?? fallback;
+        return u;
+      });
+    }
+  };
+
+  const handleAddDropSet = () => {
+    addDropSet();
     const st = useActiveWorkoutStore.getState();
     const newExerciseIndex = st.currentExerciseIndex;
     const newSetIndex = st.currentSetIndices[newExerciseIndex] ?? 0;
@@ -1548,6 +1574,7 @@ export default function WorkoutSessionScreen() {
                             handleCompleteSet={handleCompleteSet}
                             removeSet={handleRemoveSet}
                             addSet={handleAddSet}
+                            onAddDropSet={handleAddDropSet}
                             onToggleSetType={handleToggleSetType}
                             baseTrackingType={
                               currentExercise?.tracking_type || "weight"
