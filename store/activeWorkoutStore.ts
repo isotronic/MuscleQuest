@@ -280,6 +280,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             const exTrackingType = resolvedTrackingType(exercise);
             const isWarmup = exercise.sets[fromSetIndex]?.isWarmup || false;
             const isDropSet = exercise.sets[fromSetIndex]?.isDropSet || false;
+            const isNextWarmup =
+              toSetIndex < exercise.sets.length &&
+              (exercise.sets[toSetIndex]?.isWarmup ?? false);
             const isNextDropSet =
               toSetIndex < exercise.sets.length &&
               exercise.sets[toSetIndex]?.isDropSet;
@@ -297,10 +300,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               exTrackingType === "assisted"
                 ? {
                     weight:
-                      (isWarmup || isDropSet || isNextDropSet) &&
-                      nextHistorical?.weight
-                        ? nextHistorical.weight.toString()
-                        : currentSetValues.weight,
+                      isWarmup && !isNextWarmup && !isNextDropSet
+                        ? nextHistorical?.weight != null
+                          ? nextHistorical.weight.toString()
+                          : undefined
+                        : (isWarmup || isDropSet || isNextDropSet) &&
+                            nextHistorical?.weight
+                          ? nextHistorical.weight.toString()
+                          : currentSetValues.weight,
                     reps:
                       nextHistorical?.reps !== undefined
                         ? nextHistorical.reps?.toString()
@@ -458,6 +465,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentExercise.sets[currentSetIndex]?.isWarmup || false;
           const isDropSet =
             currentExercise.sets[currentSetIndex]?.isDropSet || false;
+          const isNextWarmup =
+            nextSetIndex < currentExercise.sets.length &&
+            (currentExercise.sets[nextSetIndex]?.isWarmup ?? false);
           const isNextDropSet =
             nextSetIndex < currentExercise.sets.length &&
             currentExercise.sets[nextSetIndex]?.isDropSet;
@@ -482,10 +492,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             ...(trackingType === "weight" || trackingType === ""
               ? {
                   weight:
-                    (isWarmup || isDropSet || isNextDropSet) &&
-                    nextSetValues?.weight
-                      ? nextSetValues.weight.toString()
-                      : currentSetValues.weight,
+                    isWarmup && !isNextWarmup && !isNextDropSet
+                      ? nextSetValues?.weight != null
+                        ? nextSetValues.weight.toString()
+                        : undefined
+                      : (isWarmup || isDropSet || isNextDropSet) &&
+                          nextSetValues?.weight
+                        ? nextSetValues.weight.toString()
+                        : currentSetValues.weight,
                   reps:
                     nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
@@ -495,10 +509,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             ...(trackingType === "assisted"
               ? {
                   weight:
-                    (isWarmup || isDropSet || isNextDropSet) &&
-                    nextSetValues?.weight
-                      ? nextSetValues.weight.toString()
-                      : currentSetValues.weight,
+                    isWarmup && !isNextWarmup && !isNextDropSet
+                      ? nextSetValues?.weight != null
+                        ? nextSetValues.weight.toString()
+                        : undefined
+                      : (isWarmup || isDropSet || isNextDropSet) &&
+                          nextSetValues?.weight
+                        ? nextSetValues.weight.toString()
+                        : currentSetValues.weight,
                   reps:
                     nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
