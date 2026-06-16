@@ -729,17 +729,56 @@ export default function WorkoutSessionScreen() {
           const st = useActiveWorkoutStore.getState();
           const newExerciseIndex = st.currentExerciseIndex;
           const newSetIndex = st.currentSetIndices[newExerciseIndex] ?? 0;
+          const exercises = st.workout?.exercises;
           setSlots((prev) => {
             const u = [...prev] as [SlotData, SlotData, SlotData];
             u[currentSlotIndex] = {
               exerciseIndex: newExerciseIndex,
               setIndex: newSetIndex,
             };
+            if (exercises) {
+              const nextSlotIdx = (currentSlotIndex + 1) % 3;
+              const prevSlotIdx = (currentSlotIndex + 2) % 3;
+              const fallback = {
+                exerciseIndex: newExerciseIndex,
+                setIndex: newSetIndex,
+              };
+              u[nextSlotIdx] =
+                getNextSlotData(exercises, newExerciseIndex, newSetIndex) ??
+                fallback;
+              u[prevSlotIdx] =
+                getPrevSlotData(exercises, newExerciseIndex, newSetIndex) ??
+                fallback;
+            }
             return u;
           });
         },
       },
     ]);
+  };
+
+  const handleAddSet = () => {
+    addSet();
+    const st = useActiveWorkoutStore.getState();
+    const newExerciseIndex = st.currentExerciseIndex;
+    const newSetIndex = st.currentSetIndices[newExerciseIndex] ?? 0;
+    const exercises = st.workout?.exercises;
+    if (exercises) {
+      setSlots((prev) => {
+        const u = [...prev] as [SlotData, SlotData, SlotData];
+        const nextSlotIdx = (currentSlotIndex + 1) % 3;
+        const prevSlotIdx = (currentSlotIndex + 2) % 3;
+        const fallback = {
+          exerciseIndex: newExerciseIndex,
+          setIndex: newSetIndex,
+        };
+        u[nextSlotIdx] =
+          getNextSlotData(exercises, newExerciseIndex, newSetIndex) ?? fallback;
+        u[prevSlotIdx] =
+          getPrevSlotData(exercises, newExerciseIndex, newSetIndex) ?? fallback;
+        return u;
+      });
+    }
   };
 
   const nextSlotData =
@@ -1508,7 +1547,7 @@ export default function WorkoutSessionScreen() {
                             handleNextSet={handleNextSet}
                             handleCompleteSet={handleCompleteSet}
                             removeSet={handleRemoveSet}
-                            addSet={addSet}
+                            addSet={handleAddSet}
                             onToggleSetType={handleToggleSetType}
                             baseTrackingType={
                               currentExercise?.tracking_type || "weight"
