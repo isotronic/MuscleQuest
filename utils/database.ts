@@ -1648,6 +1648,86 @@ export const savePlanSchedule = async (
   }
 };
 
+export const duplicatePlan = async (
+  planId: number,
+  planName: string,
+  imageUrl: string | null,
+): Promise<number> => {
+  const db = await openDatabase("userData.db");
+  let newPlanId = 0;
+  const oldToNewWorkoutId: Record<number, number> = {};
+
+  await db.withExclusiveTransactionAsync(async (txn) => {
+    const planResult = await txn.runAsync(
+      `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
+      [`${planName} (Copy)`, imageUrl],
+    );
+    newPlanId = planResult.lastInsertRowId;
+
+    const workouts = await txn.getAllAsync<{
+      id: number;
+      name: string;
+      workout_order: number;
+    }>(
+      `SELECT id, name, workout_order FROM user_workouts WHERE plan_id = ? AND is_deleted = FALSE ORDER BY workout_order ASC`,
+      [planId],
+    );
+
+    for (const workout of workouts) {
+      const workoutResult = await txn.runAsync(
+        `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (?, ?, ?)`,
+        [newPlanId, workout.name, workout.workout_order],
+      );
+      const newWorkoutId = workoutResult.lastInsertRowId;
+      oldToNewWorkoutId[workout.id] = newWorkoutId;
+
+      const exercises = await txn.getAllAsync<{
+        exercise_id: number;
+        sets: string;
+        exercise_order: number;
+        superset_group_id: string | null;
+        tracking_type_override: string | null;
+      }>(
+        `SELECT exercise_id, sets, exercise_order, superset_group_id, tracking_type_override FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE ORDER BY exercise_order ASC`,
+        [workout.id],
+      );
+
+      for (const exercise of exercises) {
+        await txn.runAsync(
+          `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            newWorkoutId,
+            exercise.exercise_id,
+            exercise.sets,
+            exercise.exercise_order,
+            exercise.superset_group_id,
+            exercise.tracking_type_override,
+          ],
+        );
+      }
+    }
+
+    const scheduleEntries = await txn.getAllAsync<{
+      day_of_week: number;
+      workout_id: number;
+    }>(`SELECT day_of_week, workout_id FROM plan_schedule WHERE plan_id = ?`, [
+      planId,
+    ]);
+
+    for (const entry of scheduleEntries) {
+      const newWorkoutId = oldToNewWorkoutId[entry.workout_id];
+      if (newWorkoutId != null) {
+        await txn.runAsync(
+          `INSERT INTO plan_schedule (plan_id, day_of_week, workout_id) VALUES (?, ?, ?)`,
+          [newPlanId, entry.day_of_week, newWorkoutId],
+        );
+      }
+    }
+  });
+
+  return newPlanId;
+};
+
 // ---------- Notes ----------
 
 export const fetchNote = async (
@@ -3219,7 +3299,9 @@ export const fetchPRDataForExercises = async (
   return Array.from(exerciseMap.values());
 };
 
-export const reorderTrackedExercises = async (exerciseIds: number[]): Promise<void> => {
+export const reorderTrackedExercises = async (
+  exerciseIds: number[],
+): Promise<void> => {
   if (exerciseIds.length === 0) return;
   try {
     const db = await openDatabase("userData.db");
