@@ -420,7 +420,7 @@ msgstr ""
 "\n"
 "🔃 Amélioré : Flux des drop sets !\n"
 "\n"
-"Ajouter un drop set pendant une séance ajoute désormais un tout nouveau set plutôt que de marquer l'actuel, te donnant un contrôle total sur ta structure de drop sets. Le nouveau set est pré-rempli automatiquement avec le poids suggéré et 10 secondes de repos.\n"
+"Ajouter un drop set pendant une séance ajoute désormais un tout nouveau set plutôt que de marquer l'actuel, te donnant un contrôle total sur ta structure de drop sets. Le nouveau set est pré-rempli automatiquement avec le poids et 10 secondes de repos.\n"
 ""
 
 #: constants/WhatsNew.ts:269

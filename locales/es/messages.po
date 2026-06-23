@@ -420,7 +420,7 @@ msgstr ""
 "\n"
 "🔃 Mejorado: ¡Flujo de drop set!\n"
 "\n"
-"Añadir un drop set durante una sesión ahora añade un nuevo set en lugar de marcar el actual, dándote control total sobre tu estructura de drop sets. El nuevo set se rellena automáticamente con el peso sugerido y 10 segundos de descanso.\n"
+"Añadir un drop set durante una sesión ahora añade un nuevo set en lugar de marcar el actual, dándote control total sobre tu estructura de drop sets. El nuevo set se rellena automáticamente con el peso y 10 segundos de descanso.\n"
 ""
 
 #: constants/WhatsNew.ts:269

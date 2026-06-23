@@ -52,6 +52,9 @@ describe("acceptFriendRequest", () => {
   it("writes fresh fromProfile data into my friends doc for fromUid", async () => {
     await acceptFriendRequest(fromUid, myUid);
 
+    expect(mockGetDoc).toHaveBeenCalledWith(`users/${fromUid}`);
+    expect(mockGetDoc).toHaveBeenCalledWith(`users/${myUid}`);
+
     const myFriendDocPath = `users/${myUid}/friends/${fromUid}`;
     const call = mockBatchSet.mock.calls.find(
       ([path]) => path === myFriendDocPath,
