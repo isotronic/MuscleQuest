@@ -1055,7 +1055,7 @@ export default function WorkoutSessionScreen() {
 
     const workingSets = exercise.sets
       .map((set, idx) => ({ set, idx }))
-      .filter(({ set }) => !set.isWarmup);
+      .filter(({ set }) => !set.isWarmup && !set.isDropSet);
 
     if (workingSets.length === 0) return null;
 

@@ -150,6 +150,30 @@ describe("useSocialListeners - friends snapshot", () => {
     expect(mockFetchFriendProfile).toHaveBeenCalledWith("friend-uid");
   });
 
+  it("calls fetchFriendProfile in background for docs with displayName but missing email or photoURL", () => {
+    mockFetchFriendProfile.mockResolvedValue({
+      displayName: "Alice",
+      email: "alice@example.com",
+      photoURL: "https://example.com/alice.jpg",
+    });
+    useSocialListeners();
+    const snapshot = {
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({
+            since: { toDate: () => new Date("2024-01-01") },
+            displayName: "Alice",
+          }),
+        },
+      ],
+    };
+
+    snapshotCallbacks[friendsRef](snapshot);
+
+    expect(mockFetchFriendProfile).toHaveBeenCalledWith("friend-uid");
+  });
+
   it("calls updateFriendProfile and backfills Firestore when fetch succeeds", async () => {
     const profile = {
       displayName: "Alice",

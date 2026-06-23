@@ -5,19 +5,14 @@ import { acceptFriendRequest } from "../utils/friends";
 
 interface AcceptParams {
   fromUid: string;
-  fromProfile: { displayName: string; email: string; photoURL: string };
 }
 
 export const useAcceptFriendRequestMutation = () => {
   const user = useContext(AuthContext);
   return useMutation({
-    mutationFn: async ({ fromUid, fromProfile }: AcceptParams) => {
+    mutationFn: async ({ fromUid }: AcceptParams) => {
       if (!user) throw new Error("Not authenticated");
-      return acceptFriendRequest(fromUid, user.uid, fromProfile, {
-        displayName: user.displayName ?? "",
-        email: user.email ?? "",
-        photoURL: user.photoURL ?? "",
-      });
+      return acceptFriendRequest(fromUid, user.uid);
     },
   });
 };

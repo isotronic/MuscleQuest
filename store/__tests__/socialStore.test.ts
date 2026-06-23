@@ -7,14 +7,14 @@ describe("useSocialStore – updateFriendProfile", () => {
     displayName: "",
     email: "",
     photoURL: "",
-    since: {} as any,
+    since: new Date("2024-01-01").getTime(),
   };
   const bob = {
     uid: "uid-bob",
     displayName: "",
     email: "",
     photoURL: "",
-    since: {} as any,
+    since: new Date("2024-02-01").getTime(),
   };
 
   beforeEach(() => {
@@ -45,7 +45,9 @@ describe("useSocialStore – updateFriendProfile", () => {
         photoURL: "",
       });
     });
-    expect(useSocialStore.getState().friends.find((f) => f.uid === "uid-bob")).toEqual(bob);
+    expect(
+      useSocialStore.getState().friends.find((f) => f.uid === "uid-bob"),
+    ).toEqual(bob);
   });
 });
 

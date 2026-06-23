@@ -54,6 +54,7 @@ export default function StandaloneWorkoutScreen() {
   const user = useContext(AuthContext);
   const { publishedWorkoutIds } = useSocialStore();
   const showShareToggle = !!user;
+  const isPublishedLoading = publishedWorkoutIds == null;
   const isPublished = publishedWorkoutIds?.includes(String(workoutId)) ?? false;
   const publishMutation = useWorkoutPublishMutation(workoutId);
 
@@ -270,7 +271,7 @@ export default function StandaloneWorkoutScreen() {
               onPress={() => publishMutation.mutate(!isPublished)}
               style={styles.shareRow}
               activeOpacity={0.7}
-              disabled={publishMutation.isPending}
+              disabled={publishMutation.isPending || isPublishedLoading}
             >
               <View style={styles.shareLeft}>
                 <AppIcon
@@ -289,7 +290,7 @@ export default function StandaloneWorkoutScreen() {
                   <Trans>Share Workout</Trans>
                 </ThemedText>
               </View>
-              {publishMutation.isPending ? (
+              {publishMutation.isPending || isPublishedLoading ? (
                 <ActivityIndicator size="small" color={colors.accent} />
               ) : (
                 <View pointerEvents="none">

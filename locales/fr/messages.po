@@ -1009,7 +1009,7 @@ msgstr "Ajouter une mesure personnalisée"
 
 #: components/SessionSetInfo.tsx:269
 msgid "Add Drop Set"
-msgstr "Ajouter un drop set"
+msgstr "Ajouter une série dégressive"
 
 #: app/(app)/(workout)/index.tsx:1152
 #: components/WorkoutCard.tsx:465

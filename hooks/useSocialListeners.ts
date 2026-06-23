@@ -149,7 +149,12 @@ export const useSocialListeners = () => {
 
         // For docs without inline profile data, fetch with retry in background.
         snapshot.docs.forEach((docSnap: QDocSnap) => {
-          if (docSnap.data().displayName == null) {
+          const docData = docSnap.data();
+          if (
+            docData.displayName == null ||
+            docData.email == null ||
+            docData.photoURL == null
+          ) {
             fetchFriendProfile(docSnap.id)
               .then((profile) => {
                 updateFriendProfile(docSnap.id, profile);

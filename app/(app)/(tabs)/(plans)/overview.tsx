@@ -120,6 +120,7 @@ export default function PlanOverviewScreen() {
   const user = useContext(AuthContext);
   const { publishedPlanIds } = useSocialStore();
   const showShareToggle = !!user && !plan?.app_plan_id;
+  const isPublishedLoading = publishedPlanIds == null;
   const isPublished = publishedPlanIds?.includes(String(planId)) ?? false;
   const publishMutation = usePlanPublishMutation(Number(planId));
   const duplicatePlanMutation = useDuplicatePlanMutation();
@@ -129,7 +130,7 @@ export default function PlanOverviewScreen() {
     try {
       const newPlanId = await duplicatePlanMutation.mutateAsync({
         planId: Number(planId),
-        planName: plan.name,
+        planName: t`${plan.name} (Copy)`,
         imageUrl: plan.image_url ?? null,
       });
       router.push({
@@ -341,7 +342,7 @@ export default function PlanOverviewScreen() {
             onPress={() => publishMutation.mutate(!isPublished)}
             style={[styles.deloadRow]}
             activeOpacity={0.7}
-            disabled={publishMutation.isPending}
+            disabled={publishMutation.isPending || isPublishedLoading}
           >
             <View style={styles.deloadLeft}>
               <AppIcon
@@ -360,7 +361,7 @@ export default function PlanOverviewScreen() {
                 <Trans>Share Plan</Trans>
               </ThemedText>
             </View>
-            {publishMutation.isPending ? (
+            {publishMutation.isPending || isPublishedLoading ? (
               <ActivityIndicator size="small" color={colors.accent} />
             ) : (
               <View pointerEvents="none">

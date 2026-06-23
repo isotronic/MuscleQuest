@@ -3,10 +3,12 @@ import { acceptFriendRequest } from "../friends";
 const mockBatchSet = jest.fn();
 const mockBatchUpdate = jest.fn();
 const mockBatchCommit = jest.fn().mockResolvedValue(undefined);
+const mockGetDoc = jest.fn();
 
 jest.mock("@react-native-firebase/firestore", () => ({
   getFirestore: jest.fn(),
   doc: jest.fn((_db, ...segments) => segments.join("/")),
+  getDoc: (...args: unknown[]) => mockGetDoc(...args),
   writeBatch: jest.fn(() => ({
     set: mockBatchSet,
     update: mockBatchUpdate,
@@ -41,13 +43,19 @@ describe("acceptFriendRequest", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockBatchCommit.mockResolvedValue(undefined);
+    mockGetDoc.mockImplementation((path: string) => {
+      const profile = path === `users/${fromUid}` ? fromProfile : myProfile;
+      return Promise.resolve({ data: () => profile });
+    });
   });
 
-  it("writes fromProfile data into my friends doc for fromUid", async () => {
-    await acceptFriendRequest(fromUid, myUid, fromProfile, myProfile);
+  it("writes fresh fromProfile data into my friends doc for fromUid", async () => {
+    await acceptFriendRequest(fromUid, myUid);
 
     const myFriendDocPath = `users/${myUid}/friends/${fromUid}`;
-    const call = mockBatchSet.mock.calls.find(([path]) => path === myFriendDocPath);
+    const call = mockBatchSet.mock.calls.find(
+      ([path]) => path === myFriendDocPath,
+    );
     expect(call).toBeDefined();
     expect(call[1]).toMatchObject({
       since: "__serverTimestamp__",
@@ -57,11 +65,13 @@ describe("acceptFriendRequest", () => {
     });
   });
 
-  it("writes myProfile data into the friend's doc for myUid", async () => {
-    await acceptFriendRequest(fromUid, myUid, fromProfile, myProfile);
+  it("writes fresh myProfile data into the friend's doc for myUid", async () => {
+    await acceptFriendRequest(fromUid, myUid);
 
     const friendDocPath = `users/${fromUid}/friends/${myUid}`;
-    const call = mockBatchSet.mock.calls.find(([path]) => path === friendDocPath);
+    const call = mockBatchSet.mock.calls.find(
+      ([path]) => path === friendDocPath,
+    );
     expect(call).toBeDefined();
     expect(call[1]).toMatchObject({
       since: "__serverTimestamp__",
@@ -72,18 +82,18 @@ describe("acceptFriendRequest", () => {
   });
 
   it("updates the friendRequest status to accepted", async () => {
-    await acceptFriendRequest(fromUid, myUid, fromProfile, myProfile);
+    await acceptFriendRequest(fromUid, myUid);
 
     const requestId = `${fromUid}_${myUid}`;
-    const call = mockBatchUpdate.mock.calls.find(([path]) =>
-      path === `friendRequests/${requestId}`,
+    const call = mockBatchUpdate.mock.calls.find(
+      ([path]) => path === `friendRequests/${requestId}`,
     );
     expect(call).toBeDefined();
     expect(call[1]).toEqual({ status: "accepted" });
   });
 
   it("commits the batch", async () => {
-    await acceptFriendRequest(fromUid, myUid, fromProfile, myProfile);
+    await acceptFriendRequest(fromUid, myUid);
     expect(mockBatchCommit).toHaveBeenCalledTimes(1);
   });
 });

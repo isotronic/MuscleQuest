@@ -312,7 +312,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                           ? nextHistorical.weight.toString()
                           : undefined
                         : (isWarmup || isDropSet || isNextDropSet) &&
-                            nextHistorical?.weight
+                            nextHistorical?.weight != null
                           ? nextHistorical.weight.toString()
                           : currentSetValues.weight,
                     reps:
@@ -508,7 +508,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                         ? nextSetValues.weight.toString()
                         : undefined
                       : (isWarmup || isDropSet || isNextDropSet) &&
-                          nextSetValues?.weight
+                          nextSetValues?.weight != null
                         ? nextSetValues.weight.toString()
                         : currentSetValues.weight,
                   reps:
@@ -525,7 +525,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                         ? nextSetValues.weight.toString()
                         : undefined
                       : (isWarmup || isDropSet || isNextDropSet) &&
-                          nextSetValues?.weight
+                          nextSetValues?.weight != null
                         ? nextSetValues.weight.toString()
                         : currentSetValues.weight,
                   reps:
@@ -636,7 +636,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
 
           // Add the new set to the workout's sets array
           const updatedExercises = [...workout.exercises];
-          updatedExercises[currentExerciseIndex].sets.push(newSet);
+          updatedExercises[currentExerciseIndex] = {
+            ...currentExercise,
+            sets: [...currentExercise.sets, newSet],
+          };
 
           // Set default values for weight, reps, or time based on tracking_type
           const lastSetValues =
@@ -702,7 +705,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           };
 
           const updatedExercises = [...workout.exercises];
-          updatedExercises[currentExerciseIndex].sets.push(newSet);
+          updatedExercises[currentExerciseIndex] = {
+            ...currentExercise,
+            sets: [...currentExercise.sets, newSet],
+          };
 
           const lastSetValues =
             weightAndReps[currentExerciseIndex]?.[lastSetIndex] || {};
@@ -760,7 +766,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           }
 
           const updatedExercises = [...workout.exercises];
-          updatedExercises[currentExerciseIndex].sets.splice(setIndex, 1);
+          const currentExercise = workout.exercises[currentExerciseIndex];
+          updatedExercises[currentExerciseIndex] = {
+            ...currentExercise,
+            sets: currentExercise.sets.filter((_, idx) => idx !== setIndex),
+          };
 
           // Re-index weightAndReps after deletion using shared helper
           const updatedWeightAndReps = { ...weightAndReps };
@@ -1311,7 +1321,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             const exercise = state.workout.exercises[exerciseIndex];
             const workingSetIndices = exercise.sets
               .map((s, idx) => ({ s, idx }))
-              .filter(({ s }) => !s.isWarmup)
+              .filter(({ s }) => !s.isWarmup && !s.isDropSet)
               .map(({ idx }) => idx);
             const roundedWeight =
               Math.round(suggestion.suggestedWeight * 10) / 10;

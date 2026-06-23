@@ -1656,9 +1656,17 @@ export const duplicatePlan = async (
   const oldToNewWorkoutId: Record<number, number> = {};
 
   await db.withExclusiveTransactionAsync(async (txn) => {
+    const sourcePlan = await txn.getFirstAsync<{ id: number }>(
+      `SELECT id FROM user_plans WHERE id = ?`,
+      [planId],
+    );
+    if (!sourcePlan) {
+      throw new Error(`Cannot duplicate plan ${planId}: plan does not exist`);
+    }
+
     const planResult = await txn.runAsync(
       `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
-      [`${planName} (Copy)`, imageUrl],
+      [planName, imageUrl],
     );
     newPlanId = planResult.lastInsertRowId;
 

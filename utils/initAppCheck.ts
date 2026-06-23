@@ -38,7 +38,15 @@ export async function setupAppCheck(): Promise<void> {
   // isTokenAutoRefreshEnabled. Don't re-throw so a transient attestation failure
   // doesn't block or delay startup.
   try {
-    await getToken(appCheckInstance);
+    await Promise.race([
+      getToken(appCheckInstance),
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("App Check token fetch timed out")),
+          8000,
+        ),
+      ),
+    ]);
   } catch (tokenError) {
     console.error("App Check token fetch failed (non-fatal):", tokenError);
   }

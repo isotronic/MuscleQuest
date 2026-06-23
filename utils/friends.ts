@@ -11,6 +11,7 @@ import {
   limit,
   serverTimestamp,
 } from "@react-native-firebase/firestore";
+import { fetchFriendProfile } from "./fetchFriendProfile";
 
 export interface UserSearchResult {
   uid: string;
@@ -35,18 +36,15 @@ export const sendFriendRequest = async (
   });
 };
 
-interface FriendProfile {
-  displayName: string;
-  email: string;
-  photoURL: string;
-}
-
 export const acceptFriendRequest = async (
   fromUid: string,
   myUid: string,
-  fromProfile: FriendProfile,
-  myProfile: FriendProfile,
 ): Promise<void> => {
+  const [fromProfile, myProfile] = await Promise.all([
+    fetchFriendProfile(fromUid),
+    fetchFriendProfile(myUid),
+  ]);
+
   const requestId = `${fromUid}_${myUid}`;
   const db = getFirestore();
   const now = serverTimestamp();

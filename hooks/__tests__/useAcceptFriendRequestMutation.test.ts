@@ -37,25 +37,10 @@ describe("useAcceptFriendRequestMutation", () => {
     });
   });
 
-  const fromProfile = {
-    displayName: "Alice",
-    email: "alice@example.com",
-    photoURL: "https://example.com/alice.jpg",
-  };
-
-  it("calls acceptFriendRequest with fromUid, myUid, fromProfile and myProfile", async () => {
+  it("calls acceptFriendRequest with fromUid and myUid", async () => {
     useAcceptFriendRequestMutation();
-    await capturedArgs.mutationFn({ fromUid: "friend-uid", fromProfile });
-    expect(acceptFriendRequest).toHaveBeenCalledWith(
-      "friend-uid",
-      "my-uid",
-      fromProfile,
-      {
-        displayName: mockUser.displayName,
-        email: mockUser.email,
-        photoURL: mockUser.photoURL,
-      },
-    );
+    await capturedArgs.mutationFn({ fromUid: "friend-uid" });
+    expect(acceptFriendRequest).toHaveBeenCalledWith("friend-uid", "my-uid");
   });
 
   it("throws when no user", async () => {
@@ -63,7 +48,7 @@ describe("useAcceptFriendRequestMutation", () => {
     useContext.mockReturnValueOnce(null);
     useAcceptFriendRequestMutation();
     await expect(
-      capturedArgs.mutationFn({ fromUid: "friend-uid", fromProfile }),
+      capturedArgs.mutationFn({ fromUid: "friend-uid" }),
     ).rejects.toThrow("Not authenticated");
   });
 });
