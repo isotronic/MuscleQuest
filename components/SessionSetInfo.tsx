@@ -167,6 +167,12 @@ export default function SessionSetInfo({
           ? `${repsMin} - ${repsMax}`
           : repsMin;
 
+  const showProgressionChip =
+    !isWarmup &&
+    !isDropSet &&
+    !!progressionSuggestion &&
+    progressionSuggestion.suggestionAction !== "hold";
+
   const handleImagePress = () => {
     router.push({
       pathname: "/(app)/exercise-info",
@@ -319,7 +325,7 @@ export default function SessionSetInfo({
         />
       </View>
       {/* Set Type Indicators */}
-      {(isWarmup || isDropSet || isToFailure) && (
+      {(isWarmup || isDropSet || isToFailure || showProgressionChip) && (
         <View style={styles.setTypeContainer}>
           {isWarmup && (
             <View
@@ -378,11 +384,7 @@ export default function SessionSetInfo({
               </ThemedText>
             </View>
           )}
-        </View>
-      )}
-      {progressionSuggestion &&
-        progressionSuggestion.suggestionAction !== "hold" && (
-          <View style={styles.progressionChipRow}>
+          {showProgressionChip && progressionSuggestion && (
             <ProgressionSuggestionChip
               action={progressionSuggestion.suggestionAction}
               suggestedWeight={progressionSuggestion.suggestedWeight}
@@ -398,8 +400,9 @@ export default function SessionSetInfo({
               }
               weightUnit={weightUnit}
             />
-          </View>
-        )}
+          )}
+        </View>
+      )}
 
       {/* Conditionally Render Weight/Assistance, Reps, or Time Input Fields */}
       {trackingType === "weight" ||
@@ -622,10 +625,6 @@ function createStyles(colors: AppThemeColors) {
       flexWrap: "wrap",
       gap: 8,
       marginBottom: 16,
-    },
-    progressionChipRow: {
-      alignItems: "center",
-      marginBottom: 12,
     },
     setTypeBadge: {
       flexDirection: "row",
