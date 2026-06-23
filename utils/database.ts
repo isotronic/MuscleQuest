@@ -61,7 +61,9 @@ export interface SavedWorkout {
 export const openDatabase = async (
   databaseName: string,
 ): Promise<SQLite.SQLiteDatabase> => {
-  return await SQLite.openDatabaseAsync(databaseName);
+  return await SQLite.openDatabaseAsync(databaseName, {
+    useNewConnection: true,
+  });
 };
 
 interface SQLiteRow {
