@@ -555,26 +555,29 @@ export default function WorkoutSessionScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startRestTimer = async (restMinutes: number, restSeconds: number) => {
+  const startRestTimer = (restMinutes: number, restSeconds: number) => {
     if (restMinutes > 0 || restSeconds > 0) {
       const totalSeconds = restMinutes * 60 + restSeconds;
 
+      // Flip timerRunning immediately so the overlay animates in right away —
+      // notification scheduling below involves AsyncStorage/native bridge
+      // round-trips that can occasionally stall and must not block the UI.
+      adjustedRestSecondsRef.current = totalSeconds;
+      const time = new Date();
+      time.setSeconds(time.getSeconds() + totalSeconds);
+      expiryTimestampRef.current = time;
+      startTimer(time);
+
       if (settings?.restTimerNotification === "true") {
-        await scheduleRestNotificationWithCancellation(
+        void scheduleRestNotificationWithCancellation(
           totalSeconds,
           t`Rest Timer Finished!`,
           t`Time to do your next set!`,
           "rest-timer1",
         );
       } else {
-        await cancelRestNotifications();
+        void cancelRestNotifications();
       }
-
-      adjustedRestSecondsRef.current = totalSeconds;
-      const time = new Date();
-      time.setSeconds(time.getSeconds() + totalSeconds);
-      expiryTimestampRef.current = time;
-      startTimer(time);
 
       Bugsnag.leaveBreadcrumb("Timer started", {
         totalSeconds,
@@ -713,9 +716,7 @@ export default function WorkoutSessionScreen() {
     );
   };
 
-  const handleToggleSetType = (
-    type: "isWarmup" | "isToFailure",
-  ) => {
+  const handleToggleSetType = (type: "isWarmup" | "isToFailure") => {
     const currentVal = currentSet?.[type] || false;
     updateSetType(currentExerciseIndex, currentSetIndex, type, !currentVal);
   };
