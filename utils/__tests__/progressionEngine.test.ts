@@ -571,6 +571,24 @@ describe("evaluateProgression — easy on target", () => {
     expect(result.suggestedWeight).toBe(102.5);
   });
 
+  it("EASY_TARGET_LOAD: rounds suggested weight to avoid floating-point artifacts", () => {
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          effortRating: "easy",
+          performanceRatio: 1.0,
+        }),
+        currentSets: [FIXED_REP_SET],
+        completedRepsPerSet: [10],
+        recentWorkingWeight: 61.3,
+        equipment: "barbell",
+        userIncrements: { ...DEFAULT_INCREMENTS, barbellKg: 2.3 },
+      }),
+    );
+    expect(result.action).toBe("increase_load");
+    expect(result.suggestedWeight).toBe(63.6);
+  });
+
   it("EASY_TARGET_LOAD: falls back to load increase when no completed reps data", () => {
     const result = evaluateProgression(
       makeInputs({

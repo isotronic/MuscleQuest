@@ -1313,12 +1313,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               .map((s, idx) => ({ s, idx }))
               .filter(({ s }) => !s.isWarmup)
               .map(({ idx }) => idx);
+            const roundedWeight =
+              Math.round(suggestion.suggestedWeight * 10) / 10;
             for (const idx of workingSetIndices) {
               newWeightAndReps[exerciseIndex] = {
                 ...(newWeightAndReps[exerciseIndex] || {}),
                 [idx]: {
                   ...(newWeightAndReps[exerciseIndex]?.[idx] || {}),
-                  weight: suggestion.suggestedWeight!.toString(),
+                  weight: roundedWeight.toString(),
                 },
               };
             }
@@ -1339,10 +1341,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       storage: createJSONStorage(() => AsyncStorage),
       // Add parsing for date objects during rehydration
       partialize: (state) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { feedbackSubmittedUweIds: _transient, ...rest } = state;
         return {
-          ...rest,
+          ...state,
           startTime:
             state.startTime instanceof Date
               ? state.startTime.toISOString()
