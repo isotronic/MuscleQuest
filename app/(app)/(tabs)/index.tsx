@@ -123,6 +123,10 @@ export default function HomeScreen() {
       new Date(workout.date_completed) <= endOfWeekDate,
   );
 
+  const completedAnyWorkoutToday = (completedWorkoutsThisWeek ?? []).some(
+    (w) => new Date(w.date_completed).toDateString() === today.toDateString(),
+  );
+
   // Create a Set to track unique workout dates
   const uniqueWorkoutDays = new Set(
     completedWorkoutsThisWeek?.map((workout) =>
@@ -269,12 +273,12 @@ export default function HomeScreen() {
     }
   };
 
+  const todayWorkouts =
+    completedWorkoutsThisWeek?.filter(
+      (w) => new Date(w.date_completed).toDateString() === today.toDateString(),
+    ) ?? [];
+
   const handleWorkoutDoneCardPress = () => {
-    const todayStr = today.toDateString();
-    const todayWorkouts =
-      completedWorkoutsThisWeek?.filter(
-        (w) => new Date(w.date_completed).toDateString() === todayStr,
-      ) ?? [];
     if (todayWorkouts.length === 1) {
       navigateToWorkoutSummary(todayWorkouts[0].id);
     } else if (todayWorkouts.length > 1) {
@@ -291,7 +295,11 @@ export default function HomeScreen() {
     !!activePlan &&
     !showResumeCard &&
     !!todayScheduledEntry &&
-    completedTodayWorkoutIds.has(todayScheduledEntry.workout_id);
+    completedAnyWorkoutToday;
+  // Only show a specific workout's name when exactly one was completed today —
+  // with multiple, WorkoutDoneCard falls back to a generic title.
+  const completedWorkoutName =
+    todayWorkouts.length === 1 ? todayWorkouts[0].workout_name : null;
 
   return (
     <ThemedView>
@@ -411,6 +419,7 @@ export default function HomeScreen() {
               schedule={planScheduleEntries!}
               workouts={activePlan!.workouts}
               todayDow={todayDow}
+              completedWorkoutName={completedWorkoutName}
               onPress={handleWorkoutDoneCardPress}
             />
           </View>
@@ -496,7 +505,7 @@ export default function HomeScreen() {
                   index === 0 &&
                   !weeklyGoalReached &&
                   !isRestDay &&
-                  completedTodayWorkoutIds.size === 0;
+                  !completedAnyWorkoutToday;
                 return (
                   <Pressable
                     key={index}

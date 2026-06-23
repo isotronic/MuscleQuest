@@ -39,9 +39,10 @@ import { useDeloadWeekMutation } from "@/hooks/useDeloadWeekMutation";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { getCurrentISOWeek } from "@/utils/isoWeek";
 import { AuthContext } from "@/context/AuthProvider";
-import { usePlanPublishQuery } from "@/hooks/usePlanPublishQuery";
 import { usePlanPublishMutation } from "@/hooks/usePlanPublishMutation";
+import { useSocialStore } from "@/store/socialStore";
 import { useCreateStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
+import { useDuplicatePlanMutation } from "@/hooks/useDuplicatePlanMutation";
 import { CopyWorkoutModal } from "@/components/CopyWorkoutModal";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
@@ -117,10 +118,31 @@ export default function PlanOverviewScreen() {
   const deloadMutation = useDeloadWeekMutation(Number(planId));
 
   const user = useContext(AuthContext);
+  const { publishedPlanIds } = useSocialStore();
   const showShareToggle = !!user && !plan?.app_plan_id;
-  const { data: isPublished = false, isLoading: isPublishLoading } =
-    usePlanPublishQuery(showShareToggle ? Number(planId) : null);
+  const isPublishedLoading = publishedPlanIds == null;
+  const isPublished = publishedPlanIds?.includes(String(planId)) ?? false;
   const publishMutation = usePlanPublishMutation(Number(planId));
+  const duplicatePlanMutation = useDuplicatePlanMutation();
+
+  const handleDuplicatePlan = async () => {
+    if (!plan) return;
+    try {
+      const newPlanId = await duplicatePlanMutation.mutateAsync({
+        planId: Number(planId),
+        planName: t`${plan.name} (Copy)`,
+        imageUrl: plan.image_url ?? null,
+      });
+      router.push({
+        pathname: "/(app)/(create-plan)/create",
+        params: { planId: String(newPlanId) },
+      });
+    } catch {
+      setSnackbarMessage(t`Failed to duplicate plan. Please try again.`);
+      setSnackbarError(true);
+      setSnackbarVisible(true);
+    }
+  };
 
   const handleToggleDeload = useCallback(() => {
     deloadMutation.mutate(isCurrentWeekDeload ? null : getCurrentISOWeek());
@@ -320,7 +342,7 @@ export default function PlanOverviewScreen() {
             onPress={() => publishMutation.mutate(!isPublished)}
             style={[styles.deloadRow]}
             activeOpacity={0.7}
-            disabled={publishMutation.isPending || isPublishLoading}
+            disabled={publishMutation.isPending || isPublishedLoading}
           >
             <View style={styles.deloadLeft}>
               <AppIcon
@@ -339,12 +361,37 @@ export default function PlanOverviewScreen() {
                 <Trans>Share Plan</Trans>
               </ThemedText>
             </View>
-            {publishMutation.isPending || isPublishLoading ? (
+            {publishMutation.isPending || isPublishedLoading ? (
               <ActivityIndicator size="small" color={colors.accent} />
             ) : (
               <View pointerEvents="none">
                 <Switch value={isPublished} color={colors.accent} />
               </View>
+            )}
+          </TouchableOpacity>
+        )}
+
+        {!plan?.app_plan_id && (
+          <TouchableOpacity
+            onPress={handleDuplicatePlan}
+            style={styles.deloadRow}
+            activeOpacity={0.7}
+            disabled={duplicatePlanMutation.isPending}
+          >
+            <View style={styles.deloadLeft}>
+              <AppIcon
+                set="mci"
+                name="content-copy"
+                size={20}
+                color={colors.contentSecondary}
+                style={{ marginRight: 10 }}
+              />
+              <ThemedText style={styles.deloadTitle}>
+                <Trans>Duplicate Plan</Trans>
+              </ThemedText>
+            </View>
+            {duplicatePlanMutation.isPending && (
+              <ActivityIndicator size="small" color={colors.accent} />
             )}
           </TouchableOpacity>
         )}

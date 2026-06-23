@@ -180,7 +180,7 @@ function getPrevSlotData(
 
 const noop = () => {};
 const noopNum = (_: number) => {};
-const noopType = (_: "isWarmup" | "isDropSet" | "isToFailure") => {};
+const noopType = (_: "isWarmup" | "isToFailure") => {};
 
 const READONLY_PANEL_DEFAULTS = {
   animatedUrl: undefined,
@@ -200,6 +200,7 @@ const READONLY_PANEL_DEFAULTS = {
   handleCompleteSet: noop,
   removeSet: noopNum,
   addSet: noop,
+  onAddDropSet: noop,
   onToggleSetType: noopType,
 } as const;
 
@@ -310,6 +311,7 @@ export default function WorkoutSessionScreen() {
     stopTimer,
     removeSet,
     addSet,
+    addDropSet,
     updateSetRestTime,
     updateSetType,
     currentSetStartedAt,
@@ -553,26 +555,29 @@ export default function WorkoutSessionScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startRestTimer = async (restMinutes: number, restSeconds: number) => {
+  const startRestTimer = (restMinutes: number, restSeconds: number) => {
     if (restMinutes > 0 || restSeconds > 0) {
       const totalSeconds = restMinutes * 60 + restSeconds;
 
+      // Flip timerRunning immediately so the overlay animates in right away —
+      // notification scheduling below involves AsyncStorage/native bridge
+      // round-trips that can occasionally stall and must not block the UI.
+      adjustedRestSecondsRef.current = totalSeconds;
+      const time = new Date();
+      time.setSeconds(time.getSeconds() + totalSeconds);
+      expiryTimestampRef.current = time;
+      startTimer(time);
+
       if (settings?.restTimerNotification === "true") {
-        await scheduleRestNotificationWithCancellation(
+        void scheduleRestNotificationWithCancellation(
           totalSeconds,
           t`Rest Timer Finished!`,
           t`Time to do your next set!`,
           "rest-timer1",
         );
       } else {
-        await cancelRestNotifications();
+        void cancelRestNotifications();
       }
-
-      adjustedRestSecondsRef.current = totalSeconds;
-      const time = new Date();
-      time.setSeconds(time.getSeconds() + totalSeconds);
-      expiryTimestampRef.current = time;
-      startTimer(time);
 
       Bugsnag.leaveBreadcrumb("Timer started", {
         totalSeconds,
@@ -711,9 +716,7 @@ export default function WorkoutSessionScreen() {
     );
   };
 
-  const handleToggleSetType = (
-    type: "isWarmup" | "isDropSet" | "isToFailure",
-  ) => {
+  const handleToggleSetType = (type: "isWarmup" | "isToFailure") => {
     const currentVal = currentSet?.[type] || false;
     updateSetType(currentExerciseIndex, currentSetIndex, type, !currentVal);
   };
@@ -729,17 +732,80 @@ export default function WorkoutSessionScreen() {
           const st = useActiveWorkoutStore.getState();
           const newExerciseIndex = st.currentExerciseIndex;
           const newSetIndex = st.currentSetIndices[newExerciseIndex] ?? 0;
+          const exercises = st.workout?.exercises;
           setSlots((prev) => {
             const u = [...prev] as [SlotData, SlotData, SlotData];
             u[currentSlotIndex] = {
               exerciseIndex: newExerciseIndex,
               setIndex: newSetIndex,
             };
+            if (exercises) {
+              const nextSlotIdx = (currentSlotIndex + 1) % 3;
+              const prevSlotIdx = (currentSlotIndex + 2) % 3;
+              const fallback = {
+                exerciseIndex: newExerciseIndex,
+                setIndex: newSetIndex,
+              };
+              u[nextSlotIdx] =
+                getNextSlotData(exercises, newExerciseIndex, newSetIndex) ??
+                fallback;
+              u[prevSlotIdx] =
+                getPrevSlotData(exercises, newExerciseIndex, newSetIndex) ??
+                fallback;
+            }
             return u;
           });
         },
       },
     ]);
+  };
+
+  const handleAddSet = () => {
+    addSet();
+    const st = useActiveWorkoutStore.getState();
+    const newExerciseIndex = st.currentExerciseIndex;
+    const newSetIndex = st.currentSetIndices[newExerciseIndex] ?? 0;
+    const exercises = st.workout?.exercises;
+    if (exercises) {
+      setSlots((prev) => {
+        const u = [...prev] as [SlotData, SlotData, SlotData];
+        const nextSlotIdx = (currentSlotIndex + 1) % 3;
+        const prevSlotIdx = (currentSlotIndex + 2) % 3;
+        const fallback = {
+          exerciseIndex: newExerciseIndex,
+          setIndex: newSetIndex,
+        };
+        u[nextSlotIdx] =
+          getNextSlotData(exercises, newExerciseIndex, newSetIndex) ?? fallback;
+        u[prevSlotIdx] =
+          getPrevSlotData(exercises, newExerciseIndex, newSetIndex) ?? fallback;
+        return u;
+      });
+    }
+  };
+
+  const handleAddDropSet = () => {
+    addDropSet();
+    const st = useActiveWorkoutStore.getState();
+    const newExerciseIndex = st.currentExerciseIndex;
+    const newSetIndex = st.currentSetIndices[newExerciseIndex] ?? 0;
+    const exercises = st.workout?.exercises;
+    if (exercises) {
+      setSlots((prev) => {
+        const u = [...prev] as [SlotData, SlotData, SlotData];
+        const nextSlotIdx = (currentSlotIndex + 1) % 3;
+        const prevSlotIdx = (currentSlotIndex + 2) % 3;
+        const fallback = {
+          exerciseIndex: newExerciseIndex,
+          setIndex: newSetIndex,
+        };
+        u[nextSlotIdx] =
+          getNextSlotData(exercises, newExerciseIndex, newSetIndex) ?? fallback;
+        u[prevSlotIdx] =
+          getPrevSlotData(exercises, newExerciseIndex, newSetIndex) ?? fallback;
+        return u;
+      });
+    }
   };
 
   const nextSlotData =
@@ -989,7 +1055,7 @@ export default function WorkoutSessionScreen() {
 
     const workingSets = exercise.sets
       .map((set, idx) => ({ set, idx }))
-      .filter(({ set }) => !set.isWarmup);
+      .filter(({ set }) => !set.isWarmup && !set.isDropSet);
 
     if (workingSets.length === 0) return null;
 
@@ -1508,7 +1574,8 @@ export default function WorkoutSessionScreen() {
                             handleNextSet={handleNextSet}
                             handleCompleteSet={handleCompleteSet}
                             removeSet={handleRemoveSet}
-                            addSet={addSet}
+                            addSet={handleAddSet}
+                            onAddDropSet={handleAddDropSet}
                             onToggleSetType={handleToggleSetType}
                             baseTrackingType={
                               currentExercise?.tracking_type || "weight"

@@ -1248,4 +1248,17 @@ describe("useActiveWorkoutStore", () => {
     expect(activeWorkout).not.toBeNull();
     expect(workout).not.toBeNull();
   });
+
+  it("persists feedbackSubmittedUweIds so a force-close mid-session doesn't re-show an already-actioned suggestion", () => {
+    act(() => {
+      useActiveWorkoutStore.getState().recordFeedbackSubmitted(7);
+    });
+
+    const { partialize } = useActiveWorkoutStore.persist.getOptions();
+    const persistedState = partialize!(useActiveWorkoutStore.getState()) as {
+      feedbackSubmittedUweIds: number[];
+    };
+
+    expect(persistedState.feedbackSubmittedUweIds).toEqual([7]);
+  });
 });

@@ -42,7 +42,7 @@ export const FriendRequestItem = ({ request }: Props) => {
           compact
           disabled={isBusy}
           loading={acceptMutation.isPending}
-          onPress={() => acceptMutation.mutate(request.fromUid)}
+          onPress={() => acceptMutation.mutate({ fromUid: request.fromUid })}
         >
           {t`Accept`}
         </Button>

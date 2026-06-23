@@ -1,6 +1,7 @@
 import { getApp } from "@react-native-firebase/app";
 import {
   initializeAppCheck,
+  getToken,
   ReactNativeFirebaseAppCheckProvider,
 } from "@react-native-firebase/app-check";
 import Constants from "expo-constants";
@@ -12,27 +13,41 @@ export async function setupAppCheck(): Promise<void> {
   const debugToken =
     typeof rawDebugToken === "string" ? rawDebugToken : undefined;
 
-  try {
-    const rnfbProvider: ReactNativeFirebaseAppCheckProvider =
-      // @ts-expect-error - The types for ReactNativeFirebaseAppCheckProvider are not correctly defined, so we need to ignore the type error here.
-      new ReactNativeFirebaseAppCheckProvider();
-    rnfbProvider.configure({
-      android: {
-        provider: isDevBuild ? "debug" : "playIntegrity",
-        ...(debugToken ? { debugToken } : {}),
-      },
-      apple: {
-        provider: isDevBuild ? "debug" : "appAttestWithDeviceCheckFallback",
-        ...(debugToken ? { debugToken } : {}),
-      },
-    });
+  const rnfbProvider: ReactNativeFirebaseAppCheckProvider =
+    // @ts-expect-error - The types for ReactNativeFirebaseAppCheckProvider are not correctly defined, so we need to ignore the type error here.
+    new ReactNativeFirebaseAppCheckProvider();
+  rnfbProvider.configure({
+    android: {
+      provider: isDevBuild ? "debug" : "playIntegrity",
+      ...(debugToken ? { debugToken } : {}),
+    },
+    apple: {
+      provider: isDevBuild ? "debug" : "appAttestWithDeviceCheckFallback",
+      ...(debugToken ? { debugToken } : {}),
+    },
+  });
 
-    await initializeAppCheck(getApp(), {
-      provider: rnfbProvider,
-      isTokenAutoRefreshEnabled: true,
-    });
-  } catch (error) {
-    console.error("Failed to initialize App Check", error);
-    throw error;
+  const appCheckInstance = await initializeAppCheck(getApp(), {
+    provider: rnfbProvider,
+    isTokenAutoRefreshEnabled: true,
+  });
+
+  // Best-effort: warm up the first token so it's ready before Firestore/Storage
+  // requests fire. If attestation fails (e.g. Play Integrity 403 due to missing
+  // SHA fingerprint), App Check is still initialized and will retry via
+  // isTokenAutoRefreshEnabled. Don't re-throw so a transient attestation failure
+  // doesn't block or delay startup.
+  try {
+    await Promise.race([
+      getToken(appCheckInstance),
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("App Check token fetch timed out")),
+          8000,
+        ),
+      ),
+    ]);
+  } catch (tokenError) {
+    console.error("App Check token fetch failed (non-fatal):", tokenError);
   }
 }

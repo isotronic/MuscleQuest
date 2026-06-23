@@ -57,11 +57,17 @@ export function computeLoadIncrement(
   return 0;
 }
 
+// Guards against floating-point artifacts (e.g. 61.3 + 2.3 === 63.599999999999994)
+// since weights are only ever meaningful to one decimal place in this app.
+function roundWeight(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
 export function computeReducedLoad(currentWeight: number): number {
   if (currentWeight <= 0) return 0;
   const reduced = currentWeight * 0.95;
   const rounded = Math.floor(reduced / 0.5) * 0.5;
-  return Math.max(0, Math.min(rounded, currentWeight - 0.5));
+  return roundWeight(Math.max(0, Math.min(rounded, currentWeight - 0.5)));
 }
 
 function getWorkingSets(sets: PlanSet[]): PlanSet[] {
@@ -245,7 +251,7 @@ export function evaluateProgression(
           action: "increase_load",
           ruleKey: "EASY_TARGET_LOAD",
           explanation: RULE_EXPLANATIONS.EASY_TARGET_LOAD,
-          suggestedWeight: recentWorkingWeight + increment,
+          suggestedWeight: roundWeight(recentWorkingWeight + increment),
         };
       }
 
@@ -267,7 +273,7 @@ export function evaluateProgression(
         action: "increase_load",
         ruleKey: "EASY_TARGET_LOAD",
         explanation: RULE_EXPLANATIONS.EASY_TARGET_LOAD,
-        suggestedWeight: recentWorkingWeight + increment,
+        suggestedWeight: roundWeight(recentWorkingWeight + increment),
       };
     }
 
@@ -309,7 +315,7 @@ export function evaluateProgression(
           action: "increase_load",
           ruleKey: "MODERATE_TARGET_LOAD",
           explanation: RULE_EXPLANATIONS.MODERATE_TARGET_LOAD,
-          suggestedWeight: recentWorkingWeight + increment,
+          suggestedWeight: roundWeight(recentWorkingWeight + increment),
         };
       }
 
@@ -331,7 +337,7 @@ export function evaluateProgression(
         action: "increase_load",
         ruleKey: "MODERATE_TARGET_LOAD",
         explanation: RULE_EXPLANATIONS.MODERATE_TARGET_LOAD,
-        suggestedWeight: recentWorkingWeight + increment,
+        suggestedWeight: roundWeight(recentWorkingWeight + increment),
       };
     }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { View, StyleSheet, TextInput } from "react-native";
 import { Portal, Modal, Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
@@ -24,15 +24,17 @@ export function CopyWorkoutModal({
 }: CopyWorkoutModalProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [name, setName] = useState(defaultName);
+  const nameRef = useRef(defaultName);
+  const [isEmpty, setIsEmpty] = useState(!defaultName.trim());
+  const [inputKey, setInputKey] = useState(0);
 
   useEffect(() => {
     if (visible) {
-      setName(defaultName);
+      nameRef.current = defaultName;
+      setIsEmpty(!defaultName.trim());
+      setInputKey((k) => k + 1);
     }
   }, [visible, defaultName]);
-
-  const trimmed = name.trim();
 
   return (
     <Portal>
@@ -41,26 +43,36 @@ export function CopyWorkoutModal({
         onDismiss={onDismiss}
         dismissable={!isPending}
         contentContainerStyle={styles.modal}
+        style={{ backgroundColor: colors.modalBackdrop }}
       >
         <ThemedText style={styles.title}>
           <Trans>Copy Workout</Trans>
         </ThemedText>
         <TextInput
+          key={inputKey}
           style={styles.input}
-          value={name}
-          onChangeText={setName}
+          defaultValue={defaultName}
+          onChangeText={(text: string) => {
+            nameRef.current = text;
+            setIsEmpty(!text.trim());
+          }}
           placeholder={t`Workout name`}
           placeholderTextColor={colors.contentSecondary}
           autoFocus
         />
         <View style={styles.actions}>
-          <Button mode="text" onPress={onDismiss} disabled={isPending} testID="copy-modal-cancel">
+          <Button
+            mode="text"
+            onPress={onDismiss}
+            disabled={isPending}
+            testID="copy-modal-cancel"
+          >
             <Trans>Cancel</Trans>
           </Button>
           <Button
             mode="contained"
-            onPress={() => onConfirm(trimmed)}
-            disabled={!trimmed || isPending}
+            onPress={() => onConfirm(nameRef.current.trim())}
+            disabled={isEmpty || isPending}
             loading={isPending}
             theme={{ colors: { primary: colors.accent } }}
             testID="copy-modal-confirm"

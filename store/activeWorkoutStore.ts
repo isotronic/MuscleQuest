@@ -8,6 +8,7 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
+import { findHistoricalSetByOrdinal } from "@/utils/historyUtils";
 import Bugsnag from "@bugsnag/expo";
 
 /**
@@ -91,6 +92,7 @@ interface ActiveWorkoutStore {
   setCurrentExerciseIndex: (index: number) => void;
   setCurrentSetIndex: (exerciseIndex: number, setIndex: number) => void;
   addSet: () => void;
+  addDropSet: () => void;
   removeSet: (setIndex: number) => void;
   updateWeightAndReps: (
     exerciseIndex: number,
@@ -279,16 +281,25 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             const exTrackingType = resolvedTrackingType(exercise);
             const isWarmup = exercise.sets[fromSetIndex]?.isWarmup || false;
             const isDropSet = exercise.sets[fromSetIndex]?.isDropSet || false;
+            const isNextWarmup =
+              toSetIndex < exercise.sets.length &&
+              (exercise.sets[toSetIndex]?.isWarmup ?? false);
             const isNextDropSet =
               toSetIndex < exercise.sets.length &&
               exercise.sets[toSetIndex]?.isDropSet;
             const currentSetValues =
               weightAndReps[exerciseIndex]?.[fromSetIndex] || {};
-            const previousExData = previousWorkoutData
-              ?.flatMap((w) => w.exercises)
-              .find((prevEx) => prevEx.exercise_id === exercise.exercise_id);
-            const nextHistorical =
-              previousExData?.sets[toSetIndex] || undefined;
+            const historyExercises =
+              previousWorkoutData
+                ?.flatMap((w) => w.exercises)
+                .filter(
+                  (prevEx) => prevEx.exercise_id === exercise.exercise_id,
+                ) ?? [];
+            const nextHistorical = findHistoricalSetByOrdinal(
+              exercise.sets,
+              toSetIndex,
+              historyExercises,
+            );
 
             return {
               ...(exTrackingType === "weight" ||
@@ -296,10 +307,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               exTrackingType === "assisted"
                 ? {
                     weight:
-                      (isWarmup || isDropSet || isNextDropSet) &&
-                      nextHistorical?.weight
-                        ? nextHistorical.weight.toString()
-                        : currentSetValues.weight,
+                      isWarmup && !isNextWarmup && !isNextDropSet
+                        ? nextHistorical?.weight != null
+                          ? nextHistorical.weight.toString()
+                          : undefined
+                        : (isWarmup || isDropSet || isNextDropSet) &&
+                            nextHistorical?.weight != null
+                          ? nextHistorical.weight.toString()
+                          : currentSetValues.weight,
                     reps:
                       nextHistorical?.reps !== undefined
                         ? nextHistorical.reps?.toString()
@@ -457,6 +472,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentExercise.sets[currentSetIndex]?.isWarmup || false;
           const isDropSet =
             currentExercise.sets[currentSetIndex]?.isDropSet || false;
+          const isNextWarmup =
+            nextSetIndex < currentExercise.sets.length &&
+            (currentExercise.sets[nextSetIndex]?.isWarmup ?? false);
           const isNextDropSet =
             nextSetIndex < currentExercise.sets.length &&
             currentExercise.sets[nextSetIndex]?.isDropSet;
@@ -466,25 +484,33 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             [currentExerciseIndex]: nextSetIndex,
           };
 
-          const previousExerciseData = previousWorkoutData
-            ?.flatMap((workout) => workout.exercises)
-            .find(
-              (prevEx) => prevEx.exercise_id === currentExercise.exercise_id,
-            );
+          const historyExercises =
+            previousWorkoutData
+              ?.flatMap((workout) => workout.exercises)
+              .filter(
+                (prevEx) => prevEx.exercise_id === currentExercise.exercise_id,
+              ) ?? [];
 
           const currentSetValues =
             weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
-          const nextSetValues =
-            previousExerciseData?.sets[nextSetIndex] || undefined;
+          const nextSetValues = findHistoricalSetByOrdinal(
+            currentExercise.sets,
+            nextSetIndex,
+            historyExercises,
+          );
 
           const updatedNextSetValues = {
             ...(trackingType === "weight" || trackingType === ""
               ? {
                   weight:
-                    (isWarmup || isDropSet || isNextDropSet) &&
-                    nextSetValues?.weight
-                      ? nextSetValues.weight.toString()
-                      : currentSetValues.weight,
+                    isWarmup && !isNextWarmup && !isNextDropSet
+                      ? nextSetValues?.weight != null
+                        ? nextSetValues.weight.toString()
+                        : undefined
+                      : (isWarmup || isDropSet || isNextDropSet) &&
+                          nextSetValues?.weight != null
+                        ? nextSetValues.weight.toString()
+                        : currentSetValues.weight,
                   reps:
                     nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
@@ -494,10 +520,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             ...(trackingType === "assisted"
               ? {
                   weight:
-                    (isWarmup || isDropSet || isNextDropSet) &&
-                    nextSetValues?.weight
-                      ? nextSetValues.weight.toString()
-                      : currentSetValues.weight,
+                    isWarmup && !isNextWarmup && !isNextDropSet
+                      ? nextSetValues?.weight != null
+                        ? nextSetValues.weight.toString()
+                        : undefined
+                      : (isWarmup || isDropSet || isNextDropSet) &&
+                          nextSetValues?.weight != null
+                        ? nextSetValues.weight.toString()
+                        : currentSetValues.weight,
                   reps:
                     nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
@@ -606,7 +636,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
 
           // Add the new set to the workout's sets array
           const updatedExercises = [...workout.exercises];
-          updatedExercises[currentExerciseIndex].sets.push(newSet);
+          updatedExercises[currentExerciseIndex] = {
+            ...currentExercise,
+            sets: [...currentExercise.sets, newSet],
+          };
 
           // Set default values for weight, reps, or time based on tracking_type
           const lastSetValues =
@@ -626,6 +659,73 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           };
 
           // Update the store with the new set in weightAndReps and completedSets
+          return {
+            workout: { ...workout, exercises: updatedExercises },
+            weightAndReps: {
+              ...weightAndReps,
+              [currentExerciseIndex]: {
+                ...(weightAndReps[currentExerciseIndex] || {}),
+                [updatedExercises[currentExerciseIndex].sets.length - 1]:
+                  newSetValues,
+              },
+            },
+            completedSets: {
+              ...completedSets,
+              [currentExerciseIndex]: {
+                ...(completedSets[currentExerciseIndex] || {}),
+                [updatedExercises[currentExerciseIndex].sets.length - 1]: false,
+              },
+            },
+          };
+        }),
+
+      addDropSet: () =>
+        set((state) => {
+          const {
+            workout,
+            weightAndReps,
+            completedSets,
+            currentExerciseIndex,
+          } = state;
+
+          if (!workout) {
+            return state;
+          }
+
+          const currentExercise = workout.exercises[currentExerciseIndex];
+          const lastSetIndex = currentExercise.sets.length - 1;
+          const lastSet = currentExercise.sets[lastSetIndex];
+          const trackingType = resolvedTrackingType(currentExercise);
+
+          const newSet = {
+            ...lastSet,
+            isDropSet: true,
+            restMinutes: 0,
+            restSeconds: 10,
+          };
+
+          const updatedExercises = [...workout.exercises];
+          updatedExercises[currentExerciseIndex] = {
+            ...currentExercise,
+            sets: [...currentExercise.sets, newSet],
+          };
+
+          const lastSetValues =
+            weightAndReps[currentExerciseIndex]?.[lastSetIndex] || {};
+          const newSetValues = {
+            ...(trackingType === "weight" || trackingType === ""
+              ? { weight: lastSetValues.weight, reps: lastSetValues.reps }
+              : {}),
+            ...(trackingType === "assisted"
+              ? { weight: lastSetValues.weight, reps: lastSetValues.reps }
+              : {}),
+            ...(trackingType === "reps" ? { reps: lastSetValues.reps } : {}),
+            ...(trackingType === "time" ? { time: lastSetValues.time } : {}),
+            ...(trackingType === "distance"
+              ? { distance: lastSetValues.distance }
+              : {}),
+          };
+
           return {
             workout: { ...workout, exercises: updatedExercises },
             weightAndReps: {
@@ -666,7 +766,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           }
 
           const updatedExercises = [...workout.exercises];
-          updatedExercises[currentExerciseIndex].sets.splice(setIndex, 1);
+          const currentExercise = workout.exercises[currentExerciseIndex];
+          updatedExercises[currentExerciseIndex] = {
+            ...currentExercise,
+            sets: currentExercise.sets.filter((_, idx) => idx !== setIndex),
+          };
 
           // Re-index weightAndReps after deletion using shared helper
           const updatedWeightAndReps = { ...weightAndReps };
@@ -1217,14 +1321,16 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             const exercise = state.workout.exercises[exerciseIndex];
             const workingSetIndices = exercise.sets
               .map((s, idx) => ({ s, idx }))
-              .filter(({ s }) => !s.isWarmup)
+              .filter(({ s }) => !s.isWarmup && !s.isDropSet)
               .map(({ idx }) => idx);
+            const roundedWeight =
+              Math.round(suggestion.suggestedWeight * 10) / 10;
             for (const idx of workingSetIndices) {
               newWeightAndReps[exerciseIndex] = {
                 ...(newWeightAndReps[exerciseIndex] || {}),
                 [idx]: {
                   ...(newWeightAndReps[exerciseIndex]?.[idx] || {}),
-                  weight: suggestion.suggestedWeight!.toString(),
+                  weight: roundedWeight.toString(),
                 },
               };
             }
@@ -1245,10 +1351,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       storage: createJSONStorage(() => AsyncStorage),
       // Add parsing for date objects during rehydration
       partialize: (state) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { feedbackSubmittedUweIds: _transient, ...rest } = state;
         return {
-          ...rest,
+          ...state,
           startTime:
             state.startTime instanceof Date
               ? state.startTime.toISOString()

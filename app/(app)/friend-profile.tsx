@@ -131,7 +131,7 @@ export default function FriendProfileScreen() {
             >
               <Trans>
                 Friends since{" "}
-                {friend.since.toDate().toLocaleDateString(undefined, {
+                {new Date(friend.since).toLocaleDateString(undefined, {
                   year: "numeric",
                   month: "short",
                 })}

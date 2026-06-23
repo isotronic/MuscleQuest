@@ -25,6 +25,7 @@ interface Props {
   schedule: PlanScheduleEntry[];
   workouts: Workout[];
   todayDow: number; // 0=Mon … 6=Sun
+  completedWorkoutName: string | null;
   onPress?: () => void;
 }
 
@@ -32,14 +33,12 @@ export default function WorkoutDoneCard({
   schedule,
   workouts,
   todayDow,
+  completedWorkoutName,
   onPress,
 }: Props) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
-  const todayEntry = schedule.find((e) => e.day_of_week === todayDow);
-  const todayWorkoutName =
-    workouts.find((w) => w.id === todayEntry?.workout_id)?.name ?? null;
 
   let nextLabel: string | null = null;
   for (let i = 1; i <= 7; i++) {
@@ -65,7 +64,7 @@ export default function WorkoutDoneCard({
         />
         <View style={styles.textContainer}>
           <ThemedText type="subtitle" style={styles.title}>
-            <Trans>{todayWorkoutName ?? t`Workout`} Complete!</Trans>
+            <Trans>{completedWorkoutName ?? t`Workout`} Complete!</Trans>
           </ThemedText>
           {nextLabel ? (
             <ThemedText style={styles.subtitle}>{nextLabel}</ThemedText>

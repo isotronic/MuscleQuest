@@ -27,13 +27,14 @@ export interface FriendEntry {
   since: FirebaseFirestoreTypes.Timestamp;
 }
 
-// Enriched friend shape used in the UI (profile data joined in)
+// Enriched friend shape used in the UI (profile data joined in).
+// `since` is stored as epoch ms so it serializes cleanly to/from AsyncStorage.
 export interface FriendInfo {
   uid: string;
   displayName: string;
   email: string;
   photoURL: string;
-  since: FirebaseFirestoreTypes.Timestamp;
+  since: number;
 }
 
 // Shared plan / standalone workout shapes
