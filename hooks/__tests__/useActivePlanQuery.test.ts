@@ -13,6 +13,7 @@ jest.mock("@bugsnag/expo");
 
 const mockDb = {
   getAllAsync: jest.fn(),
+  closeAsync: jest.fn().mockResolvedValue(undefined),
 };
 
 describe("fetchActivePlanData", () => {

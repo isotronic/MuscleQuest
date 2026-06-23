@@ -94,7 +94,10 @@ describe("clearActivePlanStatus", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDb = { runAsync: jest.fn().mockResolvedValue(undefined) };
+    mockDb = {
+      runAsync: jest.fn().mockResolvedValue(undefined),
+      closeAsync: jest.fn().mockResolvedValue(undefined),
+    };
     (openDatabase as jest.Mock).mockResolvedValue(mockDb);
     (Updates.reloadAsync as jest.Mock).mockResolvedValue(undefined);
   });

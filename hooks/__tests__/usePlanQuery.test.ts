@@ -98,6 +98,7 @@ describe("usePlanQuery — queryFn", () => {
     jest.clearAllMocks();
     mockDb = {
       getAllAsync: jest.fn().mockResolvedValue([rawExerciseRow]),
+      closeAsync: jest.fn().mockResolvedValue(undefined),
     };
     (openDatabase as jest.Mock).mockResolvedValue(mockDb);
     (fetchRecord as jest.Mock).mockResolvedValue(mockPlan);

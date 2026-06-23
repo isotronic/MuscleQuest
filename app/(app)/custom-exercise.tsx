@@ -14,6 +14,7 @@ import { ThemedText } from "@/components/ThemedText";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { Exercise, fetchAllRecords, openDatabase } from "@/utils/database";
+import type { SQLiteDatabase } from "expo-sqlite";
 import { AuthContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
 import { pushCustomExercise } from "@/utils/sharing";
@@ -146,8 +147,9 @@ export default function AddCustomExerciseScreen() {
     if (!isEditing) return;
 
     const fetchExerciseData = async () => {
+      let db: SQLiteDatabase | undefined;
       try {
-        const db = await openDatabase("userData.db");
+        db = await openDatabase("userData.db");
         const existingData = (await db.getFirstAsync(
           `SELECT * FROM exercises WHERE exercise_id = ?`,
           [Number(exercise_id)],
@@ -183,6 +185,8 @@ export default function AddCustomExerciseScreen() {
         Alert.alert(t`Error`, t`Failed to load exercise details.`, [
           { text: t`OK` },
         ]);
+      } finally {
+        if (db) await db.closeAsync();
       }
     };
 
@@ -235,8 +239,10 @@ export default function AddCustomExerciseScreen() {
       }
     }
 
+    let db: SQLiteDatabase | undefined;
+    let sharingDb: SQLiteDatabase | undefined;
     try {
-      const db = await openDatabase("userData.db");
+      db = await openDatabase("userData.db");
 
       let newExerciseResult: { exercise_id: number } | null = null;
 
@@ -293,7 +299,7 @@ export default function AddCustomExerciseScreen() {
           ? Number(exercise_id)
           : newExerciseResult?.exercise_id;
         if (savedExerciseId) {
-          const sharingDb = await openDatabase("userData.db");
+          sharingDb = await openDatabase("userData.db");
           const savedExercise = await sharingDb.getFirstAsync<Exercise>(
             `SELECT * FROM exercises WHERE exercise_id = ?`,
             [savedExerciseId],
@@ -315,6 +321,9 @@ export default function AddCustomExerciseScreen() {
       );
       console.error("Error saving data:", error);
       Bugsnag.notify(error);
+    } finally {
+      if (db) await db.closeAsync();
+      if (sharingDb) await sharingDb.closeAsync();
     }
   };
 

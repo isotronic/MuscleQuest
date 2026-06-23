@@ -8,6 +8,7 @@ const MockDirectory = Directory as unknown as jest.Mock;
 
 const mockDatabase = {
   getFirstAsync: jest.fn(),
+  closeAsync: jest.fn().mockResolvedValue(undefined),
 };
 
 describe("initializeAppData", () => {

@@ -2,6 +2,7 @@ import Bugsnag from "@bugsnag/expo";
 import { File, Paths } from "expo-file-system";
 import * as Updates from "expo-updates";
 import { openDatabase } from "./database";
+import type * as SQLite from "expo-sqlite";
 
 export const clearDatabaseAndReinitialize = async () => {
   const dbFile = new File(Paths.document, "SQLite", "userData.db");
@@ -22,8 +23,9 @@ export const clearDatabaseAndReinitialize = async () => {
 };
 
 export const clearActivePlanStatus = async () => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.runAsync(
       `UPDATE user_plans SET is_active = false WHERE is_active = true`,
     );
@@ -31,5 +33,7 @@ export const clearActivePlanStatus = async () => {
   } catch (error: any) {
     Bugsnag.notify(error);
     console.error("Error clearing active plan status:", error);
+  } finally {
+    if (db) await db.closeAsync();
   }
 };

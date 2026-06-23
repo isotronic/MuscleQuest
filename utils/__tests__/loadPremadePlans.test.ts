@@ -70,12 +70,16 @@ jest.mock("@bugsnag/expo");
 const mockRunAsync = jest.fn();
 const mockGetFirstAsync = jest.fn();
 
+const mockCloseAsync = jest.fn().mockResolvedValue(undefined);
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockRunAsync.mockResolvedValue({ lastInsertRowId: 1 });
+  mockCloseAsync.mockResolvedValue(undefined);
   (openDatabase as jest.Mock).mockResolvedValue({
     runAsync: mockRunAsync,
     getFirstAsync: mockGetFirstAsync,
+    closeAsync: mockCloseAsync,
     withExclusiveTransactionAsync: jest.fn((fn) =>
       fn({ runAsync: mockRunAsync, getFirstAsync: mockGetFirstAsync }),
     ),

@@ -17,6 +17,7 @@ jest.mock("@bugsnag/expo");
 
 const mockDb = {
   getAllAsync: jest.fn(),
+  closeAsync: jest.fn().mockResolvedValue(undefined),
 };
 
 (openDatabase as jest.Mock).mockResolvedValue(mockDb);

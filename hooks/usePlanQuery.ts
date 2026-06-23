@@ -105,6 +105,8 @@ const fetchWorkoutsForPlan = async (
     console.error("Error fetching workouts for plan", error);
     Bugsnag.notify(error);
     throw new Error("Failed to fetch workouts for plan");
+  } finally {
+    await db.closeAsync();
   }
 };
 

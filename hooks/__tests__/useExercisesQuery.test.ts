@@ -8,7 +8,10 @@ jest.mock("@bugsnag/expo", () => ({
   default: { notify: jest.fn() },
 }));
 
-const mockDb = { getAllAsync: jest.fn() };
+const mockDb = {
+  getAllAsync: jest.fn(),
+  closeAsync: jest.fn().mockResolvedValue(undefined),
+};
 jest.mock("@/utils/database", () => ({
   fetchAllRecords: jest.fn(),
   openDatabase: jest.fn(() => Promise.resolve(mockDb)),

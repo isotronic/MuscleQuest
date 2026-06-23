@@ -10,7 +10,8 @@ export interface ExerciseUsage {
 
 const fetchExerciseUsage = async (): Promise<ExerciseUsage[]> => {
   const db = await openDatabase("userData.db");
-  const rows = (await db.getAllAsync(`
+  try {
+    const rows = (await db.getAllAsync(`
     SELECT
       ce.exercise_id,
       COUNT(*) AS use_count,
@@ -21,11 +22,14 @@ const fetchExerciseUsage = async (): Promise<ExerciseUsage[]> => {
     GROUP BY ce.exercise_id
   `)) as { exercise_id: number; use_count: number; last_used: string }[];
 
-  return rows.map((r) => ({
-    exerciseId: r.exercise_id,
-    useCount: r.use_count,
-    lastUsed: r.last_used,
-  }));
+    return rows.map((r) => ({
+      exerciseId: r.exercise_id,
+      useCount: r.use_count,
+      lastUsed: r.last_used,
+    }));
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const useExerciseUsageQuery = () => {

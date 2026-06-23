@@ -3,8 +3,11 @@ import { openDatabase } from "@/utils/database";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const mockRunAsync = jest.fn().mockResolvedValue(undefined);
+const mockCloseAsync = jest.fn().mockResolvedValue(undefined);
 jest.mock("@/utils/database", () => ({
-  openDatabase: jest.fn(() => Promise.resolve({ runAsync: mockRunAsync })),
+  openDatabase: jest.fn(() =>
+    Promise.resolve({ runAsync: mockRunAsync, closeAsync: mockCloseAsync }),
+  ),
 }));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -23,7 +26,11 @@ describe("useToggleFavoriteExerciseMutation", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRunAsync.mockResolvedValue(undefined);
-    (openDatabase as jest.Mock).mockResolvedValue({ runAsync: mockRunAsync });
+    mockCloseAsync.mockResolvedValue(undefined);
+    (openDatabase as jest.Mock).mockResolvedValue({
+      runAsync: mockRunAsync,
+      closeAsync: mockCloseAsync,
+    });
     (useQueryClient as jest.Mock).mockReturnValue({
       invalidateQueries: mockInvalidateQueries,
     });

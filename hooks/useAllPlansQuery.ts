@@ -1,4 +1,5 @@
 import { openDatabase } from "@/utils/database";
+import type { SQLiteDatabase } from "expo-sqlite";
 import { Workout } from "@/store/workoutStore";
 import { useQuery } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
@@ -105,8 +106,9 @@ export const fetchPlans = async (): Promise<{
   userPlans: Plan[];
   appPlans: Plan[];
 }> => {
+  let db: SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const rawPlans = (await db.getAllAsync(`
       SELECT 
         user_plans.id, 
@@ -146,6 +148,8 @@ export const fetchPlans = async (): Promise<{
     console.error("Error fetching plans", error);
     Bugsnag.notify(error);
     throw new Error("Failed to fetch plans");
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
