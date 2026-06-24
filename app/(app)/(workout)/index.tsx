@@ -28,6 +28,8 @@ import {
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
+import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
 import { Notes } from "@/components/Notes";
@@ -165,6 +167,11 @@ export default function WorkoutOverviewScreen() {
 
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
+  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
+  const { estimate: durationEstimate } = useWorkoutDurationEstimate(
+    workout?.exercises ?? [],
+    countUnilateralDouble,
+  );
   const { data: sessionHistory } = useWorkoutSessionHistoryQuery(
     activeWorkout?.workoutId ?? 0,
     weightUnit,
@@ -1110,6 +1117,13 @@ export default function WorkoutOverviewScreen() {
           timerRunning ? { paddingBottom: timerHeight } : undefined
         }
       >
+        {workout.exercises.length > 0 && durationEstimate != null && (
+          <ThemedText style={styles.durationEstimate}>
+            <Trans>
+              Estimated Duration: {formatDurationEstimate(durationEstimate)}
+            </Trans>
+          </ThemedText>
+        )}
         <Notes
           noteType="workout"
           referenceId={workout?.id || 0}
@@ -1236,6 +1250,12 @@ function createStyles(colors: AppThemeColors) {
       fontSize: 16,
       color: colors.contentSecondary,
       textAlign: "center",
+    },
+    durationEstimate: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+      marginTop: 4,
+      marginBottom: 4,
     },
     saveModal: {
       backgroundColor: colors.card,
