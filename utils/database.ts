@@ -61,9 +61,11 @@ export interface SavedWorkout {
 export const openDatabase = async (
   databaseName: string,
 ): Promise<SQLite.SQLiteDatabase> => {
-  return await SQLite.openDatabaseAsync(databaseName, {
+  const db = await SQLite.openDatabaseAsync(databaseName, {
     useNewConnection: true,
   });
+  await db.execAsync("PRAGMA busy_timeout = 3000;");
+  return db;
 };
 
 interface SQLiteRow {
