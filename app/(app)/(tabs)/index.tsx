@@ -590,6 +590,7 @@ export default function HomeScreen() {
         <View style={styles.buttonContainer}>
           <Button
             mode="outlined"
+            icon="lightning-bolt"
             textColor={colors.accent}
             onPress={() => {
               if (isStartingWorkout) return;
@@ -720,13 +721,12 @@ function createStyles(colors: AppThemeColors) {
       paddingVertical: 0,
     },
     buttonContainer: {
-      flexDirection: "row",
       gap: 12,
       padding: 16,
     },
     startWorkoutButton: {
-      flex: 1,
       borderRadius: radii.xl,
+      width: "100%",
       height: 50,
     },
     buttonLabel: {
