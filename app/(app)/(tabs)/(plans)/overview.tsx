@@ -125,7 +125,7 @@ export default function PlanOverviewScreen() {
   const publishMutation = usePlanPublishMutation(Number(planId));
   const duplicatePlanMutation = useDuplicatePlanMutation();
 
-  const handleDuplicatePlan = async () => {
+  const duplicatePlan = async () => {
     if (!plan) return;
     try {
       const newPlanId = await duplicatePlanMutation.mutateAsync({
@@ -142,6 +142,24 @@ export default function PlanOverviewScreen() {
       setSnackbarError(true);
       setSnackbarVisible(true);
     }
+  };
+
+  const handleDuplicatePlan = () => {
+    Alert.alert(
+      t`Duplicate Plan`,
+      t`Create a copy of this plan that you can edit independently?`,
+      [
+        {
+          text: t`Cancel`,
+          style: "cancel",
+        },
+        {
+          text: t`Duplicate`,
+          onPress: duplicatePlan,
+        },
+      ],
+      { cancelable: true },
+    );
   };
 
   const handleToggleDeload = useCallback(() => {
@@ -372,12 +390,7 @@ export default function PlanOverviewScreen() {
         )}
 
         {!plan?.app_plan_id && (
-          <TouchableOpacity
-            onPress={handleDuplicatePlan}
-            style={styles.deloadRow}
-            activeOpacity={0.7}
-            disabled={duplicatePlanMutation.isPending}
-          >
+          <View style={styles.deloadRow}>
             <View style={styles.deloadLeft}>
               <AppIcon
                 set="mci"
@@ -390,10 +403,14 @@ export default function PlanOverviewScreen() {
                 <Trans>Duplicate Plan</Trans>
               </ThemedText>
             </View>
-            {duplicatePlanMutation.isPending && (
+            {duplicatePlanMutation.isPending ? (
               <ActivityIndicator size="small" color={colors.accent} />
+            ) : (
+              <Button mode="outlined" compact onPress={handleDuplicatePlan}>
+                <Trans>Duplicate</Trans>
+              </Button>
             )}
-          </TouchableOpacity>
+          </View>
         )}
       </ScrollView>
 
