@@ -132,7 +132,9 @@ describe("WorkoutPickerModal", () => {
 
   it("starts a plan workout: dismisses and calls setWorkout with the plan id", () => {
     const setWorkout = jest.fn();
-    (useActiveWorkoutStore.getState as jest.Mock).mockReturnValue({ setWorkout });
+    (useActiveWorkoutStore.getState as jest.Mock).mockReturnValue({
+      setWorkout,
+    });
     const onDismiss = jest.fn();
     const { getByTestId } = render(
       <WorkoutPickerModal {...baseProps} onDismiss={onDismiss} />,
@@ -144,15 +146,27 @@ describe("WorkoutPickerModal", () => {
 
   it("starts a standalone workout: calls setWorkout with a null plan id", () => {
     const setWorkout = jest.fn();
-    (useActiveWorkoutStore.getState as jest.Mock).mockReturnValue({ setWorkout });
+    (useActiveWorkoutStore.getState as jest.Mock).mockReturnValue({
+      setWorkout,
+    });
     const { getByTestId } = render(<WorkoutPickerModal {...baseProps} />);
     fireEvent.press(getByTestId("workout-item-20"));
-    expect(setWorkout).toHaveBeenCalledWith(standaloneWorkout, null, 20, "Quick Legs");
+    expect(setWorkout).toHaveBeenCalledWith(
+      standaloneWorkout,
+      null,
+      20,
+      "Quick Legs",
+    );
   });
 
   it("shows a loading indicator while data is loading instead of the list", () => {
-    (useAllPlansQuery as jest.Mock).mockReturnValue({ data: undefined, isLoading: true });
-    const { queryByText, getByTestId } = render(<WorkoutPickerModal {...baseProps} />);
+    (useAllPlansQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+    });
+    const { queryByText, getByTestId } = render(
+      <WorkoutPickerModal {...baseProps} />,
+    );
     expect(queryByText("Push Day")).toBeNull();
     expect(getByTestId("loading-indicator")).toBeTruthy();
   });
@@ -162,7 +176,10 @@ describe("WorkoutPickerModal", () => {
       data: { userPlans: [], appPlans: [] },
       isLoading: false,
     });
-    (useStandaloneWorkoutsQuery as jest.Mock).mockReturnValue({ data: [], isLoading: false });
+    (useStandaloneWorkoutsQuery as jest.Mock).mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
     const { getByText } = render(<WorkoutPickerModal {...baseProps} />);
     expect(getByText("No workouts yet")).toBeTruthy();
   });

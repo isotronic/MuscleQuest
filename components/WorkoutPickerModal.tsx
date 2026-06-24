@@ -37,20 +37,19 @@ export default function WorkoutPickerModal({
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
 
   const isLoading = plansLoading || standaloneLoading;
-  const userPlans = plansData?.userPlans ?? [];
 
   const { planSections, standaloneWorkouts: filteredStandalone } = useMemo(
     () =>
       buildWorkoutPickerSections(
-        userPlans,
+        plansData?.userPlans ?? [],
         standaloneWorkouts ?? [],
         searchQuery,
       ),
-    [userPlans, standaloneWorkouts, searchQuery],
+    [plansData?.userPlans, standaloneWorkouts, searchQuery],
   );
 
   const hasAnyWorkouts =
-    userPlans.some((plan) => plan.workouts.length > 0) ||
+    (plansData?.userPlans.some((plan) => plan.workouts.length > 0) ?? false) ||
     (standaloneWorkouts?.length ?? 0) > 0;
   const hasResults = planSections.length > 0 || filteredStandalone.length > 0;
 

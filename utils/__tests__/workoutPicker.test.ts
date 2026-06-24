@@ -21,7 +21,11 @@ const standaloneWorkouts: Workout[] = [quickLegs, armBlast];
 
 describe("buildWorkoutPickerSections", () => {
   it("returns all plan sections and standalone workouts when query is empty", () => {
-    const result = buildWorkoutPickerSections(userPlans, standaloneWorkouts, "");
+    const result = buildWorkoutPickerSections(
+      userPlans,
+      standaloneWorkouts,
+      "",
+    );
 
     expect(result.planSections).toEqual([
       { planId: 100, planName: "My Plan", workouts: [pushDay, legDay] },
@@ -30,7 +34,11 @@ describe("buildWorkoutPickerSections", () => {
   });
 
   it("filters workouts by case-insensitive substring match on name", () => {
-    const result = buildWorkoutPickerSections(userPlans, standaloneWorkouts, "leg");
+    const result = buildWorkoutPickerSections(
+      userPlans,
+      standaloneWorkouts,
+      "leg",
+    );
 
     expect(result.planSections).toEqual([
       { planId: 100, planName: "My Plan", workouts: [legDay] },
@@ -39,21 +47,33 @@ describe("buildWorkoutPickerSections", () => {
   });
 
   it("omits a plan section entirely when none of its workouts match", () => {
-    const result = buildWorkoutPickerSections(userPlans, standaloneWorkouts, "arm");
+    const result = buildWorkoutPickerSections(
+      userPlans,
+      standaloneWorkouts,
+      "arm",
+    );
 
     expect(result.planSections).toEqual([]);
     expect(result.standaloneWorkouts).toEqual([armBlast]);
   });
 
   it("returns empty sections when nothing matches", () => {
-    const result = buildWorkoutPickerSections(userPlans, standaloneWorkouts, "nonexistent");
+    const result = buildWorkoutPickerSections(
+      userPlans,
+      standaloneWorkouts,
+      "nonexistent",
+    );
 
     expect(result.planSections).toEqual([]);
     expect(result.standaloneWorkouts).toEqual([]);
   });
 
   it("treats surrounding whitespace in the query as insignificant", () => {
-    const result = buildWorkoutPickerSections(userPlans, standaloneWorkouts, "  push  ");
+    const result = buildWorkoutPickerSections(
+      userPlans,
+      standaloneWorkouts,
+      "  push  ",
+    );
 
     expect(result.planSections).toEqual([
       { planId: 100, planName: "My Plan", workouts: [pushDay] },
