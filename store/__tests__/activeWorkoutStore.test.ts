@@ -30,6 +30,8 @@ describe("useActiveWorkoutStore", () => {
       startTime: undefined,
       timerRunning: false,
       timerExpiry: null,
+      feedbackSubmittedUweIds: [],
+      recoveryCheckInShown: false,
     });
     jest.clearAllMocks();
   });
@@ -664,6 +666,147 @@ describe("useActiveWorkoutStore", () => {
 
     // weightAndReps for the new set should copy the last set's values
     expect(weightAndReps[0][2]).toEqual({ weight: "55", reps: "8" });
+  });
+
+  it("addSet should clear the current exercise from feedbackSubmittedUweIds so a fresh set can trigger feedback again", () => {
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Add Set Test Workout",
+          exercises: [
+            {
+              id: 600,
+              exercise_id: 600,
+              name: "Exercise with multiple sets",
+              tracking_type: "weight",
+              sets: [
+                {
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+              ],
+              image: [],
+              local_animated_uri: "",
+              animated_url: "",
+              equipment: "",
+              body_part: "",
+              target_muscle: "",
+              secondary_muscles: [],
+              description: "",
+            },
+          ],
+        },
+        currentExerciseIndex: 0,
+        completedSets: { 0: { 0: true } },
+        weightAndReps: { 0: { 0: { weight: "50", reps: "10" } } },
+        feedbackSubmittedUweIds: [600],
+      });
+    });
+
+    act(() => {
+      useActiveWorkoutStore.getState().addSet();
+    });
+
+    expect(useActiveWorkoutStore.getState().feedbackSubmittedUweIds).toEqual(
+      [],
+    );
+  });
+
+  it("addDropSet should clear the current exercise from feedbackSubmittedUweIds so a fresh set can trigger feedback again", () => {
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Add Drop Set Test Workout",
+          exercises: [
+            {
+              id: 700,
+              exercise_id: 700,
+              name: "Exercise with multiple sets",
+              tracking_type: "weight",
+              sets: [
+                {
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+              ],
+              image: [],
+              local_animated_uri: "",
+              animated_url: "",
+              equipment: "",
+              body_part: "",
+              target_muscle: "",
+              secondary_muscles: [],
+              description: "",
+            },
+          ],
+        },
+        currentExerciseIndex: 0,
+        completedSets: { 0: { 0: true } },
+        weightAndReps: { 0: { 0: { weight: "50", reps: "10" } } },
+        feedbackSubmittedUweIds: [700],
+      });
+    });
+
+    act(() => {
+      useActiveWorkoutStore.getState().addDropSet();
+    });
+
+    expect(useActiveWorkoutStore.getState().feedbackSubmittedUweIds).toEqual(
+      [],
+    );
+  });
+
+  it("addSet should leave feedbackSubmittedUweIds for other exercises untouched", () => {
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Add Set Test Workout",
+          exercises: [
+            {
+              id: 600,
+              exercise_id: 600,
+              name: "Exercise A",
+              tracking_type: "weight",
+              sets: [
+                {
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+              ],
+              image: [],
+              local_animated_uri: "",
+              animated_url: "",
+              equipment: "",
+              body_part: "",
+              target_muscle: "",
+              secondary_muscles: [],
+              description: "",
+            },
+          ],
+        },
+        currentExerciseIndex: 0,
+        completedSets: { 0: { 0: true } },
+        weightAndReps: { 0: { 0: { weight: "50", reps: "10" } } },
+        feedbackSubmittedUweIds: [600, 601],
+      });
+    });
+
+    act(() => {
+      useActiveWorkoutStore.getState().addSet();
+    });
+
+    expect(useActiveWorkoutStore.getState().feedbackSubmittedUweIds).toEqual(
+      [601],
+    );
   });
 
   it("removeSet should remove a set from the current exercise if more than one set exists", () => {

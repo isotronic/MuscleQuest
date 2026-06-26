@@ -15,6 +15,7 @@ import { Notes } from "@/components/Notes";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
+import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import ProgressionSuggestionChip from "@/components/ProgressionSuggestionChip";
 import { useAppTheme, radii } from "@/theme";
 import { Snackbar, IconButton } from "react-native-paper";
@@ -33,10 +34,12 @@ export default function WorkoutDetailsScreen() {
   const distanceUnit = settings?.distanceUnit || "m";
   const weightUnit = settings?.weightUnit || "kg";
   const progressionSettings = useProgressionSettingsQuery();
+  const { isCurrentWeekDeload } = useDeloadWeekQuery(Number(planId));
 
   const workout = plan?.workouts[Number(workoutIndex)];
   const { data: progressionStates } = useWorkoutProgressionStatesQuery(
     progressionSettings.enabled && workout?.id != null ? workout.id : undefined,
+    isCurrentWeekDeload,
   );
 
   const appliedSuggestions = useMemo(

@@ -701,6 +701,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                 [updatedExercises[currentExerciseIndex].sets.length - 1]: false,
               },
             },
+            // A fresh set means this exercise's performance has changed since
+            // feedback was last submitted, so it's eligible for feedback again.
+            feedbackSubmittedUweIds:
+              currentExercise.id != null
+                ? state.feedbackSubmittedUweIds.filter(
+                    (id) => id !== currentExercise.id,
+                  )
+                : state.feedbackSubmittedUweIds,
           };
         }),
 
@@ -768,6 +776,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                 [updatedExercises[currentExerciseIndex].sets.length - 1]: false,
               },
             },
+            // A fresh set means this exercise's performance has changed since
+            // feedback was last submitted, so it's eligible for feedback again.
+            feedbackSubmittedUweIds:
+              currentExercise.id != null
+                ? state.feedbackSubmittedUweIds.filter(
+                    (id) => id !== currentExercise.id,
+                  )
+                : state.feedbackSubmittedUweIds,
           };
         }),
 

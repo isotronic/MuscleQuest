@@ -34,6 +34,7 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import ProgressionSummaryCard from "@/components/ProgressionSummaryCard";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
+import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -434,6 +435,9 @@ export default function WorkoutSummaryScreen() {
   } = useCompletedWorkoutByIdQuery(id, weightUnit, distanceUnit);
 
   const workoutId = workout?.workout_id ?? 0;
+  const { isCurrentWeekDeload } = useDeloadWeekQuery(
+    workout?.plan_id ?? undefined,
+  );
   const { data: history } = useWorkoutSessionHistoryQuery(
     workoutId,
     weightUnit,
@@ -632,6 +636,7 @@ export default function WorkoutSummaryScreen() {
           <ProgressionSummaryCard
             workoutId={workoutId}
             weightUnit={weightUnit}
+            isCurrentWeekDeload={isCurrentWeekDeload}
           />
         )}
 
