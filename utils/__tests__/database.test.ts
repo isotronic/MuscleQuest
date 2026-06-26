@@ -16,6 +16,7 @@ import {
   upsertProgressionState,
   getDaysSinceLastWorkoutByMuscle,
   getProgressionState,
+  getProgressionStatesForWorkout,
 } from "../database";
 import { ProgressionRuleResult } from "@/types/progression";
 
@@ -663,5 +664,91 @@ describe("getProgressionState — muscle-layoff override", () => {
     mockDb.getFirstAsync.mockResolvedValue(null);
     const result = await getProgressionState(42);
     expect(result).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getProgressionStatesForWorkout — muscle-layoff override
+// ---------------------------------------------------------------------------
+
+describe("getProgressionStatesForWorkout — muscle-layoff override", () => {
+  const quadsRow = {
+    id: 1,
+    user_workout_exercise_id: 42,
+    exercise_name: "Squat",
+    suggestion_action: "increase_load",
+    suggested_weight: 100,
+    suggested_reps_per_set: null,
+    suggested_sets: null,
+    rule_key: "EASY_TARGET_LOAD",
+    rule_explanation: "You've been hitting targets easily.",
+    consecutive_direction_count: 1,
+    plateau_advisory: 0,
+    last_progression_at: null,
+    recovery_rating: null,
+    is_applied: 0,
+    is_dismissed: 0,
+    target_muscle: "quads",
+    equipment: "barbell",
+    tracking_type_override: null,
+    tracking_type: "weight",
+    recent_weight: 100,
+  };
+  const pecsRow = {
+    ...quadsRow,
+    id: 2,
+    user_workout_exercise_id: 43,
+    exercise_name: "Bench Press",
+    target_muscle: "pecs",
+    suggested_weight: 60,
+    recent_weight: 60,
+  };
+
+  function mockSettingsAndMuscleDays(
+    statesRows: object[],
+    daysByMuscle: Record<string, number>,
+  ) {
+    mockDb.getAllAsync.mockImplementation((sql: string) => {
+      if (sql.includes("GROUP BY e.target_muscle")) {
+        return Promise.resolve(
+          Object.entries(daysByMuscle).map(([target_muscle, days_since]) => ({
+            target_muscle,
+            days_since,
+          })),
+        );
+      }
+      if (sql.includes("FROM settings")) {
+        return Promise.resolve([
+          { key: "adaptive_progression_enabled", value: "1" },
+          { key: "progression_increment_barbell_kg", value: "2.5" },
+        ]);
+      }
+      if (sql.includes("FROM exercise_progression_state")) {
+        return Promise.resolve(statesRows);
+      }
+      return Promise.resolve([]);
+    });
+  }
+
+  it("overrides only the exercise whose target muscle is stale, leaving others untouched", async () => {
+    mockSettingsAndMuscleDays([quadsRow, pecsRow], { quads: 21, pecs: 3 });
+
+    const result = await getProgressionStatesForWorkout(1);
+
+    const quads = result.find((r) => r.userWorkoutExerciseId === 42);
+    const pecs = result.find((r) => r.userWorkoutExerciseId === 43);
+    expect(quads?.suggestionAction).toBe("reduce_load");
+    expect(quads?.suggestedWeight).toBe(85);
+    expect(pecs?.suggestionAction).toBe("increase_load");
+    expect(pecs?.suggestedWeight).toBe(60);
+  });
+
+  it("skips the override entirely when skipLayoffOverride is true", async () => {
+    mockSettingsAndMuscleDays([quadsRow], { quads: 21 });
+
+    const result = await getProgressionStatesForWorkout(1, true);
+
+    expect(result[0].suggestionAction).toBe("increase_load");
+    expect(result[0].suggestedWeight).toBe(100);
   });
 });

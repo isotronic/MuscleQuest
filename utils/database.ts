@@ -3195,6 +3195,7 @@ export interface WorkoutProgressionStateRow {
 
 export const getProgressionStatesForWorkout = async (
   workoutId: number,
+  skipLayoffOverride = false,
 ): Promise<WorkoutProgressionStateRow[]> => {
   let db: SQLite.SQLiteDatabase | undefined;
   try {
@@ -3215,6 +3216,11 @@ export const getProgressionStatesForWorkout = async (
       recovery_rating: string | null;
       is_applied: number;
       is_dismissed: number;
+      target_muscle: string;
+      equipment: string;
+      tracking_type_override: string | null;
+      tracking_type: string | null;
+      recent_weight: number | null;
     }>(
       `SELECT
         eps.id,
@@ -3231,7 +3237,21 @@ export const getProgressionStatesForWorkout = async (
         eps.last_progression_at,
         eps.recovery_rating,
         eps.is_applied,
-        eps.is_dismissed
+        eps.is_dismissed,
+        e.target_muscle,
+        e.equipment,
+        uwe.tracking_type_override,
+        e.tracking_type,
+        (
+          SELECT MAX(cs.weight)
+          FROM completed_sets cs
+          JOIN completed_exercises ce ON cs.completed_exercise_id = ce.id
+          JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
+          WHERE ce.exercise_id = e.exercise_id
+            AND cw.workout_id = uwe.workout_id
+            AND cs.is_warmup = 0
+            AND cs.weight IS NOT NULL
+        ) AS recent_weight
       FROM exercise_progression_state eps
       JOIN user_workout_exercises uwe ON uwe.id = eps.user_workout_exercise_id
       JOIN exercises e ON e.exercise_id = uwe.exercise_id
@@ -3240,6 +3260,14 @@ export const getProgressionStatesForWorkout = async (
       ORDER BY uwe.exercise_order ASC`,
       [workoutId],
     );
+
+    const daysByMuscle = skipLayoffOverride
+      ? {}
+      : await getDaysSinceLastWorkoutByMuscle();
+    const settings = skipLayoffOverride
+      ? null
+      : await getProgressionSettings();
+
     return rows.map((row) => {
       let parsedRepsPerSet: number[] | undefined;
       if (row.suggested_reps_per_set) {
@@ -3249,7 +3277,7 @@ export const getProgressionStatesForWorkout = async (
           parsedRepsPerSet = undefined;
         }
       }
-      return {
+      const base: WorkoutProgressionStateRow = {
         id: row.id,
         userWorkoutExerciseId: row.user_workout_exercise_id,
         exerciseName: row.exercise_name,
@@ -3265,6 +3293,37 @@ export const getProgressionStatesForWorkout = async (
         recoveryRating: row.recovery_rating ?? undefined,
         isApplied: row.is_applied === 1,
         isDismissed: row.is_dismissed === 1,
+      };
+
+      if (skipLayoffOverride || !settings) return base;
+
+      const trackingType =
+        row.tracking_type_override ?? row.tracking_type ?? "weight";
+      if (
+        (trackingType !== "weight" && trackingType !== "assisted") ||
+        row.recent_weight == null
+      ) {
+        return base;
+      }
+
+      const days = daysByMuscle[row.target_muscle];
+      if (days == null) return base;
+
+      const layoff = computeLayoffReduction(
+        days,
+        row.recent_weight,
+        row.equipment,
+        settings.increments,
+      );
+      if (!layoff) return base;
+
+      return {
+        ...base,
+        suggestionAction: "reduce_load" as ProgressionAction,
+        suggestedWeight: layoff.suggestedWeight,
+        suggestedRepsPerSet: undefined,
+        ruleKey: "MUSCLE_LAYOFF",
+        ruleExplanation: `It's been ${days} days since you trained ${row.target_muscle}. We've suggested a lighter weight to help you ease back in safely.`,
       };
     });
   } catch (error: any) {
