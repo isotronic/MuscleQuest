@@ -280,6 +280,200 @@ describe("useActiveWorkoutStore", () => {
     expect(completedSets[0][0]).toBe(true);
   });
 
+  it("nextSet preserves a preloaded progression-suggested weight instead of overwriting it with workout history after a drop set", () => {
+    const history: any = [
+      {
+        id: 1,
+        workout_id: 1,
+        plan_id: 1,
+        workout_name: "Test Workout",
+        date_completed: "2026-06-01T00:00:00.000Z",
+        duration: 0,
+        total_sets_completed: 2,
+        exercises: [
+          {
+            exercise_id: 200,
+            exercise_name: "Bench Press",
+            exercise_tracking_type: "weight",
+            sets: [
+              {
+                set_id: 1,
+                set_number: 1,
+                weight: 40,
+                reps: 10,
+                time: null,
+                distance: null,
+                is_warmup: false,
+                set_duration: null,
+              },
+              {
+                set_id: 2,
+                set_number: 2,
+                weight: 50,
+                reps: 8,
+                time: null,
+                distance: null,
+                is_warmup: false,
+                set_duration: null,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Test Workout",
+          exercises: [
+            {
+              exercise_id: 200,
+              name: "Bench Press",
+              tracking_type: "weight",
+              sets: [
+                {
+                  isDropSet: true,
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 0,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+                {
+                  isWarmup: false,
+                  repsMin: undefined,
+                  repsMax: undefined,
+                  restMinutes: 2,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+              ],
+              image: [],
+              local_animated_uri: "",
+              animated_url: "",
+              equipment: "",
+              body_part: "",
+              target_muscle: "",
+              secondary_muscles: [],
+              description: "",
+            },
+          ],
+        },
+        currentExerciseIndex: 0,
+        currentSetIndices: { 0: 0 },
+        previousWorkoutData: history,
+        // Simulates loadProgressionSuggestions having already pre-filled the
+        // upcoming working set (index 1) with a suggested weight.
+        weightAndReps: { 0: { 1: { weight: "102.5" } } },
+      });
+    });
+
+    act(() => {
+      useActiveWorkoutStore.getState().nextSet();
+    });
+
+    const { weightAndReps } = useActiveWorkoutStore.getState();
+    expect(weightAndReps[0][1]?.weight).toBe("102.5");
+  });
+
+  it("nextSet preserves preloaded suggested reps instead of overwriting them with workout history", () => {
+    const history: any = [
+      {
+        id: 1,
+        workout_id: 1,
+        plan_id: 1,
+        workout_name: "Test Workout",
+        date_completed: "2026-06-01T00:00:00.000Z",
+        duration: 0,
+        total_sets_completed: 2,
+        exercises: [
+          {
+            exercise_id: 200,
+            exercise_name: "Bench Press",
+            exercise_tracking_type: "weight",
+            sets: [
+              {
+                set_id: 1,
+                set_number: 1,
+                weight: 50,
+                reps: 10,
+                time: null,
+                distance: null,
+                is_warmup: false,
+                set_duration: null,
+              },
+              {
+                set_id: 2,
+                set_number: 2,
+                weight: 50,
+                reps: 8,
+                time: null,
+                distance: null,
+                is_warmup: false,
+                set_duration: null,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Test Workout",
+          exercises: [
+            {
+              exercise_id: 200,
+              name: "Bench Press",
+              tracking_type: "weight",
+              sets: [
+                {
+                  isWarmup: false,
+                  repsMin: 8,
+                  repsMax: 12,
+                  restMinutes: 2,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+                {
+                  isWarmup: false,
+                  repsMin: 8,
+                  repsMax: 12,
+                  restMinutes: 2,
+                  restSeconds: 0,
+                  time: undefined,
+                },
+              ],
+              image: [],
+              local_animated_uri: "",
+              animated_url: "",
+              equipment: "",
+              body_part: "",
+              target_muscle: "",
+              secondary_muscles: [],
+              description: "",
+            },
+          ],
+        },
+        currentExerciseIndex: 0,
+        currentSetIndices: { 0: 0 },
+        previousWorkoutData: history,
+        // Simulates loadProgressionSuggestions having already pre-filled the
+        // upcoming set (index 1) with a suggested rep target.
+        weightAndReps: { 0: { 1: { reps: "11" } } },
+      });
+    });
+
+    act(() => {
+      useActiveWorkoutStore.getState().nextSet();
+    });
+
+    const { weightAndReps } = useActiveWorkoutStore.getState();
+    expect(weightAndReps[0][1]?.reps).toBe("11");
+  });
+
   it("nextSet should move to the next exercise if all sets in the current exercise are completed", () => {
     act(() => {
       useActiveWorkoutStore.setState({
@@ -1249,6 +1443,168 @@ describe("useActiveWorkoutStore", () => {
     expect(workout).not.toBeNull();
   });
 
+  describe("loadProgressionSuggestions", () => {
+    const baseExercise = {
+      id: 55,
+      exercise_id: 700,
+      name: "Bench Press",
+      tracking_type: "weight",
+      image: [],
+      local_animated_uri: "",
+      animated_url: "",
+      equipment: "",
+      body_part: "",
+      target_muscle: "",
+      secondary_muscles: [],
+      description: "",
+    };
+
+    it("applies suggestedWeight to working sets for increase_load (existing behavior)", () => {
+      act(() => {
+        useActiveWorkoutStore.setState({
+          workout: {
+            name: "Suggestion Test Workout",
+            exercises: [
+              {
+                ...baseExercise,
+                sets: [
+                  {
+                    repsMin: 8,
+                    repsMax: 12,
+                    restMinutes: 2,
+                    restSeconds: 0,
+                    time: undefined,
+                  },
+                  {
+                    repsMin: 8,
+                    repsMax: 12,
+                    restMinutes: 2,
+                    restSeconds: 0,
+                    time: undefined,
+                  },
+                ],
+              },
+            ],
+          },
+          weightAndReps: {},
+        });
+
+        useActiveWorkoutStore.getState().loadProgressionSuggestions([
+          {
+            userWorkoutExerciseId: 55,
+            suggestionAction: "increase_load",
+            suggestedWeight: 102.5,
+            isApplied: true,
+          },
+        ]);
+      });
+
+      const { weightAndReps } = useActiveWorkoutStore.getState();
+      expect(weightAndReps[0][0]?.weight).toBe("102.5");
+      expect(weightAndReps[0][1]?.weight).toBe("102.5");
+    });
+
+    it("applies suggestedRepsPerSet to working sets for increase_reps", () => {
+      act(() => {
+        useActiveWorkoutStore.setState({
+          workout: {
+            name: "Suggestion Test Workout",
+            exercises: [
+              {
+                ...baseExercise,
+                sets: [
+                  {
+                    repsMin: 8,
+                    repsMax: 12,
+                    restMinutes: 2,
+                    restSeconds: 0,
+                    time: undefined,
+                  },
+                  {
+                    repsMin: 8,
+                    repsMax: 12,
+                    restMinutes: 2,
+                    restSeconds: 0,
+                    time: undefined,
+                  },
+                ],
+              },
+            ],
+          },
+          weightAndReps: {},
+        });
+
+        useActiveWorkoutStore.getState().loadProgressionSuggestions([
+          {
+            userWorkoutExerciseId: 55,
+            suggestionAction: "increase_reps",
+            suggestedRepsPerSet: [11, 9],
+            isApplied: true,
+          },
+        ]);
+      });
+
+      const { weightAndReps } = useActiveWorkoutStore.getState();
+      expect(weightAndReps[0][0]?.reps).toBe("11");
+      expect(weightAndReps[0][1]?.reps).toBe("9");
+    });
+
+    it("skips warmup and drop sets when applying suggestedRepsPerSet", () => {
+      act(() => {
+        useActiveWorkoutStore.setState({
+          workout: {
+            name: "Suggestion Test Workout",
+            exercises: [
+              {
+                ...baseExercise,
+                sets: [
+                  {
+                    repsMin: 8,
+                    repsMax: 12,
+                    restMinutes: 1,
+                    restSeconds: 0,
+                    time: undefined,
+                    isWarmup: true,
+                  },
+                  {
+                    repsMin: 8,
+                    repsMax: 12,
+                    restMinutes: 2,
+                    restSeconds: 0,
+                    time: undefined,
+                  },
+                  {
+                    repsMin: 8,
+                    repsMax: 12,
+                    restMinutes: 0,
+                    restSeconds: 30,
+                    time: undefined,
+                    isDropSet: true,
+                  },
+                ],
+              },
+            ],
+          },
+          weightAndReps: {},
+        });
+
+        useActiveWorkoutStore.getState().loadProgressionSuggestions([
+          {
+            userWorkoutExerciseId: 55,
+            suggestionAction: "increase_reps",
+            suggestedRepsPerSet: [11],
+            isApplied: true,
+          },
+        ]);
+      });
+
+      const { weightAndReps } = useActiveWorkoutStore.getState();
+      expect(weightAndReps[0]?.[0]).toBeUndefined();
+      expect(weightAndReps[0][1]?.reps).toBe("11");
+      expect(weightAndReps[0]?.[2]).toBeUndefined();
+    });
+  });
+
   it("persists feedbackSubmittedUweIds so a force-close mid-session doesn't re-show an already-actioned suggestion", () => {
     act(() => {
       useActiveWorkoutStore.getState().recordFeedbackSubmitted(7);
@@ -1260,5 +1616,49 @@ describe("useActiveWorkoutStore", () => {
     };
 
     expect(persistedState.feedbackSubmittedUweIds).toEqual([7]);
+  });
+
+  it("persists recoveryCheckInShown so a force-close mid-session doesn't re-show the recovery sheet on resume", () => {
+    act(() => {
+      useActiveWorkoutStore.getState().markRecoveryCheckInShown();
+    });
+
+    expect(useActiveWorkoutStore.getState().recoveryCheckInShown).toBe(true);
+
+    const { partialize } = useActiveWorkoutStore.persist.getOptions();
+    const persistedState = partialize!(useActiveWorkoutStore.getState()) as {
+      recoveryCheckInShown: boolean;
+    };
+
+    expect(persistedState.recoveryCheckInShown).toBe(true);
+  });
+
+  it("resets recoveryCheckInShown to false when a new workout session starts", () => {
+    act(() => {
+      useActiveWorkoutStore.getState().markRecoveryCheckInShown();
+      useActiveWorkoutStore
+        .getState()
+        .setWorkout(
+          { id: 1, name: "Fresh Workout", exercises: [] } as any,
+          10,
+          20,
+          "Legs Day",
+        );
+    });
+
+    expect(useActiveWorkoutStore.getState().recoveryCheckInShown).toBe(false);
+  });
+
+  it("resets recoveryCheckInShown to false on restartWorkout", () => {
+    act(() => {
+      useActiveWorkoutStore.setState({
+        activeWorkout: { planId: 1, workoutId: 2, name: "Test" },
+        originalWorkout: { name: "Original", exercises: [] },
+      });
+      useActiveWorkoutStore.getState().markRecoveryCheckInShown();
+      useActiveWorkoutStore.getState().restartWorkout();
+    });
+
+    expect(useActiveWorkoutStore.getState().recoveryCheckInShown).toBe(false);
   });
 });

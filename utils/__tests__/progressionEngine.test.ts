@@ -528,6 +528,41 @@ describe("evaluateProgression — easy on target", () => {
     expect(result.suggestedRepsPerSet).toEqual([11]);
   });
 
+  it("EASY_TARGET_REPS: ignores drop sets when matching completedRepsPerSet to working sets", () => {
+    const setWith12Max: Set = {
+      repsMin: 8,
+      repsMax: 12,
+      restMinutes: 2,
+      restSeconds: 0,
+      time: undefined,
+      isWarmup: false,
+    };
+    const dropSet: Set = {
+      repsMin: 8,
+      repsMax: 12,
+      restMinutes: 0,
+      restSeconds: 30,
+      time: undefined,
+      isWarmup: false,
+      isDropSet: true,
+    };
+    // completedRepsPerSet only covers the one true working set, matching
+    // how the caller builds it (warmups and drop sets excluded).
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          effortRating: "easy",
+          performanceRatio: 1.0,
+        }),
+        currentSets: [setWith12Max, dropSet],
+        completedRepsPerSet: [10],
+      }),
+    );
+    expect(result.action).toBe("increase_reps");
+    expect(result.ruleKey).toBe("EASY_TARGET_REPS");
+    expect(result.suggestedRepsPerSet).toEqual([11]);
+  });
+
   it("EASY_TARGET_REPS: caps per-set suggestion at repsMax", () => {
     const setAtMax: Set = {
       repsMin: 8,

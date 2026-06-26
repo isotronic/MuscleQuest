@@ -120,10 +120,11 @@ export default function WorkoutOverviewScreen() {
     stopTimer,
     startTimer,
     feedbackSubmittedUweIds,
+    recoveryCheckInShown,
+    markRecoveryCheckInShown,
   } = useActiveWorkoutStore();
 
   const recoverySheetRef = useRef<BottomSheetModal>(null);
-  const recoveryShownRef = useRef(false);
   const progressionSettings = useProgressionSettingsQuery();
   const { isCurrentWeekDeload } = useDeloadWeekQuery(
     activeWorkout?.planId ?? undefined,
@@ -135,16 +136,22 @@ export default function WorkoutOverviewScreen() {
 
   useEffect(() => {
     if (
-      !recoveryShownRef.current &&
+      !recoveryCheckInShown &&
       progressionSettings.enabled &&
       activeWorkout?.planId != null &&
       pendingRecovery &&
       pendingRecovery.length > 0
     ) {
-      recoveryShownRef.current = true;
+      markRecoveryCheckInShown();
       recoverySheetRef.current?.present();
     }
-  }, [pendingRecovery, progressionSettings.enabled, activeWorkout?.planId]);
+  }, [
+    pendingRecovery,
+    progressionSettings.enabled,
+    activeWorkout?.planId,
+    recoveryCheckInShown,
+    markRecoveryCheckInShown,
+  ]);
 
   const stableKeyMapRef = useRef(new WeakMap<UserExercise, string>());
   const getStableKey = useCallback((exercise: UserExercise): string => {

@@ -71,7 +71,7 @@ export function computeReducedLoad(currentWeight: number): number {
 }
 
 function getWorkingSets(sets: PlanSet[]): PlanSet[] {
-  return sets.filter((s) => !s.isWarmup);
+  return sets.filter((s) => !s.isWarmup && !s.isDropSet);
 }
 
 /**

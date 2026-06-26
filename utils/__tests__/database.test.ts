@@ -13,7 +13,9 @@ import {
   fetchAllPlanIds,
   fetchAllStandaloneWorkoutIds,
   fetchAllCustomExercisesForSharing,
+  upsertProgressionState,
 } from "../database";
+import { ProgressionRuleResult } from "@/types/progression";
 
 // Undo the global mock from jestSetupFile.js so we can test the real implementation
 jest.unmock("@/utils/database");
@@ -489,5 +491,31 @@ describe("fetchAllCustomExercisesForSharing", () => {
     mockDb.getAllAsync.mockResolvedValue([]);
     const result = await fetchAllCustomExercisesForSharing();
     expect(result).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// upsertProgressionState
+// ---------------------------------------------------------------------------
+
+describe("upsertProgressionState", () => {
+  it("resets recovery_rating and recovery_checked_at to NULL when new feedback arrives for an exercise that already has a recovery answer", async () => {
+    const result: ProgressionRuleResult = {
+      action: "hold",
+      ruleKey: "MODERATE_TARGET",
+      explanation: "Solid session. Keep this load.",
+    };
+
+    await upsertProgressionState(42, result, 99, 1, {
+      discomfortStreakCount: 0,
+      consecutiveHoldCount: 1,
+      plateauAdvisory: false,
+      lastProgressionAt: null,
+    });
+
+    expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
+    const [sql] = mockDb.runAsync.mock.calls[0];
+    expect(sql).toContain("recovery_rating = NULL");
+    expect(sql).toContain("recovery_checked_at = NULL");
   });
 });

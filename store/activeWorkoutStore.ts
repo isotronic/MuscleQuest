@@ -143,11 +143,14 @@ interface ActiveWorkoutStore {
       userWorkoutExerciseId: number;
       suggestionAction: string;
       suggestedWeight?: number;
+      suggestedRepsPerSet?: number[];
       isApplied: boolean;
     }[],
   ) => void;
   feedbackSubmittedUweIds: number[];
   recordFeedbackSubmitted: (uweId: number) => void;
+  recoveryCheckInShown: boolean;
+  markRecoveryCheckInShown: () => void;
 }
 
 const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
@@ -170,6 +173,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       setDurations: {},
       appendedExerciseIndices: [],
       feedbackSubmittedUweIds: [],
+      recoveryCheckInShown: false,
 
       setWorkout: (workout, planId, workoutId, name) =>
         set({
@@ -190,6 +194,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           setDurations: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
+          recoveryCheckInShown: false,
         }),
 
       startQuickWorkout: () =>
@@ -214,6 +219,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           currentSetStartedAt: null,
           setDurations: {},
           appendedExerciseIndices: [],
+          recoveryCheckInShown: false,
         }),
 
       setCurrentExerciseIndex: (index: number) =>
@@ -289,6 +295,12 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               exercise.sets[toSetIndex]?.isDropSet;
             const currentSetValues =
               weightAndReps[exerciseIndex]?.[fromSetIndex] || {};
+            // A progression suggestion may have already pre-filled the
+            // upcoming set before this transition runs. Preserve it instead
+            // of overwriting it with workout history.
+            const existingNextValues = weightAndReps[exerciseIndex]?.[
+              toSetIndex
+            ];
             const historyExercises =
               previousWorkoutData
                 ?.flatMap((w) => w.exercises)
@@ -307,26 +319,29 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               exTrackingType === "assisted"
                 ? {
                     weight:
-                      isWarmup && !isNextWarmup && !isNextDropSet
+                      existingNextValues?.weight ??
+                      (isWarmup && !isNextWarmup && !isNextDropSet
                         ? nextHistorical?.weight != null
                           ? nextHistorical.weight.toString()
                           : undefined
                         : (isWarmup || isDropSet || isNextDropSet) &&
                             nextHistorical?.weight != null
                           ? nextHistorical.weight.toString()
-                          : currentSetValues.weight,
+                          : currentSetValues.weight),
                     reps:
-                      nextHistorical?.reps !== undefined
+                      existingNextValues?.reps ??
+                      (nextHistorical?.reps !== undefined
                         ? nextHistorical.reps?.toString()
-                        : undefined,
+                        : undefined),
                   }
                 : {}),
               ...(exTrackingType === "reps"
                 ? {
                     reps:
-                      nextHistorical?.reps !== undefined
+                      existingNextValues?.reps ??
+                      (nextHistorical?.reps !== undefined
                         ? nextHistorical.reps?.toString()
-                        : undefined,
+                        : undefined),
                   }
                 : {}),
               ...(exTrackingType === "time"
@@ -493,6 +508,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
 
           const currentSetValues =
             weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
+          // A progression suggestion may have already pre-filled the
+          // upcoming set before this transition runs. Preserve it instead
+          // of overwriting it with workout history.
+          const existingNextValues =
+            weightAndReps[currentExerciseIndex]?.[nextSetIndex];
           const nextSetValues = findHistoricalSetByOrdinal(
             currentExercise.sets,
             nextSetIndex,
@@ -503,43 +523,48 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             ...(trackingType === "weight" || trackingType === ""
               ? {
                   weight:
-                    isWarmup && !isNextWarmup && !isNextDropSet
+                    existingNextValues?.weight ??
+                    (isWarmup && !isNextWarmup && !isNextDropSet
                       ? nextSetValues?.weight != null
                         ? nextSetValues.weight.toString()
                         : undefined
                       : (isWarmup || isDropSet || isNextDropSet) &&
                           nextSetValues?.weight != null
                         ? nextSetValues.weight.toString()
-                        : currentSetValues.weight,
+                        : currentSetValues.weight),
                   reps:
-                    nextSetValues?.reps !== undefined
+                    existingNextValues?.reps ??
+                    (nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
-                      : undefined,
+                      : undefined),
                 }
               : {}),
             ...(trackingType === "assisted"
               ? {
                   weight:
-                    isWarmup && !isNextWarmup && !isNextDropSet
+                    existingNextValues?.weight ??
+                    (isWarmup && !isNextWarmup && !isNextDropSet
                       ? nextSetValues?.weight != null
                         ? nextSetValues.weight.toString()
                         : undefined
                       : (isWarmup || isDropSet || isNextDropSet) &&
                           nextSetValues?.weight != null
                         ? nextSetValues.weight.toString()
-                        : currentSetValues.weight,
+                        : currentSetValues.weight),
                   reps:
-                    nextSetValues?.reps !== undefined
+                    existingNextValues?.reps ??
+                    (nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
-                      : undefined,
+                      : undefined),
                 }
               : {}),
             ...(trackingType === "reps"
               ? {
                   reps:
-                    nextSetValues?.reps !== undefined
+                    existingNextValues?.reps ??
+                    (nextSetValues?.reps !== undefined
                       ? nextSetValues.reps?.toString()
-                      : undefined,
+                      : undefined),
                 }
               : {}),
             ...(trackingType === "time"
@@ -1115,6 +1140,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           setDurations: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
+          recoveryCheckInShown: false,
         });
       },
 
@@ -1281,6 +1307,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           setDurations: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
+          recoveryCheckInShown: false,
         });
         // Clear from AsyncStorage
         AsyncStorage.removeItem("active-workout-store");
@@ -1310,10 +1337,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             if (!suggestion.isApplied) continue;
             if (
               suggestion.suggestionAction !== "increase_load" &&
-              suggestion.suggestionAction !== "reduce_load"
+              suggestion.suggestionAction !== "reduce_load" &&
+              suggestion.suggestionAction !== "increase_reps"
             )
               continue;
-            if (suggestion.suggestedWeight == null) continue;
             const exerciseIndex = state.workout.exercises.findIndex(
               (e) => e.id === suggestion.userWorkoutExerciseId,
             );
@@ -1323,6 +1350,24 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               .map((s, idx) => ({ s, idx }))
               .filter(({ s }) => !s.isWarmup && !s.isDropSet)
               .map(({ idx }) => idx);
+
+            if (suggestion.suggestionAction === "increase_reps") {
+              if (suggestion.suggestedRepsPerSet == null) continue;
+              workingSetIndices.forEach((idx, i) => {
+                const reps = suggestion.suggestedRepsPerSet?.[i];
+                if (reps == null) return;
+                newWeightAndReps[exerciseIndex] = {
+                  ...(newWeightAndReps[exerciseIndex] || {}),
+                  [idx]: {
+                    ...(newWeightAndReps[exerciseIndex]?.[idx] || {}),
+                    reps: reps.toString(),
+                  },
+                };
+              });
+              continue;
+            }
+
+            if (suggestion.suggestedWeight == null) continue;
             const roundedWeight =
               Math.round(suggestion.suggestedWeight * 10) / 10;
             for (const idx of workingSetIndices) {
@@ -1345,6 +1390,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             ? state.feedbackSubmittedUweIds
             : [...state.feedbackSubmittedUweIds, uweId],
         })),
+
+      markRecoveryCheckInShown: () => set({ recoveryCheckInShown: true }),
     }),
     {
       name: "active-workout-store", // Key for AsyncStorage
