@@ -16,6 +16,7 @@ import {
   RecoveryRating,
   UserProgressionIncrements,
 } from "@/types/progression";
+import { computeLayoffReduction } from "@/utils/progressionEngine";
 
 export interface Exercise {
   exercise_id: number;
@@ -2808,6 +2809,7 @@ export const upsertProgressionState = async (
 
 export const getProgressionState = async (
   userWorkoutExerciseId: number,
+  skipLayoffOverride = false,
 ): Promise<ExerciseProgressionState | null> => {
   let db: SQLite.SQLiteDatabase | undefined;
   try {
@@ -2833,8 +2835,51 @@ export const getProgressionState = async (
       is_dismissed: number;
       created_at: string;
       updated_at: string;
+      target_muscle: string;
+      equipment: string;
+      tracking_type_override: string | null;
+      tracking_type: string | null;
+      recent_weight: number | null;
     }>(
-      `SELECT * FROM exercise_progression_state WHERE user_workout_exercise_id = ?`,
+      `SELECT
+        eps.id,
+        eps.user_workout_exercise_id,
+        eps.suggestion_action,
+        eps.suggested_weight,
+        eps.suggested_reps_per_set,
+        eps.suggested_sets,
+        eps.rule_key,
+        eps.rule_explanation,
+        eps.source_feedback_id,
+        eps.recovery_rating,
+        eps.recovery_checked_at,
+        eps.consecutive_direction_count,
+        eps.discomfort_streak_count,
+        eps.consecutive_hold_count,
+        eps.plateau_advisory,
+        eps.last_progression_at,
+        eps.is_applied,
+        eps.is_dismissed,
+        eps.created_at,
+        eps.updated_at,
+        e.target_muscle,
+        e.equipment,
+        uwe.tracking_type_override,
+        e.tracking_type,
+        (
+          SELECT MAX(cs.weight)
+          FROM completed_sets cs
+          JOIN completed_exercises ce ON cs.completed_exercise_id = ce.id
+          JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
+          WHERE ce.exercise_id = e.exercise_id
+            AND cw.workout_id = uwe.workout_id
+            AND cs.is_warmup = 0
+            AND cs.weight IS NOT NULL
+        ) AS recent_weight
+      FROM exercise_progression_state eps
+      JOIN user_workout_exercises uwe ON uwe.id = eps.user_workout_exercise_id
+      JOIN exercises e ON e.exercise_id = uwe.exercise_id
+      WHERE eps.user_workout_exercise_id = ?`,
       [userWorkoutExerciseId],
     );
     if (!row) return null;
@@ -2846,7 +2891,7 @@ export const getProgressionState = async (
         parsedRepsPerSet = undefined;
       }
     }
-    return {
+    const base: ExerciseProgressionState = {
       id: row.id,
       userWorkoutExerciseId: row.user_workout_exercise_id,
       suggestionAction: row.suggestion_action as ProgressionAction,
@@ -2867,6 +2912,39 @@ export const getProgressionState = async (
       isDismissed: row.is_dismissed === 1,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
+    };
+
+    if (skipLayoffOverride) return base;
+
+    const trackingType =
+      row.tracking_type_override ?? row.tracking_type ?? "weight";
+    if (
+      (trackingType !== "weight" && trackingType !== "assisted") ||
+      row.recent_weight == null
+    ) {
+      return base;
+    }
+
+    const daysByMuscle = await getDaysSinceLastWorkoutByMuscle();
+    const days = daysByMuscle[row.target_muscle];
+    if (days == null) return base;
+
+    const settings = await getProgressionSettings();
+    const layoff = computeLayoffReduction(
+      days,
+      row.recent_weight,
+      row.equipment,
+      settings.increments,
+    );
+    if (!layoff) return base;
+
+    return {
+      ...base,
+      suggestionAction: "reduce_load",
+      suggestedWeight: layoff.suggestedWeight,
+      suggestedRepsPerSet: undefined,
+      ruleKey: "MUSCLE_LAYOFF",
+      ruleExplanation: `It's been ${days} days since you trained ${row.target_muscle}. We've suggested a lighter weight to help you ease back in safely.`,
     };
   } catch (error: any) {
     console.error("Error fetching progression state:", error);

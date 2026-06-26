@@ -15,6 +15,7 @@ import {
   fetchAllCustomExercisesForSharing,
   upsertProgressionState,
   getDaysSinceLastWorkoutByMuscle,
+  getProgressionState,
 } from "../database";
 import { ProgressionRuleResult } from "@/types/progression";
 
@@ -544,5 +545,123 @@ describe("getDaysSinceLastWorkoutByMuscle", () => {
     mockDb.getAllAsync.mockResolvedValue([]);
     const result = await getDaysSinceLastWorkoutByMuscle();
     expect(result).toEqual({});
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getProgressionState — muscle-layoff override
+// ---------------------------------------------------------------------------
+
+describe("getProgressionState — muscle-layoff override", () => {
+  const baseRow = {
+    id: 1,
+    user_workout_exercise_id: 42,
+    suggestion_action: "increase_load",
+    suggested_weight: 100,
+    suggested_reps_per_set: null,
+    suggested_sets: null,
+    rule_key: "EASY_TARGET_LOAD",
+    rule_explanation: "You've been hitting targets easily.",
+    source_feedback_id: 7,
+    recovery_rating: null,
+    recovery_checked_at: null,
+    consecutive_direction_count: 1,
+    discomfort_streak_count: 0,
+    consecutive_hold_count: 0,
+    plateau_advisory: 0,
+    last_progression_at: null,
+    is_applied: 0,
+    is_dismissed: 0,
+    created_at: "2026-06-01T00:00:00.000Z",
+    updated_at: "2026-06-01T00:00:00.000Z",
+    target_muscle: "quads",
+    equipment: "barbell",
+    tracking_type_override: null,
+    tracking_type: "weight",
+    recent_weight: 100,
+  };
+
+  function mockSettingsAndMuscleDays(
+    daysByMuscle: Record<string, number>,
+  ) {
+    mockDb.getAllAsync.mockImplementation((sql: string) => {
+      if (sql.includes("GROUP BY e.target_muscle")) {
+        return Promise.resolve(
+          Object.entries(daysByMuscle).map(([target_muscle, days_since]) => ({
+            target_muscle,
+            days_since,
+          })),
+        );
+      }
+      if (sql.includes("FROM settings")) {
+        return Promise.resolve([
+          { key: "adaptive_progression_enabled", value: "1" },
+          { key: "progression_increment_barbell_kg", value: "2.5" },
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+  }
+
+  it("overrides a stale suggestion with a reduce_load suggestion when the target muscle is stale", async () => {
+    mockDb.getFirstAsync.mockResolvedValue(baseRow);
+    mockSettingsAndMuscleDays({ quads: 21 });
+
+    const result = await getProgressionState(42);
+
+    expect(result?.suggestionAction).toBe("reduce_load");
+    // raw = 100 * 0.85 = 85, nearest multiple of 2.5 = 85
+    expect(result?.suggestedWeight).toBe(85);
+    expect(result?.ruleKey).toBe("MUSCLE_LAYOFF");
+    expect(result?.suggestedRepsPerSet).toBeUndefined();
+  });
+
+  it("leaves the original suggestion untouched when the target muscle was trained recently", async () => {
+    mockDb.getFirstAsync.mockResolvedValue(baseRow);
+    mockSettingsAndMuscleDays({ quads: 3 });
+
+    const result = await getProgressionState(42);
+
+    expect(result?.suggestionAction).toBe("increase_load");
+    expect(result?.suggestedWeight).toBe(100);
+    expect(result?.ruleKey).toBe("EASY_TARGET_LOAD");
+  });
+
+  it("skips the override entirely when skipLayoffOverride is true, even if the muscle is stale", async () => {
+    mockDb.getFirstAsync.mockResolvedValue(baseRow);
+    mockSettingsAndMuscleDays({ quads: 21 });
+
+    const result = await getProgressionState(42, true);
+
+    expect(result?.suggestionAction).toBe("increase_load");
+    expect(result?.suggestedWeight).toBe(100);
+  });
+
+  it("does not override exercises with no recent working weight", async () => {
+    mockDb.getFirstAsync.mockResolvedValue({ ...baseRow, recent_weight: null });
+    mockSettingsAndMuscleDays({ quads: 21 });
+
+    const result = await getProgressionState(42);
+
+    expect(result?.suggestionAction).toBe("increase_load");
+  });
+
+  it("does not override reps-tracked exercises", async () => {
+    mockDb.getFirstAsync.mockResolvedValue({
+      ...baseRow,
+      tracking_type: "reps",
+      tracking_type_override: null,
+    });
+    mockSettingsAndMuscleDays({ quads: 21 });
+
+    const result = await getProgressionState(42);
+
+    expect(result?.suggestionAction).toBe("increase_load");
+  });
+
+  it("returns null when there is no progression state row", async () => {
+    mockDb.getFirstAsync.mockResolvedValue(null);
+    const result = await getProgressionState(42);
+    expect(result).toBeNull();
   });
 });
