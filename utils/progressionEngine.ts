@@ -70,6 +70,43 @@ export function computeReducedLoad(currentWeight: number): number {
   return roundWeight(Math.max(0, Math.min(rounded, currentWeight - 0.5)));
 }
 
+/**
+ * Suggests a reduced weight for an exercise whose target muscle hasn't been
+ * trained in 14+ days. Reduction scales linearly from 10% at 14 days to a
+ * 20% cap at 28+ days. The result is rounded to the user's configured
+ * equipment increment (nearest, not floor) so the number is actually
+ * loadable, with a safety step-down if that rounding would erase the
+ * reduction entirely.
+ */
+export function computeLayoffReduction(
+  daysSinceLastWorkout: number,
+  recentWorkingWeight: number,
+  equipment: string,
+  userIncrements: UserProgressionIncrements,
+): { reductionFraction: number; suggestedWeight: number } | null {
+  if (daysSinceLastWorkout < 14 || recentWorkingWeight <= 0) return null;
+
+  const cappedDays = Math.min(daysSinceLastWorkout, 28);
+  const reductionFraction = 0.1 + ((cappedDays - 14) / 14) * 0.1;
+  const rawReduced = recentWorkingWeight * (1 - reductionFraction);
+
+  const increment = computeLoadIncrement(equipment, userIncrements);
+  let suggestedWeight: number;
+  if (increment > 0) {
+    suggestedWeight = Math.round(rawReduced / increment) * increment;
+    if (suggestedWeight >= recentWorkingWeight) {
+      suggestedWeight -= increment;
+    }
+  } else {
+    suggestedWeight = Math.floor(rawReduced / 0.5) * 0.5;
+  }
+
+  return {
+    reductionFraction,
+    suggestedWeight: roundWeight(Math.max(0, suggestedWeight)),
+  };
+}
+
 function getWorkingSets(sets: PlanSet[]): PlanSet[] {
   return sets.filter((s) => !s.isWarmup && !s.isDropSet);
 }
