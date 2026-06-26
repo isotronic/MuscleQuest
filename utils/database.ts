@@ -2983,6 +2983,39 @@ export const getPendingRecoveryCheckIns = async (
   }
 };
 
+export const getDaysSinceLastWorkoutByMuscle = async (): Promise<
+  Record<string, number>
+> => {
+  let db: SQLite.SQLiteDatabase | undefined;
+  try {
+    db = await openDatabase("userData.db");
+    const rows = await db.getAllAsync<{
+      target_muscle: string;
+      days_since: number;
+    }>(
+      `SELECT
+        e.target_muscle AS target_muscle,
+        CAST((julianday('now') - julianday(MAX(cw.date_completed))) AS INTEGER) AS days_since
+       FROM completed_exercises ce
+       JOIN completed_workouts cw ON cw.id = ce.completed_workout_id
+       JOIN exercises e ON e.exercise_id = ce.exercise_id
+       WHERE ce.is_deleted = 0 AND cw.is_deleted = 0
+       GROUP BY e.target_muscle`,
+    );
+    const result: Record<string, number> = {};
+    for (const row of rows) {
+      result[row.target_muscle] = row.days_since;
+    }
+    return result;
+  } catch (error: any) {
+    console.error("Error fetching days since last workout by muscle:", error);
+    Bugsnag.notify(error);
+    throw error;
+  } finally {
+    if (db) await db.closeAsync();
+  }
+};
+
 export interface ExerciseProgressionContext {
   exerciseId: number;
   trackingType: string;

@@ -14,6 +14,7 @@ import {
   fetchAllStandaloneWorkoutIds,
   fetchAllCustomExercisesForSharing,
   upsertProgressionState,
+  getDaysSinceLastWorkoutByMuscle,
 } from "../database";
 import { ProgressionRuleResult } from "@/types/progression";
 
@@ -517,5 +518,31 @@ describe("upsertProgressionState", () => {
     const [sql] = mockDb.runAsync.mock.calls[0];
     expect(sql).toContain("recovery_rating = NULL");
     expect(sql).toContain("recovery_checked_at = NULL");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getDaysSinceLastWorkoutByMuscle
+// ---------------------------------------------------------------------------
+
+describe("getDaysSinceLastWorkoutByMuscle", () => {
+  it("returns a map of target_muscle to days since last trained", async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { target_muscle: "quads", days_since: 20 },
+      { target_muscle: "pecs", days_since: 3 },
+    ]);
+
+    const result = await getDaysSinceLastWorkoutByMuscle();
+
+    expect(result).toEqual({ quads: 20, pecs: 3 });
+    expect(mockDb.getAllAsync).toHaveBeenCalledWith(
+      expect.stringContaining("GROUP BY e.target_muscle"),
+    );
+  });
+
+  it("returns an empty object when there is no completed workout history", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+    const result = await getDaysSinceLastWorkoutByMuscle();
+    expect(result).toEqual({});
   });
 });
