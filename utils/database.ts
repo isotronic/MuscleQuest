@@ -3153,7 +3153,7 @@ export const getExerciseProgressionContext = async (
       userWorkoutExerciseId,
       1,
     );
-    const state = await getProgressionState(userWorkoutExerciseId);
+    const state = await getProgressionState(userWorkoutExerciseId, true);
 
     return {
       exerciseId: row.exercise_id,

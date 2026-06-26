@@ -369,6 +369,7 @@ export default function WorkoutSessionScreen() {
 
   const { data: currentProgressionState } = useProgressionStateQuery(
     currentExercise?.id,
+    isCurrentWeekDeload,
   );
   const currentSetCompleted =
     completedSets[currentExerciseIndex] &&

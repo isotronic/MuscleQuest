@@ -195,6 +195,7 @@ export default function WorkoutOverviewScreen() {
     progressionSettings.enabled
       ? (activeWorkout?.workoutId ?? undefined)
       : undefined,
+    isCurrentWeekDeload,
   );
 
   useEffect(() => {
