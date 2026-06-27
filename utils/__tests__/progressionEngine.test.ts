@@ -1,6 +1,7 @@
 import {
   computeLoadIncrement,
   computeReducedLoad,
+  computeLayoffReduction,
   evaluateProgression,
 } from "../progressionEngine";
 import {
@@ -157,6 +158,72 @@ describe("computeReducedLoad", () => {
     [10, 20, 50, 80, 100, 120].forEach((w) => {
       expect(computeReducedLoad(w)).toBeLessThanOrEqual(w - 0.5);
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeLayoffReduction
+// ---------------------------------------------------------------------------
+describe("computeLayoffReduction", () => {
+  it("returns null when the layoff is under 14 days", () => {
+    expect(
+      computeLayoffReduction(13, 100, "barbell", DEFAULT_INCREMENTS),
+    ).toBeNull();
+  });
+
+  it("returns null when there is no positive recent working weight", () => {
+    expect(
+      computeLayoffReduction(20, 0, "barbell", DEFAULT_INCREMENTS),
+    ).toBeNull();
+    expect(
+      computeLayoffReduction(20, -5, "barbell", DEFAULT_INCREMENTS),
+    ).toBeNull();
+  });
+
+  it("applies a 10% reduction at exactly 14 days, rounded to the nearest barbell increment", () => {
+    const result = computeLayoffReduction(14, 100, "barbell", DEFAULT_INCREMENTS);
+    expect(result?.reductionFraction).toBe(0.1);
+    // raw = 90, nearest multiple of 2.5 = 90
+    expect(result?.suggestedWeight).toBe(90);
+  });
+
+  it("applies a 15% reduction at the midpoint (21 days)", () => {
+    const result = computeLayoffReduction(21, 100, "barbell", DEFAULT_INCREMENTS);
+    expect(result?.reductionFraction).toBeCloseTo(0.15);
+    // raw = 85, nearest multiple of 2.5 = 85
+    expect(result?.suggestedWeight).toBe(85);
+  });
+
+  it("caps the reduction at 20% for a 28-day layoff", () => {
+    const result = computeLayoffReduction(28, 100, "barbell", DEFAULT_INCREMENTS);
+    expect(result?.reductionFraction).toBeCloseTo(0.2);
+    // raw = 80, nearest multiple of 2.5 = 80
+    expect(result?.suggestedWeight).toBe(80);
+  });
+
+  it("caps the reduction at 20% for layoffs longer than 28 days", () => {
+    const result = computeLayoffReduction(90, 100, "barbell", DEFAULT_INCREMENTS);
+    expect(result?.reductionFraction).toBeCloseTo(0.2);
+    expect(result?.suggestedWeight).toBe(80);
+  });
+
+  it("steps down one more increment when rounding to nearest would erase the reduction", () => {
+    // weight=10, 10% off = raw 9. Nearest multiple of 2.5 to 9 is 10 (>= original),
+    // so it must step down to 10 - 2.5 = 7.5 instead of returning 10 unchanged.
+    const result = computeLayoffReduction(14, 10, "barbell", DEFAULT_INCREMENTS);
+    expect(result?.suggestedWeight).toBe(7.5);
+  });
+
+  it("falls back to 0.5 rounding when the equipment has no configured increment", () => {
+    // "kettlebell" returns 0 from computeLoadIncrement
+    const result = computeLayoffReduction(14, 100, "kettlebell", DEFAULT_INCREMENTS);
+    // raw = 90, floored to nearest 0.5 = 90
+    expect(result?.suggestedWeight).toBe(90);
+  });
+
+  it("never returns a negative suggested weight", () => {
+    const result = computeLayoffReduction(28, 1, "barbell", DEFAULT_INCREMENTS);
+    expect(result?.suggestedWeight).toBeGreaterThanOrEqual(0);
   });
 });
 
@@ -520,6 +587,41 @@ describe("evaluateProgression — easy on target", () => {
           performanceRatio: 1.0,
         }),
         currentSets: [setWith12Max],
+        completedRepsPerSet: [10],
+      }),
+    );
+    expect(result.action).toBe("increase_reps");
+    expect(result.ruleKey).toBe("EASY_TARGET_REPS");
+    expect(result.suggestedRepsPerSet).toEqual([11]);
+  });
+
+  it("EASY_TARGET_REPS: ignores drop sets when matching completedRepsPerSet to working sets", () => {
+    const setWith12Max: Set = {
+      repsMin: 8,
+      repsMax: 12,
+      restMinutes: 2,
+      restSeconds: 0,
+      time: undefined,
+      isWarmup: false,
+    };
+    const dropSet: Set = {
+      repsMin: 8,
+      repsMax: 12,
+      restMinutes: 0,
+      restSeconds: 30,
+      time: undefined,
+      isWarmup: false,
+      isDropSet: true,
+    };
+    // completedRepsPerSet only covers the one true working set, matching
+    // how the caller builds it (warmups and drop sets excluded).
+    const result = evaluateProgression(
+      makeInputs({
+        latestFeedback: makeFeedback({
+          effortRating: "easy",
+          performanceRatio: 1.0,
+        }),
+        currentSets: [setWith12Max, dropSet],
         completedRepsPerSet: [10],
       }),
     );

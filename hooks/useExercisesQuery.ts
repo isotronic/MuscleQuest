@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchAllRecords, openDatabase } from "@/utils/database";
 import { Exercise } from "@/utils/database";
+import type { SQLiteDatabase } from "expo-sqlite";
 import Bugsnag from "@bugsnag/expo";
 
 interface ExercisesResult {
@@ -38,8 +39,9 @@ const fetchAndSortExercises = async (
   if (includeActivePlan) {
     let activePlanExercises: { exercise_id: number }[] = [];
 
+    let db: SQLiteDatabase | undefined;
     try {
-      const db = await openDatabase("userData.db");
+      db = await openDatabase("userData.db");
 
       // Fetch exercise IDs linked to the active plan's workouts
       activePlanExercises = (await db.getAllAsync(`
@@ -66,6 +68,14 @@ const fetchAndSortExercises = async (
     } catch (error: any) {
       console.error("Error fetching active plan exercises", error);
       Bugsnag.notify(error);
+    } finally {
+      if (db) {
+        try {
+          await db.closeAsync();
+        } catch (closeError: any) {
+          Bugsnag.notify(closeError);
+        }
+      }
     }
   }
 

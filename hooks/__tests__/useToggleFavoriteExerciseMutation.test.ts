@@ -3,8 +3,11 @@ import { openDatabase } from "@/utils/database";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const mockRunAsync = jest.fn().mockResolvedValue(undefined);
+const mockCloseAsync = jest.fn().mockResolvedValue(undefined);
 jest.mock("@/utils/database", () => ({
-  openDatabase: jest.fn(() => Promise.resolve({ runAsync: mockRunAsync })),
+  openDatabase: jest.fn(() =>
+    Promise.resolve({ runAsync: mockRunAsync, closeAsync: mockCloseAsync }),
+  ),
 }));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -23,7 +26,11 @@ describe("useToggleFavoriteExerciseMutation", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRunAsync.mockResolvedValue(undefined);
-    (openDatabase as jest.Mock).mockResolvedValue({ runAsync: mockRunAsync });
+    mockCloseAsync.mockResolvedValue(undefined);
+    (openDatabase as jest.Mock).mockResolvedValue({
+      runAsync: mockRunAsync,
+      closeAsync: mockCloseAsync,
+    });
     (useQueryClient as jest.Mock).mockReturnValue({
       invalidateQueries: mockInvalidateQueries,
     });
@@ -40,6 +47,7 @@ describe("useToggleFavoriteExerciseMutation", () => {
 
     expect(mockRunAsync).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE exercises"),
+      expect.any(Array),
     );
   });
 
@@ -48,9 +56,10 @@ describe("useToggleFavoriteExerciseMutation", () => {
 
     await capturedArgs.mutationFn({ exerciseId: 42, currentStatus: 0 });
 
-    const sql = mockRunAsync.mock.calls[0][0];
-    expect(sql).toContain("favorite = 1");
-    expect(sql).toContain("WHERE exercise_id = 42");
+    const [sql, params] = mockRunAsync.mock.calls[0];
+    expect(sql).toContain("favorite = ?");
+    expect(sql).toContain("WHERE exercise_id = ?");
+    expect(params).toEqual([1, 42]);
   });
 
   it("mutationFn sets favorite to 0 when currentStatus is 1", async () => {
@@ -58,9 +67,10 @@ describe("useToggleFavoriteExerciseMutation", () => {
 
     await capturedArgs.mutationFn({ exerciseId: 42, currentStatus: 1 });
 
-    const sql = mockRunAsync.mock.calls[0][0];
-    expect(sql).toContain("favorite = 0");
-    expect(sql).toContain("WHERE exercise_id = 42");
+    const [sql, params] = mockRunAsync.mock.calls[0];
+    expect(sql).toContain("favorite = ?");
+    expect(sql).toContain("WHERE exercise_id = ?");
+    expect(params).toEqual([0, 42]);
   });
 
   it("onSuccess invalidates ['exercises'] and ['exercise-info', exerciseId]", () => {

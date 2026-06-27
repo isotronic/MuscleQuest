@@ -29,6 +29,7 @@ import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
 import RestDayCard from "@/components/RestDayCard";
 import WorkoutDoneCard from "@/components/WorkoutDoneCard";
 import WeeklySummaryCard from "@/components/WeeklySummaryCard";
+import WorkoutPickerModal from "@/components/WorkoutPickerModal";
 import {
   computeWeeklyTargets,
   prioritizeScheduledWorkout,
@@ -66,6 +67,7 @@ export default function HomeScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
+  const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
   const [pickerWorkouts, setPickerWorkouts] = useState<CompletedWorkout[]>([]);
   const user = useContext(AuthContext);
   const userName = user?.displayName
@@ -588,6 +590,7 @@ export default function HomeScreen() {
         <View style={styles.buttonContainer}>
           <Button
             mode="outlined"
+            icon="lightning-bolt"
             textColor={colors.accent}
             onPress={() => {
               if (isStartingWorkout) return;
@@ -600,8 +603,25 @@ export default function HomeScreen() {
           >
             <Trans>Quick Workout</Trans>
           </Button>
+          <Button
+            mode="outlined"
+            icon="format-list-bulleted"
+            textColor={colors.accent}
+            onPress={() => setShowWorkoutPicker(true)}
+            style={styles.startWorkoutButton}
+            labelStyle={styles.buttonLabel}
+          >
+            <Trans>Choose Workout</Trans>
+          </Button>
         </View>
       </ScrollView>
+      {showWorkoutPicker && (
+        <WorkoutPickerModal
+          visible={showWorkoutPicker}
+          onDismiss={() => setShowWorkoutPicker(false)}
+          setIsStartingWorkout={setIsStartingWorkout}
+        />
+      )}
     </ThemedView>
   );
 }
@@ -703,6 +723,7 @@ function createStyles(colors: AppThemeColors) {
       paddingVertical: 0,
     },
     buttonContainer: {
+      gap: 12,
       padding: 16,
     },
     startWorkoutButton: {

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CompletedWorkout } from "./useCompletedWorkoutsQuery";
 import { Alert } from "react-native";
 import { openDatabase } from "@/utils/database";
+import type { SQLiteDatabase } from "expo-sqlite";
 import Bugsnag from "@bugsnag/expo";
 
 const saveCompletedWorkoutWithConversion = async (
@@ -25,8 +26,9 @@ const saveCompletedWorkoutWithConversion = async (
     })),
   }));
 
+  let db: SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     for (const exercise of workoutDataConverted) {
       for (const set of exercise.sets) {
         await db.runAsync(
@@ -39,6 +41,8 @@ const saveCompletedWorkoutWithConversion = async (
     console.error("Error saving edited workout:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 

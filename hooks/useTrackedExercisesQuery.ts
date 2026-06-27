@@ -1,4 +1,5 @@
 import { openDatabase } from "@/utils/database";
+import type { SQLiteDatabase } from "expo-sqlite";
 import Bugsnag from "@bugsnag/expo";
 import { useQuery } from "@tanstack/react-query";
 
@@ -52,8 +53,9 @@ const fetchTrackedExercises = async (
   doubleWeightForPaired: boolean = false,
   excludeDeload: boolean = false,
 ): Promise<TrackedExerciseWithSets[]> => {
+  let db: SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     // Determine the current effective tracking type per exercise via a correlated
     // subquery over user_workout_exercises. This avoids the per-session uwe join
     // (uwe.workout_id = cw.workout_id) which fails when an old completed workout
@@ -244,6 +246,14 @@ const fetchTrackedExercises = async (
     console.error("Error fetching tracked exercises:", error);
     Bugsnag.notify(error);
     return [];
+  } finally {
+    if (db) {
+      try {
+        await db.closeAsync();
+      } catch (closeError: any) {
+        Bugsnag.notify(closeError);
+      }
+    }
   }
 };
 

@@ -56,14 +56,19 @@ function formatLastProgression(isoDate: string | null | undefined): string {
 interface ProgressionSummaryCardProps {
   workoutId: number;
   weightUnit: string;
+  isCurrentWeekDeload?: boolean;
 }
 
 export default function ProgressionSummaryCard({
   workoutId,
   weightUnit,
+  isCurrentWeekDeload = false,
 }: ProgressionSummaryCardProps) {
   const { colors } = useAppTheme();
-  const { data: states } = useWorkoutProgressionStatesQuery(workoutId);
+  const { data: states } = useWorkoutProgressionStatesQuery(
+    workoutId,
+    isCurrentWeekDeload,
+  );
   const { applyMutation, dismissMutation } = useApplyProgressionMutation();
 
   const actionable = (states ?? []).filter(

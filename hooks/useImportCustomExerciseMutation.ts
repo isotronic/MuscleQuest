@@ -8,29 +8,33 @@ export const useImportCustomExerciseMutation = () => {
   return useMutation({
     mutationFn: async (exercise: SharedCustomExercise): Promise<number> => {
       const db = await openDatabase("userData.db");
-      const existing = await db.getFirstAsync<{ exercise_id: number }>(
-        "SELECT exercise_id FROM exercises WHERE app_exercise_id IS NULL AND name = ? LIMIT 1",
-        [exercise.name],
-      );
-      if (existing) return existing.exercise_id;
+      try {
+        const existing = await db.getFirstAsync<{ exercise_id: number }>(
+          "SELECT exercise_id FROM exercises WHERE app_exercise_id IS NULL AND name = ? LIMIT 1",
+          [exercise.name],
+        );
+        if (existing) return existing.exercise_id;
 
-      const result = await db.runAsync(
-        `INSERT INTO exercises (app_exercise_id, name, body_part, target_muscle, equipment, secondary_muscles, description, tracking_type, is_unilateral, double_weight, animated_url)
+        const result = await db.runAsync(
+          `INSERT INTO exercises (app_exercise_id, name, body_part, target_muscle, equipment, secondary_muscles, description, tracking_type, is_unilateral, double_weight, animated_url)
          VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          exercise.name,
-          exercise.bodyPart,
-          exercise.targetMuscle,
-          exercise.equipment,
-          JSON.stringify(exercise.secondaryMuscles),
-          exercise.description,
-          exercise.trackingType,
-          exercise.isUnilateral ? 1 : 0,
-          exercise.doubleWeight ? 1 : 0,
-          exercise.animatedUrl,
-        ],
-      );
-      return result.lastInsertRowId;
+          [
+            exercise.name,
+            exercise.bodyPart,
+            exercise.targetMuscle,
+            exercise.equipment,
+            JSON.stringify(exercise.secondaryMuscles),
+            exercise.description,
+            exercise.trackingType,
+            exercise.isUnilateral ? 1 : 0,
+            exercise.doubleWeight ? 1 : 0,
+            exercise.animatedUrl,
+          ],
+        );
+        return result.lastInsertRowId;
+      } finally {
+        await db.closeAsync();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["exercises"] });

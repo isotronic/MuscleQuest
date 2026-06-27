@@ -6,6 +6,7 @@ import {
   updateSettings,
   updateWorkoutPlan,
 } from "@/utils/database";
+import type { SQLiteDatabase } from "expo-sqlite";
 import { useEffect, useState, useContext } from "react";
 import { Alert } from "react-native";
 import { Plan } from "./useAllPlansQuery";
@@ -96,9 +97,10 @@ export const useCreatePlan = (existingPlan?: Plan) => {
 
       // Save schedule: resolve workout array indices to IDs
       if (Object.keys(planSchedule).length > 0) {
+        let scheduleDb: SQLiteDatabase | undefined;
         try {
-          const db = await openDatabase("userData.db");
-          const rows = await db.getAllAsync<{ id: number }>(
+          scheduleDb = await openDatabase("userData.db");
+          const rows = await scheduleDb.getAllAsync<{ id: number }>(
             `SELECT id FROM user_workouts WHERE plan_id = ? AND is_deleted = FALSE ORDER BY workout_order ASC`,
             [savedPlanId],
           );
@@ -114,7 +116,7 @@ export const useCreatePlan = (existingPlan?: Plan) => {
             queryKey: ["planSchedule", savedPlanId],
           });
           // Sync weeklyGoal if this is the currently active plan
-          const activePlan = await db.getFirstAsync<{ id: number }>(
+          const activePlan = await scheduleDb.getFirstAsync<{ id: number }>(
             `SELECT id FROM user_plans WHERE is_active = TRUE LIMIT 1`,
           );
           if (activePlan?.id === savedPlanId) {
@@ -125,6 +127,14 @@ export const useCreatePlan = (existingPlan?: Plan) => {
           console.error("Error saving plan schedule:", scheduleError);
           Bugsnag.notify(scheduleError);
           // Non-critical: don't fail the whole save
+        } finally {
+          if (scheduleDb) {
+            try {
+              await scheduleDb.closeAsync();
+            } catch (closeError: any) {
+              Bugsnag.notify(closeError);
+            }
+          }
         }
       } else {
         // Clear any existing schedule if editor was emptied

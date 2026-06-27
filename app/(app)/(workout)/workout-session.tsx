@@ -369,6 +369,7 @@ export default function WorkoutSessionScreen() {
 
   const { data: currentProgressionState } = useProgressionStateQuery(
     currentExercise?.id,
+    isCurrentWeekDeload,
   );
   const currentSetCompleted =
     completedSets[currentExerciseIndex] &&
@@ -1047,6 +1048,10 @@ export default function WorkoutSessionScreen() {
     if (!workout) return null;
     const exercise = workout.exercises[exIdx];
     if (!exercise?.id) return null;
+    // Once feedback is submitted for this exercise, don't queue it again this
+    // session (e.g. if the "all sets done" check below re-evaluates true via
+    // a superset partner's later sets).
+    if (feedbackSubmittedUweIds.includes(exercise.id)) return null;
 
     const trackingType = resolvedTrackingType(exercise);
 
@@ -1070,13 +1075,24 @@ export default function WorkoutSessionScreen() {
       if (!hasRange) return null;
     }
 
-    const allWorkingSetsDone = workingSets.every(
+    // Gate on every non-warmup set, including drop sets, so the sheet waits
+    // until the whole exercise (drop sets included) is finished. The
+    // performance/rep calculations below still use workingSets only, since
+    // drop sets aren't part of the progression target.
+    const allNonWarmupSets = exercise.sets
+      .map((set, idx) => ({ set, idx }))
+      .filter(({ set }) => !set.isWarmup);
+    const allSetsDone = allNonWarmupSets.every(
       ({ idx }) => simulatedCompleted[exIdx]?.[idx] === true,
     );
-    if (!allWorkingSetsDone) return null;
+    if (!allSetsDone) return null;
 
+    // Use repsMin (the floor you must clear to be "on target") rather than
+    // repsMax (the ceiling), so there's room between hitting the target and
+    // maxing out the range for a reps-increase suggestion instead of jumping
+    // straight to a load increase.
     const targetReps = workingSets.reduce(
-      (sum, { set }) => sum + (set.repsMax ?? set.repsMin ?? 0),
+      (sum, { set }) => sum + (set.repsMin ?? set.repsMax ?? 0),
       0,
     );
     const actualReps = workingSets.reduce((sum, { idx }) => {

@@ -8,44 +8,50 @@ export const ensureAppExercisesExist = async (
   appExerciseIds: number[],
 ): Promise<void> => {
   const appDb = await openDatabase("appData3.db");
-  for (const appId of appExerciseIds) {
-    const exists = await userDb.getFirstAsync(
-      "SELECT exercise_id FROM exercises WHERE app_exercise_id = ? LIMIT 1",
-      [appId],
-    );
-    if (!exists) {
-      const row = await appDb.getFirstAsync<Record<string, any>>(
-        "SELECT * FROM exercises WHERE exercise_id = ? LIMIT 1",
+  try {
+    for (const appId of appExerciseIds) {
+      const exists = await userDb.getFirstAsync(
+        "SELECT exercise_id FROM exercises WHERE app_exercise_id = ? LIMIT 1",
         [appId],
       );
-      if (row) {
-        await userDb.runAsync(
-          `INSERT INTO exercises (app_exercise_id, name, image, local_animated_uri, animated_url, equipment, body_part, target_muscle, secondary_muscles, description, is_deleted, tracking_type, is_unilateral, double_weight)
+      if (!exists) {
+        const row = await appDb.getFirstAsync<Record<string, any>>(
+          "SELECT * FROM exercises WHERE exercise_id = ? LIMIT 1",
+          [appId],
+        );
+        if (row) {
+          await userDb.runAsync(
+            `INSERT INTO exercises (app_exercise_id, name, image, local_animated_uri, animated_url, equipment, body_part, target_muscle, secondary_muscles, description, is_deleted, tracking_type, is_unilateral, double_weight)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            row.exercise_id,
-            row.name,
-            row.image ?? null,
-            row.local_animated_uri ?? null,
-            row.animated_url ?? null,
-            row.equipment ?? null,
-            row.body_part ?? null,
-            row.target_muscle ?? null,
-            row.secondary_muscles ?? null,
-            row.description ?? null,
-            row.is_deleted ?? 0,
-            row.tracking_type ?? null,
-            row.is_unilateral ?? null,
-            row.double_weight ?? null,
-          ],
-        );
-        console.log(`Copied exercise app_exercise_id=${appId} to userData.db`);
-      } else {
-        console.warn(
-          `Exercise with app_exercise_id=${appId} not found in appData3.db`,
-        );
+            [
+              row.exercise_id,
+              row.name,
+              row.image ?? null,
+              row.local_animated_uri ?? null,
+              row.animated_url ?? null,
+              row.equipment ?? null,
+              row.body_part ?? null,
+              row.target_muscle ?? null,
+              row.secondary_muscles ?? null,
+              row.description ?? null,
+              row.is_deleted ?? 0,
+              row.tracking_type ?? null,
+              row.is_unilateral ?? null,
+              row.double_weight ?? null,
+            ],
+          );
+          console.log(
+            `Copied exercise app_exercise_id=${appId} to userData.db`,
+          );
+        } else {
+          console.warn(
+            `Exercise with app_exercise_id=${appId} not found in appData3.db`,
+          );
+        }
       }
     }
+  } finally {
+    await appDb.closeAsync();
   }
 };
 
@@ -137,8 +143,9 @@ const insertPlans = async (db: SQLiteDatabase, plans: Plan[]) => {
 
 export const loadPremadePlans = async () => {
   let dataVersion: number | null = null;
+  let db: SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db"); // Open the database
+    db = await openDatabase("userData.db"); // Open the database
     const versionResult = await db.getFirstAsync<{ value: string }>(
       `SELECT value FROM settings WHERE key = ? LIMIT 1`,
       ["dataVersion"],
@@ -206,5 +213,7 @@ export const loadPremadePlans = async () => {
     Bugsnag.notify(error);
     console.error("Error loading or inserting premade plans:", error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };

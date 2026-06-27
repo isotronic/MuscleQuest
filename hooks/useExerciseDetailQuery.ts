@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
+import type { SQLiteDatabase } from "expo-sqlite";
 import Bugsnag from "@bugsnag/expo";
 import {
   TrackedExerciseWithSets,
@@ -68,8 +69,9 @@ const fetchExerciseDetail = async (
   doubleWeightForPaired = false,
   excludeDeload = false,
 ): Promise<ExerciseDetail | null> => {
+  let db: SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const warmupFilter = excludeWarmup
       ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)"
       : "";
@@ -285,6 +287,14 @@ const fetchExerciseDetail = async (
     Bugsnag.notify(error);
     console.error("Error fetching exercise detail:", error);
     throw error;
+  } finally {
+    if (db) {
+      try {
+        await db.closeAsync();
+      } catch (closeError: any) {
+        Bugsnag.notify(closeError);
+      }
+    }
   }
 };
 

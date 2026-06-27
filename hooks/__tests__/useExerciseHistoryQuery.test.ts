@@ -73,7 +73,10 @@ describe("useExerciseHistoryQuery — queryFn", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDb = { getAllAsync: jest.fn() };
+    mockDb = {
+      getAllAsync: jest.fn(),
+      closeAsync: jest.fn().mockResolvedValue(undefined),
+    };
     (openDatabase as jest.Mock).mockResolvedValue(mockDb);
     (useQuery as jest.Mock).mockImplementation((args: any) => {
       capturedArgs = args;

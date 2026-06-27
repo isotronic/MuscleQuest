@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
+import type { SQLiteDatabase } from "expo-sqlite";
 import Bugsnag from "@bugsnag/expo";
 
 export interface HistorySet {
@@ -44,7 +45,21 @@ const fetchExerciseHistory = async (
   exerciseId: number,
 ): Promise<ExerciseHistory> => {
   const db = await openDatabase("userData.db");
+  try {
+    return await fetchExerciseHistoryBody(db, exerciseId);
+  } finally {
+    try {
+      await db.closeAsync();
+    } catch (closeError: any) {
+      Bugsnag.notify(closeError);
+    }
+  }
+};
 
+const fetchExerciseHistoryBody = async (
+  db: SQLiteDatabase,
+  exerciseId: number,
+): Promise<ExerciseHistory> => {
   // Two-level CTE:
   // 1. sets_with_bw — joins sets/workouts and looks up the closest historical
   //    body weight (on or before the workout date) from body_measurements.

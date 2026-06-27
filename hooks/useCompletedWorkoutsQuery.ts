@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
+import type { SQLiteDatabase } from "expo-sqlite";
 import Bugsnag from "@bugsnag/expo";
 
 interface WorkoutResult {
@@ -63,8 +64,9 @@ const fetchCompletedWorkouts = async (
   startDate?: string,
   endDate?: string,
 ): Promise<WorkoutResult[]> => {
+  let db: SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     let query = `
       SELECT
         completed_workouts.id,
@@ -122,6 +124,8 @@ const fetchCompletedWorkouts = async (
     console.error("Error fetching completed workouts:", error);
     Bugsnag.notify(error);
     throw new Error("Failed to fetch completed workouts");
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -288,8 +292,9 @@ const fetchWorkoutHistoryForSession = async (
   weightUnit: string,
   distanceUnit: string,
 ): Promise<CompletedWorkout[]> => {
+  let db: SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
     const distanceConversionFactor = distanceUnit === "ft" ? 3.28084 : 1;
 
@@ -419,6 +424,8 @@ const fetchWorkoutHistoryForSession = async (
     console.error("Error fetching workout session history:", error);
     Bugsnag.notify(error);
     throw new Error("Failed to fetch workout session history");
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -443,8 +450,9 @@ const fetchGlobalExerciseHistoryForSession = async (
 ): Promise<CompletedWorkout[]> => {
   if (exerciseIds.length === 0) return [];
 
+  let db: SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
     const distanceConversionFactor = distanceUnit === "ft" ? 3.28084 : 1;
     const placeholders = exerciseIds.map(() => "?").join(", ");
@@ -581,6 +589,8 @@ const fetchGlobalExerciseHistoryForSession = async (
     console.error("Error fetching global exercise history:", error);
     Bugsnag.notify(error);
     throw new Error("Failed to fetch global exercise history");
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 

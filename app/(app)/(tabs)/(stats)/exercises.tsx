@@ -17,6 +17,7 @@ import ExerciseSortChips, {
   type SortMode,
 } from "@/components/ExerciseSortChips";
 import { openDatabase } from "@/utils/database";
+import type { SQLiteDatabase } from "expo-sqlite";
 import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 import { useAppTheme, radii } from "@/theme";
@@ -71,8 +72,9 @@ export default function ExercisesScreen() {
   }, []);
 
   const handleAddExercise = async () => {
+    let db: SQLiteDatabase | undefined;
     try {
-      const db = await openDatabase("userData.db");
+      db = await openDatabase("userData.db");
       // Fetch already tracked exercises
       const trackedExercises = (await db.getAllAsync(`
         SELECT exercise_id FROM tracked_exercises
@@ -116,6 +118,8 @@ export default function ExercisesScreen() {
     } catch (error: any) {
       console.error("Error saving exercises for tracking:", error);
       Bugsnag.notify(error);
+    } finally {
+      if (db) await db.closeAsync();
     }
   };
 

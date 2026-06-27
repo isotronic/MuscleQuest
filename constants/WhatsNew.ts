@@ -328,6 +328,24 @@ You can now duplicate any of your training plans directly from the plan overview
 Adding a drop set during a session now appends a brand new set rather than flagging the current one, giving you full control over your drop set structure. The new set is pre-filled with weight and 10 second rest time automatically.
 `,
   },
+  {
+    version: 2638,
+    message: msg`
+🏋️ New: Choose Workout from the Home Screen!
+
+Tap the new "Choose Workout" button next to Quick Workout to search and browse every workout across your plans and standalone library, then start any one of them instantly.
+`,
+  },
+  {
+    version: 2639,
+    message: msg`
+📉 New: Layoff-Aware Weight Suggestions!
+
+Haven't trained a muscle group in 2 or more weeks? Adaptive Progression now suggests a lighter starting weight to help you ease back in safely, scaling the reduction from 10% to 20% the longer you've been away. It respects a manually flagged Deload Week, so the two never stack.
+
+We also fixed a batch of Adaptive Progression bugs: rep-increase suggestions now show up properly instead of only weight ones, the Recovery Check-in appears reliably even if you close the app mid-workout, and feedback prompts no longer repeat during drop sets.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

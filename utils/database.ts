@@ -16,6 +16,7 @@ import {
   RecoveryRating,
   UserProgressionIncrements,
 } from "@/types/progression";
+import { computeLayoffReduction } from "@/utils/progressionEngine";
 
 export interface Exercise {
   exercise_id: number;
@@ -61,7 +62,11 @@ export interface SavedWorkout {
 export const openDatabase = async (
   databaseName: string,
 ): Promise<SQLite.SQLiteDatabase> => {
-  return await SQLite.openDatabaseAsync(databaseName);
+  const db = await SQLite.openDatabaseAsync(databaseName, {
+    useNewConnection: true,
+  });
+  await db.execAsync("PRAGMA busy_timeout = 3000;");
+  return db;
 };
 
 interface SQLiteRow {
@@ -127,227 +132,245 @@ export const updateAppExerciseIds = async (): Promise<void> => {
     console.error("Error updating app_exercise_id:", error);
     Bugsnag.notify(error);
     await userDataDB.execAsync("ROLLBACK");
+  } finally {
+    await userDataDB.closeAsync();
   }
 };
 
 export const copyDataFromAppDataToUserData = async (): Promise<void> => {
-  const appDataDB = await openDatabase("appData3.db");
-  const userDataDB = await openDatabase("userData.db");
+  let appDataDB: SQLite.SQLiteDatabase | undefined;
+  let userDataDB: SQLite.SQLiteDatabase | undefined;
+  try {
+    appDataDB = await openDatabase("appData3.db");
+    userDataDB = await openDatabase("userData.db");
 
-  interface ExerciseCheckResult {
-    app_exercise_id: number | null;
-    name: string;
-    image: Uint8Array | null;
-    description: string | null;
-    animated_url: string | null;
-    equipment: string | null;
-    tracking_type: string | null;
-    is_deleted: number;
-    is_unilateral?: boolean;
-    double_weight?: boolean;
-  }
+    interface ExerciseCheckResult {
+      app_exercise_id: number | null;
+      name: string;
+      image: Uint8Array | null;
+      description: string | null;
+      animated_url: string | null;
+      equipment: string | null;
+      tracking_type: string | null;
+      is_deleted: number;
+      is_unilateral?: boolean;
+      double_weight?: boolean;
+    }
 
-  const dataVersionEntry: SettingsEntry | null =
-    await userDataDB.getFirstAsync<SettingsEntry>(
-      "SELECT value FROM settings WHERE key = 'dataVersion'",
-    );
-
-  const dataVersion = Number(dataVersionEntry?.value) || null;
-
-  if (dataVersion && dataVersion >= 1.7) {
-    console.log("Data has already been copied.");
-    return;
-  }
-
-  let shouldUpdateDataVersion = false;
-
-  const copyTableData = async (
-    tableName: string,
-    columns: string[],
-    excludeId: boolean = false,
-  ): Promise<void> => {
-    try {
-      const result: SQLiteRow[] = await appDataDB.getAllAsync(
-        `SELECT ${columns.join(", ")} FROM ${tableName}`,
+    const dataVersionEntry: SettingsEntry | null =
+      await userDataDB.getFirstAsync<SettingsEntry>(
+        "SELECT value FROM settings WHERE key = 'dataVersion'",
       );
 
-      console.log(`Copying ${result.length} rows into ${tableName}`);
+    const dataVersion = Number(dataVersionEntry?.value) || null;
 
-      if (result.length > 0) {
-        await userDataDB.execAsync("BEGIN TRANSACTION");
+    if (dataVersion && dataVersion >= 1.7) {
+      console.log("Data has already been copied.");
+      return;
+    }
 
-        const insertColumns = excludeId
-          ? columns.filter((col) => col !== "exercise_id")
-          : columns;
+    let shouldUpdateDataVersion = false;
 
-        if (tableName === "exercises") {
-          insertColumns.push("app_exercise_id");
-        }
-
-        const placeholders = insertColumns.map(() => "?").join(", ");
-        const insertStatement = `INSERT INTO ${tableName} (${insertColumns.join(", ")}) VALUES (${placeholders})`;
-
-        const updateColumns = insertColumns.filter(
-          (col) => col !== "exercise_id",
+    const copyTableData = async (
+      tableName: string,
+      columns: string[],
+      excludeId: boolean = false,
+    ): Promise<void> => {
+      try {
+        const result: SQLiteRow[] = await appDataDB!.getAllAsync(
+          `SELECT ${columns.join(", ")} FROM ${tableName}`,
         );
-        const updatePlaceholders = updateColumns
-          .map((col) => `${col} = ?`)
-          .join(", ");
-        const updateStatement = `UPDATE ${tableName} SET ${updatePlaceholders} WHERE app_exercise_id = ?`;
 
-        for (const row of result) {
-          let shouldInsertOrUpdate = true;
+        console.log(`Copying ${result.length} rows into ${tableName}`);
 
-          if (["muscles", "equipment_list", "body_parts"].includes(tableName)) {
-            // Define unique column for each of these tables
-            const uniqueColumn =
-              tableName === "muscles"
-                ? "muscle"
-                : tableName === "equipment_list"
-                  ? "equipment"
-                  : "body_part";
+        if (result.length > 0) {
+          await userDataDB!.execAsync("BEGIN TRANSACTION");
 
-            const existingEntry = await userDataDB.getFirstAsync(
-              `SELECT * FROM ${tableName} WHERE ${uniqueColumn} = ? LIMIT 1`,
-              [row[uniqueColumn]],
-            );
+          const insertColumns = excludeId
+            ? columns.filter((col) => col !== "exercise_id")
+            : columns;
 
-            // Skip insertion if entry already exists
-            if (existingEntry) {
-              shouldInsertOrUpdate = false;
-            }
-          } else if (tableName === "exercises") {
-            const existingEntry =
-              await userDataDB.getFirstAsync<ExerciseCheckResult>(
-                `SELECT * FROM ${tableName} WHERE app_exercise_id = ? LIMIT 1`,
-                [row["exercise_id"]],
+          if (tableName === "exercises") {
+            insertColumns.push("app_exercise_id");
+          }
+
+          const placeholders = insertColumns.map(() => "?").join(", ");
+          const insertStatement = `INSERT INTO ${tableName} (${insertColumns.join(", ")}) VALUES (${placeholders})`;
+
+          const updateColumns = insertColumns.filter(
+            (col) => col !== "exercise_id",
+          );
+          const updatePlaceholders = updateColumns
+            .map((col) => `${col} = ?`)
+            .join(", ");
+          const updateStatement = `UPDATE ${tableName} SET ${updatePlaceholders} WHERE app_exercise_id = ?`;
+
+          for (const row of result) {
+            let shouldInsertOrUpdate = true;
+
+            if (
+              ["muscles", "equipment_list", "body_parts"].includes(tableName)
+            ) {
+              // Define unique column for each of these tables
+              const uniqueColumn =
+                tableName === "muscles"
+                  ? "muscle"
+                  : tableName === "equipment_list"
+                    ? "equipment"
+                    : "body_part";
+
+              const existingEntry = await userDataDB!.getFirstAsync(
+                `SELECT * FROM ${tableName} WHERE ${uniqueColumn} = ? LIMIT 1`,
+                [row[uniqueColumn]],
               );
 
-            if (existingEntry) {
-              const fieldsToUpdate = insertColumns.filter((col) => {
-                switch (col) {
-                  // case "app_exercise_id":
-                  //   return row[col] !== existingEntry.app_exercise_id;
-                  case "name":
-                    return row[col] !== existingEntry.name;
-                  // case "image":
-                  //   return row[col] !== existingEntry.image;
-                  case "description":
-                    return row[col] !== existingEntry.description;
-                  case "animated_url":
-                    return row[col] !== existingEntry.animated_url;
-                  case "is_deleted":
-                    return row[col] !== existingEntry.is_deleted;
-                  case "tracking_type":
-                    return row[col] !== existingEntry.tracking_type;
-                  case "equipment":
-                    return row[col] !== existingEntry.equipment;
-                  case "is_unilateral":
-                    return row[col] !== existingEntry.is_unilateral;
-                  case "double_weight":
-                    return row[col] !== existingEntry.double_weight;
-                  default:
-                    return false;
-                }
-              });
-
-              if (fieldsToUpdate.length > 0) {
-                console.log(
-                  `Updating exercise: ${row["name"]} with changed fields: ${fieldsToUpdate.join(", ")}`,
-                );
-                const values = updateColumns.map((col) => row[col]);
-                values.push(row["exercise_id"]);
-                await userDataDB.runAsync(updateStatement, values);
+              // Skip insertion if entry already exists
+              if (existingEntry) {
+                shouldInsertOrUpdate = false;
               }
+            } else if (tableName === "exercises") {
+              const existingEntry =
+                await userDataDB!.getFirstAsync<ExerciseCheckResult>(
+                  `SELECT * FROM ${tableName} WHERE app_exercise_id = ? LIMIT 1`,
+                  [row["exercise_id"]],
+                );
 
-              shouldInsertOrUpdate = false;
+              if (existingEntry) {
+                const fieldsToUpdate = insertColumns.filter((col) => {
+                  switch (col) {
+                    // case "app_exercise_id":
+                    //   return row[col] !== existingEntry.app_exercise_id;
+                    case "name":
+                      return row[col] !== existingEntry.name;
+                    // case "image":
+                    //   return row[col] !== existingEntry.image;
+                    case "description":
+                      return row[col] !== existingEntry.description;
+                    case "animated_url":
+                      return row[col] !== existingEntry.animated_url;
+                    case "is_deleted":
+                      return row[col] !== existingEntry.is_deleted;
+                    case "tracking_type":
+                      return row[col] !== existingEntry.tracking_type;
+                    case "equipment":
+                      return row[col] !== existingEntry.equipment;
+                    case "is_unilateral":
+                      return row[col] !== existingEntry.is_unilateral;
+                    case "double_weight":
+                      return row[col] !== existingEntry.double_weight;
+                    default:
+                      return false;
+                  }
+                });
+
+                if (fieldsToUpdate.length > 0) {
+                  console.log(
+                    `Updating exercise: ${row["name"]} with changed fields: ${fieldsToUpdate.join(", ")}`,
+                  );
+                  const values = updateColumns.map((col) => row[col]);
+                  values.push(row["exercise_id"]);
+                  await userDataDB!.runAsync(updateStatement, values);
+                }
+
+                shouldInsertOrUpdate = false;
+              }
+            }
+
+            if (shouldInsertOrUpdate) {
+              const values = insertColumns.map((col) =>
+                col === "app_exercise_id" ? row["exercise_id"] : row[col],
+              );
+              await userDataDB!.runAsync(insertStatement, values);
             }
           }
 
-          if (shouldInsertOrUpdate) {
-            const values = insertColumns.map((col) =>
-              col === "app_exercise_id" ? row["exercise_id"] : row[col],
-            );
-            await userDataDB.runAsync(insertStatement, values);
-          }
+          await userDataDB!.execAsync("COMMIT");
         }
-
-        await userDataDB.execAsync("COMMIT");
+        shouldUpdateDataVersion = true;
+      } catch (error: any) {
+        console.error(`Error copying table ${tableName}:`, error);
+        Bugsnag.notify(error);
+        await userDataDB!.execAsync("ROLLBACK");
       }
-      shouldUpdateDataVersion = true;
-    } catch (error: any) {
-      console.error(`Error copying table ${tableName}:`, error);
-      Bugsnag.notify(error);
-      await userDataDB.execAsync("ROLLBACK");
-    }
-  };
+    };
 
-  await copyTableData("muscles", ["muscle"]);
-  await copyTableData("equipment_list", ["equipment"]);
-  await copyTableData("body_parts", ["body_part"]);
+    await copyTableData("muscles", ["muscle"]);
+    await copyTableData("equipment_list", ["equipment"]);
+    await copyTableData("body_parts", ["body_part"]);
 
-  await copyTableData(
-    "exercises",
-    [
-      "exercise_id", // Copy exercise_id to userData's app_exercise_id field later
-      "name",
-      "image",
-      "local_animated_uri",
-      "animated_url",
-      "equipment",
-      "body_part",
-      "target_muscle",
-      "secondary_muscles",
-      "description",
-      "is_deleted",
-      "tracking_type",
-      "is_unilateral",
-      "double_weight",
-    ],
-    true, // Exclude the auto-incremented exercise_id for userData
-  );
-
-  if (shouldUpdateDataVersion) {
-    console.log("Updating data version to 1.7...");
-    await userDataDB.runAsync(
-      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-      ["dataVersion", "1.7"],
+    await copyTableData(
+      "exercises",
+      [
+        "exercise_id", // Copy exercise_id to userData's app_exercise_id field later
+        "name",
+        "image",
+        "local_animated_uri",
+        "animated_url",
+        "equipment",
+        "body_part",
+        "target_muscle",
+        "secondary_muscles",
+        "description",
+        "is_deleted",
+        "tracking_type",
+        "is_unilateral",
+        "double_weight",
+      ],
+      true, // Exclude the auto-incremented exercise_id for userData
     );
 
-    console.log("Data copy completed and version updated.");
+    if (shouldUpdateDataVersion) {
+      console.log("Updating data version to 1.7...");
+      await userDataDB.runAsync(
+        "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+        ["dataVersion", "1.7"],
+      );
+
+      console.log("Data copy completed and version updated.");
+    }
+  } finally {
+    if (userDataDB) await userDataDB.closeAsync();
+    if (appDataDB) await appDataDB.closeAsync();
   }
 };
 
 export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
-  const userDataDB = await openDatabase("userData.db");
-  const versionResult = await userDataDB.getFirstAsync<SettingsEntry>(
-    "SELECT value FROM settings WHERE key = 'dataVersion'",
-  );
-  if (Number(versionResult?.value) >= 2.0) return;
-
-  const appDataDB = await openDatabase("appData3.db");
-  const appExercises = await appDataDB.getAllAsync<{
-    exercise_id: number;
-    is_unilateral: number;
-    double_weight: number;
-  }>("SELECT exercise_id, is_unilateral, double_weight FROM exercises");
-
-  await userDataDB.execAsync("BEGIN TRANSACTION");
+  let userDataDB: SQLite.SQLiteDatabase | undefined;
+  let appDataDB: SQLite.SQLiteDatabase | undefined;
   try {
-    for (const ex of appExercises) {
-      await userDataDB.runAsync(
-        "UPDATE exercises SET is_unilateral = ?, double_weight = ? WHERE app_exercise_id = ?",
-        [ex.is_unilateral ?? 0, ex.double_weight ?? 0, ex.exercise_id],
-      );
-    }
-    await userDataDB.runAsync(
-      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-      ["dataVersion", "2.0"],
+    userDataDB = await openDatabase("userData.db");
+    const versionResult = await userDataDB.getFirstAsync<SettingsEntry>(
+      "SELECT value FROM settings WHERE key = 'dataVersion'",
     );
-    await userDataDB.execAsync("COMMIT");
-  } catch (err) {
-    await userDataDB.execAsync("ROLLBACK");
-    Bugsnag.notify(err as Error);
+    if (Number(versionResult?.value) >= 2.0) return;
+
+    appDataDB = await openDatabase("appData3.db");
+    const appExercises = await appDataDB.getAllAsync<{
+      exercise_id: number;
+      is_unilateral: number;
+      double_weight: number;
+    }>("SELECT exercise_id, is_unilateral, double_weight FROM exercises");
+
+    await userDataDB.execAsync("BEGIN TRANSACTION");
+    try {
+      for (const ex of appExercises) {
+        await userDataDB.runAsync(
+          "UPDATE exercises SET is_unilateral = ?, double_weight = ? WHERE app_exercise_id = ?",
+          [ex.is_unilateral ?? 0, ex.double_weight ?? 0, ex.exercise_id],
+        );
+      }
+      await userDataDB.runAsync(
+        "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+        ["dataVersion", "2.0"],
+      );
+      await userDataDB.execAsync("COMMIT");
+    } catch (err) {
+      await userDataDB.execAsync("ROLLBACK");
+      Bugsnag.notify(err as Error);
+    }
+  } finally {
+    if (appDataDB) await appDataDB.closeAsync();
+    if (userDataDB) await userDataDB.closeAsync();
   }
 };
 
@@ -356,30 +379,34 @@ export const fetchAllRecords = async (
   tableName: string,
 ) => {
   const db = await openDatabase(databaseName);
-  const allowedTables = [
-    "user_plans",
-    "exercises",
-    "muscles",
-    "body_parts",
-    "equipment_list",
-  ];
-  if (!allowedTables.includes(tableName)) {
-    Bugsnag.notify(new Error("Invalid table name"));
-    throw new Error("Invalid table name");
+  try {
+    const allowedTables = [
+      "user_plans",
+      "exercises",
+      "muscles",
+      "body_parts",
+      "equipment_list",
+    ];
+    if (!allowedTables.includes(tableName)) {
+      Bugsnag.notify(new Error("Invalid table name"));
+      throw new Error("Invalid table name");
+    }
+
+    // Check if the table contains an is_deleted field
+    const tableInfo = await db.getAllAsync(`PRAGMA table_info(${tableName});`);
+    const hasIsDeletedField = tableInfo.some(
+      (column: any) => column.name === "is_deleted",
+    );
+
+    // Build the query accordingly
+    const query = hasIsDeletedField
+      ? `SELECT * FROM ${tableName} WHERE is_deleted = FALSE`
+      : `SELECT * FROM ${tableName}`;
+
+    return await db.getAllAsync(query);
+  } finally {
+    await db.closeAsync();
   }
-
-  // Check if the table contains an is_deleted field
-  const tableInfo = await db.getAllAsync(`PRAGMA table_info(${tableName});`);
-  const hasIsDeletedField = tableInfo.some(
-    (column: any) => column.name === "is_deleted",
-  );
-
-  // Build the query accordingly
-  const query = hasIsDeletedField
-    ? `SELECT * FROM ${tableName} WHERE is_deleted = FALSE`
-    : `SELECT * FROM ${tableName}`;
-
-  return await db.getAllAsync(query);
 };
 
 export const fetchRecord = async (
@@ -409,6 +436,8 @@ export const fetchRecord = async (
     console.error("Error fetching record:", error);
     Bugsnag.notify(error);
     throw new Error("Error fetching record");
+  } finally {
+    await db.closeAsync();
   }
 };
 
@@ -417,20 +446,24 @@ export const fetchMusclesByFilters = async (
   equipment: string | null,
 ) => {
   const db = await openDatabase("userData.db");
-  const conditions = ["is_deleted = 0"];
-  const params: string[] = [];
-  if (bodyPart && bodyPart !== "all") {
-    conditions.push("body_part = ?");
-    params.push(bodyPart);
+  try {
+    const conditions = ["is_deleted = 0"];
+    const params: string[] = [];
+    if (bodyPart && bodyPart !== "all") {
+      conditions.push("body_part = ?");
+      params.push(bodyPart);
+    }
+    if (equipment && equipment !== "all") {
+      conditions.push("equipment = ?");
+      params.push(equipment);
+    }
+    return await db.getAllAsync<{ target_muscle: string }>(
+      `SELECT DISTINCT target_muscle FROM exercises WHERE ${conditions.join(" AND ")} ORDER BY target_muscle`,
+      params,
+    );
+  } finally {
+    await db.closeAsync();
   }
-  if (equipment && equipment !== "all") {
-    conditions.push("equipment = ?");
-    params.push(equipment);
-  }
-  return await db.getAllAsync<{ target_muscle: string }>(
-    `SELECT DISTINCT target_muscle FROM exercises WHERE ${conditions.join(" AND ")} ORDER BY target_muscle`,
-    params,
-  );
 };
 
 export const insertAnimatedImageUri = async (
@@ -438,10 +471,14 @@ export const insertAnimatedImageUri = async (
   local_animated_uri: string,
 ) => {
   const db = await openDatabase("userData.db");
-  await db.runAsync(
-    `UPDATE exercises SET local_animated_uri = ? WHERE exercise_id = ?`,
-    [local_animated_uri, exercise_id],
-  );
+  try {
+    await db.runAsync(
+      `UPDATE exercises SET local_animated_uri = ? WHERE exercise_id = ?`,
+      [local_animated_uri, exercise_id],
+    );
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const insertAnimatedImageUris = async (
@@ -449,14 +486,18 @@ export const insertAnimatedImageUris = async (
 ) => {
   if (uris.length === 0) return;
   const db = await openDatabase("userData.db");
-  await db.withExclusiveTransactionAsync(async (txn) => {
-    for (const { exercise_id, local_animated_uri } of uris) {
-      await txn.runAsync(
-        `UPDATE exercises SET local_animated_uri = ? WHERE exercise_id = ?`,
-        [local_animated_uri, exercise_id],
-      );
-    }
-  });
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      for (const { exercise_id, local_animated_uri } of uris) {
+        await txn.runAsync(
+          `UPDATE exercises SET local_animated_uri = ? WHERE exercise_id = ?`,
+          [local_animated_uri, exercise_id],
+        );
+      }
+    });
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export interface ExerciseWithoutLocalAnimatedUriRow {
@@ -466,9 +507,13 @@ export interface ExerciseWithoutLocalAnimatedUriRow {
 
 export const fetchExercisesWithoutLocalAnimatedUri = async () => {
   const db = await openDatabase("userData.db");
-  return (await db.getAllAsync(
-    `SELECT exercise_id, animated_url FROM exercises WHERE animated_url IS NOT NULL AND animated_url != '' AND (local_animated_uri IS NULL OR local_animated_uri = '')`,
-  )) as ExerciseWithoutLocalAnimatedUriRow[];
+  try {
+    return (await db.getAllAsync(
+      `SELECT exercise_id, animated_url FROM exercises WHERE animated_url IS NOT NULL AND animated_url != '' AND (local_animated_uri IS NULL OR local_animated_uri = '')`,
+    )) as ExerciseWithoutLocalAnimatedUriRow[];
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export interface ExerciseWithLocalAnimatedUriRow {
@@ -478,56 +523,84 @@ export interface ExerciseWithLocalAnimatedUriRow {
 
 export const fetchExercisesWithLocalAnimatedUri = async () => {
   const db = await openDatabase("userData.db");
-  return (await db.getAllAsync(
-    `SELECT exercise_id, local_animated_uri FROM exercises WHERE local_animated_uri IS NOT NULL AND local_animated_uri != ''`,
-  )) as ExerciseWithLocalAnimatedUriRow[];
+  try {
+    return (await db.getAllAsync(
+      `SELECT exercise_id, local_animated_uri FROM exercises WHERE local_animated_uri IS NOT NULL AND local_animated_uri != ''`,
+    )) as ExerciseWithLocalAnimatedUriRow[];
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const clearAllLocalAnimatedUri = async () => {
   const db = await openDatabase("userData.db");
-  await db.runAsync(`UPDATE exercises SET local_animated_uri = NULL`);
+  try {
+    await db.runAsync(`UPDATE exercises SET local_animated_uri = NULL`);
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const fetchActivePlan = async () => {
   const db = await openDatabase("userData.db");
-  return await db.getFirstAsync(
-    `SELECT * FROM user_plans WHERE is_active = true`,
-  );
+  try {
+    return await db.getFirstAsync(
+      `SELECT * FROM user_plans WHERE is_active = true`,
+    );
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const fetchAllPlanIds = async (): Promise<number[]> => {
   const db = await openDatabase("userData.db");
-  const rows = await db.getAllAsync<{ id: number }>(
-    `SELECT id FROM user_plans WHERE app_plan_id IS NULL AND is_deleted = FALSE`,
-  );
-  return rows.map((r) => r.id);
+  try {
+    const rows = await db.getAllAsync<{ id: number }>(
+      `SELECT id FROM user_plans WHERE app_plan_id IS NULL AND is_deleted = FALSE`,
+    );
+    return rows.map((r) => r.id);
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const fetchAllStandaloneWorkoutIds = async (): Promise<number[]> => {
   const db = await openDatabase("userData.db");
-  const rows = await db.getAllAsync<{ id: number }>(
-    `SELECT id FROM user_workouts WHERE plan_id IS NULL AND is_deleted = FALSE`,
-  );
-  return rows.map((r) => r.id);
+  try {
+    const rows = await db.getAllAsync<{ id: number }>(
+      `SELECT id FROM user_workouts WHERE plan_id IS NULL AND is_deleted = FALSE`,
+    );
+    return rows.map((r) => r.id);
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const fetchAllCustomExercisesForSharing = async (): Promise<
   Exercise[]
 > => {
   const db = await openDatabase("userData.db");
-  return db.getAllAsync<Exercise>(
-    `SELECT * FROM exercises WHERE app_exercise_id IS NULL AND is_deleted = FALSE`,
-  );
+  try {
+    return db.getAllAsync<Exercise>(
+      `SELECT * FROM exercises WHERE app_exercise_id IS NULL AND is_deleted = FALSE`,
+    );
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const updateActivePlan = async (id: number) => {
   const db = await openDatabase("userData.db");
-  await db.runAsync(
-    `UPDATE user_plans SET is_active = false WHERE is_active = true`,
-  );
-  await db.runAsync(`UPDATE user_plans SET is_active = true WHERE id = ?`, [
-    id,
-  ]);
+  try {
+    await db.runAsync(
+      `UPDATE user_plans SET is_active = false WHERE is_active = true`,
+    );
+    await db.runAsync(`UPDATE user_plans SET is_active = true WHERE id = ?`, [
+      id,
+    ]);
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const insertWorkoutPlan = async (
@@ -536,29 +609,33 @@ export const insertWorkoutPlan = async (
   workouts: Workout[],
 ): Promise<number | null> => {
   const db = await openDatabase("userData.db"); // Open database once
-  let newPlanId: number | null = null;
+  try {
+    let newPlanId: number | null = null;
 
-  // Start the transaction
-  await db.withExclusiveTransactionAsync(async (txn) => {
-    try {
-      // Insert the plan
-      const result = await txn.runAsync(
-        `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
-        [name, image_url],
-      );
+    // Start the transaction
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      try {
+        // Insert the plan
+        const result = await txn.runAsync(
+          `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
+          [name, image_url],
+        );
 
-      newPlanId = result.lastInsertRowId;
+        newPlanId = result.lastInsertRowId;
 
-      // Insert the workouts associated with this plan
-      await insertWorkouts(txn, newPlanId, workouts);
-    } catch (error: any) {
-      console.error("Error inserting workout plan:", error);
-      Bugsnag.notify(error);
-      throw error;
-    }
-  });
+        // Insert the workouts associated with this plan
+        await insertWorkouts(txn, newPlanId, workouts);
+      } catch (error: any) {
+        console.error("Error inserting workout plan:", error);
+        Bugsnag.notify(error);
+        throw error;
+      }
+    });
 
-  return newPlanId;
+    return newPlanId;
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const insertWorkouts = async (
@@ -614,117 +691,123 @@ export const updateWorkoutPlan = async (
 ) => {
   const db = await openDatabase("userData.db");
 
-  // Start the transaction for the entire update process
-  await db.withExclusiveTransactionAsync(async (txn) => {
-    try {
-      // Update the workout plan details
-      await txn.runAsync(
-        `UPDATE user_plans SET name = ?, image_url = ? WHERE id = ?`,
-        [name, image_url, id],
-      );
-
-      // Fetch existing workouts for the plan
-      const existingWorkouts: { id: number }[] = await txn.getAllAsync(
-        `SELECT id FROM user_workouts WHERE plan_id = ? AND is_deleted = FALSE`,
-        [id],
-      );
-
-      // Find and mark workouts for deletion that are not in the new workout list
-      const workoutIdsToKeep = workouts.map((w) => w.id).filter(Boolean); // Filter out new workouts (no ID)
-      const workoutsToDelete = existingWorkouts.filter(
-        (w) => !workoutIdsToKeep.includes(w.id),
-      );
-
-      for (const workout of workoutsToDelete) {
+  try {
+    // Start the transaction for the entire update process
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      try {
+        // Update the workout plan details
         await txn.runAsync(
-          `UPDATE user_workouts SET is_deleted = TRUE WHERE id = ?`,
-          [workout.id],
+          `UPDATE user_plans SET name = ?, image_url = ? WHERE id = ?`,
+          [name, image_url, id],
         );
-        await txn.runAsync(
-          `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE workout_id = ?`,
-          [workout.id],
+
+        // Fetch existing workouts for the plan
+        const existingWorkouts: { id: number }[] = await txn.getAllAsync(
+          `SELECT id FROM user_workouts WHERE plan_id = ? AND is_deleted = FALSE`,
+          [id],
         );
-      }
 
-      // Iterate through new or updated workouts
-      for (const [workoutOrder, workout] of workouts.entries()) {
-        let workoutId = workout.id;
-        const workoutName = workout.name || `Workout ${workoutOrder + 1}`;
+        // Find and mark workouts for deletion that are not in the new workout list
+        const workoutIdsToKeep = workouts.map((w) => w.id).filter(Boolean); // Filter out new workouts (no ID)
+        const workoutsToDelete = existingWorkouts.filter(
+          (w) => !workoutIdsToKeep.includes(w.id),
+        );
 
-        if (!workoutId || workoutId < 0) {
-          // Insert new workout (workoutId is null/undefined for brand-new workouts,
-          // or negative (temp ID like -Date.now()) for workouts added during plan editing)
-          const result = await txn.runAsync(
-            `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (?, ?, ?)`,
-            [id, workoutName, workoutOrder],
-          );
-          workoutId = result.lastInsertRowId;
-        } else {
-          // Update existing workout name and order
+        for (const workout of workoutsToDelete) {
           await txn.runAsync(
-            `UPDATE user_workouts SET name = ?, workout_order = ? WHERE id = ?`,
-            [workoutName, workoutOrder, workoutId],
+            `UPDATE user_workouts SET is_deleted = TRUE WHERE id = ?`,
+            [workout.id],
+          );
+          await txn.runAsync(
+            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE workout_id = ?`,
+            [workout.id],
           );
         }
 
-        // Fetch existing exercises for the workout
-        const existingExercises: { id: number; exercise_id: number }[] =
-          await txn.getAllAsync(
-            `SELECT id, exercise_id FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
-            [workoutId],
-          );
-        const existingExerciseIds = existingExercises.map((e) => e.exercise_id);
+        // Iterate through new or updated workouts
+        for (const [workoutOrder, workout] of workouts.entries()) {
+          let workoutId = workout.id;
+          const workoutName = workout.name || `Workout ${workoutOrder + 1}`;
 
-        // Find and mark exercises for deletion that are not in the updated workout
-        const exerciseIdsToKeep = workout.exercises.map((e) => e.exercise_id);
-        const exercisesToDelete = existingExercises.filter(
-          (e) => !exerciseIdsToKeep.includes(e.exercise_id),
-        );
-
-        for (const exercise of exercisesToDelete) {
-          await txn.runAsync(
-            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
-            [exercise.id],
-          );
-        }
-
-        // Insert or update exercises and sets
-        for (const [exerciseOrder, exercise] of workout.exercises.entries()) {
-          if (!existingExerciseIds.includes(exercise.exercise_id)) {
-            // Insert new exercise
-            await txn.runAsync(
-              `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
-              [
-                workoutId,
-                exercise.exercise_id,
-                JSON.stringify(exercise.sets),
-                exerciseOrder,
-                exercise.supersetGroupId ?? null,
-                exercise.tracking_type_override ?? null,
-              ],
+          if (!workoutId || workoutId < 0) {
+            // Insert new workout (workoutId is null/undefined for brand-new workouts,
+            // or negative (temp ID like -Date.now()) for workouts added during plan editing)
+            const result = await txn.runAsync(
+              `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (?, ?, ?)`,
+              [id, workoutName, workoutOrder],
             );
+            workoutId = result.lastInsertRowId;
           } else {
-            // Update existing exercise
+            // Update existing workout name and order
             await txn.runAsync(
-              `UPDATE user_workout_exercises SET sets = ?, exercise_order = ?, superset_group_id = ?, tracking_type_override = ? WHERE workout_id = ? AND exercise_id = ?`,
-              [
-                JSON.stringify(exercise.sets),
-                exerciseOrder,
-                exercise.supersetGroupId ?? null,
-                exercise.tracking_type_override ?? null,
-                workoutId,
-                exercise.exercise_id,
-              ],
+              `UPDATE user_workouts SET name = ?, workout_order = ? WHERE id = ?`,
+              [workoutName, workoutOrder, workoutId],
             );
           }
+
+          // Fetch existing exercises for the workout
+          const existingExercises: { id: number; exercise_id: number }[] =
+            await txn.getAllAsync(
+              `SELECT id, exercise_id FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+              [workoutId],
+            );
+          const existingExerciseIds = existingExercises.map(
+            (e) => e.exercise_id,
+          );
+
+          // Find and mark exercises for deletion that are not in the updated workout
+          const exerciseIdsToKeep = workout.exercises.map((e) => e.exercise_id);
+          const exercisesToDelete = existingExercises.filter(
+            (e) => !exerciseIdsToKeep.includes(e.exercise_id),
+          );
+
+          for (const exercise of exercisesToDelete) {
+            await txn.runAsync(
+              `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
+              [exercise.id],
+            );
+          }
+
+          // Insert or update exercises and sets
+          for (const [exerciseOrder, exercise] of workout.exercises.entries()) {
+            if (!existingExerciseIds.includes(exercise.exercise_id)) {
+              // Insert new exercise
+              await txn.runAsync(
+                `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
+                [
+                  workoutId,
+                  exercise.exercise_id,
+                  JSON.stringify(exercise.sets),
+                  exerciseOrder,
+                  exercise.supersetGroupId ?? null,
+                  exercise.tracking_type_override ?? null,
+                ],
+              );
+            } else {
+              // Update existing exercise
+              await txn.runAsync(
+                `UPDATE user_workout_exercises SET sets = ?, exercise_order = ?, superset_group_id = ?, tracking_type_override = ? WHERE workout_id = ? AND exercise_id = ?`,
+                [
+                  JSON.stringify(exercise.sets),
+                  exerciseOrder,
+                  exercise.supersetGroupId ?? null,
+                  exercise.tracking_type_override ?? null,
+                  workoutId,
+                  exercise.exercise_id,
+                ],
+              );
+            }
+          }
         }
+      } catch (error: any) {
+        console.error("Error updating workout plan:", error);
+        Bugsnag.notify(error);
+        throw error;
       }
-    } catch (error: any) {
-      console.error("Error updating workout plan:", error);
-      Bugsnag.notify(error);
-      throw error;
-    }
-  });
+    });
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const appendExercisesToWorkout = async (
@@ -732,26 +815,30 @@ export const appendExercisesToWorkout = async (
   exercises: UserExercise[],
 ): Promise<void> => {
   const db = await openDatabase("userData.db");
-  await db.withExclusiveTransactionAsync(async (txn) => {
-    const row: { maxOrder: number } | null = await txn.getFirstAsync(
-      `SELECT COALESCE(MAX(exercise_order), -1) as maxOrder FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
-      [workoutId],
-    );
-    const baseOrder = (row?.maxOrder ?? -1) + 1;
-    for (const [i, exercise] of exercises.entries()) {
-      await txn.runAsync(
-        `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          workoutId,
-          exercise.exercise_id,
-          JSON.stringify(exercise.sets),
-          baseOrder + i,
-          exercise.supersetGroupId ?? null,
-          exercise.tracking_type_override ?? null,
-        ],
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      const row: { maxOrder: number } | null = await txn.getFirstAsync(
+        `SELECT COALESCE(MAX(exercise_order), -1) as maxOrder FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+        [workoutId],
       );
-    }
-  });
+      const baseOrder = (row?.maxOrder ?? -1) + 1;
+      for (const [i, exercise] of exercises.entries()) {
+        await txn.runAsync(
+          `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            workoutId,
+            exercise.exercise_id,
+            JSON.stringify(exercise.sets),
+            baseOrder + i,
+            exercise.supersetGroupId ?? null,
+            exercise.tracking_type_override ?? null,
+          ],
+        );
+      }
+    });
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const updatePlanWorkoutExercises = async (
@@ -759,89 +846,99 @@ export const updatePlanWorkoutExercises = async (
   exercises: UserExercise[],
 ): Promise<void> => {
   const db = await openDatabase("userData.db");
-  await db.withExclusiveTransactionAsync(async (txn) => {
-    const existing: {
-      id: number;
-      exercise_id: number;
-      exercise_order: number;
-    }[] = await txn.getAllAsync(
-      `SELECT id, exercise_id, exercise_order FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
-      [workoutId],
-    );
-    const existingByOrder = new Map(existing.map((e) => [e.exercise_order, e]));
-    const incomingOrders = new Set(exercises.map((_, i) => i));
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      const existing: {
+        id: number;
+        exercise_id: number;
+        exercise_order: number;
+      }[] = await txn.getAllAsync(
+        `SELECT id, exercise_id, exercise_order FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+        [workoutId],
+      );
+      const existingByOrder = new Map(
+        existing.map((e) => [e.exercise_order, e]),
+      );
+      const incomingOrders = new Set(exercises.map((_, i) => i));
 
-    for (const row of existing) {
-      if (!incomingOrders.has(row.exercise_order)) {
-        await txn.runAsync(
-          `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
-          [row.id],
-        );
+      for (const row of existing) {
+        if (!incomingOrders.has(row.exercise_order)) {
+          await txn.runAsync(
+            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
+            [row.id],
+          );
+        }
       }
-    }
 
-    for (const [order, exercise] of exercises.entries()) {
-      const existingRow = existingByOrder.get(order);
-      if (existingRow) {
-        await txn.runAsync(
-          `UPDATE user_workout_exercises SET exercise_id = ?, sets = ?, exercise_order = ?, superset_group_id = ?, tracking_type_override = ?, is_deleted = FALSE WHERE id = ?`,
-          [
-            exercise.exercise_id,
-            JSON.stringify(exercise.sets),
-            order,
-            exercise.supersetGroupId ?? null,
-            exercise.tracking_type_override ?? null,
-            existingRow.id,
-          ],
-        );
-      } else {
-        await txn.runAsync(
-          `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
-          [
-            workoutId,
-            exercise.exercise_id,
-            JSON.stringify(exercise.sets),
-            order,
-            exercise.supersetGroupId ?? null,
-            exercise.tracking_type_override ?? null,
-          ],
-        );
+      for (const [order, exercise] of exercises.entries()) {
+        const existingRow = existingByOrder.get(order);
+        if (existingRow) {
+          await txn.runAsync(
+            `UPDATE user_workout_exercises SET exercise_id = ?, sets = ?, exercise_order = ?, superset_group_id = ?, tracking_type_override = ?, is_deleted = FALSE WHERE id = ?`,
+            [
+              exercise.exercise_id,
+              JSON.stringify(exercise.sets),
+              order,
+              exercise.supersetGroupId ?? null,
+              exercise.tracking_type_override ?? null,
+              existingRow.id,
+            ],
+          );
+        } else {
+          await txn.runAsync(
+            `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+              workoutId,
+              exercise.exercise_id,
+              JSON.stringify(exercise.sets),
+              order,
+              exercise.supersetGroupId ?? null,
+              exercise.tracking_type_override ?? null,
+            ],
+          );
+        }
       }
-    }
-  });
+    });
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const deleteWorkoutPlan = async (planId: number) => {
   const db = await openDatabase("userData.db");
 
-  // Start an exclusive transaction to ensure that all updates are executed together
-  await db.withExclusiveTransactionAsync(async (txn) => {
-    // Mark exercises associated with workouts under the plan as deleted
-    await txn.runAsync(
-      `UPDATE user_workout_exercises 
-       SET is_deleted = TRUE 
+  try {
+    // Start an exclusive transaction to ensure that all updates are executed together
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      // Mark exercises associated with workouts under the plan as deleted
+      await txn.runAsync(
+        `UPDATE user_workout_exercises
+       SET is_deleted = TRUE
        WHERE workout_id IN (
          SELECT id FROM user_workouts WHERE plan_id = ?
        )`,
-      [planId],
-    );
+        [planId],
+      );
 
-    // Mark workouts associated with the plan as deleted
-    await txn.runAsync(
-      `UPDATE user_workouts 
-       SET is_deleted = TRUE 
+      // Mark workouts associated with the plan as deleted
+      await txn.runAsync(
+        `UPDATE user_workouts
+       SET is_deleted = TRUE
        WHERE plan_id = ?`,
-      [planId],
-    );
+        [planId],
+      );
 
-    // Finally, mark the plan itself as deleted
-    await txn.runAsync(
-      `UPDATE user_plans 
-       SET is_deleted = TRUE 
+      // Finally, mark the plan itself as deleted
+      await txn.runAsync(
+        `UPDATE user_plans
+       SET is_deleted = TRUE
        WHERE id = ?`,
-      [planId],
-    );
-  });
+        [planId],
+      );
+    });
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const saveCompletedWorkout = async (
@@ -930,6 +1027,8 @@ export const saveCompletedWorkout = async (
     console.error("Error saving completed workout: ", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    await db.closeAsync();
   }
 };
 
@@ -937,8 +1036,9 @@ export const linkCompletedWorkoutToWorkout = async (
   completedWorkoutId: number,
   workoutId: number,
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.runAsync(
       `UPDATE completed_workouts SET workout_id = ? WHERE id = ?`,
       [workoutId, completedWorkoutId],
@@ -950,6 +1050,8 @@ export const linkCompletedWorkoutToWorkout = async (
     );
     Bugsnag.notify(error as Error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -1117,6 +1219,8 @@ export const fetchCompletedWorkoutById = async (
     console.error("Error fetching completed workout by ID:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    await db.closeAsync();
   }
 };
 
@@ -1149,65 +1253,70 @@ export const fetchExerciseImagesByIds = async (
     console.error("Error fetching exercise images:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    await db.closeAsync();
   }
 };
 
 export const insertDefaultSettings = async () => {
   const db = await openDatabase("userData.db");
+  try {
+    const defaultSettings = [
+      { key: "weeklyGoal", value: "3" },
+      { key: "keepScreenOn", value: "false" },
+      { key: "downloadImages", value: "false" },
+      { key: "weightUnit", value: "kg" },
+      { key: "distanceUnit", value: "m" },
+      { key: "sizeUnit", value: "cm" },
+      { key: "weightIncrement", value: "1" },
+      { key: "defaultSets", value: "3" },
+      { key: "defaultRestTime", value: "60" },
+      { key: "buttonSize", value: "Standard" },
+      { key: "timeRange", value: "30" },
+      { key: "restTimerVibration", value: "false" },
+      { key: "restTimerSound", value: "false" },
+      { key: "restTimerNotification", value: "false" },
+      { key: "restTimerIncrement", value: "15" },
+      { key: "loginShown", value: "false" },
+      { key: "showOnboarding", value: "true" },
+      { key: "bodyWeight", value: "70" },
+      { key: "timerCountdown", value: "5" },
+      { key: "workoutReminderEnabled", value: "false" },
+      { key: "workoutReminderDays", value: "[]" },
+      { key: "workoutReminderTime", value: "08:00" },
+      { key: "excludeWarmupSets", value: "false" },
+      { key: "countUnilateralDouble", value: "true" },
+      { key: "doubleWeightForPaired", value: "true" },
+      { key: "timerCountdownSound", value: "false" },
+      { key: "timerGoalSound", value: "false" },
+      { key: "alwaysUseGlobalHistory", value: "false" },
+      { key: "plansViewMode", value: "carousel" },
+      { key: "adaptive_progression_enabled", value: "0" },
+      { key: "progression_increment_barbell_kg", value: "2.5" },
+      { key: "progression_increment_dumbbell_kg", value: "2.0" },
+      { key: "progression_increment_cable_kg", value: "2.5" },
+      { key: "progression_increment_machine_kg", value: "2.5" },
+      { key: "exclude_deload_from_stats", value: "0" },
+    ];
 
-  const defaultSettings = [
-    { key: "weeklyGoal", value: "3" },
-    { key: "keepScreenOn", value: "false" },
-    { key: "downloadImages", value: "false" },
-    { key: "weightUnit", value: "kg" },
-    { key: "distanceUnit", value: "m" },
-    { key: "sizeUnit", value: "cm" },
-    { key: "weightIncrement", value: "1" },
-    { key: "defaultSets", value: "3" },
-    { key: "defaultRestTime", value: "60" },
-    { key: "buttonSize", value: "Standard" },
-    { key: "timeRange", value: "30" },
-    { key: "restTimerVibration", value: "false" },
-    { key: "restTimerSound", value: "false" },
-    { key: "restTimerNotification", value: "false" },
-    { key: "restTimerIncrement", value: "15" },
-    { key: "loginShown", value: "false" },
-    { key: "showOnboarding", value: "true" },
-    { key: "bodyWeight", value: "70" },
-    { key: "timerCountdown", value: "5" },
-    { key: "workoutReminderEnabled", value: "false" },
-    { key: "workoutReminderDays", value: "[]" },
-    { key: "workoutReminderTime", value: "08:00" },
-    { key: "excludeWarmupSets", value: "false" },
-    { key: "countUnilateralDouble", value: "true" },
-    { key: "doubleWeightForPaired", value: "true" },
-    { key: "timerCountdownSound", value: "false" },
-    { key: "timerGoalSound", value: "false" },
-    { key: "alwaysUseGlobalHistory", value: "false" },
-    { key: "plansViewMode", value: "carousel" },
-    { key: "adaptive_progression_enabled", value: "0" },
-    { key: "progression_increment_barbell_kg", value: "2.5" },
-    { key: "progression_increment_dumbbell_kg", value: "2.0" },
-    { key: "progression_increment_cable_kg", value: "2.5" },
-    { key: "progression_increment_machine_kg", value: "2.5" },
-    { key: "exclude_deload_from_stats", value: "0" },
-  ];
+    // Loop through each default setting
+    for (const setting of defaultSettings) {
+      // Check if the setting already exists in the database
+      const existingSetting = await db.getFirstAsync(
+        "SELECT value FROM settings WHERE key = ?",
+        [setting.key],
+      );
 
-  // Loop through each default setting
-  for (const setting of defaultSettings) {
-    // Check if the setting already exists in the database
-    const existingSetting = await db.getFirstAsync(
-      "SELECT value FROM settings WHERE key = ?",
-      [setting.key],
-    );
-
-    // If the setting doesn't exist, insert it
-    if (!existingSetting) {
-      await db.runAsync("INSERT INTO settings (key, value) VALUES (?, ?)", [
-        setting.key,
-        setting.value,
-      ]);
+      // If the setting doesn't exist, insert it
+      if (!existingSetting) {
+        await db.runAsync("INSERT INTO settings (key, value) VALUES (?, ?)", [
+          setting.key,
+          setting.value,
+        ]);
+      }
     }
+  } finally {
+    await db.closeAsync();
   }
 };
 
@@ -1256,8 +1365,9 @@ export interface Settings {
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
 
     const result = (await db.getAllAsync(
       "SELECT * FROM settings",
@@ -1281,12 +1391,15 @@ export const fetchSettings = async (): Promise<Settings> => {
     console.error("Database fetching error:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
 export const updateSettings = async (key: string, value: string) => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.runAsync(
       "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
       [key, value],
@@ -1295,6 +1408,8 @@ export const updateSettings = async (key: string, value: string) => {
     console.error("Error updating setting:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -1304,8 +1419,9 @@ export const saveNote = async (
   note: string,
   noteType: string,
 ) => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
 
     if (secondaryReferenceId == null) {
       // Insert/update where secondary_reference_id IS NULL
@@ -1364,6 +1480,8 @@ export const saveNote = async (
     console.error("Error saving note:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -1391,7 +1509,8 @@ interface RawStandaloneWorkout {
 
 export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
   const db = await openDatabase("userData.db");
-  const rows = (await db.getAllAsync(`
+  try {
+    const rows = (await db.getAllAsync(`
     SELECT
       uw.id AS workout_id,
       uw.name AS workout_name,
@@ -1419,53 +1538,56 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
     ORDER BY uw.id DESC, uwe.exercise_order ASC
   `)) as RawStandaloneWorkout[];
 
-  const workoutsMap = new Map<number, Workout>();
-  for (const row of rows) {
-    let workout = workoutsMap.get(row.workout_id);
-    if (!workout) {
-      workout = {
-        id: row.workout_id,
-        name: row.workout_name,
-        exercises: [],
-      };
-      workoutsMap.set(row.workout_id, workout);
+    const workoutsMap = new Map<number, Workout>();
+    for (const row of rows) {
+      let workout = workoutsMap.get(row.workout_id);
+      if (!workout) {
+        workout = {
+          id: row.workout_id,
+          name: row.workout_name,
+          exercises: [],
+        };
+        workoutsMap.set(row.workout_id, workout);
+      }
+      if (row.exercise_id && row.exercise_name) {
+        workout.exercises.push({
+          exercise_id: row.exercise_id,
+          name: row.exercise_name,
+          description: row.description || "",
+          image: row.image ? Array.from(row.image) : [],
+          local_animated_uri: row.local_animated_uri || "",
+          animated_url: row.animated_url || "",
+          equipment: row.equipment || "",
+          body_part: row.body_part || "",
+          target_muscle: row.target_muscle || "",
+          secondary_muscles: (() => {
+            try {
+              return row.secondary_muscles
+                ? JSON.parse(row.secondary_muscles)
+                : [];
+            } catch (e: any) {
+              Bugsnag.notify(e);
+              return [];
+            }
+          })(),
+          tracking_type: row.tracking_type ?? undefined,
+          tracking_type_override: row.tracking_type_override ?? undefined,
+          sets: (() => {
+            try {
+              return row.sets ? JSON.parse(row.sets) : [];
+            } catch (e: any) {
+              Bugsnag.notify(e);
+              return [];
+            }
+          })(),
+          supersetGroupId: row.superset_group_id ?? undefined,
+        });
+      }
     }
-    if (row.exercise_id && row.exercise_name) {
-      workout.exercises.push({
-        exercise_id: row.exercise_id,
-        name: row.exercise_name,
-        description: row.description || "",
-        image: row.image ? Array.from(row.image) : [],
-        local_animated_uri: row.local_animated_uri || "",
-        animated_url: row.animated_url || "",
-        equipment: row.equipment || "",
-        body_part: row.body_part || "",
-        target_muscle: row.target_muscle || "",
-        secondary_muscles: (() => {
-          try {
-            return row.secondary_muscles
-              ? JSON.parse(row.secondary_muscles)
-              : [];
-          } catch (e: any) {
-            Bugsnag.notify(e);
-            return [];
-          }
-        })(),
-        tracking_type: row.tracking_type ?? undefined,
-        tracking_type_override: row.tracking_type_override ?? undefined,
-        sets: (() => {
-          try {
-            return row.sets ? JSON.parse(row.sets) : [];
-          } catch (e: any) {
-            Bugsnag.notify(e);
-            return [];
-          }
-        })(),
-        supersetGroupId: row.superset_group_id ?? undefined,
-      });
-    }
+    return Array.from(workoutsMap.values());
+  } finally {
+    await db.closeAsync();
   }
-  return Array.from(workoutsMap.values());
 };
 
 export const createStandaloneWorkout = async (
@@ -1473,28 +1595,32 @@ export const createStandaloneWorkout = async (
   exercises: UserExercise[],
 ): Promise<number> => {
   const db = await openDatabase("userData.db");
-  let newWorkoutId = 0;
-  await db.withExclusiveTransactionAsync(async (txn) => {
-    const result = await txn.runAsync(
-      `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (NULL, ?, 0)`,
-      [name],
-    );
-    newWorkoutId = result.lastInsertRowId;
-    for (const [order, exercise] of exercises.entries()) {
-      await txn.runAsync(
-        `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          newWorkoutId,
-          exercise.exercise_id,
-          JSON.stringify(exercise.sets),
-          order,
-          exercise.supersetGroupId ?? null,
-          exercise.tracking_type_override ?? null,
-        ],
+  try {
+    let newWorkoutId = 0;
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      const result = await txn.runAsync(
+        `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (NULL, ?, 0)`,
+        [name],
       );
-    }
-  });
-  return newWorkoutId;
+      newWorkoutId = result.lastInsertRowId;
+      for (const [order, exercise] of exercises.entries()) {
+        await txn.runAsync(
+          `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            newWorkoutId,
+            exercise.exercise_id,
+            JSON.stringify(exercise.sets),
+            order,
+            exercise.supersetGroupId ?? null,
+            exercise.tracking_type_override ?? null,
+          ],
+        );
+      }
+    });
+    return newWorkoutId;
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const updateStandaloneWorkout = async (
@@ -1503,100 +1629,114 @@ export const updateStandaloneWorkout = async (
   exercises: UserExercise[],
 ): Promise<void> => {
   const db = await openDatabase("userData.db");
-  await db.withExclusiveTransactionAsync(async (txn) => {
-    await txn.runAsync(`UPDATE user_workouts SET name = ? WHERE id = ?`, [
-      name,
-      workoutId,
-    ]);
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(`UPDATE user_workouts SET name = ? WHERE id = ?`, [
+        name,
+        workoutId,
+      ]);
 
-    const existing: {
-      id: number;
-      exercise_id: number;
-      exercise_order: number;
-    }[] = await txn.getAllAsync(
-      `SELECT id, exercise_id, exercise_order FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
-      [workoutId],
-    );
-    const existingByOrder = new Map(existing.map((e) => [e.exercise_order, e]));
-    const incomingOrders = new Set(exercises.map((_, i) => i));
+      const existing: {
+        id: number;
+        exercise_id: number;
+        exercise_order: number;
+      }[] = await txn.getAllAsync(
+        `SELECT id, exercise_id, exercise_order FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+        [workoutId],
+      );
+      const existingByOrder = new Map(
+        existing.map((e) => [e.exercise_order, e]),
+      );
+      const incomingOrders = new Set(exercises.map((_, i) => i));
 
-    // Soft-delete rows whose position no longer exists in the incoming list
-    for (const row of existing) {
-      if (!incomingOrders.has(row.exercise_order)) {
-        await txn.runAsync(
-          `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
-          [row.id],
-        );
+      // Soft-delete rows whose position no longer exists in the incoming list
+      for (const row of existing) {
+        if (!incomingOrders.has(row.exercise_order)) {
+          await txn.runAsync(
+            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
+            [row.id],
+          );
+        }
       }
-    }
 
-    // Update by row id (keyed on position) or insert new rows
-    for (const [order, exercise] of exercises.entries()) {
-      const existingRow = existingByOrder.get(order);
-      if (existingRow) {
-        await txn.runAsync(
-          `UPDATE user_workout_exercises SET exercise_id = ?, sets = ?, exercise_order = ?, superset_group_id = ?, tracking_type_override = ?, is_deleted = FALSE WHERE id = ?`,
-          [
-            exercise.exercise_id,
-            JSON.stringify(exercise.sets),
-            order,
-            exercise.supersetGroupId ?? null,
-            exercise.tracking_type_override ?? null,
-            existingRow.id,
-          ],
-        );
-      } else {
-        await txn.runAsync(
-          `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
-          [
-            workoutId,
-            exercise.exercise_id,
-            JSON.stringify(exercise.sets),
-            order,
-            exercise.supersetGroupId ?? null,
-            exercise.tracking_type_override ?? null,
-          ],
-        );
+      // Update by row id (keyed on position) or insert new rows
+      for (const [order, exercise] of exercises.entries()) {
+        const existingRow = existingByOrder.get(order);
+        if (existingRow) {
+          await txn.runAsync(
+            `UPDATE user_workout_exercises SET exercise_id = ?, sets = ?, exercise_order = ?, superset_group_id = ?, tracking_type_override = ?, is_deleted = FALSE WHERE id = ?`,
+            [
+              exercise.exercise_id,
+              JSON.stringify(exercise.sets),
+              order,
+              exercise.supersetGroupId ?? null,
+              exercise.tracking_type_override ?? null,
+              existingRow.id,
+            ],
+          );
+        } else {
+          await txn.runAsync(
+            `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+              workoutId,
+              exercise.exercise_id,
+              JSON.stringify(exercise.sets),
+              order,
+              exercise.supersetGroupId ?? null,
+              exercise.tracking_type_override ?? null,
+            ],
+          );
+        }
       }
-    }
-  });
+    });
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const deleteStandaloneWorkout = async (
   workoutId: number,
 ): Promise<void> => {
   const db = await openDatabase("userData.db");
-  await db.withExclusiveTransactionAsync(async (txn) => {
-    await txn.runAsync(
-      `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE workout_id = ?`,
-      [workoutId],
-    );
-    await txn.runAsync(
-      `UPDATE user_workouts SET is_deleted = TRUE WHERE id = ?`,
-      [workoutId],
-    );
-  });
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE workout_id = ?`,
+        [workoutId],
+      );
+      await txn.runAsync(
+        `UPDATE user_workouts SET is_deleted = TRUE WHERE id = ?`,
+        [workoutId],
+      );
+    });
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const deleteCompletedWorkout = async (id: number): Promise<void> => {
   const db = await openDatabase("userData.db");
-  await db.withExclusiveTransactionAsync(async (txn) => {
-    await txn.runAsync(
-      `UPDATE completed_sets SET is_deleted = TRUE
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        `UPDATE completed_sets SET is_deleted = TRUE
        WHERE completed_exercise_id IN (
          SELECT id FROM completed_exercises WHERE completed_workout_id = ?
        )`,
-      [id],
-    );
-    await txn.runAsync(
-      `UPDATE completed_exercises SET is_deleted = TRUE WHERE completed_workout_id = ?`,
-      [id],
-    );
-    await txn.runAsync(
-      `UPDATE completed_workouts SET is_deleted = TRUE WHERE id = ?`,
-      [id],
-    );
-  });
+        [id],
+      );
+      await txn.runAsync(
+        `UPDATE completed_exercises SET is_deleted = TRUE WHERE completed_workout_id = ?`,
+        [id],
+      );
+      await txn.runAsync(
+        `UPDATE completed_workouts SET is_deleted = TRUE WHERE id = ?`,
+        [id],
+      );
+    });
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 // ---------- Plan Schedule ----------
@@ -1609,8 +1749,9 @@ export interface PlanScheduleEntry {
 export const fetchPlanSchedule = async (
   planId: number,
 ): Promise<PlanScheduleEntry[]> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     return await db.getAllAsync<PlanScheduleEntry>(
       `SELECT day_of_week, workout_id FROM plan_schedule WHERE plan_id = ? ORDER BY day_of_week`,
       [planId],
@@ -1619,6 +1760,8 @@ export const fetchPlanSchedule = async (
     console.error("Error fetching plan schedule:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -1626,8 +1769,9 @@ export const savePlanSchedule = async (
   planId: number,
   entries: PlanScheduleEntry[],
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.withExclusiveTransactionAsync(async (txn) => {
       await txn.runAsync(`DELETE FROM plan_schedule WHERE plan_id = ?`, [
         planId,
@@ -1643,6 +1787,8 @@ export const savePlanSchedule = async (
     console.error(`Error in savePlanSchedule for planId ${planId}:`, error);
     Bugsnag.notify(error as Error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -1652,86 +1798,91 @@ export const duplicatePlan = async (
   imageUrl: string | null,
 ): Promise<number> => {
   const db = await openDatabase("userData.db");
-  let newPlanId = 0;
-  const oldToNewWorkoutId: Record<number, number> = {};
+  try {
+    let newPlanId = 0;
+    const oldToNewWorkoutId: Record<number, number> = {};
 
-  await db.withExclusiveTransactionAsync(async (txn) => {
-    const sourcePlan = await txn.getFirstAsync<{ id: number }>(
-      `SELECT id FROM user_plans WHERE id = ?`,
-      [planId],
-    );
-    if (!sourcePlan) {
-      throw new Error(`Cannot duplicate plan ${planId}: plan does not exist`);
-    }
-
-    const planResult = await txn.runAsync(
-      `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
-      [planName, imageUrl],
-    );
-    newPlanId = planResult.lastInsertRowId;
-
-    const workouts = await txn.getAllAsync<{
-      id: number;
-      name: string;
-      workout_order: number;
-    }>(
-      `SELECT id, name, workout_order FROM user_workouts WHERE plan_id = ? AND is_deleted = FALSE ORDER BY workout_order ASC`,
-      [planId],
-    );
-
-    for (const workout of workouts) {
-      const workoutResult = await txn.runAsync(
-        `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (?, ?, ?)`,
-        [newPlanId, workout.name, workout.workout_order],
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      const sourcePlan = await txn.getFirstAsync<{ id: number }>(
+        `SELECT id FROM user_plans WHERE id = ?`,
+        [planId],
       );
-      const newWorkoutId = workoutResult.lastInsertRowId;
-      oldToNewWorkoutId[workout.id] = newWorkoutId;
+      if (!sourcePlan) {
+        throw new Error(`Cannot duplicate plan ${planId}: plan does not exist`);
+      }
 
-      const exercises = await txn.getAllAsync<{
-        exercise_id: number;
-        sets: string;
-        exercise_order: number;
-        superset_group_id: string | null;
-        tracking_type_override: string | null;
+      const planResult = await txn.runAsync(
+        `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
+        [planName, imageUrl],
+      );
+      newPlanId = planResult.lastInsertRowId;
+
+      const workouts = await txn.getAllAsync<{
+        id: number;
+        name: string;
+        workout_order: number;
       }>(
-        `SELECT exercise_id, sets, exercise_order, superset_group_id, tracking_type_override FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE ORDER BY exercise_order ASC`,
-        [workout.id],
+        `SELECT id, name, workout_order FROM user_workouts WHERE plan_id = ? AND is_deleted = FALSE ORDER BY workout_order ASC`,
+        [planId],
       );
 
-      for (const exercise of exercises) {
-        await txn.runAsync(
-          `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
-          [
-            newWorkoutId,
-            exercise.exercise_id,
-            exercise.sets,
-            exercise.exercise_order,
-            exercise.superset_group_id,
-            exercise.tracking_type_override,
-          ],
+      for (const workout of workouts) {
+        const workoutResult = await txn.runAsync(
+          `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (?, ?, ?)`,
+          [newPlanId, workout.name, workout.workout_order],
         );
-      }
-    }
+        const newWorkoutId = workoutResult.lastInsertRowId;
+        oldToNewWorkoutId[workout.id] = newWorkoutId;
 
-    const scheduleEntries = await txn.getAllAsync<{
-      day_of_week: number;
-      workout_id: number;
-    }>(`SELECT day_of_week, workout_id FROM plan_schedule WHERE plan_id = ?`, [
-      planId,
-    ]);
-
-    for (const entry of scheduleEntries) {
-      const newWorkoutId = oldToNewWorkoutId[entry.workout_id];
-      if (newWorkoutId != null) {
-        await txn.runAsync(
-          `INSERT INTO plan_schedule (plan_id, day_of_week, workout_id) VALUES (?, ?, ?)`,
-          [newPlanId, entry.day_of_week, newWorkoutId],
+        const exercises = await txn.getAllAsync<{
+          exercise_id: number;
+          sets: string;
+          exercise_order: number;
+          superset_group_id: string | null;
+          tracking_type_override: string | null;
+        }>(
+          `SELECT exercise_id, sets, exercise_order, superset_group_id, tracking_type_override FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE ORDER BY exercise_order ASC`,
+          [workout.id],
         );
-      }
-    }
-  });
 
-  return newPlanId;
+        for (const exercise of exercises) {
+          await txn.runAsync(
+            `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+              newWorkoutId,
+              exercise.exercise_id,
+              exercise.sets,
+              exercise.exercise_order,
+              exercise.superset_group_id,
+              exercise.tracking_type_override,
+            ],
+          );
+        }
+      }
+
+      const scheduleEntries = await txn.getAllAsync<{
+        day_of_week: number;
+        workout_id: number;
+      }>(
+        `SELECT day_of_week, workout_id FROM plan_schedule WHERE plan_id = ?`,
+        [planId],
+      );
+
+      for (const entry of scheduleEntries) {
+        const newWorkoutId = oldToNewWorkoutId[entry.workout_id];
+        if (newWorkoutId != null) {
+          await txn.runAsync(
+            `INSERT INTO plan_schedule (plan_id, day_of_week, workout_id) VALUES (?, ?, ?)`,
+            [newPlanId, entry.day_of_week, newWorkoutId],
+          );
+        }
+      }
+    });
+
+    return newPlanId;
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 // ---------- Notes ----------
@@ -1741,8 +1892,9 @@ export const fetchNote = async (
   secondaryReferenceId: number | null,
   noteType: string,
 ) => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
 
     let query = `
       SELECT note FROM notes 
@@ -1773,6 +1925,8 @@ export const fetchNote = async (
     console.error("Error fetching note:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -1785,8 +1939,9 @@ export interface WeeklyCompletion {
 }
 
 export const getWeeklyCompletions = async (): Promise<WeeklyCompletion[]> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     return (await db.getAllAsync(
       `SELECT * FROM weekly_completions ORDER BY week_start DESC`,
     )) as WeeklyCompletion[];
@@ -1794,6 +1949,8 @@ export const getWeeklyCompletions = async (): Promise<WeeklyCompletion[]> => {
     console.error("Error fetching weekly completions:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -1803,8 +1960,9 @@ export const upsertWeeklyCompletion = async (
   completed: number,
   goalReached: boolean,
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.runAsync(
       `INSERT OR REPLACE INTO weekly_completions (week_start, goal, completed, goal_reached) VALUES (?, ?, ?, ?)`,
       [weekStart, goal, completed, goalReached ? 1 : 0],
@@ -1813,6 +1971,8 @@ export const upsertWeeklyCompletion = async (
     console.error("Error upserting weekly completion:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -1820,8 +1980,9 @@ export const fetchSetDurationsForExercises = async (
   exerciseIds: number[],
 ): Promise<Record<number, { duration: number; reps: number | null }[]>> => {
   if (exerciseIds.length === 0) return {};
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const placeholders = exerciseIds.map(() => "?").join(", ");
     const rows = (await db.getAllAsync(
       `SELECT ce.exercise_id, cs.set_duration, cs.reps
@@ -1852,6 +2013,8 @@ export const fetchSetDurationsForExercises = async (
     console.error("Error fetching set durations for exercises:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -1912,8 +2075,9 @@ function rowToMetricDefinition(
 export const fetchActiveBodyMetricDefinitions = async (): Promise<
   BodyMetricDefinition[]
 > => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const rows = (await db.getAllAsync(
       `SELECT * FROM body_metric_definitions
        WHERE is_active = 1 AND is_deleted = 0
@@ -1924,14 +2088,17 @@ export const fetchActiveBodyMetricDefinitions = async (): Promise<
     console.error("Error fetching active body metric definitions:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
 export const fetchAllBodyMetricDefinitions = async (): Promise<
   BodyMetricDefinition[]
 > => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const rows = (await db.getAllAsync(
       `SELECT * FROM body_metric_definitions
        WHERE is_deleted = 0
@@ -1942,6 +2109,8 @@ export const fetchAllBodyMetricDefinitions = async (): Promise<
     console.error("Error fetching all body metric definitions:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -1949,8 +2118,9 @@ export const insertCustomBodyMetricDefinition = async (
   label: string,
   value_kind: ValueKind,
 ): Promise<number> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const key =
       label.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "") +
       "_" +
@@ -1969,6 +2139,8 @@ export const insertCustomBodyMetricDefinition = async (
     console.error("Error inserting custom body metric definition:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -1976,8 +2148,9 @@ export const toggleBodyMetricActive = async (
   id: number,
   is_active: boolean,
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.runAsync(
       `UPDATE body_metric_definitions SET is_active = ? WHERE id = ?`,
       [is_active ? 1 : 0, id],
@@ -1986,14 +2159,17 @@ export const toggleBodyMetricActive = async (
     console.error("Error toggling body metric active state:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
 export const softDeleteCustomBodyMetricDefinition = async (
   id: number,
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.runAsync(
       `UPDATE body_metric_definitions SET is_deleted = 1, is_active = 0 WHERE id = ? AND is_builtin = 0`,
       [id],
@@ -2002,6 +2178,8 @@ export const softDeleteCustomBodyMetricDefinition = async (
     console.error("Error soft-deleting body metric definition:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2009,8 +2187,9 @@ export const fetchBodyMeasurementSessions = async (
   options: MeasurementDisplayOptions,
   limit?: number,
 ): Promise<BodyMeasurementSession[]> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const limitClause = limit !== undefined ? `LIMIT ${limit}` : "";
     const rows = (await db.getAllAsync(
       `SELECT
@@ -2065,6 +2244,8 @@ export const fetchBodyMeasurementSessions = async (
     console.error("Error fetching body measurement sessions:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2072,8 +2253,9 @@ export const fetchBodyMeasurementSessionsForChart = async (
   metricId: number,
   options: MeasurementDisplayOptions,
 ): Promise<{ recorded_at: string; displayValue: number }[]> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const metricRow = await db.getFirstAsync<RawMetricDefinitionRow>(
       `SELECT * FROM body_metric_definitions WHERE id = ?`,
       [metricId],
@@ -2097,6 +2279,8 @@ export const fetchBodyMeasurementSessionsForChart = async (
     console.error("Error fetching body measurement sessions for chart:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2104,8 +2288,9 @@ export const insertBodyMeasurementSession = async (
   recorded_at: string,
   values: { metric_id: number; value: number }[],
 ): Promise<number> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const weightMetric = await db.getFirstAsync<{ id: number }>(
       `SELECT id FROM body_metric_definitions WHERE key = 'weight'`,
     );
@@ -2150,6 +2335,8 @@ export const insertBodyMeasurementSession = async (
     console.error("Error inserting body measurement session:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2157,8 +2344,9 @@ export const updateBodyMeasurementSession = async (
   entry_id: number,
   values: { metric_id: number; value: number }[],
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const weightMetric = await db.getFirstAsync<{ id: number }>(
       `SELECT id FROM body_metric_definitions WHERE key = 'weight'`,
     );
@@ -2228,14 +2416,17 @@ export const updateBodyMeasurementSession = async (
     console.error("Error updating body measurement session:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
 export const deleteBodyMeasurementSession = async (
   entry_id: number,
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const weightMetric = await db.getFirstAsync<{ id: number }>(
       `SELECT id FROM body_metric_definitions WHERE key = 'weight'`,
     );
@@ -2296,14 +2487,17 @@ export const deleteBodyMeasurementSession = async (
     console.error("Error deleting body measurement session:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
 export const saveBodyWeightMeasurement = async (
   weightKg: number,
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const now = new Date().toISOString();
     // Legacy table — keeps useExerciseHistoryQuery.ts working unchanged
     await db.runAsync(
@@ -2328,6 +2522,8 @@ export const saveBodyWeightMeasurement = async (
     console.error("Error saving body weight measurement:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2342,8 +2538,9 @@ export interface ProgressionSettings {
 
 export const getProgressionSettings =
   async (): Promise<ProgressionSettings> => {
+    let db: SQLite.SQLiteDatabase | undefined;
     try {
-      const db = await openDatabase("userData.db");
+      db = await openDatabase("userData.db");
       const rows = await db.getAllAsync<{ key: string; value: string }>(
         `SELECT key, value FROM settings WHERE key IN (
         'adaptive_progression_enabled',
@@ -2376,6 +2573,8 @@ export const getProgressionSettings =
       console.error("Error fetching progression settings:", error);
       Bugsnag.notify(error);
       throw error;
+    } finally {
+      if (db) await db.closeAsync();
     }
   };
 
@@ -2383,8 +2582,9 @@ export const setProgressionSetting = async (
   key: string,
   value: string,
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.runAsync(
       `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`,
       [key, value],
@@ -2393,12 +2593,15 @@ export const setProgressionSetting = async (
     console.error("Error setting progression setting:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
 export const getDeloadWeek = async (planId: number): Promise<string | null> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const row = await db.getFirstAsync<{ value: string }>(
       `SELECT value FROM settings WHERE key = ?`,
       [`plan_${planId}_deload_week`],
@@ -2408,6 +2611,8 @@ export const getDeloadWeek = async (planId: number): Promise<string | null> => {
     console.error("Error fetching deload week:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2415,8 +2620,9 @@ export const setDeloadWeek = async (
   planId: number,
   isoWeek: string | null,
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const key = `plan_${planId}_deload_week`;
     if (isoWeek === null) {
       await db.runAsync(`DELETE FROM settings WHERE key = ?`, [key]);
@@ -2430,14 +2636,17 @@ export const setDeloadWeek = async (
     console.error("Error setting deload week:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
 export const getMaxWorkingWeightForCompletedExercise = async (
   completedExerciseId: number,
 ): Promise<number | null> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const row = await db.getFirstAsync<{ weight: number }>(
       `SELECT MAX(weight) AS weight
        FROM completed_sets
@@ -2451,14 +2660,17 @@ export const getMaxWorkingWeightForCompletedExercise = async (
     console.error("Error fetching max working weight:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
 export const insertExerciseFeedback = async (
   payload: ExerciseFeedbackPayload,
 ): Promise<number> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const result = await db.runAsync(
       `INSERT INTO exercise_feedback (
         user_workout_exercise_id, effort_rating, pain_flag,
@@ -2478,6 +2690,8 @@ export const insertExerciseFeedback = async (
     console.error("Error inserting exercise feedback:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2485,8 +2699,9 @@ export const getRecentExerciseFeedback = async (
   userWorkoutExerciseId: number,
   limit: number = 3,
 ): Promise<ExerciseFeedback[]> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const rows = await db.getAllAsync<{
       id: number;
       effort_rating: string;
@@ -2516,6 +2731,8 @@ export const getRecentExerciseFeedback = async (
     console.error("Error fetching exercise feedback:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2533,8 +2750,9 @@ export const upsertProgressionState = async (
   consecutiveDirectionCount: number,
   extras: UpsertProgressionExtras,
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.runAsync(
       `INSERT INTO exercise_progression_state (
         user_workout_exercise_id, suggestion_action, suggested_weight,
@@ -2555,6 +2773,8 @@ export const upsertProgressionState = async (
         consecutive_direction_count = excluded.consecutive_direction_count,
         is_applied = 0,
         is_dismissed = 0,
+        recovery_rating = NULL,
+        recovery_checked_at = NULL,
         discomfort_streak_count = excluded.discomfort_streak_count,
         consecutive_hold_count = excluded.consecutive_hold_count,
         plateau_advisory = excluded.plateau_advisory,
@@ -2582,14 +2802,18 @@ export const upsertProgressionState = async (
     console.error("Error upserting progression state:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
 export const getProgressionState = async (
   userWorkoutExerciseId: number,
+  skipLayoffOverride = false,
 ): Promise<ExerciseProgressionState | null> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const row = await db.getFirstAsync<{
       id: number;
       user_workout_exercise_id: number;
@@ -2611,8 +2835,52 @@ export const getProgressionState = async (
       is_dismissed: number;
       created_at: string;
       updated_at: string;
+      target_muscle: string;
+      equipment: string;
+      tracking_type_override: string | null;
+      tracking_type: string | null;
+      recent_weight: number | null;
     }>(
-      `SELECT * FROM exercise_progression_state WHERE user_workout_exercise_id = ?`,
+      `SELECT
+        eps.id,
+        eps.user_workout_exercise_id,
+        eps.suggestion_action,
+        eps.suggested_weight,
+        eps.suggested_reps_per_set,
+        eps.suggested_sets,
+        eps.rule_key,
+        eps.rule_explanation,
+        eps.source_feedback_id,
+        eps.recovery_rating,
+        eps.recovery_checked_at,
+        eps.consecutive_direction_count,
+        eps.discomfort_streak_count,
+        eps.consecutive_hold_count,
+        eps.plateau_advisory,
+        eps.last_progression_at,
+        eps.is_applied,
+        eps.is_dismissed,
+        eps.created_at,
+        eps.updated_at,
+        e.target_muscle,
+        e.equipment,
+        uwe.tracking_type_override,
+        e.tracking_type,
+        (
+          SELECT MAX(cs.weight)
+          FROM completed_sets cs
+          JOIN completed_exercises ce ON cs.completed_exercise_id = ce.id
+          JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
+          WHERE ce.exercise_id = e.exercise_id
+            AND cw.workout_id = uwe.workout_id
+            AND cs.is_warmup = 0
+            AND cs.is_drop_set = 0
+            AND cs.weight IS NOT NULL
+        ) AS recent_weight
+      FROM exercise_progression_state eps
+      JOIN user_workout_exercises uwe ON uwe.id = eps.user_workout_exercise_id
+      JOIN exercises e ON e.exercise_id = uwe.exercise_id
+      WHERE eps.user_workout_exercise_id = ?`,
       [userWorkoutExerciseId],
     );
     if (!row) return null;
@@ -2624,7 +2892,7 @@ export const getProgressionState = async (
         parsedRepsPerSet = undefined;
       }
     }
-    return {
+    const base: ExerciseProgressionState = {
       id: row.id,
       userWorkoutExerciseId: row.user_workout_exercise_id,
       suggestionAction: row.suggestion_action as ProgressionAction,
@@ -2646,10 +2914,45 @@ export const getProgressionState = async (
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
+
+    if (skipLayoffOverride) return base;
+
+    const trackingType =
+      row.tracking_type_override ?? row.tracking_type ?? "weight";
+    if (
+      (trackingType !== "weight" && trackingType !== "assisted") ||
+      row.recent_weight == null
+    ) {
+      return base;
+    }
+
+    const daysByMuscle = await getDaysSinceLastWorkoutByMuscle();
+    const days = daysByMuscle[row.target_muscle];
+    if (days == null) return base;
+
+    const settings = await getProgressionSettings();
+    const layoff = computeLayoffReduction(
+      days,
+      row.recent_weight,
+      row.equipment,
+      settings.increments,
+    );
+    if (!layoff) return base;
+
+    return {
+      ...base,
+      suggestionAction: "reduce_load",
+      suggestedWeight: layoff.suggestedWeight,
+      suggestedRepsPerSet: undefined,
+      ruleKey: "MUSCLE_LAYOFF",
+      ruleExplanation: `It's been ${days} days since you trained ${row.target_muscle}. We've suggested a lighter weight to help you ease back in safely.`,
+    };
   } catch (error: any) {
     console.error("Error fetching progression state:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2657,8 +2960,9 @@ export const updateProgressionStateRecovery = async (
   userWorkoutExerciseId: number,
   recoveryRating: RecoveryRating,
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.runAsync(
       `UPDATE exercise_progression_state
        SET recovery_rating = ?, recovery_checked_at = datetime('now'), updated_at = datetime('now')
@@ -2669,14 +2973,17 @@ export const updateProgressionStateRecovery = async (
     console.error("Error updating recovery rating:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
 export const applyProgressionToExercise = async (
   userWorkoutExerciseId: number,
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.runAsync(
       `UPDATE exercise_progression_state SET is_applied = 1, updated_at = datetime('now')
        WHERE user_workout_exercise_id = ?`,
@@ -2686,14 +2993,17 @@ export const applyProgressionToExercise = async (
     console.error("Error applying progression to exercise:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
 export const dismissProgressionState = async (
   userWorkoutExerciseId: number,
 ): Promise<void> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.runAsync(
       `UPDATE exercise_progression_state
        SET is_dismissed = 1, updated_at = datetime('now')
@@ -2704,6 +3014,8 @@ export const dismissProgressionState = async (
     console.error("Error dismissing progression state:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2716,8 +3028,9 @@ interface PendingRecoveryRow {
 export const getPendingRecoveryCheckIns = async (
   workoutId: number,
 ): Promise<PendingRecoveryRow[]> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const rows = await db.getAllAsync<{
       user_workout_exercise_id: number;
       exercise_id: number;
@@ -2744,6 +3057,41 @@ export const getPendingRecoveryCheckIns = async (
     console.error("Error fetching pending recovery check-ins:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
+  }
+};
+
+export const getDaysSinceLastWorkoutByMuscle = async (): Promise<
+  Record<string, number>
+> => {
+  let db: SQLite.SQLiteDatabase | undefined;
+  try {
+    db = await openDatabase("userData.db");
+    const rows = await db.getAllAsync<{
+      target_muscle: string;
+      days_since: number;
+    }>(
+      `SELECT
+        e.target_muscle AS target_muscle,
+        CAST((julianday('now') - julianday(MAX(cw.date_completed))) AS INTEGER) AS days_since
+       FROM completed_exercises ce
+       JOIN completed_workouts cw ON cw.id = ce.completed_workout_id
+       JOIN exercises e ON e.exercise_id = ce.exercise_id
+       WHERE ce.is_deleted = 0 AND cw.is_deleted = 0
+       GROUP BY e.target_muscle`,
+    );
+    const result: Record<string, number> = {};
+    for (const row of rows) {
+      result[row.target_muscle] = row.days_since;
+    }
+    return result;
+  } catch (error: any) {
+    console.error("Error fetching days since last workout by muscle:", error);
+    Bugsnag.notify(error);
+    throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2761,8 +3109,9 @@ export interface ExerciseProgressionContext {
 export const getExerciseProgressionContext = async (
   userWorkoutExerciseId: number,
 ): Promise<ExerciseProgressionContext | null> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const row = await db.getFirstAsync<{
       exercise_id: number;
       sets: string | null;
@@ -2785,6 +3134,7 @@ export const getExerciseProgressionContext = async (
           WHERE ce.exercise_id = e.exercise_id
             AND cw.workout_id = uwe.workout_id
             AND cs.is_warmup = 0
+            AND cs.is_drop_set = 0
             AND cs.weight IS NOT NULL
         ) AS recent_weight
       FROM user_workout_exercises uwe
@@ -2805,7 +3155,7 @@ export const getExerciseProgressionContext = async (
       userWorkoutExerciseId,
       1,
     );
-    const state = await getProgressionState(userWorkoutExerciseId);
+    const state = await getProgressionState(userWorkoutExerciseId, true);
 
     return {
       exerciseId: row.exercise_id,
@@ -2821,6 +3171,8 @@ export const getExerciseProgressionContext = async (
     console.error("Error fetching exercise progression context:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2845,9 +3197,11 @@ export interface WorkoutProgressionStateRow {
 
 export const getProgressionStatesForWorkout = async (
   workoutId: number,
+  skipLayoffOverride = false,
 ): Promise<WorkoutProgressionStateRow[]> => {
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     const rows = await db.getAllAsync<{
       id: number;
       user_workout_exercise_id: number;
@@ -2864,6 +3218,11 @@ export const getProgressionStatesForWorkout = async (
       recovery_rating: string | null;
       is_applied: number;
       is_dismissed: number;
+      target_muscle: string;
+      equipment: string;
+      tracking_type_override: string | null;
+      tracking_type: string | null;
+      recent_weight: number | null;
     }>(
       `SELECT
         eps.id,
@@ -2880,7 +3239,22 @@ export const getProgressionStatesForWorkout = async (
         eps.last_progression_at,
         eps.recovery_rating,
         eps.is_applied,
-        eps.is_dismissed
+        eps.is_dismissed,
+        e.target_muscle,
+        e.equipment,
+        uwe.tracking_type_override,
+        e.tracking_type,
+        (
+          SELECT MAX(cs.weight)
+          FROM completed_sets cs
+          JOIN completed_exercises ce ON cs.completed_exercise_id = ce.id
+          JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
+          WHERE ce.exercise_id = e.exercise_id
+            AND cw.workout_id = uwe.workout_id
+            AND cs.is_warmup = 0
+            AND cs.is_drop_set = 0
+            AND cs.weight IS NOT NULL
+        ) AS recent_weight
       FROM exercise_progression_state eps
       JOIN user_workout_exercises uwe ON uwe.id = eps.user_workout_exercise_id
       JOIN exercises e ON e.exercise_id = uwe.exercise_id
@@ -2889,6 +3263,14 @@ export const getProgressionStatesForWorkout = async (
       ORDER BY uwe.exercise_order ASC`,
       [workoutId],
     );
+
+    const daysByMuscle = skipLayoffOverride
+      ? {}
+      : await getDaysSinceLastWorkoutByMuscle();
+    const settings = skipLayoffOverride
+      ? null
+      : await getProgressionSettings();
+
     return rows.map((row) => {
       let parsedRepsPerSet: number[] | undefined;
       if (row.suggested_reps_per_set) {
@@ -2898,7 +3280,7 @@ export const getProgressionStatesForWorkout = async (
           parsedRepsPerSet = undefined;
         }
       }
-      return {
+      const base: WorkoutProgressionStateRow = {
         id: row.id,
         userWorkoutExerciseId: row.user_workout_exercise_id,
         exerciseName: row.exercise_name,
@@ -2915,11 +3297,44 @@ export const getProgressionStatesForWorkout = async (
         isApplied: row.is_applied === 1,
         isDismissed: row.is_dismissed === 1,
       };
+
+      if (skipLayoffOverride || !settings) return base;
+
+      const trackingType =
+        row.tracking_type_override ?? row.tracking_type ?? "weight";
+      if (
+        (trackingType !== "weight" && trackingType !== "assisted") ||
+        row.recent_weight == null
+      ) {
+        return base;
+      }
+
+      const days = daysByMuscle[row.target_muscle];
+      if (days == null) return base;
+
+      const layoff = computeLayoffReduction(
+        days,
+        row.recent_weight,
+        row.equipment,
+        settings.increments,
+      );
+      if (!layoff) return base;
+
+      return {
+        ...base,
+        suggestionAction: "reduce_load" as ProgressionAction,
+        suggestedWeight: layoff.suggestedWeight,
+        suggestedRepsPerSet: undefined,
+        ruleKey: "MUSCLE_LAYOFF",
+        ruleExplanation: `It's been ${days} days since you trained ${row.target_muscle}. We've suggested a lighter weight to help you ease back in safely.`,
+      };
     });
   } catch (error: any) {
     console.error("Error fetching workout progression states:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };
 
@@ -2968,15 +3383,15 @@ export const fetchFullPlanForSharing = async (
   }[];
 } | null> => {
   const db = await openDatabase("userData.db");
+  try {
+    const plan = await db.getFirstAsync<RawPlanRow>(
+      `SELECT id, name, image_url, is_active, app_plan_id FROM user_plans WHERE id = ? AND is_deleted = FALSE`,
+      [planId],
+    );
+    if (!plan) return null;
 
-  const plan = await db.getFirstAsync<RawPlanRow>(
-    `SELECT id, name, image_url, is_active, app_plan_id FROM user_plans WHERE id = ? AND is_deleted = FALSE`,
-    [planId],
-  );
-  if (!plan) return null;
-
-  const rows = await db.getAllAsync<RawPlanWorkoutRow>(
-    `SELECT
+    const rows = await db.getAllAsync<RawPlanWorkoutRow>(
+      `SELECT
        uw.id AS workout_id, uw.name AS workout_name, uw.workout_order,
        e.exercise_id, e.app_exercise_id, e.name AS exercise_name,
        e.animated_url, e.equipment, e.body_part, e.target_muscle,
@@ -2989,33 +3404,36 @@ export const fetchFullPlanForSharing = async (
      LEFT JOIN exercises e ON e.exercise_id = uwe.exercise_id
      WHERE uw.plan_id = ? AND uw.is_deleted = FALSE
      ORDER BY uw.workout_order, uwe.exercise_order`,
-    [planId],
-  );
+      [planId],
+    );
 
-  const workoutsMap = new Map<
-    number,
-    {
-      workout_id: number;
-      workout_name: string;
-      workout_order: number;
-      exercises: RawPlanWorkoutRow[];
+    const workoutsMap = new Map<
+      number,
+      {
+        workout_id: number;
+        workout_name: string;
+        workout_order: number;
+        exercises: RawPlanWorkoutRow[];
+      }
+    >();
+    for (const row of rows) {
+      if (!workoutsMap.has(row.workout_id)) {
+        workoutsMap.set(row.workout_id, {
+          workout_id: row.workout_id,
+          workout_name: row.workout_name,
+          workout_order: row.workout_order,
+          exercises: [],
+        });
+      }
+      if (row.exercise_id) {
+        workoutsMap.get(row.workout_id)!.exercises.push(row);
+      }
     }
-  >();
-  for (const row of rows) {
-    if (!workoutsMap.has(row.workout_id)) {
-      workoutsMap.set(row.workout_id, {
-        workout_id: row.workout_id,
-        workout_name: row.workout_name,
-        workout_order: row.workout_order,
-        exercises: [],
-      });
-    }
-    if (row.exercise_id) {
-      workoutsMap.get(row.workout_id)!.exercises.push(row);
-    }
+
+    return { plan, workouts: Array.from(workoutsMap.values()) };
+  } finally {
+    await db.closeAsync();
   }
-
-  return { plan, workouts: Array.from(workoutsMap.values()) };
 };
 
 interface RawStandaloneWorkoutRow {
@@ -3048,19 +3466,19 @@ export const fetchStandaloneWorkoutForSharing = async (
   exercises: RawStandaloneWorkoutRow[];
 } | null> => {
   const db = await openDatabase("userData.db");
+  try {
+    const wRow = await db.getFirstAsync<{
+      id: number;
+      name: string;
+      image_url: string | null;
+    }>(
+      `SELECT id, name, image_url FROM user_workouts WHERE id = ? AND plan_id IS NULL AND is_deleted = FALSE`,
+      [workoutId],
+    );
+    if (!wRow) return null;
 
-  const wRow = await db.getFirstAsync<{
-    id: number;
-    name: string;
-    image_url: string | null;
-  }>(
-    `SELECT id, name, image_url FROM user_workouts WHERE id = ? AND plan_id IS NULL AND is_deleted = FALSE`,
-    [workoutId],
-  );
-  if (!wRow) return null;
-
-  const rows = await db.getAllAsync<RawStandaloneWorkoutRow>(
-    `SELECT
+    const rows = await db.getAllAsync<RawStandaloneWorkoutRow>(
+      `SELECT
        uw.id AS workout_id, uw.name AS workout_name, uw.image_url,
        e.exercise_id, e.app_exercise_id, e.name AS exercise_name,
        e.animated_url, e.equipment, e.body_part, e.target_muscle,
@@ -3073,16 +3491,19 @@ export const fetchStandaloneWorkoutForSharing = async (
      LEFT JOIN exercises e ON e.exercise_id = uwe.exercise_id
      WHERE uw.id = ? AND uw.is_deleted = FALSE
      ORDER BY uwe.exercise_order`,
-    [workoutId],
-  );
+      [workoutId],
+    );
 
-  const exercises = rows.filter((r) => r.exercise_id != null);
-  return {
-    workout_id: wRow.id,
-    workout_name: wRow.name,
-    image_url: wRow.image_url,
-    exercises,
-  };
+    const exercises = rows.filter((r) => r.exercise_id != null);
+    return {
+      workout_id: wRow.id,
+      workout_name: wRow.name,
+      image_url: wRow.image_url,
+      exercises,
+    };
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const fetchCompletedWorkoutForSharing = async (
@@ -3111,39 +3532,39 @@ export const fetchCompletedWorkoutForSharing = async (
   }[];
 } | null> => {
   const db = await openDatabase("userData.db");
-
-  const cw = await db.getFirstAsync<{
-    id: number;
-    plan_name: string | null;
-    workout_name: string | null;
-    date_completed: string;
-    duration: number;
-    total_sets_completed: number;
-    is_deload: number;
-  }>(
-    `SELECT cw.id, up.name AS plan_name, uw.name AS workout_name,
+  try {
+    const cw = await db.getFirstAsync<{
+      id: number;
+      plan_name: string | null;
+      workout_name: string | null;
+      date_completed: string;
+      duration: number;
+      total_sets_completed: number;
+      is_deload: number;
+    }>(
+      `SELECT cw.id, up.name AS plan_name, uw.name AS workout_name,
             cw.date_completed, cw.duration, cw.total_sets_completed, cw.is_deload
      FROM completed_workouts cw
      LEFT JOIN user_plans up ON up.id = cw.plan_id
      LEFT JOIN user_workouts uw ON uw.id = cw.workout_id
      WHERE cw.id = ? AND cw.is_deleted = 0`,
-    [completedWorkoutId],
-  );
-  if (!cw) return null;
+      [completedWorkoutId],
+    );
+    if (!cw) return null;
 
-  const setRows = await db.getAllAsync<{
-    completed_exercise_id: number;
-    exercise_name: string;
-    set_number: number;
-    weight: number | null;
-    reps: number | null;
-    time: number | null;
-    distance: number | null;
-    is_warmup: number;
-    is_drop_set: number;
-    is_to_failure: number;
-  }>(
-    `SELECT ce.id AS completed_exercise_id, e.name AS exercise_name,
+    const setRows = await db.getAllAsync<{
+      completed_exercise_id: number;
+      exercise_name: string;
+      set_number: number;
+      weight: number | null;
+      reps: number | null;
+      time: number | null;
+      distance: number | null;
+      is_warmup: number;
+      is_drop_set: number;
+      is_to_failure: number;
+    }>(
+      `SELECT ce.id AS completed_exercise_id, e.name AS exercise_name,
             cs.set_number, cs.weight, cs.reps, cs.time, cs.distance,
             cs.is_warmup, cs.is_drop_set, cs.is_to_failure
      FROM completed_exercises ce
@@ -3151,29 +3572,32 @@ export const fetchCompletedWorkoutForSharing = async (
      JOIN completed_sets cs ON cs.completed_exercise_id = ce.id AND cs.is_deleted = 0
      WHERE ce.completed_workout_id = ? AND ce.is_deleted = 0
      ORDER BY ce.id, cs.set_number`,
-    [completedWorkoutId],
-  );
+      [completedWorkoutId],
+    );
 
-  const exMap = new Map<
-    number,
-    {
-      completed_exercise_id: number;
-      exercise_name: string;
-      sets: typeof setRows;
+    const exMap = new Map<
+      number,
+      {
+        completed_exercise_id: number;
+        exercise_name: string;
+        sets: typeof setRows;
+      }
+    >();
+    for (const row of setRows) {
+      if (!exMap.has(row.completed_exercise_id)) {
+        exMap.set(row.completed_exercise_id, {
+          completed_exercise_id: row.completed_exercise_id,
+          exercise_name: row.exercise_name,
+          sets: [],
+        });
+      }
+      exMap.get(row.completed_exercise_id)!.sets.push(row);
     }
-  >();
-  for (const row of setRows) {
-    if (!exMap.has(row.completed_exercise_id)) {
-      exMap.set(row.completed_exercise_id, {
-        completed_exercise_id: row.completed_exercise_id,
-        exercise_name: row.exercise_name,
-        sets: [],
-      });
-    }
-    exMap.get(row.completed_exercise_id)!.sets.push(row);
+
+    return { ...cw, exercises: Array.from(exMap.values()) };
+  } finally {
+    await db.closeAsync();
   }
-
-  return { ...cw, exercises: Array.from(exMap.values()) };
 };
 
 export const fetchBodyMeasurementEntryForSharing = async (
@@ -3184,27 +3608,30 @@ export const fetchBodyMeasurementEntryForSharing = async (
   values: Record<string, number>;
 } | null> => {
   const db = await openDatabase("userData.db");
+  try {
+    const entry = await db.getFirstAsync<{ id: number; recorded_at: string }>(
+      `SELECT id, recorded_at FROM body_measurement_entries WHERE id = ?`,
+      [entryId],
+    );
+    if (!entry) return null;
 
-  const entry = await db.getFirstAsync<{ id: number; recorded_at: string }>(
-    `SELECT id, recorded_at FROM body_measurement_entries WHERE id = ?`,
-    [entryId],
-  );
-  if (!entry) return null;
-
-  const valueRows = await db.getAllAsync<{ key: string; value: number }>(
-    `SELECT bmd.key, bmv.value
+    const valueRows = await db.getAllAsync<{ key: string; value: number }>(
+      `SELECT bmd.key, bmv.value
      FROM body_measurement_values bmv
      JOIN body_metric_definitions bmd ON bmd.id = bmv.metric_id
      WHERE bmv.entry_id = ?`,
-    [entryId],
-  );
+      [entryId],
+    );
 
-  const values: Record<string, number> = {};
-  for (const v of valueRows) {
-    values[v.key] = v.value;
+    const values: Record<string, number> = {};
+    for (const v of valueRows) {
+      values[v.key] = v.value;
+    }
+
+    return { id: entry.id, recorded_at: entry.recorded_at, values };
+  } finally {
+    await db.closeAsync();
   }
-
-  return { id: entry.id, recorded_at: entry.recorded_at, values };
 };
 
 export interface ExercisePRData {
@@ -3228,9 +3655,10 @@ export const fetchPRDataForExercises = async (
 ): Promise<ExercisePRData[]> => {
   if (exerciseIds.length === 0) return [];
   const db = await openDatabase("userData.db");
-  const placeholders = exerciseIds.map(() => "?").join(", ");
+  try {
+    const placeholders = exerciseIds.map(() => "?").join(", ");
 
-  const pmExpr = `CASE e.tracking_type
+    const pmExpr = `CASE e.tracking_type
     WHEN 'weight' THEN (COALESCE(cs.weight, 0) * CASE WHEN e.double_weight = 1 THEN 2 ELSE 1 END) * (1.0 + COALESCE(cs.reps, 0) / 30.0)
     WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - COALESCE(cs.weight, 0)) * (1.0 + COALESCE(cs.reps, 0) / 30.0)
     WHEN 'reps' THEN CAST(COALESCE(cs.reps, 0) AS REAL)
@@ -3239,21 +3667,21 @@ export const fetchPRDataForExercises = async (
     ELSE (COALESCE(cs.weight, 0) * CASE WHEN e.double_weight = 1 THEN 2 ELSE 1 END) * (1.0 + COALESCE(cs.reps, 0) / 30.0)
   END`;
 
-  const rows = await db.getAllAsync<{
-    exercise_id: number;
-    app_exercise_id: number | null;
-    exercise_name: string;
-    tracking_type: string;
-    weight: number | null;
-    reps: number | null;
-    time: number | null;
-    distance: number | null;
-    date_completed: string;
-    pm: number;
-    all_time_pr: number;
-    rn: number;
-  }>(
-    `SELECT * FROM (
+    const rows = await db.getAllAsync<{
+      exercise_id: number;
+      app_exercise_id: number | null;
+      exercise_name: string;
+      tracking_type: string;
+      weight: number | null;
+      reps: number | null;
+      time: number | null;
+      distance: number | null;
+      date_completed: string;
+      pm: number;
+      all_time_pr: number;
+      rn: number;
+    }>(
+      `SELECT * FROM (
        SELECT
          e.exercise_id, e.app_exercise_id, e.name AS exercise_name, e.tracking_type,
          cs.weight, cs.reps, cs.time, cs.distance,
@@ -3269,48 +3697,52 @@ export const fetchPRDataForExercises = async (
        WHERE e.exercise_id IN (${placeholders})
      )
      WHERE rn <= 5`,
-    exerciseIds,
-  );
+      exerciseIds,
+    );
 
-  const exerciseMap = new Map<number, ExercisePRData>();
-  for (const row of rows) {
-    if (!exerciseMap.has(row.exercise_id)) {
-      exerciseMap.set(row.exercise_id, {
-        exercise_id: row.exercise_id,
-        app_exercise_id: row.app_exercise_id,
-        exercise_name: row.exercise_name,
-        tracking_type: row.tracking_type,
-        all_time_pr: row.all_time_pr,
-        all_time_pr_date: row.date_completed,
-        top_sets: [],
+    const exerciseMap = new Map<number, ExercisePRData>();
+    for (const row of rows) {
+      if (!exerciseMap.has(row.exercise_id)) {
+        exerciseMap.set(row.exercise_id, {
+          exercise_id: row.exercise_id,
+          app_exercise_id: row.app_exercise_id,
+          exercise_name: row.exercise_name,
+          tracking_type: row.tracking_type,
+          all_time_pr: row.all_time_pr,
+          all_time_pr_date: row.date_completed,
+          top_sets: [],
+        });
+      }
+      const entry = exerciseMap.get(row.exercise_id)!;
+      // Keep the earliest date where the all-time PR was achieved
+      if (
+        row.pm >= row.all_time_pr &&
+        row.date_completed < entry.all_time_pr_date
+      ) {
+        entry.all_time_pr_date = row.date_completed;
+      }
+      entry.top_sets.push({
+        weight: row.weight,
+        reps: row.reps,
+        time: row.time,
+        distance: row.distance,
+        date_completed: row.date_completed,
       });
     }
-    const entry = exerciseMap.get(row.exercise_id)!;
-    // Keep the earliest date where the all-time PR was achieved
-    if (
-      row.pm >= row.all_time_pr &&
-      row.date_completed < entry.all_time_pr_date
-    ) {
-      entry.all_time_pr_date = row.date_completed;
-    }
-    entry.top_sets.push({
-      weight: row.weight,
-      reps: row.reps,
-      time: row.time,
-      distance: row.distance,
-      date_completed: row.date_completed,
-    });
-  }
 
-  return Array.from(exerciseMap.values());
+    return Array.from(exerciseMap.values());
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 export const reorderTrackedExercises = async (
   exerciseIds: number[],
 ): Promise<void> => {
   if (exerciseIds.length === 0) return;
+  let db: SQLite.SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
     await db.withExclusiveTransactionAsync(async (txn) => {
       for (let i = 0; i < exerciseIds.length; i++) {
         await txn.runAsync(
@@ -3323,5 +3755,7 @@ export const reorderTrackedExercises = async (
     console.error("Error reordering tracked exercises:", error);
     Bugsnag.notify(error);
     throw error;
+  } finally {
+    if (db) await db.closeAsync();
   }
 };

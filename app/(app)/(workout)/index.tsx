@@ -28,6 +28,8 @@ import {
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
+import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
 import { Notes } from "@/components/Notes";
@@ -118,10 +120,11 @@ export default function WorkoutOverviewScreen() {
     stopTimer,
     startTimer,
     feedbackSubmittedUweIds,
+    recoveryCheckInShown,
+    markRecoveryCheckInShown,
   } = useActiveWorkoutStore();
 
   const recoverySheetRef = useRef<BottomSheetModal>(null);
-  const recoveryShownRef = useRef(false);
   const progressionSettings = useProgressionSettingsQuery();
   const { isCurrentWeekDeload } = useDeloadWeekQuery(
     activeWorkout?.planId ?? undefined,
@@ -133,16 +136,22 @@ export default function WorkoutOverviewScreen() {
 
   useEffect(() => {
     if (
-      !recoveryShownRef.current &&
+      !recoveryCheckInShown &&
       progressionSettings.enabled &&
       activeWorkout?.planId != null &&
       pendingRecovery &&
       pendingRecovery.length > 0
     ) {
-      recoveryShownRef.current = true;
+      markRecoveryCheckInShown();
       recoverySheetRef.current?.present();
     }
-  }, [pendingRecovery, progressionSettings.enabled, activeWorkout?.planId]);
+  }, [
+    pendingRecovery,
+    progressionSettings.enabled,
+    activeWorkout?.planId,
+    recoveryCheckInShown,
+    markRecoveryCheckInShown,
+  ]);
 
   const stableKeyMapRef = useRef(new WeakMap<UserExercise, string>());
   const getStableKey = useCallback((exercise: UserExercise): string => {
@@ -165,6 +174,11 @@ export default function WorkoutOverviewScreen() {
 
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
+  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
+  const { estimate: durationEstimate } = useWorkoutDurationEstimate(
+    workout?.exercises ?? [],
+    countUnilateralDouble,
+  );
   const { data: sessionHistory } = useWorkoutSessionHistoryQuery(
     activeWorkout?.workoutId ?? 0,
     weightUnit,
@@ -181,6 +195,7 @@ export default function WorkoutOverviewScreen() {
     progressionSettings.enabled
       ? (activeWorkout?.workoutId ?? undefined)
       : undefined,
+    isCurrentWeekDeload,
   );
 
   useEffect(() => {
@@ -1110,6 +1125,13 @@ export default function WorkoutOverviewScreen() {
           timerRunning ? { paddingBottom: timerHeight } : undefined
         }
       >
+        {workout.exercises.length > 0 && durationEstimate != null && (
+          <ThemedText style={styles.durationEstimate}>
+            <Trans>
+              Estimated Duration: {formatDurationEstimate(durationEstimate)}
+            </Trans>
+          </ThemedText>
+        )}
         <Notes
           noteType="workout"
           referenceId={workout?.id || 0}
@@ -1236,6 +1258,12 @@ function createStyles(colors: AppThemeColors) {
       fontSize: 16,
       color: colors.contentSecondary,
       textAlign: "center",
+    },
+    durationEstimate: {
+      fontSize: 13,
+      color: colors.contentSecondary,
+      marginTop: 4,
+      marginBottom: 4,
     },
     saveModal: {
       backgroundColor: colors.card,

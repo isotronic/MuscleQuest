@@ -1,12 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Plan, RawPlan } from "./useAllPlansQuery";
 import { openDatabase } from "@/utils/database";
+import type { SQLiteDatabase } from "expo-sqlite";
 import { Workout } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 
 export const fetchActivePlanData = async (): Promise<Plan | null> => {
+  let db: SQLiteDatabase | undefined;
   try {
-    const db = await openDatabase("userData.db");
+    db = await openDatabase("userData.db");
 
     const rawResult = (await db.getAllAsync(
       `
@@ -98,6 +100,14 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
     console.error("Error fetching or parsing active plan", error);
     Bugsnag.notify(error);
     return null;
+  } finally {
+    if (db) {
+      try {
+        await db.closeAsync();
+      } catch (closeError: any) {
+        Bugsnag.notify(closeError);
+      }
+    }
   }
 };
 

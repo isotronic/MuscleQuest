@@ -10,45 +10,51 @@ export const useImportPlanMutation = () => {
   return useMutation({
     mutationFn: async (plan: SharedPlan): Promise<number> => {
       const db = await openDatabase("userData.db");
+      try {
+        const appExerciseIds = plan.workouts
+          .flatMap((w) => w.exercises)
+          .map((e) => e.appExerciseId)
+          .filter((id): id is number => id !== null);
+        await ensureAppExercisesExist(db, appExerciseIds);
 
-      const appExerciseIds = plan.workouts
-        .flatMap((w) => w.exercises)
-        .map((e) => e.appExerciseId)
-        .filter((id): id is number => id !== null);
-      await ensureAppExercisesExist(db, appExerciseIds);
-
-      let newPlanId = 0;
-      await db.withExclusiveTransactionAsync(async (txn) => {
-        const planResult = await txn.runAsync(
-          `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
-          [plan.name, plan.imageUrl ?? null],
-        );
-        newPlanId = planResult.lastInsertRowId;
-
-        for (const [workoutOrder, workout] of plan.workouts.entries()) {
-          const workoutResult = await txn.runAsync(
-            `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (?, ?, ?)`,
-            [newPlanId, workout.name, workoutOrder],
+        let newPlanId = 0;
+        await db.withExclusiveTransactionAsync(async (txn) => {
+          const planResult = await txn.runAsync(
+            `INSERT INTO user_plans (name, image_url) VALUES (?, ?)`,
+            [plan.name, plan.imageUrl ?? null],
           );
-          const workoutId = workoutResult.lastInsertRowId;
+          newPlanId = planResult.lastInsertRowId;
 
-          for (const [exerciseOrder, exercise] of workout.exercises.entries()) {
-            const exerciseId = await resolveExerciseId(txn, exercise);
-            await txn.runAsync(
-              `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
-              [
-                workoutId,
-                exerciseId,
-                JSON.stringify(exercise.sets),
-                exerciseOrder,
-                exercise.supersetGroupId ?? null,
-                exercise.trackingTypeOverride ?? null,
-              ],
+          for (const [workoutOrder, workout] of plan.workouts.entries()) {
+            const workoutResult = await txn.runAsync(
+              `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (?, ?, ?)`,
+              [newPlanId, workout.name, workoutOrder],
             );
+            const workoutId = workoutResult.lastInsertRowId;
+
+            for (const [
+              exerciseOrder,
+              exercise,
+            ] of workout.exercises.entries()) {
+              const exerciseId = await resolveExerciseId(txn, exercise);
+              await txn.runAsync(
+                `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
+                [
+                  workoutId,
+                  exerciseId,
+                  JSON.stringify(exercise.sets),
+                  exerciseOrder,
+                  exercise.supersetGroupId ?? null,
+                  exercise.trackingTypeOverride ?? null,
+                ],
+              );
+            }
           }
-        }
-      });
-      return newPlanId;
+        });
+        return newPlanId;
+      } finally {
+        await db.closeAsync();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["plans"] });

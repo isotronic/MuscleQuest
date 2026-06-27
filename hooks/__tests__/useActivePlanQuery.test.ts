@@ -13,6 +13,7 @@ jest.mock("@bugsnag/expo");
 
 const mockDb = {
   getAllAsync: jest.fn(),
+  closeAsync: jest.fn().mockResolvedValue(undefined),
 };
 
 describe("fetchActivePlanData", () => {
@@ -27,6 +28,7 @@ describe("fetchActivePlanData", () => {
 
     expect(result).toBeNull();
     expect(mockDb.getAllAsync).toHaveBeenCalledWith(expect.any(String));
+    expect(mockDb.closeAsync).toHaveBeenCalledTimes(1);
   });
 
   it("should parse and return the active plan with workouts and exercises", async () => {
@@ -87,6 +89,7 @@ describe("fetchActivePlanData", () => {
       ],
     });
     expect(mockDb.getAllAsync).toHaveBeenCalledWith(expect.any(String));
+    expect(mockDb.closeAsync).toHaveBeenCalledTimes(1);
   });
 
   it("should handle and report errors", async () => {
@@ -97,6 +100,7 @@ describe("fetchActivePlanData", () => {
 
     expect(result).toBeNull();
     expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+    expect(mockDb.closeAsync).toHaveBeenCalledTimes(1);
   });
 });
 

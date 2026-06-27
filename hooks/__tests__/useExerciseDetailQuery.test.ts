@@ -39,6 +39,7 @@ function buildMockDb(rows: any[] = [makeRow()]) {
   const db = {
     getFirstAsync: jest.fn(),
     getAllAsync: jest.fn(),
+    closeAsync: jest.fn().mockResolvedValue(undefined),
   };
   // Call 1: flags (now includes tracking_type)
   db.getFirstAsync.mockResolvedValueOnce({
@@ -178,6 +179,7 @@ describe("useExerciseDetailQuery — queryFn", () => {
     const freshDb = {
       getFirstAsync: jest.fn(),
       getAllAsync: jest.fn(),
+      closeAsync: jest.fn().mockResolvedValue(undefined),
     };
     freshDb.getFirstAsync.mockResolvedValueOnce({
       is_unilateral: 0,

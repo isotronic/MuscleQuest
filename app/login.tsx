@@ -34,12 +34,16 @@ export default function LoginScreen() {
     try {
       const db = await openDatabase("userData.db");
 
-      await db.runAsync(
-        "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-        ["loginShown", "true"],
-      );
-      await queryClient.invalidateQueries({ queryKey: ["settings"] });
-      await queryClient.refetchQueries({ queryKey: ["settings"] });
+      try {
+        await db.runAsync(
+          "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+          ["loginShown", "true"],
+        );
+        await queryClient.invalidateQueries({ queryKey: ["settings"] });
+        await queryClient.refetchQueries({ queryKey: ["settings"] });
+      } finally {
+        await db.closeAsync();
+      }
     } catch (error: any) {
       Bugsnag.notify(error);
     }
