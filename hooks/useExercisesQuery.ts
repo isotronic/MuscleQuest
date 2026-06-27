@@ -69,7 +69,13 @@ const fetchAndSortExercises = async (
       console.error("Error fetching active plan exercises", error);
       Bugsnag.notify(error);
     } finally {
-      if (db) await db.closeAsync();
+      if (db) {
+        try {
+          await db.closeAsync();
+        } catch (closeError: any) {
+          Bugsnag.notify(closeError);
+        }
+      }
     }
   }
 

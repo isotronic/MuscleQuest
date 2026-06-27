@@ -2874,6 +2874,7 @@ export const getProgressionState = async (
           WHERE ce.exercise_id = e.exercise_id
             AND cw.workout_id = uwe.workout_id
             AND cs.is_warmup = 0
+            AND cs.is_drop_set = 0
             AND cs.weight IS NOT NULL
         ) AS recent_weight
       FROM exercise_progression_state eps
@@ -3133,6 +3134,7 @@ export const getExerciseProgressionContext = async (
           WHERE ce.exercise_id = e.exercise_id
             AND cw.workout_id = uwe.workout_id
             AND cs.is_warmup = 0
+            AND cs.is_drop_set = 0
             AND cs.weight IS NOT NULL
         ) AS recent_weight
       FROM user_workout_exercises uwe
@@ -3250,6 +3252,7 @@ export const getProgressionStatesForWorkout = async (
           WHERE ce.exercise_id = e.exercise_id
             AND cw.workout_id = uwe.workout_id
             AND cs.is_warmup = 0
+            AND cs.is_drop_set = 0
             AND cs.weight IS NOT NULL
         ) AS recent_weight
       FROM exercise_progression_state eps

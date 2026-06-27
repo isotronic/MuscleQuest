@@ -48,7 +48,11 @@ const fetchExerciseHistory = async (
   try {
     return await fetchExerciseHistoryBody(db, exerciseId);
   } finally {
-    await db.closeAsync();
+    try {
+      await db.closeAsync();
+    } catch (closeError: any) {
+      Bugsnag.notify(closeError);
+    }
   }
 };
 

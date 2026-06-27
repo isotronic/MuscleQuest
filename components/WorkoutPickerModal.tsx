@@ -54,8 +54,8 @@ export default function WorkoutPickerModal({
   const hasResults = planSections.length > 0 || filteredStandalone.length > 0;
 
   const handleStartPlanWorkout = (planId: number | null, workout: Workout) => {
-    onDismiss();
     confirmStartWorkout(setIsStartingWorkout, () => {
+      onDismiss();
       useActiveWorkoutStore
         .getState()
         .setWorkout(workout, planId, workout.id ?? null, workout.name);
@@ -63,8 +63,8 @@ export default function WorkoutPickerModal({
   };
 
   const handleStartStandaloneWorkout = (workout: Workout) => {
-    onDismiss();
     confirmStartWorkout(setIsStartingWorkout, () => {
+      onDismiss();
       useActiveWorkoutStore
         .getState()
         .setWorkout(workout, null, workout.id ?? null, workout.name);

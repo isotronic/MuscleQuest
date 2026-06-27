@@ -28,7 +28,11 @@ const fetchExerciseUsage = async (): Promise<ExerciseUsage[]> => {
       lastUsed: r.last_used,
     }));
   } finally {
-    await db.closeAsync();
+    try {
+      await db.closeAsync();
+    } catch (closeError: any) {
+      Bugsnag.notify(closeError);
+    }
   }
 };
 

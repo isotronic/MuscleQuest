@@ -647,6 +647,18 @@ describe("getProgressionState — muscle-layoff override", () => {
     expect(result?.suggestionAction).toBe("increase_load");
   });
 
+  it("excludes drop sets from the recent_weight lookup, mirroring getWorkingSets()", async () => {
+    // A session with only drop sets has no recent_weight to compare against
+    // under the working-set definition, so the layoff override can't fire on it.
+    mockDb.getFirstAsync.mockResolvedValue({ ...baseRow, recent_weight: null });
+    mockSettingsAndMuscleDays({ quads: 21 });
+
+    await getProgressionState(42);
+
+    const [sql] = mockDb.getFirstAsync.mock.calls[0];
+    expect(sql).toContain("AND cs.is_drop_set = 0");
+  });
+
   it("does not override reps-tracked exercises", async () => {
     mockDb.getFirstAsync.mockResolvedValue({
       ...baseRow,

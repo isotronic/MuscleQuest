@@ -13,11 +13,10 @@ const toggleFavoriteStatus = async (
     db = await openDatabase("userData.db");
     const newStatus = currentStatus === 0 ? 1 : 0;
 
-    await db.runAsync(`
-    UPDATE exercises
-    SET favorite = ${newStatus}
-    WHERE exercise_id = ${exerciseId};
-  `);
+    await db.runAsync(
+      `UPDATE exercises SET favorite = ? WHERE exercise_id = ?;`,
+      [newStatus, exerciseId],
+    );
   } catch (error: any) {
     console.error("Error toggling favorite status:", error);
     Bugsnag.notify(error);

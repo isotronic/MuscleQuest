@@ -101,7 +101,13 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
     Bugsnag.notify(error);
     return null;
   } finally {
-    if (db) await db.closeAsync();
+    if (db) {
+      try {
+        await db.closeAsync();
+      } catch (closeError: any) {
+        Bugsnag.notify(closeError);
+      }
+    }
   }
 };
 
