@@ -352,7 +352,17 @@ export async function initUserDataDB() {
       }>(
         `SELECT workout_id, exercise_id, sets FROM user_workout_exercises WHERE sets IS NOT NULL AND is_deleted = FALSE`,
       );
+      // Skip workout/exercise pairs with more than one template: completed_exercises
+      // rows are matched by workout_id + exercise_id alone, so we can't tell which
+      // template's set order produced a given historical completion.
+      const templateGroupCounts = new Map<string, number>();
       for (const tmpl of templates) {
+        const key = `${tmpl.workout_id}:${tmpl.exercise_id}`;
+        templateGroupCounts.set(key, (templateGroupCounts.get(key) ?? 0) + 1);
+      }
+      for (const tmpl of templates) {
+        const key = `${tmpl.workout_id}:${tmpl.exercise_id}`;
+        if ((templateGroupCounts.get(key) ?? 0) > 1) continue;
         let planSets: { isWarmup?: boolean }[];
         try {
           planSets = JSON.parse(tmpl.sets);
