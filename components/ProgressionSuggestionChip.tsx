@@ -34,7 +34,7 @@ function chipLabel(
     }
     case "reduce_load":
       return suggestedWeight != null
-        ? t`${Math.round(suggestedWeight * 10) / 10}${unit} suggested`
+        ? t`Reduce to ${Math.round(suggestedWeight * 10) / 10}${unit}`
         : t`Reduce load`;
     case "add_set":
       return t`Add a set`;

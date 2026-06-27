@@ -219,6 +219,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           currentSetStartedAt: null,
           setDurations: {},
           appendedExerciseIndices: [],
+          feedbackSubmittedUweIds: [],
           recoveryCheckInShown: false,
         }),
 

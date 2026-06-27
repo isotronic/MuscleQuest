@@ -322,8 +322,20 @@ export default function AddCustomExerciseScreen() {
       console.error("Error saving data:", error);
       Bugsnag.notify(error);
     } finally {
-      if (db) await db.closeAsync();
-      if (sharingDb) await sharingDb.closeAsync();
+      if (db) {
+        try {
+          await db.closeAsync();
+        } catch (closeError: any) {
+          Bugsnag.notify(closeError);
+        }
+      }
+      if (sharingDb) {
+        try {
+          await sharingDb.closeAsync();
+        } catch (closeError: any) {
+          Bugsnag.notify(closeError);
+        }
+      }
     }
   };
 

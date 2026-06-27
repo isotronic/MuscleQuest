@@ -406,22 +406,22 @@ export async function initUserDataDB() {
          WHERE ce.exercise_id = ? AND cw.workout_id = ?`,
           [tmpl.exercise_id, tmpl.workout_id],
         );
-        if (matchingIds.length !== 1) continue;
-        const ceId = matchingIds[0].id;
 
-        for (let i = 0; i < planSets.length; i++) {
-          const setNum = i + 1;
-          if (planSets[i].isDropSet) {
-            await db.runAsync(
-              `UPDATE completed_sets SET is_drop_set = TRUE WHERE set_number = ? AND completed_exercise_id = ?`,
-              [setNum, ceId],
-            );
-          }
-          if (planSets[i].isToFailure) {
-            await db.runAsync(
-              `UPDATE completed_sets SET is_to_failure = TRUE WHERE set_number = ? AND completed_exercise_id = ?`,
-              [setNum, ceId],
-            );
+        for (const { id: ceId } of matchingIds) {
+          for (let i = 0; i < planSets.length; i++) {
+            const setNum = i + 1;
+            if (planSets[i].isDropSet) {
+              await db.runAsync(
+                `UPDATE completed_sets SET is_drop_set = TRUE WHERE set_number = ? AND completed_exercise_id = ?`,
+                [setNum, ceId],
+              );
+            }
+            if (planSets[i].isToFailure) {
+              await db.runAsync(
+                `UPDATE completed_sets SET is_to_failure = TRUE WHERE set_number = ? AND completed_exercise_id = ?`,
+                [setNum, ceId],
+              );
+            }
           }
         }
       }

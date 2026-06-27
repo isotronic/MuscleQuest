@@ -615,11 +615,13 @@ export default function HomeScreen() {
           </Button>
         </View>
       </ScrollView>
-      <WorkoutPickerModal
-        visible={showWorkoutPicker}
-        onDismiss={() => setShowWorkoutPicker(false)}
-        setIsStartingWorkout={setIsStartingWorkout}
-      />
+      {showWorkoutPicker && (
+        <WorkoutPickerModal
+          visible={showWorkoutPicker}
+          onDismiss={() => setShowWorkoutPicker(false)}
+          setIsStartingWorkout={setIsStartingWorkout}
+        />
+      )}
     </ThemedView>
   );
 }

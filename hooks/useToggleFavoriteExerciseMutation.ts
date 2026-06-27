@@ -23,7 +23,13 @@ const toggleFavoriteStatus = async (
     Bugsnag.notify(error);
     throw new Error(`Failed to toggle favorite status: ${error}`);
   } finally {
-    if (db) await db.closeAsync();
+    if (db) {
+      try {
+        await db.closeAsync();
+      } catch (closeError: any) {
+        Bugsnag.notify(closeError);
+      }
+    }
   }
 };
 

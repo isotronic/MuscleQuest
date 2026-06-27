@@ -29,6 +29,8 @@ export const clearActivePlanStatus = async () => {
     await db.runAsync(
       `UPDATE user_plans SET is_active = false WHERE is_active = true`,
     );
+    await db.closeAsync();
+    db = undefined;
     await Updates.reloadAsync();
   } catch (error: any) {
     Bugsnag.notify(error);

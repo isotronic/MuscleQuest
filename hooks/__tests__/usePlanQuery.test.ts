@@ -120,6 +120,7 @@ describe("usePlanQuery — queryFn", () => {
     expect(result).not.toBeNull();
     expect(result!.id).toBe(1);
     expect(result!.workouts).toHaveLength(1);
+    expect(mockDb.closeAsync).toHaveBeenCalledTimes(1);
   });
 
   it("groups multiple rows with the same workout id into one workout", async () => {
@@ -171,5 +172,6 @@ describe("usePlanQuery — queryFn", () => {
     const result = await capturedArgs.queryFn();
     expect(result).toBeNull();
     expect(Bugsnag.notify).toHaveBeenCalled();
+    expect(mockDb.closeAsync).toHaveBeenCalledTimes(1);
   });
 });

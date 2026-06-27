@@ -128,7 +128,13 @@ export const useCreatePlan = (existingPlan?: Plan) => {
           Bugsnag.notify(scheduleError);
           // Non-critical: don't fail the whole save
         } finally {
-          if (scheduleDb) await scheduleDb.closeAsync();
+          if (scheduleDb) {
+            try {
+              await scheduleDb.closeAsync();
+            } catch (closeError: any) {
+              Bugsnag.notify(closeError);
+            }
+          }
         }
       } else {
         // Clear any existing schedule if editor was emptied

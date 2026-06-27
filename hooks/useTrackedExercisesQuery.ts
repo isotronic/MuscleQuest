@@ -247,7 +247,13 @@ const fetchTrackedExercises = async (
     Bugsnag.notify(error);
     return [];
   } finally {
-    if (db) await db.closeAsync();
+    if (db) {
+      try {
+        await db.closeAsync();
+      } catch (closeError: any) {
+        Bugsnag.notify(closeError);
+      }
+    }
   }
 };
 
