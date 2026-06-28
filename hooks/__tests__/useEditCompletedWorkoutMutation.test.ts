@@ -4,9 +4,19 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const mockRunAsync = jest.fn().mockResolvedValue(undefined);
 const mockCloseAsync = jest.fn().mockResolvedValue(undefined);
+const mockTxnRunAsync = jest.fn().mockResolvedValue(undefined);
+const mockWithExclusiveTransactionAsync = jest.fn(
+  async (cb: (txn: any) => Promise<void>) => {
+    await cb({ runAsync: mockTxnRunAsync });
+  },
+);
 jest.mock("@/utils/database", () => ({
   openDatabase: jest.fn(() =>
-    Promise.resolve({ runAsync: mockRunAsync, closeAsync: mockCloseAsync }),
+    Promise.resolve({
+      runAsync: mockRunAsync,
+      closeAsync: mockCloseAsync,
+      withExclusiveTransactionAsync: mockWithExclusiveTransactionAsync,
+    }),
   ),
 }));
 jest.mock("@bugsnag/expo", () => ({
@@ -47,25 +57,19 @@ describe("useEditCompletedWorkoutMutation", () => {
   let capturedArgs: any;
 
   beforeEach(() => {
-    mockRunAsync.mockResolvedValue(undefined);
-    mockCloseAsync.mockResolvedValue(undefined);
-    (openDatabase as jest.Mock).mockResolvedValue({
-      runAsync: mockRunAsync,
-      closeAsync: mockCloseAsync,
-    });
-    (useQueryClient as jest.Mock).mockReturnValue({
-      invalidateQueries: mockInvalidateQueries,
-    });
-    (useMutation as jest.Mock).mockImplementation((args: any) => {
-      capturedArgs = args;
-      return { mutate: jest.fn() };
-    });
     jest.clearAllMocks();
     mockRunAsync.mockResolvedValue(undefined);
     mockCloseAsync.mockResolvedValue(undefined);
+    mockTxnRunAsync.mockResolvedValue(undefined);
+    mockWithExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: mockTxnRunAsync });
+      },
+    );
     (openDatabase as jest.Mock).mockResolvedValue({
       runAsync: mockRunAsync,
       closeAsync: mockCloseAsync,
+      withExclusiveTransactionAsync: mockWithExclusiveTransactionAsync,
     });
     (useQueryClient as jest.Mock).mockReturnValue({
       invalidateQueries: mockInvalidateQueries,
@@ -81,7 +85,7 @@ describe("useEditCompletedWorkoutMutation", () => {
 
     await capturedArgs.mutationFn(makeExercises(100));
 
-    expect(mockRunAsync).toHaveBeenCalledWith(
+    expect(mockTxnRunAsync).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE completed_sets"),
       expect.arrayContaining([100, 8, 0, null, 1001, 1]),
     );
@@ -92,12 +96,22 @@ describe("useEditCompletedWorkoutMutation", () => {
 
     await capturedArgs.mutationFn(makeExercises(220));
 
-    expect(mockRunAsync).toHaveBeenCalledWith(
+    expect(mockTxnRunAsync).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE completed_sets"),
       expect.arrayContaining([
         expect.closeTo(220 * 0.45359237, 2), // converted to kg
       ]),
     );
+  });
+
+  it("wraps all set updates in a single exclusive transaction and never calls db.runAsync directly", async () => {
+    useEditCompletedWorkoutMutation(42, "kg", "m");
+
+    await capturedArgs.mutationFn(makeExercises(100));
+
+    expect(mockWithExclusiveTransactionAsync).toHaveBeenCalledTimes(1);
+    expect(mockTxnRunAsync).toHaveBeenCalledTimes(1);
+    expect(mockRunAsync).not.toHaveBeenCalled();
   });
 
   it("onSuccess invalidates completedWorkout, completedWorkouts, and trackedExercises", () => {

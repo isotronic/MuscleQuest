@@ -29,14 +29,16 @@ const saveCompletedWorkoutWithConversion = async (
   let db: SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
-    for (const exercise of workoutDataConverted) {
-      for (const set of exercise.sets) {
-        await db.runAsync(
-          `UPDATE completed_sets SET weight = ?, reps = ?, time = ?, distance = ? WHERE id = ? AND set_number = ?`,
-          [set.weight, set.reps, set.time, set.distance, set.set_id, set.set_number],
-        );
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      for (const exercise of workoutDataConverted) {
+        for (const set of exercise.sets) {
+          await txn.runAsync(
+            `UPDATE completed_sets SET weight = ?, reps = ?, time = ?, distance = ? WHERE id = ? AND set_number = ?`,
+            [set.weight, set.reps, set.time, set.distance, set.set_id, set.set_number],
+          );
+        }
       }
-    }
+    });
   } catch (error: any) {
     console.error("Error saving edited workout:", error);
     Bugsnag.notify(error);
