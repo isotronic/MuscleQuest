@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useExerciseSearch } from "@/hooks/useExerciseSearch";
 import { useExerciseSort } from "@/hooks/useExerciseSort";
 import { useExerciseUsageQuery } from "@/hooks/useExerciseUsageQuery";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { View, TextInput, StyleSheet } from "react-native";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
@@ -17,6 +17,7 @@ import ExerciseSortChips, {
   type SortMode,
 } from "@/components/ExerciseSortChips";
 import Bugsnag from "@bugsnag/expo";
+import { useExercisePickerStore } from "@/store/exercisePickerStore";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -33,6 +34,13 @@ export default function ExerciseLibraryScreen() {
   >(null);
   const [sortMode, setSortMode] = useState<SortMode>("default");
 
+  const { mode, trackingType } = useLocalSearchParams<{
+    mode?: string;
+    trackingType?: string;
+  }>();
+  const isSelectMode = mode === "select";
+  const setPickedExercise = useExercisePickerStore((s) => s.setPickedExercise);
+
   const {
     data: exercises,
     isLoading: exercisesLoading,
@@ -46,8 +54,9 @@ export default function ExerciseLibraryScreen() {
       equipment: selectedEquipment,
       bodyPart: selectedBodyPart,
       targetMuscle: selectedTargetMuscle,
+      trackingType: isSelectMode ? trackingType ?? null : null,
     }),
-    [selectedEquipment, selectedBodyPart, selectedTargetMuscle],
+    [selectedEquipment, selectedBodyPart, selectedTargetMuscle, isSelectMode, trackingType],
   );
 
   const { filteredExercises, suggestions, debouncedQuery } = useExerciseSearch(
@@ -119,6 +128,11 @@ export default function ExerciseLibraryScreen() {
         onSelect={() => {}}
         scrollKey={`${debouncedQuery}-${sortMode}`}
         onPressItem={(item) => {
+          if (isSelectMode) {
+            setPickedExercise(item);
+            router.back();
+            return;
+          }
           router.push({
             pathname: "/(app)/exercise-info",
             params: { exercise_id: item.exercise_id.toString() },
