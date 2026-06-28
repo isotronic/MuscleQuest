@@ -22,6 +22,7 @@ import {
   copyDataFromAppDataToUserData,
   updatePlanWorkoutExercises,
   updateStandaloneWorkout,
+  fetchBodyMeasurementSessions,
 } from "../database";
 import { ProgressionRuleResult } from "@/types/progression";
 
@@ -975,6 +976,23 @@ describe("updateStandaloneWorkout", () => {
     expect(txnRunAsync).not.toHaveBeenCalledWith(
       expect.stringContaining("is_deleted = TRUE"),
       expect.anything(),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fetchBodyMeasurementSessions — LIMIT parameterization
+// ---------------------------------------------------------------------------
+
+describe("fetchBodyMeasurementSessions — LIMIT parameterization", () => {
+  it("binds the limit as a query parameter instead of interpolating it", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await fetchBodyMeasurementSessions({} as any, 5);
+
+    expect(mockDb.getAllAsync).toHaveBeenCalledWith(
+      expect.not.stringContaining("LIMIT 5"),
+      [5],
     );
   });
 });

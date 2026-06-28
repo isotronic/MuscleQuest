@@ -2185,7 +2185,8 @@ export const fetchBodyMeasurementSessions = async (
   let db: SQLite.SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
-    const limitClause = limit !== undefined ? `LIMIT ${limit}` : "";
+    const limitClause = limit !== undefined ? "LIMIT ?" : "";
+    const params = limit !== undefined ? [limit] : [];
     const rows = (await db.getAllAsync(
       `SELECT
          bme.id          AS entry_id,
@@ -2207,6 +2208,7 @@ export const fetchBodyMeasurementSessions = async (
        JOIN body_measurement_values bmv ON bmv.entry_id = bme.id
        JOIN body_metric_definitions bmd ON bmd.id = bmv.metric_id
        ORDER BY bme.recorded_at DESC, bmd.sort_order ASC`,
+      params,
     )) as (RawMetricDefinitionRow & {
       entry_id: number;
       recorded_at: string;
