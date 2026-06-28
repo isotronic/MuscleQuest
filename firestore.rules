@@ -16,6 +16,13 @@ service cloud.firestore {
              doc.data.to == toUid;
     }
 
+    // Defense-in-depth: caps document size on shared-content writes so a
+    // malformed/runaway client can't write a document large enough to break
+    // a friend's client when they read it (e.g. an unbounded sets array).
+    function withinSizeLimit() {
+      return request.resource.size() < 200000; // 200 KB
+    }
+
     // Public profiles: any authenticated user can read (email search).
     // Owner can write.
     match /users/{uid} {
@@ -51,27 +58,27 @@ service cloud.firestore {
       // All shared-content subcollections: owner or friends can read, owner can write.
       match /sharedPlans/{docId} {
         allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow write: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
       }
       match /sharedStandaloneWorkouts/{docId} {
         allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow write: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
       }
       match /sharedCustomExercises/{docId} {
         allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow write: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
       }
       match /sharedWorkouts/{docId} {
         allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow write: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
       }
       match /sharedMeasurements/{docId} {
         allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow write: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
       }
       match /sharedStrength/{docId} {
         allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow write: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
       }
     }
 
