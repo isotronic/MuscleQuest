@@ -6,6 +6,7 @@ import {
   fetchSettings,
   updateSettings,
   deleteCompletedWorkout,
+  saveCompletedWorkout,
   fetchPlanSchedule,
   fetchActiveBodyMetricDefinitions,
   fetchAllBodyMetricDefinitions,
@@ -230,6 +231,77 @@ describe("deleteCompletedWorkout", () => {
     mockDb.withExclusiveTransactionAsync.mockRejectedValue(error);
 
     await expect(deleteCompletedWorkout(42)).rejects.toBe(error);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// saveCompletedWorkout
+// ---------------------------------------------------------------------------
+
+describe("saveCompletedWorkout", () => {
+  it("wraps the whole save in a single exclusive transaction", async () => {
+    const exercises = [
+      {
+        exercise_id: 1,
+        resolved_tracking_type: "weight",
+        sets: [
+          {
+            set_number: 1,
+            weight: 100,
+            reps: 8,
+            time: null,
+            distance: null,
+          },
+        ],
+      },
+    ];
+
+    await saveCompletedWorkout(1, 2, 600, 1, false, exercises);
+
+    expect(mockDb.withExclusiveTransactionAsync).toHaveBeenCalledTimes(1);
+    expect(mockDb.execAsync).not.toHaveBeenCalledWith("BEGIN TRANSACTION");
+  });
+
+  it("runs one insert for the workout, one per exercise, one per set", async () => {
+    const txnRunAsync = jest
+      .fn()
+      .mockResolvedValue({ lastInsertRowId: 7, changes: 1 });
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync });
+      },
+    );
+
+    const exercises = [
+      {
+        exercise_id: 1,
+        sets: [
+          { set_number: 1, weight: 100, reps: 8, time: null, distance: null },
+          { set_number: 2, weight: 100, reps: 7, time: null, distance: null },
+        ],
+      },
+    ];
+
+    const id = await saveCompletedWorkout(1, 2, 600, 2, false, exercises);
+
+    expect(id).toBe(7);
+    // 1 completed_workouts insert + 1 completed_exercises insert + 2 completed_sets inserts
+    expect(txnRunAsync).toHaveBeenCalledTimes(4);
+    expect(txnRunAsync).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("INSERT INTO completed_workouts"),
+      expect.any(Array),
+    );
+  });
+
+  it("propagates and does not swallow errors from within the transaction", async () => {
+    const error = new Error("disk full");
+    mockDb.withExclusiveTransactionAsync.mockRejectedValue(error);
+
+    await expect(
+      saveCompletedWorkout(1, 2, 600, 1, false, []),
+    ).rejects.toBe(error);
+    expect(Bugsnag.notify).toHaveBeenCalledWith(error);
   });
 });
 

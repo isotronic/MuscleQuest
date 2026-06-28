@@ -964,66 +964,51 @@ export const saveCompletedWorkout = async (
   }[],
 ) => {
   const db = await openDatabase("userData.db");
+  let completedWorkoutId: number;
 
   try {
-    // Begin transaction
-    await db.execAsync("BEGIN TRANSACTION");
-
-    // Insert the completed workout
-    const completedWorkoutResult = await db.runAsync(
-      `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed, is_deload) VALUES (?, ?, datetime('now'), ?, ?, ?)`,
-      [planId, workoutId, duration, totalSetsCompleted, isDeload ? 1 : 0],
-    );
-
-    const completedWorkoutId = completedWorkoutResult.lastInsertRowId;
-
-    for (const exercise of exercises) {
-      // Insert each completed exercise
-      const completedExerciseResult = await db.runAsync(
-        `INSERT INTO completed_exercises (completed_workout_id, exercise_id, resolved_tracking_type) VALUES (?, ?, ?)`,
-        [
-          completedWorkoutId,
-          exercise.exercise_id,
-          exercise.resolved_tracking_type ?? null,
-        ],
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      const completedWorkoutResult = await txn.runAsync(
+        `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed, is_deload) VALUES (?, ?, datetime('now'), ?, ?, ?)`,
+        [planId, workoutId, duration, totalSetsCompleted, isDeload ? 1 : 0],
       );
 
-      const completedExerciseId = completedExerciseResult.lastInsertRowId;
+      completedWorkoutId = completedWorkoutResult.lastInsertRowId;
 
-      for (const set of exercise.sets) {
-        // Insert each completed set
-        await db.runAsync(
-          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup, is_drop_set, is_to_failure, set_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      for (const exercise of exercises) {
+        const completedExerciseResult = await txn.runAsync(
+          `INSERT INTO completed_exercises (completed_workout_id, exercise_id, resolved_tracking_type) VALUES (?, ?, ?)`,
           [
-            completedExerciseId,
-            set.set_number,
-            set.weight,
-            set.reps,
-            set.time,
-            set.distance,
-            set.is_warmup ? 1 : 0,
-            set.is_drop_set ? 1 : 0,
-            set.is_to_failure ? 1 : 0,
-            set.set_duration ?? null,
+            completedWorkoutId,
+            exercise.exercise_id,
+            exercise.resolved_tracking_type ?? null,
           ],
         );
+
+        const completedExerciseId = completedExerciseResult.lastInsertRowId;
+
+        for (const set of exercise.sets) {
+          await txn.runAsync(
+            `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup, is_drop_set, is_to_failure, set_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              completedExerciseId,
+              set.set_number,
+              set.weight,
+              set.reps,
+              set.time,
+              set.distance,
+              set.is_warmup ? 1 : 0,
+              set.is_drop_set ? 1 : 0,
+              set.is_to_failure ? 1 : 0,
+              set.set_duration ?? null,
+            ],
+          );
+        }
       }
-    }
+    });
 
-    // Commit transaction
-    await db.execAsync("COMMIT");
-    return completedWorkoutId;
+    return completedWorkoutId!;
   } catch (error: any) {
-    // Rollback transaction
-    try {
-      await db.execAsync("ROLLBACK");
-      console.error("Transaction rolled back due to error.");
-    } catch (rollbackError: any) {
-      Bugsnag.notify(rollbackError);
-      console.error("Error during rollback: ", rollbackError);
-    }
-
-    // Log and re-throw the original error
     console.error("Error saving completed workout: ", error);
     Bugsnag.notify(error);
     throw error;
