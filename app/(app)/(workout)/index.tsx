@@ -323,6 +323,7 @@ export default function WorkoutOverviewScreen() {
 
   const [timerHeight, setTimerHeight] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const isSavingRef = useRef(false);
   const [loadingExerciseIndex, setLoadingExerciseIndex] = useState<
     number | null
   >(null);
@@ -712,6 +713,8 @@ export default function WorkoutOverviewScreen() {
   );
 
   const handleSaveWorkout = async () => {
+    if (isSavingRef.current) return;
+    isSavingRef.current = true;
     setIsSaving(true);
     try {
       const planId = activeWorkout?.planId;
@@ -937,6 +940,7 @@ export default function WorkoutOverviewScreen() {
     } finally {
       setTimeout(() => {
         setIsSaving(false); // Hide loading overlay
+        isSavingRef.current = false;
       }, 500);
     }
   };
