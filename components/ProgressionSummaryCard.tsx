@@ -15,6 +15,7 @@ function getRuleExplanation(ruleKey: string): string {
   const map: Record<string, string> = {
     PAIN_BLOCK: t`Pain reported. Keeping load unchanged until you feel better.`,
     PAIN_LOAD: t`Pain reported again. Consider reducing load to help your recovery.`,
+    PAIN_LOAD_UNSUPPORTED: t`Pain reported again. Load can't be auto-reduced for this exercise, consider adjusting form or consulting a coach.`,
     DISCOMFORT_SIGNAL: t`Some discomfort noted. Keeping load steady to monitor.`,
     DISCOMFORT_RECURRING: t`Recurring discomfort. Consider adjusting form or consulting a coach.`,
     FAILED_FIRST_SIGNAL: t`Tough session. Holding steady for now. If it happens again, the load will be reduced.`,
