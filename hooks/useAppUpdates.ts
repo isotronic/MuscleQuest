@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import * as Updates from "expo-updates";
 import Bugsnag from "@bugsnag/expo";
 
@@ -23,6 +23,14 @@ export interface UseAppUpdatesReturn {
 export const useAppUpdates = (): UseAppUpdatesReturn => {
   const [status, setStatus] = useState<UpdateStatus>("idle");
   const [errorType, setErrorType] = useState<UpdateErrorType | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const checkForUpdates = useCallback(async () => {
     // Skip update checks in development mode
@@ -40,6 +48,7 @@ export const useAppUpdates = (): UseAppUpdatesReturn => {
     const attempt = async (isRetry: boolean): Promise<void> => {
       try {
         const update = await Updates.checkForUpdateAsync();
+        if (!isMountedRef.current) return;
 
         if (update.isAvailable) {
           setStatus("downloading");
@@ -50,11 +59,13 @@ export const useAppUpdates = (): UseAppUpdatesReturn => {
             Bugsnag.notify(
               error instanceof Error ? error : new Error(String(error)),
             );
-            setErrorType("download-failed");
-            setStatus("error");
+            if (isMountedRef.current) {
+              setErrorType("download-failed");
+              setStatus("error");
+            }
             return;
           }
-          setStatus("ready");
+          if (isMountedRef.current) setStatus("ready");
         } else {
           setStatus("no-update");
         }
@@ -62,6 +73,7 @@ export const useAppUpdates = (): UseAppUpdatesReturn => {
         if (!isRetry) {
           // Wait 5 s and retry once before surfacing the error to the user
           await new Promise((resolve) => setTimeout(resolve, 5000));
+          if (!isMountedRef.current) return;
           return attempt(true);
         }
 
@@ -69,7 +81,7 @@ export const useAppUpdates = (): UseAppUpdatesReturn => {
         Bugsnag.notify(
           error instanceof Error ? error : new Error(String(error)),
         );
-        setStatus("no-update");
+        if (isMountedRef.current) setStatus("no-update");
       }
     };
 
