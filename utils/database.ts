@@ -1059,6 +1059,7 @@ interface CompletedWorkoutRow {
   date_completed: string;
   duration: number;
   total_sets_completed: number;
+  completed_exercise_id: number | null;
   exercise_id: number | null;
   exercise_name: string | null;
   exercise_image: Uint8Array | null;
@@ -1086,7 +1087,7 @@ export const fetchCompletedWorkoutById = async (
   try {
     const result = (await db.getAllAsync(
       `
-      SELECT 
+      SELECT
         cw.id,
         cw.plan_id as plan_id,
         cw.workout_id as workout_id,
@@ -1095,9 +1096,10 @@ export const fetchCompletedWorkoutById = async (
         cw.duration,
         cw.total_sets_completed,
         cw.is_deload,
-        e.exercise_id as exercise_id, 
-        e.name as exercise_name, 
-        e.image as exercise_image, 
+        ce.id as completed_exercise_id,
+        e.exercise_id as exercise_id,
+        e.name as exercise_name,
+        e.image as exercise_image,
         COALESCE(ce.resolved_tracking_type, uwe.tracking_type_override, e.tracking_type) as exercise_tracking_type,
         e.is_unilateral,
         e.double_weight,
@@ -1153,6 +1155,7 @@ export const fetchCompletedWorkoutById = async (
       if (row.exercise_id) {
         if (!exercisesMap[row.exercise_id]) {
           exercisesMap[row.exercise_id] = {
+            completed_exercise_id: row.completed_exercise_id!,
             exercise_id: row.exercise_id,
             exercise_name: row.exercise_name || "",
             exercise_image: row.exercise_image

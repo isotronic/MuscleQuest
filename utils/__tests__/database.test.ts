@@ -23,6 +23,7 @@ import {
   updatePlanWorkoutExercises,
   updateStandaloneWorkout,
   fetchBodyMeasurementSessions,
+  fetchCompletedWorkoutById,
 } from "../database";
 import { ProgressionRuleResult } from "@/types/progression";
 
@@ -994,5 +995,46 @@ describe("fetchBodyMeasurementSessions — LIMIT parameterization", () => {
       expect.not.stringContaining("LIMIT 5"),
       [5],
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fetchCompletedWorkoutById
+// ---------------------------------------------------------------------------
+
+describe("fetchCompletedWorkoutById", () => {
+  it("includes the completed_exercises row id as completed_exercise_id", async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      {
+        id: 1,
+        plan_id: null,
+        workout_id: 10,
+        workout_name: "Push Day",
+        is_deload: 0,
+        date_completed: "2026-06-01T00:00:00.000Z",
+        duration: 600,
+        total_sets_completed: 1,
+        completed_exercise_id: 555,
+        exercise_id: 100,
+        exercise_name: "Bench Press",
+        exercise_image: null,
+        exercise_order: 0,
+        exercise_tracking_type: "weight",
+        is_unilateral: 0,
+        double_weight: 0,
+        set_id: 1001,
+        set_number: 1,
+        weight: 100,
+        reps: 8,
+        time: null,
+        distance: null,
+        is_warmup: 0,
+        set_duration: null,
+      },
+    ]);
+
+    const result = await fetchCompletedWorkoutById(1, "kg", "m");
+
+    expect(result.exercises[0].completed_exercise_id).toBe(555);
   });
 });

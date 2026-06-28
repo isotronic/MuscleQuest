@@ -38,6 +38,7 @@ export interface CompletedWorkout {
   total_sets_completed: number;
   is_deload?: number;
   exercises: {
+    completed_exercise_id: number;
     exercise_id: number;
     exercise_name: string;
     exercise_image?: number[];
