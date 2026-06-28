@@ -1,11 +1,11 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { ScrollView, TextInput, StyleSheet, View } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { Divider, IconButton } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useEditCompletedWorkoutMutation } from "@/hooks/useEditCompletedWorkoutMutation";
@@ -14,6 +14,7 @@ import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQue
 import { formatFromTotalSeconds, convertToTotalSeconds } from "@/utils/utility";
 import { TimeInput } from "@/components/TimeInput";
 import Bugsnag from "@bugsnag/expo";
+import { useExercisePickerStore } from "@/store/exercisePickerStore";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -36,6 +37,35 @@ export default function EditCompletedWorkoutScreen() {
     {},
   );
   const weightInputRefs = useRef<{ [key: string]: any }>({});
+
+  const [editingCompletedExerciseId, setEditingCompletedExerciseId] = useState<
+    number | null
+  >(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const picked = useExercisePickerStore.getState().pickedExercise;
+      if (picked && editingCompletedExerciseId != null) {
+        setExercises((prev) =>
+          prev.map((exercise) =>
+            exercise.completed_exercise_id === editingCompletedExerciseId
+              ? {
+                  ...exercise,
+                  exercise_id: picked.exercise_id,
+                  exercise_name: picked.name,
+                  exercise_image: picked.image,
+                  exercise_tracking_type: picked.tracking_type || "weight",
+                  is_unilateral: picked.is_unilateral,
+                  double_weight: picked.double_weight,
+                }
+              : exercise,
+          ),
+        );
+        useExercisePickerStore.getState().clearPickedExercise();
+        setEditingCompletedExerciseId(null);
+      }
+    }, [editingCompletedExerciseId]),
+  );
 
   const {
     data: workoutData,
@@ -91,6 +121,17 @@ export default function EditCompletedWorkoutScreen() {
     });
   };
 
+  const handleChangeExercise = (exercise: CompletedWorkout["exercises"][0]) => {
+    setEditingCompletedExerciseId(exercise.completed_exercise_id);
+    router.push({
+      pathname: "/(app)/exercise-library",
+      params: {
+        mode: "select",
+        trackingType: exercise.exercise_tracking_type,
+      },
+    });
+  };
+
   if (isWorkoutLoading || !exercises || settingsLoading) {
     return (
       <ThemedView style={styles.container}>
@@ -135,12 +176,19 @@ export default function EditCompletedWorkoutScreen() {
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         {exercises.map((exercise, exerciseIndex) => (
           <ThemedView
-            key={exercise.exercise_id}
+            key={exercise.completed_exercise_id}
             style={styles.exerciseContainer}
           >
-            <ThemedText style={styles.exerciseName}>
-              {exercise.exercise_name}
-            </ThemedText>
+            <View style={styles.exerciseHeader}>
+              <ThemedText style={styles.exerciseName}>
+                {exercise.exercise_name}
+              </ThemedText>
+              <IconButton
+                icon="pencil-outline"
+                size={20}
+                onPress={() => handleChangeExercise(exercise)}
+              />
+            </View>
             {exercise.sets.map((set, setIndex) => (
               <ThemedView key={set.set_number} style={styles.setContainer}>
                 <ThemedText style={styles.setNumber}>
@@ -295,6 +343,11 @@ function createStyles(colors: AppThemeColors) {
     container: {},
     headerRight: {},
     exerciseContainer: { marginBottom: 16 },
+    exerciseHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
     setContainer: { marginBottom: 8 },
     exerciseName: { fontSize: 20, fontWeight: "bold", marginBottom: 8 },
     setNumber: { fontWeight: "bold" },
