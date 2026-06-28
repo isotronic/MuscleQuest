@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useShallow } from "zustand/react/shallow";
 import {
   Dimensions,
   KeyboardAvoidingView,
@@ -324,7 +325,35 @@ export default function WorkoutSessionScreen() {
     setCurrentSetStartedAt,
     recordSetDuration,
     setExerciseTrackingTypeOverride,
-  } = useActiveWorkoutStore();
+  } = useActiveWorkoutStore(
+    useShallow((s) => ({
+      workout: s.workout,
+      activeWorkout: s.activeWorkout,
+      currentExerciseIndex: s.currentExerciseIndex,
+      currentSetIndices: s.currentSetIndices,
+      weightAndReps: s.weightAndReps,
+      previousWorkoutData: s.previousWorkoutData,
+      globalHistoryData: s.globalHistoryData,
+      completedSets: s.completedSets,
+      setCurrentExerciseIndex: s.setCurrentExerciseIndex,
+      setCurrentSetIndex: s.setCurrentSetIndex,
+      updateWeightAndReps: s.updateWeightAndReps,
+      nextSet: s.nextSet,
+      timerRunning: s.timerRunning,
+      timerExpiry: s.timerExpiry,
+      startTimer: s.startTimer,
+      stopTimer: s.stopTimer,
+      removeSet: s.removeSet,
+      addSet: s.addSet,
+      addDropSet: s.addDropSet,
+      updateSetRestTime: s.updateSetRestTime,
+      updateSetType: s.updateSetType,
+      currentSetStartedAt: s.currentSetStartedAt,
+      setCurrentSetStartedAt: s.setCurrentSetStartedAt,
+      recordSetDuration: s.recordSetDuration,
+      setExerciseTrackingTypeOverride: s.setExerciseTrackingTypeOverride,
+    })),
+  );
 
   const {
     data: settings,
