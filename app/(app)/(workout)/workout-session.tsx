@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Dimensions,
   KeyboardAvoidingView,
@@ -17,7 +23,7 @@ import SessionSetInfo from "@/components/SessionSetInfo";
 import { useTimer } from "react-timer-hook";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
@@ -474,6 +480,15 @@ export default function WorkoutSessionScreen() {
   useWorkoutImmersiveMode();
 
   const expiryTimestampRef = useRef<Date | null>(null);
+  const isFocusedRef = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      isFocusedRef.current = true;
+      return () => {
+        isFocusedRef.current = false;
+      };
+    }, []),
+  );
   const lastCompletedSetRef = useRef<{
     exerciseIndex: number;
     setIndex: number;
@@ -507,7 +522,7 @@ export default function WorkoutSessionScreen() {
       expiryTimestamp: expiryTimestampRef.current.toISOString(),
     });
 
-    if (diffMs < 2000) {
+    if (diffMs < 2000 && isFocusedRef.current) {
       if (settings?.restTimerSound === "true") {
         playSound();
       }
@@ -516,7 +531,7 @@ export default function WorkoutSessionScreen() {
       }
     } else {
       Bugsnag.leaveBreadcrumb("Skipped sound/vibration", {
-        reason: "Too late after expiry",
+        reason: diffMs >= 2000 ? "Too late after expiry" : "Screen not focused",
         diffMs,
       });
     }
