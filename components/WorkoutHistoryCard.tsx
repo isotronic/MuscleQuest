@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { format } from "date-fns";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
@@ -14,7 +14,7 @@ interface WorkoutCardProps {
   variant?: "horizontal" | "vertical";
 }
 
-export default function WorkoutHistoryCard({
+function WorkoutHistoryCard({
   workout,
   onPress,
   excludeWarmup = false,
@@ -69,6 +69,8 @@ export default function WorkoutHistoryCard({
     </TouchableOpacity>
   );
 }
+
+export default React.memo(WorkoutHistoryCard);
 
 function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({

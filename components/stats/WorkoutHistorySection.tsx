@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { FlatList, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import WorkoutHistoryCard from "@/components/WorkoutHistoryCard";
@@ -16,6 +16,22 @@ export const WorkoutHistorySection: React.FC<WorkoutHistorySectionProps> = ({
   onWorkoutPress,
   excludeWarmup = false,
 }) => {
+  const renderItem = useCallback(
+    ({ item }: { item: CompletedWorkout }) => (
+      <WorkoutHistoryCard
+        workout={item}
+        onPress={() => onWorkoutPress(item.id)}
+        excludeWarmup={excludeWarmup}
+      />
+    ),
+    [onWorkoutPress, excludeWarmup],
+  );
+
+  const keyExtractor = useCallback(
+    (item: CompletedWorkout) => item.id.toString(),
+    [],
+  );
+
   if (completedWorkouts.length === 0) {
     return (
       <ThemedText>
@@ -28,14 +44,8 @@ export const WorkoutHistorySection: React.FC<WorkoutHistorySectionProps> = ({
     <View>
       <FlatList
         data={completedWorkouts}
-        renderItem={({ item }: { item: CompletedWorkout }) => (
-          <WorkoutHistoryCard
-            workout={item}
-            onPress={() => onWorkoutPress(item.id)}
-            excludeWarmup={excludeWarmup}
-          />
-        )}
-        keyExtractor={(item: CompletedWorkout) => item.id.toString()}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
         horizontal
         showsHorizontalScrollIndicator={false}
       />
