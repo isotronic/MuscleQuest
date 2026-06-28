@@ -132,7 +132,7 @@ export default function PlansScreen() {
           viewMode={viewMode}
           showViewToggle
           onViewModeChange={handleViewModeChange}
-          publishedPlanIds={publishedPlanIds}
+          publishedPlanIds={publishedPlanIds ?? undefined}
           sharePlansEnabled={!!privacySettings?.sharePlans}
         />
         <PlanList

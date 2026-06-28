@@ -1,10 +1,6 @@
 import { useMemo } from "react";
-import {
-  LayoutChangeEvent,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import type { LayoutChangeEvent } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Trans } from "@lingui/react/macro";

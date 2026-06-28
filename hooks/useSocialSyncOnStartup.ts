@@ -3,6 +3,7 @@ import {
   getFirestore,
   collection,
   getDocs,
+  FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
 import Bugsnag from "@bugsnag/expo";
 import { AuthContext } from "@/context/AuthProvider";
@@ -11,6 +12,7 @@ import {
   fetchAllPlanIds,
   fetchAllStandaloneWorkoutIds,
   fetchAllCustomExercisesForSharing,
+  Exercise,
 } from "@/utils/database";
 import {
   publishPlan,
@@ -58,14 +60,18 @@ export const useSocialSyncOnStartup = () => {
             fetchAllCustomExercisesForSharing(),
             getDocs(collection(db, "users", uid, "sharedCustomExercises")),
           ]);
-          const published = new Set(snap.docs.map((d) => d.id));
+          const published = new Set(
+            snap.docs.map(
+              (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) => d.id,
+            ),
+          );
           const missing = exercises.filter(
-            (ex) =>
+            (ex: Exercise) =>
               ex.exercise_id != null &&
               !published.has(String(ex.exercise_id)),
           );
           await Promise.allSettled(
-            missing.map((ex) => pushCustomExercise(uid, ex)),
+            missing.map((ex: Exercise) => pushCustomExercise(uid, ex)),
           );
         })(),
       ]);
