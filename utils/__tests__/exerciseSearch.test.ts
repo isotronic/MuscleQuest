@@ -91,6 +91,14 @@ const LAT_PULLDOWN = makeExercise({
   body_part: "back",
   target_muscle: "latissimus dorsi",
 });
+const PLANK = makeExercise({
+  exercise_id: 10,
+  name: "Plank",
+  equipment: "body weight",
+  body_part: "core",
+  target_muscle: "abdominals",
+  tracking_type: "time",
+});
 
 const ALL_EXERCISES = [
   BENCH_PRESS,
@@ -102,6 +110,7 @@ const ALL_EXERCISES = [
   SKULL_CRUSHER,
   CABLE_FLY,
   LAT_PULLDOWN,
+  PLANK,
 ];
 
 const TEST_ALIAS_MAP: AliasMap = {
@@ -446,6 +455,19 @@ describe("searchExercises — hard filters", () => {
       fuzzyEnabled: false,
     });
     expect(otherExercises).toHaveLength(0);
+  });
+
+  it("trackingType filter excludes exercises of a different tracking type", () => {
+    const filters: SearchFilters = {
+      equipment: null,
+      bodyPart: null,
+      targetMuscle: null,
+      trackingType: "time",
+    };
+    const { otherExercises } = searchExercises(index, "", filters);
+    expect(
+      otherExercises.every((r) => r.exercise.tracking_type === "time"),
+    ).toBe(true);
   });
 });
 
