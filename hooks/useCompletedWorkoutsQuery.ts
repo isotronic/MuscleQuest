@@ -12,6 +12,7 @@ interface WorkoutResult {
   date_completed: string;
   duration: number;
   total_sets_completed: number;
+  completed_exercise_id: number;
   exercise_id: number;
   exercise_name: string;
   exercise_image: Uint8Array | null;
@@ -77,6 +78,7 @@ const fetchCompletedWorkouts = async (
         completed_workouts.date_completed,
         completed_workouts.duration,
         completed_workouts.total_sets_completed,
+        completed_exercises.id as completed_exercise_id,
         completed_exercises.exercise_id,
         exercises.name AS exercise_name,
         exercises.image AS exercise_image,
@@ -155,6 +157,7 @@ const fetchAndOrganize = async (
         date_completed,
         duration,
         total_sets_completed,
+        completed_exercise_id,
         exercise_id,
         exercise_name,
         exercise_image,
@@ -195,6 +198,7 @@ const fetchAndOrganize = async (
 
       if (!exercise) {
         exercise = {
+          completed_exercise_id,
           exercise_id,
           exercise_name,
           exercise_image: exercise_image
@@ -309,6 +313,7 @@ const fetchWorkoutHistoryForSession = async (
         cw.duration,
         cw.total_sets_completed,
         cw.is_deload,
+        ce.id as completed_exercise_id,
         ce.exercise_id,
         e.name AS exercise_name,
         COALESCE(
@@ -358,6 +363,7 @@ const fetchWorkoutHistoryForSession = async (
         date_completed,
         duration,
         total_sets_completed,
+        completed_exercise_id,
         exercise_id,
         exercise_name,
         exercise_tracking_type,
@@ -392,6 +398,7 @@ const fetchWorkoutHistoryForSession = async (
       );
       if (!exercise) {
         exercise = {
+          completed_exercise_id,
           exercise_id,
           exercise_name,
           exercise_tracking_type,
@@ -467,6 +474,7 @@ const fetchGlobalExerciseHistoryForSession = async (
         cw.date_completed,
         cw.duration,
         cw.total_sets_completed,
+        ce.id as completed_exercise_id,
         ce.exercise_id,
         e.name AS exercise_name,
         COALESCE(
@@ -523,6 +531,7 @@ const fetchGlobalExerciseHistoryForSession = async (
         date_completed,
         duration,
         total_sets_completed,
+        completed_exercise_id,
         exercise_id,
         exercise_name,
         exercise_tracking_type,
@@ -557,6 +566,7 @@ const fetchGlobalExerciseHistoryForSession = async (
       );
       if (!exercise) {
         exercise = {
+          completed_exercise_id,
           exercise_id,
           exercise_name,
           exercise_tracking_type,
