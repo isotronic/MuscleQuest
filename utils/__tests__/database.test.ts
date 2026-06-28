@@ -20,6 +20,8 @@ import {
   getProgressionStatesForWorkout,
   updateAppExerciseIds,
   copyDataFromAppDataToUserData,
+  updatePlanWorkoutExercises,
+  updateStandaloneWorkout,
 } from "../database";
 import { ProgressionRuleResult } from "@/types/progression";
 
@@ -300,9 +302,9 @@ describe("saveCompletedWorkout", () => {
     const error = new Error("disk full");
     mockDb.withExclusiveTransactionAsync.mockRejectedValue(error);
 
-    await expect(
-      saveCompletedWorkout(1, 2, 600, 1, false, []),
-    ).rejects.toBe(error);
+    await expect(saveCompletedWorkout(1, 2, 600, 1, false, [])).rejects.toBe(
+      error,
+    );
     expect(Bugsnag.notify).toHaveBeenCalledWith(error);
   });
 });
@@ -656,9 +658,7 @@ describe("getProgressionState — muscle-layoff override", () => {
     recent_weight: 100,
   };
 
-  function mockSettingsAndMuscleDays(
-    daysByMuscle: Record<string, number>,
-  ) {
+  function mockSettingsAndMuscleDays(daysByMuscle: Record<string, number>) {
     mockDb.getAllAsync.mockImplementation((sql: string) => {
       if (sql.includes("GROUP BY e.target_muscle")) {
         return Promise.resolve(
@@ -887,6 +887,94 @@ describe("copyDataFromAppDataToUserData", () => {
 
     await expect(copyDataFromAppDataToUserData()).rejects.toThrow(
       "equipment_list read failed",
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// updatePlanWorkoutExercises
+// ---------------------------------------------------------------------------
+
+describe("updatePlanWorkoutExercises", () => {
+  it("updates the same row when exercises are reordered, instead of reassigning by position", async () => {
+    const txnGetAllAsync = jest.fn().mockResolvedValue([
+      { id: 100, exercise_id: 1, exercise_order: 0 },
+      { id: 101, exercise_id: 2, exercise_order: 1 },
+    ]);
+    const txnRunAsync = jest.fn().mockResolvedValue({});
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ getAllAsync: txnGetAllAsync, runAsync: txnRunAsync });
+      },
+    );
+
+    // The two exercises swapped positions (id 101 is now first, id 100 second)
+    // but neither was added or removed.
+    await updatePlanWorkoutExercises(1, [
+      { id: 101, exercise_id: 2, sets: [] } as any,
+      { id: 100, exercise_id: 1, sets: [] } as any,
+    ]);
+
+    // Row 101 must be updated to exercise_order 0 (not have row 100's data
+    // written into the "order 0" slot it used to occupy).
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE user_workout_exercises"),
+      expect.arrayContaining([2, expect.any(String), 0, null, null, 101]),
+    );
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE user_workout_exercises"),
+      expect.arrayContaining([1, expect.any(String), 1, null, null, 100]),
+    );
+    // No row should be soft-deleted — both ids were present in the incoming list.
+    expect(txnRunAsync).not.toHaveBeenCalledWith(
+      expect.stringContaining("is_deleted = TRUE"),
+      expect.anything(),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// updateStandaloneWorkout
+// ---------------------------------------------------------------------------
+
+describe("updateStandaloneWorkout", () => {
+  it("updates the same row when exercises are reordered, instead of reassigning by position", async () => {
+    const txnGetAllAsync = jest.fn().mockResolvedValue([
+      { id: 100, exercise_id: 1, exercise_order: 0 },
+      { id: 101, exercise_id: 2, exercise_order: 1 },
+    ]);
+    const txnRunAsync = jest.fn().mockResolvedValue({});
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ getAllAsync: txnGetAllAsync, runAsync: txnRunAsync });
+      },
+    );
+
+    // The two exercises swapped positions (id 101 is now first, id 100 second)
+    // but neither was added or removed.
+    await updateStandaloneWorkout(1, "name", [
+      { id: 101, exercise_id: 2, sets: [] } as any,
+      { id: 100, exercise_id: 1, sets: [] } as any,
+    ]);
+
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE user_workouts SET name = ?"),
+      ["name", 1],
+    );
+    // Row 101 must be updated to exercise_order 0 (not have row 100's data
+    // written into the "order 0" slot it used to occupy).
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE user_workout_exercises"),
+      expect.arrayContaining([2, expect.any(String), 0, null, null, 101]),
+    );
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE user_workout_exercises"),
+      expect.arrayContaining([1, expect.any(String), 1, null, null, 100]),
+    );
+    // No row should be soft-deleted — both ids were present in the incoming list.
+    expect(txnRunAsync).not.toHaveBeenCalledWith(
+      expect.stringContaining("is_deleted = TRUE"),
+      expect.anything(),
     );
   });
 });

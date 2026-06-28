@@ -866,23 +866,14 @@ export const updatePlanWorkoutExercises = async (
         `SELECT id, exercise_id, exercise_order FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
         [workoutId],
       );
-      const existingByOrder = new Map(
-        existing.map((e) => [e.exercise_order, e]),
-      );
-      const incomingOrders = new Set(exercises.map((_, i) => i));
-
-      for (const row of existing) {
-        if (!incomingOrders.has(row.exercise_order)) {
-          await txn.runAsync(
-            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
-            [row.id],
-          );
-        }
-      }
+      const existingById = new Map(existing.map((e) => [e.id, e]));
+      const matchedIds = new Set<number>();
 
       for (const [order, exercise] of exercises.entries()) {
-        const existingRow = existingByOrder.get(order);
+        const existingRow =
+          exercise.id !== undefined ? existingById.get(exercise.id) : undefined;
         if (existingRow) {
+          matchedIds.add(existingRow.id);
           await txn.runAsync(
             `UPDATE user_workout_exercises SET exercise_id = ?, sets = ?, exercise_order = ?, superset_group_id = ?, tracking_type_override = ?, is_deleted = FALSE WHERE id = ?`,
             [
@@ -905,6 +896,15 @@ export const updatePlanWorkoutExercises = async (
               exercise.supersetGroupId ?? null,
               exercise.tracking_type_override ?? null,
             ],
+          );
+        }
+      }
+
+      for (const row of existing) {
+        if (!matchedIds.has(row.id)) {
+          await txn.runAsync(
+            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
+            [row.id],
           );
         }
       }
@@ -1639,25 +1639,15 @@ export const updateStandaloneWorkout = async (
         `SELECT id, exercise_id, exercise_order FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
         [workoutId],
       );
-      const existingByOrder = new Map(
-        existing.map((e) => [e.exercise_order, e]),
-      );
-      const incomingOrders = new Set(exercises.map((_, i) => i));
+      const existingById = new Map(existing.map((e) => [e.id, e]));
+      const matchedIds = new Set<number>();
 
-      // Soft-delete rows whose position no longer exists in the incoming list
-      for (const row of existing) {
-        if (!incomingOrders.has(row.exercise_order)) {
-          await txn.runAsync(
-            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
-            [row.id],
-          );
-        }
-      }
-
-      // Update by row id (keyed on position) or insert new rows
+      // Update by row id or insert new rows
       for (const [order, exercise] of exercises.entries()) {
-        const existingRow = existingByOrder.get(order);
+        const existingRow =
+          exercise.id !== undefined ? existingById.get(exercise.id) : undefined;
         if (existingRow) {
+          matchedIds.add(existingRow.id);
           await txn.runAsync(
             `UPDATE user_workout_exercises SET exercise_id = ?, sets = ?, exercise_order = ?, superset_group_id = ?, tracking_type_override = ?, is_deleted = FALSE WHERE id = ?`,
             [
@@ -1680,6 +1670,16 @@ export const updateStandaloneWorkout = async (
               exercise.supersetGroupId ?? null,
               exercise.tracking_type_override ?? null,
             ],
+          );
+        }
+      }
+
+      // Soft-delete rows that were not matched by id in the incoming list
+      for (const row of existing) {
+        if (!matchedIds.has(row.id)) {
+          await txn.runAsync(
+            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
+            [row.id],
           );
         }
       }
@@ -3262,9 +3262,7 @@ export const getProgressionStatesForWorkout = async (
     const daysByMuscle = skipLayoffOverride
       ? {}
       : await getDaysSinceLastWorkoutByMuscle();
-    const settings = skipLayoffOverride
-      ? null
-      : await getProgressionSettings();
+    const settings = skipLayoffOverride ? null : await getProgressionSettings();
 
     return rows.map((row) => {
       let parsedRepsPerSet: number[] | undefined;
