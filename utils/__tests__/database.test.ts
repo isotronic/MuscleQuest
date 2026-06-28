@@ -18,6 +18,8 @@ import {
   getDaysSinceLastWorkoutByMuscle,
   getProgressionState,
   getProgressionStatesForWorkout,
+  updateAppExerciseIds,
+  copyDataFromAppDataToUserData,
 } from "../database";
 import { ProgressionRuleResult } from "@/types/progression";
 
@@ -834,5 +836,57 @@ describe("getProgressionStatesForWorkout — muscle-layoff override", () => {
 
     expect(result[0].suggestionAction).toBe("increase_load");
     expect(result[0].suggestedWeight).toBe(100);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// updateAppExerciseIds
+// ---------------------------------------------------------------------------
+
+describe("updateAppExerciseIds", () => {
+  it("does not call ROLLBACK if the version check itself fails before any transaction starts", async () => {
+    mockDb.getFirstAsync.mockRejectedValue(new Error("read failed"));
+
+    await updateAppExerciseIds();
+
+    expect(mockDb.execAsync).not.toHaveBeenCalledWith("ROLLBACK");
+    expect(Bugsnag.notify).toHaveBeenCalled();
+  });
+
+  it("rolls back if an update fails mid-transaction", async () => {
+    mockDb.getFirstAsync.mockResolvedValue({ value: "1.1" });
+    mockDb.getAllAsync.mockResolvedValue([{ exercise_id: 5 }]);
+    mockDb.runAsync.mockRejectedValueOnce(new Error("update failed"));
+
+    await updateAppExerciseIds();
+
+    expect(mockDb.execAsync).toHaveBeenCalledWith("ROLLBACK");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// copyDataFromAppDataToUserData
+// ---------------------------------------------------------------------------
+
+describe("copyDataFromAppDataToUserData", () => {
+  it("does not call ROLLBACK if the initial read fails before any transaction starts", async () => {
+    mockDb.getFirstAsync.mockResolvedValue(null); // dataVersion check passes through
+    mockDb.getAllAsync.mockRejectedValue(new Error("appData read failed"));
+
+    await expect(copyDataFromAppDataToUserData()).rejects.toThrow(
+      "appData read failed",
+    );
+    expect(mockDb.execAsync).not.toHaveBeenCalledWith("ROLLBACK");
+  });
+
+  it("propagates the error instead of silently continuing to the next table", async () => {
+    mockDb.getFirstAsync.mockResolvedValue(null);
+    mockDb.getAllAsync
+      .mockResolvedValueOnce([{ muscle: "chest" }]) // muscles table read succeeds
+      .mockRejectedValueOnce(new Error("equipment_list read failed")); // next table fails
+
+    await expect(copyDataFromAppDataToUserData()).rejects.toThrow(
+      "equipment_list read failed",
+    );
   });
 });

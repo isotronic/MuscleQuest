@@ -78,6 +78,7 @@ interface SettingsEntry {
 
 export const updateAppExerciseIds = async (): Promise<void> => {
   const userDataDB = await openDatabase("userData.db");
+  let inTransaction = false;
   try {
     // Check the current dataVersion
     const versionResult = await userDataDB.getFirstAsync<{ value: string }>(
@@ -99,6 +100,7 @@ export const updateAppExerciseIds = async (): Promise<void> => {
 
       if (nullAppExerciseIds.length > 0) {
         await userDataDB.execAsync("BEGIN TRANSACTION");
+        inTransaction = true;
 
         for (const row of nullAppExerciseIds) {
           // Set the app_exercise_id to the value of exercise_id
@@ -109,6 +111,7 @@ export const updateAppExerciseIds = async (): Promise<void> => {
         }
 
         await userDataDB.execAsync("COMMIT");
+        inTransaction = false;
 
         console.log(`Updated ${nullAppExerciseIds.length} exercises.`);
 
@@ -131,7 +134,9 @@ export const updateAppExerciseIds = async (): Promise<void> => {
   } catch (error: any) {
     console.error("Error updating app_exercise_id:", error);
     Bugsnag.notify(error);
-    await userDataDB.execAsync("ROLLBACK");
+    if (inTransaction) {
+      await userDataDB.execAsync("ROLLBACK");
+    }
   } finally {
     await userDataDB.closeAsync();
   }
@@ -176,6 +181,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
       columns: string[],
       excludeId: boolean = false,
     ): Promise<void> => {
+      let inTransaction = false;
       try {
         const result: SQLiteRow[] = await appDataDB!.getAllAsync(
           `SELECT ${columns.join(", ")} FROM ${tableName}`,
@@ -185,6 +191,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
         if (result.length > 0) {
           await userDataDB!.execAsync("BEGIN TRANSACTION");
+          inTransaction = true;
 
           const insertColumns = excludeId
             ? columns.filter((col) => col !== "exercise_id")
@@ -285,12 +292,15 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
           }
 
           await userDataDB!.execAsync("COMMIT");
+          inTransaction = false;
         }
         shouldUpdateDataVersion = true;
       } catch (error: any) {
         console.error(`Error copying table ${tableName}:`, error);
-        Bugsnag.notify(error);
-        await userDataDB!.execAsync("ROLLBACK");
+        if (inTransaction) {
+          await userDataDB!.execAsync("ROLLBACK");
+        }
+        throw error;
       }
     };
 
