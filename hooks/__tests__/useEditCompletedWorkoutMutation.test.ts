@@ -107,10 +107,60 @@ describe("useEditCompletedWorkoutMutation", () => {
   it("wraps all set updates in a single exclusive transaction and never calls db.runAsync directly", async () => {
     useEditCompletedWorkoutMutation(42, "kg", "m");
 
-    await capturedArgs.mutationFn(makeExercises(100));
+    // Multiple exercises, each with multiple sets, to prove the entire
+    // double loop (exercises -> sets) shares one transaction rather than
+    // opening a transaction per set or per exercise.
+    const multiExerciseData = [
+      {
+        exercise_id: 100,
+        exercise_name: "Bench Press",
+        exercise_tracking_type: "weight",
+        sets: [
+          {
+            set_id: 1001,
+            set_number: 1,
+            weight: 100,
+            reps: 8,
+            time: null,
+            distance: null,
+            is_warmup: false,
+            set_duration: null,
+          },
+          {
+            set_id: 1002,
+            set_number: 2,
+            weight: 105,
+            reps: 6,
+            time: null,
+            distance: null,
+            is_warmup: false,
+            set_duration: null,
+          },
+        ],
+      },
+      {
+        exercise_id: 200,
+        exercise_name: "Squat",
+        exercise_tracking_type: "weight",
+        sets: [
+          {
+            set_id: 2001,
+            set_number: 1,
+            weight: 140,
+            reps: 5,
+            time: null,
+            distance: null,
+            is_warmup: false,
+            set_duration: null,
+          },
+        ],
+      },
+    ];
+
+    await capturedArgs.mutationFn(multiExerciseData);
 
     expect(mockWithExclusiveTransactionAsync).toHaveBeenCalledTimes(1);
-    expect(mockTxnRunAsync).toHaveBeenCalledTimes(1);
+    expect(mockTxnRunAsync).toHaveBeenCalledTimes(3);
     expect(mockRunAsync).not.toHaveBeenCalled();
   });
 
