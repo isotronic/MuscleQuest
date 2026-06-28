@@ -41,13 +41,18 @@ export default function ExerciseLibraryScreen() {
 
   const { data: usageData } = useExerciseUsageQuery();
 
-  const { filteredExercises, suggestions, debouncedQuery } = useExerciseSearch(
-    exercises,
-    {
+  const searchFilters = useMemo(
+    () => ({
       equipment: selectedEquipment,
       bodyPart: selectedBodyPart,
       targetMuscle: selectedTargetMuscle,
-    },
+    }),
+    [selectedEquipment, selectedBodyPart, selectedTargetMuscle],
+  );
+
+  const { filteredExercises, suggestions, debouncedQuery } = useExerciseSearch(
+    exercises,
+    searchFilters,
     searchQuery,
   );
 
