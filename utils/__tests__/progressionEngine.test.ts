@@ -263,7 +263,7 @@ describe("evaluateProgression — safety rules", () => {
     expect(result.suggestedWeight).toBe(95);
   });
 
-  it("PAIN_BLOCK: holds for reps-only even on second consecutive pain", () => {
+  it("PAIN_LOAD_UNSUPPORTED: holds with a distinct rule on second consecutive pain for reps-only exercises", () => {
     const result = evaluateProgression(
       makeInputs({
         trackingType: "reps",
@@ -273,7 +273,7 @@ describe("evaluateProgression — safety rules", () => {
       }),
     );
     expect(result.action).toBe("hold");
-    expect(result.ruleKey).toBe("PAIN_BLOCK");
+    expect(result.ruleKey).toBe("PAIN_LOAD_UNSUPPORTED");
   });
 
   it("FAILED_FIRST_SIGNAL: holds on first failed session", () => {
