@@ -35,6 +35,7 @@ const mockInvalidateQueries = jest.fn();
 
 const makeExercises = (weight: number) => [
   {
+    completed_exercise_id: 9000,
     exercise_id: 100,
     exercise_name: "Bench Press",
     exercise_tracking_type: "weight",
@@ -112,6 +113,7 @@ describe("useEditCompletedWorkoutMutation", () => {
     // opening a transaction per set or per exercise.
     const multiExerciseData = [
       {
+        completed_exercise_id: 9001,
         exercise_id: 100,
         exercise_name: "Bench Press",
         exercise_tracking_type: "weight",
@@ -139,6 +141,7 @@ describe("useEditCompletedWorkoutMutation", () => {
         ],
       },
       {
+        completed_exercise_id: 9002,
         exercise_id: 200,
         exercise_name: "Squat",
         exercise_tracking_type: "weight",
@@ -160,8 +163,39 @@ describe("useEditCompletedWorkoutMutation", () => {
     await capturedArgs.mutationFn(multiExerciseData);
 
     expect(mockWithExclusiveTransactionAsync).toHaveBeenCalledTimes(1);
-    expect(mockTxnRunAsync).toHaveBeenCalledTimes(3);
+    // 3 set updates + 2 completed_exercises updates (one per exercise)
+    expect(mockTxnRunAsync).toHaveBeenCalledTimes(5);
     expect(mockRunAsync).not.toHaveBeenCalled();
+  });
+
+  it("updates completed_exercises.exercise_id for each exercise", async () => {
+    useEditCompletedWorkoutMutation(42, "kg", "m");
+
+    await capturedArgs.mutationFn([
+      {
+        completed_exercise_id: 9001,
+        exercise_id: 300,
+        exercise_name: "Incline Bench Press",
+        exercise_tracking_type: "weight",
+        sets: [
+          {
+            set_id: 1001,
+            set_number: 1,
+            weight: 80,
+            reps: 8,
+            time: null,
+            distance: null,
+            is_warmup: false,
+            set_duration: null,
+          },
+        ],
+      },
+    ]);
+
+    expect(mockTxnRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE completed_exercises"),
+      [300, 9001],
+    );
   });
 
   it("onSuccess invalidates completedWorkout, completedWorkouts, and trackedExercises", () => {

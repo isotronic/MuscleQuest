@@ -31,6 +31,10 @@ const saveCompletedWorkoutWithConversion = async (
     db = await openDatabase("userData.db");
     await db.withExclusiveTransactionAsync(async (txn) => {
       for (const exercise of workoutDataConverted) {
+        await txn.runAsync(
+          `UPDATE completed_exercises SET exercise_id = ? WHERE id = ?`,
+          [exercise.exercise_id, exercise.completed_exercise_id],
+        );
         for (const set of exercise.sets) {
           await txn.runAsync(
             `UPDATE completed_sets SET weight = ?, reps = ?, time = ?, distance = ? WHERE id = ? AND set_number = ?`,
