@@ -1087,10 +1087,12 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             weightAndReps: adjustedWeightAndReps,
             currentSetIndices: adjustedSetIndices,
             setDurations: adjustedSetDurations,
-            currentExerciseIndex:
+            currentExerciseIndex: Math.min(
               currentExerciseIndex > index
                 ? currentExerciseIndex - 1
                 : currentExerciseIndex,
+              Math.max(0, updatedExercises.length - 1),
+            ),
           };
         });
       },

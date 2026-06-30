@@ -1145,7 +1145,7 @@ export const fetchCompletedWorkoutById = async (
 
     // Temporary map to store exercises with their order
     const exercisesMap: {
-      [exercise_id: number]: CompletedWorkout["exercises"][0] & {
+      [completed_exercise_id: number]: CompletedWorkout["exercises"][0] & {
         exercise_order: number;
         exercise_tracking_type: string;
       };
@@ -1153,8 +1153,8 @@ export const fetchCompletedWorkoutById = async (
 
     result.forEach((row) => {
       if (row.exercise_id) {
-        if (!exercisesMap[row.exercise_id]) {
-          exercisesMap[row.exercise_id] = {
+        if (!exercisesMap[row.completed_exercise_id!]) {
+          exercisesMap[row.completed_exercise_id!] = {
             completed_exercise_id: row.completed_exercise_id!,
             exercise_id: row.exercise_id,
             exercise_name: row.exercise_name || "",
@@ -1170,7 +1170,7 @@ export const fetchCompletedWorkoutById = async (
         }
 
         if (row.set_number !== null && row.set_id !== null) {
-          const alreadySeen = exercisesMap[row.exercise_id].sets.some(
+          const alreadySeen = exercisesMap[row.completed_exercise_id!].sets.some(
             (s) => s.set_id === row.set_id,
           );
           if (!alreadySeen) {
@@ -1189,7 +1189,7 @@ export const fetchCompletedWorkoutById = async (
               (distanceInMeters * distanceConversionFactor).toFixed(2),
             );
 
-            exercisesMap[row.exercise_id].sets.push({
+            exercisesMap[row.completed_exercise_id!].sets.push({
               set_id: row.set_id,
               set_number: row.set_number,
               weight: Number.isFinite(convertedWeight) ? convertedWeight : null,

@@ -1460,6 +1460,34 @@ describe("useActiveWorkoutStore", () => {
     expect(currentExerciseIndex).toBe(0);
   });
 
+  it("deleteExercise should clamp currentExerciseIndex when deleting the active last exercise", () => {
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Delete Last Exercise Clamp Test",
+          exercises: [
+            { exercise_id: 1, name: "Ex 1", sets: [{}] },
+            { exercise_id: 2, name: "Ex 2", sets: [{}] },
+            { exercise_id: 3, name: "Ex 3", sets: [{}] },
+          ] as any,
+        },
+        currentExerciseIndex: 2,
+        completedSets: {},
+        weightAndReps: {},
+        currentSetIndices: {},
+        setDurations: {},
+      });
+    });
+
+    act(() => {
+      useActiveWorkoutStore.getState().deleteExercise(2);
+    });
+
+    const { workout, currentExerciseIndex } = useActiveWorkoutStore.getState();
+    expect(workout?.exercises).toHaveLength(2);
+    expect(currentExerciseIndex).toBe(1);
+  });
+
   it("restartWorkout should reset the workout to its originalWorkout", () => {
     const original = {
       name: "Original Workout",

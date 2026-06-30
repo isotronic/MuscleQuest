@@ -194,7 +194,7 @@ function passesFilters(exercise: Exercise, filters: SearchFilters): boolean {
   if (
     filters.trackingType &&
     filters.trackingType !== "all" &&
-    exercise.tracking_type !== filters.trackingType
+    (exercise.tracking_type ?? "weight") !== filters.trackingType
   ) {
     return false;
   }

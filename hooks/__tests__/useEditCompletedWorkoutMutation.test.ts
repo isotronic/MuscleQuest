@@ -194,7 +194,7 @@ describe("useEditCompletedWorkoutMutation", () => {
 
     expect(mockTxnRunAsync).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE completed_exercises"),
-      [300, 9001],
+      [300, "weight", 9001],
     );
   });
 

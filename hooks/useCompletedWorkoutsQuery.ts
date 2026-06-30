@@ -193,7 +193,7 @@ const fetchAndOrganize = async (
 
       // Find or create the exercise entry
       let exercise = workout.exercises.find(
-        (ex) => ex.exercise_id === exercise_id,
+        (ex) => ex.completed_exercise_id === completed_exercise_id,
       );
 
       if (!exercise) {
@@ -394,7 +394,7 @@ const fetchWorkoutHistoryForSession = async (
       }
 
       let exercise = workout.exercises.find(
-        (ex) => ex.exercise_id === exercise_id,
+        (ex) => ex.completed_exercise_id === completed_exercise_id,
       );
       if (!exercise) {
         exercise = {
@@ -562,7 +562,7 @@ const fetchGlobalExerciseHistoryForSession = async (
       }
 
       let exercise = workout.exercises.find(
-        (ex) => ex.exercise_id === exercise_id,
+        (ex) => ex.completed_exercise_id === completed_exercise_id,
       );
       if (!exercise) {
         exercise = {

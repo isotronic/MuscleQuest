@@ -106,8 +106,8 @@ describe("useCompletedWorkoutsQuery", () => {
 
   it("groups different exercises under the same workout", async () => {
     mockDb.getAllAsync.mockResolvedValue([
-      makeRow({ exercise_id: 100, set_id: 1001 }),
-      makeRow({ exercise_id: 200, exercise_name: "Squat", set_id: 2001 }),
+      makeRow({ completed_exercise_id: 555, exercise_id: 100, set_id: 1001 }),
+      makeRow({ completed_exercise_id: 556, exercise_id: 200, exercise_name: "Squat", set_id: 2001 }),
     ]);
 
     useCompletedWorkoutsQuery("kg", "m", 0);

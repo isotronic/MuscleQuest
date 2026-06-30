@@ -20,7 +20,7 @@ export const WorkoutHistorySection: React.FC<WorkoutHistorySectionProps> = ({
     ({ item }: { item: CompletedWorkout }) => (
       <WorkoutHistoryCard
         workout={item}
-        onPress={() => onWorkoutPress(item.id)}
+        onPress={onWorkoutPress}
         excludeWarmup={excludeWarmup}
       />
     ),

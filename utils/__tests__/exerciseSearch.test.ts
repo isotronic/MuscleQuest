@@ -465,6 +465,7 @@ describe("searchExercises — hard filters", () => {
       trackingType: "time",
     };
     const { otherExercises } = searchExercises(index, "", filters);
+    expect(otherExercises.length).toBeGreaterThan(0);
     expect(
       otherExercises.every((r) => r.exercise.tracking_type === "time"),
     ).toBe(true);

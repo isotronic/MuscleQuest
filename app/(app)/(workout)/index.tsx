@@ -716,6 +716,7 @@ export default function WorkoutOverviewScreen() {
     if (isSavingRef.current) return;
     isSavingRef.current = true;
     setIsSaving(true);
+    let mutateStarted = false;
     try {
       const planId = activeWorkout?.planId;
       const workoutId = activeWorkout?.workoutId;
@@ -789,6 +790,7 @@ export default function WorkoutOverviewScreen() {
         await new Promise((resolve) => setTimeout(resolve, 50));
 
         if (exercises.length > 0) {
+          mutateStarted = true;
           saveCompletedWorkoutMutation.mutate(
             {
               planId: planId ?? null,
@@ -923,6 +925,9 @@ export default function WorkoutOverviewScreen() {
                 );
                 Bugsnag.notify(error);
               },
+              onSettled: () => {
+                isSavingRef.current = false;
+              },
             },
           );
         } else {
@@ -939,8 +944,10 @@ export default function WorkoutOverviewScreen() {
       );
     } finally {
       setTimeout(() => {
-        setIsSaving(false); // Hide loading overlay
-        isSavingRef.current = false;
+        setIsSaving(false);
+        if (!mutateStarted) {
+          isSavingRef.current = false;
+        }
       }, 500);
     }
   };
