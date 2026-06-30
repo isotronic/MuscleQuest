@@ -198,7 +198,7 @@ describe("useEditCompletedWorkoutMutation", () => {
     );
   });
 
-  it("onSuccess invalidates completedWorkout, completedWorkouts, and trackedExercises", () => {
+  it("onSuccess invalidates completedWorkout, completedWorkouts, trackedExercises, and history families", () => {
     useEditCompletedWorkoutMutation(42, "kg", "m");
 
     capturedArgs.onSuccess();
@@ -211,6 +211,12 @@ describe("useEditCompletedWorkoutMutation", () => {
     });
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["trackedExercises"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["workoutSessionHistory"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["globalExerciseHistoryForSession"],
     });
   });
 });

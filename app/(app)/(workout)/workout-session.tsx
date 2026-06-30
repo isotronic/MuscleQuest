@@ -558,14 +558,13 @@ export default function WorkoutSessionScreen() {
       if (settings?.restTimerVibration === "true") {
         triggerVibration();
       }
+      setCurrentSetStartedAt(new Date());
     } else {
       Bugsnag.leaveBreadcrumb("Skipped sound/vibration", {
         reason: diffMs >= 2000 ? "Too late after expiry" : "Screen not focused",
         diffMs,
       });
     }
-
-    setCurrentSetStartedAt(new Date());
   }
 
   useEffect(() => {

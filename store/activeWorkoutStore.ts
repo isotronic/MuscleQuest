@@ -1020,6 +1020,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentSetIndices,
             setDurations,
             currentExerciseIndex,
+            appendedExerciseIndices,
           } = state;
           if (!workout) {
             return state;
@@ -1093,6 +1094,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                 : currentExerciseIndex,
               Math.max(0, updatedExercises.length - 1),
             ),
+            appendedExerciseIndices: appendedExerciseIndices
+              .filter((i) => i !== index)
+              .map((i) => (i > index ? i - 1 : i)),
           };
         });
       },

@@ -1063,7 +1063,7 @@ interface CompletedWorkoutRow {
   exercise_id: number | null;
   exercise_name: string | null;
   exercise_image: Uint8Array | null;
-  exercise_order: number;
+  exercise_order: number | null;
   exercise_tracking_type: string | null;
   is_unilateral: number | null;
   double_weight: number | null;
@@ -1117,9 +1117,9 @@ export const fetchCompletedWorkoutById = async (
       LEFT JOIN exercises e ON e.exercise_id = ce.exercise_id -- Join exercises table for exercise details
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN user_workouts uw ON uw.id = cw.workout_id
-      LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id AND uwe.exercise_id = ce.exercise_id -- Join user_workout_exercises to get exercise order
+      LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id AND uwe.exercise_id = ce.exercise_id
       WHERE cw.id = ?
-      ORDER BY uwe.exercise_order, cs.set_number; -- Order by exercise_order and then set_number
+      ORDER BY ce.id, cs.set_number;
       `,
       [id],
     )) as CompletedWorkoutRow[];
@@ -1146,7 +1146,7 @@ export const fetchCompletedWorkoutById = async (
     // Temporary map to store exercises with their order
     const exercisesMap: {
       [completed_exercise_id: number]: CompletedWorkout["exercises"][0] & {
-        exercise_order: number;
+        exercise_order: number | null;
         exercise_tracking_type: string;
       };
     } = {};
@@ -1207,10 +1207,14 @@ export const fetchCompletedWorkoutById = async (
       }
     });
 
-    // Sort exercises by exercise_order and assign them to the workout's exercises
+    // Sort exercises by exercise_order (from template join) with ce.id as stable fallback
+    // for swapped exercises where the UWE join returns NULL.
     workout.exercises = Object.values(exercisesMap)
-      .sort((a, b) => a.exercise_order - b.exercise_order)
-      .map(({ exercise_order, ...rest }) => rest); // Remove exercise_order from the final output
+      .sort((a, b) =>
+        (a.exercise_order ?? a.completed_exercise_id) -
+        (b.exercise_order ?? b.completed_exercise_id),
+      )
+      .map(({ exercise_order, ...rest }) => rest);
 
     return workout;
   } catch (error: any) {

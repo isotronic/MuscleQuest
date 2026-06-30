@@ -70,6 +70,8 @@ export const useEditCompletedWorkoutMutation = (
       queryClient.invalidateQueries({ queryKey: ["completedWorkout", id] });
       queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
       queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
+      queryClient.invalidateQueries({ queryKey: ["workoutSessionHistory"] });
+      queryClient.invalidateQueries({ queryKey: ["globalExerciseHistoryForSession"] });
     },
     onError: (error) => {
       console.error("Error saving edited workout:", error);
@@ -85,6 +87,8 @@ export const useEditCompletedWorkoutMutation = (
       });
       await queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
       await queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
+      await queryClient.invalidateQueries({ queryKey: ["workoutSessionHistory"] });
+      await queryClient.invalidateQueries({ queryKey: ["globalExerciseHistoryForSession"] });
     },
   });
 };

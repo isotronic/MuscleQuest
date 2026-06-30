@@ -1037,4 +1037,37 @@ describe("fetchCompletedWorkoutById", () => {
 
     expect(result.exercises[0].completed_exercise_id).toBe(555);
   });
+
+  it("preserves two completed_exercises rows that share the same exercise_id", async () => {
+    const baseRow = {
+      id: 1,
+      plan_id: null,
+      workout_id: 10,
+      workout_name: "Push Day",
+      is_deload: 0,
+      date_completed: "2026-06-01T00:00:00.000Z",
+      duration: 600,
+      total_sets_completed: 2,
+      exercise_id: 100,
+      exercise_name: "Bench Press",
+      exercise_image: null,
+      exercise_tracking_type: "weight",
+      is_unilateral: 0,
+      double_weight: 0,
+      is_warmup: 0,
+      set_duration: null,
+    };
+    mockDb.getAllAsync.mockResolvedValue([
+      { ...baseRow, completed_exercise_id: 10, exercise_order: 0, set_id: 1001, set_number: 1, weight: 100, reps: 8, time: null, distance: null },
+      { ...baseRow, completed_exercise_id: 11, exercise_order: null, set_id: 2001, set_number: 1, weight: 80, reps: 10, time: null, distance: null },
+    ]);
+
+    const result = await fetchCompletedWorkoutById(1, "kg", "m");
+
+    expect(result.exercises).toHaveLength(2);
+    expect(result.exercises[0].completed_exercise_id).toBe(10);
+    expect(result.exercises[1].completed_exercise_id).toBe(11);
+    expect(result.exercises[0].sets).toHaveLength(1);
+    expect(result.exercises[1].sets).toHaveLength(1);
+  });
 });

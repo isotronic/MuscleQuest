@@ -75,7 +75,7 @@ export const transformRawPlans = (
 
     if (workout && rawPlan.exercise_id && rawPlan.exercise_name) {
       workout.exercises.push({
-        id: rawPlan.user_workout_exercise_id ?? undefined,
+        ...(rawPlan.user_workout_exercise_id != null ? { id: rawPlan.user_workout_exercise_id } : {}),
         exercise_id: rawPlan.exercise_id,
         name: rawPlan.exercise_name,
         description: rawPlan.description || "",
