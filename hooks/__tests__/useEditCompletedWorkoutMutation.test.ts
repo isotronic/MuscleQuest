@@ -4,9 +4,19 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const mockRunAsync = jest.fn().mockResolvedValue(undefined);
 const mockCloseAsync = jest.fn().mockResolvedValue(undefined);
+const mockTxnRunAsync = jest.fn().mockResolvedValue(undefined);
+const mockWithExclusiveTransactionAsync = jest.fn(
+  async (cb: (txn: any) => Promise<void>) => {
+    await cb({ runAsync: mockTxnRunAsync });
+  },
+);
 jest.mock("@/utils/database", () => ({
   openDatabase: jest.fn(() =>
-    Promise.resolve({ runAsync: mockRunAsync, closeAsync: mockCloseAsync }),
+    Promise.resolve({
+      runAsync: mockRunAsync,
+      closeAsync: mockCloseAsync,
+      withExclusiveTransactionAsync: mockWithExclusiveTransactionAsync,
+    }),
   ),
 }));
 jest.mock("@bugsnag/expo", () => ({
@@ -25,6 +35,7 @@ const mockInvalidateQueries = jest.fn();
 
 const makeExercises = (weight: number) => [
   {
+    completed_exercise_id: 9000,
     exercise_id: 100,
     exercise_name: "Bench Press",
     exercise_tracking_type: "weight",
@@ -47,25 +58,19 @@ describe("useEditCompletedWorkoutMutation", () => {
   let capturedArgs: any;
 
   beforeEach(() => {
-    mockRunAsync.mockResolvedValue(undefined);
-    mockCloseAsync.mockResolvedValue(undefined);
-    (openDatabase as jest.Mock).mockResolvedValue({
-      runAsync: mockRunAsync,
-      closeAsync: mockCloseAsync,
-    });
-    (useQueryClient as jest.Mock).mockReturnValue({
-      invalidateQueries: mockInvalidateQueries,
-    });
-    (useMutation as jest.Mock).mockImplementation((args: any) => {
-      capturedArgs = args;
-      return { mutate: jest.fn() };
-    });
     jest.clearAllMocks();
     mockRunAsync.mockResolvedValue(undefined);
     mockCloseAsync.mockResolvedValue(undefined);
+    mockTxnRunAsync.mockResolvedValue(undefined);
+    mockWithExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: mockTxnRunAsync });
+      },
+    );
     (openDatabase as jest.Mock).mockResolvedValue({
       runAsync: mockRunAsync,
       closeAsync: mockCloseAsync,
+      withExclusiveTransactionAsync: mockWithExclusiveTransactionAsync,
     });
     (useQueryClient as jest.Mock).mockReturnValue({
       invalidateQueries: mockInvalidateQueries,
@@ -81,7 +86,7 @@ describe("useEditCompletedWorkoutMutation", () => {
 
     await capturedArgs.mutationFn(makeExercises(100));
 
-    expect(mockRunAsync).toHaveBeenCalledWith(
+    expect(mockTxnRunAsync).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE completed_sets"),
       expect.arrayContaining([100, 8, 0, null, 1001, 1]),
     );
@@ -92,7 +97,7 @@ describe("useEditCompletedWorkoutMutation", () => {
 
     await capturedArgs.mutationFn(makeExercises(220));
 
-    expect(mockRunAsync).toHaveBeenCalledWith(
+    expect(mockTxnRunAsync).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE completed_sets"),
       expect.arrayContaining([
         expect.closeTo(220 * 0.45359237, 2), // converted to kg
@@ -100,7 +105,100 @@ describe("useEditCompletedWorkoutMutation", () => {
     );
   });
 
-  it("onSuccess invalidates completedWorkout, completedWorkouts, and trackedExercises", () => {
+  it("wraps all set updates in a single exclusive transaction and never calls db.runAsync directly", async () => {
+    useEditCompletedWorkoutMutation(42, "kg", "m");
+
+    // Multiple exercises, each with multiple sets, to prove the entire
+    // double loop (exercises -> sets) shares one transaction rather than
+    // opening a transaction per set or per exercise.
+    const multiExerciseData = [
+      {
+        completed_exercise_id: 9001,
+        exercise_id: 100,
+        exercise_name: "Bench Press",
+        exercise_tracking_type: "weight",
+        sets: [
+          {
+            set_id: 1001,
+            set_number: 1,
+            weight: 100,
+            reps: 8,
+            time: null,
+            distance: null,
+            is_warmup: false,
+            set_duration: null,
+          },
+          {
+            set_id: 1002,
+            set_number: 2,
+            weight: 105,
+            reps: 6,
+            time: null,
+            distance: null,
+            is_warmup: false,
+            set_duration: null,
+          },
+        ],
+      },
+      {
+        completed_exercise_id: 9002,
+        exercise_id: 200,
+        exercise_name: "Squat",
+        exercise_tracking_type: "weight",
+        sets: [
+          {
+            set_id: 2001,
+            set_number: 1,
+            weight: 140,
+            reps: 5,
+            time: null,
+            distance: null,
+            is_warmup: false,
+            set_duration: null,
+          },
+        ],
+      },
+    ];
+
+    await capturedArgs.mutationFn(multiExerciseData);
+
+    expect(mockWithExclusiveTransactionAsync).toHaveBeenCalledTimes(1);
+    // 3 set updates + 2 completed_exercises updates (one per exercise)
+    expect(mockTxnRunAsync).toHaveBeenCalledTimes(5);
+    expect(mockRunAsync).not.toHaveBeenCalled();
+  });
+
+  it("updates completed_exercises.exercise_id for each exercise", async () => {
+    useEditCompletedWorkoutMutation(42, "kg", "m");
+
+    await capturedArgs.mutationFn([
+      {
+        completed_exercise_id: 9001,
+        exercise_id: 300,
+        exercise_name: "Incline Bench Press",
+        exercise_tracking_type: "weight",
+        sets: [
+          {
+            set_id: 1001,
+            set_number: 1,
+            weight: 80,
+            reps: 8,
+            time: null,
+            distance: null,
+            is_warmup: false,
+            set_duration: null,
+          },
+        ],
+      },
+    ]);
+
+    expect(mockTxnRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE completed_exercises"),
+      [300, "weight", 9001],
+    );
+  });
+
+  it("onSuccess invalidates completedWorkout, completedWorkouts, trackedExercises, and history families", () => {
     useEditCompletedWorkoutMutation(42, "kg", "m");
 
     capturedArgs.onSuccess();
@@ -113,6 +211,12 @@ describe("useEditCompletedWorkoutMutation", () => {
     });
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["trackedExercises"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["workoutSessionHistory"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["globalExerciseHistoryForSession"],
     });
   });
 });

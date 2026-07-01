@@ -25,6 +25,7 @@ export interface SearchFilters {
   equipment: string | null;
   bodyPart: string | null;
   targetMuscle: string | null;
+  trackingType?: string | null;
 }
 
 export interface SearchOptions {
@@ -187,6 +188,13 @@ function passesFilters(exercise: Exercise, filters: SearchFilters): boolean {
     filters.targetMuscle &&
     filters.targetMuscle !== "all" &&
     exercise.target_muscle !== filters.targetMuscle
+  ) {
+    return false;
+  }
+  if (
+    filters.trackingType &&
+    filters.trackingType !== "all" &&
+    (exercise.tracking_type ?? "weight") !== filters.trackingType
   ) {
     return false;
   }

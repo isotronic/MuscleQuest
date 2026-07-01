@@ -1,4 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useShallow } from "zustand/react/shallow";
 import {
   Dimensions,
   KeyboardAvoidingView,
@@ -17,7 +24,7 @@ import SessionSetInfo from "@/components/SessionSetInfo";
 import { useTimer } from "react-timer-hook";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
@@ -318,7 +325,35 @@ export default function WorkoutSessionScreen() {
     setCurrentSetStartedAt,
     recordSetDuration,
     setExerciseTrackingTypeOverride,
-  } = useActiveWorkoutStore();
+  } = useActiveWorkoutStore(
+    useShallow((s) => ({
+      workout: s.workout,
+      activeWorkout: s.activeWorkout,
+      currentExerciseIndex: s.currentExerciseIndex,
+      currentSetIndices: s.currentSetIndices,
+      weightAndReps: s.weightAndReps,
+      previousWorkoutData: s.previousWorkoutData,
+      globalHistoryData: s.globalHistoryData,
+      completedSets: s.completedSets,
+      setCurrentExerciseIndex: s.setCurrentExerciseIndex,
+      setCurrentSetIndex: s.setCurrentSetIndex,
+      updateWeightAndReps: s.updateWeightAndReps,
+      nextSet: s.nextSet,
+      timerRunning: s.timerRunning,
+      timerExpiry: s.timerExpiry,
+      startTimer: s.startTimer,
+      stopTimer: s.stopTimer,
+      removeSet: s.removeSet,
+      addSet: s.addSet,
+      addDropSet: s.addDropSet,
+      updateSetRestTime: s.updateSetRestTime,
+      updateSetType: s.updateSetType,
+      currentSetStartedAt: s.currentSetStartedAt,
+      setCurrentSetStartedAt: s.setCurrentSetStartedAt,
+      recordSetDuration: s.recordSetDuration,
+      setExerciseTrackingTypeOverride: s.setExerciseTrackingTypeOverride,
+    })),
+  );
 
   const {
     data: settings,
@@ -408,9 +443,16 @@ export default function WorkoutSessionScreen() {
 
   const alwaysUseGlobalHistory = settings?.alwaysUseGlobalHistory === "true";
 
-  const findLastAvailableSetData = (exerciseId: number, setIndex: number) => {
+  const findLastAvailableSetData = (
+    exerciseId: number,
+    setIndex: number,
+    exercisePosition?: number,
+  ) => {
     const targetSets =
-      workout?.exercises.find((e) => e.exercise_id === exerciseId)?.sets ?? [];
+      exercisePosition !== undefined
+        ? (workout?.exercises[exercisePosition]?.sets ?? [])
+        : (workout?.exercises.find((e) => e.exercise_id === exerciseId)?.sets ??
+          []);
     const isWarmup = targetSets[setIndex]?.isWarmup ?? false;
     const ordinal = targetSets
       .slice(0, setIndex)
@@ -426,18 +468,36 @@ export default function WorkoutSessionScreen() {
       return null;
     };
 
+    // When an exercise was swapped in the previous session, its exercise_id is
+    // updated in completed_exercises to the replacement's id, so the id-keyed
+    // lookup above finds nothing. Fall back to positional lookup: use the
+    // exercise at the same slot index in the most-recent previous workout.
+    const lookupByPosition = () => {
+      if (exercisePosition === undefined) return null;
+      const prevExAtPos =
+        previousWorkoutData?.[0]?.exercises[exercisePosition];
+      if (!prevExAtPos) return null;
+      const setsOfType = prevExAtPos.sets.filter(
+        (s) => s.is_warmup === isWarmup,
+      );
+      return setsOfType[ordinal] ?? null;
+    };
+
     if (alwaysUseGlobalHistory) {
       return lookup(globalExercisesByExerciseId);
     }
 
     return (
-      lookup(prevExercisesByExerciseId) ?? lookup(globalExercisesByExerciseId)
+      lookup(prevExercisesByExerciseId) ??
+      lookupByPosition() ??
+      lookup(globalExercisesByExerciseId)
     );
   };
 
   const previousWorkoutSetData = findLastAvailableSetData(
     currentExercise?.exercise_id || 0,
     currentSetIndex,
+    currentExerciseIndex,
   );
 
   const weight =
@@ -474,6 +534,25 @@ export default function WorkoutSessionScreen() {
   useWorkoutImmersiveMode();
 
   const expiryTimestampRef = useRef<Date | null>(null);
+  const isFocusedRef = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      isFocusedRef.current = true;
+      // If the rest timer expired while the screen was backgrounded,
+      // handleExpire skipped setCurrentSetStartedAt. Restore it now so the
+      // next set's duration tracking starts from a valid time.
+      if (
+        expiryTimestampRef.current !== null &&
+        expiryTimestampRef.current.getTime() < Date.now() &&
+        !useActiveWorkoutStore.getState().currentSetStartedAt
+      ) {
+        setCurrentSetStartedAt(new Date());
+      }
+      return () => {
+        isFocusedRef.current = false;
+      };
+    }, [setCurrentSetStartedAt]),
+  );
   const lastCompletedSetRef = useRef<{
     exerciseIndex: number;
     setIndex: number;
@@ -507,21 +586,20 @@ export default function WorkoutSessionScreen() {
       expiryTimestamp: expiryTimestampRef.current.toISOString(),
     });
 
-    if (diffMs < 2000) {
+    if (diffMs < 2000 && isFocusedRef.current) {
       if (settings?.restTimerSound === "true") {
         playSound();
       }
       if (settings?.restTimerVibration === "true") {
         triggerVibration();
       }
+      setCurrentSetStartedAt(new Date());
     } else {
       Bugsnag.leaveBreadcrumb("Skipped sound/vibration", {
-        reason: "Too late after expiry",
+        reason: diffMs >= 2000 ? "Too late after expiry" : "Screen not focused",
         diffMs,
       });
     }
-
-    setCurrentSetStartedAt(new Date());
   }
 
   useEffect(() => {
@@ -894,7 +972,7 @@ export default function WorkoutSessionScreen() {
     const set = exercise.sets[setIndex];
     if (!set) return null;
 
-    const prevData = findLastAvailableSetData(exercise.exercise_id, setIndex);
+    const prevData = findLastAvailableSetData(exercise.exercise_id, setIndex, exerciseIndex);
     const panelWeight =
       weightAndReps[exerciseIndex]?.[setIndex]?.weight ??
       prevData?.weight?.toString() ??

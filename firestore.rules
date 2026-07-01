@@ -16,10 +16,23 @@ service cloud.firestore {
              doc.data.to == toUid;
     }
 
+    // Defense-in-depth: caps document size on shared-content writes so a
+    // malformed/runaway client can't write a document large enough to break
+    // a friend's client when they read it (e.g. an unbounded sets array).
+    // Note: Firestore Rules have no byte-size API; we enforce a field-count
+    // limit (<=50 top-level keys) as a best-effort proxy.
+    function withinSizeLimit() {
+      return request.resource.data.size() <= 50;
+    }
+
     // Public profiles: any authenticated user can read (email search).
     // Owner can write.
     match /users/{uid} {
-      allow read: if request.auth != null;
+      // Single-document reads (friend profiles, search result hydration) stay open.
+      allow get: if request.auth != null;
+      // List/query reads (e.g. email search) are capped per call so the
+      // collection can't be bulk-scraped for every user's email/displayName.
+      allow list: if request.auth != null && request.query.limit <= 5;
       allow write: if request.auth != null && request.auth.uid == uid;
 
       // Private settings: owner only
@@ -47,27 +60,33 @@ service cloud.firestore {
       // All shared-content subcollections: owner or friends can read, owner can write.
       match /sharedPlans/{docId} {
         allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
+        allow delete: if request.auth != null && request.auth.uid == uid;
       }
       match /sharedStandaloneWorkouts/{docId} {
         allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
+        allow delete: if request.auth != null && request.auth.uid == uid;
       }
       match /sharedCustomExercises/{docId} {
         allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
+        allow delete: if request.auth != null && request.auth.uid == uid;
       }
       match /sharedWorkouts/{docId} {
         allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
+        allow delete: if request.auth != null && request.auth.uid == uid;
       }
       match /sharedMeasurements/{docId} {
         allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
+        allow delete: if request.auth != null && request.auth.uid == uid;
       }
       match /sharedStrength/{docId} {
         allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
+        allow delete: if request.auth != null && request.auth.uid == uid;
       }
     }
 

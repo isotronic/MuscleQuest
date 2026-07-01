@@ -10,6 +10,8 @@ const RULE_EXPLANATIONS: Record<string, string> = {
   PAIN_BLOCK: "Pain reported. Keeping load unchanged until you feel better.",
   PAIN_LOAD:
     "Pain reported again. Consider reducing load to help your recovery.",
+  PAIN_LOAD_UNSUPPORTED:
+    "Pain reported again. Load can't be auto-reduced for this exercise — consider adjusting form or consulting a coach.",
   DISCOMFORT_SIGNAL: "Some discomfort noted. Keeping load steady to monitor.",
   DISCOMFORT_RECURRING:
     "Recurring discomfort. Consider adjusting form or consulting a coach.",
@@ -216,6 +218,9 @@ export function evaluateProgression(
           suggestedWeight: computeReducedLoad(recentWorkingWeight),
         };
       }
+      // Recurring pain, but load can't be auto-reduced for this exercise
+      // (reps-tracked, e.g. bodyweight, or no prior weight on record).
+      return hold("PAIN_LOAD_UNSUPPORTED");
     }
     return hold("PAIN_BLOCK");
   }

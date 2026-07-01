@@ -68,12 +68,22 @@ describe("clearDatabaseAndReinitialize", () => {
     expect(Updates.reloadAsync).toHaveBeenCalled();
   });
 
-  it("creates the File with correct path arguments", async () => {
+  it("creates the File with correct path arguments for the db file and its WAL/SHM sidecars", async () => {
     await clearDatabaseAndReinitialize();
     expect(getFileMocks().__mockFileCtor).toHaveBeenCalledWith(
       "/mock/documents",
       "SQLite",
       "userData.db",
+    );
+    expect(getFileMocks().__mockFileCtor).toHaveBeenCalledWith(
+      "/mock/documents",
+      "SQLite",
+      "userData.db-wal",
+    );
+    expect(getFileMocks().__mockFileCtor).toHaveBeenCalledWith(
+      "/mock/documents",
+      "SQLite",
+      "userData.db-shm",
     );
   });
 

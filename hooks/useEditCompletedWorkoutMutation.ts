@@ -29,14 +29,20 @@ const saveCompletedWorkoutWithConversion = async (
   let db: SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
-    for (const exercise of workoutDataConverted) {
-      for (const set of exercise.sets) {
-        await db.runAsync(
-          `UPDATE completed_sets SET weight = ?, reps = ?, time = ?, distance = ? WHERE id = ? AND set_number = ?`,
-          [set.weight, set.reps, set.time, set.distance, set.set_id, set.set_number],
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      for (const exercise of workoutDataConverted) {
+        await txn.runAsync(
+          `UPDATE completed_exercises SET exercise_id = ?, resolved_tracking_type = ? WHERE id = ?`,
+          [exercise.exercise_id, exercise.exercise_tracking_type, exercise.completed_exercise_id],
         );
+        for (const set of exercise.sets) {
+          await txn.runAsync(
+            `UPDATE completed_sets SET weight = ?, reps = ?, time = ?, distance = ? WHERE id = ? AND set_number = ?`,
+            [set.weight, set.reps, set.time, set.distance, set.set_id, set.set_number],
+          );
+        }
       }
-    }
+    });
   } catch (error: any) {
     console.error("Error saving edited workout:", error);
     Bugsnag.notify(error);
@@ -64,6 +70,8 @@ export const useEditCompletedWorkoutMutation = (
       queryClient.invalidateQueries({ queryKey: ["completedWorkout", id] });
       queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
       queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
+      queryClient.invalidateQueries({ queryKey: ["workoutSessionHistory"] });
+      queryClient.invalidateQueries({ queryKey: ["globalExerciseHistoryForSession"] });
     },
     onError: (error) => {
       console.error("Error saving edited workout:", error);
@@ -79,6 +87,8 @@ export const useEditCompletedWorkoutMutation = (
       });
       await queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
       await queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
+      await queryClient.invalidateQueries({ queryKey: ["workoutSessionHistory"] });
+      await queryClient.invalidateQueries({ queryKey: ["globalExerciseHistoryForSession"] });
     },
   });
 };

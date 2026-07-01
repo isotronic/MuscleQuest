@@ -78,6 +78,7 @@ interface SettingsEntry {
 
 export const updateAppExerciseIds = async (): Promise<void> => {
   const userDataDB = await openDatabase("userData.db");
+  let inTransaction = false;
   try {
     // Check the current dataVersion
     const versionResult = await userDataDB.getFirstAsync<{ value: string }>(
@@ -99,6 +100,7 @@ export const updateAppExerciseIds = async (): Promise<void> => {
 
       if (nullAppExerciseIds.length > 0) {
         await userDataDB.execAsync("BEGIN TRANSACTION");
+        inTransaction = true;
 
         for (const row of nullAppExerciseIds) {
           // Set the app_exercise_id to the value of exercise_id
@@ -109,6 +111,7 @@ export const updateAppExerciseIds = async (): Promise<void> => {
         }
 
         await userDataDB.execAsync("COMMIT");
+        inTransaction = false;
 
         console.log(`Updated ${nullAppExerciseIds.length} exercises.`);
 
@@ -131,7 +134,9 @@ export const updateAppExerciseIds = async (): Promise<void> => {
   } catch (error: any) {
     console.error("Error updating app_exercise_id:", error);
     Bugsnag.notify(error);
-    await userDataDB.execAsync("ROLLBACK");
+    if (inTransaction) {
+      await userDataDB.execAsync("ROLLBACK");
+    }
   } finally {
     await userDataDB.closeAsync();
   }
@@ -176,6 +181,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
       columns: string[],
       excludeId: boolean = false,
     ): Promise<void> => {
+      let inTransaction = false;
       try {
         const result: SQLiteRow[] = await appDataDB!.getAllAsync(
           `SELECT ${columns.join(", ")} FROM ${tableName}`,
@@ -185,6 +191,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
         if (result.length > 0) {
           await userDataDB!.execAsync("BEGIN TRANSACTION");
+          inTransaction = true;
 
           const insertColumns = excludeId
             ? columns.filter((col) => col !== "exercise_id")
@@ -285,12 +292,15 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
           }
 
           await userDataDB!.execAsync("COMMIT");
+          inTransaction = false;
         }
         shouldUpdateDataVersion = true;
       } catch (error: any) {
         console.error(`Error copying table ${tableName}:`, error);
-        Bugsnag.notify(error);
-        await userDataDB!.execAsync("ROLLBACK");
+        if (inTransaction) {
+          await userDataDB!.execAsync("ROLLBACK");
+        }
+        throw error;
       }
     };
 
@@ -856,23 +866,14 @@ export const updatePlanWorkoutExercises = async (
         `SELECT id, exercise_id, exercise_order FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
         [workoutId],
       );
-      const existingByOrder = new Map(
-        existing.map((e) => [e.exercise_order, e]),
-      );
-      const incomingOrders = new Set(exercises.map((_, i) => i));
-
-      for (const row of existing) {
-        if (!incomingOrders.has(row.exercise_order)) {
-          await txn.runAsync(
-            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
-            [row.id],
-          );
-        }
-      }
+      const existingById = new Map(existing.map((e) => [e.id, e]));
+      const matchedIds = new Set<number>();
 
       for (const [order, exercise] of exercises.entries()) {
-        const existingRow = existingByOrder.get(order);
+        const existingRow =
+          exercise.id !== undefined ? existingById.get(exercise.id) : undefined;
         if (existingRow) {
+          matchedIds.add(existingRow.id);
           await txn.runAsync(
             `UPDATE user_workout_exercises SET exercise_id = ?, sets = ?, exercise_order = ?, superset_group_id = ?, tracking_type_override = ?, is_deleted = FALSE WHERE id = ?`,
             [
@@ -895,6 +896,15 @@ export const updatePlanWorkoutExercises = async (
               exercise.supersetGroupId ?? null,
               exercise.tracking_type_override ?? null,
             ],
+          );
+        }
+      }
+
+      for (const row of existing) {
+        if (!matchedIds.has(row.id)) {
+          await txn.runAsync(
+            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
+            [row.id],
           );
         }
       }
@@ -964,66 +974,51 @@ export const saveCompletedWorkout = async (
   }[],
 ) => {
   const db = await openDatabase("userData.db");
+  let completedWorkoutId: number;
 
   try {
-    // Begin transaction
-    await db.execAsync("BEGIN TRANSACTION");
-
-    // Insert the completed workout
-    const completedWorkoutResult = await db.runAsync(
-      `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed, is_deload) VALUES (?, ?, datetime('now'), ?, ?, ?)`,
-      [planId, workoutId, duration, totalSetsCompleted, isDeload ? 1 : 0],
-    );
-
-    const completedWorkoutId = completedWorkoutResult.lastInsertRowId;
-
-    for (const exercise of exercises) {
-      // Insert each completed exercise
-      const completedExerciseResult = await db.runAsync(
-        `INSERT INTO completed_exercises (completed_workout_id, exercise_id, resolved_tracking_type) VALUES (?, ?, ?)`,
-        [
-          completedWorkoutId,
-          exercise.exercise_id,
-          exercise.resolved_tracking_type ?? null,
-        ],
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      const completedWorkoutResult = await txn.runAsync(
+        `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed, is_deload) VALUES (?, ?, datetime('now'), ?, ?, ?)`,
+        [planId, workoutId, duration, totalSetsCompleted, isDeload ? 1 : 0],
       );
 
-      const completedExerciseId = completedExerciseResult.lastInsertRowId;
+      completedWorkoutId = completedWorkoutResult.lastInsertRowId;
 
-      for (const set of exercise.sets) {
-        // Insert each completed set
-        await db.runAsync(
-          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup, is_drop_set, is_to_failure, set_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      for (const exercise of exercises) {
+        const completedExerciseResult = await txn.runAsync(
+          `INSERT INTO completed_exercises (completed_workout_id, exercise_id, resolved_tracking_type) VALUES (?, ?, ?)`,
           [
-            completedExerciseId,
-            set.set_number,
-            set.weight,
-            set.reps,
-            set.time,
-            set.distance,
-            set.is_warmup ? 1 : 0,
-            set.is_drop_set ? 1 : 0,
-            set.is_to_failure ? 1 : 0,
-            set.set_duration ?? null,
+            completedWorkoutId,
+            exercise.exercise_id,
+            exercise.resolved_tracking_type ?? null,
           ],
         );
+
+        const completedExerciseId = completedExerciseResult.lastInsertRowId;
+
+        for (const set of exercise.sets) {
+          await txn.runAsync(
+            `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup, is_drop_set, is_to_failure, set_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              completedExerciseId,
+              set.set_number,
+              set.weight,
+              set.reps,
+              set.time,
+              set.distance,
+              set.is_warmup ? 1 : 0,
+              set.is_drop_set ? 1 : 0,
+              set.is_to_failure ? 1 : 0,
+              set.set_duration ?? null,
+            ],
+          );
+        }
       }
-    }
+    });
 
-    // Commit transaction
-    await db.execAsync("COMMIT");
-    return completedWorkoutId;
+    return completedWorkoutId!;
   } catch (error: any) {
-    // Rollback transaction
-    try {
-      await db.execAsync("ROLLBACK");
-      console.error("Transaction rolled back due to error.");
-    } catch (rollbackError: any) {
-      Bugsnag.notify(rollbackError);
-      console.error("Error during rollback: ", rollbackError);
-    }
-
-    // Log and re-throw the original error
     console.error("Error saving completed workout: ", error);
     Bugsnag.notify(error);
     throw error;
@@ -1064,10 +1059,11 @@ interface CompletedWorkoutRow {
   date_completed: string;
   duration: number;
   total_sets_completed: number;
+  completed_exercise_id: number | null;
   exercise_id: number | null;
   exercise_name: string | null;
   exercise_image: Uint8Array | null;
-  exercise_order: number;
+  exercise_order: number | null;
   exercise_tracking_type: string | null;
   is_unilateral: number | null;
   double_weight: number | null;
@@ -1091,7 +1087,7 @@ export const fetchCompletedWorkoutById = async (
   try {
     const result = (await db.getAllAsync(
       `
-      SELECT 
+      SELECT
         cw.id,
         cw.plan_id as plan_id,
         cw.workout_id as workout_id,
@@ -1100,9 +1096,10 @@ export const fetchCompletedWorkoutById = async (
         cw.duration,
         cw.total_sets_completed,
         cw.is_deload,
-        e.exercise_id as exercise_id, 
-        e.name as exercise_name, 
-        e.image as exercise_image, 
+        ce.id as completed_exercise_id,
+        e.exercise_id as exercise_id,
+        e.name as exercise_name,
+        e.image as exercise_image,
         COALESCE(ce.resolved_tracking_type, uwe.tracking_type_override, e.tracking_type) as exercise_tracking_type,
         e.is_unilateral,
         e.double_weight,
@@ -1120,9 +1117,9 @@ export const fetchCompletedWorkoutById = async (
       LEFT JOIN exercises e ON e.exercise_id = ce.exercise_id -- Join exercises table for exercise details
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN user_workouts uw ON uw.id = cw.workout_id
-      LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id AND uwe.exercise_id = ce.exercise_id -- Join user_workout_exercises to get exercise order
+      LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id AND uwe.exercise_id = ce.exercise_id
       WHERE cw.id = ?
-      ORDER BY uwe.exercise_order, cs.set_number; -- Order by exercise_order and then set_number
+      ORDER BY ce.id, cs.set_number;
       `,
       [id],
     )) as CompletedWorkoutRow[];
@@ -1148,16 +1145,17 @@ export const fetchCompletedWorkoutById = async (
 
     // Temporary map to store exercises with their order
     const exercisesMap: {
-      [exercise_id: number]: CompletedWorkout["exercises"][0] & {
-        exercise_order: number;
+      [completed_exercise_id: number]: CompletedWorkout["exercises"][0] & {
+        exercise_order: number | null;
         exercise_tracking_type: string;
       };
     } = {};
 
     result.forEach((row) => {
       if (row.exercise_id) {
-        if (!exercisesMap[row.exercise_id]) {
-          exercisesMap[row.exercise_id] = {
+        if (!exercisesMap[row.completed_exercise_id!]) {
+          exercisesMap[row.completed_exercise_id!] = {
+            completed_exercise_id: row.completed_exercise_id!,
             exercise_id: row.exercise_id,
             exercise_name: row.exercise_name || "",
             exercise_image: row.exercise_image
@@ -1172,7 +1170,7 @@ export const fetchCompletedWorkoutById = async (
         }
 
         if (row.set_number !== null && row.set_id !== null) {
-          const alreadySeen = exercisesMap[row.exercise_id].sets.some(
+          const alreadySeen = exercisesMap[row.completed_exercise_id!].sets.some(
             (s) => s.set_id === row.set_id,
           );
           if (!alreadySeen) {
@@ -1191,7 +1189,7 @@ export const fetchCompletedWorkoutById = async (
               (distanceInMeters * distanceConversionFactor).toFixed(2),
             );
 
-            exercisesMap[row.exercise_id].sets.push({
+            exercisesMap[row.completed_exercise_id!].sets.push({
               set_id: row.set_id,
               set_number: row.set_number,
               weight: Number.isFinite(convertedWeight) ? convertedWeight : null,
@@ -1209,10 +1207,14 @@ export const fetchCompletedWorkoutById = async (
       }
     });
 
-    // Sort exercises by exercise_order and assign them to the workout's exercises
+    // Sort exercises by exercise_order (from template join) with ce.id as stable fallback
+    // for swapped exercises where the UWE join returns NULL.
     workout.exercises = Object.values(exercisesMap)
-      .sort((a, b) => a.exercise_order - b.exercise_order)
-      .map(({ exercise_order, ...rest }) => rest); // Remove exercise_order from the final output
+      .sort((a, b) =>
+        (a.exercise_order ?? a.completed_exercise_id) -
+        (b.exercise_order ?? b.completed_exercise_id),
+      )
+      .map(({ exercise_order, ...rest }) => rest);
 
     return workout;
   } catch (error: any) {
@@ -1644,25 +1646,15 @@ export const updateStandaloneWorkout = async (
         `SELECT id, exercise_id, exercise_order FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
         [workoutId],
       );
-      const existingByOrder = new Map(
-        existing.map((e) => [e.exercise_order, e]),
-      );
-      const incomingOrders = new Set(exercises.map((_, i) => i));
+      const existingById = new Map(existing.map((e) => [e.id, e]));
+      const matchedIds = new Set<number>();
 
-      // Soft-delete rows whose position no longer exists in the incoming list
-      for (const row of existing) {
-        if (!incomingOrders.has(row.exercise_order)) {
-          await txn.runAsync(
-            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
-            [row.id],
-          );
-        }
-      }
-
-      // Update by row id (keyed on position) or insert new rows
+      // Update by row id or insert new rows
       for (const [order, exercise] of exercises.entries()) {
-        const existingRow = existingByOrder.get(order);
+        const existingRow =
+          exercise.id !== undefined ? existingById.get(exercise.id) : undefined;
         if (existingRow) {
+          matchedIds.add(existingRow.id);
           await txn.runAsync(
             `UPDATE user_workout_exercises SET exercise_id = ?, sets = ?, exercise_order = ?, superset_group_id = ?, tracking_type_override = ?, is_deleted = FALSE WHERE id = ?`,
             [
@@ -1685,6 +1677,16 @@ export const updateStandaloneWorkout = async (
               exercise.supersetGroupId ?? null,
               exercise.tracking_type_override ?? null,
             ],
+          );
+        }
+      }
+
+      // Soft-delete rows that were not matched by id in the incoming list
+      for (const row of existing) {
+        if (!matchedIds.has(row.id)) {
+          await txn.runAsync(
+            `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
+            [row.id],
           );
         }
       }
@@ -2190,7 +2192,8 @@ export const fetchBodyMeasurementSessions = async (
   let db: SQLite.SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
-    const limitClause = limit !== undefined ? `LIMIT ${limit}` : "";
+    const limitClause = limit !== undefined ? "LIMIT ?" : "";
+    const params = limit !== undefined ? [limit] : [];
     const rows = (await db.getAllAsync(
       `SELECT
          bme.id          AS entry_id,
@@ -2212,6 +2215,7 @@ export const fetchBodyMeasurementSessions = async (
        JOIN body_measurement_values bmv ON bmv.entry_id = bme.id
        JOIN body_metric_definitions bmd ON bmd.id = bmv.metric_id
        ORDER BY bme.recorded_at DESC, bmd.sort_order ASC`,
+      params,
     )) as (RawMetricDefinitionRow & {
       entry_id: number;
       recorded_at: string;
@@ -3267,9 +3271,7 @@ export const getProgressionStatesForWorkout = async (
     const daysByMuscle = skipLayoffOverride
       ? {}
       : await getDaysSinceLastWorkoutByMuscle();
-    const settings = skipLayoffOverride
-      ? null
-      : await getProgressionSettings();
+    const settings = skipLayoffOverride ? null : await getProgressionSettings();
 
     return rows.map((row) => {
       let parsedRepsPerSet: number[] | undefined;

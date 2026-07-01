@@ -28,6 +28,44 @@ describe("useAllPlansQuery Tests", () => {
   });
 
   describe("transformRawPlans", () => {
+    it("should use the catalog exercise_id, not the user_workout_exercise row id, and should carry the row id through as the exercise's stable id", () => {
+      const rawPlans = [
+        {
+          id: 1,
+          name: "User Plan",
+          image_url: "user-plan.jpg",
+          is_active: 1,
+          app_plan_id: null,
+          workout_id: 101,
+          workout_name: "Workout 1",
+          // The user_workout_exercises row id (the per-slot junction id) is
+          // intentionally different from the real catalog exercise id below,
+          // to prove the two are not conflated.
+          user_workout_exercise_id: 555,
+          exercise_id: 1001,
+          exercise_name: "Bench Press",
+          description: "Test description",
+          image: null,
+          local_animated_uri: null,
+          animated_url: null,
+          equipment: "Barbell",
+          body_part: "Chest",
+          target_muscle: "Pectorals",
+          secondary_muscles: null,
+          tracking_type: "weight",
+          tracking_type_override: null,
+          sets: "[]",
+          exercise_order: 1,
+        },
+      ];
+
+      const result = transformRawPlans(rawPlans);
+
+      const exercise = result.userPlans[0].workouts[0].exercises[0];
+      expect(exercise.exercise_id).toBe(1001);
+      expect(exercise.id).toBe(555);
+    });
+
     it("should transform raw plans into userPlans and appPlans", () => {
       const rawPlans = [
         {
@@ -192,6 +230,20 @@ describe("useAllPlansQuery Tests", () => {
 
       await expect(fetchPlans()).rejects.toThrow("Failed to fetch plans");
       expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+    });
+
+    it("should select the real catalog exercise_id separately from the user_workout_exercises row id", async () => {
+      mockDb.getAllAsync.mockResolvedValueOnce([]);
+
+      await fetchPlans();
+
+      const sql = mockDb.getAllAsync.mock.calls[0][0] as string;
+      expect(sql).toMatch(
+        /user_workout_exercises\.exercise_id\s+AS\s+exercise_id/i,
+      );
+      expect(sql).toMatch(
+        /user_workout_exercises\.id\s+AS\s+user_workout_exercise_id/i,
+      );
     });
   });
 

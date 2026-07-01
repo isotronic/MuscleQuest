@@ -6,6 +6,7 @@ import {
   fetchSettings,
   updateSettings,
   deleteCompletedWorkout,
+  saveCompletedWorkout,
   fetchPlanSchedule,
   fetchActiveBodyMetricDefinitions,
   fetchAllBodyMetricDefinitions,
@@ -17,6 +18,12 @@ import {
   getDaysSinceLastWorkoutByMuscle,
   getProgressionState,
   getProgressionStatesForWorkout,
+  updateAppExerciseIds,
+  copyDataFromAppDataToUserData,
+  updatePlanWorkoutExercises,
+  updateStandaloneWorkout,
+  fetchBodyMeasurementSessions,
+  fetchCompletedWorkoutById,
 } from "../database";
 import { ProgressionRuleResult } from "@/types/progression";
 
@@ -230,6 +237,77 @@ describe("deleteCompletedWorkout", () => {
     mockDb.withExclusiveTransactionAsync.mockRejectedValue(error);
 
     await expect(deleteCompletedWorkout(42)).rejects.toBe(error);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// saveCompletedWorkout
+// ---------------------------------------------------------------------------
+
+describe("saveCompletedWorkout", () => {
+  it("wraps the whole save in a single exclusive transaction", async () => {
+    const exercises = [
+      {
+        exercise_id: 1,
+        resolved_tracking_type: "weight",
+        sets: [
+          {
+            set_number: 1,
+            weight: 100,
+            reps: 8,
+            time: null,
+            distance: null,
+          },
+        ],
+      },
+    ];
+
+    await saveCompletedWorkout(1, 2, 600, 1, false, exercises);
+
+    expect(mockDb.withExclusiveTransactionAsync).toHaveBeenCalledTimes(1);
+    expect(mockDb.execAsync).not.toHaveBeenCalledWith("BEGIN TRANSACTION");
+  });
+
+  it("runs one insert for the workout, one per exercise, one per set", async () => {
+    const txnRunAsync = jest
+      .fn()
+      .mockResolvedValue({ lastInsertRowId: 7, changes: 1 });
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync });
+      },
+    );
+
+    const exercises = [
+      {
+        exercise_id: 1,
+        sets: [
+          { set_number: 1, weight: 100, reps: 8, time: null, distance: null },
+          { set_number: 2, weight: 100, reps: 7, time: null, distance: null },
+        ],
+      },
+    ];
+
+    const id = await saveCompletedWorkout(1, 2, 600, 2, false, exercises);
+
+    expect(id).toBe(7);
+    // 1 completed_workouts insert + 1 completed_exercises insert + 2 completed_sets inserts
+    expect(txnRunAsync).toHaveBeenCalledTimes(4);
+    expect(txnRunAsync).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("INSERT INTO completed_workouts"),
+      expect.any(Array),
+    );
+  });
+
+  it("propagates and does not swallow errors from within the transaction", async () => {
+    const error = new Error("disk full");
+    mockDb.withExclusiveTransactionAsync.mockRejectedValue(error);
+
+    await expect(saveCompletedWorkout(1, 2, 600, 1, false, [])).rejects.toBe(
+      error,
+    );
+    expect(Bugsnag.notify).toHaveBeenCalledWith(error);
   });
 });
 
@@ -582,9 +660,7 @@ describe("getProgressionState — muscle-layoff override", () => {
     recent_weight: 100,
   };
 
-  function mockSettingsAndMuscleDays(
-    daysByMuscle: Record<string, number>,
-  ) {
+  function mockSettingsAndMuscleDays(daysByMuscle: Record<string, number>) {
     mockDb.getAllAsync.mockImplementation((sql: string) => {
       if (sql.includes("GROUP BY e.target_muscle")) {
         return Promise.resolve(
@@ -762,5 +838,236 @@ describe("getProgressionStatesForWorkout — muscle-layoff override", () => {
 
     expect(result[0].suggestionAction).toBe("increase_load");
     expect(result[0].suggestedWeight).toBe(100);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// updateAppExerciseIds
+// ---------------------------------------------------------------------------
+
+describe("updateAppExerciseIds", () => {
+  it("does not call ROLLBACK if the version check itself fails before any transaction starts", async () => {
+    mockDb.getFirstAsync.mockRejectedValue(new Error("read failed"));
+
+    await updateAppExerciseIds();
+
+    expect(mockDb.execAsync).not.toHaveBeenCalledWith("ROLLBACK");
+    expect(Bugsnag.notify).toHaveBeenCalled();
+  });
+
+  it("rolls back if an update fails mid-transaction", async () => {
+    mockDb.getFirstAsync.mockResolvedValue({ value: "1.1" });
+    mockDb.getAllAsync.mockResolvedValue([{ exercise_id: 5 }]);
+    mockDb.runAsync.mockRejectedValueOnce(new Error("update failed"));
+
+    await updateAppExerciseIds();
+
+    expect(mockDb.execAsync).toHaveBeenCalledWith("ROLLBACK");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// copyDataFromAppDataToUserData
+// ---------------------------------------------------------------------------
+
+describe("copyDataFromAppDataToUserData", () => {
+  it("does not call ROLLBACK if the initial read fails before any transaction starts", async () => {
+    mockDb.getFirstAsync.mockResolvedValue(null); // dataVersion check passes through
+    mockDb.getAllAsync.mockRejectedValue(new Error("appData read failed"));
+
+    await expect(copyDataFromAppDataToUserData()).rejects.toThrow(
+      "appData read failed",
+    );
+    expect(mockDb.execAsync).not.toHaveBeenCalledWith("ROLLBACK");
+  });
+
+  it("propagates the error instead of silently continuing to the next table", async () => {
+    mockDb.getFirstAsync.mockResolvedValue(null);
+    mockDb.getAllAsync
+      .mockResolvedValueOnce([{ muscle: "chest" }]) // muscles table read succeeds
+      .mockRejectedValueOnce(new Error("equipment_list read failed")); // next table fails
+
+    await expect(copyDataFromAppDataToUserData()).rejects.toThrow(
+      "equipment_list read failed",
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// updatePlanWorkoutExercises
+// ---------------------------------------------------------------------------
+
+describe("updatePlanWorkoutExercises", () => {
+  it("updates the same row when exercises are reordered, instead of reassigning by position", async () => {
+    const txnGetAllAsync = jest.fn().mockResolvedValue([
+      { id: 100, exercise_id: 1, exercise_order: 0 },
+      { id: 101, exercise_id: 2, exercise_order: 1 },
+    ]);
+    const txnRunAsync = jest.fn().mockResolvedValue({});
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ getAllAsync: txnGetAllAsync, runAsync: txnRunAsync });
+      },
+    );
+
+    // The two exercises swapped positions (id 101 is now first, id 100 second)
+    // but neither was added or removed.
+    await updatePlanWorkoutExercises(1, [
+      { id: 101, exercise_id: 2, sets: [] } as any,
+      { id: 100, exercise_id: 1, sets: [] } as any,
+    ]);
+
+    // Row 101 must be updated to exercise_order 0 (not have row 100's data
+    // written into the "order 0" slot it used to occupy).
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE user_workout_exercises"),
+      expect.arrayContaining([2, expect.any(String), 0, null, null, 101]),
+    );
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE user_workout_exercises"),
+      expect.arrayContaining([1, expect.any(String), 1, null, null, 100]),
+    );
+    // No row should be soft-deleted — both ids were present in the incoming list.
+    expect(txnRunAsync).not.toHaveBeenCalledWith(
+      expect.stringContaining("is_deleted = TRUE"),
+      expect.anything(),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// updateStandaloneWorkout
+// ---------------------------------------------------------------------------
+
+describe("updateStandaloneWorkout", () => {
+  it("updates the same row when exercises are reordered, instead of reassigning by position", async () => {
+    const txnGetAllAsync = jest.fn().mockResolvedValue([
+      { id: 100, exercise_id: 1, exercise_order: 0 },
+      { id: 101, exercise_id: 2, exercise_order: 1 },
+    ]);
+    const txnRunAsync = jest.fn().mockResolvedValue({});
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ getAllAsync: txnGetAllAsync, runAsync: txnRunAsync });
+      },
+    );
+
+    // The two exercises swapped positions (id 101 is now first, id 100 second)
+    // but neither was added or removed.
+    await updateStandaloneWorkout(1, "name", [
+      { id: 101, exercise_id: 2, sets: [] } as any,
+      { id: 100, exercise_id: 1, sets: [] } as any,
+    ]);
+
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE user_workouts SET name = ?"),
+      ["name", 1],
+    );
+    // Row 101 must be updated to exercise_order 0 (not have row 100's data
+    // written into the "order 0" slot it used to occupy).
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE user_workout_exercises"),
+      expect.arrayContaining([2, expect.any(String), 0, null, null, 101]),
+    );
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE user_workout_exercises"),
+      expect.arrayContaining([1, expect.any(String), 1, null, null, 100]),
+    );
+    // No row should be soft-deleted — both ids were present in the incoming list.
+    expect(txnRunAsync).not.toHaveBeenCalledWith(
+      expect.stringContaining("is_deleted = TRUE"),
+      expect.anything(),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fetchBodyMeasurementSessions — LIMIT parameterization
+// ---------------------------------------------------------------------------
+
+describe("fetchBodyMeasurementSessions — LIMIT parameterization", () => {
+  it("binds the limit as a query parameter instead of interpolating it", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await fetchBodyMeasurementSessions({} as any, 5);
+
+    expect(mockDb.getAllAsync).toHaveBeenCalledWith(
+      expect.not.stringContaining("LIMIT 5"),
+      [5],
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fetchCompletedWorkoutById
+// ---------------------------------------------------------------------------
+
+describe("fetchCompletedWorkoutById", () => {
+  it("includes the completed_exercises row id as completed_exercise_id", async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      {
+        id: 1,
+        plan_id: null,
+        workout_id: 10,
+        workout_name: "Push Day",
+        is_deload: 0,
+        date_completed: "2026-06-01T00:00:00.000Z",
+        duration: 600,
+        total_sets_completed: 1,
+        completed_exercise_id: 555,
+        exercise_id: 100,
+        exercise_name: "Bench Press",
+        exercise_image: null,
+        exercise_order: 0,
+        exercise_tracking_type: "weight",
+        is_unilateral: 0,
+        double_weight: 0,
+        set_id: 1001,
+        set_number: 1,
+        weight: 100,
+        reps: 8,
+        time: null,
+        distance: null,
+        is_warmup: 0,
+        set_duration: null,
+      },
+    ]);
+
+    const result = await fetchCompletedWorkoutById(1, "kg", "m");
+
+    expect(result.exercises[0].completed_exercise_id).toBe(555);
+  });
+
+  it("preserves two completed_exercises rows that share the same exercise_id", async () => {
+    const baseRow = {
+      id: 1,
+      plan_id: null,
+      workout_id: 10,
+      workout_name: "Push Day",
+      is_deload: 0,
+      date_completed: "2026-06-01T00:00:00.000Z",
+      duration: 600,
+      total_sets_completed: 2,
+      exercise_id: 100,
+      exercise_name: "Bench Press",
+      exercise_image: null,
+      exercise_tracking_type: "weight",
+      is_unilateral: 0,
+      double_weight: 0,
+      is_warmup: 0,
+      set_duration: null,
+    };
+    mockDb.getAllAsync.mockResolvedValue([
+      { ...baseRow, completed_exercise_id: 10, exercise_order: 0, set_id: 1001, set_number: 1, weight: 100, reps: 8, time: null, distance: null },
+      { ...baseRow, completed_exercise_id: 11, exercise_order: null, set_id: 2001, set_number: 1, weight: 80, reps: 10, time: null, distance: null },
+    ]);
+
+    const result = await fetchCompletedWorkoutById(1, "kg", "m");
+
+    expect(result.exercises).toHaveLength(2);
+    expect(result.exercises[0].completed_exercise_id).toBe(10);
+    expect(result.exercises[1].completed_exercise_id).toBe(11);
+    expect(result.exercises[0].sets).toHaveLength(1);
+    expect(result.exercises[1].sets).toHaveLength(1);
   });
 });

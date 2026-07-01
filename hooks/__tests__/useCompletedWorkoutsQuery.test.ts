@@ -1,4 +1,8 @@
-import { useCompletedWorkoutsQuery } from "../useCompletedWorkoutsQuery";
+import {
+  useCompletedWorkoutsQuery,
+  useWorkoutSessionHistoryQuery,
+  useGlobalExerciseHistoryForSessionQuery,
+} from "../useCompletedWorkoutsQuery";
 import { useQuery } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 
@@ -27,6 +31,7 @@ const makeRow = (overrides: Record<string, any> = {}) => ({
   date_completed: "2026-01-01",
   duration: 3600,
   total_sets_completed: 9,
+  completed_exercise_id: 555,
   exercise_id: 100,
   exercise_name: "Bench Press",
   exercise_image: null,
@@ -82,6 +87,7 @@ describe("useCompletedWorkoutsQuery", () => {
     expect(result[0].exercises).toHaveLength(1);
     expect(result[0].exercises[0].exercise_name).toBe("Bench Press");
     expect(result[0].exercises[0].sets).toHaveLength(1);
+    expect(result[0].exercises[0].completed_exercise_id).toBe(555);
   });
 
   it("groups multiple sets under the same exercise", async () => {
@@ -100,8 +106,8 @@ describe("useCompletedWorkoutsQuery", () => {
 
   it("groups different exercises under the same workout", async () => {
     mockDb.getAllAsync.mockResolvedValue([
-      makeRow({ exercise_id: 100, set_id: 1001 }),
-      makeRow({ exercise_id: 200, exercise_name: "Squat", set_id: 2001 }),
+      makeRow({ completed_exercise_id: 555, exercise_id: 100, set_id: 1001 }),
+      makeRow({ completed_exercise_id: 556, exercise_id: 200, exercise_name: "Squat", set_id: 2001 }),
     ]);
 
     useCompletedWorkoutsQuery("kg", "m", 0);
@@ -175,5 +181,41 @@ describe("useCompletedWorkoutsQuery", () => {
 
     await expect(queryFn()).rejects.toThrow();
     expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+  });
+});
+
+describe("useWorkoutSessionHistoryQuery", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("queryFn includes completed_exercise_id on the grouped exercise", async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      makeRow({ completed_exercise_id: 777 }),
+    ]);
+
+    useWorkoutSessionHistoryQuery(10, "kg", "m");
+    const { queryFn } = (useQuery as jest.Mock).mock.calls[0][0];
+    const result = await queryFn();
+
+    expect(result[0].exercises[0].completed_exercise_id).toBe(777);
+  });
+});
+
+describe("useGlobalExerciseHistoryForSessionQuery", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("queryFn includes completed_exercise_id on the grouped exercise", async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      makeRow({ completed_exercise_id: 888 }),
+    ]);
+
+    useGlobalExerciseHistoryForSessionQuery([100], "kg", "m");
+    const { queryFn } = (useQuery as jest.Mock).mock.calls[0][0];
+    const result = await queryFn();
+
+    expect(result[0].exercises[0].completed_exercise_id).toBe(888);
   });
 });

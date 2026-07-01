@@ -368,12 +368,16 @@ export default function ExerciseInfoScreen() {
                 ]}
               >
                 {formatSetMetric(
-                  item,
+                  {
+                    ...item,
+                    weight:
+                      item.weight != null
+                        ? item.weight * bwUnitMultiplier
+                        : null,
+                  },
                   trackingType,
                   weightUnit,
-                  item.hist_bw_kg != null
-                    ? item.hist_bw_kg * bwUnitMultiplier
-                    : currentBodyWeight,
+                  (item.hist_bw_kg ?? currentBodyWeight) * bwUnitMultiplier,
                 )}
               </ThemedText>
             </View>

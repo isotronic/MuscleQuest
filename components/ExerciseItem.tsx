@@ -33,16 +33,19 @@ const ExerciseItem = ({
   const { _ } = useLingui();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const base64Image = `data:image/webp;base64,${btoa(String.fromCharCode(...new Uint8Array(item.image)))}`;
+  const base64Image = useMemo(
+    () =>
+      item.image
+        ? `data:image/webp;base64,${btoa(String.fromCharCode(...new Uint8Array(item.image)))}`
+        : null,
+    [item.image],
+  );
 
   return (
     <TouchableOpacity onPress={() => onPress(item)}>
       <View key={item.exercise_id} style={styles.exerciseItem}>
-        {item.image ? (
-          <AppImage
-            style={styles.exerciseImage}
-            source={{ uri: base64Image }}
-          />
+        {base64Image ? (
+          <AppImage style={styles.exerciseImage} source={{ uri: base64Image }} />
         ) : (
           <AppImage style={styles.exerciseImage} source={fallbackImage} />
         )}

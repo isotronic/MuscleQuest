@@ -1402,6 +1402,92 @@ describe("useActiveWorkoutStore", () => {
     expect(weightAndReps[1][0]).toEqual({ weight: "70", reps: "6" });
   });
 
+  it("deleteExercise should remap currentExerciseIndex when deleting an earlier exercise", () => {
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Delete Exercise Remap Test",
+          exercises: [
+            { exercise_id: 1, name: "Ex 1", sets: [{}] },
+            { exercise_id: 2, name: "Ex 2", sets: [{}] },
+            { exercise_id: 3, name: "Ex 3", sets: [{}] },
+            { exercise_id: 4, name: "Ex 4", sets: [{}] },
+          ] as any,
+        },
+        currentExerciseIndex: 3,
+        completedSets: {},
+        weightAndReps: {},
+        currentSetIndices: {},
+        setDurations: {},
+      });
+    });
+
+    act(() => {
+      // Delete exercise at index 1, while the user is viewing index 3 (Ex 4)
+      useActiveWorkoutStore.getState().deleteExercise(1);
+    });
+
+    const { workout, currentExerciseIndex } = useActiveWorkoutStore.getState();
+    // Ex 4 is now at index 2; currentExerciseIndex must follow it, not stay at 3
+    expect(workout?.exercises[currentExerciseIndex].exercise_id).toBe(4);
+    expect(currentExerciseIndex).toBe(2);
+  });
+
+  it("deleteExercise should leave currentExerciseIndex unchanged when deleting a later exercise", () => {
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Delete Exercise No-Remap Test",
+          exercises: [
+            { exercise_id: 1, name: "Ex 1", sets: [{}] },
+            { exercise_id: 2, name: "Ex 2", sets: [{}] },
+            { exercise_id: 3, name: "Ex 3", sets: [{}] },
+          ] as any,
+        },
+        currentExerciseIndex: 0,
+        completedSets: {},
+        weightAndReps: {},
+        currentSetIndices: {},
+        setDurations: {},
+      });
+    });
+
+    act(() => {
+      useActiveWorkoutStore.getState().deleteExercise(2);
+    });
+
+    const { currentExerciseIndex } = useActiveWorkoutStore.getState();
+    expect(currentExerciseIndex).toBe(0);
+  });
+
+  it("deleteExercise should clamp currentExerciseIndex when deleting the active last exercise", () => {
+    act(() => {
+      useActiveWorkoutStore.setState({
+        workout: {
+          name: "Delete Last Exercise Clamp Test",
+          exercises: [
+            { exercise_id: 1, name: "Ex 1", sets: [{}] },
+            { exercise_id: 2, name: "Ex 2", sets: [{}] },
+            { exercise_id: 3, name: "Ex 3", sets: [{}] },
+          ] as any,
+        },
+        currentExerciseIndex: 2,
+        completedSets: {},
+        weightAndReps: {},
+        currentSetIndices: {},
+        setDurations: {},
+      });
+    });
+
+    act(() => {
+      useActiveWorkoutStore.getState().deleteExercise(2);
+    });
+
+    const { workout, currentExerciseIndex } = useActiveWorkoutStore.getState();
+    expect(workout?.exercises).toHaveLength(2);
+    expect(currentExerciseIndex).toBe(1);
+  });
+
   it("restartWorkout should reset the workout to its originalWorkout", () => {
     const original = {
       name: "Original Workout",
@@ -1803,5 +1889,69 @@ describe("useActiveWorkoutStore", () => {
     });
 
     expect(useActiveWorkoutStore.getState().recoveryCheckInShown).toBe(false);
+  });
+
+  describe("createSuperset", () => {
+    it("should remap currentExerciseIndex when inserting before the current exercise", () => {
+      act(() => {
+        useActiveWorkoutStore.setState({
+          workout: {
+            name: "Superset Remap Test",
+            exercises: [
+              { exercise_id: 1, name: "Ex 1", sets: [{}] },
+              { exercise_id: 2, name: "Ex 2", sets: [{}] },
+              { exercise_id: 3, name: "Ex 3", sets: [{}] },
+            ] as any,
+          },
+          currentExerciseIndex: 2,
+          completedSets: {},
+          weightAndReps: {},
+          currentSetIndices: {},
+          setDurations: {},
+          appendedExerciseIndices: [],
+        });
+      });
+
+      act(() => {
+        // Pair exercise at index 0 into a superset with a new exercise,
+        // which gets spliced in at index 1 - shifting old index 2 to index 3.
+        useActiveWorkoutStore
+          .getState()
+          .createSuperset(0, { exercise_id: 99, name: "New Ex", sets: [{}] } as any);
+      });
+
+      const { workout, currentExerciseIndex } = useActiveWorkoutStore.getState();
+      expect(workout?.exercises[currentExerciseIndex].exercise_id).toBe(3);
+      expect(currentExerciseIndex).toBe(3);
+    });
+
+    it("should leave currentExerciseIndex unchanged when inserting after the current exercise", () => {
+      act(() => {
+        useActiveWorkoutStore.setState({
+          workout: {
+            name: "Superset No-Remap Test",
+            exercises: [
+              { exercise_id: 1, name: "Ex 1", sets: [{}] },
+              { exercise_id: 2, name: "Ex 2", sets: [{}] },
+            ] as any,
+          },
+          currentExerciseIndex: 0,
+          completedSets: {},
+          weightAndReps: {},
+          currentSetIndices: {},
+          setDurations: {},
+          appendedExerciseIndices: [],
+        });
+      });
+
+      act(() => {
+        useActiveWorkoutStore
+          .getState()
+          .createSuperset(1, { exercise_id: 99, name: "New Ex", sets: [{}] } as any);
+      });
+
+      const { currentExerciseIndex } = useActiveWorkoutStore.getState();
+      expect(currentExerciseIndex).toBe(0);
+    });
   });
 });

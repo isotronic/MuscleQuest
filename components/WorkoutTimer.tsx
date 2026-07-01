@@ -4,7 +4,7 @@ import { ThemedText } from "./ThemedText";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 
 export const WorkoutTimer: React.FC = () => {
-  const { startTime } = useActiveWorkoutStore();
+  const startTime = useActiveWorkoutStore((s) => s.startTime);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {

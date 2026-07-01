@@ -5,14 +5,17 @@ import { openDatabase } from "./database";
 import type * as SQLite from "expo-sqlite";
 
 export const clearDatabaseAndReinitialize = async () => {
-  const dbFile = new File(Paths.document, "SQLite", "userData.db");
+  const filesToDelete = ["userData.db", "userData.db-wal", "userData.db-shm"];
 
   try {
-    if (dbFile.exists) {
-      console.log("Deleting the userData.db...");
-      dbFile.delete();
-      console.log("Database deleted successfully.");
+    for (const fileName of filesToDelete) {
+      const file = new File(Paths.document, "SQLite", fileName);
+      if (file.exists) {
+        console.log(`Deleting ${fileName}...`);
+        file.delete();
+      }
     }
+    console.log("Database deleted successfully.");
 
     console.log("Restarting the app...");
     await Updates.reloadAsync();

@@ -1019,6 +1019,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             weightAndReps,
             currentSetIndices,
             setDurations,
+            currentExerciseIndex,
+            appendedExerciseIndices,
           } = state;
           if (!workout) {
             return state;
@@ -1086,6 +1088,15 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             weightAndReps: adjustedWeightAndReps,
             currentSetIndices: adjustedSetIndices,
             setDurations: adjustedSetDurations,
+            currentExerciseIndex: Math.min(
+              currentExerciseIndex > index
+                ? currentExerciseIndex - 1
+                : currentExerciseIndex,
+              Math.max(0, updatedExercises.length - 1),
+            ),
+            appendedExerciseIndices: appendedExerciseIndices
+              .filter((i) => i !== index)
+              .map((i) => (i > index ? i - 1 : i)),
           };
         });
       },
@@ -1206,6 +1217,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentSetIndices,
             appendedExerciseIndices,
             setDurations,
+            currentExerciseIndex,
           } = state;
           if (!workout) return state;
 
@@ -1255,6 +1267,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentSetIndices: newSetIndices,
             setDurations: newSetDurations,
             appendedExerciseIndices: newAppendedIndices,
+            currentExerciseIndex:
+              currentExerciseIndex > exerciseIndex
+                ? currentExerciseIndex + 1
+                : currentExerciseIndex,
           };
         }),
 
