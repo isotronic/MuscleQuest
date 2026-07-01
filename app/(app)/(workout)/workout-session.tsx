@@ -443,7 +443,11 @@ export default function WorkoutSessionScreen() {
 
   const alwaysUseGlobalHistory = settings?.alwaysUseGlobalHistory === "true";
 
-  const findLastAvailableSetData = (exerciseId: number, setIndex: number) => {
+  const findLastAvailableSetData = (
+    exerciseId: number,
+    setIndex: number,
+    exercisePosition?: number,
+  ) => {
     const targetSets =
       workout?.exercises.find((e) => e.exercise_id === exerciseId)?.sets ?? [];
     const isWarmup = targetSets[setIndex]?.isWarmup ?? false;
@@ -461,18 +465,36 @@ export default function WorkoutSessionScreen() {
       return null;
     };
 
+    // When an exercise was swapped in the previous session, its exercise_id is
+    // updated in completed_exercises to the replacement's id, so the id-keyed
+    // lookup above finds nothing. Fall back to positional lookup: use the
+    // exercise at the same slot index in the most-recent previous workout.
+    const lookupByPosition = () => {
+      if (exercisePosition === undefined) return null;
+      const prevExAtPos =
+        previousWorkoutData?.[0]?.exercises[exercisePosition];
+      if (!prevExAtPos) return null;
+      const setsOfType = prevExAtPos.sets.filter(
+        (s) => s.is_warmup === isWarmup,
+      );
+      return setsOfType[ordinal] ?? null;
+    };
+
     if (alwaysUseGlobalHistory) {
       return lookup(globalExercisesByExerciseId);
     }
 
     return (
-      lookup(prevExercisesByExerciseId) ?? lookup(globalExercisesByExerciseId)
+      lookup(prevExercisesByExerciseId) ??
+      lookupByPosition() ??
+      lookup(globalExercisesByExerciseId)
     );
   };
 
   const previousWorkoutSetData = findLastAvailableSetData(
     currentExercise?.exercise_id || 0,
     currentSetIndex,
+    currentExerciseIndex,
   );
 
   const weight =
@@ -937,7 +959,7 @@ export default function WorkoutSessionScreen() {
     const set = exercise.sets[setIndex];
     if (!set) return null;
 
-    const prevData = findLastAvailableSetData(exercise.exercise_id, setIndex);
+    const prevData = findLastAvailableSetData(exercise.exercise_id, setIndex, exerciseIndex);
     const panelWeight =
       weightAndReps[exerciseIndex]?.[setIndex]?.weight ??
       prevData?.weight?.toString() ??
