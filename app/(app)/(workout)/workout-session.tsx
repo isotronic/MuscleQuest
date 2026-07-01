@@ -449,7 +449,10 @@ export default function WorkoutSessionScreen() {
     exercisePosition?: number,
   ) => {
     const targetSets =
-      workout?.exercises.find((e) => e.exercise_id === exerciseId)?.sets ?? [];
+      exercisePosition !== undefined
+        ? (workout?.exercises[exercisePosition]?.sets ?? [])
+        : (workout?.exercises.find((e) => e.exercise_id === exerciseId)?.sets ??
+          []);
     const isWarmup = targetSets[setIndex]?.isWarmup ?? false;
     const ordinal = targetSets
       .slice(0, setIndex)
@@ -535,10 +538,20 @@ export default function WorkoutSessionScreen() {
   useFocusEffect(
     useCallback(() => {
       isFocusedRef.current = true;
+      // If the rest timer expired while the screen was backgrounded,
+      // handleExpire skipped setCurrentSetStartedAt. Restore it now so the
+      // next set's duration tracking starts from a valid time.
+      if (
+        expiryTimestampRef.current !== null &&
+        expiryTimestampRef.current.getTime() < Date.now() &&
+        !useActiveWorkoutStore.getState().currentSetStartedAt
+      ) {
+        setCurrentSetStartedAt(new Date());
+      }
       return () => {
         isFocusedRef.current = false;
       };
-    }, []),
+    }, [setCurrentSetStartedAt]),
   );
   const lastCompletedSetRef = useRef<{
     exerciseIndex: number;
