@@ -346,6 +346,30 @@ Haven't trained a muscle group in 2 or more weeks? Adaptive Progression now sugg
 We also fixed a batch of Adaptive Progression bugs: rep-increase suggestions now show up properly instead of only weight ones, the Recovery Check-in appears reliably even if you close the app mid-workout, and feedback prompts no longer repeat during drop sets.
 `,
   },
+  {
+    version: 2640,
+    message: msg`
+🔃 New: Reorder Tracked Exercises!
+
+You can now drag and drop to reorder the exercises you're tracking on the Stats screen, so your most important ones stay right where you want them.
+`,
+  },
+  {
+    version: 2641,
+    message: msg`
+📋 New: Copy a Workout to Your Standalone Library!
+
+Any workout in a plan can now be copied straight to your standalone workout library in one tap, from the plan or workout details screen, so you can run it independently whenever you like.
+`,
+  },
+  {
+    version: 2642,
+    message: msg`
+✏️ New: Fix a Logged Exercise!
+
+Made a mistake in a completed workout? Tap the pencil icon next to any exercise on the edit-history screen to swap it for the correct one, filtered to match its tracking type.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

@@ -90,6 +90,20 @@ msgstr ""
 "• Double reps for single arm/leg exercises, so unilateral movements are counted correctly in your volume totals.\n"
 ""
 
+#: constants/WhatsNew.ts:367
+msgid ""
+"\n"
+"✏️ New: Fix a Logged Exercise!\n"
+"\n"
+"Made a mistake in a completed workout? Tap the pencil icon next to any exercise on the edit-history screen to swap it for the correct one, filtered to match its tracking type.\n"
+""
+msgstr ""
+"\n"
+"✏️ New: Fix a Logged Exercise!\n"
+"\n"
+"Made a mistake in a completed workout? Tap the pencil icon next to any exercise on the edit-history screen to swap it for the correct one, filtered to match its tracking type.\n"
+""
+
 #: constants/WhatsNew.ts:86
 msgid ""
 "\n"
@@ -374,6 +388,20 @@ msgstr ""
 "Settings has moved here from the tab bar, and Help & Info covers everything from plans and workouts to stats and your account, with a search bar to find answers quickly.\n"
 ""
 
+#: constants/WhatsNew.ts:359
+msgid ""
+"\n"
+"📋 New: Copy a Workout to Your Standalone Library!\n"
+"\n"
+"Any workout in a plan can now be copied straight to your standalone workout library in one tap, from the plan or workout details screen, so you can run it independently whenever you like.\n"
+""
+msgstr ""
+"\n"
+"📋 New: Copy a Workout to Your Standalone Library!\n"
+"\n"
+"Any workout in a plan can now be copied straight to your standalone workout library in one tap, from the plan or workout details screen, so you can run it independently whenever you like.\n"
+""
+
 #: constants/WhatsNew.ts:317
 msgid ""
 "\n"
@@ -452,6 +480,20 @@ msgstr ""
 "🔃 Improved: Drop Set Flow!\n"
 "\n"
 "Adding a drop set during a session now appends a brand new set rather than flagging the current one, giving you full control over your drop set structure. The new set is pre-filled with weight and 10 second rest time automatically.\n"
+""
+
+#: constants/WhatsNew.ts:351
+msgid ""
+"\n"
+"🔃 New: Reorder Tracked Exercises!\n"
+"\n"
+"You can now drag and drop to reorder the exercises you're tracking on the Stats screen, so your most important ones stay right where you want them.\n"
+""
+msgstr ""
+"\n"
+"🔃 New: Reorder Tracked Exercises!\n"
+"\n"
+"You can now drag and drop to reorder the exercises you're tracking on the Stats screen, so your most important ones stay right where you want them.\n"
 ""
 
 #: constants/WhatsNew.ts:269
@@ -1250,7 +1292,7 @@ msgstr "Are you sure you want to delete this measurement entry?"
 msgid "Are you sure you want to delete this plan?"
 msgstr "Are you sure you want to delete this plan?"
 
-#: app/(app)/(workout)/workout-session.tsx:770
+#: app/(app)/(workout)/workout-session.tsx:804
 msgid "Are you sure you want to delete this set?"
 msgstr "Are you sure you want to delete this set?"
 
@@ -1470,7 +1512,7 @@ msgstr "calves"
 #: app/(app)/(workout)/index.tsx:836
 #: app/(app)/(workout)/index.tsx:885
 #: app/(app)/(workout)/index.tsx:1064
-#: app/(app)/(workout)/workout-session.tsx:771
+#: app/(app)/(workout)/workout-session.tsx:805
 #: app/(app)/settings.tsx:409
 #: app/(app)/settings.tsx:484
 #: components/CopyWorkoutModal.tsx:70
@@ -1554,7 +1596,7 @@ msgstr "Complete Set"
 msgid "Completed on: {formattedDate}"
 msgstr "Completed on: {formattedDate}"
 
-#: app/(app)/exercise-info.tsx:410
+#: app/(app)/exercise-info.tsx:414
 msgid "Completed sets will appear here"
 msgstr "Completed sets will appear here"
 
@@ -1699,7 +1741,7 @@ msgstr "Default sets"
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:120
 #: app/(app)/(workout)/index.tsx:418
 #: app/(app)/(workout)/index.tsx:643
-#: app/(app)/(workout)/workout-session.tsx:773
+#: app/(app)/(workout)/workout-session.tsx:807
 #: components/PrivacySettings.tsx:72
 #: components/WorkoutCard.tsx:298
 #: hooks/useImageManagement.ts:46
@@ -1731,7 +1773,7 @@ msgstr "Delete Exercise"
 msgid "Delete Plan"
 msgstr "Delete Plan"
 
-#: app/(app)/(workout)/workout-session.tsx:770
+#: app/(app)/(workout)/workout-session.tsx:804
 #: components/SessionSetInfo.tsx:261
 msgid "Delete Set"
 msgstr "Delete Set"
@@ -2131,7 +2173,7 @@ msgstr "Error saving workout"
 #. placeholder {0}: error.message
 #. placeholder {0}: settingsError.message
 #: app/(app)/(tabs)/(plans)/overview.tsx:257
-#: app/(app)/(workout)/workout-session.tsx:1543
+#: app/(app)/(workout)/workout-session.tsx:1577
 #: components/WorkoutDetailsScreen.tsx:221
 msgid "Error: {0}"
 msgstr "Error: {0}"
@@ -2248,7 +2290,7 @@ msgstr "Failed to fetch data. Please try again."
 msgid "Failed to load exercise details."
 msgstr "Failed to load exercise details."
 
-#: app/(app)/exercise-info.tsx:395
+#: app/(app)/exercise-info.tsx:399
 msgid "Failed to load history"
 msgstr "Failed to load history"
 
@@ -2804,8 +2846,8 @@ msgstr "Next"
 msgid "Next Session"
 msgstr "Next Session"
 
-#: app/(app)/(workout)/workout-session.tsx:1603
-#: app/(app)/(workout)/workout-session.tsx:1696
+#: app/(app)/(workout)/workout-session.tsx:1637
+#: app/(app)/(workout)/workout-session.tsx:1730
 msgid "Next: "
 msgstr "Next: "
 
@@ -2864,7 +2906,7 @@ msgstr "No exercises tracked yet. Tap + Add to start."
 msgid "No friends yet. Search by email to add someone."
 msgstr "No friends yet. Search by email to add someone."
 
-#: app/(app)/exercise-info.tsx:407
+#: app/(app)/exercise-info.tsx:411
 msgid "No history yet"
 msgstr "No history yet"
 
@@ -3154,8 +3196,8 @@ msgstr "Premade plans"
 msgid "Premade Plans"
 msgstr "Premade Plans"
 
-#: app/(app)/(workout)/workout-session.tsx:1605
-#: app/(app)/(workout)/workout-session.tsx:1698
+#: app/(app)/(workout)/workout-session.tsx:1639
+#: app/(app)/(workout)/workout-session.tsx:1732
 msgid "Prev: "
 msgstr "Prev: "
 
@@ -3352,7 +3394,7 @@ msgstr "Rest Time: {restMinutes}:{0}"
 msgid "Rest Timer"
 msgstr "Rest Timer"
 
-#: app/(app)/(workout)/workout-session.tsx:619
+#: app/(app)/(workout)/workout-session.tsx:653
 msgid "Rest Timer Finished!"
 msgstr "Rest Timer Finished!"
 
@@ -3876,8 +3918,8 @@ msgstr "Superset"
 
 #. placeholder {0}: outgoingSnapshot.isFirstInSuperset ? "A" : "B"
 #. placeholder {0}: ss.isFirstInSuperset ? "A" : "B"
-#: app/(app)/(workout)/workout-session.tsx:1593
-#: app/(app)/(workout)/workout-session.tsx:1685
+#: app/(app)/(workout)/workout-session.tsx:1627
+#: app/(app)/(workout)/workout-session.tsx:1719
 msgid "Superset {0}"
 msgstr "Superset {0}"
 
@@ -4035,7 +4077,7 @@ msgstr "Time (s)"
 msgid "Time PR"
 msgstr "Time PR"
 
-#: app/(app)/(workout)/workout-session.tsx:620
+#: app/(app)/(workout)/workout-session.tsx:654
 msgid "Time to do your next set!"
 msgstr "Time to do your next set!"
 
