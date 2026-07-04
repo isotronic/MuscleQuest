@@ -536,4 +536,14 @@ describe("getExerciseSuggestions", () => {
     const ids = suggestions.map((s) => s.exerciseId);
     expect(new Set(ids).size).toBe(ids.length);
   });
+
+  it("suggests exercises whose alias tokens match the prefix", () => {
+    // "rd" is a prefix of the "rdl" alias token tagged onto Romanian Deadlift
+    const suggestions = getExerciseSuggestions(index, "rd", {
+      minQueryLength: 2,
+    });
+    expect(
+      suggestions.some((s) => s.exerciseId === ROMANIAN_DL.exercise_id),
+    ).toBe(true);
+  });
 });
