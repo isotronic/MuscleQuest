@@ -1,3 +1,4 @@
+import Fuse from "fuse.js";
 import {
   normalizeText,
   levenshtein,
@@ -224,28 +225,43 @@ describe("buildExerciseSearchIndex", () => {
     expect(indexed.nameTokens).toContain("up");
   });
 
-  it("builds prefix set containing token prefixes", () => {
+  it("builds expandedPrefixes containing name token prefixes", () => {
     const index = buildIndex([BENCH_PRESS]);
-    const { namePrefixes } = index.otherExercises[0];
-    expect(namePrefixes.has("be")).toBe(true);
-    expect(namePrefixes.has("ben")).toBe(true);
-    expect(namePrefixes.has("benc")).toBe(true);
-    expect(namePrefixes.has("bench")).toBe(true);
-    expect(namePrefixes.has("pr")).toBe(true);
-    expect(namePrefixes.has("press")).toBe(true);
+    const { expandedPrefixes } = index.otherExercises[0];
+    expect(expandedPrefixes.has("be")).toBe(true);
+    expect(expandedPrefixes.has("bench")).toBe(true);
+    expect(expandedPrefixes.has("pr")).toBe(true);
+    expect(expandedPrefixes.has("press")).toBe(true);
   });
 
-  it("adds alias keys to expandedTokens for matching exercises", () => {
+  it("searchText includes the normalized name", () => {
+    const index = buildIndex([BENCH_PRESS]);
+    expect(index.otherExercises[0].searchText).toContain("bench press");
+  });
+
+  it("adds single-word alias keys to searchText for matching exercises", () => {
     const index = buildIndex([ROMANIAN_DL]);
-    const indexed = index.otherExercises[0];
-    // "rdl" → "romanian deadlift" — should be in expandedTokens
-    expect(indexed.expandedTokens).toContain("rdl");
+    // "rdl" → "romanian deadlift" — should be tagged onto the exercise
+    expect(index.otherExercises[0].searchText).toContain("rdl");
+  });
+
+  it("splits multi-word alias keys into individual searchText tokens", () => {
+    const index = buildIndex([LAT_PULLDOWN]);
+    // alias key "lat pd" → "lat pulldown" — should contribute "lat" and "pd"
+    // as independent tokens, not the literal two-word string "lat pd"
+    const { searchText } = index.otherExercises[0];
+    const tokens = searchText.split(" ");
+    expect(tokens).toContain("pd");
   });
 
   it("does NOT add alias keys to non-matching exercises", () => {
     const index = buildIndex([BENCH_PRESS]);
-    const indexed = index.otherExercises[0];
-    expect(indexed.expandedTokens).not.toContain("rdl");
+    expect(index.otherExercises[0].searchText).not.toContain("rdl");
+  });
+
+  it("expandedPrefixes includes alias-token prefixes", () => {
+    const index = buildIndex([ROMANIAN_DL]);
+    expect(index.otherExercises[0].expandedPrefixes.has("rd")).toBe(true);
   });
 
   it("handles undefined optional buckets gracefully", () => {
@@ -255,6 +271,20 @@ describe("buildExerciseSearchIndex", () => {
     );
     expect(index.activePlanExercises).toHaveLength(0);
     expect(index.favoriteExercises).toHaveLength(0);
+  });
+
+  it("builds a Fuse instance per bucket", () => {
+    const index = buildExerciseSearchIndex(
+      {
+        activePlanExercises: [BENCH_PRESS],
+        favoriteExercises: [ROMANIAN_DL],
+        otherExercises: [OVERHEAD_PRESS],
+      },
+      TEST_ALIAS_MAP,
+    );
+    expect(index.activePlanFuse).toBeInstanceOf(Fuse);
+    expect(index.favoriteFuse).toBeInstanceOf(Fuse);
+    expect(index.otherFuse).toBeInstanceOf(Fuse);
   });
 });
 

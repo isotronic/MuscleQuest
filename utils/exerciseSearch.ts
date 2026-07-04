@@ -1,3 +1,4 @@
+import Fuse, { type IFuseOptions } from "fuse.js";
 import type { Exercise } from "./database";
 import { FITNESS_ALIAS_MAP } from "./exerciseSearchAliases";
 
@@ -9,15 +10,17 @@ export interface IndexedExercise {
   exercise: Exercise;
   normalizedName: string;
   nameTokens: string[];
-  namePrefixes: Set<string>;
-  expandedTokens: string[];
   expandedPrefixes: Set<string>;
+  searchText: string;
 }
 
 export interface ExerciseSearchIndex {
   activePlanExercises: IndexedExercise[];
   favoriteExercises: IndexedExercise[];
   otherExercises: IndexedExercise[];
+  activePlanFuse: Fuse<IndexedExercise>;
+  favoriteFuse: Fuse<IndexedExercise>;
+  otherFuse: Fuse<IndexedExercise>;
   aliasMap: AliasMap;
 }
 
@@ -111,38 +114,47 @@ function buildPrefixes(tokens: string[]): Set<string> {
   return prefixes;
 }
 
+const FUSE_OPTIONS: IFuseOptions<IndexedExercise> = {
+  keys: ["searchText"],
+  useExtendedSearch: true,
+  ignoreLocation: true,
+  threshold: 0.4,
+  minMatchCharLength: 2,
+  includeScore: true,
+};
+
 function indexExercise(
   exercise: Exercise,
   aliasMap: AliasMap,
 ): IndexedExercise {
   const normalizedName = normalizeText(exercise.name);
   const nameTokens = normalizedName.split(" ").filter(Boolean);
-  const namePrefixes = buildPrefixes(nameTokens);
 
-  // Find alias keys whose canonical values appear in this exercise's name
-  const aliasKeys: string[] = [];
+  // Find alias keys whose canonical values appear in this exercise's name,
+  // and collect each key's own words — a multi-word key like "lat pd"
+  // contributes "lat" and "pd" as independent searchable tokens, not the
+  // literal two-word string, so extended-search AND matching finds both.
+  const aliasTokenSet = new Set<string>();
   for (const [aliasKey, canonicals] of Object.entries(aliasMap)) {
-    const normalizedKey = normalizeText(aliasKey);
     for (const canonical of canonicals) {
       if (normalizedName.includes(normalizeText(canonical))) {
-        aliasKeys.push(normalizedKey);
+        for (const token of normalizeText(aliasKey).split(" ").filter(Boolean)) {
+          aliasTokenSet.add(token);
+        }
         break;
       }
     }
   }
 
-  const expandedTokens = [...nameTokens, ...aliasKeys];
-  const aliasKeyTokens = aliasKeys.flatMap((k) => k.split(" ").filter(Boolean));
-  const expandedPrefixes = buildPrefixes([...nameTokens, ...aliasKeyTokens]);
+  const aliasTokens = [...aliasTokenSet];
+  const expandedPrefixes = buildPrefixes([...nameTokens, ...aliasTokens]);
+  const searchText = [normalizedName, ...aliasTokens].join(" ");
 
-  return {
-    exercise,
-    normalizedName,
-    nameTokens,
-    namePrefixes,
-    expandedTokens,
-    expandedPrefixes,
-  };
+  return { exercise, normalizedName, nameTokens, expandedPrefixes, searchText };
+}
+
+function buildFuse(bucket: IndexedExercise[]): Fuse<IndexedExercise> {
+  return new Fuse(bucket, FUSE_OPTIONS);
 }
 
 export function buildExerciseSearchIndex(
@@ -153,16 +165,23 @@ export function buildExerciseSearchIndex(
   },
   aliasMap: AliasMap = FITNESS_ALIAS_MAP,
 ): ExerciseSearchIndex {
+  const activePlanExercises = (exercises.activePlanExercises ?? []).map((e) =>
+    indexExercise(e, aliasMap),
+  );
+  const favoriteExercises = (exercises.favoriteExercises ?? []).map((e) =>
+    indexExercise(e, aliasMap),
+  );
+  const otherExercises = exercises.otherExercises.map((e) =>
+    indexExercise(e, aliasMap),
+  );
+
   return {
-    activePlanExercises: (exercises.activePlanExercises ?? []).map((e) =>
-      indexExercise(e, aliasMap),
-    ),
-    favoriteExercises: (exercises.favoriteExercises ?? []).map((e) =>
-      indexExercise(e, aliasMap),
-    ),
-    otherExercises: exercises.otherExercises.map((e) =>
-      indexExercise(e, aliasMap),
-    ),
+    activePlanExercises,
+    favoriteExercises,
+    otherExercises,
+    activePlanFuse: buildFuse(activePlanExercises),
+    favoriteFuse: buildFuse(favoriteExercises),
+    otherFuse: buildFuse(otherExercises),
     aliasMap,
   };
 }
