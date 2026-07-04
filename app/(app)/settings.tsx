@@ -643,7 +643,15 @@ export default function SettingsScreen() {
                   mode="outlined"
                   compact
                   onPress={() =>
-                    uploadDatabaseBackup(setBackupProgress, setIsBackupLoading)
+                    uploadDatabaseBackup(
+                      setBackupProgress,
+                      setIsBackupLoading,
+                    ).catch((error: any) => {
+                      Alert.alert(
+                        t`Backup Failed`,
+                        error?.message ?? t`An unexpected error occurred.`,
+                      );
+                    })
                   }
                 >
                   <Trans>Backup</Trans>

@@ -33,22 +33,19 @@ export const uploadDatabaseBackup = async (
     if (!dbFile.exists) {
       throw new Error("Database file does not exist");
     }
-    if (!walFile.exists) {
-      throw new Error("WAL file does not exist");
-    }
-    if (!shmFile.exists) {
-      throw new Error("SHM file does not exist");
-    }
 
     const storage = getStorage();
     const dbStorageRef = ref(storage, `backups/${userId}/${dbName}`);
     const walStorageRef = ref(storage, `backups/${userId}/${dbName}-wal`);
     const shmStorageRef = ref(storage, `backups/${userId}/${dbName}-shm`);
 
+    // WAL and SHM are ephemeral: SQLite removes them after a full checkpoint.
+    // A fully-checkpointed .db file is a valid self-contained backup, so only
+    // include WAL/SHM when they actually exist on disk.
     const files = [
       { path: dbFile.uri, fileRef: dbStorageRef },
-      { path: walFile.uri, fileRef: walStorageRef },
-      { path: shmFile.uri, fileRef: shmStorageRef },
+      ...(walFile.exists ? [{ path: walFile.uri, fileRef: walStorageRef }] : []),
+      ...(shmFile.exists ? [{ path: shmFile.uri, fileRef: shmStorageRef }] : []),
     ];
 
     let completedFiles = 0;
@@ -135,16 +132,27 @@ export const restoreDatabaseBackup = async (
     const shmStorageRef = ref(storage, `backups/${userId}/userData.db-shm`);
 
     const files = [
-      { fileRef: dbStorageRef, destFile: dbFile },
-      { fileRef: walStorageRef, destFile: walFile },
-      { fileRef: shmStorageRef, destFile: shmFile },
+      { fileRef: dbStorageRef, destFile: dbFile, required: true },
+      { fileRef: walStorageRef, destFile: walFile, required: false },
+      { fileRef: shmStorageRef, destFile: shmFile, required: false },
     ];
 
     let completedFiles = 0;
 
-    for (const { fileRef, destFile } of files) {
-      const downloadUrl = await getDownloadURL(fileRef);
-      await File.downloadFileAsync(downloadUrl, destFile, { idempotent: true });
+    for (const { fileRef, destFile, required } of files) {
+      try {
+        const downloadUrl = await getDownloadURL(fileRef);
+        await File.downloadFileAsync(downloadUrl, destFile, {
+          idempotent: true,
+        });
+      } catch (error: any) {
+        if (!required && error?.code === "storage/object-not-found") {
+          // WAL/SHM were not backed up (backup was taken after a checkpoint).
+          // Restoring just the main .db file is valid in this case.
+        } else {
+          throw error;
+        }
+      }
       completedFiles += 1;
       setRestoreProgress((completedFiles / files.length) * 100);
     }
