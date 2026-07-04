@@ -370,6 +370,30 @@ Any workout in a plan can now be copied straight to your standalone workout libr
 Made a mistake in a completed workout? Tap the pencil icon next to any exercise on the edit-history screen to swap it for the correct one, filtered to match its tracking type.
 `,
   },
+  {
+    version: 2643,
+    message: msg`
+🐛 Fixed: Cloud Backup Errors!
+
+Backup would silently fail after a clean shutdown because it required extra database files that aren't always present. Backups now work correctly in that case, and any real backup failure now shows an on-screen error instead of failing silently.
+`,
+  },
+  {
+    version: 2644,
+    message: msg`
+📖 Improved: Redesigned Help Screen!
+
+The Help & Info screen now opens with collapsed, expandable topic groups and a chip row to jump straight to a section. Search is faster and smarter, highlighting the exact matching text in each result, and shows a helpful empty state with a link to request a feature if nothing matches.
+`,
+  },
+  {
+    version: 2645,
+    message: msg`
+🔍 Improved: More Accurate Exercise Search!
+
+Exercise search has been rebuilt on a more robust matching engine, improving how typos, abbreviations, and multi-word queries get matched and ranked, so the exercise you're looking for shows up first more often.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
