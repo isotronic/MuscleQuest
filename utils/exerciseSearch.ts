@@ -31,26 +31,9 @@ export interface SearchFilters {
   trackingType?: string | null;
 }
 
-export interface SearchOptions {
-  fuzzyEnabled?: boolean;
-  minQueryLengthForFuzzy?: number;
-  debugScores?: boolean;
-}
-
-export interface ScoreBreakdown {
-  exactName: number;
-  prefixName: number;
-  exactToken: number;
-  prefixToken: number;
-  aliasBonus: number;
-  fuzzyToken: number;
-  coverageMultiplier: number;
-}
-
 export interface SearchResult {
   exercise: Exercise;
   score: number;
-  breakdown?: { fuzzyToken: number } & Partial<ScoreBreakdown>;
 }
 
 export interface AutocompleteSuggestion {
@@ -75,31 +58,6 @@ export function normalizeText(text: string): string {
     .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-// ─── Levenshtein distance ─────────────────────────────────────────────────────
-
-export function levenshtein(a: string, b: string): number {
-  const m = a.length;
-  const n = b.length;
-  const dp: number[] = Array.from({ length: n + 1 }, (_, i) => i);
-  for (let i = 1; i <= m; i++) {
-    let prev = dp[0];
-    dp[0] = i;
-    for (let j = 1; j <= n; j++) {
-      const temp = dp[j];
-      dp[j] =
-        a[i - 1] === b[j - 1] ? prev : 1 + Math.min(prev, dp[j], dp[j - 1]);
-      prev = temp;
-    }
-  }
-  return dp[n];
-}
-
-function maxFuzzyDistance(tokenLen: number): number {
-  if (tokenLen < 3) return 0;
-  if (tokenLen <= 4) return 1;
-  return 2;
 }
 
 // ─── Index building ───────────────────────────────────────────────────────────
@@ -220,147 +178,6 @@ function passesFilters(exercise: Exercise, filters: SearchFilters): boolean {
   return true;
 }
 
-// ─── Scoring ──────────────────────────────────────────────────────────────────
-
-function scoreExercise(
-  indexed: IndexedExercise,
-  queryTokens: string[],
-  normalizedQuery: string,
-  aliasMap: AliasMap,
-  fuzzyEnabled: boolean,
-  minQueryLengthForFuzzy: number,
-  debug: boolean,
-): SearchResult {
-  const { exercise } = indexed;
-
-  // Exact full-name match — perfect score, short-circuit
-  if (indexed.normalizedName === normalizedQuery) {
-    const breakdown = debug
-      ? {
-          exactName: 100,
-          prefixName: 0,
-          exactToken: 0,
-          prefixToken: 0,
-          aliasBonus: 0,
-          fuzzyToken: 0,
-          coverageMultiplier: 1,
-        }
-      : { fuzzyToken: 0 };
-    return { exercise, score: 100, breakdown };
-  }
-
-  let score = 0;
-  const bd: ScoreBreakdown = {
-    exactName: 0,
-    prefixName: 0,
-    exactToken: 0,
-    prefixToken: 0,
-    aliasBonus: 0,
-    fuzzyToken: 0,
-    coverageMultiplier: 1,
-  };
-
-  // Full-name prefix match
-  if (indexed.normalizedName.startsWith(normalizedQuery)) {
-    score = 60;
-    bd.prefixName = 60;
-  }
-
-  // Expand query tokens through alias map
-  const expandedQueryTokens: string[] = [];
-  let aliasHit = false;
-  for (const token of queryTokens) {
-    expandedQueryTokens.push(token);
-    const canonicals = aliasMap[token];
-    if (canonicals) {
-      aliasHit = true;
-      for (const canonical of canonicals) {
-        const canonTokens = normalizeText(canonical).split(" ").filter(Boolean);
-        expandedQueryTokens.push(...canonTokens);
-      }
-    }
-  }
-
-  // Per-token scoring
-  let matched = 0;
-  let fuzzyScore = 0;
-
-  for (const token of expandedQueryTokens) {
-    // Exact token match
-    if (indexed.expandedTokens.includes(token)) {
-      if (score < 80) {
-        score = 80;
-        bd.exactToken = 80;
-      }
-      matched++;
-      continue;
-    }
-    // Prefix of a name token
-    if (
-      indexed.namePrefixes.has(token) ||
-      indexed.expandedPrefixes.has(token)
-    ) {
-      if (score < 50) {
-        score = 50;
-        bd.prefixToken = 50;
-      }
-      matched++;
-      continue;
-    }
-    // Any name token starts with this query token
-    if (indexed.nameTokens.some((nt) => nt.startsWith(token))) {
-      if (score < 50) {
-        score = 50;
-        bd.prefixToken = 50;
-      }
-      matched++;
-      continue;
-    }
-    // Fuzzy fallback
-    if (fuzzyEnabled && token.length >= minQueryLengthForFuzzy) {
-      const maxDist = maxFuzzyDistance(token.length);
-      if (maxDist > 0) {
-        let bestDist = Infinity;
-        for (const nt of indexed.nameTokens) {
-          const dist = levenshtein(token, nt);
-          if (dist < bestDist) bestDist = dist;
-        }
-        if (bestDist <= maxDist) {
-          const fScore = bestDist === 1 ? 20 : 10;
-          if (fScore > fuzzyScore) fuzzyScore = fScore;
-          matched++;
-        }
-      }
-    }
-  }
-
-  if (fuzzyScore > 0 && score < fuzzyScore) {
-    score = fuzzyScore;
-    bd.fuzzyToken = fuzzyScore;
-  }
-
-  // Coverage multiplier
-  const coverage =
-    expandedQueryTokens.length > 0 ? matched / expandedQueryTokens.length : 0;
-  bd.coverageMultiplier = coverage;
-
-  if (score < 100 && coverage < 1) {
-    score = Math.floor(score * coverage);
-  }
-
-  // Alias bonus
-  if (aliasHit && matched > 0) {
-    score = Math.min(100, score + 10);
-    bd.aliasBonus = 10;
-  }
-
-  return {
-    exercise,
-    score,
-    breakdown: debug ? bd : { fuzzyToken: bd.fuzzyToken },
-  };
-}
-
 // ─── Search ───────────────────────────────────────────────────────────────────
 
 type BucketedResults = {
@@ -371,92 +188,50 @@ type BucketedResults = {
 
 function searchBucket(
   bucket: IndexedExercise[],
+  fuse: Fuse<IndexedExercise>,
   normalizedQuery: string,
-  queryTokens: string[],
   filters: SearchFilters,
-  aliasMap: AliasMap,
-  fuzzyEnabled: boolean,
-  minQueryLengthForFuzzy: number,
-  debug: boolean,
-  topNonFuzzyScore: { value: number },
 ): SearchResult[] {
-  const results: SearchResult[] = [];
-  for (const indexed of bucket) {
-    if (!passesFilters(indexed.exercise, filters)) continue;
-    if (!normalizedQuery) {
-      results.push({ exercise: indexed.exercise, score: 0 });
-      continue;
-    }
-    const result = scoreExercise(
-      indexed,
-      queryTokens,
-      normalizedQuery,
-      aliasMap,
-      fuzzyEnabled,
-      minQueryLengthForFuzzy,
-      debug,
-    );
-    if (result.score > 0) results.push(result);
-    if (
-      result.score > topNonFuzzyScore.value &&
-      (result.breakdown?.fuzzyToken ?? 0) === 0
-    ) {
-      topNonFuzzyScore.value = result.score;
-    }
+  if (!normalizedQuery) {
+    return bucket
+      .filter((indexed) => passesFilters(indexed.exercise, filters))
+      .map((indexed) => ({ exercise: indexed.exercise, score: 0 }));
   }
-  return results;
+  return fuse
+    .search(normalizedQuery)
+    .filter((result) => passesFilters(result.item.exercise, filters))
+    .map((result) => ({
+      exercise: result.item.exercise,
+      score: result.score ?? 0,
+    }));
 }
 
 export function searchExercises(
   index: ExerciseSearchIndex,
   query: string,
   filters: SearchFilters,
-  options: SearchOptions = {},
 ): BucketedResults {
-  const {
-    fuzzyEnabled = true,
-    minQueryLengthForFuzzy = 3,
-    debugScores = false,
-  } = options;
-
   const normalizedQuery = normalizeText(query);
-  const queryTokens = normalizedQuery.split(" ").filter(Boolean);
-
-  const topNonFuzzyScore = { value: 0 };
-
-  const scoreAndSort = (bucket: IndexedExercise[]): SearchResult[] => {
-    const results = searchBucket(
-      bucket,
+  return {
+    activePlanExercises: searchBucket(
+      index.activePlanExercises,
+      index.activePlanFuse,
       normalizedQuery,
-      queryTokens,
       filters,
-      index.aliasMap,
-      fuzzyEnabled,
-      minQueryLengthForFuzzy,
-      debugScores,
-      topNonFuzzyScore,
-    );
-    if (!normalizedQuery) return results;
-    return results.sort((a, b) => b.score - a.score);
+    ),
+    favoriteExercises: searchBucket(
+      index.favoriteExercises,
+      index.favoriteFuse,
+      normalizedQuery,
+      filters,
+    ),
+    otherExercises: searchBucket(
+      index.otherExercises,
+      index.otherFuse,
+      normalizedQuery,
+      filters,
+    ),
   };
-
-  const activePlanExercises = scoreAndSort(index.activePlanExercises);
-  const favoriteExercises = scoreAndSort(index.favoriteExercises);
-  const otherExercises = scoreAndSort(index.otherExercises);
-
-  // Filter fuzzy-only results that score too far below the top non-fuzzy result
-  if (fuzzyEnabled && topNonFuzzyScore.value > 0) {
-    const fuzzyThreshold = topNonFuzzyScore.value - 15;
-    const filterFuzzyNoise = (r: SearchResult) =>
-      r.score >= fuzzyThreshold || (r.breakdown?.fuzzyToken ?? 0) === 0;
-    return {
-      activePlanExercises: activePlanExercises.filter(filterFuzzyNoise),
-      favoriteExercises: favoriteExercises.filter(filterFuzzyNoise),
-      otherExercises: otherExercises.filter(filterFuzzyNoise),
-    };
-  }
-
-  return { activePlanExercises, favoriteExercises, otherExercises };
 }
 
 // ─── Autocomplete ─────────────────────────────────────────────────────────────

@@ -1,7 +1,6 @@
 import Fuse from "fuse.js";
 import {
   normalizeText,
-  levenshtein,
   buildExerciseSearchIndex,
   searchExercises,
   getExerciseSuggestions,
@@ -168,37 +167,6 @@ describe("normalizeText", () => {
   });
 });
 
-// ─── levenshtein ──────────────────────────────────────────────────────────────
-
-describe("levenshtein", () => {
-  it("returns 0 for identical strings", () => {
-    expect(levenshtein("bench", "bench")).toBe(0);
-  });
-
-  it("single character insertion", () => {
-    expect(levenshtein("bech", "bench")).toBe(1);
-  });
-
-  it("single character deletion", () => {
-    expect(levenshtein("benchh", "bench")).toBe(1);
-  });
-
-  it("single character substitution", () => {
-    expect(levenshtein("bAnch", "bench")).toBe(1);
-  });
-
-  it("two-character error — transposition costs 2 in standard Levenshtein", () => {
-    // "incilne" vs "incline": 'l' and 'i' swapped at positions 3-4
-    expect(levenshtein("incilne", "incline")).toBe(2);
-  });
-
-  it("handles empty strings", () => {
-    expect(levenshtein("", "bench")).toBe(5);
-    expect(levenshtein("bench", "")).toBe(5);
-    expect(levenshtein("", "")).toBe(0);
-  });
-});
-
 // ─── buildExerciseSearchIndex ─────────────────────────────────────────────────
 
 describe("buildExerciseSearchIndex", () => {
@@ -293,32 +261,18 @@ describe("buildExerciseSearchIndex", () => {
 describe("searchExercises — exact and prefix", () => {
   const index = buildIndex();
 
-  it("exact full-name match scores 100", () => {
-    const { otherExercises } = searchExercises(
-      index,
-      "bench press",
-      noFilters,
-      { fuzzyEnabled: false },
-    );
+  it("exact full-name match ranks first", () => {
+    const { otherExercises } = searchExercises(index, "bench press", noFilters);
     expect(otherExercises[0].exercise).toBe(BENCH_PRESS);
-    expect(otherExercises[0].score).toBe(100);
   });
 
   it("exact match is case-insensitive", () => {
-    const { otherExercises } = searchExercises(
-      index,
-      "BENCH PRESS",
-      noFilters,
-      { fuzzyEnabled: false },
-    );
+    const { otherExercises } = searchExercises(index, "BENCH PRESS", noFilters);
     expect(otherExercises[0].exercise).toBe(BENCH_PRESS);
-    expect(otherExercises[0].score).toBe(100);
   });
 
   it("prefix match returns exercises starting with query", () => {
-    const { otherExercises } = searchExercises(index, "bench", noFilters, {
-      fuzzyEnabled: false,
-    });
+    const { otherExercises } = searchExercises(index, "bench", noFilters);
     const names = otherExercises.map((r) => r.exercise.name);
     expect(names).toContain("Bench Press");
     expect(names).toContain("Incline Bench Press");
@@ -326,58 +280,32 @@ describe("searchExercises — exact and prefix", () => {
   });
 
   it("prefix match: exact-prefix exercise outranks partial-token match", () => {
-    const { otherExercises } = searchExercises(index, "bench", noFilters, {
-      fuzzyEnabled: false,
-    });
-    const first = otherExercises[0].exercise.name;
-    expect(first).toBe("Bench Press"); // starts with "bench"
+    const { otherExercises } = searchExercises(index, "bench", noFilters);
+    expect(otherExercises[0].exercise.name).toBe("Bench Press");
   });
 
-  it("multi-word query matches correct exercise", () => {
-    const { otherExercises } = searchExercises(
-      index,
-      "overhead press",
-      noFilters,
-      { fuzzyEnabled: false },
-    );
-    expect(otherExercises[0].exercise).toBe(OVERHEAD_PRESS);
-    expect(otherExercises[0].score).toBe(100);
-  });
-
-  it("single char query returns all exercises (score 0, unranked)", () => {
-    const { otherExercises } = searchExercises(index, "a", noFilters, {
-      fuzzyEnabled: false,
-    });
-    // score 0 — exercises that don't match text return empty
-    // single char is too short for prefix sets, will fall through to substring check
-    const benchResult = otherExercises.find((r) => r.exercise === BENCH_PRESS);
-    // "a" is not in "bench press" — should not match
-    expect(benchResult).toBeUndefined();
+  it("multi-word query matches correct exercise regardless of order", () => {
+    const forward = searchExercises(index, "overhead press", noFilters);
+    const reversed = searchExercises(index, "press overhead", noFilters);
+    expect(forward.otherExercises[0].exercise).toBe(OVERHEAD_PRESS);
+    expect(reversed.otherExercises[0].exercise).toBe(OVERHEAD_PRESS);
   });
 
   it("empty query with no filters returns all exercises with score 0", () => {
-    const { otherExercises } = searchExercises(index, "", noFilters, {
-      fuzzyEnabled: false,
-    });
+    const { otherExercises } = searchExercises(index, "", noFilters);
     expect(otherExercises).toHaveLength(ALL_EXERCISES.length);
     expect(otherExercises.every((r) => r.score === 0)).toBe(true);
   });
 
   it("no-match query returns empty lists", () => {
-    const { otherExercises } = searchExercises(index, "zxqw", noFilters, {
-      fuzzyEnabled: false,
-    });
+    const { otherExercises } = searchExercises(index, "zxqwzxqw", noFilters);
     expect(otherExercises).toHaveLength(0);
   });
 
-  it("extra whitespace in query is normalized", () => {
-    const r1 = searchExercises(index, "bench press", noFilters, {
-      fuzzyEnabled: false,
-    });
-    const r2 = searchExercises(index, "  bench   press  ", noFilters, {
-      fuzzyEnabled: false,
-    });
-    expect(r1.otherExercises[0].score).toBe(r2.otherExercises[0].score);
+  it("extra whitespace in query does not change the top result", () => {
+    const r1 = searchExercises(index, "bench press", noFilters);
+    const r2 = searchExercises(index, "  bench   press  ", noFilters);
+    expect(r1.otherExercises[0].exercise).toBe(r2.otherExercises[0].exercise);
   });
 });
 
@@ -387,45 +315,32 @@ describe("searchExercises — alias matching", () => {
   const index = buildIndex();
 
   it("alias 'rdl' matches Romanian Deadlift", () => {
-    const { otherExercises } = searchExercises(index, "rdl", noFilters, {
-      fuzzyEnabled: false,
-    });
+    const { otherExercises } = searchExercises(index, "rdl", noFilters);
     expect(otherExercises[0].exercise).toBe(ROMANIAN_DL);
-    expect(otherExercises[0].score).toBeGreaterThan(0);
   });
 
   it("alias 'ohp' matches Overhead Press", () => {
-    const { otherExercises } = searchExercises(index, "ohp", noFilters, {
-      fuzzyEnabled: false,
-    });
+    const { otherExercises } = searchExercises(index, "ohp", noFilters);
     expect(otherExercises[0].exercise).toBe(OVERHEAD_PRESS);
   });
 
   it("alias 'skull' matches Skull Crusher", () => {
-    const { otherExercises } = searchExercises(index, "skull", noFilters, {
-      fuzzyEnabled: false,
-    });
+    const { otherExercises } = searchExercises(index, "skull", noFilters);
     expect(otherExercises[0].exercise).toBe(SKULL_CRUSHER);
   });
 
   it("alias 'pullup' matches Pull-Up", () => {
-    const { otherExercises } = searchExercises(index, "pullup", noFilters, {
-      fuzzyEnabled: false,
-    });
+    const { otherExercises } = searchExercises(index, "pullup", noFilters);
     expect(otherExercises[0].exercise).toBe(PULL_UP);
   });
 
   it("multi-token alias query 'db bench' matches Dumbbell Bench Press", () => {
-    const { otherExercises } = searchExercises(index, "db bench", noFilters, {
-      fuzzyEnabled: false,
-    });
+    const { otherExercises } = searchExercises(index, "db bench", noFilters);
     expect(otherExercises[0].exercise).toBe(DB_BENCH);
   });
 
   it("alias 'lat pd' matches Lat Pulldown", () => {
-    const { otherExercises } = searchExercises(index, "lat pd", noFilters, {
-      fuzzyEnabled: false,
-    });
+    const { otherExercises } = searchExercises(index, "lat pd", noFilters);
     expect(otherExercises[0].exercise).toBe(LAT_PULLDOWN);
   });
 });
@@ -441,9 +356,7 @@ describe("searchExercises — hard filters", () => {
       bodyPart: null,
       targetMuscle: null,
     };
-    const { otherExercises } = searchExercises(index, "bench", filters, {
-      fuzzyEnabled: false,
-    });
+    const { otherExercises } = searchExercises(index, "bench", filters);
     expect(
       otherExercises.every((r) => r.exercise.equipment === "dumbbell"),
     ).toBe(true);
@@ -457,9 +370,7 @@ describe("searchExercises — hard filters", () => {
       bodyPart: null,
       targetMuscle: null,
     };
-    const { otherExercises } = searchExercises(index, "bench", filters, {
-      fuzzyEnabled: false,
-    });
+    const { otherExercises } = searchExercises(index, "bench", filters);
     expect(otherExercises.length).toBeGreaterThan(1);
   });
 
@@ -481,9 +392,7 @@ describe("searchExercises — hard filters", () => {
       bodyPart: null,
       targetMuscle: null,
     };
-    const { otherExercises } = searchExercises(index, "cable", filters, {
-      fuzzyEnabled: false,
-    });
+    const { otherExercises } = searchExercises(index, "cable", filters);
     expect(otherExercises).toHaveLength(0);
   });
 
@@ -508,51 +417,22 @@ describe("searchExercises — fuzzy matching", () => {
   const index = buildIndex();
 
   it("single-char typo 'benchh' matches Bench Press", () => {
-    const { otherExercises } = searchExercises(index, "benchh", noFilters, {
-      fuzzyEnabled: true,
-    });
-    const match = otherExercises.find((r) => r.exercise === BENCH_PRESS);
-    expect(match).toBeDefined();
+    const { otherExercises } = searchExercises(index, "benchh", noFilters);
+    expect(otherExercises.some((r) => r.exercise === BENCH_PRESS)).toBe(true);
   });
 
   it("two-char typo 'romainian' matches Romanian Deadlift", () => {
-    const { otherExercises } = searchExercises(index, "romainian", noFilters, {
-      fuzzyEnabled: true,
-    });
-    const match = otherExercises.find((r) => r.exercise === ROMANIAN_DL);
-    expect(match).toBeDefined();
+    const { otherExercises } = searchExercises(index, "romainian", noFilters);
+    expect(otherExercises.some((r) => r.exercise === ROMANIAN_DL)).toBe(true);
   });
 
-  it("fuzzy is disabled when fuzzyEnabled is false", () => {
-    const { otherExercises } = searchExercises(index, "benchh", noFilters, {
-      fuzzyEnabled: false,
-    });
-    const match = otherExercises.find((r) => r.exercise === BENCH_PRESS);
-    expect(match).toBeUndefined();
-  });
-
-  it("prefix match still works for short queries below fuzzy threshold", () => {
-    // "be" is below minQueryLengthForFuzzy=3, so fuzzy won't run,
-    // but "be" IS a valid prefix of "bench" → prefix match still fires
-    const { otherExercises } = searchExercises(index, "be", noFilters, {
-      fuzzyEnabled: true,
-      minQueryLengthForFuzzy: 3,
-    });
-    const match = otherExercises.find((r) => r.exercise === BENCH_PRESS);
-    expect(match).toBeDefined();
-    // Score comes from prefix match (not fuzzy), so it should be well above fuzzy range
-    expect(match?.score ?? 0).toBeGreaterThan(20);
-  });
-
-  it("exact matches score higher than fuzzy matches", () => {
-    const { otherExercises } = searchExercises(index, "bench", noFilters, {
-      fuzzyEnabled: true,
-    });
-    const benchScore =
-      otherExercises.find((r) => r.exercise === BENCH_PRESS)?.score ?? 0;
-    const rdlScore =
-      otherExercises.find((r) => r.exercise === ROMANIAN_DL)?.score ?? 0;
-    expect(benchScore).toBeGreaterThan(rdlScore);
+  it("exact match ranks above a typo’d match of a different exercise", () => {
+    const { otherExercises } = searchExercises(index, "bench", noFilters);
+    const benchIdx = otherExercises.findIndex((r) => r.exercise === BENCH_PRESS);
+    const rdlIdx = otherExercises.findIndex((r) => r.exercise === ROMANIAN_DL);
+    // Romanian Deadlift shouldn't match "bench" at all
+    expect(rdlIdx).toBe(-1);
+    expect(benchIdx).toBeGreaterThanOrEqual(0);
   });
 });
 
@@ -568,9 +448,7 @@ describe("searchExercises — bucket structure", () => {
       },
       TEST_ALIAS_MAP,
     );
-    const result = searchExercises(index, "bench", noFilters, {
-      fuzzyEnabled: false,
-    });
+    const result = searchExercises(index, "bench", noFilters);
     expect(
       result.activePlanExercises.some((r) => r.exercise === BENCH_PRESS),
     ).toBe(true);
@@ -582,7 +460,7 @@ describe("searchExercises — bucket structure", () => {
     ).toBe(false); // doesn't match "bench"
   });
 
-  it("same exercise in different buckets scores the same", () => {
+  it("same exercise in different buckets matches the same way", () => {
     const index = buildExerciseSearchIndex(
       {
         activePlanExercises: [BENCH_PRESS],
@@ -590,10 +468,9 @@ describe("searchExercises — bucket structure", () => {
       },
       TEST_ALIAS_MAP,
     );
-    const result = searchExercises(index, "bench press", noFilters, {
-      fuzzyEnabled: false,
-    });
-    expect(result.activePlanExercises[0].score).toBe(100);
+    const result = searchExercises(index, "bench press", noFilters);
+    expect(result.activePlanExercises[0].exercise).toBe(BENCH_PRESS);
+    expect(result.activePlanExercises[0].score).toBeLessThan(0.1);
   });
 });
 
