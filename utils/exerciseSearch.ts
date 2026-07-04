@@ -74,6 +74,12 @@ function buildPrefixes(tokens: string[]): Set<string> {
 
 const FUSE_OPTIONS: IFuseOptions<IndexedExercise> = {
   keys: ["searchText"],
+  // With extended search, a multi-word query becomes a strict AND across
+  // space-separated terms, each independently fuzzy-matched against
+  // searchText. This lets "db bench" match via the alias token "db" and the
+  // real word "bench" wherever they appear, and it makes word order
+  // irrelevant (e.g. "press overhead" matches the same items as "overhead
+  // press").
   useExtendedSearch: true,
   ignoreLocation: true,
   threshold: 0.4,
@@ -197,6 +203,12 @@ function searchBucket(
       .filter((indexed) => passesFilters(indexed.exercise, filters))
       .map((indexed) => ({ exercise: indexed.exercise, score: 0 }));
   }
+  // normalizedQuery has already passed through normalizeText, which strips
+  // every character that isn't a-z/0-9/whitespace, including Fuse's
+  // extended-search operator characters (= ' ^ ! $ |). That's what makes it
+  // safe to pass user input into fuse.search() with useExtendedSearch: true;
+  // no operator characters can reach Fuse's parser. If normalizeText's
+  // stripping behavior ever changes, re-verify this invariant still holds.
   return fuse
     .search(normalizedQuery)
     .filter((result) => passesFilters(result.item.exercise, filters))

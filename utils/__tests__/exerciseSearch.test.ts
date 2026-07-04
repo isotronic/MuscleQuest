@@ -291,6 +291,18 @@ describe("searchExercises — exact and prefix", () => {
     expect(reversed.otherExercises[0].exercise).toBe(OVERHEAD_PRESS);
   });
 
+  it("query containing Fuse extended-search operator characters is treated as literal text", () => {
+    // "|" is Fuse's OR operator and "=" is its exact-match operator in
+    // extended-search syntax: normalizeText must strip both before the
+    // query reaches Fuse, or this would be misinterpreted as an operator
+    // rather than matched as literal (stripped-to-space) text.
+    const withOperators = searchExercises(index, "bench | press", noFilters);
+    const withoutOperators = searchExercises(index, "bench press", noFilters);
+    expect(withOperators.otherExercises[0].exercise).toBe(
+      withoutOperators.otherExercises[0].exercise,
+    );
+  });
+
   it("empty query with no filters returns all exercises with score 0", () => {
     const { otherExercises } = searchExercises(index, "", noFilters);
     expect(otherExercises).toHaveLength(ALL_EXERCISES.length);
