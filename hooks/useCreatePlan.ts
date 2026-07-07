@@ -13,14 +13,13 @@ import { Plan } from "./useAllPlansQuery";
 import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 import { AuthContext } from "@/context/AuthProvider";
-import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
 import { publishPlan } from "@/utils/sharing";
 import { useSocialStore } from "@/store/socialStore";
 
 export const useCreatePlan = (existingPlan?: Plan) => {
   const queryClient = useQueryClient();
   const user = useContext(AuthContext);
-  const { privacySettings } = useSocialStore();
+  const { privacySettings, publishedPlanIds } = useSocialStore();
   const [planSaved, setPlanSaved] = useState(false);
   const [planName, setPlanName] = useState("");
   const [isError, setIsError] = useState(false);
@@ -76,20 +75,11 @@ export const useCreatePlan = (existingPlan?: Plan) => {
         await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
         savedPlanId = planId;
 
-        // Auto re-publish if already shared
-        if (user) {
-          const db = getFirestore();
-          const docRef = doc(
-            db,
-            "users",
-            user.uid,
-            "sharedPlans",
-            String(planId),
-          );
-          const snap = await getDoc(docRef);
-          if (snap.exists()) {
-            publishPlan(user.uid, planId).catch((err) => Bugsnag.notify(err));
-          }
+        // Auto re-publish if already shared. Reads the locally-synced
+        // publishedPlanIds cache instead of a Firestore getDoc so an editing
+        // save never blocks on a network round-trip.
+        if (user && publishedPlanIds?.includes(String(planId))) {
+          publishPlan(user.uid, planId).catch((err) => Bugsnag.notify(err));
         }
 
         queryClient.invalidateQueries({ queryKey: ["plan", planId] });

@@ -1368,10 +1368,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           const newWeightAndReps = { ...state.weightAndReps };
           for (const suggestion of states) {
             if (!suggestion.isApplied) continue;
+            // increase_reps is intentionally not handled here: the suggested
+            // rep target is a goal to reach during the set, not a value to
+            // pre-fill as if already completed. It's surfaced to the user via
+            // ProgressionSuggestionChip instead, leaving the actual reps
+            // field to carry over the user's real previous performance.
             if (
               suggestion.suggestionAction !== "increase_load" &&
-              suggestion.suggestionAction !== "reduce_load" &&
-              suggestion.suggestionAction !== "increase_reps"
+              suggestion.suggestionAction !== "reduce_load"
             )
               continue;
             const exerciseIndex = state.workout.exercises.findIndex(
@@ -1384,31 +1388,33 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               .filter(({ s }) => !s.isWarmup && !s.isDropSet)
               .map(({ idx }) => idx);
 
-            if (suggestion.suggestionAction === "increase_reps") {
-              if (suggestion.suggestedRepsPerSet == null) continue;
-              workingSetIndices.forEach((idx, i) => {
-                const reps = suggestion.suggestedRepsPerSet?.[i];
-                if (reps == null) return;
-                newWeightAndReps[exerciseIndex] = {
-                  ...(newWeightAndReps[exerciseIndex] || {}),
-                  [idx]: {
-                    ...(newWeightAndReps[exerciseIndex]?.[idx] || {}),
-                    reps: reps.toString(),
-                  },
-                };
-              });
-              continue;
-            }
-
             if (suggestion.suggestedWeight == null) continue;
             const roundedWeight =
               Math.round(suggestion.suggestedWeight * 10) / 10;
+            const historyExercises =
+              suggestion.suggestionAction === "increase_load"
+                ? (state.previousWorkoutData ?? [])
+                    .flatMap((w) => w.exercises)
+                    .filter((ex) => ex.exercise_id === exercise.exercise_id)
+                : [];
             for (const idx of workingSetIndices) {
+              // Never let an increase suggestion undercut what the user
+              // actually lifted last time — only an explicit reduce_load
+              // (deload) suggestion is allowed to decrease the weight.
+              const carriedOverWeight =
+                suggestion.suggestionAction === "increase_load"
+                  ? findHistoricalSetByOrdinal(exercise.sets, idx, historyExercises)
+                      ?.weight
+                  : null;
+              const finalWeight =
+                carriedOverWeight != null && roundedWeight < carriedOverWeight
+                  ? carriedOverWeight
+                  : roundedWeight;
               newWeightAndReps[exerciseIndex] = {
                 ...(newWeightAndReps[exerciseIndex] || {}),
                 [idx]: {
                   ...(newWeightAndReps[exerciseIndex]?.[idx] || {}),
-                  weight: roundedWeight.toString(),
+                  weight: finalWeight.toString(),
                 },
               };
             }

@@ -414,7 +414,7 @@ const fetchWorkoutHistoryForSession = async (
         set_number,
         weight:
           weight != null
-            ? parseFloat((weight * conversionFactor).toFixed(1))
+            ? parseFloat((weight * conversionFactor).toFixed(2))
             : null,
         reps,
         time,
@@ -582,7 +582,7 @@ const fetchGlobalExerciseHistoryForSession = async (
         set_number,
         weight:
           weight != null
-            ? parseFloat((weight * conversionFactor).toFixed(1))
+            ? parseFloat((weight * conversionFactor).toFixed(2))
             : null,
         reps,
         time,

@@ -10,8 +10,10 @@ type HistoryExercise = CompletedWorkout["exercises"][number];
  * E.g. if current sets are [warmup, working, working] and history has [working, working],
  * index 1 (1st working set, ordinal 0) maps to history index 0 — not index 1.
  *
- * Pass all history exercises for the same exercise_id (may span multiple workouts).
- * The function iterates them in order and returns the first ordinal match found.
+ * Pass all history exercises for the same exercise_id (may span multiple workouts),
+ * most recent first. Uses the first entry that has any sets of the matching type,
+ * falling back to its last set of that type if the current session added more
+ * sets than that entry had (rather than reaching further back into history).
  */
 export function findHistoricalSetByOrdinal(
   currentSets: { isWarmup?: boolean }[],
@@ -25,9 +27,8 @@ export function findHistoricalSetByOrdinal(
 
   for (const ex of historyExercises) {
     const setsOfType = ex.sets.filter((s) => s.is_warmup === targetIsWarmup);
-    if (setsOfType[ordinal] !== undefined) {
-      return setsOfType[ordinal];
-    }
+    if (setsOfType.length === 0) continue;
+    return setsOfType[ordinal] ?? setsOfType[setsOfType.length - 1];
   }
   return undefined;
 }

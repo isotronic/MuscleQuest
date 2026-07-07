@@ -1733,7 +1733,169 @@ describe("useActiveWorkoutStore", () => {
       expect(weightAndReps[0][1]?.weight).toBe("102.5");
     });
 
-    it("applies suggestedRepsPerSet to working sets for increase_reps", () => {
+    it("does not let an increase_load suggestion undercut the carried-over previous weight", () => {
+      const history: any = [
+        {
+          id: 1,
+          workout_id: 1,
+          plan_id: 1,
+          workout_name: "Test Workout",
+          date_completed: "2026-06-01T00:00:00.000Z",
+          duration: 0,
+          total_sets_completed: 2,
+          exercises: [
+            {
+              exercise_id: 700,
+              exercise_name: "Bench Press",
+              exercise_tracking_type: "weight",
+              sets: [
+                {
+                  set_id: 1,
+                  set_number: 1,
+                  weight: 105,
+                  reps: 10,
+                  time: null,
+                  distance: null,
+                  is_warmup: false,
+                  set_duration: null,
+                },
+                {
+                  set_id: 2,
+                  set_number: 2,
+                  weight: 105,
+                  reps: 8,
+                  time: null,
+                  distance: null,
+                  is_warmup: false,
+                  set_duration: null,
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      act(() => {
+        useActiveWorkoutStore.setState({
+          workout: {
+            name: "Suggestion Test Workout",
+            exercises: [
+              {
+                ...baseExercise,
+                sets: [
+                  {
+                    repsMin: 8,
+                    repsMax: 12,
+                    restMinutes: 2,
+                    restSeconds: 0,
+                    time: undefined,
+                  },
+                  {
+                    repsMin: 8,
+                    repsMax: 12,
+                    restMinutes: 2,
+                    restSeconds: 0,
+                    time: undefined,
+                  },
+                ],
+              },
+            ],
+          },
+          previousWorkoutData: history,
+          weightAndReps: {},
+        });
+
+        // Suggested weight (102.5) is lower than what was actually lifted
+        // last session (105) — the carry-over should win.
+        useActiveWorkoutStore.getState().loadProgressionSuggestions([
+          {
+            userWorkoutExerciseId: 55,
+            suggestionAction: "increase_load",
+            suggestedWeight: 102.5,
+            isApplied: true,
+          },
+        ]);
+      });
+
+      const { weightAndReps } = useActiveWorkoutStore.getState();
+      expect(weightAndReps[0][0]?.weight).toBe("105");
+      expect(weightAndReps[0][1]?.weight).toBe("105");
+    });
+
+    it("still applies a reduce_load suggestion below the carried-over previous weight", () => {
+      const history: any = [
+        {
+          id: 1,
+          workout_id: 1,
+          plan_id: 1,
+          workout_name: "Test Workout",
+          date_completed: "2026-06-01T00:00:00.000Z",
+          duration: 0,
+          total_sets_completed: 1,
+          exercises: [
+            {
+              exercise_id: 700,
+              exercise_name: "Bench Press",
+              exercise_tracking_type: "weight",
+              sets: [
+                {
+                  set_id: 1,
+                  set_number: 1,
+                  weight: 105,
+                  reps: 10,
+                  time: null,
+                  distance: null,
+                  is_warmup: false,
+                  set_duration: null,
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      act(() => {
+        useActiveWorkoutStore.setState({
+          workout: {
+            name: "Suggestion Test Workout",
+            exercises: [
+              {
+                ...baseExercise,
+                sets: [
+                  {
+                    repsMin: 8,
+                    repsMax: 12,
+                    restMinutes: 2,
+                    restSeconds: 0,
+                    time: undefined,
+                  },
+                ],
+              },
+            ],
+          },
+          previousWorkoutData: history,
+          weightAndReps: {},
+        });
+
+        useActiveWorkoutStore.getState().loadProgressionSuggestions([
+          {
+            userWorkoutExerciseId: 55,
+            suggestionAction: "reduce_load",
+            suggestedWeight: 95,
+            isApplied: true,
+          },
+        ]);
+      });
+
+      const { weightAndReps } = useActiveWorkoutStore.getState();
+      expect(weightAndReps[0][0]?.weight).toBe("95");
+    });
+
+    it("does not prefill the reps input for increase_reps (target is shown via the suggestion chip, not written as if already completed)", () => {
+      // Reps are a measured outcome, not a value the user picks in advance
+      // like weight. Pre-filling the "actual reps" field with the suggested
+      // target meant an unedited field got logged as a hit even when the
+      // user fell short, corrupting the next progression evaluation.
       act(() => {
         useActiveWorkoutStore.setState({
           workout: {
@@ -1774,63 +1936,8 @@ describe("useActiveWorkoutStore", () => {
       });
 
       const { weightAndReps } = useActiveWorkoutStore.getState();
-      expect(weightAndReps[0][0]?.reps).toBe("11");
-      expect(weightAndReps[0][1]?.reps).toBe("9");
-    });
-
-    it("skips warmup and drop sets when applying suggestedRepsPerSet", () => {
-      act(() => {
-        useActiveWorkoutStore.setState({
-          workout: {
-            name: "Suggestion Test Workout",
-            exercises: [
-              {
-                ...baseExercise,
-                sets: [
-                  {
-                    repsMin: 8,
-                    repsMax: 12,
-                    restMinutes: 1,
-                    restSeconds: 0,
-                    time: undefined,
-                    isWarmup: true,
-                  },
-                  {
-                    repsMin: 8,
-                    repsMax: 12,
-                    restMinutes: 2,
-                    restSeconds: 0,
-                    time: undefined,
-                  },
-                  {
-                    repsMin: 8,
-                    repsMax: 12,
-                    restMinutes: 0,
-                    restSeconds: 30,
-                    time: undefined,
-                    isDropSet: true,
-                  },
-                ],
-              },
-            ],
-          },
-          weightAndReps: {},
-        });
-
-        useActiveWorkoutStore.getState().loadProgressionSuggestions([
-          {
-            userWorkoutExerciseId: 55,
-            suggestionAction: "increase_reps",
-            suggestedRepsPerSet: [11],
-            isApplied: true,
-          },
-        ]);
-      });
-
-      const { weightAndReps } = useActiveWorkoutStore.getState();
-      expect(weightAndReps[0]?.[0]).toBeUndefined();
-      expect(weightAndReps[0][1]?.reps).toBe("11");
-      expect(weightAndReps[0]?.[2]).toBeUndefined();
+      expect(weightAndReps[0]?.[0]?.reps).toBeUndefined();
+      expect(weightAndReps[0]?.[1]?.reps).toBeUndefined();
     });
   });
 

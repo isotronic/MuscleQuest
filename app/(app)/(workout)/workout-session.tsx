@@ -39,6 +39,11 @@ import {
 import { Notes } from "@/components/Notes";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
+import { computeSteppedWeight } from "@/utils/weightStep";
+import {
+  buildExerciseMap,
+  findLastAvailableSetData as findLastAvailableSetDataUtil,
+} from "@/utils/carryOverLookup";
 import { UserExercise } from "@/store/workoutStore";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import ExerciseFeedbackSheet from "@/components/ExerciseFeedbackSheet";
@@ -412,25 +417,6 @@ export default function WorkoutSessionScreen() {
       ? completedSets[currentExerciseIndex][currentSetIndex]
       : false;
 
-  type ExerciseEntry = NonNullable<
-    typeof previousWorkoutData
-  >[number]["exercises"][number];
-
-  const buildExerciseMap = (
-    data: typeof previousWorkoutData,
-  ): Map<number, ExerciseEntry[]> => {
-    const map = new Map<number, ExerciseEntry[]>();
-    if (!data) return map;
-    for (const w of data) {
-      for (const ex of w.exercises) {
-        const arr = map.get(ex.exercise_id) ?? [];
-        arr.push(ex);
-        map.set(ex.exercise_id, arr);
-      }
-    }
-    return map;
-  };
-
   const prevExercisesByExerciseId = useMemo(
     () => buildExerciseMap(previousWorkoutData),
     [previousWorkoutData],
@@ -458,40 +444,16 @@ export default function WorkoutSessionScreen() {
       .slice(0, setIndex)
       .filter((s) => (s.isWarmup ?? false) === isWarmup).length;
 
-    const lookup = (map: Map<number, ExerciseEntry[]>) => {
-      const exercises = map.get(exerciseId);
-      if (!exercises) return null;
-      for (const ex of exercises) {
-        const setsOfType = ex.sets.filter((s) => s.is_warmup === isWarmup);
-        if (setsOfType[ordinal]) return setsOfType[ordinal];
-      }
-      return null;
-    };
-
-    // When an exercise was swapped in the previous session, its exercise_id is
-    // updated in completed_exercises to the replacement's id, so the id-keyed
-    // lookup above finds nothing. Fall back to positional lookup: use the
-    // exercise at the same slot index in the most-recent previous workout.
-    const lookupByPosition = () => {
-      if (exercisePosition === undefined) return null;
-      const prevExAtPos =
-        previousWorkoutData?.[0]?.exercises[exercisePosition];
-      if (!prevExAtPos) return null;
-      const setsOfType = prevExAtPos.sets.filter(
-        (s) => s.is_warmup === isWarmup,
-      );
-      return setsOfType[ordinal] ?? null;
-    };
-
-    if (alwaysUseGlobalHistory) {
-      return lookup(globalExercisesByExerciseId);
-    }
-
-    return (
-      lookup(prevExercisesByExerciseId) ??
-      lookupByPosition() ??
-      lookup(globalExercisesByExerciseId)
-    );
+    return findLastAvailableSetDataUtil({
+      exerciseId,
+      isWarmup,
+      ordinal,
+      exercisePosition,
+      previousWorkoutData,
+      prevExercisesByExerciseId,
+      globalExercisesByExerciseId,
+      alwaysUseGlobalHistory,
+    });
   };
 
   const previousWorkoutSetData = findLastAvailableSetData(
@@ -745,8 +707,7 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleWeightChange = (amount: number) => {
-    const currentWeight = isNaN(parseFloat(weight)) ? 0 : parseFloat(weight);
-    const newWeight = Math.max(0, currentWeight + amount).toFixed(1);
+    const newWeight = computeSteppedWeight(weight, amount);
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
