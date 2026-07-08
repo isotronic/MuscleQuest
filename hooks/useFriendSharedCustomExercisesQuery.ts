@@ -8,6 +8,7 @@ import {
 } from "@react-native-firebase/firestore";
 import { AuthContext } from "@/context/AuthProvider";
 import { SharedCustomExercise } from "@/types/firestore";
+import { withTimeout } from "@/utils/withTimeout";
 
 export const useFriendSharedCustomExercisesQuery = (
   friendUid: string | null,
@@ -18,8 +19,10 @@ export const useFriendSharedCustomExercisesQuery = (
     queryFn: async (): Promise<SharedCustomExercise[]> => {
       if (!user || !friendUid) return [];
       const db = getFirestore();
-      const snap = await getDocs(
-        collection(db, "users", friendUid, "sharedCustomExercises"),
+      const snap = await withTimeout(
+        getDocs(collection(db, "users", friendUid, "sharedCustomExercises")),
+        15000,
+        "friendSharedCustomExercises",
       );
       return snap.docs.map(
         (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>

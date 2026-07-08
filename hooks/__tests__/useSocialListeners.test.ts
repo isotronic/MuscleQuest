@@ -1,10 +1,14 @@
 import { useSocialListeners } from "../useSocialListeners";
 
 const snapshotCallbacks: Record<string, Function> = {};
-const mockOnSnapshot = jest.fn((ref: string, cb: Function) => {
-  snapshotCallbacks[ref] = cb;
-  return jest.fn();
-});
+const errorCallbacks: Record<string, Function> = {};
+const mockOnSnapshot = jest.fn(
+  (ref: string, cb: Function, errCb?: Function) => {
+    snapshotCallbacks[ref] = cb;
+    if (errCb) errorCallbacks[ref] = errCb;
+    return jest.fn();
+  },
+);
 
 const mockUpdateDoc = jest.fn().mockResolvedValue(undefined);
 
@@ -50,6 +54,7 @@ jest.mock("react", () => ({
   ...jest.requireActual("react"),
   useContext: jest.fn().mockReturnValue(mockUser),
   useEffect: jest.fn((fn) => fn()),
+  useState: jest.fn((initial: unknown) => [initial, jest.fn()]),
 }));
 jest.mock("@/context/AuthProvider", () => {
   const React = jest.requireActual("react");
@@ -59,16 +64,23 @@ jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
   default: { notify: jest.fn() },
 }));
+jest.mock("react-native", () => ({
+  AppState: { addEventListener: jest.fn(() => ({ remove: jest.fn() })) },
+}));
 
 describe("useSocialListeners - friends snapshot", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     Object.keys(snapshotCallbacks).forEach((k) => delete snapshotCallbacks[k]);
+    Object.keys(errorCallbacks).forEach((k) => delete errorCallbacks[k]);
     jest.requireMock("react").useContext.mockReturnValue(mockUser);
-    mockOnSnapshot.mockImplementation((ref: string, cb: Function) => {
-      snapshotCallbacks[ref] = cb;
-      return jest.fn();
-    });
+    mockOnSnapshot.mockImplementation(
+      (ref: string, cb: Function, errCb?: Function) => {
+        snapshotCallbacks[ref] = cb;
+        if (errCb) errorCallbacks[ref] = errCb;
+        return jest.fn();
+      },
+    );
     mockFetchFriendProfile.mockResolvedValue({
       displayName: "",
       email: "",
@@ -219,5 +231,84 @@ describe("useSocialListeners - friends snapshot", () => {
     // setFriends was already called with empty profile — no crash
     expect(mockSetFriends).toHaveBeenCalledTimes(1);
     expect(mockUpdateFriendProfile).not.toHaveBeenCalled();
+  });
+});
+
+describe("useSocialListeners - listener error scoping", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    Object.keys(snapshotCallbacks).forEach((k) => delete snapshotCallbacks[k]);
+    Object.keys(errorCallbacks).forEach((k) => delete errorCallbacks[k]);
+    jest.requireMock("react").useContext.mockReturnValue(mockUser);
+    mockOnSnapshot.mockImplementation(
+      (ref: string, cb: Function, errCb?: Function) => {
+        snapshotCallbacks[ref] = cb;
+        if (errCb) errorCallbacks[ref] = errCb;
+        return jest.fn();
+      },
+    );
+    mockFetchFriendProfile.mockResolvedValue({
+      displayName: "",
+      email: "",
+      photoURL: "",
+    });
+    mockUpdateDoc.mockResolvedValue(undefined);
+  });
+
+  const sharedPlansRef = "users/my-uid/sharedPlans";
+  const settingsRef = "users/my-uid/private/settings";
+
+  it("resets only publishedPlanIds when the sharedPlans listener gets permission-denied, leaving other state untouched", () => {
+    useSocialListeners();
+    const error = Object.assign(new Error("denied"), {
+      code: "firestore/permission-denied",
+    });
+
+    errorCallbacks[sharedPlansRef](error);
+
+    expect(mockSetPublishedPlanIds).toHaveBeenCalledWith(null);
+    expect(mockSetPrivacySettings).not.toHaveBeenCalled();
+    expect(mockSetFriends).not.toHaveBeenCalled();
+    expect(mockSetPendingRequests).not.toHaveBeenCalled();
+    expect(mockSetSentRequests).not.toHaveBeenCalled();
+    expect(mockSetPublishedWorkoutIds).not.toHaveBeenCalled();
+  });
+
+  it("resets only privacySettings when the settings listener gets permission-denied", () => {
+    useSocialListeners();
+    const error = Object.assign(new Error("denied"), {
+      code: "firestore/permission-denied",
+    });
+
+    errorCallbacks[settingsRef](error);
+
+    expect(mockSetPrivacySettings).toHaveBeenCalledWith(null);
+    expect(mockSetPublishedPlanIds).not.toHaveBeenCalled();
+    expect(mockSetPublishedWorkoutIds).not.toHaveBeenCalled();
+    expect(mockSetFriends).not.toHaveBeenCalled();
+  });
+
+  it("reports permission-denied errors to Bugsnag instead of swallowing them", () => {
+    useSocialListeners();
+    const Bugsnag = jest.requireMock("@bugsnag/expo").default;
+    const error = Object.assign(new Error("denied"), {
+      code: "firestore/permission-denied",
+    });
+
+    errorCallbacks[sharedPlansRef](error);
+
+    expect(Bugsnag.notify).toHaveBeenCalledTimes(1);
+    expect(Bugsnag.notify).toHaveBeenCalledWith(error, expect.any(Function));
+  });
+
+  it("still reports non-permission-denied errors to Bugsnag without resetting any state", () => {
+    useSocialListeners();
+    const Bugsnag = jest.requireMock("@bugsnag/expo").default;
+    const error = new Error("network hiccup");
+
+    errorCallbacks[sharedPlansRef](error);
+
+    expect(Bugsnag.notify).toHaveBeenCalledTimes(1);
+    expect(mockSetPublishedPlanIds).not.toHaveBeenCalled();
   });
 });

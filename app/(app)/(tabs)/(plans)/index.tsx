@@ -36,8 +36,7 @@ export default function PlansScreen() {
     isError: standaloneIsError,
     error: standaloneError,
   } = useStandaloneWorkoutsQuery();
-  const { privacySettings, publishedPlanIds, publishedWorkoutIds } =
-    useSocialStore();
+  const { publishedPlanIds, publishedWorkoutIds } = useSocialStore();
 
   useEffect(() => {
     if (standaloneIsError && standaloneError) {
@@ -133,7 +132,6 @@ export default function PlansScreen() {
           showViewToggle
           onViewModeChange={handleViewModeChange}
           publishedPlanIds={publishedPlanIds ?? undefined}
-          sharePlansEnabled={!!privacySettings?.sharePlans}
         />
         <PlanList
           title={t`Premade plans`}
@@ -158,10 +156,7 @@ export default function PlansScreen() {
                 workout={item}
                 onPress={() => handleViewWorkout(item)}
                 countUnilateralDouble={countUnilateralDouble}
-                isPublished={
-                  !!privacySettings?.shareStandaloneWorkouts &&
-                  !!publishedWorkoutIds?.includes(String(item.id))
-                }
+                isPublished={!!publishedWorkoutIds?.includes(String(item.id))}
               />
             ))
           ) : (

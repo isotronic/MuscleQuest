@@ -1,4 +1,5 @@
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, useState } from "react";
+import { AppState } from "react-native";
 import {
   getFirestore,
   collection,
@@ -23,6 +24,14 @@ import Bugsnag from "@bugsnag/expo";
 type QDocSnap = FirebaseFirestoreTypes.QueryDocumentSnapshot;
 type DocSnap = FirebaseFirestoreTypes.DocumentSnapshot;
 
+type ListenerScope =
+  | "pendingRequests"
+  | "sentRequests"
+  | "friends"
+  | "privacySettings"
+  | "publishedPlanIds"
+  | "publishedWorkoutIds";
+
 export const useSocialListeners = () => {
   const user = useContext(AuthContext);
   const {
@@ -35,17 +44,64 @@ export const useSocialListeners = () => {
     setPublishedWorkoutIds,
   } = useSocialStore();
 
-  const notifyError = (error: unknown) => {
+  // A listener that hits an error (e.g. a transient permission-denied right
+  // after a cold-start auth/App Check race) unsubscribes for good — nothing
+  // else brings it back. Bumping this on every foreground transition forces
+  // the effect below to tear down and re-subscribe all six listeners, so a
+  // stuck session recovers on next app open instead of needing a full
+  // force-quit.
+  const [resubscribeGeneration, setResubscribeGeneration] = useState(0);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      "change",
+      (nextState: string) => {
+        if (nextState === "active") {
+          setResubscribeGeneration((generation) => generation + 1);
+        }
+      },
+    );
+    return () => subscription.remove();
+  }, []);
+
+  // Resets only the store slice owned by the listener that actually failed —
+  // a permission-denied on e.g. the friendRequests listener must not wipe
+  // unrelated state (like publishedPlanIds) that other listeners populated
+  // correctly. Always reports to Bugsnag (with the failing scope as
+  // metadata) so a recurring permission-denied is visible instead of being
+  // silently swallowed.
+  const notifyError = (scope: ListenerScope, error: unknown) => {
     if ((error as any)?.code === "firestore/permission-denied") {
-      setPendingRequests([]);
-      setSentRequests([]);
-      setFriends([]);
-      setPrivacySettings(null);
-      setPublishedPlanIds(null);
-      setPublishedWorkoutIds(null);
-      return;
+      switch (scope) {
+        case "pendingRequests":
+          setPendingRequests([]);
+          break;
+        case "sentRequests":
+          setSentRequests([]);
+          break;
+        case "friends":
+          setFriends([]);
+          break;
+        case "privacySettings":
+          setPrivacySettings(null);
+          break;
+        case "publishedPlanIds":
+          setPublishedPlanIds(null);
+          break;
+        case "publishedWorkoutIds":
+          setPublishedWorkoutIds(null);
+          break;
+      }
     }
-    Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
+    Bugsnag.notify(
+      error instanceof Error ? error : new Error(String(error)),
+      (event) => {
+        event.addMetadata("useSocialListeners", {
+          scope,
+          code: (error as any)?.code ?? null,
+        });
+      },
+    );
   };
 
   useEffect(() => {
@@ -87,11 +143,11 @@ export const useSocialListeners = () => {
           );
           setPendingRequests(requests);
         } catch (error) {
-          notifyError(error);
+          notifyError("pendingRequests", error);
         }
       },
       (error) => {
-        notifyError(error);
+        notifyError("pendingRequests", error);
       },
     );
 
@@ -121,11 +177,11 @@ export const useSocialListeners = () => {
           );
           setSentRequests(requests);
         } catch (error) {
-          notifyError(error);
+          notifyError("sentRequests", error);
         }
       },
       (error) => {
-        notifyError(error);
+        notifyError("sentRequests", error);
       },
     );
 
@@ -168,7 +224,7 @@ export const useSocialListeners = () => {
         });
       },
       (error) => {
-        notifyError(error);
+        notifyError("friends", error);
       },
     );
 
@@ -183,20 +239,20 @@ export const useSocialListeners = () => {
         }
       },
       (error) => {
-        notifyError(error);
+        notifyError("privacySettings", error);
       },
     );
 
     const unsubPublishedPlans = onSnapshot(
       collection(db, "users", user.uid, "sharedPlans"),
       (snap) => setPublishedPlanIds(snap.docs.map((d: QDocSnap) => d.id)),
-      (error) => notifyError(error),
+      (error) => notifyError("publishedPlanIds", error),
     );
 
     const unsubPublishedWorkouts = onSnapshot(
       collection(db, "users", user.uid, "sharedStandaloneWorkouts"),
       (snap) => setPublishedWorkoutIds(snap.docs.map((d: QDocSnap) => d.id)),
-      (error) => notifyError(error),
+      (error) => notifyError("publishedWorkoutIds", error),
     );
 
     return () => {
@@ -207,5 +263,5 @@ export const useSocialListeners = () => {
       unsubPublishedPlans();
       unsubPublishedWorkouts();
     };
-  }, [user?.uid]);
+  }, [user?.uid, resubscribeGeneration]);
 };

@@ -8,6 +8,7 @@ import {
 } from "@react-native-firebase/firestore";
 import { AuthContext } from "@/context/AuthProvider";
 import { SharedPlan } from "@/types/firestore";
+import { withTimeout } from "@/utils/withTimeout";
 
 export const useFriendSharedPlansQuery = (friendUid: string | null) => {
   const user = useContext(AuthContext);
@@ -16,8 +17,10 @@ export const useFriendSharedPlansQuery = (friendUid: string | null) => {
     queryFn: async (): Promise<SharedPlan[]> => {
       if (!user || !friendUid) return [];
       const db = getFirestore();
-      const snap = await getDocs(
-        collection(db, "users", friendUid, "sharedPlans"),
+      const snap = await withTimeout(
+        getDocs(collection(db, "users", friendUid, "sharedPlans")),
+        15000,
+        "friendSharedPlans",
       );
       return snap.docs.map(
         (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
