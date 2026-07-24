@@ -9,6 +9,7 @@ import {
 import { AuthContext } from "@/context/AuthProvider";
 import { SharedPlan } from "@/types/firestore";
 import { withTimeout } from "@/utils/withTimeout";
+import { reportFirestoreReadError } from "@/utils/reportFirestoreReadError";
 
 export const useFriendSharedPlansQuery = (friendUid: string | null) => {
   const user = useContext(AuthContext);
@@ -17,15 +18,20 @@ export const useFriendSharedPlansQuery = (friendUid: string | null) => {
     queryFn: async (): Promise<SharedPlan[]> => {
       if (!user || !friendUid) return [];
       const db = getFirestore();
-      const snap = await withTimeout(
-        getDocs(collection(db, "users", friendUid, "sharedPlans")),
-        15000,
-        "friendSharedPlans",
-      );
-      return snap.docs.map(
-        (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
-          d.data() as SharedPlan,
-      );
+      try {
+        const snap = await withTimeout(
+          getDocs(collection(db, "users", friendUid, "sharedPlans")),
+          15000,
+          "friendSharedPlans",
+        );
+        return snap.docs.map(
+          (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
+            d.data() as SharedPlan,
+        );
+      } catch (error) {
+        reportFirestoreReadError("friendSharedPlans", error);
+        throw error;
+      }
     },
     enabled: !!user && !!friendUid,
     staleTime: 60_000,

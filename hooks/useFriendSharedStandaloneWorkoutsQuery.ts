@@ -9,6 +9,7 @@ import {
 import { AuthContext } from "@/context/AuthProvider";
 import { SharedStandaloneWorkout } from "@/types/firestore";
 import { withTimeout } from "@/utils/withTimeout";
+import { reportFirestoreReadError } from "@/utils/reportFirestoreReadError";
 
 export const useFriendSharedStandaloneWorkoutsQuery = (
   friendUid: string | null,
@@ -19,17 +20,22 @@ export const useFriendSharedStandaloneWorkoutsQuery = (
     queryFn: async (): Promise<SharedStandaloneWorkout[]> => {
       if (!user || !friendUid) return [];
       const db = getFirestore();
-      const snap = await withTimeout(
-        getDocs(
-          collection(db, "users", friendUid, "sharedStandaloneWorkouts"),
-        ),
-        15000,
-        "friendSharedStandaloneWorkouts",
-      );
-      return snap.docs.map(
-        (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
-          d.data() as SharedStandaloneWorkout,
-      );
+      try {
+        const snap = await withTimeout(
+          getDocs(
+            collection(db, "users", friendUid, "sharedStandaloneWorkouts"),
+          ),
+          15000,
+          "friendSharedStandaloneWorkouts",
+        );
+        return snap.docs.map(
+          (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
+            d.data() as SharedStandaloneWorkout,
+        );
+      } catch (error) {
+        reportFirestoreReadError("friendSharedStandaloneWorkouts", error);
+        throw error;
+      }
     },
     enabled: !!user && !!friendUid,
     staleTime: 60_000,
