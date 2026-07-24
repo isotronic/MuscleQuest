@@ -5,6 +5,7 @@ import {
   FirebaseAuthTypes,
 } from "@react-native-firebase/auth";
 import { upsertUserProfile } from "../utils/userProfile";
+import Bugsnag from "@bugsnag/expo";
 
 export const AuthContext = createContext<FirebaseAuthTypes.User | null>(null);
 
@@ -16,7 +17,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return onAuthStateChanged(auth, (userState) => {
       setUser(userState);
       if (userState) {
+        // Attribute every subsequent Bugsnag report to this user so errors
+        // can be correlated to accounts and blast radius can be measured.
+        Bugsnag.setUser(
+          userState.uid,
+          userState.email ?? undefined,
+          userState.displayName ?? undefined,
+        );
         upsertUserProfile(userState);
+      } else {
+        // Signed out: clear attribution so reports aren't tied to the last user.
+        Bugsnag.setUser();
       }
     });
   }, []);

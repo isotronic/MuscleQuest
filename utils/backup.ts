@@ -9,6 +9,7 @@ import {
 } from "@react-native-firebase/storage";
 import { getAuth } from "@react-native-firebase/auth";
 import { QueryClient } from "@tanstack/react-query";
+import Bugsnag from "@bugsnag/expo";
 import { setAsyncStorageItem } from "./asyncStorage";
 
 const dbName = "userData.db";
@@ -44,8 +45,12 @@ export const uploadDatabaseBackup = async (
     // include WAL/SHM when they actually exist on disk.
     const files = [
       { path: dbFile.uri, fileRef: dbStorageRef },
-      ...(walFile.exists ? [{ path: walFile.uri, fileRef: walStorageRef }] : []),
-      ...(shmFile.exists ? [{ path: shmFile.uri, fileRef: shmStorageRef }] : []),
+      ...(walFile.exists
+        ? [{ path: walFile.uri, fileRef: walStorageRef }]
+        : []),
+      ...(shmFile.exists
+        ? [{ path: shmFile.uri, fileRef: shmStorageRef }]
+        : []),
     ];
 
     let completedFiles = 0;
@@ -104,6 +109,7 @@ export const fetchLastBackupDate = async (): Promise<Date | null> => {
       return null;
     }
     console.error("Error fetching last backup date:", error);
+    Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
     return null;
   }
 };

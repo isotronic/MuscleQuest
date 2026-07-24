@@ -16,6 +16,8 @@ jest.mock("react-native/Libraries/Settings/Settings", () => ({
 // Mock Bugsnag
 jest.mock("@bugsnag/expo", () => ({
   notify: jest.fn(),
+  setUser: jest.fn(),
+  leaveBreadcrumb: jest.fn(),
 }));
 
 // Mock Firebase Auth

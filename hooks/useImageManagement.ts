@@ -104,10 +104,16 @@ export const useImageManagement = (
           t`Some images failed to delete. Failed exercise IDs: ${failedDeletes.join(", ")}`,
         );
         console.error("Some images failed to delete:", failedDeletes);
+        Bugsnag.notify(
+          new Error(
+            `Some animated images failed to delete: ${failedDeletes.join(", ")}`,
+          ),
+        );
       }
     } catch (error) {
       Alert.alert(t`Error`, t`An error occurred while deleting images.`);
       console.error("Error deleting images:", error);
+      Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
     } finally {
       setIsDeleting(false);
     }

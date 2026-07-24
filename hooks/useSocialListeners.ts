@@ -217,9 +217,34 @@ export const useSocialListeners = () => {
                 updateDoc(
                   doc(db, "users", user.uid, "friends", docSnap.id),
                   profile as unknown as Record<string, unknown>,
-                ).catch(() => {});
+                ).catch((error: unknown) => {
+                  Bugsnag.notify(
+                    error instanceof Error ? error : new Error(String(error)),
+                    (event) => {
+                      event.addMetadata("useSocialListeners", {
+                        scope: "friendProfileWrite",
+                        friendUid: docSnap.id,
+                        code: (error as any)?.code ?? null,
+                      });
+                    },
+                  );
+                });
               })
-              .catch(() => {});
+              .catch((error: unknown) => {
+                // Friend-profile read failed after all retries. Report instead
+                // of swallowing so recurring production read failures are
+                // visible (this path previously dropped the error silently).
+                Bugsnag.notify(
+                  error instanceof Error ? error : new Error(String(error)),
+                  (event) => {
+                    event.addMetadata("useSocialListeners", {
+                      scope: "friendProfileFetch",
+                      friendUid: docSnap.id,
+                      code: (error as any)?.code ?? null,
+                    });
+                  },
+                );
+              });
           }
         });
       },

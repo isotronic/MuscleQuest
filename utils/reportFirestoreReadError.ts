@@ -1,5 +1,6 @@
 import Bugsnag from "@bugsnag/expo";
 import { TimeoutError } from "./withTimeout";
+import { markReported } from "./bugsnagDedup";
 
 // Reports a failed Firestore read to Bugsnag with the details needed to tell
 // the failure modes apart: the Firestore error `code`
@@ -19,4 +20,7 @@ export const reportFirestoreReadError = (
       message: err.message,
     });
   });
+  // The caller rethrows so react-query surfaces the error; mark it so the
+  // global safety net doesn't report this same error a second time.
+  markReported(error);
 };

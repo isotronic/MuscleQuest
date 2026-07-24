@@ -1,5 +1,6 @@
 import { Alert } from "react-native";
 import { router } from "expo-router";
+import Bugsnag from "@bugsnag/expo";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 
 export const confirmStartWorkout = async (
@@ -16,6 +17,7 @@ export const confirmStartWorkout = async (
       router.push("/(app)/(workout)");
     } catch (e) {
       console.error("Failed to start workout:", e);
+      Bugsnag.notify(e instanceof Error ? e : new Error(String(e)));
       setLoading(false);
     } finally {
       setTimeout(() => setLoading(false), 500);

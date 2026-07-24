@@ -232,6 +232,60 @@ describe("useSocialListeners - friends snapshot", () => {
     expect(mockSetFriends).toHaveBeenCalledTimes(1);
     expect(mockUpdateFriendProfile).not.toHaveBeenCalled();
   });
+
+  it("reports to Bugsnag when the background friend-profile fetch fails instead of swallowing it", async () => {
+    const Bugsnag = jest.requireMock("@bugsnag/expo").default;
+    const error = new Error("unreachable");
+    mockFetchFriendProfile.mockRejectedValue(error);
+    useSocialListeners();
+    const snapshot = {
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({ since: { toDate: () => new Date("2024-01-01") } }),
+        },
+      ],
+    };
+
+    snapshotCallbacks[friendsRef](snapshot);
+    // Flush the fetch rejection and its catch handler.
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(Bugsnag.notify).toHaveBeenCalledWith(error, expect.any(Function));
+  });
+
+  it("reports to Bugsnag when the Firestore profile backfill write fails", async () => {
+    const Bugsnag = jest.requireMock("@bugsnag/expo").default;
+    const profile = {
+      displayName: "Alice",
+      email: "alice@example.com",
+      photoURL: "https://example.com/alice.jpg",
+    };
+    mockFetchFriendProfile.mockResolvedValue(profile);
+    const writeError = new Error("write failed");
+    mockUpdateDoc.mockRejectedValue(writeError);
+    useSocialListeners();
+    const snapshot = {
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({ since: { toDate: () => new Date("2024-01-01") } }),
+        },
+      ],
+    };
+
+    snapshotCallbacks[friendsRef](snapshot);
+    // Flush the fetch resolution, the write rejection, and its catch handler.
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(Bugsnag.notify).toHaveBeenCalledWith(
+      writeError,
+      expect.any(Function),
+    );
+  });
 });
 
 describe("useSocialListeners - listener error scoping", () => {
