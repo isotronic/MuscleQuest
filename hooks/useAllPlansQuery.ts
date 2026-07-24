@@ -2,7 +2,7 @@ import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { Workout } from "@/store/workoutStore";
 import { useQuery } from "@tanstack/react-query";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export interface Plan {
   id: number | null;
@@ -148,7 +148,7 @@ export const fetchPlans = async (): Promise<{
     return transformRawPlans(rawPlans);
   } catch (error: any) {
     console.error("Error fetching plans", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw new Error("Failed to fetch plans");
   } finally {
     if (db) await db.closeAsync();

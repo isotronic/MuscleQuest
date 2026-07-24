@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchRecord, openDatabase } from "@/utils/database";
 import { Plan } from "./useAllPlansQuery";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export interface WorkoutRecord {
   id: number;
@@ -103,7 +103,7 @@ const fetchWorkoutsForPlan = async (
     return rawWorkouts;
   } catch (error: any) {
     console.error("Error fetching workouts for plan", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw new Error("Failed to fetch workouts for plan");
   } finally {
     await db.closeAsync();
@@ -169,7 +169,7 @@ const fetchPlan = async (planId: number): Promise<Plan | null> => {
     };
   } catch (error: any) {
     console.error("Error fetching plan", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     return null;
   }
 };

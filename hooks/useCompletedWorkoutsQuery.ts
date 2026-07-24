@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 interface WorkoutResult {
   id: number;
@@ -125,7 +125,7 @@ const fetchCompletedWorkouts = async (
     return results as WorkoutResult[];
   } catch (error: any) {
     console.error("Error fetching completed workouts:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw new Error("Failed to fetch completed workouts");
   } finally {
     if (db) await db.closeAsync();
@@ -430,7 +430,7 @@ const fetchWorkoutHistoryForSession = async (
     return workoutsArray;
   } catch (error: any) {
     console.error("Error fetching workout session history:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw new Error("Failed to fetch workout session history");
   } finally {
     if (db) await db.closeAsync();
@@ -598,7 +598,7 @@ const fetchGlobalExerciseHistoryForSession = async (
     return workoutsArray;
   } catch (error: any) {
     console.error("Error fetching global exercise history:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw new Error("Failed to fetch global exercise history");
   } finally {
     if (db) await db.closeAsync();

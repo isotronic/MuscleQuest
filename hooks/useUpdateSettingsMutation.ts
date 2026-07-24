@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { updateSettings } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export const useUpdateSettingsMutation = () => {
   const queryClient = useQueryClient();
@@ -13,7 +13,7 @@ export const useUpdateSettingsMutation = () => {
     },
     onError: (error) => {
       console.error("Failed to update settings:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };

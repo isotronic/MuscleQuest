@@ -24,7 +24,7 @@ import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 import { useDeleteStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { confirmStartWorkout } from "@/utils/startWorkout";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { Trans } from "@lingui/react/macro";
@@ -100,7 +100,7 @@ export default function StandaloneWorkoutScreen() {
               await deleteMutation.mutateAsync(workoutId);
               router.back();
             } catch (e: any) {
-              Bugsnag.notify(e);
+              notifyBugsnag(e);
               Alert.alert(
                 t`Error`,
                 t`Failed to delete workout. Please try again.`,

@@ -21,7 +21,7 @@ import {
 import { useAppTheme } from "@/theme";
 import WorkoutCard from "@/components/WorkoutCard";
 import { useQueryClient } from "@tanstack/react-query";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import SaveIcon from "@/components/SaveIcon";
 import {
   useCreateStandaloneWorkout,
@@ -218,7 +218,7 @@ export default function CreateWorkoutScreen() {
       router.back();
     } catch (error: any) {
       console.error("Error saving workout:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     } finally {
       setTimeout(() => setIsSaving(false), 500);
     }

@@ -24,7 +24,7 @@ import {
   Switch,
   ActivityIndicator,
 } from "react-native-paper";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { Notes } from "@/components/Notes";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
@@ -217,7 +217,7 @@ export default function PlanOverviewScreen() {
                   t`Error`,
                   t`Failed to delete plan: ${error.message}`,
                 );
-                Bugsnag.notify(error);
+                notifyBugsnag(error);
               },
             });
           },
@@ -238,7 +238,7 @@ export default function PlanOverviewScreen() {
         setSnackbarMessage(t`Failed to activate this plan: ${error.message}`);
         setSnackbarError(true);
         setSnackbarVisible(true);
-        Bugsnag.notify(error);
+        notifyBugsnag(error);
       },
     });
   };

@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useContext } from "react";
 import { AuthContext } from "@/context/AuthProvider";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import {
   publishStandaloneWorkout,
   unpublishStandaloneWorkout,
@@ -22,7 +22,7 @@ export const useWorkoutPublishMutation = (workoutId: number) => {
     },
     onSuccess: () => {},
     onError: (error: Error) => {
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };

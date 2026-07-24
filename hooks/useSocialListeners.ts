@@ -19,7 +19,7 @@ import {
 } from "../store/socialStore";
 import { fetchFriendProfile } from "../utils/fetchFriendProfile";
 import { FriendInfo, FirestorePrivateSettings } from "../types/firestore";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 type QDocSnap = FirebaseFirestoreTypes.QueryDocumentSnapshot;
 type DocSnap = FirebaseFirestoreTypes.DocumentSnapshot;
@@ -93,7 +93,7 @@ export const useSocialListeners = () => {
           break;
       }
     }
-    Bugsnag.notify(
+    notifyBugsnag(
       error instanceof Error ? error : new Error(String(error)),
       (event) => {
         event.addMetadata("useSocialListeners", {
@@ -218,7 +218,7 @@ export const useSocialListeners = () => {
                   doc(db, "users", user.uid, "friends", docSnap.id),
                   profile as unknown as Record<string, unknown>,
                 ).catch((error: unknown) => {
-                  Bugsnag.notify(
+                  notifyBugsnag(
                     error instanceof Error ? error : new Error(String(error)),
                     (event) => {
                       event.addMetadata("useSocialListeners", {
@@ -234,7 +234,7 @@ export const useSocialListeners = () => {
                 // Friend-profile read failed after all retries. Report instead
                 // of swallowing so recurring production read failures are
                 // visible (this path previously dropped the error silently).
-                Bugsnag.notify(
+                notifyBugsnag(
                   error instanceof Error ? error : new Error(String(error)),
                   (event) => {
                     event.addMetadata("useSocialListeners", {

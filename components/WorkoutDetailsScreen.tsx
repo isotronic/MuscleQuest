@@ -10,7 +10,7 @@ import { UserExercise } from "@/store/workoutStore";
 import { AppImage } from "@/components/ui";
 import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
 import { classifySupersetPosition } from "@/utils/supersetUtils";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { Notes } from "@/components/Notes";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
@@ -215,7 +215,7 @@ export default function WorkoutDetailsScreen() {
   }
 
   if (error) {
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     return (
       <ThemedText>
         <Trans>Error: {error.message}</Trans>

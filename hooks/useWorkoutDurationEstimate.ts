@@ -7,7 +7,7 @@ import {
   type SetDurationSample,
 } from "@/utils/estimateWorkoutDuration";
 import type { UserExercise } from "@/store/workoutStore";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export function useWorkoutDurationEstimate(
   exercises: UserExercise[],
@@ -27,7 +27,7 @@ export function useWorkoutDurationEstimate(
       try {
         return await fetchSetDurationsForExercises(exerciseIds);
       } catch (error: any) {
-        Bugsnag.notify(error);
+        notifyBugsnag(error);
         throw error;
       }
     },

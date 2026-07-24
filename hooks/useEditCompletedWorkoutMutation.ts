@@ -3,7 +3,7 @@ import { CompletedWorkout } from "./useCompletedWorkoutsQuery";
 import { Alert } from "react-native";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 const saveCompletedWorkoutWithConversion = async (
   completedWorkoutData: CompletedWorkout["exercises"],
@@ -45,7 +45,7 @@ const saveCompletedWorkoutWithConversion = async (
     });
   } catch (error: any) {
     console.error("Error saving edited workout:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -75,7 +75,7 @@ export const useEditCompletedWorkoutMutation = (
     },
     onError: (error) => {
       console.error("Error saving edited workout:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
       Alert.alert(
         "Error",
         "An error occurred while saving your edited workout. Please try again.",

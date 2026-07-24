@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { openDatabase } from "@/utils/database";
 import { SharedCustomExercise } from "@/types/firestore";
 
@@ -40,7 +40,7 @@ export const useImportCustomExerciseMutation = () => {
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
     },
     onError: (error: Error) => {
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };

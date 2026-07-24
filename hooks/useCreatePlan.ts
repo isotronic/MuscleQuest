@@ -11,7 +11,7 @@ import { useEffect, useState, useContext } from "react";
 import { Alert } from "react-native";
 import { Plan } from "./useAllPlansQuery";
 import { useQueryClient } from "@tanstack/react-query";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { AuthContext } from "@/context/AuthProvider";
 import { publishPlan } from "@/utils/sharing";
 import { useSocialStore } from "@/store/socialStore";
@@ -69,7 +69,7 @@ export const useCreatePlan = (existingPlan?: Plan) => {
                 queryKey: ["planPublished", user.uid, newPlanId],
               });
             })
-            .catch((err) => Bugsnag.notify(err));
+            .catch((err) => notifyBugsnag(err));
         }
       } else {
         await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
@@ -79,7 +79,7 @@ export const useCreatePlan = (existingPlan?: Plan) => {
         // publishedPlanIds cache instead of a Firestore getDoc so an editing
         // save never blocks on a network round-trip.
         if (user && publishedPlanIds?.includes(String(planId))) {
-          publishPlan(user.uid, planId).catch((err) => Bugsnag.notify(err));
+          publishPlan(user.uid, planId).catch((err) => notifyBugsnag(err));
         }
 
         queryClient.invalidateQueries({ queryKey: ["plan", planId] });
@@ -115,14 +115,14 @@ export const useCreatePlan = (existingPlan?: Plan) => {
           }
         } catch (scheduleError: any) {
           console.error("Error saving plan schedule:", scheduleError);
-          Bugsnag.notify(scheduleError);
+          notifyBugsnag(scheduleError);
           // Non-critical: don't fail the whole save
         } finally {
           if (scheduleDb) {
             try {
               await scheduleDb.closeAsync();
             } catch (closeError: any) {
-              Bugsnag.notify(closeError);
+              notifyBugsnag(closeError);
             }
           }
         }
@@ -143,7 +143,7 @@ export const useCreatePlan = (existingPlan?: Plan) => {
       return newPlanId ?? undefined;
     } catch (error: any) {
       console.error("Error inserting/updating plan data:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
       setIsError(true);
       localError = true;
     } finally {

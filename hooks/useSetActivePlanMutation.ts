@@ -4,7 +4,7 @@ import {
   updateActivePlan,
   updateSettings,
 } from "@/utils/database";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export const useSetActivePlanMutation = () => {
   const queryClient = useQueryClient();
@@ -19,7 +19,7 @@ export const useSetActivePlanMutation = () => {
           queryClient.invalidateQueries({ queryKey: ["settings"] });
         }
       } catch (err) {
-        Bugsnag.notify(err as Error, (event) => {
+        notifyBugsnag(err as Error, (event) => {
           event.addMetadata("useSetActivePlanMutation", {
             planId,
             message: "fetchPlanSchedule/updateSettings failed",

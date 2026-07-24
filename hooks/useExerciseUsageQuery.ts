@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export interface ExerciseUsage {
   exerciseId: number;
@@ -31,7 +31,7 @@ const fetchExerciseUsage = async (): Promise<ExerciseUsage[]> => {
     try {
       await db.closeAsync();
     } catch (closeError: any) {
-      Bugsnag.notify(closeError);
+      notifyBugsnag(closeError);
     }
   }
 };
@@ -43,7 +43,7 @@ export const useExerciseUsageQuery = () => {
       try {
         return await fetchExerciseUsage();
       } catch (error: any) {
-        Bugsnag.notify(error);
+        notifyBugsnag(error);
         throw error;
       }
     },

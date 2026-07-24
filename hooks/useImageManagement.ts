@@ -1,6 +1,6 @@
 import { deleteAllAnimatedImages } from "@/utils/deleteAllAnimatedImages";
 import { downloadAllAnimatedImages } from "@/utils/downloadAllAnimatedImages";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { useState } from "react";
 import { Alert } from "react-native";
 import { t } from "@lingui/core/macro";
@@ -78,7 +78,7 @@ export const useImageManagement = (
     } catch (error: any) {
       Alert.alert(t`Error`, t`An error occurred while downloading images.`);
       console.error("Error downloading images:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     } finally {
       setIsDownloading(false);
     }
@@ -104,7 +104,7 @@ export const useImageManagement = (
           t`Some images failed to delete. Failed exercise IDs: ${failedDeletes.join(", ")}`,
         );
         console.error("Some images failed to delete:", failedDeletes);
-        Bugsnag.notify(
+        notifyBugsnag(
           new Error(
             `Some animated images failed to delete: ${failedDeletes.join(", ")}`,
           ),
@@ -113,7 +113,7 @@ export const useImageManagement = (
     } catch (error) {
       Alert.alert(t`Error`, t`An error occurred while deleting images.`);
       console.error("Error deleting images:", error);
-      Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
+      notifyBugsnag(error instanceof Error ? error : new Error(String(error)));
     } finally {
       setIsDeleting(false);
     }

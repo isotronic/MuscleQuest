@@ -3,7 +3,7 @@ import { Plan, RawPlan } from "./useAllPlansQuery";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { Workout } from "@/store/workoutStore";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export const fetchActivePlanData = async (): Promise<Plan | null> => {
   let db: SQLiteDatabase | undefined;
@@ -98,14 +98,14 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
     };
   } catch (error: any) {
     console.error("Error fetching or parsing active plan", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     return null;
   } finally {
     if (db) {
       try {
         await db.closeAsync();
       } catch (closeError: any) {
-        Bugsnag.notify(closeError);
+        notifyBugsnag(closeError);
       }
     }
   }
