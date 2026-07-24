@@ -591,7 +591,7 @@ export const fetchAllCustomExercisesForSharing = async (): Promise<
 > => {
   const db = await openDatabase("userData.db");
   try {
-    return db.getAllAsync<Exercise>(
+    return await db.getAllAsync<Exercise>(
       `SELECT * FROM exercises WHERE app_exercise_id IS NULL AND is_deleted = FALSE`,
     );
   } finally {
