@@ -75,7 +75,7 @@ export default function PlansScreen() {
 
   const handleViewWorkout = (workout: Workout) => {
     router.push({
-      pathname: "/(app)/(tabs)/(plans)/standalone-workout",
+      pathname: "/standalone-workout",
       params: { workoutId: workout.id!.toString() },
     });
   };

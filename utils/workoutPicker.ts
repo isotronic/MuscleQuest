@@ -1,10 +1,16 @@
 import { Plan } from "@/hooks/useAllPlansQuery";
 import { Workout } from "@/store/workoutStore";
 
+export interface PlanWorkoutEntry {
+  workout: Workout;
+  /** Index of the workout within its plan, before search filtering. */
+  index: number;
+}
+
 export interface PlanWorkoutSection {
   planId: number | null;
   planName: string;
-  workouts: Workout[];
+  workouts: PlanWorkoutEntry[];
 }
 
 export interface WorkoutPickerSections {
@@ -25,7 +31,9 @@ export function buildWorkoutPickerSections(
     .map((plan) => ({
       planId: plan.id,
       planName: plan.name,
-      workouts: plan.workouts.filter((workout) => matchesQuery(workout.name)),
+      workouts: plan.workouts
+        .map((workout, index) => ({ workout, index }))
+        .filter((entry) => matchesQuery(entry.workout.name)),
     }))
     .filter((section) => section.workouts.length > 0);
 

@@ -206,6 +206,20 @@ msgstr ""
 "Fixed a bug where all buttons (increment/decrement, next/previous set, complete set) would stop working after completing a set. Also fixed an error in the edit set modal. Set transitions now happen instantly for a smoother workout flow.\n"
 ""
 
+#: constants/WhatsNew.ts:399
+msgid ""
+"\n"
+"👀 Improved: Preview Before You Start!\n"
+"\n"
+"In the Choose Workout list, tapping a workout now opens its details so you can check the exercises first. Use the Start button on the right to jump straight into the session. Plan workouts also gained a Start button on their details screen.\n"
+""
+msgstr ""
+"\n"
+"👀 Improved: Preview Before You Start!\n"
+"\n"
+"In the Choose Workout list, tapping a workout now opens its details so you can check the exercises first. Use the Start button on the right to jump straight into the session. Plan workouts also gained a Start button on their details screen.\n"
+""
+
 #: constants/WhatsNew.ts:305
 msgid ""
 "\n"
@@ -696,11 +710,11 @@ msgstr ""
 "The Plans screen now has three display modes. Use the icons next to the \"Your Training Plans\" heading to switch between Carousel, List, and Grid view. Your preferred layout is saved automatically.\n"
 ""
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:190
+#: components/StandaloneWorkoutScreen.tsx:190
 msgid " (to Failure)"
 msgstr " (to Failure)"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:197
+#: components/StandaloneWorkoutScreen.tsx:197
 msgid " (to Failure) "
 msgstr " (to Failure) "
 
@@ -709,17 +723,17 @@ msgid "\"{label}\" will be hidden from the entry form. Your historical data is p
 msgstr "\"{label}\" will be hidden from the entry form. Your historical data is preserved."
 
 #: components/WorkoutCard.tsx:269
-#: components/WorkoutDetailsScreen.tsx:191
+#: components/WorkoutDetailsScreen.tsx:208
 msgid "(to Failure)"
 msgstr "(to Failure)"
 
 #: components/WorkoutCard.tsx:276
-#: components/WorkoutDetailsScreen.tsx:198
+#: components/WorkoutDetailsScreen.tsx:215
 msgid "(to Failure) "
 msgstr "(to Failure) "
 
 #. placeholder {0}: workout.exercises.length
-#: components/StandaloneWorkoutListItem.tsx:59
+#: components/StandaloneWorkoutListItem.tsx:65
 msgid "{0, plural, one {# exercise} other {# exercises}}"
 msgstr "{0, plural, one {# exercise} other {# exercises}}"
 
@@ -833,8 +847,8 @@ msgid "{0} sets"
 msgstr "{0} sets"
 
 #. placeholder {0}: item.sets.length
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:187
-#: components/WorkoutDetailsScreen.tsx:187
+#: components/StandaloneWorkoutScreen.tsx:187
+#: components/WorkoutDetailsScreen.tsx:204
 msgid "{0} Sets"
 msgstr "{0} Sets"
 
@@ -1042,7 +1056,7 @@ msgstr "A new version has been downloaded. Tap the button below to restart and a
 msgid "A plateau advisory note appears if an exercise has been at the same load for four or more sessions."
 msgstr "A plateau advisory note appears if an exercise has been at the same load for four or more sessions."
 
-#: app/_layout.tsx:97
+#: app/_layout.tsx:103
 msgid "A render error has occurred. Press the button to reload."
 msgstr "A render error has occurred. Press the button to reload."
 
@@ -1329,7 +1343,7 @@ msgstr "Almost there. Just missed the rep target. Hold and try again next sessio
 msgid "Always use most recent exercise history"
 msgstr "Always use most recent exercise history"
 
-#: hooks/useImageManagement.ts:109
+#: hooks/useImageManagement.ts:114
 msgid "An error occurred while deleting images."
 msgstr "An error occurred while deleting images."
 
@@ -1375,7 +1389,7 @@ msgid "Are you sure you want to cancel and delete this workout?"
 msgstr "Are you sure you want to cancel and delete this workout?"
 
 #. placeholder {0}: workout?.name ?? ""
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:92
+#: components/StandaloneWorkoutScreen.tsx:92
 msgid "Are you sure you want to delete \"{0}\"?"
 msgstr "Are you sure you want to delete \"{0}\"?"
 
@@ -1615,7 +1629,6 @@ msgstr "calves"
 #: app/(app)/(create-plan)/create.tsx:279
 #: app/(app)/(tabs)/(plans)/overview.tsx:153
 #: app/(app)/(tabs)/(plans)/overview.tsx:204
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:94
 #: app/(app)/(tabs)/(stats)/history-details.tsx:173
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:118
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:85
@@ -1631,6 +1644,7 @@ msgstr "calves"
 #: components/friends/FriendListItem.tsx:24
 #: components/PrivacySettings.tsx:70
 #: components/SettingsModal.tsx:282
+#: components/StandaloneWorkoutScreen.tsx:94
 #: components/WorkoutCard.tsx:87
 #: hooks/useImageManagement.ts:25
 #: hooks/useImageManagement.ts:41
@@ -1657,7 +1671,7 @@ msgstr "cardiovascular system"
 msgid "Change Image"
 msgstr "Change Image"
 
-#: components/WorkoutDetailsScreen.tsx:230
+#: components/WorkoutDetailsScreen.tsx:247
 msgid "Changes for this session"
 msgstr "Changes for this session"
 
@@ -1678,7 +1692,7 @@ msgstr "Chest"
 msgid "Choose a tracking type: weight + reps, time, distance, reps only, or assisted (factors in your body weight, for movements like assisted pull-ups)."
 msgstr "Choose a tracking type: weight + reps, time, distance, reps only, or assisted (factors in your body weight, for movements like assisted pull-ups)."
 
-#: components/WorkoutPickerModal.tsx:83
+#: components/WorkoutPickerModal.tsx:104
 msgid "Choose a Workout"
 msgstr "Choose a Workout"
 
@@ -1884,13 +1898,13 @@ msgid "Default sets"
 msgstr "Default sets"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:208
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:96
 #: app/(app)/(tabs)/(stats)/history-details.tsx:175
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:120
 #: app/(app)/(workout)/index.tsx:418
 #: app/(app)/(workout)/index.tsx:643
 #: app/(app)/(workout)/workout-session.tsx:768
 #: components/PrivacySettings.tsx:72
+#: components/StandaloneWorkoutScreen.tsx:96
 #: components/WorkoutCard.tsx:298
 #: hooks/useImageManagement.ts:46
 msgid "Delete"
@@ -1926,8 +1940,8 @@ msgstr "Delete Plan"
 msgid "Delete Set"
 msgstr "Delete Set"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:91
 #: app/(app)/(tabs)/(stats)/history-details.tsx:170
+#: components/StandaloneWorkoutScreen.tsx:91
 msgid "Delete Workout"
 msgstr "Delete Workout"
 
@@ -2018,7 +2032,7 @@ msgid "Dismiss"
 msgstr "Dismiss"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:462
-#: components/WorkoutDetailsScreen.tsx:297
+#: components/WorkoutDetailsScreen.tsx:326
 msgid "DISMISS"
 msgstr "DISMISS"
 
@@ -2173,8 +2187,8 @@ msgid "Edit Plan"
 msgstr "Edit Plan"
 
 #: app/(app)/(create-plan)/create-workout.tsx:247
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:327
 #: app/(app)/(tabs)/(stats)/_layout.tsx:22
+#: components/StandaloneWorkoutScreen.tsx:327
 msgid "Edit Workout"
 msgstr "Edit Workout"
 
@@ -2302,7 +2316,6 @@ msgstr "Equipment:"
 
 #: app/(app)/(create-plan)/image-search.tsx:43
 #: app/(app)/(tabs)/(plans)/overview.tsx:217
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:105
 #: app/(app)/(workout)/index.tsx:922
 #: app/(app)/(workout)/index.tsx:1122
 #: app/(app)/custom-exercise.tsx:135
@@ -2313,9 +2326,10 @@ msgstr "Equipment:"
 #: app/login.tsx:73
 #: components/FilterRow.tsx:86
 #: components/FilterRow.tsx:132
+#: components/StandaloneWorkoutScreen.tsx:105
 #: hooks/useDeleteCompletedWorkoutMutation.ts:20
 #: hooks/useImageManagement.ts:79
-#: hooks/useImageManagement.ts:109
+#: hooks/useImageManagement.ts:114
 msgid "Error"
 msgstr "Error"
 
@@ -2354,7 +2368,7 @@ msgstr "Error saving workout"
 #. placeholder {0}: settingsError.message
 #: app/(app)/(tabs)/(plans)/overview.tsx:257
 #: app/(app)/(workout)/workout-session.tsx:1538
-#: components/WorkoutDetailsScreen.tsx:221
+#: components/WorkoutDetailsScreen.tsx:238
 msgid "Error: {0}"
 msgstr "Error: {0}"
 
@@ -2388,15 +2402,15 @@ msgstr "Exercise"
 msgid "Exercise Already Added"
 msgstr "Exercise Already Added"
 
-#: app/(app)/_layout.tsx:61
+#: app/(app)/_layout.tsx:62
 msgid "Exercise Details"
 msgstr "Exercise Details"
 
-#: app/(app)/_layout.tsx:41
+#: app/(app)/_layout.tsx:42
 msgid "Exercise Info"
 msgstr "Exercise Info"
 
-#: app/(app)/_layout.tsx:48
+#: app/(app)/_layout.tsx:49
 #: components/AppMenu.tsx:202
 #: constants/HelpData.ts:201
 msgid "Exercise Library"
@@ -2443,7 +2457,7 @@ msgid "Failed to activate this plan: {0}"
 msgstr "Failed to activate this plan: {0}"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:190
-#: components/WorkoutDetailsScreen.tsx:71
+#: components/WorkoutDetailsScreen.tsx:88
 msgid "Failed to copy workout. Please try again."
 msgstr "Failed to copy workout. Please try again."
 
@@ -2456,7 +2470,7 @@ msgstr "Failed to delete plan: {0}"
 msgid "Failed to delete the workout. Please try again."
 msgstr "Failed to delete the workout. Please try again."
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:106
+#: components/StandaloneWorkoutScreen.tsx:106
 msgid "Failed to delete workout. Please try again."
 msgstr "Failed to delete workout. Please try again."
 
@@ -2511,7 +2525,7 @@ msgstr "Failed to sign out of Google. Continuing sign-out."
 msgid "Failed to sign out. Please try again."
 msgstr "Failed to sign out. Please try again."
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:303
+#: components/StandaloneWorkoutScreen.tsx:303
 msgid "Failed to update sharing. Please try again."
 msgstr "Failed to update sharing. Please try again."
 
@@ -2571,7 +2585,7 @@ msgstr "Fri"
 msgid "Friday"
 msgstr "Friday"
 
-#: app/(app)/_layout.tsx:52
+#: app/(app)/_layout.tsx:53
 msgid "Friend Profile"
 msgstr "Friend Profile"
 
@@ -2679,7 +2693,7 @@ msgstr "hamstrings"
 msgid "Hard, near limit"
 msgstr "Hard, near limit"
 
-#: app/(app)/_layout.tsx:45
+#: app/(app)/_layout.tsx:46
 #: components/AppMenu.tsx:212
 msgid "Help & Info"
 msgstr "Help & Info"
@@ -2864,7 +2878,7 @@ msgstr "leverage machine"
 msgid "Load up"
 msgstr "Load up"
 
-#: app/_layout.tsx:222
+#: app/_layout.tsx:239
 msgid "Loading data, please wait..."
 msgstr "Loading data, please wait..."
 
@@ -2873,7 +2887,7 @@ msgid "Loading Plan..."
 msgstr "Loading Plan..."
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:249
-#: components/WorkoutDetailsScreen.tsx:212
+#: components/WorkoutDetailsScreen.tsx:229
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -3102,7 +3116,7 @@ msgstr "No data for this period."
 msgid "No exercises added yet"
 msgstr "No exercises added yet"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:263
+#: components/StandaloneWorkoutScreen.tsx:263
 msgid "No exercises in this workout yet."
 msgstr "No exercises in this workout yet."
 
@@ -3166,12 +3180,12 @@ msgstr "No results for \"{query}\""
 msgid "No schedule set"
 msgstr "No schedule set"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:187
+#: components/StandaloneWorkoutScreen.tsx:187
 msgid "No Sets"
 msgstr "No Sets"
 
 #: components/WorkoutCard.tsx:265
-#: components/WorkoutDetailsScreen.tsx:188
+#: components/WorkoutDetailsScreen.tsx:205
 msgid "No Sets Available"
 msgstr "No Sets Available"
 
@@ -3199,7 +3213,7 @@ msgstr "No workout available"
 msgid "No workouts completed yet. Start your first workout!"
 msgstr "No workouts completed yet. Start your first workout!"
 
-#: components/WorkoutPickerModal.tsx:108
+#: components/WorkoutPickerModal.tsx:129
 msgid "No workouts found"
 msgstr "No workouts found"
 
@@ -3212,7 +3226,7 @@ msgid "No workouts shared yet"
 msgstr "No workouts shared yet"
 
 #: app/(app)/(tabs)/(plans)/index.tsx:164
-#: components/WorkoutPickerModal.tsx:104
+#: components/WorkoutPickerModal.tsx:125
 msgid "No workouts yet"
 msgstr "No workouts yet"
 
@@ -3357,7 +3371,7 @@ msgstr "Personal"
 msgid "Pin exercises in the Stats tab to track their strength progression over time. Each tracked exercise shows a chart of your performance over the selected time range, your all-time personal record, your top sets, and a list of recent sessions showing the best set per day. Charts update automatically after each workout that includes that exercise."
 msgstr "Pin exercises in the Stats tab to track their strength progression over time. Each tracked exercise shows a chart of your performance over the selected time range, your all-time personal record, your top sets, and a list of recent sessions showing the best set per day. Charts update automatically after each workout that includes that exercise."
 
-#: app/(app)/_layout.tsx:54
+#: app/(app)/_layout.tsx:55
 msgid "Plan Details"
 msgstr "Plan Details"
 
@@ -3500,7 +3514,7 @@ msgstr "Reduce load"
 msgid "Reduce to {0}{unit}"
 msgstr "Reduce to {0}{unit}"
 
-#: app/_layout.tsx:100
+#: app/_layout.tsx:106
 msgid "Reload"
 msgstr "Reload"
 
@@ -3565,7 +3579,6 @@ msgstr "Replace"
 msgid "reps"
 msgstr "reps"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:197
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:249
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:253
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:290
@@ -3573,8 +3586,9 @@ msgstr "reps"
 #: app/(app)/custom-exercise.tsx:70
 #: components/charts/ExerciseProgressionChart.tsx:377
 #: components/SessionSetInfo.tsx:449
+#: components/StandaloneWorkoutScreen.tsx:197
 #: components/WorkoutCard.tsx:276
-#: components/WorkoutDetailsScreen.tsx:198
+#: components/WorkoutDetailsScreen.tsx:215
 msgid "Reps"
 msgstr "Reps"
 
@@ -3737,7 +3751,7 @@ msgstr "Saving Workout..."
 #: app/(app)/exercise-library.tsx:105
 #: app/(app)/friends.tsx:62
 #: app/(app)/friends.tsx:280
-#: components/WorkoutPickerModal.tsx:89
+#: components/WorkoutPickerModal.tsx:110
 msgid "Search"
 msgstr "Search"
 
@@ -3859,7 +3873,7 @@ msgstr "Sets Overview"
 msgid "settings"
 msgstr "settings"
 
-#: app/(app)/_layout.tsx:44
+#: app/(app)/_layout.tsx:45
 #: components/AppMenu.tsx:207
 #: constants/HelpData.ts:269
 msgid "Settings"
@@ -3897,7 +3911,7 @@ msgstr "Share standalone workouts with friends"
 msgid "Share strength PRs with friends"
 msgstr "Share strength PRs with friends"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:290
+#: components/StandaloneWorkoutScreen.tsx:290
 msgid "Share Workout"
 msgstr "Share Workout"
 
@@ -4043,7 +4057,7 @@ msgid "spine"
 msgstr "spine"
 
 #: app/(app)/friend-profile.tsx:331
-#: components/WorkoutPickerModal.tsx:135
+#: components/WorkoutPickerModal.tsx:161
 msgid "Standalone Workouts"
 msgstr "Standalone Workouts"
 
@@ -4056,6 +4070,7 @@ msgid "Standalone workouts live outside of plans and appear alongside your plans
 msgstr "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library, then start any one of them straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work."
 
 #: app/(app)/(tabs)/index.tsx:577
+#: components/StandaloneWorkoutListItem.tsx:80
 msgid "Start"
 msgstr "Start"
 
@@ -4067,12 +4082,13 @@ msgstr "Start Plan"
 msgid "Start Timer"
 msgstr "Start Timer"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:318
+#: components/StandaloneWorkoutScreen.tsx:318
+#: components/WorkoutDetailsScreen.tsx:308
 msgid "Start Workout"
 msgstr "Start Workout"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:234
 #: app/(app)/(tabs)/index.tsx:316
+#: components/StandaloneWorkoutScreen.tsx:234
 msgid "Starting Workout..."
 msgstr "Starting Workout..."
 
@@ -4156,7 +4172,7 @@ msgstr "Sunday"
 
 #: app/(app)/(create-plan)/sets-overview.tsx:210
 #: components/WorkoutCard.tsx:364
-#: components/WorkoutDetailsScreen.tsx:150
+#: components/WorkoutDetailsScreen.tsx:167
 msgid "Superset"
 msgstr "Superset"
 
@@ -4782,7 +4798,7 @@ msgstr "Where did you feel it?"
 msgid "working"
 msgstr "working"
 
-#: app/(app)/(tabs)/(plans)/_layout.tsx:18
+#: app/(app)/_layout.tsx:39
 #: app/(app)/(workout)/_layout.tsx:17
 #: app/(app)/settings.tsx:769
 #: components/RestDayCard.tsx:41
@@ -4812,12 +4828,12 @@ msgid "Workout Complete!"
 msgstr "Workout Complete!"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:186
-#: components/WorkoutDetailsScreen.tsx:67
+#: components/WorkoutDetailsScreen.tsx:84
 msgid "Workout copied to standalone workouts"
 msgstr "Workout copied to standalone workouts"
 
 #: app/(app)/_layout.tsx:37
-#: app/(app)/_layout.tsx:57
+#: app/(app)/_layout.tsx:58
 #: app/(app)/(tabs)/(stats)/_layout.tsx:19
 msgid "Workout Details"
 msgstr "Workout Details"
@@ -4836,10 +4852,10 @@ msgstr "Workout in progress"
 msgid "Workout name"
 msgstr "Workout name"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:65
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:218
 #: app/(app)/(workout)/workout-summary.tsx:522
 #: app/(app)/friend-workout.tsx:43
+#: components/StandaloneWorkoutScreen.tsx:65
+#: components/StandaloneWorkoutScreen.tsx:218
 msgid "Workout not found."
 msgstr "Workout not found."
 

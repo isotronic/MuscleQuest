@@ -394,6 +394,14 @@ The Help & Info screen now opens with collapsed, expandable topic groups and a c
 Exercise search has been rebuilt on a more robust matching engine, improving how typos, abbreviations, and multi-word queries get matched and ranked, so the exercise you're looking for shows up first more often.
 `,
   },
+  {
+    version: 2646,
+    message: msg`
+👀 Improved: Preview Before You Start!
+
+In the Choose Workout list, tapping a workout now opens its details so you can check the exercises first. Use the Start button on the right to jump straight into the session. Plan workouts also gained a Start button on their details screen.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

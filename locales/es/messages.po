@@ -207,6 +207,20 @@ msgstr ""
 "Se corrigió un error por el que todos los botones (incrementar/decrementar, serie siguiente/anterior, completar serie) dejaban de funcionar al completar una serie. También se corrigió un error en el modal de edición de series. Las transiciones entre series ahora son instantáneas para un flujo de entrenamiento más fluido.\n"
 ""
 
+#: constants/WhatsNew.ts:399
+msgid ""
+"\n"
+"👀 Improved: Preview Before You Start!\n"
+"\n"
+"In the Choose Workout list, tapping a workout now opens its details so you can check the exercises first. Use the Start button on the right to jump straight into the session. Plan workouts also gained a Start button on their details screen.\n"
+""
+msgstr ""
+"\n"
+"👀 Mejorado: ¡Vista previa antes de empezar!\n"
+"\n"
+"En la lista \"Elegir entrenamiento\", tocar un entrenamiento ahora abre sus detalles para que puedas revisar los ejercicios primero. Usa el botón \"Iniciar\" de la derecha para entrar directamente en la sesión. Los entrenamientos de un plan también tienen ahora un botón \"Iniciar entrenamiento\" en su pantalla de detalles.\n"
+""
+
 #: constants/WhatsNew.ts:305
 msgid ""
 "\n"
@@ -697,11 +711,11 @@ msgstr ""
 "La pantalla de Planes ahora tiene tres modos de visualización. Usa los iconos junto al encabezado \"Tus planes de entrenamiento\" para cambiar entre las vistas Carrusel, Lista y Cuadrícula. Tu disposición preferida se guarda automáticamente.\n"
 ""
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:190
+#: components/StandaloneWorkoutScreen.tsx:190
 msgid " (to Failure)"
 msgstr " (al fallo)"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:197
+#: components/StandaloneWorkoutScreen.tsx:197
 msgid " (to Failure) "
 msgstr " (al fallo) "
 
@@ -710,17 +724,17 @@ msgid "\"{label}\" will be hidden from the entry form. Your historical data is p
 msgstr "\"{label}\" se ocultará del formulario de entrada. Tus datos históricos se conservan."
 
 #: components/WorkoutCard.tsx:269
-#: components/WorkoutDetailsScreen.tsx:191
+#: components/WorkoutDetailsScreen.tsx:208
 msgid "(to Failure)"
 msgstr "(al fallo)"
 
 #: components/WorkoutCard.tsx:276
-#: components/WorkoutDetailsScreen.tsx:198
+#: components/WorkoutDetailsScreen.tsx:215
 msgid "(to Failure) "
 msgstr "(al fallo) "
 
 #. placeholder {0}: workout.exercises.length
-#: components/StandaloneWorkoutListItem.tsx:59
+#: components/StandaloneWorkoutListItem.tsx:65
 msgid "{0, plural, one {# exercise} other {# exercises}}"
 msgstr "{0, plural, one {# ejercicio} other {# ejercicios}}"
 
@@ -834,8 +848,8 @@ msgid "{0} sets"
 msgstr "{0} series"
 
 #. placeholder {0}: item.sets.length
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:187
-#: components/WorkoutDetailsScreen.tsx:187
+#: components/StandaloneWorkoutScreen.tsx:187
+#: components/WorkoutDetailsScreen.tsx:204
 msgid "{0} Sets"
 msgstr "{0} Series"
 
@@ -1043,7 +1057,7 @@ msgstr "Se ha descargado una nueva versión. Toca el botón de abajo para reinic
 msgid "A plateau advisory note appears if an exercise has been at the same load for four or more sessions."
 msgstr "Aparece un aviso de estancamiento si un ejercicio lleva cuatro o más sesiones con la misma carga."
 
-#: app/_layout.tsx:97
+#: app/_layout.tsx:103
 msgid "A render error has occurred. Press the button to reload."
 msgstr "Se ha producido un error de renderizado. Pulsa el botón para recargar."
 
@@ -1330,7 +1344,7 @@ msgstr "Casi. Faltó poco para el objetivo de reps. Mantener e intentarlo de nue
 msgid "Always use most recent exercise history"
 msgstr "Usar siempre el historial más reciente del ejercicio"
 
-#: hooks/useImageManagement.ts:109
+#: hooks/useImageManagement.ts:114
 msgid "An error occurred while deleting images."
 msgstr "Se ha producido un error al eliminar las imágenes."
 
@@ -1376,7 +1390,7 @@ msgid "Are you sure you want to cancel and delete this workout?"
 msgstr "¿Estás seguro de que quieres cancelar y eliminar este entrenamiento?"
 
 #. placeholder {0}: workout?.name ?? ""
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:92
+#: components/StandaloneWorkoutScreen.tsx:92
 msgid "Are you sure you want to delete \"{0}\"?"
 msgstr "¿Estás seguro de que quieres eliminar \"{0}\"?"
 
@@ -1616,7 +1630,6 @@ msgstr "gemelos"
 #: app/(app)/(create-plan)/create.tsx:279
 #: app/(app)/(tabs)/(plans)/overview.tsx:153
 #: app/(app)/(tabs)/(plans)/overview.tsx:204
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:94
 #: app/(app)/(tabs)/(stats)/history-details.tsx:173
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:118
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:85
@@ -1632,6 +1645,7 @@ msgstr "gemelos"
 #: components/friends/FriendListItem.tsx:24
 #: components/PrivacySettings.tsx:70
 #: components/SettingsModal.tsx:282
+#: components/StandaloneWorkoutScreen.tsx:94
 #: components/WorkoutCard.tsx:87
 #: hooks/useImageManagement.ts:25
 #: hooks/useImageManagement.ts:41
@@ -1658,7 +1672,7 @@ msgstr "sistema cardiovascular"
 msgid "Change Image"
 msgstr "Cambiar imagen"
 
-#: components/WorkoutDetailsScreen.tsx:230
+#: components/WorkoutDetailsScreen.tsx:247
 msgid "Changes for this session"
 msgstr "Cambios para esta sesión"
 
@@ -1679,7 +1693,7 @@ msgstr "Pecho"
 msgid "Choose a tracking type: weight + reps, time, distance, reps only, or assisted (factors in your body weight, for movements like assisted pull-ups)."
 msgstr "Elige un tipo de seguimiento: peso + reps, tiempo, distancia, solo reps o asistido (que tiene en cuenta tu peso corporal para movimientos como dominadas asistidas)."
 
-#: components/WorkoutPickerModal.tsx:83
+#: components/WorkoutPickerModal.tsx:104
 msgid "Choose a Workout"
 msgstr "Elige un entrenamiento"
 
@@ -1885,13 +1899,13 @@ msgid "Default sets"
 msgstr "Series predeterminadas"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:208
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:96
 #: app/(app)/(tabs)/(stats)/history-details.tsx:175
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:120
 #: app/(app)/(workout)/index.tsx:418
 #: app/(app)/(workout)/index.tsx:643
 #: app/(app)/(workout)/workout-session.tsx:768
 #: components/PrivacySettings.tsx:72
+#: components/StandaloneWorkoutScreen.tsx:96
 #: components/WorkoutCard.tsx:298
 #: hooks/useImageManagement.ts:46
 msgid "Delete"
@@ -1927,8 +1941,8 @@ msgstr "Eliminar plan"
 msgid "Delete Set"
 msgstr "Eliminar serie"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:91
 #: app/(app)/(tabs)/(stats)/history-details.tsx:170
+#: components/StandaloneWorkoutScreen.tsx:91
 msgid "Delete Workout"
 msgstr "Eliminar entrenamiento"
 
@@ -2019,7 +2033,7 @@ msgid "Dismiss"
 msgstr "Descartar"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:462
-#: components/WorkoutDetailsScreen.tsx:297
+#: components/WorkoutDetailsScreen.tsx:326
 msgid "DISMISS"
 msgstr "DESCARTAR"
 
@@ -2174,8 +2188,8 @@ msgid "Edit Plan"
 msgstr "Editar plan"
 
 #: app/(app)/(create-plan)/create-workout.tsx:247
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:327
 #: app/(app)/(tabs)/(stats)/_layout.tsx:22
+#: components/StandaloneWorkoutScreen.tsx:327
 msgid "Edit Workout"
 msgstr "Editar entrenamiento"
 
@@ -2303,7 +2317,6 @@ msgstr "Equipamiento:"
 
 #: app/(app)/(create-plan)/image-search.tsx:43
 #: app/(app)/(tabs)/(plans)/overview.tsx:217
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:105
 #: app/(app)/(workout)/index.tsx:922
 #: app/(app)/(workout)/index.tsx:1122
 #: app/(app)/custom-exercise.tsx:135
@@ -2314,9 +2327,10 @@ msgstr "Equipamiento:"
 #: app/login.tsx:73
 #: components/FilterRow.tsx:86
 #: components/FilterRow.tsx:132
+#: components/StandaloneWorkoutScreen.tsx:105
 #: hooks/useDeleteCompletedWorkoutMutation.ts:20
 #: hooks/useImageManagement.ts:79
-#: hooks/useImageManagement.ts:109
+#: hooks/useImageManagement.ts:114
 msgid "Error"
 msgstr "Error"
 
@@ -2355,7 +2369,7 @@ msgstr "Error al guardar el entrenamiento"
 #. placeholder {0}: settingsError.message
 #: app/(app)/(tabs)/(plans)/overview.tsx:257
 #: app/(app)/(workout)/workout-session.tsx:1538
-#: components/WorkoutDetailsScreen.tsx:221
+#: components/WorkoutDetailsScreen.tsx:238
 msgid "Error: {0}"
 msgstr "Error: {0}"
 
@@ -2389,15 +2403,15 @@ msgstr "Ejercicio"
 msgid "Exercise Already Added"
 msgstr "Ejercicio ya añadido"
 
-#: app/(app)/_layout.tsx:61
+#: app/(app)/_layout.tsx:62
 msgid "Exercise Details"
 msgstr "Detalles del ejercicio"
 
-#: app/(app)/_layout.tsx:41
+#: app/(app)/_layout.tsx:42
 msgid "Exercise Info"
 msgstr "Info del ejercicio"
 
-#: app/(app)/_layout.tsx:48
+#: app/(app)/_layout.tsx:49
 #: components/AppMenu.tsx:202
 #: constants/HelpData.ts:201
 msgid "Exercise Library"
@@ -2444,7 +2458,7 @@ msgid "Failed to activate this plan: {0}"
 msgstr "Error al activar este plan: {0}"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:190
-#: components/WorkoutDetailsScreen.tsx:71
+#: components/WorkoutDetailsScreen.tsx:88
 msgid "Failed to copy workout. Please try again."
 msgstr "Error al copiar el entrenamiento. Inténtalo de nuevo."
 
@@ -2457,7 +2471,7 @@ msgstr "Error al eliminar el plan: {0}"
 msgid "Failed to delete the workout. Please try again."
 msgstr "Error al eliminar el entrenamiento. Por favor, inténtalo de nuevo."
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:106
+#: components/StandaloneWorkoutScreen.tsx:106
 msgid "Failed to delete workout. Please try again."
 msgstr "Error al eliminar el entrenamiento. Por favor, inténtalo de nuevo."
 
@@ -2512,7 +2526,7 @@ msgstr "Error al cerrar sesión en Google. Continuando el cierre de sesión."
 msgid "Failed to sign out. Please try again."
 msgstr "Error al cerrar sesión. Inténtalo de nuevo."
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:303
+#: components/StandaloneWorkoutScreen.tsx:303
 msgid "Failed to update sharing. Please try again."
 msgstr "No se pudo actualizar el uso compartido. Inténtalo de nuevo."
 
@@ -2572,7 +2586,7 @@ msgstr "Vie"
 msgid "Friday"
 msgstr "Viernes"
 
-#: app/(app)/_layout.tsx:52
+#: app/(app)/_layout.tsx:53
 msgid "Friend Profile"
 msgstr "Perfil de amigo"
 
@@ -2680,7 +2694,7 @@ msgstr "isquiotibiales"
 msgid "Hard, near limit"
 msgstr "Difícil, cerca del límite"
 
-#: app/(app)/_layout.tsx:45
+#: app/(app)/_layout.tsx:46
 #: components/AppMenu.tsx:212
 msgid "Help & Info"
 msgstr "Ayuda e información"
@@ -2865,7 +2879,7 @@ msgstr "máquina de palanca"
 msgid "Load up"
 msgstr "Subir peso"
 
-#: app/_layout.tsx:222
+#: app/_layout.tsx:239
 msgid "Loading data, please wait..."
 msgstr "Cargando datos, por favor espera..."
 
@@ -2874,7 +2888,7 @@ msgid "Loading Plan..."
 msgstr "Cargando plan..."
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:249
-#: components/WorkoutDetailsScreen.tsx:212
+#: components/WorkoutDetailsScreen.tsx:229
 msgid "Loading..."
 msgstr "Cargando..."
 
@@ -3103,7 +3117,7 @@ msgstr "No hay datos para este período."
 msgid "No exercises added yet"
 msgstr "Aún no se han añadido ejercicios"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:263
+#: components/StandaloneWorkoutScreen.tsx:263
 msgid "No exercises in this workout yet."
 msgstr "Aún no hay ejercicios en este entrenamiento."
 
@@ -3167,12 +3181,12 @@ msgstr "Sin resultados para \"{query}\""
 msgid "No schedule set"
 msgstr "Sin horario establecido"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:187
+#: components/StandaloneWorkoutScreen.tsx:187
 msgid "No Sets"
 msgstr "Sin series"
 
 #: components/WorkoutCard.tsx:265
-#: components/WorkoutDetailsScreen.tsx:188
+#: components/WorkoutDetailsScreen.tsx:205
 msgid "No Sets Available"
 msgstr "No hay series disponibles"
 
@@ -3200,7 +3214,7 @@ msgstr "No hay entrenamiento disponible"
 msgid "No workouts completed yet. Start your first workout!"
 msgstr "Aún no has completado ningún entrenamiento. ¡Empieza tu primer entrenamiento!"
 
-#: components/WorkoutPickerModal.tsx:108
+#: components/WorkoutPickerModal.tsx:129
 msgid "No workouts found"
 msgstr "No se encontraron entrenamientos"
 
@@ -3213,7 +3227,7 @@ msgid "No workouts shared yet"
 msgstr "Aún no hay entrenamientos compartidos"
 
 #: app/(app)/(tabs)/(plans)/index.tsx:164
-#: components/WorkoutPickerModal.tsx:104
+#: components/WorkoutPickerModal.tsx:125
 msgid "No workouts yet"
 msgstr "Aún no hay entrenamientos"
 
@@ -3358,7 +3372,7 @@ msgstr "Personal"
 msgid "Pin exercises in the Stats tab to track their strength progression over time. Each tracked exercise shows a chart of your performance over the selected time range, your all-time personal record, your top sets, and a list of recent sessions showing the best set per day. Charts update automatically after each workout that includes that exercise."
 msgstr "Fija ejercicios en la pestaña Estadísticas para seguir su progresión de fuerza con el tiempo. Cada ejercicio fijado muestra un gráfico de tu rendimiento en el rango de tiempo seleccionado, tu récord personal histórico, tus mejores series y una lista de sesiones recientes con la mejor serie por día. Los gráficos se actualizan automáticamente tras cada entrenamiento que incluya ese ejercicio."
 
-#: app/(app)/_layout.tsx:54
+#: app/(app)/_layout.tsx:55
 msgid "Plan Details"
 msgstr "Detalles del plan"
 
@@ -3501,7 +3515,7 @@ msgstr "Reducir peso"
 msgid "Reduce to {0}{unit}"
 msgstr "Reducir a {0}{unit}"
 
-#: app/_layout.tsx:100
+#: app/_layout.tsx:106
 msgid "Reload"
 msgstr "Recargar"
 
@@ -3566,7 +3580,6 @@ msgstr "Reemplazar"
 msgid "reps"
 msgstr "reps"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:197
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:249
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:253
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:290
@@ -3574,8 +3587,9 @@ msgstr "reps"
 #: app/(app)/custom-exercise.tsx:70
 #: components/charts/ExerciseProgressionChart.tsx:377
 #: components/SessionSetInfo.tsx:449
+#: components/StandaloneWorkoutScreen.tsx:197
 #: components/WorkoutCard.tsx:276
-#: components/WorkoutDetailsScreen.tsx:198
+#: components/WorkoutDetailsScreen.tsx:215
 msgid "Reps"
 msgstr "Reps"
 
@@ -3738,7 +3752,7 @@ msgstr "Guardando entrenamiento..."
 #: app/(app)/exercise-library.tsx:105
 #: app/(app)/friends.tsx:62
 #: app/(app)/friends.tsx:280
-#: components/WorkoutPickerModal.tsx:89
+#: components/WorkoutPickerModal.tsx:110
 msgid "Search"
 msgstr "Buscar"
 
@@ -3860,7 +3874,7 @@ msgstr "Vista general de series"
 msgid "settings"
 msgstr "ajustes"
 
-#: app/(app)/_layout.tsx:44
+#: app/(app)/_layout.tsx:45
 #: components/AppMenu.tsx:207
 #: constants/HelpData.ts:269
 msgid "Settings"
@@ -3898,7 +3912,7 @@ msgstr "Compartir entrenamientos individuales con amigos"
 msgid "Share strength PRs with friends"
 msgstr "Compartir récords de fuerza con amigos"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:290
+#: components/StandaloneWorkoutScreen.tsx:290
 msgid "Share Workout"
 msgstr "Compartir entrenamiento"
 
@@ -4044,7 +4058,7 @@ msgid "spine"
 msgstr "columna vertebral"
 
 #: app/(app)/friend-profile.tsx:331
-#: components/WorkoutPickerModal.tsx:135
+#: components/WorkoutPickerModal.tsx:161
 msgid "Standalone Workouts"
 msgstr "Entrenamientos individuales"
 
@@ -4057,6 +4071,7 @@ msgid "Standalone workouts live outside of plans and appear alongside your plans
 msgstr "Los entrenamientos independientes están fuera de los planes y aparecen junto a tus planes en la pantalla Planes. Crea uno tocando Nuevo entrenamiento, dale un nombre y añade ejercicios; puedes ejecutarlo en cualquier momento sin necesitar un plan activo. Cada entrenamiento independiente muestra una duración estimada para que puedas planificar tu tiempo antes de empezar. Los entrenamientos rápidos te permiten iniciar una sesión de inmediato desde la pantalla de inicio: toca Entrenamiento rápido, añade ejercicios sobre la marcha y al final puedes guardarlo como entrenamiento independiente para uso futuro o simplemente descartarlo. Toca \"Elegir entrenamiento\" justo al lado para buscar y explorar todos los entrenamientos de tus planes y tu biblioteca independiente, y empieza cualquiera de ellos de inmediato. Al igual que los planes, el editor de entrenamiento guarda automáticamente un borrador para que puedas salir y volver sin perder tu trabajo."
 
 #: app/(app)/(tabs)/index.tsx:577
+#: components/StandaloneWorkoutListItem.tsx:80
 msgid "Start"
 msgstr "Iniciar"
 
@@ -4068,12 +4083,13 @@ msgstr "Iniciar plan"
 msgid "Start Timer"
 msgstr "Iniciar temporizador"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:318
+#: components/StandaloneWorkoutScreen.tsx:318
+#: components/WorkoutDetailsScreen.tsx:308
 msgid "Start Workout"
 msgstr "Iniciar entrenamiento"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:234
 #: app/(app)/(tabs)/index.tsx:316
+#: components/StandaloneWorkoutScreen.tsx:234
 msgid "Starting Workout..."
 msgstr "Iniciando entrenamiento..."
 
@@ -4157,7 +4173,7 @@ msgstr "Domingo"
 
 #: app/(app)/(create-plan)/sets-overview.tsx:210
 #: components/WorkoutCard.tsx:364
-#: components/WorkoutDetailsScreen.tsx:150
+#: components/WorkoutDetailsScreen.tsx:167
 msgid "Superset"
 msgstr "Superserie"
 
@@ -4783,7 +4799,7 @@ msgstr "¿Dónde lo sentiste?"
 msgid "working"
 msgstr "trabajando"
 
-#: app/(app)/(tabs)/(plans)/_layout.tsx:18
+#: app/(app)/_layout.tsx:39
 #: app/(app)/(workout)/_layout.tsx:17
 #: app/(app)/settings.tsx:769
 #: components/RestDayCard.tsx:41
@@ -4813,12 +4829,12 @@ msgid "Workout Complete!"
 msgstr "¡Entrenamiento completado!"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:186
-#: components/WorkoutDetailsScreen.tsx:67
+#: components/WorkoutDetailsScreen.tsx:84
 msgid "Workout copied to standalone workouts"
 msgstr "Entrenamiento copiado a entrenamientos independientes"
 
 #: app/(app)/_layout.tsx:37
-#: app/(app)/_layout.tsx:57
+#: app/(app)/_layout.tsx:58
 #: app/(app)/(tabs)/(stats)/_layout.tsx:19
 msgid "Workout Details"
 msgstr "Detalles del entrenamiento"
@@ -4837,10 +4853,10 @@ msgstr "Entrenamiento en curso"
 msgid "Workout name"
 msgstr "Nombre del entrenamiento"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:65
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:218
 #: app/(app)/(workout)/workout-summary.tsx:522
 #: app/(app)/friend-workout.tsx:43
+#: components/StandaloneWorkoutScreen.tsx:65
+#: components/StandaloneWorkoutScreen.tsx:218
 msgid "Workout not found."
 msgstr "Entrenamiento no encontrado."
 

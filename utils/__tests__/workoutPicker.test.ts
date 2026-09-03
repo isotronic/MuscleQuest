@@ -28,7 +28,14 @@ describe("buildWorkoutPickerSections", () => {
     );
 
     expect(result.planSections).toEqual([
-      { planId: 100, planName: "My Plan", workouts: [pushDay, legDay] },
+      {
+        planId: 100,
+        planName: "My Plan",
+        workouts: [
+          { workout: pushDay, index: 0 },
+          { workout: legDay, index: 1 },
+        ],
+      },
     ]);
     expect(result.standaloneWorkouts).toEqual([quickLegs, armBlast]);
   });
@@ -41,7 +48,11 @@ describe("buildWorkoutPickerSections", () => {
     );
 
     expect(result.planSections).toEqual([
-      { planId: 100, planName: "My Plan", workouts: [legDay] },
+      {
+        planId: 100,
+        planName: "My Plan",
+        workouts: [{ workout: legDay, index: 1 }],
+      },
     ]);
     expect(result.standaloneWorkouts).toEqual([quickLegs]);
   });
@@ -76,7 +87,11 @@ describe("buildWorkoutPickerSections", () => {
     );
 
     expect(result.planSections).toEqual([
-      { planId: 100, planName: "My Plan", workouts: [pushDay] },
+      {
+        planId: 100,
+        planName: "My Plan",
+        workouts: [{ workout: pushDay, index: 0 }],
+      },
     ]);
   });
 
