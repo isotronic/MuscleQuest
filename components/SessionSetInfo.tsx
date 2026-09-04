@@ -263,6 +263,15 @@ export default function SessionSetInfo({
             />
           }
         >
+          {showsWeightInput && !!onOpenPlateCalculator && (
+            <Menu.Item
+              onPress={() => {
+                onOpenPlateCalculator();
+                closeMenu();
+              }}
+              title={t`Plate Calculator`}
+            />
+          )}
           {!!onEditSet && (
             <Menu.Item
               onPress={() => {
@@ -317,15 +326,6 @@ export default function SessionSetInfo({
               }}
               title={t`Add Weight`}
               leadingIcon={isWeightedOverrideEnabled ? "check" : undefined}
-            />
-          )}
-          {showsWeightInput && !!onOpenPlateCalculator && (
-            <Menu.Item
-              onPress={() => {
-                onOpenPlateCalculator();
-                closeMenu();
-              }}
-              title={t`Plate Calculator`}
             />
           )}
         </Menu>
