@@ -69,6 +69,20 @@ msgstr ""
 "Für Körpergewichtsübungen wie Klimmzüge oder Dips kannst du jetzt die Gewichtserfassung pro Training aktivieren. Perfekt für gewichtete Varianten, um das zusätzliche Gewicht zu protokollieren und den Fortschritt über Zeit zu verfolgen.\n"
 ""
 
+#: constants/WhatsNew.ts:407
+msgid ""
+"\n"
+"⚙️ Improved: More Control During Your Workout!\n"
+"\n"
+"You can now change an exercise's rep range and rest time mid-workout from the three-dot menu. If you enter a weight other than the suggested one, it now carries over to your remaining sets. Weight suggestions also stay hidden when adaptive progression is switched off.\n"
+""
+msgstr ""
+"\n"
+"⚙️ Verbessert: Mehr Kontrolle während des Trainings!\n"
+"\n"
+"Du kannst den Wiederholungsbereich und die Pausenzeit einer Übung jetzt mitten im Training über das Drei-Punkte-Menü ändern. Wenn du ein anderes als das vorgeschlagene Gewicht einträgst, wird es nun auf deine restlichen Sätze übernommen. Gewichtsvorschläge bleiben außerdem ausgeblendet, wenn die Adaptive Progression ausgeschaltet ist.\n"
+""
+
 #: constants/WhatsNew.ts:166
 msgid ""
 "\n"

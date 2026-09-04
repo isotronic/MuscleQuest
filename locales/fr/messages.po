@@ -69,6 +69,20 @@ msgstr ""
 "Pour les exercices au poids de corps comme les tractions ou les dips, tu peux maintenant activer l'enregistrement du poids par entraînement. Parfait pour les variantes lestées, pour noter le poids ajouté et suivre ta progression dans le temps.\n"
 ""
 
+#: constants/WhatsNew.ts:407
+msgid ""
+"\n"
+"⚙️ Improved: More Control During Your Workout!\n"
+"\n"
+"You can now change an exercise's rep range and rest time mid-workout from the three-dot menu. If you enter a weight other than the suggested one, it now carries over to your remaining sets. Weight suggestions also stay hidden when adaptive progression is switched off.\n"
+""
+msgstr ""
+"\n"
+"⚙️ Amélioré : Plus de contrôle pendant la séance !\n"
+"\n"
+"Tu peux désormais modifier la plage de répétitions et le temps de repos d'un exercice en pleine séance depuis le menu à trois points. Si tu saisis un poids différent de celui suggéré, il est maintenant repris sur tes séries restantes. Les suggestions de poids restent également masquées lorsque la progression adaptative est désactivée.\n"
+""
+
 #: constants/WhatsNew.ts:166
 msgid ""
 "\n"

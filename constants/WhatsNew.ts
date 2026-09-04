@@ -402,6 +402,14 @@ Exercise search has been rebuilt on a more robust matching engine, improving how
 In the Choose Workout list, tapping a workout now opens its details so you can check the exercises first. Use the Start button on the right to jump straight into the session. Plan workouts also gained a Start button on their details screen.
 `,
   },
+  {
+    version: 2647,
+    message: msg`
+⚙️ Improved: More Control During Your Workout!
+
+You can now change an exercise's rep range and rest time mid-workout from the three-dot menu. If you enter a weight other than the suggested one, it now carries over to your remaining sets. Weight suggestions also stay hidden when adaptive progression is switched off.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

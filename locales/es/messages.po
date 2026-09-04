@@ -69,6 +69,20 @@ msgstr ""
 "Para ejercicios con peso corporal como dominadas o fondos, ahora puedes activar el registro de peso por entrenamiento. Perfecto para variantes con peso adicional, para anotar el peso añadido y seguir la progresión con el tiempo.\n"
 ""
 
+#: constants/WhatsNew.ts:407
+msgid ""
+"\n"
+"⚙️ Improved: More Control During Your Workout!\n"
+"\n"
+"You can now change an exercise's rep range and rest time mid-workout from the three-dot menu. If you enter a weight other than the suggested one, it now carries over to your remaining sets. Weight suggestions also stay hidden when adaptive progression is switched off.\n"
+""
+msgstr ""
+"\n"
+"⚙️ Mejorado: ¡Más control durante el entrenamiento!\n"
+"\n"
+"Ahora puedes cambiar el rango de repeticiones y el tiempo de descanso de un ejercicio durante el entrenamiento desde el menú de tres puntos. Si introduces un peso distinto al sugerido, ahora se aplica a tus series restantes. Además, las sugerencias de peso permanecen ocultas cuando la progresión adaptativa está desactivada.\n"
+""
+
 #: constants/WhatsNew.ts:166
 msgid ""
 "\n"
