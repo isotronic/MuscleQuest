@@ -120,6 +120,19 @@ interface ActiveWorkoutStore {
     type: "isWarmup" | "isDropSet" | "isToFailure",
     value: boolean,
   ) => void;
+  updateSetDetails: (
+    exerciseIndex: number,
+    setIndex: number,
+    fields: {
+      repsMin?: number;
+      repsMax?: number;
+      restMinutes?: number;
+      restSeconds?: number;
+      time?: number;
+      distance?: number;
+    },
+    applyToAllSets?: boolean,
+  ) => void;
   createSuperset: (exerciseIndex: number, newExercise: UserExercise) => void;
   removeFromSuperset: (exerciseIndex: number) => void;
   startTimer: (expiry: Date) => void;
@@ -147,6 +160,10 @@ interface ActiveWorkoutStore {
       isApplied: boolean;
     }[],
   ) => void;
+  // The weight a progression suggestion pre-filled into each set, keyed by
+  // exercise index then set index. Kept so a later manual entry can be told
+  // apart from an accepted suggestion by comparing values.
+  suggestedWeightPrefills: Record<number, Record<number, number>>;
   feedbackSubmittedUweIds: number[];
   recordFeedbackSubmitted: (uweId: number) => void;
   recoveryCheckInShown: boolean;
@@ -174,6 +191,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       appendedExerciseIndices: [],
       feedbackSubmittedUweIds: [],
       recoveryCheckInShown: false,
+      suggestedWeightPrefills: {},
 
       setWorkout: (workout, planId, workoutId, name) =>
         set({
@@ -195,6 +213,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
           recoveryCheckInShown: false,
+          suggestedWeightPrefills: {},
         }),
 
       startQuickWorkout: () =>
@@ -221,6 +240,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
           recoveryCheckInShown: false,
+          suggestedWeightPrefills: {},
         }),
 
       setCurrentExerciseIndex: (index: number) =>
@@ -258,11 +278,48 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             weightAndReps,
             completedSets,
             previousWorkoutData,
+            suggestedWeightPrefills,
           } = state;
 
           if (!workout) {
             return state;
           }
+
+          // A progression suggestion pre-fills every working set up front. If
+          // the user replaced that pre-filled weight on the set they just did,
+          // their choice — not the stale suggestion sitting in the upcoming
+          // sets — is what should carry forward.
+          const overridesSuggestion = (
+            exerciseIndex: number,
+            fromSetIndex: number,
+          ) => {
+            const prefilled =
+              suggestedWeightPrefills[exerciseIndex]?.[fromSetIndex];
+            if (prefilled == null) return false;
+            const actual = parseFloat(
+              weightAndReps[exerciseIndex]?.[fromSetIndex]?.weight ?? "",
+            );
+            return !isNaN(actual) && actual !== prefilled;
+          };
+
+          // The upcoming set's pre-filled weight, unless the user already
+          // overrode the suggestion on the set they're leaving.
+          const liveNextValues = (
+            exerciseIndex: number,
+            fromSetIndex: number,
+            toSetIndex: number,
+          ) => {
+            const existing = weightAndReps[exerciseIndex]?.[toSetIndex];
+            const targetPrefill =
+              suggestedWeightPrefills[exerciseIndex]?.[toSetIndex];
+            if (
+              targetPrefill == null ||
+              !overridesSuggestion(exerciseIndex, fromSetIndex)
+            ) {
+              return existing;
+            }
+            return { ...existing, weight: undefined };
+          };
 
           const currentExercise = workout.exercises[currentExerciseIndex];
           const trackingType = resolvedTrackingType(currentExercise);
@@ -298,10 +355,13 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               weightAndReps[exerciseIndex]?.[fromSetIndex] || {};
             // A progression suggestion may have already pre-filled the
             // upcoming set before this transition runs. Preserve it instead
-            // of overwriting it with workout history.
-            const existingNextValues = weightAndReps[exerciseIndex]?.[
-              toSetIndex
-            ];
+            // of overwriting it with workout history, unless the user
+            // overrode the suggestion on the set they're leaving.
+            const existingNextValues = liveNextValues(
+              exerciseIndex,
+              fromSetIndex,
+              toSetIndex,
+            );
             const historyExercises =
               previousWorkoutData
                 ?.flatMap((w) => w.exercises)
@@ -511,9 +571,13 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
           // A progression suggestion may have already pre-filled the
           // upcoming set before this transition runs. Preserve it instead
-          // of overwriting it with workout history.
-          const existingNextValues =
-            weightAndReps[currentExerciseIndex]?.[nextSetIndex];
+          // of overwriting it with workout history, unless the user overrode
+          // the suggestion on the set they're leaving.
+          const existingNextValues = liveNextValues(
+            currentExerciseIndex,
+            currentSetIndex,
+            nextSetIndex,
+          );
           const nextSetValues = findHistoricalSetByOrdinal(
             currentExercise.sets,
             nextSetIndex,
@@ -798,6 +862,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentSetIndices,
             currentExerciseIndex,
             setDurations,
+            suggestedWeightPrefills,
           } = state;
 
           if (
@@ -841,6 +906,16 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             );
           }
 
+          // Re-index the recorded suggestion prefills alongside them, so the
+          // override check keeps comparing each set against its own baseline
+          const updatedPrefills = { ...suggestedWeightPrefills };
+          if (updatedPrefills[currentExerciseIndex]) {
+            updatedPrefills[currentExerciseIndex] = reindexAfterRemoval(
+              updatedPrefills[currentExerciseIndex],
+              setIndex,
+            );
+          }
+
           // Navigate to the active set after deletion:
           // - first uncompleted set if the exercise still has one (the "active" set)
           // - last set if the exercise is fully completed (another exercise is active)
@@ -868,6 +943,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             completedSets: updatedCompletedSets,
             currentSetIndices: updatedSetIndices,
             setDurations: updatedSetDurations,
+            suggestedWeightPrefills: updatedPrefills,
           };
         });
       },
@@ -1007,6 +1083,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               ...currentSetIndices,
               [index]: 0, // Reset the current set index to 0
             },
+            // Different exercise, so any recorded suggestion baseline is void
+            suggestedWeightPrefills: {
+              ...state.suggestedWeightPrefills,
+              [index]: {},
+            },
           };
         });
       },
@@ -1021,6 +1102,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             setDurations,
             currentExerciseIndex,
             appendedExerciseIndices,
+            suggestedWeightPrefills,
           } = state;
           if (!workout) {
             return state;
@@ -1036,6 +1118,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           const { [index]: __, ...updatedWeightAndReps } = weightAndReps;
           const { [index]: ___, ...updatedSetIndices } = currentSetIndices;
           const { [index]: ____, ...updatedSetDurations } = setDurations;
+          const { [index]: _____, ...updatedPrefills } =
+            suggestedWeightPrefills;
 
           // Adjust indices for remaining sets and exercises, if necessary
           const adjustedCompletedSets = Object.keys(
@@ -1082,12 +1166,23 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             {} as typeof updatedSetDurations,
           );
 
+          const adjustedPrefills = Object.keys(updatedPrefills).reduce(
+            (acc, key) => {
+              const parsedKey = parseInt(key, 10);
+              acc[parsedKey > index ? parsedKey - 1 : parsedKey] =
+                updatedPrefills[parsedKey];
+              return acc;
+            },
+            {} as typeof updatedPrefills,
+          );
+
           return {
             workout: { ...workout, exercises: updatedExercises },
             completedSets: adjustedCompletedSets,
             weightAndReps: adjustedWeightAndReps,
             currentSetIndices: adjustedSetIndices,
             setDurations: adjustedSetDurations,
+            suggestedWeightPrefills: adjustedPrefills,
             currentExerciseIndex: Math.min(
               currentExerciseIndex > index
                 ? currentExerciseIndex - 1
@@ -1111,6 +1206,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentExerciseIndex,
             appendedExerciseIndices,
             setDurations,
+            suggestedWeightPrefills,
           } = state;
           if (!workout) return state;
 
@@ -1139,6 +1235,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             weightAndReps: remap(weightAndReps),
             currentSetIndices: remap(currentSetIndices),
             setDurations: remap(setDurations),
+            suggestedWeightPrefills: remap(suggestedWeightPrefills),
             currentExerciseIndex:
               oldToNew[currentExerciseIndex] ?? currentExerciseIndex,
             appendedExerciseIndices: appendedExerciseIndices
@@ -1169,6 +1266,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
           recoveryCheckInShown: false,
+          suggestedWeightPrefills: {},
         });
       },
 
@@ -1189,6 +1287,28 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             const updatedSets = exercise.sets.map((s, sIdx) =>
               sIdx === setIndex ? { ...s, restMinutes, restSeconds } : s,
             );
+            return { ...exercise, sets: updatedSets };
+          });
+          return { workout: { ...workout, exercises: updatedExercises } };
+        }),
+
+      updateSetDetails: (exerciseIndex, setIndex, fields, applyToAllSets) =>
+        set((state) => {
+          const { workout } = state;
+          if (!workout) return state;
+          const target = workout.exercises[exerciseIndex]?.sets[setIndex];
+          if (!target) return state;
+          // Mirrors EditSetModal: "apply to all" spans the sets sharing the
+          // target's warm-up flag, plus the target itself.
+          const targetIsWarmup = target.isWarmup ?? false;
+          const updatedExercises = workout.exercises.map((exercise, exIdx) => {
+            if (exIdx !== exerciseIndex) return exercise;
+            const updatedSets = exercise.sets.map((s, sIdx) => {
+              const shouldUpdate = applyToAllSets
+                ? (s.isWarmup ?? false) === targetIsWarmup || sIdx === setIndex
+                : sIdx === setIndex;
+              return shouldUpdate ? { ...s, ...fields } : s;
+            });
             return { ...exercise, sets: updatedSets };
           });
           return { workout: { ...workout, exercises: updatedExercises } };
@@ -1218,6 +1338,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             appendedExerciseIndices,
             setDurations,
             currentExerciseIndex,
+            suggestedWeightPrefills,
           } = state;
           if (!workout) return state;
 
@@ -1256,6 +1377,12 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           );
           newSetDurations[exerciseIndex + 1] = {};
 
+          const newPrefills = shiftIndicesForInsert(
+            suggestedWeightPrefills,
+            exerciseIndex,
+          );
+          newPrefills[exerciseIndex + 1] = {};
+
           const newAppendedIndices = appendedExerciseIndices.map((i) =>
             i > exerciseIndex ? i + 1 : i,
           );
@@ -1266,6 +1393,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             weightAndReps: newWeightAndReps,
             currentSetIndices: newSetIndices,
             setDurations: newSetDurations,
+            suggestedWeightPrefills: newPrefills,
             appendedExerciseIndices: newAppendedIndices,
             currentExerciseIndex:
               currentExerciseIndex > exerciseIndex
@@ -1341,6 +1469,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
           recoveryCheckInShown: false,
+          suggestedWeightPrefills: {},
         });
         // Clear from AsyncStorage
         AsyncStorage.removeItem("active-workout-store");
@@ -1366,6 +1495,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         set((state) => {
           if (!state.workout) return state;
           const newWeightAndReps = { ...state.weightAndReps };
+          const newPrefills = { ...state.suggestedWeightPrefills };
           for (const suggestion of states) {
             if (!suggestion.isApplied) continue;
             // increase_reps is intentionally not handled here: the suggested
@@ -1417,9 +1547,16 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                   weight: finalWeight.toString(),
                 },
               };
+              newPrefills[exerciseIndex] = {
+                ...(newPrefills[exerciseIndex] || {}),
+                [idx]: finalWeight,
+              };
             }
           }
-          return { weightAndReps: newWeightAndReps };
+          return {
+            weightAndReps: newWeightAndReps,
+            suggestedWeightPrefills: newPrefills,
+          };
         });
       },
 

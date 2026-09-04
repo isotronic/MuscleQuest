@@ -21,6 +21,7 @@ import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import SessionSetInfo from "@/components/SessionSetInfo";
+import { SessionSetOptionsModal } from "@/components/SessionSetOptionsModal";
 import { useTimer } from "react-timer-hook";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
@@ -259,6 +260,7 @@ export default function WorkoutSessionScreen() {
       feedbackSheetRef.current?.present();
     }
   }, [feedbackQueue.length]);
+  const [editSetModalVisible, setEditSetModalVisible] = useState(false);
   const [currentSlotIndex, setCurrentSlotIndex] = useState(0);
   const [slots, setSlots] = useState<[SlotData, SlotData, SlotData]>([
     { exerciseIndex: 0, setIndex: 0 },
@@ -408,7 +410,7 @@ export default function WorkoutSessionScreen() {
   const currentSet = currentExercise?.sets[currentSetIndex];
 
   const { data: currentProgressionState } = useProgressionStateQuery(
-    currentExercise?.id,
+    progressionSettings.enabled ? currentExercise?.id : undefined,
     isCurrentWeekDeload,
   );
   const currentSetCompleted =
@@ -1632,6 +1634,7 @@ export default function WorkoutSessionScreen() {
                             addSet={handleAddSet}
                             onAddDropSet={handleAddDropSet}
                             onToggleSetType={handleToggleSetType}
+                            onEditSet={() => setEditSetModalVisible(true)}
                             baseTrackingType={
                               currentExercise?.tracking_type || "weight"
                             }
@@ -1719,6 +1722,13 @@ export default function WorkoutSessionScreen() {
           onAfterDismiss={() => setFeedbackQueue((q) => q.slice(1))}
         />
       )}
+      <SessionSetOptionsModal
+        visible={editSetModalVisible}
+        onClose={() => setEditSetModalVisible(false)}
+        exerciseIndex={currentExerciseIndex}
+        setIndex={currentSetIndex}
+        distanceUnit={settings?.distanceUnit || "m"}
+      />
       <RestTimerOverlay
         minutes={minutes}
         seconds={seconds}

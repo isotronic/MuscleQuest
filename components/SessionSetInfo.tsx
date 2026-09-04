@@ -65,6 +65,8 @@ interface SessionSetInfoProps {
   addSet: () => void;
   onAddDropSet: () => void;
   onToggleSetType: (type: "isWarmup" | "isToFailure") => void;
+  /** Opens the set editor (rep range / target and rest time). */
+  onEditSet?: () => void;
   baseTrackingType?: string;
   isWeightedOverrideEnabled?: boolean;
   onToggleWeighted?: () => void;
@@ -117,6 +119,7 @@ export default function SessionSetInfo({
   addSet,
   onAddDropSet,
   onToggleSetType,
+  onEditSet,
   baseTrackingType,
   isWeightedOverrideEnabled,
   onToggleWeighted,
@@ -253,6 +256,15 @@ export default function SessionSetInfo({
             />
           }
         >
+          {!!onEditSet && (
+            <Menu.Item
+              onPress={() => {
+                onEditSet();
+                closeMenu();
+              }}
+              title={t`Edit Set`}
+            />
+          )}
           <Menu.Item
             onPress={() => {
               removeSet(currentSetIndex);
