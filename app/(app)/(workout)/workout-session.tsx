@@ -22,6 +22,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import SessionSetInfo from "@/components/SessionSetInfo";
 import { SessionSetOptionsModal } from "@/components/SessionSetOptionsModal";
+import { PlateCalculatorModal } from "@/components/PlateCalculatorModal";
 import { useTimer } from "react-timer-hook";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
@@ -261,6 +262,7 @@ export default function WorkoutSessionScreen() {
     }
   }, [feedbackQueue.length]);
   const [editSetModalVisible, setEditSetModalVisible] = useState(false);
+  const [plateCalcVisible, setPlateCalcVisible] = useState(false);
   const [currentSlotIndex, setCurrentSlotIndex] = useState(0);
   const [slots, setSlots] = useState<[SlotData, SlotData, SlotData]>([
     { exerciseIndex: 0, setIndex: 0 },
@@ -1635,6 +1637,9 @@ export default function WorkoutSessionScreen() {
                             onAddDropSet={handleAddDropSet}
                             onToggleSetType={handleToggleSetType}
                             onEditSet={() => setEditSetModalVisible(true)}
+                            onOpenPlateCalculator={() =>
+                              setPlateCalcVisible(true)
+                            }
                             baseTrackingType={
                               currentExercise?.tracking_type || "weight"
                             }
@@ -1729,6 +1734,16 @@ export default function WorkoutSessionScreen() {
         setIndex={currentSetIndex}
         distanceUnit={settings?.distanceUnit || "m"}
       />
+      {plateCalcVisible && (
+        <PlateCalculatorModal
+          visible={plateCalcVisible}
+          onClose={() => setPlateCalcVisible(false)}
+          targetWeight={
+            getPanelData(currentExerciseIndex, currentSetIndex)?.weight ?? ""
+          }
+          weightUnit={settings?.weightUnit || "kg"}
+        />
+      )}
       <RestTimerOverlay
         minutes={minutes}
         seconds={seconds}

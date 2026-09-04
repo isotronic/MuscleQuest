@@ -17,6 +17,12 @@ import {
   UserProgressionIncrements,
 } from "@/types/progression";
 import { computeLayoffReduction } from "@/utils/progressionEngine";
+import {
+  DEFAULT_BAR_WEIGHT_KG,
+  DEFAULT_BAR_WEIGHT_LBS,
+  DEFAULT_PLATE_INVENTORY_KG,
+  DEFAULT_PLATE_INVENTORY_LBS,
+} from "@/utils/plateCalculator";
 
 export interface Exercise {
   exercise_id: number;
@@ -1299,6 +1305,16 @@ export const insertDefaultSettings = async () => {
       { key: "progression_increment_cable_kg", value: "2.5" },
       { key: "progression_increment_machine_kg", value: "2.5" },
       { key: "exclude_deload_from_stats", value: "0" },
+      {
+        key: "plateInventoryKg",
+        value: JSON.stringify(DEFAULT_PLATE_INVENTORY_KG),
+      },
+      {
+        key: "plateInventoryLbs",
+        value: JSON.stringify(DEFAULT_PLATE_INVENTORY_LBS),
+      },
+      { key: "plateCalcBarKg", value: String(DEFAULT_BAR_WEIGHT_KG) },
+      { key: "plateCalcBarLbs", value: String(DEFAULT_BAR_WEIGHT_LBS) },
     ];
 
     // Loop through each default setting
@@ -1364,6 +1380,10 @@ export interface Settings {
   progression_increment_cable_kg: string;
   progression_increment_machine_kg: string;
   exclude_deload_from_stats: string;
+  plateInventoryKg: string;
+  plateInventoryLbs: string;
+  plateCalcBarKg: string;
+  plateCalcBarLbs: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

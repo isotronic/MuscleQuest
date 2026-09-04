@@ -70,6 +70,8 @@ interface SessionSetInfoProps {
   baseTrackingType?: string;
   isWeightedOverrideEnabled?: boolean;
   onToggleWeighted?: () => void;
+  /** Opens the plate calculator for the weight on this set. */
+  onOpenPlateCalculator?: () => void;
   workingSetOrdinal?: number;
   progressionSuggestion?:
     | import("@/types/progression").ExerciseProgressionState
@@ -123,6 +125,7 @@ export default function SessionSetInfo({
   baseTrackingType,
   isWeightedOverrideEnabled,
   onToggleWeighted,
+  onOpenPlateCalculator,
   workingSetOrdinal,
   progressionSuggestion,
 }: SessionSetInfoProps) {
@@ -130,6 +133,10 @@ export default function SessionSetInfo({
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [menuVisible, setMenuVisible] = useState(false);
   const [timerModalVisible, setTimerModalVisible] = useState(false);
+
+  // Plates only make sense against a free weight. "assisted" also renders a
+  // weight field, but that number is a stack pin, not something you load.
+  const showsWeightInput = trackingType === "weight" || !trackingType;
 
   const weightMinusPress = useContinuousPress(
     useCallback(
@@ -310,6 +317,15 @@ export default function SessionSetInfo({
               }}
               title={t`Add Weight`}
               leadingIcon={isWeightedOverrideEnabled ? "check" : undefined}
+            />
+          )}
+          {showsWeightInput && !!onOpenPlateCalculator && (
+            <Menu.Item
+              onPress={() => {
+                onOpenPlateCalculator();
+                closeMenu();
+              }}
+              title={t`Plate Calculator`}
             />
           )}
         </Menu>

@@ -410,6 +410,14 @@ In the Choose Workout list, tapping a workout now opens its details so you can c
 You can now change an exercise's rep range and rest time mid-workout from the three-dot menu. If you enter a weight other than the suggested one, it now carries over to your remaining sets. Weight suggestions also stay hidden when adaptive progression is switched off.
 `,
   },
+  {
+    version: 2648,
+    message: msg`
+🏋️ New: Plate Calculator!
+
+Open the three-dot menu during a workout and tap Plate Calculator to see exactly which plates to load on each side of the bar. Pick your bar weight once and it is remembered. Under Settings > Workout > Plates you can tell the app which plates you actually own, so it never suggests a load you cannot build.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
