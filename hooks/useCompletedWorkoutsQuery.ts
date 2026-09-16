@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
-import { notifyBugsnag } from "@/utils/bugsnagDedup";
+import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 
 interface WorkoutResult {
   id: number;
@@ -126,7 +126,10 @@ const fetchCompletedWorkouts = async (
   } catch (error: any) {
     console.error("Error fetching completed workouts:", error);
     notifyBugsnag(error);
-    throw new Error("Failed to fetch completed workouts");
+    // Already reported above; mark the wrapper so the global net skips it.
+    const wrappedError = new Error("Failed to fetch completed workouts");
+    markReported(wrappedError);
+    throw wrappedError;
   } finally {
     if (db) await db.closeAsync();
   }
@@ -431,7 +434,10 @@ const fetchWorkoutHistoryForSession = async (
   } catch (error: any) {
     console.error("Error fetching workout session history:", error);
     notifyBugsnag(error);
-    throw new Error("Failed to fetch workout session history");
+    // Already reported above; mark the wrapper so the global net skips it.
+    const wrappedError = new Error("Failed to fetch workout session history");
+    markReported(wrappedError);
+    throw wrappedError;
   } finally {
     if (db) await db.closeAsync();
   }
@@ -599,7 +605,10 @@ const fetchGlobalExerciseHistoryForSession = async (
   } catch (error: any) {
     console.error("Error fetching global exercise history:", error);
     notifyBugsnag(error);
-    throw new Error("Failed to fetch global exercise history");
+    // Already reported above; mark the wrapper so the global net skips it.
+    const wrappedError = new Error("Failed to fetch global exercise history");
+    markReported(wrappedError);
+    throw wrappedError;
   } finally {
     if (db) await db.closeAsync();
   }

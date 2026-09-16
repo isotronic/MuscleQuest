@@ -1,4 +1,4 @@
-import { File, Paths } from "expo-file-system";
+import { Directory, File, Paths } from "expo-file-system";
 import { reloadAsync } from "expo-updates";
 import {
   getStorage,
@@ -6,6 +6,7 @@ import {
   getMetadata,
   getDownloadURL,
   putFile,
+  deleteObject,
 } from "@react-native-firebase/storage";
 import { getAuth } from "@react-native-firebase/auth";
 import { QueryClient } from "@tanstack/react-query";
@@ -42,16 +43,30 @@ export const uploadDatabaseBackup = async (
 
     // WAL and SHM are ephemeral: SQLite removes them after a full checkpoint.
     // A fully-checkpointed .db file is a valid self-contained backup, so only
-    // include WAL/SHM when they actually exist on disk.
+    // include WAL/SHM when they actually exist on disk. Checked once, since
+    // the WAL can appear or vanish while uploading.
+    const sidecars = [
+      { file: walFile, fileRef: walStorageRef },
+      { file: shmFile, fileRef: shmStorageRef },
+    ].filter(({ file }) => file.exists);
     const files = [
       { path: dbFile.uri, fileRef: dbStorageRef },
-      ...(walFile.exists
-        ? [{ path: walFile.uri, fileRef: walStorageRef }]
-        : []),
-      ...(shmFile.exists
-        ? [{ path: shmFile.uri, fileRef: shmStorageRef }]
-        : []),
+      ...sidecars.map(({ file, fileRef }) => ({ path: file.uri, fileRef })),
     ];
+
+    // Remove the previous backup's WAL/SHM before uploading anything. Restore
+    // would otherwise apply a stale WAL on top of the newer .db, whether this
+    // backup has no WAL or fails partway. A .db with no WAL is still a valid,
+    // if slightly older, database.
+    for (const fileRef of [walStorageRef, shmStorageRef]) {
+      try {
+        await deleteObject(fileRef);
+      } catch (error: any) {
+        if (error?.code !== "storage/object-not-found") {
+          throw error;
+        }
+      }
+    }
 
     let completedFiles = 0;
 
@@ -143,24 +158,52 @@ export const restoreDatabaseBackup = async (
       { fileRef: shmStorageRef, destFile: shmFile, required: false },
     ];
 
-    let completedFiles = 0;
+    // Download into a staging folder first so a failed download never leaves
+    // the live database half-replaced.
+    const stagingDir = new Directory(Paths.cache, "restore-staging");
+    if (stagingDir.exists) {
+      stagingDir.delete();
+    }
+    stagingDir.create({ intermediates: true });
 
-    for (const { fileRef, destFile, required } of files) {
-      try {
-        const downloadUrl = await getDownloadURL(fileRef);
-        await File.downloadFileAsync(downloadUrl, destFile, {
-          idempotent: true,
-        });
-      } catch (error: any) {
-        if (!required && error?.code === "storage/object-not-found") {
-          // WAL/SHM were not backed up (backup was taken after a checkpoint).
-          // Restoring just the main .db file is valid in this case.
-        } else {
-          throw error;
+    try {
+      const staged: { stagedFile: File; destFile: File }[] = [];
+      let completedFiles = 0;
+
+      for (const { fileRef, destFile, required } of files) {
+        const stagedFile = new File(stagingDir, destFile.name);
+        try {
+          const downloadUrl = await getDownloadURL(fileRef);
+          await File.downloadFileAsync(downloadUrl, stagedFile, {
+            idempotent: true,
+          });
+          staged.push({ stagedFile, destFile });
+        } catch (error: any) {
+          if (!required && error?.code === "storage/object-not-found") {
+            // WAL/SHM were not backed up (backup was taken after a checkpoint).
+            // Restoring just the main .db file is valid in this case.
+          } else {
+            throw error;
+          }
+        }
+        completedFiles += 1;
+        setRestoreProgress((completedFiles / files.length) * 100);
+      }
+
+      // Replace every local file, including a WAL/SHM the backup doesn't have.
+      // A leftover local WAL would otherwise be applied to the restored .db.
+      for (const { destFile } of files) {
+        if (destFile.exists) {
+          destFile.delete();
         }
       }
-      completedFiles += 1;
-      setRestoreProgress((completedFiles / files.length) * 100);
+      for (const { stagedFile, destFile } of staged) {
+        stagedFile.move(destFile);
+      }
+    } finally {
+      if (stagingDir.exists) {
+        stagingDir.delete();
+      }
     }
 
     console.log("All files restored successfully.");

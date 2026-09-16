@@ -1,9 +1,14 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { useCreatePlan } from "../useCreatePlan";
-import { updateWorkoutPlan, savePlanSchedule, openDatabase } from "@/utils/database";
+import {
+  updateWorkoutPlan,
+  savePlanSchedule,
+  openDatabase,
+} from "@/utils/database";
 import { publishPlan } from "@/utils/sharing";
 import { useSocialStore } from "@/store/socialStore";
 import { useWorkoutStore } from "@/store/workoutStore";
+import { getDoc } from "@react-native-firebase/firestore";
 
 const mockUser = { uid: "user-123" };
 
@@ -131,6 +136,49 @@ describe("useCreatePlan - editing an existing plan", () => {
       await result.current.handleSavePlan(42, null);
     });
 
+    expect(publishPlan).not.toHaveBeenCalled();
+    expect(getDoc).not.toHaveBeenCalled();
+  });
+
+  it("falls back to Firestore when the cache isn't loaded and re-publishes a shared plan", async () => {
+    (useSocialStore as unknown as jest.Mock).mockReturnValue({
+      privacySettings: { sharePlans: false },
+      publishedPlanIds: null,
+    });
+    (getDoc as jest.Mock).mockResolvedValueOnce({ exists: () => true });
+
+    const { result } = renderHook(() => useCreatePlan());
+
+    act(() => {
+      result.current.setPlanName("Push Day");
+    });
+
+    await act(async () => {
+      await result.current.handleSavePlan(42, null);
+    });
+
+    expect(getDoc).toHaveBeenCalled();
+    expect(publishPlan).toHaveBeenCalledWith("user-123", 42);
+  });
+
+  it("does not wait on the Firestore fallback when the cache isn't loaded", async () => {
+    (useSocialStore as unknown as jest.Mock).mockReturnValue({
+      privacySettings: { sharePlans: false },
+      publishedPlanIds: null,
+    });
+
+    const { result } = renderHook(() => useCreatePlan());
+
+    act(() => {
+      result.current.setPlanName("Push Day");
+    });
+
+    // getDoc never resolves here; the save must still complete.
+    await act(async () => {
+      await result.current.handleSavePlan(42, null);
+    });
+
+    expect(result.current.planSaved).toBe(true);
     expect(publishPlan).not.toHaveBeenCalled();
   });
 });

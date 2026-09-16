@@ -13,6 +13,7 @@ import { Plan } from "./useAllPlansQuery";
 import { useQueryClient } from "@tanstack/react-query";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { AuthContext } from "@/context/AuthProvider";
+import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
 import { publishPlan } from "@/utils/sharing";
 import { useSocialStore } from "@/store/socialStore";
 
@@ -75,11 +76,26 @@ export const useCreatePlan = (existingPlan?: Plan) => {
         await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
         savedPlanId = planId;
 
-        // Auto re-publish if already shared. Reads the locally-synced
-        // publishedPlanIds cache instead of a Firestore getDoc so an editing
-        // save never blocks on a network round-trip.
-        if (user && publishedPlanIds?.includes(String(planId))) {
-          publishPlan(user.uid, planId).catch((err) => notifyBugsnag(err));
+        // Auto re-publish if already shared. The locally-synced
+        // publishedPlanIds cache answers most saves without a network read.
+        // It is null before the first Firestore snapshot and after a listener
+        // error, and only then does a background getDoc decide. Neither path
+        // is awaited, so an editing save never blocks on the network.
+        if (user) {
+          const uid = user.uid;
+          const republish = () =>
+            publishPlan(uid, planId).catch((err) => notifyBugsnag(err));
+          if (publishedPlanIds) {
+            if (publishedPlanIds.includes(String(planId))) republish();
+          } else {
+            getDoc(
+              doc(getFirestore(), "users", uid, "sharedPlans", String(planId)),
+            )
+              .then((snap) => {
+                if (snap.exists()) return republish();
+              })
+              .catch((err) => notifyBugsnag(err));
+          }
         }
 
         queryClient.invalidateQueries({ queryKey: ["plan", planId] });

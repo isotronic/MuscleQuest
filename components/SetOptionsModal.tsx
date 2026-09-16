@@ -124,8 +124,11 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
     }
   }, [visible, fadeAnim]);
 
-  // Re-seed the inputs whenever the caller hands over a different set.
+  // Re-seed the inputs each time the modal opens, and whenever the caller
+  // hands over a different set, so edits abandoned with Cancel don't linger.
   useEffect(() => {
+    if (!visible) return;
+    setApplyToAllSets(false);
     setIsWarmup(initialValues.isWarmup);
     setIsDropSet(initialValues.isDropSet);
     setIsToFailure(initialValues.isToFailure);
@@ -134,7 +137,7 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
     setRestTime(formatFromTotalSeconds(initialValues.restTotalSeconds));
     setTime(formatFromTotalSeconds(initialValues.timeSeconds));
     setDistance(initialValues.distance);
-  }, [initialValues]);
+  }, [initialValues, visible]);
 
   const handleToFailureChange = () => {
     const newValue = !isToFailure;
@@ -148,8 +151,11 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
     }
   };
 
+  // To-failure sets carry no rep range, but only when the to-failure checkbox
+  // is on screen. Without it (the in-workout editor) the rep inputs are the
+  // only thing the user can change, so what they type is kept.
   const parseReps = (toFailure: boolean, reps: string): number | undefined => {
-    if (toFailure) return undefined;
+    if (toFailure && showSetTypeOptions) return undefined;
     if (reps === "") return undefined;
     return Number(reps);
   };

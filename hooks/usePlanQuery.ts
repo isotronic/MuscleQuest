@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchRecord, openDatabase } from "@/utils/database";
 import { Plan } from "./useAllPlansQuery";
-import { notifyBugsnag } from "@/utils/bugsnagDedup";
+import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export interface WorkoutRecord {
   id: number;
@@ -104,7 +104,10 @@ const fetchWorkoutsForPlan = async (
   } catch (error: any) {
     console.error("Error fetching workouts for plan", error);
     notifyBugsnag(error);
-    throw new Error("Failed to fetch workouts for plan");
+    // Already reported above; mark the wrapper so the global net skips it.
+    const wrappedError = new Error("Failed to fetch workouts for plan");
+    markReported(wrappedError);
+    throw wrappedError;
   } finally {
     await db.closeAsync();
   }

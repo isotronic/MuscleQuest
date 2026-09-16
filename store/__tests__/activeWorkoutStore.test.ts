@@ -1728,19 +1728,96 @@ describe("useActiveWorkoutStore", () => {
           weightAndReps: {},
         });
 
-        useActiveWorkoutStore.getState().loadProgressionSuggestions([
-          {
-            userWorkoutExerciseId: 55,
-            suggestionAction: "increase_load",
-            suggestedWeight: 102.5,
-            isApplied: true,
-          },
-        ]);
+        useActiveWorkoutStore.getState().loadProgressionSuggestions(
+          [
+            {
+              userWorkoutExerciseId: 55,
+              suggestionAction: "increase_load",
+              suggestedWeight: 102.5,
+              isApplied: true,
+            },
+          ],
+          "kg",
+        );
       });
 
       const { weightAndReps } = useActiveWorkoutStore.getState();
       expect(weightAndReps[0][0]?.weight).toBe("102.5");
       expect(weightAndReps[0][1]?.weight).toBe("102.5");
+    });
+
+    it("converts the kg suggestion to lbs before pre-filling and capping", () => {
+      const history: any = [
+        {
+          id: 1,
+          workout_id: 1,
+          plan_id: 1,
+          workout_name: "Test Workout",
+          date_completed: "2026-06-01T00:00:00.000Z",
+          duration: 0,
+          total_sets_completed: 1,
+          exercises: [
+            {
+              exercise_id: 700,
+              exercise_name: "Bench Press",
+              exercise_tracking_type: "weight",
+              sets: [
+                {
+                  set_id: 1,
+                  set_number: 1,
+                  // 100kg lifted last time, already converted to lbs.
+                  weight: 220.46,
+                  reps: 10,
+                  time: null,
+                  distance: null,
+                  is_warmup: false,
+                  set_duration: null,
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      act(() => {
+        useActiveWorkoutStore.setState({
+          workout: {
+            name: "Suggestion Test Workout",
+            exercises: [
+              {
+                ...baseExercise,
+                sets: [
+                  {
+                    repsMin: 8,
+                    repsMax: 12,
+                    restMinutes: 2,
+                    restSeconds: 0,
+                    time: undefined,
+                  },
+                ],
+              },
+            ],
+          },
+          previousWorkoutData: history,
+          weightAndReps: {},
+        });
+
+        useActiveWorkoutStore.getState().loadProgressionSuggestions(
+          [
+            {
+              userWorkoutExerciseId: 55,
+              suggestionAction: "increase_load",
+              suggestedWeight: 102.5,
+              isApplied: true,
+            },
+          ],
+          "lbs",
+        );
+      });
+
+      // 102.5kg is 225.97lbs, above the 220.46lbs lifted last time.
+      const { weightAndReps } = useActiveWorkoutStore.getState();
+      expect(weightAndReps[0][0]?.weight).toBe("226");
     });
 
     it("does not let an increase_load suggestion undercut the carried-over previous weight", () => {
@@ -1817,14 +1894,17 @@ describe("useActiveWorkoutStore", () => {
 
         // Suggested weight (102.5) is lower than what was actually lifted
         // last session (105) — the carry-over should win.
-        useActiveWorkoutStore.getState().loadProgressionSuggestions([
-          {
-            userWorkoutExerciseId: 55,
-            suggestionAction: "increase_load",
-            suggestedWeight: 102.5,
-            isApplied: true,
-          },
-        ]);
+        useActiveWorkoutStore.getState().loadProgressionSuggestions(
+          [
+            {
+              userWorkoutExerciseId: 55,
+              suggestionAction: "increase_load",
+              suggestedWeight: 102.5,
+              isApplied: true,
+            },
+          ],
+          "kg",
+        );
       });
 
       const { weightAndReps } = useActiveWorkoutStore.getState();
@@ -1887,14 +1967,17 @@ describe("useActiveWorkoutStore", () => {
           weightAndReps: {},
         });
 
-        useActiveWorkoutStore.getState().loadProgressionSuggestions([
-          {
-            userWorkoutExerciseId: 55,
-            suggestionAction: "reduce_load",
-            suggestedWeight: 95,
-            isApplied: true,
-          },
-        ]);
+        useActiveWorkoutStore.getState().loadProgressionSuggestions(
+          [
+            {
+              userWorkoutExerciseId: 55,
+              suggestionAction: "reduce_load",
+              suggestedWeight: 95,
+              isApplied: true,
+            },
+          ],
+          "kg",
+        );
       });
 
       const { weightAndReps } = useActiveWorkoutStore.getState();
@@ -1935,14 +2018,17 @@ describe("useActiveWorkoutStore", () => {
           weightAndReps: {},
         });
 
-        useActiveWorkoutStore.getState().loadProgressionSuggestions([
-          {
-            userWorkoutExerciseId: 55,
-            suggestionAction: "increase_reps",
-            suggestedRepsPerSet: [11, 9],
-            isApplied: true,
-          },
-        ]);
+        useActiveWorkoutStore.getState().loadProgressionSuggestions(
+          [
+            {
+              userWorkoutExerciseId: 55,
+              suggestionAction: "increase_reps",
+              suggestedRepsPerSet: [11, 9],
+              isApplied: true,
+            },
+          ],
+          "kg",
+        );
       });
 
       const { weightAndReps } = useActiveWorkoutStore.getState();
@@ -1963,14 +2049,17 @@ describe("useActiveWorkoutStore", () => {
           suggestedWeightPrefills: {},
         });
 
-        useActiveWorkoutStore.getState().loadProgressionSuggestions([
-          {
-            userWorkoutExerciseId: 55,
-            suggestionAction: "increase_load",
-            suggestedWeight: 102.5,
-            isApplied: true,
-          },
-        ]);
+        useActiveWorkoutStore.getState().loadProgressionSuggestions(
+          [
+            {
+              userWorkoutExerciseId: 55,
+              suggestionAction: "increase_load",
+              suggestedWeight: 102.5,
+              isApplied: true,
+            },
+          ],
+          "kg",
+        );
       });
 
       const { suggestedWeightPrefills } = useActiveWorkoutStore.getState();
@@ -2015,14 +2104,17 @@ describe("useActiveWorkoutStore", () => {
           suggestedWeightPrefills: {},
         });
 
-        useActiveWorkoutStore.getState().loadProgressionSuggestions([
-          {
-            userWorkoutExerciseId: 55,
-            suggestionAction: "increase_load",
-            suggestedWeight: 102.5,
-            isApplied: true,
-          },
-        ]);
+        useActiveWorkoutStore.getState().loadProgressionSuggestions(
+          [
+            {
+              userWorkoutExerciseId: 55,
+              suggestionAction: "increase_load",
+              suggestedWeight: 102.5,
+              isApplied: true,
+            },
+          ],
+          "kg",
+        );
       });
     };
 
@@ -2123,14 +2215,17 @@ describe("useActiveWorkoutStore", () => {
           suggestedWeightPrefills: {},
         });
 
-        useActiveWorkoutStore.getState().loadProgressionSuggestions([
-          {
-            userWorkoutExerciseId: 55,
-            suggestionAction: "increase_load",
-            suggestedWeight: 102.5,
-            isApplied: true,
-          },
-        ]);
+        useActiveWorkoutStore.getState().loadProgressionSuggestions(
+          [
+            {
+              userWorkoutExerciseId: 55,
+              suggestionAction: "increase_load",
+              suggestedWeight: 102.5,
+              isApplied: true,
+            },
+          ],
+          "kg",
+        );
 
         useActiveWorkoutStore.getState().updateWeightAndReps(0, 0, "100", "10");
         // First in superset: hops to the partner without advancing the set
@@ -2327,12 +2422,15 @@ describe("useActiveWorkoutStore", () => {
       act(() => {
         // Pair exercise at index 0 into a superset with a new exercise,
         // which gets spliced in at index 1 - shifting old index 2 to index 3.
-        useActiveWorkoutStore
-          .getState()
-          .createSuperset(0, { exercise_id: 99, name: "New Ex", sets: [{}] } as any);
+        useActiveWorkoutStore.getState().createSuperset(0, {
+          exercise_id: 99,
+          name: "New Ex",
+          sets: [{}],
+        } as any);
       });
 
-      const { workout, currentExerciseIndex } = useActiveWorkoutStore.getState();
+      const { workout, currentExerciseIndex } =
+        useActiveWorkoutStore.getState();
       expect(workout?.exercises[currentExerciseIndex].exercise_id).toBe(3);
       expect(currentExerciseIndex).toBe(3);
     });
@@ -2357,9 +2455,11 @@ describe("useActiveWorkoutStore", () => {
       });
 
       act(() => {
-        useActiveWorkoutStore
-          .getState()
-          .createSuperset(1, { exercise_id: 99, name: "New Ex", sets: [{}] } as any);
+        useActiveWorkoutStore.getState().createSuperset(1, {
+          exercise_id: 99,
+          name: "New Ex",
+          sets: [{}],
+        } as any);
       });
 
       const { currentExerciseIndex } = useActiveWorkoutStore.getState();

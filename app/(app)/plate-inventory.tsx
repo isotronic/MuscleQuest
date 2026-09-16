@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -41,7 +41,7 @@ export default function PlateInventoryScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { data: settings } = useSettingsQuery();
-  const { mutate: updateSetting } = useUpdateSettingsMutation();
+  const { mutateAsync: updateSetting } = useUpdateSettingsMutation();
 
   const weightUnit = settings?.weightUnit || "kg";
   const isLbs = weightUnit === "lbs";
@@ -54,20 +54,39 @@ export default function PlateInventoryScreen() {
   );
   const [newWeight, setNewWeight] = useState("");
 
-  // Adopt the stored value once settings arrive, and again if the unit changes
-  // under us, which swaps to an entirely different inventory.
+  // Latest edited list, updated synchronously so rapid taps build on each
+  // other rather than on a render that hasn't happened yet.
+  const platesRef = useRef(plates);
+  // The inventory key whose stored value has been adopted. Settings refetch
+  // after every write, and adopting those refetches could put an older list
+  // back while later taps are still being saved, so each inventory is only
+  // adopted once: when settings first arrive, or when the unit swaps to the
+  // other inventory.
+  const adoptedKeyRef = useRef<string | null>(settings ? inventoryKey : null);
+  // Writes run one at a time so they land in the order they were made.
+  const writeQueueRef = useRef<Promise<unknown>>(Promise.resolve());
+
   useEffect(() => {
-    setPlates(parsePlateInventory(storedValue, weightUnit));
-  }, [storedValue, weightUnit]);
+    if (!settings || adoptedKeyRef.current === inventoryKey) return;
+    adoptedKeyRef.current = inventoryKey;
+    const adopted = parsePlateInventory(storedValue, weightUnit);
+    platesRef.current = adopted;
+    setPlates(adopted);
+  }, [settings, inventoryKey, storedValue, weightUnit]);
 
   const persist = (next: PlateStock[]) => {
+    platesRef.current = next;
     setPlates(next);
-    updateSetting({ key: inventoryKey, value: serialisePlateInventory(next) });
+    const write = { key: inventoryKey, value: serialisePlateInventory(next) };
+    // Failures are reported by the mutation's own onError.
+    writeQueueRef.current = writeQueueRef.current
+      .then(() => updateSetting(write))
+      .catch(() => {});
   };
 
   const changePairs = (weight: number, delta: number) => {
     persist(
-      plates.map((plate) =>
+      platesRef.current.map((plate) =>
         plate.weight === weight
           ? {
               ...plate,
@@ -79,7 +98,7 @@ export default function PlateInventoryScreen() {
   };
 
   const removePlate = (weight: number) => {
-    persist(plates.filter((plate) => plate.weight !== weight));
+    persist(platesRef.current.filter((plate) => plate.weight !== weight));
   };
 
   /**
@@ -90,7 +109,7 @@ export default function PlateInventoryScreen() {
     const parsed = parseFloat(newWeight);
     if (!Number.isFinite(parsed) || parsed <= 0) return true;
 
-    if (plates.some((plate) => plate.weight === parsed)) {
+    if (platesRef.current.some((plate) => plate.weight === parsed)) {
       Alert.alert(
         t`Already added`,
         t`You already have a ${formatWeight(parsed)} ${weightUnit} plate in the list.`,
@@ -99,7 +118,7 @@ export default function PlateInventoryScreen() {
     }
 
     setNewWeight("");
-    persist([...plates, { weight: parsed, pairs: 1 }]);
+    persist([...platesRef.current, { weight: parsed, pairs: 1 }]);
     return true;
   };
 

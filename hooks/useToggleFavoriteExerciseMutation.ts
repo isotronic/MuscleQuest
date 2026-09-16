@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
-import { notifyBugsnag } from "@/utils/bugsnagDedup";
+import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 
 // Function to toggle favorite status in the database
 const toggleFavoriteStatus = async (
@@ -20,7 +20,12 @@ const toggleFavoriteStatus = async (
   } catch (error: any) {
     console.error("Error toggling favorite status:", error);
     notifyBugsnag(error);
-    throw new Error(`Failed to toggle favorite status: ${error}`);
+    // Already reported above; mark the wrapper so the global net skips it.
+    const wrappedError = new Error(
+      `Failed to toggle favorite status: ${error}`,
+    );
+    markReported(wrappedError);
+    throw wrappedError;
   } finally {
     if (db) {
       try {

@@ -159,6 +159,7 @@ interface ActiveWorkoutStore {
       suggestedRepsPerSet?: number[];
       isApplied: boolean;
     }[],
+    weightUnit: string,
   ) => void;
   // The weight a progression suggestion pre-filled into each set, keyed by
   // exercise index then set index. Kept so a later manual entry can be told
@@ -1491,7 +1492,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         return Boolean(activeWorkout && workout); // Returns true if there's an active workout
       },
       getActiveWorkoutId: () => get().activeWorkout?.workoutId ?? null,
-      loadProgressionSuggestions: (states) => {
+      loadProgressionSuggestions: (states, weightUnit) => {
         set((state) => {
           if (!state.workout) return state;
           const newWeightAndReps = { ...state.weightAndReps };
@@ -1519,8 +1520,12 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               .map(({ idx }) => idx);
 
             if (suggestion.suggestedWeight == null) continue;
+            // Suggestions are computed in kg; the weight inputs and the
+            // session history used for the cap below are in the display unit.
+            const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
             const roundedWeight =
-              Math.round(suggestion.suggestedWeight * 10) / 10;
+              Math.round(suggestion.suggestedWeight * conversionFactor * 10) /
+              10;
             const historyExercises =
               suggestion.suggestionAction === "increase_load"
                 ? (state.previousWorkoutData ?? [])
@@ -1533,8 +1538,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               // (deload) suggestion is allowed to decrease the weight.
               const carriedOverWeight =
                 suggestion.suggestionAction === "increase_load"
-                  ? findHistoricalSetByOrdinal(exercise.sets, idx, historyExercises)
-                      ?.weight
+                  ? findHistoricalSetByOrdinal(
+                      exercise.sets,
+                      idx,
+                      historyExercises,
+                    )?.weight
                   : null;
               const finalWeight =
                 carriedOverWeight != null && roundedWeight < carriedOverWeight

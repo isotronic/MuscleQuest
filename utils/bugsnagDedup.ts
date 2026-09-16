@@ -26,15 +26,14 @@ export function wasReported(error: unknown): boolean {
 
 type NotifyArgs = Parameters<typeof Bugsnag.notify>;
 
-// Reports an error to Bugsnag and marks it so the global react-query safety
-// net won't report it a second time. Use this in place of Bugsnag.notify
+// Reports an error to Bugsnag, unless it was already reported, and marks it so
+// the global react-query safety net won't report it a second time. Use this in place of Bugsnag.notify
 // anywhere the error may also surface through a query/mutation. Passes the
 // error and optional onError callback straight through, preserving the exact
 // call shape (and any metadata callback) of the original Bugsnag.notify call.
-export function notifyBugsnag(
-  error: unknown,
-  onError?: NotifyArgs[1],
-): void {
+export function notifyBugsnag(error: unknown, onError?: NotifyArgs[1]): void {
+  // A helper and its calling hook or screen often both catch the same error.
+  if (wasReported(error)) return;
   if (onError) {
     Bugsnag.notify(error as NotifyArgs[0], onError);
   } else {

@@ -59,12 +59,23 @@ export const SessionSetOptionsModal: React.FC<SessionSetOptionsModalProps> = ({
   if (!set) return null;
 
   const handleSave = (values: SetOptionsValues, applyToAllSets: boolean) => {
+    // An input that was empty when the editor opened and is still empty is
+    // left out: spreading its undefined value would wipe that field on every
+    // set when "apply to all" is ticked. A field the user cleared is kept.
+    const changed = <K extends keyof SetOptionsValues>(
+      key: K,
+      initial: string,
+    ) =>
+      values[key] !== undefined || initial !== "" ? { [key]: values[key] } : {};
     const fields =
       trackingType === "time"
         ? { time: values.time }
         : trackingType === "distance"
-          ? { distance: values.distance }
-          : { repsMin: values.repsMin, repsMax: values.repsMax };
+          ? changed("distance", initialValues.distance)
+          : {
+              ...changed("repsMin", initialValues.repsMin),
+              ...changed("repsMax", initialValues.repsMax),
+            };
 
     updateSetDetails(
       exerciseIndex,

@@ -119,7 +119,14 @@ const reportQueryError = (error: unknown) => {
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({ onError: reportQueryError }),
-  mutationCache: new MutationCache({ onError: reportQueryError }),
+  // MutationCache.onError runs before each hook's own onError, so the hook's
+  // notifyBugsnag would not have marked the error yet. onSettled runs after the
+  // hook's onError has finished, so the dedup check sees it.
+  mutationCache: new MutationCache({
+    onSettled: (_data, error) => {
+      if (error) reportQueryError(error);
+    },
+  }),
 });
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
