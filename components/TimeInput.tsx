@@ -37,7 +37,7 @@ export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
   const { minutes: initM, seconds: initS } = parseValue(value);
   const [minutes, setMinutes] = useState(initM === "0" ? "" : initM);
   const [seconds, setSeconds] = useState(initS === "00" ? "" : initS);
-  const secondsRef = useRef<{ focus: () => void } | null>(null);
+  const secondsRef = useRef<TextInput>(null);
   const [isFocused, setIsFocused] = useState(false);
 
   // Only sync external value when the user is not actively editing

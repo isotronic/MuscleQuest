@@ -120,7 +120,6 @@ const ExerciseList = ({
       }
       renderItem={renderExerciseItem}
       contentContainerStyle={styles.flatListContent}
-      estimatedItemSize={84}
     />
   );
 };

@@ -39,8 +39,6 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
-type ScrollViewType = typeof ScrollView;
-
 export default function CreatePlanScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -50,7 +48,7 @@ export default function CreatePlanScreen() {
   const { planId } = useLocalSearchParams();
   const [dataLoaded, setDataLoaded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const scrollRef = useRef<ScrollViewType>(null);
+  const scrollRef = useRef<ScrollView>(null);
   const {
     workouts,
     planImageUrl,
@@ -396,7 +394,6 @@ export default function CreatePlanScreen() {
                 placeholder={t`Training Plan Name`}
                 value={planName}
                 onChangeText={setPlanName}
-                dense
               />
             </View>
             {workouts.length === 0 ? (
