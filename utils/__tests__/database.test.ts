@@ -856,6 +856,17 @@ describe("updateAppExerciseIds", () => {
     expect(Bugsnag.notify).toHaveBeenCalled();
   });
 
+  it("rethrows the original error when ROLLBACK also fails", async () => {
+    mockDb.getFirstAsync.mockResolvedValue({ value: "1.1" });
+    mockDb.getAllAsync.mockResolvedValue([{ exercise_id: 5 }]);
+    mockDb.runAsync.mockRejectedValueOnce(new Error("update failed"));
+    mockDb.execAsync.mockImplementation(async (sql: string) => {
+      if (sql === "ROLLBACK") throw new Error("rollback failed");
+    });
+
+    await expect(updateAppExerciseIds()).rejects.toThrow("update failed");
+  });
+
   it("rolls back if an update fails mid-transaction", async () => {
     mockDb.getFirstAsync.mockResolvedValue({ value: "1.1" });
     mockDb.getAllAsync.mockResolvedValue([{ exercise_id: 5 }]);
@@ -868,6 +879,22 @@ describe("updateAppExerciseIds", () => {
 });
 
 describe("syncExerciseFlagsFromAppData", () => {
+  it("rethrows the original error when ROLLBACK also fails", async () => {
+    mockDb.getFirstAsync.mockResolvedValue({ value: "1.9" });
+    mockDb.getAllAsync.mockResolvedValue([
+      { exercise_id: 1, is_unilateral: 1, double_weight: 0 },
+    ]);
+    mockDb.runAsync.mockRejectedValueOnce(new Error("update failed"));
+    mockDb.execAsync.mockImplementation(async (sql: string) => {
+      if (sql === "ROLLBACK") throw new Error("rollback failed");
+    });
+
+    await expect(syncExerciseFlagsFromAppData()).rejects.toThrow(
+      "update failed",
+    );
+    expect(Bugsnag.notify).toHaveBeenCalled();
+  });
+
   it("rolls back and rethrows if an update fails", async () => {
     mockDb.getFirstAsync.mockResolvedValue({ value: "1.9" });
     mockDb.getAllAsync.mockResolvedValue([
