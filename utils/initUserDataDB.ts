@@ -680,6 +680,31 @@ export async function initUserDataDB() {
       );
     }
 
+    // One-time cleanup: post-set feedback used to feed pounds into the kg-only
+    // progression engine, so a pounds user's stored suggested weights may be
+    // in the wrong unit. The row can't tell which path wrote it, so dismiss
+    // them all; they regenerate on the next feedback submission.
+    const progressionUnitFixDone = await db.getFirstAsync<{ value: string }>(
+      `SELECT value FROM settings WHERE key = 'progression_unit_fix_v1'`,
+    );
+    if (!progressionUnitFixDone) {
+      await db.withExclusiveTransactionAsync(async (txn) => {
+        const weightUnitRow = await txn.getFirstAsync<{ value: string }>(
+          `SELECT value FROM settings WHERE key = 'weightUnit'`,
+        );
+        if (weightUnitRow?.value === "lbs") {
+          await txn.runAsync(
+            `UPDATE exercise_progression_state
+             SET is_dismissed = 1, updated_at = datetime('now')
+             WHERE is_dismissed = 0 AND suggested_weight IS NOT NULL`,
+          );
+        }
+        await txn.runAsync(
+          `INSERT OR REPLACE INTO settings (key, value) VALUES ('progression_unit_fix_v1', 'true')`,
+        );
+      });
+    }
+
     // Migration: add sort_order to tracked_exercises for user-defined display order
     const trackedExercisesResult = await db.getAllAsync<{ name: string }>(
       `PRAGMA table_info(tracked_exercises)`,

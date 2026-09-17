@@ -285,3 +285,12 @@ export const parsePlateInventory = (
 
 export const serialisePlateInventory = (plates: PlateStock[]) =>
   JSON.stringify(sortHeaviestFirst(plates));
+
+/**
+ * The smallest jump the rack can make: one pair of the lightest stocked
+ * plate, one on each side. Null when nothing is stocked.
+ */
+export const smallestLoadStep = (plates: PlateStock[]): number | null => {
+  const stocked = plates.filter((p) => p.pairs > 0).map((p) => p.weight);
+  return stocked.length > 0 ? Math.min(...stocked) * 2 : null;
+};

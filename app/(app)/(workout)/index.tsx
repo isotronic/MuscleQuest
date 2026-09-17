@@ -28,6 +28,7 @@ import {
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { parsePlateInventory, smallestLoadStep } from "@/utils/plateCalculator";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import Bugsnag from "@bugsnag/expo";
@@ -173,6 +174,11 @@ export default function WorkoutOverviewScreen() {
   );
 
   const weightUnit = settings?.weightUnit || "kg";
+  const lbsStep = useMemo(
+    () =>
+      smallestLoadStep(parsePlateInventory(settings?.plateInventoryLbs, "lbs")),
+    [settings?.plateInventoryLbs],
+  );
   const distanceUnit = settings?.distanceUnit || "m";
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const { estimate: durationEstimate } = useWorkoutDurationEstimate(
@@ -200,12 +206,13 @@ export default function WorkoutOverviewScreen() {
 
   useEffect(() => {
     if (!sessionHistory || !workoutProgressionStates?.length) return;
-    loadProgressionSuggestions(workoutProgressionStates, weightUnit);
+    loadProgressionSuggestions(workoutProgressionStates, weightUnit, lbsStep);
   }, [
     sessionHistory,
     workoutProgressionStates,
     loadProgressionSuggestions,
     weightUnit,
+    lbsStep,
   ]);
 
   const progressionStatesByUweId = useMemo(
