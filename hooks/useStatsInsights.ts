@@ -81,7 +81,9 @@ export const useStatsInsights = (
           const raw = bpMap[ex.exercise_id];
           if (!raw) return;
           const bp = mapBodyPart(raw);
-          const setCount = excludeWarmup ? ex.sets.filter((s) => !s.is_warmup).length : ex.sets.length;
+          const setCount = excludeWarmup
+            ? ex.sets.filter((s) => !s.is_warmup).length
+            : ex.sets.length;
           counts[bp] = (counts[bp] || 0) + setCount;
         });
       });

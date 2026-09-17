@@ -97,7 +97,12 @@ export function findLastAvailableSetData(params: {
 
   return (
     lookup(prevExercisesByExerciseId, exerciseId, isWarmup, ordinal) ??
-    lookupByPosition(previousWorkoutData, isWarmup, ordinal, exercisePosition) ??
+    lookupByPosition(
+      previousWorkoutData,
+      isWarmup,
+      ordinal,
+      exercisePosition,
+    ) ??
     lookup(globalExercisesByExerciseId, exerciseId, isWarmup, ordinal)
   );
 }

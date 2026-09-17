@@ -16,9 +16,7 @@ describe("downloadAllAnimatedImages", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (File as any).downloadFileAsync = jest
-      .fn()
-      .mockResolvedValue(undefined);
+    (File as any).downloadFileAsync = jest.fn().mockResolvedValue(undefined);
   });
 
   it("should download all images successfully and update progress", async () => {

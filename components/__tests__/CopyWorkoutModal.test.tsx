@@ -102,7 +102,9 @@ describe("CopyWorkoutModal", () => {
     const { getByDisplayValue, rerender } = render(
       <CopyWorkoutModal {...baseProps} visible={false} />,
     );
-    rerender(<CopyWorkoutModal {...baseProps} visible={true} defaultName="New Name" />);
+    rerender(
+      <CopyWorkoutModal {...baseProps} visible={true} defaultName="New Name" />,
+    );
     expect(getByDisplayValue("New Name")).toBeTruthy();
   });
 

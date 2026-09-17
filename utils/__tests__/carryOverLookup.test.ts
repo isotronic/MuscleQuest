@@ -4,7 +4,11 @@ import {
   type CarryOverWorkout,
 } from "../carryOverLookup";
 
-const makeSet = (overrides: Partial<CarryOverWorkout["exercises"][number]["sets"][number]> = {}) => ({
+const makeSet = (
+  overrides: Partial<
+    CarryOverWorkout["exercises"][number]["sets"][number]
+  > = {},
+) => ({
   set_id: 1,
   set_number: 1,
   weight: 100,

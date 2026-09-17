@@ -26,7 +26,10 @@ jest.mock("expo-constants", () => ({
   default: {
     get expoConfig() {
       return {
-        extra: { appVariant: mockAppVariant, appCheckDebugToken: mockDebugToken },
+        extra: {
+          appVariant: mockAppVariant,
+          appCheckDebugToken: mockDebugToken,
+        },
       };
     },
   },
@@ -76,7 +79,9 @@ describe("setupAppCheck", () => {
   });
 
   it("throws if initializeAppCheck fails", async () => {
-    mockInitializeAppCheck.mockRejectedValueOnce(new Error("Firebase init failed"));
+    mockInitializeAppCheck.mockRejectedValueOnce(
+      new Error("Firebase init failed"),
+    );
 
     await expect(setupAppCheck()).rejects.toThrow("Firebase init failed");
   });
@@ -87,7 +92,9 @@ describe("setupAppCheck", () => {
     expect(mockConfigure).toHaveBeenCalledWith(
       expect.objectContaining({
         android: expect.objectContaining({ provider: "playIntegrity" }),
-        apple: expect.objectContaining({ provider: "appAttestWithDeviceCheckFallback" }),
+        apple: expect.objectContaining({
+          provider: "appAttestWithDeviceCheckFallback",
+        }),
       }),
     );
   });

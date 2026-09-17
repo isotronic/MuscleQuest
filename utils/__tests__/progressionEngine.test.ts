@@ -181,28 +181,48 @@ describe("computeLayoffReduction", () => {
   });
 
   it("applies a 10% reduction at exactly 14 days, rounded to the nearest barbell increment", () => {
-    const result = computeLayoffReduction(14, 100, "barbell", DEFAULT_INCREMENTS);
+    const result = computeLayoffReduction(
+      14,
+      100,
+      "barbell",
+      DEFAULT_INCREMENTS,
+    );
     expect(result?.reductionFraction).toBe(0.1);
     // raw = 90, nearest multiple of 2.5 = 90
     expect(result?.suggestedWeight).toBe(90);
   });
 
   it("applies a 15% reduction at the midpoint (21 days)", () => {
-    const result = computeLayoffReduction(21, 100, "barbell", DEFAULT_INCREMENTS);
+    const result = computeLayoffReduction(
+      21,
+      100,
+      "barbell",
+      DEFAULT_INCREMENTS,
+    );
     expect(result?.reductionFraction).toBeCloseTo(0.15);
     // raw = 85, nearest multiple of 2.5 = 85
     expect(result?.suggestedWeight).toBe(85);
   });
 
   it("caps the reduction at 20% for a 28-day layoff", () => {
-    const result = computeLayoffReduction(28, 100, "barbell", DEFAULT_INCREMENTS);
+    const result = computeLayoffReduction(
+      28,
+      100,
+      "barbell",
+      DEFAULT_INCREMENTS,
+    );
     expect(result?.reductionFraction).toBeCloseTo(0.2);
     // raw = 80, nearest multiple of 2.5 = 80
     expect(result?.suggestedWeight).toBe(80);
   });
 
   it("caps the reduction at 20% for layoffs longer than 28 days", () => {
-    const result = computeLayoffReduction(90, 100, "barbell", DEFAULT_INCREMENTS);
+    const result = computeLayoffReduction(
+      90,
+      100,
+      "barbell",
+      DEFAULT_INCREMENTS,
+    );
     expect(result?.reductionFraction).toBeCloseTo(0.2);
     expect(result?.suggestedWeight).toBe(80);
   });
@@ -210,13 +230,23 @@ describe("computeLayoffReduction", () => {
   it("steps down one more increment when rounding to nearest would erase the reduction", () => {
     // weight=10, 10% off = raw 9. Nearest multiple of 2.5 to 9 is 10 (>= original),
     // so it must step down to 10 - 2.5 = 7.5 instead of returning 10 unchanged.
-    const result = computeLayoffReduction(14, 10, "barbell", DEFAULT_INCREMENTS);
+    const result = computeLayoffReduction(
+      14,
+      10,
+      "barbell",
+      DEFAULT_INCREMENTS,
+    );
     expect(result?.suggestedWeight).toBe(7.5);
   });
 
   it("falls back to 0.5 rounding when the equipment has no configured increment", () => {
     // "kettlebell" returns 0 from computeLoadIncrement
-    const result = computeLayoffReduction(14, 100, "kettlebell", DEFAULT_INCREMENTS);
+    const result = computeLayoffReduction(
+      14,
+      100,
+      "kettlebell",
+      DEFAULT_INCREMENTS,
+    );
     // raw = 90, floored to nearest 0.5 = 90
     expect(result?.suggestedWeight).toBe(90);
   });

@@ -5,7 +5,12 @@ import { t } from "@lingui/core/macro";
 import { Divider, IconButton } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { router, Stack, useLocalSearchParams, useFocusEffect } from "expo-router";
+import {
+  router,
+  Stack,
+  useLocalSearchParams,
+  useFocusEffect,
+} from "expo-router";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useEditCompletedWorkoutMutation } from "@/hooks/useEditCompletedWorkoutMutation";

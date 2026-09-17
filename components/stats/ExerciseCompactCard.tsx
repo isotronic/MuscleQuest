@@ -51,32 +51,63 @@ const formatPRLabel = (
 };
 
 export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
-  React.memo(({ exercise, weightUnit, distanceUnit, onPress, isReorderMode = false }) => {
-    const { colors } = useAppTheme();
-    const styles = useMemo(() => createStyles(colors), [colors]);
-    const latestSet = exercise.completed_sets[0];
-    const daysAgo = latestSet ? formatDaysAgo(latestSet.date_completed) : null;
-    const prLabel = formatPRLabel(exercise, weightUnit, distanceUnit);
+  React.memo(
+    ({
+      exercise,
+      weightUnit,
+      distanceUnit,
+      onPress,
+      isReorderMode = false,
+    }) => {
+      const { colors } = useAppTheme();
+      const styles = useMemo(() => createStyles(colors), [colors]);
+      const latestSet = exercise.completed_sets[0];
+      const daysAgo = latestSet
+        ? formatDaysAgo(latestSet.date_completed)
+        : null;
+      const prLabel = formatPRLabel(exercise, weightUnit, distanceUnit);
 
-    const sparkData = useMemo(
-      () =>
-        [...exercise.completed_sets]
-          .reverse()
-          .slice(-12)
-          .map((s) => ({ value: s.progressionMetric })),
-      [exercise.completed_sets],
-    );
+      const sparkData = useMemo(
+        () =>
+          [...exercise.completed_sets]
+            .reverse()
+            .slice(-12)
+            .map((s) => ({ value: s.progressionMetric })),
+        [exercise.completed_sets],
+      );
 
-    if (isReorderMode) {
+      if (isReorderMode) {
+        return (
+          <Sortable.Touchable style={styles.card}>
+            <AppIcon
+              set="mci"
+              name="drag"
+              size={24}
+              color={colors.contentSecondary}
+              style={styles.dragIcon}
+            />
+            <View style={styles.left}>
+              <ThemedText style={styles.name} numberOfLines={1}>
+                {exercise.name}
+              </ThemedText>
+              <ThemedText style={styles.sub}>
+                {prLabel}
+                {daysAgo ? `  ·  ${daysAgo}` : ""}
+              </ThemedText>
+            </View>
+            <View style={styles.right}>
+              <SparklineChart data={sparkData} width={100} height={44} />
+            </View>
+          </Sortable.Touchable>
+        );
+      }
+
       return (
-        <Sortable.Touchable style={styles.card}>
-          <AppIcon
-            set="mci"
-            name="drag"
-            size={24}
-            color={colors.contentSecondary}
-            style={styles.dragIcon}
-          />
+        <TouchableOpacity
+          onPress={onPress}
+          activeOpacity={0.7}
+          style={styles.card}
+        >
           <View style={styles.left}>
             <ThemedText style={styles.name} numberOfLines={1}>
               {exercise.name}
@@ -88,29 +119,12 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
           </View>
           <View style={styles.right}>
             <SparklineChart data={sparkData} width={100} height={44} />
+            <ThemedText style={styles.chevron}>›</ThemedText>
           </View>
-        </Sortable.Touchable>
+        </TouchableOpacity>
       );
-    }
-
-    return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={styles.card}>
-        <View style={styles.left}>
-          <ThemedText style={styles.name} numberOfLines={1}>
-            {exercise.name}
-          </ThemedText>
-          <ThemedText style={styles.sub}>
-            {prLabel}
-            {daysAgo ? `  ·  ${daysAgo}` : ""}
-          </ThemedText>
-        </View>
-        <View style={styles.right}>
-          <SparklineChart data={sparkData} width={100} height={44} />
-          <ThemedText style={styles.chevron}>›</ThemedText>
-        </View>
-      </TouchableOpacity>
-    );
-  });
+    },
+  );
 ExerciseCompactCard.displayName = "ExerciseCompactCard";
 
 function createStyles(colors: AppThemeColors) {
