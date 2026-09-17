@@ -143,6 +143,7 @@ export const updateAppExerciseIds = async (): Promise<void> => {
     if (inTransaction) {
       await userDataDB.execAsync("ROLLBACK");
     }
+    throw error;
   } finally {
     await userDataDB.closeAsync();
   }
@@ -383,6 +384,7 @@ export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
     } catch (err) {
       await userDataDB.execAsync("ROLLBACK");
       notifyBugsnag(err as Error);
+      throw err;
     }
   } finally {
     if (appDataDB) await appDataDB.closeAsync();

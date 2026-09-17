@@ -9,10 +9,10 @@ import {
   updateAppExerciseIds,
 } from "@/utils/database";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getAsyncStorageItem,
   removeAsyncStorageItem,
-  setAsyncStorageItem,
 } from "@/utils/asyncStorage";
 
 export const DATABASE_RESTORED_KEY = "databaseRestored";
@@ -26,16 +26,18 @@ export type StartupResult =
 // Runs on every boot, including the first boot after a restore. A backup taken
 // on an older app version needs initUserDataDB's ALTER/CREATE statements to
 // reach the current schema. The seeding steps are safe against restored data:
-// each is gated on the restored DB's own dataVersion (copyData < 1.7,
-// updateAppExerciseIds == 1.1, loadPremadePlans < 1.8/2.1, syncExerciseFlags
+// each is gated on the restored DB's own dataVersion (updateAppExerciseIds
+// == 1.1, copyData < 1.7, loadPremadePlans < 1.8/2.1, syncExerciseFlags
 // < 2.0) or only inserts rows that are missing (insertDefaultSettings, premade
 // plans by app_plan_id). An older backup runs the same upgrade path an older
 // install would.
 const initializeDatabases = async () => {
   await initializeAppData();
   await initUserDataDB();
-  await copyDataFromAppDataToUserData();
+  // Must run before copyData: it only acts on dataVersion 1.1, and copyData
+  // matches exercises by app_exercise_id before advancing the version to 1.7.
   await updateAppExerciseIds();
+  await copyDataFromAppDataToUserData();
   await insertDefaultSettings();
   await loadPremadePlans();
   await syncExerciseFlagsFromAppData();
@@ -61,9 +63,21 @@ export const runStartup = async (
     const error = e instanceof Error ? e : new Error(String(e));
     console.error("Database initialization error:", error);
 
-    const failureCount =
-      (Number(await getAsyncStorageItem(STARTUP_FAILURE_COUNT_KEY)) || 0) + 1;
-    await setAsyncStorageItem(STARTUP_FAILURE_COUNT_KEY, String(failureCount));
+    // The storage helpers swallow errors, so AsyncStorage is used directly: if
+    // the count can't be persisted, reloading could loop forever.
+    let failureCount: number | null = null;
+    try {
+      failureCount =
+        (Number(await AsyncStorage.getItem(STARTUP_FAILURE_COUNT_KEY)) || 0) +
+        1;
+      await AsyncStorage.setItem(
+        STARTUP_FAILURE_COUNT_KEY,
+        String(failureCount),
+      );
+    } catch (storageError) {
+      console.error("Failed to persist startup failure count:", storageError);
+      failureCount = null;
+    }
 
     Bugsnag.notify(error, (event) => {
       event.addMetadata("startup", { failureCount, databaseRestored });

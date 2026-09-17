@@ -58,6 +58,10 @@ beforeEach(async () => {
   (Updates.reloadAsync as jest.Mock).mockResolvedValue(undefined);
 });
 
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
 describe("runStartup after a restore", () => {
   beforeEach(async () => {
     await AsyncStorage.setItem(DATABASE_RESTORED_KEY, "true");
@@ -111,6 +115,49 @@ describe("runStartup failure handling", () => {
 
     const result = await runStartup(Promise.resolve());
     expect(result.status).toBe("failed");
+  });
+
+  it("does not reload when the failure count cannot be persisted", async () => {
+    (initUserDataDB as jest.Mock).mockRejectedValue(new Error("boom"));
+    jest
+      .spyOn(AsyncStorage, "setItem")
+      .mockRejectedValueOnce(new Error("storage full"));
+
+    const result = await runStartup(Promise.resolve());
+    expect(result.status).toBe("failed");
+    expect(Updates.reloadAsync).not.toHaveBeenCalled();
+  });
+
+  it("does not reload when the failure count cannot be read", async () => {
+    (initUserDataDB as jest.Mock).mockRejectedValue(new Error("boom"));
+    jest
+      .spyOn(AsyncStorage, "getItem")
+      .mockResolvedValueOnce(null) // databaseRestored read
+      .mockRejectedValueOnce(new Error("storage unavailable"));
+
+    const result = await runStartup(Promise.resolve());
+    expect(result.status).toBe("failed");
+    expect(Updates.reloadAsync).not.toHaveBeenCalled();
+  });
+
+  it("runs the 1.1 exercise id migration before copying app data", async () => {
+    await runStartup(Promise.resolve());
+    const idOrder = (updateAppExerciseIds as jest.Mock).mock
+      .invocationCallOrder[0];
+    const copyOrder = (copyDataFromAppDataToUserData as jest.Mock).mock
+      .invocationCallOrder[0];
+    expect(idOrder).toBeLessThan(copyOrder);
+  });
+
+  it("does not report ok or clear the restore flag when a migration fails", async () => {
+    await AsyncStorage.setItem(DATABASE_RESTORED_KEY, "true");
+    (syncExerciseFlagsFromAppData as jest.Mock).mockRejectedValue(
+      new Error("sync failed"),
+    );
+
+    const result = await runStartup(Promise.resolve());
+    expect(result.status).not.toBe("ok");
+    expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBe("true");
   });
 
   it("resets the failure count after a successful boot", async () => {

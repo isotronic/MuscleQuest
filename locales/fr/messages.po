@@ -1367,7 +1367,7 @@ msgstr "Tout le temps"
 
 #: components/StartupRecoveryScreen.tsx:40
 msgid "All training history on this device will be deleted. It can only be recovered from a cloud backup, which you can restore from Settings after the reset."
-msgstr "Tout l'historique d'entraînement de cet appareil sera supprimé. Il ne pourra être récupéré qu'à partir d'une sauvegarde cloud, que vous pourrez restaurer depuis les Paramètres après la réinitialisation."
+msgstr "Tout l'historique d'entraînement de cet appareil sera supprimé. Il ne pourra être récupéré qu'à partir d'une sauvegarde cloud, que tu pourras restaurer depuis les Paramètres après la réinitialisation."
 
 #: app/(app)/(tabs)/(stats)/exercise-detail.tsx:92
 msgid "All-time PR"
@@ -3090,7 +3090,7 @@ msgstr "MuscleQuest"
 
 #: components/StartupRecoveryScreen.tsx:60
 msgid "MuscleQuest couldn't open your training data."
-msgstr "MuscleQuest n'a pas pu ouvrir vos données d'entraînement."
+msgstr "MuscleQuest n'a pas pu ouvrir tes données d'entraînement."
 
 #: components/Onboarding.tsx:18
 msgid "MuscleQuest Introduction"
@@ -4672,7 +4672,7 @@ msgstr "Réessayer"
 
 #: components/StartupRecoveryScreen.tsx:63
 msgid "Try again first. If the problem keeps happening, you can reset the data on this device."
-msgstr "Réessayez d'abord. Si le problème persiste, vous pouvez réinitialiser les données de cet appareil."
+msgstr "Réessaie d'abord. Si le problème persiste, tu peux réinitialiser les données de cet appareil."
 
 #: components/ProgressionSuggestionChip.tsx:35
 msgid "Try: {joined} reps"
