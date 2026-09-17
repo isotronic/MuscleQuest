@@ -336,7 +336,7 @@ export default function SessionSetInfo({
           icon="chevron-left"
           onPress={handlePreviousSet}
           size={buttonSize}
-          disabled={isFirstSetOfFirstExercise}
+          disabled={!!isFirstSetOfFirstExercise}
           iconColor={colors.contentPrimary}
         />
         <ThemedText style={styles.setNavigationText}>
@@ -348,7 +348,7 @@ export default function SessionSetInfo({
           icon="chevron-right"
           onPress={handleNextSet}
           size={buttonSize}
-          disabled={isLastSetOfLastExercise}
+          disabled={!!isLastSetOfLastExercise}
           iconColor={colors.contentPrimary}
         />
       </View>
@@ -450,7 +450,6 @@ export default function SessionSetInfo({
               {...weightMinusPress}
               size={buttonSize}
               iconColor={colors.contentPrimary}
-              style={styles.iconButton}
             />
             <TextInput
               placeholderTextColor={colors.contentPrimary}
@@ -465,7 +464,6 @@ export default function SessionSetInfo({
               {...weightPlusPress}
               size={buttonSize}
               iconColor={colors.contentPrimary}
-              style={styles.iconButton}
             />
           </View>
         </>
@@ -483,7 +481,6 @@ export default function SessionSetInfo({
               {...repsMinusPress}
               size={buttonSize}
               iconColor={colors.contentPrimary}
-              style={styles.iconButton}
             />
             <TextInput
               placeholderTextColor={colors.contentPrimary}
@@ -498,7 +495,6 @@ export default function SessionSetInfo({
               {...repsPlusPress}
               size={buttonSize}
               iconColor={colors.contentPrimary}
-              style={styles.iconButton}
             />
           </View>
         </>
@@ -554,7 +550,6 @@ export default function SessionSetInfo({
               {...distanceMinusPress}
               size={buttonSize}
               iconColor={colors.contentPrimary}
-              style={styles.iconButton}
             />
             <TextInput
               placeholderTextColor={colors.contentPrimary}
@@ -569,7 +564,6 @@ export default function SessionSetInfo({
               {...distancePlusPress}
               size={buttonSize}
               iconColor={colors.contentPrimary}
-              style={styles.iconButton}
             />
           </View>
         </>

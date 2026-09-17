@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+
+      - run: npm ci
+
+      # google-services.json and assets/data/ are gitignored; stub them so
+      # imports resolve for tsc and jest. app/_layout.tsx reads oauth_client[2]
+      # at import time, so the stub needs three entries.
+      - name: Stub gitignored local files
+        run: |
+          echo '{"client":[{"oauth_client":[{"client_id":""},{"client_id":""},{"client_id":""}]}]}' > google-services.json
+          mkdir -p assets/data
+          for f in $(grep -oh 'assets/data/[A-Za-z0-9_-]*\.json' utils/loadPremadePlans.ts | sort -u); do
+            [ -f "$f" ] || echo '[]' > "$f"
+          done
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint:ci
+
+      - name: Test
+        run: npx jest --ci

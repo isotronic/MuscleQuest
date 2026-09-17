@@ -2,6 +2,13 @@ import React from "react";
 import { render } from "@testing-library/react-native";
 import FriendProfileScreen from "../friend-profile";
 
+import { useFriendSharedPlansQuery } from "@/hooks/useFriendSharedPlansQuery";
+import { useFriendSharedStandaloneWorkoutsQuery } from "@/hooks/useFriendSharedStandaloneWorkoutsQuery";
+import { useFriendSharedCustomExercisesQuery } from "@/hooks/useFriendSharedCustomExercisesQuery";
+import { useFriendSharedCompletedWorkoutsQuery } from "@/hooks/useFriendSharedCompletedWorkoutsQuery";
+import { useFriendSharedMeasurementsQuery } from "@/hooks/useFriendSharedMeasurementsQuery";
+import { useFriendSharedStrengthQuery } from "@/hooks/useFriendSharedStrengthQuery";
+
 jest.mock("@lingui/react/macro", () => ({
   Trans: ({ children }: { children: React.ReactNode }) => children,
 }));
@@ -95,13 +102,6 @@ jest.mock("@/hooks/useFriendSharedStrengthQuery", () => ({
 jest.mock("@/hooks/useFriendSharedPlansQuery", () => ({
   useFriendSharedPlansQuery: jest.fn(),
 }));
-
-import { useFriendSharedPlansQuery } from "@/hooks/useFriendSharedPlansQuery";
-import { useFriendSharedStandaloneWorkoutsQuery } from "@/hooks/useFriendSharedStandaloneWorkoutsQuery";
-import { useFriendSharedCustomExercisesQuery } from "@/hooks/useFriendSharedCustomExercisesQuery";
-import { useFriendSharedCompletedWorkoutsQuery } from "@/hooks/useFriendSharedCompletedWorkoutsQuery";
-import { useFriendSharedMeasurementsQuery } from "@/hooks/useFriendSharedMeasurementsQuery";
-import { useFriendSharedStrengthQuery } from "@/hooks/useFriendSharedStrengthQuery";
 
 describe("FriendProfileScreen", () => {
   beforeEach(() => {

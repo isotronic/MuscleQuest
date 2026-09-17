@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import { startOfWeek, endOfWeek, subWeeks, format } from "date-fns";
-import {
-  getWeeklyCompletions,
-  upsertWeeklyCompletion,
-} from "@/utils/database";
+import { getWeeklyCompletions, upsertWeeklyCompletion } from "@/utils/database";
 import { CompletedWorkout } from "./useCompletedWorkoutsQuery";
 
 const syncWeeklyCompletions = async (
@@ -29,7 +26,9 @@ const syncWeeklyCompletions = async (
   const lastWeekStart = subWeeks(currentWeekStart, 1);
   const lastWeekStartStr = format(lastWeekStart, "yyyy-MM-dd");
   const existing = await getWeeklyCompletions();
-  const lastWeekExists = existing.some((e) => e.week_start === lastWeekStartStr);
+  const lastWeekExists = existing.some(
+    (e) => e.week_start === lastWeekStartStr,
+  );
 
   if (!lastWeekExists) {
     const lastWeekEnd = endOfWeek(lastWeekStart, { weekStartsOn: 1 });
@@ -52,8 +51,8 @@ const syncWeeklyCompletions = async (
 const computeStreak = (
   completions: Awaited<ReturnType<typeof getWeeklyCompletions>>,
 ): number => {
-  const sorted = [...completions].sort(
-    (a, b) => b.week_start.localeCompare(a.week_start),
+  const sorted = [...completions].sort((a, b) =>
+    b.week_start.localeCompare(a.week_start),
   );
   let streak = 0;
   for (const entry of sorted) {
@@ -99,7 +98,12 @@ export function useWeeklyStreak(
     return () => {
       cancelled = true;
     };
-  }, [allCompletedWorkouts, weeklyGoal, uniqueWorkoutDaysCount, weeklyGoalReached]);
+  }, [
+    allCompletedWorkouts,
+    weeklyGoal,
+    uniqueWorkoutDaysCount,
+    weeklyGoalReached,
+  ]);
 
   return { streak, loading };
 }

@@ -24,10 +24,7 @@ export const useImportStandaloneWorkoutMutation = () => {
           );
           newWorkoutId = workoutResult.lastInsertRowId;
 
-          for (const [
-            exerciseOrder,
-            exercise,
-          ] of workout.exercises.entries()) {
+          for (const [exerciseOrder, exercise] of workout.exercises.entries()) {
             const exerciseId = await resolveExerciseId(txn, exercise);
             await txn.runAsync(
               `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,

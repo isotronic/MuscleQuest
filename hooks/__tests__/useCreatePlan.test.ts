@@ -1,10 +1,6 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { useCreatePlan } from "../useCreatePlan";
-import {
-  updateWorkoutPlan,
-  savePlanSchedule,
-  openDatabase,
-} from "@/utils/database";
+import { updateWorkoutPlan, openDatabase } from "@/utils/database";
 import { publishPlan } from "@/utils/sharing";
 import { useSocialStore } from "@/store/socialStore";
 import { useWorkoutStore } from "@/store/workoutStore";

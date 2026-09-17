@@ -67,8 +67,7 @@ export const useSocialSyncOnStartup = () => {
           );
           const missing = exercises.filter(
             (ex: Exercise) =>
-              ex.exercise_id != null &&
-              !published.has(String(ex.exercise_id)),
+              ex.exercise_id != null && !published.has(String(ex.exercise_id)),
           );
           await Promise.allSettled(
             missing.map((ex: Exercise) => pushCustomExercise(uid, ex)),

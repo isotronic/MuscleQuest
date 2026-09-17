@@ -247,7 +247,10 @@ export default function FriendProfileScreen() {
       {plansLoading ? (
         <ActivityIndicator style={styles.sectionSpinner} />
       ) : plansError ? (
-        <ErrorState label={<Trans>Couldn't load plans</Trans>} colors={colors} />
+        <ErrorState
+          label={<Trans>Couldn't load plans</Trans>}
+          colors={colors}
+        />
       ) : plans.length === 0 ? (
         <EmptyState
           label={<Trans>No plans shared yet</Trans>}

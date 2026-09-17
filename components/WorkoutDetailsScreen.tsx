@@ -84,7 +84,7 @@ export default function WorkoutDetailsScreen() {
       setSnackbarMessage(t`Workout copied to standalone workouts`);
       setSnackbarError(false);
       setSnackbarVisible(true);
-    } catch (error: any) {
+    } catch {
       setSnackbarMessage(t`Failed to copy workout. Please try again.`);
       setSnackbarError(true);
       setSnackbarVisible(true);

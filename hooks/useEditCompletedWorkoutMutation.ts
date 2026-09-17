@@ -33,12 +33,23 @@ const saveCompletedWorkoutWithConversion = async (
       for (const exercise of workoutDataConverted) {
         await txn.runAsync(
           `UPDATE completed_exercises SET exercise_id = ?, resolved_tracking_type = ? WHERE id = ?`,
-          [exercise.exercise_id, exercise.exercise_tracking_type, exercise.completed_exercise_id],
+          [
+            exercise.exercise_id,
+            exercise.exercise_tracking_type,
+            exercise.completed_exercise_id,
+          ],
         );
         for (const set of exercise.sets) {
           await txn.runAsync(
             `UPDATE completed_sets SET weight = ?, reps = ?, time = ?, distance = ? WHERE id = ? AND set_number = ?`,
-            [set.weight, set.reps, set.time, set.distance, set.set_id, set.set_number],
+            [
+              set.weight,
+              set.reps,
+              set.time,
+              set.distance,
+              set.set_id,
+              set.set_number,
+            ],
           );
         }
       }
@@ -71,7 +82,9 @@ export const useEditCompletedWorkoutMutation = (
       queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
       queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
       queryClient.invalidateQueries({ queryKey: ["workoutSessionHistory"] });
-      queryClient.invalidateQueries({ queryKey: ["globalExerciseHistoryForSession"] });
+      queryClient.invalidateQueries({
+        queryKey: ["globalExerciseHistoryForSession"],
+      });
     },
     onError: (error) => {
       console.error("Error saving edited workout:", error);
@@ -87,8 +100,12 @@ export const useEditCompletedWorkoutMutation = (
       });
       await queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
       await queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
-      await queryClient.invalidateQueries({ queryKey: ["workoutSessionHistory"] });
-      await queryClient.invalidateQueries({ queryKey: ["globalExerciseHistoryForSession"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["workoutSessionHistory"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["globalExerciseHistoryForSession"],
+      });
     },
   });
 };

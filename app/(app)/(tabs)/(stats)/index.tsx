@@ -555,7 +555,9 @@ export default function StatsScreen() {
                   mode="text"
                   compact
                   labelStyle={{
-                    color: isReorderMode ? colors.accent : colors.contentSecondary,
+                    color: isReorderMode
+                      ? colors.accent
+                      : colors.contentSecondary,
                     fontSize: 13,
                   }}
                   onPress={() => setIsReorderMode((v) => !v)}

@@ -440,7 +440,9 @@ describe("searchExercises — fuzzy matching", () => {
 
   it("exact match ranks above a typo’d match of a different exercise", () => {
     const { otherExercises } = searchExercises(index, "bench", noFilters);
-    const benchIdx = otherExercises.findIndex((r) => r.exercise === BENCH_PRESS);
+    const benchIdx = otherExercises.findIndex(
+      (r) => r.exercise === BENCH_PRESS,
+    );
     const rdlIdx = otherExercises.findIndex((r) => r.exercise === ROMANIAN_DL);
     // Romanian Deadlift shouldn't match "bench" at all
     expect(rdlIdx).toBe(-1);

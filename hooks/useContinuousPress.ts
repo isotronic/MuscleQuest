@@ -37,7 +37,10 @@ export function useContinuousPress(
     pressTimerRef.current = setTimeout(() => {
       holdStartedRef.current = true;
       actionRef.current();
-      pressIntervalRef.current = setInterval(() => actionRef.current(), interval);
+      pressIntervalRef.current = setInterval(
+        () => actionRef.current(),
+        interval,
+      );
     }, delay);
   }, [delay, interval, stop]);
 

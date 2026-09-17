@@ -29,8 +29,6 @@ import {
   stepLocalHighlightRanges,
 } from "@/utils/helpSearch";
 
-type ScrollViewType = typeof ScrollView;
-
 const FEATURE_REQUEST_URL = "https://www.featurize.io/p/musclequest";
 
 function renderSegments(segments: TextSegment[], highlightColor: string) {
@@ -270,7 +268,7 @@ export default function HelpScreen() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(),
   );
-  const scrollRef = useRef<ScrollViewType>(null);
+  const scrollRef = useRef<ScrollView>(null);
   const groupOffsets = useRef<Record<string, number>>({});
   const { _ } = useLingui();
 

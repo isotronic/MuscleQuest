@@ -13,6 +13,8 @@
     "test": "jest",
     "test-watchAll": "jest --watchAll",
     "lint": "expo lint",
+    "lint:ci": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "typecheck": "tsc --noEmit",
     "eas-build-on-success": "npx bugsnag-eas-build-on-success",
     "extract": "lingui extract",
     "compile": "lingui compile"

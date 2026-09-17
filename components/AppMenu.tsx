@@ -114,7 +114,7 @@ export function AppMenu() {
         },
       );
     }
-  }, [isMenuOpen, panelWidth]);
+  }, [isMenuOpen, panelWidth, translateX, backdropOpacity]);
 
   useEffect(() => {
     if (!isMenuOpen) return;

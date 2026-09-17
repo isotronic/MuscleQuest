@@ -45,7 +45,10 @@ const ExerciseItem = ({
     <TouchableOpacity onPress={() => onPress(item)}>
       <View key={item.exercise_id} style={styles.exerciseItem}>
         {base64Image ? (
-          <AppImage style={styles.exerciseImage} source={{ uri: base64Image }} />
+          <AppImage
+            style={styles.exerciseImage}
+            source={{ uri: base64Image }}
+          />
         ) : (
           <AppImage style={styles.exerciseImage} source={fallbackImage} />
         )}

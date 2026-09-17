@@ -54,9 +54,15 @@ export default function ExerciseLibraryScreen() {
       equipment: selectedEquipment,
       bodyPart: selectedBodyPart,
       targetMuscle: selectedTargetMuscle,
-      trackingType: isSelectMode ? trackingType ?? null : null,
+      trackingType: isSelectMode ? (trackingType ?? null) : null,
     }),
-    [selectedEquipment, selectedBodyPart, selectedTargetMuscle, isSelectMode, trackingType],
+    [
+      selectedEquipment,
+      selectedBodyPart,
+      selectedTargetMuscle,
+      isSelectMode,
+      trackingType,
+    ],
   );
 
   const { filteredExercises, suggestions, debouncedQuery } = useExerciseSearch(

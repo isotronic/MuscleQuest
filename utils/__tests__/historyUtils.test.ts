@@ -16,7 +16,10 @@ describe("findHistoricalSetByOrdinal", () => {
     const historyExercises = [
       {
         exercise_id: 1,
-        sets: [makeSet({ set_id: 1, weight: 100 }), makeSet({ set_id: 2, weight: 110 })],
+        sets: [
+          makeSet({ set_id: 1, weight: 100 }),
+          makeSet({ set_id: 2, weight: 110 }),
+        ],
       },
     ];
 
@@ -34,7 +37,10 @@ describe("findHistoricalSetByOrdinal", () => {
     const historyExercises = [
       {
         exercise_id: 1,
-        sets: [makeSet({ set_id: 1, weight: 100 }), makeSet({ set_id: 2, weight: 110 })],
+        sets: [
+          makeSet({ set_id: 1, weight: 100 }),
+          makeSet({ set_id: 2, weight: 110 }),
+        ],
       },
     ];
 
@@ -51,7 +57,10 @@ describe("findHistoricalSetByOrdinal", () => {
     const historyExercises = [
       {
         exercise_id: 1,
-        sets: [makeSet({ set_id: 1, weight: 90 }), makeSet({ set_id: 2, weight: 95 })],
+        sets: [
+          makeSet({ set_id: 1, weight: 90 }),
+          makeSet({ set_id: 2, weight: 95 }),
+        ],
       },
       {
         exercise_id: 1,
@@ -73,11 +82,7 @@ describe("findHistoricalSetByOrdinal", () => {
   });
 
   it("returns undefined when there is no history", () => {
-    const result = findHistoricalSetByOrdinal(
-      [{ isWarmup: false }],
-      0,
-      [],
-    );
+    const result = findHistoricalSetByOrdinal([{ isWarmup: false }], 0, []);
 
     expect(result).toBeUndefined();
   });

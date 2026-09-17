@@ -47,7 +47,8 @@ describe("deleteAllAnimatedImages", () => {
       mockExercises,
     );
 
-    const mockDelete = jest.fn()
+    const mockDelete = jest
+      .fn()
       .mockImplementationOnce(() => {})
       .mockImplementationOnce(() => {
         throw new Error("Delete failed");

@@ -1058,8 +1058,28 @@ describe("fetchCompletedWorkoutById", () => {
       set_duration: null,
     };
     mockDb.getAllAsync.mockResolvedValue([
-      { ...baseRow, completed_exercise_id: 10, exercise_order: 0, set_id: 1001, set_number: 1, weight: 100, reps: 8, time: null, distance: null },
-      { ...baseRow, completed_exercise_id: 11, exercise_order: null, set_id: 2001, set_number: 1, weight: 80, reps: 10, time: null, distance: null },
+      {
+        ...baseRow,
+        completed_exercise_id: 10,
+        exercise_order: 0,
+        set_id: 1001,
+        set_number: 1,
+        weight: 100,
+        reps: 8,
+        time: null,
+        distance: null,
+      },
+      {
+        ...baseRow,
+        completed_exercise_id: 11,
+        exercise_order: null,
+        set_id: 2001,
+        set_number: 1,
+        weight: 80,
+        reps: 10,
+        time: null,
+        distance: null,
+      },
     ]);
 
     const result = await fetchCompletedWorkoutById(1, "kg", "m");

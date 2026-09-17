@@ -102,7 +102,9 @@ function indexExercise(
   for (const [aliasKey, canonicals] of Object.entries(aliasMap)) {
     for (const canonical of canonicals) {
       if (normalizedName.includes(normalizeText(canonical))) {
-        for (const token of normalizeText(aliasKey).split(" ").filter(Boolean)) {
+        for (const token of normalizeText(aliasKey)
+          .split(" ")
+          .filter(Boolean)) {
           aliasTokenSet.add(token);
         }
         break;

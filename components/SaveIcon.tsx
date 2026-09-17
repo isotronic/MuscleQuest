@@ -1,7 +1,11 @@
 import { AppIcon } from "@/components/ui";
-import { IconProps } from "react-native-paper/lib/typescript/components/MaterialCommunityIcon";
+interface SaveIconProps {
+  size: number;
+  color: string;
+  testID?: string;
+}
 
-const SaveIcon = ({ size, color, testID }: IconProps) => (
+const SaveIcon = ({ size, color, testID }: SaveIconProps) => (
   <AppIcon
     set="mci"
     name="content-save-outline"

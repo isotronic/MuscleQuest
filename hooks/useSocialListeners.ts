@@ -288,5 +288,9 @@ export const useSocialListeners = () => {
       unsubPublishedPlans();
       unsubPublishedWorkouts();
     };
+    // Resubscribe only when the signed-in account or the retry generation
+    // changes; store setters are stable and re-running on every user object
+    // change would tear down and rebuild all six listeners.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid, resubscribeGeneration]);
 };
