@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { saveCompletedWorkout, SavedWorkout } from "@/utils/database";
 import { AuthContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { pushCompletedWorkout, pushStrengthPRs } from "@/utils/sharing";
 
 const saveCompletedWorkoutWithConversion = async (
@@ -63,7 +63,7 @@ export const useSaveCompletedWorkoutMutation = (
 
       if (privacySettings?.shareCompletedWorkouts) {
         pushCompletedWorkout(user.uid, completedWorkoutId).catch((err) =>
-          Bugsnag.notify(err),
+          notifyBugsnag(err),
         );
       }
 
@@ -72,7 +72,7 @@ export const useSaveCompletedWorkoutMutation = (
           (e) => e.exercise_id,
         );
         pushStrengthPRs(user.uid, exerciseIds).catch((err) =>
-          Bugsnag.notify(err),
+          notifyBugsnag(err),
         );
       }
     },

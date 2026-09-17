@@ -6,7 +6,7 @@ import {
   deleteStandaloneWorkout,
 } from "@/utils/database";
 import { UserExercise } from "@/store/workoutStore";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { AuthContext } from "@/context/AuthProvider";
 import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
 import { publishStandaloneWorkout } from "@/utils/sharing";
@@ -32,11 +32,11 @@ export const useCreateStandaloneWorkout = () => {
           .then(() =>
             queryClient.invalidateQueries({ queryKey: ["publishedWorkouts"] }),
           )
-          .catch((err) => Bugsnag.notify(err));
+          .catch((err) => notifyBugsnag(err));
       }
     },
     onError: (error: Error) => {
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };
@@ -69,15 +69,15 @@ export const useUpdateStandaloneWorkout = () => {
           .then((snap) => {
             if (snap.exists()) {
               publishStandaloneWorkout(user.uid, workoutId).catch((err) =>
-                Bugsnag.notify(err),
+                notifyBugsnag(err),
               );
             }
           })
-          .catch((err) => Bugsnag.notify(err));
+          .catch((err) => notifyBugsnag(err));
       }
     },
     onError: (error: Error) => {
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };
@@ -90,7 +90,7 @@ export const useDeleteStandaloneWorkout = () => {
       queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
     },
     onError: (error: Error) => {
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };

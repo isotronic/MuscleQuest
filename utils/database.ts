@@ -1,6 +1,6 @@
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { UserExercise, Workout } from "@/store/workoutStore";
-import Bugsnag from "@bugsnag/expo";
+import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 import * as SQLite from "expo-sqlite";
 import {
   toDisplayValue,
@@ -17,6 +17,12 @@ import {
   UserProgressionIncrements,
 } from "@/types/progression";
 import { computeLayoffReduction } from "@/utils/progressionEngine";
+import {
+  DEFAULT_BAR_WEIGHT_KG,
+  DEFAULT_BAR_WEIGHT_LBS,
+  DEFAULT_PLATE_INVENTORY_KG,
+  DEFAULT_PLATE_INVENTORY_LBS,
+} from "@/utils/plateCalculator";
 
 export interface Exercise {
   exercise_id: number;
@@ -133,7 +139,7 @@ export const updateAppExerciseIds = async (): Promise<void> => {
     }
   } catch (error: any) {
     console.error("Error updating app_exercise_id:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     if (inTransaction) {
       await userDataDB.execAsync("ROLLBACK");
     }
@@ -376,7 +382,7 @@ export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
       await userDataDB.execAsync("COMMIT");
     } catch (err) {
       await userDataDB.execAsync("ROLLBACK");
-      Bugsnag.notify(err as Error);
+      notifyBugsnag(err as Error);
     }
   } finally {
     if (appDataDB) await appDataDB.closeAsync();
@@ -398,8 +404,9 @@ export const fetchAllRecords = async (
       "equipment_list",
     ];
     if (!allowedTables.includes(tableName)) {
-      Bugsnag.notify(new Error("Invalid table name"));
-      throw new Error("Invalid table name");
+      const tableError = new Error("Invalid table name");
+      notifyBugsnag(tableError);
+      throw tableError;
     }
 
     // Check if the table contains an is_deleted field
@@ -424,7 +431,6 @@ export const fetchRecord = async (
   tableName: string,
   id: number,
 ) => {
-  const db = await openDatabase(databaseName);
   const allowedTables = [
     "user_plans",
     "exercises",
@@ -433,9 +439,11 @@ export const fetchRecord = async (
     "equipment_list",
   ];
   if (!allowedTables.includes(tableName)) {
-    Bugsnag.notify(new Error("Invalid table name"));
-    throw new Error("Invalid table name");
+    const tableError = new Error("Invalid table name");
+    notifyBugsnag(tableError);
+    throw tableError;
   }
+  const db = await openDatabase(databaseName);
   const fieldName = tableName === "exercises" ? "exercise_id" : "id";
   try {
     return await db.getFirstAsync(
@@ -444,8 +452,10 @@ export const fetchRecord = async (
     );
   } catch (error: any) {
     console.error("Error fetching record:", error);
-    Bugsnag.notify(error);
-    throw new Error("Error fetching record");
+    notifyBugsnag(error);
+    const wrappedError = new Error("Error fetching record");
+    markReported(wrappedError);
+    throw wrappedError;
   } finally {
     await db.closeAsync();
   }
@@ -591,7 +601,7 @@ export const fetchAllCustomExercisesForSharing = async (): Promise<
 > => {
   const db = await openDatabase("userData.db");
   try {
-    return db.getAllAsync<Exercise>(
+    return await db.getAllAsync<Exercise>(
       `SELECT * FROM exercises WHERE app_exercise_id IS NULL AND is_deleted = FALSE`,
     );
   } finally {
@@ -637,7 +647,7 @@ export const insertWorkoutPlan = async (
         await insertWorkouts(txn, newPlanId, workouts);
       } catch (error: any) {
         console.error("Error inserting workout plan:", error);
-        Bugsnag.notify(error);
+        notifyBugsnag(error);
         throw error;
       }
     });
@@ -688,7 +698,7 @@ export const insertWorkouts = async (
     }
   } catch (error: any) {
     console.error("Error inserting workouts:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error; // Re-throw the error to trigger transaction rollback
   }
 };
@@ -811,7 +821,7 @@ export const updateWorkoutPlan = async (
         }
       } catch (error: any) {
         console.error("Error updating workout plan:", error);
-        Bugsnag.notify(error);
+        notifyBugsnag(error);
         throw error;
       }
     });
@@ -1020,7 +1030,7 @@ export const saveCompletedWorkout = async (
     return completedWorkoutId!;
   } catch (error: any) {
     console.error("Error saving completed workout: ", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     await db.closeAsync();
@@ -1043,7 +1053,7 @@ export const linkCompletedWorkoutToWorkout = async (
       `Error linking completed workout ${completedWorkoutId} to workout ${workoutId}:`,
       error,
     );
-    Bugsnag.notify(error as Error);
+    notifyBugsnag(error as Error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -1170,9 +1180,9 @@ export const fetchCompletedWorkoutById = async (
         }
 
         if (row.set_number !== null && row.set_id !== null) {
-          const alreadySeen = exercisesMap[row.completed_exercise_id!].sets.some(
-            (s) => s.set_id === row.set_id,
-          );
+          const alreadySeen = exercisesMap[
+            row.completed_exercise_id!
+          ].sets.some((s) => s.set_id === row.set_id);
           if (!alreadySeen) {
             // Convert weight from kg to the user's unit
             const weightInKg = parseFloat(row.weight?.toString() || "0");
@@ -1210,16 +1220,17 @@ export const fetchCompletedWorkoutById = async (
     // Sort exercises by exercise_order (from template join) with ce.id as stable fallback
     // for swapped exercises where the UWE join returns NULL.
     workout.exercises = Object.values(exercisesMap)
-      .sort((a, b) =>
-        (a.exercise_order ?? a.completed_exercise_id) -
-        (b.exercise_order ?? b.completed_exercise_id),
+      .sort(
+        (a, b) =>
+          (a.exercise_order ?? a.completed_exercise_id) -
+          (b.exercise_order ?? b.completed_exercise_id),
       )
       .map(({ exercise_order, ...rest }) => rest);
 
     return workout;
   } catch (error: any) {
     console.error("Error fetching completed workout by ID:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     await db.closeAsync();
@@ -1253,7 +1264,7 @@ export const fetchExerciseImagesByIds = async (
     return imagesMap;
   } catch (error: any) {
     console.error("Error fetching exercise images:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     await db.closeAsync();
@@ -1299,6 +1310,16 @@ export const insertDefaultSettings = async () => {
       { key: "progression_increment_cable_kg", value: "2.5" },
       { key: "progression_increment_machine_kg", value: "2.5" },
       { key: "exclude_deload_from_stats", value: "0" },
+      {
+        key: "plateInventoryKg",
+        value: JSON.stringify(DEFAULT_PLATE_INVENTORY_KG),
+      },
+      {
+        key: "plateInventoryLbs",
+        value: JSON.stringify(DEFAULT_PLATE_INVENTORY_LBS),
+      },
+      { key: "plateCalcBarKg", value: String(DEFAULT_BAR_WEIGHT_KG) },
+      { key: "plateCalcBarLbs", value: String(DEFAULT_BAR_WEIGHT_LBS) },
     ];
 
     // Loop through each default setting
@@ -1364,6 +1385,10 @@ export interface Settings {
   progression_increment_cable_kg: string;
   progression_increment_machine_kg: string;
   exclude_deload_from_stats: string;
+  plateInventoryKg: string;
+  plateInventoryLbs: string;
+  plateCalcBarKg: string;
+  plateCalcBarLbs: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
@@ -1391,7 +1416,7 @@ export const fetchSettings = async (): Promise<Settings> => {
     return settings as Settings;
   } catch (error: any) {
     console.error("Database fetching error:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -1408,7 +1433,7 @@ export const updateSettings = async (key: string, value: string) => {
     );
   } catch (error: any) {
     console.error("Error updating setting:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -1480,7 +1505,7 @@ export const saveNote = async (
     }
   } catch (error: any) {
     console.error("Error saving note:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -1568,7 +1593,7 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
                 ? JSON.parse(row.secondary_muscles)
                 : [];
             } catch (e: any) {
-              Bugsnag.notify(e);
+              notifyBugsnag(e);
               return [];
             }
           })(),
@@ -1578,7 +1603,7 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
             try {
               return row.sets ? JSON.parse(row.sets) : [];
             } catch (e: any) {
-              Bugsnag.notify(e);
+              notifyBugsnag(e);
               return [];
             }
           })(),
@@ -1760,7 +1785,7 @@ export const fetchPlanSchedule = async (
     );
   } catch (error: any) {
     console.error("Error fetching plan schedule:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -1787,7 +1812,7 @@ export const savePlanSchedule = async (
     });
   } catch (error) {
     console.error(`Error in savePlanSchedule for planId ${planId}:`, error);
-    Bugsnag.notify(error as Error);
+    notifyBugsnag(error as Error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -1925,7 +1950,7 @@ export const fetchNote = async (
     return result?.note || "";
   } catch (error: any) {
     console.error("Error fetching note:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -1949,7 +1974,7 @@ export const getWeeklyCompletions = async (): Promise<WeeklyCompletion[]> => {
     )) as WeeklyCompletion[];
   } catch (error: any) {
     console.error("Error fetching weekly completions:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -1971,7 +1996,7 @@ export const upsertWeeklyCompletion = async (
     );
   } catch (error: any) {
     console.error("Error upserting weekly completion:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2013,7 +2038,7 @@ export const fetchSetDurationsForExercises = async (
     return result;
   } catch (error: any) {
     console.error("Error fetching set durations for exercises:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2088,7 +2113,7 @@ export const fetchActiveBodyMetricDefinitions = async (): Promise<
     return rows.map(rowToMetricDefinition);
   } catch (error: any) {
     console.error("Error fetching active body metric definitions:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2109,7 +2134,7 @@ export const fetchAllBodyMetricDefinitions = async (): Promise<
     return rows.map(rowToMetricDefinition);
   } catch (error: any) {
     console.error("Error fetching all body metric definitions:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2139,7 +2164,7 @@ export const insertCustomBodyMetricDefinition = async (
     return result.lastInsertRowId;
   } catch (error: any) {
     console.error("Error inserting custom body metric definition:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2159,7 +2184,7 @@ export const toggleBodyMetricActive = async (
     );
   } catch (error: any) {
     console.error("Error toggling body metric active state:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2178,7 +2203,7 @@ export const softDeleteCustomBodyMetricDefinition = async (
     );
   } catch (error: any) {
     console.error("Error soft-deleting body metric definition:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2246,7 +2271,7 @@ export const fetchBodyMeasurementSessions = async (
     return Array.from(sessionMap.values());
   } catch (error: any) {
     console.error("Error fetching body measurement sessions:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2281,7 +2306,7 @@ export const fetchBodyMeasurementSessionsForChart = async (
     }));
   } catch (error: any) {
     console.error("Error fetching body measurement sessions for chart:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2337,7 +2362,7 @@ export const insertBodyMeasurementSession = async (
     return entryId;
   } catch (error: any) {
     console.error("Error inserting body measurement session:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2418,7 +2443,7 @@ export const updateBodyMeasurementSession = async (
     });
   } catch (error: any) {
     console.error("Error updating body measurement session:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2489,7 +2514,7 @@ export const deleteBodyMeasurementSession = async (
     });
   } catch (error: any) {
     console.error("Error deleting body measurement session:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2524,7 +2549,7 @@ export const saveBodyWeightMeasurement = async (
     }
   } catch (error: any) {
     console.error("Error saving body weight measurement:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2575,7 +2600,7 @@ export const getProgressionSettings =
       };
     } catch (error: any) {
       console.error("Error fetching progression settings:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
       throw error;
     } finally {
       if (db) await db.closeAsync();
@@ -2595,7 +2620,7 @@ export const setProgressionSetting = async (
     );
   } catch (error: any) {
     console.error("Error setting progression setting:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2613,7 +2638,7 @@ export const getDeloadWeek = async (planId: number): Promise<string | null> => {
     return row?.value ?? null;
   } catch (error: any) {
     console.error("Error fetching deload week:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2638,7 +2663,7 @@ export const setDeloadWeek = async (
     }
   } catch (error: any) {
     console.error("Error setting deload week:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2662,7 +2687,7 @@ export const getMaxWorkingWeightForCompletedExercise = async (
     return row?.weight ?? null;
   } catch (error: any) {
     console.error("Error fetching max working weight:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2692,7 +2717,7 @@ export const insertExerciseFeedback = async (
     return result.lastInsertRowId;
   } catch (error: any) {
     console.error("Error inserting exercise feedback:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2733,7 +2758,7 @@ export const getRecentExerciseFeedback = async (
     }));
   } catch (error: any) {
     console.error("Error fetching exercise feedback:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2804,7 +2829,7 @@ export const upsertProgressionState = async (
     );
   } catch (error: any) {
     console.error("Error upserting progression state:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2953,7 +2978,7 @@ export const getProgressionState = async (
     };
   } catch (error: any) {
     console.error("Error fetching progression state:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2975,7 +3000,7 @@ export const updateProgressionStateRecovery = async (
     );
   } catch (error: any) {
     console.error("Error updating recovery rating:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -2995,7 +3020,7 @@ export const applyProgressionToExercise = async (
     );
   } catch (error: any) {
     console.error("Error applying progression to exercise:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -3016,7 +3041,7 @@ export const dismissProgressionState = async (
     );
   } catch (error: any) {
     console.error("Error dismissing progression state:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -3059,7 +3084,7 @@ export const getPendingRecoveryCheckIns = async (
     }));
   } catch (error: any) {
     console.error("Error fetching pending recovery check-ins:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -3092,7 +3117,7 @@ export const getDaysSinceLastWorkoutByMuscle = async (): Promise<
     return result;
   } catch (error: any) {
     console.error("Error fetching days since last workout by muscle:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -3173,7 +3198,7 @@ export const getExerciseProgressionContext = async (
     };
   } catch (error: any) {
     console.error("Error fetching exercise progression context:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -3333,7 +3358,7 @@ export const getProgressionStatesForWorkout = async (
     });
   } catch (error: any) {
     console.error("Error fetching workout progression states:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();
@@ -3755,7 +3780,7 @@ export const reorderTrackedExercises = async (
     });
   } catch (error: any) {
     console.error("Error reordering tracked exercises:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   } finally {
     if (db) await db.closeAsync();

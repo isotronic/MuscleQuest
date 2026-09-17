@@ -1,3 +1,4 @@
+import Fuse, { type IFuseOptions } from "fuse.js";
 import type { Exercise } from "./database";
 import { FITNESS_ALIAS_MAP } from "./exerciseSearchAliases";
 
@@ -9,15 +10,17 @@ export interface IndexedExercise {
   exercise: Exercise;
   normalizedName: string;
   nameTokens: string[];
-  namePrefixes: Set<string>;
-  expandedTokens: string[];
   expandedPrefixes: Set<string>;
+  searchText: string;
 }
 
 export interface ExerciseSearchIndex {
   activePlanExercises: IndexedExercise[];
   favoriteExercises: IndexedExercise[];
   otherExercises: IndexedExercise[];
+  activePlanFuse: Fuse<IndexedExercise>;
+  favoriteFuse: Fuse<IndexedExercise>;
+  otherFuse: Fuse<IndexedExercise>;
   aliasMap: AliasMap;
 }
 
@@ -28,26 +31,9 @@ export interface SearchFilters {
   trackingType?: string | null;
 }
 
-export interface SearchOptions {
-  fuzzyEnabled?: boolean;
-  minQueryLengthForFuzzy?: number;
-  debugScores?: boolean;
-}
-
-export interface ScoreBreakdown {
-  exactName: number;
-  prefixName: number;
-  exactToken: number;
-  prefixToken: number;
-  aliasBonus: number;
-  fuzzyToken: number;
-  coverageMultiplier: number;
-}
-
 export interface SearchResult {
   exercise: Exercise;
   score: number;
-  breakdown?: { fuzzyToken: number } & Partial<ScoreBreakdown>;
 }
 
 export interface AutocompleteSuggestion {
@@ -74,31 +60,6 @@ export function normalizeText(text: string): string {
     .trim();
 }
 
-// ─── Levenshtein distance ─────────────────────────────────────────────────────
-
-export function levenshtein(a: string, b: string): number {
-  const m = a.length;
-  const n = b.length;
-  const dp: number[] = Array.from({ length: n + 1 }, (_, i) => i);
-  for (let i = 1; i <= m; i++) {
-    let prev = dp[0];
-    dp[0] = i;
-    for (let j = 1; j <= n; j++) {
-      const temp = dp[j];
-      dp[j] =
-        a[i - 1] === b[j - 1] ? prev : 1 + Math.min(prev, dp[j], dp[j - 1]);
-      prev = temp;
-    }
-  }
-  return dp[n];
-}
-
-function maxFuzzyDistance(tokenLen: number): number {
-  if (tokenLen < 3) return 0;
-  if (tokenLen <= 4) return 1;
-  return 2;
-}
-
 // ─── Index building ───────────────────────────────────────────────────────────
 
 function buildPrefixes(tokens: string[]): Set<string> {
@@ -111,38 +72,53 @@ function buildPrefixes(tokens: string[]): Set<string> {
   return prefixes;
 }
 
+const FUSE_OPTIONS: IFuseOptions<IndexedExercise> = {
+  keys: ["searchText"],
+  // With extended search, a multi-word query becomes a strict AND across
+  // space-separated terms, each independently fuzzy-matched against
+  // searchText. This lets "db bench" match via the alias token "db" and the
+  // real word "bench" wherever they appear, and it makes word order
+  // irrelevant (e.g. "press overhead" matches the same items as "overhead
+  // press").
+  useExtendedSearch: true,
+  ignoreLocation: true,
+  threshold: 0.4,
+  minMatchCharLength: 2,
+  includeScore: true,
+};
+
 function indexExercise(
   exercise: Exercise,
   aliasMap: AliasMap,
 ): IndexedExercise {
   const normalizedName = normalizeText(exercise.name);
   const nameTokens = normalizedName.split(" ").filter(Boolean);
-  const namePrefixes = buildPrefixes(nameTokens);
 
-  // Find alias keys whose canonical values appear in this exercise's name
-  const aliasKeys: string[] = [];
+  // Find alias keys whose canonical values appear in this exercise's name,
+  // and collect each key's own words — a multi-word key like "lat pd"
+  // contributes "lat" and "pd" as independent searchable tokens, not the
+  // literal two-word string, so extended-search AND matching finds both.
+  const aliasTokenSet = new Set<string>();
   for (const [aliasKey, canonicals] of Object.entries(aliasMap)) {
-    const normalizedKey = normalizeText(aliasKey);
     for (const canonical of canonicals) {
       if (normalizedName.includes(normalizeText(canonical))) {
-        aliasKeys.push(normalizedKey);
+        for (const token of normalizeText(aliasKey).split(" ").filter(Boolean)) {
+          aliasTokenSet.add(token);
+        }
         break;
       }
     }
   }
 
-  const expandedTokens = [...nameTokens, ...aliasKeys];
-  const aliasKeyTokens = aliasKeys.flatMap((k) => k.split(" ").filter(Boolean));
-  const expandedPrefixes = buildPrefixes([...nameTokens, ...aliasKeyTokens]);
+  const aliasTokens = [...aliasTokenSet];
+  const expandedPrefixes = buildPrefixes([...nameTokens, ...aliasTokens]);
+  const searchText = [normalizedName, ...aliasTokens].join(" ");
 
-  return {
-    exercise,
-    normalizedName,
-    nameTokens,
-    namePrefixes,
-    expandedTokens,
-    expandedPrefixes,
-  };
+  return { exercise, normalizedName, nameTokens, expandedPrefixes, searchText };
+}
+
+function buildFuse(bucket: IndexedExercise[]): Fuse<IndexedExercise> {
+  return new Fuse(bucket, FUSE_OPTIONS);
 }
 
 export function buildExerciseSearchIndex(
@@ -153,16 +129,23 @@ export function buildExerciseSearchIndex(
   },
   aliasMap: AliasMap = FITNESS_ALIAS_MAP,
 ): ExerciseSearchIndex {
+  const activePlanExercises = (exercises.activePlanExercises ?? []).map((e) =>
+    indexExercise(e, aliasMap),
+  );
+  const favoriteExercises = (exercises.favoriteExercises ?? []).map((e) =>
+    indexExercise(e, aliasMap),
+  );
+  const otherExercises = exercises.otherExercises.map((e) =>
+    indexExercise(e, aliasMap),
+  );
+
   return {
-    activePlanExercises: (exercises.activePlanExercises ?? []).map((e) =>
-      indexExercise(e, aliasMap),
-    ),
-    favoriteExercises: (exercises.favoriteExercises ?? []).map((e) =>
-      indexExercise(e, aliasMap),
-    ),
-    otherExercises: exercises.otherExercises.map((e) =>
-      indexExercise(e, aliasMap),
-    ),
+    activePlanExercises,
+    favoriteExercises,
+    otherExercises,
+    activePlanFuse: buildFuse(activePlanExercises),
+    favoriteFuse: buildFuse(favoriteExercises),
+    otherFuse: buildFuse(otherExercises),
     aliasMap,
   };
 }
@@ -201,147 +184,6 @@ function passesFilters(exercise: Exercise, filters: SearchFilters): boolean {
   return true;
 }
 
-// ─── Scoring ──────────────────────────────────────────────────────────────────
-
-function scoreExercise(
-  indexed: IndexedExercise,
-  queryTokens: string[],
-  normalizedQuery: string,
-  aliasMap: AliasMap,
-  fuzzyEnabled: boolean,
-  minQueryLengthForFuzzy: number,
-  debug: boolean,
-): SearchResult {
-  const { exercise } = indexed;
-
-  // Exact full-name match — perfect score, short-circuit
-  if (indexed.normalizedName === normalizedQuery) {
-    const breakdown = debug
-      ? {
-          exactName: 100,
-          prefixName: 0,
-          exactToken: 0,
-          prefixToken: 0,
-          aliasBonus: 0,
-          fuzzyToken: 0,
-          coverageMultiplier: 1,
-        }
-      : { fuzzyToken: 0 };
-    return { exercise, score: 100, breakdown };
-  }
-
-  let score = 0;
-  const bd: ScoreBreakdown = {
-    exactName: 0,
-    prefixName: 0,
-    exactToken: 0,
-    prefixToken: 0,
-    aliasBonus: 0,
-    fuzzyToken: 0,
-    coverageMultiplier: 1,
-  };
-
-  // Full-name prefix match
-  if (indexed.normalizedName.startsWith(normalizedQuery)) {
-    score = 60;
-    bd.prefixName = 60;
-  }
-
-  // Expand query tokens through alias map
-  const expandedQueryTokens: string[] = [];
-  let aliasHit = false;
-  for (const token of queryTokens) {
-    expandedQueryTokens.push(token);
-    const canonicals = aliasMap[token];
-    if (canonicals) {
-      aliasHit = true;
-      for (const canonical of canonicals) {
-        const canonTokens = normalizeText(canonical).split(" ").filter(Boolean);
-        expandedQueryTokens.push(...canonTokens);
-      }
-    }
-  }
-
-  // Per-token scoring
-  let matched = 0;
-  let fuzzyScore = 0;
-
-  for (const token of expandedQueryTokens) {
-    // Exact token match
-    if (indexed.expandedTokens.includes(token)) {
-      if (score < 80) {
-        score = 80;
-        bd.exactToken = 80;
-      }
-      matched++;
-      continue;
-    }
-    // Prefix of a name token
-    if (
-      indexed.namePrefixes.has(token) ||
-      indexed.expandedPrefixes.has(token)
-    ) {
-      if (score < 50) {
-        score = 50;
-        bd.prefixToken = 50;
-      }
-      matched++;
-      continue;
-    }
-    // Any name token starts with this query token
-    if (indexed.nameTokens.some((nt) => nt.startsWith(token))) {
-      if (score < 50) {
-        score = 50;
-        bd.prefixToken = 50;
-      }
-      matched++;
-      continue;
-    }
-    // Fuzzy fallback
-    if (fuzzyEnabled && token.length >= minQueryLengthForFuzzy) {
-      const maxDist = maxFuzzyDistance(token.length);
-      if (maxDist > 0) {
-        let bestDist = Infinity;
-        for (const nt of indexed.nameTokens) {
-          const dist = levenshtein(token, nt);
-          if (dist < bestDist) bestDist = dist;
-        }
-        if (bestDist <= maxDist) {
-          const fScore = bestDist === 1 ? 20 : 10;
-          if (fScore > fuzzyScore) fuzzyScore = fScore;
-          matched++;
-        }
-      }
-    }
-  }
-
-  if (fuzzyScore > 0 && score < fuzzyScore) {
-    score = fuzzyScore;
-    bd.fuzzyToken = fuzzyScore;
-  }
-
-  // Coverage multiplier
-  const coverage =
-    expandedQueryTokens.length > 0 ? matched / expandedQueryTokens.length : 0;
-  bd.coverageMultiplier = coverage;
-
-  if (score < 100 && coverage < 1) {
-    score = Math.floor(score * coverage);
-  }
-
-  // Alias bonus
-  if (aliasHit && matched > 0) {
-    score = Math.min(100, score + 10);
-    bd.aliasBonus = 10;
-  }
-
-  return {
-    exercise,
-    score,
-    breakdown: debug ? bd : { fuzzyToken: bd.fuzzyToken },
-  };
-}
-
 // ─── Search ───────────────────────────────────────────────────────────────────
 
 type BucketedResults = {
@@ -352,92 +194,56 @@ type BucketedResults = {
 
 function searchBucket(
   bucket: IndexedExercise[],
+  fuse: Fuse<IndexedExercise>,
   normalizedQuery: string,
-  queryTokens: string[],
   filters: SearchFilters,
-  aliasMap: AliasMap,
-  fuzzyEnabled: boolean,
-  minQueryLengthForFuzzy: number,
-  debug: boolean,
-  topNonFuzzyScore: { value: number },
 ): SearchResult[] {
-  const results: SearchResult[] = [];
-  for (const indexed of bucket) {
-    if (!passesFilters(indexed.exercise, filters)) continue;
-    if (!normalizedQuery) {
-      results.push({ exercise: indexed.exercise, score: 0 });
-      continue;
-    }
-    const result = scoreExercise(
-      indexed,
-      queryTokens,
-      normalizedQuery,
-      aliasMap,
-      fuzzyEnabled,
-      minQueryLengthForFuzzy,
-      debug,
-    );
-    if (result.score > 0) results.push(result);
-    if (
-      result.score > topNonFuzzyScore.value &&
-      (result.breakdown?.fuzzyToken ?? 0) === 0
-    ) {
-      topNonFuzzyScore.value = result.score;
-    }
+  if (!normalizedQuery) {
+    return bucket
+      .filter((indexed) => passesFilters(indexed.exercise, filters))
+      .map((indexed) => ({ exercise: indexed.exercise, score: 0 }));
   }
-  return results;
+  // normalizedQuery has already passed through normalizeText, which strips
+  // every character that isn't a-z/0-9/whitespace, including Fuse's
+  // extended-search operator characters (= ' ^ ! $ |). That's what makes it
+  // safe to pass user input into fuse.search() with useExtendedSearch: true;
+  // no operator characters can reach Fuse's parser. If normalizeText's
+  // stripping behavior ever changes, re-verify this invariant still holds.
+  return fuse
+    .search(normalizedQuery)
+    .filter((result) => passesFilters(result.item.exercise, filters))
+    .map((result) => ({
+      exercise: result.item.exercise,
+      score: result.score ?? 0,
+    }));
 }
 
 export function searchExercises(
   index: ExerciseSearchIndex,
   query: string,
   filters: SearchFilters,
-  options: SearchOptions = {},
 ): BucketedResults {
-  const {
-    fuzzyEnabled = true,
-    minQueryLengthForFuzzy = 3,
-    debugScores = false,
-  } = options;
-
   const normalizedQuery = normalizeText(query);
-  const queryTokens = normalizedQuery.split(" ").filter(Boolean);
-
-  const topNonFuzzyScore = { value: 0 };
-
-  const scoreAndSort = (bucket: IndexedExercise[]): SearchResult[] => {
-    const results = searchBucket(
-      bucket,
+  return {
+    activePlanExercises: searchBucket(
+      index.activePlanExercises,
+      index.activePlanFuse,
       normalizedQuery,
-      queryTokens,
       filters,
-      index.aliasMap,
-      fuzzyEnabled,
-      minQueryLengthForFuzzy,
-      debugScores,
-      topNonFuzzyScore,
-    );
-    if (!normalizedQuery) return results;
-    return results.sort((a, b) => b.score - a.score);
+    ),
+    favoriteExercises: searchBucket(
+      index.favoriteExercises,
+      index.favoriteFuse,
+      normalizedQuery,
+      filters,
+    ),
+    otherExercises: searchBucket(
+      index.otherExercises,
+      index.otherFuse,
+      normalizedQuery,
+      filters,
+    ),
   };
-
-  const activePlanExercises = scoreAndSort(index.activePlanExercises);
-  const favoriteExercises = scoreAndSort(index.favoriteExercises);
-  const otherExercises = scoreAndSort(index.otherExercises);
-
-  // Filter fuzzy-only results that score too far below the top non-fuzzy result
-  if (fuzzyEnabled && topNonFuzzyScore.value > 0) {
-    const fuzzyThreshold = topNonFuzzyScore.value - 15;
-    const filterFuzzyNoise = (r: SearchResult) =>
-      r.score >= fuzzyThreshold || (r.breakdown?.fuzzyToken ?? 0) === 0;
-    return {
-      activePlanExercises: activePlanExercises.filter(filterFuzzyNoise),
-      favoriteExercises: favoriteExercises.filter(filterFuzzyNoise),
-      otherExercises: otherExercises.filter(filterFuzzyNoise),
-    };
-  }
-
-  return { activePlanExercises, favoriteExercises, otherExercises };
 }
 
 // ─── Autocomplete ─────────────────────────────────────────────────────────────

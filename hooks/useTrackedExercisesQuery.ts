@@ -1,6 +1,6 @@
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { useQuery } from "@tanstack/react-query";
 
 interface TrackedExercise {
@@ -244,14 +244,14 @@ const fetchTrackedExercises = async (
       .filter(Boolean);
   } catch (error: any) {
     console.error("Error fetching tracked exercises:", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     return [];
   } finally {
     if (db) {
       try {
         await db.closeAsync();
       } catch (closeError: any) {
-        Bugsnag.notify(closeError);
+        notifyBugsnag(closeError);
       }
     }
   }

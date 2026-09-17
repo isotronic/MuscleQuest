@@ -1,4 +1,5 @@
 import Bugsnag from "@bugsnag/expo";
+import { markReported } from "./bugsnagDedup";
 
 // Report an error to Bugsnag
 export function reportError(error: unknown): void {
@@ -7,6 +8,9 @@ export function reportError(error: unknown): void {
   } else {
     Bugsnag.notify(new Error(String(error)));
   }
+  // Mark so the global react-query safety net doesn't re-report it if this
+  // same error is later rethrown into a query/mutation.
+  markReported(error);
 }
 
 // Convert a byte array to a base64 string

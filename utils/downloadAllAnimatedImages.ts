@@ -10,6 +10,7 @@ import {
 } from "@/utils/database";
 import { fetchExercisesWithoutLocalAnimatedUri } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
+import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 
 interface DownloadAllImagesResult {
   success: boolean;
@@ -41,10 +42,12 @@ const downloadExerciseImage = async (
       );
 
       if (attempt >= maxRetries) {
-        Bugsnag.notify(error);
-        throw new Error(
+        notifyBugsnag(error);
+        const wrappedError = new Error(
           `Failed to download image for exercise ${exercise_id} after ${maxRetries} attempts`,
         );
+        markReported(wrappedError);
+        throw wrappedError;
       }
 
       const delayTime = Math.pow(2, attempt) * 1000;

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { View, TextInput, ScrollView, StyleSheet } from "react-native";
 import { Portal, Modal, ActivityIndicator } from "react-native-paper";
+import { router } from "expo-router";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
@@ -52,6 +53,26 @@ export default function WorkoutPickerModal({
     (plansData?.userPlans.some((plan) => plan.workouts.length > 0) ?? false) ||
     (standaloneWorkouts?.length ?? 0) > 0;
   const hasResults = planSections.length > 0 || filteredStandalone.length > 0;
+
+  const handleViewPlanWorkout = (planId: number, workoutIndex: number) => {
+    onDismiss();
+    router.push({
+      pathname: "/workout-details",
+      params: {
+        planId: String(planId),
+        workoutIndex: String(workoutIndex),
+      },
+    });
+  };
+
+  const handleViewStandaloneWorkout = (workout: Workout) => {
+    if (workout.id == null) return;
+    onDismiss();
+    router.push({
+      pathname: "/standalone-workout",
+      params: { workoutId: String(workout.id) },
+    });
+  };
 
   const handleStartPlanWorkout = (planId: number | null, workout: Workout) => {
     confirmStartWorkout(setIsStartingWorkout, () => {
@@ -117,14 +138,21 @@ export default function WorkoutPickerModal({
                     <ThemedText style={styles.sectionTitle}>
                       {section.planName}
                     </ThemedText>
-                    {section.workouts.map((workout) => (
+                    {section.workouts.map(({ workout, index }) => (
                       <StandaloneWorkoutListItem
                         key={`plan-${section.planId}-${workout.id}`}
                         workout={workout}
                         onPress={() =>
+                          section.planId != null
+                            ? handleViewPlanWorkout(section.planId, index)
+                            : handleStartPlanWorkout(section.planId, workout)
+                        }
+                        onStart={() =>
                           handleStartPlanWorkout(section.planId, workout)
                         }
                         countUnilateralDouble={countUnilateralDouble}
+                        compactEstimate
+                        flushEdges
                       />
                     ))}
                   </View>
@@ -138,8 +166,11 @@ export default function WorkoutPickerModal({
                       <StandaloneWorkoutListItem
                         key={`standalone-${workout.id}`}
                         workout={workout}
-                        onPress={() => handleStartStandaloneWorkout(workout)}
+                        onPress={() => handleViewStandaloneWorkout(workout)}
+                        onStart={() => handleStartStandaloneWorkout(workout)}
                         countUnilateralDouble={countUnilateralDouble}
+                        compactEstimate
+                        flushEdges
                       />
                     ))}
                   </View>

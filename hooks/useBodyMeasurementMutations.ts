@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import {
   insertBodyMeasurementSession,
   updateBodyMeasurementSession,
@@ -54,13 +54,13 @@ export const useInsertBodyMeasurementMutation = (
       queryClient.invalidateQueries({ queryKey: ["settings"] });
       if (user && privacySettings?.shareBodyMeasurements && entryId) {
         pushBodyMeasurement(user.uid, entryId).catch((err) =>
-          Bugsnag.notify(err),
+          notifyBugsnag(err),
         );
       }
     },
     onError: (error) => {
       console.error("Failed to insert body measurement session:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };
@@ -90,7 +90,7 @@ export const useUpdateBodyMeasurementMutation = (
     },
     onError: (error) => {
       console.error("Failed to update body measurement session:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };
@@ -104,7 +104,7 @@ export const useDeleteBodyMeasurementMutation = () => {
     },
     onError: (error) => {
       console.error("Failed to delete body measurement session:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };

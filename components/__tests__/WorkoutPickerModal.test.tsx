@@ -5,6 +5,7 @@ import { useAllPlansQuery } from "@/hooks/useAllPlansQuery";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { router } from "expo-router";
 
 jest.mock("@lingui/react/macro", () => ({
   Trans: ({ children }: { children: React.ReactNode }) => children,
@@ -46,12 +47,23 @@ jest.mock("react-native-paper", () => {
 });
 jest.mock("@/components/StandaloneWorkoutListItem", () => ({
   __esModule: true,
-  default: ({ workout, onPress }: any) => {
-    const { Text, TouchableOpacity } = require("react-native");
+  default: ({ workout, onPress, onStart }: any) => {
+    const { Text, TouchableOpacity, View } = require("react-native");
     return (
-      <TouchableOpacity onPress={onPress} testID={`workout-item-${workout.id}`}>
-        <Text>{workout.name}</Text>
-      </TouchableOpacity>
+      <View>
+        <TouchableOpacity
+          onPress={onPress}
+          testID={`workout-item-${workout.id}`}
+        >
+          <Text>{workout.name}</Text>
+        </TouchableOpacity>
+        {onStart && (
+          <TouchableOpacity
+            onPress={onStart}
+            testID={`workout-start-${workout.id}`}
+          />
+        )}
+      </View>
     );
   },
 }));
@@ -71,6 +83,9 @@ jest.mock("@/utils/startWorkout", () => ({
 }));
 jest.mock("@/store/activeWorkoutStore", () => ({
   useActiveWorkoutStore: { getState: jest.fn() },
+}));
+jest.mock("expo-router", () => ({
+  router: { push: jest.fn() },
 }));
 
 const planWorkout = { id: 10, name: "Push Day", exercises: [] };
@@ -139,7 +154,7 @@ describe("WorkoutPickerModal", () => {
     const { getByTestId } = render(
       <WorkoutPickerModal {...baseProps} onDismiss={onDismiss} />,
     );
-    fireEvent.press(getByTestId("workout-item-10"));
+    fireEvent.press(getByTestId("workout-start-10"));
     expect(onDismiss).toHaveBeenCalledTimes(1);
     expect(setWorkout).toHaveBeenCalledWith(planWorkout, 1, 10, "Push Day");
   });
@@ -150,7 +165,7 @@ describe("WorkoutPickerModal", () => {
       setWorkout,
     });
     const { getByTestId } = render(<WorkoutPickerModal {...baseProps} />);
-    fireEvent.press(getByTestId("workout-item-20"));
+    fireEvent.press(getByTestId("workout-start-20"));
     expect(setWorkout).toHaveBeenCalledWith(
       standaloneWorkout,
       null,
@@ -182,6 +197,53 @@ describe("WorkoutPickerModal", () => {
     });
     const { getByText } = render(<WorkoutPickerModal {...baseProps} />);
     expect(getByText("No workouts yet")).toBeTruthy();
+  });
+
+  it("views a plan workout: dismisses and pushes workout-details with the plan index", () => {
+    const onDismiss = jest.fn();
+    const { getByTestId } = render(
+      <WorkoutPickerModal {...baseProps} onDismiss={onDismiss} />,
+    );
+    fireEvent.press(getByTestId("workout-item-10"));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: "/workout-details",
+      params: { planId: "1", workoutIndex: "0" },
+    });
+  });
+
+  it("views a searched plan workout using its original index, not the filtered one", () => {
+    (useAllPlansQuery as jest.Mock).mockReturnValue({
+      data: {
+        userPlans: [
+          {
+            id: 1,
+            name: "My Plan",
+            workouts: [{ id: 9, name: "Leg Day", exercises: [] }, planWorkout],
+          },
+        ],
+        appPlans: [],
+      },
+      isLoading: false,
+    });
+    const { getByPlaceholderText, getByTestId } = render(
+      <WorkoutPickerModal {...baseProps} />,
+    );
+    fireEvent.changeText(getByPlaceholderText("Search"), "push");
+    fireEvent.press(getByTestId("workout-item-10"));
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: "/workout-details",
+      params: { planId: "1", workoutIndex: "1" },
+    });
+  });
+
+  it("views a standalone workout: pushes the non-tab standalone route", () => {
+    const { getByTestId } = render(<WorkoutPickerModal {...baseProps} />);
+    fireEvent.press(getByTestId("workout-item-20"));
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: "/standalone-workout",
+      params: { workoutId: "20" },
+    });
   });
 
   it("renders nothing when visible is false", () => {

@@ -10,7 +10,7 @@ import { UserExercise } from "@/store/workoutStore";
 import { AppImage } from "@/components/ui";
 import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
 import { classifySupersetPosition } from "@/utils/supersetUtils";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { Notes } from "@/components/Notes";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
@@ -18,9 +18,11 @@ import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionS
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import ProgressionSuggestionChip from "@/components/ProgressionSuggestionChip";
 import { useAppTheme, radii } from "@/theme";
-import { Snackbar, IconButton } from "react-native-paper";
+import { Snackbar, IconButton, Button } from "react-native-paper";
 import { useCreateStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
 import { CopyWorkoutModal } from "@/components/CopyWorkoutModal";
+import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { confirmStartWorkout } from "@/utils/startWorkout";
 import type { AppThemeColors } from "@/theme/types";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
@@ -51,10 +53,25 @@ export default function WorkoutDetailsScreen() {
   );
 
   const createStandaloneWorkoutMutation = useCreateStandaloneWorkout();
+  const [isStarting, setIsStarting] = useState(false);
   const [isCopyModalVisible, setIsCopyModalVisible] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarError, setSnackbarError] = useState(false);
+
+  const handleStart = () => {
+    if (!workout || isStarting) return;
+    confirmStartWorkout(setIsStarting, () => {
+      useActiveWorkoutStore
+        .getState()
+        .setWorkout(
+          JSON.parse(JSON.stringify(workout)),
+          Number(planId),
+          workout.id!,
+          workout.name || `Workout ${Number(workoutIndex) + 1}`,
+        );
+    });
+  };
 
   const handleCopyWorkout = async (name: string) => {
     if (!workout) return;
@@ -215,7 +232,7 @@ export default function WorkoutDetailsScreen() {
   }
 
   if (error) {
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     return (
       <ThemedText>
         <Trans>Error: {error.message}</Trans>
@@ -279,6 +296,18 @@ export default function WorkoutDetailsScreen() {
         keyExtractor={(item: any, index: number) => index.toString()}
         ListHeaderComponent={previewHeader}
       />
+      <View style={styles.startButtonContainer}>
+        <Button
+          mode="contained"
+          onPress={handleStart}
+          disabled={isStarting || (workout?.exercises.length ?? 0) === 0}
+          theme={{ colors: { primary: colors.accent } }}
+          style={styles.startButton}
+          labelStyle={styles.startButtonLabel}
+        >
+          <Trans>Start Workout</Trans>
+        </Button>
+      </View>
       <CopyWorkoutModal
         visible={isCopyModalVisible}
         defaultName={workout?.name ?? ""}
@@ -311,8 +340,24 @@ function createStyles(colors: AppThemeColors) {
     },
     contentContainer: {
       paddingTop: 16,
-      paddingBottom: 30,
+      paddingBottom: 110,
       paddingHorizontal: 16,
+    },
+    startButtonContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      padding: 16,
+      paddingBottom: 24,
+      backgroundColor: colors.surface,
+    },
+    startButton: {
+      borderRadius: radii.md,
+    },
+    startButtonLabel: {
+      fontSize: 16,
+      paddingVertical: 4,
     },
     exerciseItem: {
       flexDirection: "row",

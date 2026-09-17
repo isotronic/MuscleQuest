@@ -69,6 +69,20 @@ msgstr ""
 "Pour les exercices au poids de corps comme les tractions ou les dips, tu peux maintenant activer l'enregistrement du poids par entraînement. Parfait pour les variantes lestées, pour noter le poids ajouté et suivre ta progression dans le temps.\n"
 ""
 
+#: constants/WhatsNew.ts:407
+msgid ""
+"\n"
+"⚙️ Improved: More Control During Your Workout!\n"
+"\n"
+"You can now change an exercise's rep range and rest time mid-workout from the three-dot menu. If you enter a weight other than the suggested one, it now carries over to your remaining sets. Weight suggestions also stay hidden when adaptive progression is switched off.\n"
+""
+msgstr ""
+"\n"
+"⚙️ Amélioré : Plus de contrôle pendant la séance !\n"
+"\n"
+"Tu peux désormais modifier la plage de répétitions et le temps de repos d'un exercice en pleine séance depuis le menu à trois points. Si tu saisis un poids différent de celui suggéré, il est maintenant repris sur tes séries restantes. Les suggestions de poids restent également masquées lorsque la progression adaptative est désactivée.\n"
+""
+
 #: constants/WhatsNew.ts:166
 msgid ""
 "\n"
@@ -147,6 +161,20 @@ msgstr ""
 "Appuie sur le nouveau bouton « Choisir un entraînement » à côté d'Entraînement rapide pour rechercher et parcourir tous les entraînements de tes programmes et de ta bibliothèque autonome, puis démarre n'importe lequel instantanément.\n"
 ""
 
+#: constants/WhatsNew.ts:415
+msgid ""
+"\n"
+"🏋️ New: Plate Calculator!\n"
+"\n"
+"Open the three-dot menu during a workout and tap Plate Calculator to see exactly which plates to load on each side of the bar. Pick your bar weight once and it is remembered. Under Settings > Workout > Plates you can tell the app which plates you actually own, so it never suggests a load you cannot build.\n"
+""
+msgstr ""
+"\n"
+"🏋️ Nouveau : Calculateur de disques !\n"
+"\n"
+"Ouvre le menu à trois points pendant un entraînement et appuie sur Calculateur de disques pour voir exactement quels disques charger de chaque côté de la barre. Choisis ton poids de barre une fois, il est mémorisé. Dans Paramètres > Entraînement > Disques, tu peux indiquer à l'app quels disques tu possèdes vraiment, pour qu'elle ne propose jamais une charge que tu ne peux pas monter.\n"
+""
+
 #: constants/WhatsNew.ts:60
 msgid ""
 "\n"
@@ -163,6 +191,20 @@ msgstr ""
 "Crée des entraînements autonomes en dehors de tes programmes d'entraînement, parfaits pour les séances flexibles, le travail de mobilité ou tout ce qui se présente. Retrouve-les dans l'écran Programmes.\n"
 "\n"
 "Ou démarre un Entraînement rapide depuis l'accueil, ajoute des exercices à la volée, et sauvegarde-le éventuellement comme entraînement autonome quand tu as terminé.\n"
+""
+
+#: constants/WhatsNew.ts:375
+msgid ""
+"\n"
+"🐛 Fixed: Cloud Backup Errors!\n"
+"\n"
+"Backup would silently fail after a clean shutdown because it required extra database files that aren't always present. Backups now work correctly in that case, and any real backup failure now shows an on-screen error instead of failing silently.\n"
+""
+msgstr ""
+"\n"
+"🐛 Corrigé : erreurs de sauvegarde dans le cloud !\n"
+"\n"
+"La sauvegarde échouait silencieusement après un arrêt propre de l'application, car elle nécessitait des fichiers de base de données supplémentaires qui ne sont pas toujours présents. Les sauvegardes fonctionnent désormais correctement dans ce cas, et un véritable échec de sauvegarde affiche maintenant une erreur à l'écran au lieu d'échouer silencieusement.\n"
 ""
 
 #: constants/WhatsNew.ts:52
@@ -191,6 +233,20 @@ msgstr ""
 "🐛 Correctif : Boutons de séance et modal de modification de série !\n"
 "\n"
 "Correction d'un bug où tous les boutons (incrémenter/décrémenter, série suivante/précédente, terminer la série) cessaient de fonctionner après avoir terminé une série. Correction aussi d'une erreur dans le modal de modification de série. Les transitions de série se font maintenant instantanément pour un entraînement plus fluide.\n"
+""
+
+#: constants/WhatsNew.ts:399
+msgid ""
+"\n"
+"👀 Improved: Preview Before You Start!\n"
+"\n"
+"In the Choose Workout list, tapping a workout now opens its details so you can check the exercises first. Use the Start button on the right to jump straight into the session. Plan workouts also gained a Start button on their details screen.\n"
+""
+msgstr ""
+"\n"
+"👀 Amélioré : aperçu avant de commencer !\n"
+"\n"
+"Dans la liste \"Choisir un entraînement\", toucher un entraînement ouvre désormais ses détails pour que tu puisses vérifier les exercices d'abord. Utilise le bouton \"Commencer\" à droite pour passer directement à la séance. Les entraînements d'un plan disposent eux aussi d'un bouton \"Commencer l'entraînement\" sur leur écran de détails.\n"
 ""
 
 #: constants/WhatsNew.ts:305
@@ -469,6 +525,20 @@ msgstr ""
 "Les exercices personnalisés peuvent maintenant utiliser un type de suivi par distance, parfait pour les mouvements cardio et de conditionnement comme les courses, les rameurs ou les poussées de traîneau. Note la distance de tes séries et suis ta progression comme pour n'importe quel autre exercice.\n"
 ""
 
+#: constants/WhatsNew.ts:383
+msgid ""
+"\n"
+"📖 Improved: Redesigned Help Screen!\n"
+"\n"
+"The Help & Info screen now opens with collapsed, expandable topic groups and a chip row to jump straight to a section. Search is faster and smarter, highlighting the exact matching text in each result, and shows a helpful empty state with a link to request a feature if nothing matches.\n"
+""
+msgstr ""
+"\n"
+"📖 Amélioré : écran d'aide repensé !\n"
+"\n"
+"La section Aide & infos s'ouvre désormais avec des groupes de sujets repliés et extensibles, ainsi qu'une rangée de puces pour accéder directement à une section. La recherche est plus rapide et plus intelligente, met en surbrillance le texte correspondant exact dans chaque résultat, et affiche un état vide utile avec un lien pour demander une fonctionnalité si rien ne correspond.\n"
+""
+
 #: constants/WhatsNew.ts:325
 msgid ""
 "\n"
@@ -509,6 +579,20 @@ msgstr ""
 "🔃 Nouveau : Trie la bibliothèque d'exercices !\n"
 "\n"
 "La bibliothèque d'exercices a maintenant des chips de tri pour trouver les exercices plus vite. Trie par Par défaut, Programme actif, Récent ou Fréquent pour voir les exercices les plus pertinents pour toi en haut.\n"
+""
+
+#: constants/WhatsNew.ts:391
+msgid ""
+"\n"
+"🔍 Improved: More Accurate Exercise Search!\n"
+"\n"
+"Exercise search has been rebuilt on a more robust matching engine, improving how typos, abbreviations, and multi-word queries get matched and ranked, so the exercise you're looking for shows up first more often.\n"
+""
+msgstr ""
+"\n"
+"🔍 Amélioré : recherche d'exercices plus précise !\n"
+"\n"
+"La recherche d'exercices a été reconstruite sur un moteur de correspondance plus robuste, améliorant la façon dont les fautes de frappe, les abréviations et les requêtes à plusieurs mots sont associées et classées, afin que l'exercice recherché apparaisse plus souvent en premier.\n"
 ""
 
 #: constants/WhatsNew.ts:236
@@ -655,11 +739,11 @@ msgstr ""
 "L'écran Programmes dispose maintenant de trois modes d'affichage. Utilise les icônes à côté du titre « Tes plans d'entraînement » pour basculer entre les vues Carrousel, Liste et Grille. Ton affichage préféré est sauvegardé automatiquement.\n"
 ""
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:190
+#: components/StandaloneWorkoutScreen.tsx:190
 msgid " (to Failure)"
 msgstr " (jusqu'à l'échec)"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:197
+#: components/StandaloneWorkoutScreen.tsx:197
 msgid " (to Failure) "
 msgstr " (jusqu'à l'échec) "
 
@@ -668,17 +752,17 @@ msgid "\"{label}\" will be hidden from the entry form. Your historical data is p
 msgstr "« {label} » sera masqué du formulaire de saisie. Tes données historiques sont conservées."
 
 #: components/WorkoutCard.tsx:269
-#: components/WorkoutDetailsScreen.tsx:191
+#: components/WorkoutDetailsScreen.tsx:208
 msgid "(to Failure)"
 msgstr "(jusqu'à l'échec)"
 
 #: components/WorkoutCard.tsx:276
-#: components/WorkoutDetailsScreen.tsx:198
+#: components/WorkoutDetailsScreen.tsx:215
 msgid "(to Failure) "
 msgstr "(jusqu'à l'échec) "
 
 #. placeholder {0}: workout.exercises.length
-#: components/StandaloneWorkoutListItem.tsx:59
+#: components/StandaloneWorkoutListItem.tsx:78
 msgid "{0, plural, one {# exercise} other {# exercises}}"
 msgstr "{0, plural, one {# exercice} other {# exercices}}"
 
@@ -728,13 +812,13 @@ msgstr "{0} (copie)"
 
 #. placeholder {0}: settings?.weightIncrement
 #. placeholder {1}: settings?.weightUnit
-#: app/(app)/settings.tsx:785
+#: app/(app)/settings.tsx:794
 msgid "{0} {1}"
 msgstr "{0} {1}"
 
 #. placeholder {0}: settings?.bodyWeight
 #. placeholder {1}: settings?.weightUnit
-#: app/(app)/settings.tsx:610
+#: app/(app)/settings.tsx:611
 msgid "{0} {1} (used for assisted exercises)"
 msgstr "{0} {1} (utilisé pour les exercices assistés)"
 
@@ -751,7 +835,7 @@ msgid "{0} Complete!"
 msgstr "{0} terminé !"
 
 #. placeholder {0}: settings?.weeklyGoal
-#: app/(app)/settings.tsx:588
+#: app/(app)/settings.tsx:589
 msgid "{0} days per week"
 msgstr "{0} jours par semaine"
 
@@ -781,21 +865,26 @@ msgstr "{0} rép."
 
 #. placeholder {0}: settings?.restTimerIncrement
 #. placeholder {0}: settings?.timerCountdown || "5"
-#: app/(app)/settings.tsx:813
-#: app/(app)/settings.tsx:839
+#: app/(app)/settings.tsx:822
+#: app/(app)/settings.tsx:848
 msgid "{0} seconds"
 msgstr "{0} secondes"
 
 #. placeholder {0}: settings?.defaultSets
-#: app/(app)/settings.tsx:1399
+#: app/(app)/settings.tsx:1428
 msgid "{0} sets"
 msgstr "{0} séries"
 
 #. placeholder {0}: item.sets.length
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:187
-#: components/WorkoutDetailsScreen.tsx:187
+#: components/StandaloneWorkoutScreen.tsx:187
+#: components/WorkoutDetailsScreen.tsx:204
 msgid "{0} Sets"
 msgstr "{0} Séries"
+
+#. placeholder {0}: body.steps.length
+#: app/(app)/help.tsx:209
+msgid "{0} steps — tap to view"
+msgstr "{0} étapes – appuie pour voir"
 
 #. placeholder {0}: workoutsPerWeek.toFixed(1)
 #: components/stats/InsightsStrip.tsx:75
@@ -921,6 +1010,10 @@ msgstr "+ Ajouter"
 msgid "+{increment}s"
 msgstr "+{increment}s"
 
+#: app/(app)/help.tsx:235
+msgid "+{remaining} more steps"
+msgstr "+{remaining} étapes supplémentaires"
+
 #: app/(app)/(workout)/index.tsx:1152
 #: app/(app)/(workout)/workout-session.tsx:1616
 #~ msgid "+{restTimerIncrement}s"
@@ -968,15 +1061,31 @@ msgstr "30 j"
 msgid "90d"
 msgstr "90 j"
 
-#: constants/HelpData.ts:89
+#: constants/HelpData.ts:160
+msgid "A Changes for this session card appears on the workout overview screen whenever you have accepted suggestions, so you can review targets before starting."
+msgstr "Une carte Changements pour cette séance apparaît sur l'écran de présentation de l'entraînement quand tu as accepté des suggestions, pour revoir tes objectifs avant de commencer."
+
+#: constants/HelpData.ts:114
+msgid "A coloured label identifies which superset each exercise belongs to throughout the app."
+msgstr "Un label de couleur identifie à quelle superserie appartient chaque exercice dans toute l'application."
+
+#: constants/HelpData.ts:175
 msgid "A deload is a planned recovery week where you train at reduced intensity to let your body fully recover before the next training block. Tap Mark as Deload Week on the plan overview screen to flag the current week as a deload. While the deload is active, the post-exercise feedback sheet does not appear and no new progression states are created or updated, so your suggestion history is not disrupted by the lighter sessions. The deload resets automatically at the start of the following week, and normal feedback and progression tracking resume without any manual action. If you change your mind, tapping the button again while the deload is active will clear it."
 msgstr "Une semaine de décharge est une semaine de récupération planifiée où tu t'entraînes avec une intensité réduite pour permettre à ton corps de récupérer complètement avant le prochain bloc d'entraînement. Appuie sur Marquer comme semaine de décharge sur l'écran de vue d'ensemble du programme pour indiquer que la semaine en cours est une décharge. Pendant que la décharge est active, le questionnaire de feedback après exercice n'apparaît pas et aucun nouvel état de progression n'est créé ou mis à jour, de sorte que ton historique de suggestions n'est pas perturbé par les séances plus légères. La décharge se réinitialise automatiquement au début de la semaine suivante et le feedback normal ainsi que le suivi de progression reprennent sans aucune action manuelle. Si tu changes d'avis, appuie à nouveau sur le bouton pendant que la décharge est active pour l'annuler."
+
+#: constants/HelpData.ts:159
+msgid "A deload-week banner appears if three or more exercises in the workout show fatigue signs."
+msgstr "Une bannière de semaine de deload apparaît si trois exercices ou plus du programme montrent des signes de fatigue."
 
 #: components/UpdateModal.tsx:31
 msgid "A new version has been downloaded. Tap the button below to restart and apply the update."
 msgstr "Une nouvelle version a été téléchargée. Appuie sur le bouton ci-dessous pour redémarrer et appliquer la mise à jour."
 
-#: app/_layout.tsx:97
+#: constants/HelpData.ts:158
+msgid "A plateau advisory note appears if an exercise has been at the same load for four or more sessions."
+msgstr "Une note d'avis de plateau apparaît si un exercice stagne à la même charge depuis quatre séances ou plus."
+
+#: app/_layout.tsx:103
 msgid "A render error has occurred. Press the button to reload."
 msgstr "Une erreur d'affichage s'est produite. Appuie sur le bouton pour recharger."
 
@@ -984,7 +1093,7 @@ msgstr "Une erreur d'affichage s'est produite. Appuie sur le bouton pour recharg
 msgid "abductors"
 msgstr "abducteurs"
 
-#: app/(app)/settings.tsx:1597
+#: app/(app)/settings.tsx:1626
 msgid "About"
 msgstr "À propos"
 
@@ -992,7 +1101,7 @@ msgstr "À propos"
 msgid "About right"
 msgstr "À peu près bien"
 
-#: app/(app)/settings.tsx:1686
+#: app/(app)/settings.tsx:1715
 msgid "About the developer"
 msgstr "À propos du développeur"
 
@@ -1009,7 +1118,11 @@ msgstr "Accepter"
 msgid "Accept all"
 msgstr "Tout accepter"
 
-#: constants/HelpData.ts:184
+#: constants/HelpData.ts:156
+msgid "Accepted suggestions are pre-filled into the weight and rep fields next time you open that workout."
+msgstr "Les suggestions acceptées sont pré-remplies dans les champs de poids et de reps la prochaine fois que tu ouvres cet entraînement."
+
+#: constants/HelpData.ts:315
 msgid "Account"
 msgstr "Compte"
 
@@ -1036,23 +1149,23 @@ msgstr "Exercices du programme actif"
 msgid "Active Plan: {0}"
 msgstr "Programme actif : {0}"
 
-#: constants/HelpData.ts:43
+#: constants/HelpData.ts:72
 msgid "Active Workout"
 msgstr "Entraînement actif"
 
-#: app/(app)/friend-profile.tsx:481
+#: app/(app)/friend-profile.tsx:516
 msgid "Activity"
 msgstr "Activité"
 
-#: constants/HelpData.ts:64
+#: constants/HelpData.ts:123
 msgid "Adaptive Progression"
 msgstr "Progression adaptative"
 
-#: app/(app)/settings.tsx:1103
+#: app/(app)/settings.tsx:1132
 msgid "Adaptive Progression (beta)"
 msgstr "Progression adaptative (bêta)"
 
-#: constants/HelpData.ts:69
+#: constants/HelpData.ts:129
 msgid "Adaptive Progression analyses your effort feedback over consecutive sessions and suggests when to increase your weight, reps, or sets. Enable it in Settings under Adaptive Progression. Once on, a short feedback prompt appears after each exercise in plan-based workouts, provided the exercise has a defined rep range to progress within. The engine requires two sessions with the same signal before recommending an upward change, filtering out one-off easy days and ensuring consistent performance before suggesting an increase. Pain or failed sets act immediately regardless of your session history. Discomfort is tracked across sessions: a single report keeps the load steady, and recurring discomfort prompts a note to check your form. If an exercise has been stuck at the same load for four or more sessions, a plateau advisory appears alongside the suggestion to prompt a technique check or a brief deload. A suggestion is never applied to your workout without your explicit approval. You can also configure your preferred load increment per equipment category in the same section of Settings, for example 2.5 kg for barbell exercises and 2.0 kg for dumbbells."
 msgstr "La Progression adaptative analyse ton feedback d'effort sur des séances consécutives et suggère quand augmenter ton poids, tes reps ou tes séries. Active-la dans Paramètres, sous Progression adaptative. Une fois activée, une courte question de feedback apparaît après chaque exercice dans les entraînements basés sur un programme, à condition que l'exercice ait une plage de reps définie pour progresser. Le système nécessite deux séances avec le même signal avant de recommander une augmentation, ce qui filtre les jours ponctuellement faciles et garantit une performance constante avant de suggérer une hausse. La douleur ou les séries non terminées sont prises en compte immédiatement, quelle que soit ton historique de séances. Les gênes sont suivies d'une séance à l'autre : un seul rapport maintient la charge stable, et des gênes récurrentes génèrent une note pour vérifier ta technique. Si un exercice stagne à la même charge depuis quatre séances ou plus, un avis de plateau apparaît à côté de la suggestion pour inciter à un contrôle technique ou un bref deload. Une suggestion n'est jamais appliquée à ton entraînement sans ton accord explicite. Tu peux aussi configurer ton incrément de charge préféré par catégorie d'équipement dans la même section des Paramètres, par exemple 2,5 kg pour les exercices à la barre et 2,0 kg pour les haltères."
 
@@ -1061,10 +1174,11 @@ msgstr "La Progression adaptative analyse ton feedback d'effort sur des séances
 #~ msgstr "La Progression adaptative analyse ton feedback d'effort sur des séances consécutives et suggère quand augmenter ton poids, tes reps ou tes séries. Active-la dans Paramètres, sous Progression adaptative. Une fois activée, une courte question de feedback apparaît après chaque exercice dans les entraînements basés sur un programme. Le système nécessite deux séances avec le même signal avant de recommander une augmentation, ce qui filtre les jours ponctuellement faciles et garantit une performance constante avant de suggérer une hausse. La douleur ou les séries non terminées sont prises en compte immédiatement, quelle que soit ton historique de séances. Une suggestion n'est jamais appliquée à ton entraînement sans ton accord explicite. Tu peux aussi configurer ton incrément de charge préféré par catégorie d'équipement dans la même section des Paramètres, par exemple 2,5 kg pour les exercices à la barre et 2,0 kg pour les haltères."
 
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:167
-#: app/(app)/friend-profile.tsx:289
-#: app/(app)/friend-profile.tsx:379
-#: app/(app)/friend-profile.tsx:464
+#: app/(app)/friend-profile.tsx:314
+#: app/(app)/friend-profile.tsx:409
+#: app/(app)/friend-profile.tsx:499
 #: app/(app)/friends.tsx:352
+#: app/(app)/plate-inventory.tsx:236
 #: components/Notes.tsx:87
 msgid "Add"
 msgstr "Ajouter"
@@ -1079,6 +1193,10 @@ msgstr "Ajouter ({0})"
 msgid "Add a note..."
 msgstr "Ajouter une note..."
 
+#: app/(app)/plate-inventory.tsx:218
+msgid "Add a plate size"
+msgstr "Ajouter une taille de disque"
+
 #: components/ProgressionSuggestionChip.tsx:40
 msgid "Add a set"
 msgstr "Ajouter une série"
@@ -1091,7 +1209,7 @@ msgstr "Ajoute un entraînement pour commencer"
 msgid "Add custom metric"
 msgstr "Ajouter une mesure personnalisée"
 
-#: components/SessionSetInfo.tsx:275
+#: components/SessionSetInfo.tsx:294
 msgid "Add Drop Set"
 msgstr "Ajouter une série dégressive"
 
@@ -1108,12 +1226,20 @@ msgstr "Ajoute des exercices pour commencer"
 msgid "Add Image"
 msgstr "Ajouter une image"
 
+#: constants/HelpData.ts:80
+msgid "Add notes per-exercise via the notes icon in the exercise header, per workout from the workout overview screen, or per plan from the plan overview screen."
+msgstr "Les notes peuvent être ajoutées par exercice via l'icône de notes, par entraînement depuis l'écran de vue d'ensemble, ou par programme depuis l'écran de vue d'ensemble du programme."
+
+#: constants/HelpData.ts:52
+msgid "Add notes to the plan from its overview screen, and switch between Carousel, List, and Grid views using the icons next to \"Your Training Plans\" (your choice is remembered)."
+msgstr "Ajoute des notes depuis l'écran de vue d'ensemble et bascule entre les affichages Carrousel, Liste et Grille avec les icônes à côté de \"Tes plans d'entraînement\" (ton choix est mémorisé)."
+
 #: components/Onboarding.tsx:36
 msgid "Add Personal Notes"
 msgstr "Ajouter des notes personnelles"
 
 #: app/(app)/(create-plan)/sets-overview.tsx:265
-#: components/SessionSetInfo.tsx:268
+#: components/SessionSetInfo.tsx:287
 msgid "Add Set"
 msgstr "Ajouter une série"
 
@@ -1133,7 +1259,7 @@ msgstr "Ajouter à mes entraînements"
 msgid "Add Warm-up"
 msgstr "Ajouter un échauffement"
 
-#: components/SessionSetInfo.tsx:299
+#: components/SessionSetInfo.tsx:318
 msgid "Add Weight"
 msgstr "Ajouter du poids"
 
@@ -1141,9 +1267,13 @@ msgstr "Ajouter du poids"
 msgid "Add Workout"
 msgstr "Ajouter un entraînement"
 
-#: app/(app)/friend-profile.tsx:287
-#: app/(app)/friend-profile.tsx:377
-#: app/(app)/friend-profile.tsx:462
+#: constants/HelpData.ts:48
+msgid "Add workouts to the plan, then add exercises to each workout with target sets and reps. Each workout card shows an estimated duration and exercise count."
+msgstr "Ajoute des entraînements au programme, puis des exercices à chaque entraînement avec des séries et reps cibles. Chaque carte affiche une durée estimée et le nombre d'exercices."
+
+#: app/(app)/friend-profile.tsx:312
+#: app/(app)/friend-profile.tsx:407
+#: app/(app)/friend-profile.tsx:497
 msgid "Added"
 msgstr "Ajouté"
 
@@ -1159,7 +1289,7 @@ msgstr "Ajouté à mes programmes"
 msgid "Added to my workouts"
 msgstr "Ajouté à mes entraînements"
 
-#: constants/HelpData.ts:168
+#: constants/HelpData.ts:296
 msgid "Adding Friends"
 msgstr "Ajouter des amis"
 
@@ -1167,21 +1297,29 @@ msgstr "Ajouter des amis"
 msgid "adductors"
 msgstr "adducteurs"
 
+#: constants/HelpData.ts:136
+msgid "After completing the last working set of an exercise, a feedback sheet slides up with two questions."
+msgstr "Après avoir terminé la dernière série de travail d'un exercice, un questionnaire de feedback apparaît avec deux questions."
+
 #: constants/HelpData.ts:74
-msgid "After completing the last working set of an exercise, a feedback sheet slides up with two questions. The first asks how the effort felt: Easy (you could have done more), About right, Hard (near your limit), or Couldn't finish all sets. The second asks about pain: No pain, Minor discomfort, or Pain or form issues. If you answer Easy, a third question appears asking whether you want to push harder next time. This lets you deliberately hold the current load even when a session felt light, so the engine respects your intent. If you answer Pain, an optional text field lets you note where you felt it for your own reference. Discomfort is tracked across sessions: one report keeps the load steady, and a second consecutive report adds a note suggesting a form check. The sheet can be dismissed without answering if you prefer not to log feedback for that exercise in that session. Reps-only exercises without a rep range, such as a set with a fixed rep count like 10, are skipped automatically since there is no room to progress within the range."
-msgstr "Après avoir terminé la dernière série de travail d'un exercice, un questionnaire de feedback apparaît avec deux questions. La première demande comment l'effort s'est ressenti : Facile (tu aurais pu faire plus), À peu près bien, Difficile (proche de ta limite) ou Pas réussi à finir toutes les séries. La deuxième porte sur la douleur : Pas de douleur, Légère gêne ou Douleur ou problèmes de forme. Si tu réponds Facile, une troisième question apparaît pour savoir si tu veux te surpasser la prochaine fois. Cela te permet de maintenir délibérément la charge actuelle même quand une séance s'est sentie légère, de sorte que le système respecte ton intention. Si tu réponds Douleur, un champ de texte optionnel te permet de noter où tu l'as ressenti pour ta propre référence. Les gênes sont suivies d'une séance à l'autre : un rapport maintient la charge stable, et un second rapport consécutif ajoute une note suggérant un contrôle de technique. Le questionnaire peut être fermé sans répondre si tu préfères ne pas enregistrer de feedback pour cet exercice lors de cette séance. Les exercices uniquement en reps sans plage de reps définie, comme une série avec un nombre fixe de 10, sont ignorés automatiquement car il n'y a pas de marge pour progresser dans la plage."
+#~ msgid "After completing the last working set of an exercise, a feedback sheet slides up with two questions. The first asks how the effort felt: Easy (you could have done more), About right, Hard (near your limit), or Couldn't finish all sets. The second asks about pain: No pain, Minor discomfort, or Pain or form issues. If you answer Easy, a third question appears asking whether you want to push harder next time. This lets you deliberately hold the current load even when a session felt light, so the engine respects your intent. If you answer Pain, an optional text field lets you note where you felt it for your own reference. Discomfort is tracked across sessions: one report keeps the load steady, and a second consecutive report adds a note suggesting a form check. The sheet can be dismissed without answering if you prefer not to log feedback for that exercise in that session. Reps-only exercises without a rep range, such as a set with a fixed rep count like 10, are skipped automatically since there is no room to progress within the range."
+#~ msgstr "Après avoir terminé la dernière série de travail d'un exercice, un questionnaire de feedback apparaît avec deux questions. La première demande comment l'effort s'est ressenti : Facile (tu aurais pu faire plus), À peu près bien, Difficile (proche de ta limite) ou Pas réussi à finir toutes les séries. La deuxième porte sur la douleur : Pas de douleur, Légère gêne ou Douleur ou problèmes de forme. Si tu réponds Facile, une troisième question apparaît pour savoir si tu veux te surpasser la prochaine fois. Cela te permet de maintenir délibérément la charge actuelle même quand une séance s'est sentie légère, de sorte que le système respecte ton intention. Si tu réponds Douleur, un champ de texte optionnel te permet de noter où tu l'as ressenti pour ta propre référence. Les gênes sont suivies d'une séance à l'autre : un rapport maintient la charge stable, et un second rapport consécutif ajoute une note suggérant un contrôle de technique. Le questionnaire peut être fermé sans répondre si tu préfères ne pas enregistrer de feedback pour cet exercice lors de cette séance. Les exercices uniquement en reps sans plage de reps définie, comme une série avec un nombre fixe de 10, sont ignorés automatiquement car il n'y a pas de marge pour progresser dans la plage."
 
 #: constants/HelpData.ts:74
 #~ msgid "After completing the last working set of an exercise, a feedback sheet slides up with two questions. The first asks how the effort felt: Easy (you could have done more), About right, Hard (near your limit), or Couldn't finish all sets. The second asks about pain: No pain, Minor discomfort, or Pain or form issues. If you answer Easy, a third question appears asking whether you want to push harder next time. This lets you deliberately hold the current load even when a session felt light, so the engine respects your intent. If you answer Pain, an optional text field lets you note where you felt it for your own reference. The sheet can be dismissed without answering if you prefer not to log feedback for that exercise in that session."
 #~ msgstr "Après avoir terminé la dernière série de travail d'un exercice, un questionnaire de feedback apparaît avec deux questions. La première demande comment l'effort s'est ressenti : Facile (tu aurais pu faire plus), À peu près bien, Difficile (proche de ta limite) ou Pas réussi à finir toutes les séries. La deuxième porte sur la douleur : Pas de douleur, Légère gêne ou Douleur ou problèmes de forme. Si tu réponds Facile, une troisième question apparaît pour savoir si tu veux te surpasser la prochaine fois. Cela te permet de maintenir délibérément la charge actuelle même quand une séance s'est sentie légère, de sorte que le système respecte ton intention. Si tu réponds Douleur, un champ de texte optionnel te permet de noter où tu l'as ressenti pour ta propre référence. Le questionnaire peut être fermé sans répondre si tu préfères ne pas enregistrer de feedback pour cet exercice lors de cette séance."
 
-#: constants/HelpData.ts:49
+#: constants/HelpData.ts:89
 msgid "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. When completing a Quick Workout, you will be prompted to save it as a standalone workout for future use or discard it."
 msgstr "Après avoir terminé un entraînement, un écran récapitulatif affiche ta durée totale, les séries terminées et le volume total. Si tu as déjà effectué le même entraînement, une ligne de comparaison indique comment chaque indicateur se compare à la session précédente. Une bannière d'objectif hebdomadaire montre combien de séances tu as enregistrées cette semaine par rapport à ton objectif. Appuie sur n'importe quel exercice dans la liste pour le développer et consulter chaque série en détail. Lors d'un Entraînement rapide, tu seras invité à le sauvegarder comme entraînement autonome pour une utilisation future ou à le supprimer."
 
+#: constants/HelpData.ts:153
+msgid "After finishing a workout, the Workout Summary screen shows a Next Session card listing actionable suggestions for your exercises — each row shows the exercise name, the proposed change, why it's suggested, and the date you last increased load."
+msgstr "Après avoir terminé un entraînement, l'écran de Résumé affiche une carte Prochaine séance – chaque ligne indique le nom de l'exercice, le changement proposé, le motif et la date de la dernière augmentation de charge."
+
 #: constants/HelpData.ts:79
-msgid "After finishing a workout, the Workout Summary screen shows a Next Session card listing actionable suggestions for your exercises. Each row shows the exercise name, the proposed change (a new target weight, a wider rep range, or a note to reduce load), a short explanation of why the change is being suggested, and the date you last increased load for that exercise if available. Tap Accept to apply the suggestion to that exercise for your next session, or Dismiss to ignore it. Accepted suggestions are pre-filled into the weight and rep fields the next time you open that workout, so you start the session already targeting the right load. The Accept All button at the top applies every suggestion at once. Suggestions that recommend holding the current load do not appear in the card, as no action is needed for those. If an exercise has been at the same load for four or more sessions, a plateau advisory note appears alongside its suggestion. If three or more exercises in the workout show fatigue signs, a banner appears at the bottom of the card recommending a deload week. On the workout overview screen, a Changes for this session card appears above the exercise list whenever you have accepted suggestions, so you can review your targets before starting."
-msgstr "Après avoir terminé un entraînement, l'écran de Résumé d'entraînement affiche une carte Prochaine séance listant des suggestions concrètes pour tes exercices. Chaque ligne indique le nom de l'exercice, le changement proposé (un nouveau poids cible, une plage de reps plus large ou une note pour réduire la charge), une brève explication du pourquoi du changement suggéré et la date à laquelle tu as augmenté la charge pour cet exercice pour la dernière fois, si disponible. Appuie sur Accepter pour appliquer la suggestion à cet exercice pour ta prochaine séance, ou sur Ignorer pour la rejeter. Les suggestions acceptées sont pré-remplies dans les champs de poids et de reps la prochaine fois que tu ouvres cet entraînement, pour que tu commences la séance en visant déjà la bonne charge. Le bouton Tout accepter en haut applique toutes les suggestions en une fois. Les suggestions qui recommandent de maintenir la charge actuelle n'apparaissent pas dans la carte, car aucune action n'est nécessaire pour celles-là. Si un exercice stagne à la même charge depuis quatre séances ou plus, une note d'avis de plateau apparaît à côté de sa suggestion. Si trois exercices ou plus du programme montrent des signes de fatigue, une bannière apparaît en bas de la carte recommandant une semaine de deload. Sur l'écran de présentation de l'entraînement, une carte Changements pour cette séance apparaît au-dessus de la liste des exercices lorsque tu as accepté des suggestions, pour que tu puisses revoir tes objectifs avant de commencer."
+#~ msgid "After finishing a workout, the Workout Summary screen shows a Next Session card listing actionable suggestions for your exercises. Each row shows the exercise name, the proposed change (a new target weight, a wider rep range, or a note to reduce load), a short explanation of why the change is being suggested, and the date you last increased load for that exercise if available. Tap Accept to apply the suggestion to that exercise for your next session, or Dismiss to ignore it. Accepted suggestions are pre-filled into the weight and rep fields the next time you open that workout, so you start the session already targeting the right load. The Accept All button at the top applies every suggestion at once. Suggestions that recommend holding the current load do not appear in the card, as no action is needed for those. If an exercise has been at the same load for four or more sessions, a plateau advisory note appears alongside its suggestion. If three or more exercises in the workout show fatigue signs, a banner appears at the bottom of the card recommending a deload week. On the workout overview screen, a Changes for this session card appears above the exercise list whenever you have accepted suggestions, so you can review your targets before starting."
+#~ msgstr "Après avoir terminé un entraînement, l'écran de Résumé d'entraînement affiche une carte Prochaine séance listant des suggestions concrètes pour tes exercices. Chaque ligne indique le nom de l'exercice, le changement proposé (un nouveau poids cible, une plage de reps plus large ou une note pour réduire la charge), une brève explication du pourquoi du changement suggéré et la date à laquelle tu as augmenté la charge pour cet exercice pour la dernière fois, si disponible. Appuie sur Accepter pour appliquer la suggestion à cet exercice pour ta prochaine séance, ou sur Ignorer pour la rejeter. Les suggestions acceptées sont pré-remplies dans les champs de poids et de reps la prochaine fois que tu ouvres cet entraînement, pour que tu commences la séance en visant déjà la bonne charge. Le bouton Tout accepter en haut applique toutes les suggestions en une fois. Les suggestions qui recommandent de maintenir la charge actuelle n'apparaissent pas dans la carte, car aucune action n'est nécessaire pour celles-là. Si un exercice stagne à la même charge depuis quatre séances ou plus, une note d'avis de plateau apparaît à côté de sa suggestion. Si trois exercices ou plus du programme montrent des signes de fatigue, une bannière apparaît en bas de la carte recommandant une semaine de deload. Sur l'écran de présentation de l'entraînement, une carte Changements pour cette séance apparaît au-dessus de la liste des exercices lorsque tu as accepté des suggestions, pour que tu puisses revoir tes objectifs avant de commencer."
 
 #: constants/HelpData.ts:79
 #~ msgid "After finishing a workout, the Workout Summary screen shows a Next Session card listing actionable suggestions for your exercises. Each row shows the exercise name, the proposed change (a new target weight, a wider rep range, or a note to reduce load), and a short explanation of why the change is being suggested. Tap Accept to apply the suggestion to that exercise for your next session, or Dismiss to ignore it. Accepted suggestions are pre-filled into the weight and rep fields the next time you open that workout, so you start the session already targeting the right load. The Accept All button at the top applies every suggestion at once. Suggestions that recommend holding the current load do not appear in the card, as no action is needed for those."
@@ -1235,17 +1373,25 @@ msgstr "Record absolu"
 msgid "Almost there. Just missed the rep target. Hold and try again next session."
 msgstr "Presque. L'objectif de reps manqué de peu. Maintiens et réessaie à la prochaine séance."
 
-#: app/(app)/settings.tsx:1001
+#: app/(app)/plate-inventory.tsx:95
+msgid "Already added"
+msgstr "Déjà ajouté"
+
+#: app/(app)/settings.tsx:1030
 msgid "Always use most recent exercise history"
 msgstr "Toujours utiliser l'historique le plus récent"
 
-#: hooks/useImageManagement.ts:109
+#: hooks/useImageManagement.ts:114
 msgid "An error occurred while deleting images."
 msgstr "Une erreur s'est produite lors de la suppression des images."
 
 #: hooks/useImageManagement.ts:79
 msgid "An error occurred while downloading images."
 msgstr "Une erreur s'est produite lors du téléchargement des images."
+
+#: app/(app)/settings.tsx:653
+msgid "An unexpected error occurred."
+msgstr "Une erreur inattendue s'est produite."
 
 #: constants/dbTranslations.ts:39
 msgid "ankle stabilizers"
@@ -1255,16 +1401,24 @@ msgstr "stabilisateurs de la cheville"
 msgid "ankles"
 msgstr "chevilles"
 
+#: constants/HelpData.ts:140
+msgid "Answering Easy adds a third question asking if you want to push harder next time, letting you deliberately hold the load even after a light session."
+msgstr "Si tu réponds Facile, une troisième question apparaît pour savoir si tu veux te surpasser la prochaine fois, te permettant de maintenir délibérément la charge même après une séance légère."
+
+#: constants/HelpData.ts:141
+msgid "Answering Pain reveals an optional text field to note where you felt it."
+msgstr "Si tu réponds Douleur, un champ de texte optionnel te permet de noter où tu l'as ressentie."
+
 #: components/ExerciseFeedbackSheet.tsx:205
 msgid "Any pain or form breakdown?"
 msgstr "Des douleurs ou des problèmes de forme ?"
 
-#: app/(app)/settings.tsx:1470
+#: app/(app)/settings.tsx:1499
 msgid "Appearance"
 msgstr "Apparence"
 
 #. placeholder {0}: isWarmup ? t`warmup` : t`working`
-#: components/EditSetModal.tsx:441
+#: components/SetOptionsModal.tsx:394
 msgid "Apply to all {0} sets"
 msgstr "Appliquer à toutes les {0} séries"
 
@@ -1273,7 +1427,7 @@ msgid "Are you sure you want to cancel and delete this workout?"
 msgstr "Tu es sûr de vouloir annuler et supprimer cet entraînement ?"
 
 #. placeholder {0}: workout?.name ?? ""
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:92
+#: components/StandaloneWorkoutScreen.tsx:92
 msgid "Are you sure you want to delete \"{0}\"?"
 msgstr "Tu es sûr de vouloir supprimer \"{0}\" ?"
 
@@ -1293,7 +1447,7 @@ msgstr "Es-tu sûr de vouloir supprimer cette entrée de mesure ?"
 msgid "Are you sure you want to delete this plan?"
 msgstr "Tu es sûr de vouloir supprimer ce programme ?"
 
-#: app/(app)/(workout)/workout-session.tsx:804
+#: app/(app)/(workout)/workout-session.tsx:769
 msgid "Are you sure you want to delete this set?"
 msgstr "Tu es sûr de vouloir supprimer cette série ?"
 
@@ -1318,13 +1472,17 @@ msgstr "Tu es sûr de vouloir supprimer cet entraînement ?"
 msgid "Are you sure you want to restart this workout?"
 msgstr "Tu es sûr de vouloir recommencer cet entraînement ?"
 
-#: app/(app)/settings.tsx:482
+#: app/(app)/settings.tsx:483
 msgid "Are you sure you want to restore the backup?"
 msgstr "Tu es sûr de vouloir restaurer la sauvegarde ?"
 
 #: constants/dbTranslations.ts:5
 msgid "arms"
 msgstr "bras"
+
+#: constants/HelpData.ts:50
+msgid "Assign workouts to days in the schedule editor: tap a day to pick a workout or leave it as a rest day, or use the auto-suggest button to space them out evenly."
+msgstr "Assigne des entraînements à des jours dans l'éditeur de planning : appuie sur un jour pour choisir un entraînement ou le laisser comme jour de repos, ou utilise le bouton de suggestion automatique pour les espacer régulièrement."
 
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:206
 msgid "Assist"
@@ -1339,7 +1497,7 @@ msgstr "Assisté"
 msgid "Assist {0} {1} | Resist {2} {3} | {4} Reps"
 msgstr "Assisté {0} {1} | Résistance {2} {3} | {4} Rép."
 
-#: components/SessionSetInfo.tsx:415
+#: components/SessionSetInfo.tsx:444
 msgid "Assistance"
 msgstr "Assistance"
 
@@ -1360,23 +1518,35 @@ msgstr "Durée moyenne"
 msgid "back"
 msgstr "dos"
 
-#: app/(app)/settings.tsx:649
+#: app/(app)/settings.tsx:658
 msgid "Backup"
 msgstr "Sauvegarde"
 
-#: constants/HelpData.ts:193
+#: constants/HelpData.ts:326
 msgid "Backup & Restore"
 msgstr "Sauvegarde et restauration"
 
-#: app/(app)/settings.tsx:627
+#: app/(app)/settings.tsx:628
 msgid "Backup and restore"
 msgstr "Sauvegarder et restaurer"
+
+#: app/(app)/settings.tsx:652
+msgid "Backup Failed"
+msgstr "Échec de la sauvegarde"
+
+#: components/PlateCalculatorModal.tsx:204
+msgid "Bar weight"
+msgstr "Poids de la barre"
+
+#: components/PlateCalculatorModal.tsx:159
+msgid "Bar weight ({weightUnit})"
+msgstr "Poids de la barre ({weightUnit})"
 
 #: constants/dbTranslations.ts:83
 msgid "barbell"
 msgstr "barre"
 
-#: app/(app)/settings.tsx:1151
+#: app/(app)/settings.tsx:1180
 msgid "Barbell load increment"
 msgstr "Incrément de charge pour la barre"
 
@@ -1420,7 +1590,7 @@ msgid "Body Fat"
 msgstr "Graisse corporelle"
 
 #: app/(app)/(tabs)/(stats)/index.tsx:610
-#: constants/HelpData.ts:143
+#: constants/HelpData.ts:257
 msgid "Body Measurements"
 msgstr "Mesures corporelles"
 
@@ -1444,7 +1614,7 @@ msgstr "Parties du corps"
 msgid "body weight"
 msgstr "poids de corps"
 
-#: app/(app)/settings.tsx:607
+#: app/(app)/settings.tsx:608
 msgid "Body weight"
 msgstr "Poids du corps"
 
@@ -1452,7 +1622,7 @@ msgstr "Poids du corps"
 msgid "Body Weight"
 msgstr "Poids corporel"
 
-#: constants/HelpData.ts:119
+#: constants/HelpData.ts:228
 msgid "Bodyweight exercises like pull-ups or dips track reps only by default. If you want to log added weight, such as a weight belt or vest, open the sets overview for that exercise in the workout or plan editor and toggle Track Weight on. The toggle is saved per workout, so you can have some workouts use bodyweight-only and others track the additional load. Progression charts and history will reflect the logged weight once the toggle is on."
 msgstr "Les exercices au poids de corps comme les tractions ou les dips ne suivent que les répétitions par défaut. Si tu veux noter le poids ajouté, comme une ceinture lestée ou un gilet, ouvre le récapitulatif des séries de cet exercice dans l'éditeur d'entraînement ou de programme et active Enregistrer le poids. Le réglage est sauvegardé par entraînement, tu peux donc avoir des entraînements en poids de corps uniquement et d'autres qui enregistrent la charge supplémentaire. Les graphiques de progression et l'historique refléteront le poids enregistré une fois le réglage activé."
 
@@ -1460,7 +1630,7 @@ msgstr "Les exercices au poids de corps comme les tractions ou les dips ne suive
 msgid "brachialis"
 msgstr "brachial"
 
-#: constants/HelpData.ts:104
+#: constants/HelpData.ts:202
 msgid "Browse almost 1,000 exercises and filter by body part, target muscle, or equipment. Use the sort chips at the top to order exercises by Default, Active Plan, Recent, or Frequent, so the exercises most relevant to you appear first. When replacing an exercise, the filter automatically preselects the matching target muscle to help you find alternatives faster. Tap any exercise to view its animated demonstration, the muscles targeted, and a full history of every time you have performed it, including weights, reps, time, or distance per set. Download all exercise animations (~100 MB) in Settings for offline access."
 msgstr "Parcours près de 1 000 exercices et filtre par partie du corps, muscle cible ou équipement. Utilise les chips de tri en haut pour classer les exercices par Par défaut, Programme actif, Récent ou Fréquent, afin que les exercices les plus pertinents pour toi apparaissent en premier. Quand tu remplaces un exercice, le filtre présélectionne automatiquement le muscle cible correspondant pour t'aider à trouver des alternatives plus rapidement. Appuie sur n'importe quel exercice pour voir sa démonstration animée, les muscles sollicités et un historique complet de chaque fois que tu l'as effectué, avec les poids, répétitions, temps ou distances par série. Télécharge toutes les animations d'exercices (~100 Mo) dans les Paramètres pour y accéder hors ligne."
 
@@ -1468,11 +1638,11 @@ msgstr "Parcours près de 1 000 exercices et filtre par partie du corps, muscle 
 msgid "Built-in Metrics"
 msgstr "Mesures intégrées"
 
-#: app/(app)/settings.tsx:1514
+#: app/(app)/settings.tsx:1543
 msgid "Button size during workout"
 msgstr "Taille des boutons pendant l'entraînement"
 
-#: app/(app)/settings.tsx:1633
+#: app/(app)/settings.tsx:1662
 msgid "Buy me a coffee"
 msgstr "Offre-moi un café"
 
@@ -1484,7 +1654,7 @@ msgstr "Offre-moi un Café"
 msgid "cable"
 msgstr "câble"
 
-#: app/(app)/settings.tsx:1205
+#: app/(app)/settings.tsx:1234
 msgid "Cable load increment"
 msgstr "Incrément de charge pour la poulie"
 
@@ -1505,7 +1675,6 @@ msgstr "mollets"
 #: app/(app)/(create-plan)/create.tsx:279
 #: app/(app)/(tabs)/(plans)/overview.tsx:153
 #: app/(app)/(tabs)/(plans)/overview.tsx:204
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:94
 #: app/(app)/(tabs)/(stats)/history-details.tsx:173
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:118
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:85
@@ -1513,14 +1682,16 @@ msgstr "mollets"
 #: app/(app)/(workout)/index.tsx:836
 #: app/(app)/(workout)/index.tsx:885
 #: app/(app)/(workout)/index.tsx:1064
-#: app/(app)/(workout)/workout-session.tsx:805
-#: app/(app)/settings.tsx:409
-#: app/(app)/settings.tsx:484
+#: app/(app)/(workout)/workout-session.tsx:770
+#: app/(app)/plate-inventory.tsx:121
+#: app/(app)/settings.tsx:410
+#: app/(app)/settings.tsx:485
 #: components/CopyWorkoutModal.tsx:70
-#: components/EditSetModal.tsx:454
 #: components/friends/FriendListItem.tsx:24
 #: components/PrivacySettings.tsx:70
+#: components/SetOptionsModal.tsx:409
 #: components/SettingsModal.tsx:282
+#: components/StandaloneWorkoutScreen.tsx:94
 #: components/WorkoutCard.tsx:87
 #: hooks/useImageManagement.ts:25
 #: hooks/useImageManagement.ts:41
@@ -1547,11 +1718,11 @@ msgstr "système cardiovasculaire"
 msgid "Change Image"
 msgstr "Changer l'image"
 
-#: components/WorkoutDetailsScreen.tsx:230
+#: components/WorkoutDetailsScreen.tsx:247
 msgid "Changes for this session"
 msgstr "Changements pour cette séance"
 
-#: app/(app)/settings.tsx:633
+#: app/(app)/settings.tsx:634
 msgid "Checking for backups..."
 msgstr "Vérification des sauvegardes..."
 
@@ -1564,7 +1735,11 @@ msgstr "poitrine"
 msgid "Chest"
 msgstr "Poitrine"
 
-#: components/WorkoutPickerModal.tsx:83
+#: constants/HelpData.ts:218
+msgid "Choose a tracking type: weight + reps, time, distance, reps only, or assisted (factors in your body weight, for movements like assisted pull-ups)."
+msgstr "Choisis un type de suivi : poids + répétitions, temps, distance, répétitions seules ou assisté (qui prend en compte ton poids de corps pour des mouvements comme les tractions assistées)."
+
+#: components/WorkoutPickerModal.tsx:104
 msgid "Choose a Workout"
 msgstr "Choisis un entraînement"
 
@@ -1576,20 +1751,29 @@ msgstr "Choisir depuis l'appareil"
 msgid "Choose Workout"
 msgstr "Choisir un entraînement"
 
-#: app/(app)/help.tsx:146
+#: app/(app)/help.tsx:365
+#: app/(app)/help.tsx:419
 msgid "Clear search"
 msgstr "Effacer la recherche"
 
-#: app/(app)/help.tsx:148
+#: app/(app)/help.tsx:367
 msgid "Clears the search field"
 msgstr "Efface le champ de recherche"
+
+#: components/PlateCalculatorModal.tsx:270
+msgid "Close"
+msgstr "Fermer"
 
 #: components/AppMenu.tsx:156
 #: components/AppMenu.tsx:178
 msgid "Close menu"
 msgstr "Fermer le menu"
 
-#: components/SessionSetInfo.tsx:563
+#: components/PlateCalculatorModal.tsx:223
+msgid "Closest"
+msgstr "Le plus proche"
+
+#: components/SessionSetInfo.tsx:592
 msgid "Complete Set"
 msgstr "Terminer la série"
 
@@ -1605,9 +1789,17 @@ msgstr "Les séries terminées apparaîtront ici"
 msgid "completed workouts"
 msgstr "entraînements terminés"
 
+#: constants/HelpData.ts:115
+msgid "Completing a set on one exercise automatically moves you to its superset partner."
+msgstr "Quand tu termines une série sur un exercice, l'appli te déplace directement vers son partenaire de superserie."
+
+#: constants/HelpData.ts:99
+msgid "Configure the default rest duration and the timer increment in Settings."
+msgstr "Configure la durée de repos par défaut et l'incrément de la minuterie dans les Paramètres."
+
 #: constants/HelpData.ts:154
-msgid "Configure weight, size, and distance units, default sets per exercise, default rest time, and the weight increment used by the ± buttons during a session. Adjust workout button size (Standard, Large, or XLarge) and toggle Keep Screen On to prevent the display sleeping mid-workout. Under Stats, you can exclude warmup sets from volume, double reps for unilateral exercises, or double the weight for paired implements, useful if you prefer logging per-dumbbell weight rather than the total. Set your body weight here; it is used to calculate effective load for assisted exercises."
-msgstr "Configure les unités de poids, de taille et de distance, le nombre de séries par défaut par exercice, le temps de repos par défaut et l'incrément de poids des boutons ± pendant la séance. Ajuste la taille des boutons d'entraînement (Standard, Grand ou Très grand) et active Garder l'écran allumé pour éviter que l'écran se mette en veille. Dans Statistiques, tu peux exclure les séries d'échauffement du volume, doubler les répétitions pour les exercices unilatéraux ou doubler le poids pour les appareils appariés, utile si tu préfères noter le poids d'un seul haltère plutôt que le total. Renseigne ton poids corporel ici ; il est utilisé pour calculer la charge effective des exercices assistés."
+#~ msgid "Configure weight, size, and distance units, default sets per exercise, default rest time, and the weight increment used by the ± buttons during a session. Adjust workout button size (Standard, Large, or XLarge) and toggle Keep Screen On to prevent the display sleeping mid-workout. Under Stats, you can exclude warmup sets from volume, double reps for unilateral exercises, or double the weight for paired implements, useful if you prefer logging per-dumbbell weight rather than the total. Set your body weight here; it is used to calculate effective load for assisted exercises."
+#~ msgstr "Configure les unités de poids, de taille et de distance, le nombre de séries par défaut par exercice, le temps de repos par défaut et l'incrément de poids des boutons ± pendant la séance. Ajuste la taille des boutons d'entraînement (Standard, Grand ou Très grand) et active Garder l'écran allumé pour éviter que l'écran se mette en veille. Dans Statistiques, tu peux exclure les séries d'échauffement du volume, doubler les répétitions pour les exercices unilatéraux ou doubler le poids pour les appareils appariés, utile si tu préfères noter le poids d'un seul haltère plutôt que le total. Renseigne ton poids corporel ici ; il est utilisé pour calculer la charge effective des exercices assistés."
 
 #: app/(app)/(workout)/index.tsx:841
 #: app/(app)/(workout)/index.tsx:890
@@ -1652,6 +1844,26 @@ msgstr "Impossible d'ajouter cet exercice. Réessaie."
 msgid "Couldn't finish all sets"
 msgstr "Pas réussi à finir toutes les séries"
 
+#: app/(app)/friend-profile.tsx:524
+msgid "Couldn't load activity"
+msgstr "Impossible de charger l'activité"
+
+#: app/(app)/friend-profile.tsx:434
+msgid "Couldn't load custom exercises"
+msgstr "Impossible de charger les exercices personnalisés"
+
+#: app/(app)/friend-profile.tsx:250
+msgid "Couldn't load plans"
+msgstr "Impossible de charger les programmes"
+
+#: app/(app)/friend-profile.tsx:189
+msgid "Couldn't load strength PRs"
+msgstr "Impossible de charger les PRs de force"
+
+#: app/(app)/friend-profile.tsx:339
+msgid "Couldn't load workouts"
+msgstr "Impossible de charger les entraînements"
+
 #: app/(app)/custom-exercise.tsx:555
 msgid "Count reps ×2 for volume when the setting is enabled"
 msgstr "Compter les rép. ×2 pour le volume quand le paramètre est activé"
@@ -1659,6 +1871,10 @@ msgstr "Compter les rép. ×2 pour le volume quand le paramètre est activé"
 #: app/(app)/settings.tsx:1062
 #~ msgid "Counting reps ×2 for these exercises"
 #~ msgstr "Rép. ×2 comptées pour ces exercices"
+
+#: app/(app)/plate-inventory.tsx:157
+msgid "Counts are pairs: one plate for each side of the bar."
+msgstr "Les quantités sont des paires : un disque de chaque côté de la barre."
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:150
 msgid "Create a copy of this plan that you can edit independently?"
@@ -1691,12 +1907,20 @@ msgstr "Créer une superserie"
 msgid "Create Workout"
 msgstr "Créer un entraînement"
 
-#: constants/HelpData.ts:114
-msgid "Create your own exercises from the exercise picker. Give it a name, an optional image, body part, target muscles, secondary muscles, and equipment. Choose a tracking type: weight + reps, time, distance, reps only, or assisted (which factors in your body weight for movements like assisted pull-ups). Toggle Unilateral for single-arm or single-leg exercises; reps can be automatically doubled in your stats. Toggle Paired Implements if you track the weight of one implement rather than the total: for example, if you log 20 kg for one dumbbell, the app counts 40 kg toward your volume."
-msgstr "Crée tes propres exercices depuis le sélecteur d'exercices. Donne-lui un nom, une image optionnelle, une partie du corps, des muscles cibles, des muscles secondaires et de l'équipement. Choisis un type de suivi : poids + répétitions, temps, distance, répétitions seules ou assisté (qui prend en compte ton poids de corps pour des mouvements comme les tractions assistées). Active Unilatéral pour les exercices à un bras ou une jambe ; les répétitions peuvent être automatiquement doublées dans tes stats. Active Implements appariés si tu notes le poids d'un seul implement plutôt que le total : par exemple, si tu notes 20 kg pour un haltère, l'appli compte 40 kg dans ton volume."
+#: constants/HelpData.ts:215
+msgid "Create your own exercises from the exercise picker."
+msgstr "Crée tes propres exercices depuis le sélecteur d'exercices."
 
-#: app/(app)/friend-profile.tsx:396
-#: constants/HelpData.ts:113
+#: constants/HelpData.ts:114
+#~ msgid "Create your own exercises from the exercise picker. Give it a name, an optional image, body part, target muscles, secondary muscles, and equipment. Choose a tracking type: weight + reps, time, distance, reps only, or assisted (which factors in your body weight for movements like assisted pull-ups). Toggle Unilateral for single-arm or single-leg exercises; reps can be automatically doubled in your stats. Toggle Paired Implements if you track the weight of one implement rather than the total: for example, if you log 20 kg for one dumbbell, the app counts 40 kg toward your volume."
+#~ msgstr "Crée tes propres exercices depuis le sélecteur d'exercices. Donne-lui un nom, une image optionnelle, une partie du corps, des muscles cibles, des muscles secondaires et de l'équipement. Choisis un type de suivi : poids + répétitions, temps, distance, répétitions seules ou assisté (qui prend en compte ton poids de corps pour des mouvements comme les tractions assistées). Active Unilatéral pour les exercices à un bras ou une jambe ; les répétitions peuvent être automatiquement doublées dans tes stats. Active Implements appariés si tu notes le poids d'un seul implement plutôt que le total : par exemple, si tu notes 20 kg pour un haltère, l'appli compte 40 kg dans ton volume."
+
+#: components/PlateCalculatorModal.tsx:191
+msgid "Custom"
+msgstr "Personnalisé"
+
+#: app/(app)/friend-profile.tsx:426
+#: constants/HelpData.ts:213
 msgid "Custom Exercises"
 msgstr "Exercices personnalisés"
 
@@ -1708,7 +1932,7 @@ msgstr "Les exercices personnalisés que tu crées ou modifies sont partagés au
 msgid "Custom Metrics"
 msgstr "Mesures personnalisées"
 
-#: constants/HelpData.ts:149
+#: constants/HelpData.ts:264
 msgid "Customisation"
 msgstr "Personnalisation"
 
@@ -1728,22 +1952,22 @@ msgstr "Refuser"
 msgid "Default"
 msgstr "Par défaut"
 
-#: app/(app)/settings.tsx:1422
+#: app/(app)/settings.tsx:1451
 msgid "Default rest time"
 msgstr "Temps de repos par défaut"
 
-#: app/(app)/settings.tsx:1396
+#: app/(app)/settings.tsx:1425
 msgid "Default sets"
 msgstr "Séries par défaut"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:208
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:96
 #: app/(app)/(tabs)/(stats)/history-details.tsx:175
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:120
 #: app/(app)/(workout)/index.tsx:418
 #: app/(app)/(workout)/index.tsx:643
-#: app/(app)/(workout)/workout-session.tsx:807
+#: app/(app)/(workout)/workout-session.tsx:772
 #: components/PrivacySettings.tsx:72
+#: components/StandaloneWorkoutScreen.tsx:96
 #: components/WorkoutCard.tsx:298
 #: hooks/useImageManagement.ts:46
 msgid "Delete"
@@ -1774,23 +1998,23 @@ msgstr "Supprimer l'exercice"
 msgid "Delete Plan"
 msgstr "Supprimer le programme"
 
-#: app/(app)/(workout)/workout-session.tsx:804
-#: components/SessionSetInfo.tsx:261
+#: app/(app)/(workout)/workout-session.tsx:769
+#: components/SessionSetInfo.tsx:280
 msgid "Delete Set"
 msgstr "Supprimer la série"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:91
 #: app/(app)/(tabs)/(stats)/history-details.tsx:170
+#: components/StandaloneWorkoutScreen.tsx:91
 msgid "Delete Workout"
 msgstr "Supprimer l'entraînement"
 
-#: app/(app)/settings.tsx:1457
+#: app/(app)/settings.tsx:1486
 msgid "Deleting. Please wait..."
 msgstr "Suppression en cours. Veuillez patienter..."
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:349
 #: app/(app)/(tabs)/index.tsx:483
-#: constants/HelpData.ts:88
+#: constants/HelpData.ts:174
 msgid "Deload Week"
 msgstr "Semaine de décharge"
 
@@ -1819,17 +2043,21 @@ msgstr "Description :"
 msgid "Details"
 msgstr "Détails"
 
-#: app/(app)/settings.tsx:858
-#: app/(app)/settings.tsx:883
-#: app/(app)/settings.tsx:908
-#: app/(app)/settings.tsx:931
-#: app/(app)/settings.tsx:956
-#: app/(app)/settings.tsx:981
-#: app/(app)/settings.tsx:1038
-#: app/(app)/settings.tsx:1120
-#: app/(app)/settings.tsx:1256
-#: app/(app)/settings.tsx:1288
-#: app/(app)/settings.tsx:1485
+#: app/(app)/help.tsx:428
+msgid "Didn't find what you were looking for? Request it"
+msgstr "Pas trouvé ce que tu cherchais ? Demande-le"
+
+#: app/(app)/settings.tsx:887
+#: app/(app)/settings.tsx:912
+#: app/(app)/settings.tsx:937
+#: app/(app)/settings.tsx:960
+#: app/(app)/settings.tsx:985
+#: app/(app)/settings.tsx:1010
+#: app/(app)/settings.tsx:1067
+#: app/(app)/settings.tsx:1149
+#: app/(app)/settings.tsx:1285
+#: app/(app)/settings.tsx:1317
+#: app/(app)/settings.tsx:1514
 msgid "Disabled"
 msgstr "Désactivé"
 
@@ -1856,6 +2084,10 @@ msgstr "Abandonner les modifications ?"
 msgid "Discard Changes?"
 msgstr "Abandonner les modifications ?"
 
+#: constants/HelpData.ts:142
+msgid "Discomfort is tracked across sessions: one report keeps the load steady, a second consecutive report adds a form-check note."
+msgstr "Les gênes sont suivies d'une séance à l'autre : un rapport maintient la charge stable, et un second rapport consécutif ajoute une note de contrôle de technique."
+
 #: components/ProgressionSummaryCard.tsx:232
 #: components/UpdateModal.tsx:43
 #: components/UpdateModal.tsx:59
@@ -1863,7 +2095,7 @@ msgid "Dismiss"
 msgstr "Fermer"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:462
-#: components/WorkoutDetailsScreen.tsx:297
+#: components/WorkoutDetailsScreen.tsx:326
 msgid "DISMISS"
 msgstr "FERMER"
 
@@ -1874,11 +2106,11 @@ msgstr "Distance"
 
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:312
 #: components/charts/ExerciseProgressionChart.tsx:379
-#: components/SessionSetInfo.tsx:520
+#: components/SessionSetInfo.tsx:549
 msgid "Distance ({distanceUnit})"
 msgstr "Distance ({distanceUnit})"
 
-#: app/(app)/settings.tsx:724
+#: app/(app)/settings.tsx:733
 msgid "Distance unit"
 msgstr "Unité de distance"
 
@@ -1902,7 +2134,7 @@ msgstr "Doubler le poids pour le volume quand le paramètre est activé"
 msgid "Download"
 msgstr "Télécharger"
 
-#: app/(app)/settings.tsx:1439
+#: app/(app)/settings.tsx:1468
 msgid "Download all exercise animations"
 msgstr "Télécharger toutes les animations d'exercices"
 
@@ -1924,16 +2156,20 @@ msgstr "Télécharger les images"
 msgid "Downloading Update"
 msgstr "Téléchargement de la mise à jour"
 
-#: app/(app)/settings.tsx:1456
+#: app/(app)/settings.tsx:1485
 msgid "Downloading. Please wait..."
 msgstr "Téléchargement en cours. Veuillez patienter..."
 
-#: components/EditSetModal.tsx:415
-#: components/SessionSetInfo.tsx:353
+#: constants/HelpData.ts:78
+msgid "Drag the handle on any exercise card to reorder exercises mid-session."
+msgstr "Glisse la poignée d'une carte d'exercice pour réorganiser les exercices en cours de séance."
+
+#: components/SessionSetInfo.tsx:382
+#: components/SetOptionsModal.tsx:364
 msgid "Drop set"
 msgstr "Série dégressive"
 
-#: components/SessionSetInfo.tsx:364
+#: components/SessionSetInfo.tsx:393
 msgid "Drop Set"
 msgstr "Série dégressive"
 
@@ -1945,7 +2181,7 @@ msgstr "Série dégressive, "
 msgid "dumbbell"
 msgstr "haltère"
 
-#: app/(app)/settings.tsx:1178
+#: app/(app)/settings.tsx:1207
 msgid "Dumbbell load increment"
 msgstr "Incrément de charge pour les haltères"
 
@@ -1965,20 +2201,32 @@ msgid "Duration"
 msgstr "Durée"
 
 #: constants/HelpData.ts:44
-msgid "During a session, swipe left/right or use the arrow buttons to move between sets. Enter your weight and reps, then tap Complete Set. The total elapsed time is shown in the header throughout. You can drag the handle on any exercise card to reorder exercises while the session is in progress. Time-based exercises have a Start Timer button that opens a count-up timer with a progress ring that shows you when you hit your goal time but you can keep going as long as you like. Notes can be added per-exercise via the notes icon in the exercise header, per workout from the workout overview screen, or per plan from the plan overview screen. If you add, remove, or reorder exercises or sets during a session, you will be prompted at the end to save those changes back to the original workout or plan."
-msgstr "Pendant une séance, glisse vers la gauche/droite ou utilise les boutons fléchés pour naviguer entre les séries. Entre ton poids et tes répétitions, puis appuie sur Terminer la série. Le temps écoulé total s'affiche en haut tout au long. Tu peux glisser la poignée d'une carte d'exercice pour réorganiser les exercices en cours de séance. Les exercices basés sur le temps ont un bouton Démarrer la minuterie qui ouvre un chronometre avec un anneau de progression indiquant quand tu atteins ton objectif, mais tu peux continuer aussi longtemps que tu veux. Les notes peuvent être ajoutées par exercice via l'icône de notes, par entraînement depuis l'écran de vue d'ensemble, ou par programme depuis l'écran de vue d'ensemble du programme. Si tu ajoutes, supprimes ou réorganises des exercices ou des séries pendant une séance, tu seras invité à la fin à sauvegarder ces modifications."
+#~ msgid "During a session, swipe left/right or use the arrow buttons to move between sets. Enter your weight and reps, then tap Complete Set. The total elapsed time is shown in the header throughout. You can drag the handle on any exercise card to reorder exercises while the session is in progress. Time-based exercises have a Start Timer button that opens a count-up timer with a progress ring that shows you when you hit your goal time but you can keep going as long as you like. Notes can be added per-exercise via the notes icon in the exercise header, per workout from the workout overview screen, or per plan from the plan overview screen. If you add, remove, or reorder exercises or sets during a session, you will be prompted at the end to save those changes back to the original workout or plan."
+#~ msgstr "Pendant une séance, glisse vers la gauche/droite ou utilise les boutons fléchés pour naviguer entre les séries. Entre ton poids et tes répétitions, puis appuie sur Terminer la série. Le temps écoulé total s'affiche en haut tout au long. Tu peux glisser la poignée d'une carte d'exercice pour réorganiser les exercices en cours de séance. Les exercices basés sur le temps ont un bouton Démarrer la minuterie qui ouvre un chronometre avec un anneau de progression indiquant quand tu atteins ton objectif, mais tu peux continuer aussi longtemps que tu veux. Les notes peuvent être ajoutées par exercice via l'icône de notes, par entraînement depuis l'écran de vue d'ensemble, ou par programme depuis l'écran de vue d'ensemble du programme. Si tu ajoutes, supprimes ou réorganises des exercices ou des séries pendant une séance, tu seras invité à la fin à sauvegarder ces modifications."
+
+#: constants/HelpData.ts:190
+msgid "During a session, tap the menu (⋮) on a set to toggle types on or off, or tap Add Drop Set to append a new drop set pre-filled with the current set's weight and rest time."
+msgstr "Pendant une séance, appuie sur le menu (⋮) d'une série pour activer/désactiver des types, ou appuie sur Ajouter un drop set pour ajouter un nouveau drop set pré-rempli avec le poids et le temps de repos de la série actuelle."
+
+#: constants/HelpData.ts:74
+msgid "During a session, the header shows your total elapsed time throughout."
+msgstr "Le temps écoulé total s'affiche en haut tout au long de la séance."
 
 #: components/PrivacySettings.tsx:270
 msgid "Each measurement entry you record is shared automatically."
 msgstr "Chaque mesure que tu enregistres est partagée automatiquement."
+
+#: constants/HelpData.ts:188
+msgid "Each set can be flagged as a Warm-up, Drop Set, To Failure, or any combination of these; a badge next to the set shows its current type."
+msgstr "Chaque série peut être marquée comme Échauffement, Série dégressive, Jusqu'à l'échec, ou toute combinaison ; un badge à côté de la série indique son type actuel."
 
 #: constants/HelpData.ts:99
 #~ msgid "Each set can be flagged as a Warm-up, Drop Set, To Failure, or any combination of these. The badge shown next to a set displays its current type. To change the type during a session, tap the menu (⋮) and toggle the relevant option on or off. Tap Add Drop Set in the same menu to append a brand new drop set immediately after the current one, pre-filled with a suggested weight and rest time. When building a plan, use the checkboxes in the set editor; tap Add Warm-up to insert a dedicated warm-up set at the top of the list. Warm-up sets are visually grouped and separated from working sets, and the Apply to All option in the edit modal only affects sets of the same type. Warm-up sets can be excluded from volume and stats calculations in Settings."
 #~ msgstr "Chaque série peut être marquée comme Échauffement, Série dégressive, Jusqu'à l'échec, ou toute combinaison de ces options. Le badge affiché à côté d'une série indique son type actuel. Pour changer le type pendant une séance, appuie sur le menu (⋮) et active ou désactive l'option correspondante. Appuie sur Ajouter un drop set dans le même menu pour ajouter un tout nouveau drop set immédiatement après l'actuel, pré-rempli avec un poids suggéré et un temps de repos. Lors de la création d'un programme, utilise les cases à cocher dans l'éditeur de séries ; appuie sur Ajouter un échauffement pour insérer une série d'échauffement dédiée en haut de la liste. Les séries d'échauffement sont visuellement regroupées et séparées des séries de travail, et l'option Appliquer à tous dans le modal de modification n'affecte que les séries du même type. Les séries d'échauffement peuvent être exclues des calculs de volume et de stats dans les Paramètres."
 
 #: constants/HelpData.ts:99
-msgid "Each set can be flagged as a Warm-up, Drop Set, To Failure, or any combination of these. The badge shown next to a set displays its current type. To change the type during a session, tap the menu (⋮) and toggle the relevant option on or off. Tap Add Drop Set in the same menu to append a brand new drop set immediately after the current one, pre-filled with the weight from the current set and a rest time. When building a plan, use the checkboxes in the set editor; tap Add Warm-up to insert a dedicated warm-up set at the top of the list. Warm-up sets are visually grouped and separated from working sets, and the Apply to All option in the edit modal only affects sets of the same type. Warm-up sets can be excluded from volume and stats calculations in Settings."
-msgstr "Chaque série peut être marquée comme Échauffement, Série dégressive, Jusqu'à l'échec, ou toute combinaison de ces options. Le badge affiché à côté d'une série indique son type actuel. Pour changer le type pendant une séance, appuie sur le menu (⋮) et active ou désactive l'option correspondante. Appuie sur Ajouter un drop set dans le même menu pour ajouter un tout nouveau drop set immédiatement après l'actuel, pré-rempli avec le poids de la série actuelle et un temps de repos. Lors de la création d'un programme, utilise les cases à cocher dans l'éditeur de séries ; appuie sur Ajouter un échauffement pour insérer une série d'échauffement dédiée en haut de la liste. Les séries d'échauffement sont visuellement regroupées et séparées des séries de travail, et l'option Appliquer à tous dans le modal de modification n'affecte que les séries du même type. Les séries d'échauffement peuvent être exclues des calculs de volume et de stats dans les Paramètres."
+#~ msgid "Each set can be flagged as a Warm-up, Drop Set, To Failure, or any combination of these. The badge shown next to a set displays its current type. To change the type during a session, tap the menu (⋮) and toggle the relevant option on or off. Tap Add Drop Set in the same menu to append a brand new drop set immediately after the current one, pre-filled with the weight from the current set and a rest time. When building a plan, use the checkboxes in the set editor; tap Add Warm-up to insert a dedicated warm-up set at the top of the list. Warm-up sets are visually grouped and separated from working sets, and the Apply to All option in the edit modal only affects sets of the same type. Warm-up sets can be excluded from volume and stats calculations in Settings."
+#~ msgstr "Chaque série peut être marquée comme Échauffement, Série dégressive, Jusqu'à l'échec, ou toute combinaison de ces options. Le badge affiché à côté d'une série indique son type actuel. Pour changer le type pendant une séance, appuie sur le menu (⋮) et active ou désactive l'option correspondante. Appuie sur Ajouter un drop set dans le même menu pour ajouter un tout nouveau drop set immédiatement après l'actuel, pré-rempli avec le poids de la série actuelle et un temps de repos. Lors de la création d'un programme, utilise les cases à cocher dans l'éditeur de séries ; appuie sur Ajouter un échauffement pour insérer une série d'échauffement dédiée en haut de la liste. Les séries d'échauffement sont visuellement regroupées et séparées des séries de travail, et l'option Appliquer à tous dans le modal de modification n'affecte que les séries du même type. Les séries d'échauffement peuvent être exclues des calculs de volume et de stats dans les Paramètres."
 
 #: constants/HelpData.ts:99
 #~ msgid "Each set can be flagged as a Warm-up, Drop Set, To Failure, or any combination of these. The badge shown next to a set displays its current type. To change the type during a session, tap the menu (⋮) and toggle the relevant option on or off. When building a plan, use the checkboxes in the set editor; tap Add Warm-up to insert a dedicated warm-up set at the top of the list. Warm-up sets are visually grouped and separated from working sets, and the Apply to All option in the edit modal only affects sets of the same type. Warm-up sets can be excluded from volume and stats calculations in Settings."
@@ -2001,11 +2249,19 @@ msgstr "Modifier l'exercice"
 msgid "Edit Plan"
 msgstr "Modifier le programme"
 
+#: components/SessionSetInfo.tsx:272
+msgid "Edit Set"
+msgstr "Modifier la série"
+
 #: app/(app)/(create-plan)/create-workout.tsx:247
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:327
 #: app/(app)/(tabs)/(stats)/_layout.tsx:22
+#: components/StandaloneWorkoutScreen.tsx:327
 msgid "Edit Workout"
 msgstr "Modifier l'entraînement"
+
+#: constants/HelpData.ts:138
+msgid "Effort: Easy (you could have done more), About right, Hard (near your limit), or Couldn't finish all sets."
+msgstr "Effort : Facile (tu aurais pu faire plus), À peu près bien, Difficile (proche de ta limite) ou Pas réussi à finir toutes les séries."
 
 #: constants/dbTranslations.ts:87
 msgid "elliptical machine"
@@ -2015,7 +2271,11 @@ msgstr "machine elliptique"
 msgid "Email address"
 msgstr "Adresse e-mail"
 
-#: constants/HelpData.ts:159
+#: components/PlateCalculatorModal.tsx:241
+msgid "Empty bar, no plates needed."
+msgstr "Barre à vide, aucun disque nécessaire."
+
+#: constants/HelpData.ts:285
 msgid "Enable recurring workout reminders from Settings. Select the days of the week you want to be reminded using the day chips and choose a time. You will receive a notification at that time on each selected day. Notification permission must be granted for reminders to work."
 msgstr "Active des rappels d'entraînement récurrents depuis les Paramètres. Sélectionne les jours de la semaine pour lesquels tu veux être rappelé en utilisant les pastilles de jours et choisis une heure. Tu recevras une notification à cette heure chaque jour sélectionné. La permission pour les notifications doit être accordée pour que les rappels fonctionnent."
 
@@ -2051,17 +2311,17 @@ msgstr "Active pour publier tous les programmes. Les programmes individuels peuv
 msgid "Enable to publish all standalone workouts. Individual workouts can still be toggled on the workout screen."
 msgstr "Active pour publier tous les entraînements solo. Les entraînements individuels peuvent toujours être activés depuis l'écran de l'entraînement."
 
-#: app/(app)/settings.tsx:857
-#: app/(app)/settings.tsx:882
-#: app/(app)/settings.tsx:907
-#: app/(app)/settings.tsx:931
-#: app/(app)/settings.tsx:955
-#: app/(app)/settings.tsx:980
-#: app/(app)/settings.tsx:1037
-#: app/(app)/settings.tsx:1119
-#: app/(app)/settings.tsx:1255
-#: app/(app)/settings.tsx:1288
-#: app/(app)/settings.tsx:1485
+#: app/(app)/settings.tsx:886
+#: app/(app)/settings.tsx:911
+#: app/(app)/settings.tsx:936
+#: app/(app)/settings.tsx:960
+#: app/(app)/settings.tsx:984
+#: app/(app)/settings.tsx:1009
+#: app/(app)/settings.tsx:1066
+#: app/(app)/settings.tsx:1148
+#: app/(app)/settings.tsx:1284
+#: app/(app)/settings.tsx:1317
+#: app/(app)/settings.tsx:1514
 msgid "Enabled"
 msgstr "Activé"
 
@@ -2093,6 +2353,10 @@ msgstr "Entrer le nom de l'exercice"
 #~ msgid "Enter weight per dumbbell/cable, not total"
 #~ msgstr "Saisir le poids par haltère/câble, pas le total"
 
+#: constants/HelpData.ts:77
+msgid "Enter your weight and reps, then tap Complete Set."
+msgstr "Entre ton poids et tes reps, puis appuie sur Terminer la série."
+
 #: app/(app)/(tabs)/(stats)/_layout.tsx:27
 msgid "Entry Detail"
 msgstr "Détail de l'entrée"
@@ -2123,20 +2387,20 @@ msgstr "Équipement :"
 
 #: app/(app)/(create-plan)/image-search.tsx:43
 #: app/(app)/(tabs)/(plans)/overview.tsx:217
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:105
 #: app/(app)/(workout)/index.tsx:922
 #: app/(app)/(workout)/index.tsx:1122
 #: app/(app)/custom-exercise.tsx:135
 #: app/(app)/custom-exercise.tsx:185
 #: app/(app)/custom-exercise.tsx:318
-#: app/(app)/settings.tsx:74
-#: app/(app)/settings.tsx:82
+#: app/(app)/settings.tsx:75
+#: app/(app)/settings.tsx:83
 #: app/login.tsx:73
 #: components/FilterRow.tsx:86
 #: components/FilterRow.tsx:132
+#: components/StandaloneWorkoutScreen.tsx:105
 #: hooks/useDeleteCompletedWorkoutMutation.ts:20
 #: hooks/useImageManagement.ts:79
-#: hooks/useImageManagement.ts:109
+#: hooks/useImageManagement.ts:114
 msgid "Error"
 msgstr "Erreur"
 
@@ -2159,7 +2423,7 @@ msgstr "Erreur lors du chargement des détails de l'exercice"
 msgid "Error loading exercises: {0}"
 msgstr "Erreur lors du chargement des exercices : {0}"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:96
+#: app/(app)/(tabs)/(plans)/index.tsx:95
 msgid "Error loading plans"
 msgstr "Erreur lors du chargement des programmes"
 
@@ -2174,8 +2438,8 @@ msgstr "Erreur lors de la sauvegarde de l'entraînement"
 #. placeholder {0}: error.message
 #. placeholder {0}: settingsError.message
 #: app/(app)/(tabs)/(plans)/overview.tsx:257
-#: app/(app)/(workout)/workout-session.tsx:1577
-#: components/WorkoutDetailsScreen.tsx:221
+#: app/(app)/(workout)/workout-session.tsx:1542
+#: components/WorkoutDetailsScreen.tsx:238
 msgid "Error: {0}"
 msgstr "Erreur : {0}"
 
@@ -2186,15 +2450,19 @@ msgstr "Erreur : {0}"
 msgid "Estimated Duration: {0}"
 msgstr "Durée estimée : {0}"
 
-#: app/(app)/settings.tsx:1251
+#: app/(app)/settings.tsx:1280
 msgid "Exclude deload workouts from exercise stats"
 msgstr "Exclure les entraînements de décharge des stats d'exercices"
 
-#: app/(app)/settings.tsx:1033
+#: constants/HelpData.ts:193
+msgid "Exclude warm-up sets from volume and stats calculations in Settings."
+msgstr "Les séries d'échauffement peuvent être exclues des calculs de volume et de stats dans les Paramètres."
+
+#: app/(app)/settings.tsx:1062
 msgid "Exclude warmup sets from stats"
 msgstr "Exclure les séries d'échauffement des stats"
 
-#: app/(app)/settings.tsx:1379
+#: app/(app)/settings.tsx:1408
 msgid "Exercise"
 msgstr "Exercice"
 
@@ -2205,17 +2473,17 @@ msgstr "Exercice"
 msgid "Exercise Already Added"
 msgstr "Exercice déjà ajouté"
 
-#: app/(app)/_layout.tsx:61
+#: app/(app)/_layout.tsx:63
 msgid "Exercise Details"
 msgstr "Détails de l'exercice"
 
-#: app/(app)/_layout.tsx:41
+#: app/(app)/_layout.tsx:42
 msgid "Exercise Info"
 msgstr "Infos sur l'exercice"
 
-#: app/(app)/_layout.tsx:48
+#: app/(app)/_layout.tsx:50
 #: components/AppMenu.tsx:202
-#: constants/HelpData.ts:103
+#: constants/HelpData.ts:201
 msgid "Exercise Library"
 msgstr "Bibliothèque d'exercices"
 
@@ -2227,11 +2495,11 @@ msgstr "Exercice introuvable."
 msgid "Exercise Timer"
 msgstr "Minuterie d'exercice"
 
-#: app/(app)/settings.tsx:836
+#: app/(app)/settings.tsx:845
 msgid "Exercise timer countdown"
 msgstr "Compte à rebours de la minuterie d'exercice"
 
-#: constants/HelpData.ts:138
+#: constants/HelpData.ts:251
 msgid "Exercise Tracking"
 msgstr "Suivi des exercices"
 
@@ -2260,7 +2528,7 @@ msgid "Failed to activate this plan: {0}"
 msgstr "Impossible d'activer ce programme : {0}"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:190
-#: components/WorkoutDetailsScreen.tsx:71
+#: components/WorkoutDetailsScreen.tsx:88
 msgid "Failed to copy workout. Please try again."
 msgstr "Impossible de copier l'entraînement. Veuillez réessayer."
 
@@ -2273,7 +2541,7 @@ msgstr "Impossible de supprimer le programme : {0}"
 msgid "Failed to delete the workout. Please try again."
 msgstr "Impossible de supprimer l'entraînement. Réessaie."
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:106
+#: components/StandaloneWorkoutScreen.tsx:106
 msgid "Failed to delete workout. Please try again."
 msgstr "Impossible de supprimer l'entraînement. Réessaie."
 
@@ -2295,7 +2563,7 @@ msgstr "Impossible de charger les détails de l'exercice."
 msgid "Failed to load history"
 msgstr "Impossible de charger l'historique"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:152
+#: app/(app)/(tabs)/(plans)/index.tsx:150
 msgid "Failed to load workouts"
 msgstr "Impossible de charger les entraînements"
 
@@ -2320,15 +2588,15 @@ msgstr "Impossible de sauvegarder l'entraînement. Réessaie."
 msgid "Failed to sign in. Please try again."
 msgstr "Impossible de se connecter. Réessaie."
 
-#: app/(app)/settings.tsx:75
+#: app/(app)/settings.tsx:76
 msgid "Failed to sign out of Google. Continuing sign-out."
 msgstr "Échec de la déconnexion Google. Déconnexion en cours."
 
-#: app/(app)/settings.tsx:82
+#: app/(app)/settings.tsx:83
 msgid "Failed to sign out. Please try again."
 msgstr "Échec de la déconnexion. Réessaie."
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:303
+#: components/StandaloneWorkoutScreen.tsx:303
 msgid "Failed to update sharing. Please try again."
 msgstr "Impossible de mettre à jour le partage. Réessaie."
 
@@ -2336,7 +2604,7 @@ msgstr "Impossible de mettre à jour le partage. Réessaie."
 msgid "Favorites"
 msgstr "Favoris"
 
-#: constants/HelpData.ts:108
+#: constants/HelpData.ts:207
 msgid "Favourite Exercises"
 msgstr "Exercices favoris"
 
@@ -2348,7 +2616,7 @@ msgstr "pieds"
 msgid "Finish"
 msgstr "Terminer"
 
-#: app/(app)/settings.tsx:1669
+#: app/(app)/settings.tsx:1698
 msgid "Follow MuscleQuest on Instagram"
 msgstr "Suivre MuscleQuest sur Instagram"
 
@@ -2357,11 +2625,15 @@ msgstr "Suivre MuscleQuest sur Instagram"
 msgid "for {0}s "
 msgstr "pendant {0}s "
 
+#: constants/HelpData.ts:79
+msgid "For time-based exercises, tap Start Timer to open a count-up timer with a progress ring marking your goal time; you can keep going past it."
+msgstr "Les exercices basés sur le temps ont un bouton Démarrer la minuterie qui ouvre un chronomètre avec un anneau de progression ; tu peux continuer au-delà de ton objectif."
+
 #: constants/dbTranslations.ts:27
 msgid "forearms"
 msgstr "avant-bras"
 
-#: app/(app)/settings.tsx:56
+#: app/(app)/settings.tsx:57
 msgid "Fr"
 msgstr "Ve"
 
@@ -2384,7 +2656,7 @@ msgstr "Ven"
 msgid "Friday"
 msgstr "Vendredi"
 
-#: app/(app)/_layout.tsx:52
+#: app/(app)/_layout.tsx:54
 msgid "Friend Profile"
 msgstr "Profil de l'ami"
 
@@ -2396,12 +2668,12 @@ msgstr "Profil de l'ami"
 msgid "Friends"
 msgstr "Amis"
 
-#: constants/HelpData.ts:164
+#: constants/HelpData.ts:291
 msgid "Friends & Social"
 msgstr "Amis & social"
 
 #. placeholder {0}: new Date(friend.since).toLocaleDateString(undefined, { year: "numeric", month: "short", })
-#: app/(app)/friend-profile.tsx:132
+#: app/(app)/friend-profile.tsx:150
 msgid "Friends since {0}"
 msgstr "Amis depuis {0}"
 
@@ -2412,6 +2684,10 @@ msgstr "Prépare-toi..."
 #: app/(app)/(workout)/index.tsx:1082
 msgid "Give it a name to save it as a reusable workout."
 msgstr "Donne-lui un nom pour le sauvegarder comme entraînement réutilisable."
+
+#: constants/HelpData.ts:217
+msgid "Give it a name, an optional image, body part, target muscles, secondary muscles, and equipment."
+msgstr "Donne-lui un nom, une image optionnelle, une partie du corps, des muscles cibles, des muscles secondaires et de l'équipement."
 
 #: constants/dbTranslations.ts:28
 msgid "glutes"
@@ -2429,6 +2705,10 @@ msgstr "Aller à l'écran d'accueil !"
 #: components/Onboarding.tsx:62
 msgid "Go to Settings"
 msgstr "Aller aux Paramètres"
+
+#: constants/HelpData.ts:47
+msgid "Go to the Plans tab, tap New Plan, give it a name, and pick a cover image."
+msgstr "Va dans l'onglet Programmes, appuie sur Nouveau programme, donne-lui un nom et choisis une image de couverture."
 
 #: components/Onboarding.tsx:56
 msgid "Go to Workouts"
@@ -2468,9 +2748,13 @@ msgstr "Bon travail aujourd'hui !"
 msgid "grip muscles"
 msgstr "muscles de la poigne"
 
+#: constants/HelpData.ts:110
+msgid "Group two exercises into a superset so they alternate automatically during a session, ideal for pairing antagonist muscles or staying efficient between sets."
+msgstr "Regroupe deux exercices en superserie pour qu'ils alternent automatiquement pendant une séance, idéal pour associer des muscles antagonistes ou rester efficace entre les séries."
+
 #: constants/HelpData.ts:59
-msgid "Group two exercises into a superset so they alternate automatically during a session, ideal for pairing antagonist muscles or staying efficient between sets. Tap the three-dot menu on any exercise in the workout editor and choose Create Superset, then select the second exercise. A coloured label identifies which superset each exercise belongs to throughout the app. When you complete a set on one exercise, the app moves you straight to its superset partner."
-msgstr "Regroupe deux exercices en superserie pour qu'ils alternent automatiquement pendant une séance, idéal pour associer des muscles antagonistes ou rester efficace entre les séries. Appuie sur le menu trois points d'un exercice dans l'éditeur d'entraînement et choisis Créer une superserie, puis sélectionne le deuxième exercice. Un label de couleur identifie à quelle superserie appartient chaque exercice dans toute l'application. Quand tu termines une série sur un exercice, l'appli te déplace directement vers son partenaire de superserie."
+#~ msgid "Group two exercises into a superset so they alternate automatically during a session, ideal for pairing antagonist muscles or staying efficient between sets. Tap the three-dot menu on any exercise in the workout editor and choose Create Superset, then select the second exercise. A coloured label identifies which superset each exercise belongs to throughout the app. When you complete a set on one exercise, the app moves you straight to its superset partner."
+#~ msgstr "Regroupe deux exercices en superserie pour qu'ils alternent automatiquement pendant une séance, idéal pour associer des muscles antagonistes ou rester efficace entre les séries. Appuie sur le menu trois points d'un exercice dans l'éditeur d'entraînement et choisis Créer une superserie, puis sélectionne le deuxième exercice. Un label de couleur identifie à quelle superserie appartient chaque exercice dans toute l'application. Quand tu termines une série sur un exercice, l'appli te déplace directement vers son partenaire de superserie."
 
 #: constants/dbTranslations.ts:29
 msgid "hamstrings"
@@ -2480,7 +2764,7 @@ msgstr "ischio-jambiers"
 msgid "Hard, near limit"
 msgstr "Difficile, proche de la limite"
 
-#: app/(app)/_layout.tsx:45
+#: app/(app)/_layout.tsx:47
 #: components/AppMenu.tsx:212
 msgid "Help & Info"
 msgstr "Aide & infos"
@@ -2520,7 +2804,7 @@ msgstr "Maintiens cette charge cette séance."
 msgid "Home"
 msgstr "Accueil"
 
-#: constants/HelpData.ts:23
+#: constants/HelpData.ts:37
 msgid "Home Screen & Weekly Goal"
 msgstr "Écran d'accueil et objectif hebdomadaire"
 
@@ -2531,6 +2815,10 @@ msgstr "Comment se sentent ces muscles depuis ta dernière séance ?"
 #: components/ExerciseFeedbackSheet.tsx:187
 msgid "How did that feel?"
 msgstr "Comment tu t'es senti ?"
+
+#: constants/HelpData.ts:81
+msgid "If you add, remove, or reorder exercises or sets, you'll be prompted at the end to save those changes back to the original workout or plan."
+msgstr "Si tu ajoutes, supprimes ou réorganises des exercices ou des séries pendant une séance, tu seras invité à la fin à sauvegarder ces modifications dans l'entraînement ou le programme original."
 
 #: app/(app)/custom-exercise.tsx:234
 msgid "Image Save Error"
@@ -2544,9 +2832,13 @@ msgstr "Images par Unsplash"
 msgid "Import failed"
 msgstr "Importation échouée"
 
-#: constants/HelpData.ts:178
+#: constants/HelpData.ts:308
 msgid "Importing from Friends"
 msgstr "Importer depuis ses amis"
+
+#: constants/HelpData.ts:112
+msgid "In the workout editor, tap the three-dot menu on an exercise and choose Create Superset."
+msgstr "Appuie sur le menu trois points d'un exercice dans l'éditeur d'entraînement et choisis Créer une superserie."
 
 #: app/(app)/friends.tsx:339
 #: app/(app)/friends.tsx:392
@@ -2558,7 +2850,7 @@ msgid "Info"
 msgstr "Infos"
 
 #: app/(app)/(tabs)/(stats)/index.tsx:424
-#: constants/HelpData.ts:128
+#: constants/HelpData.ts:239
 msgid "Insights"
 msgstr "Aperçus"
 
@@ -2570,7 +2862,7 @@ msgstr "Lance ton parcours fitness avec des programmes conçus par des professio
 msgid "Keep editing"
 msgstr "Continuer à modifier"
 
-#: app/(app)/settings.tsx:976
+#: app/(app)/settings.tsx:1005
 msgid "Keep screen on during workout"
 msgstr "Garder l'écran allumé pendant l'entraînement"
 
@@ -2583,7 +2875,7 @@ msgid "kettlebell"
 msgstr "kettlebell"
 
 #. placeholder {0}: lastBackupDate.toLocaleDateString()
-#: app/(app)/settings.tsx:635
+#: app/(app)/settings.tsx:636
 msgid "Last backup: {0}"
 msgstr "Dernière sauvegarde : {0}"
 
@@ -2657,7 +2949,7 @@ msgstr "machine à levier"
 msgid "Load up"
 msgstr "Augmenter la charge"
 
-#: app/_layout.tsx:222
+#: app/_layout.tsx:239
 msgid "Loading data, please wait..."
 msgstr "Chargement des données, veuillez patienter..."
 
@@ -2666,7 +2958,7 @@ msgid "Loading Plan..."
 msgstr "Chargement du programme..."
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:249
-#: components/WorkoutDetailsScreen.tsx:212
+#: components/WorkoutDetailsScreen.tsx:229
 msgid "Loading..."
 msgstr "Chargement..."
 
@@ -2675,7 +2967,7 @@ msgstr "Chargement..."
 msgid "Log Entry"
 msgstr "Saisir une entrée"
 
-#: app/(app)/settings.tsx:550
+#: app/(app)/settings.tsx:551
 msgid "Log in to secure your data"
 msgstr "Connecte-toi pour sécuriser tes données"
 
@@ -2699,7 +2991,7 @@ msgstr "bas du dos"
 msgid "lower legs"
 msgstr "bas des jambes"
 
-#: app/(app)/settings.tsx:1232
+#: app/(app)/settings.tsx:1261
 msgid "Machine load increment"
 msgstr "Incrément de charge pour les machines"
 
@@ -2723,12 +3015,12 @@ msgstr "Gérer les mesures"
 msgid "Mass"
 msgstr "Masse"
 
-#: components/EditSetModal.tsx:352
+#: components/SetOptionsModal.tsx:299
 msgid "Max Reps"
 msgstr "Rép. max."
 
 #: app/(app)/(tabs)/(stats)/_layout.tsx:24
-#: app/(app)/friend-profile.tsx:542
+#: app/(app)/friend-profile.tsx:582
 msgid "Measurements"
 msgstr "Mesures"
 
@@ -2740,7 +3032,7 @@ msgstr "Nom de la mesure"
 msgid "Mild soreness"
 msgstr "Légère courbature"
 
-#: components/EditSetModal.tsx:319
+#: components/SetOptionsModal.tsx:266
 msgid "Min Reps"
 msgstr "Rép. min."
 
@@ -2748,7 +3040,7 @@ msgstr "Rép. min."
 msgid "Minor discomfort"
 msgstr "Légère gêne"
 
-#: app/(app)/settings.tsx:52
+#: app/(app)/settings.tsx:53
 msgid "Mo"
 msgstr "Lu"
 
@@ -2795,7 +3087,7 @@ msgstr "MuscleQuest"
 msgid "MuscleQuest Introduction"
 msgstr "Introduction à MuscleQuest"
 
-#: app/(app)/settings.tsx:1650
+#: app/(app)/settings.tsx:1679
 msgid "MuscleQuest.app"
 msgstr "MuscleQuest.app"
 
@@ -2831,11 +3123,11 @@ msgstr "cou"
 msgid "Neck"
 msgstr "Cou"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:121
+#: app/(app)/(tabs)/(plans)/index.tsx:120
 msgid "New Plan"
 msgstr "Nouveau programme"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:113
+#: app/(app)/(tabs)/(plans)/index.tsx:112
 msgid "New Workout"
 msgstr "Nouvel entraînement"
 
@@ -2847,8 +3139,8 @@ msgstr "Suivant"
 msgid "Next Session"
 msgstr "Prochaine séance"
 
-#: app/(app)/(workout)/workout-session.tsx:1637
-#: app/(app)/(workout)/workout-session.tsx:1730
+#: app/(app)/(workout)/workout-session.tsx:1602
+#: app/(app)/(workout)/workout-session.tsx:1699
 msgid "Next: "
 msgstr "Suivant : "
 
@@ -2863,11 +3155,11 @@ msgstr "Suivant : {workoutName} le {0}"
 msgid "No"
 msgstr "Non"
 
-#: app/(app)/friend-profile.tsx:489
+#: app/(app)/friend-profile.tsx:529
 msgid "No activity shared yet"
 msgstr "Aucune activité partagée pour l'instant"
 
-#: app/(app)/settings.tsx:636
+#: app/(app)/settings.tsx:637
 msgid "No backups found"
 msgstr "Aucune sauvegarde trouvée"
 
@@ -2875,7 +3167,7 @@ msgstr "Aucune sauvegarde trouvée"
 #~ msgid "No completed workouts shared yet"
 #~ msgstr "Aucun entraînement terminé partagé pour l'instant"
 
-#: app/(app)/friend-profile.tsx:404
+#: app/(app)/friend-profile.tsx:439
 msgid "No custom exercises shared yet"
 msgstr "Aucun exercice personnalisé partagé pour l'instant"
 
@@ -2895,7 +3187,7 @@ msgstr "Aucune donnée pour cette période."
 msgid "No exercises added yet"
 msgstr "Aucun exercice ajouté"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:263
+#: components/StandaloneWorkoutScreen.tsx:263
 msgid "No exercises in this workout yet."
 msgstr "Aucun exercice dans cet entraînement."
 
@@ -2935,9 +3227,13 @@ msgstr "Aucune demande d'ami en attente."
 #~ msgid "No per-set rep target defined. Add a rep target (e.g. 8) for each set to enable auto-progression."
 #~ msgstr "Pas d'objectif de reps par série défini. Ajoute un objectif (ex. 8) pour chaque série pour activer la progression automatique."
 
-#: app/(app)/friend-profile.tsx:228
+#: app/(app)/friend-profile.tsx:253
 msgid "No plans shared yet"
 msgstr "Aucun programme partagé pour l'instant"
+
+#: app/(app)/plate-inventory.tsx:162
+msgid "No plates yet. Add one below."
+msgstr "Aucun disque pour l'instant. Ajoutes-en un ci-dessous."
 
 #: components/ProgressionSummaryCard.tsx:35
 msgid "No prior weight data. Hold steady for now."
@@ -2951,7 +3247,7 @@ msgstr "Pas de suivi de progression pour ce type d'exercice."
 msgid "No rep range defined. Add a rep range (e.g. 8-12) to enable auto-progression."
 msgstr "Pas de plage de reps définie. Ajoute une plage (ex. 8-12) pour activer la progression automatique."
 
-#: app/(app)/help.tsx:182
+#: app/(app)/help.tsx:412
 msgid "No results for \"{query}\""
 msgstr "Aucun résultat pour « {query} »"
 
@@ -2959,20 +3255,20 @@ msgstr "Aucun résultat pour « {query} »"
 msgid "No schedule set"
 msgstr "Aucun planning défini"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:187
+#: components/StandaloneWorkoutScreen.tsx:187
 msgid "No Sets"
 msgstr "Aucune série"
 
 #: components/WorkoutCard.tsx:265
-#: components/WorkoutDetailsScreen.tsx:188
+#: components/WorkoutDetailsScreen.tsx:205
 msgid "No Sets Available"
 msgstr "Aucune série disponible"
 
-#: app/(app)/friend-profile.tsx:171
+#: app/(app)/friend-profile.tsx:194
 msgid "No strength data shared yet"
 msgstr "Aucune donnée de force partagée pour l'instant"
 
-#: components/PlanList.tsx:50
+#: components/PlanList.tsx:48
 msgid "No training plans found"
 msgstr "Aucun programme trouvé"
 
@@ -2992,7 +3288,7 @@ msgstr "Aucun entraînement disponible"
 msgid "No workouts completed yet. Start your first workout!"
 msgstr "Aucun entraînement terminé. Lance ton premier entraînement !"
 
-#: components/WorkoutPickerModal.tsx:108
+#: components/WorkoutPickerModal.tsx:129
 msgid "No workouts found"
 msgstr "Aucun entraînement trouvé"
 
@@ -3000,12 +3296,12 @@ msgstr "Aucun entraînement trouvé"
 msgid "No workouts on this day."
 msgstr "Aucun entraînement ce jour-là."
 
-#: app/(app)/friend-profile.tsx:314
+#: app/(app)/friend-profile.tsx:344
 msgid "No workouts shared yet"
 msgstr "Aucun entraînement partagé pour l'instant"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:169
-#: components/WorkoutPickerModal.tsx:104
+#: app/(app)/(tabs)/(plans)/index.tsx:164
+#: components/WorkoutPickerModal.tsx:125
 msgid "No workouts yet"
 msgstr "Aucun entraînement"
 
@@ -3017,11 +3313,11 @@ msgstr "Non, garder comme ça"
 msgid "obliques"
 msgstr "obliques"
 
-#: app/(app)/settings.tsx:1063
+#: app/(app)/settings.tsx:1092
 msgid "Off — log total reps across both sides"
 msgstr "Désactivé – enregistre les reps totales des deux côtés"
 
-#: app/(app)/settings.tsx:1088
+#: app/(app)/settings.tsx:1117
 msgid "Off — log total weight across both sides"
 msgstr "Désactivé – enregistre le poids total des deux côtés"
 
@@ -3041,11 +3337,11 @@ msgstr "Désactivé – enregistre le poids total des deux côtés"
 msgid "OK"
 msgstr "OK"
 
-#: app/(app)/settings.tsx:1062
+#: app/(app)/settings.tsx:1091
 msgid "On — log one side; app doubles reps for volume"
 msgstr "Activé – enregistre un côté ; l'app double les reps pour le volume"
 
-#: app/(app)/settings.tsx:1087
+#: app/(app)/settings.tsx:1116
 msgid "On — log per dumbbell/cable; app doubles weight for volume"
 msgstr "Activé – enregistre par haltère/câble ; l'app double le poids pour le volume"
 
@@ -3057,13 +3353,17 @@ msgstr "Plus qu'un entraînement pour atteindre ton objectif !"
 msgid "Oops!"
 msgstr "Oups !"
 
-#: app/(app)/settings.tsx:408
+#: app/(app)/settings.tsx:409
 msgid "Open Settings"
 msgstr "Ouvrir les Paramètres"
 
-#: constants/HelpData.ts:169
+#: constants/HelpData.ts:297
 msgid "Open the Friends tab from the menu to manage your connections. Use the search bar to find other users by username and send them a friend request. Incoming requests appear in the Requests tab; tap Accept to confirm or Decline to ignore. A badge on the Friends menu item shows how many pending requests are waiting. Once a request is accepted, both users appear in each other's Friends list and can view each other's shared content."
 msgstr "Ouvre l'onglet Amis depuis le menu pour gérer tes connexions. Utilise la barre de recherche pour trouver d'autres utilisateurs par nom d'utilisateur et leur envoyer une demande d'ami. Les demandes entrantes apparaissent dans l'onglet Demandes ; appuie sur Accepter pour confirmer ou Refuser pour ignorer. Un badge sur l'élément Amis du menu indique combien de demandes sont en attente. Une fois une demande acceptée, les deux utilisateurs apparaissent dans la liste d'amis de l'autre et peuvent voir le contenu partagé de l'autre."
+
+#: constants/HelpData.ts:51
+msgid "Open the plan and tap Activate when it's ready. Your edits are auto-saved as a draft, so you can leave and resume later."
+msgstr "Ouvre le programme et appuie sur Activer quand il est prêt. Tes modifications sont automatiquement sauvegardées comme brouillon pour que tu puisses partir et reprendre plus tard."
 
 #: components/AppMenu.tsx:222
 #: components/AppMenu.tsx:228
@@ -3079,7 +3379,7 @@ msgid "Other Exercises"
 msgstr "Autres exercices"
 
 #: app/(app)/(workout)/_layout.tsx:16
-#: constants/HelpData.ts:68
+#: constants/HelpData.ts:128
 msgid "Overview"
 msgstr "Vue d'ensemble"
 
@@ -3099,6 +3399,10 @@ msgstr "Douleur signalée à nouveau. La charge ne peut pas être réduite autom
 msgid "Pain reported. Keeping load unchanged until you feel better."
 msgstr "Douleur signalée. La charge reste inchangée jusqu'à ce que tu ailles mieux."
 
+#: constants/HelpData.ts:139
+msgid "Pain: No pain, Minor discomfort, or Pain or form issues."
+msgstr "Douleur : Pas de douleur, Légère gêne ou Douleur ou problèmes de forme."
+
 #: app/(app)/custom-exercise.tsx:572
 #: app/(app)/exercise-info.tsx:277
 msgid "Paired implements"
@@ -3117,11 +3421,15 @@ msgstr "pectoraux"
 msgid "Pending"
 msgstr "En attente"
 
+#: components/PlateCalculatorModal.tsx:246
+msgid "Per side"
+msgstr "Par côté"
+
 #: components/stats/InsightsStrip.tsx:74
 msgid "Per week (avg)"
 msgstr "Par semaine (moy.)"
 
-#: app/(app)/settings.tsx:1083
+#: app/(app)/settings.tsx:1112
 msgid "Per-side weight entry"
 msgstr "Poids par côté"
 
@@ -3129,20 +3437,20 @@ msgstr "Poids par côté"
 msgid "Percent"
 msgstr "Pourcentage"
 
-#: app/(app)/settings.tsx:386
-#: app/(app)/settings.tsx:405
+#: app/(app)/settings.tsx:387
+#: app/(app)/settings.tsx:406
 msgid "Permission Required"
 msgstr "Permission requise"
 
-#: app/(app)/settings.tsx:533
+#: app/(app)/settings.tsx:534
 msgid "Personal"
 msgstr "Personnel"
 
-#: constants/HelpData.ts:139
+#: constants/HelpData.ts:252
 msgid "Pin exercises in the Stats tab to track their strength progression over time. Each tracked exercise shows a chart of your performance over the selected time range, your all-time personal record, your top sets, and a list of recent sessions showing the best set per day. Charts update automatically after each workout that includes that exercise."
 msgstr "Épingle des exercices dans l'onglet Stats pour suivre leur progression de force dans le temps. Chaque exercice suivi affiche un graphique de tes performances sur la période sélectionnée, ton record personnel absolu, tes meilleures séries, et une liste des sessions récentes avec la meilleure série par jour. Les graphiques se mettent à jour automatiquement après chaque entraînement incluant cet exercice."
 
-#: app/(app)/_layout.tsx:54
+#: app/(app)/_layout.tsx:56
 msgid "Plan Details"
 msgstr "Détails du programme"
 
@@ -3156,28 +3464,50 @@ msgstr "Vue d'ensemble du programme"
 
 #: app/(app)/(tabs)/_layout.tsx:51
 #: app/(app)/(tabs)/(plans)/_layout.tsx:16
-#: app/(app)/friend-profile.tsx:220
-#: constants/HelpData.ts:28
+#: app/(app)/friend-profile.tsx:243
+#: constants/HelpData.ts:43
 msgid "Plans"
 msgstr "Programmes"
+
+#: constants/HelpData.ts:45
+msgid "Plans are structured training programmes made up of workouts."
+msgstr "Les programmes sont des plans d'entraînement structurés composés de séances."
 
 #: constants/HelpData.ts:29
 #~ msgid "Plans are structured training programmes made up of workouts. To create one, go to the Plans tab, tap New Plan, give it a name, and pick a cover image. Add workouts to the plan, then add exercises to each workout with target sets and reps. Use the up/down arrow buttons on a workout card to reorder it, or the X button to remove it; both are in the top right of the card. Assign workouts to specific days of the week in the schedule editor: tap any day to pick a workout or leave it as a rest day, and use the auto-suggest button to space them out evenly. Once your plan is ready, open it and tap Activate. You can also add notes to a plan from the plan overview screen. Each workout card shows an estimated duration alongside the exercise count so you can gauge the session length at a glance. Use the view icons next to the \"Your Training Plans\" heading to switch between Carousel, List, and Grid layouts; your chosen view is saved automatically. Your progress in the plan editor is automatically saved as a draft, so if you leave mid-edit you will be prompted to continue where you left off or discard and start from the last saved state."
 #~ msgstr "Les programmes sont des plans d'entraînement structurés composés de séances. Pour en créer un, va dans l'onglet Programmes, appuie sur Nouveau programme, donne-lui un nom et choisis une image de couverture. Ajoute des entraînements au programme, puis ajoute des exercices à chaque entraînement avec des séries et répétitions cibles. Utilise les boutons fléchés haut/bas d'une carte d'entraînement pour la réorganiser, ou le bouton X pour la supprimer ; les deux se trouvent en haut à droite de la carte. Assigne des entraînements à des jours spécifiques de la semaine dans l'éditeur de planning : appuie sur un jour pour choisir un entraînement ou le laisser comme jour de repos, et utilise le bouton de suggestion automatique pour les espacer régulièrement. Une fois ton programme prêt, ouvre-le et appuie sur Activer. Tu peux aussi ajouter des notes depuis l'écran de vue d'ensemble du programme. Chaque carte d'entraînement affiche une durée estimée avec le nombre d'exercices pour que tu puisses évaluer la longueur d'une séance d'un coup d'œil. Utilise les icônes de vue à côté du titre « Tes plans d'entraînement » pour basculer entre les affichages Carrousel, Liste et Grille ; ton affichage préféré est sauvegardé automatiquement. Ta progression dans l'éditeur est automatiquement sauvegardée comme brouillon, donc si tu le quittes en cours d'édition, tu seras invité à reprendre là où tu en étais ou à ignorer et repartir du dernier état sauvegardé."
 
 #: constants/HelpData.ts:29
-msgid "Plans are structured training programmes made up of workouts. To create one, go to the Plans tab, tap New Plan, give it a name, and pick a cover image. Add workouts to the plan, then add exercises to each workout with target sets and reps. Use the up/down arrow buttons on a workout card to reorder it, or the X button to remove it; both are in the top right of the card. Assign workouts to specific days of the week in the schedule editor: tap any day to pick a workout or leave it as a rest day, and use the auto-suggest button to space them out evenly. Once your plan is ready, open it and tap Activate. You can also add notes to a plan from the plan overview screen. Each workout card shows an estimated duration alongside the exercise count so you can gauge the session length at a glance. Use the view icons next to the \"Your Training Plans\" heading to switch between Carousel, List, and Grid layouts; your chosen view is saved automatically. Your progress in the plan editor is automatically saved as a draft, so if you leave mid-edit you will be prompted to continue where you left off or discard and start from the last saved state. To duplicate a plan, open it and tap Duplicate Plan; a full copy is created immediately with all workouts and exercises, ready to rename and edit."
-msgstr "Les programmes sont des plans d'entraînement structurés composés de séances. Pour en créer un, va dans l'onglet Programmes, appuie sur Nouveau programme, donne-lui un nom et choisis une image de couverture. Ajoute des entraînements au programme, puis ajoute des exercices à chaque entraînement avec des séries et répétitions cibles. Utilise les boutons fléchés haut/bas d'une carte d'entraînement pour la réorganiser, ou le bouton X pour la supprimer ; les deux se trouvent en haut à droite de la carte. Assigne des entraînements à des jours spécifiques de la semaine dans l'éditeur de planning : appuie sur un jour pour choisir un entraînement ou le laisser comme jour de repos, et utilise le bouton de suggestion automatique pour les espacer régulièrement. Une fois ton programme prêt, ouvre-le et appuie sur Activer. Tu peux aussi ajouter des notes depuis l'écran de vue d'ensemble du programme. Chaque carte d'entraînement affiche une durée estimée avec le nombre d'exercices pour que tu puisses évaluer la longueur d'une séance d'un coup d'œil. Utilise les icônes de vue à côté du titre \"Tes plans d'entraînement\" pour basculer entre les affichages Carrousel, Liste et Grille ; ton affichage préféré est sauvegardé automatiquement. Ta progression dans l'éditeur est automatiquement sauvegardée comme brouillon, donc si tu le quittes en cours d'édition, tu seras invité à reprendre là où tu en étais ou à ignorer et repartir du dernier état sauvegardé. Pour dupliquer un programme, ouvre-le et appuie sur Dupliquer le programme ; une copie complète est créée immédiatement avec tous les entraînements et exercices, prête à renommer et modifier."
+#~ msgid "Plans are structured training programmes made up of workouts. To create one, go to the Plans tab, tap New Plan, give it a name, and pick a cover image. Add workouts to the plan, then add exercises to each workout with target sets and reps. Use the up/down arrow buttons on a workout card to reorder it, or the X button to remove it; both are in the top right of the card. Assign workouts to specific days of the week in the schedule editor: tap any day to pick a workout or leave it as a rest day, and use the auto-suggest button to space them out evenly. Once your plan is ready, open it and tap Activate. You can also add notes to a plan from the plan overview screen. Each workout card shows an estimated duration alongside the exercise count so you can gauge the session length at a glance. Use the view icons next to the \"Your Training Plans\" heading to switch between Carousel, List, and Grid layouts; your chosen view is saved automatically. Your progress in the plan editor is automatically saved as a draft, so if you leave mid-edit you will be prompted to continue where you left off or discard and start from the last saved state. To duplicate a plan, open it and tap Duplicate Plan; a full copy is created immediately with all workouts and exercises, ready to rename and edit."
+#~ msgstr "Les programmes sont des plans d'entraînement structurés composés de séances. Pour en créer un, va dans l'onglet Programmes, appuie sur Nouveau programme, donne-lui un nom et choisis une image de couverture. Ajoute des entraînements au programme, puis ajoute des exercices à chaque entraînement avec des séries et répétitions cibles. Utilise les boutons fléchés haut/bas d'une carte d'entraînement pour la réorganiser, ou le bouton X pour la supprimer ; les deux se trouvent en haut à droite de la carte. Assigne des entraînements à des jours spécifiques de la semaine dans l'éditeur de planning : appuie sur un jour pour choisir un entraînement ou le laisser comme jour de repos, et utilise le bouton de suggestion automatique pour les espacer régulièrement. Une fois ton programme prêt, ouvre-le et appuie sur Activer. Tu peux aussi ajouter des notes depuis l'écran de vue d'ensemble du programme. Chaque carte d'entraînement affiche une durée estimée avec le nombre d'exercices pour que tu puisses évaluer la longueur d'une séance d'un coup d'œil. Utilise les icônes de vue à côté du titre \"Tes plans d'entraînement\" pour basculer entre les affichages Carrousel, Liste et Grille ; ton affichage préféré est sauvegardé automatiquement. Ta progression dans l'éditeur est automatiquement sauvegardée comme brouillon, donc si tu le quittes en cours d'édition, tu seras invité à reprendre là où tu en étais ou à ignorer et repartir du dernier état sauvegardé. Pour dupliquer un programme, ouvre-le et appuie sur Dupliquer le programme ; une copie complète est créée immédiatement avec tous les entraînements et exercices, prête à renommer et modifier."
 
-#: app/(app)/settings.tsx:853
+#: components/PlateCalculatorModal.tsx:155
+#: components/SessionSetInfo.tsx:328
+msgid "Plate Calculator"
+msgstr "Calculateur de disques"
+
+#: app/(app)/_layout.tsx:46
+#: app/(app)/settings.tsx:865
+msgid "Plates"
+msgstr "Disques"
+
+#: app/(app)/plate-inventory.tsx:153
+msgid "Plates ({weightUnit})"
+msgstr "Disques ({weightUnit})"
+
+#: app/(app)/settings.tsx:868
+msgid "Plates you own, used by the plate calculator"
+msgstr "Les disques que tu possèdes, utilisés par le calculateur"
+
+#: app/(app)/settings.tsx:882
 msgid "Play countdown beeps (Exercise Timer)"
 msgstr "Jouer les bips de compte à rebours (Minuterie d'exercice)"
 
-#: app/(app)/settings.tsx:878
+#: app/(app)/settings.tsx:907
 msgid "Play goal achieved sound (Exercise Timer)"
 msgstr "Jouer le son de l'objectif atteint (Minuterie d'exercice)"
 
-#: app/(app)/settings.tsx:928
+#: app/(app)/settings.tsx:957
 msgid "Play sound after rest"
 msgstr "Jouer un son après le repos"
 
@@ -3185,20 +3515,20 @@ msgstr "Jouer un son après le repos"
 msgid "Please wait while we download the latest version..."
 msgstr "Veuillez patienter pendant le téléchargement de la dernière version..."
 
-#: constants/HelpData.ts:73
+#: constants/HelpData.ts:134
 msgid "Post-Exercise Feedback"
 msgstr "Feedback après exercice"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:139
+#: app/(app)/(tabs)/(plans)/index.tsx:137
 msgid "Premade plans"
 msgstr "Programmes prêts à l'emploi"
 
-#: constants/HelpData.ts:33
+#: constants/HelpData.ts:60
 msgid "Premade Plans"
 msgstr "Programmes prêts à l'emploi"
 
-#: app/(app)/(workout)/workout-session.tsx:1639
-#: app/(app)/(workout)/workout-session.tsx:1732
+#: app/(app)/(workout)/workout-session.tsx:1604
+#: app/(app)/(workout)/workout-session.tsx:1701
 msgid "Prev: "
 msgstr "Préc. : "
 
@@ -3210,7 +3540,7 @@ msgstr "Les données partagées restent visibles par tes amis jusqu'à ce que tu
 msgid "Privacy"
 msgstr "Confidentialité"
 
-#: app/(app)/settings.tsx:1705
+#: app/(app)/settings.tsx:1734
 msgid "Privacy policy"
 msgstr "Politique de confidentialité"
 
@@ -3218,11 +3548,11 @@ msgstr "Politique de confidentialité"
 msgid "Privacy Settings"
 msgstr "Paramètres de confidentialité"
 
-#: constants/HelpData.ts:78
+#: constants/HelpData.ts:151
 msgid "Progression Suggestions"
 msgstr "Suggestions de progression"
 
-#: app/(app)/friend-profile.tsx:144
+#: app/(app)/friend-profile.tsx:162
 msgid "PRs"
 msgstr "PRs"
 
@@ -3264,7 +3594,7 @@ msgid "Recently Used"
 msgstr "Récemment utilisé"
 
 #: components/RecoveryCheckInSheet.tsx:152
-#: constants/HelpData.ts:83
+#: constants/HelpData.ts:168
 msgid "Recovery Check-in"
 msgstr "Bilan de récupération"
 
@@ -3281,19 +3611,19 @@ msgstr "Réduire la charge"
 msgid "Reduce to {0}{unit}"
 msgstr "Réduire à {0}{unit}"
 
-#: app/_layout.tsx:100
+#: app/_layout.tsx:106
 msgid "Reload"
 msgstr "Recharger"
 
-#: app/(app)/settings.tsx:1310
+#: app/(app)/settings.tsx:1339
 msgid "Reminder days"
 msgstr "Jours de rappel"
 
-#: app/(app)/settings.tsx:1365
+#: app/(app)/settings.tsx:1394
 msgid "Reminder time"
 msgstr "Heure de rappel"
 
-#: app/(app)/settings.tsx:1273
+#: app/(app)/settings.tsx:1302
 msgid "Reminders"
 msgstr "Rappels"
 
@@ -3328,6 +3658,10 @@ msgstr "Supprimer l'entraînement"
 msgid "Reorder"
 msgstr "Réorganiser"
 
+#: constants/HelpData.ts:49
+msgid "Reorder a workout card with the up/down arrow buttons, or remove it with the X button, both in the top right of the card."
+msgstr "Réorganise une carte d'entraînement avec les boutons fléchés haut/bas, ou supprime-la avec le bouton X ; les deux se trouvent en haut à droite de la carte."
+
 #: components/WeeklySummaryCard.tsx:157
 msgid "Rep PR"
 msgstr "Record de rép."
@@ -3342,30 +3676,43 @@ msgstr "Remplacer"
 msgid "reps"
 msgstr "reps"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:197
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:249
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:253
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:290
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:294
 #: app/(app)/custom-exercise.tsx:70
 #: components/charts/ExerciseProgressionChart.tsx:377
-#: components/SessionSetInfo.tsx:449
+#: components/SessionSetInfo.tsx:478
+#: components/StandaloneWorkoutScreen.tsx:197
 #: components/WorkoutCard.tsx:276
-#: components/WorkoutDetailsScreen.tsx:198
+#: components/WorkoutDetailsScreen.tsx:215
 msgid "Reps"
 msgstr "Répétitions"
 
-#: components/SessionSetInfo.tsx:219
+#: components/SessionSetInfo.tsx:229
 msgid "Reps: {repRange}"
 msgstr "Rép. : {repRange}"
 
-#: app/(app)/settings.tsx:1614
+#: app/(app)/settings.tsx:1643
 msgid "Request or vote for new features"
 msgstr "Demander ou voter pour de nouvelles fonctionnalités"
 
 #: app/(app)/friends.tsx:65
 msgid "Requests"
 msgstr "Demandes"
+
+#: app/(app)/plate-inventory.tsx:123
+msgid "Reset"
+msgstr "Réinitialiser"
+
+#: app/(app)/plate-inventory.tsx:118
+#: app/(app)/plate-inventory.tsx:248
+msgid "Reset plates"
+msgstr "Réinitialiser les disques"
+
+#: app/(app)/plate-inventory.tsx:247
+#~ msgid "Reset to standard plates"
+#~ msgstr "Rétablir les disques standard"
 
 #: app/(app)/(create-plan)/sets-overview.tsx:173
 #: components/PlanScheduleEditor.tsx:94
@@ -3378,7 +3725,7 @@ msgstr "Repos"
 msgid "Rest Day"
 msgstr "Jour de repos"
 
-#: components/EditSetModal.tsx:387
+#: components/SetOptionsModal.tsx:334
 msgid "Rest Time (Minutes:Seconds)"
 msgstr "Temps de repos (Minutes:Secondes)"
 
@@ -3387,19 +3734,19 @@ msgid "Rest Time Left:"
 msgstr "Temps de repos restant :"
 
 #. placeholder {0}: String(restSeconds).padStart(2, "0")
-#: components/SessionSetInfo.tsx:236
+#: components/SessionSetInfo.tsx:246
 msgid "Rest Time: {restMinutes}:{0}"
 msgstr "Temps de repos : {restMinutes}:{0}"
 
-#: constants/HelpData.ts:53
+#: constants/HelpData.ts:94
 msgid "Rest Timer"
 msgstr "Minuterie de repos"
 
-#: app/(app)/(workout)/workout-session.tsx:653
+#: app/(app)/(workout)/workout-session.tsx:619
 msgid "Rest Timer Finished!"
 msgstr "Minuterie de repos terminée !"
 
-#: app/(app)/settings.tsx:810
+#: app/(app)/settings.tsx:819
 msgid "Rest timer increment"
 msgstr "Incrément de la minuterie de repos"
 
@@ -3419,16 +3766,20 @@ msgstr "Redémarrage échoué"
 msgid "Restart Workout"
 msgstr "Recommencer l'entraînement"
 
-#: app/(app)/settings.tsx:486
-#: app/(app)/settings.tsx:652
+#: app/(app)/settings.tsx:487
+#: app/(app)/settings.tsx:661
 msgid "Restore"
 msgstr "Restaurer"
 
-#: app/(app)/settings.tsx:481
+#: app/(app)/settings.tsx:482
 msgid "Restore Backup"
 msgstr "Restaurer la sauvegarde"
 
-#: app/(app)/settings.tsx:662
+#: app/(app)/plate-inventory.tsx:119
+msgid "Restore the standard {weightUnit} plate set? Your changes will be lost."
+msgstr "Rétablir le jeu de disques standard en {weightUnit} ? Tes modifications seront perdues."
+
+#: app/(app)/settings.tsx:671
 msgid "Restoring. Please wait..."
 msgstr "Restauration en cours. Patiente..."
 
@@ -3448,7 +3799,7 @@ msgstr "corde"
 msgid "rotator cuff"
 msgstr "coiffe des rotateurs"
 
-#: app/(app)/settings.tsx:57
+#: app/(app)/settings.tsx:58
 msgid "Sa"
 msgstr "Sa"
 
@@ -3472,6 +3823,10 @@ msgstr "Samedi"
 msgid "Save"
 msgstr "Enregistrer"
 
+#: app/(app)/plate-inventory.tsx:257
+msgid "Save and go back"
+msgstr "Enregistrer et revenir"
+
 #: app/(app)/custom-exercise.tsx:596
 msgid "Save and select"
 msgstr "Enregistrer et sélectionner"
@@ -3488,7 +3843,8 @@ msgstr "Enregistrer les modifications du programme ?"
 msgid "Save Changes to Workout?"
 msgstr "Enregistrer les modifications de l'entraînement ?"
 
-#: components/EditSetModal.tsx:462
+#: components/EditSetModal.tsx:164
+#: components/SessionSetOptionsModal.tsx:91
 msgid "Save Set"
 msgstr "Enregistrer la série"
 
@@ -3514,15 +3870,15 @@ msgstr "Enregistrement de l'entraînement..."
 #: app/(app)/exercise-library.tsx:105
 #: app/(app)/friends.tsx:62
 #: app/(app)/friends.tsx:280
-#: components/WorkoutPickerModal.tsx:89
+#: components/WorkoutPickerModal.tsx:110
 msgid "Search"
 msgstr "Rechercher"
 
-#: app/(app)/help.tsx:139
+#: app/(app)/help.tsx:358
 msgid "Search help"
 msgstr "Rechercher dans l'aide"
 
-#: app/(app)/help.tsx:132
+#: app/(app)/help.tsx:351
 msgid "Search help…"
 msgstr "Rechercher dans l'aide…"
 
@@ -3549,7 +3905,7 @@ msgstr "Sélectionne un jour pour voir les entraînements."
 msgid "Select a workout to view"
 msgstr "Sélectionne un entraînement"
 
-#: app/(app)/settings.tsx:1341
+#: app/(app)/settings.tsx:1370
 msgid "Select at least one day"
 msgstr "Sélectionne au moins un jour"
 
@@ -3569,11 +3925,15 @@ msgstr "Sélectionner les muscles secondaires"
 msgid "Select target muscle"
 msgstr "Sélectionner le muscle cible"
 
+#: constants/HelpData.ts:113
+msgid "Select the second exercise to pair it with."
+msgstr "Sélectionne ensuite le deuxième exercice."
+
 #: app/(app)/custom-exercise.tsx:522
 msgid "Select tracking type"
 msgstr "Sélectionner le type de suivi"
 
-#: app/(app)/settings.tsx:951
+#: app/(app)/settings.tsx:980
 msgid "Send notification in background after rest"
 msgstr "Envoyer une notification en arrière-plan après le repos"
 
@@ -3598,11 +3958,15 @@ msgid "Set {0}"
 msgstr "Série {0}"
 
 #. placeholder {0}: currentSetIndex + 1
-#: components/SessionSetInfo.tsx:315
+#: components/SessionSetInfo.tsx:344
 msgid "Set {0} of {totalSets}"
 msgstr "Série {0} sur {totalSets}"
 
-#: constants/HelpData.ts:98
+#: app/(app)/plate-inventory.tsx:146
+msgid "Set how many pairs of each plate you have. The plate calculator will only suggest loads you can actually build."
+msgstr "Indique combien de paires tu as de chaque disque. Le calculateur ne proposera que des charges que tu peux réellement monter."
+
+#: constants/HelpData.ts:186
 msgid "Set Types"
 msgstr "Types de séries"
 
@@ -3620,7 +3984,7 @@ msgstr "séries"
 msgid "Sets"
 msgstr "Séries"
 
-#: constants/HelpData.ts:94
+#: constants/HelpData.ts:181
 msgid "Sets & Exercises"
 msgstr "Séries et exercices"
 
@@ -3632,11 +3996,15 @@ msgstr "Vue d'ensemble des séries"
 msgid "settings"
 msgstr "paramètres"
 
-#: app/(app)/_layout.tsx:44
+#: app/(app)/_layout.tsx:45
 #: components/AppMenu.tsx:207
-#: constants/HelpData.ts:153
+#: constants/HelpData.ts:269
 msgid "Settings"
 msgstr "Paramètres"
+
+#: constants/HelpData.ts:271
+msgid "Settings lets you tune units and defaults across the app."
+msgstr "Les Paramètres te permettent de personnaliser les unités et les valeurs par défaut dans toute l'app."
 
 #: components/PrivacySettings.tsx:266
 msgid "Share body measurements with friends"
@@ -3666,15 +4034,15 @@ msgstr "Partager les entraînements solo avec mes amis"
 msgid "Share strength PRs with friends"
 msgstr "Partager les records de force avec mes amis"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:290
+#: components/StandaloneWorkoutScreen.tsx:290
 msgid "Share Workout"
 msgstr "Partager l'entraînement"
 
-#: app/(app)/friend-profile.tsx:154
+#: app/(app)/friend-profile.tsx:172
 msgid "Shared"
 msgstr "Partagé"
 
-#: constants/HelpData.ts:173
+#: constants/HelpData.ts:302
 msgid "Sharing Your Content"
 msgstr "Partager ton contenu"
 
@@ -3687,11 +4055,19 @@ msgstr "tibias"
 msgid "shoulders"
 msgstr "épaules"
 
-#: app/(app)/settings.tsx:1482
+#: app/(app)/help.tsx:237
+msgid "Show details"
+msgstr "Voir les détails"
+
+#: app/(app)/help.tsx:257
+msgid "Show more"
+msgstr "Voir plus"
+
+#: app/(app)/settings.tsx:1511
 msgid "Show onboarding on home screen"
 msgstr "Afficher l'accueil sur l'écran principal"
 
-#: app/(app)/settings.tsx:554
+#: app/(app)/settings.tsx:555
 msgid "Sign in"
 msgstr "Se connecter"
 
@@ -3703,20 +4079,20 @@ msgstr "Se connecter"
 msgid "Sign in to use the Friends feature."
 msgstr "Connecte-toi pour utiliser la fonctionnalité Amis."
 
-#: app/(app)/settings.tsx:547
+#: app/(app)/settings.tsx:548
 msgid "Sign in with Google"
 msgstr "Se connecter avec Google"
 
-#: constants/HelpData.ts:194
+#: constants/HelpData.ts:327
 msgid "Sign in with Google in Settings to enable cloud backups of all your workout data. Tap Backup at any time to save a snapshot; the date of your last backup is shown beneath the button. Tap Restore to download and apply your latest backup; confirm the prompt and the app will reload with your restored data. Your backups are stored securely and are tied to your Google account. If you switch devices or reinstall the app, simply sign in with the same Google account and tap Restore to get your data back."
 msgstr "Connecte-toi avec Google dans les Paramètres pour activer les sauvegardes cloud de toutes tes données d'entraînement. Appuie sur Sauvegarder à tout moment pour créer un instantané ; la date de ta dernière sauvegarde s'affiche sous le bouton. Appuie sur Restaurer pour télécharger et appliquer ta dernière sauvegarde ; confirme l'invite et l'appli se rechargera avec tes données restaurées. Tes sauvegardes sont stockées en sécurité et liées à ton compte Google. Si tu changes d'appareil ou réinstalles l'appli, connecte-toi avec le même compte Google et appuie sur Restaurer pour récupérer tes données."
 
-#: app/(app)/settings.tsx:565
+#: app/(app)/settings.tsx:566
 msgid "Sign out"
 msgstr "Se déconnecter"
 
 #. placeholder {0}: user.displayName || user.email
-#: app/(app)/settings.tsx:561
+#: app/(app)/settings.tsx:562
 msgid "Signed in as {0}"
 msgstr "Connecté en tant que {0}"
 
@@ -3724,7 +4100,7 @@ msgstr "Connecté en tant que {0}"
 msgid "Significantly short of the target. Hold and focus on hitting all reps before progressing."
 msgstr "Bien en dessous de l'objectif. Maintiens et concentre-toi sur toutes les reps avant de progresser."
 
-#: constants/HelpData.ts:188
+#: constants/HelpData.ts:320
 msgid "Signing In"
 msgstr "Connexion"
 
@@ -3737,15 +4113,15 @@ msgstr "Entraînements seuls et rapides"
 msgid "Single-arm / single-leg"
 msgstr "Unilatéral bras / jambe"
 
-#: app/(app)/settings.tsx:1058
+#: app/(app)/settings.tsx:1087
 msgid "Single-side rep logging"
 msgstr "Reps d'un seul côté"
 
-#: app/(app)/settings.tsx:749
+#: app/(app)/settings.tsx:758
 msgid "Size unit"
 msgstr "Unité de taille"
 
-#: app/(app)/settings.tsx:1442
+#: app/(app)/settings.tsx:1471
 msgid "Size: ~100MB"
 msgstr "Taille : ~100 Mo"
 
@@ -3803,8 +4179,8 @@ msgstr "Une erreur est survenue. Réessaie."
 msgid "spine"
 msgstr "colonne vertébrale"
 
-#: app/(app)/friend-profile.tsx:306
-#: components/WorkoutPickerModal.tsx:135
+#: app/(app)/friend-profile.tsx:331
+#: components/WorkoutPickerModal.tsx:163
 msgid "Standalone Workouts"
 msgstr "Entraînements solo"
 
@@ -3812,11 +4188,12 @@ msgstr "Entraînements solo"
 #~ msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work."
 #~ msgstr "Les entraînements indépendants sont en dehors des programmes et apparaissent avec tes programmes dans l'onglet Programmes. Crée-en un en appuyant sur Nouvel entraînement, donne-lui un nom et ajoute des exercices ; tu peux le lancer à tout moment sans avoir besoin d'un programme actif. Une durée estimée est affichée sur chaque entraînement indépendant pour que tu puisses planifier ton temps avant de commencer. Les entraînements rapides te permettent de démarrer une séance immédiatement depuis l'écran d'accueil : appuie sur Entraînement rapide, ajoute des exercices au fur et à mesure, et à la fin tu peux le sauvegarder comme entraînement indépendant pour une utilisation future ou simplement l'ignorer. Comme les programmes, l'éditeur d'entraînement sauvegarde automatiquement un brouillon."
 
-#: constants/HelpData.ts:39
+#: constants/HelpData.ts:67
 msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library, then start any one of them straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work."
 msgstr "Les entraînements indépendants sont en dehors des programmes et apparaissent avec tes programmes dans l'onglet Programmes. Crée-en un en appuyant sur Nouvel entraînement, donne-lui un nom et ajoute des exercices ; tu peux le lancer à tout moment sans avoir besoin d'un programme actif. Une durée estimée est affichée sur chaque entraînement indépendant pour que tu puisses planifier ton temps avant de commencer. Les entraînements rapides te permettent de démarrer une séance immédiatement depuis l'écran d'accueil : appuie sur Entraînement rapide, ajoute des exercices au fur et à mesure, et à la fin tu peux le sauvegarder comme entraînement indépendant pour une utilisation future ou simplement l'ignorer. Appuie sur « Choisir un entraînement » juste à côté pour rechercher et parcourir tous les entraînements de tes programmes et de ta bibliothèque autonome, puis démarre n'importe lequel immédiatement. Comme les programmes, l'éditeur d'entraînement sauvegarde automatiquement un brouillon."
 
 #: app/(app)/(tabs)/index.tsx:577
+#: components/StandaloneWorkoutListItem.tsx:99
 msgid "Start"
 msgstr "Commencer"
 
@@ -3824,16 +4201,17 @@ msgstr "Commencer"
 msgid "Start Plan"
 msgstr "Démarrer le programme"
 
-#: components/SessionSetInfo.tsx:504
+#: components/SessionSetInfo.tsx:533
 msgid "Start Timer"
 msgstr "Démarrer la minuterie"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:318
+#: components/StandaloneWorkoutScreen.tsx:318
+#: components/WorkoutDetailsScreen.tsx:308
 msgid "Start Workout"
 msgstr "Commencer l'entraînement"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:234
 #: app/(app)/(tabs)/index.tsx:316
+#: components/StandaloneWorkoutScreen.tsx:234
 msgid "Starting Workout..."
 msgstr "Démarrage de l'entraînement..."
 
@@ -3843,11 +4221,11 @@ msgstr "vélo stationnaire"
 
 #: app/(app)/(tabs)/_layout.tsx:76
 #: app/(app)/(tabs)/(stats)/_layout.tsx:16
-#: app/(app)/settings.tsx:1021
+#: app/(app)/settings.tsx:1050
 msgid "Stats"
 msgstr "Stats"
 
-#: constants/HelpData.ts:133
+#: constants/HelpData.ts:245
 msgid "Stats & History"
 msgstr "Stats et historique"
 
@@ -3875,7 +4253,7 @@ msgstr "Arrêter"
 msgid "Streak"
 msgstr "Série consécutive"
 
-#: app/(app)/friend-profile.tsx:163
+#: app/(app)/friend-profile.tsx:181
 msgid "Strength PRs"
 msgstr "Records de force"
 
@@ -3883,7 +4261,7 @@ msgstr "Records de force"
 msgid "Strength PRs are shared automatically after each workout."
 msgstr "Les records de force sont partagés automatiquement après chaque entraînement."
 
-#: app/(app)/settings.tsx:58
+#: app/(app)/settings.tsx:59
 msgid "Su"
 msgstr "Di"
 
@@ -3892,9 +4270,13 @@ msgstr "Di"
 msgid "Success"
 msgstr "Succès"
 
-#: app/(app)/settings.tsx:1115
+#: app/(app)/settings.tsx:1144
 msgid "Suggest load and rep adjustments"
 msgstr "Suggérer des ajustements de charge et de reps"
+
+#: constants/HelpData.ts:157
+msgid "Suggestions to hold the current load don't appear in the card, since no action is needed."
+msgstr "Les suggestions qui recommandent de maintenir la charge actuelle n'apparaissent pas dans la carte, car aucune action n'est nécessaire."
 
 #: app/(app)/(tabs)/(stats)/index.tsx:440
 msgid "Summary"
@@ -3913,38 +4295,50 @@ msgstr "Dimanche"
 
 #: app/(app)/(create-plan)/sets-overview.tsx:210
 #: components/WorkoutCard.tsx:364
-#: components/WorkoutDetailsScreen.tsx:150
+#: components/WorkoutDetailsScreen.tsx:167
 msgid "Superset"
 msgstr "Superserie"
 
 #. placeholder {0}: outgoingSnapshot.isFirstInSuperset ? "A" : "B"
 #. placeholder {0}: ss.isFirstInSuperset ? "A" : "B"
-#: app/(app)/(workout)/workout-session.tsx:1627
-#: app/(app)/(workout)/workout-session.tsx:1719
+#: app/(app)/(workout)/workout-session.tsx:1592
+#: app/(app)/(workout)/workout-session.tsx:1688
 msgid "Superset {0}"
 msgstr "Superserie {0}"
 
-#: constants/HelpData.ts:58
+#: constants/HelpData.ts:108
 msgid "Supersets"
 msgstr "Superseries"
+
+#: constants/HelpData.ts:76
+msgid "Swipe left/right or use the arrow buttons to move between sets."
+msgstr "Glisse vers la gauche/droite ou utilise les boutons fléchés pour naviguer entre les séries."
 
 #: components/Onboarding.tsx:43
 msgid "Take full control of your training by designing your own personalised plan. Select exercises, set rep ranges, rest times, and more to create a plan that aligns perfectly with your fitness goals."
 msgstr "Prends le contrôle total de ton entraînement en concevant ton propre programme personnalisé. Sélectionne des exercices, définis des plages de répétitions, des temps de repos, et plus encore pour créer un programme parfaitement adapté à tes objectifs."
 
-#: constants/HelpData.ts:179
+#: constants/HelpData.ts:155
+msgid "Tap Accept to apply a suggestion for your next session, or Dismiss to ignore it; Accept All applies every suggestion at once."
+msgstr "Appuie sur Accepter pour appliquer une suggestion pour ta prochaine séance, ou sur Ignorer pour la rejeter ; Tout accepter applique toutes les suggestions en une fois."
+
+#: constants/HelpData.ts:309
 msgid "Tap any accepted friend in your Friends list to open their profile. Their profile shows the plans, standalone workouts, and custom exercises they have chosen to share. Tap Import on any item to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts."
 msgstr "Appuie sur n'importe quel ami accepté dans ta liste d'amis pour ouvrir son profil. Son profil affiche les programmes, entraînements solo et exercices personnalisés qu'il a choisi de partager. Appuie sur Importer sur n'importe quel élément pour l'ajouter directement à ta propre bibliothèque. Les programmes et entraînements importés sont sauvegardés comme de nouvelles copies que tu peux modifier librement sans affecter l'original. Les exercices personnalisés importés sont ajoutés à ta bibliothèque d'exercices et disponibles immédiatement lors de la création d'entraînements."
 
-#: constants/HelpData.ts:189
+#: constants/HelpData.ts:321
 msgid "Tap Sign In With Google in Settings to connect your account. Signing in enables cloud backups so your data is safe if you switch devices or reinstall the app, and your name is shown in the home screen greeting. The app works fully offline without signing in, but cloud backups are unavailable. Your data is stored locally on your device and is not shared with anyone unless you choose to share it yourself."
 msgstr "Appuie sur Se connecter avec Google dans les Paramètres pour connecter ton compte. La connexion active les sauvegardes cloud pour que tes données soient en sécurité si tu changes d'appareil ou réinstalles l'appli, et ton nom apparaît dans le message d'accueil. L'appli fonctionne entièrement hors ligne sans connexion, mais les sauvegardes cloud ne sont pas disponibles. Tes données sont stockées localement sur ton appareil et ne sont partagées avec personne, sauf si tu choisis de les partager toi-même."
 
-#: constants/HelpData.ts:109
+#: constants/HelpData.ts:208
 msgid "Tap the star icon in the top-right corner of any exercise info screen to mark it as a favourite. Favourited exercises appear at the top of the exercise picker when building or editing workouts, so the exercises you use most are always within quick reach."
 msgstr "Appuie sur l'icône étoile dans le coin supérieur droit de n'importe quel écran d'infos d'exercice pour le marquer comme favori. Les exercices favoris apparaissent en haut du sélecteur d'exercices lors de la création ou modification d'entraînements, afin que les exercices que tu utilises le plus soient toujours à portée de main."
 
-#: components/EditSetModal.tsx:274
+#: components/PlateCalculatorModal.tsx:213
+msgid "Target"
+msgstr "Objectif"
+
+#: components/SetOptionsModal.tsx:221
 msgid "Target Distance ({distanceUnit})"
 msgstr "Distance cible ({distanceUnit})"
 
@@ -3964,31 +4358,43 @@ msgstr "Le muscle cible est obligatoire."
 msgid "Target muscle:"
 msgstr "Muscle cible :"
 
-#: components/SessionSetInfo.tsx:229
+#: components/SessionSetInfo.tsx:239
 msgid "Target: {distanceMin} {distanceUnit}"
 msgstr "Cible : {distanceMin} {distanceUnit}"
 
-#: app/(app)/settings.tsx:55
+#: app/(app)/settings.tsx:56
 msgid "Th"
 msgstr "Je"
 
-#: constants/HelpData.ts:24
+#: components/PlateCalculatorModal.tsx:235
+msgid "That is lighter than the bar on its own ({barLabel})."
+msgstr "C'est plus léger que la barre seule ({barLabel})."
+
+#: constants/HelpData.ts:38
 msgid "The home screen shows your progress toward your weekly training goal, which is the number of days you want to work out each week, set in Settings. A strip at the top tracks how many days you have completed and highlights each completed day. Below it, your active plan's workouts are listed with their completion status for the week; tap Start on any workout to begin. The card displayed beneath changes with your status: a Resume card appears if a session is in progress, a Rest Day card shows on days with no scheduled workout, and a Workout Done card confirms today's session is complete. When you hit your weekly goal, a Weekly Summary card appears showing total workouts, sets, and volume for the week, plus your streak, which counts the number of consecutive weeks you have met your goal."
 msgstr "L'écran d'accueil affiche ta progression vers ton objectif d'entraînement hebdomadaire, qui correspond au nombre de jours par semaine où tu veux t'entraîner, défini dans les Paramètres. Une bande en haut indique le nombre de jours complétés et met en évidence chaque jour terminé. En dessous, les entraînements de ton programme actif sont listés avec leur statut d'avancement pour la semaine ; appuie sur Commencer sur n'importe quel entraînement pour le lancer. La carte affichée en dessous change selon ton statut : une carte Reprendre apparaît si une séance est en cours, une carte Jour de repos s'affiche les jours sans entraînement planifié, et une carte Entraînement terminé confirme que la séance du jour est complète. Quand tu atteins ton objectif hebdomadaire, une carte Résumé de la semaine apparaît avec le total d'entraînements, de séries et de volume pour la semaine, plus ta série consécutive, qui compte le nombre de semaines consécutives où tu as atteint ton objectif."
 
-#: constants/HelpData.ts:129
+#: constants/HelpData.ts:240
 msgid "The Insights strip at the top of the Stats tab gives four at-a-glance highlights for the selected time range: your average workouts per week, your biggest strength gain across tracked exercises, the body part you have trained most, and your current weekly streak. These update automatically after each workout."
 msgstr "La bande Aperçus en haut de l'onglet Stats donne quatre points saillants en un coup d'œil pour la période sélectionnée : ta moyenne d'entraînements par semaine, ta plus grande progression de force parmi les exercices suivis, la partie du corps la plus entraînée, et ta série consécutive hebdomadaire actuelle. Ces données se mettent à jour automatiquement après chaque entraînement."
 
-#: constants/HelpData.ts:34
+#: constants/HelpData.ts:61
 msgid "The Plans tab includes a library of ready-made training programmes you can start immediately. Scroll past Your Training Plans to find the Premade Plans section. Tap any programme to preview its workouts and schedule, then tap Activate to make it your active plan. You can edit a premade plan to adjust exercises, sets, or the weekly schedule. This will create a copy of the premade plan that you can modify without affecting the original, so you can always return to the default version if needed."
 msgstr "L'onglet Programmes inclut une bibliothèque de programmes d'entraînement prêts à l'emploi que tu peux démarrer immédiatement. Fais défiler au-delà de Tes programmes pour trouver la section Programmes prêts à l'emploi. Appuie sur n'importe quel programme pour prévisualiser ses entraînements et son planning, puis appuie sur Activer pour en faire ton programme actif. Tu peux modifier un programme prêt à l'emploi pour ajuster les exercices, les séries ou le planning hebdomadaire. Cela crée une copie du programme que tu peux modifier sans affecter l'original."
 
-#: constants/HelpData.ts:54
-msgid "The rest timer starts automatically after each set and counts down to zero. Each set remembers its own rest duration, so different sets within the same exercise can have different rest periods. Use the ± buttons to adjust the remaining time on the fly during rest. Configure the default rest duration, the timer increment, and whether a sound, vibration, or background notification fires at the end; each option is independently toggleable in Settings."
-msgstr "La minuterie de repos démarre automatiquement après chaque série et compte à rebours jusqu'à zéro. Chaque série mémorise sa propre durée de repos, donc différentes séries au sein du même exercice peuvent avoir des durées de repos différentes. Utilise les boutons ± pour ajuster le temps restant à la volée pendant le repos. Configure la durée de repos par défaut, l'incrément de la minuterie, et si un son, une vibration ou une notification en arrière-plan se déclenche à la fin ; chaque option peut être activée/désactivée indépendamment dans les Paramètres."
+#: constants/HelpData.ts:96
+msgid "The rest timer starts automatically after each set and counts down to zero; each set remembers its own rest duration, so different sets within the same exercise can have different rest periods."
+msgstr "La minuterie de repos démarre automatiquement après chaque série et compte à rebours jusqu'à zéro ; chaque série mémorise sa propre durée de repos, donc différentes séries au sein du même exercice peuvent avoir des durées différentes."
 
-#: constants/HelpData.ts:134
+#: constants/HelpData.ts:54
+#~ msgid "The rest timer starts automatically after each set and counts down to zero. Each set remembers its own rest duration, so different sets within the same exercise can have different rest periods. Use the ± buttons to adjust the remaining time on the fly during rest. Configure the default rest duration, the timer increment, and whether a sound, vibration, or background notification fires at the end; each option is independently toggleable in Settings."
+#~ msgstr "La minuterie de repos démarre automatiquement après chaque série et compte à rebours jusqu'à zéro. Chaque série mémorise sa propre durée de repos, donc différentes séries au sein du même exercice peuvent avoir des durées de repos différentes. Utilise les boutons ± pour ajuster le temps restant à la volée pendant le repos. Configure la durée de repos par défaut, l'incrément de la minuterie, et si un son, une vibration ou une notification en arrière-plan se déclenche à la fin ; chaque option peut être activée/désactivée indépendamment dans les Paramètres."
+
+#: constants/HelpData.ts:143
+msgid "The sheet can be dismissed without answering, and reps-only exercises without a rep range are skipped automatically since there's no room to progress within."
+msgstr "Le questionnaire peut être fermé sans répondre, et les exercices uniquement en reps sans plage définie sont ignorés automatiquement car il n'y a pas de marge pour progresser."
+
+#: constants/HelpData.ts:246
 msgid "The Stats tab shows total workouts, total volume, total time, and average session duration over a selectable time range, with a period-over-period delta for each metric. Charts display weekly volume and your training split by body part. Browse your full workout history and tap any session to review every set in detail, including weights, reps, time, or distance. You can edit or delete completed workouts from the history details screen. Tap the calendar icon in the Workout History section to open a calendar view: days with workouts are highlighted with a yellow circle, and tapping any day shows the workouts logged on that date."
 msgstr "L'onglet Stats affiche le nombre total d'entraînements, le volume total, le temps total et la durée moyenne des séances sur une période sélectionnable, avec un delta par rapport à la période précédente pour chaque indicateur. Des graphiques affichent le volume hebdomadaire et ta répartition d'entraînement par partie du corps. Parcours l'historique complet de tes entraînements et appuie sur une séance pour revoir chaque série en détail. Tu peux modifier ou supprimer des entraînements terminés depuis l'écran de détails. Appuie sur l'icône calendrier dans la section Historique pour ouvrir une vue calendrier : les jours avec des entraînements sont mis en évidence avec un cercle jaune."
 
@@ -4061,12 +4467,12 @@ msgid "Time (Hour:Min)"
 msgstr "Temps (Heure:Min)"
 
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:272
-#: components/SessionSetInfo.tsx:481
+#: components/SessionSetInfo.tsx:510
 #: components/SettingsModal.tsx:252
 msgid "Time (Min:Sec)"
 msgstr "Temps (Min:Sec)"
 
-#: components/EditSetModal.tsx:261
+#: components/SetOptionsModal.tsx:208
 msgid "Time (Minutes:Seconds)"
 msgstr "Temps (Minutes:Secondes)"
 
@@ -4078,30 +4484,34 @@ msgstr "Temps (s)"
 msgid "Time PR"
 msgstr "Record de temps"
 
-#: app/(app)/(workout)/workout-session.tsx:654
+#: app/(app)/(workout)/workout-session.tsx:620
 msgid "Time to do your next set!"
 msgstr "C'est l'heure de ta prochaine série !"
 
 #. placeholder {0}: formatFromTotalSeconds(timeMin)
-#: components/SessionSetInfo.tsx:224
+#: components/SessionSetInfo.tsx:234
 msgid "Time: {0}"
 msgstr "Temps : {0}"
 
-#: app/(app)/settings.tsx:387
+#: constants/HelpData.ts:53
+msgid "To duplicate a plan, open it and tap Duplicate Plan for a full, editable copy."
+msgstr "Pour dupliquer un programme, ouvre-le et appuie sur Dupliquer le programme pour en obtenir une copie complète et modifiable."
+
+#: app/(app)/settings.tsx:388
 msgid "To enable rest timer notifications, grant notification permissions in your device settings."
 msgstr "Pour activer les notifications de la minuterie de repos, autorise les notifications dans les paramètres de ton appareil."
 
-#: app/(app)/settings.tsx:406
+#: app/(app)/settings.tsx:407
 msgid "To enable workout reminders, grant notification permissions in your device settings."
 msgstr "Pour activer les rappels d'entraînement, autorise les notifications dans les paramètres de ton appareil."
 
-#: components/EditSetModal.tsx:426
-#: components/SessionSetInfo.tsx:372
+#: components/SessionSetInfo.tsx:401
+#: components/SetOptionsModal.tsx:375
 msgid "To failure"
 msgstr "Jusqu'à l'échec"
 
-#: components/SessionSetInfo.tsx:290
-#: components/SessionSetInfo.tsx:383
+#: components/SessionSetInfo.tsx:309
+#: components/SessionSetInfo.tsx:412
 msgid "To Failure"
 msgstr "Jusqu'à l'échec"
 
@@ -4112,6 +4522,18 @@ msgstr "Jusqu'à l'échec, "
 #: components/stats/ExerciseCompactCard.tsx:26
 msgid "Today"
 msgstr "Aujourd'hui"
+
+#: constants/HelpData.ts:100
+msgid "Toggle a sound, vibration, or background notification for when the timer ends, each independently, in Settings."
+msgstr "Active un son, une vibration ou une notification en arrière-plan pour la fin de la minuterie ; chaque option est indépendante dans les Paramètres."
+
+#: constants/HelpData.ts:220
+msgid "Toggle Paired Implements if you track one implement's weight rather than the total: for example, logging 20 kg for one dumbbell counts 40 kg toward your volume."
+msgstr "Active Implements appariés si tu notes le poids d'un seul implement plutôt que le total : par exemple, noter 20 kg pour un haltère compte 40 kg dans ton volume."
+
+#: constants/HelpData.ts:219
+msgid "Toggle Unilateral for single-arm or single-leg exercises; reps can be automatically doubled in your stats."
+msgstr "Active Unilatéral pour les exercices à un bras ou une jambe ; les répétitions peuvent être automatiquement doublées dans tes stats."
 
 #: app/(app)/(tabs)/(stats)/exercise-detail.tsx:151
 msgid "Top PR Sets"
@@ -4134,7 +4556,7 @@ msgstr "Suivre ({0})"
 msgid "Track Weight"
 msgstr "Enregistrer le poids"
 
-#: constants/HelpData.ts:144
+#: constants/HelpData.ts:258
 msgid "Track your body composition over time from the Measurements section in the Stats tab. Use the Log Entry form to record values for any active metric, then tap a past entry in the History list to review or edit it. On the entry detail screen, tap a metric chip to switch the chart between different measurements and use the time range selector to zoom in or out. Metrics are split into three types: mass (weight, in kg or lbs), length (circumferences like waist and hips, in cm or in), and percentage (body fat). Units follow your weight and size preferences in Settings. To control which metrics appear in the entry form, tap Manage Metrics at the top of the Log Entry section. Built-in metrics can be toggled on or off; you can also create your own custom metrics and choose their type. Custom metrics can be hidden from the form at any time, and your historical data for them is always preserved."
 msgstr "Suis ta composition corporelle dans le temps depuis la section Mesures de l'onglet Statistiques. Utilise le formulaire Saisir une entrée pour enregistrer des valeurs pour chaque mesure active, puis appuie sur une entrée passée dans l'historique pour la consulter ou la modifier. Sur l'écran de détail de l'entrée, appuie sur un chip de mesure pour basculer le graphique entre différentes mesures et utilise le sélecteur de plage de temps pour zoomer ou dézoomer. Les mesures sont divisées en trois types : masse (poids, en kg ou lbs), longueur (circonférences comme la taille et les hanches, en cm ou pouces) et pourcentage (masse grasse). Les unités suivent tes préférences de poids et de taille dans Paramètres. Pour contrôler quelles mesures apparaissent dans le formulaire, appuie sur Gérer les mesures en haut de la section Saisir une entrée. Les mesures intégrées peuvent être activées ou désactivées ; tu peux également créer tes propres mesures personnalisées et choisir leur type. Les mesures personnalisées peuvent être masquées du formulaire à tout moment, et tes données historiques sont toujours conservées."
 
@@ -4156,7 +4578,7 @@ msgstr ""
 msgid "Tracked Exercises"
 msgstr "Exercices suivis"
 
-#: constants/HelpData.ts:124
+#: constants/HelpData.ts:234
 msgid "Tracking"
 msgstr "Suivi"
 
@@ -4186,7 +4608,7 @@ msgstr ""
 "\n"
 "Ou lance directement un Entraînement rapide depuis l'écran d'accueil, ajoute des exercices au fur et à mesure, et tu peux le sauvegarder comme entraînement indépendant quand tu as terminé."
 
-#: constants/HelpData.ts:19
+#: constants/HelpData.ts:32
 msgid "Training"
 msgstr "Entraînement"
 
@@ -4230,7 +4652,7 @@ msgstr "Réessayer"
 msgid "Try: {joined} reps"
 msgstr "Essaie : {joined} reps"
 
-#: app/(app)/settings.tsx:53
+#: app/(app)/settings.tsx:54
 msgid "Tu"
 msgstr "Ma"
 
@@ -4245,7 +4667,7 @@ msgstr "Mar"
 msgid "Tuesday"
 msgstr "Mardi"
 
-#: app/(app)/help.tsx:140
+#: app/(app)/help.tsx:359
 msgid "Type to filter help topics"
 msgstr "Filtrer les thèmes d'aide"
 
@@ -4253,11 +4675,15 @@ msgstr "Filtrer les thèmes d'aide"
 msgid "Unable to save your workout. Please try again later."
 msgstr "Impossible de sauvegarder ton entraînement. Réessaie plus tard."
 
+#: constants/HelpData.ts:275
+msgid "Under Stats: exclude warm-up sets from volume, double reps for unilateral exercises, or double the weight for paired implements (useful if you log per-dumbbell weight rather than the total)."
+msgstr "Sous Stats : exclure les séries d'échauffement du volume, doubler les reps pour les exercices unilatéraux, ou doubler le poids pour les implements appariés (utile si tu notes le poids par haltère plutôt que le total)."
+
 #: app/(app)/friend-exercise.tsx:97
 msgid "Unilateral"
 msgstr "Unilatéral"
 
-#: app/(app)/settings.tsx:677
+#: app/(app)/settings.tsx:686
 msgid "Units of measurement"
 msgstr "Unités de mesure"
 
@@ -4265,7 +4691,7 @@ msgstr "Unités de mesure"
 msgid "Unknown"
 msgstr "Inconnu"
 
-#: components/SessionSetInfo.tsx:561
+#: components/SessionSetInfo.tsx:590
 msgid "Update"
 msgstr "Mettre à jour"
 
@@ -4277,13 +4703,13 @@ msgstr "Mise à jour prête"
 #. placeholder {0}: formatDistanceToNow(plan.updatedAt.toDate(), { addSuffix: true })
 #. placeholder {0}: formatDistanceToNow(workout.updatedAt.toDate(), { addSuffix: true, })
 #: app/(app)/friend-plan.tsx:75
-#: app/(app)/friend-profile.tsx:255
-#: app/(app)/friend-profile.tsx:344
+#: app/(app)/friend-profile.tsx:280
+#: app/(app)/friend-profile.tsx:374
 #: app/(app)/friend-workout.tsx:62
 msgid "Updated {0}"
 msgstr "Mis à jour {0}"
 
-#: app/(app)/settings.tsx:661
+#: app/(app)/settings.tsx:670
 msgid "Uploading. Please wait..."
 msgstr "Envoi en cours. Patiente..."
 
@@ -4315,11 +4741,15 @@ msgstr "pectoraux supérieurs"
 msgid "upper legs"
 msgstr "haut des jambes"
 
-#: app/(app)/settings.tsx:1006
+#: constants/HelpData.ts:98
+msgid "Use the ± buttons to adjust the remaining time on the fly during rest."
+msgstr "Utilise les boutons ± pour ajuster le temps restant à la volée pendant le repos."
+
+#: app/(app)/settings.tsx:1035
 msgid "Using history from same workout"
 msgstr "Historique du même entraînement"
 
-#: app/(app)/settings.tsx:1005
+#: app/(app)/settings.tsx:1034
 msgid "Using most recent from any workout"
 msgstr "Le plus récent de n'importe quel entraînement"
 
@@ -4327,7 +4757,7 @@ msgstr "Le plus récent de n'importe quel entraînement"
 msgid "Values"
 msgstr "Valeurs"
 
-#: app/(app)/settings.tsx:903
+#: app/(app)/settings.tsx:932
 msgid "Vibrate after rest"
 msgstr "Vibrer après le repos"
 
@@ -4382,25 +4812,29 @@ msgstr "taille"
 msgid "Waist"
 msgstr "Tour de taille"
 
-#: components/SessionSetInfo.tsx:282
-#: components/SessionSetInfo.tsx:345
+#: components/SessionSetInfo.tsx:301
+#: components/SessionSetInfo.tsx:374
 msgid "Warm-up"
 msgstr "Échauffement"
 
-#: components/EditSetModal.tsx:404
-#: components/SessionSetInfo.tsx:334
+#: components/SessionSetInfo.tsx:363
+#: components/SetOptionsModal.tsx:353
 msgid "Warm-up set"
 msgstr "Série d'échauffement"
+
+#: constants/HelpData.ts:192
+msgid "Warm-up sets are visually grouped and separated from working sets; the Apply to All option only affects sets of the same type."
+msgstr "Les séries d'échauffement sont visuellement regroupées et séparées des séries de travail ; l'option Appliquer à tous n'affecte que les séries du même type."
 
 #: app/(app)/(create-plan)/sets-overview.tsx:160
 msgid "Warm-up, "
 msgstr "Échauffement, "
 
-#: components/EditSetModal.tsx:442
+#: components/SetOptionsModal.tsx:395
 msgid "warmup"
 msgstr "échauffement"
 
-#: app/(app)/settings.tsx:54
+#: app/(app)/settings.tsx:55
 msgid "We"
 msgstr "Me"
 
@@ -4419,7 +4853,7 @@ msgstr "Mercredi"
 msgid "Week streak"
 msgstr "Série de semaines"
 
-#: app/(app)/settings.tsx:585
+#: app/(app)/settings.tsx:586
 msgid "Weekly goal"
 msgstr "Objectif hebdomadaire"
 
@@ -4435,7 +4869,7 @@ msgstr "Planning hebdomadaire"
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:204
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:217
 #: components/charts/ExerciseProgressionChart.tsx:459
-#: components/SessionSetInfo.tsx:415
+#: components/SessionSetInfo.tsx:444
 msgid "Weight"
 msgstr "Poids"
 
@@ -4443,17 +4877,25 @@ msgstr "Poids"
 msgid "Weight ({weightUnitLabel})"
 msgstr "Poids ({weightUnitLabel})"
 
-#: app/(app)/settings.tsx:782
+#: app/(app)/plate-inventory.tsx:226
+msgid "Weight in {weightUnit}"
+msgstr "Poids en {weightUnit}"
+
+#: app/(app)/settings.tsx:791
 msgid "Weight increment"
 msgstr "Incrément de poids"
 
-#: constants/HelpData.ts:118
+#: constants/HelpData.ts:227
 msgid "Weight Tracking for Bodyweight Exercises"
 msgstr "Enregistrement du poids pour les exercices au poids de corps"
 
-#: app/(app)/settings.tsx:697
+#: app/(app)/settings.tsx:706
 msgid "Weight unit"
 msgstr "Unité de poids"
+
+#: constants/HelpData.ts:273
+msgid "Weight, size, and distance units, default sets per exercise, default rest time, and the ± weight increment used during a session."
+msgstr "Unités de poids, de taille et de distance, séries par exercice par défaut, temps de repos par défaut et incrément de poids ± utilisé pendant une séance."
 
 #: app/(app)/custom-exercise.tsx:68
 msgid "Weight/Reps"
@@ -4463,7 +4905,7 @@ msgstr "Poids/Rép."
 msgid "Welcome back{userName}"
 msgstr "Bon retour{userName}"
 
-#: app/(app)/help.tsx:169
+#: app/(app)/help.tsx:399
 msgid "Welcome to MuscleQuest, your personal strength training companion. Use this guide to discover the features and get the most from your training."
 msgstr "Bienvenue dans MuscleQuest, ton compagnon de musculation personnel. Utilise ce guide pour découvrir les fonctionnalités et tirer le meilleur de ton entraînement."
 
@@ -4475,7 +4917,11 @@ msgstr "Bienvenue dans MuscleQuest !"
 msgid "Welcome{userName}"
 msgstr "Bienvenue{userName}"
 
-#: constants/HelpData.ts:84
+#: constants/HelpData.ts:191
+msgid "When building a plan, use the checkboxes in the set editor, or tap Add Warm-up to insert a dedicated warm-up set at the top of the list."
+msgstr "Lors de la création d'un programme, utilise les cases à cocher dans l'éditeur de séries ou appuie sur Ajouter un échauffement pour insérer une série d'échauffement dédiée en haut de la liste."
+
+#: constants/HelpData.ts:169
 msgid "When you open a workout that contains exercises you trained recently, a Recovery Check-in sheet appears if those exercises have a pending progression suggestion and your last session was at least 12 hours ago. For each relevant muscle group, you choose one of three options: Fresh (fully recovered), Mild soreness, or Still very sore. If a muscle is marked as still very sore, any upward progression suggestion for exercises targeting that muscle is paused and held at the current load until you re-evaluate at the start of the following session. Fresh or Mild soreness does not affect suggestions. Tap Skip for now to bypass the check-in entirely; a skipped check-in is treated the same as fresh recovery, so pending suggestions are unaffected."
 msgstr "Quand tu ouvres un entraînement contenant des exercices que tu as pratiqués récemment, une feuille de Bilan de récupération apparaît si ces exercices ont une suggestion de progression en attente et que ta dernière séance remonte à au moins 12 heures. Pour chaque groupe musculaire concerné, tu choisis une de trois options : Frais (complètement récupéré), Légère courbature ou Encore très courbaturé. Si un muscle est marqué comme encore très courbaturé, toute suggestion de progression à la hausse pour les exercices ciblant ce muscle est mise en pause et maintenue à la charge actuelle jusqu'à ce que tu réévalues au début de la séance suivante. Frais ou Légère courbature ne modifie pas les suggestions. Appuie sur Passer pour l'instant pour contourner le bilan entièrement ; un bilan ignoré est traité comme une récupération complète, donc les suggestions en attente ne sont pas affectées."
 
@@ -4483,13 +4929,13 @@ msgstr "Quand tu ouvres un entraînement contenant des exercices que tu as prati
 msgid "Where did you feel it?"
 msgstr "Où tu l'as ressenti ?"
 
-#: components/EditSetModal.tsx:442
+#: components/SetOptionsModal.tsx:395
 msgid "working"
 msgstr "travail"
 
-#: app/(app)/(tabs)/(plans)/_layout.tsx:18
+#: app/(app)/_layout.tsx:39
 #: app/(app)/(workout)/_layout.tsx:17
-#: app/(app)/settings.tsx:761
+#: app/(app)/settings.tsx:770
 #: components/RestDayCard.tsx:41
 #: components/WeeklyScheduleDisplay.tsx:88
 #: components/WorkoutDoneCard.tsx:49
@@ -4504,6 +4950,10 @@ msgstr "Entraînement"
 msgid "Workout {0}"
 msgstr "Entraînement {0}"
 
+#: constants/HelpData.ts:274
+msgid "Workout button size (Standard, Large, or XLarge), and Keep Screen On to stop the display sleeping mid-workout."
+msgstr "Taille des boutons d'entraînement (Standard, Grand ou Très grand) et Garder l'écran allumé pour que l'écran ne s'éteigne pas pendant l'entraînement."
+
 #: components/stats/WorkoutCalendarModal.tsx:128
 msgid "Workout Calendar"
 msgstr "Calendrier des entraînements"
@@ -4513,12 +4963,12 @@ msgid "Workout Complete!"
 msgstr "Entraînement terminé !"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:186
-#: components/WorkoutDetailsScreen.tsx:67
+#: components/WorkoutDetailsScreen.tsx:84
 msgid "Workout copied to standalone workouts"
 msgstr "Entraînement copié dans les entraînements indépendants"
 
 #: app/(app)/_layout.tsx:37
-#: app/(app)/_layout.tsx:57
+#: app/(app)/_layout.tsx:59
 #: app/(app)/(tabs)/(stats)/_layout.tsx:19
 msgid "Workout Details"
 msgstr "Détails de l'entraînement"
@@ -4537,29 +4987,29 @@ msgstr "Entraînement en cours"
 msgid "Workout name"
 msgstr "Nom de l'entraînement"
 
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:65
-#: app/(app)/(tabs)/(plans)/standalone-workout.tsx:218
 #: app/(app)/(workout)/workout-summary.tsx:522
 #: app/(app)/friend-workout.tsx:43
+#: components/StandaloneWorkoutScreen.tsx:65
+#: components/StandaloneWorkoutScreen.tsx:218
 msgid "Workout not found."
 msgstr "Entraînement introuvable."
 
-#: app/(app)/settings.tsx:1285
+#: app/(app)/settings.tsx:1314
 msgid "Workout reminders"
 msgstr "Rappels d'entraînement"
 
-#: constants/HelpData.ts:158
+#: constants/HelpData.ts:284
 msgid "Workout Reminders"
 msgstr "Rappels d'entraînement"
 
-#: constants/HelpData.ts:48
+#: constants/HelpData.ts:88
 msgid "Workout Summary"
 msgstr "Résumé de l'entraînement"
 
 #: app/(app)/(tabs)/(stats)/index.tsx:444
-#: app/(app)/friend-profile.tsx:149
+#: app/(app)/friend-profile.tsx:167
 #: components/WeeklySummaryCard.tsx:271
-#: constants/HelpData.ts:38
+#: constants/HelpData.ts:66
 msgid "Workouts"
 msgstr "Entraînements"
 
@@ -4601,6 +5051,11 @@ msgstr "Hier"
 msgid "You activated this plan."
 msgstr "Tu as activé ce programme."
 
+#. placeholder {0}: formatWeight(parsed)
+#: app/(app)/plate-inventory.tsx:96
+msgid "You already have a {0} {weightUnit} plate in the list."
+msgstr "Tu as déjà un disque de {0} {weightUnit} dans la liste."
+
 #: components/Onboarding.tsx:61
 msgid "You can hide this onboarding screen at any time from the settings page in the appearance section. If you ever want to revisit the onboarding, you can enable it again from the same settings page."
 msgstr "Tu peux masquer cet écran d'accueil à tout moment depuis la page Paramètres dans la section Apparence. Si tu veux le revoir, tu peux le réactiver depuis la même page."
@@ -4609,7 +5064,7 @@ msgstr "Tu peux masquer cet écran d'accueil à tout moment depuis la page Param
 msgid "You can log in at any time from the settings screen, if you choose to skip it now."
 msgstr "Tu peux te connecter à tout moment depuis l'écran Paramètres, si tu choisis de passer pour l'instant."
 
-#: constants/HelpData.ts:174
+#: constants/HelpData.ts:303
 msgid "You can share plans, standalone workouts, custom exercises, body measurements, and strength PRs with your friends. All five categories have a global toggle in Privacy Settings, found in the Account section of Settings. Enabling the global toggle for a category shares all items in that category and syncs new data automatically whenever it changes. Plans and standalone workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. To remove shared data, disable the toggle in Privacy Settings and tap Delete Shared Data for that category. You can also delete all shared data for every category from the same screen."
 msgstr "Tu peux partager tes programmes, entraînements solo, exercices personnalisés, mesures corporelles et records de force avec tes amis. Les cinq catégories ont un interrupteur global dans les Paramètres de confidentialité, dans la section Compte des Paramètres. Activer l'interrupteur global d'une catégorie partage tous les éléments de cette catégorie et synchronise automatiquement les nouvelles données à chaque modification. Les programmes et entraînements solo ont aussi un interrupteur Partager individuel sur l'écran de présentation de chaque élément, ce qui te permet de publier des programmes ou entraînements spécifiques sans tout partager. Une icône nuage sur la carte programme ou entraînement confirme qu'il est actuellement publié. Pour supprimer des données partagées, désactive l'interrupteur dans les Paramètres de confidentialité et appuie sur Supprimer les données partagées pour cette catégorie. Tu peux aussi supprimer toutes les données partagées de chaque catégorie depuis le même écran."
 
@@ -4640,7 +5095,7 @@ msgstr "Tu as des modifications non enregistrées. Es-tu sûr(e) de vouloir les 
 msgid "You modified this workout. Save those changes for future sessions?"
 msgstr "Tu as modifié cet entraînement. Enregistrer ces modifications pour les prochaines séances ?"
 
-#: app/(app)/settings.tsx:631
+#: app/(app)/settings.tsx:632
 msgid "You need to sign in to use this feature"
 msgstr "Tu dois te connecter pour utiliser cette fonctionnalité"
 
@@ -4656,14 +5111,18 @@ msgstr "Tu atteins facilement les objectifs. Il est temps d'ajouter un peu plus 
 msgid "You've hit your weekly goal. Incredible work!"
 msgstr "Tu as atteint ton objectif hebdomadaire. Travail incroyable !"
 
+#: constants/HelpData.ts:276
+msgid "Your body weight, used to calculate effective load for assisted exercises."
+msgstr "Ton poids de corps, utilisé pour calculer la charge effective pour les exercices assistés."
+
 #: app/(app)/(tabs)/index.tsx:382
 msgid "Your journey to Swoletown begins today!"
 msgstr "Ton voyage vers Swoletown commence aujourd'hui !"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:129
+#: app/(app)/(tabs)/(plans)/index.tsx:128
 msgid "Your training plans"
 msgstr "Tes programmes"
 
-#: app/(app)/(tabs)/(plans)/index.tsx:146
+#: app/(app)/(tabs)/(plans)/index.tsx:144
 msgid "Your workouts"
 msgstr "Tes entraînements"

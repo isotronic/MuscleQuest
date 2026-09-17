@@ -36,12 +36,14 @@ export default function AppLayout() {
         name="workout-details"
         options={{ title: t`Workout Details` }}
       />
+      <Stack.Screen name="standalone-workout" options={{ title: t`Workout` }} />
       <Stack.Screen
         name="exercise-info"
         options={{ title: t`Exercise Info` }}
       />
       <Stack.Screen name="custom-exercise" />
       <Stack.Screen name="settings" options={{ title: t`Settings` }} />
+      <Stack.Screen name="plate-inventory" options={{ title: t`Plates` }} />
       <Stack.Screen name="help" options={{ title: t`Help & Info` }} />
       <Stack.Screen
         name="exercise-library"

@@ -1,11 +1,15 @@
 import { useMemo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { Workout } from "@/store/workoutStore";
 import { AppIcon } from "@/components/ui";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
-import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
-import { Plural } from "@lingui/react/macro";
+import {
+  formatDurationEstimate,
+  formatDurationEstimateCompact,
+} from "@/utils/estimateWorkoutDuration";
+import { Plural, Trans } from "@lingui/react/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -14,6 +18,13 @@ interface StandaloneWorkoutListItemProps {
   onPress: () => void;
   countUnilateralDouble?: boolean;
   isPublished?: boolean;
+  /** When provided, a Start button replaces the chevron. */
+  onStart?: () => void;
+  disabled?: boolean;
+  /** Use the shorter "45m" duration format instead of "45 min". */
+  compactEstimate?: boolean;
+  /** Drop the horizontal padding so the row aligns with surrounding headings. */
+  flushEdges?: boolean;
 }
 
 export default function StandaloneWorkoutListItem({
@@ -21,6 +32,10 @@ export default function StandaloneWorkoutListItem({
   onPress,
   countUnilateralDouble = false,
   isPublished,
+  onStart,
+  disabled = false,
+  compactEstimate = false,
+  flushEdges = false,
 }: StandaloneWorkoutListItemProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -29,7 +44,11 @@ export default function StandaloneWorkoutListItem({
     countUnilateralDouble,
   );
   return (
-    <Pressable style={styles.container} onPress={onPress}>
+    <Pressable
+      style={[styles.container, flushEdges && styles.containerFlush]}
+      onPress={onPress}
+      disabled={disabled}
+    >
       <View style={styles.imageContainer}>
         <View style={styles.imagePlaceholder}>
           <AppIcon
@@ -61,15 +80,32 @@ export default function StandaloneWorkoutListItem({
             one="# exercise"
             other="# exercises"
           />
-          {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
+          {estimate
+            ? `  ·  ~${
+                compactEstimate
+                  ? formatDurationEstimateCompact(estimate)
+                  : formatDurationEstimate(estimate)
+              }`
+            : ""}
         </ThemedText>
       </View>
-      <AppIcon
-        set="mci"
-        name="chevron-right"
-        size={22}
-        color={colors.contentSecondary}
-      />
+      {onStart ? (
+        <Button
+          mode="outlined"
+          onPress={onStart}
+          disabled={disabled}
+          labelStyle={styles.startButtonLabel}
+        >
+          <Trans>Start</Trans>
+        </Button>
+      ) : (
+        <AppIcon
+          set="mci"
+          name="chevron-right"
+          size={22}
+          color={colors.contentSecondary}
+        />
+      )}
     </Pressable>
   );
 }
@@ -83,6 +119,9 @@ function createStyles(colors: AppThemeColors) {
       borderRadius: radii.md,
       padding: 12,
       marginBottom: 10,
+    },
+    containerFlush: {
+      paddingHorizontal: 0,
     },
     imageContainer: {
       width: 52,
@@ -115,6 +154,11 @@ function createStyles(colors: AppThemeColors) {
     subtitle: {
       fontSize: 13,
       color: colors.contentSecondary,
+    },
+    startButtonLabel: {
+      fontSize: 13,
+      marginHorizontal: 12,
+      marginVertical: 6,
     },
   });
 }

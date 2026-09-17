@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
-import Bugsnag from "@bugsnag/expo";
+import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 
 interface WorkoutResult {
   id: number;
@@ -125,8 +125,11 @@ const fetchCompletedWorkouts = async (
     return results as WorkoutResult[];
   } catch (error: any) {
     console.error("Error fetching completed workouts:", error);
-    Bugsnag.notify(error);
-    throw new Error("Failed to fetch completed workouts");
+    notifyBugsnag(error);
+    // Already reported above; mark the wrapper so the global net skips it.
+    const wrappedError = new Error("Failed to fetch completed workouts");
+    markReported(wrappedError);
+    throw wrappedError;
   } finally {
     if (db) await db.closeAsync();
   }
@@ -414,7 +417,7 @@ const fetchWorkoutHistoryForSession = async (
         set_number,
         weight:
           weight != null
-            ? parseFloat((weight * conversionFactor).toFixed(1))
+            ? parseFloat((weight * conversionFactor).toFixed(2))
             : null,
         reps,
         time,
@@ -430,8 +433,11 @@ const fetchWorkoutHistoryForSession = async (
     return workoutsArray;
   } catch (error: any) {
     console.error("Error fetching workout session history:", error);
-    Bugsnag.notify(error);
-    throw new Error("Failed to fetch workout session history");
+    notifyBugsnag(error);
+    // Already reported above; mark the wrapper so the global net skips it.
+    const wrappedError = new Error("Failed to fetch workout session history");
+    markReported(wrappedError);
+    throw wrappedError;
   } finally {
     if (db) await db.closeAsync();
   }
@@ -582,7 +588,7 @@ const fetchGlobalExerciseHistoryForSession = async (
         set_number,
         weight:
           weight != null
-            ? parseFloat((weight * conversionFactor).toFixed(1))
+            ? parseFloat((weight * conversionFactor).toFixed(2))
             : null,
         reps,
         time,
@@ -598,8 +604,11 @@ const fetchGlobalExerciseHistoryForSession = async (
     return workoutsArray;
   } catch (error: any) {
     console.error("Error fetching global exercise history:", error);
-    Bugsnag.notify(error);
-    throw new Error("Failed to fetch global exercise history");
+    notifyBugsnag(error);
+    // Already reported above; mark the wrapper so the global net skips it.
+    const wrappedError = new Error("Failed to fetch global exercise history");
+    markReported(wrappedError);
+    throw wrappedError;
   } finally {
     if (db) await db.closeAsync();
   }

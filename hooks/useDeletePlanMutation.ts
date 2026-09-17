@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteWorkoutPlan } from "@/utils/database";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export function useDeletePlanMutation() {
   const queryClient = useQueryClient();
@@ -12,7 +12,7 @@ export function useDeletePlanMutation() {
       queryClient.invalidateQueries({ queryKey: ["activePlan"] });
     },
     onError: (error: Error) => {
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
       console.error("Failed to delete plan:", error);
     },
   });

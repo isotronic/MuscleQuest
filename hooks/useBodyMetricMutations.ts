@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import {
   toggleBodyMetricActive,
   insertCustomBodyMetricDefinition,
@@ -23,7 +23,7 @@ export const useToggleBodyMetricActiveMutation = () => {
     },
     onError: (error) => {
       console.error("Failed to toggle body metric active state:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };
@@ -43,7 +43,7 @@ export const useInsertCustomBodyMetricMutation = () => {
     },
     onError: (error) => {
       console.error("Failed to insert custom body metric:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };
@@ -58,7 +58,7 @@ export const useSoftDeleteCustomBodyMetricMutation = () => {
     },
     onError: (error) => {
       console.error("Failed to delete custom body metric:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };

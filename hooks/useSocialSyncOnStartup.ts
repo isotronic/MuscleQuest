@@ -5,7 +5,7 @@ import {
   getDocs,
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { AuthContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
 import {
@@ -77,6 +77,6 @@ export const useSocialSyncOnStartup = () => {
       ]);
     };
 
-    sync().catch((err) => Bugsnag.notify(err));
+    sync().catch((err) => notifyBugsnag(err));
   }, [user, privacySettings, publishedPlanIds, publishedWorkoutIds]);
 };

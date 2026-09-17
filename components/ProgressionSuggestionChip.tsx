@@ -20,10 +20,14 @@ function chipLabel(
   weightUnit?: string,
 ): string | null {
   const unit = weightUnit ?? "kg";
+  // Suggestions are computed in kg; show them in the user's unit, rounded the
+  // same way as the weight they pre-fill. The expression stays inline so the
+  // catalog placeholder remains {0}.
+  const factor = unit === "lbs" ? 2.2046226 : 1;
   switch (action) {
     case "increase_load":
       return suggestedWeight != null
-        ? t`${Math.round(suggestedWeight * 10) / 10}${unit} suggested`
+        ? t`${Math.round(suggestedWeight * factor * 10) / 10}${unit} suggested`
         : t`Load up`;
     case "increase_reps": {
       if (suggestedRepsPerSet && suggestedRepsPerSet.length > 0) {
@@ -34,7 +38,7 @@ function chipLabel(
     }
     case "reduce_load":
       return suggestedWeight != null
-        ? t`Reduce to ${Math.round(suggestedWeight * 10) / 10}${unit}`
+        ? t`Reduce to ${Math.round(suggestedWeight * factor * 10) / 10}${unit}`
         : t`Reduce load`;
     case "add_set":
       return t`Add a set`;

@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState, useMemo } from "react";
+import { router } from "expo-router";
 import { Trans } from "@lingui/react/macro";
 import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
@@ -643,7 +644,15 @@ export default function SettingsScreen() {
                   mode="outlined"
                   compact
                   onPress={() =>
-                    uploadDatabaseBackup(setBackupProgress, setIsBackupLoading)
+                    uploadDatabaseBackup(
+                      setBackupProgress,
+                      setIsBackupLoading,
+                    ).catch((error: any) => {
+                      Alert.alert(
+                        t`Backup Failed`,
+                        error?.message ?? t`An unexpected error occurred.`,
+                      );
+                    })
                   }
                 >
                   <Trans>Backup</Trans>
@@ -837,6 +846,26 @@ export default function SettingsScreen() {
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 <Trans>{settings?.timerCountdown || "5"} seconds</Trans>
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => router.push("/plate-inventory")}
+          >
+            <AppIcon
+              set="mci"
+              name="weight-lifter"
+              size={24}
+              color={colors.contentSecondary}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                <Trans>Plates</Trans>
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                <Trans>Plates you own, used by the plate calculator</Trans>
               </ThemedText>
             </View>
           </TouchableOpacity>

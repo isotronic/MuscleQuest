@@ -200,6 +200,16 @@ describe("useWorkoutSessionHistoryQuery", () => {
 
     expect(result[0].exercises[0].completed_exercise_id).toBe(777);
   });
+
+  it("preserves 2 decimal places of a weight logged with fractional precision", async () => {
+    mockDb.getAllAsync.mockResolvedValue([makeRow({ weight: 62.25 })]);
+
+    useWorkoutSessionHistoryQuery(10, "kg", "m");
+    const { queryFn } = (useQuery as jest.Mock).mock.calls[0][0];
+    const result = await queryFn();
+
+    expect(result[0].exercises[0].sets[0].weight).toBe(62.25);
+  });
 });
 
 describe("useGlobalExerciseHistoryForSessionQuery", () => {

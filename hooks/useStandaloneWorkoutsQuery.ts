@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { getStandaloneWorkouts } from "@/utils/database";
 import { Workout } from "@/store/workoutStore";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export const fetchStandaloneWorkouts = async (): Promise<Workout[]> => {
   try {
     return await getStandaloneWorkouts();
   } catch (error: any) {
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   }
 };

@@ -370,6 +370,54 @@ Any workout in a plan can now be copied straight to your standalone workout libr
 Made a mistake in a completed workout? Tap the pencil icon next to any exercise on the edit-history screen to swap it for the correct one, filtered to match its tracking type.
 `,
   },
+  {
+    version: 2643,
+    message: msg`
+🐛 Fixed: Cloud Backup Errors!
+
+Backup would silently fail after a clean shutdown because it required extra database files that aren't always present. Backups now work correctly in that case, and any real backup failure now shows an on-screen error instead of failing silently.
+`,
+  },
+  {
+    version: 2644,
+    message: msg`
+📖 Improved: Redesigned Help Screen!
+
+The Help & Info screen now opens with collapsed, expandable topic groups and a chip row to jump straight to a section. Search is faster and smarter, highlighting the exact matching text in each result, and shows a helpful empty state with a link to request a feature if nothing matches.
+`,
+  },
+  {
+    version: 2645,
+    message: msg`
+🔍 Improved: More Accurate Exercise Search!
+
+Exercise search has been rebuilt on a more robust matching engine, improving how typos, abbreviations, and multi-word queries get matched and ranked, so the exercise you're looking for shows up first more often.
+`,
+  },
+  {
+    version: 2646,
+    message: msg`
+👀 Improved: Preview Before You Start!
+
+In the Choose Workout list, tapping a workout now opens its details so you can check the exercises first. Use the Start button on the right to jump straight into the session. Plan workouts also gained a Start button on their details screen.
+`,
+  },
+  {
+    version: 2647,
+    message: msg`
+⚙️ Improved: More Control During Your Workout!
+
+You can now change an exercise's rep range and rest time mid-workout from the three-dot menu. If you enter a weight other than the suggested one, it now carries over to your remaining sets. Weight suggestions also stay hidden when adaptive progression is switched off.
+`,
+  },
+  {
+    version: 2648,
+    message: msg`
+🏋️ New: Plate Calculator!
+
+Open the three-dot menu during a workout and tap Plate Calculator to see exactly which plates to load on each side of the bar. Pick your bar weight once and it is remembered. Under Settings > Workout > Plates you can tell the app which plates you actually own, so it never suggests a load you cannot build.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

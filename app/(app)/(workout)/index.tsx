@@ -200,8 +200,13 @@ export default function WorkoutOverviewScreen() {
 
   useEffect(() => {
     if (!sessionHistory || !workoutProgressionStates?.length) return;
-    loadProgressionSuggestions(workoutProgressionStates);
-  }, [sessionHistory, workoutProgressionStates, loadProgressionSuggestions]);
+    loadProgressionSuggestions(workoutProgressionStates, weightUnit);
+  }, [
+    sessionHistory,
+    workoutProgressionStates,
+    loadProgressionSuggestions,
+    weightUnit,
+  ]);
 
   const progressionStatesByUweId = useMemo(
     () =>
@@ -523,6 +528,7 @@ export default function WorkoutOverviewScreen() {
               action={progressionState.suggestionAction}
               suggestedWeight={progressionState.suggestedWeight}
               suggestedRepsPerSet={progressionState.suggestedRepsPerSet}
+              weightUnit={weightUnit}
             />
           ) : null;
 
@@ -709,6 +715,7 @@ export default function WorkoutOverviewScreen() {
       feedbackSubmittedUweIds,
       styles,
       colors,
+      weightUnit,
     ],
   );
 

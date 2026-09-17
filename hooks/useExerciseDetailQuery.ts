@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import {
   TrackedExerciseWithSets,
   CompletedSet,
@@ -284,7 +284,7 @@ const fetchExerciseDetail = async (
       preRangeBaseline,
     };
   } catch (error: any) {
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     console.error("Error fetching exercise detail:", error);
     throw error;
   } finally {
@@ -292,7 +292,7 @@ const fetchExerciseDetail = async (
       try {
         await db.closeAsync();
       } catch (closeError: any) {
-        Bugsnag.notify(closeError);
+        notifyBugsnag(closeError);
       }
     }
   }

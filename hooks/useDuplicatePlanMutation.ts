@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { duplicatePlan } from "@/utils/database";
 
 export const useDuplicatePlanMutation = () => {
@@ -19,7 +19,7 @@ export const useDuplicatePlanMutation = () => {
       queryClient.invalidateQueries({ queryKey: ["allPlans"] });
     },
     onError: (error: Error) => {
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };

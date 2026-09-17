@@ -2,7 +2,7 @@ import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { Workout } from "@/store/workoutStore";
 import { useQuery } from "@tanstack/react-query";
-import Bugsnag from "@bugsnag/expo";
+import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export interface Plan {
   id: number | null;
@@ -75,7 +75,9 @@ export const transformRawPlans = (
 
     if (workout && rawPlan.exercise_id && rawPlan.exercise_name) {
       workout.exercises.push({
-        ...(rawPlan.user_workout_exercise_id != null ? { id: rawPlan.user_workout_exercise_id } : {}),
+        ...(rawPlan.user_workout_exercise_id != null
+          ? { id: rawPlan.user_workout_exercise_id }
+          : {}),
         exercise_id: rawPlan.exercise_id,
         name: rawPlan.exercise_name,
         description: rawPlan.description || "",
@@ -148,8 +150,11 @@ export const fetchPlans = async (): Promise<{
     return transformRawPlans(rawPlans);
   } catch (error: any) {
     console.error("Error fetching plans", error);
-    Bugsnag.notify(error);
-    throw new Error("Failed to fetch plans");
+    notifyBugsnag(error);
+    // Already reported above; mark the wrapper so the global net skips it.
+    const wrappedError = new Error("Failed to fetch plans");
+    markReported(wrappedError);
+    throw wrappedError;
   } finally {
     if (db) await db.closeAsync();
   }

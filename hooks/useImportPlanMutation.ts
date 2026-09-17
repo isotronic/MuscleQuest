@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { openDatabase } from "@/utils/database";
 import { ensureAppExercisesExist } from "@/utils/loadPremadePlans";
 import { resolveExerciseId } from "@/utils/importUtils";
@@ -61,7 +61,7 @@ export const useImportPlanMutation = () => {
       queryClient.invalidateQueries({ queryKey: ["allPlans"] });
     },
     onError: (error: Error) => {
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };

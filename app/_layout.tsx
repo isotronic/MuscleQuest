@@ -26,7 +26,13 @@ import { useFonts } from "expo-font";
 import * as Updates from "expo-updates";
 import "react-native-reanimated";
 import * as SplashScreen from "expo-splash-screen";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+  QueryCache,
+  MutationCache,
+} from "@tanstack/react-query";
+import { wasReported } from "@/utils/bugsnagDedup";
 import {
   Inter_100Thin,
   Inter_200ExtraLight,
@@ -103,7 +109,25 @@ const ErrorView = ({ clearError }: { clearError: () => void }) => {
   );
 };
 
-const queryClient = new QueryClient();
+// Global safety net: report every query and mutation failure to Bugsnag, even
+// from hooks that don't report in their own catch/onError. Errors already sent
+// by a hook or helper are skipped (see utils/bugsnagDedup) to avoid duplicates.
+const reportQueryError = (error: unknown) => {
+  if (wasReported(error)) return;
+  Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
+};
+
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({ onError: reportQueryError }),
+  // MutationCache.onError runs before each hook's own onError, so the hook's
+  // notifyBugsnag would not have marked the error yet. onSettled runs after the
+  // hook's onError has finished, so the dedup check sees it.
+  mutationCache: new MutationCache({
+    onSettled: (_data, error) => {
+      if (error) reportQueryError(error);
+    },
+  }),
+});
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 

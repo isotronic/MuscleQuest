@@ -6,7 +6,7 @@ import {
 } from "@react-native-firebase/storage";
 import { File, Paths } from "expo-file-system";
 import { insertAnimatedImageUri } from "@/utils/database";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export const fetchAnimatedImageUrl = async (
   exerciseId: number,
@@ -53,7 +53,7 @@ export const fetchAnimatedImageUrl = async (
         const delayTime = Math.pow(2, attempt) * 1000;
         await new Promise((resolve) => setTimeout(resolve, delayTime));
       } else {
-        Bugsnag.notify(lastError);
+        notifyBugsnag(lastError);
         throw lastError;
       }
     }

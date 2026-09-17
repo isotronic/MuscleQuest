@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchAllRecords, openDatabase } from "@/utils/database";
 import { Exercise } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 interface ExercisesResult {
   activePlanExercises?: Exercise[];
@@ -23,7 +23,7 @@ const fetchAndSortExercises = async (
     )) as Exercise[];
   } catch (error: any) {
     console.error("Error fetching exercises", error);
-    Bugsnag.notify(error);
+    notifyBugsnag(error);
     throw error;
   }
 
@@ -67,13 +67,13 @@ const fetchAndSortExercises = async (
       );
     } catch (error: any) {
       console.error("Error fetching active plan exercises", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     } finally {
       if (db) {
         try {
           await db.closeAsync();
         } catch (closeError: any) {
-          Bugsnag.notify(closeError);
+          notifyBugsnag(closeError);
         }
       }
     }

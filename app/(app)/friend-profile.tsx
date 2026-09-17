@@ -66,18 +66,36 @@ export default function FriendProfileScreen() {
 
   const friend = friends.find((f) => f.uid === friendUid) ?? null;
 
-  const { data: plans = [], isLoading: plansLoading } =
-    useFriendSharedPlansQuery(friendUid);
-  const { data: workouts = [], isLoading: workoutsLoading } =
-    useFriendSharedStandaloneWorkoutsQuery(friendUid);
-  const { data: exercises = [], isLoading: exercisesLoading } =
-    useFriendSharedCustomExercisesQuery(friendUid);
-  const { data: completedWorkouts = [], isLoading: completedLoading } =
-    useFriendSharedCompletedWorkoutsQuery(friendUid);
-  const { data: measurements = [], isLoading: measurementsLoading } =
-    useFriendSharedMeasurementsQuery(friendUid);
-  const { data: strength = [], isLoading: strengthLoading } =
-    useFriendSharedStrengthQuery(friendUid);
+  const {
+    data: plans = [],
+    isLoading: plansLoading,
+    isError: plansError,
+  } = useFriendSharedPlansQuery(friendUid);
+  const {
+    data: workouts = [],
+    isLoading: workoutsLoading,
+    isError: workoutsError,
+  } = useFriendSharedStandaloneWorkoutsQuery(friendUid);
+  const {
+    data: exercises = [],
+    isLoading: exercisesLoading,
+    isError: exercisesError,
+  } = useFriendSharedCustomExercisesQuery(friendUid);
+  const {
+    data: completedWorkouts = [],
+    isLoading: completedLoading,
+    isError: completedError,
+  } = useFriendSharedCompletedWorkoutsQuery(friendUid);
+  const {
+    data: measurements = [],
+    isLoading: measurementsLoading,
+    isError: measurementsError,
+  } = useFriendSharedMeasurementsQuery(friendUid);
+  const {
+    data: strength = [],
+    isLoading: strengthLoading,
+    isError: strengthError,
+  } = useFriendSharedStrengthQuery(friendUid);
 
   const importPlan = useImportPlanMutation();
   const importWorkout = useImportStandaloneWorkoutMutation();
@@ -166,6 +184,11 @@ export default function FriendProfileScreen() {
       />
       {strengthLoading ? (
         <ActivityIndicator style={styles.sectionSpinner} />
+      ) : strengthError ? (
+        <ErrorState
+          label={<Trans>Couldn't load strength PRs</Trans>}
+          colors={colors}
+        />
       ) : strength.length === 0 ? (
         <EmptyState
           label={<Trans>No strength data shared yet</Trans>}
@@ -223,6 +246,8 @@ export default function FriendProfileScreen() {
       />
       {plansLoading ? (
         <ActivityIndicator style={styles.sectionSpinner} />
+      ) : plansError ? (
+        <ErrorState label={<Trans>Couldn't load plans</Trans>} colors={colors} />
       ) : plans.length === 0 ? (
         <EmptyState
           label={<Trans>No plans shared yet</Trans>}
@@ -309,6 +334,11 @@ export default function FriendProfileScreen() {
       />
       {workoutsLoading ? (
         <ActivityIndicator style={styles.sectionSpinner} />
+      ) : workoutsError ? (
+        <ErrorState
+          label={<Trans>Couldn't load workouts</Trans>}
+          colors={colors}
+        />
       ) : workouts.length === 0 ? (
         <EmptyState
           label={<Trans>No workouts shared yet</Trans>}
@@ -399,6 +429,11 @@ export default function FriendProfileScreen() {
       />
       {exercisesLoading ? (
         <ActivityIndicator style={styles.sectionSpinner} />
+      ) : exercisesError ? (
+        <ErrorState
+          label={<Trans>Couldn't load custom exercises</Trans>}
+          colors={colors}
+        />
       ) : exercises.length === 0 ? (
         <EmptyState
           label={<Trans>No custom exercises shared yet</Trans>}
@@ -484,6 +519,11 @@ export default function FriendProfileScreen() {
       />
       {completedLoading || measurementsLoading ? (
         <ActivityIndicator style={styles.sectionSpinner} />
+      ) : completedError || measurementsError ? (
+        <ErrorState
+          label={<Trans>Couldn't load activity</Trans>}
+          colors={colors}
+        />
       ) : completedWorkouts.length === 0 && measurements.length === 0 ? (
         <EmptyState
           label={<Trans>No activity shared yet</Trans>}
@@ -639,6 +679,22 @@ function EmptyState({
   return (
     <View style={styles.emptyState}>
       <AppText variant="caption" style={{ color: colors.contentSecondary }}>
+        {label}
+      </AppText>
+    </View>
+  );
+}
+
+function ErrorState({
+  label,
+  colors,
+}: {
+  label: React.ReactNode;
+  colors: AppThemeColors;
+}) {
+  return (
+    <View style={styles.emptyState}>
+      <AppText variant="caption" style={{ color: colors.danger }}>
         {label}
       </AppText>
     </View>

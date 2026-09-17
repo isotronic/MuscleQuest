@@ -11,7 +11,7 @@ import { useEffect, useState, useContext } from "react";
 import { Alert } from "react-native";
 import { Plan } from "./useAllPlansQuery";
 import { useQueryClient } from "@tanstack/react-query";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { AuthContext } from "@/context/AuthProvider";
 import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
 import { publishPlan } from "@/utils/sharing";
@@ -20,7 +20,7 @@ import { useSocialStore } from "@/store/socialStore";
 export const useCreatePlan = (existingPlan?: Plan) => {
   const queryClient = useQueryClient();
   const user = useContext(AuthContext);
-  const { privacySettings } = useSocialStore();
+  const { privacySettings, publishedPlanIds } = useSocialStore();
   const [planSaved, setPlanSaved] = useState(false);
   const [planName, setPlanName] = useState("");
   const [isError, setIsError] = useState(false);
@@ -70,25 +70,31 @@ export const useCreatePlan = (existingPlan?: Plan) => {
                 queryKey: ["planPublished", user.uid, newPlanId],
               });
             })
-            .catch((err) => Bugsnag.notify(err));
+            .catch((err) => notifyBugsnag(err));
         }
       } else {
         await updateWorkoutPlan(planId, planName, planImageUrl, workouts);
         savedPlanId = planId;
 
-        // Auto re-publish if already shared
+        // Auto re-publish if already shared. The locally-synced
+        // publishedPlanIds cache answers most saves without a network read.
+        // It is null before the first Firestore snapshot and after a listener
+        // error, and only then does a background getDoc decide. Neither path
+        // is awaited, so an editing save never blocks on the network.
         if (user) {
-          const db = getFirestore();
-          const docRef = doc(
-            db,
-            "users",
-            user.uid,
-            "sharedPlans",
-            String(planId),
-          );
-          const snap = await getDoc(docRef);
-          if (snap.exists()) {
-            publishPlan(user.uid, planId).catch((err) => Bugsnag.notify(err));
+          const uid = user.uid;
+          const republish = () =>
+            publishPlan(uid, planId).catch((err) => notifyBugsnag(err));
+          if (publishedPlanIds) {
+            if (publishedPlanIds.includes(String(planId))) republish();
+          } else {
+            getDoc(
+              doc(getFirestore(), "users", uid, "sharedPlans", String(planId)),
+            )
+              .then((snap) => {
+                if (snap.exists()) return republish();
+              })
+              .catch((err) => notifyBugsnag(err));
           }
         }
 
@@ -125,14 +131,14 @@ export const useCreatePlan = (existingPlan?: Plan) => {
           }
         } catch (scheduleError: any) {
           console.error("Error saving plan schedule:", scheduleError);
-          Bugsnag.notify(scheduleError);
+          notifyBugsnag(scheduleError);
           // Non-critical: don't fail the whole save
         } finally {
           if (scheduleDb) {
             try {
               await scheduleDb.closeAsync();
             } catch (closeError: any) {
-              Bugsnag.notify(closeError);
+              notifyBugsnag(closeError);
             }
           }
         }
@@ -153,7 +159,7 @@ export const useCreatePlan = (existingPlan?: Plan) => {
       return newPlanId ?? undefined;
     } catch (error: any) {
       console.error("Error inserting/updating plan data:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
       setIsError(true);
       localError = true;
     } finally {

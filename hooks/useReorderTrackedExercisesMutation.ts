@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { reorderTrackedExercises } from "@/utils/database";
 
 export const useReorderTrackedExercisesMutation = () => {
@@ -11,7 +11,7 @@ export const useReorderTrackedExercisesMutation = () => {
     },
     onError: (error: Error) => {
       console.error("Failed to reorder tracked exercises:", error);
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };

@@ -8,6 +8,8 @@ import {
 } from "@react-native-firebase/firestore";
 import { AuthContext } from "@/context/AuthProvider";
 import { SharedMeasurement } from "@/types/firestore";
+import { withTimeout } from "@/utils/withTimeout";
+import { reportFirestoreReadError } from "@/utils/reportFirestoreReadError";
 
 export const useFriendSharedMeasurementsQuery = (friendUid: string | null) => {
   const user = useContext(AuthContext);
@@ -16,13 +18,20 @@ export const useFriendSharedMeasurementsQuery = (friendUid: string | null) => {
     queryFn: async (): Promise<SharedMeasurement[]> => {
       if (!user || !friendUid) return [];
       const db = getFirestore();
-      const snap = await getDocs(
-        collection(db, "users", friendUid, "sharedMeasurements"),
-      );
-      return snap.docs.map(
-        (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
-          d.data() as SharedMeasurement,
-      );
+      try {
+        const snap = await withTimeout(
+          getDocs(collection(db, "users", friendUid, "sharedMeasurements")),
+          15000,
+          "friendSharedMeasurements",
+        );
+        return snap.docs.map(
+          (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
+            d.data() as SharedMeasurement,
+        );
+      } catch (error) {
+        reportFirestoreReadError("friendSharedMeasurements", error);
+        throw error;
+      }
     },
     enabled: !!user && !!friendUid,
     staleTime: 60_000,

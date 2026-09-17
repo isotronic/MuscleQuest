@@ -21,6 +21,8 @@ import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import SessionSetInfo from "@/components/SessionSetInfo";
+import { SessionSetOptionsModal } from "@/components/SessionSetOptionsModal";
+import { PlateCalculatorModal } from "@/components/PlateCalculatorModal";
 import { useTimer } from "react-timer-hook";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
@@ -39,6 +41,11 @@ import {
 import { Notes } from "@/components/Notes";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
+import { computeSteppedWeight } from "@/utils/weightStep";
+import {
+  buildExerciseMap,
+  findLastAvailableSetData as findLastAvailableSetDataUtil,
+} from "@/utils/carryOverLookup";
 import { UserExercise } from "@/store/workoutStore";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import ExerciseFeedbackSheet from "@/components/ExerciseFeedbackSheet";
@@ -254,6 +261,8 @@ export default function WorkoutSessionScreen() {
       feedbackSheetRef.current?.present();
     }
   }, [feedbackQueue.length]);
+  const [editSetModalVisible, setEditSetModalVisible] = useState(false);
+  const [plateCalcVisible, setPlateCalcVisible] = useState(false);
   const [currentSlotIndex, setCurrentSlotIndex] = useState(0);
   const [slots, setSlots] = useState<[SlotData, SlotData, SlotData]>([
     { exerciseIndex: 0, setIndex: 0 },
@@ -403,7 +412,7 @@ export default function WorkoutSessionScreen() {
   const currentSet = currentExercise?.sets[currentSetIndex];
 
   const { data: currentProgressionState } = useProgressionStateQuery(
-    currentExercise?.id,
+    progressionSettings.enabled ? currentExercise?.id : undefined,
     isCurrentWeekDeload,
   );
   const currentSetCompleted =
@@ -411,25 +420,6 @@ export default function WorkoutSessionScreen() {
     typeof completedSets[currentExerciseIndex][currentSetIndex] === "boolean"
       ? completedSets[currentExerciseIndex][currentSetIndex]
       : false;
-
-  type ExerciseEntry = NonNullable<
-    typeof previousWorkoutData
-  >[number]["exercises"][number];
-
-  const buildExerciseMap = (
-    data: typeof previousWorkoutData,
-  ): Map<number, ExerciseEntry[]> => {
-    const map = new Map<number, ExerciseEntry[]>();
-    if (!data) return map;
-    for (const w of data) {
-      for (const ex of w.exercises) {
-        const arr = map.get(ex.exercise_id) ?? [];
-        arr.push(ex);
-        map.set(ex.exercise_id, arr);
-      }
-    }
-    return map;
-  };
 
   const prevExercisesByExerciseId = useMemo(
     () => buildExerciseMap(previousWorkoutData),
@@ -458,40 +448,16 @@ export default function WorkoutSessionScreen() {
       .slice(0, setIndex)
       .filter((s) => (s.isWarmup ?? false) === isWarmup).length;
 
-    const lookup = (map: Map<number, ExerciseEntry[]>) => {
-      const exercises = map.get(exerciseId);
-      if (!exercises) return null;
-      for (const ex of exercises) {
-        const setsOfType = ex.sets.filter((s) => s.is_warmup === isWarmup);
-        if (setsOfType[ordinal]) return setsOfType[ordinal];
-      }
-      return null;
-    };
-
-    // When an exercise was swapped in the previous session, its exercise_id is
-    // updated in completed_exercises to the replacement's id, so the id-keyed
-    // lookup above finds nothing. Fall back to positional lookup: use the
-    // exercise at the same slot index in the most-recent previous workout.
-    const lookupByPosition = () => {
-      if (exercisePosition === undefined) return null;
-      const prevExAtPos =
-        previousWorkoutData?.[0]?.exercises[exercisePosition];
-      if (!prevExAtPos) return null;
-      const setsOfType = prevExAtPos.sets.filter(
-        (s) => s.is_warmup === isWarmup,
-      );
-      return setsOfType[ordinal] ?? null;
-    };
-
-    if (alwaysUseGlobalHistory) {
-      return lookup(globalExercisesByExerciseId);
-    }
-
-    return (
-      lookup(prevExercisesByExerciseId) ??
-      lookupByPosition() ??
-      lookup(globalExercisesByExerciseId)
-    );
+    return findLastAvailableSetDataUtil({
+      exerciseId,
+      isWarmup,
+      ordinal,
+      exercisePosition,
+      previousWorkoutData,
+      prevExercisesByExerciseId,
+      globalExercisesByExerciseId,
+      alwaysUseGlobalHistory,
+    });
   };
 
   const previousWorkoutSetData = findLastAvailableSetData(
@@ -745,8 +711,7 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleWeightChange = (amount: number) => {
-    const currentWeight = isNaN(parseFloat(weight)) ? 0 : parseFloat(weight);
-    const newWeight = Math.max(0, currentWeight + amount).toFixed(1);
+    const newWeight = computeSteppedWeight(weight, amount);
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
@@ -972,7 +937,11 @@ export default function WorkoutSessionScreen() {
     const set = exercise.sets[setIndex];
     if (!set) return null;
 
-    const prevData = findLastAvailableSetData(exercise.exercise_id, setIndex, exerciseIndex);
+    const prevData = findLastAvailableSetData(
+      exercise.exercise_id,
+      setIndex,
+      exerciseIndex,
+    );
     const panelWeight =
       weightAndReps[exerciseIndex]?.[setIndex]?.weight ??
       prevData?.weight?.toString() ??
@@ -1671,6 +1640,10 @@ export default function WorkoutSessionScreen() {
                             addSet={handleAddSet}
                             onAddDropSet={handleAddDropSet}
                             onToggleSetType={handleToggleSetType}
+                            onEditSet={() => setEditSetModalVisible(true)}
+                            onOpenPlateCalculator={() =>
+                              setPlateCalcVisible(true)
+                            }
                             baseTrackingType={
                               currentExercise?.tracking_type || "weight"
                             }
@@ -1758,6 +1731,21 @@ export default function WorkoutSessionScreen() {
           onAfterDismiss={() => setFeedbackQueue((q) => q.slice(1))}
         />
       )}
+      <SessionSetOptionsModal
+        visible={editSetModalVisible}
+        onClose={() => setEditSetModalVisible(false)}
+        exerciseIndex={currentExerciseIndex}
+        setIndex={currentSetIndex}
+        distanceUnit={settings?.distanceUnit || "m"}
+      />
+      <PlateCalculatorModal
+        visible={plateCalcVisible}
+        onClose={() => setPlateCalcVisible(false)}
+        targetWeight={
+          getPanelData(currentExerciseIndex, currentSetIndex)?.weight ?? ""
+        }
+        weightUnit={settings?.weightUnit || "kg"}
+      />
       <RestTimerOverlay
         minutes={minutes}
         seconds={seconds}

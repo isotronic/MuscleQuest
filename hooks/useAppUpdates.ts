@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import * as Updates from "expo-updates";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export type UpdateStatus =
   | "idle"
@@ -56,7 +56,7 @@ export const useAppUpdates = (): UseAppUpdatesReturn => {
             await Updates.fetchUpdateAsync();
           } catch (error: unknown) {
             console.error("Error downloading update:", error);
-            Bugsnag.notify(
+            notifyBugsnag(
               error instanceof Error ? error : new Error(String(error)),
             );
             if (isMountedRef.current) {
@@ -78,7 +78,7 @@ export const useAppUpdates = (): UseAppUpdatesReturn => {
         }
 
         console.error("Error checking for updates:", error);
-        Bugsnag.notify(
+        notifyBugsnag(
           error instanceof Error ? error : new Error(String(error)),
         );
         if (isMountedRef.current) setStatus("no-update");
@@ -105,7 +105,7 @@ export const useAppUpdates = (): UseAppUpdatesReturn => {
       await Updates.reloadAsync();
     } catch (error: unknown) {
       console.error("Error reloading app:", error);
-      Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
+      notifyBugsnag(error instanceof Error ? error : new Error(String(error)));
       setErrorType("reload-failed");
       setStatus("error");
     }

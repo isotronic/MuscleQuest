@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 export interface HistorySet {
   id: number;
@@ -51,7 +51,7 @@ const fetchExerciseHistory = async (
     try {
       await db.closeAsync();
     } catch (closeError: any) {
-      Bugsnag.notify(closeError);
+      notifyBugsnag(closeError);
     }
   }
 };
@@ -224,7 +224,7 @@ export const useExerciseHistoryQuery = (exerciseId: number) => {
       try {
         return await fetchExerciseHistory(exerciseId);
       } catch (error: any) {
-        Bugsnag.notify(error);
+        notifyBugsnag(error);
         throw error;
       }
     },

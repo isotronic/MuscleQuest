@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useContext } from "react";
 import { AuthContext } from "@/context/AuthProvider";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { publishPlan, unpublishPlan } from "@/utils/sharing";
 
 export const usePlanPublishMutation = (planId: number) => {
@@ -19,7 +19,7 @@ export const usePlanPublishMutation = (planId: number) => {
     },
     onSuccess: () => {},
     onError: (error: Error) => {
-      Bugsnag.notify(error);
+      notifyBugsnag(error);
     },
   });
 };

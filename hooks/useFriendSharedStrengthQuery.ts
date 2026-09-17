@@ -8,6 +8,8 @@ import {
 } from "@react-native-firebase/firestore";
 import { AuthContext } from "@/context/AuthProvider";
 import { SharedStrengthPR } from "@/types/firestore";
+import { withTimeout } from "@/utils/withTimeout";
+import { reportFirestoreReadError } from "@/utils/reportFirestoreReadError";
 
 export const useFriendSharedStrengthQuery = (friendUid: string | null) => {
   const user = useContext(AuthContext);
@@ -16,13 +18,20 @@ export const useFriendSharedStrengthQuery = (friendUid: string | null) => {
     queryFn: async (): Promise<SharedStrengthPR[]> => {
       if (!user || !friendUid) return [];
       const db = getFirestore();
-      const snap = await getDocs(
-        collection(db, "users", friendUid, "sharedStrength"),
-      );
-      return snap.docs.map(
-        (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
-          d.data() as SharedStrengthPR,
-      );
+      try {
+        const snap = await withTimeout(
+          getDocs(collection(db, "users", friendUid, "sharedStrength")),
+          15000,
+          "friendSharedStrength",
+        );
+        return snap.docs.map(
+          (d: FirebaseFirestoreTypes.QueryDocumentSnapshot) =>
+            d.data() as SharedStrengthPR,
+        );
+      } catch (error) {
+        reportFirestoreReadError("friendSharedStrength", error);
+        throw error;
+      }
     },
     enabled: !!user && !!friendUid,
     staleTime: 60_000,
