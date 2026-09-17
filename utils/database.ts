@@ -82,6 +82,15 @@ interface SettingsEntry {
   value: string;
 }
 
+// Rolls back without letting a rollback failure mask the original error.
+const safeRollback = async (db: SQLite.SQLiteDatabase): Promise<void> => {
+  try {
+    await db.execAsync("ROLLBACK");
+  } catch (rollbackError) {
+    console.error("Rollback failed:", rollbackError);
+  }
+};
+
 export const updateAppExerciseIds = async (): Promise<void> => {
   const userDataDB = await openDatabase("userData.db");
   let inTransaction = false;
@@ -141,8 +150,9 @@ export const updateAppExerciseIds = async (): Promise<void> => {
     console.error("Error updating app_exercise_id:", error);
     notifyBugsnag(error);
     if (inTransaction) {
-      await userDataDB.execAsync("ROLLBACK");
+      await safeRollback(userDataDB);
     }
+    throw error;
   } finally {
     await userDataDB.closeAsync();
   }
@@ -381,8 +391,9 @@ export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
       );
       await userDataDB.execAsync("COMMIT");
     } catch (err) {
-      await userDataDB.execAsync("ROLLBACK");
+      await safeRollback(userDataDB);
       notifyBugsnag(err as Error);
+      throw err;
     }
   } finally {
     if (appDataDB) await appDataDB.closeAsync();

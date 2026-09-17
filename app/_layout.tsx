@@ -46,25 +46,14 @@ import {
 } from "@expo-google-fonts/inter";
 import { AuthProvider } from "@/context/AuthProvider";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { initializeAppData } from "@/utils/initAppDataDB";
-import { initUserDataDB } from "@/utils/initUserDataDB";
-import {
-  copyDataFromAppDataToUserData,
-  fetchSettings,
-  insertDefaultSettings,
-  syncExerciseFlagsFromAppData,
-  updateAppExerciseIds,
-} from "@/utils/database";
+import { fetchSettings } from "@/utils/database";
+import { runStartup, type StartupResult } from "@/utils/startup";
+import { StartupRecoveryScreen } from "@/components/StartupRecoveryScreen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as googleServices from "@/google-services.json";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { loadPremadePlans } from "@/utils/loadPremadePlans";
-import {
-  getAsyncStorageItem,
-  removeAsyncStorageItem,
-} from "@/utils/asyncStorage";
 import { setupNotificationChannel } from "@/utils/notificationSetup";
 import { rescheduleWorkoutReminders } from "@/utils/workoutReminder";
 import { setupAppCheck } from "@/utils/initAppCheck";
@@ -145,8 +134,8 @@ const appCheckReady = setupAppCheck().catch((error) => {
 });
 
 function RootLayout() {
-  const [isDatabaseInitialized, setIsDatabaseInitialized] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
+  // null while startup is still running (or the app is about to reload).
+  const [startup, setStartup] = useState<StartupResult | null>(null);
   const [loaded, error] = useFonts({
     Inter_100Thin,
     Inter_200ExtraLight,
@@ -168,45 +157,37 @@ function RootLayout() {
   }, [navigationRef]);
 
   useEffect(() => {
-    const initializeDatabase = async () => {
-      const databaseRestored = await getAsyncStorageItem("databaseRestored");
-      console.log("Restore complete:", databaseRestored);
-      if (databaseRestored === "true") {
-        await appCheckReady;
-        setIsDatabaseInitialized(true);
-        setIsInitializing(false);
-        return;
-      }
-
-      try {
-        await Promise.all([
-          appCheckReady,
-          (async () => {
-            await initializeAppData();
-            await initUserDataDB();
-            await copyDataFromAppDataToUserData();
-            await updateAppExerciseIds();
-            await insertDefaultSettings();
-            await loadPremadePlans();
-            await syncExerciseFlagsFromAppData();
-          })(),
-        ]);
-        setIsDatabaseInitialized(true);
-      } catch (error) {
-        console.error("Database initialization error:", error);
-        Bugsnag.notify(error as any);
-        await Updates.reloadAsync();
-      } finally {
-        setIsInitializing(false);
-      }
-    };
-
-    initializeDatabase();
-    removeAsyncStorageItem("databaseRestored");
+    runStartup(appCheckReady)
+      .then((result) => {
+        if (result.status !== "reloading") setStartup(result);
+      })
+      .catch((e) => {
+        const error = e instanceof Error ? e : new Error(String(e));
+        Bugsnag.notify(error);
+        setStartup({ status: "failed", error });
+      });
   }, []);
 
+  const isDatabaseInitialized = startup?.status === "ok";
+
+  // Font loading errors are not fatal: React Native falls back to system fonts.
   useEffect(() => {
-    if (loaded && !error && isDatabaseInitialized && !isInitializing) {
+    if (error) {
+      console.error("Font loading error:", error);
+      Bugsnag.notify(error);
+    }
+  }, [error]);
+
+  // Hide the splash once fonts have settled and startup has either succeeded
+  // or failed, so neither a font error nor a failed init leaves it up forever.
+  useEffect(() => {
+    if ((loaded || error) && startup) {
+      SplashScreen.hide();
+    }
+  }, [loaded, error, startup]);
+
+  useEffect(() => {
+    if (isDatabaseInitialized) {
       setupNotificationChannel()
         .then(() => {
           fetchSettings()
@@ -232,11 +213,14 @@ function RootLayout() {
           Bugsnag.notify(err);
           console.error("Failed to setup notification channel:", err);
         });
-      SplashScreen.hide();
     }
-  }, [loaded, error, isDatabaseInitialized, isInitializing]);
+  }, [isDatabaseInitialized]);
 
-  if (isInitializing) {
+  if (startup?.status === "failed") {
+    return <StartupRecoveryScreen error={startup.error} />;
+  }
+
+  if (!isDatabaseInitialized) {
     return (
       <ThemedView
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
