@@ -431,7 +431,6 @@ export const fetchRecord = async (
   tableName: string,
   id: number,
 ) => {
-  const db = await openDatabase(databaseName);
   const allowedTables = [
     "user_plans",
     "exercises",
@@ -444,6 +443,7 @@ export const fetchRecord = async (
     notifyBugsnag(tableError);
     throw tableError;
   }
+  const db = await openDatabase(databaseName);
   const fieldName = tableName === "exercises" ? "exercise_id" : "id";
   try {
     return await db.getFirstAsync(

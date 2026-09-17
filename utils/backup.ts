@@ -192,13 +192,35 @@ export const restoreDatabaseBackup = async (
 
       // Replace every local file, including a WAL/SHM the backup doesn't have.
       // A leftover local WAL would otherwise be applied to the restored .db.
-      for (const { destFile } of files) {
-        if (destFile.exists) {
-          destFile.delete();
+      // The live files are moved aside rather than deleted, so a failed swap
+      // can put them back. File.move repoints the instance it is called on,
+      // so fresh instances keep each original path stable.
+      const rollbacks: { rollbackFile: File; originalUri: string }[] = [];
+      try {
+        for (const { destFile } of files) {
+          if (destFile.exists) {
+            const rollbackFile = new File(
+              stagingDir,
+              `rollback-${destFile.name}`,
+            );
+            new File(destFile.uri).move(rollbackFile);
+            rollbacks.push({ rollbackFile, originalUri: destFile.uri });
+          }
         }
-      }
-      for (const { stagedFile, destFile } of staged) {
-        stagedFile.move(destFile);
+        for (const { stagedFile, destFile } of staged) {
+          stagedFile.move(new File(destFile.uri));
+        }
+      } catch (error) {
+        for (const { destFile } of files) {
+          const restored = new File(destFile.uri);
+          if (restored.exists) {
+            restored.delete();
+          }
+        }
+        for (const { rollbackFile, originalUri } of rollbacks) {
+          rollbackFile.move(new File(originalUri));
+        }
+        throw error;
       }
     } finally {
       if (stagingDir.exists) {

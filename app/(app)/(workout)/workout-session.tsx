@@ -937,7 +937,11 @@ export default function WorkoutSessionScreen() {
     const set = exercise.sets[setIndex];
     if (!set) return null;
 
-    const prevData = findLastAvailableSetData(exercise.exercise_id, setIndex, exerciseIndex);
+    const prevData = findLastAvailableSetData(
+      exercise.exercise_id,
+      setIndex,
+      exerciseIndex,
+    );
     const panelWeight =
       weightAndReps[exerciseIndex]?.[setIndex]?.weight ??
       prevData?.weight?.toString() ??
@@ -1734,16 +1738,14 @@ export default function WorkoutSessionScreen() {
         setIndex={currentSetIndex}
         distanceUnit={settings?.distanceUnit || "m"}
       />
-      {plateCalcVisible && (
-        <PlateCalculatorModal
-          visible={plateCalcVisible}
-          onClose={() => setPlateCalcVisible(false)}
-          targetWeight={
-            getPanelData(currentExerciseIndex, currentSetIndex)?.weight ?? ""
-          }
-          weightUnit={settings?.weightUnit || "kg"}
-        />
-      )}
+      <PlateCalculatorModal
+        visible={plateCalcVisible}
+        onClose={() => setPlateCalcVisible(false)}
+        targetWeight={
+          getPanelData(currentExerciseIndex, currentSetIndex)?.weight ?? ""
+        }
+        weightUnit={settings?.weightUnit || "kg"}
+      />
       <RestTimerOverlay
         minutes={minutes}
         seconds={seconds}

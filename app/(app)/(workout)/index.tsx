@@ -715,6 +715,7 @@ export default function WorkoutOverviewScreen() {
       feedbackSubmittedUweIds,
       styles,
       colors,
+      weightUnit,
     ],
   );
 

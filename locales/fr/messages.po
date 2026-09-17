@@ -1232,7 +1232,7 @@ msgstr "Les notes peuvent être ajoutées par exercice via l'icône de notes, pa
 
 #: constants/HelpData.ts:52
 msgid "Add notes to the plan from its overview screen, and switch between Carousel, List, and Grid views using the icons next to \"Your Training Plans\" (your choice is remembered)."
-msgstr "Ajoute des notes depuis l'écran de vue d'ensemble et bascule entre les affichages Carrousel, Liste et Grille avec les icônes à côté de \\\"Tes plans d'entraînement\\\" (ton choix est mémorisé)."
+msgstr "Ajoute des notes depuis l'écran de vue d'ensemble et bascule entre les affichages Carrousel, Liste et Grille avec les icônes à côté de \"Tes plans d'entraînement\" (ton choix est mémorisé)."
 
 #: components/Onboarding.tsx:36
 msgid "Add Personal Notes"

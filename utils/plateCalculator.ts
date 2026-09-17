@@ -273,7 +273,7 @@ export const parsePlateInventory = (
       typeof (entry as PlateStock).weight === "number" &&
       typeof (entry as PlateStock).pairs === "number" &&
       Number.isFinite((entry as PlateStock).weight) &&
-      Number.isFinite((entry as PlateStock).pairs) &&
+      Number.isInteger((entry as PlateStock).pairs) &&
       (entry as PlateStock).weight > 0 &&
       (entry as PlateStock).pairs >= 0,
   );

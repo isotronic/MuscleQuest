@@ -230,6 +230,8 @@ describe("restoreDatabaseBackup", () => {
 
     files = {};
     (File as unknown as jest.Mock).mockImplementation((...args: any[]) => {
+      // new File(uri) re-opens a file the restore already created.
+      if (args.length === 1 && files[args[0]]) return files[args[0]];
       const name = String(args[args.length - 1]);
       const staged = args[0]?.isStaging === true;
       const key = `${staged ? "staged" : "local"}:${name}`;
@@ -271,7 +273,9 @@ describe("restoreDatabaseBackup", () => {
       "true",
     );
     expect(reloadAsync).toHaveBeenCalled();
-    expect(files["local:userData.db"].delete).toHaveBeenCalled();
+    expect(files["local:userData.db"].move).toHaveBeenCalledWith(
+      files["staged:rollback-userData.db"],
+    );
     expect(files["staged:userData.db"].move).toHaveBeenCalledWith(
       files["local:userData.db"],
     );
@@ -291,11 +295,46 @@ describe("restoreDatabaseBackup", () => {
       queryClient,
     );
 
-    expect(files["local:userData.db-wal"].delete).toHaveBeenCalled();
-    expect(files["local:userData.db-shm"].delete).toHaveBeenCalled();
+    expect(files["local:userData.db-wal"].move).toHaveBeenCalledWith(
+      files["staged:rollback-userData.db-wal"],
+    );
+    expect(files["local:userData.db-shm"].move).toHaveBeenCalledWith(
+      files["staged:rollback-userData.db-shm"],
+    );
     expect(files["staged:userData.db"].move).toHaveBeenCalled();
     expect(files["staged:userData.db-wal"].move).not.toHaveBeenCalled();
     expect(reloadAsync).toHaveBeenCalled();
+  });
+
+  it("puts the live files back when swapping in the backup fails", async () => {
+    mockStorage.getDownloadURL.mockResolvedValue("https://example.com/dbfile");
+    const realImpl = (File as unknown as jest.Mock).getMockImplementation()!;
+    (File as unknown as jest.Mock).mockImplementation((...args: any[]) => {
+      const file = realImpl(...args);
+      if (file.uri === "staged:userData.db-wal") {
+        file.move.mockImplementation(() => {
+          throw new Error("Disk full");
+        });
+      }
+      return file;
+    });
+
+    await expect(
+      restoreDatabaseBackup(
+        setRestoreProgressMock,
+        setIsRestoreLoadingMock,
+        queryClient,
+      ),
+    ).rejects.toThrow("Disk full");
+
+    expect(files["local:userData.db"].delete).toHaveBeenCalled();
+    expect(files["staged:rollback-userData.db"].move).toHaveBeenCalledWith(
+      files["local:userData.db"],
+    );
+    expect(files["staged:rollback-userData.db-wal"].move).toHaveBeenCalledWith(
+      files["local:userData.db-wal"],
+    );
+    expect(reloadAsync).not.toHaveBeenCalled();
   });
 
   it("leaves local files untouched when a download fails", async () => {
@@ -313,8 +352,8 @@ describe("restoreDatabaseBackup", () => {
       ),
     ).rejects.toThrow("Network down");
 
-    expect(files["local:userData.db"].delete).not.toHaveBeenCalled();
-    expect(files["local:userData.db-wal"].delete).not.toHaveBeenCalled();
+    expect(files["local:userData.db"].move).not.toHaveBeenCalled();
+    expect(files["local:userData.db-wal"].move).not.toHaveBeenCalled();
     expect(stagingDir.delete).toHaveBeenCalled();
     expect(reloadAsync).not.toHaveBeenCalled();
   });

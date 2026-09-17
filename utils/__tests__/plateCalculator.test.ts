@@ -258,10 +258,15 @@ describe("parsePlateInventory", () => {
   it("drops entries that are not usable plates", () => {
     expect(
       parsePlateInventory(
-        '[{"weight":25,"pairs":2},{"weight":0,"pairs":2},{"weight":5,"pairs":-1},{"pairs":2}]',
+        '[{"weight":25,"pairs":2},{"weight":0,"pairs":2},{"weight":5,"pairs":-1},{"weight":10,"pairs":1.5},{"weight":2.5,"pairs":0},{"pairs":2}]',
         "kg",
       ),
-    ).toEqual(stock([[25, 2]]));
+    ).toEqual(
+      stock([
+        [25, 2],
+        [2.5, 0],
+      ]),
+    );
   });
 });
 

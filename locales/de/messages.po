@@ -1232,7 +1232,7 @@ msgstr "Notizen können pro Übung über das Notizensymbol in der Übungsübersc
 
 #: constants/HelpData.ts:52
 msgid "Add notes to the plan from its overview screen, and switch between Carousel, List, and Grid views using the icons next to \"Your Training Plans\" (your choice is remembered)."
-msgstr "Füge Notizen über den Planübersichtsbildschirm hinzu und wechsle mithilfe der Ansichtssymbole neben \\\"Deine Trainingspläne\\\" zwischen Karussell-, Listen- und Rasteransicht (deine Wahl wird gespeichert)."
+msgstr "Füge Notizen über den Planübersichtsbildschirm hinzu und wechsle mithilfe der Ansichtssymbole neben \"Deine Trainingspläne\" zwischen Karussell-, Listen- und Rasteransicht (deine Wahl wird gespeichert)."
 
 #: components/Onboarding.tsx:36
 msgid "Add Personal Notes"
