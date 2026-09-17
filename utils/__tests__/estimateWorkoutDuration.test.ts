@@ -4,8 +4,6 @@ import {
   EQUIPMENT_DURATION_DEFAULTS,
   DEFAULT_FALLBACK_DURATION,
   MAX_VALID_SET_DURATION_SEC,
-  SUFFICIENT_HISTORY_MIN,
-  SPARSE_HISTORY_MIN,
   REP_NORM,
   type SetDurationSample,
 } from "@/utils/estimateWorkoutDuration";
@@ -251,7 +249,7 @@ describe("computeWorkoutDurationEstimate", () => {
 
   describe("sparse history blending (1–2 samples)", () => {
     it("produces a result between history mean and equipment range with 1 sample", () => {
-      const [defMin, defMax] = EQUIPMENT_DURATION_DEFAULTS["dumbbell"];
+      const [defMin] = EQUIPMENT_DURATION_DEFAULTS["dumbbell"];
       const histValue = 60; // above equipment default
       const set = makeSet();
       const ex = makeExercise(1, "dumbbell", [set]);

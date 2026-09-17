@@ -23,7 +23,6 @@ export const useCreatePlan = (existingPlan?: Plan) => {
   const { privacySettings, publishedPlanIds } = useSocialStore();
   const [planSaved, setPlanSaved] = useState(false);
   const [planName, setPlanName] = useState("");
-  const [isError, setIsError] = useState(false);
 
   const { workouts, planImageUrl, setPlanImageUrl, planSchedule, clearDraft } =
     useWorkoutStore();
@@ -149,7 +148,7 @@ export const useCreatePlan = (existingPlan?: Plan) => {
           queryClient.invalidateQueries({
             queryKey: ["planSchedule", savedPlanId],
           });
-        } catch (_) {
+        } catch {
           // Non-critical
         }
       }
@@ -160,7 +159,6 @@ export const useCreatePlan = (existingPlan?: Plan) => {
     } catch (error: any) {
       console.error("Error inserting/updating plan data:", error);
       notifyBugsnag(error);
-      setIsError(true);
       localError = true;
     } finally {
       if (localPlanSaved && !localError) {

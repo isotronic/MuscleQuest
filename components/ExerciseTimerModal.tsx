@@ -64,7 +64,7 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
     } else {
       clearCurrent();
     }
-  }, [visible, countdownFrom]);
+  }, [visible, countdownFrom, clearCurrent]);
 
   useEffect(() => {
     if (!visible || phase !== "countdown") return;

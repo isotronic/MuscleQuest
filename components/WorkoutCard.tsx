@@ -342,6 +342,8 @@ export default function WorkoutCard({
       removeExercise,
       workoutIndex,
       distanceUnit,
+      styles,
+      colors,
     ],
   );
 
@@ -370,7 +372,7 @@ export default function WorkoutCard({
         </View>
       );
     },
-    [renderExerciseRow],
+    [renderExerciseRow, styles],
   );
 
   // Reorder groups then flatten back to the flat exercises array.

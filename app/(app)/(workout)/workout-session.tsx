@@ -892,7 +892,7 @@ export default function WorkoutSessionScreen() {
   useEffect(() => {
     canGoNext.value = !!hasNextSet;
     canGoPrev.value = !!hasPreviousSet;
-  }, [hasNextSet, hasPreviousSet]);
+  }, [hasNextSet, hasPreviousSet, canGoNext, canGoPrev]);
 
   // Populate ring-buffer slots once the workout is available.
   // Reads directly from the store so the selectedExerciseIndex effect is already applied.
