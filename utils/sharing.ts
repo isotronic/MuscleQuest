@@ -417,17 +417,28 @@ const deleteSubcollection = async (
   }
 };
 
+const SHARED_SUBCOLLECTIONS = [
+  "sharedPlans",
+  "sharedStandaloneWorkouts",
+  "sharedCustomExercises",
+  "sharedWorkouts",
+  "sharedMeasurements",
+  "sharedStrength",
+];
+
+// Throws on failure, so callers that must not continue past a partial delete
+// (account deletion) can stop. deleteAllSharedData swallows errors instead.
+export const deleteAllSharedDataOrThrow = async (
+  uid: string,
+): Promise<void> => {
+  await Promise.all(
+    SHARED_SUBCOLLECTIONS.map((c) => deleteSubcollection(uid, c)),
+  );
+};
+
 export const deleteAllSharedData = async (uid: string): Promise<void> => {
   try {
-    const subcollections = [
-      "sharedPlans",
-      "sharedStandaloneWorkouts",
-      "sharedCustomExercises",
-      "sharedWorkouts",
-      "sharedMeasurements",
-      "sharedStrength",
-    ];
-    await Promise.all(subcollections.map((c) => deleteSubcollection(uid, c)));
+    await deleteAllSharedDataOrThrow(uid);
   } catch (error) {
     Bugsnag.notify(error as Error);
   }

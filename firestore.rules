@@ -121,6 +121,12 @@ service cloud.firestore {
            request.resource.data.to == resource.data.to &&
            request.resource.data.status == 'pending')
         );
+      // Either party may delete. Derived from the id so it also works when the
+      // document does not exist (resource is null for missing docs). Firebase
+      // UIDs never contain underscores.
+      allow delete: if request.auth != null &&
+        (requestId.split('_')[0] == request.auth.uid ||
+         requestId.split('_')[1] == request.auth.uid);
     }
   }
 }

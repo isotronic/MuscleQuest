@@ -29,6 +29,7 @@ import { SettingsModal } from "@/components/SettingsModal";
 import { PrivacySettings } from "@/components/PrivacySettings";
 // import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 import { useImageManagement } from "@/hooks/useImageManagement";
+import { useTrainingDataExport } from "@/hooks/useTrainingDataExport";
 import { useQueryClient } from "@tanstack/react-query";
 import { saveBodyWeightMeasurement } from "@/utils/database";
 import { AuthContext } from "@/context/AuthProvider";
@@ -84,6 +85,8 @@ export default function SettingsScreen() {
       Alert.alert(t`Error`, t`Failed to sign out. Please try again.`);
     }
   };
+
+  const { isExporting, promptExport } = useTrainingDataExport();
 
   const queryClient = useQueryClient();
   const { data: settings, isLoading, isError, error } = useSettingsQuery();
@@ -1653,6 +1656,60 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
         <Divider style={styles.divider} /> */}
+
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionHeader}>
+            <Trans>Your data</Trans>
+          </ThemedText>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={promptExport}
+            disabled={isExporting}
+          >
+            <AppIcon
+              set="mci"
+              name="file-export"
+              size={24}
+              color={colors.contentSecondary}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                <Trans>Export training data</Trans>
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {isExporting
+                  ? t`Exporting...`
+                  : t`Save your workouts and measurements as CSV or JSON`}
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+          {user && (
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => router.push("/delete-account")}
+            >
+              <AppIcon
+                set="mci"
+                name="account-remove"
+                size={24}
+                color={colors.danger}
+                style={styles.icon}
+              />
+              <View style={styles.textContainer}>
+                <ThemedText style={[styles.itemText, { color: colors.danger }]}>
+                  <Trans>Delete account</Trans>
+                </ThemedText>
+                <ThemedText style={styles.currentSetting}>
+                  <Trans>
+                    Remove your account and everything stored online
+                  </Trans>
+                </ThemedText>
+              </View>
+            </TouchableOpacity>
+          )}
+        </View>
+        <Divider style={styles.divider} />
 
         {user && (
           <>
