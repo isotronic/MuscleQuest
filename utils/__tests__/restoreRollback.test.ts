@@ -211,13 +211,33 @@ describe("recoverInterruptedRestore", () => {
     expect(mockFiles.get(LIVE)).toBe("old-db");
   });
 
-  it("treats an unreadable marker as nothing moved", () => {
+  it.each([
+    ["unreadable", '{"origi'],
+    ["null", "null"],
+    ["missing originals", "{}"],
+    ["non-array originals", '{"originals":"userData.db"}'],
+  ])("treats a %s marker as nothing moved", (_label, contents) => {
     mockDirs.add(ROLLBACK_DIR);
-    mockFiles.set(MARKER, '{"origi');
+    mockFiles.set(MARKER, contents);
 
     expect(recoverInterruptedRestore()).toBe(false);
     expect(mockDirs.has(ROLLBACK_DIR)).toBe(false);
-    expect(mockFiles.get(LIVE)).toBe("old-db");
+    expect(liveState()).toEqual({
+      [LIVE]: "old-db",
+      [`${LIVE}-wal`]: "old-wal",
+      [`${LIVE}-shm`]: "old-shm",
+    });
+  });
+
+  it("ignores non-string entries in the marker", () => {
+    writeMarker(["userData.db", 42, null] as any);
+    mockFiles.delete(`${LIVE}-wal`);
+    mockFiles.delete(`${LIVE}-shm`);
+    mockFiles.set(`${ROLLBACK_DIR}/rollback-userData.db`, "old-db");
+    mockFiles.set(LIVE, "new-db");
+
+    expect(recoverInterruptedRestore()).toBe(true);
+    expect(liveState()).toEqual({ [LIVE]: "old-db" });
   });
 
   it("recovers from being killed while moving the live files aside", () => {

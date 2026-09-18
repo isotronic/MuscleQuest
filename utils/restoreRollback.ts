@@ -135,12 +135,23 @@ export const recoverInterruptedRestore = (): boolean => {
     return false;
   }
 
-  let marker: SwapMarker;
+  let marker: SwapMarker | null = null;
   try {
-    marker = JSON.parse(markerFile.textSync());
+    const parsed = JSON.parse(markerFile.textSync());
+    if (parsed && Array.isArray(parsed.originals)) {
+      marker = {
+        originals: parsed.originals.filter(
+          (name: unknown): name is string => typeof name === "string",
+        ),
+      };
+    }
   } catch {
-    // The marker is written before any file moves, so an unreadable one
-    // means the app stopped while writing it and nothing was moved.
+    // Handled below as unreadable.
+  }
+  if (!marker) {
+    // The marker is written before any file moves, so an unreadable or
+    // malformed one means the app stopped while writing it and nothing was
+    // moved.
     deleteQuietly(dir);
     return false;
   }
