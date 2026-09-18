@@ -54,6 +54,20 @@ msgstr ""
 "A new slide-in panel lets you fine-tune your rest duration on the fly during a workout. Your custom rest time is saved per set, so each set remembers exactly how long you like to rest.\n"
 ""
 
+#: constants/WhatsNew.ts:431
+msgid ""
+"\n"
+"☁️ Improved: Safer Backups & Restores!\n"
+"\n"
+"A backup that fails partway can no longer overwrite your last good one, and every backup is checked before it is uploaded. Restoring a backup made with an older version of the app now works reliably, and the restore prompt tells you exactly what will be replaced.\n"
+""
+msgstr ""
+"\n"
+"☁️ Improved: Safer Backups & Restores!\n"
+"\n"
+"A backup that fails partway can no longer overwrite your last good one, and every backup is checked before it is uploaded. Restoring a backup made with an older version of the app now works reliably, and the restore prompt tells you exactly what will be replaced.\n"
+""
+
 #: constants/WhatsNew.ts:277
 msgid ""
 "\n"
@@ -218,6 +232,20 @@ msgstr ""
 "🐛 Fixed: Various Bug Fixes & Improvements!\n"
 "\n"
 "Fixed the rest timer notification not triggering correctly, exercise name wrapping in the workout session, the workout completion circle width, notes not updating correctly while typing, and workout details sometimes opening in the wrong tab. Workouts now load faster thanks to internal performance improvements.\n"
+""
+
+#: constants/WhatsNew.ts:423
+msgid ""
+"\n"
+"🐛 Fixed: Weight Suggestions in Pounds!\n"
+"\n"
+"If you train in pounds, adaptive progression suggestions now use your weight unit correctly. Previously some suggestions came out too small or were filled in with the wrong value.\n"
+""
+msgstr ""
+"\n"
+"🐛 Fixed: Weight Suggestions in Pounds!\n"
+"\n"
+"If you train in pounds, adaptive progression suggestions now use your weight unit correctly. Previously some suggestions came out too small or were filled in with the wrong value.\n"
 ""
 
 #: constants/WhatsNew.ts:20
@@ -536,6 +564,20 @@ msgstr ""
 "📖 Improved: Redesigned Help Screen!\n"
 "\n"
 "The Help & Info screen now opens with collapsed, expandable topic groups and a chip row to jump straight to a section. Search is faster and smarter, highlighting the exact matching text in each result, and shows a helpful empty state with a link to request a feature if nothing matches.\n"
+""
+
+#: constants/WhatsNew.ts:439
+msgid ""
+"\n"
+"📤 New: Export Your Data & Delete Your Account!\n"
+"\n"
+"Under Settings > Your data you can now export your workouts and body measurements as CSV for spreadsheets, or as JSON with everything including plans and custom exercises. If you are signed in, you can also delete your account there, which removes everything stored online. You choose whether to keep your training history on this device.\n"
+""
+msgstr ""
+"\n"
+"📤 New: Export Your Data & Delete Your Account!\n"
+"\n"
+"Under Settings > Your data you can now export your workouts and body measurements as CSV for spreadsheets, or as JSON with everything including plans and custom exercises. If you are signed in, you can also delete your account there, which removes everything stored online. You choose whether to keep your training history on this device.\n"
 ""
 
 #: constants/WhatsNew.ts:325

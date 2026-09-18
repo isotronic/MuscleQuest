@@ -418,6 +418,30 @@ You can now change an exercise's rep range and rest time mid-workout from the th
 Open the three-dot menu during a workout and tap Plate Calculator to see exactly which plates to load on each side of the bar. Pick your bar weight once and it is remembered. Under Settings > Workout > Plates you can tell the app which plates you actually own, so it never suggests a load you cannot build.
 `,
   },
+  {
+    version: 2649,
+    message: msg`
+🐛 Fixed: Weight Suggestions in Pounds!
+
+If you train in pounds, adaptive progression suggestions now use your weight unit correctly. Previously some suggestions came out too small or were filled in with the wrong value.
+`,
+  },
+  {
+    version: 2650,
+    message: msg`
+☁️ Improved: Safer Backups & Restores!
+
+A backup that fails partway can no longer overwrite your last good one, and every backup is checked before it is uploaded. Restoring a backup made with an older version of the app now works reliably, and the restore prompt tells you exactly what will be replaced.
+`,
+  },
+  {
+    version: 2651,
+    message: msg`
+📤 New: Export Your Data & Delete Your Account!
+
+Under Settings > Your data you can now export your workouts and body measurements as CSV for spreadsheets, or as JSON with everything including plans and custom exercises. If you are signed in, you can also delete your account there, which removes everything stored online. You choose whether to keep your training history on this device.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

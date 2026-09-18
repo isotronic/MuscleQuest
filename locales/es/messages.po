@@ -55,6 +55,20 @@ msgstr ""
 "Un nuevo panel deslizante te permite ajustar la duración del descanso en cualquier momento durante un entrenamiento. Tu tiempo de descanso personalizado se guarda por serie, para que cada serie recuerde exactamente cuánto tiempo quieres descansar.\n"
 ""
 
+#: constants/WhatsNew.ts:431
+msgid ""
+"\n"
+"☁️ Improved: Safer Backups & Restores!\n"
+"\n"
+"A backup that fails partway can no longer overwrite your last good one, and every backup is checked before it is uploaded. Restoring a backup made with an older version of the app now works reliably, and the restore prompt tells you exactly what will be replaced.\n"
+""
+msgstr ""
+"\n"
+"☁️ Mejorado: Copias de seguridad y restauraciones más seguras!\n"
+"\n"
+"Una copia de seguridad que falla a medias ya no puede sobrescribir la última copia buena, y cada copia se comprueba antes de subirse. Restaurar una copia hecha con una versión anterior de la app ahora funciona de forma fiable, y el aviso de restauración te indica exactamente qué se reemplazará.\n"
+""
+
 #: constants/WhatsNew.ts:277
 msgid ""
 "\n"
@@ -219,6 +233,20 @@ msgstr ""
 "🐛 Solucionado: ¡Varias correcciones y mejoras!\n"
 "\n"
 "Se corrigió que la notificación del temporizador de descanso no se activaba correctamente, el ajuste de texto del nombre del ejercicio en la sesión, el ancho del círculo de finalización del entrenamiento, las notas que no se actualizaban correctamente al escribir, y los detalles del entrenamiento que a veces se abrían en la pestaña incorrecta. Los entrenamientos ahora se cargan más rápido gracias a mejoras internas de rendimiento.\n"
+""
+
+#: constants/WhatsNew.ts:423
+msgid ""
+"\n"
+"🐛 Fixed: Weight Suggestions in Pounds!\n"
+"\n"
+"If you train in pounds, adaptive progression suggestions now use your weight unit correctly. Previously some suggestions came out too small or were filled in with the wrong value.\n"
+""
+msgstr ""
+"\n"
+"🐛 Corregido: Sugerencias de peso en libras!\n"
+"\n"
+"Si entrenas en libras, las sugerencias de la progresión adaptativa ahora usan correctamente tu unidad de peso. Antes, algunas sugerencias salían demasiado bajas o se rellenaban con un valor incorrecto.\n"
 ""
 
 #: constants/WhatsNew.ts:20
@@ -537,6 +565,20 @@ msgstr ""
 "📖 Mejorado: ¡Pantalla de ayuda rediseñada!\n"
 "\n"
 "La sección de Ayuda e información ahora se abre con grupos de temas contraídos y expandibles, y una fila de chips para saltar directamente a una sección. La búsqueda es más rápida e inteligente, resalta el texto exacto que coincide en cada resultado, y muestra un estado vacío útil con un enlace para solicitar una función si no hay coincidencias.\n"
+""
+
+#: constants/WhatsNew.ts:439
+msgid ""
+"\n"
+"📤 New: Export Your Data & Delete Your Account!\n"
+"\n"
+"Under Settings > Your data you can now export your workouts and body measurements as CSV for spreadsheets, or as JSON with everything including plans and custom exercises. If you are signed in, you can also delete your account there, which removes everything stored online. You choose whether to keep your training history on this device.\n"
+""
+msgstr ""
+"\n"
+"📤 Nuevo: Exporta tus datos y elimina tu cuenta!\n"
+"\n"
+"En Ajustes > Tus datos ahora puedes exportar tus entrenamientos y medidas corporales como CSV para hojas de cálculo, o como JSON con todo, incluidos los planes y los ejercicios personalizados. Si has iniciado sesión, también puedes eliminar tu cuenta desde ahí, lo que borra todo lo guardado en línea. Tú decides si conservas tu historial de entrenamiento en este dispositivo.\n"
 ""
 
 #: constants/WhatsNew.ts:325
