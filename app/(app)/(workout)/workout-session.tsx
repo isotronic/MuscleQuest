@@ -1664,10 +1664,11 @@ export default function WorkoutSessionScreen() {
                               );
                             }}
                             progressionSuggestion={
-                              currentExercise?.id != null &&
-                              feedbackSubmittedUweIds.includes(
-                                currentExercise.id,
-                              )
+                              (currentExercise?.id != null &&
+                                feedbackSubmittedUweIds.includes(
+                                  currentExercise.id,
+                                )) ||
+                              currentProgressionState?.isDismissed
                                 ? null
                                 : (currentProgressionState ?? null)
                             }
