@@ -7,6 +7,7 @@ import {
   parsePlateInventory,
   serialisePlateInventory,
   type PlateStock,
+  smallestLoadStep,
 } from "../plateCalculator";
 
 const stock = (entries: [number, number][]): PlateStock[] =>
@@ -284,5 +285,23 @@ describe("defaults", () => {
   it("offers bar presets for both units", () => {
     expect(BAR_PRESETS_KG).toEqual([25, 20, 15, 10, 7.5]);
     expect(BAR_PRESETS_LBS).toEqual([45, 35, 25]);
+  });
+});
+
+describe("smallestLoadStep", () => {
+  it("is one pair of the lightest stocked plate", () => {
+    expect(
+      smallestLoadStep([
+        { weight: 45, pairs: 2 },
+        { weight: 2.5, pairs: 0 },
+        { weight: 1.25, pairs: 1 },
+      ]),
+    ).toBe(2.5);
+    expect(smallestLoadStep(DEFAULT_PLATE_INVENTORY_LBS)).toBe(5);
+  });
+
+  it("is null when nothing is stocked", () => {
+    expect(smallestLoadStep([])).toBeNull();
+    expect(smallestLoadStep([{ weight: 5, pairs: 0 }])).toBeNull();
   });
 });

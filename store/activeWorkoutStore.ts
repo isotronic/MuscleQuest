@@ -9,6 +9,7 @@ import { formatFromTotalSeconds } from "@/utils/utility";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { findHistoricalSetByOrdinal } from "@/utils/historyUtils";
+import { suggestedWeightForDisplay } from "@/utils/weightUnits";
 import Bugsnag from "@bugsnag/expo";
 
 /**
@@ -160,6 +161,8 @@ interface ActiveWorkoutStore {
       isApplied: boolean;
     }[],
     weightUnit: string,
+    // Smallest plate pair in pounds; lbs suggestions round to it.
+    lbsStep: number | null,
   ) => void;
   // The weight a progression suggestion pre-filled into each set, keyed by
   // exercise index then set index. Kept so a later manual entry can be told
@@ -1492,7 +1495,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         return Boolean(activeWorkout && workout); // Returns true if there's an active workout
       },
       getActiveWorkoutId: () => get().activeWorkout?.workoutId ?? null,
-      loadProgressionSuggestions: (states, weightUnit) => {
+      loadProgressionSuggestions: (states, weightUnit, lbsStep) => {
         set((state) => {
           if (!state.workout) return state;
           const newWeightAndReps = { ...state.weightAndReps };
@@ -1522,10 +1525,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             if (suggestion.suggestedWeight == null) continue;
             // Suggestions are computed in kg; the weight inputs and the
             // session history used for the cap below are in the display unit.
-            const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
-            const roundedWeight =
-              Math.round(suggestion.suggestedWeight * conversionFactor * 10) /
-              10;
+            const roundedWeight = suggestedWeightForDisplay(
+              suggestion.suggestedWeight,
+              weightUnit,
+              lbsStep,
+            );
             const historyExercises =
               suggestion.suggestionAction === "increase_load"
                 ? (state.previousWorkoutData ?? [])

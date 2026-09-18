@@ -1738,6 +1738,7 @@ describe("useActiveWorkoutStore", () => {
             },
           ],
           "kg",
+          null,
         );
       });
 
@@ -1812,12 +1813,114 @@ describe("useActiveWorkoutStore", () => {
             },
           ],
           "lbs",
+          5,
         );
       });
 
-      // 102.5kg is 225.97lbs, above the 220.46lbs lifted last time.
+      // 102.5kg is 225.97lbs, rounded to the 5lb plate step: 225, above the
+      // 220.46lbs lifted last time.
       const { weightAndReps } = useActiveWorkoutStore.getState();
-      expect(weightAndReps[0][0]?.weight).toBe("226");
+      expect(weightAndReps[0][0]?.weight).toBe("225");
+    });
+
+    it.each([
+      ["lbs", 5, "230"],
+      ["kg", null, "104.3"],
+    ])(
+      "pre-fills a 104.3kg suggestion in the display unit (%s)",
+      (unit, lbsStep, expected) => {
+        act(() => {
+          useActiveWorkoutStore.setState({
+            workout: {
+              name: "Suggestion Test Workout",
+              exercises: [{ ...baseExercise, sets: [workingSet()] }],
+            },
+            previousWorkoutData: null,
+            weightAndReps: {},
+          });
+
+          useActiveWorkoutStore.getState().loadProgressionSuggestions(
+            [
+              {
+                userWorkoutExerciseId: 55,
+                suggestionAction: "increase_load",
+                suggestedWeight: 104.3,
+                isApplied: true,
+              },
+            ],
+            unit,
+            lbsStep,
+          );
+        });
+
+        const { weightAndReps, suggestedWeightPrefills } =
+          useActiveWorkoutStore.getState();
+        expect(weightAndReps[0][0]?.weight).toBe(expected);
+        expect(suggestedWeightPrefills[0][0]).toBe(parseFloat(expected));
+      },
+    );
+
+    it("compares the carry-over guard in display units for lbs", () => {
+      const history: any = [
+        {
+          id: 1,
+          workout_id: 1,
+          plan_id: 1,
+          workout_name: "Test Workout",
+          date_completed: "2026-06-01T00:00:00.000Z",
+          duration: 0,
+          total_sets_completed: 1,
+          exercises: [
+            {
+              exercise_id: 700,
+              exercise_name: "Bench Press",
+              exercise_tracking_type: "weight",
+              sets: [
+                {
+                  set_id: 1,
+                  set_number: 1,
+                  weight: 225,
+                  reps: 10,
+                  time: null,
+                  distance: null,
+                  is_warmup: false,
+                  set_duration: null,
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      act(() => {
+        useActiveWorkoutStore.setState({
+          workout: {
+            name: "Suggestion Test Workout",
+            exercises: [{ ...baseExercise, sets: [workingSet()] }],
+          },
+          previousWorkoutData: history,
+          weightAndReps: {},
+        });
+
+        // 104kg is 229.28lbs, 230 on the 5lb plate step, above the 225lbs
+        // lifted last time. Compared unconverted (104 < 225) the carry-over
+        // would wrongly win.
+        useActiveWorkoutStore.getState().loadProgressionSuggestions(
+          [
+            {
+              userWorkoutExerciseId: 55,
+              suggestionAction: "increase_load",
+              suggestedWeight: 104,
+              isApplied: true,
+            },
+          ],
+          "lbs",
+          5,
+        );
+      });
+
+      const { weightAndReps } = useActiveWorkoutStore.getState();
+      expect(weightAndReps[0][0]?.weight).toBe("230");
     });
 
     it("does not let an increase_load suggestion undercut the carried-over previous weight", () => {
@@ -1904,6 +2007,7 @@ describe("useActiveWorkoutStore", () => {
             },
           ],
           "kg",
+          null,
         );
       });
 
@@ -1977,6 +2081,7 @@ describe("useActiveWorkoutStore", () => {
             },
           ],
           "kg",
+          null,
         );
       });
 
@@ -2028,6 +2133,7 @@ describe("useActiveWorkoutStore", () => {
             },
           ],
           "kg",
+          null,
         );
       });
 
@@ -2059,6 +2165,7 @@ describe("useActiveWorkoutStore", () => {
             },
           ],
           "kg",
+          null,
         );
       });
 
@@ -2114,6 +2221,7 @@ describe("useActiveWorkoutStore", () => {
             },
           ],
           "kg",
+          null,
         );
       });
     };
@@ -2225,6 +2333,7 @@ describe("useActiveWorkoutStore", () => {
             },
           ],
           "kg",
+          null,
         );
 
         useActiveWorkoutStore.getState().updateWeightAndReps(0, 0, "100", "10");

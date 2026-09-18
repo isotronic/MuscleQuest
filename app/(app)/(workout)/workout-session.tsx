@@ -64,6 +64,7 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { radii } from "@/theme";
+import { displayToKg } from "@/utils/weightUnits";
 
 // Reanimated 4: Animated.View types don't include children in strict TS
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
@@ -1167,8 +1168,11 @@ export default function WorkoutSessionScreen() {
         trackingType,
         equipment: exercise.equipment,
         currentSets: exercise.sets,
+        // The inputs are in the display unit; the engine works in kg.
         recentWorkingWeight:
-          maxWeight.length > 0 ? Math.max(...maxWeight) : null,
+          maxWeight.length > 0
+            ? displayToKg(Math.max(...maxWeight), settings?.weightUnit || "kg")
+            : null,
         completedRepsPerSet,
       },
     };
@@ -1660,10 +1664,11 @@ export default function WorkoutSessionScreen() {
                               );
                             }}
                             progressionSuggestion={
-                              currentExercise?.id != null &&
-                              feedbackSubmittedUweIds.includes(
-                                currentExercise.id,
-                              )
+                              (currentExercise?.id != null &&
+                                feedbackSubmittedUweIds.includes(
+                                  currentExercise.id,
+                                )) ||
+                              currentProgressionState?.isDismissed
                                 ? null
                                 : (currentProgressionState ?? null)
                             }
