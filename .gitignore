@@ -42,3 +42,6 @@ docs/
 *copilot-instructions.md
 *EXPO_SDK_52_UPGRADE_PLAN.md
 .firebaserc
+
+# Firebase emulator logs
+*-debug.log
