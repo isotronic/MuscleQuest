@@ -496,10 +496,7 @@ export default function SettingsScreen() {
       case "newer-schema":
         return t`This backup was made with a newer version of MuscleQuest. Update the app, then restore.`;
       default:
-        return (
-          (error as { message?: string })?.message ??
-          t`An unexpected error occurred.`
-        );
+        return t`An unexpected error occurred.`;
     }
   };
 

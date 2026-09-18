@@ -498,6 +498,37 @@ describe("restoreDatabaseBackup", () => {
     expect(setRestoreProgressMock).toHaveBeenLastCalledWith(0);
   });
 
+  it("keeps the staging folder and the original error when putting a file back fails", async () => {
+    mockRemote(null);
+    const realImpl = (File as unknown as jest.Mock).getMockImplementation()!;
+    (File as unknown as jest.Mock).mockImplementation((...args: any[]) => {
+      const file = realImpl(...args);
+      if (file.uri === "staged:userData.db-wal") {
+        file.move.mockImplementation(() => {
+          throw new Error("Disk full");
+        });
+      }
+      if (file.uri === "staged:rollback-userData.db") {
+        file.move.mockImplementation(() => {
+          throw new Error("Rollback failed");
+        });
+      }
+      return file;
+    });
+
+    await expect(restore()).rejects.toThrow("Disk full");
+
+    // The other files are still put back after the first rollback fails.
+    expect(files["staged:rollback-userData.db-wal"].move).toHaveBeenCalledWith(
+      files["local:userData.db-wal"],
+    );
+    expect(files["staged:rollback-userData.db-shm"].move).toHaveBeenCalledWith(
+      files["local:userData.db-shm"],
+    );
+    expect(stagingDir.delete).not.toHaveBeenCalled();
+    expect(reloadAsync).not.toHaveBeenCalled();
+  });
+
   it("leaves local files untouched when a download fails", async () => {
     mockRemote(null);
     (File as any).downloadFileAsync = jest

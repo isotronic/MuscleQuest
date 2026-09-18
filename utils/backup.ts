@@ -259,10 +259,13 @@ export const fetchLastBackupDate = async (): Promise<Date | null> => {
 // aside rather than deleted, so a failed swap can put them back. File.move
 // repoints the instance it is called on, so fresh instances keep each original
 // path stable.
+// If putting a live file back fails, rollbackState.failed is set and the
+// staging folder must be kept, since it holds the only copy of that file.
 const swapInStagedFiles = (
   liveFiles: File[],
   staged: { stagedFile: File; destFile: File }[],
   stagingDir: Directory,
+  rollbackState: { failed: boolean },
 ) => {
   const rollbacks: { rollbackFile: File; originalUri: string }[] = [];
   try {
@@ -277,14 +280,42 @@ const swapInStagedFiles = (
       stagedFile.move(new File(destFile.uri));
     }
   } catch (error) {
+    // Each step is attempted even if an earlier one fails, and the original
+    // error is the one rethrown.
     for (const liveFile of liveFiles) {
-      const restored = new File(liveFile.uri);
-      if (restored.exists) {
-        restored.delete();
+      try {
+        const restored = new File(liveFile.uri);
+        if (restored.exists) {
+          restored.delete();
+        }
+      } catch (deleteError) {
+        console.error(
+          "Failed to remove a partially restored file:",
+          deleteError,
+        );
       }
     }
     for (const { rollbackFile, originalUri } of rollbacks) {
-      rollbackFile.move(new File(originalUri));
+      try {
+        rollbackFile.move(new File(originalUri));
+      } catch (rollbackError) {
+        rollbackState.failed = true;
+        console.error(
+          "Failed to put back a live database file:",
+          rollbackError,
+        );
+        Bugsnag.notify(
+          rollbackError instanceof Error
+            ? rollbackError
+            : new Error(String(rollbackError)),
+          (event) => {
+            event.addMetadata("restore", {
+              rollbackFile: rollbackFile.uri,
+              originalUri,
+            });
+          },
+        );
+      }
     }
     throw error;
   }
@@ -353,6 +384,7 @@ export const restoreDatabaseBackup = async (
     // Download into a staging folder first so a failed download never leaves
     // the live database half-replaced.
     const stagingDir = freshCacheDirectory("restore-staging");
+    const rollbackState = { failed: false };
     try {
       let staged: { stagedFile: File; destFile: File }[];
 
@@ -383,9 +415,9 @@ export const restoreDatabaseBackup = async (
         );
       }
 
-      swapInStagedFiles(liveFiles, staged, stagingDir);
+      swapInStagedFiles(liveFiles, staged, stagingDir, rollbackState);
     } finally {
-      if (stagingDir.exists) {
+      if (stagingDir.exists && !rollbackState.failed) {
         stagingDir.delete();
       }
     }
