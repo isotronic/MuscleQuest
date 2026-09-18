@@ -43,6 +43,10 @@ jest.mock("../asyncStorage", () => ({
   setAsyncStorageItem: jest.fn(),
 }));
 
+jest.mock("../restoreRollback", () => ({
+  swapInRestoredFiles: jest.fn(),
+}));
+
 jest.mock("../database", () => ({
   createDatabaseSnapshot: jest.fn((target: any) => Promise.resolve(target)),
   checkDatabaseIntegrity: jest.fn(() => Promise.resolve(true)),
@@ -50,6 +54,7 @@ jest.mock("../database", () => ({
 
 const mockStorage = require("@react-native-firebase/storage");
 const mockDatabase = require("../database");
+const { swapInRestoredFiles } = require("../restoreRollback");
 const { reloadAsync } = require("expo-updates");
 const { setAsyncStorageItem } = require("../asyncStorage");
 
@@ -305,10 +310,6 @@ describe("restoreDatabaseBackup", () => {
   const setRestoreProgressMock = jest.fn();
   const setIsRestoreLoadingMock = jest.fn();
   const queryClient = new QueryClient();
-
-  // Every File/Directory the restore creates, keyed by path, so tests can see
-  // which local files were deleted and which staged files were moved in.
-  let files: Record<string, any>;
   let stagingDir: any;
 
   const restore = () =>
@@ -318,31 +319,23 @@ describe("restoreDatabaseBackup", () => {
       queryClient,
     );
 
+  // Names of the files handed to the journaled swap, in order.
+  const swappedNames = () =>
+    (swapInRestoredFiles as jest.Mock).mock.calls[0][0].map(
+      ({ name }: { name: string }) => name,
+    );
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockAuthInstance = getAuth();
     mockAuthInstance.currentUser = { uid: "mockUserId" };
     (File as any).downloadFileAsync = jest.fn().mockResolvedValue(undefined);
     mockDatabase.checkDatabaseIntegrity.mockResolvedValue(true);
-
-    files = {};
     (File as unknown as jest.Mock).mockImplementation((...args: any[]) => {
-      // new File(uri) re-opens a file the restore already created.
-      if (args.length === 1 && files[args[0]]) return files[args[0]];
       const name = String(args[args.length - 1]);
-      const staged = args[0]?.isStaging === true;
-      const key = `${staged ? "staged" : "local"}:${name}`;
-      files[key] = {
-        name,
-        exists: !staged,
-        uri: key,
-        delete: jest.fn(),
-        move: jest.fn(),
-      };
-      return files[key];
+      return { name, uri: `staged:${name}` };
     });
     stagingDir = {
-      isStaging: true,
       exists: false,
       create: jest.fn(() => {
         stagingDir.exists = true;
@@ -353,7 +346,7 @@ describe("restoreDatabaseBackup", () => {
   });
 
   describe("with a manifest", () => {
-    it("downloads the current slot and replaces the local DB, WAL and SHM", async () => {
+    it("downloads and checks the current slot, then swaps it in", async () => {
       mockRemote(manifestFor({ currentSlot: "slotB" }));
 
       await restore();
@@ -361,29 +354,17 @@ describe("restoreDatabaseBackup", () => {
       expect((File as any).downloadFileAsync).toHaveBeenCalledTimes(1);
       expect((File as any).downloadFileAsync).toHaveBeenCalledWith(
         `https://example.com/${USER_PREFIX}slotB.db`,
-        files["staged:userData.db"],
+        expect.objectContaining({ uri: "staged:userData.db" }),
         { idempotent: true },
       );
       expect(mockDatabase.checkDatabaseIntegrity).toHaveBeenCalledWith(
-        files["staged:userData.db"],
+        expect.objectContaining({ uri: "staged:userData.db" }),
       );
-      // Local WAL/SHM are moved aside before the new DB goes in.
-      for (const name of [
-        "userData.db",
-        "userData.db-wal",
-        "userData.db-shm",
-      ]) {
-        expect(files[`local:${name}`].move).toHaveBeenCalledWith(
-          files[`staged:rollback-${name}`],
-        );
-        expect(
-          files[`local:${name}`].move.mock.invocationCallOrder[0],
-        ).toBeLessThan(
-          files["staged:userData.db"].move.mock.invocationCallOrder[0],
-        );
-      }
-      expect(files["staged:userData.db"].move).toHaveBeenCalledWith(
-        files["local:userData.db"],
+      expect(swappedNames()).toEqual(["userData.db"]);
+      expect(
+        (swapInRestoredFiles as jest.Mock).mock.invocationCallOrder[0],
+      ).toBeGreaterThan(
+        mockDatabase.checkDatabaseIntegrity.mock.invocationCallOrder[0],
       );
       expect(setAsyncStorageItem).toHaveBeenCalledWith(
         "databaseRestored",
@@ -401,8 +382,7 @@ describe("restoreDatabaseBackup", () => {
 
       expect(classifyBackupError(error)).toBe("newer-schema");
       expect((File as any).downloadFileAsync).not.toHaveBeenCalled();
-      expect(files["local:userData.db"].move).not.toHaveBeenCalled();
-      expect(files["local:userData.db-wal"].move).not.toHaveBeenCalled();
+      expect(swapInRestoredFiles).not.toHaveBeenCalled();
       expect(reloadAsync).not.toHaveBeenCalled();
       expect(setRestoreProgressMock).toHaveBeenLastCalledWith(0);
     });
@@ -414,7 +394,7 @@ describe("restoreDatabaseBackup", () => {
       const error = await restore().catch((e) => e);
 
       expect(classifyBackupError(error)).toBe("integrity");
-      expect(files["local:userData.db"].move).not.toHaveBeenCalled();
+      expect(swapInRestoredFiles).not.toHaveBeenCalled();
       expect(stagingDir.delete).toHaveBeenCalled();
       expect(reloadAsync).not.toHaveBeenCalled();
       expect(setRestoreProgressMock).toHaveBeenLastCalledWith(0);
@@ -422,25 +402,23 @@ describe("restoreDatabaseBackup", () => {
   });
 
   describe("legacy backup (no manifest)", () => {
-    it("restores the DB with its WAL and SHM", async () => {
+    it("swaps in the DB with its WAL and SHM", async () => {
       mockRemote(null);
 
       await restore();
 
       expect((File as any).downloadFileAsync).toHaveBeenCalledTimes(3);
       expect(mockDatabase.checkDatabaseIntegrity).not.toHaveBeenCalled();
-      expect(files["local:userData.db"].move).toHaveBeenCalledWith(
-        files["staged:rollback-userData.db"],
-      );
-      expect(files["staged:userData.db"].move).toHaveBeenCalledWith(
-        files["local:userData.db"],
-      );
-      expect(files["staged:userData.db-wal"].move).toHaveBeenCalled();
+      expect(swappedNames()).toEqual([
+        "userData.db",
+        "userData.db-wal",
+        "userData.db-shm",
+      ]);
       expect(setRestoreProgressMock).toHaveBeenLastCalledWith(100);
       expect(reloadAsync).toHaveBeenCalled();
     });
 
-    it("deletes the device's own WAL/SHM when the backup has none", async () => {
+    it("swaps in only the DB when the backup has no WAL/SHM", async () => {
       mockRemote(null);
       const withUrls = mockStorage.getDownloadURL.getMockImplementation();
       mockStorage.getDownloadURL.mockImplementation(async (r: any) => {
@@ -450,14 +428,7 @@ describe("restoreDatabaseBackup", () => {
 
       await restore();
 
-      expect(files["local:userData.db-wal"].move).toHaveBeenCalledWith(
-        files["staged:rollback-userData.db-wal"],
-      );
-      expect(files["local:userData.db-shm"].move).toHaveBeenCalledWith(
-        files["staged:rollback-userData.db-shm"],
-      );
-      expect(files["staged:userData.db"].move).toHaveBeenCalled();
-      expect(files["staged:userData.db-wal"].move).not.toHaveBeenCalled();
+      expect(swappedNames()).toEqual(["userData.db"]);
       expect(reloadAsync).toHaveBeenCalled();
     });
 
@@ -468,65 +439,22 @@ describe("restoreDatabaseBackup", () => {
       const error = await restore().catch((e) => e);
 
       expect(classifyBackupError(error)).toBe("not-found");
-      expect(files["local:userData.db"].move).not.toHaveBeenCalled();
+      expect(swapInRestoredFiles).not.toHaveBeenCalled();
     });
   });
 
-  it("puts the live files back when swapping in the backup fails", async () => {
-    mockRemote(null);
-    const realImpl = (File as unknown as jest.Mock).getMockImplementation()!;
-    (File as unknown as jest.Mock).mockImplementation((...args: any[]) => {
-      const file = realImpl(...args);
-      if (file.uri === "staged:userData.db-wal") {
-        file.move.mockImplementation(() => {
-          throw new Error("Disk full");
-        });
-      }
-      return file;
+  it("rethrows a failed swap without reloading", async () => {
+    mockRemote(manifestFor());
+    (swapInRestoredFiles as jest.Mock).mockImplementationOnce(() => {
+      throw new Error("Disk full");
     });
 
     await expect(restore()).rejects.toThrow("Disk full");
 
-    expect(files["local:userData.db"].delete).toHaveBeenCalled();
-    expect(files["staged:rollback-userData.db"].move).toHaveBeenCalledWith(
-      files["local:userData.db"],
-    );
-    expect(files["staged:rollback-userData.db-wal"].move).toHaveBeenCalledWith(
-      files["local:userData.db-wal"],
-    );
+    expect(setAsyncStorageItem).not.toHaveBeenCalled();
     expect(reloadAsync).not.toHaveBeenCalled();
+    expect(stagingDir.delete).toHaveBeenCalled();
     expect(setRestoreProgressMock).toHaveBeenLastCalledWith(0);
-  });
-
-  it("keeps the staging folder and the original error when putting a file back fails", async () => {
-    mockRemote(null);
-    const realImpl = (File as unknown as jest.Mock).getMockImplementation()!;
-    (File as unknown as jest.Mock).mockImplementation((...args: any[]) => {
-      const file = realImpl(...args);
-      if (file.uri === "staged:userData.db-wal") {
-        file.move.mockImplementation(() => {
-          throw new Error("Disk full");
-        });
-      }
-      if (file.uri === "staged:rollback-userData.db") {
-        file.move.mockImplementation(() => {
-          throw new Error("Rollback failed");
-        });
-      }
-      return file;
-    });
-
-    await expect(restore()).rejects.toThrow("Disk full");
-
-    // The other files are still put back after the first rollback fails.
-    expect(files["staged:rollback-userData.db-wal"].move).toHaveBeenCalledWith(
-      files["local:userData.db-wal"],
-    );
-    expect(files["staged:rollback-userData.db-shm"].move).toHaveBeenCalledWith(
-      files["local:userData.db-shm"],
-    );
-    expect(stagingDir.delete).not.toHaveBeenCalled();
-    expect(reloadAsync).not.toHaveBeenCalled();
   });
 
   it("leaves local files untouched when a download fails", async () => {
@@ -538,8 +466,7 @@ describe("restoreDatabaseBackup", () => {
 
     await expect(restore()).rejects.toThrow("Network down");
 
-    expect(files["local:userData.db"].move).not.toHaveBeenCalled();
-    expect(files["local:userData.db-wal"].move).not.toHaveBeenCalled();
+    expect(swapInRestoredFiles).not.toHaveBeenCalled();
     expect(stagingDir.delete).toHaveBeenCalled();
     expect(reloadAsync).not.toHaveBeenCalled();
     expect(setRestoreProgressMock).toHaveBeenLastCalledWith(0);

@@ -15,6 +15,7 @@ import {
   updateAppExerciseIds,
 } from "@/utils/database";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
+import { recoverInterruptedRestore } from "@/utils/restoreRollback";
 
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -37,6 +38,9 @@ jest.mock("@/utils/database", () => ({
 }));
 jest.mock("@/utils/loadPremadePlans", () => ({
   loadPremadePlans: jest.fn(),
+}));
+jest.mock("@/utils/restoreRollback", () => ({
+  recoverInterruptedRestore: jest.fn(() => false),
 }));
 
 const initSteps = [
@@ -158,6 +162,26 @@ describe("runStartup failure handling", () => {
     const result = await runStartup(Promise.resolve());
     expect(result.status).not.toBe("ok");
     expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBe("true");
+  });
+
+  it("undoes an interrupted restore before opening any database", async () => {
+    await runStartup(Promise.resolve());
+    const recoverOrder = (recoverInterruptedRestore as jest.Mock).mock
+      .invocationCallOrder[0];
+    initSteps.forEach((step) =>
+      expect(recoverOrder).toBeLessThan(step.mock.invocationCallOrder[0]),
+    );
+  });
+
+  it("fails startup without opening a database when the restore can't be undone", async () => {
+    (recoverInterruptedRestore as jest.Mock).mockImplementationOnce(() => {
+      throw new Error("Move failed");
+    });
+
+    const result = await runStartup(Promise.resolve());
+
+    expect(result.status).not.toBe("ok");
+    initSteps.forEach((step) => expect(step).not.toHaveBeenCalled());
   });
 
   it("resets the failure count after a successful boot", async () => {

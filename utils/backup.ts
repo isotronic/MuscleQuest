@@ -15,6 +15,7 @@ import { QueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 import { setAsyncStorageItem } from "./asyncStorage";
 import { checkDatabaseIntegrity, createDatabaseSnapshot } from "./database";
+import { swapInRestoredFiles } from "./restoreRollback";
 
 const dbName = "userData.db";
 
@@ -253,105 +254,34 @@ export const fetchLastBackupDate = async (): Promise<Date | null> => {
   }
 };
 
-// Swaps staged files in for the live database files. Every live file is
-// replaced, including a WAL/SHM with no staged counterpart: a leftover local
-// WAL would otherwise be applied to the restored .db. The live files are moved
-// aside rather than deleted, so a failed swap can put them back. File.move
-// repoints the instance it is called on, so fresh instances keep each original
-// path stable.
-// If putting a live file back fails, rollbackState.failed is set and the
-// staging folder must be kept, since it holds the only copy of that file.
-const swapInStagedFiles = (
-  liveFiles: File[],
-  staged: { stagedFile: File; destFile: File }[],
-  stagingDir: Directory,
-  rollbackState: { failed: boolean },
-) => {
-  const rollbacks: { rollbackFile: File; originalUri: string }[] = [];
-  try {
-    for (const liveFile of liveFiles) {
-      if (liveFile.exists) {
-        const rollbackFile = new File(stagingDir, `rollback-${liveFile.name}`);
-        new File(liveFile.uri).move(rollbackFile);
-        rollbacks.push({ rollbackFile, originalUri: liveFile.uri });
-      }
-    }
-    for (const { stagedFile, destFile } of staged) {
-      stagedFile.move(new File(destFile.uri));
-    }
-  } catch (error) {
-    // Each step is attempted even if an earlier one fails, and the original
-    // error is the one rethrown.
-    for (const liveFile of liveFiles) {
-      try {
-        const restored = new File(liveFile.uri);
-        if (restored.exists) {
-          restored.delete();
-        }
-      } catch (deleteError) {
-        console.error(
-          "Failed to remove a partially restored file:",
-          deleteError,
-        );
-      }
-    }
-    for (const { rollbackFile, originalUri } of rollbacks) {
-      try {
-        rollbackFile.move(new File(originalUri));
-      } catch (rollbackError) {
-        rollbackState.failed = true;
-        console.error(
-          "Failed to put back a live database file:",
-          rollbackError,
-        );
-        Bugsnag.notify(
-          rollbackError instanceof Error
-            ? rollbackError
-            : new Error(String(rollbackError)),
-          (event) => {
-            event.addMetadata("restore", {
-              rollbackFile: rollbackFile.uri,
-              originalUri,
-            });
-          },
-        );
-      }
-    }
-    throw error;
-  }
-};
-
 // Stages a backup made before the manifest existed: the .db plus whichever
 // WAL/SHM were uploaded alongside it.
 const stageLegacyBackup = async (
   userId: string,
-  liveFiles: File[],
   stagingDir: Directory,
   setRestoreProgress: (progress: number) => void,
 ) => {
-  const staged: { stagedFile: File; destFile: File }[] = [];
+  const names = [dbName, `${dbName}-wal`, `${dbName}-shm`];
+  const staged: { stagedFile: File; name: string }[] = [];
   let completedFiles = 0;
 
-  for (const destFile of liveFiles) {
-    const required = destFile.name === dbName;
-    const stagedFile = new File(stagingDir, destFile.name);
+  for (const name of names) {
+    const stagedFile = new File(stagingDir, name);
     try {
-      const downloadUrl = await getDownloadURL(
-        backupRef(userId, destFile.name),
-      );
+      const downloadUrl = await getDownloadURL(backupRef(userId, name));
       await File.downloadFileAsync(downloadUrl, stagedFile, {
         idempotent: true,
       });
-      staged.push({ stagedFile, destFile });
+      staged.push({ stagedFile, name });
     } catch (error) {
-      if (required || !isObjectNotFound(error)) {
+      if (name === dbName || !isObjectNotFound(error)) {
         throw error;
       }
       // WAL/SHM were not backed up (backup was taken after a checkpoint).
       // Restoring just the main .db file is valid in this case.
     }
     completedFiles += 1;
-    setRestoreProgress((completedFiles / liveFiles.length) * 90);
+    setRestoreProgress((completedFiles / names.length) * 90);
   }
 
   return staged;
@@ -368,11 +298,6 @@ export const restoreDatabaseBackup = async (
 
     const userId = getUserId();
 
-    const dbFile = new File(Paths.document, "SQLite", dbName);
-    const walFile = new File(Paths.document, "SQLite", `${dbName}-wal`);
-    const shmFile = new File(Paths.document, "SQLite", `${dbName}-shm`);
-    const liveFiles = [dbFile, walFile, shmFile];
-
     const manifest = await readManifest(userId);
     if (manifest && manifest.schemaVersion > BACKUP_SCHEMA_VERSION) {
       throw new BackupError(
@@ -384,9 +309,8 @@ export const restoreDatabaseBackup = async (
     // Download into a staging folder first so a failed download never leaves
     // the live database half-replaced.
     const stagingDir = freshCacheDirectory("restore-staging");
-    const rollbackState = { failed: false };
     try {
-      let staged: { stagedFile: File; destFile: File }[];
+      let staged: { stagedFile: File; name: string }[];
 
       if (manifest) {
         const stagedFile = new File(stagingDir, dbName);
@@ -405,19 +329,20 @@ export const restoreDatabaseBackup = async (
           );
         }
         setRestoreProgress(90);
-        staged = [{ stagedFile, destFile: dbFile }];
+        staged = [{ stagedFile, name: dbName }];
       } else {
         staged = await stageLegacyBackup(
           userId,
-          liveFiles,
           stagingDir,
           setRestoreProgress,
         );
       }
 
-      swapInStagedFiles(liveFiles, staged, stagingDir, rollbackState);
+      // Journaled, so a failed or interrupted swap is undone here or at the
+      // next startup.
+      swapInRestoredFiles(staged);
     } finally {
-      if (stagingDir.exists && !rollbackState.failed) {
+      if (stagingDir.exists) {
         stagingDir.delete();
       }
     }

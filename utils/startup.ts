@@ -9,6 +9,7 @@ import {
   updateAppExerciseIds,
 } from "@/utils/database";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
+import { recoverInterruptedRestore } from "@/utils/restoreRollback";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getAsyncStorageItem,
@@ -32,6 +33,10 @@ export type StartupResult =
 // plans by app_plan_id). An older backup runs the same upgrade path an older
 // install would.
 const initializeDatabases = async () => {
+  // Must run before userData.db is opened: if a restore swap was interrupted,
+  // opening it would create an empty database over the missing original. A
+  // failure here fails startup rather than continuing without the user's data.
+  recoverInterruptedRestore();
   await initializeAppData();
   await initUserDataDB();
   // Must run before copyData: it only acts on dataVersion 1.1, and copyData
