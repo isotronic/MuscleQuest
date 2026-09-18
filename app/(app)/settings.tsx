@@ -37,6 +37,7 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { getAuth, signOut } from "@react-native-firebase/auth";
 import Bugsnag from "@bugsnag/expo";
 import {
+  classifyBackupError,
   fetchLastBackupDate,
   restoreDatabaseBackup,
   uploadDatabaseBackup,
@@ -477,20 +478,66 @@ export default function SettingsScreen() {
   //   }
   // };
 
-  const confirmRestoreBackup = async () => {
+  const isBackupBusy = isBackupLoading || isRestoreLoading;
+
+  const getBackupErrorMessage = (
+    error: unknown,
+    operation: "backup" | "restore",
+  ) => {
+    switch (classifyBackupError(error)) {
+      case "offline":
+        return t`You're offline. Connect to the internet and try again.`;
+      case "not-found":
+        return t`No backup found for this account.`;
+      case "integrity":
+        return operation === "backup"
+          ? t`Your data failed a safety check, so it was not uploaded. Your previous backup is unchanged.`
+          : t`The backup is damaged and can't be restored. Your data on this device has not been changed.`;
+      case "newer-schema":
+        return t`This backup was made with a newer version of MuscleQuest. Update the app, then restore.`;
+      default:
+        return (
+          (error as { message?: string })?.message ??
+          t`An unexpected error occurred.`
+        );
+    }
+  };
+
+  const handleBackup = async () => {
+    if (isBackupBusy) return;
+    try {
+      await uploadDatabaseBackup(setBackupProgress, setIsBackupLoading);
+    } catch (error) {
+      Alert.alert(t`Backup Failed`, getBackupErrorMessage(error, "backup"));
+    }
+  };
+
+  const handleRestore = async () => {
+    if (isBackupBusy) return;
+    try {
+      await restoreDatabaseBackup(
+        setRestoreProgress,
+        setIsRestoreLoading,
+        queryClient,
+      );
+    } catch (error) {
+      Alert.alert(t`Restore Failed`, getBackupErrorMessage(error, "restore"));
+    }
+  };
+
+  const confirmRestoreBackup = () => {
+    const date = lastBackupDate?.toLocaleDateString();
     Alert.alert(
       t`Restore Backup`,
-      t`Are you sure you want to restore the backup?`,
+      date
+        ? t`Restore backup from ${date}? This replaces all training data on this device. Anything logged since that backup will be lost.`
+        : t`Restore your backup? This replaces all training data on this device. Anything logged since that backup will be lost.`,
       [
         { text: t`Cancel`, style: "cancel" },
         {
           text: t`Restore`,
-          onPress: () =>
-            restoreDatabaseBackup(
-              setRestoreProgress,
-              setIsRestoreLoading,
-              queryClient,
-            ),
+          style: "destructive",
+          onPress: handleRestore,
         },
       ],
     );
@@ -643,21 +690,17 @@ export default function SettingsScreen() {
                   style={styles.backupButton}
                   mode="outlined"
                   compact
-                  onPress={() =>
-                    uploadDatabaseBackup(
-                      setBackupProgress,
-                      setIsBackupLoading,
-                    ).catch((error: any) => {
-                      Alert.alert(
-                        t`Backup Failed`,
-                        error?.message ?? t`An unexpected error occurred.`,
-                      );
-                    })
-                  }
+                  disabled={isBackupBusy}
+                  onPress={handleBackup}
                 >
                   <Trans>Backup</Trans>
                 </Button>
-                <Button mode="outlined" compact onPress={confirmRestoreBackup}>
+                <Button
+                  mode="outlined"
+                  compact
+                  disabled={isBackupBusy}
+                  onPress={confirmRestoreBackup}
+                >
                   <Trans>Restore</Trans>
                 </Button>
               </>

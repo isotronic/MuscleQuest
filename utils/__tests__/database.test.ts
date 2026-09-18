@@ -25,6 +25,8 @@ import {
   updateStandaloneWorkout,
   fetchBodyMeasurementSessions,
   fetchCompletedWorkoutById,
+  createDatabaseSnapshot,
+  checkDatabaseIntegrity,
 } from "../database";
 import { ProgressionRuleResult } from "@/types/progression";
 
@@ -1132,5 +1134,81 @@ describe("fetchCompletedWorkoutById", () => {
     expect(result.exercises[1].completed_exercise_id).toBe(11);
     expect(result.exercises[0].sets).toHaveLength(1);
     expect(result.exercises[1].sets).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// createDatabaseSnapshot / checkDatabaseIntegrity
+// ---------------------------------------------------------------------------
+
+describe("createDatabaseSnapshot", () => {
+  const makeTarget = (exists: boolean) => ({
+    exists,
+    uri: "file:///data/cache/backup%20snapshot/user's.db",
+    delete: jest.fn(),
+  });
+
+  it("vacuums userData.db into the target's plain path, escaping quotes", async () => {
+    const target = makeTarget(false);
+
+    const result = await createDatabaseSnapshot(target as any);
+
+    expect(result).toBe(target);
+    expect(SQLite.openDatabaseAsync).toHaveBeenCalledWith("userData.db", {
+      useNewConnection: true,
+    });
+    expect(mockDb.execAsync).toHaveBeenCalledWith(
+      "VACUUM INTO '/data/cache/backup snapshot/user''s.db'",
+    );
+    expect(target.delete).not.toHaveBeenCalled();
+    expect(mockDb.closeAsync).toHaveBeenCalled();
+  });
+
+  it("deletes an existing target first, since VACUUM INTO refuses to overwrite", async () => {
+    const target = makeTarget(true);
+
+    await createDatabaseSnapshot(target as any);
+
+    expect(target.delete).toHaveBeenCalled();
+  });
+
+  it("closes the connection when VACUUM INTO fails", async () => {
+    mockDb.execAsync.mockImplementation(async (sql: string) => {
+      if (sql.startsWith("VACUUM")) throw new Error("disk I/O error");
+    });
+
+    await expect(
+      createDatabaseSnapshot(makeTarget(false) as any),
+    ).rejects.toThrow("disk I/O error");
+    expect(mockDb.closeAsync).toHaveBeenCalled();
+  });
+});
+
+describe("checkDatabaseIntegrity", () => {
+  const file = {
+    name: "userData.db",
+    parentDirectory: { uri: "file:///data/cache/restore-staging/" },
+  };
+
+  it("opens the file in its own directory and returns true for ok", async () => {
+    mockDb.getAllAsync.mockResolvedValue([{ integrity_check: "ok" }]);
+
+    expect(await checkDatabaseIntegrity(file as any)).toBe(true);
+    expect(SQLite.openDatabaseAsync).toHaveBeenCalledWith(
+      "userData.db",
+      { useNewConnection: true },
+      "/data/cache/restore-staging/",
+    );
+    expect(mockDb.closeAsync).toHaveBeenCalled();
+  });
+
+  it("returns false when SQLite reports problems", async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { integrity_check: "*** in database main ***" },
+      { integrity_check: "Page 12: btreeInitPage() returns error code 11" },
+    ]);
+
+    expect(await checkDatabaseIntegrity(file as any)).toBe(false);
+    expect(mockDb.closeAsync).toHaveBeenCalled();
   });
 });
