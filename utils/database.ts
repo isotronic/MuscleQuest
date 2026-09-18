@@ -2,6 +2,7 @@ import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { UserExercise, Workout } from "@/store/workoutStore";
 import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 import * as SQLite from "expo-sqlite";
+import type { File } from "expo-file-system";
 import {
   toDisplayValue,
   type ValueKind,
@@ -73,6 +74,46 @@ export const openDatabase = async (
   });
   await db.execAsync("PRAGMA busy_timeout = 3000;");
   return db;
+};
+
+// expo-sqlite takes a plain filesystem path for its directory argument and for
+// VACUUM INTO, not a file:// URI.
+const toFsPath = (uri: string) => decodeURI(uri.replace(/^file:\/\//, ""));
+
+// Writes a consistent, self-contained copy of userData.db (including anything
+// still in the WAL) to `target`. VACUUM INTO leaves the live file and its WAL
+// untouched, so no checkpoint of the live database is needed.
+export const createDatabaseSnapshot = async (target: File): Promise<File> => {
+  // VACUUM INTO fails if the target already exists.
+  if (target.exists) {
+    target.delete();
+  }
+  const escapedPath = toFsPath(target.uri).replace(/'/g, "''");
+  const db = await openDatabase("userData.db");
+  try {
+    await db.execAsync(`VACUUM INTO '${escapedPath}'`);
+  } finally {
+    await db.closeAsync();
+  }
+  return target;
+};
+
+// Runs PRAGMA integrity_check on a database file outside the default SQLite
+// directory. True only when SQLite reports a single "ok" row.
+export const checkDatabaseIntegrity = async (file: File): Promise<boolean> => {
+  const db = await SQLite.openDatabaseAsync(
+    file.name,
+    { useNewConnection: true },
+    toFsPath(file.parentDirectory.uri),
+  );
+  try {
+    const rows = await db.getAllAsync<{ integrity_check: string }>(
+      "PRAGMA integrity_check",
+    );
+    return rows.length === 1 && rows[0].integrity_check === "ok";
+  } finally {
+    await db.closeAsync();
+  }
 };
 
 interface SQLiteRow {
