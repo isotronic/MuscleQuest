@@ -300,10 +300,15 @@ const readCustomExercises = (db: SQLite.SQLiteDatabase) =>
       ORDER BY name`,
   );
 
-// RFC 4180: quote fields containing a comma, quote or line break.
+// RFC 4180: quote fields containing a comma, quote or line break. Text that
+// a spreadsheet would run as a formula gets a leading apostrophe. Numbers are
+// left alone so negative values (assisted exercises) stay numeric.
 const csvField = (value: unknown): string => {
   if (value === null || value === undefined) return "";
-  const text = String(value);
+  let text = String(value);
+  if (typeof value === "string" && /^[=+\-@\t\r]/.test(text)) {
+    text = `'${text}`;
+  }
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 };
 

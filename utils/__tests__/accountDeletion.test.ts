@@ -157,6 +157,27 @@ describe("deleteAccount", () => {
     expect(mockSignIn).not.toHaveBeenCalled();
   });
 
+  it("stops when Google returns no ID token", async () => {
+    mockSignIn.mockResolvedValue({ idToken: null });
+
+    const error = await deleteAccount("me").catch((e) => e);
+
+    expect(error.step).toBe("reauth");
+    expect(mockReauth).not.toHaveBeenCalled();
+    expect(mockRemoveFriend).not.toHaveBeenCalled();
+  });
+
+  it("attempts every friend removal before failing the friends step", async () => {
+    mockRemoveFriend.mockRejectedValueOnce(new Error("offline"));
+
+    const error = await deleteAccount("me").catch((e) => e);
+
+    expect(error.step).toBe("friends");
+    expect(mockRemoveFriend).toHaveBeenCalledWith("me", "f1");
+    expect(mockRemoveFriend).toHaveBeenCalledWith("me", "f2");
+    expect(mockDeleteDoc).not.toHaveBeenCalled();
+  });
+
   it("marks a dismissed Google prompt as cancelled and does not report it", async () => {
     mockSignIn.mockRejectedValue(
       Object.assign(new Error("cancelled"), { code: "SIGN_IN_CANCELLED" }),

@@ -173,6 +173,17 @@ describe("buildTrainingDataExport csv", () => {
     expect(csvLines(setsFile)[1]).toContain('"Legs, ""heavy"""');
   });
 
+  it("neutralizes text that a spreadsheet would run as a formula", async () => {
+    workouts = [workout(1, '=HYPERLINK("x")')];
+    sets = [{ ...set(1, 10, 1), exercise_name: "-Dips", weight: -20 }];
+
+    const [setsFile] = await buildTrainingDataExport("csv");
+
+    const row = csvLines(setsFile)[1];
+    expect(row).toContain('"\'=HYPERLINK(""x"")"');
+    expect(row).toContain("\'-Dips,1,-20,");
+  });
+
   it("writes body measurements with one column per metric", async () => {
     const [, measurementsFile] = await buildTrainingDataExport("csv");
 

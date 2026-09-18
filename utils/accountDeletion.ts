@@ -70,6 +70,9 @@ const reauthenticate = async (uid: string): Promise<void> => {
   }
   await GoogleSignin.hasPlayServices();
   const { idToken } = await GoogleSignin.signIn();
+  if (!idToken) {
+    throw new Error("Google sign-in returned no ID token");
+  }
   await reauthenticateWithCredential(
     user,
     GoogleAuthProvider.credential(idToken),
@@ -79,9 +82,17 @@ const reauthenticate = async (uid: string): Promise<void> => {
 const removeAllFriends = async (uid: string): Promise<void> => {
   const db = getFirestore();
   const snapshot = await getDocs(collection(db, "users", uid, "friends"));
-  for (const friendDoc of snapshot.docs) {
-    await removeFriend(uid, friendDoc.id);
-  }
+  // Attempt every removal so one failure doesn't leave the rest for a retry.
+  const results = await Promise.allSettled(
+    snapshot.docs.map((friendDoc: { id: string }) =>
+      removeFriend(uid, friendDoc.id),
+    ),
+  );
+  const failed = results.find(
+    (r: PromiseSettledResult<void>): r is PromiseRejectedResult =>
+      r.status === "rejected",
+  );
+  if (failed) throw failed.reason;
 };
 
 const deletePendingRequests = async (uid: string): Promise<void> => {
