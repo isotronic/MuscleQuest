@@ -254,5 +254,6 @@ describe("deleteAccount", () => {
 
     await expect(deleteAccount("me")).resolves.toBeUndefined();
     expect(Bugsnag.notify).toHaveBeenCalledTimes(1);
+    expect(mockGoogleSignOut).toHaveBeenCalledTimes(1);
   });
 });

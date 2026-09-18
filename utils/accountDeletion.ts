@@ -139,8 +139,13 @@ const deleteAuthUser = async (uid: string): Promise<void> => {
 // Runs after the account is gone, so failures are reported but not thrown:
 // there is nothing left to retry against.
 const cleanUpAfterDeletion = async (): Promise<void> => {
+  // Guarded separately so a failed revoke still signs out of Google.
   try {
     await GoogleSignin.revokeAccess();
+  } catch (error) {
+    notifyBugsnag(error);
+  }
+  try {
     await GoogleSignin.signOut();
   } catch (error) {
     notifyBugsnag(error);
