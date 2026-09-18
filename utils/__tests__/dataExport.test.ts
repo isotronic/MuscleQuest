@@ -279,6 +279,28 @@ describe("saveExportToFolder", () => {
     expect(write).toHaveBeenCalledWith("y");
   });
 
+  it("deletes already written files when a later write fails", async () => {
+    const first = { write: jest.fn(), delete: jest.fn() };
+    const second = {
+      write: jest.fn(() => {
+        throw new Error("disk full");
+      }),
+      delete: jest.fn(),
+    };
+    const createFile = jest
+      .fn()
+      .mockReturnValueOnce(first)
+      .mockReturnValueOnce(second);
+    (
+      Directory as unknown as { pickDirectoryAsync: jest.Mock }
+    ).pickDirectoryAsync = jest.fn().mockResolvedValue({ createFile });
+
+    await expect(saveExportToFolder(files)).rejects.toThrow("disk full");
+
+    expect(first.delete).toHaveBeenCalledTimes(1);
+    expect(second.delete).toHaveBeenCalledTimes(1);
+  });
+
   it("returns false when the picker is dismissed", async () => {
     (
       Directory as unknown as { pickDirectoryAsync: jest.Mock }

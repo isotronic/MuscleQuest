@@ -445,8 +445,24 @@ export const saveExportToFolder = async (
     if (isPickerCancelled(error)) return false;
     throw error;
   }
-  for (const file of files) {
-    directory.createFile(file.name, file.mimeType).write(file.content);
+  // A failed export leaves nothing behind, so the folder never holds half of
+  // a CSV pair or an empty file.
+  const created: { delete: () => void }[] = [];
+  try {
+    for (const file of files) {
+      const written = directory.createFile(file.name, file.mimeType);
+      created.push(written);
+      written.write(file.content);
+    }
+  } catch (error) {
+    for (const file of created) {
+      try {
+        file.delete();
+      } catch {
+        // Best effort; the original error is what matters.
+      }
+    }
+    throw error;
   }
   return true;
 };
