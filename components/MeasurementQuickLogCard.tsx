@@ -51,7 +51,7 @@ export function MeasurementQuickLogCard({
     >
       <AppIcon
         set="mci"
-        name="tape-measure"
+        name="scale-bathroom"
         size={28}
         color={summary.isStale ? colors.accent : colors.contentSecondary}
       />

@@ -149,7 +149,7 @@ function createStyles(colors: AppThemeColors) {
     },
     submit: {
       marginTop: 16,
-      borderRadius: radii.xl,
+      borderRadius: radii.md,
     },
   });
 }
