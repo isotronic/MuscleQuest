@@ -42,6 +42,7 @@ jest.mock("@/theme", () => ({
       contentPrimary: "#fff",
       contentSecondary: "#aaa",
       background: "#000",
+      danger: "#f00",
     },
   }),
   radii: { sm: 4, md: 8, lg: 12, xl: 16 },
@@ -114,6 +115,33 @@ describe("MeasurementQuickLogForm", () => {
 
     getByText("kg");
     getByText("cm");
+  });
+
+  it("refuses to submit while a field holds unparseable text", () => {
+    const onSubmit = jest.fn();
+    const { getByTestId } = renderForm({ onSubmit });
+
+    fireEvent.changeText(getByTestId("measurement-input-1"), "8o");
+    fireEvent.press(getByTestId("measurement-log-button"));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("tells the user which field is wrong", () => {
+    const { getByTestId, getByText } = renderForm();
+
+    fireEvent.changeText(getByTestId("measurement-input-1"), "8o");
+
+    getByText(/enter a number/i);
+  });
+
+  it("clears the warning once the field is corrected", () => {
+    const { getByTestId, queryByText } = renderForm();
+
+    fireEvent.changeText(getByTestId("measurement-input-1"), "8o");
+    fireEvent.changeText(getByTestId("measurement-input-1"), "82.5");
+
+    expect(queryByText(/enter a number/i)).toBeNull();
   });
 
   // Inside a bottom sheet the inputs must be BottomSheetTextInput or the

@@ -554,11 +554,29 @@ msgstr ""
 ""
 
 #: constants/WhatsNew.ts:447
+#~ msgid ""
+#~ "\n"
+#~ "📏 New: Log Measurements from the Home Screen!\n"
+#~ "\n"
+#~ "A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+#~ "\n"
+#~ "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
+#~ ""
+#~ msgstr ""
+#~ "\n"
+#~ "📏 Nuevo: ¡Registra tus medidas desde la pantalla de inicio!\n"
+#~ "\n"
+#~ "Una nueva tarjeta en la pantalla de inicio muestra tu peso corporal más reciente y cuánto hace que lo registraste. Tócala para anotar los valores de hoy en un panel rápido, prerrellenado con tus últimos datos, sin salir de la pantalla.\n"
+#~ "\n"
+#~ "La tarjeta se resalta cuando ha pasado una semana desde tu última entrada, y sigue las métricas que tengas activadas en la sección de Medidas corporales.\n"
+#~ ""
+
+#: constants/WhatsNew.ts:447
 msgid ""
 "\n"
 "📏 New: Log Measurements from the Home Screen!\n"
 "\n"
-"A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+"A new card on the home screen shows your most recent measurement and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
 "\n"
 "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
 ""
@@ -566,7 +584,7 @@ msgstr ""
 "\n"
 "📏 Nuevo: ¡Registra tus medidas desde la pantalla de inicio!\n"
 "\n"
-"Una nueva tarjeta en la pantalla de inicio muestra tu peso corporal más reciente y cuánto hace que lo registraste. Tócala para anotar los valores de hoy en un panel rápido, prerrellenado con tus últimos datos, sin salir de la pantalla.\n"
+"Una nueva tarjeta en la pantalla de inicio muestra tu medida más reciente y cuánto hace que la registraste. Tócala para anotar los valores de hoy en un panel rápido, prerrellenado con tus últimos datos, sin salir de la pantalla.\n"
 "\n"
 "La tarjeta se resalta cuando ha pasado una semana desde tu última entrada, y sigue las métricas que tengas activadas en la sección de Medidas corporales.\n"
 ""
@@ -2466,6 +2484,10 @@ msgstr "Activado"
 msgid "Enter a name for the custom metric."
 msgstr "Introduce un nombre para la métrica personalizada."
 
+#: components/MeasurementQuickLogForm.tsx:78
+msgid "Enter a number, for example 82.5"
+msgstr "Introduce un número, por ejemplo 82,5"
+
 #: app/(app)/(tabs)/(stats)/measurements.tsx:132
 msgid "Enter at least one measurement to log."
 msgstr "Introduce al menos una medida para registrar."
@@ -3131,7 +3153,7 @@ msgstr "Cargando..."
 
 #: app/(app)/(tabs)/(stats)/measurements.tsx:168
 #: app/(app)/(tabs)/(stats)/measurements.tsx:249
-#: components/MeasurementQuickLogForm.tsx:82
+#: components/MeasurementQuickLogForm.tsx:96
 msgid "Log Entry"
 msgstr "Registrar entrada"
 
@@ -3139,7 +3161,7 @@ msgstr "Registrar entrada"
 msgid "Log in to secure your data"
 msgstr "Inicia sesión para proteger tus datos"
 
-#: components/MeasurementQuickLog.tsx:114
+#: components/MeasurementQuickLog.tsx:111
 msgid "Log Measurements"
 msgstr "Registrar medidas"
 
@@ -3789,7 +3811,7 @@ msgstr "Sesiones recientes"
 msgid "Recently Used"
 msgstr "Usado recientemente"
 
-#: components/MeasurementQuickLog.tsx:117
+#: components/MeasurementQuickLog.tsx:114
 msgid "Recorded for today."
 msgstr "Se registrará con la fecha de hoy."
 
@@ -4819,7 +4841,7 @@ msgstr "Sigue tu composición corporal a lo largo del tiempo desde la sección M
 
 #: components/MeasurementQuickLogCard.tsx:84
 msgid "Track your body measurements. Tap to log."
-msgstr "Registra tus medidas corporales. Toca para empezar."
+msgstr "Sigue tus medidas corporales. Toca para registrar."
 
 #: components/Onboarding.tsx:30
 msgid "Track Your Progress"

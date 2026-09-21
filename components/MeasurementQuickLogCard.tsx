@@ -12,19 +12,19 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import type {
   BodyMetricDefinition,
-  BodyMeasurementSession,
+  LatestBodyMetricValue,
 } from "@/utils/database";
 
 interface MeasurementQuickLogCardProps {
   metrics: BodyMetricDefinition[] | undefined;
-  /** Sessions already carry display values, so the card needs no unit settings. */
-  sessions: BodyMeasurementSession[] | undefined;
+  /** Latest reading per metric; already carries display values and units. */
+  latestValues: LatestBodyMetricValue[] | undefined;
   onPress: () => void;
 }
 
 export function MeasurementQuickLogCard({
   metrics,
-  sessions,
+  latestValues,
   onPress,
 }: MeasurementQuickLogCardProps) {
   const { colors } = useAppTheme();
@@ -32,8 +32,8 @@ export function MeasurementQuickLogCard({
   const { _ } = useLingui();
 
   const summary = useMemo(
-    () => selectQuickLogSummary(metrics, sessions, new Date()),
-    [metrics, sessions],
+    () => selectQuickLogSummary(metrics, latestValues, new Date()),
+    [metrics, latestValues],
   );
 
   if (!summary.metric) return null;

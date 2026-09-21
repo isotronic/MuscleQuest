@@ -2,8 +2,9 @@ import {
   selectQuickLogSummary,
   buildMeasurementValues,
   buildPrefillValues,
+  parseMeasurementInput,
 } from "../measurementQuickLog";
-import type { BodyMetricDefinition, BodyMeasurementSession } from "../database";
+import type { BodyMetricDefinition, LatestBodyMetricValue } from "../database";
 
 const metric = (
   over: Partial<BodyMetricDefinition> & { id: number; key: string },
@@ -37,17 +38,16 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const localStamp = (day: number, hour: number, minute = 0) =>
   `2026-09-${pad(day)}T${pad(hour)}:${pad(minute)}:00`;
 
-const session = (
+const latest = (
+  metric: BodyMetricDefinition,
+  displayValue: number,
   recorded_at: string,
-  values: { metric: BodyMetricDefinition; displayValue: number }[],
-): BodyMeasurementSession => ({
-  entry: { id: Math.random(), recorded_at },
-  values: values.map((v) => ({
-    metric: v.metric,
-    canonicalValue: v.displayValue,
-    displayValue: v.displayValue,
-    displayUnit: v.metric.value_kind === "mass" ? "kg" : "cm",
-  })),
+): LatestBodyMetricValue => ({
+  metric,
+  canonicalValue: displayValue,
+  displayValue,
+  displayUnit: metric.value_kind === "mass" ? "kg" : "cm",
+  recorded_at,
 });
 
 const NOW = new Date(2026, 8, 21, 10, 0, 0);
@@ -56,7 +56,7 @@ describe("selectQuickLogSummary", () => {
   it("headlines body weight when it is an active metric", () => {
     const summary = selectQuickLogSummary(
       [WAIST, WEIGHT, CHEST],
-      [session(localStamp(21, 8), [{ metric: WEIGHT, displayValue: 82.5 }])],
+      [latest(WEIGHT, 82.5, localStamp(21, 8))],
       NOW,
     );
 
@@ -68,7 +68,7 @@ describe("selectQuickLogSummary", () => {
   it("falls back to the lowest sort_order metric when weight is inactive", () => {
     const summary = selectQuickLogSummary(
       [CHEST, WAIST],
-      [session(localStamp(21, 8), [{ metric: WAIST, displayValue: 81 }])],
+      [latest(WAIST, 81, localStamp(21, 8))],
       NOW,
     );
 
@@ -76,12 +76,12 @@ describe("selectQuickLogSummary", () => {
     expect(summary.latest?.displayValue).toBe(81);
   });
 
-  it("skips past sessions that omit the headline metric", () => {
+  it("picks out the headline metric among other metrics' readings", () => {
     const summary = selectQuickLogSummary(
       [WEIGHT, WAIST],
       [
-        session(localStamp(20, 8), [{ metric: WAIST, displayValue: 80 }]),
-        session(localStamp(14, 8), [{ metric: WEIGHT, displayValue: 83.1 }]),
+        latest(WAIST, 80, localStamp(20, 8)),
+        latest(WEIGHT, 83.1, localStamp(14, 8)),
       ],
       NOW,
     );
@@ -101,7 +101,7 @@ describe("selectQuickLogSummary", () => {
   it("counts calendar days, so late yesterday reads as one day ago", () => {
     const summary = selectQuickLogSummary(
       [WEIGHT],
-      [session(localStamp(20, 23, 30), [{ metric: WEIGHT, displayValue: 82 }])],
+      [latest(WEIGHT, 82, localStamp(20, 23, 30))],
       NOW,
     );
 
@@ -111,7 +111,7 @@ describe("selectQuickLogSummary", () => {
   it("marks the headline stale once it is seven days old", () => {
     const summary = selectQuickLogSummary(
       [WEIGHT],
-      [session(localStamp(14, 8), [{ metric: WEIGHT, displayValue: 82 }])],
+      [latest(WEIGHT, 82, localStamp(14, 8))],
       NOW,
     );
 
@@ -121,7 +121,7 @@ describe("selectQuickLogSummary", () => {
   it("does not mark the headline stale at six days old", () => {
     const summary = selectQuickLogSummary(
       [WEIGHT],
-      [session(localStamp(15, 8), [{ metric: WEIGHT, displayValue: 82 }])],
+      [latest(WEIGHT, 82, localStamp(15, 8))],
       NOW,
     );
 
@@ -131,7 +131,7 @@ describe("selectQuickLogSummary", () => {
   it("marks stale when other metrics were logged but the headline never was", () => {
     const summary = selectQuickLogSummary(
       [WEIGHT, WAIST],
-      [session(localStamp(21, 8), [{ metric: WAIST, displayValue: 80 }])],
+      [latest(WAIST, 80, localStamp(21, 8))],
       NOW,
     );
 
@@ -152,6 +152,35 @@ describe("selectQuickLogSummary", () => {
     expect(summary.metric).toBeNull();
     expect(summary.hasAnyHistory).toBe(false);
   });
+});
+
+describe("parseMeasurementInput", () => {
+  it.each([
+    ["82.5", 82.5],
+    ["82,5", 82.5],
+    ["82", 82],
+    ["0", 0],
+    ["82.", 82],
+    [".5", 0.5],
+    ["  82.5  ", 82.5],
+  ])("parses %p as %p", (input, expected) => {
+    expect(parseMeasurementInput(input as string)).toBe(expected);
+  });
+
+  it.each([[""], ["   "], ["abc"], ["."], ["-5"], ["1e3"], ["82 5"]])(
+    "rejects %p",
+    (input) => {
+      expect(parseMeasurementInput(input as string)).toBeNull();
+    },
+  );
+
+  // parseFloat would silently return 8 here, quietly logging the wrong number.
+  it.each([["8o"], ["82.5abc"], ["12kg"]])(
+    "rejects %p rather than truncating it",
+    (input) => {
+      expect(parseMeasurementInput(input as string)).toBeNull();
+    },
+  );
 });
 
 describe("buildMeasurementValues", () => {
@@ -189,6 +218,17 @@ describe("buildMeasurementValues", () => {
 
     expect(values).toHaveLength(0);
   });
+
+  it("drops malformed text instead of truncating it to a number", () => {
+    const values = buildMeasurementValues([WEIGHT, WAIST], {
+      [WEIGHT.id]: "8o",
+      [WAIST.id]: "80",
+    });
+
+    expect(values).toEqual([
+      { metric_id: 2, value_kind: "length", displayValue: 80 },
+    ]);
+  });
 });
 
 describe("buildPrefillValues", () => {
@@ -196,8 +236,8 @@ describe("buildPrefillValues", () => {
     const prefill = buildPrefillValues(
       [WEIGHT, WAIST],
       [
-        session(localStamp(21, 8), [{ metric: WEIGHT, displayValue: 82.5 }]),
-        session(localStamp(14, 8), [{ metric: WAIST, displayValue: 81 }]),
+        latest(WEIGHT, 82.5, localStamp(21, 8)),
+        latest(WAIST, 81, localStamp(14, 8)),
       ],
     );
 
@@ -207,22 +247,23 @@ describe("buildPrefillValues", () => {
   it("leaves a metric blank when it has never been logged", () => {
     const prefill = buildPrefillValues(
       [WEIGHT, WAIST],
-      [session(localStamp(21, 8), [{ metric: WEIGHT, displayValue: 82.5 }])],
+      [latest(WEIGHT, 82.5, localStamp(21, 8))],
     );
 
     expect(prefill[WAIST.id]).toBe("");
   });
 
-  it("prefers the newest reading when a metric was logged repeatedly", () => {
+  it("seeds a rarely-logged metric even when it is long out of date", () => {
     const prefill = buildPrefillValues(
-      [WEIGHT],
+      [WEIGHT, WAIST],
       [
-        session(localStamp(14, 8), [{ metric: WEIGHT, displayValue: 84 }]),
-        session(localStamp(21, 8), [{ metric: WEIGHT, displayValue: 82.5 }]),
+        latest(WEIGHT, 82.5, localStamp(21, 8)),
+        // Logged months ago; a "last N sessions" query would have lost this.
+        latest(WAIST, 81, "2026-01-04T08:00:00"),
       ],
     );
 
-    expect(prefill[WEIGHT.id]).toBe("82.5");
+    expect(prefill[WAIST.id]).toBe("81");
   });
 
   it("handles a user with no history at all", () => {

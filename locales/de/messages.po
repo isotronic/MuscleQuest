@@ -554,11 +554,29 @@ msgstr ""
 ""
 
 #: constants/WhatsNew.ts:447
+#~ msgid ""
+#~ "\n"
+#~ "📏 New: Log Measurements from the Home Screen!\n"
+#~ "\n"
+#~ "A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+#~ "\n"
+#~ "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
+#~ ""
+#~ msgstr ""
+#~ "\n"
+#~ "📏 Neu: Körpermaße vom Startbildschirm erfassen!\n"
+#~ "\n"
+#~ "Eine neue Karte auf dem Startbildschirm zeigt dein aktuelles Körpergewicht und wann du es zuletzt erfasst hast. Tippe darauf, um die heutigen Werte in einem schnellen Eingabefenster zu erfassen, vorausgefüllt mit deinen letzten Werten, ohne den Bildschirm zu verlassen.\n"
+#~ "\n"
+#~ "Die Karte wird hervorgehoben, sobald dein letzter Eintrag eine Woche zurückliegt, und richtet sich nach den Messwerten, die du im Bereich Körpermaße aktiviert hast.\n"
+#~ ""
+
+#: constants/WhatsNew.ts:447
 msgid ""
 "\n"
 "📏 New: Log Measurements from the Home Screen!\n"
 "\n"
-"A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+"A new card on the home screen shows your most recent measurement and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
 "\n"
 "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
 ""
@@ -566,7 +584,7 @@ msgstr ""
 "\n"
 "📏 Neu: Körpermaße vom Startbildschirm erfassen!\n"
 "\n"
-"Eine neue Karte auf dem Startbildschirm zeigt dein aktuelles Körpergewicht und wann du es zuletzt erfasst hast. Tippe darauf, um die heutigen Werte in einem schnellen Eingabefenster zu erfassen, vorausgefüllt mit deinen letzten Werten, ohne den Bildschirm zu verlassen.\n"
+"Eine neue Karte auf dem Startbildschirm zeigt deine zuletzt erfasste Messung und wie lange das her ist. Tippe darauf, um die heutigen Werte in einem schnellen Eingabefenster zu erfassen, vorausgefüllt mit deinen letzten Werten, ohne den Bildschirm zu verlassen.\n"
 "\n"
 "Die Karte wird hervorgehoben, sobald dein letzter Eintrag eine Woche zurückliegt, und richtet sich nach den Messwerten, die du im Bereich Körpermaße aktiviert hast.\n"
 ""
@@ -2466,6 +2484,10 @@ msgstr "Aktiviert"
 msgid "Enter a name for the custom metric."
 msgstr "Gib einen Namen für den eigenen Messwert ein."
 
+#: components/MeasurementQuickLogForm.tsx:78
+msgid "Enter a number, for example 82.5"
+msgstr "Gib eine Zahl ein, zum Beispiel 82,5"
+
 #: app/(app)/(tabs)/(stats)/measurements.tsx:132
 msgid "Enter at least one measurement to log."
 msgstr "Gib mindestens einen Messwert ein."
@@ -3131,7 +3153,7 @@ msgstr "Wird geladen..."
 
 #: app/(app)/(tabs)/(stats)/measurements.tsx:168
 #: app/(app)/(tabs)/(stats)/measurements.tsx:249
-#: components/MeasurementQuickLogForm.tsx:82
+#: components/MeasurementQuickLogForm.tsx:96
 msgid "Log Entry"
 msgstr "Eintrag erfassen"
 
@@ -3139,7 +3161,7 @@ msgstr "Eintrag erfassen"
 msgid "Log in to secure your data"
 msgstr "Melde dich an, um deine Daten zu sichern"
 
-#: components/MeasurementQuickLog.tsx:114
+#: components/MeasurementQuickLog.tsx:111
 msgid "Log Measurements"
 msgstr "Körpermaße erfassen"
 
@@ -3789,7 +3811,7 @@ msgstr "Letzte Einheiten"
 msgid "Recently Used"
 msgstr "Zuletzt verwendet"
 
-#: components/MeasurementQuickLog.tsx:117
+#: components/MeasurementQuickLog.tsx:114
 msgid "Recorded for today."
 msgstr "Wird für heute erfasst."
 

@@ -24,6 +24,7 @@ import {
   updatePlanWorkoutExercises,
   updateStandaloneWorkout,
   fetchBodyMeasurementSessions,
+  fetchLatestBodyMetricValues,
   fetchCompletedWorkoutById,
   createDatabaseSnapshot,
   checkDatabaseIntegrity,
@@ -1040,6 +1041,64 @@ describe("fetchBodyMeasurementSessions — LIMIT parameterization", () => {
       expect.not.stringContaining("LIMIT 5"),
       [5],
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fetchLatestBodyMetricValues
+// ---------------------------------------------------------------------------
+
+describe("fetchLatestBodyMetricValues", () => {
+  const row = (over: Record<string, unknown> = {}) => ({
+    id: 1,
+    key: "weight",
+    label: "Body Weight",
+    value_kind: "mass",
+    is_builtin: 1,
+    is_active: 1,
+    is_deleted: 0,
+    sort_order: 0,
+    value: 82.5,
+    recorded_at: "2026-09-21 08:00:00",
+    ...over,
+  });
+
+  it("converts each metric's stored value into the caller's display unit", async () => {
+    mockDb.getAllAsync.mockResolvedValue([row()]);
+
+    const result = await fetchLatestBodyMetricValues({
+      weightUnit: "lbs",
+      sizeUnit: "cm",
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].metric.key).toBe("weight");
+    expect(result[0].canonicalValue).toBe(82.5);
+    expect(result[0].displayUnit).toBe("lbs");
+    expect(result[0].displayValue).toBeCloseTo(181.9, 1);
+    expect(result[0].recorded_at).toBe("2026-09-21 08:00:00");
+  });
+
+  // The whole point of this query: an infrequently logged metric must not fall
+  // out of a "last N sessions" window, so it must not be limited at all.
+  it("does not limit how far back it looks", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await fetchLatestBodyMetricValues({ weightUnit: "kg", sizeUnit: "cm" });
+
+    const [sql] = mockDb.getAllAsync.mock.calls[0];
+    expect(sql).not.toMatch(/LIMIT/i);
+    expect(sql).toMatch(/GROUP BY\s+bmd\.id/i);
+  });
+
+  it("keeps deactivated metrics so callers can detect prior history", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await fetchLatestBodyMetricValues({ weightUnit: "kg", sizeUnit: "cm" });
+
+    const [sql] = mockDb.getAllAsync.mock.calls[0];
+    expect(sql).toMatch(/bmd\.is_deleted = 0/);
+    expect(sql).not.toMatch(/bmd\.is_active = 1/);
   });
 });
 

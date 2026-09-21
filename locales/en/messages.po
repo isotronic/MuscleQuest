@@ -553,11 +553,29 @@ msgstr ""
 ""
 
 #: constants/WhatsNew.ts:447
+#~ msgid ""
+#~ "\n"
+#~ "📏 New: Log Measurements from the Home Screen!\n"
+#~ "\n"
+#~ "A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+#~ "\n"
+#~ "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
+#~ ""
+#~ msgstr ""
+#~ "\n"
+#~ "📏 New: Log Measurements from the Home Screen!\n"
+#~ "\n"
+#~ "A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+#~ "\n"
+#~ "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
+#~ ""
+
+#: constants/WhatsNew.ts:447
 msgid ""
 "\n"
 "📏 New: Log Measurements from the Home Screen!\n"
 "\n"
-"A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+"A new card on the home screen shows your most recent measurement and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
 "\n"
 "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
 ""
@@ -565,7 +583,7 @@ msgstr ""
 "\n"
 "📏 New: Log Measurements from the Home Screen!\n"
 "\n"
-"A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+"A new card on the home screen shows your most recent measurement and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
 "\n"
 "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
 ""
@@ -2465,6 +2483,10 @@ msgstr "Enabled"
 msgid "Enter a name for the custom metric."
 msgstr "Enter a name for the custom metric."
 
+#: components/MeasurementQuickLogForm.tsx:78
+msgid "Enter a number, for example 82.5"
+msgstr "Enter a number, for example 82.5"
+
 #: app/(app)/(tabs)/(stats)/measurements.tsx:132
 msgid "Enter at least one measurement to log."
 msgstr "Enter at least one measurement to log."
@@ -3130,7 +3152,7 @@ msgstr "Loading..."
 
 #: app/(app)/(tabs)/(stats)/measurements.tsx:168
 #: app/(app)/(tabs)/(stats)/measurements.tsx:249
-#: components/MeasurementQuickLogForm.tsx:82
+#: components/MeasurementQuickLogForm.tsx:96
 msgid "Log Entry"
 msgstr "Log Entry"
 
@@ -3138,7 +3160,7 @@ msgstr "Log Entry"
 msgid "Log in to secure your data"
 msgstr "Log in to secure your data"
 
-#: components/MeasurementQuickLog.tsx:114
+#: components/MeasurementQuickLog.tsx:111
 msgid "Log Measurements"
 msgstr "Log Measurements"
 
@@ -3788,7 +3810,7 @@ msgstr "Recent Sessions"
 msgid "Recently Used"
 msgstr "Recently Used"
 
-#: components/MeasurementQuickLog.tsx:117
+#: components/MeasurementQuickLog.tsx:114
 msgid "Recorded for today."
 msgstr "Recorded for today."
 

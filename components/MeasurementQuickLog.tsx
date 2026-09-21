@@ -12,7 +12,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { MeasurementQuickLogCard } from "@/components/MeasurementQuickLogCard";
 import { MeasurementQuickLogForm } from "@/components/MeasurementQuickLogForm";
 import { useActiveBodyMetricDefinitionsQuery } from "@/hooks/useBodyMetricDefinitionsQuery";
-import { useBodyMeasurementSessionsQuery } from "@/hooks/useBodyMeasurementSessionsQuery";
+import { useLatestBodyMetricValuesQuery } from "@/hooks/useBodyMeasurementSessionsQuery";
 import { useInsertBodyMeasurementMutation } from "@/hooks/useBodyMeasurementMutations";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import {
@@ -46,17 +46,14 @@ export function MeasurementQuickLog() {
   );
 
   const { data: metrics } = useActiveBodyMetricDefinitionsQuery();
-  const { data: sessions } = useBodyMeasurementSessionsQuery(
-    displayOptions,
-    10,
-  );
+  const { data: latestValues } = useLatestBodyMetricValuesQuery(displayOptions);
   const insertMutation = useInsertBodyMeasurementMutation(displayOptions);
 
   const activeMetrics = useMemo(() => metrics ?? [], [metrics]);
 
   const prefill = useMemo(
-    () => buildPrefillValues(activeMetrics, sessions ?? []),
-    [activeMetrics, sessions],
+    () => buildPrefillValues(activeMetrics, latestValues ?? []),
+    [activeMetrics, latestValues],
   );
 
   const units = useMemo(() => {
@@ -99,7 +96,7 @@ export function MeasurementQuickLog() {
     <>
       <MeasurementQuickLogCard
         metrics={metrics}
-        sessions={sessions}
+        latestValues={latestValues}
         onPress={() => sheetRef.current?.present()}
       />
       <AppBottomSheet

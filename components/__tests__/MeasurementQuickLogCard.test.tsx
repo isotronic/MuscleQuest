@@ -3,7 +3,7 @@ import { render, fireEvent } from "@testing-library/react-native";
 import { MeasurementQuickLogCard } from "../MeasurementQuickLogCard";
 import type {
   BodyMetricDefinition,
-  BodyMeasurementSession,
+  LatestBodyMetricValue,
 } from "@/utils/database";
 
 const WEIGHT: BodyMetricDefinition = {
@@ -62,19 +62,15 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const localStamp = (day: number, hour: number) =>
   `2026-09-${pad(day)}T${pad(hour)}:00:00`;
 
-const sessionWithWeight = (
+const weightLoggedOn = (
   day: number,
   displayValue: number,
-): BodyMeasurementSession => ({
-  entry: { id: day, recorded_at: localStamp(day, 8) },
-  values: [
-    {
-      metric: WEIGHT,
-      canonicalValue: displayValue,
-      displayValue,
-      displayUnit: "kg",
-    },
-  ],
+): LatestBodyMetricValue => ({
+  metric: WEIGHT,
+  canonicalValue: displayValue,
+  displayValue,
+  displayUnit: "kg",
+  recorded_at: localStamp(day, 8),
 });
 
 const renderCard = (
@@ -83,7 +79,7 @@ const renderCard = (
   render(
     <MeasurementQuickLogCard
       metrics={[WEIGHT]}
-      sessions={[]}
+      latestValues={[]}
       onPress={jest.fn()}
       {...props}
     />,
@@ -106,7 +102,7 @@ describe("MeasurementQuickLogCard", () => {
 
   it("shows the latest body weight with its unit", () => {
     const { getByText } = renderCard({
-      sessions: [sessionWithWeight(21, 82.5)],
+      latestValues: [weightLoggedOn(21, 82.5)],
     });
 
     getByText("82.5 kg");
@@ -114,14 +110,16 @@ describe("MeasurementQuickLogCard", () => {
 
   it("says today when the entry was logged today", () => {
     const { getByText } = renderCard({
-      sessions: [sessionWithWeight(21, 82.5)],
+      latestValues: [weightLoggedOn(21, 82.5)],
     });
 
     getByText(/logged today/i);
   });
 
   it("counts the days since an older entry", () => {
-    const { getByText } = renderCard({ sessions: [sessionWithWeight(18, 83)] });
+    const { getByText } = renderCard({
+      latestValues: [weightLoggedOn(18, 83)],
+    });
 
     getByText(/3 days ago/i);
   });
@@ -130,7 +128,7 @@ describe("MeasurementQuickLogCard", () => {
     const onPress = jest.fn();
 
     const { getByTestId } = renderCard({
-      sessions: [sessionWithWeight(21, 82.5)],
+      latestValues: [weightLoggedOn(21, 82.5)],
       onPress,
     });
     fireEvent.press(getByTestId("measurement-quick-log-card"));
@@ -147,7 +145,7 @@ describe("MeasurementQuickLogCard", () => {
   it("renders nothing while the metric list is still loading", () => {
     const { queryByTestId } = renderCard({
       metrics: undefined,
-      sessions: undefined,
+      latestValues: undefined,
     });
 
     expect(queryByTestId("measurement-quick-log-card")).toBeNull();

@@ -447,7 +447,7 @@ Under Settings > Your data you can now export your workouts and body measurement
     message: msg`
 📏 New: Log Measurements from the Home Screen!
 
-A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.
+A new card on the home screen shows your most recent measurement and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.
 
 The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.
 `,

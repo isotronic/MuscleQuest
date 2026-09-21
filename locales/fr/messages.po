@@ -554,19 +554,37 @@ msgstr ""
 ""
 
 #: constants/WhatsNew.ts:447
+#~ msgid ""
+#~ "\n"
+#~ "📏 New: Log Measurements from the Home Screen!\n"
+#~ "\n"
+#~ "A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+#~ "\n"
+#~ "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
+#~ ""
+#~ msgstr ""
+#~ "\n"
+#~ "📏 Nouveau : Saisis tes mesures depuis l'accueil !\n"
+#~ "\n"
+#~ "Une nouvelle carte sur l'écran d'accueil affiche ton dernier poids corporel et la date de ta dernière saisie. Appuie dessus pour enregistrer les valeurs du jour dans un panneau rapide, prérempli avec tes dernières mesures, sans quitter l'écran.\n"
+#~ "\n"
+#~ "La carte se met en évidence dès qu'une semaine s'est écoulée depuis ta dernière entrée, et suit les mesures que tu as activées dans la section Mesures corporelles.\n"
+#~ ""
+
+#: constants/WhatsNew.ts:447
 msgid ""
 "\n"
 "📏 New: Log Measurements from the Home Screen!\n"
 "\n"
-"A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+"A new card on the home screen shows your most recent measurement and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
 "\n"
 "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
 ""
 msgstr ""
 "\n"
-"📏 Nouveau : Saisis tes mesures depuis l'accueil !\n"
+"📏 Nouveau : Enregistre tes mesures depuis l'accueil !\n"
 "\n"
-"Une nouvelle carte sur l'écran d'accueil affiche ton dernier poids corporel et la date de ta dernière saisie. Appuie dessus pour enregistrer les valeurs du jour dans un panneau rapide, prérempli avec tes dernières mesures, sans quitter l'écran.\n"
+"Une nouvelle carte sur l'écran d'accueil affiche ta mesure la plus récente et depuis combien de temps tu l'as enregistrée. Appuie dessus pour enregistrer les valeurs du jour dans un panneau rapide, prérempli avec tes dernières mesures, sans quitter l'écran.\n"
 "\n"
 "La carte se met en évidence dès qu'une semaine s'est écoulée depuis ta dernière entrée, et suit les mesures que tu as activées dans la section Mesures corporelles.\n"
 ""
@@ -863,7 +881,7 @@ msgstr "{0, plural, one {+# de plus} other {+# de plus}}"
 #. placeholder {0}: summary.daysSinceLastLog ?? 0
 #: components/MeasurementQuickLogCard.tsx:69
 msgid "{0, plural, one {Logged 1 day ago} other {Logged # days ago}}"
-msgstr "{0, plural, one {Saisi il y a 1 jour} other {Saisi il y a # jours}}"
+msgstr "{0, plural, one {Mesure enregistrée il y a 1 jour} other {Mesure enregistrée il y a # jours}}"
 
 #. placeholder {0}: Math.abs(setsDiff)
 #: app/(app)/(workout)/workout-summary.tsx:547
@@ -2466,6 +2484,10 @@ msgstr "Activé"
 msgid "Enter a name for the custom metric."
 msgstr "Entre un nom pour la mesure personnalisée."
 
+#: components/MeasurementQuickLogForm.tsx:78
+msgid "Enter a number, for example 82.5"
+msgstr "Saisis un nombre, par exemple 82,5"
+
 #: app/(app)/(tabs)/(stats)/measurements.tsx:132
 msgid "Enter at least one measurement to log."
 msgstr "Entre au moins une mesure à enregistrer."
@@ -3131,7 +3153,7 @@ msgstr "Chargement..."
 
 #: app/(app)/(tabs)/(stats)/measurements.tsx:168
 #: app/(app)/(tabs)/(stats)/measurements.tsx:249
-#: components/MeasurementQuickLogForm.tsx:82
+#: components/MeasurementQuickLogForm.tsx:96
 msgid "Log Entry"
 msgstr "Saisir une entrée"
 
@@ -3139,7 +3161,7 @@ msgstr "Saisir une entrée"
 msgid "Log in to secure your data"
 msgstr "Connecte-toi pour sécuriser tes données"
 
-#: components/MeasurementQuickLog.tsx:114
+#: components/MeasurementQuickLog.tsx:111
 msgid "Log Measurements"
 msgstr "Saisir les mesures"
 
@@ -3149,7 +3171,7 @@ msgstr "Saisir les mesures"
 
 #: components/MeasurementQuickLogCard.tsx:67
 msgid "Logged today"
-msgstr "Saisi aujourd'hui"
+msgstr "Mesure enregistrée aujourd'hui"
 
 #: constants/dbTranslations.ts:50
 msgid "lower abs"
@@ -3495,7 +3517,7 @@ msgstr "Non, garder comme ça"
 
 #: components/MeasurementQuickLogCard.tsx:82
 msgid "Not logged yet. Tap to add today's entry."
-msgstr "Pas encore saisi. Appuie pour ajouter l'entrée du jour."
+msgstr "Mesure non enregistrée. Appuie pour ajouter l'entrée du jour."
 
 #: app/(app)/delete-account.tsx:195
 msgid "Nothing is sent anywhere else."
@@ -3789,7 +3811,7 @@ msgstr "Sessions récentes"
 msgid "Recently Used"
 msgstr "Récemment utilisé"
 
-#: components/MeasurementQuickLog.tsx:117
+#: components/MeasurementQuickLog.tsx:114
 msgid "Recorded for today."
 msgstr "Enregistré à la date du jour."
 
@@ -4819,7 +4841,7 @@ msgstr "Suis ta composition corporelle dans le temps depuis la section Mesures d
 
 #: components/MeasurementQuickLogCard.tsx:84
 msgid "Track your body measurements. Tap to log."
-msgstr "Suis tes mesures corporelles. Appuie pour saisir."
+msgstr "Suis tes mesures corporelles. Appuie pour enregistrer."
 
 #: components/Onboarding.tsx:30
 msgid "Track Your Progress"
