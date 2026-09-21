@@ -791,7 +791,7 @@ export default function SettingsScreen() {
           >
             <AppIcon
               set="mci"
-              name="tape-measure"
+              name="ruler"
               size={24}
               color={colors.contentSecondary}
               style={styles.icon}

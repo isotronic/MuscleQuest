@@ -351,7 +351,7 @@ export default function HomeScreen() {
           </Modal>
         </Portal>
       )}
-      <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 16 }}>
         <View style={styles.weekContainer}>
           <WeekDays
             completedWorkoutsThisWeek={completedWorkoutsThisWeek}
@@ -487,109 +487,109 @@ export default function HomeScreen() {
                 )}
               </View>
 
-              {workoutsToDisplay.map((workout, index) => {
-                const target = perWorkoutTarget.get(workout.id!);
+              <View style={styles.workoutList}>
+                {workoutsToDisplay.map((workout, index) => {
+                  const target = perWorkoutTarget.get(workout.id!);
 
-                // Filter to check how many times this specific workout has been completed this week
-                const completedTimes =
-                  completedWorkoutsThisPlanThisWeek?.filter(
-                    (completedWorkout) =>
-                      completedWorkout.workout_id === workout.id,
-                  ).length ?? 0;
+                  // Filter to check how many times this specific workout has been completed this week
+                  const completedTimes =
+                    completedWorkoutsThisPlanThisWeek?.filter(
+                      (completedWorkout) =>
+                        completedWorkout.workout_id === workout.id,
+                    ).length ?? 0;
 
-                // Condition to check if the workout is completed enough times
-                const workoutCompleted =
-                  target !== undefined && completedTimes >= target;
-                const originalIndex = activePlan.workouts.findIndex(
-                  (w) => w.id === workout.id,
-                );
-                const shouldHighlightCard =
-                  !workoutInProgress &&
-                  index === 0 &&
-                  !weeklyGoalReached &&
-                  !isRestDay &&
-                  !completedAnyWorkoutToday;
-                return (
-                  <Pressable
-                    key={index}
-                    style={[
-                      styles.workoutCard,
-                      shouldHighlightCard
-                        ? {
-                            borderWidth: 1,
-                            borderColor: colors.accent,
+                  // Condition to check if the workout is completed enough times
+                  const workoutCompleted =
+                    target !== undefined && completedTimes >= target;
+                  const originalIndex = activePlan.workouts.findIndex(
+                    (w) => w.id === workout.id,
+                  );
+                  const shouldHighlightCard =
+                    !workoutInProgress &&
+                    index === 0 &&
+                    !weeklyGoalReached &&
+                    !isRestDay &&
+                    !completedAnyWorkoutToday;
+                  return (
+                    <Pressable
+                      key={index}
+                      style={[
+                        styles.workoutCard,
+                        shouldHighlightCard
+                          ? {
+                              borderWidth: 1,
+                              borderColor: colors.accent,
+                            }
+                          : null,
+                      ]}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/workout-details",
+                          params: {
+                            planId: String(activePlan.id),
+                            workoutIndex: String(originalIndex),
+                          },
+                        })
+                      }
+                    >
+                      <View style={styles.workoutCardContent}>
+                        <AppIcon
+                          set="mci"
+                          name={workoutCompleted ? "check" : "weight-lifter"}
+                          size={30}
+                          color={
+                            workoutCompleted
+                              ? colors.success
+                              : colors.contentSecondary
                           }
-                        : null,
-                    ]}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/workout-details",
-                        params: {
-                          planId: String(activePlan.id),
-                          workoutIndex: String(originalIndex),
-                        },
-                      })
-                    }
-                  >
-                    <View style={styles.workoutCardContent}>
-                      <AppIcon
-                        set="mci"
-                        name={workoutCompleted ? "check" : "weight-lifter"}
-                        size={30}
-                        color={
-                          workoutCompleted
-                            ? colors.success
-                            : colors.contentSecondary
-                        }
-                      />
-                      <View style={styles.workoutTextContainer}>
-                        <ThemedText
-                          type="subtitle"
-                          style={styles.workoutCardTitle}
-                        >
-                          {workout.name}
-                        </ThemedText>
-                        <WorkoutDurationInfo
-                          exercises={workout.exercises}
-                          countUnilateralDouble={countUnilateralDouble}
-                          style={styles.exerciseInfo}
                         />
+                        <View style={styles.workoutTextContainer}>
+                          <ThemedText
+                            type="subtitle"
+                            style={styles.workoutCardTitle}
+                          >
+                            {workout.name}
+                          </ThemedText>
+                          <WorkoutDurationInfo
+                            exercises={workout.exercises}
+                            countUnilateralDouble={countUnilateralDouble}
+                            style={styles.exerciseInfo}
+                          />
+                        </View>
+                        <View style={styles.smallButtonGroup}>
+                          <Button
+                            mode={
+                              shouldHighlightCard ? "contained" : "outlined"
+                            }
+                            onPress={() => {
+                              if (isStartingWorkout) return;
+                              confirmStartWorkout(setIsStartingWorkout, () => {
+                                useActiveWorkoutStore
+                                  .getState()
+                                  .setWorkout(
+                                    JSON.parse(JSON.stringify(workout)),
+                                    activePlan.id!,
+                                    workout.id!,
+                                    workout.name ||
+                                      `Workout ${originalIndex + 1}`,
+                                  );
+                              });
+                            }}
+                            labelStyle={styles.smallButtonLabel}
+                            disabled={isStartingWorkout}
+                          >
+                            <Trans>Start</Trans>
+                          </Button>
+                        </View>
                       </View>
-                      <View style={styles.smallButtonGroup}>
-                        <Button
-                          mode={shouldHighlightCard ? "contained" : "outlined"}
-                          onPress={() => {
-                            if (isStartingWorkout) return;
-                            confirmStartWorkout(setIsStartingWorkout, () => {
-                              useActiveWorkoutStore
-                                .getState()
-                                .setWorkout(
-                                  JSON.parse(JSON.stringify(workout)),
-                                  activePlan.id!,
-                                  workout.id!,
-                                  workout.name ||
-                                    `Workout ${originalIndex + 1}`,
-                                );
-                            });
-                          }}
-                          labelStyle={styles.smallButtonLabel}
-                          disabled={isStartingWorkout}
-                        >
-                          <Trans>Start</Trans>
-                        </Button>
-                      </View>
-                    </View>
-                  </Pressable>
-                );
-              })}
+                    </Pressable>
+                  );
+                })}
+              </View>
             </>
           ) : (
             <Onboarding />
           )}
-        </View>
-
-        <View style={styles.measurementContainer}>
-          <MeasurementQuickLog />
         </View>
 
         <View style={styles.buttonContainer}>
@@ -618,6 +618,10 @@ export default function HomeScreen() {
           >
             <Trans>Choose Workout</Trans>
           </Button>
+        </View>
+
+        <View style={styles.measurementContainer}>
+          <MeasurementQuickLog />
         </View>
       </ScrollView>
       {showWorkoutPicker && (
@@ -659,7 +663,7 @@ function createStyles(colors: AppThemeColors) {
     },
     summaryContainer: {
       paddingHorizontal: 16,
-      paddingBottom: 10,
+      paddingBottom: 8,
       backgroundColor: colors.background,
     },
     summaryText: {
@@ -667,14 +671,19 @@ function createStyles(colors: AppThemeColors) {
       textAlign: "right",
     },
     welcomeContainer: {
-      padding: 16,
+      paddingHorizontal: 16,
+      paddingTop: 16,
     },
     restDayContainer: {
       paddingHorizontal: 16,
       paddingTop: 16,
     },
     cardContainer: {
-      padding: 16,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+    workoutList: {
+      gap: 8,
     },
     planTitleRow: {
       flexDirection: "row",
@@ -696,7 +705,6 @@ function createStyles(colors: AppThemeColors) {
       color: colors.accent,
     },
     workoutCard: {
-      marginBottom: 10,
       borderRadius: radii.md,
       backgroundColor: colors.card,
       padding: 16,
@@ -729,13 +737,15 @@ function createStyles(colors: AppThemeColors) {
     },
     measurementContainer: {
       paddingHorizontal: 16,
+      paddingTop: 16,
     },
     buttonContainer: {
-      gap: 12,
-      padding: 16,
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingTop: 16,
     },
     startWorkoutButton: {
-      borderRadius: radii.xl,
+      borderRadius: radii.md,
       width: "100%",
       height: 50,
     },
