@@ -14,7 +14,9 @@
 // `dev_seeded_workout_ids`, so `--undo` removes exactly what was added and
 // nothing else.
 //
-// Requires Node 22+ for the built-in node:sqlite module.
+// Uses the built-in node:sqlite module without a flag, which needs Node
+// 22.13+ or 23.4+. It exists from 22.5 but is behind --experimental-sqlite
+// before those releases.
 
 const path = require("path");
 const { DatabaseSync } = require("node:sqlite");
@@ -22,6 +24,36 @@ const { DatabaseSync } = require("node:sqlite");
 const SEED_KEY = "dev_seeded_workout_ids";
 const EXERCISES_PER_WORKOUT = 8;
 const SETS_PER_EXERCISE = 4;
+
+// Columns the INSERTs below write. Several arrive via ALTER TABLE migrations in
+// initUserDataDB rather than the original CREATE TABLE, so a database pulled
+// from an install that has not run a recent build can be missing them.
+const REQUIRED_COLUMNS = {
+  completed_workouts: [
+    "plan_id",
+    "workout_id",
+    "date_completed",
+    "duration",
+    "total_sets_completed",
+    "is_deleted",
+  ],
+  completed_exercises: [
+    "completed_workout_id",
+    "exercise_id",
+    "resolved_tracking_type",
+    "is_deleted",
+  ],
+  completed_sets: [
+    "completed_exercise_id",
+    "set_number",
+    "weight",
+    "reps",
+    "is_warmup",
+    "is_drop_set",
+    "set_duration",
+    "is_deleted",
+  ],
+};
 
 function parseArgs(argv) {
   const args = { file: null, workouts: 500, undo: false };
@@ -100,7 +132,47 @@ function undo(db) {
   );
 }
 
+// Fails before the seed transaction opens rather than part way through it.
+// This deliberately does not migrate the database: the documented workflow
+// pulls the file off a device whose app has already run initUserDataDB, and a
+// dev script silently reshaping a schema you are about to push back onto a
+// device would be worse than refusing.
+function assertSchemaIsCurrent(db) {
+  const problems = [];
+
+  for (const [table, required] of Object.entries(REQUIRED_COLUMNS)) {
+    const present = new Set(
+      db
+        .prepare(`PRAGMA table_info(${table})`)
+        .all()
+        .map((row) => row.name),
+    );
+    if (present.size === 0) {
+      problems.push(`  ${table}: table is missing entirely`);
+      continue;
+    }
+    const missing = required.filter((column) => !present.has(column));
+    if (missing.length > 0) {
+      problems.push(`  ${table}: missing ${missing.join(", ")}`);
+    }
+  }
+
+  if (problems.length > 0) {
+    fail(
+      [
+        "This database's schema is older than the seeder expects:",
+        ...problems,
+        "",
+        "Open the app once on the device so initUserDataDB runs its migrations,",
+        "then pull the database again. Nothing has been written.",
+      ].join("\n"),
+    );
+  }
+}
+
 function seed(db, workoutCount) {
+  assertSchemaIsCurrent(db);
+
   const exerciseIds = db
     .prepare(`SELECT exercise_id FROM exercises ORDER BY exercise_id LIMIT 200`)
     .all()

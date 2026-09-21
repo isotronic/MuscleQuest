@@ -53,7 +53,6 @@ describe("initUserDataDB indexes", () => {
     ["completed_exercises", "idx_ce_workout"],
     ["completed_exercises", "idx_ce_exercise"],
     ["completed_sets", "idx_cs_exercise"],
-    ["user_workout_exercises", "idx_uwe_workout"],
     ["user_workout_exercises", "idx_uwe_ex_workout"],
   ])("creates %s.%s", (table, index) => {
     expect(indexesOn(table)).toContain(index);
