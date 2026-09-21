@@ -11,6 +11,7 @@ export const useDeleteCompletedWorkoutMutation = () => {
     mutationFn: (id: number) => deleteCompletedWorkout(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+      queryClient.invalidateQueries({ queryKey: ["exerciseDetail"] });
       queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
       router.back();
     },

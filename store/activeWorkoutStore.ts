@@ -1584,10 +1584,45 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
     {
       name: "active-workout-store", // Key for AsyncStorage
       storage: createJSONStorage(() => AsyncStorage),
-      // Add parsing for date objects during rehydration
+      version: 1,
+      // Pre-v1 spread the whole state, so `previousWorkoutData` and
+      // `globalHistoryData` were written to AsyncStorage on every set(),
+      // including each keystroke in a weight field. Strip them from anything
+      // older. zustand only calls migrate when the stored version differs from
+      // the one above, so there is no version to test for here; a payload old
+      // enough to carry no version at all still needs the same treatment.
+      migrate: (persistedState) => {
+        if (!persistedState || typeof persistedState !== "object") {
+          return persistedState;
+        }
+        const {
+          previousWorkoutData: _previousWorkoutData,
+          globalHistoryData: _globalHistoryData,
+          ...rest
+        } = persistedState as Record<string, unknown>;
+        return rest;
+      },
+      // Explicit allowlist, not a spread. Only state that cannot be rebuilt is
+      // persisted; the history arrays are reloaded from SQLite by
+      // (workout)/index.tsx, which every resume routes through.
       partialize: (state) => {
         return {
-          ...state,
+          activeWorkout: state.activeWorkout,
+          workout: state.workout,
+          // Rebuildable in principle, but it is one workout, not the history,
+          // and hasStructuralChanges needs the shape the session started with.
+          originalWorkout: state.originalWorkout,
+          isQuickWorkout: state.isQuickWorkout,
+          currentExerciseIndex: state.currentExerciseIndex,
+          currentSetIndices: state.currentSetIndices,
+          completedSets: state.completedSets,
+          weightAndReps: state.weightAndReps,
+          setDurations: state.setDurations,
+          appendedExerciseIndices: state.appendedExerciseIndices,
+          feedbackSubmittedUweIds: state.feedbackSubmittedUweIds,
+          recoveryCheckInShown: state.recoveryCheckInShown,
+          suggestedWeightPrefills: state.suggestedWeightPrefills,
+          timerRunning: state.timerRunning,
           startTime:
             state.startTime instanceof Date
               ? state.startTime.toISOString()

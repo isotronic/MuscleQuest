@@ -328,7 +328,8 @@ export const useExerciseDetailQuery = (
         excludeDeload,
       ),
     enabled: exerciseId > 0,
-    staleTime: 0,
-    gcTime: 0,
+    // Kept fresh by invalidation from the save/edit/delete mutations, so the
+    // full history scan does not need to re-run on every mount.
+    staleTime: 60_000,
   });
 };

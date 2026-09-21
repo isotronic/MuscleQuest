@@ -68,6 +68,16 @@ describe("useDeleteCompletedWorkoutMutation", () => {
     });
   });
 
+  it("onSuccess invalidates exerciseDetail so the exercise screen refetches", () => {
+    useDeleteCompletedWorkoutMutation();
+
+    capturedArgs.onSuccess();
+
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["exerciseDetail"],
+    });
+  });
+
   it("onSuccess navigates back", () => {
     const { router } = require("expo-router");
     useDeleteCompletedWorkoutMutation();

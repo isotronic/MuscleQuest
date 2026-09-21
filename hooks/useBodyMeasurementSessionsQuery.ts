@@ -19,8 +19,8 @@ export const useBodyMeasurementSessionsQuery = (
       limit ?? "all",
     ],
     queryFn: () => fetchBodyMeasurementSessions(options, limit),
-    staleTime: 0,
-    gcTime: 0,
+    // Invalidated by the body-measurement mutations.
+    staleTime: 60_000,
   });
 };
 
@@ -36,8 +36,8 @@ export const useLatestBodyMetricValuesQuery = (
       options.sizeUnit,
     ],
     queryFn: () => fetchLatestBodyMetricValues(options),
-    staleTime: 0,
-    gcTime: 0,
+    // Invalidated by the body-measurement mutations.
+    staleTime: 60_000,
   });
 };
 
@@ -55,7 +55,7 @@ export const useBodyMeasurementChartQuery = (
     ],
     queryFn: () => fetchBodyMeasurementSessionsForChart(metricId, options),
     enabled: metricId > 0,
-    staleTime: 0,
-    gcTime: 0,
+    // Invalidated by the body-measurement mutations.
+    staleTime: 60_000,
   });
 };

@@ -80,6 +80,7 @@ export const useEditCompletedWorkoutMutation = (
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["completedWorkout", id] });
       queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+      queryClient.invalidateQueries({ queryKey: ["exerciseDetail"] });
       queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
       queryClient.invalidateQueries({ queryKey: ["workoutSessionHistory"] });
       queryClient.invalidateQueries({
@@ -99,6 +100,7 @@ export const useEditCompletedWorkoutMutation = (
         queryKey: ["completedWorkout", id],
       });
       await queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+      await queryClient.invalidateQueries({ queryKey: ["exerciseDetail"] });
       await queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
       await queryClient.invalidateQueries({
         queryKey: ["workoutSessionHistory"],
