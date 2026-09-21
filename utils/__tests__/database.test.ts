@@ -1088,7 +1088,34 @@ describe("fetchLatestBodyMetricValues", () => {
 
     const [sql] = mockDb.getAllAsync.mock.calls[0];
     expect(sql).not.toMatch(/LIMIT/i);
-    expect(sql).toMatch(/GROUP BY\s+bmd\.id/i);
+  });
+
+  // Backdated entries get a fixed noon timestamp, so the same metric can hold
+  // two readings with identical recorded_at. The later entry id must win, or a
+  // correction may never surface.
+  it("breaks recorded_at ties on entry id rather than arbitrarily", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await fetchLatestBodyMetricValues({ weightUnit: "kg", sizeUnit: "cm" });
+
+    const [sql] = mockDb.getAllAsync.mock.calls[0];
+    expect(sql).toMatch(/NOT EXISTS/i);
+    expect(sql).toMatch(/e2\.recorded_at > bme\.recorded_at/);
+    expect(sql).toMatch(
+      /e2\.recorded_at = bme\.recorded_at AND e2\.id > bme\.id/,
+    );
+  });
+
+  // Without GROUP BY there is no reliance on SQLite's bare-column extension:
+  // every selected column comes from the row actually being returned.
+  it("does not depend on grouping to pick the row", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await fetchLatestBodyMetricValues({ weightUnit: "kg", sizeUnit: "cm" });
+
+    const [sql] = mockDb.getAllAsync.mock.calls[0];
+    expect(sql).not.toMatch(/GROUP BY/i);
+    expect(sql).not.toMatch(/MAX\(/i);
   });
 
   it("keeps deactivated metrics so callers can detect prior history", async () => {

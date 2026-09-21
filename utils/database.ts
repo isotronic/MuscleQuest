@@ -2354,8 +2354,13 @@ export const fetchLatestBodyMetricValues = async (
   let db: SQLite.SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
-    // Bare columns alongside MAX() are taken from the row holding that max.
-    // This is a documented SQLite behaviour, not an accident of grouping.
+    // Keep only the row that nothing else beats: no later recorded_at, and for
+    // an exact tie, no higher entry id. Backdated entries are stored at a fixed
+    // noon timestamp, so the same metric really can hold two readings with
+    // identical recorded_at; the later entry is the correction and must win.
+    //
+    // Selecting the row directly rather than grouping also means every column
+    // comes from that row, with no reliance on SQLite's bare-column extension.
     const rows = (await db.getAllAsync(
       `SELECT
          bmd.id,
@@ -2367,12 +2372,21 @@ export const fetchLatestBodyMetricValues = async (
          bmd.is_deleted,
          bmd.sort_order,
          bmv.value,
-         MAX(bme.recorded_at) AS recorded_at
+         bme.recorded_at
        FROM body_metric_definitions bmd
        JOIN body_measurement_values bmv  ON bmv.metric_id = bmd.id
        JOIN body_measurement_entries bme ON bme.id = bmv.entry_id
        WHERE bmd.is_deleted = 0
-       GROUP BY bmd.id
+         AND NOT EXISTS (
+           SELECT 1
+           FROM body_measurement_values v2
+           JOIN body_measurement_entries e2 ON e2.id = v2.entry_id
+           WHERE v2.metric_id = bmd.id
+             AND (
+               e2.recorded_at > bme.recorded_at
+               OR (e2.recorded_at = bme.recorded_at AND e2.id > bme.id)
+             )
+         )
        ORDER BY bmd.sort_order ASC`,
     )) as (RawMetricDefinitionRow & {
       value: number;
