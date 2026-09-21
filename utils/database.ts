@@ -2330,6 +2330,93 @@ export const fetchBodyMeasurementSessions = async (
   }
 };
 
+export interface LatestBodyMetricValue {
+  metric: BodyMetricDefinition;
+  canonicalValue: number;
+  displayValue: number;
+  displayUnit: string;
+  recorded_at: string;
+}
+
+/**
+ * The most recent reading for every metric, one row each.
+ *
+ * The home-screen card and its log sheet need each metric's latest value, which
+ * a "last N sessions" query cannot guarantee: a metric logged rarely falls out
+ * of the window as soon as N more entries are recorded for anything else.
+ *
+ * Includes inactive-but-not-deleted metrics so callers can tell "no history at
+ * all" apart from "history exists, but only for metrics now switched off".
+ */
+export const fetchLatestBodyMetricValues = async (
+  options: MeasurementDisplayOptions,
+): Promise<LatestBodyMetricValue[]> => {
+  let db: SQLite.SQLiteDatabase | undefined;
+  try {
+    db = await openDatabase("userData.db");
+    // Keep only the row that nothing else beats: no later recorded_at, and for
+    // an exact tie, no higher entry id. Backdated entries are stored at a fixed
+    // noon timestamp, so the same metric really can hold two readings with
+    // identical recorded_at; the later entry is the correction and must win.
+    //
+    // Selecting the row directly rather than grouping also means every column
+    // comes from that row, with no reliance on SQLite's bare-column extension.
+    const rows = (await db.getAllAsync(
+      `SELECT
+         bmd.id,
+         bmd.key,
+         bmd.label,
+         bmd.value_kind,
+         bmd.is_builtin,
+         bmd.is_active,
+         bmd.is_deleted,
+         bmd.sort_order,
+         bmv.value,
+         bme.recorded_at
+       FROM body_metric_definitions bmd
+       JOIN body_measurement_values bmv  ON bmv.metric_id = bmd.id
+       JOIN body_measurement_entries bme ON bme.id = bmv.entry_id
+       WHERE bmd.is_deleted = 0
+         AND NOT EXISTS (
+           SELECT 1
+           FROM body_measurement_values v2
+           JOIN body_measurement_entries e2 ON e2.id = v2.entry_id
+           WHERE v2.metric_id = bmd.id
+             AND (
+               e2.recorded_at > bme.recorded_at
+               OR (e2.recorded_at = bme.recorded_at AND e2.id > bme.id)
+             )
+         )
+       ORDER BY bmd.sort_order ASC`,
+    )) as (RawMetricDefinitionRow & {
+      value: number;
+      recorded_at: string;
+    })[];
+
+    return rows.map((row) => {
+      const metric = rowToMetricDefinition(row);
+      const { displayValue, displayUnit } = toDisplayValue(
+        row.value,
+        metric.value_kind,
+        options,
+      );
+      return {
+        metric,
+        canonicalValue: row.value,
+        displayValue,
+        displayUnit,
+        recorded_at: row.recorded_at,
+      };
+    });
+  } catch (error: any) {
+    console.error("Error fetching latest body metric values:", error);
+    notifyBugsnag(error);
+    throw error;
+  } finally {
+    if (db) await db.closeAsync();
+  }
+};
+
 export const fetchBodyMeasurementSessionsForChart = async (
   metricId: number,
   options: MeasurementDisplayOptions,

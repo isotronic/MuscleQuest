@@ -552,6 +552,42 @@ msgstr ""
 "Custom exercises can now use a distance tracking type, perfect for cardio and conditioning movements like runs, rows, or sled pushes. Log distance for your sets and get insights on progression just like any other exercise.\n"
 ""
 
+#: constants/WhatsNew.ts:447
+#~ msgid ""
+#~ "\n"
+#~ "📏 New: Log Measurements from the Home Screen!\n"
+#~ "\n"
+#~ "A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+#~ "\n"
+#~ "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
+#~ ""
+#~ msgstr ""
+#~ "\n"
+#~ "📏 New: Log Measurements from the Home Screen!\n"
+#~ "\n"
+#~ "A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+#~ "\n"
+#~ "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
+#~ ""
+
+#: constants/WhatsNew.ts:447
+msgid ""
+"\n"
+"📏 New: Log Measurements from the Home Screen!\n"
+"\n"
+"A new card on the home screen shows your most recent measurement and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+"\n"
+"The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
+""
+msgstr ""
+"\n"
+"📏 New: Log Measurements from the Home Screen!\n"
+"\n"
+"A new card on the home screen shows your most recent measurement and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+"\n"
+"The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
+""
+
 #: constants/WhatsNew.ts:383
 msgid ""
 "\n"
@@ -841,6 +877,11 @@ msgstr "{0, plural, one {# workout} other {# workouts}}"
 msgid "{0, plural, one {+# more} other {+# more}}"
 msgstr "{0, plural, one {+# more} other {+# more}}"
 
+#. placeholder {0}: summary.daysSinceLastLog ?? 0
+#: components/MeasurementQuickLogCard.tsx:69
+msgid "{0, plural, one {Logged 1 day ago} other {Logged # days ago}}"
+msgstr "{0, plural, one {Logged 1 day ago} other {Logged # days ago}}"
+
 #. placeholder {0}: Math.abs(setsDiff)
 #: app/(app)/(workout)/workout-summary.tsx:547
 msgid "{0, plural, one {set} other {sets}}"
@@ -885,7 +926,7 @@ msgstr "{0} days per week"
 #. placeholder {1}: estimate ? ` · ~${formatDurationEstimate(estimate)}` : ""
 #. placeholder {1}: estimate ? ` · ~${formatDurationEstimateCompact(estimate)}` : ""
 #: app/(app)/(tabs)/(plans)/overview.tsx:87
-#: app/(app)/(tabs)/index.tsx:58
+#: app/(app)/(tabs)/index.tsx:59
 msgid "{0} Exercises{1}"
 msgstr "{0} Exercises{1}"
 
@@ -1015,7 +1056,7 @@ msgstr "{streak, plural, one {# week in a row} other {# weeks in a row}}"
 #~ msgstr "{suggestedWeight}{unit} suggested"
 
 #. placeholder {0}: settings?.weeklyGoal
-#: app/(app)/(tabs)/index.tsx:367
+#: app/(app)/(tabs)/index.tsx:368
 msgid "{uniqueWorkoutDaysCount} / {0} days worked out"
 msgstr "{uniqueWorkoutDaysCount} / {0} days worked out"
 
@@ -1173,7 +1214,7 @@ msgstr "Account"
 msgid "Active"
 msgstr "Active"
 
-#: app/(app)/(tabs)/index.tsx:179
+#: app/(app)/(tabs)/index.tsx:180
 msgid "active plan"
 msgstr "active plan"
 
@@ -1186,7 +1227,7 @@ msgid "Active Plan Exercises"
 msgstr "Active Plan Exercises"
 
 #. placeholder {0}: activePlan.name
-#: app/(app)/(tabs)/index.tsx:478
+#: app/(app)/(tabs)/index.tsx:479
 msgid "Active Plan: {0}"
 msgstr "Active Plan: {0}"
 
@@ -1796,7 +1837,7 @@ msgstr "Choose a Workout"
 msgid "Choose from Device"
 msgstr "Choose from Device"
 
-#: app/(app)/(tabs)/index.tsx:614
+#: app/(app)/(tabs)/index.tsx:619
 msgid "Choose Workout"
 msgstr "Choose Workout"
 
@@ -1838,7 +1879,7 @@ msgstr "Completed on: {formattedDate}"
 msgid "Completed sets will appear here"
 msgstr "Completed sets will appear here"
 
-#: app/(app)/(tabs)/index.tsx:182
+#: app/(app)/(tabs)/index.tsx:183
 msgid "completed workouts"
 msgstr "completed workouts"
 
@@ -2117,7 +2158,7 @@ msgid "Deletion stopped before it finished. Your account still exists and you ar
 msgstr "Deletion stopped before it finished. Your account still exists and you are still signed in. Check your connection and try again."
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:349
-#: app/(app)/(tabs)/index.tsx:483
+#: app/(app)/(tabs)/index.tsx:484
 #: constants/HelpData.ts:174
 msgid "Deload Week"
 msgstr "Deload Week"
@@ -2442,6 +2483,10 @@ msgstr "Enabled"
 msgid "Enter a name for the custom metric."
 msgstr "Enter a name for the custom metric."
 
+#: components/MeasurementQuickLogForm.tsx:78
+msgid "Enter a number, for example 82.5"
+msgstr "Enter a number, for example 82.5"
+
 #: app/(app)/(tabs)/(stats)/measurements.tsx:132
 msgid "Enter at least one measurement to log."
 msgstr "Enter at least one measurement to log."
@@ -2511,7 +2556,7 @@ msgstr "Error"
 
 #. placeholder {0}: activePlanError ? t`active plan` : settingsError ? t`settings` : t`completed workouts`
 #. placeholder {1}: error?.message
-#: app/(app)/(tabs)/index.tsx:176
+#: app/(app)/(tabs)/index.tsx:177
 msgid "Error fetching {0}: {1}"
 msgstr "Error fetching {0}: {1}"
 
@@ -3107,6 +3152,7 @@ msgstr "Loading..."
 
 #: app/(app)/(tabs)/(stats)/measurements.tsx:168
 #: app/(app)/(tabs)/(stats)/measurements.tsx:249
+#: components/MeasurementQuickLogForm.tsx:96
 msgid "Log Entry"
 msgstr "Log Entry"
 
@@ -3114,9 +3160,17 @@ msgstr "Log Entry"
 msgid "Log in to secure your data"
 msgstr "Log in to secure your data"
 
+#: components/MeasurementQuickLog.tsx:111
+msgid "Log Measurements"
+msgstr "Log Measurements"
+
 #: app/(app)/settings.tsx:1058
 #~ msgid "Log one side only for single-arm/leg exercises"
 #~ msgstr "Log one side only for single-arm/leg exercises"
+
+#: components/MeasurementQuickLogCard.tsx:67
+msgid "Logged today"
+msgstr "Logged today"
 
 #: constants/dbTranslations.ts:50
 msgid "lower abs"
@@ -3138,7 +3192,7 @@ msgstr "lower legs"
 msgid "Machine load increment"
 msgstr "Machine load increment"
 
-#: app/(app)/(tabs)/index.tsx:384
+#: app/(app)/(tabs)/index.tsx:385
 msgid "Make sure to track your progress!"
 msgstr "Make sure to track your progress!"
 
@@ -3460,6 +3514,10 @@ msgstr "No workouts yet"
 msgid "No, keep it the same"
 msgstr "No, keep it the same"
 
+#: components/MeasurementQuickLogCard.tsx:82
+msgid "Not logged yet. Tap to add today's entry."
+msgstr "Not logged yet. Tap to add today's entry."
+
 #: app/(app)/delete-account.tsx:195
 msgid "Nothing is sent anywhere else."
 msgstr "Nothing is sent anywhere else."
@@ -3727,7 +3785,7 @@ msgstr "quadriceps"
 msgid "quads"
 msgstr "quads"
 
-#: app/(app)/(tabs)/index.tsx:604
+#: app/(app)/(tabs)/index.tsx:609
 #: app/(app)/(workout)/index.tsx:1114
 msgid "Quick Workout"
 msgstr "Quick Workout"
@@ -3751,6 +3809,10 @@ msgstr "Recent Sessions"
 #: hooks/useExerciseSort.ts:57
 msgid "Recently Used"
 msgstr "Recently Used"
+
+#: components/MeasurementQuickLog.tsx:114
+msgid "Recorded for today."
+msgstr "Recorded for today."
 
 #: components/RecoveryCheckInSheet.tsx:152
 #: constants/HelpData.ts:168
@@ -3975,7 +4037,7 @@ msgstr "Restore your backup? This replaces all training data on this device. Any
 msgid "Restoring. Please wait..."
 msgstr "Restoring. Please wait..."
 
-#: app/(app)/(tabs)/index.tsx:467
+#: app/(app)/(tabs)/index.tsx:468
 msgid "Resume"
 msgstr "Resume"
 
@@ -4101,7 +4163,7 @@ msgstr "Secondary muscles:"
 msgid "Select a day to see workouts."
 msgstr "Select a day to see workouts."
 
-#: app/(app)/(tabs)/index.tsx:331
+#: app/(app)/(tabs)/index.tsx:332
 msgid "Select a workout to view"
 msgstr "Select a workout to view"
 
@@ -4192,7 +4254,7 @@ msgstr "Sets & Exercises"
 msgid "Sets Overview"
 msgstr "Sets Overview"
 
-#: app/(app)/(tabs)/index.tsx:181
+#: app/(app)/(tabs)/index.tsx:182
 msgid "settings"
 msgstr "settings"
 
@@ -4392,7 +4454,7 @@ msgstr "Standalone Workouts"
 msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library, then start any one of them straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work."
 msgstr "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library, then start any one of them straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work."
 
-#: app/(app)/(tabs)/index.tsx:577
+#: app/(app)/(tabs)/index.tsx:578
 #: components/StandaloneWorkoutListItem.tsx:99
 msgid "Start"
 msgstr "Start"
@@ -4410,7 +4472,7 @@ msgstr "Start Timer"
 msgid "Start Workout"
 msgstr "Start Workout"
 
-#: app/(app)/(tabs)/index.tsx:316
+#: app/(app)/(tabs)/index.tsx:317
 #: components/StandaloneWorkoutScreen.tsx:234
 msgid "Starting Workout..."
 msgstr "Starting Workout..."
@@ -4776,6 +4838,10 @@ msgstr "Track Weight"
 msgid "Track your body composition over time from the Measurements section in the Stats tab. Use the Log Entry form to record values for any active metric, then tap a past entry in the History list to review or edit it. On the entry detail screen, tap a metric chip to switch the chart between different measurements and use the time range selector to zoom in or out. Metrics are split into three types: mass (weight, in kg or lbs), length (circumferences like waist and hips, in cm or in), and percentage (body fat). Units follow your weight and size preferences in Settings. To control which metrics appear in the entry form, tap Manage Metrics at the top of the Log Entry section. Built-in metrics can be toggled on or off; you can also create your own custom metrics and choose their type. Custom metrics can be hidden from the form at any time, and your historical data for them is always preserved."
 msgstr "Track your body composition over time from the Measurements section in the Stats tab. Use the Log Entry form to record values for any active metric, then tap a past entry in the History list to review or edit it. On the entry detail screen, tap a metric chip to switch the chart between different measurements and use the time range selector to zoom in or out. Metrics are split into three types: mass (weight, in kg or lbs), length (circumferences like waist and hips, in cm or in), and percentage (body fat). Units follow your weight and size preferences in Settings. To control which metrics appear in the entry form, tap Manage Metrics at the top of the Log Entry section. Built-in metrics can be toggled on or off; you can also create your own custom metrics and choose their type. Custom metrics can be hidden from the form at any time, and your historical data for them is always preserved."
 
+#: components/MeasurementQuickLogCard.tsx:84
+msgid "Track your body measurements. Tap to log."
+msgstr "Track your body measurements. Tap to log."
+
 #: components/Onboarding.tsx:30
 msgid "Track Your Progress"
 msgstr "Track Your Progress"
@@ -5137,7 +5203,7 @@ msgstr "Weight, size, and distance units, default sets per exercise, default res
 msgid "Weight/Reps"
 msgstr "Weight/Reps"
 
-#: app/(app)/(tabs)/index.tsx:375
+#: app/(app)/(tabs)/index.tsx:376
 msgid "Welcome back{userName}"
 msgstr "Welcome back{userName}"
 
@@ -5149,7 +5215,7 @@ msgstr "Welcome to MuscleQuest, your personal strength training companion. Use t
 msgid "Welcome to MuscleQuest!"
 msgstr "Welcome to MuscleQuest!"
 
-#: app/(app)/(tabs)/index.tsx:377
+#: app/(app)/(tabs)/index.tsx:378
 msgid "Welcome{userName}"
 msgstr "Welcome{userName}"
 
@@ -5221,7 +5287,7 @@ msgstr "Workout Details"
 msgid "Workout History"
 msgstr "Workout History"
 
-#: app/(app)/(tabs)/index.tsx:457
+#: app/(app)/(tabs)/index.tsx:458
 msgid "Workout in progress"
 msgstr "Workout in progress"
 
@@ -5380,7 +5446,7 @@ msgstr "Your data"
 msgid "Your data failed a safety check, so it was not uploaded. Your previous backup is unchanged."
 msgstr "Your data failed a safety check, so it was not uploaded. Your previous backup is unchanged."
 
-#: app/(app)/(tabs)/index.tsx:382
+#: app/(app)/(tabs)/index.tsx:383
 msgid "Your journey to Swoletown begins today!"
 msgstr "Your journey to Swoletown begins today!"
 

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchBodyMeasurementSessions,
   fetchBodyMeasurementSessionsForChart,
+  fetchLatestBodyMetricValues,
 } from "@/utils/database";
 import { type MeasurementDisplayOptions } from "@/utils/measurementConversions";
 
@@ -18,6 +19,23 @@ export const useBodyMeasurementSessionsQuery = (
       limit ?? "all",
     ],
     queryFn: () => fetchBodyMeasurementSessions(options, limit),
+    staleTime: 0,
+    gcTime: 0,
+  });
+};
+
+/** Latest reading per metric, for the home-screen card and its log sheet. */
+export const useLatestBodyMetricValuesQuery = (
+  options: MeasurementDisplayOptions,
+) => {
+  return useQuery({
+    queryKey: [
+      "bodyMeasurements",
+      "latestPerMetric",
+      options.weightUnit,
+      options.sizeUnit,
+    ],
+    queryFn: () => fetchLatestBodyMetricValues(options),
     staleTime: 0,
     gcTime: 0,
   });

@@ -24,6 +24,7 @@ import {
   updatePlanWorkoutExercises,
   updateStandaloneWorkout,
   fetchBodyMeasurementSessions,
+  fetchLatestBodyMetricValues,
   fetchCompletedWorkoutById,
   createDatabaseSnapshot,
   checkDatabaseIntegrity,
@@ -1040,6 +1041,91 @@ describe("fetchBodyMeasurementSessions — LIMIT parameterization", () => {
       expect.not.stringContaining("LIMIT 5"),
       [5],
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fetchLatestBodyMetricValues
+// ---------------------------------------------------------------------------
+
+describe("fetchLatestBodyMetricValues", () => {
+  const row = (over: Record<string, unknown> = {}) => ({
+    id: 1,
+    key: "weight",
+    label: "Body Weight",
+    value_kind: "mass",
+    is_builtin: 1,
+    is_active: 1,
+    is_deleted: 0,
+    sort_order: 0,
+    value: 82.5,
+    recorded_at: "2026-09-21 08:00:00",
+    ...over,
+  });
+
+  it("converts each metric's stored value into the caller's display unit", async () => {
+    mockDb.getAllAsync.mockResolvedValue([row()]);
+
+    const result = await fetchLatestBodyMetricValues({
+      weightUnit: "lbs",
+      sizeUnit: "cm",
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].metric.key).toBe("weight");
+    expect(result[0].canonicalValue).toBe(82.5);
+    expect(result[0].displayUnit).toBe("lbs");
+    expect(result[0].displayValue).toBeCloseTo(181.9, 1);
+    expect(result[0].recorded_at).toBe("2026-09-21 08:00:00");
+  });
+
+  // The whole point of this query: an infrequently logged metric must not fall
+  // out of a "last N sessions" window, so it must not be limited at all.
+  it("does not limit how far back it looks", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await fetchLatestBodyMetricValues({ weightUnit: "kg", sizeUnit: "cm" });
+
+    const [sql] = mockDb.getAllAsync.mock.calls[0];
+    expect(sql).not.toMatch(/LIMIT/i);
+  });
+
+  // Backdated entries get a fixed noon timestamp, so the same metric can hold
+  // two readings with identical recorded_at. The later entry id must win, or a
+  // correction may never surface.
+  it("breaks recorded_at ties on entry id rather than arbitrarily", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await fetchLatestBodyMetricValues({ weightUnit: "kg", sizeUnit: "cm" });
+
+    const [sql] = mockDb.getAllAsync.mock.calls[0];
+    expect(sql).toMatch(/NOT EXISTS/i);
+    expect(sql).toMatch(/e2\.recorded_at > bme\.recorded_at/);
+    expect(sql).toMatch(
+      /e2\.recorded_at = bme\.recorded_at AND e2\.id > bme\.id/,
+    );
+  });
+
+  // Without GROUP BY there is no reliance on SQLite's bare-column extension:
+  // every selected column comes from the row actually being returned.
+  it("does not depend on grouping to pick the row", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await fetchLatestBodyMetricValues({ weightUnit: "kg", sizeUnit: "cm" });
+
+    const [sql] = mockDb.getAllAsync.mock.calls[0];
+    expect(sql).not.toMatch(/GROUP BY/i);
+    expect(sql).not.toMatch(/MAX\(/i);
+  });
+
+  it("keeps deactivated metrics so callers can detect prior history", async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await fetchLatestBodyMetricValues({ weightUnit: "kg", sizeUnit: "cm" });
+
+    const [sql] = mockDb.getAllAsync.mock.calls[0];
+    expect(sql).toMatch(/bmd\.is_deleted = 0/);
+    expect(sql).not.toMatch(/bmd\.is_active = 1/);
   });
 });
 

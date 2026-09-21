@@ -553,6 +553,42 @@ msgstr ""
 "Les exercices personnalisés peuvent maintenant utiliser un type de suivi par distance, parfait pour les mouvements cardio et de conditionnement comme les courses, les rameurs ou les poussées de traîneau. Note la distance de tes séries et suis ta progression comme pour n'importe quel autre exercice.\n"
 ""
 
+#: constants/WhatsNew.ts:447
+#~ msgid ""
+#~ "\n"
+#~ "📏 New: Log Measurements from the Home Screen!\n"
+#~ "\n"
+#~ "A new card on the home screen shows your latest body weight and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+#~ "\n"
+#~ "The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
+#~ ""
+#~ msgstr ""
+#~ "\n"
+#~ "📏 Nouveau : Saisis tes mesures depuis l'accueil !\n"
+#~ "\n"
+#~ "Une nouvelle carte sur l'écran d'accueil affiche ton dernier poids corporel et la date de ta dernière saisie. Appuie dessus pour enregistrer les valeurs du jour dans un panneau rapide, prérempli avec tes dernières mesures, sans quitter l'écran.\n"
+#~ "\n"
+#~ "La carte se met en évidence dès qu'une semaine s'est écoulée depuis ta dernière entrée, et suit les mesures que tu as activées dans la section Mesures corporelles.\n"
+#~ ""
+
+#: constants/WhatsNew.ts:447
+msgid ""
+"\n"
+"📏 New: Log Measurements from the Home Screen!\n"
+"\n"
+"A new card on the home screen shows your most recent measurement and how long ago you logged it. Tap it to record today's numbers in a quick sheet, pre-filled with your most recent values, without leaving the screen.\n"
+"\n"
+"The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.\n"
+""
+msgstr ""
+"\n"
+"📏 Nouveau : Enregistre tes mesures depuis l'accueil !\n"
+"\n"
+"Une nouvelle carte sur l'écran d'accueil affiche ta mesure la plus récente et depuis combien de temps tu l'as enregistrée. Appuie dessus pour enregistrer les valeurs du jour dans un panneau rapide, prérempli avec tes dernières mesures, sans quitter l'écran.\n"
+"\n"
+"La carte se met en évidence dès qu'une semaine s'est écoulée depuis ta dernière entrée, et suit les mesures que tu as activées dans la section Mesures corporelles.\n"
+""
+
 #: constants/WhatsNew.ts:383
 msgid ""
 "\n"
@@ -842,6 +878,11 @@ msgstr "{0, plural, one {# entraînement} other {# entraînements}}"
 msgid "{0, plural, one {+# more} other {+# more}}"
 msgstr "{0, plural, one {+# de plus} other {+# de plus}}"
 
+#. placeholder {0}: summary.daysSinceLastLog ?? 0
+#: components/MeasurementQuickLogCard.tsx:69
+msgid "{0, plural, one {Logged 1 day ago} other {Logged # days ago}}"
+msgstr "{0, plural, one {Mesure enregistrée il y a 1 jour} other {Mesure enregistrée il y a # jours}}"
+
 #. placeholder {0}: Math.abs(setsDiff)
 #: app/(app)/(workout)/workout-summary.tsx:547
 msgid "{0, plural, one {set} other {sets}}"
@@ -886,7 +927,7 @@ msgstr "{0} jours par semaine"
 #. placeholder {1}: estimate ? ` · ~${formatDurationEstimate(estimate)}` : ""
 #. placeholder {1}: estimate ? ` · ~${formatDurationEstimateCompact(estimate)}` : ""
 #: app/(app)/(tabs)/(plans)/overview.tsx:87
-#: app/(app)/(tabs)/index.tsx:58
+#: app/(app)/(tabs)/index.tsx:59
 msgid "{0} Exercises{1}"
 msgstr "{0} Exercices{1}"
 
@@ -1016,7 +1057,7 @@ msgstr "{streak, plural, one {# semaine d'affilée} other {# semaines d'affilée
 #~ msgstr "{suggestedWeight}{unit} suggéré"
 
 #. placeholder {0}: settings?.weeklyGoal
-#: app/(app)/(tabs)/index.tsx:367
+#: app/(app)/(tabs)/index.tsx:368
 msgid "{uniqueWorkoutDaysCount} / {0} days worked out"
 msgstr "{uniqueWorkoutDaysCount} / {0} jours d'entraînement"
 
@@ -1174,7 +1215,7 @@ msgstr "Compte"
 msgid "Active"
 msgstr "Actif"
 
-#: app/(app)/(tabs)/index.tsx:179
+#: app/(app)/(tabs)/index.tsx:180
 msgid "active plan"
 msgstr "programme actif"
 
@@ -1187,7 +1228,7 @@ msgid "Active Plan Exercises"
 msgstr "Exercices du programme actif"
 
 #. placeholder {0}: activePlan.name
-#: app/(app)/(tabs)/index.tsx:478
+#: app/(app)/(tabs)/index.tsx:479
 msgid "Active Plan: {0}"
 msgstr "Programme actif : {0}"
 
@@ -1797,7 +1838,7 @@ msgstr "Choisis un entraînement"
 msgid "Choose from Device"
 msgstr "Choisir depuis l'appareil"
 
-#: app/(app)/(tabs)/index.tsx:614
+#: app/(app)/(tabs)/index.tsx:619
 msgid "Choose Workout"
 msgstr "Choisir un entraînement"
 
@@ -1839,7 +1880,7 @@ msgstr "Terminé le : {formattedDate}"
 msgid "Completed sets will appear here"
 msgstr "Les séries terminées apparaîtront ici"
 
-#: app/(app)/(tabs)/index.tsx:182
+#: app/(app)/(tabs)/index.tsx:183
 msgid "completed workouts"
 msgstr "entraînements terminés"
 
@@ -2118,7 +2159,7 @@ msgid "Deletion stopped before it finished. Your account still exists and you ar
 msgstr "La suppression s'est arrêtée avant la fin. Ton compte existe toujours et tu es toujours connecté. Vérifie ta connexion et réessaie."
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:349
-#: app/(app)/(tabs)/index.tsx:483
+#: app/(app)/(tabs)/index.tsx:484
 #: constants/HelpData.ts:174
 msgid "Deload Week"
 msgstr "Semaine de décharge"
@@ -2443,6 +2484,10 @@ msgstr "Activé"
 msgid "Enter a name for the custom metric."
 msgstr "Entre un nom pour la mesure personnalisée."
 
+#: components/MeasurementQuickLogForm.tsx:78
+msgid "Enter a number, for example 82.5"
+msgstr "Saisis un nombre, par exemple 82,5"
+
 #: app/(app)/(tabs)/(stats)/measurements.tsx:132
 msgid "Enter at least one measurement to log."
 msgstr "Entre au moins une mesure à enregistrer."
@@ -2512,7 +2557,7 @@ msgstr "Erreur"
 
 #. placeholder {0}: activePlanError ? t`active plan` : settingsError ? t`settings` : t`completed workouts`
 #. placeholder {1}: error?.message
-#: app/(app)/(tabs)/index.tsx:176
+#: app/(app)/(tabs)/index.tsx:177
 msgid "Error fetching {0}: {1}"
 msgstr "Erreur lors de la récupération de {0} : {1}"
 
@@ -3108,6 +3153,7 @@ msgstr "Chargement..."
 
 #: app/(app)/(tabs)/(stats)/measurements.tsx:168
 #: app/(app)/(tabs)/(stats)/measurements.tsx:249
+#: components/MeasurementQuickLogForm.tsx:96
 msgid "Log Entry"
 msgstr "Saisir une entrée"
 
@@ -3115,9 +3161,17 @@ msgstr "Saisir une entrée"
 msgid "Log in to secure your data"
 msgstr "Connecte-toi pour sécuriser tes données"
 
+#: components/MeasurementQuickLog.tsx:111
+msgid "Log Measurements"
+msgstr "Saisir les mesures"
+
 #: app/(app)/settings.tsx:1058
 #~ msgid "Log one side only for single-arm/leg exercises"
 #~ msgstr "Enregistrer un seul côté pour les exercices unilatéraux"
+
+#: components/MeasurementQuickLogCard.tsx:67
+msgid "Logged today"
+msgstr "Mesure enregistrée aujourd'hui"
 
 #: constants/dbTranslations.ts:50
 msgid "lower abs"
@@ -3139,7 +3193,7 @@ msgstr "bas des jambes"
 msgid "Machine load increment"
 msgstr "Incrément de charge pour les machines"
 
-#: app/(app)/(tabs)/index.tsx:384
+#: app/(app)/(tabs)/index.tsx:385
 msgid "Make sure to track your progress!"
 msgstr "N'oublie pas de suivre ta progression !"
 
@@ -3461,6 +3515,10 @@ msgstr "Aucun entraînement"
 msgid "No, keep it the same"
 msgstr "Non, garder comme ça"
 
+#: components/MeasurementQuickLogCard.tsx:82
+msgid "Not logged yet. Tap to add today's entry."
+msgstr "Mesure non enregistrée. Appuie pour ajouter l'entrée du jour."
+
 #: app/(app)/delete-account.tsx:195
 msgid "Nothing is sent anywhere else."
 msgstr "Rien n'est envoyé ailleurs."
@@ -3728,7 +3786,7 @@ msgstr "quadriceps"
 msgid "quads"
 msgstr "quadriceps"
 
-#: app/(app)/(tabs)/index.tsx:604
+#: app/(app)/(tabs)/index.tsx:609
 #: app/(app)/(workout)/index.tsx:1114
 msgid "Quick Workout"
 msgstr "Entraînement rapide"
@@ -3752,6 +3810,10 @@ msgstr "Sessions récentes"
 #: hooks/useExerciseSort.ts:57
 msgid "Recently Used"
 msgstr "Récemment utilisé"
+
+#: components/MeasurementQuickLog.tsx:114
+msgid "Recorded for today."
+msgstr "Enregistré à la date du jour."
 
 #: components/RecoveryCheckInSheet.tsx:152
 #: constants/HelpData.ts:168
@@ -3976,7 +4038,7 @@ msgstr "Restaurer ta sauvegarde ? Toutes les données d'entraînement de cet app
 msgid "Restoring. Please wait..."
 msgstr "Restauration en cours. Patiente..."
 
-#: app/(app)/(tabs)/index.tsx:467
+#: app/(app)/(tabs)/index.tsx:468
 msgid "Resume"
 msgstr "Reprendre"
 
@@ -4102,7 +4164,7 @@ msgstr "Muscles secondaires :"
 msgid "Select a day to see workouts."
 msgstr "Sélectionne un jour pour voir les entraînements."
 
-#: app/(app)/(tabs)/index.tsx:331
+#: app/(app)/(tabs)/index.tsx:332
 msgid "Select a workout to view"
 msgstr "Sélectionne un entraînement"
 
@@ -4193,7 +4255,7 @@ msgstr "Séries et exercices"
 msgid "Sets Overview"
 msgstr "Vue d'ensemble des séries"
 
-#: app/(app)/(tabs)/index.tsx:181
+#: app/(app)/(tabs)/index.tsx:182
 msgid "settings"
 msgstr "paramètres"
 
@@ -4393,7 +4455,7 @@ msgstr "Entraînements solo"
 msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library, then start any one of them straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work."
 msgstr "Les entraînements indépendants sont en dehors des programmes et apparaissent avec tes programmes dans l'onglet Programmes. Crée-en un en appuyant sur Nouvel entraînement, donne-lui un nom et ajoute des exercices ; tu peux le lancer à tout moment sans avoir besoin d'un programme actif. Une durée estimée est affichée sur chaque entraînement indépendant pour que tu puisses planifier ton temps avant de commencer. Les entraînements rapides te permettent de démarrer une séance immédiatement depuis l'écran d'accueil : appuie sur Entraînement rapide, ajoute des exercices au fur et à mesure, et à la fin tu peux le sauvegarder comme entraînement indépendant pour une utilisation future ou simplement l'ignorer. Appuie sur « Choisir un entraînement » juste à côté pour rechercher et parcourir tous les entraînements de tes programmes et de ta bibliothèque autonome, puis démarre n'importe lequel immédiatement. Comme les programmes, l'éditeur d'entraînement sauvegarde automatiquement un brouillon."
 
-#: app/(app)/(tabs)/index.tsx:577
+#: app/(app)/(tabs)/index.tsx:578
 #: components/StandaloneWorkoutListItem.tsx:99
 msgid "Start"
 msgstr "Commencer"
@@ -4411,7 +4473,7 @@ msgstr "Démarrer la minuterie"
 msgid "Start Workout"
 msgstr "Commencer l'entraînement"
 
-#: app/(app)/(tabs)/index.tsx:316
+#: app/(app)/(tabs)/index.tsx:317
 #: components/StandaloneWorkoutScreen.tsx:234
 msgid "Starting Workout..."
 msgstr "Démarrage de l'entraînement..."
@@ -4777,6 +4839,10 @@ msgstr "Enregistrer le poids"
 msgid "Track your body composition over time from the Measurements section in the Stats tab. Use the Log Entry form to record values for any active metric, then tap a past entry in the History list to review or edit it. On the entry detail screen, tap a metric chip to switch the chart between different measurements and use the time range selector to zoom in or out. Metrics are split into three types: mass (weight, in kg or lbs), length (circumferences like waist and hips, in cm or in), and percentage (body fat). Units follow your weight and size preferences in Settings. To control which metrics appear in the entry form, tap Manage Metrics at the top of the Log Entry section. Built-in metrics can be toggled on or off; you can also create your own custom metrics and choose their type. Custom metrics can be hidden from the form at any time, and your historical data for them is always preserved."
 msgstr "Suis ta composition corporelle dans le temps depuis la section Mesures de l'onglet Statistiques. Utilise le formulaire Saisir une entrée pour enregistrer des valeurs pour chaque mesure active, puis appuie sur une entrée passée dans l'historique pour la consulter ou la modifier. Sur l'écran de détail de l'entrée, appuie sur un chip de mesure pour basculer le graphique entre différentes mesures et utilise le sélecteur de plage de temps pour zoomer ou dézoomer. Les mesures sont divisées en trois types : masse (poids, en kg ou lbs), longueur (circonférences comme la taille et les hanches, en cm ou pouces) et pourcentage (masse grasse). Les unités suivent tes préférences de poids et de taille dans Paramètres. Pour contrôler quelles mesures apparaissent dans le formulaire, appuie sur Gérer les mesures en haut de la section Saisir une entrée. Les mesures intégrées peuvent être activées ou désactivées ; tu peux également créer tes propres mesures personnalisées et choisir leur type. Les mesures personnalisées peuvent être masquées du formulaire à tout moment, et tes données historiques sont toujours conservées."
 
+#: components/MeasurementQuickLogCard.tsx:84
+msgid "Track your body measurements. Tap to log."
+msgstr "Suis tes mesures corporelles. Appuie pour enregistrer."
+
 #: components/Onboarding.tsx:30
 msgid "Track Your Progress"
 msgstr "Suis ta progression"
@@ -5138,7 +5204,7 @@ msgstr "Unités de poids, de taille et de distance, séries par exercice par dé
 msgid "Weight/Reps"
 msgstr "Poids/Rép."
 
-#: app/(app)/(tabs)/index.tsx:375
+#: app/(app)/(tabs)/index.tsx:376
 msgid "Welcome back{userName}"
 msgstr "Bon retour{userName}"
 
@@ -5150,7 +5216,7 @@ msgstr "Bienvenue dans MuscleQuest, ton compagnon de musculation personnel. Util
 msgid "Welcome to MuscleQuest!"
 msgstr "Bienvenue dans MuscleQuest !"
 
-#: app/(app)/(tabs)/index.tsx:377
+#: app/(app)/(tabs)/index.tsx:378
 msgid "Welcome{userName}"
 msgstr "Bienvenue{userName}"
 
@@ -5222,7 +5288,7 @@ msgstr "Détails de l'entraînement"
 msgid "Workout History"
 msgstr "Historique des entraînements"
 
-#: app/(app)/(tabs)/index.tsx:457
+#: app/(app)/(tabs)/index.tsx:458
 msgid "Workout in progress"
 msgstr "Entraînement en cours"
 
@@ -5381,7 +5447,7 @@ msgstr "Tes données"
 msgid "Your data failed a safety check, so it was not uploaded. Your previous backup is unchanged."
 msgstr "Tes données n'ont pas passé un contrôle de sécurité et n'ont donc pas été envoyées. Ta sauvegarde précédente est inchangée."
 
-#: app/(app)/(tabs)/index.tsx:382
+#: app/(app)/(tabs)/index.tsx:383
 msgid "Your journey to Swoletown begins today!"
 msgstr "Ton voyage vers Swoletown commence aujourd'hui !"
 
