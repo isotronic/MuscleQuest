@@ -30,6 +30,7 @@ import RestDayCard from "@/components/RestDayCard";
 import WorkoutDoneCard from "@/components/WorkoutDoneCard";
 import WeeklySummaryCard from "@/components/WeeklySummaryCard";
 import WorkoutPickerModal from "@/components/WorkoutPickerModal";
+import { MeasurementQuickLog } from "@/components/MeasurementQuickLog";
 import {
   computeWeeklyTargets,
   prioritizeScheduledWorkout,
@@ -587,6 +588,10 @@ export default function HomeScreen() {
           )}
         </View>
 
+        <View style={styles.measurementContainer}>
+          <MeasurementQuickLog />
+        </View>
+
         <View style={styles.buttonContainer}>
           <Button
             mode="outlined"
@@ -721,6 +726,9 @@ function createStyles(colors: AppThemeColors) {
     },
     smallButtonLabel: {
       paddingVertical: 0,
+    },
+    measurementContainer: {
+      paddingHorizontal: 16,
     },
     buttonContainer: {
       gap: 12,
