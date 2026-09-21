@@ -219,4 +219,24 @@ describe("useEditCompletedWorkoutMutation", () => {
       queryKey: ["globalExerciseHistoryForSession"],
     });
   });
+
+  it("onSuccess invalidates exerciseDetail so the exercise screen refetches", () => {
+    useEditCompletedWorkoutMutation(42, "kg", "m");
+
+    capturedArgs.onSuccess();
+
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["exerciseDetail"],
+    });
+  });
+
+  it("onSettled invalidates exerciseDetail", async () => {
+    useEditCompletedWorkoutMutation(42, "kg", "m");
+
+    await capturedArgs.onSettled();
+
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["exerciseDetail"],
+    });
+  });
 });

@@ -287,6 +287,9 @@ export default function AddCustomExerciseScreen() {
 
       queryClient.invalidateQueries({ queryKey: ["plan"] });
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
+      // History joins the exercise name and tracking columns edited here.
+      queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+      queryClient.invalidateQueries({ queryKey: ["exerciseDetail"] });
       if (exercise_id) {
         queryClient.invalidateQueries({
           queryKey: ["exercise-info", Number(exercise_id)],

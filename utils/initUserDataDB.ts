@@ -738,6 +738,24 @@ export async function initUserDataDB() {
     await db.execAsync(
       `INSERT OR IGNORE INTO settings (key, value) VALUES ('exclude_deload_from_stats', '0');`,
     );
+
+    // Indexes for the workout-history joins. Created last so they are built
+    // once over the finished schema, and IF NOT EXISTS so every later boot is
+    // a no-op.
+    //
+    // Two tables need nothing here, both because an existing index already
+    // leads with the column we would have indexed: `notes` has a UNIQUE
+    // (type, reference_id, secondary_reference_id) constraint that serves
+    // (type, reference_id) lookups, and idx_uwe_ex_workout below serves
+    // workout_id-only lookups on user_workout_exercises.
+    await db.execAsync(`
+    CREATE INDEX IF NOT EXISTS idx_cw_date        ON completed_workouts(date_completed);
+    CREATE INDEX IF NOT EXISTS idx_cw_workout     ON completed_workouts(workout_id);
+    CREATE INDEX IF NOT EXISTS idx_ce_workout     ON completed_exercises(completed_workout_id);
+    CREATE INDEX IF NOT EXISTS idx_ce_exercise    ON completed_exercises(exercise_id);
+    CREATE INDEX IF NOT EXISTS idx_cs_exercise    ON completed_sets(completed_exercise_id);
+    CREATE INDEX IF NOT EXISTS idx_uwe_ex_workout ON user_workout_exercises(workout_id, exercise_id);
+  `);
   } finally {
     await db.closeAsync();
   }

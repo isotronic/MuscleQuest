@@ -54,6 +54,7 @@ export const useSaveCompletedWorkoutMutation = (
     },
     onSuccess: (completedWorkoutId, completedWorkoutData) => {
       queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+      queryClient.invalidateQueries({ queryKey: ["exerciseDetail"] });
       queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
       queryClient.invalidateQueries({
         queryKey: ["globalExerciseHistoryForSession", weightUnit, distanceUnit],

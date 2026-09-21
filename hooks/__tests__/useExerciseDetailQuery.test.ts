@@ -101,10 +101,10 @@ describe("useExerciseDetailQuery — configuration", () => {
     ]);
   });
 
-  it("has staleTime and gcTime of 0", () => {
+  it("caches for a minute and uses the default gcTime", () => {
     useExerciseDetailQuery(1, "30", "kg");
-    expect(capturedArgs.staleTime).toBe(0);
-    expect(capturedArgs.gcTime).toBe(0);
+    expect(capturedArgs.staleTime).toBe(60_000);
+    expect(capturedArgs.gcTime).toBeUndefined();
   });
 });
 

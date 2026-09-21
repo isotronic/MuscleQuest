@@ -226,4 +226,14 @@ describe("useSaveCompletedWorkoutMutation", () => {
       queryKey: ["globalExerciseHistoryForSession", "lbs", "ft"],
     });
   });
+
+  it("onSuccess invalidates exerciseDetail so the exercise screen refetches", () => {
+    useSaveCompletedWorkoutMutation("kg", "m");
+
+    capturedArgs.onSuccess();
+
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["exerciseDetail"],
+    });
+  });
 });
