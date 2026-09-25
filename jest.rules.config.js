@@ -6,4 +6,8 @@ module.exports = {
   testEnvironment: "node",
   testMatch: ["<rootDir>/rules-tests/**/*.test.ts"],
   testTimeout: 30000,
+  // Every suite shares one emulator project, so clearFirestore() in one
+  // suite's beforeEach would wipe another's seeded documents if they ran in
+  // parallel.
+  maxWorkers: 1,
 };
