@@ -25,12 +25,16 @@ jest.mock("@/utils/database", () => ({
 jest.mock("@/utils/bugsnagDedup", () => ({ notifyBugsnag: jest.fn() }));
 
 const mockSetPendingRevocation = jest.fn();
+// The value the hook subscribes to, i.e. what useSocialStore() returns.
 let mockStoreState: Record<string, unknown> = {};
+// What getState() returns. Normally identical; a test can set them apart to
+// pin which one a given branch reads.
+let mockGetStateResult: Record<string, unknown> = {};
 
 jest.mock("@/store/socialStore", () => ({
   useSocialStore: Object.assign(
     jest.fn(() => mockStoreState),
-    { getState: () => mockStoreState },
+    { getState: () => mockGetStateResult },
   ),
 }));
 
@@ -56,7 +60,13 @@ beforeEach(() => {
     pendingRevocation: null,
     setPendingRevocation: mockSetPendingRevocation,
   };
+  mockGetStateResult = mockStoreState;
 });
+
+const setPendingRevocation = (revocation: unknown) => {
+  mockStoreState = { ...mockStoreState, pendingRevocation: revocation };
+  mockGetStateResult = mockStoreState;
+};
 
 describe("useSocialSyncOnStartup pending revocations", () => {
   it("does nothing when there is no pending revocation", async () => {
@@ -66,10 +76,10 @@ describe("useSocialSyncOnStartup pending revocations", () => {
   });
 
   it("retries the persisted subcollections and clears them on success", async () => {
-    mockStoreState.pendingRevocation = {
+    setPendingRevocation({
       uid: "my-uid",
       subcollections: ["sharedPlans", "sharedStrength"],
-    };
+    });
     mockDeleteAllSharedData.mockResolvedValue(undefined);
 
     useSocialSyncOnStartup();
@@ -83,10 +93,10 @@ describe("useSocialSyncOnStartup pending revocations", () => {
   });
 
   it("keeps the still-failing subcollections for the next startup", async () => {
-    mockStoreState.pendingRevocation = {
+    setPendingRevocation({
       uid: "my-uid",
       subcollections: ["sharedPlans", "sharedStrength"],
-    };
+    });
     mockDeleteAllSharedData.mockRejectedValue(
       Object.assign(new Error("permission-denied"), {
         failedSubcollections: ["sharedStrength"],
@@ -102,13 +112,39 @@ describe("useSocialSyncOnStartup pending revocations", () => {
     });
   });
 
+  // The store rehydrates from AsyncStorage after the first render, so the
+  // effect must key off the subscribed value, which re-renders the hook when
+  // rehydration lands. Reading it once from getState() kept the retry from
+  // running at all on a launch where the user resolved first.
+  //
+  // The two mirrors are set apart here on purpose: the revocation is visible
+  // only through the subscription, so this fails if the hook reads getState().
+  it("retries a revocation that only the subscription can see", async () => {
+    mockStoreState = {
+      ...mockStoreState,
+      pendingRevocation: { uid: "my-uid", subcollections: ["sharedPlans"] },
+    };
+    mockGetStateResult = {
+      ...mockStoreState,
+      pendingRevocation: null,
+    };
+    mockDeleteAllSharedData.mockResolvedValue(undefined);
+
+    useSocialSyncOnStartup();
+    await flush();
+
+    expect(mockDeleteAllSharedData).toHaveBeenCalledWith("my-uid", [
+      "sharedPlans",
+    ]);
+  });
+
   // The store is persisted, so a revocation outlives sign-out. Replaying it
   // against the next account would delete that person's shared data.
   it("discards a revocation left behind by a different account", async () => {
-    mockStoreState.pendingRevocation = {
+    setPendingRevocation({
       uid: "someone-else",
       subcollections: ["sharedPlans"],
-    };
+    });
 
     useSocialSyncOnStartup();
     await flush();

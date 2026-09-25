@@ -25,8 +25,12 @@ import {
 
 export const useSocialSyncOnStartup = () => {
   const user = useContext(AuthContext);
-  const { privacySettings, publishedPlanIds, publishedWorkoutIds } =
-    useSocialStore();
+  const {
+    privacySettings,
+    publishedPlanIds,
+    publishedWorkoutIds,
+    pendingRevocation,
+  } = useSocialStore();
   const hasSynced = useRef(false);
   const hasRetriedRevocations = useRef(false);
 
@@ -34,11 +38,14 @@ export const useSocialSyncOnStartup = () => {
   // hiccup) is retried here until every subcollection is verified empty.
   // Runs independently of the publish sync: it must happen even when every
   // sharing toggle is off, which is the usual state after a revocation.
+  // Subscribed rather than read once from getState(): the store rehydrates
+  // from AsyncStorage after the first render, so an effect keyed only on
+  // `user` would look before the persisted revocation had arrived and never
+  // retry it that launch.
   useEffect(() => {
     if (!user || hasRetriedRevocations.current) return;
-    const { pendingRevocation, setPendingRevocation } =
-      useSocialStore.getState();
     if (!pendingRevocation) return;
+    const { setPendingRevocation } = useSocialStore.getState();
     // The store is persisted and survives sign-out, so a revocation left by a
     // previous account must not be replayed against whoever signs in next:
     // the subcollection names would match and we would delete their data.
@@ -62,7 +69,7 @@ export const useSocialSyncOnStartup = () => {
             .setPendingRevocation({ uid, subcollections: failed });
         }
       });
-  }, [user]);
+  }, [user, pendingRevocation]);
 
   useEffect(() => {
     if (!user || !privacySettings || hasSynced.current) return;
