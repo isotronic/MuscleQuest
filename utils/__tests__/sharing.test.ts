@@ -2,6 +2,12 @@ import {
   bulkPublishAllPlans,
   bulkPublishAllStandaloneWorkouts,
   bulkPublishAllCustomExercises,
+  BULK_PUBLISH_CONCURRENCY,
+  deleteAllSharedData,
+  publishPlan,
+  SharedDataDeletionError,
+  SharedDocTooLargeError,
+  SHARED_SUBCOLLECTIONS,
 } from "../sharing";
 import * as db from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
@@ -24,6 +30,8 @@ const mockGetDoc = jest
   .fn()
   .mockResolvedValue({ exists: () => false, data: () => ({}) });
 const mockDeleteDoc = jest.fn().mockResolvedValue(undefined);
+const mockGetDocs = jest.fn();
+const mockBatchCommit = jest.fn().mockResolvedValue(undefined);
 
 jest.mock("@react-native-firebase/firestore", () => ({
   getFirestore: jest.fn(),
@@ -32,11 +40,15 @@ jest.mock("@react-native-firebase/firestore", () => ({
   getDoc: (...args: any[]) => mockGetDoc(...args),
   deleteDoc: (...args: any[]) => mockDeleteDoc(...args),
   serverTimestamp: jest.fn().mockReturnValue("__serverTimestamp__"),
-  collection: jest.fn(),
-  getDocs: jest.fn().mockResolvedValue({ docs: [] }),
-  writeBatch: jest.fn(() => ({ set: jest.fn(), commit: jest.fn() })),
+  collection: jest.fn((_db, ...segments: string[]) => segments.join("/")),
+  getDocs: (...args: any[]) => mockGetDocs(...args),
+  writeBatch: jest.fn(() => ({
+    set: jest.fn(),
+    delete: jest.fn(),
+    commit: mockBatchCommit,
+  })),
   limit: jest.fn(),
-  query: jest.fn(),
+  query: jest.fn((collRef: string) => collRef),
   Timestamp: { fromDate: jest.fn((d) => d) },
 }));
 
@@ -53,6 +65,7 @@ const minimalWorkoutData = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockGetDocs.mockResolvedValue({ docs: [], empty: true });
   (db.fetchFullPlanForSharing as jest.Mock).mockResolvedValue(minimalPlanData);
   (db.fetchStandaloneWorkoutForSharing as jest.Mock).mockResolvedValue(
     minimalWorkoutData,
@@ -159,5 +172,94 @@ describe("bulkPublishAllCustomExercises", () => {
       bulkPublishAllCustomExercises("uid123"),
     ).resolves.toBeUndefined();
     expect(Bugsnag.notify).toHaveBeenCalledWith(err);
+  });
+});
+
+describe("bulk publish concurrency", () => {
+  it("never runs more than BULK_PUBLISH_CONCURRENCY publishes at once", async () => {
+    (db.fetchAllPlanIds as jest.Mock).mockResolvedValue(
+      Array.from({ length: 20 }, (_, i) => i + 1),
+    );
+
+    let inFlight = 0;
+    let peak = 0;
+    (db.fetchFullPlanForSharing as jest.Mock).mockImplementation(async () => {
+      inFlight += 1;
+      peak = Math.max(peak, inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      inFlight -= 1;
+      return minimalPlanData;
+    });
+
+    await bulkPublishAllPlans("uid123");
+
+    expect(mockSetDoc).toHaveBeenCalledTimes(20);
+    expect(peak).toBeLessThanOrEqual(BULK_PUBLISH_CONCURRENCY);
+  });
+});
+
+describe("publishPlan size guard", () => {
+  it("throws SharedDocTooLargeError instead of writing an oversized document", async () => {
+    (db.fetchFullPlanForSharing as jest.Mock).mockResolvedValue({
+      plan: { name: "x".repeat(1_000_000), image_url: null, app_plan_id: null },
+      workouts: [],
+    });
+
+    await expect(publishPlan("uid123", 1)).rejects.toBeInstanceOf(
+      SharedDocTooLargeError,
+    );
+    expect(mockSetDoc).not.toHaveBeenCalled();
+  });
+
+  it("writes a plan that fits the budget", async () => {
+    await expect(publishPlan("uid123", 1)).resolves.toBeUndefined();
+    expect(mockSetDoc).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("deleteAllSharedData", () => {
+  it("resolves when every subcollection is verified empty", async () => {
+    await expect(deleteAllSharedData("uid123")).resolves.toBeUndefined();
+    // One verification read per subcollection, plus the initial delete query.
+    expect(mockGetDocs).toHaveBeenCalledTimes(SHARED_SUBCOLLECTIONS.length * 2);
+  });
+
+  it("rejects naming the subcollections that failed", async () => {
+    mockGetDocs.mockImplementation(async (path: string) => {
+      if (path.endsWith("sharedStrength")) throw new Error("permission-denied");
+      return { docs: [], empty: true };
+    });
+
+    const error = await deleteAllSharedData("uid123").catch((e) => e);
+
+    expect(error).toBeInstanceOf(SharedDataDeletionError);
+    expect((error as SharedDataDeletionError).failedSubcollections).toEqual([
+      "sharedStrength",
+    ]);
+  });
+
+  it("fails when a subcollection is not empty after deletion", async () => {
+    // The delete query returns nothing to delete, but the verification read
+    // still finds a document: the data is still visible to friends.
+    let call = 0;
+    mockGetDocs.mockImplementation(async (path: string) => {
+      if (!path.endsWith("sharedPlans")) return { docs: [], empty: true };
+      call += 1;
+      return call === 1
+        ? { docs: [], empty: true }
+        : { docs: [{}], empty: false };
+    });
+
+    const error = await deleteAllSharedData("uid123").catch((e) => e);
+
+    expect(error).toBeInstanceOf(SharedDataDeletionError);
+    expect((error as SharedDataDeletionError).failedSubcollections).toEqual([
+      "sharedPlans",
+    ]);
+  });
+
+  it("only touches the subcollections it is given", async () => {
+    await deleteAllSharedData("uid123", ["sharedPlans"]);
+    expect(mockGetDocs).toHaveBeenCalledTimes(2);
   });
 });

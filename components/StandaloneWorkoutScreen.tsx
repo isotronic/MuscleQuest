@@ -24,6 +24,7 @@ import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 import { useDeleteStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
+import { SharedDocTooLargeError } from "@/utils/sharing";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { confirmStartWorkout } from "@/utils/startWorkout";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
@@ -300,7 +301,14 @@ export default function StandaloneWorkoutScreen() {
             </TouchableOpacity>
             {publishMutation.isError && (
               <ThemedText style={[styles.shareError, { color: colors.danger }]}>
-                <Trans>Failed to update sharing. Please try again.</Trans>
+                {publishMutation.error instanceof SharedDocTooLargeError ? (
+                  <Trans>
+                    This workout is too large to share. Try splitting it into
+                    smaller workouts.
+                  </Trans>
+                ) : (
+                  <Trans>Failed to update sharing. Please try again.</Trans>
+                )}
               </ThemedText>
             )}
           </>

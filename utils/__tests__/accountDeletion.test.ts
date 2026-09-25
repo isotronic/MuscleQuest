@@ -63,7 +63,7 @@ jest.mock("../friends", () => ({
 }));
 
 jest.mock("../sharing", () => ({
-  deleteAllSharedDataOrThrow: (...args: unknown[]) => mockDeleteShared(...args),
+  deleteAllSharedData: (...args: unknown[]) => mockDeleteShared(...args),
 }));
 
 const snapshot = (ids: string[]) => ({

@@ -12,7 +12,9 @@ import {
   serverTimestamp,
   Timestamp,
 } from "@react-native-firebase/firestore";
-import Bugsnag from "@bugsnag/expo";
+import pLimit from "p-limit";
+import { notifyBugsnag } from "./bugsnagDedup";
+import { useSocialStore } from "../store/socialStore";
 import {
   fetchFullPlanForSharing,
   fetchStandaloneWorkoutForSharing,
@@ -88,6 +90,50 @@ const buildSharedExercise = (row: {
   trackingTypeOverride: row.tracking_type_override ?? null,
 });
 
+// Firestore rejects documents over 1 MiB, and a rules check can't measure
+// bytes. Guard on the client instead so the user gets an explanation rather
+// than a raw invalid-argument error. JSON length overestimates slightly
+// against Firestore's own accounting, which is what we want for a budget.
+const MAX_SHARED_DOC_BYTES = 900_000;
+
+export class SharedDocTooLargeError extends Error {
+  readonly estimatedBytes: number;
+
+  constructor(estimatedBytes: number) {
+    super(
+      `Shared document is too large: ~${estimatedBytes} bytes (limit ${MAX_SHARED_DOC_BYTES})`,
+    );
+    this.name = "SharedDocTooLargeError";
+    this.estimatedBytes = estimatedBytes;
+  }
+}
+
+const assertWithinSizeBudget = (data: object): void => {
+  // serverTimestamp() sentinels serialise to a small object, so the estimate
+  // stays close enough for a budget this far below the hard limit.
+  const estimatedBytes = JSON.stringify(data)?.length ?? 0;
+  if (estimatedBytes > MAX_SHARED_DOC_BYTES) {
+    throw new SharedDocTooLargeError(estimatedBytes);
+  }
+};
+
+// publishedAt must only be set the first time a document is written. The
+// listener-backed published id lists in socialStore already tell us whether a
+// document exists, which saves a getDoc round trip before every publish.
+const isAlreadyPublished = (
+  kind: "plan" | "standaloneWorkout",
+  id: number,
+): boolean => {
+  const { publishedPlanIds, publishedWorkoutIds } = useSocialStore.getState();
+  const ids = kind === "plan" ? publishedPlanIds : publishedWorkoutIds;
+  return ids?.includes(String(id)) ?? false;
+};
+
+// Bulk publishing fans out one write per plan/workout/exercise. Without a cap
+// a large library opens hundreds of concurrent requests, which starves the
+// rest of the app's Firestore traffic and invites throttling.
+export const BULK_PUBLISH_CONCURRENCY = 4;
+
 // ─── plans ────────────────────────────────────────────────────────────────────
 
 export const publishPlan = async (
@@ -101,21 +147,23 @@ export const publishPlan = async (
   const db = getFirestore();
   const ref = doc(db, "users", uid, "sharedPlans", String(planId));
 
-  const existing = await getDoc(ref);
-  const publishedAt = existing.exists() ? existing.data()?.publishedAt : now;
-
-  await setDoc(ref, {
+  const payload: Record<string, unknown> = {
     localPlanId: planId,
     name: data.plan.name,
     imageUrl: data.plan.image_url ?? null,
-    publishedAt,
     updatedAt: now,
     workouts: data.workouts.map((w) => ({
       name: w.workout_name,
       workoutOrder: w.workout_order,
       exercises: w.exercises.map(buildSharedExercise),
     })),
-  });
+  };
+  if (!isAlreadyPublished("plan", planId)) {
+    payload.publishedAt = now;
+  }
+
+  assertWithinSizeBudget(payload);
+  await setDoc(ref, payload, { merge: true });
 };
 
 export const unpublishPlan = async (
@@ -145,17 +193,19 @@ export const publishStandaloneWorkout = async (
     String(workoutId),
   );
 
-  const existing = await getDoc(ref);
-  const publishedAt = existing.exists() ? existing.data()?.publishedAt : now;
-
-  await setDoc(ref, {
+  const payload: Record<string, unknown> = {
     localWorkoutId: workoutId,
     name: data.workout_name,
     imageUrl: data.image_url ?? null,
-    publishedAt,
     updatedAt: now,
     exercises: data.exercises.map(buildSharedExercise),
-  });
+  };
+  if (!isAlreadyPublished("standaloneWorkout", workoutId)) {
+    payload.publishedAt = now;
+  }
+
+  assertWithinSizeBudget(payload);
+  await setDoc(ref, payload, { merge: true });
 };
 
 export const unpublishStandaloneWorkout = async (
@@ -188,7 +238,7 @@ export const pushCustomExercise = async (
     const existing = await getDoc(ref);
     const publishedAt = existing.exists() ? existing.data()?.publishedAt : now;
 
-    await setDoc(ref, {
+    const payload = {
       localExerciseId: exercise.exercise_id,
       name: exercise.name,
       equipment: exercise.equipment ?? "",
@@ -206,9 +256,12 @@ export const pushCustomExercise = async (
       animatedUrl: exercise.animated_url ?? null,
       publishedAt,
       updatedAt: now,
-    });
+    };
+
+    assertWithinSizeBudget(payload);
+    await setDoc(ref, payload);
   } catch (error) {
-    Bugsnag.notify(error as Error);
+    notifyBugsnag(error);
   }
 };
 
@@ -222,7 +275,7 @@ export const removeCustomExercise = async (
       doc(db, "users", uid, "sharedCustomExercises", String(exerciseId)),
     );
   } catch (error) {
-    Bugsnag.notify(error as Error);
+    notifyBugsnag(error);
   }
 };
 
@@ -237,33 +290,36 @@ export const pushCompletedWorkout = async (
     if (!data) return;
 
     const db = getFirestore();
+    const payload = {
+      localWorkoutId: completedWorkoutId,
+      planName: data.plan_name ?? null,
+      workoutName: data.workout_name ?? null,
+      dateCompleted: Timestamp.fromDate(new Date(data.date_completed)),
+      durationSeconds: data.duration,
+      totalSetsCompleted: data.total_sets_completed,
+      isDeload: !!data.is_deload,
+      exercises: data.exercises.map((ex) => ({
+        name: ex.exercise_name,
+        sets: ex.sets.map((s) => ({
+          setNumber: s.set_number,
+          weight: s.weight,
+          reps: s.reps,
+          time: s.time,
+          distance: s.distance,
+          isWarmup: !!s.is_warmup,
+          isDropSet: !!s.is_drop_set,
+          isToFailure: !!s.is_to_failure,
+        })),
+      })),
+    };
+
+    assertWithinSizeBudget(payload);
     await setDoc(
       doc(db, "users", uid, "sharedWorkouts", String(completedWorkoutId)),
-      {
-        localWorkoutId: completedWorkoutId,
-        planName: data.plan_name ?? null,
-        workoutName: data.workout_name ?? null,
-        dateCompleted: Timestamp.fromDate(new Date(data.date_completed)),
-        durationSeconds: data.duration,
-        totalSetsCompleted: data.total_sets_completed,
-        isDeload: !!data.is_deload,
-        exercises: data.exercises.map((ex) => ({
-          name: ex.exercise_name,
-          sets: ex.sets.map((s) => ({
-            setNumber: s.set_number,
-            weight: s.weight,
-            reps: s.reps,
-            time: s.time,
-            distance: s.distance,
-            isWarmup: !!s.is_warmup,
-            isDropSet: !!s.is_drop_set,
-            isToFailure: !!s.is_to_failure,
-          })),
-        })),
-      },
+      payload,
     );
   } catch (error) {
-    Bugsnag.notify(error as Error);
+    notifyBugsnag(error);
   }
 };
 
@@ -278,13 +334,19 @@ export const pushBodyMeasurement = async (
     if (!data) return;
 
     const db = getFirestore();
-    await setDoc(doc(db, "users", uid, "sharedMeasurements", String(entryId)), {
+    const payload = {
       localEntryId: entryId,
       recordedAt: Timestamp.fromDate(new Date(data.recorded_at)),
       values: data.values,
-    });
+    };
+
+    assertWithinSizeBudget(payload);
+    await setDoc(
+      doc(db, "users", uid, "sharedMeasurements", String(entryId)),
+      payload,
+    );
   } catch (error) {
-    Bugsnag.notify(error as Error);
+    notifyBugsnag(error);
   }
 };
 
@@ -312,7 +374,7 @@ export const pushStrengthPRs = async (
             : `custom_${pr.exercise_id}`;
         const ref = doc(db, "users", uid, "sharedStrength", docId);
 
-        batch.set(ref, {
+        const payload = {
           exerciseName: pr.exercise_name,
           appExerciseId: pr.app_exercise_id,
           trackingType: pr.tracking_type,
@@ -325,13 +387,16 @@ export const pushStrengthPRs = async (
             distance: s.distance,
             date: Timestamp.fromDate(new Date(s.date_completed)),
           })),
-        });
+        };
+
+        assertWithinSizeBudget(payload);
+        batch.set(ref, payload);
       }
 
       await batch.commit();
     }
   } catch (error) {
-    Bugsnag.notify(error as Error);
+    notifyBugsnag(error);
   }
 };
 
@@ -340,18 +405,19 @@ export const pushStrengthPRs = async (
 export const bulkPublishAllPlans = async (uid: string): Promise<void> => {
   try {
     const planIds = await fetchAllPlanIds();
+    const throttle = pLimit(BULK_PUBLISH_CONCURRENCY);
     const results = await Promise.allSettled(
-      planIds.map((id) => publishPlan(uid, id)),
+      planIds.map((id) => throttle(() => publishPlan(uid, id))),
     );
     results
       .filter((r): r is PromiseRejectedResult => r.status === "rejected")
       .forEach((r) =>
-        Bugsnag.notify(
+        notifyBugsnag(
           r.reason instanceof Error ? r.reason : new Error(String(r.reason)),
         ),
       );
   } catch (error) {
-    Bugsnag.notify(error as Error);
+    notifyBugsnag(error);
   }
 };
 
@@ -360,18 +426,19 @@ export const bulkPublishAllStandaloneWorkouts = async (
 ): Promise<void> => {
   try {
     const workoutIds = await fetchAllStandaloneWorkoutIds();
+    const throttle = pLimit(BULK_PUBLISH_CONCURRENCY);
     const results = await Promise.allSettled(
-      workoutIds.map((id) => publishStandaloneWorkout(uid, id)),
+      workoutIds.map((id) => throttle(() => publishStandaloneWorkout(uid, id))),
     );
     results
       .filter((r): r is PromiseRejectedResult => r.status === "rejected")
       .forEach((r) =>
-        Bugsnag.notify(
+        notifyBugsnag(
           r.reason instanceof Error ? r.reason : new Error(String(r.reason)),
         ),
       );
   } catch (error) {
-    Bugsnag.notify(error as Error);
+    notifyBugsnag(error);
   }
 };
 
@@ -381,18 +448,19 @@ export const bulkPublishAllCustomExercises = async (
   try {
     const exercises = await fetchAllCustomExercisesForSharing();
     // pushCustomExercise catches its own errors and reports to Bugsnag, so allSettled sees fulfilled
+    const throttle = pLimit(BULK_PUBLISH_CONCURRENCY);
     const results = await Promise.allSettled(
-      exercises.map((ex) => pushCustomExercise(uid, ex)),
+      exercises.map((ex) => throttle(() => pushCustomExercise(uid, ex))),
     );
     results
       .filter((r): r is PromiseRejectedResult => r.status === "rejected")
       .forEach((r) =>
-        Bugsnag.notify(
+        notifyBugsnag(
           r.reason instanceof Error ? r.reason : new Error(String(r.reason)),
         ),
       );
   } catch (error) {
-    Bugsnag.notify(error as Error);
+    notifyBugsnag(error);
   }
 };
 
@@ -417,29 +485,79 @@ const deleteSubcollection = async (
   }
 };
 
-const SHARED_SUBCOLLECTIONS = [
+export const SHARED_SUBCOLLECTIONS = [
   "sharedPlans",
   "sharedStandaloneWorkouts",
   "sharedCustomExercises",
   "sharedWorkouts",
   "sharedMeasurements",
   "sharedStrength",
-];
+] as const;
 
-// Throws on failure, so callers that must not continue past a partial delete
-// (account deletion) can stop. deleteAllSharedData swallows errors instead.
-export const deleteAllSharedDataOrThrow = async (
+export type SharedSubcollection = (typeof SHARED_SUBCOLLECTIONS)[number];
+
+// Thrown when one or more subcollections could not be emptied. Naming the
+// subcollections lets the caller retry only those, and lets it persist them
+// so the retry survives an app restart.
+export class SharedDataDeletionError extends Error {
+  readonly failedSubcollections: string[];
+
+  constructor(failedSubcollections: string[], options?: { cause?: unknown }) {
+    super(
+      `Failed to delete shared data: ${failedSubcollections.join(", ")}`,
+      options,
+    );
+    this.name = "SharedDataDeletionError";
+    this.failedSubcollections = failedSubcollections;
+  }
+}
+
+// Deletes a subcollection, then re-reads it to confirm it is actually empty.
+// A batch commit can succeed while a concurrent write re-adds a document, and
+// a partially applied delete would otherwise look like success.
+const deleteSubcollectionAndVerify = async (
   uid: string,
+  subcollection: string,
 ): Promise<void> => {
-  await Promise.all(
-    SHARED_SUBCOLLECTIONS.map((c) => deleteSubcollection(uid, c)),
+  await deleteSubcollection(uid, subcollection);
+
+  const db = getFirestore();
+  const remaining = await getDocs(
+    query(collection(db, "users", uid, subcollection), limit(1)),
   );
+  if (!remaining.empty) {
+    throw new Error(`${subcollection} still has documents after deletion`);
+  }
 };
 
-export const deleteAllSharedData = async (uid: string): Promise<void> => {
-  try {
-    await deleteAllSharedDataOrThrow(uid);
-  } catch (error) {
-    Bugsnag.notify(error as Error);
+// Empties the named shared subcollections (all six by default) and throws a
+// SharedDataDeletionError naming the ones that failed. Never resolves on a
+// partial delete: callers use the result to decide whether sharing is really
+// off, so reporting success while data stays visible would be a privacy bug.
+export const deleteAllSharedData = async (
+  uid: string,
+  subcollections: readonly string[] = SHARED_SUBCOLLECTIONS,
+): Promise<void> => {
+  const results = await Promise.allSettled(
+    subcollections.map((c) => deleteSubcollectionAndVerify(uid, c)),
+  );
+
+  const failed: string[] = [];
+  let firstReason: unknown;
+  results.forEach((result, index) => {
+    if (result.status !== "rejected") return;
+    failed.push(subcollections[index]);
+    if (firstReason === undefined) firstReason = result.reason;
+  });
+
+  if (failed.length > 0) {
+    const error = new SharedDataDeletionError(failed, { cause: firstReason });
+    notifyBugsnag(error, (event) => {
+      event.addMetadata("shared_data_deletion", {
+        failed: failed.join(", "),
+        reason: String(firstReason),
+      });
+    });
+    throw error;
   }
 };

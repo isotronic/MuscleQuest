@@ -24,7 +24,7 @@ import {
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 import { removeFriend } from "./friends";
-import { deleteAllSharedDataOrThrow } from "./sharing";
+import { deleteAllSharedData } from "./sharing";
 import { notifyBugsnag } from "./bugsnagDedup";
 import { useSocialStore } from "../store/socialStore";
 
@@ -157,6 +157,7 @@ const cleanUpAfterDeletion = async (): Promise<void> => {
     privacySettings: null,
     publishedPlanIds: null,
     publishedWorkoutIds: null,
+    pendingRevocations: [],
   });
   try {
     await useSocialStore.persist.clearStorage();
@@ -169,7 +170,7 @@ const STEP_RUNNERS: Record<DeletionStep, (uid: string) => Promise<void>> = {
   reauth: reauthenticate,
   friends: removeAllFriends,
   requests: deletePendingRequests,
-  shared: deleteAllSharedDataOrThrow,
+  shared: deleteAllSharedData,
   profile: deleteProfile,
   backups: deleteBackups,
   auth: deleteAuthUser,

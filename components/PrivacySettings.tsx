@@ -19,8 +19,9 @@ import {
   bulkPublishAllStandaloneWorkouts,
   bulkPublishAllCustomExercises,
   deleteAllSharedData,
+  SharedDataDeletionError,
 } from "@/utils/sharing";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import type { FirestorePrivateSettings } from "@/types/firestore";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -32,7 +33,8 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const user = useContext(AuthContext);
-  const { privacySettings } = useSocialStore();
+  const { privacySettings, pendingRevocations, setPendingRevocations } =
+    useSocialStore();
   const { mutate: updatePrivacy } = usePrivacySettingsMutation();
   const [localPrivacySettings, setLocalPrivacySettings] =
     useState<FirestorePrivateSettings | null>(privacySettings);
@@ -47,17 +49,55 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
     setLocalPrivacySettings((prev) => (prev ? { ...prev, ...patch } : prev));
     updatePrivacy(patch);
     if (patch.sharePlans === true) {
-      bulkPublishAllPlans(user.uid).catch((err) => Bugsnag.notify(err));
+      bulkPublishAllPlans(user.uid).catch((err) => notifyBugsnag(err));
     }
     if (patch.shareStandaloneWorkouts === true) {
       bulkPublishAllStandaloneWorkouts(user.uid).catch((err) =>
-        Bugsnag.notify(err),
+        notifyBugsnag(err),
       );
     }
     if (patch.shareCustomExercises === true) {
       bulkPublishAllCustomExercises(user.uid).catch((err) =>
-        Bugsnag.notify(err),
+        notifyBugsnag(err),
       );
+    }
+  };
+
+  // Deletion is only reported as done once every targeted subcollection is
+  // verified empty. Anything that failed is persisted so startup can retry it,
+  // because the user has asked for that data to stop being visible.
+  const runDeletion = async (subcollections?: string[]) => {
+    if (!user) return;
+    setIsDeletingSharedData(true);
+    try {
+      await deleteAllSharedData(user.uid, subcollections);
+      setPendingRevocations([]);
+      Alert.alert(t`Done`, t`All shared data has been removed.`);
+    } catch (error: unknown) {
+      if (error instanceof SharedDataDeletionError) {
+        setPendingRevocations(error.failedSubcollections);
+      } else {
+        notifyBugsnag(error);
+      }
+      Alert.alert(
+        t`Couldn't stop sharing`,
+        t`Some items may still be visible to friends. Try again.`,
+        [
+          { text: t`Cancel`, style: "cancel" },
+          {
+            text: t`Retry`,
+            onPress: () => {
+              void runDeletion(
+                error instanceof SharedDataDeletionError
+                  ? error.failedSubcollections
+                  : undefined,
+              );
+            },
+          },
+        ],
+      );
+    } finally {
+      setIsDeletingSharedData(false);
     }
   };
 
@@ -71,18 +111,10 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
         {
           text: t`Delete`,
           style: "destructive",
-          onPress: async () => {
-            setIsDeletingSharedData(true);
-            try {
-              await deleteAllSharedData(user.uid);
-              Alert.alert(t`Done`, t`All shared data has been removed.`);
-            } catch (error: unknown) {
-              Bugsnag.notify(
-                error instanceof Error ? error : new Error(String(error)),
-              );
-            } finally {
-              setIsDeletingSharedData(false);
-            }
+          onPress: () => {
+            void runDeletion(
+              pendingRevocations.length > 0 ? pendingRevocations : undefined,
+            );
           },
         },
       ],

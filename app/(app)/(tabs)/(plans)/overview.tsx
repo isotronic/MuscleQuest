@@ -40,6 +40,7 @@ import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery
 import { getCurrentISOWeek } from "@/utils/isoWeek";
 import { AuthContext } from "@/context/AuthProvider";
 import { usePlanPublishMutation } from "@/hooks/usePlanPublishMutation";
+import { SharedDocTooLargeError } from "@/utils/sharing";
 import { useSocialStore } from "@/store/socialStore";
 import { useCreateStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
 import { useDuplicatePlanMutation } from "@/hooks/useDuplicatePlanMutation";
@@ -356,37 +357,51 @@ export default function PlanOverviewScreen() {
         )}
 
         {showShareToggle && (
-          <TouchableOpacity
-            onPress={() => publishMutation.mutate(!isPublished)}
-            style={[styles.deloadRow]}
-            activeOpacity={0.7}
-            disabled={publishMutation.isPending || isPublishedLoading}
-          >
-            <View style={styles.deloadLeft}>
-              <AppIcon
-                set="mci"
-                name="cloud-outline"
-                size={20}
-                color={isPublished ? colors.accent : colors.contentSecondary}
-                style={{ marginRight: 10 }}
-              />
-              <ThemedText
-                style={[
-                  styles.deloadTitle,
-                  isPublished && { color: colors.accent },
-                ]}
-              >
-                <Trans>Share Plan</Trans>
-              </ThemedText>
-            </View>
-            {publishMutation.isPending || isPublishedLoading ? (
-              <ActivityIndicator size="small" color={colors.accent} />
-            ) : (
-              <View pointerEvents="none">
-                <Switch value={isPublished} color={colors.accent} />
+          <>
+            <TouchableOpacity
+              onPress={() => publishMutation.mutate(!isPublished)}
+              style={[styles.deloadRow]}
+              activeOpacity={0.7}
+              disabled={publishMutation.isPending || isPublishedLoading}
+            >
+              <View style={styles.deloadLeft}>
+                <AppIcon
+                  set="mci"
+                  name="cloud-outline"
+                  size={20}
+                  color={isPublished ? colors.accent : colors.contentSecondary}
+                  style={{ marginRight: 10 }}
+                />
+                <ThemedText
+                  style={[
+                    styles.deloadTitle,
+                    isPublished && { color: colors.accent },
+                  ]}
+                >
+                  <Trans>Share Plan</Trans>
+                </ThemedText>
               </View>
+              {publishMutation.isPending || isPublishedLoading ? (
+                <ActivityIndicator size="small" color={colors.accent} />
+              ) : (
+                <View pointerEvents="none">
+                  <Switch value={isPublished} color={colors.accent} />
+                </View>
+              )}
+            </TouchableOpacity>
+            {publishMutation.isError && (
+              <ThemedText style={[styles.shareError, { color: colors.danger }]}>
+                {publishMutation.error instanceof SharedDocTooLargeError ? (
+                  <Trans>
+                    This plan is too large to share. Try splitting it into
+                    smaller plans.
+                  </Trans>
+                ) : (
+                  <Trans>Failed to update sharing. Please try again.</Trans>
+                )}
+              </ThemedText>
             )}
-          </TouchableOpacity>
+          </>
         )}
 
         {!plan?.app_plan_id && (
@@ -532,6 +547,10 @@ function createStyles(colors: AppThemeColors) {
     },
     buttonLabel: {
       paddingVertical: 0,
+    },
+    shareError: {
+      fontSize: 13,
+      marginTop: 8,
     },
     deloadRow: {
       flexDirection: "row",

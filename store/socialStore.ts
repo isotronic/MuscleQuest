@@ -34,6 +34,10 @@ interface SocialStore {
   privacySettings: FirestorePrivateSettings | null;
   publishedPlanIds: string[] | null;
   publishedWorkoutIds: string[] | null;
+  // Shared subcollections whose deletion failed. Persisted so the retry in
+  // useSocialSyncOnStartup survives an app restart: the user asked for this
+  // data to stop being visible, so we keep trying until it is gone.
+  pendingRevocations: string[];
   setPendingRequests: (requests: PendingRequest[]) => void;
   setSentRequests: (requests: SentRequest[]) => void;
   setFriends: (friends: FriendInfo[]) => void;
@@ -41,6 +45,7 @@ interface SocialStore {
   setPrivacySettings: (settings: FirestorePrivateSettings | null) => void;
   setPublishedPlanIds: (ids: string[] | null) => void;
   setPublishedWorkoutIds: (ids: string[] | null) => void;
+  setPendingRevocations: (subcollections: string[]) => void;
 }
 
 export const useSocialStore = create<SocialStore>()(
@@ -52,6 +57,7 @@ export const useSocialStore = create<SocialStore>()(
       privacySettings: null,
       publishedPlanIds: null,
       publishedWorkoutIds: null,
+      pendingRevocations: [],
       setPendingRequests: (pendingRequests) => set({ pendingRequests }),
       setSentRequests: (sentRequests) => set({ sentRequests }),
       setFriends: (friends) => set({ friends }),
@@ -65,6 +71,8 @@ export const useSocialStore = create<SocialStore>()(
       setPublishedPlanIds: (publishedPlanIds) => set({ publishedPlanIds }),
       setPublishedWorkoutIds: (publishedWorkoutIds) =>
         set({ publishedWorkoutIds }),
+      setPendingRevocations: (pendingRevocations) =>
+        set({ pendingRevocations }),
     }),
     {
       name: "social-store",
@@ -75,6 +83,7 @@ export const useSocialStore = create<SocialStore>()(
         privacySettings: state.privacySettings,
         publishedPlanIds: state.publishedPlanIds,
         publishedWorkoutIds: state.publishedWorkoutIds,
+        pendingRevocations: state.pendingRevocations,
       }),
     },
   ),
