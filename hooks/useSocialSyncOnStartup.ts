@@ -36,18 +36,31 @@ export const useSocialSyncOnStartup = () => {
   // sharing toggle is off, which is the usual state after a revocation.
   useEffect(() => {
     if (!user || hasRetriedRevocations.current) return;
-    const { pendingRevocations } = useSocialStore.getState();
-    if (pendingRevocations.length === 0) return;
+    const { pendingRevocation, setPendingRevocation } =
+      useSocialStore.getState();
+    if (!pendingRevocation) return;
+    // The store is persisted and survives sign-out, so a revocation left by a
+    // previous account must not be replayed against whoever signs in next:
+    // the subcollection names would match and we would delete their data.
+    if (pendingRevocation.uid !== user.uid) {
+      setPendingRevocation(null);
+      return;
+    }
     hasRetriedRevocations.current = true;
 
-    deleteAllSharedData(user.uid, pendingRevocations)
-      .then(() => useSocialStore.getState().setPendingRevocations([]))
+    const { uid } = user;
+    deleteAllSharedData(uid, pendingRevocation.subcollections)
+      .then(() => useSocialStore.getState().setPendingRevocation(null))
       .catch((error) => {
         // deleteAllSharedData already reported this; keep the remaining names
         // so the next startup tries again.
         const failed = (error as { failedSubcollections?: string[] })
           .failedSubcollections;
-        if (failed) useSocialStore.getState().setPendingRevocations(failed);
+        if (failed) {
+          useSocialStore
+            .getState()
+            .setPendingRevocation({ uid, subcollections: failed });
+        }
       });
   }, [user]);
 

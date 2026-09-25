@@ -47,25 +47,14 @@ export const upsertUserProfile = async (
       profileData.createdAt = serverTimestamp();
     }
 
-    const writes: Promise<void>[] = [];
-    if (!settingsDoc.exists()) {
-      writes.push(setDoc(privateSettingsRef, DEFAULT_PRIVACY_SETTINGS));
-    }
-
     // The address lives in two places now: the hashed emailIndex entry that
     // friend search resolves, and a private document only the owner can read.
     // Neither is readable by another user, unlike the public profile field
-    // this replaces. Awaited, not queued: if the index write fails the profile
-    // must stay as it is, or the account ends up in neither lookup path.
+    // this replaces. Awaited before anything else starts: if the index write
+    // fails the profile must stay as it is, or the account ends up in neither
+    // lookup path, and nothing else may be left in flight unobserved.
     if (user.email) {
       await upsertEmailIndex(user.uid, user.email);
-      writes.push(
-        setDoc(
-          doc(db, "users", user.uid, "private", "contact"),
-          { email: user.email },
-          { merge: true },
-        ),
-      );
     }
 
     // Unconditional, because the rules no longer allow `email` on a public
@@ -75,6 +64,19 @@ export const upsertUserProfile = async (
       profileData.email = deleteField();
     }
 
+    const writes: Promise<void>[] = [];
+    if (!settingsDoc.exists()) {
+      writes.push(setDoc(privateSettingsRef, DEFAULT_PRIVACY_SETTINGS));
+    }
+    if (user.email) {
+      writes.push(
+        setDoc(
+          doc(db, "users", user.uid, "private", "contact"),
+          { email: user.email },
+          { merge: true },
+        ),
+      );
+    }
     writes.push(setDoc(userRef, profileData, { merge: true }));
     await Promise.all(writes);
   } catch (error) {

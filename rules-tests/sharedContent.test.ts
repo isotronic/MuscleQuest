@@ -143,7 +143,6 @@ describe("friends subcollection writes", () => {
   const friendDoc = {
     since: new Date(),
     displayName: "Bob",
-    email: "bob@example.com",
     photoURL: "https://example.com/b.png",
   };
 
@@ -174,7 +173,6 @@ describe("friends subcollection writes", () => {
     await assertSucceeds(
       updateDoc(doc(asAlice(), "users/alice/friends/bob"), {
         displayName: "Bob",
-        email: "bob@example.com",
         photoURL: "",
       }),
     );
@@ -185,6 +183,18 @@ describe("friends subcollection writes", () => {
       setDoc(doc(asAlice(), "users/alice/friends/bob"), {
         ...friendDoc,
         note: "anything",
+      }),
+    );
+  });
+
+  // A friend record used to copy the other person's address out of their
+  // profile. The recipient of a request never had that address, so this is the
+  // last place it could still leak.
+  it("denies an email on a friend record", async () => {
+    await assertFails(
+      setDoc(doc(asAlice(), "users/alice/friends/bob"), {
+        ...friendDoc,
+        email: "bob@example.com",
       }),
     );
   });

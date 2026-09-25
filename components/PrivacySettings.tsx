@@ -33,8 +33,7 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const user = useContext(AuthContext);
-  const { privacySettings, pendingRevocations, setPendingRevocations } =
-    useSocialStore();
+  const { privacySettings, setPendingRevocation } = useSocialStore();
   const { mutate: updatePrivacy } = usePrivacySettingsMutation();
   const [localPrivacySettings, setLocalPrivacySettings] =
     useState<FirestorePrivateSettings | null>(privacySettings);
@@ -66,16 +65,22 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
   // Deletion is only reported as done once every targeted subcollection is
   // verified empty. Anything that failed is persisted so startup can retry it,
   // because the user has asked for that data to stop being visible.
+  //
+  // `subcollections` is only ever set by a retry. The button itself always
+  // deletes everything, which is what it says it does.
   const runDeletion = async (subcollections?: string[]) => {
     if (!user) return;
     setIsDeletingSharedData(true);
     try {
       await deleteAllSharedData(user.uid, subcollections);
-      setPendingRevocations([]);
+      setPendingRevocation(null);
       Alert.alert(t`Done`, t`All shared data has been removed.`);
     } catch (error: unknown) {
       if (error instanceof SharedDataDeletionError) {
-        setPendingRevocations(error.failedSubcollections);
+        setPendingRevocation({
+          uid: user.uid,
+          subcollections: error.failedSubcollections,
+        });
       } else {
         notifyBugsnag(error);
       }
@@ -112,9 +117,7 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
           text: t`Delete`,
           style: "destructive",
           onPress: () => {
-            void runDeletion(
-              pendingRevocations.length > 0 ? pendingRevocations : undefined,
-            );
+            void runDeletion();
           },
         },
       ],

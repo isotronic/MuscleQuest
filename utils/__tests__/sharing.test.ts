@@ -10,6 +10,7 @@ import {
   SHARED_SUBCOLLECTIONS,
 } from "../sharing";
 import * as db from "@/utils/database";
+import { useSocialStore } from "@/store/socialStore";
 import Bugsnag from "@bugsnag/expo";
 
 jest.mock("@/utils/database", () => ({
@@ -66,6 +67,8 @@ const minimalWorkoutData = {
 beforeEach(() => {
   jest.clearAllMocks();
   mockGetDocs.mockResolvedValue({ docs: [], empty: true });
+  mockGetDoc.mockResolvedValue({ exists: () => false, data: () => ({}) });
+  useSocialStore.setState({ publishedPlanIds: [], publishedWorkoutIds: [] });
   (db.fetchFullPlanForSharing as jest.Mock).mockResolvedValue(minimalPlanData);
   (db.fetchStandaloneWorkoutForSharing as jest.Mock).mockResolvedValue(
     minimalWorkoutData,
@@ -214,6 +217,66 @@ describe("publishPlan size guard", () => {
   it("writes a plan that fits the budget", async () => {
     await expect(publishPlan("uid123", 1)).resolves.toBeUndefined();
     expect(mockSetDoc).toHaveBeenCalledTimes(1);
+  });
+
+  // String.length counts UTF-16 code units. A name of 600k emoji is 1.2M
+  // UTF-16 units but 2.4M UTF-8 bytes, and a name of 600k accented characters
+  // is 600k units but 1.2M bytes: the second one passes a length-based check
+  // and is still rejected by Firestore.
+  it("measures UTF-8 bytes, not string length", async () => {
+    (db.fetchFullPlanForSharing as jest.Mock).mockResolvedValue({
+      plan: { name: "é".repeat(600_000), image_url: null, app_plan_id: null },
+      workouts: [],
+    });
+
+    const error = await publishPlan("uid123", 1).catch((e) => e);
+
+    expect(error).toBeInstanceOf(SharedDocTooLargeError);
+    expect((error as SharedDocTooLargeError).estimatedBytes).toBeGreaterThan(
+      1_000_000,
+    );
+    expect(mockSetDoc).not.toHaveBeenCalled();
+  });
+});
+
+describe("publishedAt", () => {
+  it("sets publishedAt when the published list says the plan is new", async () => {
+    useSocialStore.setState({ publishedPlanIds: [] });
+
+    await publishPlan("uid123", 7);
+
+    expect(mockSetDoc.mock.calls[0][1]).toHaveProperty("publishedAt");
+    // The list answered, so no read was needed.
+    expect(mockGetDoc).not.toHaveBeenCalled();
+  });
+
+  it("leaves publishedAt alone when the plan is already published", async () => {
+    useSocialStore.setState({ publishedPlanIds: ["7"] });
+
+    await publishPlan("uid123", 7);
+
+    expect(mockSetDoc.mock.calls[0][1]).not.toHaveProperty("publishedAt");
+  });
+
+  // A null list means the listener has not hydrated yet. Treating that as
+  // "not published" would reset publishedAt on every already-shared plan.
+  it("reads the document when the published list has not hydrated", async () => {
+    useSocialStore.setState({ publishedPlanIds: null });
+    mockGetDoc.mockResolvedValue({ exists: () => true, data: () => ({}) });
+
+    await publishPlan("uid123", 7);
+
+    expect(mockGetDoc).toHaveBeenCalledTimes(1);
+    expect(mockSetDoc.mock.calls[0][1]).not.toHaveProperty("publishedAt");
+  });
+
+  it("sets publishedAt when that read finds no document", async () => {
+    useSocialStore.setState({ publishedPlanIds: null });
+    mockGetDoc.mockResolvedValue({ exists: () => false, data: () => ({}) });
+
+    await publishPlan("uid123", 7);
+
+    expect(mockSetDoc.mock.calls[0][1]).toHaveProperty("publishedAt");
   });
 });
 

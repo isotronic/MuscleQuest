@@ -159,6 +159,28 @@ describe("emailIndex deletes", () => {
   });
 });
 
+describe("emailIndex delete when the entry is missing", () => {
+  // Account deletion deletes unconditionally, so a user whose entry was never
+  // written must not have the whole deletion fail on this step.
+  it("lets the owner of the address delete a missing entry", async () => {
+    await assertSucceeds(deleteDoc(doc(alice(), `emailIndex/${aliceHash}`)));
+  });
+
+  it("still blocks deleting a missing entry for someone else's address", async () => {
+    await assertFails(
+      deleteDoc(doc(alice(), `emailIndex/${hashEmail("bob@example.com")}`)),
+    );
+  });
+
+  it("lets the stored uid delete an entry for an address it no longer holds", async () => {
+    // Alice changed her address; the token no longer hashes to this id, but
+    // the entry still points at her uid.
+    const oldHash = hashEmail("alice.old@example.com");
+    await seed({ [`emailIndex/${oldHash}`]: { uid: "alice" } });
+    await assertSucceeds(deleteDoc(doc(alice(), `emailIndex/${oldHash}`)));
+  });
+});
+
 describe("private contact document", () => {
   it("lets the owner write and read their address", async () => {
     const db = alice();

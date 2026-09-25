@@ -164,7 +164,7 @@ const cleanUpAfterDeletion = async (): Promise<void> => {
     privacySettings: null,
     publishedPlanIds: null,
     publishedWorkoutIds: null,
-    pendingRevocations: [],
+    pendingRevocation: null,
   });
   try {
     await useSocialStore.persist.clearStorage();

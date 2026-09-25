@@ -24,7 +24,7 @@ jest.mock("@/utils/database", () => ({
 
 jest.mock("@/utils/bugsnagDedup", () => ({ notifyBugsnag: jest.fn() }));
 
-const mockSetPendingRevocations = jest.fn();
+const mockSetPendingRevocation = jest.fn();
 let mockStoreState: Record<string, unknown> = {};
 
 jest.mock("@/store/socialStore", () => ({
@@ -53,8 +53,8 @@ beforeEach(() => {
     privacySettings: {},
     publishedPlanIds: [],
     publishedWorkoutIds: [],
-    pendingRevocations: [],
-    setPendingRevocations: mockSetPendingRevocations,
+    pendingRevocation: null,
+    setPendingRevocation: mockSetPendingRevocation,
   };
 });
 
@@ -66,7 +66,10 @@ describe("useSocialSyncOnStartup pending revocations", () => {
   });
 
   it("retries the persisted subcollections and clears them on success", async () => {
-    mockStoreState.pendingRevocations = ["sharedPlans", "sharedStrength"];
+    mockStoreState.pendingRevocation = {
+      uid: "my-uid",
+      subcollections: ["sharedPlans", "sharedStrength"],
+    };
     mockDeleteAllSharedData.mockResolvedValue(undefined);
 
     useSocialSyncOnStartup();
@@ -76,11 +79,14 @@ describe("useSocialSyncOnStartup pending revocations", () => {
       "sharedPlans",
       "sharedStrength",
     ]);
-    expect(mockSetPendingRevocations).toHaveBeenCalledWith([]);
+    expect(mockSetPendingRevocation).toHaveBeenCalledWith(null);
   });
 
   it("keeps the still-failing subcollections for the next startup", async () => {
-    mockStoreState.pendingRevocations = ["sharedPlans", "sharedStrength"];
+    mockStoreState.pendingRevocation = {
+      uid: "my-uid",
+      subcollections: ["sharedPlans", "sharedStrength"],
+    };
     mockDeleteAllSharedData.mockRejectedValue(
       Object.assign(new Error("permission-denied"), {
         failedSubcollections: ["sharedStrength"],
@@ -90,6 +96,24 @@ describe("useSocialSyncOnStartup pending revocations", () => {
     useSocialSyncOnStartup();
     await flush();
 
-    expect(mockSetPendingRevocations).toHaveBeenCalledWith(["sharedStrength"]);
+    expect(mockSetPendingRevocation).toHaveBeenCalledWith({
+      uid: "my-uid",
+      subcollections: ["sharedStrength"],
+    });
+  });
+
+  // The store is persisted, so a revocation outlives sign-out. Replaying it
+  // against the next account would delete that person's shared data.
+  it("discards a revocation left behind by a different account", async () => {
+    mockStoreState.pendingRevocation = {
+      uid: "someone-else",
+      subcollections: ["sharedPlans"],
+    };
+
+    useSocialSyncOnStartup();
+    await flush();
+
+    expect(mockDeleteAllSharedData).not.toHaveBeenCalled();
+    expect(mockSetPendingRevocation).toHaveBeenCalledWith(null);
   });
 });

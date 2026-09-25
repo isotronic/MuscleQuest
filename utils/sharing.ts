@@ -11,6 +11,7 @@ import {
   limit,
   serverTimestamp,
   Timestamp,
+  FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
 import pLimit from "p-limit";
 import { notifyBugsnag } from "./bugsnagDedup";
@@ -92,8 +93,9 @@ const buildSharedExercise = (row: {
 
 // Firestore rejects documents over 1 MiB, and a rules check can't measure
 // bytes. Guard on the client instead so the user gets an explanation rather
-// than a raw invalid-argument error. JSON length overestimates slightly
-// against Firestore's own accounting, which is what we want for a budget.
+// than a raw invalid-argument error. The UTF-8 byte length of the JSON is a
+// close proxy for Firestore's own accounting, and the budget sits far enough
+// below the hard limit to absorb the difference.
 const MAX_SHARED_DOC_BYTES = 900_000;
 
 export class SharedDocTooLargeError extends Error {
@@ -108,25 +110,55 @@ export class SharedDocTooLargeError extends Error {
   }
 }
 
+// UTF-8 byte length. String.length counts UTF-16 code units, which undercounts
+// every non-ASCII character: accented exercise names cost two bytes and an
+// emoji four, so a document could clear a length-based check and still be
+// rejected by Firestore. Computed directly rather than through TextEncoder,
+// which is not guaranteed on every runtime this ships to.
+const utf8ByteLength = (value: string): number => {
+  let bytes = 0;
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code < 0x80) {
+      bytes += 1;
+    } else if (code < 0x800) {
+      bytes += 2;
+    } else if (code >= 0xd800 && code <= 0xdbff) {
+      // Leading surrogate: the pair is one 4-byte character.
+      bytes += 4;
+      i++;
+    } else {
+      bytes += 3;
+    }
+  }
+  return bytes;
+};
+
 const assertWithinSizeBudget = (data: object): void => {
   // serverTimestamp() sentinels serialise to a small object, so the estimate
   // stays close enough for a budget this far below the hard limit.
-  const estimatedBytes = JSON.stringify(data)?.length ?? 0;
+  const estimatedBytes = utf8ByteLength(JSON.stringify(data) ?? "");
   if (estimatedBytes > MAX_SHARED_DOC_BYTES) {
     throw new SharedDocTooLargeError(estimatedBytes);
   }
 };
 
-// publishedAt must only be set the first time a document is written. The
-// listener-backed published id lists in socialStore already tell us whether a
-// document exists, which saves a getDoc round trip before every publish.
-const isAlreadyPublished = (
+// publishedAt must only be set the first time a document is written, or a
+// re-publish would reset it. The listener-backed published id lists in
+// socialStore usually already know whether the document exists, which saves a
+// getDoc round trip. A null list means the listener has not hydrated yet, not
+// that nothing is published, so fall back to the read rather than guessing.
+const shouldSetPublishedAt = async (
+  ref: FirebaseFirestoreTypes.DocumentReference,
   kind: "plan" | "standaloneWorkout",
   id: number,
-): boolean => {
+): Promise<boolean> => {
   const { publishedPlanIds, publishedWorkoutIds } = useSocialStore.getState();
   const ids = kind === "plan" ? publishedPlanIds : publishedWorkoutIds;
-  return ids?.includes(String(id)) ?? false;
+  if (ids) return !ids.includes(String(id));
+
+  const existing = await getDoc(ref);
+  return !existing.exists();
 };
 
 // Bulk publishing fans out one write per plan/workout/exercise. Without a cap
@@ -158,7 +190,7 @@ export const publishPlan = async (
       exercises: w.exercises.map(buildSharedExercise),
     })),
   };
-  if (!isAlreadyPublished("plan", planId)) {
+  if (await shouldSetPublishedAt(ref, "plan", planId)) {
     payload.publishedAt = now;
   }
 
@@ -200,7 +232,7 @@ export const publishStandaloneWorkout = async (
     updatedAt: now,
     exercises: data.exercises.map(buildSharedExercise),
   };
-  if (!isAlreadyPublished("standaloneWorkout", workoutId)) {
+  if (await shouldSetPublishedAt(ref, "standaloneWorkout", workoutId)) {
     payload.publishedAt = now;
   }
 

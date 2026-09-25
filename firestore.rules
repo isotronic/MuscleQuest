@@ -80,14 +80,17 @@ service cloud.firestore {
       match /friends/{friendUid} {
         allow read: if signedIn() &&
           (request.auth.uid == uid || request.auth.uid == friendUid);
+        // No email. A friend record is built from the other person's profile,
+        // which no longer holds one, and the recipient of a friend request
+        // never had the sender's address to begin with.
         allow create: if signedIn() &&
           (request.auth.uid == uid ||
            (request.auth.uid == friendUid && hasPendingRequest(uid, friendUid))) &&
-          hasOnlyFields(['since', 'displayName', 'email', 'photoURL']) &&
+          hasOnlyFields(['since', 'displayName', 'photoURL']) &&
           boundedString(request.resource.data.displayName, 100) &&
           boundedString(request.resource.data.photoURL, 2048);
         allow update: if signedIn() && request.auth.uid == uid &&
-          hasOnlyFields(['since', 'displayName', 'email', 'photoURL']) &&
+          hasOnlyFields(['since', 'displayName', 'photoURL']) &&
           boundedString(request.resource.data.displayName, 100) &&
           boundedString(request.resource.data.photoURL, 2048);
         allow delete: if signedIn() &&
@@ -160,14 +163,25 @@ service cloud.firestore {
     // Without that check anyone could create emailIndex/<hash of someone
     // else's address> pointing at their own uid and be returned by friend
     // search for that person.
+    function ownsEmailHash(emailHash) {
+      return request.auth.token.email_verified == true &&
+             emailHash == hashing.sha256(request.auth.token.email.lower()).toHexString().lower();
+    }
+
     match /emailIndex/{emailHash} {
       allow get: if signedIn();
       allow create, update: if signedIn() &&
-        request.auth.token.email_verified == true &&
-        emailHash == hashing.sha256(request.auth.token.email.lower()).toHexString().lower() &&
+        ownsEmailHash(emailHash) &&
         hasOnlyFields(['uid']) &&
         request.resource.data.uid == request.auth.uid;
-      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+      // Two ways to own an entry: the id hashes your current verified address,
+      // or the stored uid is yours (an entry for an address you have since
+      // changed). The first branch also covers a missing document, where
+      // resource is null: account deletion deletes unconditionally and must
+      // not fail just because the entry was never written.
+      allow delete: if signedIn() &&
+        (ownsEmailHash(emailHash) ||
+         (resource != null && resource.data.uid == request.auth.uid));
     }
 
     // Friend requests.
