@@ -207,6 +207,48 @@ describe("friends subcollection writes", () => {
       }),
     );
   });
+
+  // Records written before phase C2 still carry an address, and on a merge
+  // write request.resource.data is the merged document, so the field has to be
+  // cleared or the record can never be written again. useSocialListeners does
+  // this with deleteField().
+  it("denies an update to a record that still carries a legacy email", async () => {
+    await seed({
+      "users/alice/friends/bob": { ...friendDoc, email: "bob@example.com" },
+    });
+    await assertFails(
+      updateDoc(doc(asAlice(), "users/alice/friends/bob"), {
+        displayName: "Bobby",
+      }),
+    );
+  });
+
+  it("allows the write that clears the legacy email", async () => {
+    await seed({
+      "users/alice/friends/bob": { ...friendDoc, email: "bob@example.com" },
+    });
+    await assertSucceeds(
+      updateDoc(doc(asAlice(), "users/alice/friends/bob"), {
+        email: deleteField(),
+      }),
+    );
+  });
+
+  it("allows clearing the legacy email alongside a profile backfill", async () => {
+    await seed({
+      "users/alice/friends/bob": {
+        since: new Date(),
+        email: "bob@example.com",
+      },
+    });
+    await assertSucceeds(
+      updateDoc(doc(asAlice(), "users/alice/friends/bob"), {
+        displayName: "Bob",
+        photoURL: "",
+        email: deleteField(),
+      }),
+    );
+  });
 });
 
 // ─── shared content (B3) ──────────────────────────────────────────────────────

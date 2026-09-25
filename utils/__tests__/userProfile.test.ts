@@ -27,6 +27,7 @@ const user = {
   uid: "uid-alice",
   displayName: "Alice",
   email: "alice@example.com",
+  emailVerified: true,
   photoURL: "https://example.com/alice.jpg",
 } as FirebaseAuthTypes.User;
 
@@ -108,6 +109,25 @@ describe("upsertUserProfile", () => {
 
     expect(profileWrite()?.[1]).toMatchObject({ email: "__deleteField__" });
     expect(mockUpsertEmailIndex).not.toHaveBeenCalled();
+  });
+
+  // The rules require a verified token email to claim an index entry, so an
+  // unverified account would get permission-denied and lose the settings seed
+  // and profile write with it.
+  it("skips the index, but still seeds settings, when the email is unverified", async () => {
+    mockGetDoc.mockResolvedValue(snapshot(false));
+
+    await upsertUserProfile({
+      ...user,
+      emailVerified: false,
+    } as FirebaseAuthTypes.User);
+
+    expect(mockUpsertEmailIndex).not.toHaveBeenCalled();
+    expect(mockSetDoc).toHaveBeenCalledWith(
+      "users/uid-alice/private/settings",
+      expect.objectContaining({ sharePlans: false }),
+    );
+    expect(profileWrite()).toBeDefined();
   });
 
   it("does not strip the legacy email if the index write fails", async () => {

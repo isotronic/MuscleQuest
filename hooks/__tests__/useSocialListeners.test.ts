@@ -21,6 +21,7 @@ jest.mock("@react-native-firebase/firestore", () => ({
   onSnapshot: (...args: any[]) => (mockOnSnapshot as any)(...args),
   getDoc: jest.fn(),
   updateDoc: (...args: any[]) => mockUpdateDoc(...args),
+  deleteField: () => "__deleteField__",
 }));
 
 const mockFetchFriendProfile = jest.fn();
@@ -204,6 +205,91 @@ describe("useSocialListeners - friends snapshot", () => {
     expect(mockUpdateDoc).toHaveBeenCalledWith(
       "users/my-uid/friends/friend-uid",
       profile,
+    );
+  });
+
+  // A write allowlist stops new writes; it does not clean documents that are
+  // already there, and the rules now reject any write to one that still has
+  // the field.
+  it("clears a legacy email off a friend record", async () => {
+    useSocialListeners();
+    const snapshot = {
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({
+            since: { toDate: () => new Date("2024-01-01") },
+            displayName: "Alice",
+            photoURL: "https://example.com/alice.jpg",
+            email: "alice@example.com",
+          }),
+        },
+      ],
+    };
+
+    snapshotCallbacks[friendsRef](snapshot);
+    await Promise.resolve();
+
+    expect(mockUpdateDoc).toHaveBeenCalledWith(
+      "users/my-uid/friends/friend-uid",
+      { email: "__deleteField__" },
+    );
+    // Nothing else was missing, so no profile fetch was needed.
+    expect(mockFetchFriendProfile).not.toHaveBeenCalled();
+  });
+
+  it("leaves a friend record with no legacy email untouched", async () => {
+    useSocialListeners();
+    const snapshot = {
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({
+            since: { toDate: () => new Date("2024-01-01") },
+            displayName: "Alice",
+            photoURL: "https://example.com/alice.jpg",
+          }),
+        },
+      ],
+    };
+
+    snapshotCallbacks[friendsRef](snapshot);
+    await Promise.resolve();
+
+    expect(mockUpdateDoc).not.toHaveBeenCalled();
+  });
+
+  it("clears the legacy email in the same write as a profile backfill", async () => {
+    mockFetchFriendProfile.mockResolvedValue({
+      displayName: "Alice",
+      photoURL: "https://example.com/alice.jpg",
+    });
+    useSocialListeners();
+    const snapshot = {
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({
+            since: { toDate: () => new Date("2024-01-01") },
+            email: "alice@example.com",
+          }),
+        },
+      ],
+    };
+
+    snapshotCallbacks[friendsRef](snapshot);
+    await Promise.resolve();
+
+    // One write, not two: a backfill that left the field in place would be
+    // rejected by the rules.
+    expect(mockUpdateDoc).toHaveBeenCalledTimes(1);
+    expect(mockUpdateDoc).toHaveBeenCalledWith(
+      "users/my-uid/friends/friend-uid",
+      {
+        displayName: "Alice",
+        photoURL: "https://example.com/alice.jpg",
+        email: "__deleteField__",
+      },
     );
   });
 

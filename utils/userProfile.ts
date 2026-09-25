@@ -53,7 +53,14 @@ export const upsertUserProfile = async (
     // this replaces. Awaited before anything else starts: if the index write
     // fails the profile must stay as it is, or the account ends up in neither
     // lookup path, and nothing else may be left in flight unobserved.
-    if (user.email) {
+    //
+    // Gated on emailVerified because the rules require a verified token email
+    // to claim an index entry. Without the guard an unverified account would
+    // throw permission-denied here and take the rest of the function with it,
+    // which on a first sign-in means the default privacy settings never get
+    // written. Google is the only provider the app offers and always verifies,
+    // so this is belt and braces rather than a path anyone is on.
+    if (user.email && user.emailVerified) {
       await upsertEmailIndex(user.uid, user.email);
     }
 
