@@ -30,6 +30,7 @@ import {
   type CompletedWorkout,
 } from "@/hooks/useCompletedWorkoutsQuery";
 import { startOfWeek, endOfWeek } from "date-fns";
+import { isLocalDateInRange } from "@/utils/dates";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import ProgressionSummaryCard from "@/components/ProgressionSummaryCard";
@@ -455,14 +456,10 @@ export default function WorkoutSummaryScreen() {
     const today = new Date();
     const weekStart = startOfWeek(today, { weekStartsOn: 1 });
     const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
-    const thisWeek = allWorkouts.filter((w) => {
-      const d = new Date(w.date_completed);
-      return d >= weekStart && d <= weekEnd;
-    });
-    const uniqueDays = new Set(
-      thisWeek.map((w) => new Date(w.date_completed).toDateString()),
+    const thisWeek = allWorkouts.filter((w) =>
+      isLocalDateInRange(w.local_date, weekStart, weekEnd),
     );
-    return uniqueDays.size;
+    return new Set(thisWeek.map((w) => w.local_date)).size;
   }, [allWorkouts]);
 
   const prevWorkout = useMemo(() => {

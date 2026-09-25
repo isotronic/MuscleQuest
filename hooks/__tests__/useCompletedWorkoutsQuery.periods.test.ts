@@ -53,24 +53,30 @@ describe("usePreviousPeriodWorkoutsQuery against real SQLite", () => {
 
   afterAll(() => sqlite.close());
 
-  const runPreviousPeriod = async (days: number) => {
-    usePreviousPeriodWorkoutsQuery("kg", "m", days);
-    const call = (useQuery as jest.Mock).mock.calls.at(-1)![0];
-    return (await call.queryFn()) as { id: number }[];
-  };
+  // The queryFn the hook last handed react-query.
+  const lastQueryFn = () =>
+    (useQuery as jest.Mock).mock.calls.at(-1)![0].queryFn as () => Promise<
+      { id: number }[]
+    >;
 
   it("counts a workout logged on the final day of the previous period", async () => {
-    const ids = (await runPreviousPeriod(7)).map((w) => w.id);
+    usePreviousPeriodWorkoutsQuery("kg", "m", 7);
+    const ids = (await lastQueryFn()()).map((w) => w.id);
+
     expect(ids).toContain(1);
   });
 
   it("counts a workout logged on the first day of the previous period", async () => {
-    const ids = (await runPreviousPeriod(7)).map((w) => w.id);
+    usePreviousPeriodWorkoutsQuery("kg", "m", 7);
+    const ids = (await lastQueryFn()()).map((w) => w.id);
+
     expect(ids).toContain(2);
   });
 
   it("excludes the days on either side of the previous period", async () => {
-    const ids = (await runPreviousPeriod(7)).map((w) => w.id);
+    usePreviousPeriodWorkoutsQuery("kg", "m", 7);
+    const ids = (await lastQueryFn()()).map((w) => w.id);
+
     expect(ids).not.toContain(3);
     expect(ids).not.toContain(4);
   });

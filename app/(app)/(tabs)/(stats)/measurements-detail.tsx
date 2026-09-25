@@ -27,16 +27,11 @@ import { BodyMetricDefinition } from "@/utils/database";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { parseDbTimestamp } from "@/utils/dates";
 
 const DECIMAL_SEP =
   new Intl.NumberFormat().formatToParts(1.1).find((p) => p.type === "decimal")
     ?.value ?? ".";
-
-function parseDbDate(recorded_at: string): Date {
-  return new Date(
-    recorded_at.includes("T") ? recorded_at : recorded_at.replace(" ", "T"),
-  );
-}
 
 export default function MeasurementDetailScreen() {
   const { colors } = useAppTheme();
@@ -147,7 +142,7 @@ export default function MeasurementDetailScreen() {
     );
   }
 
-  const entryDate = parseDbDate(session.entry.recorded_at);
+  const entryDate = parseDbTimestamp(session.entry.recorded_at);
   const entryDateStr = new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",

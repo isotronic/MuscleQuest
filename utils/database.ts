@@ -3868,7 +3868,7 @@ export const fetchPRDataForExercises = async (
        SELECT
          e.exercise_id, e.app_exercise_id, e.name AS exercise_name, e.tracking_type,
          cs.weight, cs.reps, cs.time, cs.distance,
-         DATE(cw.date_completed) AS date_completed,
+         cw.local_date AS date_completed,
          ${pmExpr} AS pm,
          MAX(${pmExpr}) OVER (PARTITION BY e.exercise_id) AS all_time_pr,
          ROW_NUMBER() OVER (PARTITION BY e.exercise_id ORDER BY ${pmExpr} DESC) AS rn

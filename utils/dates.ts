@@ -23,6 +23,9 @@ const HAS_OFFSET = /([zZ]|[+-]\d\d:?\d\d)$/;
  * what keeps those values from being shifted by the device offset.
  */
 export function parseDbTimestamp(value: string): Date {
+  // The column is nullable and older rows can be empty; an invalid Date is what
+  // callers already handle, so never throw here.
+  if (typeof value !== "string") return new Date(NaN);
   const trimmed = value.trim();
   if (HAS_OFFSET.test(trimmed)) return new Date(trimmed);
   // A bare "YYYY-MM-DD" is already parsed as UTC midnight by spec; anything
@@ -43,4 +46,43 @@ export function toLocalDateKey(d: Date): string {
 export function nowForDb(): { utc: string; localDate: string } {
   const now = new Date();
   return { utc: now.toISOString(), localDate: toLocalDateKey(now) };
+}
+
+/**
+ * Whether a stored `local_date` falls within an inclusive range of local days.
+ *
+ * Both ends are compared as "YYYY-MM-DD" keys, so the time of day on the
+ * boundary days is irrelevant: a workout finished at 23:45 on the last day of
+ * the range is inside it.
+ */
+export function isLocalDateInRange(
+  localDate: string,
+  from: Date,
+  to: Date,
+): boolean {
+  if (!localDate) return false;
+  return localDate >= toLocalDateKey(from) && localDate <= toLocalDateKey(to);
+}
+
+/**
+ * A stored `local_date` key as a Date at local midnight on that day.
+ *
+ * For formatting a training day. `new Date("2026-08-13")` would be UTC
+ * midnight, which renders as the previous day anywhere west of UTC.
+ */
+export function localDateKeyToDate(localDate: string): Date {
+  const [year, month, day] = localDate.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/**
+ * The local date key `days` whole calendar days before today.
+ *
+ * The start bound for a "last N days" filter. SQLite's `date('now', '-N days')`
+ * would count back from the UTC day instead.
+ */
+export function localDateKeyDaysAgo(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return toLocalDateKey(d);
 }

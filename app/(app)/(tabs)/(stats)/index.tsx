@@ -23,6 +23,7 @@ import {
   format,
   differenceInCalendarMonths,
 } from "date-fns";
+import { isLocalDateInRange, localDateKeyToDate } from "@/utils/dates";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { WorkoutHistorySection } from "@/components/stats/WorkoutHistorySection";
@@ -178,12 +179,11 @@ export default function StatsScreen() {
 
   const thisWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const thisWeekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
-  const thisWeekWorkouts = allWorkouts?.filter((w) => {
-    const d = new Date(w.date_completed);
-    return d >= thisWeekStart && d <= thisWeekEnd;
-  });
+  const thisWeekWorkouts = allWorkouts?.filter((w) =>
+    isLocalDateInRange(w.local_date, thisWeekStart, thisWeekEnd),
+  );
   const uniqueWorkoutDaysCount = new Set(
-    thisWeekWorkouts?.map((w) => new Date(w.date_completed).toDateString()),
+    thisWeekWorkouts?.map((w) => w.local_date),
   ).size;
   const weeklyGoal = Number(settings?.weeklyGoal ?? 0);
   const weeklyGoalReached =
@@ -227,8 +227,7 @@ export default function StatsScreen() {
   const allWorkoutsByDate = useMemo(() => {
     const map: Record<string, CompletedWorkout[]> = {};
     for (const w of allWorkouts ?? []) {
-      const key = format(new Date(w.date_completed), "yyyy-MM-dd");
-      (map[key] ??= []).push(w);
+      (map[w.local_date] ??= []).push(w);
     }
     return map;
   }, [allWorkouts]);
@@ -236,11 +235,13 @@ export default function StatsScreen() {
   const calendarPastScrollRange = useMemo(() => {
     if (!allWorkouts?.length) return 12;
     const oldest = allWorkouts.reduce((min, w) =>
-      new Date(w.date_completed) < new Date(min.date_completed) ? w : min,
+      w.local_date < min.local_date ? w : min,
     );
     return (
-      differenceInCalendarMonths(new Date(), new Date(oldest.date_completed)) +
-      1
+      differenceInCalendarMonths(
+        new Date(),
+        localDateKeyToDate(oldest.local_date),
+      ) + 1
     );
   }, [allWorkouts]);
 

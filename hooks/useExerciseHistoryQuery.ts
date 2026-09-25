@@ -77,7 +77,7 @@ const fetchExerciseHistoryBody = async (
         cs.time,
         cs.distance,
         cs.is_warmup,
-        DATE(cw.date_completed) AS date_completed,
+        cw.local_date AS date_completed,
         cw.id                   AS workout_id,
         uw.name                 AS workout_name,
         COALESCE(NULLIF(ce.resolved_tracking_type, ''), e.tracking_type) AS tracking_type,

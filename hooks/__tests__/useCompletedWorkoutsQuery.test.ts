@@ -234,17 +234,18 @@ describe("time range filtering", () => {
 describe("usePreviousPeriodWorkoutsQuery", () => {
   afterEach(() => jest.clearAllMocks());
 
-  const boundsFor = async (days: number) => {
+  // Runs the queryFn the hook last handed react-query, and reports the SQL and
+  // parameters it reached the database with.
+  const lastQueryBounds = async () => {
     mockDb.getAllAsync.mockResolvedValue([]);
-    usePreviousPeriodWorkoutsQuery("kg", "m", days);
-    const call = (useQuery as jest.Mock).mock.calls.at(-1)![0];
-    await call.queryFn();
+    await (useQuery as jest.Mock).mock.calls.at(-1)![0].queryFn();
     const [sql, params] = mockDb.getAllAsync.mock.calls.at(-1)!;
     return { sql, params: params as string[] };
   };
 
   it("bounds the previous period on inclusive local date keys", async () => {
-    const { sql, params } = await boundsFor(7);
+    usePreviousPeriodWorkoutsQuery("kg", "m", 7);
+    const { sql, params } = await lastQueryBounds();
 
     expect(sql).toContain("local_date BETWEEN ? AND ?");
     expect(params).toHaveLength(2);
@@ -257,7 +258,8 @@ describe("usePreviousPeriodWorkoutsQuery", () => {
     // Both bounds are inclusive local date keys, so a workout logged at any
     // time on the end day is counted -- the BETWEEN against a full datetime
     // used to drop it.
-    const { params } = await boundsFor(7);
+    usePreviousPeriodWorkoutsQuery("kg", "m", 7);
+    const { params } = await lastQueryBounds();
     const expectedEnd = new Date();
     expectedEnd.setDate(expectedEnd.getDate() - 8);
     const expectedStart = new Date();
@@ -268,7 +270,8 @@ describe("usePreviousPeriodWorkoutsQuery", () => {
   });
 
   it("derives its bounds from the local calendar, not from a UTC ISO slice", async () => {
-    const { params } = await boundsFor(30);
+    usePreviousPeriodWorkoutsQuery("kg", "m", 30);
+    const { params } = await lastQueryBounds();
     const localToday = toLocalDateKey(new Date());
 
     expect(params[1] < localToday).toBe(true);

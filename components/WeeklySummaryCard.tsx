@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { AppIcon } from "@/components/ui";
 import { startOfWeek, endOfWeek, subWeeks } from "date-fns";
+import { isLocalDateInRange } from "@/utils/dates";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
@@ -59,10 +60,9 @@ function computeBestAchievement(
   const lastWeekStart = subWeeks(currentWeekStart, 1);
   const lastWeekEnd = endOfWeek(lastWeekStart, { weekStartsOn: 1 });
 
-  const lastWeekWorkouts = allCompletedWorkouts.filter((w) => {
-    const d = new Date(w.date_completed);
-    return d >= lastWeekStart && d <= lastWeekEnd;
-  });
+  const lastWeekWorkouts = allCompletedWorkouts.filter((w) =>
+    isLocalDateInRange(w.local_date, lastWeekStart, lastWeekEnd),
+  );
 
   // Build map of exercise_id → best metric for last week
   const lastWeekBest = new Map<number, number>();

@@ -14,8 +14,9 @@ jest.mock("../chartTheme", () => ({
 }));
 
 // Fix time to a known Monday so week-alignment is predictable.
-// 2026-05-25 is a Monday.
-const FIXED_NOW = new Date("2026-05-25T12:00:00.000Z");
+// 2026-05-25 is a Monday. Local noon, because the chart buckets by the local
+// calendar and a UTC-midnight "now" would sit on the previous day west of UTC.
+const FIXED_NOW = new Date(2026, 4, 25, 12, 0, 0);
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -26,10 +27,19 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
-const pt = (dateStr: string, value: number) => ({
-  recorded_at: dateStr,
-  displayValue: value,
-});
+/**
+ * A stored measurement, given as the local calendar day it was logged on. The
+ * column holds a UTC instant, so the fixture converts from local noon: the
+ * chart buckets by the local calendar, and a fixture written as UTC midnight
+ * would land on the previous day, week or month west of UTC.
+ */
+const pt = (dateStr: string, value: number) => {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return {
+    recorded_at: new Date(y, m - 1, d, 12, 0, 0).toISOString(),
+    displayValue: value,
+  };
+};
 
 describe("groupMeasurementsByTime — 30d", () => {
   it("returns empty buckets when no data points provided", () => {
@@ -39,10 +49,7 @@ describe("groupMeasurementsByTime — 30d", () => {
 
   it("maps a point to the correct weekly bucket", () => {
     // 2026-05-20 is a Wednesday; its Monday week-start is 2026-05-18
-    const result = groupMeasurementsByTime(
-      [pt("2026-05-20T00:00:00Z", 75)],
-      "30",
-    );
+    const result = groupMeasurementsByTime([pt("2026-05-20", 75)], "30");
     const filled = result.filter((b) => b.hasData);
     expect(filled).toHaveLength(1);
     expect(filled[0].value).toBe(75);
@@ -50,8 +57,8 @@ describe("groupMeasurementsByTime — 30d", () => {
 
   it("most recent value wins when multiple points fall in the same week", () => {
     const points = [
-      pt("2026-05-18T00:00:00Z", 74), // Monday
-      pt("2026-05-20T00:00:00Z", 75), // Wednesday — later, should win
+      pt("2026-05-18", 74), // Monday
+      pt("2026-05-20", 75), // Wednesday — later, should win
     ];
     const result = groupMeasurementsByTime(points, "30");
     const filled = result.filter((b) => b.hasData);
@@ -61,8 +68,8 @@ describe("groupMeasurementsByTime — 30d", () => {
 
   it("produces separate buckets for points in different weeks", () => {
     const points = [
-      pt("2026-05-04T00:00:00Z", 74), // week of Apr 27
-      pt("2026-05-18T00:00:00Z", 75), // week of May 18
+      pt("2026-05-04", 74), // week of Apr 27
+      pt("2026-05-18", 75), // week of May 18
     ];
     const result = groupMeasurementsByTime(points, "30");
     const filled = result.filter((b) => b.hasData);
@@ -71,18 +78,12 @@ describe("groupMeasurementsByTime — 30d", () => {
 
   it("drops points outside the 30d window", () => {
     // 2026-04-01 is well outside a 30d window ending 2026-05-25
-    const result = groupMeasurementsByTime(
-      [pt("2026-04-01T00:00:00Z", 70)],
-      "30",
-    );
+    const result = groupMeasurementsByTime([pt("2026-04-01", 70)], "30");
     expect(result.every((b) => !b.hasData)).toBe(true);
   });
 
   it("labels are day+month format for 30d", () => {
-    const result = groupMeasurementsByTime(
-      [pt("2026-05-20T00:00:00Z", 75)],
-      "30",
-    );
+    const result = groupMeasurementsByTime([pt("2026-05-20", 75)], "30");
     const filled = result.filter((b) => b.hasData);
     // Label should contain a number (day) — format is e.g. "18 May"
     expect(filled[0].label).toMatch(/\d+/);
@@ -92,20 +93,14 @@ describe("groupMeasurementsByTime — 30d", () => {
 
 describe("groupMeasurementsByTime — 90d", () => {
   it("maps a point to the correct week bucket", () => {
-    const result = groupMeasurementsByTime(
-      [pt("2026-05-20T00:00:00Z", 75)],
-      "90",
-    );
+    const result = groupMeasurementsByTime([pt("2026-05-20", 75)], "90");
     const filled = result.filter((b) => b.hasData);
     expect(filled).toHaveLength(1);
     expect(filled[0].value).toBe(75);
   });
 
   it("labels are split across label and labelLine2 for 90d", () => {
-    const result = groupMeasurementsByTime(
-      [pt("2026-05-20T00:00:00Z", 75)],
-      "90",
-    );
+    const result = groupMeasurementsByTime([pt("2026-05-20", 75)], "90");
     const filled = result.filter((b) => b.hasData);
     // 90d: label is day number, labelLine2 is month abbreviation
     expect(filled[0].label).toMatch(/^\d+$/);
@@ -115,10 +110,7 @@ describe("groupMeasurementsByTime — 90d", () => {
 
 describe("groupMeasurementsByTime — 365d", () => {
   it("maps points to monthly buckets", () => {
-    const points = [
-      pt("2026-01-15T00:00:00Z", 80),
-      pt("2026-03-10T00:00:00Z", 78),
-    ];
+    const points = [pt("2026-01-15", 80), pt("2026-03-10", 78)];
     const result = groupMeasurementsByTime(points, "365");
     const filled = result.filter((b) => b.hasData);
     expect(filled).toHaveLength(2);
@@ -126,8 +118,8 @@ describe("groupMeasurementsByTime — 365d", () => {
 
   it("most recent value wins within a month", () => {
     const points = [
-      pt("2026-05-01T00:00:00Z", 80),
-      pt("2026-05-20T00:00:00Z", 78), // later in same month
+      pt("2026-05-01", 80),
+      pt("2026-05-20", 78), // later in same month
     ];
     const result = groupMeasurementsByTime(points, "365");
     const mayBucket = result.filter((b) => b.hasData);
@@ -137,10 +129,7 @@ describe("groupMeasurementsByTime — 365d", () => {
   });
 
   it("drops points older than one year", () => {
-    const result = groupMeasurementsByTime(
-      [pt("2024-01-01T00:00:00Z", 85)],
-      "365",
-    );
+    const result = groupMeasurementsByTime([pt("2024-01-01", 85)], "365");
     expect(result.every((b) => !b.hasData)).toBe(true);
   });
 });
@@ -151,10 +140,7 @@ describe("groupMeasurementsByTime — all-time (0)", () => {
   });
 
   it("uses monthly buckets for span <= 1 year", () => {
-    const points = [
-      pt("2026-01-10T00:00:00Z", 82),
-      pt("2026-04-10T00:00:00Z", 80),
-    ];
+    const points = [pt("2026-01-10", 82), pt("2026-04-10", 80)];
     const result = groupMeasurementsByTime(points, "0");
     const filled = result.filter((b) => b.hasData);
     expect(filled).toHaveLength(2);
@@ -163,10 +149,7 @@ describe("groupMeasurementsByTime — all-time (0)", () => {
   });
 
   it("uses quarterly buckets for span between 1-3 years", () => {
-    const points = [
-      pt("2024-01-10T00:00:00Z", 85),
-      pt("2025-07-10T00:00:00Z", 80),
-    ];
+    const points = [pt("2024-01-10", 85), pt("2025-07-10", 80)];
     const result = groupMeasurementsByTime(points, "0");
     const filled = result.filter((b) => b.hasData);
     expect(filled).toHaveLength(2);
@@ -177,10 +160,7 @@ describe("groupMeasurementsByTime — all-time (0)", () => {
   });
 
   it("uses yearly buckets for span > 3 years", () => {
-    const points = [
-      pt("2020-06-01T00:00:00Z", 90),
-      pt("2024-06-01T00:00:00Z", 82),
-    ];
+    const points = [pt("2020-06-01", 90), pt("2024-06-01", 82)];
     const result = groupMeasurementsByTime(points, "0");
     const filled = result.filter((b) => b.hasData);
     expect(filled).toHaveLength(2);
@@ -189,10 +169,7 @@ describe("groupMeasurementsByTime — all-time (0)", () => {
   });
 
   it("single data point produces exactly one filled bucket", () => {
-    const result = groupMeasurementsByTime(
-      [pt("2026-03-15T00:00:00Z", 79)],
-      "0",
-    );
+    const result = groupMeasurementsByTime([pt("2026-03-15", 79)], "0");
     const filled = result.filter((b) => b.hasData);
     expect(filled).toHaveLength(1);
     expect(filled[0].value).toBe(79);
@@ -201,8 +178,6 @@ describe("groupMeasurementsByTime — all-time (0)", () => {
 
 describe("groupMeasurementsByTime — unknown timeRange", () => {
   it("returns empty array for unrecognised timeRange", () => {
-    expect(
-      groupMeasurementsByTime([pt("2026-05-01T00:00:00Z", 80)], "999"),
-    ).toEqual([]);
+    expect(groupMeasurementsByTime([pt("2026-05-01", 80)], "999")).toEqual([]);
   });
 });

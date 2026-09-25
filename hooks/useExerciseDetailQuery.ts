@@ -6,6 +6,7 @@ import {
   TrackedExerciseWithSets,
   CompletedSet,
 } from "./useTrackedExercisesQuery";
+import { localDateKeyDaysAgo } from "@/utils/dates";
 
 interface PRSet extends CompletedSet {
   date_completed: string;
@@ -72,6 +73,7 @@ const fetchExerciseDetail = async (
   let db: SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
+    const setsParams: (string | number)[] = [exerciseId];
     const warmupFilter = excludeWarmup
       ? " AND (cs.is_warmup = FALSE OR cs.is_warmup IS NULL)"
       : "";
@@ -137,10 +139,10 @@ const fetchExerciseDetail = async (
           cs.time,
           cs.distance,
           cs.set_number,
-          DATE(cw.date_completed) AS date_completed,
+          cw.local_date AS date_completed,
           (${progressionMetricCase}) AS progression_metric,
           ROW_NUMBER() OVER (
-            PARTITION BY DATE(cw.date_completed)
+            PARTITION BY cw.local_date
             ORDER BY (${progressionMetricCase}) DESC
           ) AS rn
         FROM exercises e
@@ -151,7 +153,8 @@ const fetchExerciseDetail = async (
     `;
 
     if (timeRange !== "0") {
-      setsQuery += ` AND cw.date_completed > DATETIME('now', '-${timeRange} days')`;
+      setsQuery += ` AND cw.local_date >= ?`;
+      setsParams.push(localDateKeyDaysAgo(Number(timeRange)));
     }
 
     setsQuery += `
@@ -162,7 +165,7 @@ const fetchExerciseDetail = async (
       ORDER BY date_completed DESC
     `;
 
-    const setsRows = (await db.getAllAsync(setsQuery, [exerciseId])) as any[];
+    const setsRows = (await db.getAllAsync(setsQuery, setsParams)) as any[];
 
     if (setsRows.length === 0) return null;
 
@@ -206,7 +209,7 @@ const fetchExerciseDetail = async (
     const topPRQuery = `
       SELECT
         cs.weight, cs.reps, cs.time, cs.distance, cs.set_number,
-        DATE(cw.date_completed) AS date_completed,
+        cw.local_date AS date_completed,
         ${progressionMetricCase} AS progression_metric,
         '${currentType}' AS tracking_type
       FROM exercises e
@@ -226,7 +229,7 @@ const fetchExerciseDetail = async (
     // Recent 5 sessions (distinct workout days, current tracking type only)
     const recentQuery = `
       SELECT
-        DATE(cw.date_completed) AS date_completed,
+        cw.local_date AS date_completed,
         cs.weight, cs.reps, cs.time, cs.distance, cs.set_number,
         MAX(${progressionMetricCase}) AS progression_metric,
         '${currentType}' AS tracking_type
@@ -235,8 +238,8 @@ const fetchExerciseDetail = async (
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
       WHERE e.exercise_id = ? AND cw.is_deleted = FALSE${warmupFilter}${trackingTypeFilter}
-      GROUP BY DATE(cw.date_completed)
-      ORDER BY cw.date_completed DESC
+      GROUP BY cw.local_date
+      ORDER BY cw.local_date DESC
       LIMIT 5
     `;
     const recentRows = (await db.getAllAsync(recentQuery, [
@@ -261,13 +264,14 @@ const fetchExerciseDetail = async (
         JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
         WHERE e.exercise_id = ?
           AND cw.is_deleted = FALSE${warmupFilter}${deloadFilter}${trackingTypeFilter}
-          AND DATE(cw.date_completed) < DATE('now', '-${timeRange} days')
-        GROUP BY DATE(cw.date_completed)
-        ORDER BY DATE(cw.date_completed) DESC
+          AND cw.local_date < ?
+        GROUP BY cw.local_date
+        ORDER BY cw.local_date DESC
         LIMIT 1
       `;
       const baselineRow = (await db.getFirstAsync(baselineQuery, [
         exerciseId,
+        localDateKeyDaysAgo(Number(timeRange)),
       ])) as {
         baseline_metric: number | null;
       } | null;

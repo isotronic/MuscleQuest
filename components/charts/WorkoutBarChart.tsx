@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { localDateKeyToDate } from "@/utils/dates";
 import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { Card } from "react-native-paper";
@@ -71,13 +72,17 @@ const groupWorkoutsByTime = (
     if (completedWorkouts.length === 0) return [];
     const earliest = completedWorkouts.reduce(
       (min, w) =>
-        new Date(w.date_completed) < min ? new Date(w.date_completed) : min,
-      new Date(completedWorkouts[0].date_completed),
+        localDateKeyToDate(w.local_date) < min
+          ? localDateKeyToDate(w.local_date)
+          : min,
+      localDateKeyToDate(completedWorkouts[0].local_date),
     );
     const latest = completedWorkouts.reduce(
       (max, w) =>
-        new Date(w.date_completed) > max ? new Date(w.date_completed) : max,
-      new Date(completedWorkouts[0].date_completed),
+        localDateKeyToDate(w.local_date) > max
+          ? localDateKeyToDate(w.local_date)
+          : max,
+      localDateKeyToDate(completedWorkouts[0].local_date),
     );
     const spanYears =
       (latest.getTime() - earliest.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
@@ -131,7 +136,7 @@ const groupWorkoutsByTime = (
   }
 
   completedWorkouts.forEach((workout) => {
-    const d = new Date(workout.date_completed);
+    const d = localDateKeyToDate(workout.local_date);
     let internalKey: string;
     if (bucketType === "weekly") {
       const weekStart = new Date(d);

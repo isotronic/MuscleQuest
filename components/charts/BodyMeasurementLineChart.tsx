@@ -6,6 +6,7 @@ import { LineChart } from "react-native-gifted-charts";
 import { useChartTheme } from "./chartTheme";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { parseDbTimestamp } from "@/utils/dates";
 
 interface DataPoint {
   recorded_at: string;
@@ -62,10 +63,7 @@ export const groupMeasurementsByTime = (
     }
 
     for (const pt of points) {
-      const iso = pt.recorded_at.includes("T")
-        ? pt.recorded_at
-        : pt.recorded_at.replace(" ", "T");
-      const d = new Date(iso);
+      const d = parseDbTimestamp(pt.recorded_at);
       const weekStart = new Date(d);
       weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
       const internalKey = `${weekStart.getFullYear()}-${weekStart.getMonth()}-${weekStart.getDate()}`;
@@ -104,10 +102,7 @@ export const groupMeasurementsByTime = (
     }
 
     for (const pt of points) {
-      const iso = pt.recorded_at.includes("T")
-        ? pt.recorded_at
-        : pt.recorded_at.replace(" ", "T");
-      const d = new Date(iso);
+      const d = parseDbTimestamp(pt.recorded_at);
       const internalKey = `${d.getFullYear()}-${d.getMonth()}`;
       const idx = keyToIndex.get(internalKey);
       if (idx !== undefined) {
@@ -123,10 +118,8 @@ export const groupMeasurementsByTime = (
   if (timeRange === "0") {
     if (points.length === 0) return [];
 
-    const parseTs = (s: string) =>
-      new Date(s.includes("T") ? s : s.replace(" ", "T"));
-    const earliest = parseTs(points[0].recorded_at);
-    const latest = parseTs(points[points.length - 1].recorded_at);
+    const earliest = parseDbTimestamp(points[0].recorded_at);
+    const latest = parseDbTimestamp(points[points.length - 1].recorded_at);
     const spanYears =
       (latest.getTime() - earliest.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
 
@@ -189,7 +182,7 @@ export const groupMeasurementsByTime = (
     }
 
     for (const pt of points) {
-      const internalKey = getKey(parseTs(pt.recorded_at));
+      const internalKey = getKey(parseDbTimestamp(pt.recorded_at));
       const idx = keyToIndex.get(internalKey);
       if (idx !== undefined) {
         buckets[idx].value = pt.displayValue;
