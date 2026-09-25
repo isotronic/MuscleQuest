@@ -237,6 +237,16 @@ export const useSocialListeners = () => {
                 );
               })
               .catch((error: unknown) => {
+                // The legacy address does not depend on the profile read, and
+                // must not be stranded by it: the rules reject every write to a
+                // record that still carries the field, so a record left with
+                // one while this fetch keeps failing could never be written
+                // again.
+                if (clearLegacyEmail) {
+                  updateDoc(friendRef, clearLegacyEmail).catch(
+                    reportWriteError,
+                  );
+                }
                 // Friend-profile read failed after all retries. Report instead
                 // of swallowing so recurring production read failures are
                 // visible (this path previously dropped the error silently).

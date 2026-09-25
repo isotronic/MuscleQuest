@@ -259,6 +259,36 @@ describe("useSocialListeners - friends snapshot", () => {
     expect(mockUpdateDoc).not.toHaveBeenCalled();
   });
 
+  // Not reachable through any shipped writer: the backfill that added `email`
+  // wrote all three fields in one updateDoc, so a record with the field always
+  // has the other two. Guarded anyway, because the rules reject every write to
+  // a record that still carries it, so one left behind here could never be
+  // written again.
+  it("still clears the legacy email when the profile fetch fails", async () => {
+    mockFetchFriendProfile.mockRejectedValue(new Error("unreachable"));
+    useSocialListeners();
+    const snapshot = {
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({
+            since: { toDate: () => new Date("2024-01-01") },
+            email: "alice@example.com",
+          }),
+        },
+      ],
+    };
+
+    snapshotCallbacks[friendsRef](snapshot);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockUpdateDoc).toHaveBeenCalledWith(
+      "users/my-uid/friends/friend-uid",
+      { email: "__deleteField__" },
+    );
+  });
+
   it("clears the legacy email in the same write as a profile backfill", async () => {
     mockFetchFriendProfile.mockResolvedValue({
       displayName: "Alice",
