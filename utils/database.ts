@@ -1131,6 +1131,7 @@ interface CompletedWorkoutRow {
   workout_name: string;
   is_deload: number;
   date_completed: string;
+  local_date: string | null;
   duration: number;
   total_sets_completed: number;
   completed_exercise_id: number | null;
@@ -1167,6 +1168,7 @@ export const fetchCompletedWorkoutById = async (
         cw.workout_id as workout_id,
         COALESCE(uw.name, 'Quick Workout') as workout_name,
         cw.date_completed,
+        cw.local_date,
         cw.duration,
         cw.total_sets_completed,
         cw.is_deload,
@@ -1211,6 +1213,9 @@ export const fetchCompletedWorkoutById = async (
       plan_id: result[0].plan_id,
       workout_name: result[0]?.workout_name || "",
       date_completed: result[0]?.date_completed || "",
+      local_date:
+        result[0]?.local_date ||
+        toLocalDateKey(parseDbTimestamp(result[0]?.date_completed || "")),
       duration: result[0]?.duration || 0,
       total_sets_completed: result[0]?.total_sets_completed || 0,
       is_deload: result[0]?.is_deload ?? 0,
