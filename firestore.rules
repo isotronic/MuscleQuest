@@ -50,20 +50,20 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly(allowed);
     }
 
-    // Public profiles: any authenticated user can read (email search).
-    // Owner can write, and only the four profile fields the app maintains.
+    // Public profiles: display name and photo only. Friend search resolves an
+    // address through /emailIndex, so nothing here needs to hold one and
+    // nothing needs to query this collection.
     match /users/{uid} {
-      // Single-document reads (friend profiles, search result hydration) stay open.
+      // Single-document reads (friend profiles, search result hydration) stay
+      // open: a caller must already know the uid, which they only get from a
+      // friend edge or an emailIndex hit for an address they already have.
       allow get: if signedIn();
-      // List/query reads (e.g. email search) are capped per call so the
-      // collection can't be bulk-scraped for every user's email/displayName.
-      allow list: if signedIn() && request.query.limit <= 5;
+      // No list. Without it the collection cannot be enumerated or filtered,
+      // so there is no way to sweep it for profiles.
       allow create, update: if signedIn() && request.auth.uid == uid &&
-        hasOnlyFields(['displayName', 'email', 'photoURL', 'createdAt']) &&
+        hasOnlyFields(['displayName', 'photoURL', 'createdAt']) &&
         boundedString(request.resource.data.displayName, 100) &&
-        boundedString(request.resource.data.photoURL, 2048) &&
-        (!('email' in request.resource.data) ||
-         boundedString(request.resource.data.email, 320));
+        boundedString(request.resource.data.photoURL, 2048);
       allow delete: if signedIn() && request.auth.uid == uid;
 
       // Private settings: owner only

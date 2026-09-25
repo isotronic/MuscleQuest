@@ -6,7 +6,19 @@ import {
   initializeTestEnvironment,
   RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { deleteDoc, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  deleteField,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 
 let testEnv: RulesTestEnvironment;
 
@@ -44,7 +56,6 @@ describe("user profile writes", () => {
   // Exactly what utils/userProfile.ts upsertUserProfile writes.
   const profile = {
     displayName: "Alice",
-    email: "alice@example.com",
     photoURL: "https://example.com/a.png",
     createdAt: new Date(),
   };
@@ -58,7 +69,42 @@ describe("user profile writes", () => {
     await assertSucceeds(
       setDoc(
         doc(asAlice(), "users/alice"),
-        { displayName: "Alice B", email: "alice@example.com", photoURL: "" },
+        { displayName: "Alice B", photoURL: "" },
+        { merge: true },
+      ),
+    );
+  });
+
+  it("denies putting an email back on a public profile", async () => {
+    await assertFails(
+      setDoc(doc(asAlice(), "users/alice"), {
+        ...profile,
+        email: "alice@example.com",
+      }),
+    );
+  });
+
+  // A profile written before phase C2 still carries `email`, and on a merge
+  // write request.resource.data is the merged document, so the field has to be
+  // cleared or every later write is rejected. upsertUserProfile does this with
+  // deleteField().
+  it("denies a merge write onto a profile that still carries a legacy email", async () => {
+    await seed({ "users/alice": { ...profile, email: "alice@example.com" } });
+    await assertFails(
+      setDoc(
+        doc(asAlice(), "users/alice"),
+        { displayName: "Alice B" },
+        { merge: true },
+      ),
+    );
+  });
+
+  it("allows the migration write that clears the legacy email", async () => {
+    await seed({ "users/alice": { ...profile, email: "alice@example.com" } });
+    await assertSucceeds(
+      setDoc(
+        doc(asAlice(), "users/alice"),
+        { displayName: "Alice B", email: deleteField() },
         { merge: true },
       ),
     );
@@ -319,6 +365,49 @@ describe("shared content list bounds", () => {
 });
 
 // ─── read access regression ───────────────────────────────────────────────────
+
+describe("user profile reads", () => {
+  beforeEach(async () => {
+    await seed({
+      "users/alice": { displayName: "Alice", photoURL: "" },
+      "users/bob": { displayName: "Bob", photoURL: "" },
+    });
+  });
+
+  it("allows a single-document read by uid", async () => {
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertSucceeds(getDoc(doc(bob, "users/alice")));
+  });
+
+  // Phase C3: without list there is no way to sweep the collection, and the
+  // old `where("email", "==", x)` search is gone with it.
+  it("denies listing the collection", async () => {
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(getDocs(collection(bob, "users")));
+  });
+
+  it("denies a small limited query", async () => {
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(getDocs(query(collection(bob, "users"), limit(5))));
+  });
+
+  it("denies the legacy email search query", async () => {
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(
+      getDocs(
+        query(
+          collection(bob, "users"),
+          where("email", "==", "alice@example.com"),
+          limit(1),
+        ),
+      ),
+    );
+  });
+
+  it("denies listing your own collection entry", async () => {
+    await assertFails(getDocs(collection(asAlice(), "users")));
+  });
+});
 
 describe("shared content reads", () => {
   beforeEach(async () => {

@@ -97,6 +97,19 @@ describe("upsertUserProfile", () => {
     expect(profileWrite()?.[1]).not.toHaveProperty("email");
   });
 
+  it("strips a legacy email even when there is no address to index", async () => {
+    // The rules reject any profile carrying `email`, so leaving it in place
+    // would block every later merge write on this document.
+    mockGetDoc.mockResolvedValue(
+      snapshot(true, { email: "alice@example.com" }),
+    );
+
+    await upsertUserProfile({ ...user, email: null } as FirebaseAuthTypes.User);
+
+    expect(profileWrite()?.[1]).toMatchObject({ email: "__deleteField__" });
+    expect(mockUpsertEmailIndex).not.toHaveBeenCalled();
+  });
+
   it("does not strip the legacy email if the index write fails", async () => {
     // Losing the index entry and the profile field at once would make the
     // account unsearchable by every client version.

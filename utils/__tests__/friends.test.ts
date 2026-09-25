@@ -130,7 +130,7 @@ describe("searchUserByEmail", () => {
       email: "alice@example.com",
       photoURL: "https://example.com/alice.jpg",
     });
-    // No collection scan once the index answers.
+    // /users is not listable any more; the index is the only lookup path.
     expect(mockGetDocs).not.toHaveBeenCalled();
   });
 
@@ -152,34 +152,13 @@ describe("searchUserByEmail", () => {
     ).resolves.toBeNull();
   });
 
-  it("falls back to the legacy profile query for accounts with no index entry", async () => {
+  it("returns null, without scanning /users, when there is no index entry", async () => {
     mockLookupUidByEmail.mockResolvedValue(null);
-    mockGetDocs.mockResolvedValue({
-      empty: false,
-      docs: [
-        {
-          id: "uid-old",
-          data: () => ({ displayName: "Old", photoURL: "" }),
-        },
-      ],
-    });
-
-    const result = await searchUserByEmail("old@example.com", "my-uid");
-
-    expect(result).toEqual({
-      uid: "uid-old",
-      displayName: "Old",
-      email: "old@example.com",
-      photoURL: "",
-    });
-  });
-
-  it("returns null when neither the index nor the legacy query matches", async () => {
-    mockLookupUidByEmail.mockResolvedValue(null);
-    mockGetDocs.mockResolvedValue({ empty: true, docs: [] });
 
     await expect(
       searchUserByEmail("nobody@example.com", "my-uid"),
     ).resolves.toBeNull();
+    expect(mockGetDocs).not.toHaveBeenCalled();
+    expect(mockGetDoc).not.toHaveBeenCalled();
   });
 });

@@ -55,7 +55,8 @@ export const upsertUserProfile = async (
     // The address lives in two places now: the hashed emailIndex entry that
     // friend search resolves, and a private document only the owner can read.
     // Neither is readable by another user, unlike the public profile field
-    // this replaces.
+    // this replaces. Awaited, not queued: if the index write fails the profile
+    // must stay as it is, or the account ends up in neither lookup path.
     if (user.email) {
       await upsertEmailIndex(user.uid, user.email);
       writes.push(
@@ -65,11 +66,13 @@ export const upsertUserProfile = async (
           { merge: true },
         ),
       );
-      // Only once the index entry exists, so the account never becomes
-      // unsearchable in between.
-      if (userDoc.exists() && userDoc.data()?.email !== undefined) {
-        profileData.email = deleteField();
-      }
+    }
+
+    // Unconditional, because the rules no longer allow `email` on a public
+    // profile: a document still carrying one is rejected on every merge write
+    // until the field is cleared, whether or not there was an address to index.
+    if (userDoc.exists() && userDoc.data()?.email !== undefined) {
+      profileData.email = deleteField();
     }
 
     writes.push(setDoc(userRef, profileData, { merge: true }));

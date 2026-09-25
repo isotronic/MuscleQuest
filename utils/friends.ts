@@ -1,15 +1,10 @@
 import {
   getFirestore,
-  collection,
   doc,
   getDoc,
-  getDocs,
   setDoc,
   updateDoc,
   writeBatch,
-  query,
-  where,
-  limit,
   serverTimestamp,
 } from "@react-native-firebase/firestore";
 import { fetchFriendProfile } from "./fetchFriendProfile";
@@ -96,43 +91,16 @@ export const removeFriend = async (
   await batch.commit();
 };
 
-// Legacy search: queries the public profile's `email` field. Only reached for
-// accounts that have not signed in since the emailIndex shipped, so they have
-// no index entry yet. Goes away with the `list` rule on /users once adoption
-// is high enough (plan 07 phase C3).
-const searchLegacyProfileByEmail = async (
-  normalisedEmail: string,
-  currentUid: string,
-): Promise<UserSearchResult | null> => {
-  const db = getFirestore();
-  const snapshot = await getDocs(
-    query(
-      collection(db, "users"),
-      where("email", "==", normalisedEmail),
-      limit(1),
-    ),
-  );
-
-  if (snapshot.empty) return null;
-
-  const firstDoc = snapshot.docs[0];
-  if (firstDoc.id === currentUid) return null;
-
-  const data = firstDoc.data();
-  return {
-    uid: firstDoc.id,
-    displayName: data.displayName ?? "",
-    email: normalisedEmail,
-    photoURL: data.photoURL ?? "",
-  };
-};
-
 // Returns null if no user found or if the result is the current user.
 //
 // Looks the address up through emailIndex, which reveals nothing but whether
 // a match exists, then hydrates the display name and photo from the matched
 // profile. The returned email is the one the caller typed, never one read off
 // someone else's profile.
+//
+// An account with no index entry is not findable. That only happens to
+// installs that have not run this version's sign-in yet; /users is no longer
+// listable, so there is nothing to fall back to.
 export const searchUserByEmail = async (
   email: string,
   currentUid: string,
@@ -140,10 +108,7 @@ export const searchUserByEmail = async (
   const normalisedEmail = email.toLowerCase().trim();
 
   const uid = await lookupUidByEmail(normalisedEmail);
-  if (!uid) {
-    return searchLegacyProfileByEmail(normalisedEmail, currentUid);
-  }
-  if (uid === currentUid) return null;
+  if (!uid || uid === currentUid) return null;
 
   const db = getFirestore();
   const snapshot = await getDoc(doc(db, "users", uid));
