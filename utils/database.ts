@@ -18,6 +18,7 @@ import {
   UserProgressionIncrements,
 } from "@/types/progression";
 import { computeLayoffReduction } from "@/utils/progressionEngine";
+import { nowForDb, parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
 import {
   DEFAULT_BAR_WEIGHT_KG,
   DEFAULT_BAR_WEIGHT_LBS,
@@ -1040,9 +1041,20 @@ export const saveCompletedWorkout = async (
 
   try {
     await db.withExclusiveTransactionAsync(async (txn) => {
+      // date_completed is the instant (UTC, ISO with an explicit Z); local_date is
+      // the training day the workout counts towards. See utils/dates.ts.
+      const { utc, localDate } = nowForDb();
       const completedWorkoutResult = await txn.runAsync(
-        `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed, is_deload) VALUES (?, ?, datetime('now'), ?, ?, ?)`,
-        [planId, workoutId, duration, totalSetsCompleted, isDeload ? 1 : 0],
+        `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, local_date, duration, total_sets_completed, is_deload) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          planId,
+          workoutId,
+          utc,
+          localDate,
+          duration,
+          totalSetsCompleted,
+          isDeload ? 1 : 0,
+        ],
       );
 
       completedWorkoutId = completedWorkoutResult.lastInsertRowId;
@@ -2465,8 +2477,8 @@ export const insertBodyMeasurementSession = async (
     let entryId = 0;
     await db.withExclusiveTransactionAsync(async (txn) => {
       const result = await txn.runAsync(
-        `INSERT INTO body_measurement_entries (recorded_at) VALUES (?)`,
-        [recorded_at],
+        `INSERT INTO body_measurement_entries (recorded_at, local_date) VALUES (?, ?)`,
+        [recorded_at, toLocalDateKey(parseDbTimestamp(recorded_at))],
       );
       entryId = result.lastInsertRowId;
       for (const v of values) {
@@ -2666,7 +2678,7 @@ export const saveBodyWeightMeasurement = async (
   let db: SQLite.SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
-    const now = new Date().toISOString();
+    const { utc: now, localDate } = nowForDb();
     // Legacy table — keeps useExerciseHistoryQuery.ts working unchanged
     await db.runAsync(
       `INSERT INTO body_measurements (date, body_weight) VALUES (?, ?)`,
@@ -2678,8 +2690,8 @@ export const saveBodyWeightMeasurement = async (
     );
     if (weightMetric) {
       const result = await db.runAsync(
-        `INSERT INTO body_measurement_entries (recorded_at) VALUES (?)`,
-        [now],
+        `INSERT INTO body_measurement_entries (recorded_at, local_date) VALUES (?, ?)`,
+        [now, localDate],
       );
       await db.runAsync(
         `INSERT INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,

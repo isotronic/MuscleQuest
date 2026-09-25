@@ -24,12 +24,15 @@ import {
   updatePlanWorkoutExercises,
   updateStandaloneWorkout,
   fetchBodyMeasurementSessions,
+  insertBodyMeasurementSession,
+  saveBodyWeightMeasurement,
   fetchLatestBodyMetricValues,
   fetchCompletedWorkoutById,
   createDatabaseSnapshot,
   checkDatabaseIntegrity,
 } from "../database";
 import { ProgressionRuleResult } from "@/types/progression";
+import { parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
 
 // Undo the global mock from jestSetupFile.js so we can test the real implementation
 jest.unmock("@/utils/database");
@@ -312,6 +315,70 @@ describe("saveCompletedWorkout", () => {
       error,
     );
     expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// local_date on new writes
+// ---------------------------------------------------------------------------
+
+describe("local_date on new writes", () => {
+  it("writes date_completed as an unambiguous UTC instant plus the local training day", async () => {
+    const txnRunAsync = jest
+      .fn()
+      .mockResolvedValue({ lastInsertRowId: 7, changes: 1 });
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync });
+      },
+    );
+
+    await saveCompletedWorkout(1, 2, 600, 0, false, []);
+
+    const [sql, params] = txnRunAsync.mock.calls[0];
+    expect(sql).toContain("local_date");
+    expect(sql).not.toContain("datetime('now')");
+    const dateCompleted = params[2] as string;
+    const localDate = params[3] as string;
+    expect(dateCompleted).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+    );
+    expect(localDate).toBe(toLocalDateKey(parseDbTimestamp(dateCompleted)));
+  });
+
+  it("stores the local training day of a body measurement session", async () => {
+    const txnRunAsync = jest
+      .fn()
+      .mockResolvedValue({ lastInsertRowId: 3, changes: 1 });
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync, getFirstAsync: jest.fn() });
+      },
+    );
+
+    // 22:30 UTC: a different calendar day east of UTC+2.
+    await insertBodyMeasurementSession("2026-08-13T22:30:00.000Z", []);
+
+    const [sql, params] = txnRunAsync.mock.calls[0];
+    expect(sql).toContain("INSERT INTO body_measurement_entries");
+    expect(sql).toContain("local_date");
+    expect(params[1]).toBe(
+      toLocalDateKey(parseDbTimestamp("2026-08-13T22:30:00.000Z")),
+    );
+  });
+
+  it("stores the local training day of a quick body weight log", async () => {
+    mockDb.getFirstAsync.mockResolvedValue({ id: 5 });
+
+    await saveBodyWeightMeasurement(80);
+
+    const entryInsert = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+      sql.includes("INSERT INTO body_measurement_entries"),
+    );
+    expect(entryInsert).toBeDefined();
+    expect(entryInsert![0]).toContain("local_date");
+    const [recordedAt, localDate] = entryInsert![1] as string[];
+    expect(localDate).toBe(toLocalDateKey(parseDbTimestamp(recordedAt)));
   });
 });
 
