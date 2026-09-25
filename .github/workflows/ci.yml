@@ -49,3 +49,42 @@ jobs:
 
       - name: Test
         run: npx jest --ci
+
+  # Day attribution (streaks, the calendar, weekly goals) is computed in the
+  # device's local timezone, so a suite that only ever runs at UTC cannot catch
+  # a regression. These cover both sides of UTC, a half-hour offset, and a zone
+  # observing DST during the northern summer.
+  timezones:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        timezone:
+          - Pacific/Auckland
+          - Asia/Kathmandu
+          - Europe/London
+          - America/Los_Angeles
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+
+      - run: npm ci
+
+      - name: Stub gitignored local files
+        run: |
+          echo '{"client":[{"oauth_client":[{"client_id":""},{"client_id":""},{"client_id":""}]}]}' > google-services.json
+          mkdir -p assets/data
+          for f in $(grep -oh 'assets/data/[A-Za-z0-9_-]*\.json' utils/loadPremadePlans.ts | sort -u); do
+            [ -f "$f" ] || echo '[]' > "$f"
+          done
+
+      - name: Test
+        run: npx jest --ci
+        env:
+          TZ: ${{ matrix.timezone }}
