@@ -6,6 +6,7 @@ import {
   doc,
   getDoc,
   updateDoc,
+  deleteField,
   query,
   where,
   onSnapshot,
@@ -135,7 +136,6 @@ export const useSocialListeners = () => {
                 id: docSnap.id,
                 fromUid: data.from,
                 displayName: sender?.displayName ?? "",
-                email: sender?.email ?? "",
                 photoURL: sender?.photoURL ?? "",
                 createdAt: data.createdAt?.toDate() ?? new Date(),
               };
@@ -169,7 +169,6 @@ export const useSocialListeners = () => {
                 id: docSnap.id,
                 toUid: data.to,
                 displayName: receiver?.displayName ?? "",
-                email: receiver?.email ?? "",
                 photoURL: receiver?.photoURL ?? "",
                 createdAt: data.createdAt?.toDate() ?? new Date(),
               };
@@ -196,7 +195,6 @@ export const useSocialListeners = () => {
           return {
             uid: docSnap.id,
             displayName: data.displayName ?? "",
-            email: data.email ?? "",
             photoURL: data.photoURL ?? "",
             since: data.since ? data.since.toDate().getTime() : Date.now(),
           };
@@ -206,31 +204,49 @@ export const useSocialListeners = () => {
         // For docs without inline profile data, fetch with retry in background.
         snapshot.docs.forEach((docSnap: QDocSnap) => {
           const docData = docSnap.data();
-          if (
-            docData.displayName == null ||
-            docData.email == null ||
-            docData.photoURL == null
-          ) {
+          const friendRef = doc(db, "users", user.uid, "friends", docSnap.id);
+
+          const reportWriteError = (error: unknown) =>
+            notifyBugsnag(
+              error instanceof Error ? error : new Error(String(error)),
+              (event) => {
+                event.addMetadata("useSocialListeners", {
+                  scope: "friendProfileWrite",
+                  friendUid: docSnap.id,
+                  code: (error as any)?.code ?? null,
+                });
+              },
+            );
+
+          // Records written before the address left public profiles still
+          // carry a copy of it. A write allowlist stops new ones; it does not
+          // clean these, and the rules now reject any write to a document that
+          // still has the field, so it has to be cleared here.
+          const clearLegacyEmail =
+            docData.email !== undefined ? { email: deleteField() } : null;
+
+          if (docData.displayName == null || docData.photoURL == null) {
             fetchFriendProfile(docSnap.id)
               .then((profile) => {
                 updateFriendProfile(docSnap.id, profile);
-                updateDoc(
-                  doc(db, "users", user.uid, "friends", docSnap.id),
-                  profile as unknown as Record<string, unknown>,
-                ).catch((error: unknown) => {
-                  notifyBugsnag(
-                    error instanceof Error ? error : new Error(String(error)),
-                    (event) => {
-                      event.addMetadata("useSocialListeners", {
-                        scope: "friendProfileWrite",
-                        friendUid: docSnap.id,
-                        code: (error as any)?.code ?? null,
-                      });
-                    },
-                  );
-                });
+                updateDoc(friendRef, {
+                  ...profile,
+                  ...clearLegacyEmail,
+                } as unknown as Record<string, unknown>).catch(
+                  reportWriteError,
+                );
               })
               .catch((error: unknown) => {
+                // The legacy address does not depend on the profile read, and
+                // must not be stranded by it: the rules reject every write to a
+                // record that still carries the field, so a record left with
+                // one while this fetch keeps failing could never be written
+                // again.
+                if (clearLegacyEmail) {
+                  updateDoc(friendRef, clearLegacyEmail).catch(
+                    reportWriteError,
+                  );
+                }
                 // Friend-profile read failed after all retries. Report instead
                 // of swallowing so recurring production read failures are
                 // visible (this path previously dropped the error silently).
@@ -245,6 +261,8 @@ export const useSocialListeners = () => {
                   },
                 );
               });
+          } else if (clearLegacyEmail) {
+            updateDoc(friendRef, clearLegacyEmail).catch(reportWriteError);
           }
         });
       },

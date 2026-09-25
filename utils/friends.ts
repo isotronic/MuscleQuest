@@ -1,21 +1,20 @@
 import {
   getFirestore,
-  collection,
   doc,
-  getDocs,
+  getDoc,
   setDoc,
   updateDoc,
   writeBatch,
-  query,
-  where,
-  limit,
   serverTimestamp,
 } from "@react-native-firebase/firestore";
 import { fetchFriendProfile } from "./fetchFriendProfile";
+import { lookupUidByEmail } from "./emailIndex";
 
 export interface UserSearchResult {
   uid: string;
   displayName: string;
+  // The address the caller searched for, echoed back. Never read off the
+  // matched user's profile.
   email: string;
   photoURL: string;
 }
@@ -53,13 +52,11 @@ export const acceptFriendRequest = async (
   batch.set(doc(db, "users", myUid, "friends", fromUid), {
     since: now,
     displayName: fromProfile.displayName,
-    email: fromProfile.email,
     photoURL: fromProfile.photoURL,
   });
   batch.set(doc(db, "users", fromUid, "friends", myUid), {
     since: now,
     displayName: myProfile.displayName,
-    email: myProfile.email,
     photoURL: myProfile.photoURL,
   });
   batch.update(doc(db, "friendRequests", requestId), { status: "accepted" });
@@ -95,29 +92,33 @@ export const removeFriend = async (
 };
 
 // Returns null if no user found or if the result is the current user.
+//
+// Looks the address up through emailIndex, which reveals nothing but whether
+// a match exists, then hydrates the display name and photo from the matched
+// profile. The returned email is the one the caller typed, never one read off
+// someone else's profile.
+//
+// An account with no index entry is not findable. That only happens to
+// installs that have not run this version's sign-in yet; /users is no longer
+// listable, so there is nothing to fall back to.
 export const searchUserByEmail = async (
   email: string,
   currentUid: string,
 ): Promise<UserSearchResult | null> => {
+  const normalisedEmail = email.toLowerCase().trim();
+
+  const uid = await lookupUidByEmail(normalisedEmail);
+  if (!uid || uid === currentUid) return null;
+
   const db = getFirestore();
-  const snapshot = await getDocs(
-    query(
-      collection(db, "users"),
-      where("email", "==", email.toLowerCase().trim()),
-      limit(1),
-    ),
-  );
+  const snapshot = await getDoc(doc(db, "users", uid));
+  if (!snapshot.exists()) return null;
 
-  if (snapshot.empty) return null;
-
-  const firstDoc = snapshot.docs[0];
-  if (firstDoc.id === currentUid) return null;
-
-  const data = firstDoc.data();
+  const data = snapshot.data();
   return {
-    uid: firstDoc.id,
-    displayName: data.displayName,
-    email: data.email,
-    photoURL: data.photoURL,
+    uid,
+    displayName: data?.displayName ?? "",
+    email: normalisedEmail,
+    photoURL: data?.photoURL ?? "",
   };
 };

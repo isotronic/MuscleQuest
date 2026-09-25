@@ -7,7 +7,7 @@ import {
 import { useSocialStore } from "../../store/socialStore";
 
 const calls: string[] = [];
-const mockUser = { uid: "me" };
+const mockUser = { uid: "me", email: "me@example.com" };
 const mockAuth: { currentUser: typeof mockUser | null } = {
   currentUser: mockUser,
 };
@@ -23,6 +23,7 @@ const mockListAll = jest.fn();
 const mockDeleteObject = jest.fn();
 const mockRemoveFriend = jest.fn();
 const mockDeleteShared = jest.fn();
+const mockDeleteEmailIndex = jest.fn();
 
 jest.mock("@react-native-firebase/auth", () => ({
   getAuth: () => mockAuth,
@@ -63,7 +64,11 @@ jest.mock("../friends", () => ({
 }));
 
 jest.mock("../sharing", () => ({
-  deleteAllSharedDataOrThrow: (...args: unknown[]) => mockDeleteShared(...args),
+  deleteAllSharedData: (...args: unknown[]) => mockDeleteShared(...args),
+}));
+
+jest.mock("../emailIndex", () => ({
+  deleteEmailIndex: (...args: unknown[]) => mockDeleteEmailIndex(...args),
 }));
 
 const snapshot = (ids: string[]) => ({
@@ -93,6 +98,7 @@ beforeEach(() => {
   mockDeleteObject.mockImplementation(record("deleteObject"));
   mockRemoveFriend.mockImplementation(record("removeFriend"));
   mockDeleteShared.mockImplementation(record("deleteShared"));
+  mockDeleteEmailIndex.mockImplementation(record("deleteEmailIndex"));
   mockGetDocs.mockImplementation(async (target: string) => {
     if (target === "users/me/friends") return snapshot(["f1", "f2"]);
     if (target === "friendRequests?from=me") return snapshot(["me_x"]);
@@ -116,6 +122,8 @@ describe("deleteAccount", () => {
       "deleteDoc(ref:me_x)",
       "deleteDoc(ref:y_me)",
       "deleteShared(me)",
+      "deleteEmailIndex(me@example.com)",
+      "deleteDoc(users/me/private/contact)",
       "deleteDoc(users/me/private/settings)",
       "deleteDoc(users/me)",
       "deleteObject(backups/me/slotA.db)",
@@ -149,7 +157,7 @@ describe("deleteAccount", () => {
   });
 
   it("stops before re-auth when a different user is signed in", async () => {
-    mockAuth.currentUser = { uid: "someone-else" };
+    mockAuth.currentUser = { uid: "someone-else", email: "other@example.com" };
 
     const error = await deleteAccount("me").catch((e) => e);
 

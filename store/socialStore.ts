@@ -7,7 +7,6 @@ export interface PendingRequest {
   id: string;
   fromUid: string;
   displayName: string;
-  email: string;
   photoURL: string;
   createdAt: Date;
 }
@@ -16,15 +15,21 @@ export interface SentRequest {
   id: string;
   toUid: string;
   displayName: string;
-  email: string;
   photoURL: string;
   createdAt: Date;
 }
 
 interface FriendProfile {
   displayName: string;
-  email: string;
   photoURL: string;
+}
+
+// A revocation the user asked for that did not fully succeed. Scoped to the
+// uid that asked for it: this outlives sign-out in AsyncStorage, and retrying
+// it against whoever signs in next would delete a different person's data.
+export interface PendingRevocation {
+  uid: string;
+  subcollections: string[];
 }
 
 interface SocialStore {
@@ -34,6 +39,10 @@ interface SocialStore {
   privacySettings: FirestorePrivateSettings | null;
   publishedPlanIds: string[] | null;
   publishedWorkoutIds: string[] | null;
+  // Persisted so the retry in useSocialSyncOnStartup survives an app restart:
+  // the user asked for this data to stop being visible, so we keep trying
+  // until it is gone.
+  pendingRevocation: PendingRevocation | null;
   setPendingRequests: (requests: PendingRequest[]) => void;
   setSentRequests: (requests: SentRequest[]) => void;
   setFriends: (friends: FriendInfo[]) => void;
@@ -41,6 +50,7 @@ interface SocialStore {
   setPrivacySettings: (settings: FirestorePrivateSettings | null) => void;
   setPublishedPlanIds: (ids: string[] | null) => void;
   setPublishedWorkoutIds: (ids: string[] | null) => void;
+  setPendingRevocation: (revocation: PendingRevocation | null) => void;
 }
 
 export const useSocialStore = create<SocialStore>()(
@@ -52,6 +62,7 @@ export const useSocialStore = create<SocialStore>()(
       privacySettings: null,
       publishedPlanIds: null,
       publishedWorkoutIds: null,
+      pendingRevocation: null,
       setPendingRequests: (pendingRequests) => set({ pendingRequests }),
       setSentRequests: (sentRequests) => set({ sentRequests }),
       setFriends: (friends) => set({ friends }),
@@ -65,6 +76,7 @@ export const useSocialStore = create<SocialStore>()(
       setPublishedPlanIds: (publishedPlanIds) => set({ publishedPlanIds }),
       setPublishedWorkoutIds: (publishedWorkoutIds) =>
         set({ publishedWorkoutIds }),
+      setPendingRevocation: (pendingRevocation) => set({ pendingRevocation }),
     }),
     {
       name: "social-store",
@@ -75,6 +87,7 @@ export const useSocialStore = create<SocialStore>()(
         privacySettings: state.privacySettings,
         publishedPlanIds: state.publishedPlanIds,
         publishedWorkoutIds: state.publishedWorkoutIds,
+        pendingRevocation: state.pendingRevocation,
       }),
     },
   ),

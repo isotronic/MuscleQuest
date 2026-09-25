@@ -2,6 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function signedIn() {
+      return request.auth != null;
+    }
+
     function areFriends(uid1, uid2) {
       return exists(/databases/$(database)/documents/users/$(uid1)/friends/$(uid2));
     }
@@ -16,78 +20,168 @@ service cloud.firestore {
              doc.data.to == toUid;
     }
 
-    // Defense-in-depth: caps document size on shared-content writes so a
-    // malformed/runaway client can't write a document large enough to break
-    // a friend's client when they read it (e.g. an unbounded sets array).
-    // Note: Firestore Rules have no byte-size API; we enforce a field-count
-    // limit (<=50 top-level keys) as a best-effort proxy.
-    function withinSizeLimit() {
-      return request.resource.data.size() <= 50;
+    // ── shared-content shape checks ──────────────────────────────────────────
+    //
+    // Rules have no byte-size API, so these bound what can be bounded: the
+    // fields a document may carry, the length of its name, and the length of
+    // the lists a runaway client could grow without limit. The byte budget
+    // itself is enforced client-side (assertWithinSizeBudget in utils/sharing.ts)
+    // and ultimately by Firestore's own 1MiB document limit.
+    //
+    // Every allowlist covers the union of fields written by all app versions
+    // still installed. hasOnly() permits a subset, so a client that stops
+    // writing a field (e.g. publishedAt on re-publish) keeps working.
+
+    function boundedString(value, maxLength) {
+      return value is string && value.size() <= maxLength;
     }
 
-    // Public profiles: any authenticated user can read (email search).
-    // Owner can write.
+    function boundedName() {
+      return boundedString(request.resource.data.name, 200);
+    }
+
+    function boundedList(field, maxLength) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is list &&
+              request.resource.data[field].size() <= maxLength);
+    }
+
+    function hasOnlyFields(allowed) {
+      return request.resource.data.keys().hasOnly(allowed);
+    }
+
+    // Public profiles: display name and photo only. Friend search resolves an
+    // address through /emailIndex, so nothing here needs to hold one and
+    // nothing needs to query this collection.
     match /users/{uid} {
-      // Single-document reads (friend profiles, search result hydration) stay open.
-      allow get: if request.auth != null;
-      // List/query reads (e.g. email search) are capped per call so the
-      // collection can't be bulk-scraped for every user's email/displayName.
-      allow list: if request.auth != null && request.query.limit <= 5;
-      allow write: if request.auth != null && request.auth.uid == uid;
+      // Single-document reads (friend profiles, search result hydration) stay
+      // open: a caller must already know the uid, which they only get from a
+      // friend edge or an emailIndex hit for an address they already have.
+      allow get: if signedIn();
+      // No list. Without it the collection cannot be enumerated or filtered,
+      // so there is no way to sweep it for profiles.
+      allow create, update: if signedIn() && request.auth.uid == uid &&
+        hasOnlyFields(['displayName', 'photoURL', 'createdAt']) &&
+        boundedString(request.resource.data.displayName, 100) &&
+        boundedString(request.resource.data.photoURL, 2048);
+      allow delete: if signedIn() && request.auth.uid == uid;
 
       // Private settings: owner only
       match /private/{doc} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read, write: if signedIn() && request.auth.uid == uid;
       }
 
       // Friends subcollection.
       // Readable by owner or the named friend.
-      // Owner can write freely (create/update/delete their own records).
-      // The named friend (friendUid) may only create if the owner previously sent
-      // them a pending request — hasPendingRequest(uid, friendUid) checks
-      // friendRequests/{uid}_{friendUid}.
-      // The named friend may also delete, which is needed for mutual removal.
+      // The owner maintains their own list. The named friend (friendUid) may
+      // only create if the owner previously sent them a pending request —
+      // hasPendingRequest(uid, friendUid) checks friendRequests/{uid}_{friendUid}.
+      // Either party may delete, which is needed for mutual removal.
       match /friends/{friendUid} {
-        allow read: if request.auth != null &&
+        allow read: if signedIn() &&
           (request.auth.uid == uid || request.auth.uid == friendUid);
-        allow write: if request.auth != null && request.auth.uid == uid;
-        allow create: if request.auth != null &&
-          request.auth.uid == friendUid &&
-          hasPendingRequest(uid, friendUid);
-        allow delete: if request.auth != null && request.auth.uid == friendUid;
+        // No email. A friend record is built from the other person's profile,
+        // which no longer holds one, and the recipient of a friend request
+        // never had the sender's address to begin with.
+        allow create: if signedIn() &&
+          (request.auth.uid == uid ||
+           (request.auth.uid == friendUid && hasPendingRequest(uid, friendUid))) &&
+          hasOnlyFields(['since', 'displayName', 'photoURL']) &&
+          boundedString(request.resource.data.displayName, 100) &&
+          boundedString(request.resource.data.photoURL, 2048);
+        allow update: if signedIn() && request.auth.uid == uid &&
+          hasOnlyFields(['since', 'displayName', 'photoURL']) &&
+          boundedString(request.resource.data.displayName, 100) &&
+          boundedString(request.resource.data.photoURL, 2048);
+        allow delete: if signedIn() &&
+          (request.auth.uid == uid || request.auth.uid == friendUid);
       }
 
       // All shared-content subcollections: owner or friends can read, owner can write.
       match /sharedPlans/{docId} {
-        allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow create, update: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
-        allow delete: if request.auth != null && request.auth.uid == uid;
+        allow read: if signedIn() && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
+        allow create, update: if signedIn() && request.auth.uid == uid &&
+          hasOnlyFields(['localPlanId', 'name', 'imageUrl', 'publishedAt', 'updatedAt', 'workouts']) &&
+          boundedName() &&
+          boundedList('workouts', 50);
+        allow delete: if signedIn() && request.auth.uid == uid;
       }
       match /sharedStandaloneWorkouts/{docId} {
-        allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow create, update: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
-        allow delete: if request.auth != null && request.auth.uid == uid;
+        allow read: if signedIn() && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
+        allow create, update: if signedIn() && request.auth.uid == uid &&
+          hasOnlyFields(['localWorkoutId', 'name', 'imageUrl', 'publishedAt', 'updatedAt', 'exercises']) &&
+          boundedName() &&
+          boundedList('exercises', 100);
+        allow delete: if signedIn() && request.auth.uid == uid;
       }
       match /sharedCustomExercises/{docId} {
-        allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow create, update: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
-        allow delete: if request.auth != null && request.auth.uid == uid;
+        allow read: if signedIn() && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
+        allow create, update: if signedIn() && request.auth.uid == uid &&
+          hasOnlyFields(['localExerciseId', 'name', 'equipment', 'bodyPart', 'targetMuscle',
+                         'secondaryMuscles', 'description', 'trackingType', 'isUnilateral',
+                         'doubleWeight', 'animatedUrl', 'publishedAt', 'updatedAt']) &&
+          boundedName() &&
+          boundedList('secondaryMuscles', 30);
+        allow delete: if signedIn() && request.auth.uid == uid;
       }
       match /sharedWorkouts/{docId} {
-        allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow create, update: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
-        allow delete: if request.auth != null && request.auth.uid == uid;
+        allow read: if signedIn() && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
+        allow create, update: if signedIn() && request.auth.uid == uid &&
+          hasOnlyFields(['localWorkoutId', 'planName', 'workoutName', 'dateCompleted',
+                         'durationSeconds', 'totalSetsCompleted', 'isDeload', 'exercises']) &&
+          boundedList('exercises', 100);
+        allow delete: if signedIn() && request.auth.uid == uid;
       }
       match /sharedMeasurements/{docId} {
-        allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow create, update: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
-        allow delete: if request.auth != null && request.auth.uid == uid;
+        allow read: if signedIn() && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
+        allow create, update: if signedIn() && request.auth.uid == uid &&
+          hasOnlyFields(['localEntryId', 'recordedAt', 'values']) &&
+          request.resource.data.values is map &&
+          request.resource.data.values.size() <= 100;
+        allow delete: if signedIn() && request.auth.uid == uid;
       }
       match /sharedStrength/{docId} {
-        allow read: if request.auth != null && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
-        allow create, update: if request.auth != null && request.auth.uid == uid && withinSizeLimit();
-        allow delete: if request.auth != null && request.auth.uid == uid;
+        allow read: if signedIn() && (request.auth.uid == uid || areFriends(uid, request.auth.uid));
+        allow create, update: if signedIn() && request.auth.uid == uid &&
+          hasOnlyFields(['exerciseName', 'appExerciseId', 'trackingType', 'allTimePR',
+                         'allTimePRDate', 'topPRSets']) &&
+          boundedString(request.resource.data.exerciseName, 200) &&
+          boundedList('topPRSets', 20);
+        allow delete: if signedIn() && request.auth.uid == uid;
       }
+    }
+
+    // Email → uid lookup for friend search (plan 07 phase C2).
+    //
+    // The document id is the lowercase hex SHA-256 of the lowercased email, so
+    // the collection holds no addresses and a `get` reveals nothing but whether
+    // the address the caller already knows has an account. There is
+    // deliberately no `list`: without one, the collection cannot be enumerated
+    // and the hashes cannot be walked back to addresses.
+    //
+    // The id is checked against the caller's own verified token email.
+    // Without that check anyone could create emailIndex/<hash of someone
+    // else's address> pointing at their own uid and be returned by friend
+    // search for that person.
+    function ownsEmailHash(emailHash) {
+      return request.auth.token.email_verified == true &&
+             emailHash == hashing.sha256(request.auth.token.email.lower()).toHexString().lower();
+    }
+
+    match /emailIndex/{emailHash} {
+      allow get: if signedIn();
+      allow create, update: if signedIn() &&
+        ownsEmailHash(emailHash) &&
+        hasOnlyFields(['uid']) &&
+        request.resource.data.uid == request.auth.uid;
+      // Two ways to own an entry: the id hashes your current verified address,
+      // or the stored uid is yours (an entry for an address you have since
+      // changed). The first branch also covers a missing document, where
+      // resource is null: account deletion deletes unconditionally and must
+      // not fail just because the entry was never written.
+      allow delete: if signedIn() &&
+        (ownsEmailHash(emailHash) ||
+         (resource != null && resource.data.uid == request.auth.uid));
     }
 
     // Friend requests.
@@ -96,15 +190,16 @@ service cloud.firestore {
     // by the sender re-send branch below.
     // Only receiver can flip status from "pending" → "accepted"/"declined".
     match /friendRequests/{requestId} {
-      allow create: if request.auth != null &&
+      allow create: if signedIn() &&
         request.auth.uid == request.resource.data.from &&
         requestId == request.resource.data.from + '_' + request.resource.data.to &&
         request.resource.data.to != request.auth.uid &&
-        request.resource.data.status == 'pending';
-      allow read: if request.auth != null &&
+        request.resource.data.status == 'pending' &&
+        hasOnlyFields(['from', 'to', 'status', 'createdAt']);
+      allow read: if signedIn() &&
         (request.auth.uid == resource.data.from ||
          request.auth.uid == resource.data.to);
-      allow update: if request.auth != null &&
+      allow update: if signedIn() &&
         (
           // receiver accepts or declines a pending request
           (request.auth.uid == resource.data.to &&
@@ -119,12 +214,13 @@ service cloud.firestore {
            resource.data.status != 'pending' &&
            request.resource.data.from == resource.data.from &&
            request.resource.data.to == resource.data.to &&
-           request.resource.data.status == 'pending')
+           request.resource.data.status == 'pending' &&
+           hasOnlyFields(['from', 'to', 'status', 'createdAt']))
         );
       // Either party may delete. Derived from the id so it also works when the
       // document does not exist (resource is null for missing docs). Firebase
       // UIDs never contain underscores.
-      allow delete: if request.auth != null &&
+      allow delete: if signedIn() &&
         (requestId.split('_')[0] == request.auth.uid ||
          requestId.split('_')[1] == request.auth.uid);
     }

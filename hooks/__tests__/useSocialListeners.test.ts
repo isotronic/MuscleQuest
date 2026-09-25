@@ -21,6 +21,7 @@ jest.mock("@react-native-firebase/firestore", () => ({
   onSnapshot: (...args: any[]) => (mockOnSnapshot as any)(...args),
   getDoc: jest.fn(),
   updateDoc: (...args: any[]) => mockUpdateDoc(...args),
+  deleteField: () => "__deleteField__",
 }));
 
 const mockFetchFriendProfile = jest.fn();
@@ -83,7 +84,6 @@ describe("useSocialListeners - friends snapshot", () => {
     );
     mockFetchFriendProfile.mockResolvedValue({
       displayName: "",
-      email: "",
       photoURL: "",
     });
     mockUpdateDoc.mockResolvedValue(undefined);
@@ -101,7 +101,6 @@ describe("useSocialListeners - friends snapshot", () => {
           data: () => ({
             since: { toDate: () => sinceDate },
             displayName: "Alice",
-            email: "alice@example.com",
             photoURL: "https://example.com/alice.jpg",
           }),
         },
@@ -114,7 +113,6 @@ describe("useSocialListeners - friends snapshot", () => {
       {
         uid: "friend-uid",
         displayName: "Alice",
-        email: "alice@example.com",
         photoURL: "https://example.com/alice.jpg",
         since: sinceDate.getTime(),
       },
@@ -144,7 +142,6 @@ describe("useSocialListeners - friends snapshot", () => {
   it("calls fetchFriendProfile in background for docs without displayName", () => {
     mockFetchFriendProfile.mockResolvedValue({
       displayName: "Alice",
-      email: "",
       photoURL: "",
     });
     useSocialListeners();
@@ -162,10 +159,9 @@ describe("useSocialListeners - friends snapshot", () => {
     expect(mockFetchFriendProfile).toHaveBeenCalledWith("friend-uid");
   });
 
-  it("calls fetchFriendProfile in background for docs with displayName but missing email or photoURL", () => {
+  it("calls fetchFriendProfile in background for docs with displayName but missing photoURL", () => {
     mockFetchFriendProfile.mockResolvedValue({
       displayName: "Alice",
-      email: "alice@example.com",
       photoURL: "https://example.com/alice.jpg",
     });
     useSocialListeners();
@@ -189,7 +185,6 @@ describe("useSocialListeners - friends snapshot", () => {
   it("calls updateFriendProfile and backfills Firestore when fetch succeeds", async () => {
     const profile = {
       displayName: "Alice",
-      email: "alice@example.com",
       photoURL: "https://example.com/alice.jpg",
     };
     mockFetchFriendProfile.mockResolvedValue(profile);
@@ -210,6 +205,121 @@ describe("useSocialListeners - friends snapshot", () => {
     expect(mockUpdateDoc).toHaveBeenCalledWith(
       "users/my-uid/friends/friend-uid",
       profile,
+    );
+  });
+
+  // A write allowlist stops new writes; it does not clean documents that are
+  // already there, and the rules now reject any write to one that still has
+  // the field.
+  it("clears a legacy email off a friend record", async () => {
+    useSocialListeners();
+    const snapshot = {
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({
+            since: { toDate: () => new Date("2024-01-01") },
+            displayName: "Alice",
+            photoURL: "https://example.com/alice.jpg",
+            email: "alice@example.com",
+          }),
+        },
+      ],
+    };
+
+    snapshotCallbacks[friendsRef](snapshot);
+    await Promise.resolve();
+
+    expect(mockUpdateDoc).toHaveBeenCalledWith(
+      "users/my-uid/friends/friend-uid",
+      { email: "__deleteField__" },
+    );
+    // Nothing else was missing, so no profile fetch was needed.
+    expect(mockFetchFriendProfile).not.toHaveBeenCalled();
+  });
+
+  it("leaves a friend record with no legacy email untouched", async () => {
+    useSocialListeners();
+    const snapshot = {
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({
+            since: { toDate: () => new Date("2024-01-01") },
+            displayName: "Alice",
+            photoURL: "https://example.com/alice.jpg",
+          }),
+        },
+      ],
+    };
+
+    snapshotCallbacks[friendsRef](snapshot);
+    await Promise.resolve();
+
+    expect(mockUpdateDoc).not.toHaveBeenCalled();
+  });
+
+  // Not reachable through any shipped writer: the backfill that added `email`
+  // wrote all three fields in one updateDoc, so a record with the field always
+  // has the other two. Guarded anyway, because the rules reject every write to
+  // a record that still carries it, so one left behind here could never be
+  // written again.
+  it("still clears the legacy email when the profile fetch fails", async () => {
+    mockFetchFriendProfile.mockRejectedValue(new Error("unreachable"));
+    useSocialListeners();
+    const snapshot = {
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({
+            since: { toDate: () => new Date("2024-01-01") },
+            email: "alice@example.com",
+          }),
+        },
+      ],
+    };
+
+    snapshotCallbacks[friendsRef](snapshot);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockUpdateDoc).toHaveBeenCalledWith(
+      "users/my-uid/friends/friend-uid",
+      { email: "__deleteField__" },
+    );
+  });
+
+  it("clears the legacy email in the same write as a profile backfill", async () => {
+    mockFetchFriendProfile.mockResolvedValue({
+      displayName: "Alice",
+      photoURL: "https://example.com/alice.jpg",
+    });
+    useSocialListeners();
+    const snapshot = {
+      docs: [
+        {
+          id: "friend-uid",
+          data: () => ({
+            since: { toDate: () => new Date("2024-01-01") },
+            email: "alice@example.com",
+          }),
+        },
+      ],
+    };
+
+    snapshotCallbacks[friendsRef](snapshot);
+    await Promise.resolve();
+
+    // One write, not two: a backfill that left the field in place would be
+    // rejected by the rules.
+    expect(mockUpdateDoc).toHaveBeenCalledTimes(1);
+    expect(mockUpdateDoc).toHaveBeenCalledWith(
+      "users/my-uid/friends/friend-uid",
+      {
+        displayName: "Alice",
+        photoURL: "https://example.com/alice.jpg",
+        email: "__deleteField__",
+      },
     );
   });
 
@@ -259,7 +369,6 @@ describe("useSocialListeners - friends snapshot", () => {
     const Bugsnag = jest.requireMock("@bugsnag/expo").default;
     const profile = {
       displayName: "Alice",
-      email: "alice@example.com",
       photoURL: "https://example.com/alice.jpg",
     };
     mockFetchFriendProfile.mockResolvedValue(profile);
@@ -303,7 +412,6 @@ describe("useSocialListeners - listener error scoping", () => {
     );
     mockFetchFriendProfile.mockResolvedValue({
       displayName: "",
-      email: "",
       photoURL: "",
     });
     mockUpdateDoc.mockResolvedValue(undefined);

@@ -33,7 +33,7 @@
       "/rules-tests/"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!(jest-)?@?react-native|@react-navigation|expo(nent)?|@expo(nent)?/.*|react-native|@react-native(-community)?/.*)"
+      "node_modules/(?!(jest-)?@?react-native|@react-navigation|expo(nent)?|@expo(nent)?/.*|react-native|@react-native(-community)?/.*|p-limit|yocto-queue)"
     ],
     "moduleNameMapper": {
       "\\.db$": "<rootDir>/__mocks__/fileMocks.js"

@@ -32,9 +32,6 @@ export const FriendRequestItem = ({ request }: Props) => {
         <AppText variant="body" style={{ color: colors.contentPrimary }}>
           {request.displayName}
         </AppText>
-        <AppText variant="caption" style={{ color: colors.contentSecondary }}>
-          {request.email}
-        </AppText>
       </View>
       <View style={styles.actions}>
         <Button

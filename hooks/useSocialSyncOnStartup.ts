@@ -14,17 +14,62 @@ import {
   fetchAllCustomExercisesForSharing,
   Exercise,
 } from "@/utils/database";
+import pLimit from "p-limit";
 import {
+  BULK_PUBLISH_CONCURRENCY,
   publishPlan,
   publishStandaloneWorkout,
   pushCustomExercise,
+  deleteAllSharedData,
 } from "@/utils/sharing";
 
 export const useSocialSyncOnStartup = () => {
   const user = useContext(AuthContext);
-  const { privacySettings, publishedPlanIds, publishedWorkoutIds } =
-    useSocialStore();
+  const {
+    privacySettings,
+    publishedPlanIds,
+    publishedWorkoutIds,
+    pendingRevocation,
+  } = useSocialStore();
   const hasSynced = useRef(false);
+  const hasRetriedRevocations = useRef(false);
+
+  // A revocation the user asked for but that failed (offline, permission
+  // hiccup) is retried here until every subcollection is verified empty.
+  // Runs independently of the publish sync: it must happen even when every
+  // sharing toggle is off, which is the usual state after a revocation.
+  // Subscribed rather than read once from getState(): the store rehydrates
+  // from AsyncStorage after the first render, so an effect keyed only on
+  // `user` would look before the persisted revocation had arrived and never
+  // retry it that launch.
+  useEffect(() => {
+    if (!user || hasRetriedRevocations.current) return;
+    if (!pendingRevocation) return;
+    const { setPendingRevocation } = useSocialStore.getState();
+    // The store is persisted and survives sign-out, so a revocation left by a
+    // previous account must not be replayed against whoever signs in next:
+    // the subcollection names would match and we would delete their data.
+    if (pendingRevocation.uid !== user.uid) {
+      setPendingRevocation(null);
+      return;
+    }
+    hasRetriedRevocations.current = true;
+
+    const { uid } = user;
+    deleteAllSharedData(uid, pendingRevocation.subcollections)
+      .then(() => useSocialStore.getState().setPendingRevocation(null))
+      .catch((error) => {
+        // deleteAllSharedData already reported this; keep the remaining names
+        // so the next startup tries again.
+        const failed = (error as { failedSubcollections?: string[] })
+          .failedSubcollections;
+        if (failed) {
+          useSocialStore
+            .getState()
+            .setPendingRevocation({ uid, subcollections: failed });
+        }
+      });
+  }, [user, pendingRevocation]);
 
   useEffect(() => {
     if (!user || !privacySettings || hasSynced.current) return;
@@ -34,6 +79,9 @@ export const useSocialSyncOnStartup = () => {
     const sync = async () => {
       const db = getFirestore();
       const { uid } = user;
+      // Same cap as the bulk publishers: a large library would otherwise open
+      // one request per missing item at app start.
+      const throttle = pLimit(BULK_PUBLISH_CONCURRENCY);
 
       await Promise.allSettled([
         (async () => {
@@ -41,7 +89,9 @@ export const useSocialSyncOnStartup = () => {
           const localIds = await fetchAllPlanIds();
           const published = new Set(publishedPlanIds);
           const missing = localIds.filter((id) => !published.has(String(id)));
-          await Promise.allSettled(missing.map((id) => publishPlan(uid, id)));
+          await Promise.allSettled(
+            missing.map((id) => throttle(() => publishPlan(uid, id))),
+          );
         })(),
 
         (async () => {
@@ -50,7 +100,9 @@ export const useSocialSyncOnStartup = () => {
           const published = new Set(publishedWorkoutIds);
           const missing = localIds.filter((id) => !published.has(String(id)));
           await Promise.allSettled(
-            missing.map((id) => publishStandaloneWorkout(uid, id)),
+            missing.map((id) =>
+              throttle(() => publishStandaloneWorkout(uid, id)),
+            ),
           );
         })(),
 
@@ -70,7 +122,9 @@ export const useSocialSyncOnStartup = () => {
               ex.exercise_id != null && !published.has(String(ex.exercise_id)),
           );
           await Promise.allSettled(
-            missing.map((ex: Exercise) => pushCustomExercise(uid, ex)),
+            missing.map((ex: Exercise) =>
+              throttle(() => pushCustomExercise(uid, ex)),
+            ),
           );
         })(),
       ]);

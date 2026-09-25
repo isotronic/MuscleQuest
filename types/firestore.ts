@@ -1,8 +1,10 @@
 import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 
+// The public profile. No email: the rules reject one, and a legacy value left
+// over from before plan 07 phase C2 is cleared by upsertUserProfile on the
+// next sign-in.
 export interface FirestoreUser {
   displayName: string;
-  email: string;
   photoURL: string;
   createdAt: FirebaseFirestoreTypes.Timestamp;
 }
@@ -32,7 +34,6 @@ export interface FriendEntry {
 export interface FriendInfo {
   uid: string;
   displayName: string;
-  email: string;
   photoURL: string;
   since: number;
 }
