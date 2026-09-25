@@ -12,6 +12,7 @@ import { ExerciseProgressionChart } from "@/components/charts/ExerciseProgressio
 import { formatToHoursMinutes } from "@/utils/utility";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { localDateKeyToDate } from "@/utils/dates";
 
 export default function ExerciseDetailScreen() {
   const { colors } = useAppTheme();
@@ -167,11 +168,14 @@ export default function ExerciseDetailScreen() {
                   {set.oneRepMax != null
                     ? `1RM ${(set.oneRepMax * convFactor).toFixed(1)} ${weightUnit}  ·  `
                     : ""}
-                  {new Date(set.date_completed).toLocaleDateString(undefined, {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
+                  {localDateKeyToDate(set.date_completed).toLocaleDateString(
+                    undefined,
+                    {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    },
+                  )}
                 </ThemedText>
               </View>
             ))}
@@ -187,14 +191,13 @@ export default function ExerciseDetailScreen() {
             {data.recentSessions.map((session, i) => (
               <View key={i} style={styles.listRow}>
                 <ThemedText style={styles.listMain}>
-                  {new Date(session.date_completed).toLocaleDateString(
-                    undefined,
-                    {
-                      weekday: "short",
-                      day: "numeric",
-                      month: "short",
-                    },
-                  )}
+                  {localDateKeyToDate(
+                    session.date_completed,
+                  ).toLocaleDateString(undefined, {
+                    weekday: "short",
+                    day: "numeric",
+                    month: "short",
+                  })}
                 </ThemedText>
                 <ThemedText style={styles.listSub}>
                   {session.bestSet.distance != null

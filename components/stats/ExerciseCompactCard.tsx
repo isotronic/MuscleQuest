@@ -4,6 +4,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { SparklineChart } from "@/components/charts/SparklineChart";
 import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
 import { t, plural } from "@lingui/core/macro";
+import { differenceInCalendarDays } from "date-fns";
+import { localDateKeyToDate } from "@/utils/dates";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import Sortable from "react-native-sortables";
@@ -17,12 +19,13 @@ interface ExerciseCompactCardProps {
   isReorderMode?: boolean;
 }
 
-const formatDaysAgo = (dateStr: string): string => {
-  const date = new Date(dateStr);
+// `dateStr` is a local_date key: the day the user trained. Counting elapsed
+// milliseconds from it would measure from UTC midnight, so an evening reading
+// of today's own workout would report it as yesterday west of UTC.
+export const formatDaysAgo = (dateStr: string): string => {
+  const date = localDateKeyToDate(dateStr);
   if (isNaN(date.getTime())) return t`Unknown`;
-  const now = new Date();
-  const diffMs = Math.max(0, now.getTime() - date.getTime());
-  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const days = Math.max(0, differenceInCalendarDays(new Date(), date));
   if (days === 0) return t`Today`;
   if (days === 1) return t`Yesterday`;
   if (days < 7) return plural(days, { one: "# day ago", other: "# days ago" });
