@@ -7,7 +7,6 @@ export interface PendingRequest {
   id: string;
   fromUid: string;
   displayName: string;
-  email: string;
   photoURL: string;
   createdAt: Date;
 }
@@ -16,14 +15,12 @@ export interface SentRequest {
   id: string;
   toUid: string;
   displayName: string;
-  email: string;
   photoURL: string;
   createdAt: Date;
 }
 
 interface FriendProfile {
   displayName: string;
-  email: string;
   photoURL: string;
 }
 

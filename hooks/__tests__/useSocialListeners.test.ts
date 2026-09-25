@@ -83,7 +83,6 @@ describe("useSocialListeners - friends snapshot", () => {
     );
     mockFetchFriendProfile.mockResolvedValue({
       displayName: "",
-      email: "",
       photoURL: "",
     });
     mockUpdateDoc.mockResolvedValue(undefined);
@@ -101,7 +100,6 @@ describe("useSocialListeners - friends snapshot", () => {
           data: () => ({
             since: { toDate: () => sinceDate },
             displayName: "Alice",
-            email: "alice@example.com",
             photoURL: "https://example.com/alice.jpg",
           }),
         },
@@ -114,7 +112,6 @@ describe("useSocialListeners - friends snapshot", () => {
       {
         uid: "friend-uid",
         displayName: "Alice",
-        email: "alice@example.com",
         photoURL: "https://example.com/alice.jpg",
         since: sinceDate.getTime(),
       },
@@ -144,7 +141,6 @@ describe("useSocialListeners - friends snapshot", () => {
   it("calls fetchFriendProfile in background for docs without displayName", () => {
     mockFetchFriendProfile.mockResolvedValue({
       displayName: "Alice",
-      email: "",
       photoURL: "",
     });
     useSocialListeners();
@@ -162,10 +158,9 @@ describe("useSocialListeners - friends snapshot", () => {
     expect(mockFetchFriendProfile).toHaveBeenCalledWith("friend-uid");
   });
 
-  it("calls fetchFriendProfile in background for docs with displayName but missing email or photoURL", () => {
+  it("calls fetchFriendProfile in background for docs with displayName but missing photoURL", () => {
     mockFetchFriendProfile.mockResolvedValue({
       displayName: "Alice",
-      email: "alice@example.com",
       photoURL: "https://example.com/alice.jpg",
     });
     useSocialListeners();
@@ -189,7 +184,6 @@ describe("useSocialListeners - friends snapshot", () => {
   it("calls updateFriendProfile and backfills Firestore when fetch succeeds", async () => {
     const profile = {
       displayName: "Alice",
-      email: "alice@example.com",
       photoURL: "https://example.com/alice.jpg",
     };
     mockFetchFriendProfile.mockResolvedValue(profile);
@@ -259,7 +253,6 @@ describe("useSocialListeners - friends snapshot", () => {
     const Bugsnag = jest.requireMock("@bugsnag/expo").default;
     const profile = {
       displayName: "Alice",
-      email: "alice@example.com",
       photoURL: "https://example.com/alice.jpg",
     };
     mockFetchFriendProfile.mockResolvedValue(profile);
@@ -303,7 +296,6 @@ describe("useSocialListeners - listener error scoping", () => {
     );
     mockFetchFriendProfile.mockResolvedValue({
       displayName: "",
-      email: "",
       photoURL: "",
     });
     mockUpdateDoc.mockResolvedValue(undefined);

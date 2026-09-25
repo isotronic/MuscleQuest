@@ -49,9 +49,6 @@ export const FriendListItem = ({ friend, onPress }: Props) => {
         <AppText variant="body" style={{ color: colors.contentPrimary }}>
           {friend.displayName}
         </AppText>
-        <AppText variant="caption" style={{ color: colors.contentSecondary }}>
-          {friend.email}
-        </AppText>
       </View>
       <AppIcon
         set="ion"

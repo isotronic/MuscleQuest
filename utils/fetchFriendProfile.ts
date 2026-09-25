@@ -1,8 +1,9 @@
 import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
 
+// No email: it is no longer on the public profile, and another user's
+// address is not something this app shows (plan 07 phase C2).
 export interface FriendProfile {
   displayName: string;
-  email: string;
   photoURL: string;
 }
 
@@ -19,7 +20,6 @@ export const fetchFriendProfile = async (
       const data = snap.data();
       return {
         displayName: data?.displayName ?? "",
-        email: data?.email ?? "",
         photoURL: data?.photoURL ?? "",
       };
     } catch (err) {

@@ -25,6 +25,7 @@ import {
 } from "@react-native-google-signin/google-signin";
 import { removeFriend } from "./friends";
 import { deleteAllSharedData } from "./sharing";
+import { deleteEmailIndex } from "./emailIndex";
 import { notifyBugsnag } from "./bugsnagDedup";
 import { useSocialStore } from "../store/socialStore";
 
@@ -109,6 +110,12 @@ const deletePendingRequests = async (uid: string): Promise<void> => {
 
 const deleteProfile = async (uid: string): Promise<void> => {
   const db = getFirestore();
+  // The emailIndex entry is keyed by a hash of the address, so it has to go
+  // before the auth user does: after that the token is gone and the rules can
+  // no longer match the caller to the entry.
+  const email = getAuth().currentUser?.email;
+  if (email) await deleteEmailIndex(email);
+  await deleteDoc(doc(db, "users", uid, "private", "contact"));
   await deleteDoc(doc(db, "users", uid, "private", "settings"));
   await deleteDoc(doc(db, "users", uid));
 };

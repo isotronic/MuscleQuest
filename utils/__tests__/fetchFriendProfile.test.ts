@@ -29,9 +29,9 @@ describe("fetchFriendProfile", () => {
 
     const profile = await fetchFriendProfile("uid-alice");
 
+    // No email: it left the public profile in plan 07 phase C2.
     expect(profile).toEqual({
       displayName: "Alice",
-      email: "alice@example.com",
       photoURL: "https://example.com/alice.jpg",
     });
     expect(mockGetDoc).toHaveBeenCalledTimes(1);
@@ -76,6 +76,6 @@ describe("fetchFriendProfile", () => {
 
     const profile = await fetchFriendProfile("uid-alice");
 
-    expect(profile).toEqual({ displayName: "", email: "", photoURL: "" });
+    expect(profile).toEqual({ displayName: "", photoURL: "" });
   });
 });

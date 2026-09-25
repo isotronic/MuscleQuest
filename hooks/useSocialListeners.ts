@@ -135,7 +135,6 @@ export const useSocialListeners = () => {
                 id: docSnap.id,
                 fromUid: data.from,
                 displayName: sender?.displayName ?? "",
-                email: sender?.email ?? "",
                 photoURL: sender?.photoURL ?? "",
                 createdAt: data.createdAt?.toDate() ?? new Date(),
               };
@@ -169,7 +168,6 @@ export const useSocialListeners = () => {
                 id: docSnap.id,
                 toUid: data.to,
                 displayName: receiver?.displayName ?? "",
-                email: receiver?.email ?? "",
                 photoURL: receiver?.photoURL ?? "",
                 createdAt: data.createdAt?.toDate() ?? new Date(),
               };
@@ -196,7 +194,6 @@ export const useSocialListeners = () => {
           return {
             uid: docSnap.id,
             displayName: data.displayName ?? "",
-            email: data.email ?? "",
             photoURL: data.photoURL ?? "",
             since: data.since ? data.since.toDate().getTime() : Date.now(),
           };
@@ -206,11 +203,7 @@ export const useSocialListeners = () => {
         // For docs without inline profile data, fetch with retry in background.
         snapshot.docs.forEach((docSnap: QDocSnap) => {
           const docData = docSnap.data();
-          if (
-            docData.displayName == null ||
-            docData.email == null ||
-            docData.photoURL == null
-          ) {
+          if (docData.displayName == null || docData.photoURL == null) {
             fetchFriendProfile(docSnap.id)
               .then((profile) => {
                 updateFriendProfile(docSnap.id, profile);

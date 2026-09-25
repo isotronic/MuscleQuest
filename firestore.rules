@@ -148,6 +148,28 @@ service cloud.firestore {
       }
     }
 
+    // Email → uid lookup for friend search (plan 07 phase C2).
+    //
+    // The document id is the lowercase hex SHA-256 of the lowercased email, so
+    // the collection holds no addresses and a `get` reveals nothing but whether
+    // the address the caller already knows has an account. There is
+    // deliberately no `list`: without one, the collection cannot be enumerated
+    // and the hashes cannot be walked back to addresses.
+    //
+    // The id is checked against the caller's own verified token email.
+    // Without that check anyone could create emailIndex/<hash of someone
+    // else's address> pointing at their own uid and be returned by friend
+    // search for that person.
+    match /emailIndex/{emailHash} {
+      allow get: if signedIn();
+      allow create, update: if signedIn() &&
+        request.auth.token.email_verified == true &&
+        emailHash == hashing.sha256(request.auth.token.email.lower()).toHexString().lower() &&
+        hasOnlyFields(['uid']) &&
+        request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
     // Friend requests.
     // Sender creates with a fixed id = from_to, status must be "pending".
     // Re-sending after accept/decline uses .set() which triggers update, handled

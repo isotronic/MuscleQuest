@@ -1,8 +1,11 @@
 import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 
+// The public profile. `email` is legacy: profiles written before plan 07
+// phase C2 still carry it, and upsertUserProfile removes it on the next
+// sign-in. New writes never set it.
 export interface FirestoreUser {
   displayName: string;
-  email: string;
+  email?: string;
   photoURL: string;
   createdAt: FirebaseFirestoreTypes.Timestamp;
 }
@@ -32,7 +35,6 @@ export interface FriendEntry {
 export interface FriendInfo {
   uid: string;
   displayName: string;
-  email: string;
   photoURL: string;
   since: number;
 }

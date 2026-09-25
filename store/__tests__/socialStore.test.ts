@@ -5,14 +5,12 @@ describe("useSocialStore – updateFriendProfile", () => {
   const alice = {
     uid: "uid-alice",
     displayName: "",
-    email: "",
     photoURL: "",
     since: new Date("2024-01-01").getTime(),
   };
   const bob = {
     uid: "uid-bob",
     displayName: "",
-    email: "",
     photoURL: "",
     since: new Date("2024-02-01").getTime(),
   };
@@ -21,18 +19,16 @@ describe("useSocialStore – updateFriendProfile", () => {
     useSocialStore.setState({ friends: [alice, bob] });
   });
 
-  it("updates displayName, email and photoURL for the matching uid", () => {
+  it("updates displayName and photoURL for the matching uid", () => {
     act(() => {
       useSocialStore.getState().updateFriendProfile("uid-alice", {
         displayName: "Alice",
-        email: "alice@example.com",
         photoURL: "https://example.com/alice.jpg",
       });
     });
     const friends = useSocialStore.getState().friends;
     expect(friends.find((f) => f.uid === "uid-alice")).toMatchObject({
       displayName: "Alice",
-      email: "alice@example.com",
       photoURL: "https://example.com/alice.jpg",
     });
   });
@@ -41,7 +37,6 @@ describe("useSocialStore – updateFriendProfile", () => {
     act(() => {
       useSocialStore.getState().updateFriendProfile("uid-alice", {
         displayName: "Alice",
-        email: "alice@example.com",
         photoURL: "",
       });
     });

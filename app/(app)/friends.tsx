@@ -424,12 +424,6 @@ function RequestsTab({
                 >
                   {req.displayName}
                 </AppText>
-                <AppText
-                  variant="caption"
-                  style={{ color: colors.contentSecondary }}
-                >
-                  {req.email}
-                </AppText>
               </View>
               <AppText
                 variant="caption"
