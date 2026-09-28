@@ -5,24 +5,28 @@ import { AuthContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { pushCompletedWorkout, pushStrengthPRs } from "@/utils/sharing";
+import { displayToKg, displayToMetres, roundCanonical } from "@/utils/units";
 
 const saveCompletedWorkoutWithConversion = async (
   completedWorkoutData: SavedWorkout,
   weightUnit: string,
   distanceUnit: string,
 ) => {
-  const weightConversionFactor = weightUnit === "lbs" ? 0.45359237 : 1;
-  const distanceConversionFactor = distanceUnit === "ft" ? 0.3048 : 1;
-
+  // Rounded so the same input always stores the same value; see roundCanonical.
   const workoutDataConverted = {
     ...completedWorkoutData,
     exercises: completedWorkoutData.exercises.map((exercise) => ({
       ...exercise,
       sets: exercise.sets.map((set) => ({
         ...set,
-        weight: set.weight == null ? null : set.weight * weightConversionFactor,
+        weight:
+          set.weight == null
+            ? null
+            : roundCanonical(displayToKg(set.weight, weightUnit)),
         distance:
-          set.distance != null ? set.distance * distanceConversionFactor : null,
+          set.distance != null
+            ? roundCanonical(displayToMetres(set.distance, distanceUnit))
+            : null,
       })),
     })),
   };

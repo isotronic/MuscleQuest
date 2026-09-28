@@ -1,6 +1,7 @@
 import { useSaveCompletedWorkoutMutation } from "../useSaveCompletedWorkoutMutation";
 import { saveCompletedWorkout } from "@/utils/database";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { KG_PER_LB, M_PER_FT, roundCanonical } from "@/utils/units";
 
 jest.mock("react", () => ({
   ...jest.requireActual("react"),
@@ -118,7 +119,8 @@ describe("useSaveCompletedWorkoutMutation", () => {
         expect.objectContaining({
           sets: expect.arrayContaining([
             expect.objectContaining({
-              weight: expect.closeTo(100 * 0.45359237, 4),
+              // 45.359237, rounded for storage.
+              weight: roundCanonical(100 * KG_PER_LB),
             }),
           ]),
         }),
@@ -158,12 +160,37 @@ describe("useSaveCompletedWorkoutMutation", () => {
         expect.objectContaining({
           sets: expect.arrayContaining([
             expect.objectContaining({
-              distance: expect.closeTo(100 * 0.3048, 4),
+              distance: expect.closeTo(100 * M_PER_FT, 4),
             }),
           ]),
         }),
       ]),
     );
+  });
+
+  it("stores the same rounded kg value every time 225 lbs is saved", async () => {
+    const data = makeWorkoutData({
+      exercises: [
+        {
+          exercise_id: 100,
+          sets: [
+            { set_number: 1, weight: 225, reps: 5, time: null, distance: 10 },
+          ],
+        },
+      ],
+    });
+
+    useSaveCompletedWorkoutMutation("lbs", "ft");
+    await capturedArgs.mutationFn(data);
+    await capturedArgs.mutationFn(data);
+
+    const stored = (saveCompletedWorkout as jest.Mock).mock.calls.map(
+      (call) => call[5][0].sets[0],
+    );
+    // Unrounded, 225 lbs was stored as 102.05820832500001.
+    expect(stored[0].weight).toBe(102.058);
+    expect(stored[1].weight).toBe(stored[0].weight);
+    expect(stored[0].distance).toBe(3.048);
   });
 
   it("preserves null weight as null", async () => {
