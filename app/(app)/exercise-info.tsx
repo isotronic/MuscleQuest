@@ -21,6 +21,7 @@ import {
 } from "@/hooks/useExerciseHistoryQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { formatSetMetric } from "@/utils/formatSetMetric";
+import { kgToDisplay } from "@/utils/units";
 import Bugsnag from "@bugsnag/expo";
 import { AppIcon, AppImage } from "@/components/ui";
 import { Notes } from "@/components/Notes";
@@ -73,7 +74,6 @@ export default function ExerciseInfoScreen() {
   const { _ } = useLingui();
   const weightUnit = settings?.weightUnit ?? "kg";
   const distanceUnit = settings?.distanceUnit ?? "m";
-  const bwUnitMultiplier = weightUnit === "lbs" ? 2.2046226 : 1;
   // Fallback body weight in user's unit, used only when no historical measurement exists.
   const currentBodyWeight = Number(settings?.bodyWeight ?? 0);
 
@@ -372,12 +372,15 @@ export default function ExerciseInfoScreen() {
                     ...item,
                     weight:
                       item.weight != null
-                        ? item.weight * bwUnitMultiplier
+                        ? kgToDisplay(item.weight, weightUnit)
                         : null,
                   },
                   trackingType,
                   weightUnit,
-                  (item.hist_bw_kg ?? currentBodyWeight) * bwUnitMultiplier,
+                  // currentBodyWeight is already in the user's unit.
+                  item.hist_bw_kg != null
+                    ? kgToDisplay(item.hist_bw_kg, weightUnit)
+                    : currentBodyWeight,
                 )}
               </ThemedText>
             </View>
