@@ -29,11 +29,13 @@ import {
   saveBodyWeightMeasurement,
   fetchLatestBodyMetricValues,
   fetchCompletedWorkoutById,
+  fetchPRDataForExercises,
   createDatabaseSnapshot,
   checkDatabaseIntegrity,
 } from "../database";
 import { ProgressionRuleResult } from "@/types/progression";
 import { parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
+import { KG_PER_LB, displayToKg, roundCanonical } from "@/utils/units";
 
 // Undo the global mock from jestSetupFile.js so we can test the real implementation
 jest.unmock("@/utils/database");
@@ -1230,6 +1232,81 @@ describe("fetchLatestBodyMetricValues", () => {
 // ---------------------------------------------------------------------------
 // fetchCompletedWorkoutById
 // ---------------------------------------------------------------------------
+
+describe("fetchPRDataForExercises", () => {
+  // Mirrors the SQL: pm is the Epley 1RM, all_time_pr the max, rows by pm desc.
+  const prRows = (sets: { weight: number; date: string }[]) => {
+    const withPm = sets.map((set) => ({
+      ...set,
+      pm: set.weight * (1 + 5 / 30),
+    }));
+    const allTimePR = Math.max(...withPm.map((s) => s.pm));
+    return [...withPm]
+      .sort((a, b) => b.pm - a.pm)
+      .map((set, i) => ({
+        exercise_id: 7,
+        app_exercise_id: null,
+        exercise_name: "Bench Press",
+        tracking_type: "weight",
+        weight: set.weight,
+        reps: 5,
+        time: null,
+        distance: null,
+        date_completed: set.date,
+        pm: set.pm,
+        all_time_pr: allTimePR,
+        rn: i + 1,
+      }));
+  };
+
+  it("keeps the first date when 225 lbs is saved twice", async () => {
+    const saved = roundCanonical(displayToKg(225, "lbs"));
+    mockDb.getAllAsync.mockResolvedValue(
+      prRows([
+        { weight: saved, date: "2026-09-01" },
+        { weight: saved, date: "2026-09-08" },
+      ]),
+    );
+
+    const [pr] = await fetchPRDataForExercises([7]);
+
+    expect(pr.all_time_pr_date).toBe("2026-09-01");
+  });
+
+  it("keeps the first date when a legacy unrounded row ties a rounded one", async () => {
+    // 135 lbs saved before rounding, then again after. Rounding lands the new
+    // row a fraction of a gram heavier, which is not a new PR.
+    const legacy = 135 * KG_PER_LB;
+    const rounded = roundCanonical(displayToKg(135, "lbs"));
+    expect(rounded).toBeGreaterThan(legacy);
+    mockDb.getAllAsync.mockResolvedValue(
+      prRows([
+        { weight: legacy, date: "2026-09-01" },
+        { weight: rounded, date: "2026-09-08" },
+      ]),
+    );
+
+    const [pr] = await fetchPRDataForExercises([7]);
+
+    expect(pr.all_time_pr_date).toBe("2026-09-01");
+  });
+
+  it("moves the date when a later session is genuinely heavier", async () => {
+    mockDb.getAllAsync.mockResolvedValue(
+      prRows([
+        { weight: roundCanonical(displayToKg(135, "lbs")), date: "2026-09-01" },
+        {
+          weight: roundCanonical(displayToKg(135.5, "lbs")),
+          date: "2026-09-08",
+        },
+      ]),
+    );
+
+    const [pr] = await fetchPRDataForExercises([7]);
+
+    expect(pr.all_time_pr_date).toBe("2026-09-08");
+  });
+});
 
 describe("fetchCompletedWorkoutById", () => {
   it("includes the completed_exercises row id as completed_exercise_id", async () => {

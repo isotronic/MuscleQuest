@@ -20,6 +20,12 @@ import {
 import { computeLayoffReduction } from "@/utils/progressionEngine";
 import { nowForDb, parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
 import {
+  formatWeight,
+  isAtLeast,
+  kgToDisplay,
+  metresToDisplay,
+} from "@/utils/units";
+import {
   DEFAULT_BAR_WEIGHT_KG,
   DEFAULT_BAR_WEIGHT_LBS,
   DEFAULT_PLATE_INVENTORY_KG,
@@ -1204,8 +1210,6 @@ export const fetchCompletedWorkoutById = async (
       throw new Error("No workout found with the provided workoutId.");
     }
 
-    const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
-
     // Initialize the completed workout object
     const workout: CompletedWorkout = {
       id: result[0].id,
@@ -1256,16 +1260,14 @@ export const fetchCompletedWorkoutById = async (
             // Convert weight from kg to the user's unit
             const weightInKg = parseFloat(row.weight?.toString() || "0");
             const convertedWeight = parseFloat(
-              (weightInKg * conversionFactor).toFixed(1),
+              kgToDisplay(weightInKg, weightUnit).toFixed(1),
             );
 
             const distanceInMeters = parseFloat(
               row.distance?.toString() || "0",
             );
-            const distanceConversionFactor =
-              distanceUnit === "ft" ? 3.28084 : 1;
             const convertedDistance = parseFloat(
-              (distanceInMeters * distanceConversionFactor).toFixed(2),
+              metresToDisplay(distanceInMeters, distanceUnit).toFixed(2),
             );
 
             exercisesMap[row.completed_exercise_id!].sets.push({
@@ -1477,9 +1479,7 @@ export const fetchSettings = async (): Promise<Settings> => {
 
     // Convert bodyWeight to lbs if the unit setting is 'lbs'
     if (settings.bodyWeight && settings.weightUnit === "lbs") {
-      settings.bodyWeight = (Number(settings.bodyWeight) * 2.2046226).toFixed(
-        1,
-      ); // Convert kg to lbs
+      settings.bodyWeight = formatWeight(Number(settings.bodyWeight), "lbs");
     }
 
     return settings as Settings;
@@ -3900,9 +3900,11 @@ export const fetchPRDataForExercises = async (
         });
       }
       const entry = exerciseMap.get(row.exercise_id)!;
-      // Keep the earliest date where the all-time PR was achieved
+      // Keep the earliest date where the all-time PR was achieved. A legacy
+      // unrounded row and a rounded row of the same lift differ by float
+      // noise, and the older one should keep the date.
       if (
-        row.pm >= row.all_time_pr &&
+        isAtLeast(row.pm, row.all_time_pr) &&
         row.date_completed < entry.all_time_pr_date
       ) {
         entry.all_time_pr_date = row.date_completed;
