@@ -181,3 +181,45 @@ describe("groupMeasurementsByTime — unknown timeRange", () => {
     expect(groupMeasurementsByTime([pt("2026-05-01", 80)], "999")).toEqual([]);
   });
 });
+
+describe("groupMeasurementsByTime with a stored local_date", () => {
+  // Logged on Sunday 17 May, abroad; the instant now renders locally as
+  // Monday 18 May, the start of the next week. The stored day must win.
+  const travelled = {
+    recorded_at: new Date(2026, 4, 18, 12, 0, 0).toISOString(),
+    local_date: "2026-05-17",
+    displayValue: 74,
+  };
+
+  it("buckets a weekly point by its local_date, not by where the instant renders now", () => {
+    const filled = groupMeasurementsByTime([travelled], "30").filter(
+      (b) => b.hasData,
+    );
+
+    expect(filled).toHaveLength(1);
+    expect(filled[0].label).toBe("11 May");
+  });
+
+  it("buckets a monthly point by its local_date", () => {
+    const monthEdge = {
+      recorded_at: new Date(2026, 4, 1, 12, 0, 0).toISOString(),
+      local_date: "2026-04-30",
+      displayValue: 70,
+    };
+    const filled = groupMeasurementsByTime([monthEdge], "365").filter(
+      (b) => b.hasData,
+    );
+
+    expect(filled).toHaveLength(1);
+    expect(filled[0].label).toBe("Apr");
+  });
+
+  it("falls back to the instant when local_date is absent", () => {
+    const filled = groupMeasurementsByTime(
+      [{ ...travelled, local_date: null }],
+      "30",
+    ).filter((b) => b.hasData);
+
+    expect(filled[0].label).toBe("18 May");
+  });
+});

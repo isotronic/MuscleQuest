@@ -2437,7 +2437,9 @@ export const fetchLatestBodyMetricValues = async (
 export const fetchBodyMeasurementSessionsForChart = async (
   metricId: number,
   options: MeasurementDisplayOptions,
-): Promise<{ recorded_at: string; displayValue: number }[]> => {
+): Promise<
+  { recorded_at: string; local_date: string | null; displayValue: number }[]
+> => {
   let db: SQLite.SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
@@ -2448,15 +2450,16 @@ export const fetchBodyMeasurementSessionsForChart = async (
     if (!metricRow) return [];
     const metric = rowToMetricDefinition(metricRow);
     const rows = (await db.getAllAsync(
-      `SELECT bme.recorded_at, bmv.value
+      `SELECT bme.recorded_at, bme.local_date, bmv.value
        FROM body_measurement_values bmv
        JOIN body_measurement_entries bme ON bme.id = bmv.entry_id
        WHERE bmv.metric_id = ?
        ORDER BY bme.recorded_at ASC`,
       [metricId],
-    )) as { recorded_at: string; value: number }[];
+    )) as { recorded_at: string; local_date: string | null; value: number }[];
     return rows.map((row) => ({
       recorded_at: row.recorded_at,
+      local_date: row.local_date,
       displayValue: toDisplayValue(row.value, metric.value_kind, options)
         .displayValue,
     }));

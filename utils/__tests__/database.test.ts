@@ -25,6 +25,7 @@ import {
   updateStandaloneWorkout,
   fetchBodyMeasurementSessions,
   insertBodyMeasurementSession,
+  fetchBodyMeasurementSessionsForChart,
   saveBodyWeightMeasurement,
   fetchLatestBodyMetricValues,
   fetchCompletedWorkoutById,
@@ -379,6 +380,36 @@ describe("local_date on new writes", () => {
     expect(entryInsert![0]).toContain("local_date");
     const [recordedAt, localDate] = entryInsert![1] as string[];
     expect(localDate).toBe(toLocalDateKey(parseDbTimestamp(recordedAt)));
+  });
+});
+
+describe("fetchBodyMeasurementSessionsForChart", () => {
+  it("returns each point's stored local_date so the chart buckets by the day it was logged", async () => {
+    mockDb.getFirstAsync.mockResolvedValue({
+      id: 1,
+      key: "waist",
+      label: "Waist",
+      value_kind: "length",
+      is_builtin: 1,
+      is_active: 1,
+      is_deleted: 0,
+      sort_order: 0,
+    });
+    mockDb.getAllAsync.mockResolvedValue([
+      {
+        recorded_at: "2026-05-18T10:00:00.000Z",
+        local_date: "2026-05-17",
+        value: 80,
+      },
+    ]);
+
+    const points = await fetchBodyMeasurementSessionsForChart(1, {
+      weightUnit: "kg",
+      sizeUnit: "cm",
+    } as any);
+
+    expect(mockDb.getAllAsync.mock.calls[0][0]).toContain("local_date");
+    expect(points[0].local_date).toBe("2026-05-17");
   });
 });
 
