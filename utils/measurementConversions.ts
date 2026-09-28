@@ -1,3 +1,11 @@
+import {
+  cmToDisplay,
+  displayToCm,
+  displayToKg,
+  kgToDisplay,
+  roundCanonical,
+} from "./units";
+
 export type ValueKind = "mass" | "length" | "percent";
 
 export interface MeasurementDisplayOptions {
@@ -14,7 +22,9 @@ export function toDisplayValue(
     case "mass":
       if (options.weightUnit === "lbs") {
         return {
-          displayValue: parseFloat((canonicalValue * 2.2046226).toFixed(1)),
+          displayValue: parseFloat(
+            kgToDisplay(canonicalValue, "lbs").toFixed(1),
+          ),
           displayUnit: "lbs",
         };
       }
@@ -25,7 +35,9 @@ export function toDisplayValue(
     case "length":
       if (options.sizeUnit === "in") {
         return {
-          displayValue: parseFloat((canonicalValue / 2.54).toFixed(1)),
+          displayValue: parseFloat(
+            cmToDisplay(canonicalValue, "in").toFixed(1),
+          ),
           displayUnit: "in",
         };
       }
@@ -51,12 +63,12 @@ export function toCanonicalValue(
   switch (value_kind) {
     case "mass":
       if (options.weightUnit === "lbs") {
-        return parseFloat((displayValue * 0.45359237).toFixed(4));
+        return roundCanonical(displayToKg(displayValue, "lbs"));
       }
       return displayValue;
     case "length":
       if (options.sizeUnit === "in") {
-        return parseFloat((displayValue * 2.54).toFixed(4));
+        return roundCanonical(displayToCm(displayValue, "in"));
       }
       return displayValue;
     case "percent":

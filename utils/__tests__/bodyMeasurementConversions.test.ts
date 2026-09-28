@@ -2,6 +2,7 @@ import {
   toDisplayValue,
   toCanonicalValue,
 } from "@/utils/measurementConversions";
+import { CM_PER_IN, KG_PER_LB, roundCanonical } from "@/utils/units";
 
 const kg: { weightUnit: "kg" | "lbs"; sizeUnit: "cm" | "in" } = {
   weightUnit: "kg",
@@ -22,7 +23,7 @@ describe("toDisplayValue", () => {
 
     it("converts kg to lbs", () => {
       expect(toDisplayValue(80, "mass", lbs)).toEqual({
-        displayValue: parseFloat((80 * 2.2046226).toFixed(1)),
+        displayValue: parseFloat((80 / KG_PER_LB).toFixed(1)),
         displayUnit: "lbs",
       });
     });
@@ -52,7 +53,7 @@ describe("toDisplayValue", () => {
 
     it("converts cm to inches", () => {
       expect(toDisplayValue(25.4, "length", inches)).toEqual({
-        displayValue: parseFloat((25.4 / 2.54).toFixed(1)),
+        displayValue: parseFloat((25.4 / CM_PER_IN).toFixed(1)),
         displayUnit: "in",
       });
     });
@@ -101,14 +102,15 @@ describe("toCanonicalValue", () => {
 
     it("converts lbs to kg", () => {
       expect(toCanonicalValue(176.4, "mass", lbs)).toBeCloseTo(
-        176.4 * 0.45359237,
+        176.4 * KG_PER_LB,
         3,
       );
     });
 
-    it("rounds canonical mass to 4 decimal places", () => {
+    it("rounds canonical mass the same way as workout weights", () => {
       const result = toCanonicalValue(100, "mass", lbs);
-      expect(result).toBe(parseFloat((100 * 0.45359237).toFixed(4)));
+      expect(result).toBe(roundCanonical(100 * KG_PER_LB));
+      expect(result).toBe(45.359);
     });
   });
 
@@ -121,9 +123,9 @@ describe("toCanonicalValue", () => {
       expect(toCanonicalValue(10, "length", inches)).toBeCloseTo(25.4, 3);
     });
 
-    it("rounds canonical length to 4 decimal places", () => {
+    it("rounds canonical length the same way as workout weights", () => {
       const result = toCanonicalValue(7, "length", inches);
-      expect(result).toBe(parseFloat((7 * 2.54).toFixed(4)));
+      expect(result).toBe(roundCanonical(7 * CM_PER_IN));
     });
   });
 
