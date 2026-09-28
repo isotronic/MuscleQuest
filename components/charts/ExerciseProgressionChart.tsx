@@ -19,6 +19,7 @@ import {
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { localDateKeyToDate } from "@/utils/dates";
+import { kgToDisplay } from "@/utils/units";
 
 interface ExerciseProgressionChartProps {
   exercise: TrackedExerciseWithSets;
@@ -241,7 +242,8 @@ export const ExerciseProgressionChart: React.FC<
   const chartTheme = useChartTheme();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
+  // kg to display is linear, so the factor is what 1 kg displays as.
+  const conversionFactor = kgToDisplay(1, weightUnit);
 
   // Only weight and null (default weight) exercises have two meaningful metrics
   const showMetricToggle =
