@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
+import { isAtLeast } from "@/utils/units";
 
 export interface HistorySet {
   id: number;
@@ -166,10 +167,12 @@ const fetchExerciseHistoryBody = async (
         sets: [],
       });
     }
+    // Tolerant, so a legacy unrounded row that ties a rounded one still
+    // shows the trophy.
     const isPR =
       allTimePR !== null &&
       row.progression_metric !== null &&
-      row.progression_metric >= allTimePR;
+      isAtLeast(row.progression_metric, allTimePR);
     sectionMap.get(key)!.sets.push({
       id: row.id,
       set_number: row.set_number,

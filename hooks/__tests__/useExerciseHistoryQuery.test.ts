@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import { useExerciseHistoryQuery } from "../useExerciseHistoryQuery";
 import Bugsnag from "@bugsnag/expo";
+import { KG_PER_LB, roundCanonical } from "@/utils/units";
 
 jest.mock("@/utils/database", () => ({ openDatabase: jest.fn() }));
 jest.mock("@bugsnag/expo", () => ({
@@ -134,6 +135,24 @@ describe("useExerciseHistoryQuery — queryFn", () => {
     ]);
     const result = await capturedArgs.queryFn();
     expect(result.sections[0].data[0].is_pr).toBe(true);
+  });
+
+  it("marks a legacy unrounded set as is_pr when it ties a rounded max", async () => {
+    // 135 lbs x5 saved before rounding and again after. Rounding lands the
+    // new row a fraction of a gram heavier, so it holds the all-time max.
+    const epley = (kg: number) => kg * (1 + 5 / 30);
+    const legacy = epley(135 * KG_PER_LB);
+    const rounded = epley(roundCanonical(135 * KG_PER_LB));
+    expect(legacy).toBeLessThan(rounded);
+    mockDb.getAllAsync.mockResolvedValue([
+      makeRow({ id: 1, progression_metric: legacy, all_time_pr: rounded }),
+      makeRow({ id: 2, progression_metric: rounded, all_time_pr: rounded }),
+    ]);
+    const result = await capturedArgs.queryFn();
+    expect(result.sections[0].data.map((s: any) => s.is_pr)).toEqual([
+      true,
+      true,
+    ]);
   });
 
   it("marks a set as not is_pr when progression_metric is below all_time_pr", async () => {
