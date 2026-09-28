@@ -270,19 +270,24 @@ export default function SettingsScreen() {
           console.error("Failed to reschedule workout reminders:", err);
         });
       } else if (currentSettingKey === "bodyWeight") {
-        // Rounded to 0.1 kg, 180 lbs came back as 179.9 lbs.
-        const bodyWeightInKg = roundCanonical(
-          displayToKg(inputValue as number, settings?.weightUnit ?? "kg"),
-        );
+        // The field opens on the stored weight rounded for display. Saved
+        // unchanged, that would overwrite the precise kg value and log a
+        // duplicate measurement, so only an edited value is written.
+        if (Number(inputValue) !== Number(settings?.bodyWeight)) {
+          // Rounded to 0.1 kg, 180 lbs came back as 179.9 lbs.
+          const bodyWeightInKg = roundCanonical(
+            displayToKg(inputValue as number, settings?.weightUnit ?? "kg"),
+          );
 
-        // Dual-write to body_measurements (legacy) and new measurement tables
-        await saveBodyWeightMeasurement(bodyWeightInKg);
+          // Dual-write to body_measurements (legacy) and new measurement tables
+          await saveBodyWeightMeasurement(bodyWeightInKg);
 
-        // Save the body weight setting (React Query cache invalidation)
-        updateSetting({
-          key: currentSettingKey as string,
-          value: bodyWeightInKg.toString(), // canonical kg
-        });
+          // Save the body weight setting (React Query cache invalidation)
+          updateSetting({
+            key: currentSettingKey as string,
+            value: bodyWeightInKg.toString(), // canonical kg
+          });
+        }
       } else {
         updateSetting({
           key: currentSettingKey as string,
