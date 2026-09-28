@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { format } from "date-fns";
+import { localDateKeyToDate } from "@/utils/dates";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { Plural } from "@lingui/react/macro";
 import { formatToHoursMinutes } from "@/utils/utility";
@@ -30,7 +31,10 @@ function WorkoutHistoryCard({
     : workout.total_sets_completed;
 
   const durationFormatted = formatToHoursMinutes(workout.duration);
-  const dateLabel = format(new Date(workout.date_completed), "EEE, d MMM");
+  const dateLabel = format(
+    localDateKeyToDate(workout.local_date),
+    "EEE, d MMM",
+  );
   const isVertical = variant === "vertical";
 
   return (

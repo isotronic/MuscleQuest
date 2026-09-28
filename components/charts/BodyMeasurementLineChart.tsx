@@ -6,11 +6,22 @@ import { LineChart } from "react-native-gifted-charts";
 import { useChartTheme } from "./chartTheme";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { localDateKeyToDate, parseDbTimestamp } from "@/utils/dates";
 
 interface DataPoint {
   recorded_at: string;
+  /** The day the measurement was logged on, when stored. */
+  local_date?: string | null;
   displayValue: number;
 }
+
+// The calendar day a point belongs to: its stored local_date, so the chart does
+// not move a measurement when the viewer is in another timezone. Rows from
+// before the column existed fall back to the instant.
+const pointDate = (pt: DataPoint): Date =>
+  pt.local_date
+    ? localDateKeyToDate(pt.local_date)
+    : parseDbTimestamp(pt.recorded_at);
 
 interface BodyMeasurementLineChartProps {
   data: DataPoint[];
@@ -62,10 +73,7 @@ export const groupMeasurementsByTime = (
     }
 
     for (const pt of points) {
-      const iso = pt.recorded_at.includes("T")
-        ? pt.recorded_at
-        : pt.recorded_at.replace(" ", "T");
-      const d = new Date(iso);
+      const d = pointDate(pt);
       const weekStart = new Date(d);
       weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
       const internalKey = `${weekStart.getFullYear()}-${weekStart.getMonth()}-${weekStart.getDate()}`;
@@ -104,10 +112,7 @@ export const groupMeasurementsByTime = (
     }
 
     for (const pt of points) {
-      const iso = pt.recorded_at.includes("T")
-        ? pt.recorded_at
-        : pt.recorded_at.replace(" ", "T");
-      const d = new Date(iso);
+      const d = pointDate(pt);
       const internalKey = `${d.getFullYear()}-${d.getMonth()}`;
       const idx = keyToIndex.get(internalKey);
       if (idx !== undefined) {
@@ -123,10 +128,8 @@ export const groupMeasurementsByTime = (
   if (timeRange === "0") {
     if (points.length === 0) return [];
 
-    const parseTs = (s: string) =>
-      new Date(s.includes("T") ? s : s.replace(" ", "T"));
-    const earliest = parseTs(points[0].recorded_at);
-    const latest = parseTs(points[points.length - 1].recorded_at);
+    const earliest = pointDate(points[0]);
+    const latest = pointDate(points[points.length - 1]);
     const spanYears =
       (latest.getTime() - earliest.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
 
@@ -189,7 +192,7 @@ export const groupMeasurementsByTime = (
     }
 
     for (const pt of points) {
-      const internalKey = getKey(parseTs(pt.recorded_at));
+      const internalKey = getKey(pointDate(pt));
       const idx = keyToIndex.get(internalKey);
       if (idx !== undefined) {
         buckets[idx].value = pt.displayValue;

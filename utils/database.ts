@@ -18,6 +18,7 @@ import {
   UserProgressionIncrements,
 } from "@/types/progression";
 import { computeLayoffReduction } from "@/utils/progressionEngine";
+import { nowForDb, parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
 import {
   DEFAULT_BAR_WEIGHT_KG,
   DEFAULT_BAR_WEIGHT_LBS,
@@ -1040,9 +1041,20 @@ export const saveCompletedWorkout = async (
 
   try {
     await db.withExclusiveTransactionAsync(async (txn) => {
+      // date_completed is the instant (UTC, ISO with an explicit Z); local_date is
+      // the training day the workout counts towards. See utils/dates.ts.
+      const { utc, localDate } = nowForDb();
       const completedWorkoutResult = await txn.runAsync(
-        `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, duration, total_sets_completed, is_deload) VALUES (?, ?, datetime('now'), ?, ?, ?)`,
-        [planId, workoutId, duration, totalSetsCompleted, isDeload ? 1 : 0],
+        `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, local_date, duration, total_sets_completed, is_deload) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          planId,
+          workoutId,
+          utc,
+          localDate,
+          duration,
+          totalSetsCompleted,
+          isDeload ? 1 : 0,
+        ],
       );
 
       completedWorkoutId = completedWorkoutResult.lastInsertRowId;
@@ -1119,6 +1131,7 @@ interface CompletedWorkoutRow {
   workout_name: string;
   is_deload: number;
   date_completed: string;
+  local_date: string | null;
   duration: number;
   total_sets_completed: number;
   completed_exercise_id: number | null;
@@ -1155,6 +1168,7 @@ export const fetchCompletedWorkoutById = async (
         cw.workout_id as workout_id,
         COALESCE(uw.name, 'Quick Workout') as workout_name,
         cw.date_completed,
+        cw.local_date,
         cw.duration,
         cw.total_sets_completed,
         cw.is_deload,
@@ -1199,6 +1213,9 @@ export const fetchCompletedWorkoutById = async (
       plan_id: result[0].plan_id,
       workout_name: result[0]?.workout_name || "",
       date_completed: result[0]?.date_completed || "",
+      local_date:
+        result[0]?.local_date ||
+        toLocalDateKey(parseDbTimestamp(result[0]?.date_completed || "")),
       duration: result[0]?.duration || 0,
       total_sets_completed: result[0]?.total_sets_completed || 0,
       is_deload: result[0]?.is_deload ?? 0,
@@ -2420,7 +2437,9 @@ export const fetchLatestBodyMetricValues = async (
 export const fetchBodyMeasurementSessionsForChart = async (
   metricId: number,
   options: MeasurementDisplayOptions,
-): Promise<{ recorded_at: string; displayValue: number }[]> => {
+): Promise<
+  { recorded_at: string; local_date: string | null; displayValue: number }[]
+> => {
   let db: SQLite.SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
@@ -2431,15 +2450,16 @@ export const fetchBodyMeasurementSessionsForChart = async (
     if (!metricRow) return [];
     const metric = rowToMetricDefinition(metricRow);
     const rows = (await db.getAllAsync(
-      `SELECT bme.recorded_at, bmv.value
+      `SELECT bme.recorded_at, bme.local_date, bmv.value
        FROM body_measurement_values bmv
        JOIN body_measurement_entries bme ON bme.id = bmv.entry_id
        WHERE bmv.metric_id = ?
        ORDER BY bme.recorded_at ASC`,
       [metricId],
-    )) as { recorded_at: string; value: number }[];
+    )) as { recorded_at: string; local_date: string | null; value: number }[];
     return rows.map((row) => ({
       recorded_at: row.recorded_at,
+      local_date: row.local_date,
       displayValue: toDisplayValue(row.value, metric.value_kind, options)
         .displayValue,
     }));
@@ -2465,8 +2485,8 @@ export const insertBodyMeasurementSession = async (
     let entryId = 0;
     await db.withExclusiveTransactionAsync(async (txn) => {
       const result = await txn.runAsync(
-        `INSERT INTO body_measurement_entries (recorded_at) VALUES (?)`,
-        [recorded_at],
+        `INSERT INTO body_measurement_entries (recorded_at, local_date) VALUES (?, ?)`,
+        [recorded_at, toLocalDateKey(parseDbTimestamp(recorded_at))],
       );
       entryId = result.lastInsertRowId;
       for (const v of values) {
@@ -2666,7 +2686,7 @@ export const saveBodyWeightMeasurement = async (
   let db: SQLite.SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
-    const now = new Date().toISOString();
+    const { utc: now, localDate } = nowForDb();
     // Legacy table — keeps useExerciseHistoryQuery.ts working unchanged
     await db.runAsync(
       `INSERT INTO body_measurements (date, body_weight) VALUES (?, ?)`,
@@ -2678,8 +2698,8 @@ export const saveBodyWeightMeasurement = async (
     );
     if (weightMetric) {
       const result = await db.runAsync(
-        `INSERT INTO body_measurement_entries (recorded_at) VALUES (?)`,
-        [now],
+        `INSERT INTO body_measurement_entries (recorded_at, local_date) VALUES (?, ?)`,
+        [now, localDate],
       );
       await db.runAsync(
         `INSERT INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
@@ -3851,7 +3871,7 @@ export const fetchPRDataForExercises = async (
        SELECT
          e.exercise_id, e.app_exercise_id, e.name AS exercise_name, e.tracking_type,
          cs.weight, cs.reps, cs.time, cs.distance,
-         DATE(cw.date_completed) AS date_completed,
+         cw.local_date AS date_completed,
          ${pmExpr} AS pm,
          MAX(${pmExpr}) OVER (PARTITION BY e.exercise_id) AS all_time_pr,
          ROW_NUMBER() OVER (PARTITION BY e.exercise_id ORDER BY ${pmExpr} DESC) AS rn

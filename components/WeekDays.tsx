@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
+import { toLocalDateKey } from "@/utils/dates";
 import { ThemedText } from "./ThemedText";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useAppTheme, radii } from "@/theme";
@@ -27,8 +28,9 @@ export default function WeekDays({
     <View style={styles.container}>
       {days.map((day, index) => {
         const isToday = isSameDay(day, today);
-        const completedOnDay = completedWorkoutsThisWeek?.filter((workout) =>
-          isSameDay(new Date(workout.date_completed), day),
+        const dayKey = toLocalDateKey(day);
+        const completedOnDay = completedWorkoutsThisWeek?.filter(
+          (workout) => workout.local_date === dayKey,
         );
         const isWorkoutCompleted = !!completedOnDay?.length;
         const isScheduledIncomplete =

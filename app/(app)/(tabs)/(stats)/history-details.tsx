@@ -12,7 +12,8 @@ import {
   useFocusEffect,
 } from "expo-router";
 import { byteArrayToBase64, formatToHoursMinutes } from "@/utils/utility";
-import { parseISO, format } from "date-fns";
+import { format } from "date-fns";
+import { parseDbTimestamp } from "@/utils/dates";
 import { AppIcon, AppImage } from "@/components/ui";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { fetchCompletedWorkoutById } from "@/utils/database";
@@ -135,8 +136,7 @@ export default function HistoryDetailsScreen() {
     return null;
   }
 
-  const isoDateString = workout.date_completed.replace(" ", "T");
-  const parsedDate = parseISO(isoDateString);
+  const parsedDate = parseDbTimestamp(workout.date_completed);
   const formattedDate = format(parsedDate, "dd/MM/yyyy 'at' HH:mm");
 
   return (

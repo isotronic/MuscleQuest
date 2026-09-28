@@ -18,6 +18,7 @@ import {
 } from "@/hooks/useTrackedExercisesQuery";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
+import { localDateKeyToDate } from "@/utils/dates";
 
 interface ExerciseProgressionChartProps {
   exercise: TrackedExerciseWithSets;
@@ -35,7 +36,7 @@ type Bucket = {
   hasData: boolean;
 };
 
-const groupSetsByTime = (
+export const groupSetsByTime = (
   completedSets: CompletedSet[],
   timeRange: string,
   trackingType: string | null,
@@ -80,7 +81,7 @@ const groupSetsByTime = (
     }
 
     completedSets.forEach((set) => {
-      const setDate = new Date(set.date_completed);
+      const setDate = localDateKeyToDate(set.date_completed);
       const weekStart = new Date(setDate);
       weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
       const internalKey = `${weekStart.getFullYear()}-${weekStart.getMonth()}-${weekStart.getDate()}`;
@@ -122,7 +123,7 @@ const groupSetsByTime = (
     }
 
     completedSets.forEach((set) => {
-      const setDate = new Date(set.date_completed);
+      const setDate = localDateKeyToDate(set.date_completed);
       const internalKey = `${setDate.getFullYear()}-${setDate.getMonth()}`;
       const metric = toMetric(set.progressionMetric);
       const idx = keyToIndex.get(internalKey);
@@ -142,10 +143,10 @@ const groupSetsByTime = (
   if (timeRange === "0") {
     if (completedSets.length === 0) return [];
 
-    const earliest = new Date(
+    const earliest = localDateKeyToDate(
       completedSets[completedSets.length - 1].date_completed,
     );
-    const latestCompleted = new Date(completedSets[0].date_completed);
+    const latestCompleted = localDateKeyToDate(completedSets[0].date_completed);
     const spanYears =
       (latestCompleted.getTime() - earliest.getTime()) /
       (1000 * 60 * 60 * 24 * 365.25);
@@ -209,7 +210,7 @@ const groupSetsByTime = (
     }
 
     completedSets.forEach((set) => {
-      const internalKey = getKey(new Date(set.date_completed));
+      const internalKey = getKey(localDateKeyToDate(set.date_completed));
       const metric = toMetric(set.progressionMetric);
       const idx = keyToIndex.get(internalKey);
       if (
@@ -448,7 +449,11 @@ export const ExerciseProgressionChart: React.FC<
               {exercise.tracking_type === "time" &&
                 latestSet.time !== undefined &&
                 t`for ${latestSet.time}s `}
-              ({new Date(latestSet.date_completed).toLocaleDateString()})
+              (
+              {localDateKeyToDate(
+                latestSet.date_completed,
+              ).toLocaleDateString()}
+              )
             </ThemedText>
           </>
         )}

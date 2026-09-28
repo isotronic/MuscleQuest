@@ -27,6 +27,7 @@ import {
   fetchAllCustomExercisesForSharing,
 } from "./database";
 import type { Exercise } from "./database";
+import { localDateKeyToDate, parseDbTimestamp } from "@/utils/dates";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -326,7 +327,7 @@ export const pushCompletedWorkout = async (
       localWorkoutId: completedWorkoutId,
       planName: data.plan_name ?? null,
       workoutName: data.workout_name ?? null,
-      dateCompleted: Timestamp.fromDate(new Date(data.date_completed)),
+      dateCompleted: Timestamp.fromDate(parseDbTimestamp(data.date_completed)),
       durationSeconds: data.duration,
       totalSetsCompleted: data.total_sets_completed,
       isDeload: !!data.is_deload,
@@ -368,7 +369,7 @@ export const pushBodyMeasurement = async (
     const db = getFirestore();
     const payload = {
       localEntryId: entryId,
-      recordedAt: Timestamp.fromDate(new Date(data.recorded_at)),
+      recordedAt: Timestamp.fromDate(parseDbTimestamp(data.recorded_at)),
       values: data.values,
     };
 
@@ -411,13 +412,15 @@ export const pushStrengthPRs = async (
           appExerciseId: pr.app_exercise_id,
           trackingType: pr.tracking_type,
           allTimePR: pr.all_time_pr,
-          allTimePRDate: Timestamp.fromDate(new Date(pr.all_time_pr_date)),
+          allTimePRDate: Timestamp.fromDate(
+            localDateKeyToDate(pr.all_time_pr_date),
+          ),
           topPRSets: pr.top_sets.map((s) => ({
             weight: s.weight,
             reps: s.reps,
             time: s.time,
             distance: s.distance,
-            date: Timestamp.fromDate(new Date(s.date_completed)),
+            date: Timestamp.fromDate(localDateKeyToDate(s.date_completed)),
           })),
         };
 

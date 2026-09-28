@@ -26,27 +26,22 @@ import { BodyMeasurementSession } from "@/utils/database";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { parseDbTimestamp } from "@/utils/dates";
 
 const DECIMAL_SEP =
   new Intl.NumberFormat().formatToParts(1.1).find((p) => p.type === "decimal")
     ?.value ?? ".";
-
-function parseDbDate(recorded_at: string): Date {
-  return new Date(
-    recorded_at.includes("T") ? recorded_at : recorded_at.replace(" ", "T"),
-  );
-}
 
 function formatEntryDate(recorded_at: string): string {
   return new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(parseDbDate(recorded_at));
+  }).format(parseDbTimestamp(recorded_at));
 }
 
 function formatHistoryDate(recorded_at: string): string {
-  const date = parseDbDate(recorded_at);
+  const date = parseDbTimestamp(recorded_at);
   return new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",
@@ -328,7 +323,7 @@ export default function MeasurementsScreen() {
             <Calendar
               onDayPress={handleDayPress}
               markedDates={{
-                [format(parseDbDate(entryDate), "yyyy-MM-dd")]: {
+                [format(parseDbTimestamp(entryDate), "yyyy-MM-dd")]: {
                   selected: true,
                   selectedColor: colors.accent,
                 },

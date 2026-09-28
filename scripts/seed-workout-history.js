@@ -25,6 +25,10 @@ const SEED_KEY = "dev_seeded_workout_ids";
 const EXERCISES_PER_WORKOUT = 8;
 const SETS_PER_EXERCISE = 4;
 
+// Mirrors toLocalDateKey in utils/dates.ts: the local calendar day, YYYY-MM-DD.
+const localDateKey = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
 // Columns the INSERTs below write. Several arrive via ALTER TABLE migrations in
 // initUserDataDB rather than the original CREATE TABLE, so a database pulled
 // from an install that has not run a recent build can be missing them.
@@ -33,6 +37,7 @@ const REQUIRED_COLUMNS = {
     "plan_id",
     "workout_id",
     "date_completed",
+    "local_date",
     "duration",
     "total_sets_completed",
     "is_deleted",
@@ -196,8 +201,8 @@ function seed(db, workoutCount) {
 
   const insertWorkout = db.prepare(
     `INSERT INTO completed_workouts
-       (plan_id, workout_id, date_completed, duration, total_sets_completed, is_deleted)
-     VALUES (?, ?, ?, ?, ?, 0)`,
+       (plan_id, workout_id, date_completed, local_date, duration, total_sets_completed, is_deleted)
+     VALUES (?, ?, ?, ?, ?, ?, 0)`,
   );
   const insertExercise = db.prepare(
     `INSERT INTO completed_exercises
@@ -224,7 +229,9 @@ function seed(db, workoutCount) {
       const workoutResult = insertWorkout.run(
         template.plan_id ?? null,
         template.id,
-        date.toISOString().replace("T", " ").slice(0, 19),
+        // The same pair the app writes: the UTC instant and the local day.
+        date.toISOString(),
+        localDateKey(date),
         3000 + ((i * 37) % 1800),
         EXERCISES_PER_WORKOUT * SETS_PER_EXERCISE,
       );

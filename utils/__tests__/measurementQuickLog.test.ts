@@ -28,15 +28,14 @@ const WEIGHT = metric({
 const WAIST = metric({ id: 2, key: "waist", label: "Waist", sort_order: 2 });
 const CHEST = metric({ id: 3, key: "chest", label: "Chest", sort_order: 4 });
 
-const pad = (n: number) => String(n).padStart(2, "0");
-
 /**
- * Builds the naive local-time string SQLite hands back. Fixtures must be
- * local, not UTC: "logged yesterday" is a local-calendar question, so a UTC
- * fixture would make these tests pass or fail depending on the machine.
+ * The stored value for a measurement logged at a given *local* time. The column
+ * holds a UTC instant, so the fixture converts: "logged yesterday" is a
+ * local-calendar question, and encoding the local wall clock directly would
+ * only read back correctly on a machine sitting at UTC.
  */
 const localStamp = (day: number, hour: number, minute = 0) =>
-  `2026-09-${pad(day)}T${pad(hour)}:${pad(minute)}:00`;
+  new Date(2026, 8, day, hour, minute, 0).toISOString();
 
 const latest = (
   metric: BodyMetricDefinition,

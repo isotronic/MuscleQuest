@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
+import { toLocalDateKey } from "@/utils/dates";
 
 interface WorkoutResult {
   id: number;
@@ -10,6 +11,7 @@ interface WorkoutResult {
   workout_name: string | null;
   is_deload: number;
   date_completed: string;
+  local_date: string;
   duration: number;
   total_sets_completed: number;
   completed_exercise_id: number;
@@ -34,7 +36,10 @@ export interface CompletedWorkout {
   workout_id: number;
   plan_id: number;
   workout_name: string;
+  /** The UTC instant the workout finished. Parse with parseDbTimestamp. */
   date_completed: string;
+  /** The device-local calendar day it counts towards, "YYYY-MM-DD". */
+  local_date: string;
   duration: number;
   total_sets_completed: number;
   is_deload?: number;
@@ -76,6 +81,7 @@ const fetchCompletedWorkouts = async (
         completed_workouts.workout_id,
         user_workouts.name AS workout_name,
         completed_workouts.date_completed,
+        completed_workouts.local_date,
         completed_workouts.duration,
         completed_workouts.total_sets_completed,
         completed_exercises.id as completed_exercise_id,
@@ -109,11 +115,19 @@ const fetchCompletedWorkouts = async (
 
     const params: (string | number)[] = [];
     query += ` WHERE completed_workouts.is_deleted = FALSE`;
+    // Both branches filter on local_date, the training day. date('now') is UTC
+    // and date_completed is a UTC instant, so filtering on either put a
+    // late-evening or early-morning workout in the wrong period.
     if (startDate && endDate) {
-      query += ` AND date_completed BETWEEN ? AND ?`;
+      // Both bounds are inclusive plain date keys, so a workout logged at any
+      // time on the end day is counted.
+      query += ` AND completed_workouts.local_date BETWEEN ? AND ?`;
       params.push(startDate, endDate);
     } else if (timeRange > 0) {
-      query += ` AND date_completed >= date('now', '-${timeRange} days')`;
+      const from = new Date();
+      from.setDate(from.getDate() - timeRange);
+      query += ` AND completed_workouts.local_date >= ?`;
+      params.push(toLocalDateKey(from));
     }
 
     query += `
@@ -158,6 +172,7 @@ const fetchAndOrganize = async (
         plan_id,
         workout_name,
         date_completed,
+        local_date,
         duration,
         total_sets_completed,
         completed_exercise_id,
@@ -185,6 +200,7 @@ const fetchAndOrganize = async (
           plan_id,
           workout_name: workout_name ?? QUICK_WORKOUT_FALLBACK,
           date_completed,
+          local_date,
           duration,
           total_sets_completed,
           is_deload: item.is_deload ?? 0,
@@ -257,6 +273,9 @@ export const useCompletedWorkoutsQuery = (
   });
 };
 
+// The window of the same size immediately before the current period, as
+// inclusive local date keys. toISOString() would give the UTC day, which is
+// the wrong day for anyone far enough from UTC.
 const getPreviousPeriodDates = (
   days: number,
 ): { startDate: string; endDate: string } => {
@@ -265,8 +284,8 @@ const getPreviousPeriodDates = (
   const startDate = new Date(endDate);
   startDate.setDate(startDate.getDate() - days);
   return {
-    startDate: startDate.toISOString().split("T")[0],
-    endDate: endDate.toISOString().split("T")[0],
+    startDate: toLocalDateKey(startDate),
+    endDate: toLocalDateKey(endDate),
   };
 };
 
@@ -315,6 +334,7 @@ const fetchWorkoutHistoryForSession = async (
         cw.workout_id,
         uw.name AS workout_name,
         cw.date_completed,
+        cw.local_date,
         cw.duration,
         cw.total_sets_completed,
         cw.is_deload,
@@ -366,6 +386,7 @@ const fetchWorkoutHistoryForSession = async (
         plan_id,
         workout_name,
         date_completed,
+        local_date,
         duration,
         total_sets_completed,
         completed_exercise_id,
@@ -389,6 +410,7 @@ const fetchWorkoutHistoryForSession = async (
           plan_id,
           workout_name: workout_name ?? QUICK_WORKOUT_FALLBACK,
           date_completed,
+          local_date,
           duration,
           total_sets_completed,
           is_deload: item.is_deload ?? 0,
@@ -480,6 +502,7 @@ const fetchGlobalExerciseHistoryForSession = async (
         cw.workout_id,
         uw.name AS workout_name,
         cw.date_completed,
+        cw.local_date,
         cw.duration,
         cw.total_sets_completed,
         ce.id as completed_exercise_id,
@@ -537,6 +560,7 @@ const fetchGlobalExerciseHistoryForSession = async (
         plan_id,
         workout_name,
         date_completed,
+        local_date,
         duration,
         total_sets_completed,
         completed_exercise_id,
@@ -560,6 +584,7 @@ const fetchGlobalExerciseHistoryForSession = async (
           plan_id,
           workout_name: workout_name ?? QUICK_WORKOUT_FALLBACK,
           date_completed,
+          local_date,
           duration,
           total_sets_completed,
           is_deload: item.is_deload ?? 0,

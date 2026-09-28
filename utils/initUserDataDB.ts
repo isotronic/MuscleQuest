@@ -1,4 +1,5 @@
 import { openDatabase } from "./database";
+import { parseDbTimestamp, toLocalDateKey } from "./dates";
 
 export async function initUserDataDB() {
   const db = await openDatabase("userData.db");
@@ -522,6 +523,26 @@ export async function initUserDataDB() {
     `);
     }
 
+    // local_date: the device-local calendar day the row belongs to, stored so
+    // streaks, the calendar and weekly goals do not move when the user travels
+    // or a DST rule changes. See utils/dates.ts.
+    const completedWorkoutsCols = await db.getAllAsync<{ name: string }>(
+      `PRAGMA table_info(completed_workouts)`,
+    );
+    if (!completedWorkoutsCols.some((c) => c.name === "local_date")) {
+      await db.execAsync(
+        `ALTER TABLE completed_workouts ADD COLUMN local_date TEXT;`,
+      );
+    }
+    const bodyMeasurementEntriesCols = await db.getAllAsync<{ name: string }>(
+      `PRAGMA table_info(body_measurement_entries)`,
+    );
+    if (!bodyMeasurementEntriesCols.some((c) => c.name === "local_date")) {
+      await db.execAsync(
+        `ALTER TABLE body_measurement_entries ADD COLUMN local_date TEXT;`,
+      );
+    }
+
     // Migrate distanceUnit from legacy "km" default to "m"
     await db.runAsync(
       `UPDATE settings SET value = 'm' WHERE key = 'distanceUnit' AND value = 'km';`,
@@ -558,8 +579,8 @@ export async function initUserDataDB() {
         await db.withExclusiveTransactionAsync(async (txn) => {
           for (const row of rows) {
             const result = await txn.runAsync(
-              `INSERT INTO body_measurement_entries (recorded_at) VALUES (?)`,
-              [row.date],
+              `INSERT INTO body_measurement_entries (recorded_at, local_date) VALUES (?, ?)`,
+              [row.date, toLocalDateKey(parseDbTimestamp(row.date))],
             );
             await txn.runAsync(
               `INSERT OR IGNORE INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
@@ -739,6 +760,84 @@ export async function initUserDataDB() {
       `INSERT OR IGNORE INTO settings (key, value) VALUES ('exclude_deload_from_stats', '0');`,
     );
 
+    // Backfill local_date on rows written before the column existed, and
+    // normalise their date_completed / recorded_at to ISO with an explicit Z
+    // so every reader parses the same instant. Both are computed in JS by the
+    // single authority in utils/dates.ts rather than in SQL.
+    //
+    // This assumes the user was in their current timezone when they trained.
+    // That is right for almost everyone, and no better answer exists: the
+    // original offset was never recorded.
+    //
+    // The first run covers every row. After that, only rows still missing a
+    // local_date: an OTA rollback to an older bundle, or a restored backup
+    // taken on one, writes them after the flag is already set.
+    const localDateBackfillDone = await db.getFirstAsync<{ value: string }>(
+      `SELECT value FROM settings WHERE key = 'local_date_backfill_v1'`,
+    );
+    const onlyMissing = localDateBackfillDone ? " AND local_date IS NULL" : "";
+    const staleWorkouts = await db.getAllAsync<{
+      id: number;
+      date_completed: string;
+    }>(
+      `SELECT id, date_completed FROM completed_workouts WHERE date_completed IS NOT NULL${onlyMissing}`,
+    );
+    const staleEntries = await db.getAllAsync<{
+      id: number;
+      recorded_at: string;
+    }>(
+      `SELECT id, recorded_at FROM body_measurement_entries WHERE recorded_at IS NOT NULL${onlyMissing}`,
+    );
+    // body_measurements is the legacy weight table. Entries are linked to its
+    // rows by an exact date match (update and delete rely on it), so whatever
+    // rewrites an entry's recorded_at must rewrite the matching date the same
+    // way. Normalising every non-ISO date with the same function keeps pairs
+    // equal.
+    const staleLegacyWeights = await db.getAllAsync<{
+      id: number;
+      date: string;
+    }>(
+      `SELECT id, date FROM body_measurements WHERE date IS NOT NULL AND date NOT LIKE '%Z'`,
+    );
+    if (
+      !localDateBackfillDone ||
+      staleWorkouts.length > 0 ||
+      staleEntries.length > 0 ||
+      staleLegacyWeights.length > 0
+    ) {
+      await db.withExclusiveTransactionAsync(async (txn) => {
+        for (const row of staleWorkouts) {
+          const instant = parseDbTimestamp(row.date_completed);
+          if (isNaN(instant.getTime())) continue;
+          await txn.runAsync(
+            `UPDATE completed_workouts SET date_completed = ?, local_date = ? WHERE id = ?`,
+            [instant.toISOString(), toLocalDateKey(instant), row.id],
+          );
+        }
+        for (const row of staleEntries) {
+          const instant = parseDbTimestamp(row.recorded_at);
+          if (isNaN(instant.getTime())) continue;
+          await txn.runAsync(
+            `UPDATE body_measurement_entries SET recorded_at = ?, local_date = ? WHERE id = ?`,
+            [instant.toISOString(), toLocalDateKey(instant), row.id],
+          );
+        }
+        for (const row of staleLegacyWeights) {
+          const instant = parseDbTimestamp(row.date);
+          if (isNaN(instant.getTime())) continue;
+          await txn.runAsync(
+            `UPDATE body_measurements SET date = ? WHERE id = ?`,
+            [instant.toISOString(), row.id],
+          );
+        }
+        if (!localDateBackfillDone) {
+          await txn.runAsync(
+            `INSERT OR REPLACE INTO settings (key, value) VALUES ('local_date_backfill_v1', 'true')`,
+          );
+        }
+      });
+    }
+
     // Indexes for the workout-history joins. Created last so they are built
     // once over the finished schema, and IF NOT EXISTS so every later boot is
     // a no-op.
@@ -750,6 +849,7 @@ export async function initUserDataDB() {
     // workout_id-only lookups on user_workout_exercises.
     await db.execAsync(`
     CREATE INDEX IF NOT EXISTS idx_cw_date        ON completed_workouts(date_completed);
+    CREATE INDEX IF NOT EXISTS idx_cw_local_date  ON completed_workouts(local_date);
     CREATE INDEX IF NOT EXISTS idx_cw_workout     ON completed_workouts(workout_id);
     CREATE INDEX IF NOT EXISTS idx_ce_workout     ON completed_exercises(completed_workout_id);
     CREATE INDEX IF NOT EXISTS idx_ce_exercise    ON completed_exercises(exercise_id);

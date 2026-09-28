@@ -2,6 +2,7 @@ import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { useQuery } from "@tanstack/react-query";
+import { localDateKeyDaysAgo } from "@/utils/dates";
 
 interface TrackedExercise {
   id: number;
@@ -109,7 +110,7 @@ const fetchTrackedExercises = async (
         cs.time,
         cs.distance,
         cs.set_number,
-        DATE(cw.date_completed) AS date_completed,
+        cw.local_date AS date_completed,
         MAX(${progressionCase}) AS progression_metric
       FROM tracked_exercises te
       LEFT JOIN exercises e ON te.exercise_id = e.exercise_id
@@ -125,14 +126,14 @@ const fetchTrackedExercises = async (
       ? ` AND (cw.is_deload = 0 OR cw.is_deload IS NULL)`
       : "";
     if (timeRange !== "0") {
-      query += `WHERE (cw.date_completed > DATETIME('now', '-${timeRange} days') OR cw.date_completed IS NULL) AND (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter}${deloadFilter}${trackingTypeFilter} `;
+      query += `WHERE (cw.local_date >= '${localDateKeyDaysAgo(Number(timeRange))}' OR cw.id IS NULL) AND (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter}${deloadFilter}${trackingTypeFilter} `;
     } else {
       query += `WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter}${deloadFilter}${trackingTypeFilter} `;
     }
 
     query += `
-      GROUP BY te.exercise_id, DATE(cw.date_completed)
-      ORDER BY cw.date_completed DESC, progression_metric DESC
+      GROUP BY te.exercise_id, cw.local_date
+      ORDER BY cw.local_date DESC, progression_metric DESC
     `;
 
     const [trackedExercises, allTrackedRows] = await Promise.all([

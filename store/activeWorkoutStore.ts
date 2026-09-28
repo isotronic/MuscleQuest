@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { formatFromTotalSeconds } from "@/utils/utility";
+import { parseDbTimestamp } from "@/utils/dates";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { findHistoricalSetByOrdinal } from "@/utils/historyUtils";
@@ -1008,8 +1009,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         // Sort completed workouts by date (most recent first)
         const sortedWorkouts = [...completedWorkouts].sort(
           (a, b) =>
-            new Date(b.date_completed).getTime() -
-            new Date(a.date_completed).getTime(),
+            parseDbTimestamp(b.date_completed).getTime() -
+            parseDbTimestamp(a.date_completed).getTime(),
         );
 
         set({ previousWorkoutData: sortedWorkouts });
@@ -1018,8 +1019,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       initializeGlobalHistory: (completedWorkouts: CompletedWorkout[]) => {
         const sortedWorkouts = [...completedWorkouts].sort(
           (a, b) =>
-            new Date(b.date_completed).getTime() -
-            new Date(a.date_completed).getTime(),
+            parseDbTimestamp(b.date_completed).getTime() -
+            parseDbTimestamp(a.date_completed).getTime(),
         );
         set({ globalHistoryData: sortedWorkouts });
       },

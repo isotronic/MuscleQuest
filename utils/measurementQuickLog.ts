@@ -4,6 +4,7 @@ import type {
   LatestBodyMetricValue,
 } from "@/utils/database";
 import type { ValueKind } from "@/utils/measurementConversions";
+import { parseDbTimestamp } from "@/utils/dates";
 
 /** A headline metric goes stale once its last entry is this many days old. */
 export const STALE_AFTER_DAYS = 7;
@@ -23,12 +24,6 @@ export interface QuickLogSummary {
   isStale: boolean;
   /** Whether any measurement of any metric exists, for the empty state. */
   hasAnyHistory: boolean;
-}
-
-function parseDbDate(recorded_at: string): Date {
-  return new Date(
-    recorded_at.includes("T") ? recorded_at : recorded_at.replace(" ", "T"),
-  );
 }
 
 /**
@@ -79,7 +74,7 @@ export function selectQuickLogSummary(
     };
   }
 
-  const recordedAt = parseDbDate(mostRecent.recorded_at);
+  const recordedAt = parseDbTimestamp(mostRecent.recorded_at);
   const daysSinceLastLog = differenceInCalendarDays(now, recordedAt);
 
   return {

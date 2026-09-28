@@ -4,6 +4,11 @@ import { ThemedView } from "@/components/ThemedView";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { startOfWeek, endOfWeek, getDay, format } from "date-fns";
+import {
+  isLocalDateInRange,
+  parseDbTimestamp,
+  toLocalDateKey,
+} from "@/utils/dates";
 import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
 import { AppIcon } from "@/components/ui";
 import WeekDays from "@/components/WeekDays";
@@ -119,22 +124,21 @@ export default function HomeScreen() {
   const startOfWeekDate = startOfWeek(today, { weekStartsOn: 1 });
   const endOfWeekDate = endOfWeek(today, { weekStartsOn: 1 });
 
-  // Filter workouts completed this week
-  const completedWorkoutsThisWeek = completedWorkouts?.filter(
-    (workout) =>
-      new Date(workout.date_completed) >= startOfWeekDate &&
-      new Date(workout.date_completed) <= endOfWeekDate,
+  const todayKey = toLocalDateKey(today);
+
+  // Filter workouts completed this week. local_date is the training day the
+  // workout was logged on, so this does not shift with the device offset.
+  const completedWorkoutsThisWeek = completedWorkouts?.filter((workout) =>
+    isLocalDateInRange(workout.local_date, startOfWeekDate, endOfWeekDate),
   );
 
   const completedAnyWorkoutToday = (completedWorkoutsThisWeek ?? []).some(
-    (w) => new Date(w.date_completed).toDateString() === today.toDateString(),
+    (w) => w.local_date === todayKey,
   );
 
   // Create a Set to track unique workout dates
   const uniqueWorkoutDays = new Set(
-    completedWorkoutsThisWeek?.map((workout) =>
-      new Date(workout.date_completed).toDateString(),
-    ),
+    completedWorkoutsThisWeek?.map((workout) => workout.local_date),
   );
 
   // Get the number of unique days worked out
@@ -224,12 +228,9 @@ export default function HomeScreen() {
     });
 
     // Track which workout IDs were completed today (for schedule prioritization)
-    const todayDateStr = today.toDateString();
     completedTodayWorkoutIds = new Set<number>(
       completedWorkoutsThisPlanThisWeek
-        .filter(
-          (w) => new Date(w.date_completed).toDateString() === todayDateStr,
-        )
+        .filter((w) => w.local_date === todayKey)
         .map((w) => w.workout_id),
     );
 
@@ -277,9 +278,7 @@ export default function HomeScreen() {
   };
 
   const todayWorkouts =
-    completedWorkoutsThisWeek?.filter(
-      (w) => new Date(w.date_completed).toDateString() === today.toDateString(),
-    ) ?? [];
+    completedWorkoutsThisWeek?.filter((w) => w.local_date === todayKey) ?? [];
 
   const handleWorkoutDoneCardPress = () => {
     if (todayWorkouts.length === 1) {
@@ -344,7 +343,7 @@ export default function HomeScreen() {
                   {workout.workout_name}
                 </ThemedText>
                 <ThemedText style={styles.pickerItemTime}>
-                  {format(new Date(workout.date_completed), "h:mm a")}
+                  {format(parseDbTimestamp(workout.date_completed), "h:mm a")}
                 </ThemedText>
               </Pressable>
             ))}
