@@ -20,8 +20,8 @@ import {
 import { computeLayoffReduction } from "@/utils/progressionEngine";
 import { nowForDb, parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
 import {
+  METRIC_EPSILON,
   formatWeight,
-  isAtLeast,
   kgToDisplay,
   metresToDisplay,
 } from "@/utils/units";
@@ -3871,8 +3871,17 @@ export const fetchPRDataForExercises = async (
       pm: number;
       all_time_pr: number;
       rn: number;
+      all_time_pr_date: string;
     }>(
+      // The PR date is the earliest set within METRIC_EPSILON of the PR, taken
+      // over every set before rn <= 5 trims to the top five. Ties beyond the
+      // fifth row, such as a legacy unrounded set under several rounded ones
+      // of the same lift, would otherwise lose the date to a later session.
       `SELECT * FROM (
+       SELECT *,
+         MIN(CASE WHEN pm > all_time_pr - ${METRIC_EPSILON} THEN date_completed END)
+           OVER (PARTITION BY exercise_id) AS all_time_pr_date
+       FROM (
        SELECT
          e.exercise_id, e.app_exercise_id, e.name AS exercise_name, e.tracking_type,
          cs.weight, cs.reps, cs.time, cs.distance,
@@ -3886,6 +3895,7 @@ export const fetchPRDataForExercises = async (
          AND cs.is_warmup = 0 AND cs.is_deleted = 0
        JOIN completed_workouts cw ON cw.id = ce.completed_workout_id AND cw.is_deleted = 0
        WHERE e.exercise_id IN (${placeholders})
+       )
      )
      WHERE rn <= 5`,
       exerciseIds,
@@ -3900,21 +3910,11 @@ export const fetchPRDataForExercises = async (
           exercise_name: row.exercise_name,
           tracking_type: row.tracking_type,
           all_time_pr: row.all_time_pr,
-          all_time_pr_date: row.date_completed,
+          all_time_pr_date: row.all_time_pr_date,
           top_sets: [],
         });
       }
-      const entry = exerciseMap.get(row.exercise_id)!;
-      // Keep the earliest date where the all-time PR was achieved. A legacy
-      // unrounded row and a rounded row of the same lift differ by float
-      // noise, and the older one should keep the date.
-      if (
-        isAtLeast(row.pm, row.all_time_pr) &&
-        row.date_completed < entry.all_time_pr_date
-      ) {
-        entry.all_time_pr_date = row.date_completed;
-      }
-      entry.top_sets.push({
+      exerciseMap.get(row.exercise_id)!.top_sets.push({
         weight: row.weight,
         reps: row.reps,
         time: row.time,
