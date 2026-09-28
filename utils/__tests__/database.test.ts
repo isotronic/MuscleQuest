@@ -161,8 +161,33 @@ describe("fetchSettings", () => {
 
     const settings = await fetchSettings();
 
-    // 100 kg * 2.2046226 = 220.5 lbs (rounded to 1 decimal)
+    // 100 kg is 220.46 lbs, shown to 1 decimal
     expect(settings.bodyWeight).toBe("220.5");
+  });
+
+  it("round-trips a body weight entered in lbs", async () => {
+    // What settings.tsx stores for a 180 lbs entry.
+    const stored = roundCanonical(displayToKg(180, "lbs"));
+    mockDb.getAllAsync.mockResolvedValue([
+      { key: "weightUnit", value: "lbs" },
+      { key: "bodyWeight", value: stored.toString() },
+    ]);
+
+    const settings = await fetchSettings();
+
+    expect(settings.bodyWeight).toBe("180.0");
+  });
+
+  it("shows a kg body weight to one decimal", async () => {
+    // 180 lbs stored, then the user switched to kg.
+    mockDb.getAllAsync.mockResolvedValue([
+      { key: "weightUnit", value: "kg" },
+      { key: "bodyWeight", value: "81.647" },
+    ]);
+
+    const settings = await fetchSettings();
+
+    expect(settings.bodyWeight).toBe("81.6");
   });
 
   it("throws and notifies Bugsnag on database error", async () => {

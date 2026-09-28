@@ -13,6 +13,7 @@ import { formatToHoursMinutes } from "@/utils/utility";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { localDateKeyToDate } from "@/utils/dates";
+import { formatWeight, nearlyEqual } from "@/utils/units";
 
 export default function ExerciseDetailScreen() {
   const { colors } = useAppTheme();
@@ -49,12 +50,10 @@ export default function ExerciseDetailScreen() {
     excludeDeload,
   );
 
-  const convFactor = weightUnit === "lbs" ? 2.2046226 : 1;
-
   const prValue = data?.allTimePR ?? 0;
   const latestMetric = data?.latestMetric ?? null;
   const deltaPercent =
-    prValue > 0 && latestMetric != null && latestMetric !== prValue
+    prValue > 0 && latestMetric != null && !nearlyEqual(latestMetric, prValue)
       ? (((latestMetric - prValue) / prValue) * 100).toFixed(1)
       : null;
 
@@ -66,7 +65,7 @@ export default function ExerciseDetailScreen() {
     if (trackingType === "reps") return `${Math.round(val)} reps`;
     if (trackingType === "time") return `${Math.round(val)}s`;
     if (trackingType === "distance") return `${val.toFixed(1)} ${distanceUnit}`;
-    return `${(val * convFactor).toFixed(1)} ${weightUnit}`;
+    return `${formatWeight(val, weightUnit)} ${weightUnit}`;
   };
 
   const trackingType = data?.trackingType ?? null;
@@ -157,7 +156,7 @@ export default function ExerciseDetailScreen() {
                   {set.distance != null
                     ? `${set.distance.toFixed(1)} ${distanceUnit}`
                     : set.weight != null
-                      ? `${(set.weight * convFactor).toFixed(1)} ${weightUnit} × ${set.reps} reps`
+                      ? `${formatWeight(set.weight, weightUnit)} ${weightUnit} × ${set.reps} reps`
                       : set.reps != null
                         ? `${set.reps} reps`
                         : set.time != null
@@ -166,7 +165,7 @@ export default function ExerciseDetailScreen() {
                 </ThemedText>
                 <ThemedText style={styles.listSub}>
                   {set.oneRepMax != null
-                    ? `1RM ${(set.oneRepMax * convFactor).toFixed(1)} ${weightUnit}  ·  `
+                    ? `1RM ${formatWeight(set.oneRepMax, weightUnit)} ${weightUnit}  ·  `
                     : ""}
                   {localDateKeyToDate(set.date_completed).toLocaleDateString(
                     undefined,
@@ -203,14 +202,14 @@ export default function ExerciseDetailScreen() {
                   {session.bestSet.distance != null
                     ? `${session.bestSet.distance.toFixed(1)} ${distanceUnit}`
                     : session.bestSet.weight != null
-                      ? `${(session.bestSet.weight * convFactor).toFixed(1)} ${weightUnit} × ${session.bestSet.reps} reps`
+                      ? `${formatWeight(session.bestSet.weight, weightUnit)} ${weightUnit} × ${session.bestSet.reps} reps`
                       : session.bestSet.reps != null
                         ? `${session.bestSet.reps} reps`
                         : session.bestSet.time != null
                           ? `${session.bestSet.time}s`
                           : "—"}
                   {session.bestSet.oneRepMax != null
-                    ? `  ·  1RM ${(session.bestSet.oneRepMax * convFactor).toFixed(1)} ${weightUnit}`
+                    ? `  ·  1RM ${formatWeight(session.bestSet.oneRepMax, weightUnit)} ${weightUnit}`
                     : ""}
                 </ThemedText>
               </View>

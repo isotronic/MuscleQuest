@@ -1477,9 +1477,14 @@ export const fetchSettings = async (): Promise<Settings> => {
       settings[row.key as keyof Settings] = row.value;
     });
 
-    // Convert bodyWeight to lbs if the unit setting is 'lbs'
-    if (settings.bodyWeight && settings.weightUnit === "lbs") {
-      settings.bodyWeight = formatWeight(Number(settings.bodyWeight), "lbs");
+    // Stored in kg to 3 decimals so a pound entry round-trips. Shown in the
+    // user's unit to one decimal; kg keeps whole numbers bare ("80").
+    if (settings.bodyWeight) {
+      const kg = Number(settings.bodyWeight);
+      settings.bodyWeight =
+        settings.weightUnit === "lbs"
+          ? formatWeight(kg, "lbs")
+          : String(parseFloat(formatWeight(kg, "kg")));
     }
 
     return settings as Settings;

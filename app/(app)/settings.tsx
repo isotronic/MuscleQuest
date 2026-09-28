@@ -32,6 +32,7 @@ import { useImageManagement } from "@/hooks/useImageManagement";
 import { useTrainingDataExport } from "@/hooks/useTrainingDataExport";
 import { useQueryClient } from "@tanstack/react-query";
 import { saveBodyWeightMeasurement } from "@/utils/database";
+import { displayToKg, roundCanonical } from "@/utils/units";
 import { AuthContext } from "@/context/AuthProvider";
 import { signInWithGoogle } from "@/utils/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -269,13 +270,10 @@ export default function SettingsScreen() {
           console.error("Failed to reschedule workout reminders:", err);
         });
       } else if (currentSettingKey === "bodyWeight") {
-        let bodyWeightInKg = inputValue as number;
-
-        if (settings?.weightUnit === "lbs") {
-          bodyWeightInKg = Number(
-            ((inputValue as number) / 2.2046226).toFixed(1),
-          );
-        }
+        // Rounded to 0.1 kg, 180 lbs came back as 179.9 lbs.
+        const bodyWeightInKg = roundCanonical(
+          displayToKg(inputValue as number, settings?.weightUnit ?? "kg"),
+        );
 
         // Dual-write to body_measurements (legacy) and new measurement tables
         await saveBodyWeightMeasurement(bodyWeightInKg);
