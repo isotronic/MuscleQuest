@@ -126,7 +126,7 @@ const fetchTrackedExercises = async (
       ? ` AND (cw.is_deload = 0 OR cw.is_deload IS NULL)`
       : "";
     if (timeRange !== "0") {
-      query += `WHERE (cw.local_date >= '${localDateKeyDaysAgo(Number(timeRange))}' OR cw.local_date IS NULL) AND (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter}${deloadFilter}${trackingTypeFilter} `;
+      query += `WHERE (cw.local_date >= '${localDateKeyDaysAgo(Number(timeRange))}' OR cw.id IS NULL) AND (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter}${deloadFilter}${trackingTypeFilter} `;
     } else {
       query += `WHERE (cw.is_deleted = FALSE OR cw.is_deleted IS NULL)${warmupFilter}${deloadFilter}${trackingTypeFilter} `;
     }

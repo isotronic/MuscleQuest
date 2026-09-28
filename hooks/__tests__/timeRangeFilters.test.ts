@@ -130,6 +130,33 @@ describe("time range filters against real SQLite", () => {
     expect(days).not.toContain(dayKeyAgo(200));
   });
 
+  it("useTrackedExercisesQuery does not let a set with no training day past the range", async () => {
+    // `OR ... IS NULL` exists for tracked exercises with no workouts at all
+    // (the LEFT JOIN miss). A real set whose local_date has not been filled
+    // yet must not ride in on it.
+    sqlite.exec(`
+      INSERT INTO completed_workouts (id, date_completed, local_date, duration, total_sets_completed, is_deleted)
+      VALUES (3, '2025-01-01T12:00:00.000Z', NULL, 600, 1, FALSE);
+      INSERT INTO completed_exercises (id, completed_workout_id, exercise_id) VALUES (3, 3, 1);
+      INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps) VALUES (3, 1, 200, 5);
+    `);
+    try {
+      const tracked: any = await runQuery(() =>
+        useTrackedExercisesQuery("30", false, false, false, false),
+      );
+      const days = tracked[0].completed_sets.map((s: any) => s.date_completed);
+
+      expect(days).not.toContain(null);
+      expect(days).toContain(dayKeyAgo(5));
+    } finally {
+      sqlite.exec(`
+        DELETE FROM completed_sets WHERE completed_exercise_id = 3;
+        DELETE FROM completed_exercises WHERE id = 3;
+        DELETE FROM completed_workouts WHERE id = 3;
+      `);
+    }
+  });
+
   it("useTrackedExercisesQuery reports the training day and honours the range", async () => {
     const tracked: any = await runQuery(() =>
       useTrackedExercisesQuery("30", false, false, false, false),

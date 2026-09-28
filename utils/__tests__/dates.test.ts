@@ -147,3 +147,15 @@ describe("parseDbTimestamp on absent values", () => {
     expect(isNaN(parseDbTimestamp("not a date").getTime())).toBe(true);
   });
 });
+
+describe("localDateKeyToDate on absent values", () => {
+  it("returns an invalid date rather than throwing on null", () => {
+    expect(isNaN(localDateKeyToDate(null as unknown as string).getTime())).toBe(
+      true,
+    );
+  });
+
+  it("returns an invalid date for an empty string", () => {
+    expect(isNaN(localDateKeyToDate("").getTime())).toBe(true);
+  });
+});

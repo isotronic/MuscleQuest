@@ -71,6 +71,9 @@ export function isLocalDateInRange(
  * midnight, which renders as the previous day anywhere west of UTC.
  */
 export function localDateKeyToDate(localDate: string): Date {
+  // A row can reach a reader before its local_date is backfilled; an invalid
+  // Date renders as nothing rather than crashing the screen.
+  if (typeof localDate !== "string") return new Date(NaN);
   const [year, month, day] = localDate.split("-").map(Number);
   return new Date(year, month - 1, day);
 }

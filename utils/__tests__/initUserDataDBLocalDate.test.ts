@@ -58,6 +58,9 @@ describe("initUserDataDB local_date backfill", () => {
         (3, '2026-03-02T09:00:00.000Z', 600, 5);
       INSERT INTO body_measurement_entries (id, recorded_at)
       VALUES (1, '2026-08-13 22:30:00'), (2, '2026-08-14T07:00:00.000Z');
+      -- The legacy weight row an entry is linked to by an exact date match.
+      INSERT INTO body_measurements (date, body_weight)
+      VALUES ('2026-08-13 22:30:00', 80);
       DELETE FROM settings WHERE key = 'local_date_backfill_v1';
       UPDATE completed_workouts SET local_date = NULL;
       UPDATE body_measurement_entries SET local_date = NULL;
@@ -121,6 +124,40 @@ describe("initUserDataDB local_date backfill", () => {
         toLocalDateKey(parseDbTimestamp(row.recorded_at)),
       );
     }
+  });
+
+  it("rewrites the linked body_measurements date so edits and deletes still find it", () => {
+    const entry = sqlite
+      .prepare(`SELECT recorded_at FROM body_measurement_entries WHERE id = 1`)
+      .get() as { recorded_at: string };
+    const legacy = sqlite
+      .prepare(`SELECT date FROM body_measurements WHERE body_weight = 80`)
+      .all() as { date: string }[];
+
+    expect(legacy).toEqual([{ date: entry.recorded_at }]);
+  });
+
+  it("fills local_date on rows written after the one-time backfill ran", async () => {
+    // An OTA rollback to an older bundle writes rows without local_date after
+    // the flag is already set; the next boot on this bundle must repair them.
+    sqlite.exec(`
+      INSERT INTO completed_workouts (id, date_completed, duration, total_sets_completed)
+      VALUES (10, '2026-09-01 22:30:00', 600, 5);
+      INSERT INTO body_measurement_entries (id, recorded_at)
+      VALUES (10, '2026-09-01 22:30:00');
+    `);
+
+    await initUserDataDB();
+
+    const expected = toLocalDateKey(parseDbTimestamp("2026-09-01 22:30:00"));
+    const workout = sqlite
+      .prepare(`SELECT local_date FROM completed_workouts WHERE id = 10`)
+      .get() as { local_date: string | null };
+    const entry = sqlite
+      .prepare(`SELECT local_date FROM body_measurement_entries WHERE id = 10`)
+      .get() as { local_date: string | null };
+    expect(workout.local_date).toBe(expected);
+    expect(entry.local_date).toBe(expected);
   });
 
   it("is a no-op on the next boot", async () => {
