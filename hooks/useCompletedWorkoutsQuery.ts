@@ -3,6 +3,7 @@ import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 import { toLocalDateKey } from "@/utils/dates";
+import { kgToDisplay, metresToDisplay } from "@/utils/units";
 
 interface WorkoutResult {
   id: number;
@@ -162,9 +163,6 @@ const fetchAndOrganize = async (
     const workoutsMap = new Map<number, CompletedWorkout>();
     const workoutsArray: CompletedWorkout[] = [];
 
-    const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
-    const distanceConversionFactor = distanceUnit === "ft" ? 3.28084 : 1;
-
     results.forEach((item) => {
       const {
         id,
@@ -233,7 +231,7 @@ const fetchAndOrganize = async (
 
       const convertedWeight =
         weight != null
-          ? parseFloat((weight * conversionFactor).toFixed(1))
+          ? parseFloat(kgToDisplay(weight, weightUnit).toFixed(1))
           : null;
 
       // Add the set to the exercise
@@ -245,7 +243,7 @@ const fetchAndOrganize = async (
         time,
         distance:
           distance != null
-            ? parseFloat((distance * distanceConversionFactor).toFixed(2))
+            ? parseFloat(metresToDisplay(distance, distanceUnit).toFixed(2))
             : null,
         is_warmup: !!item.is_warmup,
         set_duration: item.set_duration ?? null,
@@ -324,8 +322,6 @@ const fetchWorkoutHistoryForSession = async (
   let db: SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
-    const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
-    const distanceConversionFactor = distanceUnit === "ft" ? 3.28084 : 1;
 
     const query = `
       SELECT
@@ -441,13 +437,13 @@ const fetchWorkoutHistoryForSession = async (
         set_number,
         weight:
           weight != null
-            ? parseFloat((weight * conversionFactor).toFixed(2))
+            ? parseFloat(kgToDisplay(weight, weightUnit).toFixed(2))
             : null,
         reps,
         time,
         distance:
           distance != null
-            ? parseFloat((distance * distanceConversionFactor).toFixed(2))
+            ? parseFloat(metresToDisplay(distance, distanceUnit).toFixed(2))
             : null,
         is_warmup: !!is_warmup,
         set_duration: item.set_duration ?? null,
@@ -491,8 +487,6 @@ const fetchGlobalExerciseHistoryForSession = async (
   let db: SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
-    const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
-    const distanceConversionFactor = distanceUnit === "ft" ? 3.28084 : 1;
     const placeholders = exerciseIds.map(() => "?").join(", ");
 
     const query = `
@@ -615,13 +609,13 @@ const fetchGlobalExerciseHistoryForSession = async (
         set_number,
         weight:
           weight != null
-            ? parseFloat((weight * conversionFactor).toFixed(2))
+            ? parseFloat(kgToDisplay(weight, weightUnit).toFixed(2))
             : null,
         reps,
         time,
         distance:
           distance != null
-            ? parseFloat((distance * distanceConversionFactor).toFixed(2))
+            ? parseFloat(metresToDisplay(distance, distanceUnit).toFixed(2))
             : null,
         is_warmup: !!is_warmup,
         set_duration: item.set_duration ?? null,
