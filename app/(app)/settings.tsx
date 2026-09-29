@@ -1578,7 +1578,9 @@ export default function SettingsScreen() {
                 <Trans>Show onboarding on home screen</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.showOnboarding === "true" ? t`Enabled` : t`Disabled`}
+                {settings?.showOnboarding === "true"
+                  ? t`The introduction cards show on the home screen.`
+                  : t`Hidden. Turn this on to see the introduction cards again.`}
               </ThemedText>
             </View>
             <Switch
