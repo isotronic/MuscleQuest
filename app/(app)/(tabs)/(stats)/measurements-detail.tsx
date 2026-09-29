@@ -201,6 +201,7 @@ export default function MeasurementDetailScreen() {
                   key={v.metric.id}
                   onPress={() => setSelectedMetric(v.metric)}
                   style={[styles.chip, active && styles.chipActive]}
+                  accessibilityState={{ selected: active }}
                   activeOpacity={0.7}
                 >
                   <ThemedText

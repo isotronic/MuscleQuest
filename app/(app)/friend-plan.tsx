@@ -84,6 +84,7 @@ export default function FriendPlanScreen() {
               accessibilityRole="button"
               style={[styles.workoutRow, { borderColor: borders.divider }]}
               onPress={() => toggleWorkout(index)}
+              accessibilityState={{ expanded: expandedWorkouts.has(index) }}
               activeOpacity={0.7}
             >
               <AppText

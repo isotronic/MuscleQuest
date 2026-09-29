@@ -299,12 +299,27 @@ export const ExerciseProgressionChart: React.FC<
     if (buckets.length === 0) return empty;
 
     // Periods with real sets, before any gap filling below.
+    // The yearly range spans 13 months, so the first and last month share a
+    // label; add the year to any label that repeats.
+    const labelOf = (b: (typeof buckets)[number]) =>
+      [b.label, b.labelLine2].filter(Boolean).join(" ");
+    const labelCounts = new Map<string, number>();
+    buckets.forEach((b) =>
+      labelCounts.set(labelOf(b), (labelCounts.get(labelOf(b)) ?? 0) + 1),
+    );
     const tableRows = buckets
       .filter((b) => b.hasData && b.value !== null)
-      .map((b) => ({
-        label: [b.label, b.labelLine2].filter(Boolean).join(" "),
-        value: b.value as number,
-      }));
+      .map((b) => {
+        const label = labelOf(b);
+        const year = (b as { internalKey?: string }).internalKey?.split("-")[0];
+        return {
+          label:
+            (labelCounts.get(label) ?? 0) > 1 && year
+              ? `${label} ${year}`
+              : label,
+          value: b.value as number,
+        };
+      });
 
     // Forward-fill: empty buckets after first data carry the last known value
     let lastValue: number | null = null;

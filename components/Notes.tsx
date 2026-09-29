@@ -123,8 +123,10 @@ export const Notes: React.FC<NotesProps> = ({
             </ThemedText>
           </View>
           <Divider style={{ marginTop: 8, marginBottom: 16 }} />
+          {/* Only enlarges the tap target for the field; screen readers go
+              straight to the input. */}
           <Pressable
-            accessibilityRole="button"
+            accessible={false}
             onPress={() => inputRef.current?.focus()}
             style={{ flex: 1 }}
           >
@@ -137,6 +139,7 @@ export const Notes: React.FC<NotesProps> = ({
                   currentNoteRef.current = text;
                 }}
                 placeholder={t`Add a note...`}
+                accessibilityLabel={t`Note`}
                 placeholderTextColor={colors.contentSecondary}
                 multiline
                 maxLength={500}

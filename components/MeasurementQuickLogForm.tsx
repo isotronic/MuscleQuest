@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
@@ -49,17 +50,18 @@ export function MeasurementQuickLogForm({
     <View style={styles.container}>
       {metrics.map((metric) => {
         const isInvalid = isInvalidMeasurementInput(values[metric.id] ?? "");
+        const metricName = bodyMetricTranslations[metric.key]
+          ? _(bodyMetricTranslations[metric.key])
+          : metric.label;
+        const unit = units[metric.id];
         return (
           <View key={metric.id} style={styles.rowGroup}>
             <View style={styles.row}>
-              <ThemedText style={styles.label}>
-                {bodyMetricTranslations[metric.key]
-                  ? _(bodyMetricTranslations[metric.key])
-                  : metric.label}
-              </ThemedText>
+              <ThemedText style={styles.label}>{metricName}</ThemedText>
               <View style={styles.inputGroup}>
                 <Input
                   testID={`measurement-input-${metric.id}`}
+                  accessibilityLabel={t`${metricName} in ${unit}`}
                   style={[styles.input, isInvalid ? styles.inputInvalid : null]}
                   value={values[metric.id] ?? ""}
                   onChangeText={(text) =>
@@ -70,7 +72,7 @@ export function MeasurementQuickLogForm({
                   placeholderTextColor={colors.contentSecondary}
                   selectTextOnFocus
                 />
-                <ThemedText style={styles.unit}>{units[metric.id]}</ThemedText>
+                <ThemedText style={styles.unit}>{unit}</ThemedText>
               </View>
             </View>
             {isInvalid && (

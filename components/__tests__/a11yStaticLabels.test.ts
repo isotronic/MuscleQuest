@@ -10,8 +10,12 @@ import path from "path";
 const ROOT = path.resolve(__dirname, "../..");
 const SCANNED_DIRS = ["app", "components"];
 
-/** Always need a label: nothing inside them names the control. */
-const LABELLED_TAGS = ["Switch", "TextInput", "Checkbox"];
+/**
+ * Always need a label: nothing inside them names the control. Any tag ending
+ * in "Input" counts, so aliased inputs (NoteInput, a passed-in Input) and
+ * TimeInput are covered too.
+ */
+const LABELLED_TAGS = ["Switch", "Checkbox", "RadioButton", "\\w*Input"];
 /** Need a label only when they wrap no text. */
 const TOUCHABLE_TAGS = [
   "TouchableOpacity",
@@ -25,6 +29,26 @@ const TOUCHABLE_TAGS = [
 const LABEL_PROP = /\baccessibilityLabel=|\blabel=|checkboxLabel\(/;
 const HIDDEN_PROP = /importantForAccessibility="no(-hide-descendants)?"/;
 const TEXT_CHILD = /<(ThemedText|Text|AppText|Trans|Plural)\b|\{t`|\btitle=/;
+/**
+ * A control inside an accessible touchable is merged into it: VoiceOver reads
+ * its text but activating it runs the outer onPress.
+ */
+const NESTED_CONTROL =
+  /<(TouchableOpacity|TouchableHighlight|Pressable|Button|AppButton|AppIconButton|Switch|Checkbox|\w*Input)\b/;
+/** True when `body` holds a control that is not hidden from screen readers. */
+function hasReachableControl(body: string): boolean {
+  const pattern = new RegExp(NESTED_CONTROL.source, "g");
+  for (const match of body.matchAll(pattern)) {
+    const start = match.index!;
+    const opening = body.slice(start, endOfOpeningTag(body, start + 1));
+    if (!HIDDEN_PROP.test(opening)) return true;
+  }
+  return false;
+}
+
+/** A touchable styled as on/off or open/closed must say which it is. */
+const STATEFUL_HINT =
+  /styles\.\w*(Active|Selected)\b|setExpanded|setIsExpanded|\btoggle[A-Z]\w*|onToggleExpand|setCollapsed/;
 
 function listFiles(dir: string): string[] {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -96,38 +120,59 @@ function findUnlabelled(file: string): string[] {
   const lineOf = (index: number) => source.slice(0, index).split("\n").length;
   const where = (index: number, tag: string) =>
     `${path.relative(ROOT, file)}:${lineOf(index)} <${tag}>`;
+  // Commented-out JSX is not rendered.
+  const withoutComments = source.replace(/\{\/\*[\s\S]*?\*\/\}/g, (c) =>
+    c.replace(/[^\n]/g, " "),
+  );
 
   for (const tag of [...LABELLED_TAGS, ...TOUCHABLE_TAGS]) {
     const pattern = new RegExp(
-      `(?<![\\w.])<${tag.replace(".", "\\.")}(?=[\\s/>])`,
+      `(?<![\\w.])<(${tag.replace(".", "\\.")})(?=[\\s/>])`,
       "g",
     );
-    for (const match of source.matchAll(pattern)) {
+    for (const match of withoutComments.matchAll(pattern)) {
       const start = match.index!;
-      const end = endOfOpeningTag(source, start + match[0].length);
-      const opening = source.slice(start, end);
+      const name = match[1];
+      const end = endOfOpeningTag(withoutComments, start + match[0].length);
+      const opening = withoutComments.slice(start, end);
       const hidden = HIDDEN_PROP.test(opening);
 
       if (TOUCHABLE_TAGS.includes(tag)) {
+        const optedOut = /accessible=\{false\}/.test(opening);
+        if (!opening.endsWith("/>") && !optedOut && !hidden) {
+          const body = withoutComments.slice(
+            end,
+            withoutComments.indexOf(`</${name}>`, end),
+          );
+          if (hasReachableControl(body)) {
+            problems.push(`${where(start, name)} wraps another control`);
+          }
+        }
+        if (
+          STATEFUL_HINT.test(opening) &&
+          !/accessibilityState=/.test(opening)
+        ) {
+          problems.push(`${where(start, name)} needs accessibilityState`);
+        }
         // Without a role a screen reader reads the text but never says
         // "button", so the user cannot tell it does anything.
         if (
           !hidden &&
           !/accessibilityRole=|accessible=\{false\}/.test(opening)
         ) {
-          problems.push(`${where(start, tag)} needs accessibilityRole`);
+          problems.push(`${where(start, name)} needs accessibilityRole`);
         }
         if (LABEL_PROP.test(opening) || hidden) continue;
         if (!opening.endsWith("/>")) {
-          const close = source.indexOf(`</${tag}>`, end);
-          if (TEXT_CHILD.test(source.slice(end, close))) continue;
+          const close = withoutComments.indexOf(`</${name}>`, end);
+          if (TEXT_CHILD.test(withoutComments.slice(end, close))) continue;
         }
-        problems.push(`${where(start, tag)} needs accessibilityLabel`);
+        problems.push(`${where(start, name)} needs accessibilityLabel`);
         continue;
       }
 
       if (LABEL_PROP.test(opening) || hidden) continue;
-      problems.push(`${where(start, tag)} needs accessibilityLabel`);
+      problems.push(`${where(start, name)} needs accessibilityLabel`);
     }
   }
   return [
@@ -139,9 +184,11 @@ function findUnlabelled(file: string): string[] {
 
 describe("accessibility labels", () => {
   it("every control has a label and no wrapper hides a dialog's contents", () => {
-    const problems = SCANNED_DIRS.flatMap((dir) =>
+    const files = SCANNED_DIRS.flatMap((dir) =>
       listFiles(path.join(ROOT, dir)),
-    ).flatMap(findUnlabelled);
-    expect(problems).toEqual([]);
+    );
+    // Guards against the scan silently finding nothing.
+    expect(files.length).toBeGreaterThan(100);
+    expect(files.flatMap(findUnlabelled)).toEqual([]);
   });
 });

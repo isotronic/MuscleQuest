@@ -470,6 +470,9 @@ export default function HomeScreen() {
                     mode="contained"
                     theme={{ colors: { primary: colors.accent } }}
                     onPress={() => router.push("/(app)/(workout)")}
+                    // Same action as the card, which screen readers announce.
+                    importantForAccessibility="no-hide-descendants"
+                    accessibilityElementsHidden
                     labelStyle={styles.smallButtonLabel}
                   >
                     <Trans>Resume</Trans>
@@ -521,9 +524,10 @@ export default function HomeScreen() {
                     !weeklyGoalReached &&
                     !isRestDay &&
                     !completedAnyWorkoutToday;
+                  const spokenName =
+                    workout.name || t`Workout ${originalIndex + 1}`;
                   return (
-                    <Pressable
-                      accessibilityRole="button"
+                    <View
                       key={index}
                       style={[
                         styles.workoutCard,
@@ -534,40 +538,48 @@ export default function HomeScreen() {
                             }
                           : null,
                       ]}
-                      onPress={() =>
-                        router.push({
-                          pathname: "/workout-details",
-                          params: {
-                            planId: String(activePlan.id),
-                            workoutIndex: String(originalIndex),
-                          },
-                        })
-                      }
                     >
                       <View style={styles.workoutCardContent}>
-                        <AppIcon
-                          set="mci"
-                          name={workoutCompleted ? "check" : "weight-lifter"}
-                          size={30}
-                          color={
-                            workoutCompleted
-                              ? colors.success
-                              : colors.contentSecondary
+                        {/* Details and Start are siblings so a screen reader
+                            can reach both; nested, Start would be merged
+                            into the card and never activated. */}
+                        <Pressable
+                          accessibilityRole="button"
+                          style={styles.workoutCardMain}
+                          onPress={() =>
+                            router.push({
+                              pathname: "/workout-details",
+                              params: {
+                                planId: String(activePlan.id),
+                                workoutIndex: String(originalIndex),
+                              },
+                            })
                           }
-                        />
-                        <View style={styles.workoutTextContainer}>
-                          <ThemedText
-                            type="subtitle"
-                            style={styles.workoutCardTitle}
-                          >
-                            {workout.name}
-                          </ThemedText>
-                          <WorkoutDurationInfo
-                            exercises={workout.exercises}
-                            countUnilateralDouble={countUnilateralDouble}
-                            style={styles.exerciseInfo}
+                        >
+                          <AppIcon
+                            set="mci"
+                            name={workoutCompleted ? "check" : "weight-lifter"}
+                            size={30}
+                            color={
+                              workoutCompleted
+                                ? colors.success
+                                : colors.contentSecondary
+                            }
                           />
-                        </View>
+                          <View style={styles.workoutTextContainer}>
+                            <ThemedText
+                              type="subtitle"
+                              style={styles.workoutCardTitle}
+                            >
+                              {workout.name}
+                            </ThemedText>
+                            <WorkoutDurationInfo
+                              exercises={workout.exercises}
+                              countUnilateralDouble={countUnilateralDouble}
+                              style={styles.exerciseInfo}
+                            />
+                          </View>
+                        </Pressable>
                         <View style={styles.smallButtonGroup}>
                           <Button
                             mode={
@@ -589,12 +601,13 @@ export default function HomeScreen() {
                             }}
                             labelStyle={styles.smallButtonLabel}
                             disabled={isStartingWorkout}
+                            accessibilityLabel={t`Start ${spokenName}`}
                           >
                             <Trans>Start</Trans>
                           </Button>
                         </View>
                       </View>
-                    </Pressable>
+                    </View>
                   );
                 })}
               </View>
@@ -726,6 +739,11 @@ function createStyles(colors: AppThemeColors) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
+    },
+    workoutCardMain: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
     },
     workoutTextContainer: {
       marginLeft: 10,

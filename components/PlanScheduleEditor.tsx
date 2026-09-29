@@ -113,6 +113,7 @@ export default function PlanScheduleEditor({
                 ]}
                 onPress={() => !disabled && setPickerDow(dow)}
                 disabled={disabled}
+                accessibilityState={{ disabled }}
                 accessibilityLabel={`${_(DAY_FULL_NAMES[dow])}: ${spokenWorkoutName}`}
               >
                 <Text

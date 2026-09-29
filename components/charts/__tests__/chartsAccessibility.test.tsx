@@ -290,4 +290,33 @@ describe("chart text alternatives", () => {
     render(<WorkoutBarChart completedWorkouts={workouts} timeRange="30" />);
     expect(mockChartProps.BarChart.isAnimated).toBe(true);
   });
+
+  it("tells repeated month labels apart in the yearly table", () => {
+    const exercise = {
+      exercise_id: 1,
+      name: "Bench Press",
+      tracking_type: "weight",
+      allTimePR: 110,
+      completed_sets: [
+        {
+          date_completed: "2026-05-21",
+          progressionMetric: 105,
+          oneRepMax: 105,
+        },
+        { date_completed: "2025-05-26", progressionMetric: 95, oneRepMax: 95 },
+      ],
+    } as unknown as TrackedExerciseWithSets;
+    const { getByRole, getByLabelText } = render(
+      <ExerciseProgressionChart
+        exercise={exercise}
+        timeRange="365"
+        weightUnit="kg"
+        distanceUnit="km"
+        showTableToggle
+      />,
+    );
+    fireEvent.press(getByRole("button", { name: "Show as table" }));
+    expect(getByLabelText("May 2025: 95 kg")).toBeTruthy();
+    expect(getByLabelText("May 2026: 105 kg")).toBeTruthy();
+  });
 });

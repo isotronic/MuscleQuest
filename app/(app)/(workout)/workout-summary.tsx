@@ -191,6 +191,7 @@ function ExerciseRow({
       <TouchableOpacity
         accessibilityRole="button"
         onPress={() => setExpanded((prev) => !prev)}
+        accessibilityState={{ expanded }}
         style={styles.exerciseHeader}
         activeOpacity={0.7}
       >

@@ -3,7 +3,7 @@ import { Button, RadioButton } from "react-native-paper";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
-import { AppIcon } from "@/components/ui";
+import { AppIcon, checkboxCaptionA11y, checkboxLabel } from "@/components/ui";
 import {
   StyleSheet,
   View,
@@ -212,8 +212,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 >
                   {options.map((option) => (
                     <View key={option} style={styles.radioItem}>
-                      <RadioButton value={option} />
-                      <ThemedText>{option}</ThemedText>
+                      <RadioButton value={option} {...checkboxLabel(option)} />
+                      <ThemedText {...checkboxCaptionA11y}>{option}</ThemedText>
                     </View>
                   ))}
                 </RadioButton.Group>
@@ -263,6 +263,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <Trans>Time (Min:Sec)</Trans>
                   </ThemedText>
                   <TimeInput
+                    accessibilityLabel={t`Rest time`}
                     value={timeInput}
                     onChange={handleTimeInputChange}
                     style={styles.input}
@@ -276,6 +277,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <Trans>Time (Hour:Min)</Trans>
                   </ThemedText>
                   <TimeInput
+                    accessibilityLabel={t`Reminder time`}
+                    fields="hoursMinutes"
                     value={reminderTimeInput}
                     onChange={handleReminderTimeInputChange}
                     style={styles.input}

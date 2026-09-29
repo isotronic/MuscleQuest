@@ -191,12 +191,13 @@ export default function ExerciseInfoScreen() {
       </View>
 
       {/* Tab bar */}
-      <View style={styles.tabBar}>
+      <View style={styles.tabBar} accessibilityRole="tablist">
         {(["info", "history"] as Tab[]).map((tab) => {
           const active = activeTab === tab;
           return (
             <TouchableOpacity
-              accessibilityRole="button"
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
               key={tab}
               onPress={() => setActiveTab(tab)}
               style={[styles.tabPill, active && styles.tabPillActive]}

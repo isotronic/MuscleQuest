@@ -16,6 +16,7 @@ jest.mock("@lingui/react/macro", () => ({
 jest.mock("@lingui/core/macro", () => ({
   plural: (n: number, opts: Record<string, string>) =>
     (n === 1 ? opts.one : opts.other).replace("#", String(n)),
+  t: (s: TemplateStringsArray, ...v: unknown[]) => String.raw({ raw: s }, ...v),
 }));
 jest.mock("date-fns", () => ({
   formatDistanceToNow: () => "some time ago",

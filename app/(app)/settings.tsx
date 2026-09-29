@@ -64,6 +64,16 @@ const REMINDER_DAY_LABELS = [
   msg`Su`,
 ];
 const REMINDER_DAY_VALUES = [1, 2, 3, 4, 5, 6, 0];
+// The chips show two letters; screen readers get the whole day.
+const REMINDER_DAY_NAMES = [
+  msg`Monday`,
+  msg`Tuesday`,
+  msg`Wednesday`,
+  msg`Thursday`,
+  msg`Friday`,
+  msg`Saturday`,
+  msg`Sunday`,
+];
 
 export default function SettingsScreen() {
   const { colors } = useAppTheme();
@@ -1433,7 +1443,9 @@ export default function SettingsScreen() {
                       );
                       return (
                         <TouchableOpacity
-                          accessibilityRole="button"
+                          accessibilityRole="checkbox"
+                          accessibilityState={{ checked: selected }}
+                          accessibilityLabel={_(REMINDER_DAY_NAMES[index])}
                           key={index}
                           onPress={() => toggleReminderDay(dayValue as number)}
                           style={[

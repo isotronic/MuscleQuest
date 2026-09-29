@@ -140,6 +140,7 @@ export default function MeasurementsManageScreen() {
                       key={k}
                       style={[styles.kindChip, active && styles.kindChipActive]}
                       onPress={() => setNewKind(k)}
+                      accessibilityState={{ selected: active }}
                       activeOpacity={0.7}
                     >
                       <ThemedText
@@ -191,7 +192,11 @@ export default function MeasurementsManageScreen() {
                 </ThemedText>
               </View>
               <Switch
-                accessibilityLabel={t`Built-in Metrics`}
+                accessibilityLabel={
+                  bodyMetricTranslations[metric.key]
+                    ? _(bodyMetricTranslations[metric.key])
+                    : metric.label
+                }
                 value={metric.is_active}
                 onValueChange={() => handleToggle(metric.id, metric.is_active)}
                 color={colors.accent}
@@ -220,7 +225,7 @@ export default function MeasurementsManageScreen() {
                   </View>
                   <View style={styles.customActions}>
                     <Switch
-                      accessibilityLabel={t`Custom Metrics`}
+                      accessibilityLabel={metric.label}
                       value={metric.is_active}
                       onValueChange={() =>
                         handleToggle(metric.id, metric.is_active)

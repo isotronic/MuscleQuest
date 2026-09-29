@@ -10,6 +10,7 @@ import {
   formatDurationEstimateCompact,
 } from "@/utils/estimateWorkoutDuration";
 import { Plural, Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -44,75 +45,86 @@ export default function StandaloneWorkoutListItem({
     countUnilateralDouble,
   );
   return (
-    <Pressable
-      accessibilityRole="button"
-      style={[styles.container, flushEdges && styles.containerFlush]}
-      onPress={onPress}
-      disabled={disabled}
-    >
-      <View style={styles.imageContainer}>
-        <View style={styles.imagePlaceholder}>
-          <AppIcon
-            set="mci"
-            name="weight-lifter"
-            size={32}
-            color={colors.contentSecondary}
-          />
-        </View>
-      </View>
-      <View style={styles.textContainer}>
-        <View style={styles.nameRow}>
-          <ThemedText style={styles.name} numberOfLines={1}>
-            {workout.name}
-          </ThemedText>
-          {isPublished && (
+    <View style={[styles.container, flushEdges && styles.containerFlush]}>
+      {/* Details and Start are siblings so a screen reader can reach both. */}
+      <Pressable
+        accessibilityRole="button"
+        style={styles.main}
+        onPress={onPress}
+        disabled={disabled}
+      >
+        <View style={styles.imageContainer}>
+          <View style={styles.imagePlaceholder}>
             <AppIcon
               set="mci"
-              name="cloud-check"
-              size={16}
-              color={colors.accent}
-              style={{ marginLeft: 4 }}
+              name="weight-lifter"
+              size={32}
+              color={colors.contentSecondary}
             />
-          )}
+          </View>
         </View>
-        <ThemedText style={styles.subtitle}>
-          <Plural
-            value={workout.exercises.length}
-            one="# exercise"
-            other="# exercises"
+        <View style={styles.textContainer}>
+          <View style={styles.nameRow}>
+            <ThemedText style={styles.name} numberOfLines={1}>
+              {workout.name}
+            </ThemedText>
+            {isPublished && (
+              <AppIcon
+                set="mci"
+                name="cloud-check"
+                size={16}
+                color={colors.accent}
+                style={{ marginLeft: 4 }}
+                accessibilityLabel={t`Shared with friends`}
+              />
+            )}
+          </View>
+          <ThemedText style={styles.subtitle}>
+            <Plural
+              value={workout.exercises.length}
+              one="# exercise"
+              other="# exercises"
+            />
+            {estimate
+              ? `  ·  ~${
+                  compactEstimate
+                    ? formatDurationEstimateCompact(estimate)
+                    : formatDurationEstimate(estimate)
+                }`
+              : ""}
+          </ThemedText>
+        </View>
+        {!onStart && (
+          <AppIcon
+            set="mci"
+            name="chevron-right"
+            size={22}
+            color={colors.contentSecondary}
           />
-          {estimate
-            ? `  ·  ~${
-                compactEstimate
-                  ? formatDurationEstimateCompact(estimate)
-                  : formatDurationEstimate(estimate)
-              }`
-            : ""}
-        </ThemedText>
-      </View>
-      {onStart ? (
+        )}
+      </Pressable>
+      {onStart && (
         <Button
           mode="outlined"
           onPress={onStart}
           disabled={disabled}
           labelStyle={styles.startButtonLabel}
+          accessibilityLabel={t`Start ${workout.name}`}
         >
           <Trans>Start</Trans>
         </Button>
-      ) : (
-        <AppIcon
-          set="mci"
-          name="chevron-right"
-          size={22}
-          color={colors.contentSecondary}
-        />
       )}
-    </Pressable>
+    </View>
   );
 }
 
 function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({
+    main: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+    },
     container: {
       flexDirection: "row",
       alignItems: "center",

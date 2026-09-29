@@ -10,7 +10,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Avatar } from "react-native-paper";
 import { Trans } from "@lingui/react/macro";
-import { plural } from "@lingui/core/macro";
+import { plural, t } from "@lingui/core/macro";
 import { formatDistanceToNow } from "date-fns";
 import { AppText, AppIcon } from "@/components/ui";
 import { useAppTheme, radii } from "@/theme";
@@ -288,18 +288,21 @@ export default function FriendProfileScreen() {
       ) : (
         <View style={styles.cardGroup}>
           {plans.map((plan) => (
-            <TouchableOpacity
-              accessibilityRole="button"
+            <View
               key={plan.localPlanId}
               style={[styles.card, { backgroundColor: colors.card }]}
-              onPress={() =>
-                router.push({
-                  pathname: "/(app)/friend-plan",
-                  params: { friendUid, planId: String(plan.localPlanId) },
-                } as unknown as Parameters<typeof router.push>[0])
-              }
             >
-              <View style={{ flex: 1 }}>
+              {/* Details and Add are siblings so a screen reader can reach both. */}
+              <TouchableOpacity
+                accessibilityRole="button"
+                style={{ flex: 1 }}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(app)/friend-plan",
+                    params: { friendUid, planId: String(plan.localPlanId) },
+                  } as unknown as Parameters<typeof router.push>[0])
+                }
+              >
                 <AppText
                   variant="bodyBold"
                   style={{ color: colors.contentPrimary }}
@@ -317,8 +320,13 @@ export default function FriendProfileScreen() {
                     })}
                   </Trans>
                 </AppText>
-              </View>
+              </TouchableOpacity>
               <TouchableOpacity
+                accessibilityLabel={
+                  importedPlanIds.has(plan.localPlanId)
+                    ? t`${plan.name} added`
+                    : t`Add ${plan.name}`
+                }
                 accessibilityRole="button"
                 onPress={() => {
                   importPlan.mutate(plan, {
@@ -355,7 +363,7 @@ export default function FriendProfileScreen() {
                 size={14}
                 color={colors.contentSecondary}
               />
-            </TouchableOpacity>
+            </View>
           ))}
         </View>
       )}
@@ -381,21 +389,24 @@ export default function FriendProfileScreen() {
       ) : (
         <View style={styles.cardGroup}>
           {workouts.map((workout) => (
-            <TouchableOpacity
-              accessibilityRole="button"
+            <View
               key={workout.localWorkoutId}
               style={[styles.card, { backgroundColor: colors.card }]}
-              onPress={() =>
-                router.push({
-                  pathname: "/(app)/friend-workout",
-                  params: {
-                    friendUid,
-                    workoutId: String(workout.localWorkoutId),
-                  },
-                } as unknown as Parameters<typeof router.push>[0])
-              }
             >
-              <View style={{ flex: 1 }}>
+              {/* Details and Add are siblings so a screen reader can reach both. */}
+              <TouchableOpacity
+                accessibilityRole="button"
+                style={{ flex: 1 }}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(app)/friend-workout",
+                    params: {
+                      friendUid,
+                      workoutId: String(workout.localWorkoutId),
+                    },
+                  } as unknown as Parameters<typeof router.push>[0])
+                }
+              >
                 <AppText
                   variant="bodyBold"
                   style={{ color: colors.contentPrimary }}
@@ -413,8 +424,13 @@ export default function FriendProfileScreen() {
                     })}
                   </Trans>
                 </AppText>
-              </View>
+              </TouchableOpacity>
               <TouchableOpacity
+                accessibilityLabel={
+                  importedWorkoutIds.has(workout.localWorkoutId)
+                    ? t`${workout.name} added`
+                    : t`Add ${workout.name}`
+                }
                 accessibilityRole="button"
                 onPress={() => {
                   importWorkout.mutate(workout, {
@@ -452,7 +468,7 @@ export default function FriendProfileScreen() {
                 size={14}
                 color={colors.contentSecondary}
               />
-            </TouchableOpacity>
+            </View>
           ))}
         </View>
       )}
@@ -478,21 +494,24 @@ export default function FriendProfileScreen() {
       ) : (
         <View style={styles.cardGroup}>
           {exercises.map((exercise) => (
-            <TouchableOpacity
-              accessibilityRole="button"
+            <View
               key={exercise.localExerciseId}
               style={[styles.card, { backgroundColor: colors.card }]}
-              onPress={() =>
-                router.push({
-                  pathname: "/(app)/friend-exercise",
-                  params: {
-                    friendUid,
-                    exerciseId: String(exercise.localExerciseId),
-                  },
-                } as unknown as Parameters<typeof router.push>[0])
-              }
             >
-              <View style={{ flex: 1 }}>
+              {/* Details and Add are siblings so a screen reader can reach both. */}
+              <TouchableOpacity
+                accessibilityRole="button"
+                style={{ flex: 1 }}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(app)/friend-exercise",
+                    params: {
+                      friendUid,
+                      exerciseId: String(exercise.localExerciseId),
+                    },
+                  } as unknown as Parameters<typeof router.push>[0])
+                }
+              >
                 <AppText
                   variant="bodyBold"
                   style={{ color: colors.contentPrimary }}
@@ -505,8 +524,13 @@ export default function FriendProfileScreen() {
                 >
                   {exercise.equipment} · {exercise.targetMuscle}
                 </AppText>
-              </View>
+              </TouchableOpacity>
               <TouchableOpacity
+                accessibilityLabel={
+                  importedExerciseIds.has(exercise.localExerciseId)
+                    ? t`${exercise.name} added`
+                    : t`Add ${exercise.name}`
+                }
                 accessibilityRole="button"
                 onPress={() => {
                   importExercise.mutate(exercise, {
@@ -544,7 +568,7 @@ export default function FriendProfileScreen() {
                 size={14}
                 color={colors.contentSecondary}
               />
-            </TouchableOpacity>
+            </View>
           ))}
         </View>
       )}
