@@ -271,6 +271,43 @@ describe("startRestNotification", () => {
     expect(Notifications.requestPermissionsAsync).toHaveBeenCalledTimes(1);
   });
 
+  it("asks again next time if the permission request itself failed", async () => {
+    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue(
+      permission(false, true),
+    );
+    (Notifications.requestPermissionsAsync as jest.Mock)
+      .mockRejectedValueOnce(new Error("activity gone"))
+      .mockResolvedValueOnce(permission(true));
+
+    await startRestNotification(90, "Rest", "Go");
+    await startRestNotification(90, "Rest", "Go");
+
+    expect(Notifications.requestPermissionsAsync).toHaveBeenCalledTimes(2);
+    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps only the newest notification when timers start back to back", async () => {
+    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue(
+      permission(true),
+    );
+    (Notifications.scheduleNotificationAsync as jest.Mock)
+      .mockResolvedValueOnce("id-first")
+      .mockResolvedValueOnce("id-second");
+
+    // A rest starts, then +15s is tapped before the first one has finished
+    // checking permission and scheduling.
+    const first = startRestNotification(60, "Rest", "Go");
+    const second = scheduleRestNotificationWithCancellation(75, "Rest", "Go");
+    await Promise.all([first, second]);
+
+    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(1);
+    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trigger: expect.objectContaining({ seconds: 75 }),
+      }),
+    );
+  });
+
   it("returns a hint once when permission is denied", async () => {
     (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue(
       permission(false, false),

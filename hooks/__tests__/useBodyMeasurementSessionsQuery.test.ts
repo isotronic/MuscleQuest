@@ -49,6 +49,22 @@ describe("useBodyMeasurementSessionsQuery", () => {
     usePendingDeleteStore.setState({ measurementEntryIds: [] });
   });
 
+  it("still returns up to the limit when a hidden entry is among them", async () => {
+    (fetchBodyMeasurementSessions as jest.Mock).mockResolvedValue([
+      { entry: { id: 3 }, values: [] },
+      { entry: { id: 2 }, values: [] },
+    ]);
+    usePendingDeleteStore.setState({ measurementEntryIds: [3] });
+
+    useBodyMeasurementSessionsQuery(OPTIONS, 1);
+    const { queryFn } = (useQuery as jest.Mock).mock.calls[0][0];
+    const sessions = await queryFn();
+
+    expect(fetchBodyMeasurementSessions).toHaveBeenCalledWith(OPTIONS, 2);
+    expect(sessions.map((s: any) => s.entry.id)).toEqual([2]);
+    usePendingDeleteStore.setState({ measurementEntryIds: [] });
+  });
+
   it("includes limit in queryKey when provided", () => {
     useBodyMeasurementSessionsQuery(OPTIONS, 10);
 

@@ -73,6 +73,8 @@ export interface RemovedSetSnapshot {
   exerciseId: number;
   setIndex: number;
   set: UserExercise["sets"][number];
+  /** The exercise's current-set pointer before the removal. */
+  currentSetIndex?: number;
   completed?: boolean;
   weightAndReps?: SetEntry;
   setDuration?: number | null;
@@ -1326,6 +1328,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           exerciseId: exercise.exercise_id,
           setIndex,
           set: removedSet,
+          currentSetIndex: state.currentSetIndices[exerciseIndex],
           completed: state.completedSets[exerciseIndex]?.[setIndex],
           weightAndReps: state.weightAndReps[exerciseIndex]?.[setIndex],
           setDuration: state.setDurations[exerciseIndex]?.[setIndex],
@@ -1348,7 +1351,15 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           const exercises = [...state.workout.exercises];
           exercises[exerciseIndex] = { ...exercise, sets };
 
+          // Removing the current set moved the pointer on; undo puts it back
+          // on that set. Otherwise shift it past the re-inserted set.
           const currentSetIndex = state.currentSetIndices[exerciseIndex];
+          const restoredPointer =
+            snapshot.currentSetIndex === setIndex
+              ? index
+              : currentSetIndex != null && currentSetIndex >= index
+                ? currentSetIndex + 1
+                : currentSetIndex;
           return {
             workout: { ...state.workout, exercises },
             completedSets: {
@@ -1384,12 +1395,12 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               ),
             },
             currentSetIndices:
-              currentSetIndex != null && currentSetIndex >= index
-                ? {
+              restoredPointer === undefined
+                ? state.currentSetIndices
+                : {
                     ...state.currentSetIndices,
-                    [exerciseIndex]: currentSetIndex + 1,
-                  }
-                : state.currentSetIndices,
+                    [exerciseIndex]: restoredPointer,
+                  },
           };
         });
       },

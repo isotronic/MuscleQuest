@@ -45,7 +45,42 @@ export async function scheduleRestNotification(
   }
 }
 
+// Timer starts, adjustments and cancels can overlap (a rest starts while the
+// previous one is still being scheduled, +15s is tapped straight away). Each
+// request takes a ticket and replacements run one at a time; a replacement
+// whose ticket is no longer the newest does nothing, so only the latest
+// notification is ever scheduled and stored.
+let latestTicket = 0;
+let queue: Promise<unknown> = Promise.resolve();
+
+function serialize<T>(job: () => Promise<T>): Promise<T> {
+  const run = queue.then(job, job);
+  queue = run.catch(() => undefined);
+  return run;
+}
+
+async function replaceRestNotification(
+  ticket: number,
+  secondsFromNow: number,
+  title: string,
+  body: string,
+  channelId: string,
+) {
+  await serialize(async () => {
+    if (ticket !== latestTicket) return;
+    await cancelScheduledRestNotification();
+    if (secondsFromNow > 0) {
+      await scheduleRestNotification(secondsFromNow, title, body, channelId);
+    }
+  });
+}
+
 export async function cancelRestNotifications() {
+  latestTicket++;
+  await serialize(cancelScheduledRestNotification);
+}
+
+async function cancelScheduledRestNotification() {
   try {
     const id = await getAsyncStorageItem(REST_TIMER_NOTIFICATION_ID_KEY);
     if (id) {
@@ -73,11 +108,13 @@ export async function scheduleRestNotificationWithCancellation(
   body: string,
   channelId: string = "rest-timer1",
 ) {
-  await cancelRestNotifications();
-
-  if (secondsFromNow > 0) {
-    await scheduleRestNotification(secondsFromNow, title, body, channelId);
-  }
+  await replaceRestNotification(
+    ++latestTicket,
+    secondsFromNow,
+    title,
+    body,
+    channelId,
+  );
 }
 
 // Rest notifications are always scheduled, so a backgrounded or locked phone
@@ -114,8 +151,10 @@ async function ensureNotificationPermission(): Promise<boolean> {
     if (current.granted) return true;
     if (!current.canAskAgain) return false;
     if (await getAsyncStorageItem(PERMISSION_ASKED_KEY)) return false;
-    await setAsyncStorageItem(PERMISSION_ASKED_KEY, "true");
     const requested = await Notifications.requestPermissionsAsync();
+    // Marked only once the user has actually answered; a failed request is
+    // retried at the next rest.
+    await setAsyncStorageItem(PERMISSION_ASKED_KEY, "true");
     return requested.granted;
   } catch (error: any) {
     Bugsnag.notify(error);
@@ -133,8 +172,16 @@ export async function startRestNotification(
   title: string,
   body: string,
 ): Promise<{ showPermissionHint: boolean }> {
+  // Taken before the permission check, so a newer timer started meanwhile wins.
+  const ticket = ++latestTicket;
   if (await ensureNotificationPermission()) {
-    await scheduleRestNotificationWithCancellation(secondsFromNow, title, body);
+    await replaceRestNotification(
+      ticket,
+      secondsFromNow,
+      title,
+      body,
+      "rest-timer1",
+    );
     return { showPermissionHint: false };
   }
   await cancelRestNotifications();

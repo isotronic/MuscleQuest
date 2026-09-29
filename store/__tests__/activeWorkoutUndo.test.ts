@@ -112,6 +112,19 @@ describe("undo removing a set", () => {
     expect(after.setDurations[1]).toEqual(before.setDurations[1]);
   });
 
+  it("points back at the restored set when it was the current one", () => {
+    useActiveWorkoutStore.setState({
+      completedSets: { 0: { 0: true }, 1: {} },
+      currentSetIndices: { 0: 1, 1: 0, 2: 0 },
+    });
+    const snapshot = useActiveWorkoutStore.getState().snapshotSet(1, 0)!;
+
+    act(() => useActiveWorkoutStore.getState().removeSet(0));
+    act(() => useActiveWorkoutStore.getState().restoreSet(snapshot));
+
+    expect(useActiveWorkoutStore.getState().currentSetIndices[1]).toBe(0);
+  });
+
   it("does nothing if the exercise is no longer where it was", () => {
     const snapshot = useActiveWorkoutStore.getState().snapshotSet(1, 0)!;
     act(() => useActiveWorkoutStore.getState().removeSet(0));

@@ -105,6 +105,13 @@ const computeStats = (
   };
 };
 
+const STATS_QUERY_ROOTS = [
+  "exercises",
+  "trackedExercises",
+  "completedWorkouts",
+  "bodyMeasurements",
+];
+
 export default function StatsScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -126,9 +133,14 @@ export default function StatsScreen() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isReorderMode, setIsReorderMode] = useState(false);
   const reorderMutation = useReorderTrackedExercisesMutation();
-  // Everything on this screen is local SQLite; refetch whatever is mounted.
+  // Refetch only this screen's data, so a slow query on another mounted
+  // screen cannot hold the spinner.
   const { refreshing, onRefresh } = usePullToRefresh(() =>
-    queryClient.refetchQueries({ type: "active" }),
+    queryClient.refetchQueries({
+      type: "active",
+      predicate: (query) =>
+        STATS_QUERY_ROOTS.includes(String(query.queryKey[0])),
+    }),
   );
 
   useEffect(() => {
