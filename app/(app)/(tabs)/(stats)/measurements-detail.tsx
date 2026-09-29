@@ -148,7 +148,7 @@ export default function MeasurementDetailScreen() {
 
         {/* Editable metric values */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
             <Trans>Values</Trans>
           </ThemedText>
           {session.values.map((v) => (
@@ -183,7 +183,7 @@ export default function MeasurementDetailScreen() {
 
         {/* Chart section */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
             <Trans>History</Trans>
           </ThemedText>
 

@@ -355,7 +355,7 @@ export default function AddCustomExerciseScreen() {
         >
           {/* ── Basics ─────────────────────────────────────── */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionHeader}>
+            <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
               <Trans>Basics</Trans>
             </ThemedText>
 
@@ -416,7 +416,7 @@ export default function AddCustomExerciseScreen() {
 
           {/* ── Muscles ────────────────────────────────────── */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionHeader}>
+            <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
               <Trans>Muscles</Trans>
             </ThemedText>
 
@@ -486,7 +486,7 @@ export default function AddCustomExerciseScreen() {
 
           {/* ── Equipment & Tracking ────────────────────────── */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionHeader}>
+            <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
               <Trans>Equipment & Tracking</Trans>
             </ThemedText>
 
@@ -547,7 +547,7 @@ export default function AddCustomExerciseScreen() {
 
           {/* ── Stats Options ──────────────────────────────── */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionHeader}>
+            <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
               <Trans>Stats Options</Trans>
             </ThemedText>
 

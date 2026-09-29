@@ -4,7 +4,9 @@ import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { Card } from "react-native-paper";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import { t } from "@lingui/core/macro";
 import { useChartTheme } from "./chartTheme";
+import { summarizeTotals } from "./chartA11y";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -242,26 +244,40 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
 
   const maxVal = Math.max(...buckets.map((b) => b.value));
 
+  const summary = summarizeTotals({
+    title: t`Volume`,
+    timeRange,
+    buckets: buckets.map((b) => ({
+      label: [b.label, b.labelLine2].filter(Boolean).join(" "),
+      value: b.value,
+    })),
+    // Bars are in thousands of the weight unit; spell the unit out.
+    unit: weightUnit === "lbs" ? t`tons` : t`tonnes`,
+    emptyText: t`No workouts in this period`,
+  });
+
   return (
     <Card style={styles.card}>
-      <BarChart
-        data={barData}
-        barWidth={barWidth}
-        spacing={barSpacing}
-        isAnimated
-        frontColor={chartTheme.primary}
-        roundedTop
-        barBorderRadius={chartTheme.barBorderRadius}
-        yAxisTextStyle={styles.yAxisLabel}
-        xAxisLabelTextStyle={styles.xAxisLabel}
-        yAxisColor="transparent"
-        xAxisColor={chartTheme.axisColor}
-        width={chartWidth}
-        noOfSections={chartTheme.noOfSections}
-        initialSpacing={INITIAL_SPACING}
-        maxValue={maxVal > 0 ? maxVal : 1}
-        hideRules
-      />
+      <View accessible accessibilityRole="image" accessibilityLabel={summary}>
+        <BarChart
+          data={barData}
+          barWidth={barWidth}
+          spacing={barSpacing}
+          isAnimated
+          frontColor={chartTheme.primary}
+          roundedTop
+          barBorderRadius={chartTheme.barBorderRadius}
+          yAxisTextStyle={styles.yAxisLabel}
+          xAxisLabelTextStyle={styles.xAxisLabel}
+          yAxisColor="transparent"
+          xAxisColor={chartTheme.axisColor}
+          width={chartWidth}
+          noOfSections={chartTheme.noOfSections}
+          initialSpacing={INITIAL_SPACING}
+          maxValue={maxVal > 0 ? maxVal : 1}
+          hideRules
+        />
+      </View>
     </Card>
   );
 };

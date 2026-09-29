@@ -159,7 +159,7 @@ export default function MeasurementsScreen() {
         {/* Entry form */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Log Entry</Trans>
             </ThemedText>
             <Button
@@ -255,7 +255,7 @@ export default function MeasurementsScreen() {
 
         {/* Session history */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
             <Trans>History</Trans>
           </ThemedText>
           {sessionsLoading && (

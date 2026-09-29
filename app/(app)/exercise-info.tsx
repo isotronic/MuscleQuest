@@ -287,7 +287,10 @@ export default function ExerciseInfoScreen() {
 
             {description.length > 0 && (
               <View>
-                <ThemedText style={styles.sectionTitle}>
+                <ThemedText
+                  accessibilityRole="header"
+                  style={styles.sectionTitle}
+                >
                   <Trans>Description:</Trans>
                 </ThemedText>
                 <ThemedText style={styles.descriptionText}>

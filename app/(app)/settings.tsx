@@ -584,7 +584,7 @@ export default function SettingsScreen() {
           options={options}
         />
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Personal</Trans>
           </ThemedText>
           <View style={styles.item}>
@@ -745,7 +745,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Units of measurement</Trans>
           </ThemedText>
           <TouchableOpacity
@@ -832,7 +832,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Workout</Trans>
           </ThemedText>
           <TouchableOpacity
@@ -1123,7 +1123,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Stats</Trans>
           </ThemedText>
           <View style={styles.item}>
@@ -1208,7 +1208,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Adaptive Progression (beta)</Trans>
           </ThemedText>
           <View style={styles.item}>
@@ -1384,7 +1384,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Reminders</Trans>
           </ThemedText>
           <View style={styles.item}>
@@ -1493,7 +1493,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Exercise</Trans>
           </ThemedText>
           <TouchableOpacity
@@ -1593,7 +1593,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Appearance</Trans>
           </ThemedText>
           <View style={styles.item}>
@@ -1653,7 +1653,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         {/* <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>Manage Data</ThemedText>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>Manage Data</ThemedText>
           <TouchableOpacity accessibilityRole="button"
             style={styles.item}
             // onPress={confirmClearDatabase}
@@ -1717,7 +1717,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} /> */}
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Your data</Trans>
           </ThemedText>
           <TouchableOpacity
@@ -1780,7 +1780,7 @@ export default function SettingsScreen() {
         )}
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>About</Trans>
           </ThemedText>
           <TouchableOpacity

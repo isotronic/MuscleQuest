@@ -126,7 +126,7 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
 
   return (
     <View style={styles.section}>
-      <ThemedText style={styles.sectionHeader}>
+      <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
         <Trans>Privacy</Trans>
       </ThemedText>
       <ThemedText style={styles.rowSubtitle}>

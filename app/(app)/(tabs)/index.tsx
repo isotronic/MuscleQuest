@@ -482,7 +482,11 @@ export default function HomeScreen() {
             <>
               {settings.showOnboarding === "true" && <Onboarding />}
               <View style={styles.planTitleRow}>
-                <ThemedText type="default" style={styles.sectionTitle}>
+                <ThemedText
+                  accessibilityRole="header"
+                  type="default"
+                  style={styles.sectionTitle}
+                >
                   <Trans>Active Plan: {activePlan.name}</Trans>
                 </ThemedText>
                 {progressionSettings.enabled && isCurrentWeekDeload && (

@@ -451,7 +451,7 @@ export default function StatsScreen() {
         {/* Insights strip */}
         {(completedWorkouts?.length ?? 0) > 0 && (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Insights</Trans>
             </ThemedText>
             <InsightsStrip
@@ -467,7 +467,7 @@ export default function StatsScreen() {
 
         {/* Summary tiles */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
             <Trans>Summary</Trans>
           </ThemedText>
           <View style={styles.tileGrid}>
@@ -498,7 +498,7 @@ export default function StatsScreen() {
         {/* Workout history */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Workout History</Trans>
             </ThemedText>
             {(completedWorkouts?.length ?? 0) > 0 && (
@@ -522,7 +522,7 @@ export default function StatsScreen() {
         {/* Workouts over time */}
         {(completedWorkouts?.length ?? 0) > 0 && (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Workouts per Week</Trans>
             </ThemedText>
             <WorkoutBarChart
@@ -535,7 +535,7 @@ export default function StatsScreen() {
         {/* Volume over time */}
         {(completedWorkouts?.length ?? 0) > 0 && (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Volume per Week ({volumeUnit})</Trans>
             </ThemedText>
             <VolumeBarChart
@@ -551,7 +551,7 @@ export default function StatsScreen() {
 
         {/* Training split */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
             <Trans>Training Split (by sets)</Trans>
           </ThemedText>
           <BodyPartChart
@@ -564,7 +564,7 @@ export default function StatsScreen() {
         {/* Exercises */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Tracked Exercises</Trans>
             </ThemedText>
             <View style={styles.exerciseHeaderButtons}>
@@ -640,7 +640,7 @@ export default function StatsScreen() {
         {/* Body Measurements */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Body Measurements</Trans>
             </ThemedText>
             <Button

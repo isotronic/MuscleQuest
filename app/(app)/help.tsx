@@ -133,7 +133,9 @@ function Section({ icon, title, children }: SectionProps) {
           color={colors.accent}
           style={styles.sectionIcon}
         />
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>
+          {title}
+        </Text>
       </View>
       <View style={styles.sectionBody}>{children}</View>
     </View>

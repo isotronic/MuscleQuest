@@ -140,6 +140,7 @@ export default function ExerciseDetailScreen() {
               distanceUnit={distanceUnit}
               prValue={prValue > 0 ? prValue : undefined}
               preRangeBaseline={data.preRangeBaseline}
+              showTableToggle
             />
           </View>
         )}
@@ -147,7 +148,7 @@ export default function ExerciseDetailScreen() {
         {/* Top PR sets */}
         {data?.topPRSets && data.topPRSets.length > 0 && (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Top PR Sets</Trans>
             </ThemedText>
             {data.topPRSets.map((set, i) => (
@@ -184,7 +185,7 @@ export default function ExerciseDetailScreen() {
         {/* Recent sessions */}
         {data?.recentSessions && data.recentSessions.length > 0 && (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Recent Sessions</Trans>
             </ThemedText>
             {data.recentSessions.map((session, i) => (

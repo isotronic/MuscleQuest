@@ -168,7 +168,7 @@ export default function PlateInventoryScreen() {
           </Trans>
         </ThemedText>
 
-        <ThemedText style={styles.sectionHeader}>
+        <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
           <Trans>Plates ({weightUnit})</Trans>
         </ThemedText>
 
@@ -238,7 +238,7 @@ export default function PlateInventoryScreen() {
 
         <Divider style={styles.divider} />
 
-        <ThemedText style={styles.sectionHeader}>
+        <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
           <Trans>Add a plate size</Trans>
         </ThemedText>
         <View style={styles.addRow}>

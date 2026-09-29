@@ -71,6 +71,25 @@ function findGroupingWrappers(source: string, file: string): string[] {
   return problems;
 }
 
+/**
+ * Section titles are how screen reader users skim a screen: they jump from
+ * header to header. Text styled as a section title must say it is one.
+ */
+function findUnmarkedHeadings(source: string, file: string): string[] {
+  const problems: string[] = [];
+  const pattern =
+    /<(ThemedText|Text|AppText)\b(?=[^>]*style=\{styles\.(sectionTitle|sectionHeader)\})/g;
+  for (const match of source.matchAll(pattern)) {
+    const start = match.index!;
+    const end = endOfOpeningTag(source, start + match[0].length);
+    if (!/accessibilityRole="header"/.test(source.slice(start, end))) {
+      const line = source.slice(0, start).split("\n").length;
+      problems.push(`${path.relative(ROOT, file)}:${line} section title`);
+    }
+  }
+  return problems;
+}
+
 function findUnlabelled(file: string): string[] {
   const source = fs.readFileSync(file, "utf8");
   const problems: string[] = [];
@@ -111,7 +130,11 @@ function findUnlabelled(file: string): string[] {
       problems.push(`${where(start, tag)} needs accessibilityLabel`);
     }
   }
-  return [...problems, ...findGroupingWrappers(source, file)];
+  return [
+    ...problems,
+    ...findGroupingWrappers(source, file),
+    ...findUnmarkedHeadings(source, file),
+  ];
 }
 
 describe("accessibility labels", () => {

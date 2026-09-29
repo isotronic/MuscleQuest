@@ -79,6 +79,11 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
         [exercise.completed_sets],
       );
 
+      // Spoken as one sentence; the sparkline and chevron are decoration.
+      const cardLabel = [exercise.name, prLabel, daysAgo]
+        .filter(Boolean)
+        .join(", ");
+
       if (isReorderMode) {
         return (
           <Sortable.Touchable accessibilityRole="button" style={styles.card}>
@@ -108,6 +113,7 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
       return (
         <TouchableOpacity
           accessibilityRole="button"
+          accessibilityLabel={cardLabel}
           onPress={onPress}
           activeOpacity={0.7}
           style={styles.card}

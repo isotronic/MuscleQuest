@@ -640,7 +640,7 @@ export default function WorkoutSummaryScreen() {
           />
         )}
 
-        <ThemedText style={styles.sectionTitle}>
+        <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
           <Trans>Exercises</Trans>
         </ThemedText>
         {workout.exercises.map((exercise) => (

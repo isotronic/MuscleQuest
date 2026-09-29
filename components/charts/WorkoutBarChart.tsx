@@ -4,7 +4,9 @@ import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { Card } from "react-native-paper";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import { t } from "@lingui/core/macro";
 import { useChartTheme } from "./chartTheme";
+import { summarizeTotals } from "./chartA11y";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -199,26 +201,38 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
     return { value: bucket.value, label: bucket.label };
   });
 
+  const summary = summarizeTotals({
+    title: t`Workouts`,
+    timeRange,
+    buckets: buckets.map((b) => ({
+      label: [b.label, b.labelLine2].filter(Boolean).join(" "),
+      value: b.value,
+    })),
+    emptyText: t`No workouts in this period`,
+  });
+
   return (
     <Card style={styles.card}>
-      <BarChart
-        data={barData}
-        barWidth={barWidth}
-        spacing={barSpacing}
-        isAnimated
-        frontColor={chartTheme.primary}
-        roundedTop
-        barBorderRadius={chartTheme.barBorderRadius}
-        yAxisTextStyle={styles.yAxisLabel}
-        xAxisLabelTextStyle={styles.xAxisLabel}
-        yAxisColor="transparent"
-        xAxisColor={chartTheme.axisColor}
-        width={chartWidth}
-        noOfSections={chartTheme.noOfSections}
-        initialSpacing={INITIAL_SPACING}
-        maxValue={Math.max(1, ...buckets.map((b) => b.value))}
-        hideRules
-      />
+      <View accessible accessibilityRole="image" accessibilityLabel={summary}>
+        <BarChart
+          data={barData}
+          barWidth={barWidth}
+          spacing={barSpacing}
+          isAnimated
+          frontColor={chartTheme.primary}
+          roundedTop
+          barBorderRadius={chartTheme.barBorderRadius}
+          yAxisTextStyle={styles.yAxisLabel}
+          xAxisLabelTextStyle={styles.xAxisLabel}
+          yAxisColor="transparent"
+          xAxisColor={chartTheme.axisColor}
+          width={chartWidth}
+          noOfSections={chartTheme.noOfSections}
+          initialSpacing={INITIAL_SPACING}
+          maxValue={Math.max(1, ...buckets.map((b) => b.value))}
+          hideRules
+        />
+      </View>
     </Card>
   );
 };

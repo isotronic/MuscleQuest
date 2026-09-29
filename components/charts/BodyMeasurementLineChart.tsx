@@ -4,6 +4,7 @@ import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { LineChart } from "react-native-gifted-charts";
 import { useChartTheme } from "./chartTheme";
+import { summarizeTrend } from "./chartA11y";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { localDateKeyToDate, parseDbTimestamp } from "@/utils/dates";
@@ -265,6 +266,13 @@ export const BodyMeasurementLineChart: React.FC<
       ? Math.max(1, Math.floor((chartWidth - 2 * initialSpacing) / (n - 1)))
       : 30;
 
+  const summary = summarizeTrend({
+    title: metricLabel,
+    timeRange,
+    values: chartData.map((p) => p.value),
+    unit,
+  });
+
   if (chartData.length === 0) {
     return (
       <View style={styles.empty}>
@@ -280,59 +288,61 @@ export const BodyMeasurementLineChart: React.FC<
       <ThemedText style={styles.label}>
         {metricLabel} ({unit})
       </ThemedText>
-      <LineChart
-        key={timeRange}
-        data={chartData}
-        width={chartWidth}
-        spacing={spacing}
-        initialSpacing={initialSpacing}
-        endSpacing={initialSpacing}
-        thickness={2}
-        color={colors.accent}
-        isAnimated
-        areaChart
-        startFillColor={chartTheme.areaStartFill}
-        endFillColor={chartTheme.areaEndFill}
-        yAxisColor="transparent"
-        yAxisTextStyle={styles.yAxisLabel}
-        formatYLabel={(label) => String(Math.round(Number(label)))}
-        xAxisLabelTextStyle={styles.xAxisLabel}
-        xAxisColor={colors.contentSecondary}
-        hideRules
-        noOfSections={3}
-        yAxisOffset={yAxisOffset}
-        maxValue={yAxisMax}
-        pointerConfig={{
-          activatePointersInstantlyOnTouch: true,
-          persistPointer: true,
-          showPointerStrip: true,
-          pointerStripColor: chartTheme.pointerStripColor,
-          pointerStripWidth: 1,
-          pointerColor: colors.danger,
-          radius: 5,
-          pointerLabelWidth: POINTER_LABEL_WIDTH,
-          pointerLabelHeight: 34,
-          autoAdjustPointerLabelPosition: true,
-          shiftPointerLabelY: -44,
-          pointerLabelComponent: (
-            items: { value: number }[],
-            _secondary: unknown,
-            idx: number,
-          ) => {
-            const val = items[0]?.value;
-            if (val == null) return null;
-            const display = Number.isInteger(val) ? `${val}` : val.toFixed(1);
-            const isLast = idx === n - 1 && n > 1;
-            return (
-              <View style={[styles.tooltip, isLast && styles.tooltipLast]}>
-                <Text style={styles.tooltipText}>
-                  {display} {unit}
-                </Text>
-              </View>
-            );
-          },
-        }}
-      />
+      <View accessible accessibilityRole="image" accessibilityLabel={summary}>
+        <LineChart
+          key={timeRange}
+          data={chartData}
+          width={chartWidth}
+          spacing={spacing}
+          initialSpacing={initialSpacing}
+          endSpacing={initialSpacing}
+          thickness={2}
+          color={colors.accent}
+          isAnimated
+          areaChart
+          startFillColor={chartTheme.areaStartFill}
+          endFillColor={chartTheme.areaEndFill}
+          yAxisColor="transparent"
+          yAxisTextStyle={styles.yAxisLabel}
+          formatYLabel={(label) => String(Math.round(Number(label)))}
+          xAxisLabelTextStyle={styles.xAxisLabel}
+          xAxisColor={colors.contentSecondary}
+          hideRules
+          noOfSections={3}
+          yAxisOffset={yAxisOffset}
+          maxValue={yAxisMax}
+          pointerConfig={{
+            activatePointersInstantlyOnTouch: true,
+            persistPointer: true,
+            showPointerStrip: true,
+            pointerStripColor: chartTheme.pointerStripColor,
+            pointerStripWidth: 1,
+            pointerColor: colors.danger,
+            radius: 5,
+            pointerLabelWidth: POINTER_LABEL_WIDTH,
+            pointerLabelHeight: 34,
+            autoAdjustPointerLabelPosition: true,
+            shiftPointerLabelY: -44,
+            pointerLabelComponent: (
+              items: { value: number }[],
+              _secondary: unknown,
+              idx: number,
+            ) => {
+              const val = items[0]?.value;
+              if (val == null) return null;
+              const display = Number.isInteger(val) ? `${val}` : val.toFixed(1);
+              const isLast = idx === n - 1 && n > 1;
+              return (
+                <View style={[styles.tooltip, isLast && styles.tooltipLast]}>
+                  <Text style={styles.tooltipText}>
+                    {display} {unit}
+                  </Text>
+                </View>
+              );
+            },
+          }}
+        />
+      </View>
     </View>
   );
 };
