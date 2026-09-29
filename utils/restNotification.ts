@@ -9,6 +9,7 @@ import {
 
 const REST_TIMER_NOTIFICATION_ID_KEY = "restTimerNotificationId";
 const PERMISSION_HINT_SHOWN_KEY = "restNotificationPermissionHintShown";
+const PERMISSION_ASKED_KEY = "restNotificationPermissionAsked";
 
 /** `content.data.kind` of rest timer notifications. */
 export const REST_NOTIFICATION_KIND = "rest-timer";
@@ -103,12 +104,17 @@ export function foregroundPresentation(
   };
 }
 
-/** Asks for notification permission only while the OS still allows asking. */
+/**
+ * Asks for notification permission once, ever: Android keeps canAskAgain true
+ * after the first denial, and a second prompt mid-workout would nag.
+ */
 async function ensureNotificationPermission(): Promise<boolean> {
   try {
     const current = await Notifications.getPermissionsAsync();
     if (current.granted) return true;
     if (!current.canAskAgain) return false;
+    if (await getAsyncStorageItem(PERMISSION_ASKED_KEY)) return false;
+    await setAsyncStorageItem(PERMISSION_ASKED_KEY, "true");
     const requested = await Notifications.requestPermissionsAsync();
     return requested.granted;
   } catch (error: any) {

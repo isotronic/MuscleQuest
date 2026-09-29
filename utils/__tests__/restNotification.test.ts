@@ -257,6 +257,20 @@ describe("startRestNotification", () => {
     expect(Notifications.scheduleNotificationAsync).toHaveBeenCalled();
   });
 
+  it("asks only once, even while Android still allows asking again", async () => {
+    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue(
+      permission(false, true),
+    );
+    (Notifications.requestPermissionsAsync as jest.Mock).mockResolvedValue(
+      permission(false, true),
+    );
+
+    await startRestNotification(90, "Rest", "Go");
+    await startRestNotification(90, "Rest", "Go");
+
+    expect(Notifications.requestPermissionsAsync).toHaveBeenCalledTimes(1);
+  });
+
   it("returns a hint once when permission is denied", async () => {
     (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue(
       permission(false, false),
