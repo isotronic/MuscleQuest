@@ -7,6 +7,10 @@ import {
   updateSettings,
   deleteCompletedWorkout,
   restoreCompletedWorkout,
+  deleteWorkoutPlan,
+  restoreWorkoutPlan,
+  deleteStandaloneWorkout,
+  restoreStandaloneWorkout,
   saveCompletedWorkout,
   fetchPlanSchedule,
   fetchActiveBodyMetricDefinitions,
@@ -272,6 +276,147 @@ describe("deleteCompletedWorkout", () => {
     mockDb.withExclusiveTransactionAsync.mockRejectedValue(error);
 
     await expect(deleteCompletedWorkout(42)).rejects.toBe(error);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// deleteWorkoutPlan / restoreWorkoutPlan
+// ---------------------------------------------------------------------------
+
+describe("deleteWorkoutPlan", () => {
+  it("returns the ids of the rows it deleted, leaving earlier deletions out", async () => {
+    const txnGetAllAsync = jest
+      .fn()
+      .mockResolvedValueOnce([{ id: 10 }, { id: 11 }]) // live workouts
+      .mockResolvedValueOnce([{ id: 100 }, { id: 101 }, { id: 110 }]); // live exercises
+    const txnRunAsync = jest.fn().mockResolvedValue({});
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync, getAllAsync: txnGetAllAsync });
+      },
+    );
+
+    const snapshot = await deleteWorkoutPlan(7);
+
+    expect(txnGetAllAsync).toHaveBeenNthCalledWith(
+      1,
+      expect.stringMatching(/FROM user_workouts[\s\S]*is_deleted = FALSE/),
+      [7],
+    );
+    expect(txnGetAllAsync).toHaveBeenNthCalledWith(
+      2,
+      expect.stringMatching(
+        /FROM user_workout_exercises[\s\S]*is_deleted = FALSE/,
+      ),
+      [7],
+    );
+    expect(snapshot).toEqual({
+      planId: 7,
+      workoutIds: [10, 11],
+      workoutExerciseIds: [100, 101, 110],
+    });
+  });
+});
+
+describe("restoreWorkoutPlan", () => {
+  it("clears is_deleted only on the plan and the rows the delete touched", async () => {
+    const txnRunAsync = jest.fn().mockResolvedValue({});
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync });
+      },
+    );
+
+    await restoreWorkoutPlan({
+      planId: 7,
+      workoutIds: [10, 11],
+      workoutExerciseIds: [100, 101, 110],
+    });
+
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /UPDATE user_plans SET is_deleted = FALSE WHERE id = \?/,
+      ),
+      [7],
+    );
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /UPDATE user_workouts SET is_deleted = FALSE WHERE id IN \(\?, \?\)/,
+      ),
+      [10, 11],
+    );
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /UPDATE user_workout_exercises SET is_deleted = FALSE WHERE id IN \(\?, \?, \?\)/,
+      ),
+      [100, 101, 110],
+    );
+  });
+
+  it("skips empty id lists", async () => {
+    const txnRunAsync = jest.fn().mockResolvedValue({});
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync });
+      },
+    );
+
+    await restoreWorkoutPlan({
+      planId: 7,
+      workoutIds: [],
+      workoutExerciseIds: [],
+    });
+
+    expect(txnRunAsync).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("deleteStandaloneWorkout", () => {
+  it("returns the live exercise rows it deleted", async () => {
+    const txnGetAllAsync = jest.fn().mockResolvedValue([{ id: 5 }, { id: 6 }]);
+    const txnRunAsync = jest.fn().mockResolvedValue({});
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync, getAllAsync: txnGetAllAsync });
+      },
+    );
+
+    const snapshot = await deleteStandaloneWorkout(99);
+
+    expect(txnGetAllAsync).toHaveBeenCalledWith(
+      expect.stringMatching(/is_deleted = FALSE/),
+      [99],
+    );
+    expect(snapshot).toEqual({ workoutId: 99, workoutExerciseIds: [5, 6] });
+  });
+});
+
+describe("restoreStandaloneWorkout", () => {
+  it("clears is_deleted on the workout and only the recorded exercises", async () => {
+    const txnRunAsync = jest.fn().mockResolvedValue({});
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync });
+      },
+    );
+
+    await restoreStandaloneWorkout({
+      workoutId: 99,
+      workoutExerciseIds: [5, 6],
+    });
+
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /UPDATE user_workouts SET is_deleted = FALSE WHERE id = \?/,
+      ),
+      [99],
+    );
+    expect(txnRunAsync).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /UPDATE user_workout_exercises SET is_deleted = FALSE WHERE id IN \(\?, \?\)/,
+      ),
+      [5, 6],
+    );
   });
 });
 

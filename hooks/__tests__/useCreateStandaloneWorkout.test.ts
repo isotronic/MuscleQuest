@@ -7,7 +7,9 @@ import {
   createStandaloneWorkout,
   updateStandaloneWorkout,
   deleteStandaloneWorkout,
+  restoreStandaloneWorkout,
 } from "@/utils/database";
+import { useSnackbarStore } from "@/store/snackbarStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 
@@ -60,6 +62,10 @@ jest.mock("@/utils/database", () => ({
   createStandaloneWorkout: jest.fn(),
   updateStandaloneWorkout: jest.fn(),
   deleteStandaloneWorkout: jest.fn(),
+  restoreStandaloneWorkout: jest.fn().mockResolvedValue(undefined),
+}));
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray) => s[0],
 }));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -220,6 +226,24 @@ describe("useDeleteStandaloneWorkout", () => {
   it("onSuccess invalidates ['standaloneWorkouts']", () => {
     useDeleteStandaloneWorkout();
     capturedArgs.onSuccess();
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["standaloneWorkouts"],
+    });
+  });
+
+  it("offers Undo that restores the workout", async () => {
+    const snapshot = { workoutId: 99, workoutExerciseIds: [5, 6] };
+    useDeleteStandaloneWorkout();
+    capturedArgs.onSuccess(snapshot, 99);
+
+    expect(useSnackbarStore.getState().current?.message).toBe(
+      "Workout deleted",
+    );
+    mockInvalidateQueries.mockClear();
+    useSnackbarStore.getState().pressAction();
+    await new Promise((r) => setImmediate(r));
+
+    expect(restoreStandaloneWorkout).toHaveBeenCalledWith(snapshot);
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["standaloneWorkouts"],
     });

@@ -418,22 +418,20 @@ export default function WorkoutOverviewScreen() {
     }
   };
 
+  // No confirmation: the snackbar offers Undo.
   const handleDeleteExercise = useCallback(
     (index: number) => {
-      Alert.alert(
-        t`Delete Exercise`,
-        t`Are you sure you want to delete this exercise?`,
-        [
-          { text: t`Cancel`, style: "cancel" },
-          {
-            text: t`Delete`,
-            style: "destructive",
-            onPress: () => {
-              deleteExercise(index);
-            },
-          },
-        ],
-      );
+      const snapshot = useActiveWorkoutStore.getState().snapshotExercise(index);
+      deleteExercise(index);
+      if (!snapshot) return;
+      showSnackbar(t`Exercise removed`, {
+        duration: 5000,
+        action: {
+          label: t`Undo`,
+          onPress: () =>
+            useActiveWorkoutStore.getState().restoreExercise(snapshot),
+        },
+      });
     },
     [deleteExercise],
   );

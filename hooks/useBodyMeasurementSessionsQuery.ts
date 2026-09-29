@@ -5,6 +5,7 @@ import {
   fetchLatestBodyMetricValues,
 } from "@/utils/database";
 import { type MeasurementDisplayOptions } from "@/utils/measurementConversions";
+import { usePendingDeleteStore } from "@/store/pendingDeleteStore";
 
 export const useBodyMeasurementSessionsQuery = (
   options: MeasurementDisplayOptions,
@@ -18,7 +19,14 @@ export const useBodyMeasurementSessionsQuery = (
       options.sizeUnit,
       limit ?? "all",
     ],
-    queryFn: () => fetchBodyMeasurementSessions(options, limit),
+    queryFn: async () => {
+      const sessions = await fetchBodyMeasurementSessions(options, limit);
+      // Entries waiting out their Undo window are hidden, not yet deleted.
+      const hidden = usePendingDeleteStore.getState().measurementEntryIds;
+      return hidden.length === 0
+        ? sessions
+        : sessions.filter((s) => !hidden.includes(s.entry.id));
+    },
     // Invalidated by the body-measurement mutations.
     staleTime: 60_000,
   });

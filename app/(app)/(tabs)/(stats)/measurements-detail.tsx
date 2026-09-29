@@ -5,10 +5,8 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from "react-native";
 import { Trans } from "@lingui/react/macro";
-import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { ActivityIndicator, Button, Card } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -21,7 +19,7 @@ import { useBodyMeasurementSessionsQuery } from "@/hooks/useBodyMeasurementSessi
 import { useBodyMeasurementChartQuery } from "@/hooks/useBodyMeasurementSessionsQuery";
 import {
   useUpdateBodyMeasurementMutation,
-  useDeleteBodyMeasurementMutation,
+  useDeleteBodyMeasurementWithUndo,
 } from "@/hooks/useBodyMeasurementMutations";
 import { BodyMetricDefinition } from "@/utils/database";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
@@ -48,7 +46,7 @@ export default function MeasurementDetailScreen() {
   const { data: sessions, isLoading } =
     useBodyMeasurementSessionsQuery(displayOptions);
   const updateMutation = useUpdateBodyMeasurementMutation(displayOptions);
-  const deleteMutation = useDeleteBodyMeasurementMutation();
+  const deleteWithUndo = useDeleteBodyMeasurementWithUndo();
 
   const session = useMemo(
     () => sessions?.find((s) => s.entry.id === Number(entryId)),
@@ -105,23 +103,11 @@ export default function MeasurementDetailScreen() {
     );
   };
 
+  // No confirmation: the entry is hidden at once and only deleted if the
+  // Undo snackbar closes untouched.
   const handleDelete = () => {
-    Alert.alert(
-      t`Delete Entry`,
-      t`Are you sure you want to delete this measurement entry?`,
-      [
-        { text: t`Cancel`, style: "cancel" },
-        {
-          text: t`Delete`,
-          style: "destructive",
-          onPress: () => {
-            deleteMutation.mutate(Number(entryId), {
-              onSuccess: () => router.back(),
-            });
-          },
-        },
-      ],
-    );
+    deleteWithUndo(Number(entryId));
+    router.back();
   };
 
   if (isLoading) {
@@ -255,7 +241,7 @@ export default function MeasurementDetailScreen() {
             textColor={colors.background}
             style={{ flex: 1 }}
             loading={updateMutation.isPending}
-            disabled={updateMutation.isPending || deleteMutation.isPending}
+            disabled={updateMutation.isPending}
             onPress={handleSave}
           >
             <Trans>Save Changes</Trans>
@@ -264,8 +250,7 @@ export default function MeasurementDetailScreen() {
             mode="outlined"
             textColor={colors.danger}
             style={[styles.deleteButton, { flex: 1 }]}
-            loading={deleteMutation.isPending}
-            disabled={updateMutation.isPending || deleteMutation.isPending}
+            disabled={updateMutation.isPending}
             onPress={handleDelete}
           >
             <Trans>Delete Entry</Trans>

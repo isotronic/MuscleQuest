@@ -1000,12 +1000,42 @@ export const updatePlanWorkoutExercises = async (
   }
 };
 
-export const deleteWorkoutPlan = async (planId: number) => {
+/** The rows deleteWorkoutPlan soft-deleted, so an undo restores only those. */
+export interface DeletedPlanSnapshot {
+  planId: number;
+  workoutIds: number[];
+  workoutExerciseIds: number[];
+}
+
+export const deleteWorkoutPlan = async (
+  planId: number,
+): Promise<DeletedPlanSnapshot> => {
   const db = await openDatabase("userData.db");
+  const snapshot: DeletedPlanSnapshot = {
+    planId,
+    workoutIds: [],
+    workoutExerciseIds: [],
+  };
 
   try {
     // Start an exclusive transaction to ensure that all updates are executed together
     await db.withExclusiveTransactionAsync(async (txn) => {
+      // Workouts and exercises removed earlier (plan edits) are already
+      // soft-deleted; recording only the live ones keeps undo from reviving them.
+      const workouts = await txn.getAllAsync<{ id: number }>(
+        `SELECT id FROM user_workouts WHERE plan_id = ? AND is_deleted = FALSE`,
+        [planId],
+      );
+      const exercises = await txn.getAllAsync<{ id: number }>(
+        `SELECT id FROM user_workout_exercises
+       WHERE is_deleted = FALSE AND workout_id IN (
+         SELECT id FROM user_workouts WHERE plan_id = ? AND is_deleted = FALSE
+       )`,
+        [planId],
+      );
+      snapshot.workoutIds = workouts.map((w) => w.id);
+      snapshot.workoutExerciseIds = exercises.map((e) => e.id);
+
       // Mark exercises associated with workouts under the plan as deleted
       await txn.runAsync(
         `UPDATE user_workout_exercises
@@ -1031,6 +1061,39 @@ export const deleteWorkoutPlan = async (planId: number) => {
        WHERE id = ?`,
         [planId],
       );
+    });
+  } finally {
+    await db.closeAsync();
+  }
+  return snapshot;
+};
+
+/** Undo for deleteWorkoutPlan. */
+export const restoreWorkoutPlan = async ({
+  planId,
+  workoutIds,
+  workoutExerciseIds,
+}: DeletedPlanSnapshot): Promise<void> => {
+  const placeholders = (ids: number[]) => ids.map(() => "?").join(", ");
+  const db = await openDatabase("userData.db");
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        `UPDATE user_plans SET is_deleted = FALSE WHERE id = ?`,
+        [planId],
+      );
+      if (workoutIds.length > 0) {
+        await txn.runAsync(
+          `UPDATE user_workouts SET is_deleted = FALSE WHERE id IN (${placeholders(workoutIds)})`,
+          workoutIds,
+        );
+      }
+      if (workoutExerciseIds.length > 0) {
+        await txn.runAsync(
+          `UPDATE user_workout_exercises SET is_deleted = FALSE WHERE id IN (${placeholders(workoutExerciseIds)})`,
+          workoutExerciseIds,
+        );
+      }
     });
   } finally {
     await db.closeAsync();
@@ -1812,12 +1875,28 @@ export const updateStandaloneWorkout = async (
   }
 };
 
+/** The exercise rows deleteStandaloneWorkout soft-deleted, for undo. */
+export interface DeletedStandaloneWorkoutSnapshot {
+  workoutId: number;
+  workoutExerciseIds: number[];
+}
+
 export const deleteStandaloneWorkout = async (
   workoutId: number,
-): Promise<void> => {
+): Promise<DeletedStandaloneWorkoutSnapshot> => {
   const db = await openDatabase("userData.db");
+  const snapshot: DeletedStandaloneWorkoutSnapshot = {
+    workoutId,
+    workoutExerciseIds: [],
+  };
   try {
     await db.withExclusiveTransactionAsync(async (txn) => {
+      // Exercises removed in earlier edits stay deleted after an undo.
+      const exercises = await txn.getAllAsync<{ id: number }>(
+        `SELECT id FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+        [workoutId],
+      );
+      snapshot.workoutExerciseIds = exercises.map((e) => e.id);
       await txn.runAsync(
         `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE workout_id = ?`,
         [workoutId],
@@ -1826,6 +1905,31 @@ export const deleteStandaloneWorkout = async (
         `UPDATE user_workouts SET is_deleted = TRUE WHERE id = ?`,
         [workoutId],
       );
+    });
+  } finally {
+    await db.closeAsync();
+  }
+  return snapshot;
+};
+
+/** Undo for deleteStandaloneWorkout. */
+export const restoreStandaloneWorkout = async ({
+  workoutId,
+  workoutExerciseIds,
+}: DeletedStandaloneWorkoutSnapshot): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        `UPDATE user_workouts SET is_deleted = FALSE WHERE id = ?`,
+        [workoutId],
+      );
+      if (workoutExerciseIds.length > 0) {
+        await txn.runAsync(
+          `UPDATE user_workout_exercises SET is_deleted = FALSE WHERE id IN (${workoutExerciseIds.map(() => "?").join(", ")})`,
+          workoutExerciseIds,
+        );
+      }
     });
   } finally {
     await db.closeAsync();

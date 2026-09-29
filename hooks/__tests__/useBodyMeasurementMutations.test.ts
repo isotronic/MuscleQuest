@@ -1,7 +1,10 @@
 import {
   useInsertBodyMeasurementMutation,
   useDeleteBodyMeasurementMutation,
+  useDeleteBodyMeasurementWithUndo,
 } from "../useBodyMeasurementMutations";
+import { useSnackbarStore } from "@/store/snackbarStore";
+import { usePendingDeleteStore } from "@/store/pendingDeleteStore";
 import {
   insertBodyMeasurementSession,
   deleteBodyMeasurementSession,
@@ -38,6 +41,9 @@ jest.mock("@/utils/database", () => ({
   insertBodyMeasurementSession: jest.fn(),
   updateBodyMeasurementSession: jest.fn(),
   deleteBodyMeasurementSession: jest.fn(),
+}));
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray) => s[0],
 }));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -175,6 +181,51 @@ describe("useDeleteBodyMeasurementMutation", () => {
 
     capturedArgs.onSuccess();
 
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["bodyMeasurements"],
+    });
+  });
+});
+
+describe("useDeleteBodyMeasurementWithUndo", () => {
+  const flush = () => new Promise((r) => setImmediate(r));
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (deleteBodyMeasurementSession as jest.Mock).mockResolvedValue(undefined);
+    (useQueryClient as jest.Mock).mockReturnValue({
+      invalidateQueries: mockInvalidateQueries,
+    });
+    usePendingDeleteStore.setState({ measurementEntryIds: [] });
+    useSnackbarStore.setState({ current: null });
+  });
+
+  it("hides the entry at once but does not delete it yet", () => {
+    useDeleteBodyMeasurementWithUndo()(5);
+
+    expect(usePendingDeleteStore.getState().measurementEntryIds).toEqual([5]);
+    expect(deleteBodyMeasurementSession).not.toHaveBeenCalled();
+    expect(useSnackbarStore.getState().current?.action?.label).toBe("Undo");
+  });
+
+  it("does not delete when Undo is pressed", async () => {
+    useDeleteBodyMeasurementWithUndo()(5);
+
+    useSnackbarStore.getState().pressAction();
+    await flush();
+
+    expect(deleteBodyMeasurementSession).not.toHaveBeenCalled();
+    expect(usePendingDeleteStore.getState().measurementEntryIds).toEqual([]);
+  });
+
+  it("deletes once the snackbar closes without Undo", async () => {
+    useDeleteBodyMeasurementWithUndo()(5);
+
+    useSnackbarStore.getState().dismiss();
+    await flush();
+
+    expect(deleteBodyMeasurementSession).toHaveBeenCalledWith(5);
+    expect(usePendingDeleteStore.getState().measurementEntryIds).toEqual([]);
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["bodyMeasurements"],
     });

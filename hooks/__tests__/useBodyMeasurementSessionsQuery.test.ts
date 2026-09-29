@@ -7,6 +7,7 @@ import {
   fetchBodyMeasurementSessionsForChart,
 } from "@/utils/database";
 import { useQuery } from "@tanstack/react-query";
+import { usePendingDeleteStore } from "@/store/pendingDeleteStore";
 
 jest.mock("@/utils/database", () => ({
   fetchBodyMeasurementSessions: jest.fn(),
@@ -31,6 +32,21 @@ describe("useBodyMeasurementSessionsQuery", () => {
         queryKey: ["bodyMeasurements", "sessions", "kg", "cm", "all"],
       }),
     );
+  });
+
+  it("leaves out entries whose delete is waiting on Undo", async () => {
+    (fetchBodyMeasurementSessions as jest.Mock).mockResolvedValue([
+      { entry: { id: 1 }, values: [] },
+      { entry: { id: 2 }, values: [] },
+    ]);
+    usePendingDeleteStore.setState({ measurementEntryIds: [2] });
+
+    useBodyMeasurementSessionsQuery(OPTIONS);
+    const { queryFn } = (useQuery as jest.Mock).mock.calls[0][0];
+    const sessions = await queryFn();
+
+    expect(sessions.map((s: any) => s.entry.id)).toEqual([1]);
+    usePendingDeleteStore.setState({ measurementEntryIds: [] });
   });
 
   it("includes limit in queryKey when provided", () => {

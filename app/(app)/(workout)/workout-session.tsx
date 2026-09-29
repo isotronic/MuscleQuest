@@ -12,7 +12,6 @@ import {
   Platform,
   StyleSheet,
   View,
-  Alert,
 } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -25,6 +24,7 @@ import { SessionSetOptionsModal } from "@/components/SessionSetOptionsModal";
 import { PlateCalculatorModal } from "@/components/PlateCalculatorModal";
 import { useTimer } from "react-timer-hook";
 import { useRestTimerResync } from "@/hooks/useRestTimerResync";
+import { showSnackbar } from "@/store/snackbarStore";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -772,43 +772,55 @@ export default function WorkoutSessionScreen() {
     updateSetType(currentExerciseIndex, currentSetIndex, type, !currentVal);
   };
 
+  // Re-points the carousel slots at the store's current set, after the
+  // current exercise's sets changed under them.
+  const syncSlotsToStore = () => {
+    const st = useActiveWorkoutStore.getState();
+    const newExerciseIndex = st.currentExerciseIndex;
+    const newSetIndex = st.currentSetIndices[newExerciseIndex] ?? 0;
+    const exercises = st.workout?.exercises;
+    setSlots((prev) => {
+      const u = [...prev] as [SlotData, SlotData, SlotData];
+      u[currentSlotIndex] = {
+        exerciseIndex: newExerciseIndex,
+        setIndex: newSetIndex,
+      };
+      if (exercises) {
+        const nextSlotIdx = (currentSlotIndex + 1) % 3;
+        const prevSlotIdx = (currentSlotIndex + 2) % 3;
+        const fallback = {
+          exerciseIndex: newExerciseIndex,
+          setIndex: newSetIndex,
+        };
+        u[nextSlotIdx] =
+          getNextSlotData(exercises, newExerciseIndex, newSetIndex) ?? fallback;
+        u[prevSlotIdx] =
+          getPrevSlotData(exercises, newExerciseIndex, newSetIndex) ?? fallback;
+      }
+      return u;
+    });
+  };
+
+  // No confirmation: the snackbar offers Undo.
   const handleRemoveSet = (index: number) => {
-    Alert.alert(t`Delete Set`, t`Are you sure you want to delete this set?`, [
-      { text: t`Cancel`, style: "cancel" },
-      {
-        text: t`Delete`,
-        style: "destructive",
+    const st = useActiveWorkoutStore.getState();
+    const setCount =
+      st.workout?.exercises[st.currentExerciseIndex]?.sets.length ?? 0;
+    if (setCount <= 1) return; // removeSet keeps the last set
+    const snapshot = st.snapshotSet(st.currentExerciseIndex, index);
+    removeSet(index);
+    syncSlotsToStore();
+    if (!snapshot) return;
+    showSnackbar(t`Set removed`, {
+      duration: 5000,
+      action: {
+        label: t`Undo`,
         onPress: () => {
-          removeSet(index);
-          const st = useActiveWorkoutStore.getState();
-          const newExerciseIndex = st.currentExerciseIndex;
-          const newSetIndex = st.currentSetIndices[newExerciseIndex] ?? 0;
-          const exercises = st.workout?.exercises;
-          setSlots((prev) => {
-            const u = [...prev] as [SlotData, SlotData, SlotData];
-            u[currentSlotIndex] = {
-              exerciseIndex: newExerciseIndex,
-              setIndex: newSetIndex,
-            };
-            if (exercises) {
-              const nextSlotIdx = (currentSlotIndex + 1) % 3;
-              const prevSlotIdx = (currentSlotIndex + 2) % 3;
-              const fallback = {
-                exerciseIndex: newExerciseIndex,
-                setIndex: newSetIndex,
-              };
-              u[nextSlotIdx] =
-                getNextSlotData(exercises, newExerciseIndex, newSetIndex) ??
-                fallback;
-              u[prevSlotIdx] =
-                getPrevSlotData(exercises, newExerciseIndex, newSetIndex) ??
-                fallback;
-            }
-            return u;
-          });
+          useActiveWorkoutStore.getState().restoreSet(snapshot);
+          syncSlotsToStore();
         },
       },
-    ]);
+    });
   };
 
   const handleAddSet = () => {
