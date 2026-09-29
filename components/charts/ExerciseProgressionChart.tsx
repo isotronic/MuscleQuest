@@ -9,6 +9,7 @@ import {
 import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { LineChart } from "react-native-gifted-charts";
+import { useReducedMotion } from "react-native-reanimated";
 import { useChartTheme } from "./chartTheme";
 import { summarizeTrend } from "./chartA11y";
 import { useAppTheme, radii } from "@/theme";
@@ -250,6 +251,8 @@ export const ExerciseProgressionChart: React.FC<
 }) => {
   const { width: screenWidth } = useWindowDimensions();
   const chartTheme = useChartTheme();
+  // Gifted charts animate with RN Animated, which ignores the setting.
+  const reduceMotion = useReducedMotion();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   // kg to display is linear, so the factor is what 1 kg displays as.
@@ -583,7 +586,7 @@ export const ExerciseProgressionChart: React.FC<
               endSpacing={INITIAL_SPACING}
               thickness={2}
               color={colors.accent}
-              isAnimated
+              isAnimated={!reduceMotion}
               areaChart
               startFillColor={chartTheme.areaStartFill}
               endFillColor={chartTheme.areaEndFill}

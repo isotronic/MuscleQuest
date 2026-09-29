@@ -5,6 +5,7 @@ import { BarChart } from "react-native-gifted-charts";
 import { Card } from "react-native-paper";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { t } from "@lingui/core/macro";
+import { useReducedMotion } from "react-native-reanimated";
 import { useChartTheme } from "./chartTheme";
 import { summarizeTotals } from "./chartA11y";
 import { useAppTheme } from "@/theme";
@@ -171,6 +172,8 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
 }) => {
   const { width: screenWidth } = useWindowDimensions();
   const chartTheme = useChartTheme();
+  // Gifted charts animate with RN Animated, which ignores the setting.
+  const reduceMotion = useReducedMotion();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -218,7 +221,7 @@ export const WorkoutBarChart: React.FC<WorkoutBarChartProps> = ({
           data={barData}
           barWidth={barWidth}
           spacing={barSpacing}
-          isAnimated
+          isAnimated={!reduceMotion}
           frontColor={chartTheme.primary}
           roundedTop
           barBorderRadius={chartTheme.barBorderRadius}

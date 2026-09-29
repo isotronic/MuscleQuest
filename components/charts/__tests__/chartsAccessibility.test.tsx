@@ -9,10 +9,15 @@ import { ExerciseCompactCard } from "@/components/stats/ExerciseCompactCard";
 import type { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import type { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
 
+const mockChartProps: Record<string, any> = {};
 jest.mock("react-native-gifted-charts", () => ({
-  LineChart: () => null,
-  BarChart: () => null,
-  PieChart: () => null,
+  LineChart: (props: any) => ((mockChartProps.LineChart = props), null),
+  BarChart: (props: any) => ((mockChartProps.BarChart = props), null),
+  PieChart: (props: any) => ((mockChartProps.PieChart = props), null),
+}));
+const mockReducedMotion = jest.fn(() => false);
+jest.mock("react-native-reanimated", () => ({
+  useReducedMotion: () => mockReducedMotion(),
 }));
 jest.mock("react-native-svg", () => {
   const { View } = require("react-native");
@@ -275,5 +280,14 @@ describe("chart text alternatives", () => {
       />,
     );
     expect(queryByRole("button", { name: "Show as table" })).toBeNull();
+  });
+
+  it("does not animate charts when the system asks for reduced motion", () => {
+    mockReducedMotion.mockReturnValue(true);
+    render(<WorkoutBarChart completedWorkouts={workouts} timeRange="30" />);
+    expect(mockChartProps.BarChart.isAnimated).toBe(false);
+    mockReducedMotion.mockReturnValue(false);
+    render(<WorkoutBarChart completedWorkouts={workouts} timeRange="30" />);
+    expect(mockChartProps.BarChart.isAnimated).toBe(true);
   });
 });

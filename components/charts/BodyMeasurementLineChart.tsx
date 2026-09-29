@@ -3,6 +3,7 @@ import { Text, View, StyleSheet, useWindowDimensions } from "react-native";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { LineChart } from "react-native-gifted-charts";
+import { useReducedMotion } from "react-native-reanimated";
 import { useChartTheme } from "./chartTheme";
 import { summarizeTrend } from "./chartA11y";
 import { useAppTheme, radii } from "@/theme";
@@ -216,6 +217,8 @@ export const BodyMeasurementLineChart: React.FC<
 > = ({ data, timeRange, unit, metricLabel }) => {
   const { width: screenWidth } = useWindowDimensions();
   const chartTheme = useChartTheme();
+  // Gifted charts animate with RN Animated, which ignores the setting.
+  const reduceMotion = useReducedMotion();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -298,7 +301,7 @@ export const BodyMeasurementLineChart: React.FC<
           endSpacing={initialSpacing}
           thickness={2}
           color={colors.accent}
-          isAnimated
+          isAnimated={!reduceMotion}
           areaChart
           startFillColor={chartTheme.areaStartFill}
           endFillColor={chartTheme.areaEndFill}
