@@ -1,5 +1,5 @@
 import React from "react";
-import { render } from "@testing-library/react-native";
+import { render, act } from "@testing-library/react-native";
 import FriendProfileScreen from "../friend-profile";
 
 import { useFriendSharedPlansQuery } from "@/hooks/useFriendSharedPlansQuery";
@@ -155,5 +155,33 @@ describe("FriendProfileScreen", () => {
         "You're offline. Friends and shared content will load when you reconnect. Training and logging still work.",
       ),
     ).toBeTruthy();
+  });
+
+  it("refetches every shared-content query on pull-to-refresh", async () => {
+    const refetches = Array.from({ length: 6 }, () =>
+      jest.fn().mockResolvedValue(undefined),
+    );
+    [
+      useFriendSharedPlansQuery,
+      useFriendSharedStandaloneWorkoutsQuery,
+      useFriendSharedCustomExercisesQuery,
+      useFriendSharedCompletedWorkoutsQuery,
+      useFriendSharedMeasurementsQuery,
+      useFriendSharedStrengthQuery,
+    ].forEach((hook, i) =>
+      (hook as jest.Mock).mockReturnValue({
+        ...loadedEmpty,
+        refetch: refetches[i],
+      }),
+    );
+
+    const { getByTestId } = render(<FriendProfileScreen />);
+    await act(async () => {
+      await getByTestId(
+        "friend-profile-scroll",
+      ).props.refreshControl.props.onRefresh();
+    });
+
+    refetches.forEach((refetch) => expect(refetch).toHaveBeenCalledTimes(1));
   });
 });

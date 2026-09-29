@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   FlatList,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
+  RefreshControl,
 } from "react-native";
 import { Button, Avatar, IconButton, Modal, Portal } from "react-native-paper";
 import { PrivacySettings } from "@/components/PrivacySettings";
@@ -17,6 +18,7 @@ import { AppText, AppIcon } from "@/components/ui";
 import { useAppTheme } from "@/theme";
 import { AuthContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
+import { useSocialRefreshStore } from "@/store/socialRefreshStore";
 import type { PendingRequest, SentRequest } from "@/store/socialStore";
 import { FriendListItem } from "@/components/friends/FriendListItem";
 import { FriendRequestItem } from "@/components/friends/FriendRequestItem";
@@ -36,6 +38,24 @@ export default function FriendsScreen() {
   const { friends, pendingRequests, sentRequests } = useSocialStore();
   const [activeTab, setActiveTab] = useState<Tab>("friends");
   const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
+  const requestRefresh = useSocialRefreshStore((s) => s.requestRefresh);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Resubscribing delivers a fresh friends snapshot, which ends the spinner.
+  // The timeout covers a snapshot that never comes (e.g. offline with no cache).
+  useEffect(() => {
+    setRefreshing(false);
+  }, [friends]);
+  useEffect(() => {
+    if (!refreshing) return;
+    const id = setTimeout(() => setRefreshing(false), 3000);
+    return () => clearTimeout(id);
+  }, [refreshing]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    requestRefresh();
+  };
 
   if (!user) {
     return (
@@ -125,6 +145,8 @@ export default function FriendsScreen() {
       {activeTab === "friends" && (
         <FriendsTab
           friends={friends}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
           onFriendPress={(uid) => {
             router.push({
               pathname: "/(app)/friend-profile",
@@ -180,41 +202,58 @@ export default function FriendsScreen() {
 
 interface FriendsTabProps {
   friends: FriendInfo[];
+  refreshing: boolean;
+  onRefresh: () => void;
   onFriendPress: (uid: string) => void;
   colors: AppThemeColors;
 }
 
-function FriendsTab({ friends, onFriendPress, colors }: FriendsTabProps) {
-  if (friends.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <AppIcon
-          set="ion"
-          name="people-outline"
-          size={48}
-          color={colors.contentSecondary}
-        />
-        <AppText
-          variant="body"
-          style={{
-            color: colors.contentSecondary,
-            marginTop: 12,
-            textAlign: "center",
-          }}
-        >
-          <Trans>No friends yet. Search by email to add someone.</Trans>
-        </AppText>
-      </View>
-    );
-  }
-
+function FriendsTab({
+  friends,
+  refreshing,
+  onRefresh,
+  onFriendPress,
+  colors,
+}: FriendsTabProps) {
   return (
     <FlatList
+      testID="friends-list"
       data={friends}
       keyExtractor={(item: FriendInfo) => item.uid}
       renderItem={({ item }: { item: FriendInfo }) => (
         <FriendListItem friend={item} onPress={onFriendPress} />
       )}
+      contentContainerStyle={
+        friends.length === 0 ? styles.emptyList : undefined
+      }
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[colors.accent]}
+          tintColor={colors.accent}
+        />
+      }
+      ListEmptyComponent={
+        <View style={styles.centered}>
+          <AppIcon
+            set="ion"
+            name="people-outline"
+            size={48}
+            color={colors.contentSecondary}
+          />
+          <AppText
+            variant="body"
+            style={{
+              color: colors.contentSecondary,
+              marginTop: 12,
+              textAlign: "center",
+            }}
+          >
+            <Trans>No friends yet. Search by email to add someone.</Trans>
+          </AppText>
+        </View>
+      }
     />
   );
 }
@@ -444,6 +483,7 @@ function RequestsTab({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  emptyList: { flexGrow: 1 },
   centered: {
     flex: 1,
     justifyContent: "center",
