@@ -1038,7 +1038,7 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                <Trans>Send notification in background after rest</Trans>
+                <Trans>Show rest notification while app is open</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {settings?.restTimerNotification === "true"

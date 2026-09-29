@@ -6,12 +6,19 @@ import { useAppTheme } from "@/theme";
 import { useSocialListeners } from "../../hooks/useSocialListeners";
 import { useSocialSyncOnStartup } from "../../hooks/useSocialSyncOnStartup";
 import { AppSnackbar } from "@/components/AppSnackbar";
+import { setShowRestNotificationInForeground } from "@/utils/restNotification";
+import { useEffect } from "react";
 
 export default function AppLayout() {
   const { colors } = useAppTheme();
   const { data: settings, isLoading: settingsLoading } = useSettingsQuery();
   useSocialListeners();
   useSocialSyncOnStartup();
+
+  const showRestInForeground = settings?.restTimerNotification === "true";
+  useEffect(() => {
+    setShowRestNotificationInForeground(showRestInForeground);
+  }, [showRestInForeground]);
 
   if (settingsLoading) {
     return <ThemedView style={{ flex: 1 }}></ThemedView>;

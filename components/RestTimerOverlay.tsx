@@ -24,6 +24,8 @@ interface RestTimerOverlayProps {
   buttonSize?: number;
   onAdjust: (delta: number) => void;
   onLayout?: (event: LayoutChangeEvent) => void;
+  /** One-line note under the countdown, e.g. that notifications are off. */
+  hint?: React.ReactNode;
 }
 
 export default function RestTimerOverlay({
@@ -35,6 +37,7 @@ export default function RestTimerOverlay({
   buttonSize = 40,
   onAdjust,
   onLayout,
+  hint,
 }: RestTimerOverlayProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -79,6 +82,7 @@ export default function RestTimerOverlay({
           </ThemedText>
         </TouchableOpacity>
       </View>
+      {hint ? <ThemedText style={styles.hint}>{hint}</ThemedText> : null}
     </AnimatedView>
   );
 }
@@ -107,6 +111,13 @@ function createStyles(colors: AppThemeColors) {
       fontSize: 14,
       color: colors.contentPrimary,
       marginBottom: 4,
+      textAlign: "center",
+    },
+    hint: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+      marginTop: 6,
+      paddingHorizontal: 12,
       textAlign: "center",
     },
     row: {

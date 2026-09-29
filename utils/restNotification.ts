@@ -8,6 +8,10 @@ import {
 } from "@/utils/asyncStorage";
 
 const REST_TIMER_NOTIFICATION_ID_KEY = "restTimerNotificationId";
+const PERMISSION_HINT_SHOWN_KEY = "restNotificationPermissionHintShown";
+
+/** `content.data.kind` of rest timer notifications. */
+export const REST_NOTIFICATION_KIND = "rest-timer";
 
 export async function scheduleRestNotification(
   secondsFromNow: number,
@@ -24,6 +28,7 @@ export async function scheduleRestNotification(
       content: {
         title,
         body,
+        data: { kind: REST_NOTIFICATION_KIND },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
@@ -72,4 +77,64 @@ export async function scheduleRestNotificationWithCancellation(
   if (secondsFromNow > 0) {
     await scheduleRestNotification(secondsFromNow, title, body, channelId);
   }
+}
+
+// Rest notifications are always scheduled, so a backgrounded or locked phone
+// still gets its cue. The "restTimerNotification" setting only decides whether
+// they are also shown while the app is open (the in-app overlay covers that).
+let showRestNotificationInForeground = false;
+
+export function setShowRestNotificationInForeground(show: boolean) {
+  showRestNotificationInForeground = show;
+}
+
+/** Foreground behaviour for Notifications.setNotificationHandler. */
+export function foregroundPresentation(
+  notification: Notifications.Notification,
+): Notifications.NotificationBehavior {
+  const show =
+    showRestNotificationInForeground &&
+    notification.request.content.data?.kind === REST_NOTIFICATION_KIND;
+  return {
+    shouldPlaySound: show,
+    shouldSetBadge: false,
+    shouldShowBanner: show,
+    shouldShowList: show,
+  };
+}
+
+/** Asks for notification permission only while the OS still allows asking. */
+async function ensureNotificationPermission(): Promise<boolean> {
+  try {
+    const current = await Notifications.getPermissionsAsync();
+    if (current.granted) return true;
+    if (!current.canAskAgain) return false;
+    const requested = await Notifications.requestPermissionsAsync();
+    return requested.granted;
+  } catch (error: any) {
+    Bugsnag.notify(error);
+    return false;
+  }
+}
+
+/**
+ * Schedules the rest notification when a rest timer starts, asking for
+ * permission the first time. When notifications are blocked,
+ * `showPermissionHint` is true exactly once so the overlay can explain.
+ */
+export async function startRestNotification(
+  secondsFromNow: number,
+  title: string,
+  body: string,
+): Promise<{ showPermissionHint: boolean }> {
+  if (await ensureNotificationPermission()) {
+    await scheduleRestNotificationWithCancellation(secondsFromNow, title, body);
+    return { showPermissionHint: false };
+  }
+  await cancelRestNotifications();
+  if (await getAsyncStorageItem(PERMISSION_HINT_SHOWN_KEY)) {
+    return { showPermissionHint: false };
+  }
+  await setAsyncStorageItem(PERMISSION_HINT_SHOWN_KEY, "true");
+  return { showPermissionHint: true };
 }

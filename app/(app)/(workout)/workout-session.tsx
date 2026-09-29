@@ -24,6 +24,7 @@ import SessionSetInfo from "@/components/SessionSetInfo";
 import { SessionSetOptionsModal } from "@/components/SessionSetOptionsModal";
 import { PlateCalculatorModal } from "@/components/PlateCalculatorModal";
 import { useTimer } from "react-timer-hook";
+import { useRestTimerResync } from "@/hooks/useRestTimerResync";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -37,6 +38,7 @@ import Bugsnag from "@bugsnag/expo";
 import {
   cancelRestNotifications,
   scheduleRestNotificationWithCancellation,
+  startRestNotification,
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
@@ -535,6 +537,13 @@ export default function WorkoutSessionScreen() {
       handleExpire();
     },
   });
+  useRestTimerResync(restart);
+
+  // Shown once, during the first rest after notifications turned out blocked.
+  const [showPermissionHint, setShowPermissionHint] = useState(false);
+  useEffect(() => {
+    if (!timerRunning) setShowPermissionHint(false);
+  }, [timerRunning]);
 
   async function handleExpire() {
     if (!expiryTimestampRef.current) {
@@ -614,16 +623,15 @@ export default function WorkoutSessionScreen() {
       expiryTimestampRef.current = time;
       startTimer(time);
 
-      if (settings?.restTimerNotification === "true") {
-        void scheduleRestNotificationWithCancellation(
-          totalSeconds,
-          t`Rest Timer Finished!`,
-          t`Time to do your next set!`,
-          "rest-timer1",
-        );
-      } else {
-        void cancelRestNotifications();
-      }
+      // Always scheduled so a locked phone still gets its cue; the setting
+      // only controls showing it while the app is open.
+      void startRestNotification(
+        totalSeconds,
+        t`Rest Timer Finished!`,
+        t`Time to do your next set!`,
+      ).then(({ showPermissionHint }) => {
+        if (showPermissionHint) setShowPermissionHint(true);
+      });
 
       Bugsnag.leaveBreadcrumb("Timer started", {
         totalSeconds,
@@ -657,14 +665,12 @@ export default function WorkoutSessionScreen() {
       adjustedRestSecondsRef.current + deltaSeconds,
     );
 
-    if (settings?.restTimerNotification === "true") {
-      await scheduleRestNotificationWithCancellation(
-        newRemaining,
-        t`Rest Timer Finished!`,
-        t`Time to do your next set!`,
-        "rest-timer1",
-      );
-    }
+    await scheduleRestNotificationWithCancellation(
+      newRemaining,
+      t`Rest Timer Finished!`,
+      t`Time to do your next set!`,
+      "rest-timer1",
+    );
 
     if (lastCompletedSetRef.current) {
       const { exerciseIndex, setIndex } = lastCompletedSetRef.current;
@@ -1759,6 +1765,11 @@ export default function WorkoutSessionScreen() {
         animStyle={timerAnimStyle}
         buttonSize={buttonSize}
         onAdjust={(delta) => void adjustTimer(delta)}
+        hint={
+          showPermissionHint
+            ? t`Notifications are off, so there is no rest alert while your phone is locked. You can turn them on in your phone's settings.`
+            : undefined
+        }
       />
     </ThemedView>
   );

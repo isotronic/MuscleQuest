@@ -1,6 +1,11 @@
 import { renderHook } from "@testing-library/react-native";
 import { useClearFinishedWorkout } from "../useClearFinishedWorkout";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { cancelRestNotifications } from "@/utils/restNotification";
+
+jest.mock("@/utils/restNotification", () => ({
+  cancelRestNotifications: jest.fn().mockResolvedValue(undefined),
+}));
 
 const seedWorkout = () =>
   useActiveWorkoutStore.setState({
@@ -10,6 +15,7 @@ const seedWorkout = () =>
 
 describe("useClearFinishedWorkout", () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     seedWorkout();
   });
 
@@ -19,8 +25,14 @@ describe("useClearFinishedWorkout", () => {
     expect(useActiveWorkoutStore.getState().activeWorkout).toBeNull();
   });
 
+  it("cancels a pending rest notification for the finished session", () => {
+    renderHook(() => useClearFinishedWorkout("true"));
+    expect(cancelRestNotifications).toHaveBeenCalled();
+  });
+
   it("leaves the store alone when viewing a past workout", () => {
     renderHook(() => useClearFinishedWorkout(undefined));
     expect(useActiveWorkoutStore.getState().workout).not.toBeNull();
+    expect(cancelRestNotifications).not.toHaveBeenCalled();
   });
 });

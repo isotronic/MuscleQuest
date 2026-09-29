@@ -452,6 +452,16 @@ A new card on the home screen shows your most recent measurement and how long ag
 The card highlights itself once it has been a week since your last entry, and follows whichever metrics you have switched on in the Measurements section.
 `,
   },
+  {
+    version: 2653,
+    message: msg`
+⏱️ Improved: Rest Timer Alerts When Your Phone Is Locked!
+
+The rest timer now always sends a notification when your rest is over, even if your phone is locked or you switched to another app. The first time you start a rest, MuscleQuest asks for permission to send it.
+
+The notification setting now only decides whether that alert also shows while the app is open. You'll find it in Settings as "Show rest notification while app is open".
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

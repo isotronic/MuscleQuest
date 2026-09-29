@@ -55,6 +55,7 @@ import {
   withTiming,
 } from "react-native-reanimated";
 import { useTimer } from "react-timer-hook";
+import { useRestTimerResync } from "@/hooks/useRestTimerResync";
 import { useSoundStore } from "@/store/soundStore";
 import RestTimerOverlay from "@/components/RestTimerOverlay";
 import { useAppTheme, radii } from "@/theme";
@@ -284,6 +285,8 @@ export default function WorkoutOverviewScreen() {
     },
   });
 
+  useRestTimerResync(restart);
+
   useEffect(() => {
     timerTranslateY.value = withTiming(timerRunning ? 0 : 200, {
       duration: 300,
@@ -313,14 +316,12 @@ export default function WorkoutOverviewScreen() {
     expiryTimestampRef.current = newExpiry;
     startTimer(newExpiry);
     restart(newExpiry);
-    if (settings?.restTimerNotification === "true") {
-      await scheduleRestNotificationWithCancellation(
-        newRemaining,
-        t`Rest Timer Finished!`,
-        t`Time to do your next set!`,
-        "rest-timer1",
-      );
-    }
+    await scheduleRestNotificationWithCancellation(
+      newRemaining,
+      t`Rest Timer Finished!`,
+      t`Time to do your next set!`,
+      "rest-timer1",
+    );
   };
 
   const [timerHeight, setTimerHeight] = useState(0);
