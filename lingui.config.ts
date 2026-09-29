@@ -13,6 +13,7 @@ export default defineConfig({
         "<rootDir>/context",
         "<rootDir>/store",
         "<rootDir>/constants",
+        "<rootDir>/utils",
       ],
     },
   ],

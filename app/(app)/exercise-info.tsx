@@ -21,7 +21,7 @@ import {
 } from "@/hooks/useExerciseHistoryQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { formatSetMetric } from "@/utils/formatSetMetric";
-import { kgToDisplay } from "@/utils/units";
+import { kgToDisplay, metresToDisplay } from "@/utils/units";
 import Bugsnag from "@bugsnag/expo";
 import { AppIcon, AppImage } from "@/components/ui";
 import { Notes } from "@/components/Notes";
@@ -374,6 +374,10 @@ export default function ExerciseInfoScreen() {
                       item.weight != null
                         ? kgToDisplay(item.weight, weightUnit)
                         : null,
+                    distance:
+                      item.distance != null
+                        ? metresToDisplay(item.distance, distanceUnit)
+                        : null,
                   },
                   trackingType,
                   weightUnit,
@@ -381,6 +385,7 @@ export default function ExerciseInfoScreen() {
                   item.hist_bw_kg != null
                     ? kgToDisplay(item.hist_bw_kg, weightUnit)
                     : currentBodyWeight,
+                  distanceUnit,
                 )}
               </ThemedText>
             </View>
