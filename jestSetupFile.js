@@ -5,6 +5,11 @@ jest.mock("@react-native-async-storage/async-storage", () =>
   require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 );
 
+// Mock NetInfo (native module); reports online by default
+jest.mock("@react-native-community/netinfo", () =>
+  require("@react-native-community/netinfo/jest/netinfo-mock"),
+);
+
 // Mock SettingsManager
 jest.mock("react-native/Libraries/Settings/Settings", () => ({
   Settings: {
