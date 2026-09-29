@@ -41,6 +41,24 @@ msgstr ""
 "Tu peux maintenant réorganiser les entraînements directement depuis l'écran de création de programme et les cartes d'entraînement, pour avoir un contrôle total sur la mise en page de ton planning.\n"
 ""
 
+#: constants/WhatsNew.ts:467
+msgid ""
+"\n"
+"↩️ New: Undo Instead of \"Are You Sure?\"\n"
+"\n"
+"Deleting a completed workout, a standalone workout, a body measurement, or an exercise or set during a session now happens straight away, with an Undo button at the bottom of the screen for a few seconds. Plans still ask before deleting, and can be undone too.\n"
+"\n"
+"The app is also clearer when you're offline: Friends shows a banner, and backup, restore, and sign-in tell you why they're unavailable. Pull down on Stats, Friends, or a friend's profile to refresh. Leaving the workout overview mid-session now asks you to confirm first, so you can't leave by accident.\n"
+""
+msgstr ""
+"\n"
+"↩️ Nouveau : Annuler au lieu de \"Tu es sûr ?\"\n"
+"\n"
+"Supprimer une séance terminée, un entraînement solo, une mesure corporelle, ou un exercice ou une série pendant une séance se fait désormais immédiatement, avec un bouton Annuler en bas de l'écran pendant quelques secondes. Les plans demandent toujours une confirmation avant suppression, et peuvent aussi être restaurés.\n"
+"\n"
+"L'app indique aussi plus clairement quand tu es hors ligne : Amis affiche une bannière, et la sauvegarde, la restauration et la connexion t'expliquent pourquoi elles sont indisponibles. Tire vers le bas sur Stats, Amis ou le profil d'un ami pour actualiser. Quitter l'aperçu de la séance en cours demande maintenant une confirmation, pour éviter de partir par erreur.\n"
+""
+
 #: constants/WhatsNew.ts:457
 msgid ""
 "\n"
@@ -237,6 +255,24 @@ msgstr ""
 "🐛 Corrigé : erreurs de sauvegarde dans le cloud !\n"
 "\n"
 "La sauvegarde échouait silencieusement après un arrêt propre de l'application, car elle nécessitait des fichiers de base de données supplémentaires qui ne sont pas toujours présents. Les sauvegardes fonctionnent désormais correctement dans ce cas, et un véritable échec de sauvegarde affiche maintenant une erreur à l'écran au lieu d'échouer silencieusement.\n"
+""
+
+#: constants/WhatsNew.ts:477
+msgid ""
+"\n"
+"🐛 Fixed: Dates, Pounds & Speed!\n"
+"\n"
+"• Workout times now show the correct clock time, and late-evening workouts count toward the right day for streaks, the calendar, and weekly goals.\n"
+"• If you train in pounds, repeating the same weight no longer creates a false PR or shows \"+0.0 lbs\", and body weight entered in pounds reads back exactly as you typed it.\n"
+"• History and stats load faster, especially if you have a long training history.\n"
+""
+msgstr ""
+"\n"
+"🐛 Corrigé : Dates, livres et rapidité !\n"
+"\n"
+"• Les heures des séances affichent désormais la bonne heure, et les séances tard le soir comptent pour le bon jour dans les séries consécutives, le calendrier et les objectifs hebdomadaires.\n"
+"• Si tu t'entraînes en livres, répéter le même poids ne crée plus de faux PR ni d'affichage \"+0.0 lbs\", et le poids corporel saisi en livres s'affiche exactement comme tu l'as tapé.\n"
+"• L'historique et les stats se chargent plus vite, surtout si tu as un long historique d'entraînement.\n"
 ""
 
 #: constants/WhatsNew.ts:52
@@ -1120,7 +1156,7 @@ msgstr "• Importer les programmes et entraînements d'amis dans ta bibliothèq
 msgid "• Share your plans, workouts, exercises, and body measurements"
 msgstr "• Partager tes programmes, entraînements, exercices et mesures corporelles"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:572
+#: app/(app)/(tabs)/(stats)/index.tsx:584
 msgid "+ Add"
 msgstr "+ Ajouter"
 
@@ -1635,7 +1671,7 @@ msgstr "assistance "
 msgid "Assistance/Reps"
 msgstr "Assistance/Rép."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:484
+#: app/(app)/(tabs)/(stats)/index.tsx:496
 msgid "Avg Duration"
 msgstr "Durée moyenne"
 
@@ -1723,7 +1759,7 @@ msgstr "biceps"
 msgid "Body Fat"
 msgstr "Graisse corporelle"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:635
+#: app/(app)/(tabs)/(stats)/index.tsx:647
 #: constants/HelpData.ts:257
 msgid "Body Measurements"
 msgstr "Mesures corporelles"
@@ -2333,7 +2369,7 @@ msgstr "Distance ({distanceUnit})"
 msgid "Distance unit"
 msgstr "Unité de distance"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:588
+#: app/(app)/(tabs)/(stats)/index.tsx:600
 #: app/(app)/(workout)/workout-summary.tsx:660
 #: app/(app)/delete-account.tsx:315
 #: components/ExerciseFeedbackSheet.tsx:275
@@ -2654,7 +2690,7 @@ msgstr "Erreur lors du chargement des exercices : {0}"
 msgid "Error loading plans"
 msgstr "Erreur lors du chargement des programmes"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:372
+#: app/(app)/(tabs)/(stats)/index.tsx:384
 msgid "Error loading stats. Please try again."
 msgstr "Erreur lors du chargement des stats. Réessaie."
 
@@ -3106,7 +3142,7 @@ msgstr "Reçues"
 msgid "Info"
 msgstr "Infos"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:447
+#: app/(app)/(tabs)/(stats)/index.tsx:459
 #: constants/HelpData.ts:239
 msgid "Insights"
 msgstr "Aperçus"
@@ -3297,7 +3333,7 @@ msgstr "Incrément de charge pour les machines"
 msgid "Make sure to track your progress!"
 msgstr "N'oublie pas de suivre ta progression !"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:570
+#: app/(app)/(tabs)/(stats)/index.tsx:582
 msgid "Manage"
 msgstr "Gérer"
 
@@ -3505,7 +3541,7 @@ msgstr "Aucun exercice ajouté"
 msgid "No exercises in this workout yet."
 msgstr "Aucun exercice dans cet entraînement."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:626
+#: app/(app)/(tabs)/(stats)/index.tsx:638
 msgid "No exercises tracked yet. Tap + Add to start."
 msgstr "Aucun exercice suivi. Appuie sur + Ajouter pour commencer."
 
@@ -3525,7 +3561,7 @@ msgstr "Aucun historique"
 msgid "No measurements yet. Log your first entry above."
 msgstr "Aucune mesure pour l'instant. Enregistre ta première entrée ci-dessus."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:676
+#: app/(app)/(tabs)/(stats)/index.tsx:688
 msgid "No measurements yet. Tap to log your first entry."
 msgstr "Aucune mesure pour l'instant. Appuie pour enregistrer ta première entrée."
 
@@ -4012,7 +4048,7 @@ msgstr "Suppression des liens d'amitié"
 msgid "Removing friend requests"
 msgstr "Suppression des demandes d'ami"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:588
+#: app/(app)/(tabs)/(stats)/index.tsx:600
 msgid "Reorder"
 msgstr "Réorganiser"
 
@@ -4695,7 +4731,7 @@ msgstr "Suggérer des ajustements de charge et de reps"
 msgid "Suggestions to hold the current load don't appear in the card, since no action is needed."
 msgstr "Les suggestions qui recommandent de maintenir la charge actuelle n'apparaissent pas dans la carte, car aucune action n'est nécessaire."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:463
+#: app/(app)/(tabs)/(stats)/index.tsx:475
 msgid "Summary"
 msgstr "Résumé"
 
@@ -4990,7 +5026,7 @@ msgstr "Active Unilatéral pour les exercices à un bras ou une jambe ; les rép
 msgid "Top PR Sets"
 msgstr "Meilleures séries PR"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:478
+#: app/(app)/(tabs)/(stats)/index.tsx:490
 msgid "Total Time"
 msgstr "Temps total"
 
@@ -5029,7 +5065,7 @@ msgstr ""
 "\n"
 "Fais glisser les cartes d'introduction pour en savoir plus sur l'appli."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:559
+#: app/(app)/(tabs)/(stats)/index.tsx:571
 msgid "Tracked Exercises"
 msgstr "Exercices suivis"
 
@@ -5079,7 +5115,7 @@ msgstr "Programme d'entraînement"
 msgid "Training Plan Name"
 msgstr "Nom du programme"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:546
+#: app/(app)/(tabs)/(stats)/index.tsx:558
 msgid "Training Split (by sets)"
 msgstr "Répartition d'entraînement (par séries)"
 
@@ -5265,7 +5301,7 @@ msgstr "Valeurs"
 msgid "Vibrate after rest"
 msgstr "Vibrer après le repos"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:645
+#: app/(app)/(tabs)/(stats)/index.tsx:657
 msgid "View All"
 msgstr "Tout afficher"
 
@@ -5291,11 +5327,11 @@ msgstr "Voir/Modifier"
 msgid "Volume"
 msgstr "Volume"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:472
+#: app/(app)/(tabs)/(stats)/index.tsx:484
 msgid "Volume ({volumeUnit})"
 msgstr "Volume ({volumeUnit})"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:530
+#: app/(app)/(tabs)/(stats)/index.tsx:542
 msgid "Volume per Week ({volumeUnit})"
 msgstr "Volume par semaine ({volumeUnit})"
 
@@ -5490,7 +5526,7 @@ msgstr "Séance supprimée"
 msgid "Workout Details"
 msgstr "Détails de l'entraînement"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:494
+#: app/(app)/(tabs)/(stats)/index.tsx:506
 msgid "Workout History"
 msgstr "Historique des entraînements"
 
@@ -5523,14 +5559,14 @@ msgstr "Rappels d'entraînement"
 msgid "Workout Summary"
 msgstr "Résumé de l'entraînement"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:467
+#: app/(app)/(tabs)/(stats)/index.tsx:479
 #: app/(app)/friend-profile.tsx:196
 #: components/WeeklySummaryCard.tsx:271
 #: constants/HelpData.ts:66
 msgid "Workouts"
 msgstr "Entraînements"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:517
+#: app/(app)/(tabs)/(stats)/index.tsx:529
 msgid "Workouts per Week"
 msgstr "Entraînements par semaine"
 
