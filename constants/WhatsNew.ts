@@ -462,6 +462,26 @@ The rest timer now always sends a notification when your rest is over, even if y
 The notification setting now only decides whether that alert also shows while the app is open. You'll find it in Settings as "Show rest notification while app is open".
 `,
   },
+  {
+    version: 2654,
+    message: msg`
+↩️ New: Undo Instead of "Are You Sure?"
+
+Deleting a completed workout, a standalone workout, a body measurement, or an exercise or set during a session now happens straight away, with an Undo button at the bottom of the screen for a few seconds. Plans still ask before deleting, and can be undone too.
+
+The app is also clearer when you're offline: Friends shows a banner, and backup, restore, and sign-in tell you why they're unavailable. Pull down on Stats, Friends, or a friend's profile to refresh. Leaving the workout overview mid-session now asks you to confirm first, so you can't leave by accident.
+`,
+  },
+  {
+    version: 2655,
+    message: msg`
+🐛 Fixed: Dates, Pounds & Speed!
+
+• Workout times now show the correct clock time, and late-evening workouts count toward the right day for streaks, the calendar, and weekly goals.
+• If you train in pounds, repeating the same weight no longer creates a false PR or shows "+0.0 lbs", and body weight entered in pounds reads back exactly as you typed it.
+• History and stats load faster, especially if you have a long training history.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
