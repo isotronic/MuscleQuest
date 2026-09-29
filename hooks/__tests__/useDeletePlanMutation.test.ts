@@ -1,9 +1,14 @@
 import { useDeletePlanMutation } from "../useDeletePlanMutation";
-import { deleteWorkoutPlan } from "@/utils/database";
+import { deleteWorkoutPlan, restoreWorkoutPlan } from "@/utils/database";
+import { useSnackbarStore } from "@/store/snackbarStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 jest.mock("@/utils/database", () => ({
   deleteWorkoutPlan: jest.fn(),
+  restoreWorkoutPlan: jest.fn().mockResolvedValue(undefined),
+}));
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray) => s[0],
 }));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -66,5 +71,29 @@ describe("useDeletePlanMutation", () => {
     capturedArgs.onError(error);
 
     expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+  });
+
+  it("offers Undo that brings back the plan with its workouts", async () => {
+    const snapshot = {
+      planId: 42,
+      workoutIds: [1, 2],
+      workoutExerciseIds: [10, 11, 12],
+    };
+    useDeletePlanMutation();
+    capturedArgs.onSuccess(snapshot, 42);
+
+    const current = useSnackbarStore.getState().current;
+    expect(current?.message).toBe("Plan deleted");
+    expect(current?.action?.label).toBe("Undo");
+
+    mockInvalidateQueries.mockClear();
+    useSnackbarStore.getState().pressAction();
+    await new Promise((r) => setImmediate(r));
+
+    expect(restoreWorkoutPlan).toHaveBeenCalledWith(snapshot);
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey: ["plans"] });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["activePlan"],
+    });
   });
 });

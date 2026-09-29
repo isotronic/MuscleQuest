@@ -1,15 +1,13 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
+import { foregroundPresentation } from "@/utils/restNotification";
 
 export const setupNotificationChannel = async () => {
-  // Configure how the notifications should be shown
+  // While the app is open, only rest notifications can show, and only when
+  // the user asked for them (see foregroundPresentation).
   await Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldPlaySound: false,
-      shouldSetBadge: false,
-      shouldShowBanner: false,
-      shouldShowList: false,
-    }),
+    handleNotification: async (notification) =>
+      foregroundPresentation(notification),
   });
 
   if (Platform.OS === "android") {

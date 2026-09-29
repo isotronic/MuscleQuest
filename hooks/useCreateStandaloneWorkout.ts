@@ -4,10 +4,14 @@ import {
   createStandaloneWorkout,
   updateStandaloneWorkout,
   deleteStandaloneWorkout,
+  restoreStandaloneWorkout,
+  type DeletedStandaloneWorkoutSnapshot,
 } from "@/utils/database";
 import { UserExercise } from "@/store/workoutStore";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { AuthContext } from "@/context/AuthProvider";
+import { t } from "@lingui/core/macro";
+import { showSnackbar } from "@/store/snackbarStore";
 import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
 import { publishStandaloneWorkout } from "@/utils/sharing";
 import { useSocialStore } from "@/store/socialStore";
@@ -84,10 +88,25 @@ export const useUpdateStandaloneWorkout = () => {
 
 export const useDeleteStandaloneWorkout = () => {
   const queryClient = useQueryClient();
+
+  const undoDelete = async (snapshot: DeletedStandaloneWorkoutSnapshot) => {
+    try {
+      await restoreStandaloneWorkout(snapshot);
+      queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
+    } catch (error) {
+      notifyBugsnag(error);
+      showSnackbar(t`Couldn't restore the workout.`);
+    }
+  };
+
   return useMutation({
     mutationFn: (workoutId: number) => deleteStandaloneWorkout(workoutId),
-    onSuccess: () => {
+    onSuccess: (snapshot: DeletedStandaloneWorkoutSnapshot) => {
       queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
+      showSnackbar(t`Workout deleted`, {
+        duration: 5000,
+        action: { label: t`Undo`, onPress: () => void undoDelete(snapshot) },
+      });
     },
     onError: (error: Error) => {
       notifyBugsnag(error);

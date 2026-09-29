@@ -12,7 +12,6 @@ import {
   Platform,
   StyleSheet,
   View,
-  Alert,
 } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -24,6 +23,8 @@ import SessionSetInfo from "@/components/SessionSetInfo";
 import { SessionSetOptionsModal } from "@/components/SessionSetOptionsModal";
 import { PlateCalculatorModal } from "@/components/PlateCalculatorModal";
 import { useTimer } from "react-timer-hook";
+import { useRestTimerResync } from "@/hooks/useRestTimerResync";
+import { showSnackbar } from "@/store/snackbarStore";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -37,6 +38,7 @@ import Bugsnag from "@bugsnag/expo";
 import {
   cancelRestNotifications,
   scheduleRestNotificationWithCancellation,
+  startRestNotification,
 } from "@/utils/restNotification";
 import { Notes } from "@/components/Notes";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
@@ -535,6 +537,13 @@ export default function WorkoutSessionScreen() {
       handleExpire();
     },
   });
+  useRestTimerResync(restart);
+
+  // Shown once, during the first rest after notifications turned out blocked.
+  const [showPermissionHint, setShowPermissionHint] = useState(false);
+  useEffect(() => {
+    if (!timerRunning) setShowPermissionHint(false);
+  }, [timerRunning]);
 
   async function handleExpire() {
     if (!expiryTimestampRef.current) {
@@ -614,16 +623,15 @@ export default function WorkoutSessionScreen() {
       expiryTimestampRef.current = time;
       startTimer(time);
 
-      if (settings?.restTimerNotification === "true") {
-        void scheduleRestNotificationWithCancellation(
-          totalSeconds,
-          t`Rest Timer Finished!`,
-          t`Time to do your next set!`,
-          "rest-timer1",
-        );
-      } else {
-        void cancelRestNotifications();
-      }
+      // Always scheduled so a locked phone still gets its cue; the setting
+      // only controls showing it while the app is open.
+      void startRestNotification(
+        totalSeconds,
+        t`Rest Timer Finished!`,
+        t`Time to do your next set!`,
+      ).then(({ showPermissionHint }) => {
+        if (showPermissionHint) setShowPermissionHint(true);
+      });
 
       Bugsnag.leaveBreadcrumb("Timer started", {
         totalSeconds,
@@ -657,14 +665,12 @@ export default function WorkoutSessionScreen() {
       adjustedRestSecondsRef.current + deltaSeconds,
     );
 
-    if (settings?.restTimerNotification === "true") {
-      await scheduleRestNotificationWithCancellation(
-        newRemaining,
-        "Rest Timer Finished!",
-        "Time to do your next set!",
-        "rest-timer1",
-      );
-    }
+    await scheduleRestNotificationWithCancellation(
+      newRemaining,
+      t`Rest Timer Finished!`,
+      t`Time to do your next set!`,
+      "rest-timer1",
+    );
 
     if (lastCompletedSetRef.current) {
       const { exerciseIndex, setIndex } = lastCompletedSetRef.current;
@@ -766,43 +772,55 @@ export default function WorkoutSessionScreen() {
     updateSetType(currentExerciseIndex, currentSetIndex, type, !currentVal);
   };
 
+  // Re-points the carousel slots at the store's current set, after the
+  // current exercise's sets changed under them.
+  const syncSlotsToStore = () => {
+    const st = useActiveWorkoutStore.getState();
+    const newExerciseIndex = st.currentExerciseIndex;
+    const newSetIndex = st.currentSetIndices[newExerciseIndex] ?? 0;
+    const exercises = st.workout?.exercises;
+    setSlots((prev) => {
+      const u = [...prev] as [SlotData, SlotData, SlotData];
+      u[currentSlotIndex] = {
+        exerciseIndex: newExerciseIndex,
+        setIndex: newSetIndex,
+      };
+      if (exercises) {
+        const nextSlotIdx = (currentSlotIndex + 1) % 3;
+        const prevSlotIdx = (currentSlotIndex + 2) % 3;
+        const fallback = {
+          exerciseIndex: newExerciseIndex,
+          setIndex: newSetIndex,
+        };
+        u[nextSlotIdx] =
+          getNextSlotData(exercises, newExerciseIndex, newSetIndex) ?? fallback;
+        u[prevSlotIdx] =
+          getPrevSlotData(exercises, newExerciseIndex, newSetIndex) ?? fallback;
+      }
+      return u;
+    });
+  };
+
+  // No confirmation: the snackbar offers Undo.
   const handleRemoveSet = (index: number) => {
-    Alert.alert(t`Delete Set`, t`Are you sure you want to delete this set?`, [
-      { text: t`Cancel`, style: "cancel" },
-      {
-        text: t`Delete`,
-        style: "destructive",
+    const st = useActiveWorkoutStore.getState();
+    const setCount =
+      st.workout?.exercises[st.currentExerciseIndex]?.sets.length ?? 0;
+    if (setCount <= 1) return; // removeSet keeps the last set
+    const snapshot = st.snapshotSet(st.currentExerciseIndex, index);
+    removeSet(index);
+    syncSlotsToStore();
+    if (!snapshot) return;
+    showSnackbar(t`Set removed`, {
+      duration: 5000,
+      action: {
+        label: t`Undo`,
         onPress: () => {
-          removeSet(index);
-          const st = useActiveWorkoutStore.getState();
-          const newExerciseIndex = st.currentExerciseIndex;
-          const newSetIndex = st.currentSetIndices[newExerciseIndex] ?? 0;
-          const exercises = st.workout?.exercises;
-          setSlots((prev) => {
-            const u = [...prev] as [SlotData, SlotData, SlotData];
-            u[currentSlotIndex] = {
-              exerciseIndex: newExerciseIndex,
-              setIndex: newSetIndex,
-            };
-            if (exercises) {
-              const nextSlotIdx = (currentSlotIndex + 1) % 3;
-              const prevSlotIdx = (currentSlotIndex + 2) % 3;
-              const fallback = {
-                exerciseIndex: newExerciseIndex,
-                setIndex: newSetIndex,
-              };
-              u[nextSlotIdx] =
-                getNextSlotData(exercises, newExerciseIndex, newSetIndex) ??
-                fallback;
-              u[prevSlotIdx] =
-                getPrevSlotData(exercises, newExerciseIndex, newSetIndex) ??
-                fallback;
-            }
-            return u;
-          });
+          useActiveWorkoutStore.getState().restoreSet(snapshot);
+          syncSlotsToStore();
         },
       },
-    ]);
+    });
   };
 
   const handleAddSet = () => {
@@ -1759,6 +1777,11 @@ export default function WorkoutSessionScreen() {
         animStyle={timerAnimStyle}
         buttonSize={buttonSize}
         onAdjust={(delta) => void adjustTimer(delta)}
+        hint={
+          showPermissionHint
+            ? t`Notifications are off, so there is no rest alert while your phone is locked. You can turn them on in your phone's settings.`
+            : undefined
+        }
       />
     </ThemedView>
   );

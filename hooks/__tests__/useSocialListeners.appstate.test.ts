@@ -1,5 +1,6 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { useSocialListeners } from "../useSocialListeners";
+import { useSocialRefreshStore } from "@/store/socialRefreshStore";
 
 const mockUnsub = jest.fn();
 const mockOnSnapshot = jest.fn(() => mockUnsub);
@@ -89,5 +90,17 @@ describe("useSocialListeners - AppState-driven resubscription", () => {
 
     expect(mockUnsub).not.toHaveBeenCalled();
     expect(mockOnSnapshot.mock.calls.length).toBe(initialSubscriptionCount);
+  });
+
+  it("re-subscribes all listeners when a screen asks for a refresh", () => {
+    renderHook(() => useSocialListeners());
+    const initialSubscriptionCount = mockOnSnapshot.mock.calls.length;
+
+    act(() => {
+      useSocialRefreshStore.getState().requestRefresh();
+    });
+
+    expect(mockUnsub).toHaveBeenCalledTimes(initialSubscriptionCount);
+    expect(mockOnSnapshot.mock.calls.length).toBe(initialSubscriptionCount * 2);
   });
 });

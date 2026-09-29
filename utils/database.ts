@@ -206,7 +206,14 @@ export const updateAppExerciseIds = async (): Promise<void> => {
   }
 };
 
-export const copyDataFromAppDataToUserData = async (): Promise<void> => {
+/** Called with rows done and total rows while a long startup step runs. */
+export type ProgressCallback = (done: number, total: number) => void;
+
+const EXERCISE_PROGRESS_BATCH = 50;
+
+export const copyDataFromAppDataToUserData = async (
+  onProgress?: ProgressCallback,
+): Promise<void> => {
   let appDataDB: SQLite.SQLiteDatabase | undefined;
   let userDataDB: SQLite.SQLiteDatabase | undefined;
   try {
@@ -261,9 +268,11 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
             ? columns.filter((col) => col !== "exercise_id")
             : columns;
 
+          const reportsProgress = tableName === "exercises" && onProgress;
           if (tableName === "exercises") {
             insertColumns.push("app_exercise_id");
           }
+          if (reportsProgress) onProgress(0, result.length);
 
           const placeholders = insertColumns.map(() => "?").join(", ");
           const insertStatement = `INSERT INTO ${tableName} (${insertColumns.join(", ")}) VALUES (${placeholders})`;
@@ -276,7 +285,14 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
             .join(", ");
           const updateStatement = `UPDATE ${tableName} SET ${updatePlaceholders} WHERE app_exercise_id = ?`;
 
-          for (const row of result) {
+          for (const [rowIndex, row] of result.entries()) {
+            if (
+              reportsProgress &&
+              rowIndex > 0 &&
+              rowIndex % EXERCISE_PROGRESS_BATCH === 0
+            ) {
+              onProgress(rowIndex, result.length);
+            }
             let shouldInsertOrUpdate = true;
 
             if (
@@ -357,6 +373,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
           await userDataDB!.execAsync("COMMIT");
           inTransaction = false;
+          if (reportsProgress) onProgress(result.length, result.length);
         }
         shouldUpdateDataVersion = true;
       } catch (error: any) {
@@ -983,12 +1000,42 @@ export const updatePlanWorkoutExercises = async (
   }
 };
 
-export const deleteWorkoutPlan = async (planId: number) => {
+/** The rows deleteWorkoutPlan soft-deleted, so an undo restores only those. */
+export interface DeletedPlanSnapshot {
+  planId: number;
+  workoutIds: number[];
+  workoutExerciseIds: number[];
+}
+
+export const deleteWorkoutPlan = async (
+  planId: number,
+): Promise<DeletedPlanSnapshot> => {
   const db = await openDatabase("userData.db");
+  const snapshot: DeletedPlanSnapshot = {
+    planId,
+    workoutIds: [],
+    workoutExerciseIds: [],
+  };
 
   try {
     // Start an exclusive transaction to ensure that all updates are executed together
     await db.withExclusiveTransactionAsync(async (txn) => {
+      // Workouts and exercises removed earlier (plan edits) are already
+      // soft-deleted; recording only the live ones keeps undo from reviving them.
+      const workouts = await txn.getAllAsync<{ id: number }>(
+        `SELECT id FROM user_workouts WHERE plan_id = ? AND is_deleted = FALSE`,
+        [planId],
+      );
+      const exercises = await txn.getAllAsync<{ id: number }>(
+        `SELECT id FROM user_workout_exercises
+       WHERE is_deleted = FALSE AND workout_id IN (
+         SELECT id FROM user_workouts WHERE plan_id = ? AND is_deleted = FALSE
+       )`,
+        [planId],
+      );
+      snapshot.workoutIds = workouts.map((w) => w.id);
+      snapshot.workoutExerciseIds = exercises.map((e) => e.id);
+
       // Mark exercises associated with workouts under the plan as deleted
       await txn.runAsync(
         `UPDATE user_workout_exercises
@@ -1014,6 +1061,39 @@ export const deleteWorkoutPlan = async (planId: number) => {
        WHERE id = ?`,
         [planId],
       );
+    });
+  } finally {
+    await db.closeAsync();
+  }
+  return snapshot;
+};
+
+/** Undo for deleteWorkoutPlan. */
+export const restoreWorkoutPlan = async ({
+  planId,
+  workoutIds,
+  workoutExerciseIds,
+}: DeletedPlanSnapshot): Promise<void> => {
+  const placeholders = (ids: number[]) => ids.map(() => "?").join(", ");
+  const db = await openDatabase("userData.db");
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        `UPDATE user_plans SET is_deleted = FALSE WHERE id = ?`,
+        [planId],
+      );
+      if (workoutIds.length > 0) {
+        await txn.runAsync(
+          `UPDATE user_workouts SET is_deleted = FALSE WHERE id IN (${placeholders(workoutIds)})`,
+          workoutIds,
+        );
+      }
+      if (workoutExerciseIds.length > 0) {
+        await txn.runAsync(
+          `UPDATE user_workout_exercises SET is_deleted = FALSE WHERE id IN (${placeholders(workoutExerciseIds)})`,
+          workoutExerciseIds,
+        );
+      }
     });
   } finally {
     await db.closeAsync();
@@ -1795,12 +1875,28 @@ export const updateStandaloneWorkout = async (
   }
 };
 
+/** The exercise rows deleteStandaloneWorkout soft-deleted, for undo. */
+export interface DeletedStandaloneWorkoutSnapshot {
+  workoutId: number;
+  workoutExerciseIds: number[];
+}
+
 export const deleteStandaloneWorkout = async (
   workoutId: number,
-): Promise<void> => {
+): Promise<DeletedStandaloneWorkoutSnapshot> => {
   const db = await openDatabase("userData.db");
+  const snapshot: DeletedStandaloneWorkoutSnapshot = {
+    workoutId,
+    workoutExerciseIds: [],
+  };
   try {
     await db.withExclusiveTransactionAsync(async (txn) => {
+      // Exercises removed in earlier edits stay deleted after an undo.
+      const exercises = await txn.getAllAsync<{ id: number }>(
+        `SELECT id FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+        [workoutId],
+      );
+      snapshot.workoutExerciseIds = exercises.map((e) => e.id);
       await txn.runAsync(
         `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE workout_id = ?`,
         [workoutId],
@@ -1809,6 +1905,31 @@ export const deleteStandaloneWorkout = async (
         `UPDATE user_workouts SET is_deleted = TRUE WHERE id = ?`,
         [workoutId],
       );
+    });
+  } finally {
+    await db.closeAsync();
+  }
+  return snapshot;
+};
+
+/** Undo for deleteStandaloneWorkout. */
+export const restoreStandaloneWorkout = async ({
+  workoutId,
+  workoutExerciseIds,
+}: DeletedStandaloneWorkoutSnapshot): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        `UPDATE user_workouts SET is_deleted = FALSE WHERE id = ?`,
+        [workoutId],
+      );
+      if (workoutExerciseIds.length > 0) {
+        await txn.runAsync(
+          `UPDATE user_workout_exercises SET is_deleted = FALSE WHERE id IN (${workoutExerciseIds.map(() => "?").join(", ")})`,
+          workoutExerciseIds,
+        );
+      }
     });
   } finally {
     await db.closeAsync();
@@ -1832,6 +1953,32 @@ export const deleteCompletedWorkout = async (id: number): Promise<void> => {
       );
       await txn.runAsync(
         `UPDATE completed_workouts SET is_deleted = TRUE WHERE id = ?`,
+        [id],
+      );
+    });
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+/** Undo for deleteCompletedWorkout: clears the same three soft-deletes. */
+export const restoreCompletedWorkout = async (id: number): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        `UPDATE completed_workouts SET is_deleted = FALSE WHERE id = ?`,
+        [id],
+      );
+      await txn.runAsync(
+        `UPDATE completed_exercises SET is_deleted = FALSE WHERE completed_workout_id = ?`,
+        [id],
+      );
+      await txn.runAsync(
+        `UPDATE completed_sets SET is_deleted = FALSE
+       WHERE completed_exercise_id IN (
+         SELECT id FROM completed_exercises WHERE completed_workout_id = ?
+       )`,
         [id],
       );
     });

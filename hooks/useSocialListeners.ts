@@ -18,6 +18,7 @@ import {
   PendingRequest,
   SentRequest,
 } from "../store/socialStore";
+import { useSocialRefreshStore } from "../store/socialRefreshStore";
 import { fetchFriendProfile } from "../utils/fetchFriendProfile";
 import { FriendInfo, FirestorePrivateSettings } from "../types/firestore";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
@@ -52,6 +53,8 @@ export const useSocialListeners = () => {
   // stuck session recovers on next app open instead of needing a full
   // force-quit.
   const [resubscribeGeneration, setResubscribeGeneration] = useState(0);
+  // Pull-to-refresh on the friends screen asks for the same resubscription.
+  const refreshGeneration = useSocialRefreshStore((s) => s.generation);
 
   useEffect(() => {
     const subscription = AppState.addEventListener(
@@ -117,6 +120,9 @@ export const useSocialListeners = () => {
     }
 
     const db = getFirestore();
+    // Request snapshots await profile reads; once this effect is cleaned up
+    // (resubscribe, sign-out) a late result must not overwrite newer data.
+    let active = true;
 
     // Incoming pending requests
     const unsubPending = onSnapshot(
@@ -141,7 +147,7 @@ export const useSocialListeners = () => {
               };
             }),
           );
-          setPendingRequests(requests);
+          if (active) setPendingRequests(requests);
         } catch (error) {
           notifyError("pendingRequests", error);
         }
@@ -174,7 +180,7 @@ export const useSocialListeners = () => {
               };
             }),
           );
-          setSentRequests(requests);
+          if (active) setSentRequests(requests);
         } catch (error) {
           notifyError("sentRequests", error);
         }
@@ -299,6 +305,7 @@ export const useSocialListeners = () => {
     );
 
     return () => {
+      active = false;
       unsubPending();
       unsubSent();
       unsubFriends();
@@ -310,5 +317,5 @@ export const useSocialListeners = () => {
     // changes; store setters are stable and re-running on every user object
     // change would tear down and rebuild all six listeners.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid, resubscribeGeneration]);
+  }, [user?.uid, resubscribeGeneration, refreshGeneration]);
 };

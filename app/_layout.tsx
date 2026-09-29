@@ -26,13 +26,10 @@ import { useFonts } from "expo-font";
 import * as Updates from "expo-updates";
 import "react-native-reanimated";
 import * as SplashScreen from "expo-splash-screen";
-import {
-  QueryClient,
-  QueryClientProvider,
-  QueryCache,
-  MutationCache,
-} from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { wasReported } from "@/utils/bugsnagDedup";
+import { createAppQueryClient } from "@/utils/queryClient";
+import { connectOnlineManager } from "@/utils/networkStatus";
 import {
   Inter_100Thin,
   Inter_200ExtraLight,
@@ -47,7 +44,13 @@ import {
 import { AuthProvider } from "@/context/AuthProvider";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { fetchSettings } from "@/utils/database";
-import { runStartup, type StartupResult } from "@/utils/startup";
+import {
+  runStartup,
+  type StartupProgress,
+  type StartupResult,
+} from "@/utils/startup";
+import { throttleProgress } from "@/utils/throttleProgress";
+import { FirstLaunchProgress } from "@/components/FirstLaunchProgress";
 import { StartupRecoveryScreen } from "@/components/StartupRecoveryScreen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -106,17 +109,8 @@ const reportQueryError = (error: unknown) => {
   Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
 };
 
-const queryClient = new QueryClient({
-  queryCache: new QueryCache({ onError: reportQueryError }),
-  // MutationCache.onError runs before each hook's own onError, so the hook's
-  // notifyBugsnag would not have marked the error yet. onSettled runs after the
-  // hook's onError has finished, so the dedup check sees it.
-  mutationCache: new MutationCache({
-    onSettled: (_data, error) => {
-      if (error) reportQueryError(error);
-    },
-  }),
-});
+const queryClient = createAppQueryClient(reportQueryError);
+connectOnlineManager();
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -136,6 +130,8 @@ const appCheckReady = setupAppCheck().catch((error) => {
 function RootLayout() {
   // null while startup is still running (or the app is about to reload).
   const [startup, setStartup] = useState<StartupResult | null>(null);
+  // Only set on first launch, when the exercise library and plans are copied.
+  const [progress, setProgress] = useState<StartupProgress | null>(null);
   const [loaded, error] = useFonts({
     Inter_100Thin,
     Inter_200ExtraLight,
@@ -157,7 +153,12 @@ function RootLayout() {
   }, [navigationRef]);
 
   useEffect(() => {
-    runStartup(appCheckReady)
+    const reportProgress = throttleProgress((next) => {
+      // A returning user's boot never reports progress and keeps the splash.
+      SplashScreen.hide();
+      setProgress(next);
+    }, 100);
+    runStartup(appCheckReady, reportProgress)
       .then((result) => {
         if (result.status !== "reloading") setStartup(result);
       })
@@ -225,10 +226,16 @@ function RootLayout() {
       <ThemedView
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
-        <ActivityIndicator size="large" />
-        <ThemedText>
-          <Trans>Loading data, please wait...</Trans>
-        </ThemedText>
+        {progress ? (
+          <FirstLaunchProgress progress={progress} />
+        ) : (
+          <>
+            <ActivityIndicator size="large" />
+            <ThemedText>
+              <Trans>Loading data, please wait...</Trans>
+            </ThemedText>
+          </>
+        )}
       </ThemedView>
     );
   }

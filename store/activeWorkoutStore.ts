@@ -48,6 +48,50 @@ function shiftIndicesForInsert<T>(
   return shifted;
 }
 
+type SetEntry = {
+  weight?: string;
+  reps?: string;
+  time?: string;
+  distance?: string;
+};
+
+/** What deleteExercise throws away, so an undo can put it back. */
+export interface RemovedExerciseSnapshot {
+  index: number;
+  exercise: UserExercise;
+  completedSets?: { [setIndex: number]: boolean };
+  weightAndReps?: { [setIndex: number]: SetEntry };
+  currentSetIndex?: number;
+  setDurations?: { [setIndex: number]: number | null };
+  suggestedWeightPrefills?: Record<number, number>;
+  wasAppended: boolean;
+}
+
+/** What removeSet throws away, so an undo can put it back. */
+export interface RemovedSetSnapshot {
+  exerciseIndex: number;
+  exerciseId: number;
+  setIndex: number;
+  set: UserExercise["sets"][number];
+  /** The exercise's current-set pointer before the removal. */
+  currentSetIndex?: number;
+  completed?: boolean;
+  weightAndReps?: SetEntry;
+  setDuration?: number | null;
+  suggestedWeightPrefill?: number;
+}
+
+/** Inserts `value` at `index`, shifting later keys up by one. */
+function insertAtIndex<T>(
+  obj: { [key: number]: T },
+  index: number,
+  value: T | undefined,
+): { [key: number]: T } {
+  const shifted = shiftIndicesForInsert(obj, index - 1);
+  if (value !== undefined) shifted[index] = value;
+  return shifted;
+}
+
 interface ActiveWorkoutStore {
   activeWorkout: {
     planId: number | null;
@@ -108,6 +152,13 @@ interface ActiveWorkoutStore {
   initializeGlobalHistory: (completedWorkouts: CompletedWorkout[]) => void;
   replaceExercise: (index: number, newExercise: UserExercise) => void;
   deleteExercise: (index: number) => void;
+  snapshotExercise: (index: number) => RemovedExerciseSnapshot | null;
+  restoreExercise: (snapshot: RemovedExerciseSnapshot) => void;
+  snapshotSet: (
+    exerciseIndex: number,
+    setIndex: number,
+  ) => RemovedSetSnapshot | null;
+  restoreSet: (snapshot: RemovedSetSnapshot) => void;
   reorderExercises: (newExercises: UserExercise[]) => void;
   restartWorkout: () => void;
   updateSetRestTime: (
@@ -1197,6 +1248,159 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             appendedExerciseIndices: appendedExerciseIndices
               .filter((i) => i !== index)
               .map((i) => (i > index ? i - 1 : i)),
+          };
+        });
+      },
+
+      snapshotExercise: (index) => {
+        const state = get();
+        const exercise = state.workout?.exercises[index];
+        if (!exercise) return null;
+        return {
+          index,
+          exercise,
+          completedSets: state.completedSets[index],
+          weightAndReps: state.weightAndReps[index],
+          currentSetIndex: state.currentSetIndices[index],
+          setDurations: state.setDurations[index],
+          suggestedWeightPrefills: state.suggestedWeightPrefills[index],
+          wasAppended: state.appendedExerciseIndices.includes(index),
+        };
+      },
+
+      restoreExercise: (snapshot) => {
+        set((state) => {
+          if (!state.workout) return state;
+          const index = Math.min(
+            snapshot.index,
+            state.workout.exercises.length,
+          );
+          const exercises = [...state.workout.exercises];
+          exercises.splice(index, 0, snapshot.exercise);
+          const appended = state.appendedExerciseIndices.map((i) =>
+            i >= index ? i + 1 : i,
+          );
+          return {
+            workout: { ...state.workout, exercises },
+            completedSets: insertAtIndex(
+              state.completedSets,
+              index,
+              snapshot.completedSets,
+            ),
+            weightAndReps: insertAtIndex(
+              state.weightAndReps,
+              index,
+              snapshot.weightAndReps,
+            ),
+            currentSetIndices: insertAtIndex(
+              state.currentSetIndices,
+              index,
+              snapshot.currentSetIndex,
+            ),
+            setDurations: insertAtIndex(
+              state.setDurations,
+              index,
+              snapshot.setDurations,
+            ),
+            suggestedWeightPrefills: insertAtIndex(
+              state.suggestedWeightPrefills,
+              index,
+              snapshot.suggestedWeightPrefills,
+            ),
+            currentExerciseIndex:
+              state.currentExerciseIndex >= index
+                ? state.currentExerciseIndex + 1
+                : state.currentExerciseIndex,
+            appendedExerciseIndices: snapshot.wasAppended
+              ? [...appended, index]
+              : appended,
+          };
+        });
+      },
+
+      snapshotSet: (exerciseIndex, setIndex) => {
+        const state = get();
+        const exercise = state.workout?.exercises[exerciseIndex];
+        const removedSet = exercise?.sets[setIndex];
+        if (!exercise || !removedSet) return null;
+        return {
+          exerciseIndex,
+          exerciseId: exercise.exercise_id,
+          setIndex,
+          set: removedSet,
+          currentSetIndex: state.currentSetIndices[exerciseIndex],
+          completed: state.completedSets[exerciseIndex]?.[setIndex],
+          weightAndReps: state.weightAndReps[exerciseIndex]?.[setIndex],
+          setDuration: state.setDurations[exerciseIndex]?.[setIndex],
+          suggestedWeightPrefill:
+            state.suggestedWeightPrefills[exerciseIndex]?.[setIndex],
+        };
+      },
+
+      restoreSet: (snapshot) => {
+        set((state) => {
+          const { exerciseIndex, setIndex } = snapshot;
+          const exercise = state.workout?.exercises[exerciseIndex];
+          // The exercise moved or went away while the undo was pending.
+          if (!state.workout || exercise?.exercise_id !== snapshot.exerciseId) {
+            return state;
+          }
+          const index = Math.min(setIndex, exercise.sets.length);
+          const sets = [...exercise.sets];
+          sets.splice(index, 0, snapshot.set);
+          const exercises = [...state.workout.exercises];
+          exercises[exerciseIndex] = { ...exercise, sets };
+
+          // Removing the current set moved the pointer on; undo puts it back
+          // on that set. Otherwise shift it past the re-inserted set.
+          const currentSetIndex = state.currentSetIndices[exerciseIndex];
+          const restoredPointer =
+            snapshot.currentSetIndex === setIndex
+              ? index
+              : currentSetIndex != null && currentSetIndex >= index
+                ? currentSetIndex + 1
+                : currentSetIndex;
+          return {
+            workout: { ...state.workout, exercises },
+            completedSets: {
+              ...state.completedSets,
+              [exerciseIndex]: insertAtIndex(
+                state.completedSets[exerciseIndex] ?? {},
+                index,
+                snapshot.completed,
+              ),
+            },
+            weightAndReps: {
+              ...state.weightAndReps,
+              [exerciseIndex]: insertAtIndex(
+                state.weightAndReps[exerciseIndex] ?? {},
+                index,
+                snapshot.weightAndReps,
+              ),
+            },
+            setDurations: {
+              ...state.setDurations,
+              [exerciseIndex]: insertAtIndex(
+                state.setDurations[exerciseIndex] ?? {},
+                index,
+                snapshot.setDuration,
+              ),
+            },
+            suggestedWeightPrefills: {
+              ...state.suggestedWeightPrefills,
+              [exerciseIndex]: insertAtIndex(
+                state.suggestedWeightPrefills[exerciseIndex] ?? {},
+                index,
+                snapshot.suggestedWeightPrefill,
+              ),
+            },
+            currentSetIndices:
+              restoredPointer === undefined
+                ? state.currentSetIndices
+                : {
+                    ...state.currentSetIndices,
+                    [exerciseIndex]: restoredPointer,
+                  },
           };
         });
       },

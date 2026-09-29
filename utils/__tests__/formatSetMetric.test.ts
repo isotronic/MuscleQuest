@@ -1,5 +1,38 @@
 import { formatSetMetric } from "../formatSetMetric";
 
+// The Lingui macro plugin is off under Jest, so stand in for it: build the
+// message id from the template (placeholders as {0}, {1}, ...) and translate
+// through a tiny catalog for whichever locale the test activates.
+let mockLocale = "en";
+const mockCatalogs: Record<string, Record<string, string>> = {
+  de: {
+    "{0} rep": "{0} Wdh.",
+    "{0} reps": "{0} Wdh.",
+    "{0}s": "{0} s",
+    "{0} {1} assist / {2} {3} resist × {4}":
+      "{0} {1} Unterstützung / {2} {3} Widerstand × {4}",
+  },
+};
+jest.mock("@lingui/core/macro", () => {
+  const translate = (id: string, values: unknown[]) => {
+    const tpl = mockCatalogs[mockLocale]?.[id] ?? id;
+    return tpl.replace(/\{(\d+)\}/g, (_, i) => String(values[Number(i)]));
+  };
+  return {
+    t: (strings: TemplateStringsArray, ...values: unknown[]) =>
+      translate(
+        strings.reduce((id, s, i) => id + (i ? `{${i - 1}}` : "") + s, ""),
+        values,
+      ),
+    plural: (n: number, forms: { one: string; other: string }) =>
+      translate((n === 1 ? forms.one : forms.other).replace("#", "{0}"), [n]),
+  };
+});
+
+afterEach(() => {
+  mockLocale = "en";
+});
+
 describe("formatSetMetric", () => {
   describe('tracking_type: "weight" (default)', () => {
     it("formats weight and reps in kg", () => {
@@ -61,6 +94,10 @@ describe("formatSetMetric", () => {
     it("defaults reps to 0 when undefined", () => {
       expect(formatSetMetric({}, "reps")).toBe("0 reps");
     });
+
+    it("uses the singular for one rep", () => {
+      expect(formatSetMetric({ reps: 1 }, "reps")).toBe("1 rep");
+    });
   });
 
   describe('tracking_type: "time"', () => {
@@ -101,6 +138,12 @@ describe("formatSetMetric", () => {
     it("defaults distance to 0 when undefined", () => {
       expect(formatSetMetric({}, "distance")).toBe("0 m");
     });
+
+    it("labels distance with the given display unit", () => {
+      expect(
+        formatSetMetric({ distance: 1312.34 }, "distance", "kg", 0, "ft"),
+      ).toBe("1312.3 ft");
+    });
   });
 
   describe('tracking_type: "assisted"', () => {
@@ -134,6 +177,26 @@ describe("formatSetMetric", () => {
       expect(formatSetMetric({ weight: 20, reps: 5 }, "assisted")).toBe(
         "20 kg assist / 0 kg resist × 5",
       );
+    });
+  });
+
+  describe("under the de locale", () => {
+    beforeEach(() => {
+      mockLocale = "de";
+    });
+
+    it("translates reps", () => {
+      expect(formatSetMetric({ reps: 12 }, "reps")).toBe("12 Wdh.");
+    });
+
+    it("translates the seconds suffix", () => {
+      expect(formatSetMetric({ time: 45 }, "time")).toBe("45 s");
+    });
+
+    it("translates assist and resist", () => {
+      expect(
+        formatSetMetric({ weight: 20, reps: 8 }, "assisted", "kg", 80),
+      ).toBe("20 kg Unterstützung / 60 kg Widerstand × 8");
     });
   });
 });

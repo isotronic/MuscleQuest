@@ -26,7 +26,7 @@ import {
 } from "@/hooks/useCompletedWorkoutsQuery";
 import { Workout, UserExercise } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
-import Onboarding from "@/components/Onboarding";
+import Onboarding, { shouldShowActivationCard } from "@/components/Onboarding";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
 import { UpdateModal } from "@/components/UpdateModal";
 import { confirmStartWorkout } from "@/utils/startWorkout";
@@ -73,6 +73,12 @@ export default function HomeScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
+  const startQuickWorkout = () => {
+    if (isStartingWorkout) return;
+    confirmStartWorkout(setIsStartingWorkout, () => {
+      useActiveWorkoutStore.getState().startQuickWorkout();
+    });
+  };
   const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
   const [pickerWorkouts, setPickerWorkouts] = useState<CompletedWorkout[]>([]);
   const user = useContext(AuthContext);
@@ -587,7 +593,13 @@ export default function HomeScreen() {
               </View>
             </>
           ) : (
-            <Onboarding />
+            <Onboarding
+              showActivationCard={shouldShowActivationCard(
+                !!activePlan,
+                completedWorkouts,
+              )}
+              onQuickWorkout={startQuickWorkout}
+            />
           )}
         </View>
 
@@ -596,12 +608,7 @@ export default function HomeScreen() {
             mode="outlined"
             icon="lightning-bolt"
             textColor={colors.accent}
-            onPress={() => {
-              if (isStartingWorkout) return;
-              confirmStartWorkout(setIsStartingWorkout, () => {
-                useActiveWorkoutStore.getState().startQuickWorkout();
-              });
-            }}
+            onPress={startQuickWorkout}
             style={styles.startWorkoutButton}
             labelStyle={styles.buttonLabel}
           >

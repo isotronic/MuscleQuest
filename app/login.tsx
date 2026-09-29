@@ -19,9 +19,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AppImage } from "@/components/ui";
 import Bugsnag from "@bugsnag/expo";
 import { ScrollView } from "react-native";
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { useIsOnline } from "@/hooks/useIsOnline";
 
 const logo = require("@/assets/images/icon.png");
 
@@ -29,6 +30,9 @@ export default function LoginScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
+  const isOnline = useIsOnline();
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const isSigningInRef = useRef(false);
 
   async function saveLoginShown() {
     try {
@@ -50,6 +54,9 @@ export default function LoginScreen() {
   }
 
   async function handleSignIn() {
+    if (isSigningInRef.current) return;
+    isSigningInRef.current = true;
+    setIsSigningIn(true);
     try {
       const hasPlayServices = await GoogleSignin.hasPlayServices({
         showPlayServicesUpdateDialog: true,
@@ -73,6 +80,9 @@ export default function LoginScreen() {
       Alert.alert(t`Error`, t`Failed to sign in. Please try again.`, [
         { text: t`OK` },
       ]);
+    } finally {
+      isSigningInRef.current = false;
+      setIsSigningIn(false);
     }
   }
 
@@ -115,11 +125,22 @@ export default function LoginScreen() {
           </Trans>
         </ThemedText>
 
+        {!isOnline && (
+          <ThemedText style={styles.info}>
+            <Trans>
+              Sign-in needs an internet connection. You can skip for now and
+              sign in later from settings.
+            </Trans>
+          </ThemedText>
+        )}
+
         <View style={styles.buttonRow}>
           <Button
             style={styles.skipButton}
             mode="outlined"
             onPress={handleSkip}
+            disabled={isSigningIn}
+            testID="login-skip"
           >
             <Trans>Skip login</Trans>
           </Button>
@@ -128,7 +149,10 @@ export default function LoginScreen() {
             style={styles.loginButton}
             mode="contained"
             onPress={handleSignIn}
+            loading={isSigningIn}
+            disabled={isSigningIn || !isOnline}
             accessibilityLabel={t`Google sign in`}
+            testID="login-google"
           >
             <Trans>Google sign in</Trans>
           </Button>

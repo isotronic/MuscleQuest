@@ -1,5 +1,6 @@
 import React, { useContext, useState } from "react";
 import {
+  RefreshControl,
   ScrollView,
   View,
   StyleSheet,
@@ -28,6 +29,8 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import type { AppThemeColors, AppThemeBorders } from "@/theme/types";
 import type { SharedStrengthPR } from "@/types/firestore";
 import { formatWeight } from "@/utils/units";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 function formatPR(pr: SharedStrengthPR, weightUnit: string): string {
   switch (pr.trackingType) {
@@ -69,31 +72,37 @@ export default function FriendProfileScreen() {
   const {
     data: plans = [],
     isLoading: plansLoading,
+    refetch: refetchPlans,
     isError: plansError,
   } = useFriendSharedPlansQuery(friendUid);
   const {
     data: workouts = [],
     isLoading: workoutsLoading,
+    refetch: refetchWorkouts,
     isError: workoutsError,
   } = useFriendSharedStandaloneWorkoutsQuery(friendUid);
   const {
     data: exercises = [],
     isLoading: exercisesLoading,
+    refetch: refetchExercises,
     isError: exercisesError,
   } = useFriendSharedCustomExercisesQuery(friendUid);
   const {
     data: completedWorkouts = [],
     isLoading: completedLoading,
+    refetch: refetchCompletedWorkouts,
     isError: completedError,
   } = useFriendSharedCompletedWorkoutsQuery(friendUid);
   const {
     data: measurements = [],
     isLoading: measurementsLoading,
+    refetch: refetchMeasurements,
     isError: measurementsError,
   } = useFriendSharedMeasurementsQuery(friendUid);
   const {
     data: strength = [],
     isLoading: strengthLoading,
+    refetch: refetchStrength,
     isError: strengthError,
   } = useFriendSharedStrengthQuery(friendUid);
 
@@ -110,6 +119,16 @@ export default function FriendProfileScreen() {
   const [importedExerciseIds, setImportedExerciseIds] = useState<Set<number>>(
     new Set(),
   );
+  const { refreshing, onRefresh: handleRefresh } = usePullToRefresh(() =>
+    Promise.all([
+      refetchPlans(),
+      refetchWorkouts(),
+      refetchExercises(),
+      refetchCompletedWorkouts(),
+      refetchMeasurements(),
+      refetchStrength(),
+    ]),
+  );
 
   if (!user) return null;
 
@@ -117,9 +136,19 @@ export default function FriendProfileScreen() {
 
   return (
     <ScrollView
+      testID="friend-profile-scroll"
       style={{ flex: 1, backgroundColor: colors.surface }}
       contentContainerStyle={{ paddingBottom: 40 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          colors={[colors.accent]}
+          tintColor={colors.accent}
+        />
+      }
     >
+      <OfflineBanner />
       {/* Profile header */}
       <View
         style={[

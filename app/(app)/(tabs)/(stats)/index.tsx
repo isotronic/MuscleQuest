@@ -1,5 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
@@ -42,6 +48,7 @@ import { WorkoutBarChart } from "@/components/charts/WorkoutBarChart";
 import { VolumeBarChart } from "@/components/charts/VolumeBarChart";
 import BodyPartChart from "@/components/charts/BodyPartChart";
 import { updateSettings } from "@/utils/database";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatToHoursMinutes } from "@/utils/utility";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
@@ -98,6 +105,13 @@ const computeStats = (
   };
 };
 
+const STATS_QUERY_ROOTS = [
+  "exercises",
+  "trackedExercises",
+  "completedWorkouts",
+  "bodyMeasurements",
+];
+
 export default function StatsScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -119,6 +133,15 @@ export default function StatsScreen() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isReorderMode, setIsReorderMode] = useState(false);
   const reorderMutation = useReorderTrackedExercisesMutation();
+  // Refetch only this screen's data, so a slow query on another mounted
+  // screen cannot hold the spinner.
+  const { refreshing, onRefresh } = usePullToRefresh(() =>
+    queryClient.refetchQueries({
+      type: "active",
+      predicate: (query) =>
+        STATS_QUERY_ROOTS.includes(String(query.queryKey[0])),
+    }),
+  );
 
   useEffect(() => {
     if (settings?.timeRange) setSelectedTimeRange(settings.timeRange);
@@ -410,7 +433,18 @@ export default function StatsScreen() {
 
   return (
     <ThemedView>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.accent]}
+            tintColor={colors.accent}
+          />
+        }
+      >
         {/* Time range selector */}
         <TimeRangeSelector
           selected={selectedTimeRange}

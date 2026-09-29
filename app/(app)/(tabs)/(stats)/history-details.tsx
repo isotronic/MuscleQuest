@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Alert } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedView } from "@/components/ThemedView";
@@ -162,22 +162,15 @@ export default function HistoryDetailsScreen() {
                 size={25}
                 style={{ marginRight: 0 }}
                 iconColor={colors.danger}
-                onPressIn={() => {
+                accessibilityLabel={t`Delete workout`}
+                disabled={deleteMutation.isPending}
+                // No confirmation: the delete is soft and the snackbar offers
+                // Undo.
+                onPress={() => {
                   if (typeof id !== "string" || !/^\d+$/.test(id)) return;
                   const parsedId = parseInt(id, 10);
                   if (parsedId <= 0) return;
-                  Alert.alert(
-                    t`Delete Workout`,
-                    t`Are you sure you want to delete this workout? This action cannot be undone.`,
-                    [
-                      { text: t`Cancel`, style: "cancel" },
-                      {
-                        text: t`Delete`,
-                        style: "destructive",
-                        onPress: () => deleteMutation.mutate(parsedId),
-                      },
-                    ],
-                  );
+                  deleteMutation.mutate(parsedId);
                 }}
               />
             </View>

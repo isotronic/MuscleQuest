@@ -195,3 +195,32 @@ describe("runStartup failure handling", () => {
     expect(await AsyncStorage.getItem(STARTUP_FAILURE_COUNT_KEY)).toBeNull();
   });
 });
+
+describe("runStartup progress", () => {
+  it("forwards first-launch progress with the stage it belongs to", async () => {
+    (copyDataFromAppDataToUserData as jest.Mock).mockImplementation(
+      async (onProgress?: (d: number, t: number) => void) => {
+        onProgress?.(50, 780);
+      },
+    );
+    (loadPremadePlans as jest.Mock).mockImplementation(
+      async (onProgress?: (d: number, t: number) => void) => {
+        onProgress?.(3, 7);
+      },
+    );
+    const onProgress = jest.fn();
+
+    await runStartup(Promise.resolve(), onProgress);
+
+    expect(onProgress.mock.calls).toEqual([
+      [{ stage: "exercises", done: 50, total: 780 }],
+      [{ stage: "plans", done: 3, total: 7 }],
+    ]);
+  });
+
+  it("reports nothing on a returning user's boot", async () => {
+    const onProgress = jest.fn();
+    await runStartup(Promise.resolve(), onProgress);
+    expect(onProgress).not.toHaveBeenCalled();
+  });
+});

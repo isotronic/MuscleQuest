@@ -49,6 +49,10 @@ jest.mock("@/store/socialStore", () => ({
   })),
 }));
 
+jest.mock("@/store/socialRefreshStore", () => ({
+  useSocialRefreshStore: jest.fn(() => 0),
+}));
+
 const mockUser = { uid: "my-uid" };
 
 jest.mock("react", () => ({

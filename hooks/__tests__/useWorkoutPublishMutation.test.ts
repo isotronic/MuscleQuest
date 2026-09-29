@@ -5,6 +5,11 @@ import {
 } from "@/utils/sharing";
 import { useMutation } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
+import { showSnackbar } from "@/store/snackbarStore";
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray) => s[0],
+}));
+jest.mock("@/store/snackbarStore", () => ({ showSnackbar: jest.fn() }));
 
 const mockUser = { uid: "user-123" };
 
@@ -74,5 +79,21 @@ describe("useWorkoutPublishMutation", () => {
     const error = new Error("publish failed");
     capturedArgs.onError(error);
     expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+  });
+
+  it("tells the user when sharing fails", () => {
+    useWorkoutPublishMutation(99);
+    capturedArgs.onError(new Error("offline"), true);
+    expect(showSnackbar).toHaveBeenCalledWith(
+      "Couldn't share this workout. Try again when you're online.",
+    );
+  });
+
+  it("tells the user when unsharing fails", () => {
+    useWorkoutPublishMutation(99);
+    capturedArgs.onError(new Error("offline"), false);
+    expect(showSnackbar).toHaveBeenCalledWith(
+      "Couldn't stop sharing this workout. Try again when you're online.",
+    );
   });
 });

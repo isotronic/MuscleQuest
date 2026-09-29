@@ -1,5 +1,7 @@
 import { fetchNote, saveNote } from "@/utils/database";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { t } from "@lingui/core/macro";
+import { showSnackbar } from "@/store/snackbarStore";
 
 export type NoteType = "exercise" | "workout_exercise" | "workout" | "plan";
 
@@ -28,6 +30,10 @@ export const useNotes = (
       saveNote(referenceId, secondaryReferenceId ?? null, newNote, noteType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
+    },
+    // The failure itself is reported by the global MutationCache handler.
+    onError: () => {
+      showSnackbar(t`Couldn't save your note. Please try again.`);
     },
   });
 

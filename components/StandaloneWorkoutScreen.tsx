@@ -87,30 +87,16 @@ export default function StandaloneWorkoutScreen() {
     });
   };
 
-  const handleDelete = () => {
-    Alert.alert(
-      t`Delete Workout`,
-      t`Are you sure you want to delete "${workout?.name ?? ""}"?`,
-      [
-        { text: t`Cancel`, style: "cancel" },
-        {
-          text: t`Delete`,
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteMutation.mutateAsync(workoutId);
-              router.back();
-            } catch (e: any) {
-              notifyBugsnag(e);
-              Alert.alert(
-                t`Error`,
-                t`Failed to delete workout. Please try again.`,
-              );
-            }
-          },
-        },
-      ],
-    );
+  // No confirmation: the delete is soft and the snackbar offers Undo.
+  const handleDelete = async () => {
+    if (deleteMutation.isPending) return;
+    try {
+      await deleteMutation.mutateAsync(workoutId);
+      router.back();
+    } catch (e: any) {
+      notifyBugsnag(e);
+      Alert.alert(t`Error`, t`Failed to delete workout. Please try again.`);
+    }
   };
 
   const renderExercise = (item: UserExercise) => {

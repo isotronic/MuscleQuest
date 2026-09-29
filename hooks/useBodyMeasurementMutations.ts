@@ -7,6 +7,9 @@ import {
   deleteBodyMeasurementSession,
 } from "@/utils/database";
 import { AuthContext } from "@/context/AuthProvider";
+import { t } from "@lingui/core/macro";
+import { showSnackbar } from "@/store/snackbarStore";
+import { usePendingDeleteStore } from "@/store/pendingDeleteStore";
 import { useSocialStore } from "@/store/socialStore";
 import { pushBodyMeasurement } from "@/utils/sharing";
 import {
@@ -107,4 +110,38 @@ export const useDeleteBodyMeasurementMutation = () => {
       notifyBugsnag(error);
     },
   });
+};
+
+/**
+ * Deletes a measurement entry with an Undo window. The delete is a hard
+ * DELETE, so it is delayed: the entry is hidden straight away and only removed
+ * when the snackbar closes without Undo. Runs outside any screen's lifetime,
+ * so it calls the database directly instead of going through useMutation.
+ */
+export const useDeleteBodyMeasurementWithUndo = () => {
+  const queryClient = useQueryClient();
+
+  return (entryId: number) => {
+    const { hideMeasurement, unhideMeasurement } =
+      usePendingDeleteStore.getState();
+    hideMeasurement(entryId);
+    invalidateBodyMeasurements(queryClient);
+
+    showSnackbar(t`Measurement deleted`, {
+      duration: 5000,
+      action: { label: t`Undo`, onPress: () => {} },
+      onClose: async (undone) => {
+        if (!undone) {
+          try {
+            await deleteBodyMeasurementSession(entryId);
+          } catch (error) {
+            notifyBugsnag(error);
+            showSnackbar(t`Couldn't delete the measurement.`);
+          }
+        }
+        unhideMeasurement(entryId);
+        invalidateBodyMeasurements(queryClient);
+      },
+    });
+  };
 };

@@ -27,6 +27,9 @@ import {
 } from "@/hooks/useCompletedWorkoutsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
+import { useWorkoutBackGuard } from "@/hooks/useWorkoutBackGuard";
+import { useWorkoutCompletion } from "@/hooks/useWorkoutCompletion";
+import { showSnackbar } from "@/store/snackbarStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { parsePlateInventory, smallestLoadStep } from "@/utils/plateCalculator";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
@@ -35,8 +38,6 @@ import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
 import { Notes } from "@/components/Notes";
 import {
-  updatePlanWorkoutExercises,
-  updateStandaloneWorkout,
   createStandaloneWorkout,
   linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
@@ -45,14 +46,16 @@ import {
   scheduleRestNotificationWithCancellation,
 } from "@/utils/restNotification";
 import { convertTimeStrToSeconds } from "@/utils/utility";
+import { computeWorkoutDurationSeconds } from "@/utils/workoutDuration";
 import { useQueryClient } from "@tanstack/react-query";
-import { UserExercise, Workout } from "@/store/workoutStore";
+import { UserExercise } from "@/store/workoutStore";
 import {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
 import { useTimer } from "react-timer-hook";
+import { useRestTimerResync } from "@/hooks/useRestTimerResync";
 import { useSoundStore } from "@/store/soundStore";
 import RestTimerOverlay from "@/components/RestTimerOverlay";
 import { useAppTheme, radii } from "@/theme";
@@ -80,19 +83,6 @@ type SupersetItem = {
 };
 
 type GroupedItem = SingleItem | SupersetItem;
-
-function hasStructuralChanges(current: Workout, original: Workout): boolean {
-  const toKey = (exercises: UserExercise[]) =>
-    JSON.stringify(
-      exercises.map((e) => ({
-        exercise_id: e.exercise_id,
-        sets: e.sets,
-        supersetGroupId: e.supersetGroupId ?? null,
-        tracking_type_override: e.tracking_type_override ?? null,
-      })),
-    );
-  return toKey(current.exercises) !== toKey(original.exercises);
-}
 
 export default function WorkoutOverviewScreen() {
   const { colors } = useAppTheme();
@@ -243,6 +233,7 @@ export default function WorkoutOverviewScreen() {
     }
   }, [globalHistory, initializeGlobalHistory]);
 
+  const completeWorkout = useWorkoutCompletion();
   const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation(
     weightUnit,
     distanceUnit,
@@ -294,6 +285,8 @@ export default function WorkoutOverviewScreen() {
     },
   });
 
+  useRestTimerResync(restart);
+
   useEffect(() => {
     timerTranslateY.value = withTiming(timerRunning ? 0 : 200, {
       duration: 300,
@@ -323,14 +316,12 @@ export default function WorkoutOverviewScreen() {
     expiryTimestampRef.current = newExpiry;
     startTimer(newExpiry);
     restart(newExpiry);
-    if (settings?.restTimerNotification === "true") {
-      await scheduleRestNotificationWithCancellation(
-        newRemaining,
-        "Rest Timer Finished!",
-        "Time to do your next set!",
-        "rest-timer1",
-      );
-    }
+    await scheduleRestNotificationWithCancellation(
+      newRemaining,
+      t`Rest Timer Finished!`,
+      t`Time to do your next set!`,
+      "rest-timer1",
+    );
   };
 
   const [timerHeight, setTimerHeight] = useState(0);
@@ -341,6 +332,14 @@ export default function WorkoutOverviewScreen() {
   >(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  // Mirrors isLeaving synchronously so the back guard sees it during the
+  // navigation that Finish/Cancel start.
+  const isLeavingRef = useRef(false);
+  const markLeaving = useCallback(() => {
+    isLeavingRef.current = true;
+    setIsLeaving(true);
+  }, []);
+  useWorkoutBackGuard(isLeavingRef);
   const [menuVisible, setMenuVisible] = useState<{ [key: number]: boolean }>(
     {},
   );
@@ -407,34 +406,32 @@ export default function WorkoutOverviewScreen() {
     void cancelRestNotifications();
     const savedId = lastCompletedWorkoutIdRef.current;
     setShowSaveModal(false);
-    setIsLeaving(true);
+    markLeaving();
     if (savedId == null) {
       router.push("/(app)/(tabs)");
+      clearPersistedStore();
     } else {
       router.push({
         pathname: "/(app)/(workout)/workout-summary" as any,
         params: { completedWorkoutId: String(savedId), fresh: "true" },
       });
     }
-    clearPersistedStore();
   };
 
+  // No confirmation: the snackbar offers Undo.
   const handleDeleteExercise = useCallback(
     (index: number) => {
-      Alert.alert(
-        t`Delete Exercise`,
-        t`Are you sure you want to delete this exercise?`,
-        [
-          { text: t`Cancel`, style: "cancel" },
-          {
-            text: t`Delete`,
-            style: "destructive",
-            onPress: () => {
-              deleteExercise(index);
-            },
-          },
-        ],
-      );
+      const snapshot = useActiveWorkoutStore.getState().snapshotExercise(index);
+      deleteExercise(index);
+      if (!snapshot) return;
+      showSnackbar(t`Exercise removed`, {
+        duration: 5000,
+        action: {
+          label: t`Undo`,
+          onPress: () =>
+            useActiveWorkoutStore.getState().restoreExercise(snapshot),
+        },
+      });
     },
     [deleteExercise],
   );
@@ -734,10 +731,7 @@ export default function WorkoutOverviewScreen() {
     try {
       const planId = activeWorkout?.planId;
       const workoutId = activeWorkout?.workoutId;
-      const endTime = new Date();
-      const duration = new Date(startTime)
-        ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
-        : 0;
+      const duration = computeWorkoutDurationSeconds(startTime);
 
       // Ensure `completedSets` is initialized and properly formatted
       const totalSetsCompleted = Object.values(completedSets || {}).reduce(
@@ -801,8 +795,6 @@ export default function WorkoutOverviewScreen() {
           })
           .filter((exercise) => exercise !== null);
 
-        await new Promise((resolve) => setTimeout(resolve, 50));
-
         if (exercises.length > 0) {
           mutateStarted = true;
           saveCompletedWorkoutMutation.mutate(
@@ -815,121 +807,32 @@ export default function WorkoutOverviewScreen() {
               exercises,
             },
             {
-              onSuccess: (completedWorkoutId) => {
-                const navigateToSummary = () => {
-                  setIsLeaving(true);
-                  router.push({
-                    pathname: "/(app)/(workout)/workout-summary" as any,
-                    params: {
-                      completedWorkoutId: String(completedWorkoutId),
-                      fresh: "true",
-                    },
-                  });
-                  clearPersistedStore();
-                };
-
-                if (isQuickWorkout) {
+              onSuccess: async (completedWorkoutId) => {
+                const outcome = await completeWorkout({
+                  isQuickWorkout,
+                  planId,
+                  workoutId,
+                  workout: workout!,
+                  originalWorkout,
+                });
+                if (outcome.next === "quickSave") {
                   lastCompletedWorkoutIdRef.current = completedWorkoutId;
                   setShowSaveModal(true);
-                } else if (planId != null && workoutId != null) {
-                  // Plan workout — prompt to save structural changes back to the plan
-                  if (hasStructuralChanges(workout!, originalWorkout!)) {
-                    Alert.alert(
-                      t`Save Changes to Plan?`,
-                      t`You modified this workout. Save those changes for future sessions?`,
-                      [
-                        { text: t`Discard`, onPress: navigateToSummary },
-                        {
-                          text: t`Save to Plan`,
-                          onPress: () => {
-                            Alert.alert(
-                              t`Confirm Save to Plan`,
-                              t`This will update the workout for all future sessions in this plan.`,
-                              [
-                                {
-                                  text: t`Cancel`,
-                                  style: "cancel",
-                                  onPress: navigateToSummary,
-                                },
-                                {
-                                  text: t`Confirm`,
-                                  onPress: async () => {
-                                    try {
-                                      await updatePlanWorkoutExercises(
-                                        workoutId,
-                                        workout!.exercises,
-                                      );
-                                      await queryClient.invalidateQueries({
-                                        queryKey: ["plan", planId],
-                                      });
-                                      await queryClient.invalidateQueries({
-                                        queryKey: ["activePlan"],
-                                      });
-                                    } catch (e) {
-                                      Bugsnag.notify(e as Error);
-                                    }
-                                    navigateToSummary();
-                                  },
-                                },
-                              ],
-                            );
-                          },
-                        },
-                      ],
-                    );
-                  } else {
-                    navigateToSummary();
-                  }
-                } else if (workoutId != null) {
-                  // Standalone workout — prompt to save structural changes back
-                  if (hasStructuralChanges(workout!, originalWorkout!)) {
-                    Alert.alert(
-                      t`Save Changes to Workout?`,
-                      t`You modified this workout. Save those changes for future sessions?`,
-                      [
-                        { text: t`Discard`, onPress: navigateToSummary },
-                        {
-                          text: t`Save`,
-                          onPress: () => {
-                            Alert.alert(
-                              t`Confirm Save`,
-                              t`This will update the workout for all future sessions.`,
-                              [
-                                {
-                                  text: t`Cancel`,
-                                  style: "cancel",
-                                  onPress: navigateToSummary,
-                                },
-                                {
-                                  text: t`Confirm`,
-                                  onPress: async () => {
-                                    try {
-                                      await updateStandaloneWorkout(
-                                        workoutId,
-                                        workout!.name,
-                                        workout!.exercises,
-                                      );
-                                      await queryClient.invalidateQueries({
-                                        queryKey: ["standaloneWorkouts"],
-                                      });
-                                    } catch (e) {
-                                      Bugsnag.notify(e as Error);
-                                    }
-                                    navigateToSummary();
-                                  },
-                                },
-                              ],
-                            );
-                          },
-                        },
-                      ],
-                    );
-                  } else {
-                    navigateToSummary();
-                  }
-                } else {
-                  navigateToSummary();
+                  return;
                 }
+                if (outcome.updateFailed) {
+                  showSnackbar(
+                    t`Your workout was saved, but the plan could not be updated.`,
+                  );
+                }
+                markLeaving();
+                router.push({
+                  pathname: "/(app)/(workout)/workout-summary" as any,
+                  params: {
+                    completedWorkoutId: String(completedWorkoutId),
+                    fresh: "true",
+                  },
+                });
               },
               onError: (error) => {
                 Alert.alert(
@@ -977,7 +880,7 @@ export default function WorkoutOverviewScreen() {
           style: "destructive",
           onPress: () => {
             void cancelRestNotifications();
-            setIsLeaving(true);
+            markLeaving();
             router.push("/(app)/(tabs)");
             clearPersistedStore();
           },

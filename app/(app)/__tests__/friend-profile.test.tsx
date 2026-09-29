@@ -1,5 +1,5 @@
 import React from "react";
-import { render } from "@testing-library/react-native";
+import { render, act } from "@testing-library/react-native";
 import FriendProfileScreen from "../friend-profile";
 
 import { useFriendSharedPlansQuery } from "@/hooks/useFriendSharedPlansQuery";
@@ -8,6 +8,7 @@ import { useFriendSharedCustomExercisesQuery } from "@/hooks/useFriendSharedCust
 import { useFriendSharedCompletedWorkoutsQuery } from "@/hooks/useFriendSharedCompletedWorkoutsQuery";
 import { useFriendSharedMeasurementsQuery } from "@/hooks/useFriendSharedMeasurementsQuery";
 import { useFriendSharedStrengthQuery } from "@/hooks/useFriendSharedStrengthQuery";
+import { useIsOnline } from "@/hooks/useIsOnline";
 
 jest.mock("@lingui/react/macro", () => ({
   Trans: ({ children }: { children: React.ReactNode }) => children,
@@ -99,6 +100,7 @@ jest.mock("@/hooks/useFriendSharedMeasurementsQuery", () => ({
 jest.mock("@/hooks/useFriendSharedStrengthQuery", () => ({
   useFriendSharedStrengthQuery: jest.fn(),
 }));
+jest.mock("@/hooks/useIsOnline", () => ({ useIsOnline: jest.fn(() => true) }));
 jest.mock("@/hooks/useFriendSharedPlansQuery", () => ({
   useFriendSharedPlansQuery: jest.fn(),
 }));
@@ -140,5 +142,46 @@ describe("FriendProfileScreen", () => {
     const { getByText } = render(<FriendProfileScreen />);
 
     expect(getByText("No plans shared yet")).toBeTruthy();
+  });
+
+  it("shows the offline banner while offline", () => {
+    (useFriendSharedPlansQuery as jest.Mock).mockReturnValue(loadedEmpty);
+    (useIsOnline as jest.Mock).mockReturnValueOnce(false);
+
+    const { getByText } = render(<FriendProfileScreen />);
+
+    expect(
+      getByText(
+        "You're offline. Friends and shared content will load when you reconnect. Training and logging still work.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("refetches every shared-content query on pull-to-refresh", async () => {
+    const refetches = Array.from({ length: 6 }, () =>
+      jest.fn().mockResolvedValue(undefined),
+    );
+    [
+      useFriendSharedPlansQuery,
+      useFriendSharedStandaloneWorkoutsQuery,
+      useFriendSharedCustomExercisesQuery,
+      useFriendSharedCompletedWorkoutsQuery,
+      useFriendSharedMeasurementsQuery,
+      useFriendSharedStrengthQuery,
+    ].forEach((hook, i) =>
+      (hook as jest.Mock).mockReturnValue({
+        ...loadedEmpty,
+        refetch: refetches[i],
+      }),
+    );
+
+    const { getByTestId } = render(<FriendProfileScreen />);
+    await act(async () => {
+      await getByTestId(
+        "friend-profile-scroll",
+      ).props.refreshControl.props.onRefresh();
+    });
+
+    refetches.forEach((refetch) => expect(refetch).toHaveBeenCalledTimes(1));
   });
 });

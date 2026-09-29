@@ -35,6 +35,8 @@ import { saveBodyWeightMeasurement } from "@/utils/database";
 import { displayToKg, roundCanonical } from "@/utils/units";
 import { AuthContext } from "@/context/AuthProvider";
 import { signInWithGoogle } from "@/utils/auth";
+import { useIsOnline } from "@/hooks/useIsOnline";
+import { showSnackbar } from "@/store/snackbarStore";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { getAuth, signOut } from "@react-native-firebase/auth";
 import Bugsnag from "@bugsnag/expo";
@@ -68,6 +70,7 @@ export default function SettingsScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const user = useContext(AuthContext);
+  const isOnline = useIsOnline();
 
   const handleSignOut = async () => {
     try {
@@ -510,6 +513,7 @@ export default function SettingsScreen() {
     if (isBackupBusy) return;
     try {
       await uploadDatabaseBackup(setBackupProgress, setIsBackupLoading);
+      showSnackbar(t`Backup complete.`);
     } catch (error) {
       Alert.alert(t`Backup Failed`, getBackupErrorMessage(error, "backup"));
     }
@@ -598,10 +602,19 @@ export default function SettingsScreen() {
                     <Trans>Sign in with Google</Trans>
                   </ThemedText>
                   <ThemedText style={styles.currentSetting}>
-                    <Trans>Log in to secure your data</Trans>
+                    {isOnline ? (
+                      <Trans>Log in to secure your data</Trans>
+                    ) : (
+                      <Trans>Sign-in needs an internet connection.</Trans>
+                    )}
                   </ThemedText>
                 </View>
-                <Button mode="outlined" compact onPress={signInWithGoogle}>
+                <Button
+                  mode="outlined"
+                  compact
+                  disabled={!isOnline}
+                  onPress={signInWithGoogle}
+                >
                   <Trans>Sign in</Trans>
                 </Button>
               </>
@@ -680,11 +693,13 @@ export default function SettingsScreen() {
               <ThemedText style={styles.currentSetting}>
                 {!user
                   ? t`You need to sign in to use this feature`
-                  : isLoadingBackupDate
-                    ? t`Checking for backups...`
-                    : lastBackupDate
-                      ? t`Last backup: ${lastBackupDate.toLocaleDateString()}`
-                      : t`No backups found`}
+                  : !isOnline
+                    ? t`Backup needs an internet connection.`
+                    : isLoadingBackupDate
+                      ? t`Checking for backups...`
+                      : lastBackupDate
+                        ? t`Last backup: ${lastBackupDate.toLocaleDateString()}`
+                        : t`No backups found`}
               </ThemedText>
             </View>
             {user && (
@@ -693,7 +708,7 @@ export default function SettingsScreen() {
                   style={styles.backupButton}
                   mode="outlined"
                   compact
-                  disabled={isBackupBusy}
+                  disabled={isBackupBusy || !isOnline}
                   onPress={handleBackup}
                 >
                   <Trans>Backup</Trans>
@@ -701,7 +716,7 @@ export default function SettingsScreen() {
                 <Button
                   mode="outlined"
                   compact
-                  disabled={isBackupBusy}
+                  disabled={isBackupBusy || !isOnline}
                   onPress={confirmRestoreBackup}
                 >
                   <Trans>Restore</Trans>
@@ -1023,7 +1038,7 @@ export default function SettingsScreen() {
             />
             <View style={styles.textContainer}>
               <ThemedText style={styles.itemText}>
-                <Trans>Send notification in background after rest</Trans>
+                <Trans>Show rest notification while app is open</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 {settings?.restTimerNotification === "true"
@@ -1514,12 +1529,18 @@ export default function SettingsScreen() {
                 <Trans>Download all exercise animations</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                <Trans>Size: ~100MB</Trans>
+                {isOnline || isDownloadToggled === "true" ? (
+                  <Trans>Size: ~100MB</Trans>
+                ) : (
+                  <Trans>Downloading needs an internet connection.</Trans>
+                )}
               </ThemedText>
             </View>
             <Switch
               value={isDownloadToggled === "true"}
               onValueChange={toggleDownloadImages}
+              // Turning it off only deletes local files, which works offline.
+              disabled={!isOnline && isDownloadToggled !== "true"}
               color={colors.accent}
               style={styles.switch}
             />
@@ -1557,7 +1578,9 @@ export default function SettingsScreen() {
                 <Trans>Show onboarding on home screen</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                {settings?.showOnboarding === "true" ? t`Enabled` : t`Disabled`}
+                {settings?.showOnboarding === "true"
+                  ? t`The introduction cards show on the home screen.`
+                  : t`Hidden. Turn this on to see the introduction cards again.`}
               </ThemedText>
             </View>
             <Switch
