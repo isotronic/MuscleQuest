@@ -26,13 +26,10 @@ import { useFonts } from "expo-font";
 import * as Updates from "expo-updates";
 import "react-native-reanimated";
 import * as SplashScreen from "expo-splash-screen";
-import {
-  QueryClient,
-  QueryClientProvider,
-  QueryCache,
-  MutationCache,
-} from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { wasReported } from "@/utils/bugsnagDedup";
+import { createAppQueryClient } from "@/utils/queryClient";
+import { connectOnlineManager } from "@/utils/networkStatus";
 import {
   Inter_100Thin,
   Inter_200ExtraLight,
@@ -106,17 +103,8 @@ const reportQueryError = (error: unknown) => {
   Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
 };
 
-const queryClient = new QueryClient({
-  queryCache: new QueryCache({ onError: reportQueryError }),
-  // MutationCache.onError runs before each hook's own onError, so the hook's
-  // notifyBugsnag would not have marked the error yet. onSettled runs after the
-  // hook's onError has finished, so the dedup check sees it.
-  mutationCache: new MutationCache({
-    onSettled: (_data, error) => {
-      if (error) reportQueryError(error);
-    },
-  }),
-});
+const queryClient = createAppQueryClient(reportQueryError);
+connectOnlineManager();
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
