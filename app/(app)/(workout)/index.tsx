@@ -28,6 +28,7 @@ import {
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
 import { useWorkoutBackGuard } from "@/hooks/useWorkoutBackGuard";
+import { useWorkoutCompletion } from "@/hooks/useWorkoutCompletion";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { parsePlateInventory, smallestLoadStep } from "@/utils/plateCalculator";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
@@ -36,8 +37,6 @@ import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
 import { Notes } from "@/components/Notes";
 import {
-  updatePlanWorkoutExercises,
-  updateStandaloneWorkout,
   createStandaloneWorkout,
   linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
@@ -48,7 +47,7 @@ import {
 import { convertTimeStrToSeconds } from "@/utils/utility";
 import { computeWorkoutDurationSeconds } from "@/utils/workoutDuration";
 import { useQueryClient } from "@tanstack/react-query";
-import { UserExercise, Workout } from "@/store/workoutStore";
+import { UserExercise } from "@/store/workoutStore";
 import {
   useSharedValue,
   useAnimatedStyle,
@@ -82,19 +81,6 @@ type SupersetItem = {
 };
 
 type GroupedItem = SingleItem | SupersetItem;
-
-function hasStructuralChanges(current: Workout, original: Workout): boolean {
-  const toKey = (exercises: UserExercise[]) =>
-    JSON.stringify(
-      exercises.map((e) => ({
-        exercise_id: e.exercise_id,
-        sets: e.sets,
-        supersetGroupId: e.supersetGroupId ?? null,
-        tracking_type_override: e.tracking_type_override ?? null,
-      })),
-    );
-  return toKey(current.exercises) !== toKey(original.exercises);
-}
 
 export default function WorkoutOverviewScreen() {
   const { colors } = useAppTheme();
@@ -245,6 +231,7 @@ export default function WorkoutOverviewScreen() {
     }
   }, [globalHistory, initializeGlobalHistory]);
 
+  const completeWorkout = useWorkoutCompletion();
   const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation(
     weightUnit,
     distanceUnit,
@@ -820,120 +807,27 @@ export default function WorkoutOverviewScreen() {
               exercises,
             },
             {
-              onSuccess: (completedWorkoutId) => {
-                const navigateToSummary = () => {
-                  markLeaving();
-                  router.push({
-                    pathname: "/(app)/(workout)/workout-summary" as any,
-                    params: {
-                      completedWorkoutId: String(completedWorkoutId),
-                      fresh: "true",
-                    },
-                  });
-                };
-
-                if (isQuickWorkout) {
+              onSuccess: async (completedWorkoutId) => {
+                const outcome = await completeWorkout({
+                  isQuickWorkout,
+                  planId,
+                  workoutId,
+                  workout: workout!,
+                  originalWorkout,
+                });
+                if (outcome.next === "quickSave") {
                   lastCompletedWorkoutIdRef.current = completedWorkoutId;
                   setShowSaveModal(true);
-                } else if (planId != null && workoutId != null) {
-                  // Plan workout — prompt to save structural changes back to the plan
-                  if (hasStructuralChanges(workout!, originalWorkout!)) {
-                    Alert.alert(
-                      t`Save Changes to Plan?`,
-                      t`You modified this workout. Save those changes for future sessions?`,
-                      [
-                        { text: t`Discard`, onPress: navigateToSummary },
-                        {
-                          text: t`Save to Plan`,
-                          onPress: () => {
-                            Alert.alert(
-                              t`Confirm Save to Plan`,
-                              t`This will update the workout for all future sessions in this plan.`,
-                              [
-                                {
-                                  text: t`Cancel`,
-                                  style: "cancel",
-                                  onPress: navigateToSummary,
-                                },
-                                {
-                                  text: t`Confirm`,
-                                  onPress: async () => {
-                                    try {
-                                      await updatePlanWorkoutExercises(
-                                        workoutId,
-                                        workout!.exercises,
-                                      );
-                                      await queryClient.invalidateQueries({
-                                        queryKey: ["plan", planId],
-                                      });
-                                      await queryClient.invalidateQueries({
-                                        queryKey: ["activePlan"],
-                                      });
-                                    } catch (e) {
-                                      Bugsnag.notify(e as Error);
-                                    }
-                                    navigateToSummary();
-                                  },
-                                },
-                              ],
-                            );
-                          },
-                        },
-                      ],
-                    );
-                  } else {
-                    navigateToSummary();
-                  }
-                } else if (workoutId != null) {
-                  // Standalone workout — prompt to save structural changes back
-                  if (hasStructuralChanges(workout!, originalWorkout!)) {
-                    Alert.alert(
-                      t`Save Changes to Workout?`,
-                      t`You modified this workout. Save those changes for future sessions?`,
-                      [
-                        { text: t`Discard`, onPress: navigateToSummary },
-                        {
-                          text: t`Save`,
-                          onPress: () => {
-                            Alert.alert(
-                              t`Confirm Save`,
-                              t`This will update the workout for all future sessions.`,
-                              [
-                                {
-                                  text: t`Cancel`,
-                                  style: "cancel",
-                                  onPress: navigateToSummary,
-                                },
-                                {
-                                  text: t`Confirm`,
-                                  onPress: async () => {
-                                    try {
-                                      await updateStandaloneWorkout(
-                                        workoutId,
-                                        workout!.name,
-                                        workout!.exercises,
-                                      );
-                                      await queryClient.invalidateQueries({
-                                        queryKey: ["standaloneWorkouts"],
-                                      });
-                                    } catch (e) {
-                                      Bugsnag.notify(e as Error);
-                                    }
-                                    navigateToSummary();
-                                  },
-                                },
-                              ],
-                            );
-                          },
-                        },
-                      ],
-                    );
-                  } else {
-                    navigateToSummary();
-                  }
-                } else {
-                  navigateToSummary();
+                  return;
                 }
+                markLeaving();
+                router.push({
+                  pathname: "/(app)/(workout)/workout-summary" as any,
+                  params: {
+                    completedWorkoutId: String(completedWorkoutId),
+                    fresh: "true",
+                  },
+                });
               },
               onError: (error) => {
                 Alert.alert(
