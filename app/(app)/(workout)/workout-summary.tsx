@@ -36,6 +36,7 @@ import type { AppThemeColors } from "@/theme/types";
 import ProgressionSummaryCard from "@/components/ProgressionSummaryCard";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import { useClearFinishedWorkout } from "@/hooks/useClearFinishedWorkout";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -418,6 +419,7 @@ export default function WorkoutSummaryScreen() {
     fresh?: string;
   }>();
   const showConfetti = fresh === "true";
+  useClearFinishedWorkout(fresh);
   const insets = useSafeAreaInsets();
   const { data: settings } = useSettingsQuery();
   const weightUnit = settings?.weightUnit ?? "kg";

@@ -45,6 +45,7 @@ import {
   scheduleRestNotificationWithCancellation,
 } from "@/utils/restNotification";
 import { convertTimeStrToSeconds } from "@/utils/utility";
+import { computeWorkoutDurationSeconds } from "@/utils/workoutDuration";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserExercise, Workout } from "@/store/workoutStore";
 import {
@@ -410,13 +411,13 @@ export default function WorkoutOverviewScreen() {
     setIsLeaving(true);
     if (savedId == null) {
       router.push("/(app)/(tabs)");
+      clearPersistedStore();
     } else {
       router.push({
         pathname: "/(app)/(workout)/workout-summary" as any,
         params: { completedWorkoutId: String(savedId), fresh: "true" },
       });
     }
-    clearPersistedStore();
   };
 
   const handleDeleteExercise = useCallback(
@@ -734,10 +735,7 @@ export default function WorkoutOverviewScreen() {
     try {
       const planId = activeWorkout?.planId;
       const workoutId = activeWorkout?.workoutId;
-      const endTime = new Date();
-      const duration = new Date(startTime)
-        ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
-        : 0;
+      const duration = computeWorkoutDurationSeconds(startTime);
 
       // Ensure `completedSets` is initialized and properly formatted
       const totalSetsCompleted = Object.values(completedSets || {}).reduce(
@@ -801,8 +799,6 @@ export default function WorkoutOverviewScreen() {
           })
           .filter((exercise) => exercise !== null);
 
-        await new Promise((resolve) => setTimeout(resolve, 50));
-
         if (exercises.length > 0) {
           mutateStarted = true;
           saveCompletedWorkoutMutation.mutate(
@@ -825,7 +821,6 @@ export default function WorkoutOverviewScreen() {
                       fresh: "true",
                     },
                   });
-                  clearPersistedStore();
                 };
 
                 if (isQuickWorkout) {
