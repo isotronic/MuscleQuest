@@ -852,13 +852,13 @@ msgid "{0, plural, one {# rep} other {# reps}}"
 msgstr "{0, plural, one {# rép.} other {# rép.}}"
 
 #. placeholder {0}: set.reps
-#: app/(app)/(tabs)/(stats)/history-details.tsx:279
+#: app/(app)/(tabs)/(stats)/history-details.tsx:272
 msgid "{0, plural, one {# Rep} other {# Reps}}"
 msgstr "{0, plural, one {# Rép.} other {# Rép.}}"
 
 #. placeholder {0}: exercise.sets.length
 #. placeholder {0}: workout.total_sets_completed
-#: app/(app)/(tabs)/(stats)/history-details.tsx:217
+#: app/(app)/(tabs)/(stats)/history-details.tsx:210
 #: app/(app)/(workout)/workout-summary.tsx:314
 msgid "{0, plural, one {# set} other {# sets}}"
 msgstr "{0, plural, one {# série} other {# séries}}"
@@ -908,7 +908,7 @@ msgstr "{0} {1} (utilisé pour les exercices assistés)"
 #. placeholder {0}: set.weight
 #. placeholder {1}: settings?.weightUnit
 #. placeholder {2}: set.reps ?? 0
-#: app/(app)/(tabs)/(stats)/history-details.tsx:290
+#: app/(app)/(tabs)/(stats)/history-details.tsx:283
 msgid "{0} {1} | {2} Reps"
 msgstr "{0} {1} | {2} Rép."
 
@@ -1551,8 +1551,8 @@ msgid "Are you sure you want to delete this set?"
 msgstr "Tu es sûr de vouloir supprimer cette série ?"
 
 #: app/(app)/(tabs)/(stats)/history-details.tsx:171
-msgid "Are you sure you want to delete this workout? This action cannot be undone."
-msgstr "Tu es sûr de vouloir supprimer cet entraînement ? Cette action est irréversible."
+#~ msgid "Are you sure you want to delete this workout? This action cannot be undone."
+#~ msgstr "Tu es sûr de vouloir supprimer cet entraînement ? Cette action est irréversible."
 
 #: hooks/useImageManagement.ts:22
 msgid "Are you sure you want to download all animated images? This may take a while."
@@ -1592,7 +1592,7 @@ msgstr "Assisté"
 #. placeholder {2}: bodyWeight - (set.weight || 0)
 #. placeholder {3}: settings?.weightUnit
 #. placeholder {4}: set.reps ?? 0
-#: app/(app)/(tabs)/(stats)/history-details.tsx:297
+#: app/(app)/(tabs)/(stats)/history-details.tsx:290
 msgid "Assist {0} {1} | Resist {2} {3} | {4} Reps"
 msgstr "Assisté {0} {1} | Résistance {2} {3} | {4} Rép."
 
@@ -1782,7 +1782,6 @@ msgstr "mollets"
 #: app/(app)/(create-plan)/create.tsx:277
 #: app/(app)/(tabs)/(plans)/overview.tsx:154
 #: app/(app)/(tabs)/(plans)/overview.tsx:205
-#: app/(app)/(tabs)/(stats)/history-details.tsx:173
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:113
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:85
 #: app/(app)/(workout)/index.tsx:426
@@ -1891,7 +1890,7 @@ msgstr "Les sauvegardes cloud sont supprimées avec ton compte. Exporte tes donn
 msgid "Complete Set"
 msgstr "Terminer la série"
 
-#: app/(app)/(tabs)/(stats)/history-details.tsx:194
+#: app/(app)/(tabs)/(stats)/history-details.tsx:187
 msgid "Completed on: {formattedDate}"
 msgstr "Terminé le : {formattedDate}"
 
@@ -1980,6 +1979,10 @@ msgstr "Impossible de charger les PRs de force"
 #: app/(app)/friend-profile.tsx:371
 msgid "Couldn't load workouts"
 msgstr "Impossible de charger les entraînements"
+
+#: hooks/useDeleteCompletedWorkoutMutation.ts:29
+msgid "Couldn't restore the workout."
+msgstr "Impossible de restaurer la séance."
 
 #: hooks/useNotes.ts:36
 msgid "Couldn't save your note. Please try again."
@@ -2114,7 +2117,6 @@ msgid "Default sets"
 msgstr "Séries par défaut"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:209
-#: app/(app)/(tabs)/(stats)/history-details.tsx:175
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:115
 #: app/(app)/(workout)/index.tsx:428
 #: app/(app)/(workout)/index.tsx:654
@@ -2174,7 +2176,10 @@ msgstr "Supprimer la série"
 msgid "Delete training history?"
 msgstr "Supprimer l'historique d'entraînement ?"
 
-#: app/(app)/(tabs)/(stats)/history-details.tsx:170
+#: app/(app)/(tabs)/(stats)/history-details.tsx:165
+msgid "Delete workout"
+msgstr "Supprimer la séance"
+
 #: components/StandaloneWorkoutScreen.tsx:92
 msgid "Delete Workout"
 msgstr "Supprimer l'entraînement"
@@ -2596,7 +2601,7 @@ msgstr "Équipement :"
 #: components/FilterRow.tsx:86
 #: components/FilterRow.tsx:132
 #: components/StandaloneWorkoutScreen.tsx:106
-#: hooks/useDeleteCompletedWorkoutMutation.ts:21
+#: hooks/useDeleteCompletedWorkoutMutation.ts:48
 #: hooks/useImageManagement.ts:79
 #: hooks/useImageManagement.ts:114
 msgid "Error"
@@ -2757,7 +2762,7 @@ msgstr "Impossible de copier l'entraînement. Veuillez réessayer."
 msgid "Failed to delete plan: {0}"
 msgstr "Impossible de supprimer le programme : {0}"
 
-#: hooks/useDeleteCompletedWorkoutMutation.ts:21
+#: hooks/useDeleteCompletedWorkoutMutation.ts:48
 msgid "Failed to delete the workout. Please try again."
 msgstr "Impossible de supprimer l'entraînement. Réessaie."
 
@@ -4280,7 +4285,7 @@ msgstr "grand dentelé"
 #. placeholder {0}: set.set_number
 #: app/(app)/(create-plan)/sets-overview.tsx:157
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:200
-#: app/(app)/(tabs)/(stats)/history-details.tsx:268
+#: app/(app)/(tabs)/(stats)/history-details.tsx:261
 #: app/(app)/(workout)/workout-summary.tsx:330
 #: app/(app)/exercise-info.tsx:351
 msgid "Set {0}"
@@ -5074,6 +5079,10 @@ msgstr "Impossible de sauvegarder ton entraînement. Réessaie plus tard."
 msgid "Under Stats: exclude warm-up sets from volume, double reps for unilateral exercises, or double the weight for paired implements (useful if you log per-dumbbell weight rather than the total)."
 msgstr "Sous Stats : exclure les séries d'échauffement du volume, doubler les reps pour les exercices unilatéraux, ou doubler le poids pour les implements appariés (utile si tu notes le poids par haltère plutôt que le total)."
 
+#: hooks/useDeleteCompletedWorkoutMutation.ts:42
+msgid "Undo"
+msgstr "Annuler"
+
 #: app/(app)/friend-exercise.tsx:97
 msgid "Unilateral"
 msgstr "Unilatéral"
@@ -5385,6 +5394,10 @@ msgstr "Entraînement terminé !"
 #: components/WorkoutDetailsScreen.tsx:84
 msgid "Workout copied to standalone workouts"
 msgstr "Entraînement copié dans les entraînements indépendants"
+
+#: hooks/useDeleteCompletedWorkoutMutation.ts:40
+msgid "Workout deleted"
+msgstr "Séance supprimée"
 
 #: app/(app)/_layout.tsx:39
 #: app/(app)/_layout.tsx:68

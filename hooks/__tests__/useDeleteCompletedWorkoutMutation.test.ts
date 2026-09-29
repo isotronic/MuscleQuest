@@ -1,9 +1,14 @@
 import { useDeleteCompletedWorkoutMutation } from "../useDeleteCompletedWorkoutMutation";
-import { deleteCompletedWorkout } from "@/utils/database";
+import {
+  deleteCompletedWorkout,
+  restoreCompletedWorkout,
+} from "@/utils/database";
+import { useSnackbarStore } from "@/store/snackbarStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 jest.mock("@/utils/database", () => ({
   deleteCompletedWorkout: jest.fn(),
+  restoreCompletedWorkout: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -13,7 +18,7 @@ jest.mock("expo-router", () => ({
   router: { back: jest.fn() },
 }));
 jest.mock("@lingui/core/macro", () => ({
-  t: (str: any) => str,
+  t: (str: any) => (Array.isArray(str) ? str[0] : str),
 }));
 jest.mock("react-native", () => ({
   Alert: { alert: jest.fn() },
@@ -95,5 +100,30 @@ describe("useDeleteCompletedWorkoutMutation", () => {
     capturedArgs.onError(error);
 
     expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+  });
+
+  it("offers Undo for five seconds after deleting", () => {
+    useDeleteCompletedWorkoutMutation();
+
+    capturedArgs.onSuccess(undefined, 7);
+
+    const current = useSnackbarStore.getState().current;
+    expect(current?.message).toBe("Workout deleted");
+    expect(current?.action?.label).toBe("Undo");
+    expect(current?.duration).toBe(5000);
+  });
+
+  it("Undo restores the workout and refreshes history", async () => {
+    useDeleteCompletedWorkoutMutation();
+    capturedArgs.onSuccess(undefined, 7);
+    mockInvalidateQueries.mockClear();
+
+    useSnackbarStore.getState().pressAction();
+    await new Promise((r) => setImmediate(r));
+
+    expect(restoreCompletedWorkout).toHaveBeenCalledWith(7);
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["completedWorkouts"],
+    });
   });
 });

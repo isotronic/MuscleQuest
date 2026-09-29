@@ -6,6 +6,7 @@ import {
   fetchSettings,
   updateSettings,
   deleteCompletedWorkout,
+  restoreCompletedWorkout,
   saveCompletedWorkout,
   fetchPlanSchedule,
   fetchActiveBodyMetricDefinitions,
@@ -271,6 +272,39 @@ describe("deleteCompletedWorkout", () => {
     mockDb.withExclusiveTransactionAsync.mockRejectedValue(error);
 
     await expect(deleteCompletedWorkout(42)).rejects.toBe(error);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// restoreCompletedWorkout
+// ---------------------------------------------------------------------------
+
+describe("restoreCompletedWorkout", () => {
+  it("clears the soft-delete on the workout, its exercises and sets in one transaction", async () => {
+    const txnRunAsync = jest.fn().mockResolvedValue({});
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync });
+      },
+    );
+
+    await restoreCompletedWorkout(42);
+
+    expect(mockDb.withExclusiveTransactionAsync).toHaveBeenCalledTimes(1);
+    expect(txnRunAsync).toHaveBeenCalledTimes(3);
+    for (const table of [
+      "completed_workouts",
+      "completed_exercises",
+      "completed_sets",
+    ]) {
+      expect(txnRunAsync).toHaveBeenCalledWith(
+        expect.stringMatching(
+          new RegExp(`UPDATE ${table} SET is_deleted = FALSE`),
+        ),
+        [42],
+      );
+    }
+    expect(mockDb.closeAsync).toHaveBeenCalled();
   });
 });
 
