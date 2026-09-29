@@ -27,6 +27,7 @@ import {
 } from "@/hooks/useCompletedWorkoutsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
+import { useWorkoutBackGuard } from "@/hooks/useWorkoutBackGuard";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { parsePlateInventory, smallestLoadStep } from "@/utils/plateCalculator";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
@@ -342,6 +343,14 @@ export default function WorkoutOverviewScreen() {
   >(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  // Mirrors isLeaving synchronously so the back guard sees it during the
+  // navigation that Finish/Cancel start.
+  const isLeavingRef = useRef(false);
+  const markLeaving = useCallback(() => {
+    isLeavingRef.current = true;
+    setIsLeaving(true);
+  }, []);
+  useWorkoutBackGuard(isLeavingRef);
   const [menuVisible, setMenuVisible] = useState<{ [key: number]: boolean }>(
     {},
   );
@@ -408,7 +417,7 @@ export default function WorkoutOverviewScreen() {
     void cancelRestNotifications();
     const savedId = lastCompletedWorkoutIdRef.current;
     setShowSaveModal(false);
-    setIsLeaving(true);
+    markLeaving();
     if (savedId == null) {
       router.push("/(app)/(tabs)");
       clearPersistedStore();
@@ -813,7 +822,7 @@ export default function WorkoutOverviewScreen() {
             {
               onSuccess: (completedWorkoutId) => {
                 const navigateToSummary = () => {
-                  setIsLeaving(true);
+                  markLeaving();
                   router.push({
                     pathname: "/(app)/(workout)/workout-summary" as any,
                     params: {
@@ -972,7 +981,7 @@ export default function WorkoutOverviewScreen() {
           style: "destructive",
           onPress: () => {
             void cancelRestNotifications();
-            setIsLeaving(true);
+            markLeaving();
             router.push("/(app)/(tabs)");
             clearPersistedStore();
           },

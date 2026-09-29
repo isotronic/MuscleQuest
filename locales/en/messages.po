@@ -845,7 +845,7 @@ msgstr "{0, plural, one {# exercise} other {# exercises}}"
 
 #. placeholder {0}: Math.round(pr)
 #. placeholder {0}: Math.round(pr.allTimePR)
-#: app/(app)/friend-profile.tsx:36
+#: app/(app)/friend-profile.tsx:38
 #: components/stats/ExerciseCompactCard.tsx:46
 msgid "{0, plural, one {# rep} other {# reps}}"
 msgstr "{0, plural, one {# rep} other {# reps}}"
@@ -1022,8 +1022,8 @@ msgid "{completed} workouts this week. You've smashed your goal!"
 msgstr "{completed} workouts this week. You've smashed your goal!"
 
 #. placeholder {0}: exercise.sets.length
-#: app/(app)/(workout)/index.tsx:579
-#: app/(app)/(workout)/index.tsx:619
+#: app/(app)/(workout)/index.tsx:588
+#: app/(app)/(workout)/index.tsx:628
 msgid "{completedCount}/{0} sets completed"
 msgstr "{completedCount}/{0} sets completed"
 
@@ -1096,7 +1096,7 @@ msgstr "• Import plans and workouts from friends into your library"
 msgid "• Share your plans, workouts, exercises, and body measurements"
 msgstr "• Share your plans, workouts, exercises, and body measurements"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:550
+#: app/(app)/(tabs)/(stats)/index.tsx:572
 msgid "+ Add"
 msgstr "+ Add"
 
@@ -1247,7 +1247,7 @@ msgstr "Active Plan: {0}"
 msgid "Active Workout"
 msgstr "Active Workout"
 
-#: app/(app)/friend-profile.tsx:521
+#: app/(app)/friend-profile.tsx:548
 msgid "Activity"
 msgstr "Activity"
 
@@ -1268,10 +1268,10 @@ msgstr "Adaptive Progression analyses your effort feedback over consecutive sess
 #~ msgstr "Adaptive Progression analyses your effort feedback over consecutive sessions and suggests when to increase your weight, reps, or sets. Enable it in Settings under Adaptive Progression. Once on, a short feedback prompt appears after each exercise in plan-based workouts. The engine requires two sessions with the same signal before recommending an upward change, filtering out one-off easy days and ensuring consistent performance before suggesting an increase. Pain or failed sets act immediately regardless of your session history. A suggestion is never applied to your workout without your explicit approval. You can also configure your preferred load increment per equipment category in the same section of Settings, for example 2.5 kg for barbell exercises and 2.0 kg for dumbbells."
 
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:167
-#: app/(app)/friend-profile.tsx:319
-#: app/(app)/friend-profile.tsx:414
-#: app/(app)/friend-profile.tsx:504
-#: app/(app)/friends.tsx:355
+#: app/(app)/friend-profile.tsx:346
+#: app/(app)/friend-profile.tsx:441
+#: app/(app)/friend-profile.tsx:531
+#: app/(app)/friends.tsx:394
 #: app/(app)/plate-inventory.tsx:255
 #: components/Notes.tsx:87
 msgid "Add"
@@ -1307,12 +1307,12 @@ msgstr "Add custom metric"
 msgid "Add Drop Set"
 msgstr "Add Drop Set"
 
-#: app/(app)/(workout)/index.tsx:1194
+#: app/(app)/(workout)/index.tsx:1203
 #: components/WorkoutCard.tsx:467
 msgid "Add Exercise"
 msgstr "Add Exercise"
 
-#: app/(app)/(workout)/index.tsx:1169
+#: app/(app)/(workout)/index.tsx:1178
 msgid "Add exercises to get started"
 msgstr "Add exercises to get started"
 
@@ -1365,9 +1365,9 @@ msgstr "Add Workout"
 msgid "Add workouts to the plan, then add exercises to each workout with target sets and reps. Each workout card shows an estimated duration and exercise count."
 msgstr "Add workouts to the plan, then add exercises to each workout with target sets and reps. Each workout card shows an estimated duration and exercise count."
 
-#: app/(app)/friend-profile.tsx:317
-#: app/(app)/friend-profile.tsx:412
-#: app/(app)/friend-profile.tsx:502
+#: app/(app)/friend-profile.tsx:344
+#: app/(app)/friend-profile.tsx:439
+#: app/(app)/friend-profile.tsx:529
 msgid "Added"
 msgstr "Added"
 
@@ -1520,7 +1520,7 @@ msgstr "Appearance"
 msgid "Apply to all {0} sets"
 msgstr "Apply to all {0} sets"
 
-#: app/(app)/(workout)/index.tsx:967
+#: app/(app)/(workout)/index.tsx:976
 msgid "Are you sure you want to cancel and delete this workout?"
 msgstr "Are you sure you want to cancel and delete this workout?"
 
@@ -1533,7 +1533,7 @@ msgstr "Are you sure you want to delete \"{0}\"?"
 msgid "Are you sure you want to delete all animated images? Single images will be automatically re-downloaded when viewed."
 msgstr "Are you sure you want to delete all animated images? Single images will be automatically re-downloaded when viewed."
 
-#: app/(app)/(workout)/index.tsx:427
+#: app/(app)/(workout)/index.tsx:436
 msgid "Are you sure you want to delete this exercise?"
 msgstr "Are you sure you want to delete this exercise?"
 
@@ -1566,7 +1566,7 @@ msgstr "Are you sure you want to remove {0}?"
 msgid "Are you sure you want to remove this workout?"
 msgstr "Are you sure you want to remove this workout?"
 
-#: app/(app)/(workout)/index.tsx:987
+#: app/(app)/(workout)/index.tsx:996
 msgid "Are you sure you want to restart this workout?"
 msgstr "Are you sure you want to restart this workout?"
 
@@ -1607,7 +1607,7 @@ msgstr "assistance "
 msgid "Assistance/Reps"
 msgstr "Assistance/Reps"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:462
+#: app/(app)/(tabs)/(stats)/index.tsx:484
 msgid "Avg Duration"
 msgstr "Avg Duration"
 
@@ -1691,7 +1691,7 @@ msgstr "biceps"
 msgid "Body Fat"
 msgstr "Body Fat"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:613
+#: app/(app)/(tabs)/(stats)/index.tsx:635
 #: constants/HelpData.ts:257
 msgid "Body Measurements"
 msgstr "Body Measurements"
@@ -1780,10 +1780,10 @@ msgstr "calves"
 #: app/(app)/(tabs)/(stats)/history-details.tsx:173
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:113
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:85
-#: app/(app)/(workout)/index.tsx:429
-#: app/(app)/(workout)/index.tsx:845
-#: app/(app)/(workout)/index.tsx:894
-#: app/(app)/(workout)/index.tsx:1073
+#: app/(app)/(workout)/index.tsx:438
+#: app/(app)/(workout)/index.tsx:854
+#: app/(app)/(workout)/index.tsx:903
+#: app/(app)/(workout)/index.tsx:1082
 #: app/(app)/(workout)/workout-session.tsx:771
 #: app/(app)/delete-account.tsx:86
 #: app/(app)/delete-account.tsx:265
@@ -1805,7 +1805,7 @@ msgstr "calves"
 msgid "Cancel"
 msgstr "Cancel"
 
-#: app/(app)/(workout)/index.tsx:966
+#: app/(app)/(workout)/index.tsx:975
 msgid "Cancel Workout"
 msgstr "Cancel Workout"
 
@@ -1912,17 +1912,17 @@ msgstr "Configure the default rest duration and the timer increment in Settings.
 #~ msgid "Configure weight, size, and distance units, default sets per exercise, default rest time, and the weight increment used by the ± buttons during a session. Adjust workout button size (Standard, Large, or XLarge) and toggle Keep Screen On to prevent the display sleeping mid-workout. Under Stats, you can exclude warmup sets from volume, double reps for unilateral exercises, or double the weight for paired implements, useful if you prefer logging per-dumbbell weight rather than the total. Set your body weight here; it is used to calculate effective load for assisted exercises."
 #~ msgstr "Configure weight, size, and distance units, default sets per exercise, default rest time, and the weight increment used by the ± buttons during a session. Adjust workout button size (Standard, Large, or XLarge) and toggle Keep Screen On to prevent the display sleeping mid-workout. Under Stats, you can exclude warmup sets from volume, double reps for unilateral exercises, or double the weight for paired implements, useful if you prefer logging per-dumbbell weight rather than the total. Set your body weight here; it is used to calculate effective load for assisted exercises."
 
-#: app/(app)/(workout)/index.tsx:850
-#: app/(app)/(workout)/index.tsx:899
+#: app/(app)/(workout)/index.tsx:859
+#: app/(app)/(workout)/index.tsx:908
 #: app/(app)/delete-account.tsx:218
 msgid "Confirm"
 msgstr "Confirm"
 
-#: app/(app)/(workout)/index.tsx:890
+#: app/(app)/(workout)/index.tsx:899
 msgid "Confirm Save"
 msgstr "Confirm Save"
 
-#: app/(app)/(workout)/index.tsx:841
+#: app/(app)/(workout)/index.tsx:850
 msgid "Confirm Save to Plan"
 msgstr "Confirm Save to Plan"
 
@@ -1960,23 +1960,23 @@ msgstr "Could not add this exercise. Please try again."
 msgid "Couldn't finish all sets"
 msgstr "Couldn't finish all sets"
 
-#: app/(app)/friend-profile.tsx:529
+#: app/(app)/friend-profile.tsx:556
 msgid "Couldn't load activity"
 msgstr "Couldn't load activity"
 
-#: app/(app)/friend-profile.tsx:439
+#: app/(app)/friend-profile.tsx:466
 msgid "Couldn't load custom exercises"
 msgstr "Couldn't load custom exercises"
 
-#: app/(app)/friend-profile.tsx:253
+#: app/(app)/friend-profile.tsx:280
 msgid "Couldn't load plans"
 msgstr "Couldn't load plans"
 
-#: app/(app)/friend-profile.tsx:191
+#: app/(app)/friend-profile.tsx:218
 msgid "Couldn't load strength PRs"
 msgstr "Couldn't load strength PRs"
 
-#: app/(app)/friend-profile.tsx:344
+#: app/(app)/friend-profile.tsx:371
 msgid "Couldn't load workouts"
 msgstr "Couldn't load workouts"
 
@@ -2017,7 +2017,7 @@ msgstr "Create Exercise"
 msgid "Create Plan"
 msgstr "Create Plan"
 
-#: app/(app)/(workout)/index.tsx:674
+#: app/(app)/(workout)/index.tsx:683
 #: components/WorkoutCard.tsx:321
 msgid "Create Superset"
 msgstr "Create Superset"
@@ -2047,7 +2047,7 @@ msgstr "CSV creates two spreadsheet files: your sets and your body measurements.
 msgid "Custom"
 msgstr "Custom"
 
-#: app/(app)/friend-profile.tsx:431
+#: app/(app)/friend-profile.tsx:458
 #: constants/HelpData.ts:213
 msgid "Custom Exercises"
 msgstr "Custom Exercises"
@@ -2091,8 +2091,8 @@ msgstr "Default sets"
 #: app/(app)/(tabs)/(plans)/overview.tsx:209
 #: app/(app)/(tabs)/(stats)/history-details.tsx:175
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:115
-#: app/(app)/(workout)/index.tsx:431
-#: app/(app)/(workout)/index.tsx:657
+#: app/(app)/(workout)/index.tsx:440
+#: app/(app)/(workout)/index.tsx:666
 #: app/(app)/(workout)/workout-session.tsx:773
 #: app/(app)/delete-account.tsx:88
 #: app/(app)/delete-account.tsx:290
@@ -2128,7 +2128,7 @@ msgstr "Delete Complete"
 msgid "Delete Entry"
 msgstr "Delete Entry"
 
-#: app/(app)/(workout)/index.tsx:426
+#: app/(app)/(workout)/index.tsx:435
 msgid "Delete Exercise"
 msgstr "Delete Exercise"
 
@@ -2229,9 +2229,9 @@ msgstr "Disabled"
 
 #: app/(app)/(create-plan)/create-workout.tsx:176
 #: app/(app)/(create-plan)/create.tsx:234
-#: app/(app)/(workout)/index.tsx:836
-#: app/(app)/(workout)/index.tsx:885
-#: app/(app)/(workout)/index.tsx:1103
+#: app/(app)/(workout)/index.tsx:845
+#: app/(app)/(workout)/index.tsx:894
+#: app/(app)/(workout)/index.tsx:1112
 #: app/(app)/custom-exercise.tsx:91
 msgid "Discard"
 msgstr "Discard"
@@ -2280,7 +2280,7 @@ msgstr "Distance ({distanceUnit})"
 msgid "Distance unit"
 msgstr "Distance unit"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:566
+#: app/(app)/(tabs)/(stats)/index.tsx:588
 #: app/(app)/(workout)/workout-summary.tsx:660
 #: app/(app)/delete-account.tsx:315
 #: components/ExerciseFeedbackSheet.tsx:275
@@ -2438,7 +2438,7 @@ msgstr "Effort: Easy (you could have done more), About right, Hard (near your li
 msgid "elliptical machine"
 msgstr "elliptical machine"
 
-#: app/(app)/friends.tsx:273
+#: app/(app)/friends.tsx:312
 msgid "Email address"
 msgstr "Email address"
 
@@ -2562,8 +2562,8 @@ msgstr "Equipment:"
 
 #: app/(app)/(create-plan)/image-search.tsx:43
 #: app/(app)/(tabs)/(plans)/overview.tsx:218
-#: app/(app)/(workout)/index.tsx:931
-#: app/(app)/(workout)/index.tsx:1131
+#: app/(app)/(workout)/index.tsx:940
+#: app/(app)/(workout)/index.tsx:1140
 #: app/(app)/custom-exercise.tsx:135
 #: app/(app)/custom-exercise.tsx:185
 #: app/(app)/custom-exercise.tsx:321
@@ -2602,11 +2602,11 @@ msgstr "Error loading exercises: {0}"
 msgid "Error loading plans"
 msgstr "Error loading plans"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:361
+#: app/(app)/(tabs)/(stats)/index.tsx:372
 msgid "Error loading stats. Please try again."
 msgstr "Error loading stats. Please try again."
 
-#: app/(app)/(workout)/index.tsx:951
+#: app/(app)/(workout)/index.tsx:960
 msgid "Error saving workout"
 msgstr "Error saving workout"
 
@@ -2620,7 +2620,7 @@ msgstr "Error: {0}"
 
 #. placeholder {0}: formatDurationEstimate(durationEstimate)
 #. placeholder {0}: formatDurationEstimate(estimate)
-#: app/(app)/(workout)/index.tsx:1150
+#: app/(app)/(workout)/index.tsx:1159
 #: components/WorkoutCard.tsx:441
 msgid "Estimated Duration: {0}"
 msgstr "Estimated Duration: {0}"
@@ -2776,8 +2776,8 @@ msgstr "Failed to save custom exercise. Please try again."
 msgid "Failed to save the image. Please try again."
 msgstr "Failed to save the image. Please try again."
 
-#: app/(app)/(workout)/index.tsx:932
-#: app/(app)/(workout)/index.tsx:1132
+#: app/(app)/(workout)/index.tsx:941
+#: app/(app)/(workout)/index.tsx:1141
 msgid "Failed to save workout. Please try again."
 msgstr "Failed to save workout. Please try again."
 
@@ -2810,7 +2810,7 @@ msgstr "Favourite Exercises"
 msgid "feet"
 msgstr "feet"
 
-#: app/(app)/(workout)/index.tsx:1046
+#: app/(app)/(workout)/index.tsx:1055
 msgid "Finish"
 msgstr "Finish"
 
@@ -2858,10 +2858,10 @@ msgstr "Friday"
 msgid "Friend Profile"
 msgstr "Friend Profile"
 
-#: app/(app)/friends.tsx:43
-#: app/(app)/friends.tsx:62
-#: app/(app)/friends.tsx:75
-#: app/(app)/friends.tsx:328
+#: app/(app)/friends.tsx:63
+#: app/(app)/friends.tsx:82
+#: app/(app)/friends.tsx:95
+#: app/(app)/friends.tsx:367
 #: components/AppMenu.tsx:194
 msgid "Friends"
 msgstr "Friends"
@@ -2871,7 +2871,7 @@ msgid "Friends & Social"
 msgstr "Friends & Social"
 
 #. placeholder {0}: new Date(friend.since).toLocaleDateString(undefined, { year: "numeric", month: "short", })
-#: app/(app)/friend-profile.tsx:152
+#: app/(app)/friend-profile.tsx:179
 msgid "Friends since {0}"
 msgstr "Friends since {0}"
 
@@ -2879,7 +2879,7 @@ msgstr "Friends since {0}"
 msgid "Get Ready..."
 msgstr "Get Ready..."
 
-#: app/(app)/(workout)/index.tsx:1091
+#: app/(app)/(workout)/index.tsx:1100
 msgid "Give it a name to save it as a reusable workout."
 msgstr "Give it a name to save it as a reusable workout."
 
@@ -3038,8 +3038,8 @@ msgstr "Importing from Friends"
 msgid "In the workout editor, tap the three-dot menu on an exercise and choose Create Superset."
 msgstr "In the workout editor, tap the three-dot menu on an exercise and choose Create Superset."
 
-#: app/(app)/friends.tsx:342
-#: app/(app)/friends.tsx:395
+#: app/(app)/friends.tsx:381
+#: app/(app)/friends.tsx:434
 msgid "Incoming"
 msgstr "Incoming"
 
@@ -3047,7 +3047,7 @@ msgstr "Incoming"
 msgid "Info"
 msgstr "Info"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:425
+#: app/(app)/(tabs)/(stats)/index.tsx:447
 #: constants/HelpData.ts:239
 msgid "Insights"
 msgstr "Insights"
@@ -3147,6 +3147,14 @@ msgstr "latissimus dorsi"
 msgid "lats"
 msgstr "lats"
 
+#: hooks/useWorkoutBackGuard.ts:30
+msgid "Leave"
+msgstr "Leave"
+
+#: hooks/useWorkoutBackGuard.ts:26
+msgid "Leave workout?"
+msgstr "Leave workout?"
+
 #: constants/dbTranslations.ts:9
 msgid "legs"
 msgstr "legs"
@@ -3222,7 +3230,7 @@ msgstr "Machine load increment"
 msgid "Make sure to track your progress!"
 msgstr "Make sure to track your progress!"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:548
+#: app/(app)/(tabs)/(stats)/index.tsx:570
 msgid "Manage"
 msgstr "Manage"
 
@@ -3243,7 +3251,7 @@ msgid "Max Reps"
 msgstr "Max Reps"
 
 #: app/(app)/(tabs)/(stats)/_layout.tsx:24
-#: app/(app)/friend-profile.tsx:587
+#: app/(app)/friend-profile.tsx:614
 msgid "Measurements"
 msgstr "Measurements"
 
@@ -3377,12 +3385,12 @@ msgstr "Next: "
 msgid "Next: {workoutName} on {0}"
 msgstr "Next: {workoutName} on {0}"
 
-#: app/(app)/(workout)/index.tsx:969
-#: app/(app)/(workout)/index.tsx:989
+#: app/(app)/(workout)/index.tsx:978
+#: app/(app)/(workout)/index.tsx:998
 msgid "No"
 msgstr "No"
 
-#: app/(app)/friend-profile.tsx:534
+#: app/(app)/friend-profile.tsx:561
 msgid "No activity shared yet"
 msgstr "No activity shared yet"
 
@@ -3398,7 +3406,7 @@ msgstr "No backups found"
 #~ msgid "No completed workouts shared yet"
 #~ msgstr "No completed workouts shared yet"
 
-#: app/(app)/friend-profile.tsx:444
+#: app/(app)/friend-profile.tsx:471
 msgid "No custom exercises shared yet"
 msgstr "No custom exercises shared yet"
 
@@ -3422,11 +3430,11 @@ msgstr "No exercises added yet"
 msgid "No exercises in this workout yet."
 msgstr "No exercises in this workout yet."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:604
+#: app/(app)/(tabs)/(stats)/index.tsx:626
 msgid "No exercises tracked yet. Tap + Add to start."
 msgstr "No exercises tracked yet. Tap + Add to start."
 
-#: app/(app)/friends.tsx:205
+#: app/(app)/friends.tsx:253
 msgid "No friends yet. Search by email to add someone."
 msgstr "No friends yet. Search by email to add someone."
 
@@ -3442,7 +3450,7 @@ msgstr "No history yet"
 msgid "No measurements yet. Log your first entry above."
 msgstr "No measurements yet. Log your first entry above."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:654
+#: app/(app)/(tabs)/(stats)/index.tsx:676
 msgid "No measurements yet. Tap to log your first entry."
 msgstr "No measurements yet. Tap to log your first entry."
 
@@ -3450,7 +3458,7 @@ msgstr "No measurements yet. Tap to log your first entry."
 msgid "No pain"
 msgstr "No pain"
 
-#: app/(app)/friends.tsx:381
+#: app/(app)/friends.tsx:420
 msgid "No pending friend requests."
 msgstr "No pending friend requests."
 
@@ -3458,7 +3466,7 @@ msgstr "No pending friend requests."
 #~ msgid "No per-set rep target defined. Add a rep target (e.g. 8) for each set to enable auto-progression."
 #~ msgstr "No per-set rep target defined. Add a rep target (e.g. 8) for each set to enable auto-progression."
 
-#: app/(app)/friend-profile.tsx:258
+#: app/(app)/friend-profile.tsx:285
 msgid "No plans shared yet"
 msgstr "No plans shared yet"
 
@@ -3495,7 +3503,7 @@ msgstr "No Sets"
 msgid "No Sets Available"
 msgstr "No Sets Available"
 
-#: app/(app)/friend-profile.tsx:196
+#: app/(app)/friend-profile.tsx:223
 msgid "No strength data shared yet"
 msgstr "No strength data shared yet"
 
@@ -3503,7 +3511,7 @@ msgstr "No strength data shared yet"
 msgid "No training plans found"
 msgstr "No training plans found"
 
-#: app/(app)/friends.tsx:292
+#: app/(app)/friends.tsx:331
 msgid "No user found with that email address."
 msgstr "No user found with that email address."
 
@@ -3511,7 +3519,7 @@ msgstr "No user found with that email address."
 msgid "No values entered"
 msgstr "No values entered"
 
-#: app/(app)/(workout)/index.tsx:1014
+#: app/(app)/(workout)/index.tsx:1023
 msgid "No workout available"
 msgstr "No workout available"
 
@@ -3527,7 +3535,7 @@ msgstr "No workouts found"
 msgid "No workouts on this day."
 msgstr "No workouts on this day."
 
-#: app/(app)/friend-profile.tsx:349
+#: app/(app)/friend-profile.tsx:376
 msgid "No workouts shared yet"
 msgstr "No workouts shared yet"
 
@@ -3565,7 +3573,7 @@ msgstr "Off — log total weight across both sides"
 #: app/(app)/(create-plan)/image-search.tsx:44
 #: app/(app)/(workout)/exercises.tsx:109
 #: app/(app)/(workout)/exercises.tsx:130
-#: app/(app)/(workout)/index.tsx:933
+#: app/(app)/(workout)/index.tsx:942
 #: app/(app)/custom-exercise.tsx:136
 #: app/(app)/custom-exercise.tsx:186
 #: app/(app)/custom-exercise.tsx:236
@@ -3656,7 +3664,7 @@ msgstr "Paired with {0}"
 msgid "pectorals"
 msgstr "pectorals"
 
-#: app/(app)/friends.tsx:435
+#: app/(app)/friends.tsx:474
 msgid "Pending"
 msgstr "Pending"
 
@@ -3707,7 +3715,7 @@ msgstr "Plan Overview"
 
 #: app/(app)/(tabs)/_layout.tsx:51
 #: app/(app)/(tabs)/(plans)/_layout.tsx:16
-#: app/(app)/friend-profile.tsx:245
+#: app/(app)/friend-profile.tsx:272
 #: constants/HelpData.ts:43
 msgid "Plans"
 msgstr "Plans"
@@ -3787,7 +3795,7 @@ msgstr "Privacy"
 msgid "Privacy policy"
 msgstr "Privacy policy"
 
-#: app/(app)/friends.tsx:163
+#: app/(app)/friends.tsx:185
 msgid "Privacy Settings"
 msgstr "Privacy Settings"
 
@@ -3795,7 +3803,7 @@ msgstr "Privacy Settings"
 msgid "Progression Suggestions"
 msgstr "Progression Suggestions"
 
-#: app/(app)/friend-profile.tsx:164
+#: app/(app)/friend-profile.tsx:191
 msgid "PRs"
 msgstr "PRs"
 
@@ -3812,7 +3820,7 @@ msgid "quads"
 msgstr "quads"
 
 #: app/(app)/(tabs)/index.tsx:608
-#: app/(app)/(workout)/index.tsx:1109
+#: app/(app)/(workout)/index.tsx:1118
 msgid "Quick Workout"
 msgstr "Quick Workout"
 
@@ -3888,7 +3896,7 @@ msgstr "Remove a set"
 msgid "Remove Exercise"
 msgstr "Remove Exercise"
 
-#: app/(app)/(workout)/index.tsx:669
+#: app/(app)/(workout)/index.tsx:678
 #: components/WorkoutCard.tsx:313
 msgid "Remove Superset"
 msgstr "Remove Superset"
@@ -3913,7 +3921,7 @@ msgstr "Removing friend connections"
 msgid "Removing friend requests"
 msgstr "Removing friend requests"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:566
+#: app/(app)/(tabs)/(stats)/index.tsx:588
 msgid "Reorder"
 msgstr "Reorder"
 
@@ -3925,7 +3933,7 @@ msgstr "Reorder a workout card with the up/down arrow buttons, or remove it with
 msgid "Rep PR"
 msgstr "Rep PR"
 
-#: app/(app)/(workout)/index.tsx:664
+#: app/(app)/(workout)/index.tsx:673
 #: components/WorkoutCard.tsx:305
 msgid "Replace"
 msgstr "Replace"
@@ -3956,7 +3964,7 @@ msgstr "Reps: {repRange}"
 msgid "Request or vote for new features"
 msgstr "Request or vote for new features"
 
-#: app/(app)/friends.tsx:66
+#: app/(app)/friends.tsx:86
 msgid "Requests"
 msgstr "Requests"
 
@@ -4010,7 +4018,7 @@ msgstr "Rest Time: {restMinutes}:{0}"
 msgid "Rest Timer"
 msgstr "Rest Timer"
 
-#: app/(app)/(workout)/index.tsx:330
+#: app/(app)/(workout)/index.tsx:331
 #: app/(app)/(workout)/workout-session.tsx:620
 #: app/(app)/(workout)/workout-session.tsx:663
 msgid "Rest Timer Finished!"
@@ -4020,7 +4028,7 @@ msgstr "Rest Timer Finished!"
 msgid "Rest timer increment"
 msgstr "Rest timer increment"
 
-#: app/(app)/(workout)/index.tsx:1066
+#: app/(app)/(workout)/index.tsx:1075
 msgid "Restart"
 msgstr "Restart"
 
@@ -4032,7 +4040,7 @@ msgstr "Restart App"
 msgid "Restart Failed"
 msgstr "Restart Failed"
 
-#: app/(app)/(workout)/index.tsx:986
+#: app/(app)/(workout)/index.tsx:995
 msgid "Restart Workout"
 msgstr "Restart Workout"
 
@@ -4103,8 +4111,8 @@ msgstr "Saturday"
 
 #: app/(app)/(create-plan)/create-workout.tsx:256
 #: app/(app)/(create-plan)/create.tsx:361
-#: app/(app)/(workout)/index.tsx:887
-#: app/(app)/(workout)/index.tsx:1137
+#: app/(app)/(workout)/index.tsx:896
+#: app/(app)/(workout)/index.tsx:1146
 #: app/(app)/custom-exercise.tsx:599
 #: components/SettingsModal.tsx:296
 msgid "Save"
@@ -4122,11 +4130,11 @@ msgstr "Save and select"
 msgid "Save Changes"
 msgstr "Save Changes"
 
-#: app/(app)/(workout)/index.tsx:833
+#: app/(app)/(workout)/index.tsx:842
 msgid "Save Changes to Plan?"
 msgstr "Save Changes to Plan?"
 
-#: app/(app)/(workout)/index.tsx:882
+#: app/(app)/(workout)/index.tsx:891
 msgid "Save Changes to Workout?"
 msgstr "Save Changes to Workout?"
 
@@ -4135,11 +4143,11 @@ msgstr "Save Changes to Workout?"
 msgid "Save Set"
 msgstr "Save Set"
 
-#: app/(app)/(workout)/index.tsx:1088
+#: app/(app)/(workout)/index.tsx:1097
 msgid "Save this workout?"
 msgstr "Save this workout?"
 
-#: app/(app)/(workout)/index.tsx:838
+#: app/(app)/(workout)/index.tsx:847
 msgid "Save to Plan"
 msgstr "Save to Plan"
 
@@ -4151,7 +4159,7 @@ msgstr "Save your workouts and measurements as CSV or JSON"
 msgid "Saving Plan..."
 msgstr "Saving Plan..."
 
-#: app/(app)/(workout)/index.tsx:1028
+#: app/(app)/(workout)/index.tsx:1037
 msgid "Saving Workout..."
 msgstr "Saving Workout..."
 
@@ -4159,8 +4167,8 @@ msgstr "Saving Workout..."
 #: app/(app)/(tabs)/(stats)/exercises.tsx:168
 #: app/(app)/(workout)/exercises.tsx:233
 #: app/(app)/exercise-library.tsx:111
-#: app/(app)/friends.tsx:63
-#: app/(app)/friends.tsx:283
+#: app/(app)/friends.tsx:83
+#: app/(app)/friends.tsx:322
 #: components/WorkoutPickerModal.tsx:110
 msgid "Search"
 msgstr "Search"
@@ -4228,8 +4236,8 @@ msgstr "Select tracking type"
 msgid "Send notification in background after rest"
 msgstr "Send notification in background after rest"
 
-#: app/(app)/friends.tsx:335
-#: app/(app)/friends.tsx:408
+#: app/(app)/friends.tsx:374
+#: app/(app)/friends.tsx:447
 msgid "Sent"
 msgstr "Sent"
 
@@ -4329,7 +4337,7 @@ msgstr "Share strength PRs with friends"
 msgid "Share Workout"
 msgstr "Share Workout"
 
-#: app/(app)/friend-profile.tsx:174
+#: app/(app)/friend-profile.tsx:201
 msgid "Shared"
 msgstr "Shared"
 
@@ -4362,11 +4370,11 @@ msgstr "Show onboarding on home screen"
 msgid "Sign in"
 msgstr "Sign in"
 
-#: app/(app)/friends.tsx:55
+#: app/(app)/friends.tsx:75
 msgid "Sign In"
 msgstr "Sign In"
 
-#: app/(app)/friends.tsx:52
+#: app/(app)/friends.tsx:72
 msgid "Sign in to use the Friends feature."
 msgstr "Sign in to use the Friends feature."
 
@@ -4474,7 +4482,7 @@ msgstr "Some images failed to download after retries. Failed exercise IDs: {0}"
 msgid "Some items may still be visible to friends. Try again."
 msgstr "Some items may still be visible to friends. Try again."
 
-#: app/(app)/friends.tsx:301
+#: app/(app)/friends.tsx:340
 msgid "Something went wrong. Please try again."
 msgstr "Something went wrong. Please try again."
 
@@ -4482,7 +4490,7 @@ msgstr "Something went wrong. Please try again."
 msgid "spine"
 msgstr "spine"
 
-#: app/(app)/friend-profile.tsx:336
+#: app/(app)/friend-profile.tsx:363
 #: components/WorkoutPickerModal.tsx:163
 msgid "Standalone Workouts"
 msgstr "Standalone Workouts"
@@ -4536,6 +4544,10 @@ msgstr "Stats & History"
 msgid "Stats Options"
 msgstr "Stats Options"
 
+#: hooks/useWorkoutBackGuard.ts:29
+msgid "Stay"
+msgstr "Stay"
+
 #: constants/dbTranslations.ts:95
 msgid "stepmill machine"
 msgstr "stepmill machine"
@@ -4556,7 +4568,7 @@ msgstr "Stop"
 msgid "Streak"
 msgstr "Streak"
 
-#: app/(app)/friend-profile.tsx:183
+#: app/(app)/friend-profile.tsx:210
 msgid "Strength PRs"
 msgstr "Strength PRs"
 
@@ -4581,7 +4593,7 @@ msgstr "Suggest load and rep adjustments"
 msgid "Suggestions to hold the current load don't appear in the card, since no action is needed."
 msgstr "Suggestions to hold the current load don't appear in the card, since no action is needed."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:441
+#: app/(app)/(tabs)/(stats)/index.tsx:463
 msgid "Summary"
 msgstr "Summary"
 
@@ -4761,11 +4773,11 @@ msgstr "This removes all workouts, plans and measurements from this device. It c
 msgid "This screen doesn't exist."
 msgstr "This screen doesn't exist."
 
-#: app/(app)/(workout)/index.tsx:842
+#: app/(app)/(workout)/index.tsx:851
 msgid "This will update the workout for all future sessions in this plan."
 msgstr "This will update the workout for all future sessions in this plan."
 
-#: app/(app)/(workout)/index.tsx:891
+#: app/(app)/(workout)/index.tsx:900
 msgid "This will update the workout for all future sessions."
 msgstr "This will update the workout for all future sessions."
 
@@ -4811,7 +4823,7 @@ msgstr "Time (s)"
 msgid "Time PR"
 msgstr "Time PR"
 
-#: app/(app)/(workout)/index.tsx:331
+#: app/(app)/(workout)/index.tsx:332
 #: app/(app)/(workout)/workout-session.tsx:621
 #: app/(app)/(workout)/workout-session.tsx:664
 msgid "Time to do your next set!"
@@ -4868,7 +4880,7 @@ msgstr "Toggle Unilateral for single-arm or single-leg exercises; reps can be au
 msgid "Top PR Sets"
 msgstr "Top PR Sets"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:456
+#: app/(app)/(tabs)/(stats)/index.tsx:478
 msgid "Total Time"
 msgstr "Total Time"
 
@@ -4907,7 +4919,7 @@ msgstr ""
 "\n"
 "Swipe through the introduction cards to learn more about the app."
 
-#: app/(app)/(tabs)/(stats)/index.tsx:537
+#: app/(app)/(tabs)/(stats)/index.tsx:559
 msgid "Tracked Exercises"
 msgstr "Tracked Exercises"
 
@@ -4957,7 +4969,7 @@ msgstr "Training Plan"
 msgid "Training Plan Name"
 msgstr "Training Plan Name"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:524
+#: app/(app)/(tabs)/(stats)/index.tsx:546
 msgid "Training Split (by sets)"
 msgstr "Training Split (by sets)"
 
@@ -5024,7 +5036,7 @@ msgstr "Type {CONFIRMATION_WORD} to confirm. You will be asked to sign in with G
 msgid "Type to filter help topics"
 msgstr "Type to filter help topics"
 
-#: app/(app)/(workout)/index.tsx:952
+#: app/(app)/(workout)/index.tsx:961
 msgid "Unable to save your workout. Please try again later."
 msgstr "Unable to save your workout. Please try again later."
 
@@ -5056,8 +5068,8 @@ msgstr "Update Ready"
 #. placeholder {0}: formatDistanceToNow(plan.updatedAt.toDate(), { addSuffix: true })
 #. placeholder {0}: formatDistanceToNow(workout.updatedAt.toDate(), { addSuffix: true, })
 #: app/(app)/friend-plan.tsx:75
-#: app/(app)/friend-profile.tsx:285
-#: app/(app)/friend-profile.tsx:379
+#: app/(app)/friend-profile.tsx:312
+#: app/(app)/friend-profile.tsx:406
 #: app/(app)/friend-workout.tsx:62
 msgid "Updated {0}"
 msgstr "Updated {0}"
@@ -5114,7 +5126,7 @@ msgstr "Values"
 msgid "Vibrate after rest"
 msgstr "Vibrate after rest"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:623
+#: app/(app)/(tabs)/(stats)/index.tsx:645
 msgid "View All"
 msgstr "View All"
 
@@ -5140,11 +5152,11 @@ msgstr "View/Edit"
 msgid "Volume"
 msgstr "Volume"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:450
+#: app/(app)/(tabs)/(stats)/index.tsx:472
 msgid "Volume ({volumeUnit})"
 msgstr "Volume ({volumeUnit})"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:508
+#: app/(app)/(tabs)/(stats)/index.tsx:530
 msgid "Volume per Week ({volumeUnit})"
 msgstr "Volume per Week ({volumeUnit})"
 
@@ -5334,7 +5346,7 @@ msgstr "Workout copied to standalone workouts"
 msgid "Workout Details"
 msgstr "Workout Details"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:472
+#: app/(app)/(tabs)/(stats)/index.tsx:494
 msgid "Workout History"
 msgstr "Workout History"
 
@@ -5342,7 +5354,7 @@ msgstr "Workout History"
 msgid "Workout in progress"
 msgstr "Workout in progress"
 
-#: app/(app)/(workout)/index.tsx:1095
+#: app/(app)/(workout)/index.tsx:1104
 #: components/CopyWorkoutModal.tsx:59
 #: components/WorkoutCard.tsx:433
 msgid "Workout name"
@@ -5367,14 +5379,14 @@ msgstr "Workout Reminders"
 msgid "Workout Summary"
 msgstr "Workout Summary"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:445
-#: app/(app)/friend-profile.tsx:169
+#: app/(app)/(tabs)/(stats)/index.tsx:467
+#: app/(app)/friend-profile.tsx:196
 #: components/WeeklySummaryCard.tsx:271
 #: constants/HelpData.ts:66
 msgid "Workouts"
 msgstr "Workouts"
 
-#: app/(app)/(tabs)/(stats)/index.tsx:495
+#: app/(app)/(tabs)/(stats)/index.tsx:517
 msgid "Workouts per Week"
 msgstr "Workouts per Week"
 
@@ -5395,8 +5407,8 @@ msgstr "wrists"
 msgid "x {0} reps "
 msgstr "x {0} reps "
 
-#: app/(app)/(workout)/index.tsx:971
-#: app/(app)/(workout)/index.tsx:991
+#: app/(app)/(workout)/index.tsx:980
+#: app/(app)/(workout)/index.tsx:1000
 msgid "Yes"
 msgstr "Yes"
 
@@ -5451,8 +5463,8 @@ msgstr "You have unsaved changes from your last session. Would you like to conti
 msgid "You have unsaved changes. Are you sure you want to discard them?"
 msgstr "You have unsaved changes. Are you sure you want to discard them?"
 
-#: app/(app)/(workout)/index.tsx:834
-#: app/(app)/(workout)/index.tsx:883
+#: app/(app)/(workout)/index.tsx:843
+#: app/(app)/(workout)/index.tsx:892
 msgid "You modified this workout. Save those changes for future sessions?"
 msgstr "You modified this workout. Save those changes for future sessions?"
 
@@ -5508,6 +5520,10 @@ msgstr "Your journey to Swoletown begins today!"
 #: app/(app)/delete-account.tsx:181
 msgid "Your profile and friend connections"
 msgstr "Your profile and friend connections"
+
+#: hooks/useWorkoutBackGuard.ts:27
+msgid "Your progress is saved. You can resume from the home screen."
+msgstr "Your progress is saved. You can resume from the home screen."
 
 #: app/(app)/delete-account.tsx:185
 msgid "Your sign-in account"
