@@ -500,7 +500,7 @@ function createStyles(colors: AppThemeColors) {
       marginTop: 10,
       fontSize: 14,
       lineHeight: 18,
-      height: 40,
+      minHeight: 40,
     },
     durationEstimate: {
       fontSize: 13,

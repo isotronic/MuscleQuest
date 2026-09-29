@@ -730,8 +730,10 @@ function createStyles(colors: AppThemeColors) {
     completeButton: {
       marginTop: 16,
     },
+    // A floor, not a fixed box, so the label can grow with the text size.
     largeButton: {
-      height: 55,
+      minHeight: 55,
+      justifyContent: "center",
     },
     buttonLabel: {
       fontSize: 18,

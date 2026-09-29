@@ -47,6 +47,8 @@ export default function WeekDays({
           >
             <ThemedText
               style={[styles.dayNumber, isToday && styles.todayDayNumber]}
+              // The circle is a fixed 45 px; unbounded text would overflow it.
+              maxFontSizeMultiplier={1.4}
             >
               {format(day, "d")}
             </ThemedText>

@@ -118,6 +118,9 @@ export default function RestTimerOverlay({
         </TouchableOpacity>
         <ThemedText
           style={styles.timerText}
+          // Large fixed-position digits; past this they push the buttons off
+          // screen. The countdown is also announced, so nothing is lost.
+          maxFontSizeMultiplier={1.5}
           accessibilityLabel={t`Rest time left, ${countdown}`}
         >
           {countdown}

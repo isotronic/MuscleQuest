@@ -120,7 +120,7 @@ function createStyles(
     dropdown: {
       backgroundColor: dropdownBg,
       borderRadius: radii.md,
-      height: 50,
+      minHeight: 50,
       paddingHorizontal: 8,
     },
     container: {

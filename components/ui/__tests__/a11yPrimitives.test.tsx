@@ -125,4 +125,25 @@ describe("AppSelect", () => {
     );
     expect(getByLabelText("Equipment: All equipment")).toBeTruthy();
   });
+
+  it("grows with the text size instead of clipping it", () => {
+    const { StyleSheet } = require("react-native");
+    const { getByLabelText } = render(
+      <AppSelect
+        data={data}
+        value="barbell"
+        onChange={jest.fn()}
+        accessibilityLabel="Equipment"
+      />,
+    );
+    // The library applies our style to a wrapper above the labelled element.
+    let node: any = getByLabelText("Equipment: Barbell");
+    const styles: any[] = [];
+    while (node) {
+      styles.push(StyleSheet.flatten(node.props.style) ?? {});
+      node = node.parent;
+    }
+    expect(styles.some((s) => s.minHeight === 50)).toBe(true);
+    expect(styles.some((s) => s.height === 50)).toBe(false);
+  });
 });

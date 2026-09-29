@@ -151,4 +151,20 @@ describe("SessionSetInfo accessibility", () => {
     expect(getByLabelText("Time, set 2, minutes")).toBeTruthy();
     expect(getByLabelText("Time, set 2, seconds")).toBeTruthy();
   });
+
+  it("lets the large complete button grow with the text size", () => {
+    const { StyleSheet } = require("react-native");
+    const { getByRole } = render(
+      <SessionSetInfo {...baseProps} buttonSize={60} />,
+    );
+    // Paper puts the style on an outer wrapper; look up the tree for it.
+    let node: any = getByRole("button", { name: "Complete set 2 of 4" });
+    const styles: any[] = [];
+    while (node) {
+      styles.push(StyleSheet.flatten(node.props.style) ?? {});
+      node = node.parent;
+    }
+    expect(styles.some((s) => s.minHeight === 55)).toBe(true);
+    expect(styles.some((s) => s.height === 55)).toBe(false);
+  });
 });

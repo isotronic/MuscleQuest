@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import React from "react";
+import { useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppMenu } from "@/components/AppMenu";
@@ -8,10 +9,12 @@ import { useMenuStore } from "@/store/menuStore";
 import { useSocialStore } from "@/store/socialStore";
 import { t } from "@lingui/core/macro";
 import { useAppTheme } from "@/theme";
+import { tabBarHeight } from "@/utils/fontScaleLayout";
 
 export default function TabLayout() {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const { fontScale } = useWindowDimensions();
   const openMenu = useMenuStore((s) => s.openMenu);
   const { pendingRequests } = useSocialStore();
 
@@ -21,7 +24,7 @@ export default function TabLayout() {
         screenOptions={{
           tabBarStyle: {
             backgroundColor: colors.background,
-            height: 50 + insets.bottom,
+            height: tabBarHeight(fontScale, insets.bottom),
             paddingBottom: insets.bottom,
           },
           tabBarActiveTintColor: colors.accent,

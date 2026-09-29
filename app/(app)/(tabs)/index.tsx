@@ -756,7 +756,8 @@ function createStyles(colors: AppThemeColors) {
     startWorkoutButton: {
       borderRadius: radii.md,
       width: "100%",
-      height: 50,
+      minHeight: 50,
+      justifyContent: "center",
     },
     buttonLabel: {
       fontSize: 18,

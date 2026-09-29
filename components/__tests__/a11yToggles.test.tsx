@@ -3,6 +3,7 @@ import { fireEvent, render } from "@testing-library/react-native";
 import { Collapsible } from "../Collapsible";
 import PlanScheduleEditor from "../PlanScheduleEditor";
 import { Provider as PaperProvider } from "react-native-paper";
+import WeekDays from "../WeekDays";
 
 jest.mock("@lingui/core/macro", () => ({
   t: (s: TemplateStringsArray, ...v: unknown[]) => String.raw({ raw: s }, ...v),
@@ -52,5 +53,13 @@ describe("PlanScheduleEditor", () => {
     expect(getByRole("button", { name: "Monday: Push" })).toBeTruthy();
     expect(getByRole("button", { name: "Wednesday: Workout 2" })).toBeTruthy();
     expect(getByRole("button", { name: "Tuesday: Rest" })).toBeTruthy();
+  });
+});
+
+describe("WeekDays", () => {
+  it("caps text scaling inside the fixed-size day circles", () => {
+    const { getByText } = render(<WeekDays />);
+    const today = String(new Date().getDate());
+    expect(getByText(today).props.maxFontSizeMultiplier).toBeGreaterThan(1);
   });
 });

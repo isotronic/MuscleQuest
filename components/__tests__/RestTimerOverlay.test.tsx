@@ -153,4 +153,9 @@ describe("RestTimerOverlay accessibility", () => {
     );
     expect(announce).not.toHaveBeenCalled();
   });
+
+  it("caps scaling on the countdown digits, which cannot wrap", () => {
+    const { getByText } = render(<RestTimerOverlay {...baseProps} />);
+    expect(getByText("1:05").props.maxFontSizeMultiplier).toBeGreaterThan(1);
+  });
 });
