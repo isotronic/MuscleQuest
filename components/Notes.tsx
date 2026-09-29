@@ -108,6 +108,8 @@ export const Notes: React.FC<NotesProps> = ({
             <TouchableOpacity
               onPress={handleClose}
               style={{ alignSelf: "flex-start" }}
+              accessibilityRole="button"
+              accessibilityLabel={t`Close notes`}
             >
               <AppIcon
                 set="mci"
@@ -122,6 +124,7 @@ export const Notes: React.FC<NotesProps> = ({
           </View>
           <Divider style={{ marginTop: 8, marginBottom: 16 }} />
           <Pressable
+            accessibilityRole="button"
             onPress={() => inputRef.current?.focus()}
             style={{ flex: 1 }}
           >

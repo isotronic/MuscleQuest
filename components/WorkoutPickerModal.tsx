@@ -105,6 +105,7 @@ export default function WorkoutPickerModal({
         </ThemedText>
         <View style={styles.searchContainer}>
           <TextInput
+            accessibilityLabel={t`Search workouts`}
             style={styles.searchInput}
             placeholderTextColor={colors.contentSecondary}
             placeholder={t`Search`}

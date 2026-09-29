@@ -71,4 +71,22 @@ describe("SetOptionsModal accessibility", () => {
     expect(getByLabelText("Rest time, minutes")).toBeTruthy();
     expect(getByLabelText("Rest time, seconds")).toBeTruthy();
   });
+
+  it("keeps the dialog's controls reachable on iOS", () => {
+    // An accessible ancestor would merge every field into one VoiceOver stop.
+    // Reported as short strings: printing test instances exhausts memory.
+    const { UNSAFE_root } = renderModal();
+    const grouped = UNSAFE_root.findAll(
+      (node) =>
+        typeof node.type === "string" &&
+        node.props.accessible === true &&
+        node.findAll(
+          (child) =>
+            child !== node &&
+            typeof child.type === "string" &&
+            child.props.accessibilityRole != null,
+        ).length > 0,
+    ).map((node) => `${String(node.type)} ${node.props.testID ?? ""}`);
+    expect(grouped).toEqual([]);
+  });
 });

@@ -537,6 +537,7 @@ export default function WorkoutOverviewScreen() {
 
         const inner = isTappable ? (
           <Sortable.Touchable
+            accessibilityRole="button"
             onTap={() => handleExercisePress(exerciseIndex)}
             style={styles.cardTouchable}
           >
@@ -1000,6 +1001,7 @@ export default function WorkoutOverviewScreen() {
             <Trans>Give it a name to save it as a reusable workout.</Trans>
           </ThemedText>
           <TextInput
+            accessibilityLabel={t`Workout name`}
             style={styles.saveModalInput}
             placeholder={t`Workout name`}
             placeholderTextColor={colors.contentSecondary}

@@ -69,6 +69,7 @@ function PlanWorkoutCard({
   return (
     <View style={styles.workoutCardRow}>
       <TouchableOpacity
+        accessibilityRole="button"
         onPress={() =>
           router.push({
             pathname: "/workout-details",
@@ -332,6 +333,8 @@ export default function PlanOverviewScreen() {
             onPress={handleToggleDeload}
             style={[styles.deloadRow]}
             activeOpacity={0.7}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: isCurrentWeekDeload }}
           >
             <View style={styles.deloadLeft}>
               <AppIcon
@@ -353,7 +356,13 @@ export default function PlanOverviewScreen() {
               </ThemedText>
             </View>
             <View pointerEvents="none">
-              <Switch value={isCurrentWeekDeload} color={colors.accent} />
+              <Switch
+                value={isCurrentWeekDeload}
+                color={colors.accent}
+                // The row is the switch for screen readers.
+                importantForAccessibility="no-hide-descendants"
+                accessibilityElementsHidden
+              />
             </View>
           </TouchableOpacity>
         )}
@@ -365,6 +374,11 @@ export default function PlanOverviewScreen() {
               style={[styles.deloadRow]}
               activeOpacity={0.7}
               disabled={publishMutation.isPending || isPublishedLoading}
+              accessibilityRole="switch"
+              accessibilityState={{
+                checked: isPublished,
+                busy: publishMutation.isPending || isPublishedLoading,
+              }}
             >
               <View style={styles.deloadLeft}>
                 <AppIcon
@@ -387,7 +401,13 @@ export default function PlanOverviewScreen() {
                 <ActivityIndicator size="small" color={colors.accent} />
               ) : (
                 <View pointerEvents="none">
-                  <Switch value={isPublished} color={colors.accent} />
+                  <Switch
+                    value={isPublished}
+                    color={colors.accent}
+                    // The row is the switch for screen readers.
+                    importantForAccessibility="no-hide-descendants"
+                    accessibilityElementsHidden
+                  />
                 </View>
               )}
             </TouchableOpacity>

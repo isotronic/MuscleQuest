@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
 import { format, startOfWeek, addDays, isSameDay } from "date-fns";
+import { t } from "@lingui/core/macro";
 import { toLocalDateKey } from "@/utils/dates";
 import { ThemedText } from "./ThemedText";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
@@ -52,6 +53,12 @@ export default function WeekDays({
           </View>
         );
 
+        const dayName = day.toLocaleDateString(undefined, {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        });
+
         return (
           <View key={index} style={styles.dayContainer}>
             <ThemedText
@@ -60,7 +67,11 @@ export default function WeekDays({
               {format(day, "EEE")}
             </ThemedText>
             {isWorkoutCompleted && onDayPress ? (
-              <Pressable onPress={() => onDayPress(completedOnDay)}>
+              <Pressable
+                onPress={() => onDayPress(completedOnDay)}
+                accessibilityRole="button"
+                accessibilityLabel={t`View workout on ${dayName}`}
+              >
                 {circle}
               </Pressable>
             ) : (

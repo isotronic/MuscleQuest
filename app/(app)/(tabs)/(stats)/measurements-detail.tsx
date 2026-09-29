@@ -161,6 +161,11 @@ export default function MeasurementDetailScreen() {
               <View style={styles.metricInputWrap}>
                 <TextInput
                   style={styles.metricInput}
+                  accessibilityLabel={
+                    bodyMetricTranslations[v.metric.key]
+                      ? _(bodyMetricTranslations[v.metric.key])
+                      : v.metric.label
+                  }
                   value={inputValues[v.metric.id] ?? ""}
                   onChangeText={(text: string) =>
                     setInputValues((prev) => ({ ...prev, [v.metric.id]: text }))
@@ -192,6 +197,7 @@ export default function MeasurementDetailScreen() {
               const active = selectedMetric?.id === v.metric.id;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={v.metric.id}
                   onPress={() => setSelectedMetric(v.metric)}
                   style={[styles.chip, active && styles.chipActive]}

@@ -106,6 +106,7 @@ export default function ExerciseLibraryScreen() {
     <ThemedView style={styles.container}>
       <View style={styles.searchContainer}>
         <TextInput
+          accessibilityLabel={t`Search exercises`}
           style={styles.searchInput}
           placeholderTextColor={colors.contentPrimary}
           placeholder={t`Search`}

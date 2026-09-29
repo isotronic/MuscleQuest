@@ -243,6 +243,7 @@ export default function PlateInventoryScreen() {
         </ThemedText>
         <View style={styles.addRow}>
           <TextInput
+            accessibilityLabel={t`Weight in ${weightUnit}`}
             style={styles.input}
             value={newWeight}
             onChangeText={handleNewWeightChange}
@@ -252,6 +253,7 @@ export default function PlateInventoryScreen() {
             onSubmitEditing={addPlate}
           />
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.addButton, !newWeight && styles.addButtonDisabled]}
             onPress={addPlate}
             disabled={!newWeight}

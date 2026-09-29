@@ -53,7 +53,7 @@ export default function WorkoutDoneCard({
   }
 
   return (
-    <Pressable onPress={onPress} disabled={!onPress}>
+    <Pressable accessibilityRole="button" onPress={onPress} disabled={!onPress}>
       <ThemedView style={styles.card}>
         <AppIcon
           set="mci"

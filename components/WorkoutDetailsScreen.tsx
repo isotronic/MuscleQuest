@@ -169,6 +169,7 @@ export default function WorkoutDetailsScreen() {
           </View>
         )}
         <TouchableOpacity
+          accessibilityRole="button"
           onPress={() => {
             router.push({
               pathname: "/(app)/exercise-info",

@@ -656,6 +656,7 @@ export default function StatsScreen() {
           </View>
           {latestMeasurements && latestMeasurements.length > 0 ? (
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.measurementTile}
               activeOpacity={0.7}
               onPress={() =>
@@ -676,6 +677,7 @@ export default function StatsScreen() {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
+              accessibilityRole="button"
               activeOpacity={0.7}
               onPress={() =>
                 router.push("/(app)/(tabs)/(stats)/measurements" as never)

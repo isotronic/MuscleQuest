@@ -385,6 +385,7 @@ export default function CreatePlanScreen() {
                 </ImageBackground>
               </View>
               <TextInput
+                accessibilityLabel={t`Training Plan Name`}
                 style={styles.input}
                 placeholderTextColor={colors.contentSecondary}
                 placeholder={t`Training Plan Name`}

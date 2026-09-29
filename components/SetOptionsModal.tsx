@@ -202,12 +202,12 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
       animationType="fade"
       statusBarTranslucent
     >
-      <TouchableWithoutFeedback onPress={onClose}>
+      <TouchableWithoutFeedback onPress={onClose} accessible={false}>
         <KeyboardAvoidingView
           style={styles.modalContainer}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <TouchableWithoutFeedback>
+          <TouchableWithoutFeedback accessible={false}>
             <Animated.View
               style={[styles.modalContent, { opacity: fadeAnim }]}
               accessibilityViewIsModal

@@ -242,6 +242,7 @@ export default function WorkoutCard({
           ]}
         >
           <Sortable.Touchable
+            accessibilityRole="button"
             onTap={() =>
               router.push(
                 `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}&exerciseIndex=${exerciseIndex}&trackingType=${item.tracking_type}`,
@@ -436,6 +437,7 @@ export default function WorkoutCard({
         </View>
       )}
       <TextInput
+        accessibilityLabel={t`Workout ${index + 1} name`}
         placeholder={t`Workout name`}
         placeholderTextColor={colors.contentSecondary}
         style={styles.input}

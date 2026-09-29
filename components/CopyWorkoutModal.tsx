@@ -49,6 +49,7 @@ export function CopyWorkoutModal({
           <Trans>Copy Workout</Trans>
         </ThemedText>
         <TextInput
+          accessibilityLabel={t`Workout name`}
           key={inputKey}
           style={styles.input}
           defaultValue={defaultName}

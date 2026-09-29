@@ -302,6 +302,7 @@ function ExerciseRow({
   return (
     <View style={styles.exerciseCard}>
       <TouchableOpacity
+        accessibilityRole="button"
         onPress={() => setExpanded((prev) => !prev)}
         style={styles.exerciseHeader}
         activeOpacity={0.7}

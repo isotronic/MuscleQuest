@@ -145,6 +145,7 @@ export default function StandaloneWorkoutScreen() {
 
     return (
       <TouchableOpacity
+        accessibilityRole="button"
         key={item.exercise_id}
         onPress={() =>
           router.push({
@@ -260,6 +261,11 @@ export default function StandaloneWorkoutScreen() {
               style={styles.shareRow}
               activeOpacity={0.7}
               disabled={publishMutation.isPending || isPublishedLoading}
+              accessibilityRole="switch"
+              accessibilityState={{
+                checked: isPublished,
+                busy: publishMutation.isPending || isPublishedLoading,
+              }}
             >
               <View style={styles.shareLeft}>
                 <AppIcon
@@ -282,7 +288,13 @@ export default function StandaloneWorkoutScreen() {
                 <ActivityIndicator size="small" color={colors.accent} />
               ) : (
                 <View pointerEvents="none">
-                  <Switch value={isPublished} color={colors.accent} />
+                  <Switch
+                    value={isPublished}
+                    color={colors.accent}
+                    // The row is the switch for screen readers.
+                    importantForAccessibility="no-hide-descendants"
+                    accessibilityElementsHidden
+                  />
                 </View>
               )}
             </TouchableOpacity>

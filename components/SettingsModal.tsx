@@ -155,11 +155,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   );
 
   return (
-    <Modal visible={visible} transparent={true} animationType="slide">
-      <TouchableWithoutFeedback onPress={onCancel}>
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={onCancel}
+    >
+      <TouchableWithoutFeedback onPress={onCancel} accessible={false}>
         <View style={styles.modalContainer}>
-          <TouchableWithoutFeedback>
-            <View style={styles.modalContent}>
+          <TouchableWithoutFeedback accessible={false}>
+            <View style={styles.modalContent} accessibilityViewIsModal>
               <ThemedText style={styles.modalHeader}>
                 {settingKey ? formatSettingKey(settingKey) : ""}
               </ThemedText>

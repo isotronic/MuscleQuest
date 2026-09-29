@@ -96,6 +96,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
 
   const renderPill = (pill: InsightPill) => (
     <Pressable
+      accessibilityRole="button"
       key={pill.label}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={

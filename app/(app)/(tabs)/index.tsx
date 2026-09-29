@@ -338,6 +338,7 @@ export default function HomeScreen() {
             </ThemedText>
             {pickerWorkouts.map((workout) => (
               <Pressable
+                accessibilityRole="button"
                 key={workout.id}
                 style={styles.pickerItem}
                 onPress={() => {
@@ -436,6 +437,7 @@ export default function HomeScreen() {
         <View style={styles.cardContainer}>
           {showResumeCard && (
             <Pressable
+              accessibilityRole="button"
               style={[
                 styles.workoutCard,
                 {
@@ -517,6 +519,7 @@ export default function HomeScreen() {
                     !completedAnyWorkoutToday;
                   return (
                     <Pressable
+                      accessibilityRole="button"
                       key={index}
                       style={[
                         styles.workoutCard,

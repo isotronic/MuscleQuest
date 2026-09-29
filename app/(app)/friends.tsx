@@ -307,6 +307,7 @@ function SearchTab({ currentUid, colors, borders }: SearchTabProps) {
     <View style={styles.searchContainer}>
       <View style={styles.searchRow}>
         <TextInput
+          accessibilityLabel={t`Email address`}
           style={[
             styles.input,
             { color: colors.contentPrimary, borderColor: borders.divider },

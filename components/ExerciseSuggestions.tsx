@@ -43,6 +43,7 @@ export default function ExerciseSuggestions({
 
           return (
             <TouchableOpacity
+              accessibilityRole="button"
               key={suggestion.exerciseId}
               style={styles.chip}
               onPress={() => onSelect(suggestion)}

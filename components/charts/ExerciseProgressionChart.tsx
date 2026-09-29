@@ -466,6 +466,7 @@ export const ExerciseProgressionChart: React.FC<
               const label = mode === "1rm" ? "1RM" : t`Weight`;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={mode}
                   onPress={() => setMetricMode(mode)}
                   style={[styles.metricPill, active && styles.metricPillActive]}

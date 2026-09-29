@@ -45,6 +45,7 @@ export default function StandaloneWorkoutListItem({
   );
   return (
     <Pressable
+      accessibilityRole="button"
       style={[styles.container, flushEdges && styles.containerFlush]}
       onPress={onPress}
       disabled={disabled}

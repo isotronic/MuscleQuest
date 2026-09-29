@@ -289,6 +289,7 @@ export default function FriendProfileScreen() {
         <View style={styles.cardGroup}>
           {plans.map((plan) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={plan.localPlanId}
               style={[styles.card, { backgroundColor: colors.card }]}
               onPress={() =>
@@ -318,6 +319,7 @@ export default function FriendProfileScreen() {
                 </AppText>
               </View>
               <TouchableOpacity
+                accessibilityRole="button"
                 onPress={() => {
                   importPlan.mutate(plan, {
                     onSuccess: () =>
@@ -380,6 +382,7 @@ export default function FriendProfileScreen() {
         <View style={styles.cardGroup}>
           {workouts.map((workout) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={workout.localWorkoutId}
               style={[styles.card, { backgroundColor: colors.card }]}
               onPress={() =>
@@ -412,6 +415,7 @@ export default function FriendProfileScreen() {
                 </AppText>
               </View>
               <TouchableOpacity
+                accessibilityRole="button"
                 onPress={() => {
                   importWorkout.mutate(workout, {
                     onSuccess: () =>
@@ -475,6 +479,7 @@ export default function FriendProfileScreen() {
         <View style={styles.cardGroup}>
           {exercises.map((exercise) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={exercise.localExerciseId}
               style={[styles.card, { backgroundColor: colors.card }]}
               onPress={() =>
@@ -502,6 +507,7 @@ export default function FriendProfileScreen() {
                 </AppText>
               </View>
               <TouchableOpacity
+                accessibilityRole="button"
                 onPress={() => {
                   importExercise.mutate(exercise, {
                     onSuccess: () =>

@@ -149,12 +149,12 @@ export const PlateCalculatorModal: React.FC<PlateCalculatorModalProps> = ({
       animationType="fade"
       statusBarTranslucent
     >
-      <TouchableWithoutFeedback onPress={handleClose}>
+      <TouchableWithoutFeedback onPress={handleClose} accessible={false}>
         <KeyboardAvoidingView
           style={styles.modalContainer}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <TouchableWithoutFeedback>
+          <TouchableWithoutFeedback accessible={false}>
             <View style={styles.modalContent} accessibilityViewIsModal>
               <ThemedText
                 ref={titleRef}

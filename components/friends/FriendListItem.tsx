@@ -33,6 +33,7 @@ export const FriendListItem = ({ friend, onPress }: Props) => {
 
   return (
     <Pressable
+      accessibilityRole="button"
       onPress={() => onPress(friend.uid)}
       onLongPress={handleLongPress}
       style={[styles.container, { borderBottomColor: borders.divider }]}

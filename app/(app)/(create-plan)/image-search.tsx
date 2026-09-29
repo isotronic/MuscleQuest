@@ -59,7 +59,11 @@ export default function ImageSearchScreen() {
         numColumns={2}
         renderItem={({ item }: { item: { id: string; uri: string } }) => (
           <View style={styles.imageContainer}>
-            <TouchableOpacity onPress={() => handleImageSelect(item.uri)}>
+            <TouchableOpacity
+              onPress={() => handleImageSelect(item.uri)}
+              accessibilityRole="imagebutton"
+              accessibilityLabel={t`Use this image`}
+            >
               <AppImage source={{ uri: item.uri }} style={styles.image} />
             </TouchableOpacity>
           </View>

@@ -149,6 +149,7 @@ export default function SetsOverviewScreen() {
           style={[styles.setItem, item.isWarmup && styles.warmupSetItem]}
         >
           <TouchableOpacity
+            accessibilityRole="button"
             onPress={() => handleEditSet(index)}
             style={styles.setContent}
           >
@@ -239,6 +240,7 @@ export default function SetsOverviewScreen() {
             </ThemedText>
           </View>
           <Switch
+            accessibilityLabel={t`Track Weight`}
             value={isWeightedOverride}
             onValueChange={handleToggleWeighted}
             trackColor={{

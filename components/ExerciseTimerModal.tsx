@@ -224,7 +224,11 @@ export const ExerciseTimerModal: React.FC<ExerciseTimerModalProps> = ({
                 </ThemedText>
               )}
 
-              <TouchableOpacity style={styles.stopButton} onPress={handleStop}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                style={styles.stopButton}
+                onPress={handleStop}
+              >
                 <ThemedText style={styles.stopButtonText}>
                   <Trans>Stop</Trans>
                 </ThemedText>

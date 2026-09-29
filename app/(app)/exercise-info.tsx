@@ -196,6 +196,7 @@ export default function ExerciseInfoScreen() {
           const active = activeTab === tab;
           return (
             <TouchableOpacity
+              accessibilityRole="button"
               key={tab}
               onPress={() => setActiveTab(tab)}
               style={[styles.tabPill, active && styles.tabPillActive]}

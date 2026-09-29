@@ -92,6 +92,10 @@ export default function PlanScheduleEditor({
           const workoutName = hasWorkout
             ? workouts[workoutIdx]?.name || `W${workoutIdx + 1}`
             : t`Rest`;
+          // The tile abbreviates unnamed workouts to "W2"; say it in full.
+          const spokenWorkoutName = hasWorkout
+            ? workouts[workoutIdx]?.name || t`Workout ${workoutIdx + 1}`
+            : t`Rest`;
 
           return (
             <View key={dow} style={styles.tileWrapper}>
@@ -101,6 +105,7 @@ export default function PlanScheduleEditor({
                 {_(label)}
               </ThemedText>
               <Pressable
+                accessibilityRole="button"
                 style={[
                   styles.dayTile,
                   hasWorkout && styles.dayTileActive,
@@ -108,6 +113,7 @@ export default function PlanScheduleEditor({
                 ]}
                 onPress={() => !disabled && setPickerDow(dow)}
                 disabled={disabled}
+                accessibilityLabel={`${_(DAY_FULL_NAMES[dow])}: ${spokenWorkoutName}`}
               >
                 <Text
                   style={[
@@ -143,11 +149,13 @@ export default function PlanScheduleEditor({
                 pickerDow !== null && schedule[pickerDow] === idx;
               return (
                 <Pressable
+                  accessibilityRole="button"
                   key={idx}
                   style={[
                     styles.pickerItem,
                     isSelected && styles.pickerItemSelected,
                   ]}
+                  accessibilityState={{ selected: isSelected }}
                   onPress={() => {
                     if (pickerDow !== null) {
                       onChange({ ...schedule, [pickerDow]: idx });
@@ -170,6 +178,7 @@ export default function PlanScheduleEditor({
               );
             })}
             <Pressable
+              accessibilityRole="button"
               style={[
                 styles.pickerItem,
                 styles.pickerItemLast,
@@ -177,6 +186,10 @@ export default function PlanScheduleEditor({
                   schedule[pickerDow] === undefined &&
                   styles.pickerItemSelected,
               ]}
+              accessibilityState={{
+                selected:
+                  pickerDow !== null && schedule[pickerDow] === undefined,
+              }}
               onPress={() => {
                 if (pickerDow !== null) {
                   const updated = { ...schedule };
