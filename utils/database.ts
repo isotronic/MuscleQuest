@@ -206,7 +206,14 @@ export const updateAppExerciseIds = async (): Promise<void> => {
   }
 };
 
-export const copyDataFromAppDataToUserData = async (): Promise<void> => {
+/** Called with rows done and total rows while a long startup step runs. */
+export type ProgressCallback = (done: number, total: number) => void;
+
+const EXERCISE_PROGRESS_BATCH = 50;
+
+export const copyDataFromAppDataToUserData = async (
+  onProgress?: ProgressCallback,
+): Promise<void> => {
   let appDataDB: SQLite.SQLiteDatabase | undefined;
   let userDataDB: SQLite.SQLiteDatabase | undefined;
   try {
@@ -261,9 +268,11 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
             ? columns.filter((col) => col !== "exercise_id")
             : columns;
 
+          const reportsProgress = tableName === "exercises" && onProgress;
           if (tableName === "exercises") {
             insertColumns.push("app_exercise_id");
           }
+          if (reportsProgress) onProgress(0, result.length);
 
           const placeholders = insertColumns.map(() => "?").join(", ");
           const insertStatement = `INSERT INTO ${tableName} (${insertColumns.join(", ")}) VALUES (${placeholders})`;
@@ -276,7 +285,14 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
             .join(", ");
           const updateStatement = `UPDATE ${tableName} SET ${updatePlaceholders} WHERE app_exercise_id = ?`;
 
-          for (const row of result) {
+          for (const [rowIndex, row] of result.entries()) {
+            if (
+              reportsProgress &&
+              rowIndex > 0 &&
+              rowIndex % EXERCISE_PROGRESS_BATCH === 0
+            ) {
+              onProgress(rowIndex, result.length);
+            }
             let shouldInsertOrUpdate = true;
 
             if (
@@ -357,6 +373,7 @@ export const copyDataFromAppDataToUserData = async (): Promise<void> => {
 
           await userDataDB!.execAsync("COMMIT");
           inTransaction = false;
+          if (reportsProgress) onProgress(result.length, result.length);
         }
         shouldUpdateDataVersion = true;
       } catch (error: any) {

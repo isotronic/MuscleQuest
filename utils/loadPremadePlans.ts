@@ -1,5 +1,5 @@
 import { Plan } from "@/hooks/useAllPlansQuery";
-import { openDatabase } from "./database";
+import { openDatabase, type ProgressCallback } from "./database";
 import { SQLiteDatabase } from "expo-sqlite";
 import Bugsnag from "@bugsnag/expo";
 
@@ -141,7 +141,7 @@ const insertPlans = async (db: SQLiteDatabase, plans: Plan[]) => {
   });
 };
 
-export const loadPremadePlans = async () => {
+export const loadPremadePlans = async (onProgress?: ProgressCallback) => {
   let dataVersion: number | null = null;
   let db: SQLiteDatabase | undefined;
   try {
@@ -152,6 +152,14 @@ export const loadPremadePlans = async () => {
     );
     dataVersion = versionResult ? Number(versionResult.value) : null;
 
+    // One step per plan file this boot will load (7 on a fresh install).
+    const totalFiles =
+      (dataVersion === null || dataVersion < 1.8 ? 2 : 0) +
+      ((dataVersion ?? 0) < 2.1 ? 5 : 0);
+    let filesDone = 0;
+    const fileDone = () => onProgress?.(++filesDone, totalFiles);
+    if (totalFiles > 0) onProgress?.(0, totalFiles);
+
     if (dataVersion === null || dataVersion < 1.8) {
       console.log("Condition met: Updating data version...");
       const plan1 = require("@/assets/data/3-day-full-body.json");
@@ -160,6 +168,7 @@ export const loadPremadePlans = async () => {
       for (const file of planFiles) {
         const plansArray = Array.isArray(file) ? file : [file];
         await insertPlans(db, plansArray);
+        fileDone();
       }
 
       console.log("Updating data version to 1.8...");
@@ -201,6 +210,7 @@ export const loadPremadePlans = async () => {
       for (const file of newPlanFiles) {
         const plansArray = Array.isArray(file) ? file : [file];
         await insertPlans(db, plansArray);
+        fileDone();
       }
 
       console.log("Updating data version to 2.1...");

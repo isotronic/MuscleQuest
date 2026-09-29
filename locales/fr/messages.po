@@ -1198,7 +1198,7 @@ msgstr "Une nouvelle version a été téléchargée. Appuie sur le bouton ci-des
 msgid "A plateau advisory note appears if an exercise has been at the same load for four or more sessions."
 msgstr "Une note d'avis de plateau apparaît si un exercice stagne à la même charge depuis quatre séances ou plus."
 
-#: app/_layout.tsx:89
+#: app/_layout.tsx:95
 msgid "A render error has occurred. Press the button to reload."
 msgstr "Une erreur d'affichage s'est produite. Appuie sur le bouton pour recharger."
 
@@ -1405,6 +1405,10 @@ msgstr "Ajouté à mes entraînements"
 #: constants/HelpData.ts:296
 msgid "Adding Friends"
 msgstr "Ajouter des amis"
+
+#: components/FirstLaunchProgress.tsx:26
+msgid "Adding ready-made training plans"
+msgstr "Ajout des programmes d'entraînement prêts à l'emploi"
 
 #: constants/dbTranslations.ts:22
 msgid "adductors"
@@ -3225,7 +3229,7 @@ msgstr "machine à levier"
 msgid "Load up"
 msgstr "Augmenter la charge"
 
-#: app/_layout.tsx:218
+#: app/_layout.tsx:235
 msgid "Loading data, please wait..."
 msgstr "Chargement des données, veuillez patienter..."
 
@@ -3924,7 +3928,7 @@ msgstr "Réduire la charge"
 msgid "Reduce to {0}{unit}"
 msgstr "Réduire à {0}{unit}"
 
-#: app/_layout.tsx:92
+#: app/_layout.tsx:98
 msgid "Reload"
 msgstr "Recharger"
 
@@ -4347,6 +4351,10 @@ msgstr "Séries et exercices"
 #: app/(app)/(create-plan)/_layout.tsx:28
 msgid "Sets Overview"
 msgstr "Vue d'ensemble des séries"
+
+#: components/FirstLaunchProgress.tsx:22
+msgid "Setting up your exercise library ({done} of {total})"
+msgstr "Préparation de ta bibliothèque d'exercices ({done} sur {total})"
 
 #: app/(app)/(tabs)/index.tsx:186
 msgid "settings"
@@ -4813,6 +4821,10 @@ msgstr "Cet exercice est déjà dans ton entraînement. Choisis-en un autre."
 #: app/(app)/friend-profile.tsx:144
 #~ msgid "This friend hasn't shared any content yet."
 #~ msgstr "Cet ami n'a encore partagé aucun contenu."
+
+#: components/FirstLaunchProgress.tsx:42
+msgid "This only happens once."
+msgstr "Cela n'arrive qu'une fois."
 
 #: app/(app)/delete-account.tsx:171
 msgid "This permanently deletes your MuscleQuest account. It cannot be undone."

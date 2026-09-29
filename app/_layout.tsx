@@ -44,7 +44,13 @@ import {
 import { AuthProvider } from "@/context/AuthProvider";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { fetchSettings } from "@/utils/database";
-import { runStartup, type StartupResult } from "@/utils/startup";
+import {
+  runStartup,
+  type StartupProgress,
+  type StartupResult,
+} from "@/utils/startup";
+import { throttleProgress } from "@/utils/throttleProgress";
+import { FirstLaunchProgress } from "@/components/FirstLaunchProgress";
 import { StartupRecoveryScreen } from "@/components/StartupRecoveryScreen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -124,6 +130,8 @@ const appCheckReady = setupAppCheck().catch((error) => {
 function RootLayout() {
   // null while startup is still running (or the app is about to reload).
   const [startup, setStartup] = useState<StartupResult | null>(null);
+  // Only set on first launch, when the exercise library and plans are copied.
+  const [progress, setProgress] = useState<StartupProgress | null>(null);
   const [loaded, error] = useFonts({
     Inter_100Thin,
     Inter_200ExtraLight,
@@ -145,7 +153,12 @@ function RootLayout() {
   }, [navigationRef]);
 
   useEffect(() => {
-    runStartup(appCheckReady)
+    const reportProgress = throttleProgress((next) => {
+      // A returning user's boot never reports progress and keeps the splash.
+      SplashScreen.hide();
+      setProgress(next);
+    }, 100);
+    runStartup(appCheckReady, reportProgress)
       .then((result) => {
         if (result.status !== "reloading") setStartup(result);
       })
@@ -213,10 +226,16 @@ function RootLayout() {
       <ThemedView
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
-        <ActivityIndicator size="large" />
-        <ThemedText>
-          <Trans>Loading data, please wait...</Trans>
-        </ThemedText>
+        {progress ? (
+          <FirstLaunchProgress progress={progress} />
+        ) : (
+          <>
+            <ActivityIndicator size="large" />
+            <ThemedText>
+              <Trans>Loading data, please wait...</Trans>
+            </ThemedText>
+          </>
+        )}
       </ThemedView>
     );
   }

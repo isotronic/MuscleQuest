@@ -1197,7 +1197,7 @@ msgstr "A new version has been downloaded. Tap the button below to restart and a
 msgid "A plateau advisory note appears if an exercise has been at the same load for four or more sessions."
 msgstr "A plateau advisory note appears if an exercise has been at the same load for four or more sessions."
 
-#: app/_layout.tsx:89
+#: app/_layout.tsx:95
 msgid "A render error has occurred. Press the button to reload."
 msgstr "A render error has occurred. Press the button to reload."
 
@@ -1404,6 +1404,10 @@ msgstr "Added to my workouts"
 #: constants/HelpData.ts:296
 msgid "Adding Friends"
 msgstr "Adding Friends"
+
+#: components/FirstLaunchProgress.tsx:26
+msgid "Adding ready-made training plans"
+msgstr "Adding ready-made training plans"
 
 #: constants/dbTranslations.ts:22
 msgid "adductors"
@@ -3224,7 +3228,7 @@ msgstr "leverage machine"
 msgid "Load up"
 msgstr "Load up"
 
-#: app/_layout.tsx:218
+#: app/_layout.tsx:235
 msgid "Loading data, please wait..."
 msgstr "Loading data, please wait..."
 
@@ -3923,7 +3927,7 @@ msgstr "Reduce load"
 msgid "Reduce to {0}{unit}"
 msgstr "Reduce to {0}{unit}"
 
-#: app/_layout.tsx:92
+#: app/_layout.tsx:98
 msgid "Reload"
 msgstr "Reload"
 
@@ -4346,6 +4350,10 @@ msgstr "Sets & Exercises"
 #: app/(app)/(create-plan)/_layout.tsx:28
 msgid "Sets Overview"
 msgstr "Sets Overview"
+
+#: components/FirstLaunchProgress.tsx:22
+msgid "Setting up your exercise library ({done} of {total})"
+msgstr "Setting up your exercise library ({done} of {total})"
 
 #: app/(app)/(tabs)/index.tsx:186
 msgid "settings"
@@ -4812,6 +4820,10 @@ msgstr "This exercise is already in your workout. Please choose a different one.
 #: app/(app)/friend-profile.tsx:144
 #~ msgid "This friend hasn't shared any content yet."
 #~ msgstr "This friend hasn't shared any content yet."
+
+#: components/FirstLaunchProgress.tsx:42
+msgid "This only happens once."
+msgstr "This only happens once."
 
 #: app/(app)/delete-account.tsx:171
 msgid "This permanently deletes your MuscleQuest account. It cannot be undone."

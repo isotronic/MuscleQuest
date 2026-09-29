@@ -1095,6 +1095,37 @@ describe("copyDataFromAppDataToUserData", () => {
       "equipment_list read failed",
     );
   });
+  it("reports exercise copy progress in batches up to the total", async () => {
+    mockDb.getFirstAsync.mockResolvedValue(null);
+    const exercises = Array.from({ length: 120 }, (_, i) => ({
+      exercise_id: i + 1,
+      name: `Ex ${i + 1}`,
+    }));
+    mockDb.getAllAsync
+      .mockResolvedValueOnce([]) // muscles
+      .mockResolvedValueOnce([]) // equipment_list
+      .mockResolvedValueOnce([]) // body_parts
+      .mockResolvedValueOnce(exercises);
+    const onProgress = jest.fn();
+
+    await copyDataFromAppDataToUserData(onProgress);
+
+    expect(onProgress.mock.calls).toEqual([
+      [0, 120],
+      [50, 120],
+      [100, 120],
+      [120, 120],
+    ]);
+  });
+
+  it("reports no progress when the data was already copied", async () => {
+    mockDb.getFirstAsync.mockResolvedValue({ value: "2.1" });
+    const onProgress = jest.fn();
+
+    await copyDataFromAppDataToUserData(onProgress);
+
+    expect(onProgress).not.toHaveBeenCalled();
+  });
 });
 
 // ---------------------------------------------------------------------------

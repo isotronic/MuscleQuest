@@ -240,3 +240,37 @@ it("should copy missing exercises from appData3.db into userData.db", async () =
     expect.arrayContaining([11, "Barbell Bench Press"]),
   );
 });
+
+it("reports one progress step per plan file on a fresh install", async () => {
+  mockGetFirstAsync.mockImplementation((sql: string) => {
+    if (sql.includes("app_exercise_id = ?"))
+      return Promise.resolve({ exercise_id: 42 });
+    return Promise.resolve(null);
+  });
+  const onProgress = jest.fn();
+
+  await loadPremadePlans(onProgress);
+
+  expect(onProgress.mock.calls).toEqual([
+    [0, 7],
+    [1, 7],
+    [2, 7],
+    [3, 7],
+    [4, 7],
+    [5, 7],
+    [6, 7],
+    [7, 7],
+  ]);
+});
+
+it("reports no progress when the plans are already loaded", async () => {
+  mockGetFirstAsync.mockImplementation((sql: string) => {
+    if (sql.includes("key = ?")) return Promise.resolve({ value: "2.1" });
+    return Promise.resolve(null);
+  });
+  const onProgress = jest.fn();
+
+  await loadPremadePlans(onProgress);
+
+  expect(onProgress).not.toHaveBeenCalled();
+});

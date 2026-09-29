@@ -19,6 +19,13 @@ import {
 export const DATABASE_RESTORED_KEY = "databaseRestored";
 export const STARTUP_FAILURE_COUNT_KEY = "startupFailureCount";
 
+/** First-launch seeding progress; returning users' boots report none. */
+export type StartupProgress = {
+  stage: "exercises" | "plans";
+  done: number;
+  total: number;
+};
+
 export type StartupResult =
   | { status: "ok" }
   | { status: "reloading" }
@@ -32,7 +39,9 @@ export type StartupResult =
 // < 2.0) or only inserts rows that are missing (insertDefaultSettings, premade
 // plans by app_plan_id). An older backup runs the same upgrade path an older
 // install would.
-const initializeDatabases = async () => {
+const initializeDatabases = async (
+  onProgress?: (progress: StartupProgress) => void,
+) => {
   // Must run before userData.db is opened: if a restore swap was interrupted,
   // opening it would create an empty database over the missing original. A
   // failure here fails startup rather than continuing without the user's data.
@@ -42,9 +51,15 @@ const initializeDatabases = async () => {
   // Must run before copyData: it only acts on dataVersion 1.1, and copyData
   // matches exercises by app_exercise_id before advancing the version to 1.7.
   await updateAppExerciseIds();
-  await copyDataFromAppDataToUserData();
+  await copyDataFromAppDataToUserData(
+    onProgress &&
+      ((done, total) => onProgress({ stage: "exercises", done, total })),
+  );
   await insertDefaultSettings();
-  await loadPremadePlans();
+  await loadPremadePlans(
+    onProgress &&
+      ((done, total) => onProgress({ stage: "plans", done, total })),
+  );
   await syncExerciseFlagsFromAppData();
 };
 
@@ -57,13 +72,14 @@ export const resetStartupFailureCount = () =>
 // recovery screen instead of reloading forever.
 export const runStartup = async (
   appCheckReady: Promise<unknown>,
+  onProgress?: (progress: StartupProgress) => void,
 ): Promise<StartupResult> => {
   const databaseRestored =
     (await getAsyncStorageItem(DATABASE_RESTORED_KEY)) === "true";
   console.log("Restore complete:", databaseRestored);
 
   try {
-    await Promise.all([appCheckReady, initializeDatabases()]);
+    await Promise.all([appCheckReady, initializeDatabases(onProgress)]);
   } catch (e) {
     const error = e instanceof Error ? e : new Error(String(e));
     console.error("Database initialization error:", error);

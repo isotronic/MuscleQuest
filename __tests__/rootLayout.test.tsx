@@ -68,6 +68,7 @@ jest.mock("@lingui/core/macro", () => ({
 jest.mock("@/utils/i18n", () => ({ i18n: {} }));
 jest.mock("@/theme", () => ({
   AppThemeProvider: ({ children }: any) => children,
+  useAppTheme: () => ({ colors: { accent: "#fc0", accentSubtle: "#321" } }),
 }));
 jest.mock("@/context/AuthProvider", () => ({
   AuthProvider: ({ children }: any) => children,
@@ -160,5 +161,28 @@ describe("RootLayout", () => {
     await waitFor(() => expect(runStartup).toHaveBeenCalled());
     expect(SplashScreen.hide).not.toHaveBeenCalled();
     expect(screen.queryByText("app-slot")).toBeNull();
+  });
+
+  it("shows setup progress on first launch and hides the splash for it", async () => {
+    (runStartup as jest.Mock).mockImplementation(
+      (_appCheck: unknown, onProgress: (p: unknown) => void) => {
+        onProgress({ stage: "exercises", done: 50, total: 780 });
+        return new Promise(() => {});
+      },
+    );
+    render(<RootLayout />);
+    expect(
+      await screen.findByText("Setting up your exercise library (50 of 780)"),
+    ).toBeTruthy();
+    expect(screen.getByText("This only happens once.")).toBeTruthy();
+    expect(SplashScreen.hide).toHaveBeenCalled();
+  });
+
+  it("shows no progress UI on a returning user's boot", async () => {
+    (runStartup as jest.Mock).mockReturnValue(new Promise(() => {}));
+    render(<RootLayout />);
+    await waitFor(() => expect(runStartup).toHaveBeenCalled());
+    expect(screen.queryByText("This only happens once.")).toBeNull();
+    expect(SplashScreen.hide).not.toHaveBeenCalled();
   });
 });
