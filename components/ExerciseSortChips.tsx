@@ -44,6 +44,8 @@ export default function ExerciseSortChips({
             style={[styles.chip, sortMode === mode && styles.chipActive]}
             onPress={() => onSortModeChange(mode)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ selected: sortMode === mode }}
           >
             <Text
               style={[

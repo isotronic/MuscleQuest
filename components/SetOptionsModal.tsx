@@ -237,10 +237,12 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                           String(Math.max(parseFloat(prev || "0") - 1, 0)),
                         )
                       }
+                      accessibilityLabel={t`Decrease target distance`}
                     />
                     <TextInput
                       style={styles.input}
                       value={distance}
+                      accessibilityLabel={t`Target distance in ${distanceUnit}`}
                       onChangeText={(v: string) => {
                         const cleaned = v.replace(/[^0-9.]/g, "");
                         const parts = cleaned.split(".");
@@ -263,6 +265,7 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                           String(parseFloat(prev || "0") + 1),
                         )
                       }
+                      accessibilityLabel={t`Increase target distance`}
                     />
                   </View>
                 </View>
@@ -282,10 +285,12 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                           String(Math.max(Number(prev) - 1, 0)),
                         )
                       }
+                      accessibilityLabel={t`Decrease minimum reps`}
                     />
                     <TextInput
                       style={styles.input}
                       value={repsMin ? repsMin : ""}
+                      accessibilityLabel={t`Min reps`}
                       onChangeText={setRepsMin}
                       keyboardType="numeric"
                       selectTextOnFocus={true}
@@ -298,6 +303,7 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                       onPress={() =>
                         setRepsMin((prev) => String(Number(prev) + 1))
                       }
+                      accessibilityLabel={t`Increase minimum reps`}
                     />
                   </View>
 
@@ -315,10 +321,12 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                           String(Math.max(Number(prev) - 1, 0)),
                         )
                       }
+                      accessibilityLabel={t`Decrease maximum reps`}
                     />
                     <TextInput
                       style={styles.input}
                       value={repsMax ? repsMax : ""}
+                      accessibilityLabel={t`Max reps`}
                       onChangeText={setRepsMax}
                       keyboardType="numeric"
                       selectTextOnFocus={true}
@@ -331,6 +339,7 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                       onPress={() =>
                         setRepsMax((prev) => String(Number(prev) + 1))
                       }
+                      accessibilityLabel={t`Increase maximum reps`}
                     />
                   </View>
                 </View>

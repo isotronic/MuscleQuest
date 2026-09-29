@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { AppImage, AppIcon } from "@/components/ui";
+import { AppImage, AppIcon, AppIconButton } from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
@@ -18,7 +18,6 @@ import WeeklyScheduleDisplay from "@/components/WeeklyScheduleDisplay";
 import {
   Snackbar,
   Button,
-  IconButton,
   Portal,
   Modal,
   Switch,
@@ -91,7 +90,8 @@ function PlanWorkoutCard({
           </Trans>
         </ThemedText>
       </TouchableOpacity>
-      <IconButton
+      <AppIconButton
+        accessibilityLabel={t`Copy ${workout.name || `Day ${index + 1}`} to another plan`}
         icon="content-copy"
         size={20}
         iconColor={colors.contentSecondary}
@@ -284,7 +284,9 @@ export default function PlanOverviewScreen() {
                   referenceId={Number(planId)}
                   buttonType="icon"
                 />
-                <IconButton
+                <AppIconButton
+                  accessibilityLabel={t`Delete plan`}
+                  accessibilityHint={t`Deletes this plan. Your workout history is kept.`}
                   icon="trash-can-outline"
                   size={25}
                   style={{ marginRight: 0 }}

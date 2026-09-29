@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
+import { AppIconButton } from "@/components/ui";
 import {
   StyleSheet,
   View,
@@ -13,13 +14,7 @@ import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
-import {
-  ActivityIndicator,
-  Button,
-  IconButton,
-  Portal,
-  Modal,
-} from "react-native-paper";
+import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
 import {
   useRouter,
   Stack,
@@ -379,7 +374,8 @@ export default function CreatePlanScreen() {
                   source={{ uri: planImageUrl }}
                   style={styles.image}
                 >
-                  <IconButton
+                  <AppIconButton
+                    accessibilityLabel={t`Change plan image`}
                     icon="pen"
                     size={20}
                     iconColor={colors.accent}

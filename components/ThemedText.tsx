@@ -50,7 +50,18 @@ export function ThemedText({
     }
   })();
 
-  return <Text style={[styles.base, typeStyle, style]} {...rest} />;
+  // Titles and subtitles are section headings; screen readers let users jump
+  // between headers, so expose them as such unless the caller overrides it.
+  const role =
+    type === "title" || type === "subtitle" ? ("header" as const) : undefined;
+
+  return (
+    <Text
+      accessibilityRole={role}
+      style={[styles.base, typeStyle, style]}
+      {...rest}
+    />
+  );
 }
 
 const styles = StyleSheet.create({

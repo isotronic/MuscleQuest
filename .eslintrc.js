@@ -27,6 +27,14 @@ const unitRestrictions = [
   message: "Use the helpers and constants in @/utils/units.",
 }));
 
+// Icon-only buttons need a spoken label; AppIconButton makes it a required prop.
+const iconButtonRestriction = {
+  name: "react-native-paper",
+  importNames: ["IconButton"],
+  message:
+    "Use AppIconButton from @/components/ui, which requires an accessibilityLabel.",
+};
+
 module.exports = {
   extends: ["expo", "prettier"],
   plugins: ["prettier"],
@@ -39,8 +47,16 @@ module.exports = {
     ],
     "expo/use-dom-exports": "off",
     "no-restricted-syntax": ["error", ...dateRestrictions, ...unitRestrictions],
+    "no-restricted-imports": ["error", { paths: [iconButtonRestriction] }],
   },
   overrides: [
+    {
+      // The wrapper that enforces the label.
+      files: ["components/ui/AppIconButton.tsx"],
+      rules: {
+        "no-restricted-imports": "off",
+      },
+    },
     {
       // jest.mock factories and isolated module loads require() by design
       files: ["**/__tests__/**", "**/*.test.ts", "**/*.test.tsx"],

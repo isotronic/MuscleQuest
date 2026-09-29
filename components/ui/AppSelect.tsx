@@ -22,6 +22,8 @@ interface AppSelectBaseProps {
   flatListProps?: Record<string, unknown>;
   maxHeight?: number;
   disabled?: boolean;
+  /** What the field is, e.g. "Equipment"; the current selection is appended. */
+  accessibilityLabel?: string;
 }
 
 interface AppSelectSingleProps extends AppSelectBaseProps {
@@ -54,7 +56,18 @@ export function AppSelect(props: AppSelectProps) {
     [inputs, colors.surface, radii],
   );
 
+  const selectionText = props.multiple
+    ? props.data
+        .filter((option) => props.value.includes(option.value))
+        .map((option) => option.label)
+        .join(", ")
+    : props.data.find((option) => option.value === props.value)?.label;
+  const accessibilityLabel = props.accessibilityLabel
+    ? `${props.accessibilityLabel}: ${selectionText || props.placeholder || ""}`
+    : undefined;
+
   const sharedProps = {
+    accessibilityLabel,
     data: props.data,
     labelField: "label" as const,
     valueField: "value" as const,

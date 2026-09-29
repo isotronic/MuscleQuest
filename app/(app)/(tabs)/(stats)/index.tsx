@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { AppIconButton } from "@/components/ui";
 import {
   RefreshControl,
   ScrollView,
@@ -9,12 +10,7 @@ import {
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import {
-  ActivityIndicator,
-  Button,
-  Divider,
-  IconButton,
-} from "react-native-paper";
+import { ActivityIndicator, Button, Divider } from "react-native-paper";
 import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -506,7 +502,8 @@ export default function StatsScreen() {
               <Trans>Workout History</Trans>
             </ThemedText>
             {(completedWorkouts?.length ?? 0) > 0 && (
-              <IconButton
+              <AppIconButton
+                accessibilityLabel={t`Open workout calendar`}
                 icon="calendar-month"
                 size={20}
                 iconColor={colors.accent}

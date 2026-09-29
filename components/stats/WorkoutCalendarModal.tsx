@@ -12,7 +12,8 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { Modal, Portal, Divider, IconButton } from "react-native-paper";
+import { Modal, Portal, Divider } from "react-native-paper";
+import { AppIconButton } from "@/components/ui";
 import { CalendarList, DateData } from "react-native-calendars";
 import { addMonths, format, parseISO, subMonths } from "date-fns";
 import { ThemedText } from "@/components/ThemedText";
@@ -133,7 +134,8 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
           <ThemedText style={styles.title}>
             <Trans>Workout Calendar</Trans>
           </ThemedText>
-          <IconButton
+          <AppIconButton
+            accessibilityLabel={t`Close`}
             icon="close"
             size={20}
             iconColor={colors.contentSecondary}

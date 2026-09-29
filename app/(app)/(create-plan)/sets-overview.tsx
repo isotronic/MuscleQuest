@@ -180,6 +180,7 @@ export default function SetsOverviewScreen() {
             size={24}
             color={colors.contentPrimary}
             onPress={() => handleDeleteSet(index)}
+            accessibilityLabel={t`Delete set ${index + 1}`}
             style={styles.deleteIcon}
           />
         </ThemedView>

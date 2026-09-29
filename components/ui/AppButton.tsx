@@ -17,6 +17,11 @@ interface AppButtonProps {
   style?: StyleProp<ViewStyle>;
   labelStyle?: StyleProp<TextStyle>;
   children: React.ReactNode;
+  /** Defaults to the visible text; set it when the text alone is ambiguous. */
+  accessibilityLabel?: string;
+  /** Say what happens, especially for destructive actions. */
+  accessibilityHint?: string;
+  testID?: string;
 }
 
 export function AppButton({
@@ -27,6 +32,9 @@ export function AppButton({
   style,
   labelStyle,
   children,
+  accessibilityLabel,
+  accessibilityHint,
+  testID,
 }: AppButtonProps) {
   const { colors } = useAppTheme();
 
@@ -54,6 +62,9 @@ export function AppButton({
       style={style}
       labelStyle={labelStyle}
       buttonColor={buttonColor}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      testID={testID}
     >
       {children}
     </Button>

@@ -198,6 +198,8 @@ export default function PlateInventoryScreen() {
                       : colors.contentPrimary
                   }
                   onPress={() => changePairs(plate.weight, -1)}
+                  disabled={plate.pairs === 0}
+                  accessibilityLabel={t`Remove a pair of ${formatWeight(plate.weight)} ${weightUnit} plates`}
                 />
                 <ThemedText
                   style={[
@@ -217,6 +219,8 @@ export default function PlateInventoryScreen() {
                       : colors.contentPrimary
                   }
                   onPress={() => changePairs(plate.weight, 1)}
+                  disabled={plate.pairs >= MAX_PAIRS}
+                  accessibilityLabel={t`Add a pair of ${formatWeight(plate.weight)} ${weightUnit} plates`}
                 />
               </View>
 
@@ -226,6 +230,7 @@ export default function PlateInventoryScreen() {
                 size={24}
                 color={colors.danger}
                 onPress={() => removePlate(plate.weight)}
+                accessibilityLabel={t`Remove ${formatWeight(plate.weight)} ${weightUnit} plates`}
               />
             </View>
           ))

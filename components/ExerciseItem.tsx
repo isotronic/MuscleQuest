@@ -6,6 +6,7 @@ import { AppImage } from "@/components/ui";
 import { capitalizeWords } from "@/utils/utility";
 import { Exercise } from "@/utils/database";
 import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
 import {
   bodyPartTranslations,
   equipmentTranslations,
@@ -41,9 +42,27 @@ const ExerciseItem = ({
     [item.image],
   );
 
+  const bodyPartLabel = bodyPartTranslations[item.body_part]
+    ? _(bodyPartTranslations[item.body_part])
+    : capitalizeWords(item.body_part);
+  const equipmentLabel = equipmentTranslations[item.equipment]
+    ? _(equipmentTranslations[item.equipment])
+    : capitalizeWords(item.equipment);
+
+  // Paper's Checkbox forwards extra props to its touchable but does not
+  // declare accessibilityLabel in its types.
+  const checkboxA11y = { accessibilityLabel: t`Select ${item.name}` } as object;
+
+  // The row and the checkbox are siblings so a screen reader can reach both;
+  // a checkbox nested inside an accessible row is merged away on iOS.
   return (
-    <TouchableOpacity onPress={() => onPress(item)}>
-      <View key={item.exercise_id} style={styles.exerciseItem}>
+    <View key={item.exercise_id} style={styles.exerciseItem}>
+      <TouchableOpacity
+        onPress={() => onPress(item)}
+        style={styles.exerciseRow}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.name}, ${bodyPartLabel}, ${equipmentLabel}`}
+      >
         {base64Image ? (
           <AppImage
             style={styles.exerciseImage}
@@ -55,24 +74,19 @@ const ExerciseItem = ({
         <View style={styles.exerciseInfo}>
           <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
           <ThemedText style={styles.exerciseDetails}>
-            {bodyPartTranslations[item.body_part]
-              ? _(bodyPartTranslations[item.body_part])
-              : capitalizeWords(item.body_part)}{" "}
-            |{" "}
-            {equipmentTranslations[item.equipment]
-              ? _(equipmentTranslations[item.equipment])
-              : capitalizeWords(item.equipment)}
+            {bodyPartLabel} | {equipmentLabel}
           </ThemedText>
         </View>
-        {showCheckbox && (
-          <Checkbox
-            status={selected ? "checked" : "unchecked"}
-            uncheckedColor={colors.contentSecondary}
-            onPress={() => onSelect(item.exercise_id)}
-          />
-        )}
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+      {showCheckbox && (
+        <Checkbox
+          status={selected ? "checked" : "unchecked"}
+          uncheckedColor={colors.contentSecondary}
+          onPress={() => onSelect(item.exercise_id)}
+          {...checkboxA11y}
+        />
+      )}
+    </View>
   );
 };
 
@@ -87,6 +101,11 @@ function createStyles(colors: AppThemeColors) {
       padding: 12,
       borderRadius: radii.md,
       marginBottom: 12,
+    },
+    exerciseRow: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
     },
     exerciseImage: {
       width: 60,

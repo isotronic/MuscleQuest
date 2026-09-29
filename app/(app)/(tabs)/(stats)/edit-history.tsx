@@ -1,8 +1,9 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { AppIconButton } from "@/components/ui";
 import { ScrollView, TextInput, StyleSheet, View } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { Divider, IconButton } from "react-native-paper";
+import { Divider } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import {
@@ -166,7 +167,8 @@ export default function EditCompletedWorkoutScreen() {
                   style={{ marginRight: 12 }}
                 />
               ) : (
-                <IconButton
+                <AppIconButton
+                  accessibilityLabel={t`Save changes`}
                   icon="content-save-outline"
                   size={35}
                   style={{ marginRight: 0 }}
@@ -188,7 +190,8 @@ export default function EditCompletedWorkoutScreen() {
               <ThemedText style={styles.exerciseName}>
                 {exercise.exercise_name}
               </ThemedText>
-              <IconButton
+              <AppIconButton
+                accessibilityLabel={t`Change exercise ${exercise.exercise_name}`}
                 icon="pencil-outline"
                 size={20}
                 onPress={() => handleChangeExercise(exercise)}

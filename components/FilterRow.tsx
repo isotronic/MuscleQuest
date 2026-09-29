@@ -154,6 +154,7 @@ function FilterRow({
         styles.customItemContainer,
         selected && styles.selectedItemContainer,
       ]}
+      accessibilityState={{ selected: !!selected }}
     >
       <Text style={styles.customItemText}>{item.label}</Text>
       {selected && item.value !== "all" && (
@@ -176,6 +177,7 @@ function FilterRow({
         <AppSelect
           data={equipmentOptions}
           placeholder={t`All equipment`}
+          accessibilityLabel={t`Equipment`}
           value={selectedEquipment}
           onChange={setSelectedEquipment}
           renderItem={renderListItem}
@@ -189,6 +191,7 @@ function FilterRow({
         <AppSelect
           data={bodyPartOptions}
           placeholder={t`All body parts`}
+          accessibilityLabel={t`Body part`}
           value={selectedBodyPart}
           onChange={setSelectedBodyPart}
           renderItem={renderListItem}
@@ -202,6 +205,7 @@ function FilterRow({
         <AppSelect
           data={muscleOptions}
           placeholder={t`All target muscles`}
+          accessibilityLabel={t`Target muscle`}
           value={selectedTargetMuscle}
           onChange={setSelectedTargetMuscle}
           renderItem={renderListItem}

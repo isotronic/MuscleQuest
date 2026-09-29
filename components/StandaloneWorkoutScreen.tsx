@@ -10,11 +10,10 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { UserExercise } from "@/store/workoutStore";
-import { AppIcon, AppImage } from "@/components/ui";
+import { AppIcon, AppImage, AppIconButton } from "@/components/ui";
 import {
   ActivityIndicator,
   Button,
-  IconButton,
   Portal,
   Modal,
   Switch,
@@ -234,7 +233,9 @@ export default function StandaloneWorkoutScreen() {
                 referenceId={workoutId}
                 buttonType="icon"
               />
-              <IconButton
+              <AppIconButton
+                accessibilityLabel={t`Delete workout`}
+                accessibilityHint={t`Deletes this workout. Your workout history is kept.`}
                 icon="trash-can-outline"
                 size={25}
                 iconColor={colors.danger}
