@@ -36,6 +36,7 @@ import { displayToKg, roundCanonical } from "@/utils/units";
 import { AuthContext } from "@/context/AuthProvider";
 import { signInWithGoogle } from "@/utils/auth";
 import { useIsOnline } from "@/hooks/useIsOnline";
+import { showSnackbar } from "@/store/snackbarStore";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { getAuth, signOut } from "@react-native-firebase/auth";
 import Bugsnag from "@bugsnag/expo";
@@ -512,6 +513,7 @@ export default function SettingsScreen() {
     if (isBackupBusy) return;
     try {
       await uploadDatabaseBackup(setBackupProgress, setIsBackupLoading);
+      showSnackbar(t`Backup complete.`);
     } catch (error) {
       Alert.alert(t`Backup Failed`, getBackupErrorMessage(error, "backup"));
     }

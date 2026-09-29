@@ -29,6 +29,7 @@ import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
 import { useWorkoutBackGuard } from "@/hooks/useWorkoutBackGuard";
 import { useWorkoutCompletion } from "@/hooks/useWorkoutCompletion";
+import { showSnackbar } from "@/store/snackbarStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { parsePlateInventory, smallestLoadStep } from "@/utils/plateCalculator";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
@@ -819,6 +820,11 @@ export default function WorkoutOverviewScreen() {
                   lastCompletedWorkoutIdRef.current = completedWorkoutId;
                   setShowSaveModal(true);
                   return;
+                }
+                if (outcome.updateFailed) {
+                  showSnackbar(
+                    t`Your workout was saved, but the plan could not be updated.`,
+                  );
                 }
                 markLeaving();
                 router.push({

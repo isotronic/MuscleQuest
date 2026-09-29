@@ -1,6 +1,11 @@
 import { useToggleFavoriteExerciseMutation } from "../useToggleFavoriteExerciseMutation";
 import { openDatabase } from "@/utils/database";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { showSnackbar } from "@/store/snackbarStore";
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray) => s[0],
+}));
+jest.mock("@/store/snackbarStore", () => ({ showSnackbar: jest.fn() }));
 
 const mockRunAsync = jest.fn().mockResolvedValue(undefined);
 const mockCloseAsync = jest.fn().mockResolvedValue(undefined);
@@ -84,5 +89,13 @@ describe("useToggleFavoriteExerciseMutation", () => {
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["exercise-info", 42],
     });
+  });
+
+  it("tells the user when the favourite could not be saved", () => {
+    useToggleFavoriteExerciseMutation();
+    capturedArgs.onError(new Error("db locked"));
+    expect(showSnackbar).toHaveBeenCalledWith(
+      "Couldn't update favourites. Please try again.",
+    );
   });
 });

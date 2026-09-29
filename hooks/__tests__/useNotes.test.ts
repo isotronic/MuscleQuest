@@ -1,6 +1,11 @@
 import { useNotes } from "../useNotes";
 import { fetchNote, saveNote } from "@/utils/database";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { showSnackbar } from "@/store/snackbarStore";
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray) => s[0],
+}));
+jest.mock("@/store/snackbarStore", () => ({ showSnackbar: jest.fn() }));
 
 jest.mock("@/utils/database", () => ({
   fetchNote: jest.fn(),
@@ -115,5 +120,12 @@ describe("useNotes — mutation", () => {
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["note", "workout", 7, undefined],
     });
+  });
+
+  it("tells the user when the note could not be saved", () => {
+    capturedMutationArgs.onError(new Error("db locked"));
+    expect(showSnackbar).toHaveBeenCalledWith(
+      "Couldn't save your note. Please try again.",
+    );
   });
 });

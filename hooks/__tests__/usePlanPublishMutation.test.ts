@@ -2,6 +2,11 @@ import { usePlanPublishMutation } from "../usePlanPublishMutation";
 import { publishPlan, unpublishPlan } from "@/utils/sharing";
 import { useMutation } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
+import { showSnackbar } from "@/store/snackbarStore";
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray) => s[0],
+}));
+jest.mock("@/store/snackbarStore", () => ({ showSnackbar: jest.fn() }));
 
 const mockUser = { uid: "user-123" };
 
@@ -71,5 +76,21 @@ describe("usePlanPublishMutation", () => {
     const error = new Error("publish failed");
     capturedArgs.onError(error);
     expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+  });
+
+  it("tells the user when sharing fails", () => {
+    usePlanPublishMutation(42);
+    capturedArgs.onError(new Error("offline"), true);
+    expect(showSnackbar).toHaveBeenCalledWith(
+      "Couldn't share this plan. Try again when you're online.",
+    );
+  });
+
+  it("tells the user when unsharing fails", () => {
+    usePlanPublishMutation(42);
+    capturedArgs.onError(new Error("offline"), false);
+    expect(showSnackbar).toHaveBeenCalledWith(
+      "Couldn't stop sharing this plan. Try again when you're online.",
+    );
   });
 });

@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
+import { t } from "@lingui/core/macro";
+import { showSnackbar } from "@/store/snackbarStore";
 
 // Function to toggle favorite status in the database
 const toggleFavoriteStatus = async (
@@ -56,6 +58,9 @@ export const useToggleFavoriteExerciseMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ["exercise-info", exerciseId],
       });
+    },
+    onError: () => {
+      showSnackbar(t`Couldn't update favourites. Please try again.`);
     },
   });
 };
