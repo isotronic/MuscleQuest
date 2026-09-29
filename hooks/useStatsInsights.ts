@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { CompletedWorkout } from "./useCompletedWorkoutsQuery";
 import { TrackedExerciseWithSets } from "./useTrackedExercisesQuery";
 import { Exercise } from "@/utils/database";
+import { METRIC_EPSILON, formatWeight } from "@/utils/units";
 
 interface StatsInsights {
   workoutsPerWeek: number | null;
@@ -36,8 +37,6 @@ export const useStatsInsights = (
     let biggestGainValue: string | null = null;
     if (trackedExercises && trackedExercises.length > 0) {
       let maxGain = -Infinity;
-      const convFactor = weightUnit === "lbs" ? 2.2046226 : 1;
-
       trackedExercises.forEach((ex) => {
         const sets = ex.completed_sets;
         if (sets.length < 2) return;
@@ -51,8 +50,10 @@ export const useStatsInsights = (
             !ex.tracking_type ||
             ex.tracking_type === "weight" ||
             ex.tracking_type === "assisted";
-          if (isWeight && maxGain > 0) {
-            biggestGainValue = `+${(maxGain * convFactor).toFixed(1)} ${weightUnit}`;
+          // Legacy rows carry float noise, so a flat lift can differ by a
+          // fraction of a gram. Only a real gain counts.
+          if (isWeight && maxGain > METRIC_EPSILON) {
+            biggestGainValue = `+${formatWeight(maxGain, weightUnit)} ${weightUnit}`;
           } else if (ex.tracking_type === "reps" && maxGain > 0) {
             biggestGainValue = `+${Math.round(maxGain)} reps`;
           } else if (ex.tracking_type === "time" && maxGain > 0) {

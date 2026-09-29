@@ -4,25 +4,28 @@ import { Alert } from "react-native";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
+import { displayToKg, displayToMetres, roundCanonical } from "@/utils/units";
 
 const saveCompletedWorkoutWithConversion = async (
   completedWorkoutData: CompletedWorkout["exercises"],
   weightUnit: string,
   distanceUnit: string,
 ) => {
-  const conversionFactor = weightUnit === "lbs" ? 0.45359237 : 1;
-  const distanceConversionFactor = distanceUnit === "ft" ? 0.3048 : 1;
-
-  // Deep copy to avoid mutating the original data
+  // Deep copy to avoid mutating the original data. Rounded so the same input
+  // always stores the same value; see roundCanonical.
   const workoutDataConverted = completedWorkoutData.map((exercise) => ({
     ...exercise,
     sets: exercise.sets.map((set) => ({
       ...set,
-      weight: set.weight ? set.weight * conversionFactor : 0,
+      weight: set.weight
+        ? roundCanonical(displayToKg(set.weight, weightUnit))
+        : 0,
       reps: set.reps || 0,
       time: set.time || 0,
       distance:
-        set.distance != null ? set.distance * distanceConversionFactor : null,
+        set.distance != null
+          ? roundCanonical(displayToMetres(set.distance, distanceUnit))
+          : null,
     })),
   }));
 

@@ -27,9 +27,9 @@ import { useImportCustomExerciseMutation } from "@/hooks/useImportCustomExercise
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import type { AppThemeColors, AppThemeBorders } from "@/theme/types";
 import type { SharedStrengthPR } from "@/types/firestore";
+import { formatWeight } from "@/utils/units";
 
 function formatPR(pr: SharedStrengthPR, weightUnit: string): string {
-  const convFactor = weightUnit === "lbs" ? 2.2046226 : 1;
   switch (pr.trackingType) {
     case "reps":
       return plural(Math.round(pr.allTimePR), {
@@ -41,7 +41,7 @@ function formatPR(pr: SharedStrengthPR, weightUnit: string): string {
     case "distance":
       return `${pr.allTimePR.toFixed(1)} m`;
     default:
-      return `1RM ${(pr.allTimePR * convFactor).toFixed(1)} ${weightUnit}`;
+      return `1RM ${formatWeight(pr.allTimePR, weightUnit)} ${weightUnit}`;
   }
 }
 

@@ -32,6 +32,7 @@ import { useImageManagement } from "@/hooks/useImageManagement";
 import { useTrainingDataExport } from "@/hooks/useTrainingDataExport";
 import { useQueryClient } from "@tanstack/react-query";
 import { saveBodyWeightMeasurement } from "@/utils/database";
+import { displayToKg, roundCanonical } from "@/utils/units";
 import { AuthContext } from "@/context/AuthProvider";
 import { signInWithGoogle } from "@/utils/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -269,22 +270,24 @@ export default function SettingsScreen() {
           console.error("Failed to reschedule workout reminders:", err);
         });
       } else if (currentSettingKey === "bodyWeight") {
-        let bodyWeightInKg = inputValue as number;
-
-        if (settings?.weightUnit === "lbs") {
-          bodyWeightInKg = Number(
-            ((inputValue as number) / 2.2046226).toFixed(1),
+        // The field opens on the stored weight rounded for display. Saved
+        // unchanged, that would overwrite the precise kg value and log a
+        // duplicate measurement, so only an edited value is written.
+        if (Number(inputValue) !== Number(settings?.bodyWeight)) {
+          // Rounded to 0.1 kg, 180 lbs came back as 179.9 lbs.
+          const bodyWeightInKg = roundCanonical(
+            displayToKg(inputValue as number, settings?.weightUnit ?? "kg"),
           );
+
+          // Dual-write to body_measurements (legacy) and new measurement tables
+          await saveBodyWeightMeasurement(bodyWeightInKg);
+
+          // Save the body weight setting (React Query cache invalidation)
+          updateSetting({
+            key: currentSettingKey as string,
+            value: bodyWeightInKg.toString(), // canonical kg
+          });
         }
-
-        // Dual-write to body_measurements (legacy) and new measurement tables
-        await saveBodyWeightMeasurement(bodyWeightInKg);
-
-        // Save the body weight setting (React Query cache invalidation)
-        updateSetting({
-          key: currentSettingKey as string,
-          value: bodyWeightInKg.toString(), // canonical kg
-        });
       } else {
         updateSetting({
           key: currentSettingKey as string,

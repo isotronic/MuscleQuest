@@ -1,5 +1,6 @@
 import { renderHook } from "@testing-library/react-native";
 import { useStatsInsights } from "../useStatsInsights";
+import { KG_PER_LB, roundCanonical } from "@/utils/units";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -125,7 +126,26 @@ describe("biggestGain", () => {
       ),
     );
     const numStr = result.current.biggestGainValue!.replace(/[^0-9.]/g, "");
-    expect(parseFloat(numStr)).toBeCloseTo(20 * 2.2046226, 1);
+    expect(parseFloat(numStr)).toBeCloseTo(20 / KG_PER_LB, 1);
+  });
+
+  it("does not report float noise between a legacy and a rounded row as a gain", () => {
+    // 135 lbs saved before rounding, then the same lift saved rounded, which
+    // lands a fraction of a gram heavier.
+    const legacy = 135 * KG_PER_LB;
+    const rounded = roundCanonical(legacy);
+    expect(rounded).toBeGreaterThan(legacy);
+    const { result } = renderHook(() =>
+      useStatsInsights(
+        [],
+        [makeTrackedExercise("Bench Press", "weight", [rounded, legacy])],
+        [],
+        7,
+        "lbs",
+      ),
+    );
+    expect(result.current.biggestGainLabel).toBeNull();
+    expect(result.current.biggestGainValue).toBeNull();
   });
 
   it("formats reps gain", () => {

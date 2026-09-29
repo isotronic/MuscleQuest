@@ -6,6 +6,7 @@ import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
 import { t, plural } from "@lingui/core/macro";
 import { differenceInCalendarDays } from "date-fns";
 import { localDateKeyToDate } from "@/utils/dates";
+import { formatWeight } from "@/utils/units";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import Sortable from "react-native-sortables";
@@ -38,7 +39,6 @@ const formatPRLabel = (
   unit: string,
   distanceUnit: string,
 ): string => {
-  const convFactor = unit === "lbs" ? 2.2046226 : 1;
   const pr = exercise.allTimePR;
   if (!pr) return "—";
   switch (exercise.tracking_type) {
@@ -49,7 +49,7 @@ const formatPRLabel = (
     case "distance":
       return `${pr.toFixed(1)} ${distanceUnit}`;
     default:
-      return t`1RM ${(pr * convFactor).toFixed(1)} ${unit}`;
+      return t`1RM ${formatWeight(pr, unit)} ${unit}`;
   }
 };
 

@@ -20,6 +20,12 @@ import {
 import { computeLayoffReduction } from "@/utils/progressionEngine";
 import { nowForDb, parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
 import {
+  METRIC_EPSILON,
+  formatWeight,
+  kgToDisplay,
+  metresToDisplay,
+} from "@/utils/units";
+import {
   DEFAULT_BAR_WEIGHT_KG,
   DEFAULT_BAR_WEIGHT_LBS,
   DEFAULT_PLATE_INVENTORY_KG,
@@ -1204,8 +1210,6 @@ export const fetchCompletedWorkoutById = async (
       throw new Error("No workout found with the provided workoutId.");
     }
 
-    const conversionFactor = weightUnit === "lbs" ? 2.2046226 : 1;
-
     // Initialize the completed workout object
     const workout: CompletedWorkout = {
       id: result[0].id,
@@ -1256,16 +1260,14 @@ export const fetchCompletedWorkoutById = async (
             // Convert weight from kg to the user's unit
             const weightInKg = parseFloat(row.weight?.toString() || "0");
             const convertedWeight = parseFloat(
-              (weightInKg * conversionFactor).toFixed(1),
+              kgToDisplay(weightInKg, weightUnit).toFixed(1),
             );
 
             const distanceInMeters = parseFloat(
               row.distance?.toString() || "0",
             );
-            const distanceConversionFactor =
-              distanceUnit === "ft" ? 3.28084 : 1;
             const convertedDistance = parseFloat(
-              (distanceInMeters * distanceConversionFactor).toFixed(2),
+              metresToDisplay(distanceInMeters, distanceUnit).toFixed(2),
             );
 
             exercisesMap[row.completed_exercise_id!].sets.push({
@@ -1475,11 +1477,14 @@ export const fetchSettings = async (): Promise<Settings> => {
       settings[row.key as keyof Settings] = row.value;
     });
 
-    // Convert bodyWeight to lbs if the unit setting is 'lbs'
-    if (settings.bodyWeight && settings.weightUnit === "lbs") {
-      settings.bodyWeight = (Number(settings.bodyWeight) * 2.2046226).toFixed(
-        1,
-      ); // Convert kg to lbs
+    // Stored in kg to 3 decimals so a pound entry round-trips. Shown in the
+    // user's unit to one decimal; kg keeps whole numbers bare ("80").
+    if (settings.bodyWeight) {
+      const kg = Number(settings.bodyWeight);
+      settings.bodyWeight =
+        settings.weightUnit === "lbs"
+          ? formatWeight(kg, "lbs")
+          : String(parseFloat(formatWeight(kg, "kg")));
     }
 
     return settings as Settings;
@@ -3866,8 +3871,17 @@ export const fetchPRDataForExercises = async (
       pm: number;
       all_time_pr: number;
       rn: number;
+      all_time_pr_date: string;
     }>(
+      // The PR date is the earliest set within METRIC_EPSILON of the PR, taken
+      // over every set before rn <= 5 trims to the top five. Ties beyond the
+      // fifth row, such as a legacy unrounded set under several rounded ones
+      // of the same lift, would otherwise lose the date to a later session.
       `SELECT * FROM (
+       SELECT *,
+         MIN(CASE WHEN pm > all_time_pr - ${METRIC_EPSILON} THEN date_completed END)
+           OVER (PARTITION BY exercise_id) AS all_time_pr_date
+       FROM (
        SELECT
          e.exercise_id, e.app_exercise_id, e.name AS exercise_name, e.tracking_type,
          cs.weight, cs.reps, cs.time, cs.distance,
@@ -3881,6 +3895,7 @@ export const fetchPRDataForExercises = async (
          AND cs.is_warmup = 0 AND cs.is_deleted = 0
        JOIN completed_workouts cw ON cw.id = ce.completed_workout_id AND cw.is_deleted = 0
        WHERE e.exercise_id IN (${placeholders})
+       )
      )
      WHERE rn <= 5`,
       exerciseIds,
@@ -3895,19 +3910,11 @@ export const fetchPRDataForExercises = async (
           exercise_name: row.exercise_name,
           tracking_type: row.tracking_type,
           all_time_pr: row.all_time_pr,
-          all_time_pr_date: row.date_completed,
+          all_time_pr_date: row.all_time_pr_date,
           top_sets: [],
         });
       }
-      const entry = exerciseMap.get(row.exercise_id)!;
-      // Keep the earliest date where the all-time PR was achieved
-      if (
-        row.pm >= row.all_time_pr &&
-        row.date_completed < entry.all_time_pr_date
-      ) {
-        entry.all_time_pr_date = row.date_completed;
-      }
-      entry.top_sets.push({
+      exerciseMap.get(row.exercise_id)!.top_sets.push({
         weight: row.weight,
         reps: row.reps,
         time: row.time,

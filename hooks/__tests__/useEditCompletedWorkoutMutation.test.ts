@@ -1,6 +1,7 @@
 import { useEditCompletedWorkoutMutation } from "../useEditCompletedWorkoutMutation";
 import { openDatabase } from "@/utils/database";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { KG_PER_LB } from "@/utils/units";
 
 const mockRunAsync = jest.fn().mockResolvedValue(undefined);
 const mockCloseAsync = jest.fn().mockResolvedValue(undefined);
@@ -100,7 +101,7 @@ describe("useEditCompletedWorkoutMutation", () => {
     expect(mockTxnRunAsync).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE completed_sets"),
       expect.arrayContaining([
-        expect.closeTo(220 * 0.45359237, 2), // converted to kg
+        expect.closeTo(220 * KG_PER_LB, 2), // converted to kg
       ]),
     );
   });
