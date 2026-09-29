@@ -7,3 +7,4 @@ export { AppImage } from "./AppImage";
 export { AppBottomSheet } from "./AppBottomSheet";
 export { AppSelect, type SelectOption } from "./AppSelect";
 export { AppSlider } from "./AppSlider";
+export { checkboxLabel, checkboxCaptionA11y } from "./checkboxLabel";

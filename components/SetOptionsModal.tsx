@@ -13,7 +13,7 @@ import { Button, Checkbox, Divider } from "react-native-paper";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
-import { AppIcon } from "@/components/ui";
+import { AppIcon, checkboxCaptionA11y, checkboxLabel } from "@/components/ui";
 import {
   formatTimeInput,
   formatFromTotalSeconds,
@@ -198,6 +198,7 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
       visible={visible}
       transparent={true}
       onDismiss={onClose}
+      onRequestClose={onClose}
       animationType="fade"
       statusBarTranslucent
     >
@@ -207,7 +208,10 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           <TouchableWithoutFeedback>
-            <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}>
+            <Animated.View
+              style={[styles.modalContent, { opacity: fadeAnim }]}
+              accessibilityViewIsModal
+            >
               {trackingType === "time" ? (
                 <View>
                   <ThemedText style={styles.label}>
@@ -218,6 +222,7 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                       style={styles.input}
                       value={time}
                       onChange={handleTimeChange}
+                      accessibilityLabel={t`Target time`}
                     />
                   </View>
                 </View>
@@ -353,6 +358,7 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                   style={styles.input}
                   value={restTime}
                   onChange={handleRestTimeChange}
+                  accessibilityLabel={t`Rest time`}
                 />
               </View>
 
@@ -363,8 +369,12 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                       status={isWarmup ? "checked" : "unchecked"}
                       uncheckedColor={colors.contentSecondary}
                       onPress={() => setIsWarmup(!isWarmup)}
+                      {...checkboxLabel(t`Warm-up set`)}
                     />
-                    <ThemedText style={styles.checkboxLabel}>
+                    <ThemedText
+                      style={styles.checkboxLabel}
+                      {...checkboxCaptionA11y}
+                    >
                       <Trans>Warm-up set</Trans>
                     </ThemedText>
                   </View>
@@ -374,8 +384,12 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                       status={isDropSet ? "checked" : "unchecked"}
                       uncheckedColor={colors.contentSecondary}
                       onPress={() => setIsDropSet(!isDropSet)}
+                      {...checkboxLabel(t`Drop set`)}
                     />
-                    <ThemedText style={styles.checkboxLabel}>
+                    <ThemedText
+                      style={styles.checkboxLabel}
+                      {...checkboxCaptionA11y}
+                    >
                       <Trans>Drop set</Trans>
                     </ThemedText>
                   </View>
@@ -385,8 +399,12 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                       status={isToFailure ? "checked" : "unchecked"}
                       uncheckedColor={colors.contentSecondary}
                       onPress={handleToFailureChange}
+                      {...checkboxLabel(t`To failure`)}
                     />
-                    <ThemedText style={styles.checkboxLabel}>
+                    <ThemedText
+                      style={styles.checkboxLabel}
+                      {...checkboxCaptionA11y}
+                    >
                       <Trans>To failure</Trans>
                     </ThemedText>
                   </View>
@@ -404,8 +422,16 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                       onPress={() => {
                         setApplyToAllSets(!applyToAllSets);
                       }}
+                      {...checkboxLabel(
+                        isWarmup
+                          ? t`Apply to all warmup sets`
+                          : t`Apply to all working sets`,
+                      )}
                     />
-                    <ThemedText style={styles.checkboxLabel}>
+                    <ThemedText
+                      style={styles.checkboxLabel}
+                      {...checkboxCaptionA11y}
+                    >
                       <Trans>
                         Apply to all {isWarmup ? t`warmup` : t`working`} sets
                       </Trans>

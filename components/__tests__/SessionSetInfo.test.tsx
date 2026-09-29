@@ -143,4 +143,12 @@ describe("SessionSetInfo accessibility", () => {
       getByRole("button", { name: "Decrease distance by 1 km" }),
     ).toBeTruthy();
   });
+
+  it("labels the time fields with the set number", () => {
+    const { getByLabelText } = render(
+      <SessionSetInfo {...baseProps} trackingType="time" time="1:30" />,
+    );
+    expect(getByLabelText("Time, set 2, minutes")).toBeTruthy();
+    expect(getByLabelText("Time, set 2, seconds")).toBeTruthy();
+  });
 });

@@ -1,8 +1,9 @@
-import { type ComponentProps } from "react";
+import { type ComponentPropsWithRef } from "react";
 import { Text, StyleSheet } from "react-native";
 import { useAppTheme } from "@/theme";
 
-export type ThemedTextProps = ComponentProps<typeof Text> & {
+// Includes ref: React 19 passes it as a prop, and it reaches Text via ...rest.
+export type ThemedTextProps = ComponentPropsWithRef<typeof Text> & {
   type?: "default" | "title" | "defaultSemiBold" | "subtitle" | "link";
 };
 

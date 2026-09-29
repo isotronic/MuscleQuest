@@ -539,6 +539,7 @@ export default function SessionSetInfo({
               key={`${exercise_id}-${currentSetIndex}`}
               value={displayValue}
               onChange={handleTimeInputChange}
+              accessibilityLabel={t`Time, set ${setNumber}`}
               style={styles.input}
             />
           </View>

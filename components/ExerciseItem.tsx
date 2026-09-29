@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { Checkbox } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
-import { AppImage } from "@/components/ui";
+import { AppImage, checkboxLabel } from "@/components/ui";
 import { capitalizeWords } from "@/utils/utility";
 import { Exercise } from "@/utils/database";
 import { useLingui } from "@lingui/react";
@@ -49,10 +49,6 @@ const ExerciseItem = ({
     ? _(equipmentTranslations[item.equipment])
     : capitalizeWords(item.equipment);
 
-  // Paper's Checkbox forwards extra props to its touchable but does not
-  // declare accessibilityLabel in its types.
-  const checkboxA11y = { accessibilityLabel: t`Select ${item.name}` } as object;
-
   // The row and the checkbox are siblings so a screen reader can reach both;
   // a checkbox nested inside an accessible row is merged away on iOS.
   return (
@@ -83,7 +79,7 @@ const ExerciseItem = ({
           status={selected ? "checked" : "unchecked"}
           uncheckedColor={colors.contentSecondary}
           onPress={() => onSelect(item.exercise_id)}
-          {...checkboxA11y}
+          {...checkboxLabel(t`Select ${item.name}`)}
         />
       )}
     </View>
