@@ -22,6 +22,7 @@ import { ScrollView } from "react-native";
 import { useMemo, useRef, useState } from "react";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { useIsOnline } from "@/hooks/useIsOnline";
 
 const logo = require("@/assets/images/icon.png");
 
@@ -29,6 +30,7 @@ export default function LoginScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
+  const isOnline = useIsOnline();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const isSigningInRef = useRef(false);
 
@@ -123,6 +125,15 @@ export default function LoginScreen() {
           </Trans>
         </ThemedText>
 
+        {!isOnline && (
+          <ThemedText style={styles.info}>
+            <Trans>
+              Sign-in needs an internet connection. You can skip for now and
+              sign in later from settings.
+            </Trans>
+          </ThemedText>
+        )}
+
         <View style={styles.buttonRow}>
           <Button
             style={styles.skipButton}
@@ -139,7 +150,7 @@ export default function LoginScreen() {
             mode="contained"
             onPress={handleSignIn}
             loading={isSigningIn}
-            disabled={isSigningIn}
+            disabled={isSigningIn || !isOnline}
             accessibilityLabel={t`Google sign in`}
             testID="login-google"
           >

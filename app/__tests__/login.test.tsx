@@ -2,6 +2,7 @@ import React from "react";
 import { render, fireEvent, act } from "@testing-library/react-native";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import LoginScreen from "../login";
+import { useIsOnline } from "@/hooks/useIsOnline";
 
 jest.mock("@lingui/react/macro", () => ({
   Trans: ({ children }: { children: React.ReactNode }) => children,
@@ -30,6 +31,7 @@ jest.mock("@/components/ThemedText", () => {
 });
 jest.mock("@/components/ui", () => ({ AppImage: () => null }));
 jest.mock("@/assets/images/icon.png", () => 1);
+jest.mock("@/hooks/useIsOnline", () => ({ useIsOnline: jest.fn(() => true) }));
 jest.mock("expo-router", () => ({ router: { replace: jest.fn() } }));
 jest.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({
@@ -96,5 +98,23 @@ describe("LoginScreen", () => {
     expect(getByTestId("login-skip").props.accessibilityState.disabled).toBe(
       true,
     );
+  });
+
+  it("disables Google sign-in and explains why while offline", () => {
+    (useIsOnline as jest.Mock).mockReturnValue(false);
+    const { getByTestId, getByText } = render(<LoginScreen />);
+
+    expect(getByTestId("login-google").props.accessibilityState.disabled).toBe(
+      true,
+    );
+    expect(getByTestId("login-skip").props.accessibilityState.disabled).toBe(
+      false,
+    );
+    expect(
+      getByText(
+        "Sign-in needs an internet connection. You can skip for now and sign in later from settings.",
+      ),
+    ).toBeTruthy();
+    (useIsOnline as jest.Mock).mockReturnValue(true);
   });
 });

@@ -28,6 +28,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import type { AppThemeColors, AppThemeBorders } from "@/theme/types";
 import type { SharedStrengthPR } from "@/types/firestore";
 import { formatWeight } from "@/utils/units";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 function formatPR(pr: SharedStrengthPR, weightUnit: string): string {
   switch (pr.trackingType) {
@@ -120,6 +121,7 @@ export default function FriendProfileScreen() {
       style={{ flex: 1, backgroundColor: colors.surface }}
       contentContainerStyle={{ paddingBottom: 40 }}
     >
+      <OfflineBanner />
       {/* Profile header */}
       <View
         style={[

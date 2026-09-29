@@ -20,6 +20,7 @@ import { useSocialStore } from "@/store/socialStore";
 import type { PendingRequest, SentRequest } from "@/store/socialStore";
 import { FriendListItem } from "@/components/friends/FriendListItem";
 import { FriendRequestItem } from "@/components/friends/FriendRequestItem";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { useSendFriendRequestMutation } from "@/hooks/useSendFriendRequestMutation";
 import { searchUserByEmail } from "@/utils/friends";
 import type { UserSearchResult } from "@/utils/friends";
@@ -82,6 +83,8 @@ export default function FriendsScreen() {
           ),
         }}
       />
+
+      <OfflineBanner />
 
       {/* Internal tab bar */}
       <View style={[styles.tabBar, { borderBottomColor: borders.divider }]}>
