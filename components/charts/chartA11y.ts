@@ -63,14 +63,36 @@ export function summarizeTrend({
   const lastValue = points[points.length - 1];
   // Unit only on the end value: "from 80 to 95 kg".
   const first = formatChartNumber(firstValue);
+  // From zero there is no relative change: any non-zero end is a trend.
   const change =
-    firstValue === 0 ? lastValue : (lastValue - firstValue) / firstValue;
+    firstValue === 0
+      ? Math.sign(lastValue)
+      : (lastValue - firstValue) / firstValue;
   if (Math.abs(change) < STEADY_THRESHOLD) {
     return t`${title}, ${range}: from ${first} to ${last}, holding steady.`;
   }
   return change > 0
     ? t`${title}, ${range}: from ${first} to ${last}, trending up.`
     : t`${title}, ${range}: from ${first} to ${last}, trending down.`;
+}
+
+/**
+ * Spoken names for chart buckets. Two-line axis labels ("18" / "May") are
+ * joined, and a label that repeats (the yearly range spans 13 months, so its
+ * first and last month match) gets its year from the bucket's internal key.
+ */
+export function spokenBucketLabels(
+  buckets: { label: string; labelLine2?: string; internalKey?: string }[],
+): string[] {
+  const labels = buckets.map((b) =>
+    [b.label, b.labelLine2].filter(Boolean).join(" "),
+  );
+  const counts = new Map<string, number>();
+  labels.forEach((l) => counts.set(l, (counts.get(l) ?? 0) + 1));
+  return labels.map((label, i) => {
+    const year = buckets[i].internalKey?.split("-")[0];
+    return (counts.get(label) ?? 0) > 1 && year ? `${label} ${year}` : label;
+  });
 }
 
 /** For bar charts: the total across the period and the busiest bucket. */

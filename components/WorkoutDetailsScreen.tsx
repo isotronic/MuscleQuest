@@ -279,7 +279,7 @@ export default function WorkoutDetailsScreen() {
                 buttonType="icon"
               />
               <AppIconButton
-                accessibilityLabel={t`Copy workout to another plan`}
+                accessibilityLabel={t`Copy workout to standalone workouts`}
                 icon="content-copy"
                 size={25}
                 iconColor={colors.contentSecondary}

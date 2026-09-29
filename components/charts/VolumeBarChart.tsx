@@ -5,9 +5,9 @@ import { BarChart } from "react-native-gifted-charts";
 import { Card } from "react-native-paper";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { t } from "@lingui/core/macro";
-import { useReducedMotion } from "react-native-reanimated";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 import { useChartTheme } from "./chartTheme";
-import { summarizeTotals } from "./chartA11y";
+import { spokenBucketLabels, summarizeTotals } from "./chartA11y";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -24,6 +24,8 @@ interface Bucket {
   label: string;
   labelLine2?: string;
   value: number;
+  /** Year-first key, e.g. "2026-4"; names repeated months in speech. */
+  internalKey?: string;
 }
 
 type BucketType = "weekly" | "monthly" | "quarterly" | "yearly";
@@ -197,7 +199,7 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
   const { width: screenWidth } = useWindowDimensions();
   const chartTheme = useChartTheme();
   // Gifted charts animate with RN Animated, which ignores the setting.
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReduceMotion();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -250,9 +252,9 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
   const summary = summarizeTotals({
     title: t`Volume`,
     timeRange,
-    buckets: buckets.map((b) => ({
-      label: [b.label, b.labelLine2].filter(Boolean).join(" "),
-      value: b.value,
+    buckets: spokenBucketLabels(buckets).map((label, i) => ({
+      label,
+      value: buckets[i].value,
     })),
     // Bars are in thousands of the weight unit; spell the unit out.
     unit: weightUnit === "lbs" ? t`tons` : t`tonnes`,

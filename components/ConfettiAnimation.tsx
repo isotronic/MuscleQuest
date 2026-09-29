@@ -2,12 +2,12 @@ import React, { useEffect } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
-  useReducedMotion,
   useSharedValue,
   withDelay,
   withTiming,
 } from "react-native-reanimated";
 import { radii } from "@/theme";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -109,7 +109,7 @@ function ConfettiParticle({ config }: { config: ParticleConfig }) {
 export function ConfettiAnimation() {
   // Reanimated would jump each particle to its (invisible) end state anyway;
   // skip mounting 40 animated views for users who asked for less motion.
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReduceMotion();
   if (reduceMotion) return null;
 
   return (

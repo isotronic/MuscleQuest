@@ -948,7 +948,7 @@ msgid "{0, plural, one {set} other {sets}}"
 msgstr "{0, plural, one {série} other {séries}}"
 
 #. placeholder {0}: plan.name
-#: app/(app)/(tabs)/(plans)/overview.tsx:135
+#: app/(app)/(tabs)/(plans)/overview.tsx:136
 msgid "{0} (Copy)"
 msgstr "{0} (copie)"
 
@@ -1000,7 +1000,7 @@ msgstr "{0} jours par semaine"
 #. placeholder {0}: workout.exercises.length
 #. placeholder {1}: estimate ? ` · ~${formatDurationEstimate(estimate)}` : ""
 #. placeholder {1}: estimate ? ` · ~${formatDurationEstimateCompact(estimate)}` : ""
-#: app/(app)/(tabs)/(plans)/overview.tsx:88
+#: app/(app)/(tabs)/(plans)/overview.tsx:89
 #: app/(app)/(tabs)/index.tsx:64
 msgid "{0} Exercises{1}"
 msgstr "{0} Exercices{1}"
@@ -1123,7 +1123,7 @@ msgstr "{current, plural, one {# seconde de repos restante} other {# secondes de
 msgid "{days, plural, one {# day ago} other {# days ago}}"
 msgstr "{days, plural, one {il y a # jour} other {il y a # jours}}"
 
-#: components/charts/ExerciseProgressionChart.tsx:468
+#: components/charts/ExerciseProgressionChart.tsx:453
 msgid "{exerciseName}, {spokenMetric}"
 msgstr "{exerciseName}, {spokenMetric}"
 
@@ -1179,7 +1179,7 @@ msgstr "{streak, plural, one {# semaine d'affilée} other {# semaines d'affilée
 #~ msgid "{suggestedWeight}{unit} suggested"
 #~ msgstr "{suggestedWeight}{unit} suggéré"
 
-#: components/charts/chartA11y.ts:93
+#: components/charts/chartA11y.ts:115
 msgid "{title}, {range}: {emptyText}."
 msgstr "{title}, {range} : {emptyText}."
 
@@ -1187,19 +1187,19 @@ msgstr "{title}, {range} : {emptyText}."
 msgid "{title}, {range}: {last}."
 msgstr "{title}, {range} : {last}."
 
-#: components/charts/chartA11y.ts:99
+#: components/charts/chartA11y.ts:121
 msgid "{title}, {range}: {totalText} in total, most in {peakLabel} with {peakText}."
 msgstr "{title}, {range} : {totalText} au total, le plus en {peakLabel} avec {peakText}."
 
-#: components/charts/chartA11y.ts:69
+#: components/charts/chartA11y.ts:72
 msgid "{title}, {range}: from {first} to {last}, holding steady."
 msgstr "{title}, {range} : de {first} à {last}, stable."
 
-#: components/charts/chartA11y.ts:73
+#: components/charts/chartA11y.ts:76
 msgid "{title}, {range}: from {first} to {last}, trending down."
 msgstr "{title}, {range} : de {first} à {last}, en baisse."
 
-#: components/charts/chartA11y.ts:72
+#: components/charts/chartA11y.ts:75
 msgid "{title}, {range}: from {first} to {last}, trending up."
 msgstr "{title}, {range} : de {first} à {last}, en hausse."
 
@@ -1207,11 +1207,11 @@ msgstr "{title}, {range} : de {first} à {last}, en hausse."
 msgid "{title}, {range}: no data in this period."
 msgstr "{title}, {range} : aucune donnée sur cette période."
 
-#: components/charts/chartA11y.ts:113
+#: components/charts/chartA11y.ts:135
 msgid "{title}: {emptyText}."
 msgstr "{title} : {emptyText}."
 
-#: components/charts/chartA11y.ts:119
+#: components/charts/chartA11y.ts:141
 msgid "{title}: {list}."
 msgstr "{title} : {list}."
 
@@ -1282,7 +1282,7 @@ msgstr "🎉 Nouveautés"
 msgid "1RM"
 msgstr "1RM"
 
-#: components/charts/ExerciseProgressionChart.tsx:423
+#: components/charts/ExerciseProgressionChart.tsx:408
 msgid "1RM ({weightUnitLabel})"
 msgstr "1RM ({weightUnitLabel})"
 
@@ -1372,7 +1372,7 @@ msgstr "Les suggestions acceptées sont pré-remplies dans les champs de poids e
 msgid "Account"
 msgstr "Compte"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:309
+#: app/(app)/(tabs)/(plans)/overview.tsx:310
 #: components/TrainingPlanCard.tsx:84
 #: components/TrainingPlanListItem.tsx:56
 msgid "Active"
@@ -1752,7 +1752,7 @@ msgstr "Tu es sûr de vouloir supprimer toutes les images animées ? Les images 
 #~ msgid "Are you sure you want to delete this measurement entry?"
 #~ msgstr "Es-tu sûr de vouloir supprimer cette entrée de mesure ?"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:203
+#: app/(app)/(tabs)/(plans)/overview.tsx:204
 msgid "Are you sure you want to delete this plan?"
 msgstr "Tu es sûr de vouloir supprimer ce programme ?"
 
@@ -1810,7 +1810,7 @@ msgstr "Assisté {0} {1} | Résistance {2} {3} | {4} Rép."
 msgid "Assistance"
 msgstr "Assistance"
 
-#: components/charts/ExerciseProgressionChart.tsx:505
+#: components/charts/ExerciseProgressionChart.tsx:490
 msgid "assistance "
 msgstr "assistance "
 
@@ -2007,8 +2007,8 @@ msgstr "mollets"
 #: app/(app)/(create-plan)/create-workout.tsx:174
 #: app/(app)/(create-plan)/create.tsx:227
 #: app/(app)/(create-plan)/create.tsx:272
-#: app/(app)/(tabs)/(plans)/overview.tsx:155
-#: app/(app)/(tabs)/(plans)/overview.tsx:206
+#: app/(app)/(tabs)/(plans)/overview.tsx:156
+#: app/(app)/(tabs)/(plans)/overview.tsx:207
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:85
 #: app/(app)/(workout)/index.tsx:983
 #: app/(app)/delete-account.tsx:86
@@ -2192,16 +2192,24 @@ msgstr "Copier"
 
 #. placeholder {0}: workout.name || `Day ${index + 1}`
 #: app/(app)/(tabs)/(plans)/overview.tsx:95
-msgid "Copy {0} to another plan"
-msgstr "Copier {0} dans un autre programme"
+#~ msgid "Copy {0} to another plan"
+#~ msgstr "Copier {0} dans un autre programme"
+
+#: app/(app)/(tabs)/(plans)/overview.tsx:96
+msgid "Copy {spokenName} to standalone workouts"
+msgstr "Copier {spokenName} dans les entraînements indépendants"
 
 #: components/CopyWorkoutModal.tsx:49
 msgid "Copy Workout"
 msgstr "Copier l'entraînement"
 
 #: components/WorkoutDetailsScreen.tsx:282
-msgid "Copy workout to another plan"
-msgstr "Copier l'entraînement dans un autre programme"
+#~ msgid "Copy workout to another plan"
+#~ msgstr "Copier l'entraînement dans un autre programme"
+
+#: components/WorkoutDetailsScreen.tsx:282
+msgid "Copy workout to standalone workouts"
+msgstr "Copier l'entraînement dans les entraînements indépendants"
 
 #: constants/dbTranslations.ts:44
 msgid "core"
@@ -2288,7 +2296,7 @@ msgstr "Compter les rép. ×2 pour le volume quand le paramètre est activé"
 msgid "Counts are pairs: one plate for each side of the bar."
 msgstr "Les quantités sont des paires : un disque de chaque côté de la barre."
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:152
+#: app/(app)/(tabs)/(plans)/overview.tsx:153
 msgid "Create a copy of this plan that you can edit independently?"
 msgstr "Créer une copie de ce programme que tu peux modifier indépendamment ?"
 
@@ -2364,7 +2372,7 @@ msgstr "Mesures personnalisées"
 msgid "Customisation"
 msgstr "Personnalisation"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:485
+#: app/(app)/(tabs)/(plans)/overview.tsx:486
 msgid "Customise Plan"
 msgstr "Personnaliser le programme"
 
@@ -2420,7 +2428,7 @@ msgstr "Temps de repos par défaut"
 msgid "Default sets"
 msgstr "Séries par défaut"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:210
+#: app/(app)/(tabs)/(plans)/overview.tsx:211
 #: app/(app)/(workout)/index.tsx:654
 #: app/(app)/delete-account.tsx:88
 #: app/(app)/delete-account.tsx:290
@@ -2467,11 +2475,11 @@ msgstr "Supprimer l'entrée"
 msgid "Delete my account"
 msgstr "Supprimer mon compte"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:289
+#: app/(app)/(tabs)/(plans)/overview.tsx:290
 msgid "Delete plan"
 msgstr "Supprimer le programme"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:202
+#: app/(app)/(tabs)/(plans)/overview.tsx:203
 msgid "Delete Plan"
 msgstr "Supprimer le programme"
 
@@ -2497,7 +2505,7 @@ msgstr "Supprimer la séance"
 #~ msgid "Delete Workout"
 #~ msgstr "Supprimer l'entraînement"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:290
+#: app/(app)/(tabs)/(plans)/overview.tsx:291
 msgid "Deletes this plan. Your workout history is kept."
 msgstr "Supprime ce programme. Ton historique d'entraînement est conservé."
 
@@ -2533,7 +2541,7 @@ msgstr "Suppression en cours. Veuillez patienter..."
 msgid "Deletion stopped before it finished. Your account still exists and you are still signed in. Check your connection and try again."
 msgstr "La suppression s'est arrêtée avant la fin. Ton compte existe toujours et tu es toujours connecté. Vérifie ta connexion et réessaie."
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:355
+#: app/(app)/(tabs)/(plans)/overview.tsx:356
 #: app/(app)/(tabs)/index.tsx:498
 #: constants/HelpData.ts:187
 msgid "Deload Week"
@@ -2613,12 +2621,12 @@ msgstr "Les gênes sont suivies d'une séance à l'autre : un rapport maintient 
 msgid "Dismiss"
 msgstr "Fermer"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:499
+#: app/(app)/(tabs)/(plans)/overview.tsx:500
 #: components/WorkoutDetailsScreen.tsx:328
 msgid "DISMISS"
 msgstr "FERMER"
 
-#: components/charts/ExerciseProgressionChart.tsx:460
+#: components/charts/ExerciseProgressionChart.tsx:445
 msgid "distance"
 msgstr "distance"
 
@@ -2628,7 +2636,7 @@ msgid "Distance"
 msgstr "Distance"
 
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:328
-#: components/charts/ExerciseProgressionChart.tsx:420
+#: components/charts/ExerciseProgressionChart.tsx:405
 #: components/SessionSetInfo.tsx:574
 msgid "Distance ({distanceUnit})"
 msgstr "Distance ({distanceUnit})"
@@ -2724,13 +2732,13 @@ msgstr "haltère"
 msgid "Dumbbell load increment"
 msgstr "Incrément de charge pour les haltères"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:159
-#: app/(app)/(tabs)/(plans)/overview.tsx:447
+#: app/(app)/(tabs)/(plans)/overview.tsx:160
+#: app/(app)/(tabs)/(plans)/overview.tsx:448
 msgid "Duplicate"
 msgstr "Dupliquer"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:151
-#: app/(app)/(tabs)/(plans)/overview.tsx:440
+#: app/(app)/(tabs)/(plans)/overview.tsx:152
+#: app/(app)/(tabs)/(plans)/overview.tsx:441
 msgid "Duplicate Plan"
 msgstr "Dupliquer le programme"
 
@@ -2796,7 +2804,7 @@ msgstr "Modifier l'exercice"
 msgid "Edit note"
 msgstr "Modifier la note"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:487
+#: app/(app)/(tabs)/(plans)/overview.tsx:488
 msgid "Edit Plan"
 msgstr "Modifier le programme"
 
@@ -2946,7 +2954,7 @@ msgid "Equipment:"
 msgstr "Équipement :"
 
 #: app/(app)/(create-plan)/image-search.tsx:43
-#: app/(app)/(tabs)/(plans)/overview.tsx:219
+#: app/(app)/(tabs)/(plans)/overview.tsx:220
 #: app/(app)/(workout)/index.tsx:840
 #: app/(app)/(workout)/index.tsx:1042
 #: app/(app)/custom-exercise.tsx:135
@@ -2997,7 +3005,7 @@ msgstr "Erreur lors de la sauvegarde de l'entraînement"
 
 #. placeholder {0}: error.message
 #. placeholder {0}: settingsError.message
-#: app/(app)/(tabs)/(plans)/overview.tsx:259
+#: app/(app)/(tabs)/(plans)/overview.tsx:260
 #: app/(app)/(workout)/workout-session.tsx:1581
 #: components/WorkoutDetailsScreen.tsx:239
 msgid "Error: {0}"
@@ -3010,7 +3018,7 @@ msgstr "Erreur : {0}"
 msgid "Estimated Duration: {0}"
 msgstr "Durée estimée : {0}"
 
-#: components/charts/ExerciseProgressionChart.tsx:463
+#: components/charts/ExerciseProgressionChart.tsx:448
 msgid "estimated one-rep max"
 msgstr "maximum estimé sur une répétition"
 
@@ -3133,17 +3141,17 @@ msgid "ez barbell"
 msgstr "barre EZ"
 
 #. placeholder {0}: error.message
-#: app/(app)/(tabs)/(plans)/overview.tsx:240
+#: app/(app)/(tabs)/(plans)/overview.tsx:241
 msgid "Failed to activate this plan: {0}"
 msgstr "Impossible d'activer ce programme : {0}"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:192
+#: app/(app)/(tabs)/(plans)/overview.tsx:193
 #: components/WorkoutDetailsScreen.tsx:88
 msgid "Failed to copy workout. Please try again."
 msgstr "Impossible de copier l'entraînement. Veuillez réessayer."
 
 #. placeholder {0}: error.message
-#: app/(app)/(tabs)/(plans)/overview.tsx:220
+#: app/(app)/(tabs)/(plans)/overview.tsx:221
 msgid "Failed to delete plan: {0}"
 msgstr "Impossible de supprimer le programme : {0}"
 
@@ -3155,7 +3163,7 @@ msgstr "Impossible de supprimer l'entraînement. Réessaie."
 msgid "Failed to delete workout. Please try again."
 msgstr "Impossible de supprimer l'entraînement. Réessaie."
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:143
+#: app/(app)/(tabs)/(plans)/overview.tsx:144
 msgid "Failed to duplicate plan. Please try again."
 msgstr "Impossible de dupliquer le programme. Veuillez réessayer."
 
@@ -3206,7 +3214,7 @@ msgstr "Échec de la déconnexion Google. Déconnexion en cours."
 msgid "Failed to sign out. Please try again."
 msgstr "Échec de la déconnexion. Réessaie."
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:422
+#: app/(app)/(tabs)/(plans)/overview.tsx:423
 #: components/StandaloneWorkoutScreen.tsx:309
 msgid "Failed to update sharing. Please try again."
 msgstr "Impossible de mettre à jour le partage. Réessaie."
@@ -3232,7 +3240,7 @@ msgid "Follow MuscleQuest on Instagram"
 msgstr "Suivre MuscleQuest sur Instagram"
 
 #. placeholder {0}: latestSet.time
-#: components/charts/ExerciseProgressionChart.tsx:511
+#: components/charts/ExerciseProgressionChart.tsx:496
 msgid "for {0}s "
 msgstr "pendant {0}s "
 
@@ -3379,7 +3387,7 @@ msgstr "ischio-jambiers"
 msgid "Hard, near limit"
 msgstr "Difficile, proche de la limite"
 
-#: components/charts/ExerciseProgressionChart.tsx:462
+#: components/charts/ExerciseProgressionChart.tsx:447
 msgid "heaviest weight"
 msgstr "poids le plus lourd"
 
@@ -3641,7 +3649,7 @@ msgid "Latest"
 msgstr "Dernier"
 
 #. placeholder {0}: latestMetric !== undefined ? latestMetric.toFixed(1) : t`N/A`
-#: components/charts/ExerciseProgressionChart.tsx:495
+#: components/charts/ExerciseProgressionChart.tsx:480
 msgid "Latest {metricLabel}: {0}"
 msgstr "Dernier {metricLabel} : {0}"
 
@@ -3685,11 +3693,11 @@ msgstr "Augmenter la charge"
 msgid "Loading data, please wait..."
 msgstr "Chargement des données, veuillez patienter..."
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:272
+#: app/(app)/(tabs)/(plans)/overview.tsx:273
 msgid "Loading Plan..."
 msgstr "Chargement du programme..."
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:251
+#: app/(app)/(tabs)/(plans)/overview.tsx:252
 #: components/WorkoutDetailsScreen.tsx:230
 msgid "Loading..."
 msgstr "Chargement..."
@@ -3873,7 +3881,7 @@ msgstr "Instagram de MuscleQuest"
 msgid "Muscles"
 msgstr "Muscles"
 
-#: components/charts/ExerciseProgressionChart.tsx:497
+#: components/charts/ExerciseProgressionChart.tsx:482
 msgid "N/A"
 msgstr "N/A"
 
@@ -3965,7 +3973,7 @@ msgstr "Aucune donnée pour cette période"
 msgid "No data for this period."
 msgstr "Aucune donnée pour cette période."
 
-#: components/charts/ExerciseProgressionChart.tsx:563
+#: components/charts/ExerciseProgressionChart.tsx:548
 msgid "No data in this period"
 msgstr "Aucune donnée sur cette période"
 
@@ -4083,8 +4091,8 @@ msgid "No workouts found"
 msgstr "Aucun entraînement trouvé"
 
 #: components/charts/BodyPartChart.tsx:119
-#: components/charts/VolumeBarChart.tsx:259
-#: components/charts/WorkoutBarChart.tsx:214
+#: components/charts/VolumeBarChart.tsx:261
+#: components/charts/WorkoutBarChart.tsx:216
 msgid "No workouts in this period"
 msgstr "Aucun entraînement sur cette période"
 
@@ -4578,7 +4586,7 @@ msgstr "Remplacer"
 
 #: app/(app)/friend-plan.tsx:132
 #: app/(app)/friend-workout.tsx:89
-#: components/charts/ExerciseProgressionChart.tsx:458
+#: components/charts/ExerciseProgressionChart.tsx:443
 msgid "reps"
 msgstr "reps"
 
@@ -4587,7 +4595,7 @@ msgstr "reps"
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:305
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:310
 #: app/(app)/custom-exercise.tsx:70
-#: components/charts/ExerciseProgressionChart.tsx:418
+#: components/charts/ExerciseProgressionChart.tsx:403
 #: components/SessionSetInfo.tsx:501
 #: components/StandaloneWorkoutScreen.tsx:184
 #: components/WorkoutCard.tsx:277
@@ -5028,7 +5036,7 @@ msgstr "Partager les entraînements avec mes amis"
 msgid "Share custom exercises with friends"
 msgstr "Partager les exercices personnalisés avec mes amis"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:397
+#: app/(app)/(tabs)/(plans)/overview.tsx:398
 msgid "Share Plan"
 msgstr "Partager le programme"
 
@@ -5069,11 +5077,11 @@ msgstr "tibias"
 msgid "shoulders"
 msgstr "épaules"
 
-#: components/charts/ExerciseProgressionChart.tsx:555
+#: components/charts/ExerciseProgressionChart.tsx:540
 msgid "Show as chart"
 msgstr "Afficher en graphique"
 
-#: components/charts/ExerciseProgressionChart.tsx:555
+#: components/charts/ExerciseProgressionChart.tsx:540
 msgid "Show as table"
 msgstr "Afficher en tableau"
 
@@ -5256,7 +5264,7 @@ msgstr "Commencer {0}"
 msgid "Start {spokenName}"
 msgstr "Commencer {spokenName}"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:461
+#: app/(app)/(tabs)/(plans)/overview.tsx:462
 msgid "Start Plan"
 msgstr "Démarrer le programme"
 
@@ -5559,7 +5567,7 @@ msgstr "Cela n'arrive qu'une fois."
 msgid "This permanently deletes your MuscleQuest account. It cannot be undone."
 msgstr "Cela supprime définitivement ton compte MuscleQuest. Cette action est irréversible."
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:417
+#: app/(app)/(tabs)/(plans)/overview.tsx:418
 msgid "This plan is too large to share. Try splitting it into smaller plans."
 msgstr "Ce programme est trop volumineux pour être partagé. Divise-le en programmes plus petits."
 
@@ -5599,7 +5607,7 @@ msgstr "Jeu"
 msgid "Thursday"
 msgstr "Jeudi"
 
-#: components/charts/ExerciseProgressionChart.tsx:456
+#: components/charts/ExerciseProgressionChart.tsx:441
 msgid "time"
 msgstr "temps"
 
@@ -5622,7 +5630,7 @@ msgstr "Temps (Min:Sec)"
 msgid "Time (Minutes:Seconds)"
 msgstr "Temps (Minutes:Secondes)"
 
-#: components/charts/ExerciseProgressionChart.tsx:416
+#: components/charts/ExerciseProgressionChart.tsx:401
 msgid "Time (s)"
 msgstr "Temps (s)"
 
@@ -5705,11 +5713,11 @@ msgstr "Aujourd'hui"
 #~ msgid "Toggle Unilateral for single-arm or single-leg exercises; reps can be automatically doubled in your stats."
 #~ msgstr "Active Unilatéral pour les exercices à un bras ou une jambe ; les répétitions peuvent être automatiquement doublées dans tes stats."
 
-#: components/charts/VolumeBarChart.tsx:258
+#: components/charts/VolumeBarChart.tsx:260
 msgid "tonnes"
 msgstr "tonnes"
 
-#: components/charts/VolumeBarChart.tsx:258
+#: components/charts/VolumeBarChart.tsx:260
 msgid "tons"
 msgstr "tonnes courtes"
 
@@ -6054,7 +6062,7 @@ msgstr "Voir/Modifier"
 
 #: app/(app)/(workout)/workout-summary.tsx:471
 #: app/(app)/(workout)/workout-summary.tsx:496
-#: components/charts/VolumeBarChart.tsx:251
+#: components/charts/VolumeBarChart.tsx:253
 #: components/WeeklySummaryCard.tsx:286
 msgid "Volume"
 msgstr "Volume"
@@ -6142,12 +6150,12 @@ msgstr "Planning hebdomadaire"
 
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:212
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:230
-#: components/charts/ExerciseProgressionChart.tsx:524
+#: components/charts/ExerciseProgressionChart.tsx:509
 #: components/SessionSetInfo.tsx:466
 msgid "Weight"
 msgstr "Poids"
 
-#: components/charts/ExerciseProgressionChart.tsx:422
+#: components/charts/ExerciseProgressionChart.tsx:407
 msgid "Weight ({weightUnitLabel})"
 msgstr "Poids ({weightUnitLabel})"
 
@@ -6247,6 +6255,7 @@ msgstr "Entraînement"
 #. placeholder {0}: idx + 1
 #. placeholder {0}: index + 1
 #. placeholder {0}: originalIndex + 1
+#: app/(app)/(tabs)/(plans)/overview.tsx:69
 #: app/(app)/(tabs)/index.tsx:528
 #: components/PlanScheduleEditor.tsx:97
 #: components/PlanScheduleEditor.tsx:168
@@ -6271,7 +6280,7 @@ msgstr "Calendrier des entraînements"
 msgid "Workout Complete!"
 msgstr "Entraînement terminé !"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:188
+#: app/(app)/(tabs)/(plans)/overview.tsx:189
 #: components/WorkoutDetailsScreen.tsx:84
 msgid "Workout copied to standalone workouts"
 msgstr "Entraînement copié dans les entraînements indépendants"
@@ -6329,7 +6338,7 @@ msgstr "Résumé de l'entraînement"
 
 #: app/(app)/(tabs)/(stats)/index.tsx:475
 #: app/(app)/friend-profile.tsx:196
-#: components/charts/WorkoutBarChart.tsx:208
+#: components/charts/WorkoutBarChart.tsx:210
 #: components/WeeklySummaryCard.tsx:271
 #: constants/HelpData.ts:68
 msgid "Workouts"
@@ -6352,7 +6361,7 @@ msgid "wrists"
 msgstr "poignets"
 
 #. placeholder {0}: latestSet.reps
-#: components/charts/ExerciseProgressionChart.tsx:508
+#: components/charts/ExerciseProgressionChart.tsx:493
 msgid "x {0} reps "
 msgstr "x {0} rép. "
 
@@ -6369,7 +6378,7 @@ msgstr "Oui, augmenter le défi"
 msgid "Yesterday"
 msgstr "Hier"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:235
+#: app/(app)/(tabs)/(plans)/overview.tsx:236
 msgid "You activated this plan."
 msgstr "Tu as activé ce programme."
 

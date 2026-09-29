@@ -66,6 +66,7 @@ function PlanWorkoutCard({
     workout.exercises,
     countUnilateralDouble,
   );
+  const spokenName = workout.name || t`Workout ${index + 1}`;
   return (
     <View style={styles.workoutCardRow}>
       <TouchableOpacity
@@ -92,7 +93,7 @@ function PlanWorkoutCard({
         </ThemedText>
       </TouchableOpacity>
       <AppIconButton
-        accessibilityLabel={t`Copy ${workout.name || `Day ${index + 1}`} to another plan`}
+        accessibilityLabel={t`Copy ${spokenName} to standalone workouts`}
         icon="content-copy"
         size={20}
         iconColor={colors.contentSecondary}

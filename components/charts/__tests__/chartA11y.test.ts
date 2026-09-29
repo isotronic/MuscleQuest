@@ -1,4 +1,5 @@
 import {
+  spokenBucketLabels,
   summarizeShares,
   summarizeTotals,
   summarizeTrend,
@@ -39,6 +40,15 @@ describe("summarizeTrend", () => {
   it("calls small changes steady", () => {
     expect(summarizeTrend({ ...base, values: [100, 101] })).toBe(
       "Bench Press 1RM, last 90 days: from 100 to 101 kg, holding steady.",
+    );
+  });
+
+  it("treats any move away from zero as a trend", () => {
+    expect(summarizeTrend({ ...base, values: [0, 0.01] })).toBe(
+      "Bench Press 1RM, last 90 days: from 0 to 0.0 kg, trending up.",
+    );
+    expect(summarizeTrend({ ...base, values: [0, 0] })).toBe(
+      "Bench Press 1RM, last 90 days: from 0 to 0 kg, holding steady.",
     );
   });
 
@@ -133,5 +143,23 @@ describe("summarizeShares", () => {
         emptyText: "No workouts in this period",
       }),
     ).toBe("Sets by body part: No workouts in this period.");
+  });
+});
+
+describe("spokenBucketLabels", () => {
+  it("joins two-line labels", () => {
+    expect(spokenBucketLabels([{ label: "18", labelLine2: "May" }])).toEqual([
+      "18 May",
+    ]);
+  });
+
+  it("adds the year only to labels that repeat", () => {
+    expect(
+      spokenBucketLabels([
+        { label: "May", internalKey: "2025-4" },
+        { label: "Jun", internalKey: "2025-5" },
+        { label: "May", internalKey: "2026-4" },
+      ]),
+    ).toEqual(["May 2025", "Jun", "May 2026"]);
   });
 });

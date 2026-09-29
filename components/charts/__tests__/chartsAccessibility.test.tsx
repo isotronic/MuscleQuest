@@ -16,8 +16,8 @@ jest.mock("react-native-gifted-charts", () => ({
   PieChart: (props: any) => ((mockChartProps.PieChart = props), null),
 }));
 const mockReducedMotion = jest.fn(() => false);
-jest.mock("react-native-reanimated", () => ({
-  useReducedMotion: () => mockReducedMotion(),
+jest.mock("@/hooks/useReduceMotion", () => ({
+  useReduceMotion: () => mockReducedMotion(),
 }));
 jest.mock("react-native-svg", () => {
   const { View } = require("react-native");
@@ -318,5 +318,21 @@ describe("chart text alternatives", () => {
     fireEvent.press(getByRole("button", { name: "Show as table" }));
     expect(getByLabelText("May 2025: 95 kg")).toBeTruthy();
     expect(getByLabelText("May 2026: 105 kg")).toBeTruthy();
+  });
+
+  it("names repeated months by year in the yearly workout summary", () => {
+    const yearly = [
+      workout("2025-05-28", [{ exercise_id: 1, weight: 100, reps: 5 }]),
+      workout("2026-05-19", [{ exercise_id: 1, weight: 100, reps: 5 }]),
+      workout("2026-05-21", [{ exercise_id: 1, weight: 100, reps: 5 }]),
+    ];
+    const { getByRole } = render(
+      <WorkoutBarChart completedWorkouts={yearly} timeRange="365" />,
+    );
+    expect(
+      getByRole("image", {
+        name: "Workouts, last year: 3 in total, most in May 2026 with 2.",
+      }),
+    ).toBeTruthy();
   });
 });

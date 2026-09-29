@@ -8,13 +8,16 @@ jest.mock("react-native-reanimated", () => {
   return {
     __esModule: true,
     default: { View },
-    useReducedMotion: () => mockReducedMotion(),
     useSharedValue: (v: number) => ({ value: v }),
     useAnimatedStyle: (fn: () => object) => fn(),
     withTiming: (v: number) => v,
     withDelay: (_d: number, v: number) => v,
   };
 });
+
+jest.mock("@/hooks/useReduceMotion", () => ({
+  useReduceMotion: () => mockReducedMotion(),
+}));
 
 describe("ConfettiAnimation", () => {
   it("celebrates with particles by default", () => {

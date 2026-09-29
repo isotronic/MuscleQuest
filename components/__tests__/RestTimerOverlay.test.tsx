@@ -139,6 +139,23 @@ describe("RestTimerOverlay accessibility", () => {
     expect(announce).toHaveBeenCalledWith("Rest over");
   });
 
+  it("announces the end once when zero is shown before the timer stops", () => {
+    const { rerender } = render(
+      <RestTimerOverlay {...baseProps} minutes={0} seconds={1} />,
+    );
+    rerender(<RestTimerOverlay {...baseProps} minutes={0} seconds={0} />);
+    rerender(
+      <RestTimerOverlay
+        {...baseProps}
+        timerRunning={false}
+        minutes={0}
+        seconds={0}
+      />,
+    );
+    expect(announce).toHaveBeenCalledTimes(1);
+    expect(announce).toHaveBeenCalledWith("Rest over");
+  });
+
   it("stays quiet when rest is cut short", () => {
     const { rerender } = render(
       <RestTimerOverlay {...baseProps} minutes={0} seconds={40} />,
