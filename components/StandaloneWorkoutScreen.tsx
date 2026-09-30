@@ -10,11 +10,10 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { UserExercise } from "@/store/workoutStore";
-import { AppIcon, AppImage } from "@/components/ui";
+import { AppIcon, AppImage, AppIconButton } from "@/components/ui";
 import {
   ActivityIndicator,
   Button,
-  IconButton,
   Portal,
   Modal,
   Switch,
@@ -146,6 +145,7 @@ export default function StandaloneWorkoutScreen() {
 
     return (
       <TouchableOpacity
+        accessibilityRole="button"
         key={item.exercise_id}
         onPress={() =>
           router.push({
@@ -234,7 +234,9 @@ export default function StandaloneWorkoutScreen() {
                 referenceId={workoutId}
                 buttonType="icon"
               />
-              <IconButton
+              <AppIconButton
+                accessibilityLabel={t`Delete workout`}
+                accessibilityHint={t`Deletes this workout. Your workout history is kept.`}
                 icon="trash-can-outline"
                 size={25}
                 iconColor={colors.danger}
@@ -259,6 +261,11 @@ export default function StandaloneWorkoutScreen() {
               style={styles.shareRow}
               activeOpacity={0.7}
               disabled={publishMutation.isPending || isPublishedLoading}
+              accessibilityRole="switch"
+              accessibilityState={{
+                checked: isPublished,
+                busy: publishMutation.isPending || isPublishedLoading,
+              }}
             >
               <View style={styles.shareLeft}>
                 <AppIcon
@@ -281,7 +288,13 @@ export default function StandaloneWorkoutScreen() {
                 <ActivityIndicator size="small" color={colors.accent} />
               ) : (
                 <View pointerEvents="none">
-                  <Switch value={isPublished} color={colors.accent} />
+                  <Switch
+                    value={isPublished}
+                    color={colors.accent}
+                    // The row is the switch for screen readers.
+                    importantForAccessibility="no-hide-descendants"
+                    accessibilityElementsHidden
+                  />
                 </View>
               )}
             </TouchableOpacity>

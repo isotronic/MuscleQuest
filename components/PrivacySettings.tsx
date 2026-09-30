@@ -126,7 +126,7 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
 
   return (
     <View style={styles.section}>
-      <ThemedText style={styles.sectionHeader}>
+      <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
         <Trans>Privacy</Trans>
       </ThemedText>
       <ThemedText style={styles.rowSubtitle}>
@@ -139,6 +139,9 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
       {/* Share Plans */}
       <TouchableOpacity
         style={styles.item}
+        // One stop for the whole row: title, description and state.
+        accessibilityRole="switch"
+        accessibilityState={{ checked: !!localPrivacySettings?.sharePlans }}
         onPress={() =>
           handlePrivacyToggle({
             sharePlans: !localPrivacySettings?.sharePlans,
@@ -170,12 +173,19 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
           onValueChange={(v: boolean) => handlePrivacyToggle({ sharePlans: v })}
           color={colors.accent}
           style={styles.switch}
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
         />
       </TouchableOpacity>
 
       {/* Share Standalone Workouts */}
       <TouchableOpacity
         style={styles.item}
+        // One stop for the whole row: title, description and state.
+        accessibilityRole="switch"
+        accessibilityState={{
+          checked: !!localPrivacySettings?.shareStandaloneWorkouts,
+        }}
         onPress={() =>
           handlePrivacyToggle({
             shareStandaloneWorkouts:
@@ -210,12 +220,19 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
           }
           color={colors.accent}
           style={styles.switch}
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
         />
       </TouchableOpacity>
 
       {/* Share Custom Exercises */}
       <TouchableOpacity
         style={styles.item}
+        // One stop for the whole row: title, description and state.
+        accessibilityRole="switch"
+        accessibilityState={{
+          checked: !!localPrivacySettings?.shareCustomExercises,
+        }}
         onPress={() =>
           handlePrivacyToggle({
             shareCustomExercises: !localPrivacySettings?.shareCustomExercises,
@@ -248,12 +265,19 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
           }
           color={colors.accent}
           style={styles.switch}
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
         />
       </TouchableOpacity>
 
       {/* Share Completed Workouts */}
       <TouchableOpacity
         style={styles.item}
+        // One stop for the whole row: title, description and state.
+        accessibilityRole="switch"
+        accessibilityState={{
+          checked: !!localPrivacySettings?.shareCompletedWorkouts,
+        }}
         onPress={() =>
           handlePrivacyToggle({
             shareCompletedWorkouts:
@@ -284,12 +308,19 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
           }
           color={colors.accent}
           style={styles.switch}
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
         />
       </TouchableOpacity>
 
       {/* Share Body Measurements */}
       <TouchableOpacity
         style={styles.item}
+        // One stop for the whole row: title, description and state.
+        accessibilityRole="switch"
+        accessibilityState={{
+          checked: !!localPrivacySettings?.shareBodyMeasurements,
+        }}
         onPress={() =>
           handlePrivacyToggle({
             shareBodyMeasurements: !localPrivacySettings?.shareBodyMeasurements,
@@ -321,12 +352,19 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
           }
           color={colors.accent}
           style={styles.switch}
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
         />
       </TouchableOpacity>
 
       {/* Share Strength PRs */}
       <TouchableOpacity
         style={styles.item}
+        // One stop for the whole row: title, description and state.
+        accessibilityRole="switch"
+        accessibilityState={{
+          checked: !!localPrivacySettings?.shareStrengthProgress,
+        }}
         onPress={() =>
           handlePrivacyToggle({
             shareStrengthProgress: !localPrivacySettings?.shareStrengthProgress,
@@ -358,12 +396,15 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
           }
           color={colors.accent}
           style={styles.switch}
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
         />
       </TouchableOpacity>
 
       {/* Delete all shared data */}
       {!hideDeleteSection && (
         <TouchableOpacity
+          accessibilityRole="button"
           style={[styles.item, { justifyContent: "center" }]}
           onPress={handleDeleteAllSharedData}
           disabled={isDeletingSharedData}

@@ -127,6 +127,7 @@ export default function FriendExerciseScreen() {
         ]}
       >
         <TouchableOpacity
+          accessibilityRole="button"
           style={[
             styles.importButton,
             {

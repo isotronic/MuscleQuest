@@ -64,6 +64,16 @@ const REMINDER_DAY_LABELS = [
   msg`Su`,
 ];
 const REMINDER_DAY_VALUES = [1, 2, 3, 4, 5, 6, 0];
+// The chips show two letters; screen readers get the whole day.
+const REMINDER_DAY_NAMES = [
+  msg`Monday`,
+  msg`Tuesday`,
+  msg`Wednesday`,
+  msg`Thursday`,
+  msg`Friday`,
+  msg`Saturday`,
+  msg`Sunday`,
+];
 
 export default function SettingsScreen() {
   const { colors } = useAppTheme();
@@ -584,7 +594,7 @@ export default function SettingsScreen() {
           options={options}
         />
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Personal</Trans>
           </ThemedText>
           <View style={styles.item}>
@@ -632,6 +642,7 @@ export default function SettingsScreen() {
             )}
           </View>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               showOverlay("weeklyGoal", settings?.weeklyGoal || "1", "slider")
@@ -654,6 +665,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               showOverlay("bodyWeight", settings?.bodyWeight || "", "number")
@@ -743,10 +755,11 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Units of measurement</Trans>
           </ThemedText>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               showOverlay("weightUnit", settings?.weightUnit || "", "radio", [
@@ -772,6 +785,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               showOverlay(
@@ -799,6 +813,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               showOverlay("sizeUnit", settings?.sizeUnit || "cm", "radio", [
@@ -827,10 +842,11 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Workout</Trans>
           </ThemedText>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               showOverlay(
@@ -859,6 +875,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               showOverlay(
@@ -885,6 +902,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               showOverlay(
@@ -911,6 +929,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() => router.push("/plate-inventory")}
           >
@@ -949,6 +968,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Play countdown beeps (Exercise Timer)`}
               value={toggleValues.timerCountdownSound === "true"}
               onValueChange={toggleCountdownSound}
               color={colors.accent}
@@ -974,6 +994,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Play goal achieved sound (Exercise Timer)`}
               value={toggleValues.timerGoalSound === "true"}
               onValueChange={toggleGoalSound}
               color={colors.accent}
@@ -999,6 +1020,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Vibrate after rest`}
               value={toggleValues.restTimerVibration === "true"}
               onValueChange={toggleVibration}
               color={colors.accent}
@@ -1022,6 +1044,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Play sound after rest`}
               value={settings?.restTimerSound === "true"}
               onValueChange={toggleSound}
               color={colors.accent}
@@ -1047,6 +1070,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Show rest notification while app is open`}
               value={settings?.restTimerNotification === "true"}
               onValueChange={toggleNotification}
               color={colors.accent}
@@ -1072,6 +1096,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Keep screen on during workout`}
               value={toggleValues.keepScreenOn === "true"}
               onValueChange={toggleKeepScreenOn}
               color={colors.accent}
@@ -1097,6 +1122,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Always use most recent exercise history`}
               value={toggleValues.alwaysUseGlobalHistory === "true"}
               onValueChange={toggleAlwaysUseGlobalHistory}
               color={colors.accent}
@@ -1107,7 +1133,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Stats</Trans>
           </ThemedText>
           <View style={styles.item}>
@@ -1129,6 +1155,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Exclude warmup sets from stats`}
               value={toggleValues.excludeWarmupSets === "true"}
               onValueChange={toggleExcludeWarmupSets}
               color={colors.accent}
@@ -1154,6 +1181,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Single-side rep logging`}
               value={toggleValues.countUnilateralDouble === "true"}
               onValueChange={toggleCountUnilateralDouble}
               color={colors.accent}
@@ -1179,6 +1207,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Per-side weight entry`}
               value={toggleValues.doubleWeightForPaired === "true"}
               onValueChange={toggleDoubleWeightForPaired}
               color={colors.accent}
@@ -1189,7 +1218,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Adaptive Progression (beta)</Trans>
           </ThemedText>
           <View style={styles.item}>
@@ -1211,6 +1240,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Suggest load and rep adjustments`}
               value={toggleValues.adaptive_progression_enabled === "1"}
               onValueChange={toggleAdaptiveProgression}
               color={colors.accent}
@@ -1220,6 +1250,7 @@ export default function SettingsScreen() {
           {toggleValues.adaptive_progression_enabled === "1" && (
             <>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={styles.item}
                 onPress={() =>
                   showOverlay(
@@ -1247,6 +1278,7 @@ export default function SettingsScreen() {
                 </View>
               </TouchableOpacity>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={styles.item}
                 onPress={() =>
                   showOverlay(
@@ -1274,6 +1306,7 @@ export default function SettingsScreen() {
                 </View>
               </TouchableOpacity>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={styles.item}
                 onPress={() =>
                   showOverlay(
@@ -1301,6 +1334,7 @@ export default function SettingsScreen() {
                 </View>
               </TouchableOpacity>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={styles.item}
                 onPress={() =>
                   showOverlay(
@@ -1347,6 +1381,7 @@ export default function SettingsScreen() {
                   </ThemedText>
                 </View>
                 <Switch
+                  accessibilityLabel={t`Exclude deload workouts from exercise stats`}
                   value={toggleValues.exclude_deload_from_stats === "1"}
                   onValueChange={toggleExcludeDeloadFromStats}
                   color={colors.accent}
@@ -1359,7 +1394,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Reminders</Trans>
           </ThemedText>
           <View style={styles.item}>
@@ -1379,6 +1414,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Workout reminders`}
               value={workoutReminderEnabled}
               onValueChange={toggleWorkoutReminder}
               color={colors.accent}
@@ -1407,6 +1443,9 @@ export default function SettingsScreen() {
                       );
                       return (
                         <TouchableOpacity
+                          accessibilityRole="checkbox"
+                          accessibilityState={{ checked: selected }}
+                          accessibilityLabel={_(REMINDER_DAY_NAMES[index])}
                           key={index}
                           onPress={() => toggleReminderDay(dayValue as number)}
                           style={[
@@ -1434,6 +1473,7 @@ export default function SettingsScreen() {
                 </View>
               </View>
               <TouchableOpacity
+                accessibilityRole="button"
                 style={styles.item}
                 onPress={() =>
                   showOverlay(
@@ -1465,10 +1505,11 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Exercise</Trans>
           </ThemedText>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               showOverlay("defaultSets", settings?.defaultSets || "", "number")
@@ -1491,6 +1532,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               showOverlay(
@@ -1537,6 +1579,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Download all exercise animations`}
               value={isDownloadToggled === "true"}
               onValueChange={toggleDownloadImages}
               // Turning it off only deletes local files, which works offline.
@@ -1562,7 +1605,7 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Appearance</Trans>
           </ThemedText>
           <View style={styles.item}>
@@ -1584,6 +1627,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
             <Switch
+              accessibilityLabel={t`Show onboarding on home screen`}
               value={settings?.showOnboarding === "true"}
               onValueChange={toggleOnboarding}
               color={colors.accent}
@@ -1591,6 +1635,7 @@ export default function SettingsScreen() {
             />
           </View>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               showOverlay("buttonSize", settings?.buttonSize || "", "radio", [
@@ -1620,8 +1665,8 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} />
 
         {/* <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>Manage Data</ThemedText>
-          <TouchableOpacity
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>Manage Data</ThemedText>
+          <TouchableOpacity accessibilityRole="button"
             style={styles.item}
             // onPress={confirmClearDatabase}
           >
@@ -1637,7 +1682,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={styles.item}
             // onPress={resetLoginShownSetting}
           >
@@ -1653,7 +1698,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={styles.item}
             onPress={() => Bugsnag.notify(new Error("Settings test error"))}
           >
@@ -1667,7 +1712,7 @@ export default function SettingsScreen() {
               <ThemedText style={styles.itemText}>Send test error</ThemedText>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.item} onPress={clearActivePlanStatus}>
+          <TouchableOpacity accessibilityRole="button" style={styles.item} onPress={clearActivePlanStatus}>
             <AppIcon set="mci"
               name="bug"
               size={24}
@@ -1684,10 +1729,11 @@ export default function SettingsScreen() {
         <Divider style={styles.divider} /> */}
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Your data</Trans>
           </ThemedText>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={promptExport}
             disabled={isExporting}
@@ -1712,6 +1758,7 @@ export default function SettingsScreen() {
           </TouchableOpacity>
           {user && (
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.item}
               onPress={() => router.push("/delete-account")}
             >
@@ -1745,10 +1792,11 @@ export default function SettingsScreen() {
         )}
 
         <View style={styles.section}>
-          <ThemedText style={styles.sectionHeader}>
+          <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>About</Trans>
           </ThemedText>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               Linking.openURL("https://www.featurize.io/p/musclequest")
@@ -1768,6 +1816,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               Linking.openURL("https://buymeacoffee.com/musclequest")
@@ -1787,6 +1836,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() => Linking.openURL("https://musclequest.app")}
           >
@@ -1804,6 +1854,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               Linking.openURL("https://www.instagram.com/musclequest.app/")
@@ -1823,6 +1874,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() => Linking.openURL("https://joseph.bouqdib.com")}
           >
@@ -1840,6 +1892,7 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.item}
             onPress={() =>
               Linking.openURL("https://musclequest.app/privacy-policy")

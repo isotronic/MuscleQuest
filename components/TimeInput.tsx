@@ -1,6 +1,7 @@
 // TimeInput.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
+import { t } from "@lingui/core/macro";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -8,6 +9,10 @@ interface TimeInputProps {
   value: string;
   onChange: (newValue: string) => void;
   style?: any;
+  /** What the time is for, e.g. "Rest time"; each field adds its unit. */
+  accessibilityLabel?: string;
+  /** Which units the two fields hold, for their spoken labels. */
+  fields?: "minutesSeconds" | "hoursMinutes";
 }
 
 function parseValue(value: string): { minutes: string; seconds: string } {
@@ -31,7 +36,13 @@ function normalizeSeconds(raw: string): string {
   return String(s).padStart(2, "0");
 }
 
-export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
+export const TimeInput = ({
+  value,
+  onChange,
+  style,
+  accessibilityLabel,
+  fields = "minutesSeconds",
+}: TimeInputProps) => {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { minutes: initM, seconds: initS } = parseValue(value);
@@ -47,6 +58,22 @@ export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
     setMinutes(m === "0" ? "" : m);
     setSeconds(s === "00" ? "" : s);
   }, [value, isFocused]);
+
+  const hoursMinutes = fields === "hoursMinutes";
+  const firstFieldLabel = accessibilityLabel
+    ? hoursMinutes
+      ? t`${accessibilityLabel}, hours`
+      : t`${accessibilityLabel}, minutes`
+    : hoursMinutes
+      ? t`Hours`
+      : t`Minutes`;
+  const secondFieldLabel = accessibilityLabel
+    ? hoursMinutes
+      ? t`${accessibilityLabel}, minutes`
+      : t`${accessibilityLabel}, seconds`
+    : hoursMinutes
+      ? t`Minutes`
+      : t`Seconds`;
 
   const handleFocus = () => setIsFocused(true);
 
@@ -88,9 +115,16 @@ export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
         keyboardType="numeric"
         selectTextOnFocus
         maxLength={2}
+        accessibilityLabel={firstFieldLabel}
         style={[style, styles.minutesField]}
       />
-      <Text style={styles.separator}>:</Text>
+      <Text
+        style={styles.separator}
+        importantForAccessibility="no"
+        accessibilityElementsHidden
+      >
+        :
+      </Text>
       <TextInput
         ref={secondsRef}
         value={seconds}
@@ -102,6 +136,7 @@ export const TimeInput = ({ value, onChange, style }: TimeInputProps) => {
         keyboardType="numeric"
         selectTextOnFocus
         maxLength={2}
+        accessibilityLabel={secondFieldLabel}
         style={[style, styles.secondsField]}
       />
     </View>

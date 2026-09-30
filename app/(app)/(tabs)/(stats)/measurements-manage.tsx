@@ -122,6 +122,7 @@ export default function MeasurementsManageScreen() {
           {addExpanded && (
             <View style={styles.addForm}>
               <TextInput
+                accessibilityLabel={t`Metric name`}
                 style={styles.addInput}
                 value={newLabel}
                 onChangeText={setNewLabel}
@@ -135,9 +136,11 @@ export default function MeasurementsManageScreen() {
                   const active = newKind === k;
                   return (
                     <TouchableOpacity
+                      accessibilityRole="button"
                       key={k}
                       style={[styles.kindChip, active && styles.kindChipActive]}
                       onPress={() => setNewKind(k)}
+                      accessibilityState={{ selected: active }}
                       activeOpacity={0.7}
                     >
                       <ThemedText
@@ -189,6 +192,11 @@ export default function MeasurementsManageScreen() {
                 </ThemedText>
               </View>
               <Switch
+                accessibilityLabel={
+                  bodyMetricTranslations[metric.key]
+                    ? _(bodyMetricTranslations[metric.key])
+                    : metric.label
+                }
                 value={metric.is_active}
                 onValueChange={() => handleToggle(metric.id, metric.is_active)}
                 color={colors.accent}
@@ -217,6 +225,7 @@ export default function MeasurementsManageScreen() {
                   </View>
                   <View style={styles.customActions}>
                     <Switch
+                      accessibilityLabel={metric.label}
                       value={metric.is_active}
                       onValueChange={() =>
                         handleToggle(metric.id, metric.is_active)
@@ -227,6 +236,8 @@ export default function MeasurementsManageScreen() {
                     <TouchableOpacity
                       onPress={() => handleDelete(metric.id, metric.label)}
                       style={styles.deleteIcon}
+                      accessibilityRole="button"
+                      accessibilityLabel={t`Delete ${metric.label}`}
                       activeOpacity={0.7}
                     >
                       <AppIcon

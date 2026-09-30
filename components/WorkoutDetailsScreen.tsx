@@ -7,7 +7,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { UserExercise } from "@/store/workoutStore";
-import { AppImage } from "@/components/ui";
+import { AppImage, AppIconButton } from "@/components/ui";
 import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
 import { classifySupersetPosition } from "@/utils/supersetUtils";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
@@ -18,7 +18,7 @@ import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionS
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import ProgressionSuggestionChip from "@/components/ProgressionSuggestionChip";
 import { useAppTheme, radii } from "@/theme";
-import { Snackbar, IconButton, Button } from "react-native-paper";
+import { Snackbar, Button } from "react-native-paper";
 import { useCreateStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
 import { CopyWorkoutModal } from "@/components/CopyWorkoutModal";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
@@ -169,6 +169,7 @@ export default function WorkoutDetailsScreen() {
           </View>
         )}
         <TouchableOpacity
+          accessibilityRole="button"
           onPress={() => {
             router.push({
               pathname: "/(app)/exercise-info",
@@ -277,7 +278,8 @@ export default function WorkoutDetailsScreen() {
                 referenceId={workout?.id || 0}
                 buttonType="icon"
               />
-              <IconButton
+              <AppIconButton
+                accessibilityLabel={t`Copy workout to standalone workouts`}
                 icon="content-copy"
                 size={25}
                 iconColor={colors.contentSecondary}

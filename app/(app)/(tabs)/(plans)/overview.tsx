@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { AppImage, AppIcon } from "@/components/ui";
+import { AppImage, AppIcon, AppIconButton } from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
@@ -18,7 +18,6 @@ import WeeklyScheduleDisplay from "@/components/WeeklyScheduleDisplay";
 import {
   Snackbar,
   Button,
-  IconButton,
   Portal,
   Modal,
   Switch,
@@ -67,9 +66,11 @@ function PlanWorkoutCard({
     workout.exercises,
     countUnilateralDouble,
   );
+  const spokenName = workout.name || t`Workout ${index + 1}`;
   return (
     <View style={styles.workoutCardRow}>
       <TouchableOpacity
+        accessibilityRole="button"
         onPress={() =>
           router.push({
             pathname: "/workout-details",
@@ -91,7 +92,8 @@ function PlanWorkoutCard({
           </Trans>
         </ThemedText>
       </TouchableOpacity>
-      <IconButton
+      <AppIconButton
+        accessibilityLabel={t`Copy ${spokenName} to standalone workouts`}
         icon="content-copy"
         size={20}
         iconColor={colors.contentSecondary}
@@ -284,7 +286,9 @@ export default function PlanOverviewScreen() {
                   referenceId={Number(planId)}
                   buttonType="icon"
                 />
-                <IconButton
+                <AppIconButton
+                  accessibilityLabel={t`Delete plan`}
+                  accessibilityHint={t`Deletes this plan. Your workout history is kept.`}
                   icon="trash-can-outline"
                   size={25}
                   style={{ marginRight: 0 }}
@@ -330,6 +334,8 @@ export default function PlanOverviewScreen() {
             onPress={handleToggleDeload}
             style={[styles.deloadRow]}
             activeOpacity={0.7}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: isCurrentWeekDeload }}
           >
             <View style={styles.deloadLeft}>
               <AppIcon
@@ -351,7 +357,13 @@ export default function PlanOverviewScreen() {
               </ThemedText>
             </View>
             <View pointerEvents="none">
-              <Switch value={isCurrentWeekDeload} color={colors.accent} />
+              <Switch
+                value={isCurrentWeekDeload}
+                color={colors.accent}
+                // The row is the switch for screen readers.
+                importantForAccessibility="no-hide-descendants"
+                accessibilityElementsHidden
+              />
             </View>
           </TouchableOpacity>
         )}
@@ -363,6 +375,11 @@ export default function PlanOverviewScreen() {
               style={[styles.deloadRow]}
               activeOpacity={0.7}
               disabled={publishMutation.isPending || isPublishedLoading}
+              accessibilityRole="switch"
+              accessibilityState={{
+                checked: isPublished,
+                busy: publishMutation.isPending || isPublishedLoading,
+              }}
             >
               <View style={styles.deloadLeft}>
                 <AppIcon
@@ -385,7 +402,13 @@ export default function PlanOverviewScreen() {
                 <ActivityIndicator size="small" color={colors.accent} />
               ) : (
                 <View pointerEvents="none">
-                  <Switch value={isPublished} color={colors.accent} />
+                  <Switch
+                    value={isPublished}
+                    color={colors.accent}
+                    // The row is the switch for screen readers.
+                    importantForAccessibility="no-hide-descendants"
+                    accessibilityElementsHidden
+                  />
                 </View>
               )}
             </TouchableOpacity>

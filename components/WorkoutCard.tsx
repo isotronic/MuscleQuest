@@ -2,11 +2,11 @@ import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View, TextInput, Alert } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { useWorkoutStore, Workout, UserExercise } from "@/store/workoutStore";
-import { Card, Button, Menu, IconButton } from "react-native-paper";
+import { Card, Button, Menu } from "react-native-paper";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { router } from "expo-router";
-import { AppIcon } from "@/components/ui";
+import { AppIcon, AppIconButton } from "@/components/ui";
 import Sortable from "react-native-sortables";
 import type { SortableGridRenderItem } from "react-native-sortables";
 import { formatFromTotalSeconds } from "@/utils/utility";
@@ -242,6 +242,7 @@ export default function WorkoutCard({
           ]}
         >
           <Sortable.Touchable
+            accessibilityRole="button"
             onTap={() =>
               router.push(
                 `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}&exerciseIndex=${exerciseIndex}&trackingType=${item.tracking_type}`,
@@ -282,7 +283,8 @@ export default function WorkoutCard({
             visible={isMenuOpen}
             onDismiss={closeMenu}
             anchor={
-              <IconButton
+              <AppIconButton
+                accessibilityLabel={t`Options for ${item.name}`}
                 icon="dots-vertical"
                 size={24}
                 onPress={() => openMenu(item.exercise_id)}
@@ -407,14 +409,18 @@ export default function WorkoutCard({
             <AppIcon
               set="mci"
               name="chevron-up"
-              onPress={isFirst ? undefined : onMoveUp}
+              onPress={onMoveUp}
+              disabled={isFirst}
+              accessibilityLabel={t`Move workout ${index + 1} up`}
               size={24}
               color={isFirst ? colors.contentSecondary : colors.contentPrimary}
             />
             <AppIcon
               set="mci"
               name="chevron-down"
-              onPress={isLast ? undefined : onMoveDown}
+              onPress={onMoveDown}
+              disabled={isLast}
+              accessibilityLabel={t`Move workout ${index + 1} down`}
               size={24}
               color={isLast ? colors.contentSecondary : colors.contentPrimary}
             />
@@ -422,6 +428,7 @@ export default function WorkoutCard({
               set="mci"
               name="close"
               onPress={() => onRemove(index)}
+              accessibilityLabel={t`Remove workout ${index + 1}`}
               size={24}
               color={colors.contentPrimary}
               style={styles.removeWorkoutButton}
@@ -430,6 +437,7 @@ export default function WorkoutCard({
         </View>
       )}
       <TextInput
+        accessibilityLabel={t`Workout ${index + 1} name`}
         placeholder={t`Workout name`}
         placeholderTextColor={colors.contentSecondary}
         style={styles.input}
@@ -492,7 +500,7 @@ function createStyles(colors: AppThemeColors) {
       marginTop: 10,
       fontSize: 14,
       lineHeight: 18,
-      height: 40,
+      minHeight: 40,
     },
     durationEstimate: {
       fontSize: 13,

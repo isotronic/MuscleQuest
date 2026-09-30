@@ -60,6 +60,7 @@ export default function TrainingPlanCard({
   return (
     <ThemedView style={styles.container}>
       <TouchableWithoutFeedback
+        accessibilityRole="button"
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}

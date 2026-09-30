@@ -4,7 +4,7 @@ import { Trans, Plural } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { ActivityIndicator, Card, IconButton } from "react-native-paper";
+import { ActivityIndicator, Card } from "react-native-paper";
 import {
   router,
   Stack,
@@ -14,7 +14,7 @@ import {
 import { byteArrayToBase64, formatToHoursMinutes } from "@/utils/utility";
 import { format } from "date-fns";
 import { parseDbTimestamp } from "@/utils/dates";
-import { AppIcon, AppImage } from "@/components/ui";
+import { AppIcon, AppImage, AppIconButton } from "@/components/ui";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { fetchCompletedWorkoutById } from "@/utils/database";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
@@ -145,7 +145,8 @@ export default function HistoryDetailsScreen() {
         options={{
           headerRight: () => (
             <View style={styles.headerRight}>
-              <IconButton
+              <AppIconButton
+                accessibilityLabel={t`Edit workout`}
                 icon="file-document-edit-outline"
                 size={25}
                 style={{ marginRight: 0 }}
@@ -157,12 +158,13 @@ export default function HistoryDetailsScreen() {
                   })
                 }
               />
-              <IconButton
+              <AppIconButton
                 icon="trash-can-outline"
                 size={25}
                 style={{ marginRight: 0 }}
                 iconColor={colors.danger}
                 accessibilityLabel={t`Delete workout`}
+                accessibilityHint={t`Deletes this workout from your history`}
                 disabled={deleteMutation.isPending}
                 // No confirmation: the delete is soft and the snackbar offers
                 // Undo.

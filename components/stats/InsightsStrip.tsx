@@ -96,6 +96,8 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
 
   const renderPill = (pill: InsightPill) => (
     <Pressable
+      // Only pills with a tooltip do anything when pressed.
+      accessibilityRole={pill.tooltip ? "button" : undefined}
       key={pill.label}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={

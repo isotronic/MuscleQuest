@@ -149,6 +149,7 @@ export default function SetsOverviewScreen() {
           style={[styles.setItem, item.isWarmup && styles.warmupSetItem]}
         >
           <TouchableOpacity
+            accessibilityRole="button"
             onPress={() => handleEditSet(index)}
             style={styles.setContent}
           >
@@ -180,6 +181,7 @@ export default function SetsOverviewScreen() {
             size={24}
             color={colors.contentPrimary}
             onPress={() => handleDeleteSet(index)}
+            accessibilityLabel={t`Delete set ${index + 1}`}
             style={styles.deleteIcon}
           />
         </ThemedView>
@@ -238,6 +240,7 @@ export default function SetsOverviewScreen() {
             </ThemedText>
           </View>
           <Switch
+            accessibilityLabel={t`Track Weight`}
             value={isWeightedOverride}
             onValueChange={handleToggleWeighted}
             trackColor={{

@@ -1,18 +1,27 @@
-import { useMemo } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { useEffect, useMemo, useRef } from "react";
+import {
+  AccessibilityInfo,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import type { LayoutChangeEvent } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Trans } from "@lingui/react/macro";
+import { plural, t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { restCountdownAnnouncement } from "@/utils/a11yAnnouncements";
 
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
   style?: any;
   children?: React.ReactNode;
   pointerEvents?: "auto" | "none" | "box-none" | "box-only";
   onLayout?: (event: LayoutChangeEvent) => void;
+  accessibilityElementsHidden?: boolean;
+  importantForAccessibility?: "auto" | "yes" | "no" | "no-hide-descendants";
 }>;
 
 interface RestTimerOverlayProps {
@@ -43,11 +52,48 @@ export default function RestTimerOverlay({
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const isLarge = buttonSize > 40;
+  const countdown = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+  // The digits change every second, so they are not a live region (TalkBack
+  // would read each tick). Announce the thresholds and the end instead.
+  const totalSeconds = minutes * 60 + seconds;
+  const previousSecondsRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!timerRunning) {
+      // Expiry can stop the timer in the same render the countdown hits zero.
+      // A rest cut short (more than a second left) is not announced.
+      const previous = previousSecondsRef.current;
+      previousSecondsRef.current = null;
+      if (previous !== null && previous <= 1) {
+        const message = restCountdownAnnouncement(previous, 0);
+        if (message) AccessibilityInfo.announceForAccessibility(message);
+      }
+      return;
+    }
+    const message = restCountdownAnnouncement(
+      previousSecondsRef.current,
+      totalSeconds,
+    );
+    previousSecondsRef.current = totalSeconds;
+    if (message) AccessibilityInfo.announceForAccessibility(message);
+  }, [timerRunning, totalSeconds]);
+
+  const addLabel = plural(increment, {
+    one: "Add # second",
+    other: "Add # seconds",
+  });
+  const removeLabel = plural(increment, {
+    one: "Remove # second",
+    other: "Remove # seconds",
+  });
 
   return (
     <AnimatedView
       pointerEvents={timerRunning ? "auto" : "none"}
       onLayout={onLayout}
+      // Parked off-screen between rests; keep screen readers out of it too.
+      accessibilityElementsHidden={!timerRunning}
+      importantForAccessibility={timerRunning ? "auto" : "no-hide-descendants"}
       style={[
         styles.container,
         { paddingBottom: insets.bottom + 16 },
@@ -61,6 +107,8 @@ export default function RestTimerOverlay({
         <TouchableOpacity
           style={[styles.adjustButton, isLarge && styles.adjustButtonLarge]}
           onPress={() => onAdjust(-increment)}
+          accessibilityRole="button"
+          accessibilityLabel={removeLabel}
         >
           <ThemedText
             style={[styles.adjustText, isLarge && styles.adjustTextLarge]}
@@ -68,12 +116,20 @@ export default function RestTimerOverlay({
             <Trans>−{increment}s</Trans>
           </ThemedText>
         </TouchableOpacity>
-        <ThemedText style={styles.timerText}>
-          {minutes}:{seconds.toString().padStart(2, "0")}
+        <ThemedText
+          style={styles.timerText}
+          // Large fixed-position digits; past this they push the buttons off
+          // screen. The countdown is also announced, so nothing is lost.
+          maxFontSizeMultiplier={1.5}
+          accessibilityLabel={t`Rest time left, ${countdown}`}
+        >
+          {countdown}
         </ThemedText>
         <TouchableOpacity
           style={[styles.adjustButton, isLarge && styles.adjustButtonLarge]}
           onPress={() => onAdjust(increment)}
+          accessibilityRole="button"
+          accessibilityLabel={addLabel}
         >
           <ThemedText
             style={[styles.adjustText, isLarge && styles.adjustTextLarge]}

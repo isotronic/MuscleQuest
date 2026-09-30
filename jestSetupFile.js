@@ -108,6 +108,33 @@ jest.mock("expo-asset", () => ({
   },
 }));
 
+// Icon sets load their fonts through expo-font, which cannot resolve the
+// mocked expo-asset above. Render icons as plain Text carrying their props so
+// component tests can still query accessibility attributes on them.
+const mockIconComponent = () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+  return function MockIcon(props) {
+    return React.createElement(Text, props, props.name);
+  };
+};
+jest.mock("@expo/vector-icons", () => ({
+  __esModule: true,
+  Ionicons: mockIconComponent(),
+  MaterialCommunityIcons: mockIconComponent(),
+  MaterialIcons: mockIconComponent(),
+  FontAwesome: mockIconComponent(),
+  FontAwesome5: mockIconComponent(),
+}));
+jest.mock("@expo/vector-icons/Ionicons", () => ({
+  __esModule: true,
+  default: mockIconComponent(),
+}));
+jest.mock("@expo/vector-icons/MaterialCommunityIcons", () => ({
+  __esModule: true,
+  default: mockIconComponent(),
+}));
+
 // Mock Expo Updates
 jest.mock("expo-updates", () => ({
   reloadAsync: jest.fn(),

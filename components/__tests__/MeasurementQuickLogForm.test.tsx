@@ -29,7 +29,7 @@ jest.mock("@lingui/react/macro", () => ({
 }));
 jest.mock("@lingui/core/macro", () => ({
   msg: (s: TemplateStringsArray) => s[0],
-  t: (s: TemplateStringsArray) => s[0],
+  t: (s: TemplateStringsArray, ...v: unknown[]) => String.raw({ raw: s }, ...v),
 }));
 jest.mock("@lingui/react", () => ({
   useLingui: () => ({ _: (descriptor: unknown) => descriptor }),
@@ -115,6 +115,13 @@ describe("MeasurementQuickLogForm", () => {
 
     getByText("kg");
     getByText("cm");
+  });
+
+  it("names each input with its metric and unit for screen readers", () => {
+    const { getByLabelText } = renderForm();
+
+    expect(getByLabelText("Body Weight in kg")).toBeTruthy();
+    expect(getByLabelText("Waist in cm")).toBeTruthy();
   });
 
   it("refuses to submit while a field holds unparseable text", () => {

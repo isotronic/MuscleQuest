@@ -55,7 +55,12 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
   const linePoints = points.join(" ");
 
   return (
-    <View style={{ width, height }}>
+    // A thumbnail trend beside text that already says what it shows.
+    <View
+      style={{ width, height }}
+      importantForAccessibility="no-hide-descendants"
+      accessibilityElementsHidden
+    >
       <Svg width={width} height={height}>
         <Defs>
           <LinearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">

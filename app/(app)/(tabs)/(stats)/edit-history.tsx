@@ -1,8 +1,9 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { AppIconButton } from "@/components/ui";
 import { ScrollView, TextInput, StyleSheet, View } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { Divider, IconButton } from "react-native-paper";
+import { Divider } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import {
@@ -166,7 +167,8 @@ export default function EditCompletedWorkoutScreen() {
                   style={{ marginRight: 12 }}
                 />
               ) : (
-                <IconButton
+                <AppIconButton
+                  accessibilityLabel={t`Save changes`}
                   icon="content-save-outline"
                   size={35}
                   style={{ marginRight: 0 }}
@@ -188,7 +190,8 @@ export default function EditCompletedWorkoutScreen() {
               <ThemedText style={styles.exerciseName}>
                 {exercise.exercise_name}
               </ThemedText>
-              <IconButton
+              <AppIconButton
+                accessibilityLabel={t`Change exercise ${exercise.exercise_name}`}
                 icon="pencil-outline"
                 size={20}
                 onPress={() => handleChangeExercise(exercise)}
@@ -213,6 +216,11 @@ export default function EditCompletedWorkoutScreen() {
                         ({weightUnit})
                       </ThemedText>
                       <TextInput
+                        accessibilityLabel={
+                          exercise.exercise_tracking_type === "weight"
+                            ? t`Weight in ${weightUnit}, set ${set.set_number}`
+                            : t`Assistance in ${weightUnit}, set ${set.set_number}`
+                        }
                         ref={(ref: any) =>
                           (weightInputRefs.current[
                             `${exerciseIndex}-${setIndex}`
@@ -254,6 +262,7 @@ export default function EditCompletedWorkoutScreen() {
                         <Trans>Reps</Trans>
                       </ThemedText>
                       <TextInput
+                        accessibilityLabel={t`Reps, set ${set.set_number}`}
                         style={styles.input}
                         placeholder={t`Reps`}
                         value={String(set.reps || "")}
@@ -277,6 +286,7 @@ export default function EditCompletedWorkoutScreen() {
                       <Trans>Time (Min:Sec)</Trans>
                     </ThemedText>
                     <TimeInput
+                      accessibilityLabel={t`Time, set ${set.set_number}`}
                       value={formatFromTotalSeconds(set.time || 0)}
                       onChange={(value: string) => {
                         setExercises((prev) => {
@@ -295,6 +305,7 @@ export default function EditCompletedWorkoutScreen() {
                       <Trans>Reps</Trans>
                     </ThemedText>
                     <TextInput
+                      accessibilityLabel={t`Reps, set ${set.set_number}`}
                       style={styles.input}
                       placeholder={t`Reps`}
                       value={String(set.reps || "")}
@@ -317,6 +328,7 @@ export default function EditCompletedWorkoutScreen() {
                       <Trans>Distance ({distanceUnit})</Trans>
                     </ThemedText>
                     <TextInput
+                      accessibilityLabel={t`Distance in ${distanceUnit}, set ${set.set_number}`}
                       style={styles.input}
                       placeholder={t`Distance`}
                       value={set.distance != null ? String(set.distance) : ""}

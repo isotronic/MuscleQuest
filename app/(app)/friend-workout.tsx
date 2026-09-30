@@ -107,6 +107,7 @@ export default function FriendWorkoutScreen() {
         ]}
       >
         <TouchableOpacity
+          accessibilityRole="button"
           style={[
             styles.importButton,
             {

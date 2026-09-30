@@ -9,7 +9,9 @@ import {
 import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { LineChart } from "react-native-gifted-charts";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 import { useChartTheme } from "./chartTheme";
+import { spokenBucketLabels, summarizeTrend } from "./chartA11y";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import {
@@ -28,6 +30,8 @@ interface ExerciseProgressionChartProps {
   distanceUnit: string;
   prValue?: number;
   preRangeBaseline?: number | null;
+  /** Offer a "Show as table" switch that lists the same series as rows. */
+  showTableToggle?: boolean;
 }
 
 type Bucket = {
@@ -237,9 +241,18 @@ const HORIZONTAL_INSETS = 16 * 2 + 16 * 2;
 
 export const ExerciseProgressionChart: React.FC<
   ExerciseProgressionChartProps
-> = ({ exercise, timeRange, weightUnit, distanceUnit, preRangeBaseline }) => {
+> = ({
+  exercise,
+  timeRange,
+  weightUnit,
+  distanceUnit,
+  preRangeBaseline,
+  showTableToggle = false,
+}) => {
   const { width: screenWidth } = useWindowDimensions();
   const chartTheme = useChartTheme();
+  // Gifted charts animate with RN Animated, which ignores the setting.
+  const reduceMotion = useReduceMotion();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   // kg to display is linear, so the factor is what 1 kg displays as.
@@ -249,8 +262,9 @@ export const ExerciseProgressionChart: React.FC<
   const showMetricToggle =
     exercise.tracking_type === null || exercise.tracking_type === "weight";
   const [metricMode, setMetricMode] = useState<"1rm" | "weight">("1rm");
+  const [showTable, setShowTable] = useState(false);
 
-  const { chartData, yAxisOffset, yAxisMax } = useMemo(() => {
+  const { chartData, yAxisOffset, yAxisMax, tableRows } = useMemo(() => {
     const empty = {
       chartData: [] as {
         value: number;
@@ -262,6 +276,7 @@ export const ExerciseProgressionChart: React.FC<
       }[],
       yAxisOffset: 0,
       yAxisMax: undefined as number | undefined,
+      tableRows: [] as { label: string; value: number }[],
     };
 
     // In weight mode, substitute progressionMetric with the raw weight so the
@@ -282,6 +297,14 @@ export const ExerciseProgressionChart: React.FC<
     );
 
     if (buckets.length === 0) return empty;
+
+    // Periods with real sets, before any gap filling below.
+    const spokenLabels = spokenBucketLabels(buckets);
+    const tableRows = buckets.flatMap((b, i) =>
+      b.hasData && b.value !== null
+        ? [{ label: spokenLabels[i], value: b.value }]
+        : [],
+    );
 
     // Forward-fill: empty buckets after first data carry the last known value
     let lastValue: number | null = null;
@@ -351,7 +374,7 @@ export const ExerciseProgressionChart: React.FC<
       yAxisMax = maxVal + padding;
     }
 
-    return { chartData, yAxisOffset, yAxisMax };
+    return { chartData, yAxisOffset, yAxisMax, tableRows };
   }, [
     exercise.completed_sets,
     timeRange,
@@ -413,6 +436,26 @@ export const ExerciseProgressionChart: React.FC<
           ? distanceUnit
           : weightUnitLabel;
 
+  const spokenMetric =
+    exercise.tracking_type === "time"
+      ? t`time`
+      : exercise.tracking_type === "reps"
+        ? t`reps`
+        : exercise.tracking_type === "distance"
+          ? t`distance`
+          : metricMode === "weight"
+            ? t`heaviest weight`
+            : t`estimated one-rep max`;
+  const exerciseName = exercise.name;
+  // Only periods with real sets count; forward-filled points are drawn to keep
+  // the line continuous but are not measurements.
+  const summary = summarizeTrend({
+    title: t`${exerciseName}, ${spokenMetric}`,
+    timeRange,
+    values: chartData.map((p) => (p.hasData ? p.value : null)),
+    unit: tooltipUnit,
+  });
+
   // Fixed chart width; spacing computed to fit with equal margins on both sides
   // 30d labels are "17 May" (~36px wide) centered on the first point; give
   // extra left room so they are not clipped by the y-axis.
@@ -466,8 +509,10 @@ export const ExerciseProgressionChart: React.FC<
               const label = mode === "1rm" ? "1RM" : t`Weight`;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={mode}
                   onPress={() => setMetricMode(mode)}
+                  accessibilityState={{ selected: active }}
                   style={[styles.metricPill, active && styles.metricPillActive]}
                   activeOpacity={0.7}
                 >
@@ -484,67 +529,152 @@ export const ExerciseProgressionChart: React.FC<
             })}
           </View>
         )}
-        <LineChart
-          key={`${exercise.exercise_id}-${timeRange}-${metricMode}`}
-          data={chartData}
-          width={chartWidth}
-          spacing={spacing}
-          initialSpacing={initialSpacing}
-          endSpacing={INITIAL_SPACING}
-          thickness={2}
-          color={colors.accent}
-          isAnimated
-          areaChart
-          startFillColor={chartTheme.areaStartFill}
-          endFillColor={chartTheme.areaEndFill}
-          yAxisColor="transparent"
-          yAxisTextStyle={styles.yAxisLabel}
-          formatYLabel={(label) => String(Math.round(Number(label)))}
-          xAxisLabelTextStyle={styles.xAxisLabel}
-          xAxisColor={colors.contentSecondary}
-          hideRules
-          noOfSections={3}
-          yAxisOffset={yAxisOffset}
-          maxValue={yAxisMax}
-          pointerConfig={{
-            activatePointersInstantlyOnTouch: true,
-            persistPointer: true,
-            showPointerStrip: true,
-            pointerStripColor: chartTheme.pointerStripColor,
-            pointerStripWidth: 1,
-            pointerColor: colors.danger,
-            radius: 5,
-            pointerLabelWidth: POINTER_LABEL_WIDTH,
-            pointerLabelHeight: 34,
-            autoAdjustPointerLabelPosition: true,
-            shiftPointerLabelY: -44,
-            pointerLabelComponent: (
-              items: { value: number }[],
-              _secondary: unknown,
-              idx: number,
-            ) => {
-              if (!chartData[idx]?.hasData) return null;
-              const val = items[0]?.value;
-              if (val == null) return null;
-              const display = Number.isInteger(val) ? `${val}` : val.toFixed(1);
-              const isLast = idx === n - 1 && n > 1;
-              return (
-                <View style={[styles.tooltip, isLast && styles.tooltipLast]}>
-                  <Text style={styles.tooltipText}>
-                    {tooltipUnit ? `${display} ${tooltipUnit}` : display}
-                  </Text>
-                </View>
-              );
-            },
-          }}
-        />
+        {showTableToggle && (
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={() => setShowTable((v) => !v)}
+            style={styles.tableToggle}
+            hitSlop={8}
+          >
+            <Text style={styles.tableToggleText}>
+              {showTable ? t`Show as chart` : t`Show as table`}
+            </Text>
+          </TouchableOpacity>
+        )}
+        {showTable ? (
+          <View style={styles.table}>
+            {tableRows.length === 0 ? (
+              <ThemedText style={styles.tableEmpty}>
+                {t`No data in this period`}
+              </ThemedText>
+            ) : (
+              tableRows.map((row) => {
+                const value = formatTableValue(row.value);
+                const valueText = tooltipUnit
+                  ? `${value} ${tooltipUnit}`
+                  : value;
+                return (
+                  <View
+                    key={row.label}
+                    style={styles.tableRow}
+                    accessible
+                    accessibilityLabel={`${row.label}: ${valueText}`}
+                  >
+                    <ThemedText style={styles.tableCell}>
+                      {row.label}
+                    </ThemedText>
+                    <ThemedText style={styles.tableCell}>
+                      {valueText}
+                    </ThemedText>
+                  </View>
+                );
+              })
+            )}
+          </View>
+        ) : (
+          <View
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel={summary}
+          >
+            <LineChart
+              key={`${exercise.exercise_id}-${timeRange}-${metricMode}`}
+              data={chartData}
+              width={chartWidth}
+              spacing={spacing}
+              initialSpacing={initialSpacing}
+              endSpacing={INITIAL_SPACING}
+              thickness={2}
+              color={colors.accent}
+              isAnimated={!reduceMotion}
+              areaChart
+              startFillColor={chartTheme.areaStartFill}
+              endFillColor={chartTheme.areaEndFill}
+              yAxisColor="transparent"
+              yAxisTextStyle={styles.yAxisLabel}
+              formatYLabel={(label) => String(Math.round(Number(label)))}
+              xAxisLabelTextStyle={styles.xAxisLabel}
+              xAxisColor={colors.contentSecondary}
+              hideRules
+              noOfSections={3}
+              yAxisOffset={yAxisOffset}
+              maxValue={yAxisMax}
+              pointerConfig={{
+                activatePointersInstantlyOnTouch: true,
+                persistPointer: true,
+                showPointerStrip: true,
+                pointerStripColor: chartTheme.pointerStripColor,
+                pointerStripWidth: 1,
+                pointerColor: colors.danger,
+                radius: 5,
+                pointerLabelWidth: POINTER_LABEL_WIDTH,
+                pointerLabelHeight: 34,
+                autoAdjustPointerLabelPosition: true,
+                shiftPointerLabelY: -44,
+                pointerLabelComponent: (
+                  items: { value: number }[],
+                  _secondary: unknown,
+                  idx: number,
+                ) => {
+                  if (!chartData[idx]?.hasData) return null;
+                  const val = items[0]?.value;
+                  if (val == null) return null;
+                  const display = Number.isInteger(val)
+                    ? `${val}`
+                    : val.toFixed(1);
+                  const isLast = idx === n - 1 && n > 1;
+                  return (
+                    <View
+                      style={[styles.tooltip, isLast && styles.tooltipLast]}
+                    >
+                      <Text style={styles.tooltipText}>
+                        {tooltipUnit ? `${display} ${tooltipUnit}` : display}
+                      </Text>
+                    </View>
+                  );
+                },
+              }}
+            />
+          </View>
+        )}
       </View>
     </Card>
   );
 };
 
+const formatTableValue = (value: number) =>
+  Number.isInteger(value) ? String(value) : value.toFixed(1);
+
 function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({
+    tableToggle: {
+      alignSelf: "flex-end",
+      paddingVertical: 4,
+      marginBottom: 4,
+    },
+    tableToggleText: {
+      color: colors.accent,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+    table: {
+      marginTop: 4,
+    },
+    tableRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: 6,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.cardSecondary,
+    },
+    tableCell: {
+      fontSize: 15,
+      color: colors.contentPrimary,
+    },
+    tableEmpty: {
+      fontSize: 14,
+      color: colors.contentSecondary,
+    },
     card: {
       width: "100%",
       marginBottom: 8,

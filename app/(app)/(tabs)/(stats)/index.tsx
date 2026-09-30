@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { AppIconButton } from "@/components/ui";
 import {
   RefreshControl,
   ScrollView,
@@ -9,12 +10,7 @@ import {
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import {
-  ActivityIndicator,
-  Button,
-  Divider,
-  IconButton,
-} from "react-native-paper";
+import { ActivityIndicator, Button, Divider } from "react-native-paper";
 import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -455,7 +451,7 @@ export default function StatsScreen() {
         {/* Insights strip */}
         {(completedWorkouts?.length ?? 0) > 0 && (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Insights</Trans>
             </ThemedText>
             <InsightsStrip
@@ -471,7 +467,7 @@ export default function StatsScreen() {
 
         {/* Summary tiles */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
             <Trans>Summary</Trans>
           </ThemedText>
           <View style={styles.tileGrid}>
@@ -502,11 +498,12 @@ export default function StatsScreen() {
         {/* Workout history */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Workout History</Trans>
             </ThemedText>
             {(completedWorkouts?.length ?? 0) > 0 && (
-              <IconButton
+              <AppIconButton
+                accessibilityLabel={t`Open workout calendar`}
                 icon="calendar-month"
                 size={20}
                 iconColor={colors.accent}
@@ -525,7 +522,7 @@ export default function StatsScreen() {
         {/* Workouts over time */}
         {(completedWorkouts?.length ?? 0) > 0 && (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Workouts per Week</Trans>
             </ThemedText>
             <WorkoutBarChart
@@ -538,7 +535,7 @@ export default function StatsScreen() {
         {/* Volume over time */}
         {(completedWorkouts?.length ?? 0) > 0 && (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Volume per Week ({volumeUnit})</Trans>
             </ThemedText>
             <VolumeBarChart
@@ -554,7 +551,7 @@ export default function StatsScreen() {
 
         {/* Training split */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
             <Trans>Training Split (by sets)</Trans>
           </ThemedText>
           <BodyPartChart
@@ -567,7 +564,7 @@ export default function StatsScreen() {
         {/* Exercises */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Tracked Exercises</Trans>
             </ThemedText>
             <View style={styles.exerciseHeaderButtons}>
@@ -643,7 +640,7 @@ export default function StatsScreen() {
         {/* Body Measurements */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Body Measurements</Trans>
             </ThemedText>
             <Button
@@ -659,6 +656,7 @@ export default function StatsScreen() {
           </View>
           {latestMeasurements && latestMeasurements.length > 0 ? (
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.measurementTile}
               activeOpacity={0.7}
               onPress={() =>
@@ -679,6 +677,7 @@ export default function StatsScreen() {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
+              accessibilityRole="button"
               activeOpacity={0.7}
               onPress={() =>
                 router.push("/(app)/(tabs)/(stats)/measurements" as never)

@@ -8,13 +8,13 @@ import {
   Pressable,
   RefreshControl,
 } from "react-native";
-import { Button, Avatar, IconButton, Modal, Portal } from "react-native-paper";
+import { Button, Avatar, Modal, Portal } from "react-native-paper";
 import { PrivacySettings } from "@/components/PrivacySettings";
 import { Stack, useRouter } from "expo-router";
 import Bugsnag from "@bugsnag/expo";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
-import { AppText, AppIcon } from "@/components/ui";
+import { AppText, AppIcon, AppIconButton } from "@/components/ui";
 import { useAppTheme } from "@/theme";
 import { AuthContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
@@ -94,7 +94,8 @@ export default function FriendsScreen() {
         options={{
           title: t`Friends`,
           headerRight: () => (
-            <IconButton
+            <AppIconButton
+              accessibilityLabel={t`Privacy settings`}
               icon="cog"
               size={24}
               iconColor={colors.contentPrimary}
@@ -184,7 +185,8 @@ export default function FriendsScreen() {
             >
               <Trans>Privacy Settings</Trans>
             </AppText>
-            <IconButton
+            <AppIconButton
+              accessibilityLabel={t`Close`}
               icon="close"
               size={20}
               iconColor={colors.contentPrimary}
@@ -305,6 +307,7 @@ function SearchTab({ currentUid, colors, borders }: SearchTabProps) {
     <View style={styles.searchContainer}>
       <View style={styles.searchRow}>
         <TextInput
+          accessibilityLabel={t`Email address`}
           style={[
             styles.input,
             { color: colors.contentPrimary, borderColor: borders.divider },

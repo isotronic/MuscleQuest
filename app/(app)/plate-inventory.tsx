@@ -168,7 +168,7 @@ export default function PlateInventoryScreen() {
           </Trans>
         </ThemedText>
 
-        <ThemedText style={styles.sectionHeader}>
+        <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
           <Trans>Plates ({weightUnit})</Trans>
         </ThemedText>
 
@@ -198,6 +198,8 @@ export default function PlateInventoryScreen() {
                       : colors.contentPrimary
                   }
                   onPress={() => changePairs(plate.weight, -1)}
+                  disabled={plate.pairs === 0}
+                  accessibilityLabel={t`Remove a pair of ${formatWeight(plate.weight)} ${weightUnit} plates`}
                 />
                 <ThemedText
                   style={[
@@ -217,6 +219,8 @@ export default function PlateInventoryScreen() {
                       : colors.contentPrimary
                   }
                   onPress={() => changePairs(plate.weight, 1)}
+                  disabled={plate.pairs >= MAX_PAIRS}
+                  accessibilityLabel={t`Add a pair of ${formatWeight(plate.weight)} ${weightUnit} plates`}
                 />
               </View>
 
@@ -226,6 +230,7 @@ export default function PlateInventoryScreen() {
                 size={24}
                 color={colors.danger}
                 onPress={() => removePlate(plate.weight)}
+                accessibilityLabel={t`Remove ${formatWeight(plate.weight)} ${weightUnit} plates`}
               />
             </View>
           ))
@@ -233,11 +238,12 @@ export default function PlateInventoryScreen() {
 
         <Divider style={styles.divider} />
 
-        <ThemedText style={styles.sectionHeader}>
+        <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
           <Trans>Add a plate size</Trans>
         </ThemedText>
         <View style={styles.addRow}>
           <TextInput
+            accessibilityLabel={t`Weight in ${weightUnit}`}
             style={styles.input}
             value={newWeight}
             onChangeText={handleNewWeightChange}
@@ -247,6 +253,7 @@ export default function PlateInventoryScreen() {
             onSubmitEditing={addPlate}
           />
           <TouchableOpacity
+            accessibilityRole="button"
             style={[styles.addButton, !newWeight && styles.addButtonDisabled]}
             onPress={addPlate}
             disabled={!newWeight}

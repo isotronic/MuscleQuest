@@ -247,6 +247,7 @@ const ExerciseFeedbackSheet = React.forwardRef<
                 <Trans>Where did you feel it?</Trans>
               </ThemedText>
               <TextInput
+                accessibilityLabel={t`Where did you feel it?`}
                 style={[
                   styles.textInput,
                   {

@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
-import { ActivityIndicator, IconButton, Button } from "react-native-paper";
+import { ActivityIndicator, Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useAnimatedImageQuery } from "@/hooks/useAnimatedImageQuery";
@@ -23,7 +23,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { formatSetMetric } from "@/utils/formatSetMetric";
 import { kgToDisplay, metresToDisplay } from "@/utils/units";
 import Bugsnag from "@bugsnag/expo";
-import { AppIcon, AppImage } from "@/components/ui";
+import { AppIcon, AppImage, AppIconButton } from "@/components/ui";
 import { Notes } from "@/components/Notes";
 import { ExerciseProgressionChart } from "@/components/charts/ExerciseProgressionChart";
 import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
@@ -160,7 +160,12 @@ export default function ExerciseInfoScreen() {
                 referenceId={exerciseData.exercise_id}
                 buttonType="icon"
               />
-              <IconButton
+              <AppIconButton
+                accessibilityLabel={
+                  exerciseData.favorite
+                    ? t`Remove from favorites`
+                    : t`Add to favorites`
+                }
                 icon={exerciseData.favorite ? "star" : "star-outline"}
                 iconColor={
                   exerciseData.favorite ? colors.accent : colors.contentPrimary
@@ -186,11 +191,13 @@ export default function ExerciseInfoScreen() {
       </View>
 
       {/* Tab bar */}
-      <View style={styles.tabBar}>
+      <View style={styles.tabBar} accessibilityRole="tablist">
         {(["info", "history"] as Tab[]).map((tab) => {
           const active = activeTab === tab;
           return (
             <TouchableOpacity
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
               key={tab}
               onPress={() => setActiveTab(tab)}
               style={[styles.tabPill, active && styles.tabPillActive]}
@@ -281,7 +288,10 @@ export default function ExerciseInfoScreen() {
 
             {description.length > 0 && (
               <View>
-                <ThemedText style={styles.sectionTitle}>
+                <ThemedText
+                  accessibilityRole="header"
+                  style={styles.sectionTitle}
+                >
                   <Trans>Description:</Trans>
                 </ThemedText>
                 <ThemedText style={styles.descriptionText}>

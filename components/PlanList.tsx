@@ -112,7 +112,9 @@ export const PlanList: React.FC<PlanListProps> = ({
   return (
     <>
       <View style={styles.titleRow}>
-        <ThemedText style={styles.sectionTitle}>{title}</ThemedText>
+        <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
+          {title}
+        </ThemedText>
         {showViewToggle && onViewModeChange && (
           <View style={styles.toggleButtons}>
             <TouchableOpacity

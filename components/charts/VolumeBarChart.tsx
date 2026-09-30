@@ -4,7 +4,10 @@ import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { Card } from "react-native-paper";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import { t } from "@lingui/core/macro";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 import { useChartTheme } from "./chartTheme";
+import { spokenBucketLabels, summarizeTotals } from "./chartA11y";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -21,6 +24,8 @@ interface Bucket {
   label: string;
   labelLine2?: string;
   value: number;
+  /** Year-first key, e.g. "2026-4"; names repeated months in speech. */
+  internalKey?: string;
 }
 
 type BucketType = "weekly" | "monthly" | "quarterly" | "yearly";
@@ -193,6 +198,8 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
 }) => {
   const { width: screenWidth } = useWindowDimensions();
   const chartTheme = useChartTheme();
+  // Gifted charts animate with RN Animated, which ignores the setting.
+  const reduceMotion = useReduceMotion();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -242,26 +249,40 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
 
   const maxVal = Math.max(...buckets.map((b) => b.value));
 
+  const summary = summarizeTotals({
+    title: t`Volume`,
+    timeRange,
+    buckets: spokenBucketLabels(buckets).map((label, i) => ({
+      label,
+      value: buckets[i].value,
+    })),
+    // Bars are in thousands of the weight unit; spell the unit out.
+    unit: weightUnit === "lbs" ? t`tons` : t`tonnes`,
+    emptyText: t`No workouts in this period`,
+  });
+
   return (
     <Card style={styles.card}>
-      <BarChart
-        data={barData}
-        barWidth={barWidth}
-        spacing={barSpacing}
-        isAnimated
-        frontColor={chartTheme.primary}
-        roundedTop
-        barBorderRadius={chartTheme.barBorderRadius}
-        yAxisTextStyle={styles.yAxisLabel}
-        xAxisLabelTextStyle={styles.xAxisLabel}
-        yAxisColor="transparent"
-        xAxisColor={chartTheme.axisColor}
-        width={chartWidth}
-        noOfSections={chartTheme.noOfSections}
-        initialSpacing={INITIAL_SPACING}
-        maxValue={maxVal > 0 ? maxVal : 1}
-        hideRules
-      />
+      <View accessible accessibilityRole="image" accessibilityLabel={summary}>
+        <BarChart
+          data={barData}
+          barWidth={barWidth}
+          spacing={barSpacing}
+          isAnimated={!reduceMotion}
+          frontColor={chartTheme.primary}
+          roundedTop
+          barBorderRadius={chartTheme.barBorderRadius}
+          yAxisTextStyle={styles.yAxisLabel}
+          xAxisLabelTextStyle={styles.xAxisLabel}
+          yAxisColor="transparent"
+          xAxisColor={chartTheme.axisColor}
+          width={chartWidth}
+          noOfSections={chartTheme.noOfSections}
+          initialSpacing={INITIAL_SPACING}
+          maxValue={maxVal > 0 ? maxVal : 1}
+          hideRules
+        />
+      </View>
     </Card>
   );
 };

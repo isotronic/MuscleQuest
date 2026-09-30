@@ -159,7 +159,7 @@ export default function MeasurementsScreen() {
         {/* Entry form */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
               <Trans>Log Entry</Trans>
             </ThemedText>
             <Button
@@ -178,6 +178,7 @@ export default function MeasurementsScreen() {
 
           {/* Date row */}
           <TouchableOpacity
+            accessibilityRole="button"
             style={styles.dateRow}
             onPress={() => setCalendarVisible(true)}
             activeOpacity={0.7}
@@ -212,6 +213,11 @@ export default function MeasurementsScreen() {
               <View style={styles.metricInputWrap}>
                 <TextInput
                   style={styles.metricInput}
+                  accessibilityLabel={
+                    bodyMetricTranslations[metric.key]
+                      ? _(bodyMetricTranslations[metric.key])
+                      : metric.label
+                  }
                   value={inputValues[metric.id] ?? ""}
                   onChangeText={(text: string) =>
                     setInputValues((prev) => ({ ...prev, [metric.id]: text }))
@@ -249,7 +255,7 @@ export default function MeasurementsScreen() {
 
         {/* Session history */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
             <Trans>History</Trans>
           </ThemedText>
           {sessionsLoading && (
@@ -262,6 +268,7 @@ export default function MeasurementsScreen() {
           )}
           {sessions?.map((session) => (
             <TouchableOpacity
+              accessibilityRole="button"
               key={session.entry.id}
               style={styles.sessionRow}
               activeOpacity={0.7}
@@ -318,6 +325,10 @@ export default function MeasurementsScreen() {
           style={styles.modalBackdrop}
           activeOpacity={1}
           onPress={() => setCalendarVisible(false)}
+          // A tap-outside backdrop; as an accessible element it would swallow
+          // the calendar. The Modal's back handler closes it instead.
+          accessible={false}
+          importantForAccessibility="no"
         >
           <View style={styles.calendarCard}>
             <Calendar

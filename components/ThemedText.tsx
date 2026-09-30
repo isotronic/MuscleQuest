@@ -1,8 +1,9 @@
-import { type ComponentProps } from "react";
+import { type ComponentPropsWithRef } from "react";
 import { Text, StyleSheet } from "react-native";
 import { useAppTheme } from "@/theme";
 
-export type ThemedTextProps = ComponentProps<typeof Text> & {
+// Includes ref: React 19 passes it as a prop, and it reaches Text via ...rest.
+export type ThemedTextProps = ComponentPropsWithRef<typeof Text> & {
   type?: "default" | "title" | "defaultSemiBold" | "subtitle" | "link";
 };
 
@@ -50,7 +51,18 @@ export function ThemedText({
     }
   })();
 
-  return <Text style={[styles.base, typeStyle, style]} {...rest} />;
+  // Titles and subtitles are section headings; screen readers let users jump
+  // between headers, so expose them as such unless the caller overrides it.
+  const role =
+    type === "title" || type === "subtitle" ? ("header" as const) : undefined;
+
+  return (
+    <Text
+      accessibilityRole={role}
+      style={[styles.base, typeStyle, style]}
+      {...rest}
+    />
+  );
 }
 
 const styles = StyleSheet.create({

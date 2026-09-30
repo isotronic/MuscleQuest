@@ -6,11 +6,12 @@ import { useLingui } from "@lingui/react";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
+// The short labels fit the pills; screen readers get the spelled-out form.
 const RANGES = [
-  { label: msg`30d`, value: "30" },
-  { label: msg`90d`, value: "90" },
-  { label: msg`1yr`, value: "365" },
-  { label: msg`All Time`, value: "0" },
+  { label: msg`30d`, spoken: msg`Last 30 days`, value: "30" },
+  { label: msg`90d`, spoken: msg`Last 90 days`, value: "90" },
+  { label: msg`1yr`, spoken: msg`Last year`, value: "365" },
+  { label: msg`All Time`, spoken: msg`All time`, value: "0" },
 ];
 
 interface TimeRangeSelectorProps {
@@ -35,6 +36,9 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
             onPress={() => onChange(r.value)}
             style={[styles.pill, active && styles.pillActive]}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={_(r.spoken)}
+            accessibilityState={{ selected: active }}
           >
             <ThemedText style={[styles.label, active && styles.labelActive]}>
               {_(r.label)}

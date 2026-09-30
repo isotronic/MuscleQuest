@@ -7,10 +7,12 @@ import { Exercise } from "@/utils/database";
 import { Card } from "react-native-paper";
 import { capitalizeWords } from "@/utils/utility";
 import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { bodyPartTranslations } from "@/constants/dbTranslations";
 import { useAppTheme } from "@/theme";
 import { useChartTheme } from "./chartTheme";
+import { summarizeShares } from "./chartA11y";
 import type { AppThemeColors } from "@/theme/types";
 
 // Define the props for the component
@@ -103,6 +105,20 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
     focused: item.name === selectedBodyPart,
   }));
 
+  const bodyPartName = (key: string) =>
+    bodyPartTranslations[key]
+      ? _(bodyPartTranslations[key])
+      : capitalizeWords(key);
+
+  const summary = summarizeShares({
+    title: t`Training split by sets`,
+    shares: chartData.map((item) => ({
+      name: bodyPartName(item.text),
+      percent: item.value,
+    })),
+    emptyText: t`No workouts in this period`,
+  });
+
   const handleChartPress = (
     item: { text: string; value: number },
     index: number,
@@ -144,9 +160,9 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
                 isSelected && styles.selectedLegendText,
               ]}
             >
-              {bodyPartTranslations[item.text]
-                ? _(bodyPartTranslations[item.text])
-                : capitalizeWords(item.text)}
+              {/* The share is printed so slices are not told apart by colour
+                  alone. */}
+              {`${bodyPartName(item.text)} ${item.value}%`}
             </ThemedText>
           </View>
         );
@@ -159,38 +175,52 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
       {chartData.length > 0 ? (
         <Card style={styles.card}>
           <View>
-            <PieChart
-              donut
-              data={chartData}
-              radius={150}
-              innerRadius={110}
-              onPress={handleChartPress}
-              sectionAutoFocus
-              innerCircleColor={colors.card}
-              centerLabelComponent={() => (
-                <View
-                  style={{ justifyContent: "center", alignItems: "center" }}
-                >
-                  {selectedBodyPart ? (
-                    <>
+            <View
+              accessible
+              accessibilityRole="image"
+              accessibilityLabel={summary}
+            >
+              <PieChart
+                donut
+                data={chartData}
+                radius={150}
+                innerRadius={110}
+                onPress={handleChartPress}
+                sectionAutoFocus
+                innerCircleColor={colors.card}
+                centerLabelComponent={() => (
+                  <View
+                    style={{ justifyContent: "center", alignItems: "center" }}
+                  >
+                    {selectedBodyPart ? (
+                      <>
+                        <ThemedText
+                          style={{ fontSize: 18, fontWeight: "bold" }}
+                        >
+                          {`${selectedPercentage}%`}
+                        </ThemedText>
+                        <ThemedText style={{ fontSize: 18 }}>
+                          {bodyPartTranslations[selectedBodyPart]
+                            ? _(bodyPartTranslations[selectedBodyPart])
+                            : capitalizeWords(selectedBodyPart)}
+                        </ThemedText>
+                      </>
+                    ) : (
                       <ThemedText style={{ fontSize: 18, fontWeight: "bold" }}>
-                        {`${selectedPercentage}%`}
+                        <Trans>Body Parts</Trans>
                       </ThemedText>
-                      <ThemedText style={{ fontSize: 18 }}>
-                        {bodyPartTranslations[selectedBodyPart]
-                          ? _(bodyPartTranslations[selectedBodyPart])
-                          : capitalizeWords(selectedBodyPart)}
-                      </ThemedText>
-                    </>
-                  ) : (
-                    <ThemedText style={{ fontSize: 18, fontWeight: "bold" }}>
-                      <Trans>Body Parts</Trans>
-                    </ThemedText>
-                  )}
-                </View>
-              )}
-            />
-            {renderLegendComponent()}
+                    )}
+                  </View>
+                )}
+              />
+            </View>
+            {/* The chart's label already lists every share. */}
+            <View
+              importantForAccessibility="no-hide-descendants"
+              accessibilityElementsHidden
+            >
+              {renderLegendComponent()}
+            </View>
           </View>
         </Card>
       ) : (

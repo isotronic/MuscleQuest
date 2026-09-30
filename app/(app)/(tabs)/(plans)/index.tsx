@@ -140,7 +140,7 @@ export default function PlansScreen() {
           viewMode={viewMode}
         />
         <View style={styles.workoutsSection}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
             <Trans>Your workouts</Trans>
           </ThemedText>
           {standaloneIsLoading ? (

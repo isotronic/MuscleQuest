@@ -81,8 +81,10 @@ export default function FriendPlanScreen() {
         {plan.workouts.map((workout, index) => (
           <View key={index} style={{ marginBottom: 8 }}>
             <TouchableOpacity
+              accessibilityRole="button"
               style={[styles.workoutRow, { borderColor: borders.divider }]}
               onPress={() => toggleWorkout(index)}
+              accessibilityState={{ expanded: expandedWorkouts.has(index) }}
               activeOpacity={0.7}
             >
               <AppText
@@ -150,6 +152,7 @@ export default function FriendPlanScreen() {
         ]}
       >
         <TouchableOpacity
+          accessibilityRole="button"
           style={[
             styles.importButton,
             {

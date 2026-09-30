@@ -148,7 +148,7 @@ export default function MeasurementDetailScreen() {
 
         {/* Editable metric values */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
             <Trans>Values</Trans>
           </ThemedText>
           {session.values.map((v) => (
@@ -161,6 +161,11 @@ export default function MeasurementDetailScreen() {
               <View style={styles.metricInputWrap}>
                 <TextInput
                   style={styles.metricInput}
+                  accessibilityLabel={
+                    bodyMetricTranslations[v.metric.key]
+                      ? _(bodyMetricTranslations[v.metric.key])
+                      : v.metric.label
+                  }
                   value={inputValues[v.metric.id] ?? ""}
                   onChangeText={(text: string) =>
                     setInputValues((prev) => ({ ...prev, [v.metric.id]: text }))
@@ -178,7 +183,7 @@ export default function MeasurementDetailScreen() {
 
         {/* Chart section */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
             <Trans>History</Trans>
           </ThemedText>
 
@@ -192,9 +197,11 @@ export default function MeasurementDetailScreen() {
               const active = selectedMetric?.id === v.metric.id;
               return (
                 <TouchableOpacity
+                  accessibilityRole="button"
                   key={v.metric.id}
                   onPress={() => setSelectedMetric(v.metric)}
                   style={[styles.chip, active && styles.chipActive]}
+                  accessibilityState={{ selected: active }}
                   activeOpacity={0.7}
                 >
                   <ThemedText

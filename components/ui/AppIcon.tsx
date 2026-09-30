@@ -7,11 +7,25 @@ import type { AppThemeIcons } from "@/theme/types";
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 type MciName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 
+// A pressable icon is an icon-only button, so it must say what it does. A
+// decorative one is hidden from screen readers instead.
 type SharedExtras = {
   style?: object;
-  onPress?: () => void;
   testID?: string;
-};
+} & (
+  | {
+      onPress: (() => void) | undefined;
+      accessibilityLabel: string;
+      accessibilityHint?: string;
+      disabled?: boolean;
+    }
+  | {
+      onPress?: never;
+      accessibilityLabel?: string;
+      accessibilityHint?: string;
+      disabled?: never;
+    }
+);
 
 type AppIconProps = SharedExtras &
   (
@@ -37,6 +51,9 @@ export function AppIcon({
   style,
   onPress,
   testID,
+  accessibilityLabel,
+  accessibilityHint,
+  disabled,
 }: AppIconProps) {
   const { icons } = useAppTheme();
 
@@ -49,6 +66,26 @@ export function AppIcon({
       ? icons.colors[color as keyof AppThemeIcons["colors"]]
       : (color as string);
 
+  const pressable = onPress !== undefined || disabled;
+  const a11yProps = pressable
+    ? {
+        accessible: true,
+        accessibilityRole: "button" as const,
+        accessibilityLabel,
+        accessibilityHint,
+        accessibilityState: { disabled: !!disabled || !onPress },
+      }
+    : accessibilityLabel
+      ? {
+          accessible: true,
+          accessibilityRole: "image" as const,
+          accessibilityLabel,
+        }
+      : {
+          accessibilityElementsHidden: true,
+          importantForAccessibility: "no-hide-descendants" as const,
+        };
+
   if (set === "ion") {
     return (
       <Ionicons
@@ -56,8 +93,9 @@ export function AppIcon({
         size={resolvedSize}
         color={resolvedColor}
         style={style as any}
-        onPress={onPress}
+        onPress={disabled ? undefined : onPress}
         testID={testID}
+        {...a11yProps}
       />
     );
   }
@@ -68,8 +106,9 @@ export function AppIcon({
       size={resolvedSize}
       color={resolvedColor}
       style={style as any}
-      onPress={onPress}
+      onPress={disabled ? undefined : onPress}
       testID={testID}
+      {...a11yProps}
     />
   );
 }

@@ -8,7 +8,6 @@ import type {
   SortableGridDragEndParams,
 } from "react-native-sortables";
 import {
-  IconButton,
   Menu,
   Button,
   ActivityIndicator,
@@ -19,7 +18,7 @@ import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { router, Stack, useFocusEffect } from "expo-router";
-import { AppIcon } from "@/components/ui";
+import { AppIcon, AppIconButton } from "@/components/ui";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
 import {
   useWorkoutSessionHistoryQuery,
@@ -538,6 +537,7 @@ export default function WorkoutOverviewScreen() {
 
         const inner = isTappable ? (
           <Sortable.Touchable
+            accessibilityRole="button"
             onTap={() => handleExercisePress(exerciseIndex)}
             style={styles.cardTouchable}
           >
@@ -636,7 +636,8 @@ export default function WorkoutOverviewScreen() {
               visible={!!menuVisible[exerciseIndex]}
               onDismiss={() => handleMenuClose(exerciseIndex)}
               anchor={
-                <IconButton
+                <AppIconButton
+                  accessibilityLabel={t`Options for ${exercise.name}`}
                   icon="dots-vertical"
                   size={24}
                   onPress={() => handleMenuOpen(exerciseIndex)}
@@ -957,7 +958,8 @@ export default function WorkoutOverviewScreen() {
                 visible={menuVisible[69420]}
                 onDismiss={() => handleMenuClose(69420)}
                 anchor={
-                  <IconButton
+                  <AppIconButton
+                    accessibilityLabel={t`Workout options`}
                     icon="dots-vertical"
                     size={24}
                     onPressIn={() => handleMenuOpen(69420)}
@@ -999,6 +1001,7 @@ export default function WorkoutOverviewScreen() {
             <Trans>Give it a name to save it as a reusable workout.</Trans>
           </ThemedText>
           <TextInput
+            accessibilityLabel={t`Workout name`}
             style={styles.saveModalInput}
             placeholder={t`Workout name`}
             placeholderTextColor={colors.contentSecondary}

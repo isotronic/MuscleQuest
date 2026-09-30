@@ -66,6 +66,7 @@ function GroupChipsRow({
       >
         {groups.map((group) => (
           <TouchableOpacity
+            accessibilityRole="button"
             key={group.id}
             testID={`help-chip-${group.id}`}
             style={styles.chip}
@@ -132,7 +133,9 @@ function Section({ icon, title, children }: SectionProps) {
           color={colors.accent}
           style={styles.sectionIcon}
         />
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>
+          {title}
+        </Text>
       </View>
       <View style={styles.sectionBody}>{children}</View>
     </View>
@@ -202,7 +205,12 @@ function SearchBody({
       return (
         <View>
           <Text style={styles.bodyText}>{body.lead}</Text>
-          <TouchableOpacity onPress={onToggleExpand} hitSlop={8}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={onToggleExpand}
+            accessibilityState={{ expanded: false }}
+            hitSlop={8}
+          >
             <Text style={styles.showMore}>
               <Trans>{body.steps.length} steps — tap to view</Trans>
             </Text>
@@ -227,7 +235,12 @@ function SearchBody({
             return renderSegments(segments, highlightColor);
           })}
         />
-        <TouchableOpacity onPress={onToggleExpand} hitSlop={8}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={onToggleExpand}
+          accessibilityState={{ expanded: false }}
+          hitSlop={8}
+        >
           <Text style={styles.showMore}>
             {remaining > 0 ? (
               <Trans>+{remaining} more steps</Trans>
@@ -250,7 +263,12 @@ function SearchBody({
         {renderSegments(segments, highlightColor)}
       </Text>
       {truncated && (
-        <TouchableOpacity onPress={onToggleExpand} hitSlop={8}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={onToggleExpand}
+          accessibilityState={{ expanded: false }}
+          hitSlop={8}
+        >
           <Text style={styles.showMore}>
             <Trans>Show more</Trans>
           </Text>
@@ -410,6 +428,7 @@ export default function HelpScreen() {
               <Trans>No results for "{query}"</Trans>
             </Text>
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.emptyButton}
               onPress={() => handleQueryChange("")}
             >
@@ -418,6 +437,7 @@ export default function HelpScreen() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
               style={styles.emptyLinkButton}
               onPress={() => Linking.openURL(FEATURE_REQUEST_URL)}
             >

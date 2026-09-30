@@ -5,11 +5,11 @@ import {
   BottomSheetTextInput,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
-import { AppIcon } from "@/components/ui";
+import { AppIcon, AppIconButton } from "@/components/ui";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useNotes, NoteType } from "@/hooks/useNotes";
-import { Button, Divider, IconButton } from "react-native-paper";
+import { Button, Divider } from "react-native-paper";
 import { ThemedText } from "./ThemedText";
 import { Pressable } from "react-native-gesture-handler";
 import { capitalizeWords } from "@/utils/utility";
@@ -68,7 +68,8 @@ export const Notes: React.FC<NotesProps> = ({
     <>
       {/* Open Button */}
       {buttonType === "icon" && (
-        <IconButton
+        <AppIconButton
+          accessibilityLabel={note.trim() ? t`Edit note` : t`Add note`}
           onPressIn={handleOpen}
           icon="note-edit"
           size={25}
@@ -107,6 +108,8 @@ export const Notes: React.FC<NotesProps> = ({
             <TouchableOpacity
               onPress={handleClose}
               style={{ alignSelf: "flex-start" }}
+              accessibilityRole="button"
+              accessibilityLabel={t`Close notes`}
             >
               <AppIcon
                 set="mci"
@@ -120,7 +123,10 @@ export const Notes: React.FC<NotesProps> = ({
             </ThemedText>
           </View>
           <Divider style={{ marginTop: 8, marginBottom: 16 }} />
+          {/* Only enlarges the tap target for the field; screen readers go
+              straight to the input. */}
           <Pressable
+            accessible={false}
             onPress={() => inputRef.current?.focus()}
             style={{ flex: 1 }}
           >
@@ -133,6 +139,7 @@ export const Notes: React.FC<NotesProps> = ({
                   currentNoteRef.current = text;
                 }}
                 placeholder={t`Add a note...`}
+                accessibilityLabel={t`Note`}
                 placeholderTextColor={colors.contentSecondary}
                 multiline
                 maxLength={500}

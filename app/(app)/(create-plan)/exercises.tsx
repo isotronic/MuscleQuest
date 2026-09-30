@@ -311,6 +311,7 @@ export default function ExercisesScreen() {
       >
         <View style={styles.searchContainer}>
           <TextInput
+            accessibilityLabel={t`Search exercises`}
             style={styles.searchInput}
             placeholderTextColor={colors.contentPrimary}
             placeholder={t`Search`}

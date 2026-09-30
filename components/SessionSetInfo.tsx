@@ -3,13 +3,8 @@ import ProgressionSuggestionChip from "@/components/ProgressionSuggestionChip";
 import { View, TextInput, StyleSheet } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import {
-  IconButton,
-  ActivityIndicator,
-  Button,
-  Menu,
-} from "react-native-paper";
-import { AppImage, AppIcon } from "@/components/ui";
+import { ActivityIndicator, Button, Menu } from "react-native-paper";
+import { AppImage, AppIcon, AppIconButton } from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
 import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
@@ -165,6 +160,19 @@ export default function SessionSetInfo({
 
   const displayValue = formatTimeInput(time);
 
+  const setNumber = currentSetIndex + 1;
+  // Whole sentences per case so translators can inflect each one.
+  const isAssisted = trackingType === "assisted";
+  const weightInputLabel = isAssisted
+    ? t`Assistance in ${weightUnit}, set ${setNumber}`
+    : t`Weight in ${weightUnit}, set ${setNumber}`;
+  const weightDecreaseLabel = isAssisted
+    ? t`Decrease assistance by ${weightIncrement} ${weightUnit}`
+    : t`Decrease weight by ${weightIncrement} ${weightUnit}`;
+  const weightIncreaseLabel = isAssisted
+    ? t`Increase assistance by ${weightIncrement} ${weightUnit}`
+    : t`Increase weight by ${weightIncrement} ${weightUnit}`;
+
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
 
@@ -196,11 +204,19 @@ export default function SessionSetInfo({
           {animatedImageLoading ? (
             <ActivityIndicator size="small" color={colors.contentPrimary} />
           ) : animatedImageError ? (
-            <TouchableOpacity onPress={handleImagePress}>
+            <TouchableOpacity
+              onPress={handleImagePress}
+              accessibilityRole="button"
+              accessibilityLabel={t`Exercise details for ${exerciseName}`}
+            >
               <AppImage style={styles.animatedImage} source={fallbackImage} />
             </TouchableOpacity>
           ) : animatedUrl ? (
-            <TouchableOpacity onPress={handleImagePress}>
+            <TouchableOpacity
+              onPress={handleImagePress}
+              accessibilityRole="button"
+              accessibilityLabel={t`Exercise details for ${exerciseName}`}
+            >
               <AppImage
                 style={styles.animatedImage}
                 source={{
@@ -209,7 +225,11 @@ export default function SessionSetInfo({
               />
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity onPress={handleImagePress}>
+            <TouchableOpacity
+              onPress={handleImagePress}
+              accessibilityRole="button"
+              accessibilityLabel={t`Exercise details for ${exerciseName}`}
+            >
               <AppImage style={styles.animatedImage} source={fallbackImage} />
             </TouchableOpacity>
           )}
@@ -254,8 +274,9 @@ export default function SessionSetInfo({
           visible={menuVisible}
           onDismiss={closeMenu}
           anchor={
-            <IconButton
+            <AppIconButton
               icon="dots-vertical"
+              accessibilityLabel={t`Set options`}
               onPress={openMenu}
               size={30}
               iconColor={colors.contentPrimary}
@@ -332,8 +353,9 @@ export default function SessionSetInfo({
       </View>
       {/* Set Navigation */}
       <View style={styles.setNavigationContainer}>
-        <IconButton
+        <AppIconButton
           icon="chevron-left"
+          accessibilityLabel={t`Previous set`}
           onPress={handlePreviousSet}
           size={buttonSize}
           disabled={!!isFirstSetOfFirstExercise}
@@ -344,8 +366,9 @@ export default function SessionSetInfo({
             Set {currentSetIndex + 1} of {totalSets}
           </Trans>
         </ThemedText>
-        <IconButton
+        <AppIconButton
           icon="chevron-right"
+          accessibilityLabel={t`Next set`}
           onPress={handleNextSet}
           size={buttonSize}
           disabled={!!isLastSetOfLastExercise}
@@ -445,23 +468,26 @@ export default function SessionSetInfo({
             </ThemedText>
           </View>
           <View style={styles.inputContainer}>
-            <IconButton
+            <AppIconButton
               icon="minus"
               {...weightMinusPress}
+              accessibilityLabel={weightDecreaseLabel}
               size={buttonSize}
               iconColor={colors.contentPrimary}
             />
             <TextInput
               placeholderTextColor={colors.contentPrimary}
               value={weight}
+              accessibilityLabel={weightInputLabel}
               onChangeText={(text: string) => handleWeightInputChange(text)}
               keyboardType="numeric"
               selectTextOnFocus
               style={styles.input}
             />
-            <IconButton
+            <AppIconButton
               icon="plus"
               {...weightPlusPress}
+              accessibilityLabel={weightIncreaseLabel}
               size={buttonSize}
               iconColor={colors.contentPrimary}
             />
@@ -476,23 +502,26 @@ export default function SessionSetInfo({
             </ThemedText>
           </View>
           <View style={styles.inputContainer}>
-            <IconButton
+            <AppIconButton
               icon="minus"
               {...repsMinusPress}
+              accessibilityLabel={t`Decrease reps by 1`}
               size={buttonSize}
               iconColor={colors.contentPrimary}
             />
             <TextInput
               placeholderTextColor={colors.contentPrimary}
               value={reps}
+              accessibilityLabel={t`Reps, set ${setNumber}`}
               onChangeText={(text: string) => handleRepsInputChange(text)}
               keyboardType="numeric"
               selectTextOnFocus
               style={styles.input}
             />
-            <IconButton
+            <AppIconButton
               icon="plus"
               {...repsPlusPress}
+              accessibilityLabel={t`Increase reps by 1`}
               size={buttonSize}
               iconColor={colors.contentPrimary}
             />
@@ -510,6 +539,7 @@ export default function SessionSetInfo({
               key={`${exercise_id}-${currentSetIndex}`}
               value={displayValue}
               onChange={handleTimeInputChange}
+              accessibilityLabel={t`Time, set ${setNumber}`}
               style={styles.input}
             />
           </View>
@@ -545,23 +575,26 @@ export default function SessionSetInfo({
             </ThemedText>
           </View>
           <View style={styles.inputContainer}>
-            <IconButton
+            <AppIconButton
               icon="minus"
               {...distanceMinusPress}
+              accessibilityLabel={t`Decrease distance by 1 ${distanceUnit}`}
               size={buttonSize}
               iconColor={colors.contentPrimary}
             />
             <TextInput
               placeholderTextColor={colors.contentPrimary}
               value={distance}
+              accessibilityLabel={t`Distance in ${distanceUnit}, set ${setNumber}`}
               onChangeText={(text: string) => handleDistanceInputChange(text)}
               keyboardType="numeric"
               selectTextOnFocus
               style={styles.input}
             />
-            <IconButton
+            <AppIconButton
               icon="plus"
               {...distancePlusPress}
+              accessibilityLabel={t`Increase distance by 1 ${distanceUnit}`}
               size={buttonSize}
               iconColor={colors.contentPrimary}
             />
@@ -571,6 +604,11 @@ export default function SessionSetInfo({
       <Button
         mode={currentSetCompleted ? "outlined" : "contained"}
         onPress={handleCompleteSet}
+        accessibilityLabel={
+          currentSetCompleted
+            ? t`Update set ${setNumber} of ${totalSets}`
+            : t`Complete set ${setNumber} of ${totalSets}`
+        }
         labelStyle={
           buttonSize === 40 ? styles.buttonLabel : styles.largeButtonLabel
         }
@@ -692,8 +730,10 @@ function createStyles(colors: AppThemeColors) {
     completeButton: {
       marginTop: 16,
     },
+    // A floor, not a fixed box, so the label can grow with the text size.
     largeButton: {
-      height: 55,
+      minHeight: 55,
+      justifyContent: "center",
     },
     buttonLabel: {
       fontSize: 18,

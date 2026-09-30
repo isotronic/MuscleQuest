@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useShallow } from "zustand/react/shallow";
 import {
+  AccessibilityInfo,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
@@ -33,6 +34,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
 import RestTimerOverlay from "@/components/RestTimerOverlay";
+import { setCompleteAnnouncement } from "@/utils/a11yAnnouncements";
 import WorkoutTimer from "@/components/WorkoutTimer";
 import Bugsnag from "@bugsnag/expo";
 import {
@@ -1321,6 +1323,17 @@ export default function WorkoutSessionScreen() {
       }
       return false;
     })();
+
+    // The panel slides away, so tell screen reader users what just happened.
+    // Rest only starts below on the animated path, with a next set and no
+    // superset partner to move to.
+    const restAfterSeconds =
+      shouldAnimate && !isFirstInSuperset && hasNextSet
+        ? (currentSet.restMinutes || 0) * 60 + (currentSet.restSeconds || 0)
+        : 0;
+    AccessibilityInfo.announceForAccessibility(
+      setCompleteAnnouncement(currentSetIndex + 1, restAfterSeconds),
+    );
 
     if (!shouldAnimate) {
       if (isFirstInSuperset) {

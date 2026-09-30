@@ -39,6 +39,7 @@ function WorkoutHistoryCard({
 
   return (
     <TouchableOpacity
+      accessibilityRole="button"
       onPress={() => onPress(workout.id)}
       style={[
         styles.container,

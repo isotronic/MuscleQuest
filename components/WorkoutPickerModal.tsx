@@ -105,6 +105,7 @@ export default function WorkoutPickerModal({
         </ThemedText>
         <View style={styles.searchContainer}>
           <TextInput
+            accessibilityLabel={t`Search workouts`}
             style={styles.searchInput}
             placeholderTextColor={colors.contentSecondary}
             placeholder={t`Search`}
@@ -135,7 +136,10 @@ export default function WorkoutPickerModal({
                     key={section.planId ?? "no-plan"}
                     style={styles.section}
                   >
-                    <ThemedText style={styles.sectionTitle}>
+                    <ThemedText
+                      accessibilityRole="header"
+                      style={styles.sectionTitle}
+                    >
                       {section.planName}
                     </ThemedText>
                     {section.workouts.map(({ workout, index }) => (
@@ -159,7 +163,10 @@ export default function WorkoutPickerModal({
                 ))}
                 {filteredStandalone.length > 0 && (
                   <View style={styles.section}>
-                    <ThemedText style={styles.sectionTitle}>
+                    <ThemedText
+                      accessibilityRole="header"
+                      style={styles.sectionTitle}
+                    >
                       <Trans>Standalone Workouts</Trans>
                     </ThemedText>
                     {filteredStandalone.map((workout) => (

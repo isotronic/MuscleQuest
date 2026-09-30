@@ -5,6 +5,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -16,6 +17,7 @@ import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
+import { useAccessibilityFocusOnShow } from "@/hooks/useAccessibilityFocusOnShow";
 import {
   barPresetsFor,
   calculatePlates,
@@ -49,6 +51,8 @@ export const PlateCalculatorModal: React.FC<PlateCalculatorModalProps> = ({
 }) => {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const titleRef = useAccessibilityFocusOnShow<Text>(visible);
 
   const { data: settings } = useSettingsQuery();
   const { mutate: updateSetting } = useUpdateSettingsMutation();
@@ -141,17 +145,22 @@ export const PlateCalculatorModal: React.FC<PlateCalculatorModalProps> = ({
       visible={visible}
       transparent={true}
       onDismiss={handleClose}
+      onRequestClose={handleClose}
       animationType="fade"
       statusBarTranslucent
     >
-      <TouchableWithoutFeedback onPress={handleClose}>
+      <TouchableWithoutFeedback onPress={handleClose} accessible={false}>
         <KeyboardAvoidingView
           style={styles.modalContainer}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <TouchableWithoutFeedback>
-            <View style={styles.modalContent}>
-              <ThemedText style={styles.title}>
+          <TouchableWithoutFeedback accessible={false}>
+            <View style={styles.modalContent} accessibilityViewIsModal>
+              <ThemedText
+                ref={titleRef}
+                style={styles.title}
+                accessibilityRole="header"
+              >
                 <Trans>Plate Calculator</Trans>
               </ThemedText>
 
@@ -166,6 +175,9 @@ export const PlateCalculatorModal: React.FC<PlateCalculatorModalProps> = ({
                       key={preset}
                       onPress={() => selectPresetBar(preset)}
                       style={[styles.chip, selected && styles.chipSelected]}
+                      accessibilityRole="button"
+                      accessibilityLabel={t`${preset} ${weightUnit} bar`}
+                      accessibilityState={{ selected }}
                     >
                       <ThemedText
                         style={[
@@ -181,6 +193,9 @@ export const PlateCalculatorModal: React.FC<PlateCalculatorModalProps> = ({
                 <TouchableOpacity
                   onPress={() => setShowCustomBar(true)}
                   style={[styles.chip, showCustomBar && styles.chipSelected]}
+                  accessibilityRole="button"
+                  accessibilityLabel={t`Custom bar weight`}
+                  accessibilityState={{ selected: showCustomBar }}
                 >
                   <ThemedText
                     style={[
@@ -202,6 +217,7 @@ export const PlateCalculatorModal: React.FC<PlateCalculatorModalProps> = ({
                   keyboardType="numeric"
                   selectTextOnFocus
                   placeholder={t`Bar weight`}
+                  accessibilityLabel={t`Custom bar weight in ${weightUnit}`}
                   placeholderTextColor={colors.contentDisabled}
                 />
               )}
@@ -247,7 +263,12 @@ export const PlateCalculatorModal: React.FC<PlateCalculatorModalProps> = ({
                   </ThemedText>
                   <ScrollView style={styles.plateList}>
                     {result.plates.map((plate) => (
-                      <View key={plate.weight} style={styles.plateRow}>
+                      <View
+                        key={plate.weight}
+                        style={styles.plateRow}
+                        accessible
+                        accessibilityLabel={t`${plate.count} × ${formatWeight(plate.weight)} ${weightUnit} per side`}
+                      >
                         <ThemedText style={styles.plateWeight}>
                           {formatWeight(plate.weight)} {weightUnit}
                         </ThemedText>

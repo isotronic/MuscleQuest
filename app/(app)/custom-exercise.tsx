@@ -355,7 +355,7 @@ export default function AddCustomExerciseScreen() {
         >
           {/* ── Basics ─────────────────────────────────────── */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionHeader}>
+            <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
               <Trans>Basics</Trans>
             </ThemedText>
 
@@ -378,6 +378,7 @@ export default function AddCustomExerciseScreen() {
               <Trans>Name *</Trans>
             </ThemedText>
             <TextInput
+              accessibilityLabel={t`Exercise name`}
               placeholder={t`Enter exercise name`}
               value={name}
               onChangeText={(v: string) => {
@@ -397,6 +398,7 @@ export default function AddCustomExerciseScreen() {
               <Trans>Description</Trans>
             </ThemedText>
             <TextInput
+              accessibilityLabel={t`Description`}
               placeholder={t`Enter description`}
               value={description}
               onChangeText={(v: string) => {
@@ -414,7 +416,7 @@ export default function AddCustomExerciseScreen() {
 
           {/* ── Muscles ────────────────────────────────────── */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionHeader}>
+            <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
               <Trans>Muscles</Trans>
             </ThemedText>
 
@@ -484,7 +486,7 @@ export default function AddCustomExerciseScreen() {
 
           {/* ── Equipment & Tracking ────────────────────────── */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionHeader}>
+            <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
               <Trans>Equipment & Tracking</Trans>
             </ThemedText>
 
@@ -545,7 +547,7 @@ export default function AddCustomExerciseScreen() {
 
           {/* ── Stats Options ──────────────────────────────── */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionHeader}>
+            <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
               <Trans>Stats Options</Trans>
             </ThemedText>
 
@@ -561,6 +563,7 @@ export default function AddCustomExerciseScreen() {
                 </ThemedText>
               </View>
               <Switch
+                accessibilityLabel={t`Single-arm / single-leg`}
                 value={isUnilateral}
                 onValueChange={(v: boolean) => {
                   setIsUnilateral(v);
@@ -581,6 +584,7 @@ export default function AddCustomExerciseScreen() {
                 </ThemedText>
               </View>
               <Switch
+                accessibilityLabel={t`Paired implements`}
                 value={doubleWeight}
                 onValueChange={(v: boolean) => {
                   setDoubleWeight(v);
