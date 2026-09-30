@@ -128,6 +128,8 @@ export interface Settings {
   plateInventoryLbs: string;
   plateCalcBarKg: string;
   plateCalcBarLbs: string;
+  /** ISO instant; the home backup reminder stays hidden until then. */
+  backupReminderSnoozedUntil?: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
