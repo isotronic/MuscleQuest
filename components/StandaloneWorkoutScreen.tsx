@@ -19,7 +19,7 @@ import {
   Switch,
 } from "react-native-paper";
 import { Notes } from "@/components/Notes";
-import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
+import { bytesToBase64, formatFromTotalSeconds } from "@/utils/utility";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 import { useDeleteStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
@@ -101,7 +101,7 @@ export default function StandaloneWorkoutScreen() {
   const renderExercise = (item: UserExercise) => {
     let base64Image: string | undefined;
     if (item.image && item.image.length > 0) {
-      base64Image = `data:image/webp;base64,${byteArrayToBase64(item.image)}`;
+      base64Image = `data:image/webp;base64,${bytesToBase64(item.image)}`;
     }
 
     const minReps = Math.min(...item.sets.map((s) => s.repsMin ?? Infinity));

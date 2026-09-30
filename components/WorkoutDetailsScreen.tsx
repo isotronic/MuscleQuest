@@ -8,7 +8,7 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { UserExercise } from "@/store/workoutStore";
 import { AppImage, AppIconButton } from "@/components/ui";
-import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
+import { bytesToBase64, formatFromTotalSeconds } from "@/utils/utility";
 import { classifySupersetPosition } from "@/utils/supersetUtils";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { Notes } from "@/components/Notes";
@@ -100,7 +100,7 @@ export default function WorkoutDetailsScreen() {
   }) => {
     let base64Image: string | undefined;
     if (item.image) {
-      const base64String = byteArrayToBase64(item.image);
+      const base64String = bytesToBase64(item.image);
       base64Image = `data:image/webp;base64,${base64String}`;
     }
 

@@ -3,7 +3,7 @@ import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { Checkbox } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { AppImage, checkboxLabel } from "@/components/ui";
-import { capitalizeWords } from "@/utils/utility";
+import { bytesToBase64, capitalizeWords } from "@/utils/utility";
 import { Exercise } from "@/utils/database";
 import { useLingui } from "@lingui/react";
 import { t } from "@lingui/core/macro";
@@ -36,9 +36,7 @@ const ExerciseItem = ({
   const styles = useMemo(() => createStyles(colors), [colors]);
   const base64Image = useMemo(
     () =>
-      item.image
-        ? `data:image/webp;base64,${btoa(String.fromCharCode(...new Uint8Array(item.image)))}`
-        : null,
+      item.image ? `data:image/webp;base64,${bytesToBase64(item.image)}` : null,
     [item.image],
   );
 
