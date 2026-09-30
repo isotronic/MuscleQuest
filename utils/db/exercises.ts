@@ -1,0 +1,250 @@
+import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
+import * as SQLite from "expo-sqlite";
+import { openDatabase } from "./connection";
+
+export interface Exercise {
+  exercise_id: number;
+  app_exercise_id?: number;
+  name: string;
+  image: number[];
+  local_animated_uri: string;
+  animated_url: string;
+  equipment: string;
+  body_part: string;
+  target_muscle: string;
+  secondary_muscles: string[];
+  description: string;
+  tracking_type?: string;
+  favorite?: number;
+  is_unilateral?: number;
+  double_weight?: number;
+}
+
+export const fetchAllRecords = async (
+  databaseName: string,
+  tableName: string,
+) => {
+  const db = await openDatabase(databaseName);
+  try {
+    const allowedTables = [
+      "user_plans",
+      "exercises",
+      "muscles",
+      "body_parts",
+      "equipment_list",
+    ];
+    if (!allowedTables.includes(tableName)) {
+      const tableError = new Error("Invalid table name");
+      notifyBugsnag(tableError);
+      throw tableError;
+    }
+
+    // Check if the table contains an is_deleted field
+    const tableInfo = await db.getAllAsync(`PRAGMA table_info(${tableName});`);
+    const hasIsDeletedField = tableInfo.some(
+      (column: any) => column.name === "is_deleted",
+    );
+
+    // Build the query accordingly
+    const query = hasIsDeletedField
+      ? `SELECT * FROM ${tableName} WHERE is_deleted = FALSE`
+      : `SELECT * FROM ${tableName}`;
+
+    return await db.getAllAsync(query);
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+export const fetchRecord = async (
+  databaseName: string,
+  tableName: string,
+  id: number,
+) => {
+  const allowedTables = [
+    "user_plans",
+    "exercises",
+    "muscles",
+    "body_parts",
+    "equipment_list",
+  ];
+  if (!allowedTables.includes(tableName)) {
+    const tableError = new Error("Invalid table name");
+    notifyBugsnag(tableError);
+    throw tableError;
+  }
+  const db = await openDatabase(databaseName);
+  const fieldName = tableName === "exercises" ? "exercise_id" : "id";
+  try {
+    return await db.getFirstAsync(
+      `SELECT * FROM ${tableName} WHERE ${fieldName} = ?`,
+      [id],
+    );
+  } catch (error: any) {
+    console.error("Error fetching record:", error);
+    notifyBugsnag(error);
+    const wrappedError = new Error("Error fetching record");
+    markReported(wrappedError);
+    throw wrappedError;
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+export const fetchMusclesByFilters = async (
+  bodyPart: string | null,
+  equipment: string | null,
+) => {
+  const db = await openDatabase("userData.db");
+  try {
+    const conditions = ["is_deleted = 0"];
+    const params: string[] = [];
+    if (bodyPart && bodyPart !== "all") {
+      conditions.push("body_part = ?");
+      params.push(bodyPart);
+    }
+    if (equipment && equipment !== "all") {
+      conditions.push("equipment = ?");
+      params.push(equipment);
+    }
+    return await db.getAllAsync<{ target_muscle: string }>(
+      `SELECT DISTINCT target_muscle FROM exercises WHERE ${conditions.join(" AND ")} ORDER BY target_muscle`,
+      params,
+    );
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+export const insertAnimatedImageUri = async (
+  exercise_id: number,
+  local_animated_uri: string,
+) => {
+  const db = await openDatabase("userData.db");
+  try {
+    await db.runAsync(
+      `UPDATE exercises SET local_animated_uri = ? WHERE exercise_id = ?`,
+      [local_animated_uri, exercise_id],
+    );
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+export const insertAnimatedImageUris = async (
+  uris: { exercise_id: number; local_animated_uri: string }[],
+) => {
+  if (uris.length === 0) return;
+  const db = await openDatabase("userData.db");
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      for (const { exercise_id, local_animated_uri } of uris) {
+        await txn.runAsync(
+          `UPDATE exercises SET local_animated_uri = ? WHERE exercise_id = ?`,
+          [local_animated_uri, exercise_id],
+        );
+      }
+    });
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+export interface ExerciseWithoutLocalAnimatedUriRow {
+  exercise_id: number;
+  animated_url: string;
+}
+
+export const fetchExercisesWithoutLocalAnimatedUri = async () => {
+  const db = await openDatabase("userData.db");
+  try {
+    return (await db.getAllAsync(
+      `SELECT exercise_id, animated_url FROM exercises WHERE animated_url IS NOT NULL AND animated_url != '' AND (local_animated_uri IS NULL OR local_animated_uri = '')`,
+    )) as ExerciseWithoutLocalAnimatedUriRow[];
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+export interface ExerciseWithLocalAnimatedUriRow {
+  exercise_id: number;
+  local_animated_uri: string;
+}
+
+export const fetchExercisesWithLocalAnimatedUri = async () => {
+  const db = await openDatabase("userData.db");
+  try {
+    return (await db.getAllAsync(
+      `SELECT exercise_id, local_animated_uri FROM exercises WHERE local_animated_uri IS NOT NULL AND local_animated_uri != ''`,
+    )) as ExerciseWithLocalAnimatedUriRow[];
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+export const clearAllLocalAnimatedUri = async () => {
+  const db = await openDatabase("userData.db");
+  try {
+    await db.runAsync(`UPDATE exercises SET local_animated_uri = NULL`);
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+export const fetchExerciseImagesByIds = async (
+  exerciseIds: number[],
+): Promise<Record<number, any>> => {
+  if (exerciseIds.length === 0) {
+    return {};
+  }
+
+  const db = await openDatabase("userData.db");
+
+  // Create a comma-separated list of placeholders (?, ?, ...)
+  const placeholders = exerciseIds.map(() => "?").join(",");
+
+  try {
+    const results = await db.getAllAsync(
+      `SELECT exercise_id, image FROM exercises WHERE exercise_id IN (${placeholders});`,
+      exerciseIds,
+    );
+
+    // Map exercise IDs to their images
+    const imagesMap: Record<number, any> = {};
+    results.forEach((row: any) => {
+      imagesMap[row.exercise_id] = row.image;
+    });
+
+    return imagesMap;
+  } catch (error: any) {
+    console.error("Error fetching exercise images:", error);
+    notifyBugsnag(error);
+    throw error;
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+export const reorderTrackedExercises = async (
+  exerciseIds: number[],
+): Promise<void> => {
+  if (exerciseIds.length === 0) return;
+  let db: SQLite.SQLiteDatabase | undefined;
+  try {
+    db = await openDatabase("userData.db");
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      for (let i = 0; i < exerciseIds.length; i++) {
+        await txn.runAsync(
+          `UPDATE tracked_exercises SET sort_order = ? WHERE exercise_id = ?`,
+          [i, exerciseIds[i]],
+        );
+      }
+    });
+  } catch (error: any) {
+    console.error("Error reordering tracked exercises:", error);
+    notifyBugsnag(error);
+    throw error;
+  } finally {
+    if (db) await db.closeAsync();
+  }
+};
