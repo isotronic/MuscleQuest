@@ -18,8 +18,8 @@ jest.mock("@lingui/core/macro", () => ({
     (n === 1 ? opts.one : opts.other).replace("#", String(n)),
   t: (s: TemplateStringsArray, ...v: unknown[]) => String.raw({ raw: s }, ...v),
 }));
-jest.mock("date-fns", () => ({
-  formatDistanceToNow: () => "some time ago",
+jest.mock("@/utils/relativeTime", () => ({
+  formatTimeAgo: () => "vor einiger Zeit",
 }));
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ friendUid: "friend-1" }),
@@ -271,7 +271,7 @@ describe("FriendProfileScreen", () => {
       const { getByText } = renderActivity(completed({}));
 
       expect(getByText("Leg Day")).toBeTruthy();
-      expect(getByText("My Plan · some time ago")).toBeTruthy();
+      expect(getByText("My Plan · vor einiger Zeit")).toBeTruthy();
     });
 
     it("falls back to Quick Workout when the workout has no name", () => {
@@ -285,7 +285,7 @@ describe("FriendProfileScreen", () => {
         completed({ planName: null, workoutName: null }),
       );
 
-      expect(getByText("some time ago")).toBeTruthy();
+      expect(getByText("vor einiger Zeit")).toBeTruthy();
       expect(queryByText(/·/)).toBeNull();
     });
   });

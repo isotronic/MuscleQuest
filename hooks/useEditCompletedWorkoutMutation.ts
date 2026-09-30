@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CompletedWorkout } from "./useCompletedWorkoutsQuery";
 import { Alert } from "react-native";
+import { t } from "@lingui/core/macro";
 import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
@@ -97,8 +98,8 @@ export const useEditCompletedWorkoutMutation = (
       console.error("Error saving edited workout:", error);
       notifyBugsnag(error);
       Alert.alert(
-        "Error",
-        "An error occurred while saving your edited workout. Please try again.",
+        t`Error`,
+        t`An error occurred while saving your edited workout. Please try again.`,
       );
     },
     onSettled: async () => {

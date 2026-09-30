@@ -1,4 +1,5 @@
 import { Alert } from "react-native";
+import { t } from "@lingui/core/macro";
 import { router } from "expo-router";
 import Bugsnag from "@bugsnag/expo";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
@@ -27,16 +28,16 @@ export const confirmStartWorkout = async (
 
   if (store.isWorkoutInProgress()) {
     Alert.alert(
-      "Workout In Progress",
-      "You already have a workout running. Continue it or start a new one?",
+      t`Workout In Progress`,
+      t`You already have a workout running. Continue it or start a new one?`,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t`Cancel`, style: "cancel" },
         {
-          text: "Continue Workout",
+          text: t`Continue Workout`,
           onPress: resumeActiveWorkout,
         },
         {
-          text: "Start New",
+          text: t`Start New`,
           style: "destructive",
           onPress: doStart,
         },

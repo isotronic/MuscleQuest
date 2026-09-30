@@ -11,7 +11,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Avatar } from "react-native-paper";
 import { Trans } from "@lingui/react/macro";
 import { plural, t } from "@lingui/core/macro";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "@/utils/relativeTime";
 import { AppText, AppIcon } from "@/components/ui";
 import { useAppTheme, radii } from "@/theme";
 import { AuthContext } from "@/context/AuthProvider";
@@ -259,9 +259,7 @@ export default function FriendProfileScreen() {
                     variant="caption"
                     style={{ color: colors.contentSecondary, marginTop: 2 }}
                   >
-                    {formatDistanceToNow(pr.allTimePRDate.toDate(), {
-                      addSuffix: true,
-                    })}
+                    {formatTimeAgo(pr.allTimePRDate.toDate())}
                   </AppText>
                 </View>
                 <View
@@ -337,10 +335,7 @@ export default function FriendProfileScreen() {
                     style={{ color: colors.contentSecondary, marginTop: 2 }}
                   >
                     <Trans>
-                      Updated{" "}
-                      {formatDistanceToNow(plan.updatedAt.toDate(), {
-                        addSuffix: true,
-                      })}
+                      Updated {formatTimeAgo(plan.updatedAt.toDate())}
                     </Trans>
                   </AppText>
                 </TouchableOpacity>
@@ -447,10 +442,7 @@ export default function FriendProfileScreen() {
                     style={{ color: colors.contentSecondary, marginTop: 2 }}
                   >
                     <Trans>
-                      Updated{" "}
-                      {formatDistanceToNow(workout.updatedAt.toDate(), {
-                        addSuffix: true,
-                      })}
+                      Updated {formatTimeAgo(workout.updatedAt.toDate())}
                     </Trans>
                   </AppText>
                 </TouchableOpacity>
@@ -665,9 +657,7 @@ export default function FriendProfileScreen() {
                     style={{ color: colors.contentSecondary, marginTop: 2 }}
                   >
                     {w.planName ? `${w.planName} · ` : ""}
-                    {formatDistanceToNow(w.dateCompleted.toDate(), {
-                      addSuffix: true,
-                    })}
+                    {formatTimeAgo(w.dateCompleted.toDate())}
                   </AppText>
                 </View>
               </View>
@@ -697,9 +687,7 @@ export default function FriendProfileScreen() {
                   >
                     {Object.keys(m.values).length > 0
                       ? formatMeasurementSummary(m.values)
-                      : formatDistanceToNow(m.recordedAt.toDate(), {
-                          addSuffix: true,
-                        })}
+                      : formatTimeAgo(m.recordedAt.toDate())}
                   </AppText>
                 </View>
                 {Object.keys(m.values).length > 0 && (
@@ -707,9 +695,7 @@ export default function FriendProfileScreen() {
                     variant="caption"
                     style={{ color: colors.contentSecondary }}
                   >
-                    {formatDistanceToNow(m.recordedAt.toDate(), {
-                      addSuffix: true,
-                    })}
+                    {formatTimeAgo(m.recordedAt.toDate())}
                   </AppText>
                 )}
               </View>
