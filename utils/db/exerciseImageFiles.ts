@@ -12,6 +12,14 @@ export interface ExerciseImageFilesResult {
 
 const fileNameFor = (exerciseId: number) => `${exerciseId}.webp`;
 
+// The uri every file in the directory starts with. Each File is a native
+// object, so the per-boot check below builds one to learn the prefix and
+// compares plain strings from there, instead of a File per exercise.
+const fileUriPrefix = (directory: Directory) => {
+  const probeName = fileNameFor(0);
+  return new File(directory, probeName).uri.slice(0, -probeName.length);
+};
+
 // Writes every thumbnail still held as a BLOB to a file and records its uri in
 // exercises.image_uri. Runs after every boot, off the startup path. It only
 // touches rows whose file is missing or whose uri points somewhere else, so an
@@ -38,9 +46,10 @@ export const writeExerciseImageFiles =
         `SELECT exercise_id, image_uri FROM exercises WHERE image IS NOT NULL`,
       );
 
+      const uriPrefix = fileUriPrefix(directory);
       const pending = rows.filter(({ exercise_id, image_uri }) => {
-        const file = new File(directory, fileNameFor(exercise_id));
-        return image_uri !== file.uri || !onDisk.has(file.name);
+        const name = fileNameFor(exercise_id);
+        return image_uri !== uriPrefix + name || !onDisk.has(name);
       });
 
       for (let start = 0; start < pending.length; start += BATCH_SIZE) {

@@ -1,7 +1,10 @@
 import React from "react";
-import { renderHook, waitFor } from "@testing-library/react-native";
+import { act, renderHook } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useExerciseImageFiles } from "../useExerciseImageFiles";
+import {
+  EXERCISE_IMAGE_FILES_DELAY_MS,
+  useExerciseImageFiles,
+} from "../useExerciseImageFiles";
 import { writeExerciseImageFiles } from "@/utils/db/exerciseImageFiles";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
@@ -24,17 +27,59 @@ const setup = () => {
   };
 };
 
+// Lets the start delay pass and the run's promise chain settle.
+const passStartDelay = () =>
+  act(async () => {
+    await jest.advanceTimersByTimeAsync(EXERCISE_IMAGE_FILES_DELAY_MS);
+  });
+
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.useFakeTimers();
+});
+
+afterEach(() => {
+  jest.useRealTimers();
 });
 
 describe("useExerciseImageFiles", () => {
+  it("stays out of the way while the first screen renders", async () => {
+    mockWrite.mockResolvedValue({ written: 0, failed: 0 });
+
+    setup();
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(EXERCISE_IMAGE_FILES_DELAY_MS - 1);
+    });
+
+    expect(mockWrite).not.toHaveBeenCalled();
+  });
+
+  it("starts once the delay has passed", async () => {
+    mockWrite.mockResolvedValue({ written: 0, failed: 0 });
+
+    setup();
+    await passStartDelay();
+
+    expect(mockWrite).toHaveBeenCalledTimes(1);
+  });
+
+  it("never starts if it is unmounted before the delay passes", async () => {
+    mockWrite.mockResolvedValue({ written: 0, failed: 0 });
+
+    const { unmount } = setup();
+    unmount();
+    await passStartDelay();
+
+    expect(mockWrite).not.toHaveBeenCalled();
+  });
+
   it("refreshes cached queries once new image files were written", async () => {
     mockWrite.mockResolvedValue({ written: 12, failed: 0 });
 
     const { invalidate } = setup();
+    await passStartDelay();
 
-    await waitFor(() => expect(invalidate).toHaveBeenCalledTimes(1));
+    expect(invalidate).toHaveBeenCalledTimes(1);
     expect(mockWrite).toHaveBeenCalledTimes(1);
   });
 
@@ -42,9 +87,9 @@ describe("useExerciseImageFiles", () => {
     mockWrite.mockResolvedValue({ written: 0, failed: 0 });
 
     const { invalidate } = setup();
+    await passStartDelay();
 
-    await waitFor(() => expect(mockWrite).toHaveBeenCalledTimes(1));
-    await Promise.resolve();
+    expect(mockWrite).toHaveBeenCalledTimes(1);
     expect(invalidate).not.toHaveBeenCalled();
   });
 
@@ -53,13 +98,15 @@ describe("useExerciseImageFiles", () => {
     mockWrite.mockReturnValue(new Promise((resolve) => (finish = resolve)));
 
     const first = setup();
-    await waitFor(() => expect(mockWrite).toHaveBeenCalledTimes(1));
+    await passStartDelay();
     first.unmount();
     setup();
-    await Promise.resolve();
+    await passStartDelay();
 
     expect(mockWrite).toHaveBeenCalledTimes(1);
-    finish({ written: 0, failed: 0 });
+    await act(async () => {
+      finish({ written: 0, failed: 0 });
+    });
   });
 
   it("reports a failed run without throwing", async () => {
@@ -67,7 +114,8 @@ describe("useExerciseImageFiles", () => {
     mockWrite.mockRejectedValue(error);
 
     setup();
+    await passStartDelay();
 
-    await waitFor(() => expect(notifyBugsnag).toHaveBeenCalledWith(error));
+    expect(notifyBugsnag).toHaveBeenCalledWith(error);
   });
 });

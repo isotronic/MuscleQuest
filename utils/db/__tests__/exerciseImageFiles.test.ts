@@ -8,6 +8,7 @@ import { createNodeSqliteDb } from "@/utils/db/testing/nodeSqliteDb";
 const mockFiles = new Map<string, Uint8Array>();
 const mockDirs = new Set<string>();
 const mockFailingWrites = new Set<string>();
+const mockCounts = { filesConstructed: 0 };
 let mockDb: ReturnType<typeof createNodeSqliteDb>;
 
 jest.mock("@/utils/db/connection", () => ({
@@ -45,6 +46,7 @@ jest.mock("expo-file-system", () => {
     uri: string;
     name: string;
     constructor(...parts: any[]) {
+      mockCounts.filesConstructed++;
       this.uri = join(parts);
       this.name = this.uri.split("/").pop()!;
     }
@@ -125,6 +127,18 @@ describe("writeExerciseImageFiles", () => {
 
     expect(result).toEqual({ written: 0, failed: 0 });
     expect(imageUris()).toEqual(before);
+  });
+
+  // Each File is a native object, and this check runs on every boot.
+  it("checks a finished library without a file object per exercise", async () => {
+    insertLibraryExercises(120);
+    await writeExerciseImageFiles();
+    mockCounts.filesConstructed = 0;
+
+    const result = await writeExerciseImageFiles();
+
+    expect(result).toEqual({ written: 0, failed: 0 });
+    expect(mockCounts.filesConstructed).toBeLessThanOrEqual(1);
   });
 
   it("resumes with only the rows an interrupted run left behind", async () => {
