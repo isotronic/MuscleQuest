@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { Checkbox } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
@@ -39,6 +39,11 @@ const ExerciseItem = ({
     () => exerciseThumbnailUri(item.image_uri, item.image),
     [item.image_uri, item.image],
   );
+  // A uri can outlive its file (a custom photo is not in a backup). Remember
+  // the one that failed so the row shows the placeholder instead of a blank,
+  // and a recycled row with another image still tries its own.
+  const [failedUri, setFailedUri] = useState<string | null>(null);
+  const showThumbnail = !!thumbnailUri && thumbnailUri !== failedUri;
 
   const bodyPartLabel = bodyPartTranslations[item.body_part]
     ? _(bodyPartTranslations[item.body_part])
@@ -57,14 +62,12 @@ const ExerciseItem = ({
         accessibilityRole="button"
         accessibilityLabel={`${item.name}, ${bodyPartLabel}, ${equipmentLabel}`}
       >
-        {thumbnailUri ? (
-          <AppImage
-            style={styles.exerciseImage}
-            source={{ uri: thumbnailUri }}
-          />
-        ) : (
-          <AppImage style={styles.exerciseImage} source={fallbackImage} />
-        )}
+        <AppImage
+          testID="exercise-thumbnail"
+          style={styles.exerciseImage}
+          source={showThumbnail ? { uri: thumbnailUri } : fallbackImage}
+          onError={showThumbnail ? () => setFailedUri(thumbnailUri) : undefined}
+        />
         <View style={styles.exerciseInfo}>
           <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
           <ThemedText style={styles.exerciseDetails}>

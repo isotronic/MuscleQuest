@@ -155,7 +155,10 @@ export const copyDataFromAppDataToUserData = async (
           const updatePlaceholders = updateColumns
             .map((col) => `${col} = ?`)
             .join(", ");
-          const updateStatement = `UPDATE ${tableName} SET ${updatePlaceholders} WHERE app_exercise_id = ?`;
+          // A rewritten row may carry a new thumbnail. Clearing image_uri
+          // sends readers back to the bytes until writeExerciseImageFiles
+          // replaces the file that was written from the old ones.
+          const updateStatement = `UPDATE ${tableName} SET ${updatePlaceholders}, image_uri = NULL WHERE app_exercise_id = ?`;
 
           for (const [rowIndex, row] of result.entries()) {
             if (
@@ -226,7 +229,11 @@ export const copyDataFromAppDataToUserData = async (
                   console.log(
                     `Updating exercise: ${row["name"]} with changed fields: ${fieldsToUpdate.join(", ")}`,
                   );
-                  const values = updateColumns.map((col) => row[col]);
+                  // The library row has no app_exercise_id column; it is
+                  // the row's own exercise_id, as in the insert below.
+                  const values = updateColumns.map((col) =>
+                    col === "app_exercise_id" ? row["exercise_id"] : row[col],
+                  );
                   values.push(row["exercise_id"]);
                   await userDataDB!.runAsync(updateStatement, values);
                 }
