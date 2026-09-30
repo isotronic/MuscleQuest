@@ -32,6 +32,8 @@ import { formatWeight } from "@/utils/units";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
+type SectionKey = "strength" | "plans" | "workouts" | "exercises" | "activity";
+
 function formatPR(pr: SharedStrengthPR, weightUnit: string): string {
   switch (pr.trackingType) {
     case "reps":
@@ -119,6 +121,15 @@ export default function FriendProfileScreen() {
   const [importedExerciseIds, setImportedExerciseIds] = useState<Set<number>>(
     new Set(),
   );
+  // Sections start collapsed so a long profile stays scannable.
+  const [openSections, setOpenSections] = useState<Set<SectionKey>>(new Set());
+  const toggleSection = (key: SectionKey) =>
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   const { refreshing, onRefresh: handleRefresh } = usePullToRefresh(() =>
     Promise.all([
       refetchPlans(),
@@ -133,6 +144,8 @@ export default function FriendProfileScreen() {
   if (!user) return null;
 
   const sharedCount = plans.length + workouts.length + exercises.length;
+  const recentWorkouts = completedWorkouts.slice(0, 10);
+  const recentMeasurements = measurements.slice(0, 5);
 
   return (
     <ScrollView
@@ -208,481 +221,538 @@ export default function FriendProfileScreen() {
       {/* Strength PRs */}
       <ZoneLabel
         title={<Trans>Strength PRs</Trans>}
+        count={strengthLoading || strengthError ? undefined : strength.length}
+        isOpen={openSections.has("strength")}
+        onToggle={() => toggleSection("strength")}
+        testID="section-toggle-strength"
         colors={colors}
         borders={borders}
       />
-      {strengthLoading ? (
-        <ActivityIndicator style={styles.sectionSpinner} />
-      ) : strengthError ? (
-        <ErrorState
-          label={<Trans>Couldn't load strength PRs</Trans>}
-          colors={colors}
-        />
-      ) : strength.length === 0 ? (
-        <EmptyState
-          label={<Trans>No strength data shared yet</Trans>}
-          colors={colors}
-        />
-      ) : (
-        <View style={styles.cardGroup}>
-          {strength.map((pr) => (
-            <View
-              key={`${pr.appExerciseId ?? "c"}_${pr.exerciseName}`}
-              style={[styles.card, { backgroundColor: colors.card }]}
-            >
-              <View style={{ flex: 1 }}>
-                <AppText
-                  variant="bodyBold"
-                  style={{ color: colors.contentPrimary }}
-                >
-                  {pr.exerciseName}
-                </AppText>
-                <AppText
-                  variant="caption"
-                  style={{ color: colors.contentSecondary, marginTop: 2 }}
-                >
-                  {formatDistanceToNow(pr.allTimePRDate.toDate(), {
-                    addSuffix: true,
-                  })}
-                </AppText>
-              </View>
+      {openSections.has("strength") &&
+        (strengthLoading ? (
+          <ActivityIndicator style={styles.sectionSpinner} />
+        ) : strengthError ? (
+          <ErrorState
+            label={<Trans>Couldn't load strength PRs</Trans>}
+            colors={colors}
+          />
+        ) : strength.length === 0 ? (
+          <EmptyState
+            label={<Trans>No strength data shared yet</Trans>}
+            colors={colors}
+          />
+        ) : (
+          <View style={styles.cardGroup}>
+            {strength.map((pr) => (
               <View
-                style={[
-                  styles.prBadge,
-                  {
-                    backgroundColor: colors.accentSubtle,
-                    borderColor: colors.accentBorder,
-                  },
-                ]}
+                key={`${pr.appExerciseId ?? "c"}_${pr.exerciseName}`}
+                style={[styles.card, { backgroundColor: colors.card }]}
               >
-                <AppText
-                  variant="caption"
-                  style={{ color: colors.accent, fontWeight: "700" }}
+                <View style={{ flex: 1 }}>
+                  <AppText
+                    variant="bodyBold"
+                    style={{ color: colors.contentPrimary }}
+                  >
+                    {pr.exerciseName}
+                  </AppText>
+                  <AppText
+                    variant="caption"
+                    style={{ color: colors.contentSecondary, marginTop: 2 }}
+                  >
+                    {formatDistanceToNow(pr.allTimePRDate.toDate(), {
+                      addSuffix: true,
+                    })}
+                  </AppText>
+                </View>
+                <View
+                  style={[
+                    styles.prBadge,
+                    {
+                      backgroundColor: colors.accentSubtle,
+                      borderColor: colors.accentBorder,
+                    },
+                  ]}
                 >
-                  {formatPR(pr, weightUnit)}
-                </AppText>
+                  <AppText
+                    variant="caption"
+                    style={{ color: colors.accent, fontWeight: "700" }}
+                  >
+                    {formatPR(pr, weightUnit)}
+                  </AppText>
+                </View>
               </View>
-            </View>
-          ))}
-        </View>
-      )}
+            ))}
+          </View>
+        ))}
 
       {/* Plans */}
       <ZoneLabel
         title={<Trans>Plans</Trans>}
+        count={plansLoading || plansError ? undefined : plans.length}
+        isOpen={openSections.has("plans")}
+        onToggle={() => toggleSection("plans")}
+        testID="section-toggle-plans"
         colors={colors}
         borders={borders}
       />
-      {plansLoading ? (
-        <ActivityIndicator style={styles.sectionSpinner} />
-      ) : plansError ? (
-        <ErrorState
-          label={<Trans>Couldn't load plans</Trans>}
-          colors={colors}
-        />
-      ) : plans.length === 0 ? (
-        <EmptyState
-          label={<Trans>No plans shared yet</Trans>}
-          colors={colors}
-        />
-      ) : (
-        <View style={styles.cardGroup}>
-          {plans.map((plan) => (
-            <View
-              key={plan.localPlanId}
-              style={[styles.card, { backgroundColor: colors.card }]}
-            >
-              {/* Details and Add are siblings so a screen reader can reach both. */}
-              <TouchableOpacity
-                accessibilityRole="button"
-                style={{ flex: 1 }}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(app)/friend-plan",
-                    params: { friendUid, planId: String(plan.localPlanId) },
-                  } as unknown as Parameters<typeof router.push>[0])
-                }
+      {openSections.has("plans") &&
+        (plansLoading ? (
+          <ActivityIndicator style={styles.sectionSpinner} />
+        ) : plansError ? (
+          <ErrorState
+            label={<Trans>Couldn't load plans</Trans>}
+            colors={colors}
+          />
+        ) : plans.length === 0 ? (
+          <EmptyState
+            label={<Trans>No plans shared yet</Trans>}
+            colors={colors}
+          />
+        ) : (
+          <View style={styles.cardGroup}>
+            {plans.map((plan) => (
+              <View
+                key={plan.localPlanId}
+                style={[styles.card, { backgroundColor: colors.card }]}
               >
-                <AppText
-                  variant="bodyBold"
-                  style={{ color: colors.contentPrimary }}
+                {/* Details and Add are siblings so a screen reader can reach both. */}
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  style={{ flex: 1 }}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(app)/friend-plan",
+                      params: { friendUid, planId: String(plan.localPlanId) },
+                    } as unknown as Parameters<typeof router.push>[0])
+                  }
                 >
-                  {plan.name}
-                </AppText>
-                <AppText
-                  variant="caption"
-                  style={{ color: colors.contentSecondary, marginTop: 2 }}
-                >
-                  <Trans>
-                    Updated{" "}
-                    {formatDistanceToNow(plan.updatedAt.toDate(), {
-                      addSuffix: true,
-                    })}
-                  </Trans>
-                </AppText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                accessibilityLabel={
-                  importedPlanIds.has(plan.localPlanId)
-                    ? t`${plan.name} added`
-                    : t`Add ${plan.name}`
-                }
-                accessibilityRole="button"
-                onPress={() => {
-                  importPlan.mutate(plan, {
-                    onSuccess: () =>
-                      setImportedPlanIds((s) =>
-                        new Set(s).add(plan.localPlanId),
-                      ),
-                  });
-                }}
-                disabled={
-                  importedPlanIds.has(plan.localPlanId) || importPlan.isPending
-                }
-                style={styles.addButton}
-              >
-                <AppText
-                  variant="caption"
-                  style={{
-                    color: importedPlanIds.has(plan.localPlanId)
-                      ? colors.contentSecondary
-                      : colors.accent,
-                    fontWeight: "600",
+                  <AppText
+                    variant="bodyBold"
+                    style={{ color: colors.contentPrimary }}
+                  >
+                    {plan.name}
+                  </AppText>
+                  <AppText
+                    variant="caption"
+                    style={{ color: colors.contentSecondary, marginTop: 2 }}
+                  >
+                    <Trans>
+                      Updated{" "}
+                      {formatDistanceToNow(plan.updatedAt.toDate(), {
+                        addSuffix: true,
+                      })}
+                    </Trans>
+                  </AppText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  accessibilityLabel={
+                    importedPlanIds.has(plan.localPlanId)
+                      ? t`${plan.name} added`
+                      : t`Add ${plan.name}`
+                  }
+                  accessibilityRole="button"
+                  onPress={() => {
+                    importPlan.mutate(plan, {
+                      onSuccess: () =>
+                        setImportedPlanIds((s) =>
+                          new Set(s).add(plan.localPlanId),
+                        ),
+                    });
                   }}
+                  disabled={
+                    importedPlanIds.has(plan.localPlanId) ||
+                    importPlan.isPending
+                  }
+                  style={styles.addButton}
                 >
-                  {importedPlanIds.has(plan.localPlanId) ? (
-                    <Trans>Added</Trans>
-                  ) : (
-                    <Trans>Add</Trans>
-                  )}
-                </AppText>
-              </TouchableOpacity>
-              <AppIcon
-                set="ion"
-                name="chevron-forward"
-                size={14}
-                color={colors.contentSecondary}
-              />
-            </View>
-          ))}
-        </View>
-      )}
+                  <AppText
+                    variant="caption"
+                    style={{
+                      color: importedPlanIds.has(plan.localPlanId)
+                        ? colors.contentSecondary
+                        : colors.accent,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {importedPlanIds.has(plan.localPlanId) ? (
+                      <Trans>Added</Trans>
+                    ) : (
+                      <Trans>Add</Trans>
+                    )}
+                  </AppText>
+                </TouchableOpacity>
+                <AppIcon
+                  set="ion"
+                  name="chevron-forward"
+                  size={14}
+                  color={colors.contentSecondary}
+                />
+              </View>
+            ))}
+          </View>
+        ))}
 
       {/* Standalone Workouts */}
       <ZoneLabel
         title={<Trans>Standalone Workouts</Trans>}
+        count={workoutsLoading || workoutsError ? undefined : workouts.length}
+        isOpen={openSections.has("workouts")}
+        onToggle={() => toggleSection("workouts")}
+        testID="section-toggle-workouts"
         colors={colors}
         borders={borders}
       />
-      {workoutsLoading ? (
-        <ActivityIndicator style={styles.sectionSpinner} />
-      ) : workoutsError ? (
-        <ErrorState
-          label={<Trans>Couldn't load workouts</Trans>}
-          colors={colors}
-        />
-      ) : workouts.length === 0 ? (
-        <EmptyState
-          label={<Trans>No workouts shared yet</Trans>}
-          colors={colors}
-        />
-      ) : (
-        <View style={styles.cardGroup}>
-          {workouts.map((workout) => (
-            <View
-              key={workout.localWorkoutId}
-              style={[styles.card, { backgroundColor: colors.card }]}
-            >
-              {/* Details and Add are siblings so a screen reader can reach both. */}
-              <TouchableOpacity
-                accessibilityRole="button"
-                style={{ flex: 1 }}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(app)/friend-workout",
-                    params: {
-                      friendUid,
-                      workoutId: String(workout.localWorkoutId),
-                    },
-                  } as unknown as Parameters<typeof router.push>[0])
-                }
+      {openSections.has("workouts") &&
+        (workoutsLoading ? (
+          <ActivityIndicator style={styles.sectionSpinner} />
+        ) : workoutsError ? (
+          <ErrorState
+            label={<Trans>Couldn't load workouts</Trans>}
+            colors={colors}
+          />
+        ) : workouts.length === 0 ? (
+          <EmptyState
+            label={<Trans>No workouts shared yet</Trans>}
+            colors={colors}
+          />
+        ) : (
+          <View style={styles.cardGroup}>
+            {workouts.map((workout) => (
+              <View
+                key={workout.localWorkoutId}
+                style={[styles.card, { backgroundColor: colors.card }]}
               >
-                <AppText
-                  variant="bodyBold"
-                  style={{ color: colors.contentPrimary }}
+                {/* Details and Add are siblings so a screen reader can reach both. */}
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  style={{ flex: 1 }}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(app)/friend-workout",
+                      params: {
+                        friendUid,
+                        workoutId: String(workout.localWorkoutId),
+                      },
+                    } as unknown as Parameters<typeof router.push>[0])
+                  }
                 >
-                  {workout.name}
-                </AppText>
-                <AppText
-                  variant="caption"
-                  style={{ color: colors.contentSecondary, marginTop: 2 }}
-                >
-                  <Trans>
-                    Updated{" "}
-                    {formatDistanceToNow(workout.updatedAt.toDate(), {
-                      addSuffix: true,
-                    })}
-                  </Trans>
-                </AppText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                accessibilityLabel={
-                  importedWorkoutIds.has(workout.localWorkoutId)
-                    ? t`${workout.name} added`
-                    : t`Add ${workout.name}`
-                }
-                accessibilityRole="button"
-                onPress={() => {
-                  importWorkout.mutate(workout, {
-                    onSuccess: () =>
-                      setImportedWorkoutIds((s) =>
-                        new Set(s).add(workout.localWorkoutId),
-                      ),
-                  });
-                }}
-                disabled={
-                  importedWorkoutIds.has(workout.localWorkoutId) ||
-                  importWorkout.isPending
-                }
-                style={styles.addButton}
-              >
-                <AppText
-                  variant="caption"
-                  style={{
-                    color: importedWorkoutIds.has(workout.localWorkoutId)
-                      ? colors.contentSecondary
-                      : colors.accent,
-                    fontWeight: "600",
+                  <AppText
+                    variant="bodyBold"
+                    style={{ color: colors.contentPrimary }}
+                  >
+                    {workout.name}
+                  </AppText>
+                  <AppText
+                    variant="caption"
+                    style={{ color: colors.contentSecondary, marginTop: 2 }}
+                  >
+                    <Trans>
+                      Updated{" "}
+                      {formatDistanceToNow(workout.updatedAt.toDate(), {
+                        addSuffix: true,
+                      })}
+                    </Trans>
+                  </AppText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  accessibilityLabel={
+                    importedWorkoutIds.has(workout.localWorkoutId)
+                      ? t`${workout.name} added`
+                      : t`Add ${workout.name}`
+                  }
+                  accessibilityRole="button"
+                  onPress={() => {
+                    importWorkout.mutate(workout, {
+                      onSuccess: () =>
+                        setImportedWorkoutIds((s) =>
+                          new Set(s).add(workout.localWorkoutId),
+                        ),
+                    });
                   }}
+                  disabled={
+                    importedWorkoutIds.has(workout.localWorkoutId) ||
+                    importWorkout.isPending
+                  }
+                  style={styles.addButton}
                 >
-                  {importedWorkoutIds.has(workout.localWorkoutId) ? (
-                    <Trans>Added</Trans>
-                  ) : (
-                    <Trans>Add</Trans>
-                  )}
-                </AppText>
-              </TouchableOpacity>
-              <AppIcon
-                set="ion"
-                name="chevron-forward"
-                size={14}
-                color={colors.contentSecondary}
-              />
-            </View>
-          ))}
-        </View>
-      )}
+                  <AppText
+                    variant="caption"
+                    style={{
+                      color: importedWorkoutIds.has(workout.localWorkoutId)
+                        ? colors.contentSecondary
+                        : colors.accent,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {importedWorkoutIds.has(workout.localWorkoutId) ? (
+                      <Trans>Added</Trans>
+                    ) : (
+                      <Trans>Add</Trans>
+                    )}
+                  </AppText>
+                </TouchableOpacity>
+                <AppIcon
+                  set="ion"
+                  name="chevron-forward"
+                  size={14}
+                  color={colors.contentSecondary}
+                />
+              </View>
+            ))}
+          </View>
+        ))}
 
       {/* Custom Exercises */}
       <ZoneLabel
         title={<Trans>Custom Exercises</Trans>}
+        count={
+          exercisesLoading || exercisesError ? undefined : exercises.length
+        }
+        isOpen={openSections.has("exercises")}
+        onToggle={() => toggleSection("exercises")}
+        testID="section-toggle-exercises"
         colors={colors}
         borders={borders}
       />
-      {exercisesLoading ? (
-        <ActivityIndicator style={styles.sectionSpinner} />
-      ) : exercisesError ? (
-        <ErrorState
-          label={<Trans>Couldn't load custom exercises</Trans>}
-          colors={colors}
-        />
-      ) : exercises.length === 0 ? (
-        <EmptyState
-          label={<Trans>No custom exercises shared yet</Trans>}
-          colors={colors}
-        />
-      ) : (
-        <View style={styles.cardGroup}>
-          {exercises.map((exercise) => (
-            <View
-              key={exercise.localExerciseId}
-              style={[styles.card, { backgroundColor: colors.card }]}
-            >
-              {/* Details and Add are siblings so a screen reader can reach both. */}
-              <TouchableOpacity
-                accessibilityRole="button"
-                style={{ flex: 1 }}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(app)/friend-exercise",
-                    params: {
-                      friendUid,
-                      exerciseId: String(exercise.localExerciseId),
-                    },
-                  } as unknown as Parameters<typeof router.push>[0])
-                }
+      {openSections.has("exercises") &&
+        (exercisesLoading ? (
+          <ActivityIndicator style={styles.sectionSpinner} />
+        ) : exercisesError ? (
+          <ErrorState
+            label={<Trans>Couldn't load custom exercises</Trans>}
+            colors={colors}
+          />
+        ) : exercises.length === 0 ? (
+          <EmptyState
+            label={<Trans>No custom exercises shared yet</Trans>}
+            colors={colors}
+          />
+        ) : (
+          <View style={styles.cardGroup}>
+            {exercises.map((exercise) => (
+              <View
+                key={exercise.localExerciseId}
+                style={[styles.card, { backgroundColor: colors.card }]}
               >
-                <AppText
-                  variant="bodyBold"
-                  style={{ color: colors.contentPrimary }}
+                {/* Details and Add are siblings so a screen reader can reach both. */}
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  style={{ flex: 1 }}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(app)/friend-exercise",
+                      params: {
+                        friendUid,
+                        exerciseId: String(exercise.localExerciseId),
+                      },
+                    } as unknown as Parameters<typeof router.push>[0])
+                  }
                 >
-                  {exercise.name}
-                </AppText>
-                <AppText
-                  variant="caption"
-                  style={{ color: colors.contentSecondary, marginTop: 2 }}
-                >
-                  {exercise.equipment} · {exercise.targetMuscle}
-                </AppText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                accessibilityLabel={
-                  importedExerciseIds.has(exercise.localExerciseId)
-                    ? t`${exercise.name} added`
-                    : t`Add ${exercise.name}`
-                }
-                accessibilityRole="button"
-                onPress={() => {
-                  importExercise.mutate(exercise, {
-                    onSuccess: () =>
-                      setImportedExerciseIds((s) =>
-                        new Set(s).add(exercise.localExerciseId),
-                      ),
-                  });
-                }}
-                disabled={
-                  importedExerciseIds.has(exercise.localExerciseId) ||
-                  importExercise.isPending
-                }
-                style={styles.addButton}
-              >
-                <AppText
-                  variant="caption"
-                  style={{
-                    color: importedExerciseIds.has(exercise.localExerciseId)
-                      ? colors.contentSecondary
-                      : colors.accent,
-                    fontWeight: "600",
+                  <AppText
+                    variant="bodyBold"
+                    style={{ color: colors.contentPrimary }}
+                  >
+                    {exercise.name}
+                  </AppText>
+                  <AppText
+                    variant="caption"
+                    style={{ color: colors.contentSecondary, marginTop: 2 }}
+                  >
+                    {exercise.equipment} · {exercise.targetMuscle}
+                  </AppText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  accessibilityLabel={
+                    importedExerciseIds.has(exercise.localExerciseId)
+                      ? t`${exercise.name} added`
+                      : t`Add ${exercise.name}`
+                  }
+                  accessibilityRole="button"
+                  onPress={() => {
+                    importExercise.mutate(exercise, {
+                      onSuccess: () =>
+                        setImportedExerciseIds((s) =>
+                          new Set(s).add(exercise.localExerciseId),
+                        ),
+                    });
                   }}
+                  disabled={
+                    importedExerciseIds.has(exercise.localExerciseId) ||
+                    importExercise.isPending
+                  }
+                  style={styles.addButton}
                 >
-                  {importedExerciseIds.has(exercise.localExerciseId) ? (
-                    <Trans>Added</Trans>
-                  ) : (
-                    <Trans>Add</Trans>
-                  )}
-                </AppText>
-              </TouchableOpacity>
-              <AppIcon
-                set="ion"
-                name="chevron-forward"
-                size={14}
-                color={colors.contentSecondary}
-              />
-            </View>
-          ))}
-        </View>
-      )}
+                  <AppText
+                    variant="caption"
+                    style={{
+                      color: importedExerciseIds.has(exercise.localExerciseId)
+                        ? colors.contentSecondary
+                        : colors.accent,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {importedExerciseIds.has(exercise.localExerciseId) ? (
+                      <Trans>Added</Trans>
+                    ) : (
+                      <Trans>Add</Trans>
+                    )}
+                  </AppText>
+                </TouchableOpacity>
+                <AppIcon
+                  set="ion"
+                  name="chevron-forward"
+                  size={14}
+                  color={colors.contentSecondary}
+                />
+              </View>
+            ))}
+          </View>
+        ))}
 
       {/* Activity */}
       <ZoneLabel
         title={<Trans>Activity</Trans>}
+        count={
+          completedLoading ||
+          measurementsLoading ||
+          completedError ||
+          measurementsError
+            ? undefined
+            : recentWorkouts.length + recentMeasurements.length
+        }
+        isOpen={openSections.has("activity")}
+        onToggle={() => toggleSection("activity")}
+        testID="section-toggle-activity"
         colors={colors}
         borders={borders}
       />
-      {completedLoading || measurementsLoading ? (
-        <ActivityIndicator style={styles.sectionSpinner} />
-      ) : completedError || measurementsError ? (
-        <ErrorState
-          label={<Trans>Couldn't load activity</Trans>}
-          colors={colors}
-        />
-      ) : completedWorkouts.length === 0 && measurements.length === 0 ? (
-        <EmptyState
-          label={<Trans>No activity shared yet</Trans>}
-          colors={colors}
-        />
-      ) : (
-        <View style={styles.cardGroup}>
-          {completedWorkouts.slice(0, 10).map((w) => (
-            <View
-              key={w.localWorkoutId}
-              style={[styles.card, { backgroundColor: colors.card }]}
-            >
-              <AppIcon
-                set="ion"
-                name="barbell-outline"
-                size={16}
-                color={colors.contentSecondary}
-                style={{ marginRight: 4 }}
-              />
-              <View style={{ flex: 1 }}>
-                <AppText
-                  variant="bodyBold"
-                  style={{ color: colors.contentPrimary }}
-                >
-                  {w.workoutName}
-                </AppText>
-                <AppText
-                  variant="caption"
-                  style={{ color: colors.contentSecondary, marginTop: 2 }}
-                >
-                  {w.planName} ·{" "}
-                  {formatDistanceToNow(w.dateCompleted.toDate(), {
-                    addSuffix: true,
-                  })}
-                </AppText>
+      {openSections.has("activity") &&
+        (completedLoading || measurementsLoading ? (
+          <ActivityIndicator style={styles.sectionSpinner} />
+        ) : completedError || measurementsError ? (
+          <ErrorState
+            label={<Trans>Couldn't load activity</Trans>}
+            colors={colors}
+          />
+        ) : completedWorkouts.length === 0 && measurements.length === 0 ? (
+          <EmptyState
+            label={<Trans>No activity shared yet</Trans>}
+            colors={colors}
+          />
+        ) : (
+          <View style={styles.cardGroup}>
+            {recentWorkouts.map((w) => (
+              <View
+                key={w.localWorkoutId}
+                style={[styles.card, { backgroundColor: colors.card }]}
+              >
+                <AppIcon
+                  set="ion"
+                  name="barbell-outline"
+                  size={16}
+                  color={colors.contentSecondary}
+                  style={{ marginRight: 4 }}
+                />
+                <View style={{ flex: 1 }}>
+                  <AppText
+                    variant="bodyBold"
+                    style={{ color: colors.contentPrimary }}
+                  >
+                    {w.workoutName || t`Quick Workout`}
+                  </AppText>
+                  <AppText
+                    variant="caption"
+                    style={{ color: colors.contentSecondary, marginTop: 2 }}
+                  >
+                    {w.planName ? `${w.planName} · ` : ""}
+                    {formatDistanceToNow(w.dateCompleted.toDate(), {
+                      addSuffix: true,
+                    })}
+                  </AppText>
+                </View>
               </View>
-            </View>
-          ))}
-          {measurements.slice(0, 5).map((m) => (
-            <View
-              key={m.localEntryId}
-              style={[styles.card, { backgroundColor: colors.card }]}
-            >
-              <AppIcon
-                set="ion"
-                name="body-outline"
-                size={16}
-                color={colors.contentSecondary}
-                style={{ marginRight: 4 }}
-              />
-              <View style={{ flex: 1 }}>
-                <AppText
-                  variant="bodyBold"
-                  style={{ color: colors.contentPrimary }}
-                >
-                  <Trans>Measurements</Trans>
-                </AppText>
-                <AppText
-                  variant="caption"
-                  style={{ color: colors.contentSecondary, marginTop: 2 }}
-                >
-                  {Object.keys(m.values).length > 0
-                    ? formatMeasurementSummary(m.values)
-                    : formatDistanceToNow(m.recordedAt.toDate(), {
-                        addSuffix: true,
-                      })}
-                </AppText>
+            ))}
+            {recentMeasurements.map((m) => (
+              <View
+                key={m.localEntryId}
+                style={[styles.card, { backgroundColor: colors.card }]}
+              >
+                <AppIcon
+                  set="ion"
+                  name="body-outline"
+                  size={16}
+                  color={colors.contentSecondary}
+                  style={{ marginRight: 4 }}
+                />
+                <View style={{ flex: 1 }}>
+                  <AppText
+                    variant="bodyBold"
+                    style={{ color: colors.contentPrimary }}
+                  >
+                    <Trans>Measurements</Trans>
+                  </AppText>
+                  <AppText
+                    variant="caption"
+                    style={{ color: colors.contentSecondary, marginTop: 2 }}
+                  >
+                    {Object.keys(m.values).length > 0
+                      ? formatMeasurementSummary(m.values)
+                      : formatDistanceToNow(m.recordedAt.toDate(), {
+                          addSuffix: true,
+                        })}
+                  </AppText>
+                </View>
+                {Object.keys(m.values).length > 0 && (
+                  <AppText
+                    variant="caption"
+                    style={{ color: colors.contentSecondary }}
+                  >
+                    {formatDistanceToNow(m.recordedAt.toDate(), {
+                      addSuffix: true,
+                    })}
+                  </AppText>
+                )}
               </View>
-              {Object.keys(m.values).length > 0 && (
-                <AppText
-                  variant="caption"
-                  style={{ color: colors.contentSecondary }}
-                >
-                  {formatDistanceToNow(m.recordedAt.toDate(), {
-                    addSuffix: true,
-                  })}
-                </AppText>
-              )}
-            </View>
-          ))}
-        </View>
-      )}
+            ))}
+          </View>
+        ))}
     </ScrollView>
   );
 }
 
 function ZoneLabel({
   title,
+  count,
+  isOpen,
+  onToggle,
+  testID,
   colors,
   borders,
 }: {
   title: React.ReactNode;
+  /** Omitted while the section's item count is unknown (loading or failed). */
+  count?: number;
+  isOpen: boolean;
+  onToggle: () => void;
+  testID: string;
   colors: AppThemeColors;
   borders: AppThemeBorders;
 }) {
   return (
-    <View style={styles.zoneLabel}>
+    <TouchableOpacity
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityState={{ expanded: isOpen }}
+      style={styles.zoneLabel}
+      onPress={onToggle}
+      activeOpacity={0.8}
+    >
+      <AppIcon
+        set="ion"
+        name={isOpen ? "chevron-down" : "chevron-forward"}
+        size={14}
+        color={colors.contentSecondary}
+      />
       <AppText
         variant="caption"
         style={{
@@ -693,9 +763,10 @@ function ZoneLabel({
         }}
       >
         {title}
+        {count === undefined ? "" : ` (${count})`}
       </AppText>
       <View style={[styles.zoneLine, { backgroundColor: borders.divider }]} />
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -793,6 +864,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 20,
     paddingBottom: 6,
+    minHeight: 48,
     gap: 8,
   },
   zoneLine: {
