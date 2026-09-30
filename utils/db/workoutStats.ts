@@ -160,3 +160,25 @@ export const fetchHasCompletedWorkout = async (): Promise<boolean> => {
     await db.closeAsync();
   }
 };
+
+/**
+ * How many workouts are in the history, optionally only those completed after
+ * `since`. A COUNT, so the backup reminder never loads the history itself.
+ */
+export const countCompletedWorkouts = async (since?: Date): Promise<number> => {
+  const db = await openDatabase("userData.db");
+  try {
+    const row = since
+      ? await db.getFirstAsync<{ total: number }>(
+          `SELECT COUNT(*) AS total FROM completed_workouts
+           WHERE is_deleted = FALSE AND date_completed > ?`,
+          [since.toISOString()],
+        )
+      : await db.getFirstAsync<{ total: number }>(
+          `SELECT COUNT(*) AS total FROM completed_workouts WHERE is_deleted = FALSE`,
+        );
+    return row?.total ?? 0;
+  } finally {
+    await db.closeAsync();
+  }
+};

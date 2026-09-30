@@ -1,6 +1,7 @@
 import {
   uploadDatabaseBackup,
   fetchLastBackupDate,
+  readLastBackupDate,
   restoreDatabaseBackup,
   classifyBackupError,
   BackupError,
@@ -315,6 +316,31 @@ describe("fetchLastBackupDate", () => {
     mockAuthInstance.currentUser = null;
 
     expect(await fetchLastBackupDate()).toBeNull();
+  });
+});
+
+describe("readLastBackupDate", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockAuthInstance = getAuth();
+    mockAuthInstance.currentUser = { uid: "mockUserId" };
+  });
+
+  it("returns null only when no backup exists", async () => {
+    mockRemote(null);
+    mockStorage.getMetadata.mockRejectedValueOnce(notFound());
+
+    expect(await readLastBackupDate()).toBeNull();
+  });
+
+  it("throws when the backup could not be checked, instead of reporting none", async () => {
+    mockStorage.getDownloadURL.mockRejectedValueOnce(
+      new Error("network request failed"),
+    );
+
+    await expect(readLastBackupDate()).rejects.toThrow(
+      "network request failed",
+    );
   });
 });
 

@@ -34,14 +34,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { saveBodyWeightMeasurement } from "@/utils/database";
 import { displayToKg, roundCanonical } from "@/utils/units";
 import { AuthContext } from "@/context/AuthProvider";
-import { signInWithGoogle } from "@/utils/auth";
-import { useIsOnline } from "@/hooks/useIsOnline";
+import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
 import { showSnackbar } from "@/store/snackbarStore";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { getAuth, signOut } from "@react-native-firebase/auth";
 import Bugsnag from "@bugsnag/expo";
+import { getBackupErrorMessage } from "@/utils/backupErrorMessage";
 import {
-  classifyBackupError,
   fetchLastBackupDate,
   restoreDatabaseBackup,
   uploadDatabaseBackup,
@@ -80,7 +79,7 @@ export default function SettingsScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const user = useContext(AuthContext);
-  const isOnline = useIsOnline();
+  const { signIn, isSigningIn, isOnline } = useGoogleSignIn();
 
   const handleSignOut = async () => {
     try {
@@ -499,30 +498,12 @@ export default function SettingsScreen() {
 
   const isBackupBusy = isBackupLoading || isRestoreLoading;
 
-  const getBackupErrorMessage = (
-    error: unknown,
-    operation: "backup" | "restore",
-  ) => {
-    switch (classifyBackupError(error)) {
-      case "offline":
-        return t`You're offline. Connect to the internet and try again.`;
-      case "not-found":
-        return t`No backup found for this account.`;
-      case "integrity":
-        return operation === "backup"
-          ? t`Your data failed a safety check, so it was not uploaded. Your previous backup is unchanged.`
-          : t`The backup is damaged and can't be restored. Your data on this device has not been changed.`;
-      case "newer-schema":
-        return t`This backup was made with a newer version of MuscleQuest. Update the app, then restore.`;
-      default:
-        return t`An unexpected error occurred.`;
-    }
-  };
-
   const handleBackup = async () => {
     if (isBackupBusy) return;
     try {
       await uploadDatabaseBackup(setBackupProgress, setIsBackupLoading);
+      // The home backup reminder caches this for an hour.
+      queryClient.invalidateQueries({ queryKey: ["lastBackupDate"] });
       showSnackbar(t`Backup complete.`);
     } catch (error) {
       Alert.alert(t`Backup Failed`, getBackupErrorMessage(error, "backup"));
@@ -622,8 +603,9 @@ export default function SettingsScreen() {
                 <Button
                   mode="outlined"
                   compact
-                  disabled={!isOnline}
-                  onPress={signInWithGoogle}
+                  loading={isSigningIn}
+                  disabled={isSigningIn || !isOnline}
+                  onPress={() => void signIn()}
                 >
                   <Trans>Sign in</Trans>
                 </Button>

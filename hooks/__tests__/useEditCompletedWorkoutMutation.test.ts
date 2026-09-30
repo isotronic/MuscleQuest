@@ -2,6 +2,8 @@ import { useEditCompletedWorkoutMutation } from "../useEditCompletedWorkoutMutat
 import { openDatabase } from "@/utils/database";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { KG_PER_LB } from "@/utils/units";
+import { Alert } from "react-native";
+import { refreshProgressionAfterHistoryChange } from "@/utils/progressionRecompute";
 
 const mockRunAsync = jest.fn().mockResolvedValue(undefined);
 const mockCloseAsync = jest.fn().mockResolvedValue(undefined);
@@ -20,12 +22,19 @@ jest.mock("@/utils/database", () => ({
     }),
   ),
 }));
+jest.mock("@/utils/progressionRecompute", () => ({
+  refreshProgressionAfterHistoryChange: jest.fn(),
+}));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
   default: { notify: jest.fn() },
 }));
 jest.mock("react-native", () => ({
   Alert: { alert: jest.fn() },
+}));
+// Marks everything that goes through `t`, so an untranslated literal fails.
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray) => `[t] ${s[0]}`,
 }));
 jest.mock("@tanstack/react-query", () => ({
   useMutation: jest.fn(),
@@ -229,6 +238,30 @@ describe("useEditCompletedWorkoutMutation", () => {
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["exerciseDetail"],
     });
+  });
+
+  it("onSuccess refreshes progression suggestions for the edited workout", () => {
+    useEditCompletedWorkoutMutation(42, "kg", "m");
+
+    capturedArgs.onSuccess();
+
+    expect(refreshProgressionAfterHistoryChange).toHaveBeenCalledWith(
+      { invalidateQueries: mockInvalidateQueries },
+      42,
+    );
+  });
+
+  it("onError shows a translated alert", () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    useEditCompletedWorkoutMutation(42, "kg", "m");
+
+    capturedArgs.onError(new Error("save failed"));
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "[t] Error",
+      "[t] An error occurred while saving your edited workout. Please try again.",
+    );
+    consoleSpy.mockRestore();
   });
 
   it("onSettled invalidates exerciseDetail", async () => {

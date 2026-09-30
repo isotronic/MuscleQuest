@@ -11,30 +11,37 @@ import {
 } from "@react-native-google-signin/google-signin";
 import { Alert } from "react-native";
 
+const withCode = (code: string) => Object.assign(new Error(code), { code });
+
 describe("signInWithGoogle", () => {
+  let consoleSpy: jest.SpyInstance;
+
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it("should sign in successfully with Google credentials", async () => {
+    consoleSpy = jest.spyOn(console, "error").mockImplementation();
     (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
     (GoogleSignin.signIn as jest.Mock).mockResolvedValue({
       idToken: "testIdToken",
     });
+    (signInWithCredential as jest.Mock).mockResolvedValue(null);
+  });
+
+  afterEach(() => {
+    consoleSpy.mockRestore();
+  });
+
+  it("signs in with the Google credential and returns success", async () => {
     const mockCredential = { token: "testCredential" };
     (GoogleAuthProvider.credential as jest.Mock).mockReturnValue(
       mockCredential,
     );
-    (signInWithCredential as jest.Mock).mockResolvedValue(null);
 
-    await signInWithGoogle();
+    await expect(signInWithGoogle()).resolves.toEqual({ status: "success" });
 
     expect(GoogleSignin.hasPlayServices).toHaveBeenCalledWith({
       showPlayServicesUpdateDialog: true,
     });
-    expect(GoogleSignin.signIn).toHaveBeenCalled();
     expect(GoogleAuthProvider.credential).toHaveBeenCalledWith("testIdToken");
-    expect(getAuth).toHaveBeenCalled();
     const authInstance = (getAuth as jest.Mock).mock.results[0].value;
     expect(signInWithCredential).toHaveBeenCalledWith(
       authInstance,
@@ -42,72 +49,80 @@ describe("signInWithGoogle", () => {
     );
   });
 
-  it("should throw an error if play services are not available", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+  it("returns cancelled without reporting when the user backs out", async () => {
+    (GoogleSignin.signIn as jest.Mock).mockRejectedValue(
+      withCode(statusCodes.SIGN_IN_CANCELLED),
+    );
+
+    await expect(signInWithGoogle()).resolves.toEqual({ status: "cancelled" });
+    expect(Bugsnag.notify).not.toHaveBeenCalled();
+  });
+
+  it("returns offline without starting when the device is offline", async () => {
+    const result = await signInWithGoogle({ isOnline: false });
+
+    expect(result).toMatchObject({ status: "error", reason: "offline" });
+    expect(GoogleSignin.hasPlayServices).not.toHaveBeenCalled();
+    expect(Bugsnag.notify).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [statusCodes.PLAY_SERVICES_NOT_AVAILABLE, "playServicesMissing"],
+    [statusCodes.IN_PROGRESS, "inProgress"],
+    ["auth/network-request-failed", "offline"],
+    ["auth/account-exists-with-different-credential", "accountConflict"],
+  ])("maps %s to %s without reporting it", async (code, reason) => {
+    const error = withCode(code);
+    (GoogleSignin.signIn as jest.Mock).mockRejectedValue(error);
+
+    await expect(signInWithGoogle()).resolves.toEqual({
+      status: "error",
+      reason,
+      error,
+    });
+    expect(Bugsnag.notify).not.toHaveBeenCalled();
+  });
+
+  it("maps hasPlayServices resolving false to playServicesMissing", async () => {
     (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(false);
 
-    await expect(signInWithGoogle()).rejects.toThrow(
-      "Play services not available",
-    );
+    const result = await signInWithGoogle();
 
-    expect(GoogleSignin.hasPlayServices).toHaveBeenCalled();
+    expect(result).toMatchObject({
+      status: "error",
+      reason: "playServicesMissing",
+    });
     expect(GoogleSignin.signIn).not.toHaveBeenCalled();
-    consoleSpy.mockRestore(); // Restore original console.error
   });
 
-  it("should handle user cancellation gracefully and not notify Bugsnag", async () => {
-    (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
-    (GoogleSignin.signIn as jest.Mock).mockRejectedValue({
-      code: statusCodes.SIGN_IN_CANCELLED,
-    });
-
-    await expect(signInWithGoogle()).rejects.toEqual({
-      code: statusCodes.SIGN_IN_CANCELLED,
-    });
-
-    expect(GoogleSignin.signIn).toHaveBeenCalled();
-    expect(Bugsnag.notify).not.toHaveBeenCalled(); // Cancellations are not logged
-    expect(Alert.alert).not.toHaveBeenCalled(); // No alert for cancellations
-  });
-
-  it("should notify Bugsnag and show an alert for other errors", async () => {
-    (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
-    const mockError = new Error("Sign-in error");
-    (GoogleSignin.signIn as jest.Mock).mockRejectedValue(mockError);
-
-    await expect(signInWithGoogle()).rejects.toThrow("Sign-in error");
-
-    expect(Bugsnag.notify).toHaveBeenCalledWith(
-      mockError,
-      expect.any(Function),
-    );
-    expect(Alert.alert).toHaveBeenCalledWith(
-      "Error",
-      "Failed to sign in. Please try again.",
-    );
-  });
-
-  it("should add sign_in_error metadata to Bugsnag notification", async () => {
-    (GoogleSignin.hasPlayServices as jest.Mock).mockResolvedValue(true);
-    const mockError = new Error("Sign-in error");
-    mockError.name = "TestError";
-    (mockError as any).code = "test-code";
-    (GoogleSignin.signIn as jest.Mock).mockRejectedValue(mockError);
-
-    const mockEvent = {
-      addMetadata: jest.fn(),
-    };
-    (Bugsnag.notify as jest.Mock).mockImplementation((error, callback) => {
+  it("maps anything else to unknown and reports it with metadata", async () => {
+    const error = withCode("test-code");
+    error.name = "TestError";
+    (GoogleSignin.signIn as jest.Mock).mockRejectedValue(error);
+    const mockEvent = { addMetadata: jest.fn() };
+    (Bugsnag.notify as jest.Mock).mockImplementation((_error, callback) => {
       callback(mockEvent);
     });
 
-    await expect(signInWithGoogle()).rejects.toThrow("Sign-in error");
-
+    await expect(signInWithGoogle()).resolves.toEqual({
+      status: "error",
+      reason: "unknown",
+      error,
+    });
+    expect(Bugsnag.notify).toHaveBeenCalledTimes(1);
     expect(mockEvent.addMetadata).toHaveBeenCalledWith("sign_in_error", {
       code: "test-code",
-      message: "Sign-in error",
+      message: "test-code",
       name: "TestError",
       stack: expect.any(String),
     });
+  });
+
+  it("never shows an alert itself", async () => {
+    (GoogleSignin.signIn as jest.Mock).mockRejectedValue(new Error("boom"));
+
+    await signInWithGoogle();
+
+    expect(Alert.alert).not.toHaveBeenCalled();
   });
 });

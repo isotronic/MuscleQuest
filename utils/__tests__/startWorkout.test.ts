@@ -1,6 +1,7 @@
 import { Alert } from "react-native";
 import { router } from "expo-router";
 import { confirmStartWorkout } from "../startWorkout";
+import { useStaleWorkoutPromptStore } from "@/store/staleWorkoutPromptStore";
 
 jest.mock("react-native", () => ({
   Alert: { alert: jest.fn() },
@@ -10,10 +11,19 @@ jest.mock("expo-router", () => ({
   router: { push: jest.fn() },
 }));
 
+// Marks everything that goes through `t`, so an untranslated literal fails.
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray) => `[t] ${s[0]}`,
+}));
+
 const mockIsWorkoutInProgress = jest.fn();
+let mockActivity: { startTime?: Date; lastActivityAt?: Date | null } = {};
 jest.mock("@/store/activeWorkoutStore", () => ({
   useActiveWorkoutStore: {
-    getState: () => ({ isWorkoutInProgress: mockIsWorkoutInProgress }),
+    getState: () => ({
+      isWorkoutInProgress: mockIsWorkoutInProgress,
+      ...mockActivity,
+    }),
   },
 }));
 
@@ -93,12 +103,28 @@ describe("confirmStartWorkout", () => {
       expect(onStart).not.toHaveBeenCalled();
     });
 
+    it("translates the alert title, message and buttons", async () => {
+      await confirmStartWorkout(setLoading, onStart);
+
+      const [title, message, buttons] = (Alert.alert as jest.Mock).mock
+        .calls[0];
+      expect(title).toBe("[t] Workout In Progress");
+      expect(message).toBe(
+        "[t] You already have a workout running. Continue it or start a new one?",
+      );
+      expect(buttons.map((b: { text: string }) => b.text)).toEqual([
+        "[t] Cancel",
+        "[t] Continue Workout",
+        "[t] Start New",
+      ]);
+    });
+
     it("Cancel button does nothing", async () => {
       await confirmStartWorkout(setLoading, onStart);
 
       const [, , buttons] = (Alert.alert as jest.Mock).mock.calls[0];
       const cancelBtn = buttons.find(
-        (b: { text: string }) => b.text === "Cancel",
+        (b: { text: string }) => b.text === "[t] Cancel",
       );
       // Cancel button has no onPress handler (style: "cancel")
       expect(cancelBtn.onPress).toBeUndefined();
@@ -109,7 +135,7 @@ describe("confirmStartWorkout", () => {
 
       const [, , buttons] = (Alert.alert as jest.Mock).mock.calls[0];
       const continueBtn = buttons.find(
-        (b: { text: string }) => b.text === "Continue Workout",
+        (b: { text: string }) => b.text === "[t] Continue Workout",
       );
       continueBtn.onPress();
 
@@ -117,12 +143,27 @@ describe("confirmStartWorkout", () => {
       expect(onStart).not.toHaveBeenCalled();
     });
 
+    it("Continue Workout asks first when the workout was left for hours", async () => {
+      const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      mockActivity = { startTime: dayAgo, lastActivityAt: dayAgo };
+      await confirmStartWorkout(setLoading, onStart);
+
+      const [, , buttons] = (Alert.alert as jest.Mock).mock.calls[0];
+      buttons
+        .find((b: { text: string }) => b.text === "[t] Continue Workout")
+        .onPress();
+
+      expect(router.push).not.toHaveBeenCalled();
+      expect(useStaleWorkoutPromptStore.getState().visible).toBe(true);
+      mockActivity = {};
+    });
+
     it("Start New button calls onStart and navigates", async () => {
       await confirmStartWorkout(setLoading, onStart);
 
       const [, , buttons] = (Alert.alert as jest.Mock).mock.calls[0];
       const newBtn = buttons.find(
-        (b: { text: string }) => b.text === "Start New",
+        (b: { text: string }) => b.text === "[t] Start New",
       );
 
       const doStartPromise = newBtn.onPress();

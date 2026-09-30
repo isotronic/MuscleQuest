@@ -1,5 +1,7 @@
 import React from "react";
 import { render, fireEvent, act } from "@testing-library/react-native";
+import { Alert } from "react-native";
+import { router } from "expo-router";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import LoginScreen from "../login";
 import { useIsOnline } from "@/hooks/useIsOnline";
@@ -79,6 +81,26 @@ describe("LoginScreen", () => {
 
     expect(GoogleSignin.signIn).toHaveBeenCalledTimes(1);
     await act(async () => resolveSignIn({ idToken: "tok" }));
+  });
+
+  it("explains a missing Play Services failure and stays on the screen", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    (GoogleSignin.signIn as jest.Mock).mockRejectedValueOnce(
+      Object.assign(new Error("no play services"), { code: "12503" }),
+    );
+    const { getByTestId } = render(<LoginScreen />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId("login-google"));
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Sign-in failed",
+      "Google sign-in needs Google Play Services, which isn't available on this device. You can keep using MuscleQuest without signing in.",
+      [{ text: "OK" }],
+    );
+    expect(router.replace).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
   });
 
   it("disables both buttons while signing in", async () => {

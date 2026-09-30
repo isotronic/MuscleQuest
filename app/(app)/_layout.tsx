@@ -7,6 +7,7 @@ import { useSocialListeners } from "../../hooks/useSocialListeners";
 import { useSocialSyncOnStartup } from "../../hooks/useSocialSyncOnStartup";
 import { useExerciseImageFiles } from "@/hooks/useExerciseImageFiles";
 import { AppSnackbar } from "@/components/AppSnackbar";
+import { StaleWorkoutPrompt } from "@/components/StaleWorkoutPrompt";
 import { setShowRestNotificationInForeground } from "@/utils/restNotification";
 import { useEffect } from "react";
 
@@ -82,6 +83,7 @@ export default function AppLayout() {
         />
         <Stack.Screen name="+not-found" />
       </Stack>
+      <StaleWorkoutPrompt />
       <AppSnackbar />
     </>
   );

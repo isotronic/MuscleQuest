@@ -1,4 +1,3 @@
-import Bugsnag from "@bugsnag/expo";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -8,40 +7,72 @@ import {
   GoogleSignin,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
-import { Alert } from "react-native";
+import { notifyBugsnag } from "./bugsnagDedup";
 
-export const signInWithGoogle = async () => {
+export type SignInErrorReason =
+  | "offline"
+  | "playServicesMissing"
+  | "inProgress"
+  | "accountConflict"
+  | "unknown";
+
+export type SignInResult =
+  | { status: "success" }
+  | { status: "cancelled" }
+  | { status: "error"; reason: SignInErrorReason; error: unknown };
+
+const classifySignInError = (code: string | undefined): SignInErrorReason => {
+  switch (code) {
+    case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+      return "playServicesMissing";
+    case statusCodes.IN_PROGRESS:
+      return "inProgress";
+    case "auth/network-request-failed":
+      return "offline";
+    case "auth/account-exists-with-different-credential":
+      return "accountConflict";
+    default:
+      return "unknown";
+  }
+};
+
+// The single Google sign-in implementation. It never shows UI; callers turn
+// the result into a message (see hooks/useGoogleSignIn.ts).
+export const signInWithGoogle = async ({
+  isOnline = true,
+}: { isOnline?: boolean } = {}): Promise<SignInResult> => {
+  if (!isOnline) {
+    return { status: "error", reason: "offline", error: null };
+  }
   try {
     const hasPlayServices = await GoogleSignin.hasPlayServices({
       showPlayServicesUpdateDialog: true,
     });
     if (!hasPlayServices) {
-      throw new Error("Play services not available");
+      return { status: "error", reason: "playServicesMissing", error: null };
     }
     const { idToken } = await GoogleSignin.signIn();
     const googleCredential = GoogleAuthProvider.credential(idToken);
-    const auth = getAuth();
-    await signInWithCredential(auth, googleCredential);
+    await signInWithCredential(getAuth(), googleCredential);
+    return { status: "success" };
   } catch (error: any) {
-    const typedError = error as { code?: string };
-
-    // User cancelled sign in — rethrow silently without logging
-    if (typedError.code === statusCodes.SIGN_IN_CANCELLED) {
-      throw error;
+    const code: string | undefined = error?.code;
+    if (code === statusCodes.SIGN_IN_CANCELLED) {
+      return { status: "cancelled" };
     }
 
-    console.error("Sign in error", error);
-    Alert.alert("Error", "Failed to sign in. Please try again.");
-
-    // Log detailed error info to Bugsnag for debugging
-    Bugsnag.notify(error, (event) => {
-      event.addMetadata("sign_in_error", {
-        code: typedError.code,
-        message: error?.message,
-        name: error?.name,
-        stack: error?.stack,
+    const reason = classifySignInError(code);
+    if (reason === "unknown") {
+      console.error("Sign in error", error);
+      notifyBugsnag(error, (event) => {
+        event.addMetadata("sign_in_error", {
+          code,
+          message: error?.message,
+          name: error?.name,
+          stack: error?.stack,
+        });
       });
-    });
-    throw error;
+    }
+    return { status: "error", reason, error };
   }
 };

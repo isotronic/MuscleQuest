@@ -5,10 +5,14 @@ import {
 } from "@/utils/database";
 import { useSnackbarStore } from "@/store/snackbarStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { refreshProgressionAfterHistoryChange } from "@/utils/progressionRecompute";
 
 jest.mock("@/utils/database", () => ({
   deleteCompletedWorkout: jest.fn(),
   restoreCompletedWorkout: jest.fn().mockResolvedValue(undefined),
+}));
+jest.mock("@/utils/progressionRecompute", () => ({
+  refreshProgressionAfterHistoryChange: jest.fn(),
 }));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -111,6 +115,31 @@ describe("useDeleteCompletedWorkoutMutation", () => {
     expect(current?.message).toBe("Workout deleted");
     expect(current?.action?.label).toBe("Undo");
     expect(current?.duration).toBe(5000);
+  });
+
+  it("onSuccess refreshes progression suggestions for the deleted workout", () => {
+    useDeleteCompletedWorkoutMutation();
+
+    capturedArgs.onSuccess(undefined, 7);
+
+    expect(refreshProgressionAfterHistoryChange).toHaveBeenCalledWith(
+      { invalidateQueries: mockInvalidateQueries },
+      7,
+    );
+  });
+
+  it("Undo refreshes progression suggestions again", async () => {
+    useDeleteCompletedWorkoutMutation();
+    capturedArgs.onSuccess(undefined, 7);
+    (refreshProgressionAfterHistoryChange as jest.Mock).mockClear();
+
+    useSnackbarStore.getState().pressAction();
+    await new Promise((r) => setImmediate(r));
+
+    expect(refreshProgressionAfterHistoryChange).toHaveBeenCalledWith(
+      { invalidateQueries: mockInvalidateQueries },
+      7,
+    );
   });
 
   it("Undo restores the workout and refreshes history", async () => {

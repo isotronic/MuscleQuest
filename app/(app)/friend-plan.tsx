@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Trans } from "@lingui/react/macro";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "@/utils/relativeTime";
 import { AppText, AppIcon } from "@/components/ui";
 import { useAppTheme } from "@/theme";
 import { useFriendSharedPlansQuery } from "@/hooks/useFriendSharedPlansQuery";
@@ -72,10 +72,7 @@ export default function FriendPlanScreen() {
           variant="caption"
           style={{ color: colors.contentSecondary, marginBottom: 24 }}
         >
-          <Trans>
-            Updated{" "}
-            {formatDistanceToNow(plan.updatedAt.toDate(), { addSuffix: true })}
-          </Trans>
+          <Trans>Updated {formatTimeAgo(plan.updatedAt.toDate())}</Trans>
         </AppText>
 
         {plan.workouts.map((workout, index) => (

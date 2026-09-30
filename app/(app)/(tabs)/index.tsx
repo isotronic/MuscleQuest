@@ -32,8 +32,10 @@ import Onboarding, { shouldShowActivationCard } from "@/components/Onboarding";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
 import { UpdateModal } from "@/components/UpdateModal";
 import { confirmStartWorkout } from "@/utils/startWorkout";
+import { resumeActiveWorkout } from "@/utils/resumeWorkout";
 import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
 import RestDayCard from "@/components/RestDayCard";
+import { BackupReminderCard } from "@/components/BackupReminderCard";
 import WorkoutDoneCard from "@/components/WorkoutDoneCard";
 import WeeklySummaryCard from "@/components/WeeklySummaryCard";
 import WorkoutPickerModal from "@/components/WorkoutPickerModal";
@@ -449,7 +451,7 @@ export default function HomeScreen() {
                   marginBottom: 32,
                 },
               ]}
-              onPress={() => router.push("/(app)/(workout)")}
+              onPress={resumeActiveWorkout}
             >
               <View style={styles.workoutCardContent}>
                 <AppIcon
@@ -472,7 +474,7 @@ export default function HomeScreen() {
                   <Button
                     mode="contained"
                     theme={{ colors: { primary: colors.accent } }}
-                    onPress={() => router.push("/(app)/(workout)")}
+                    onPress={resumeActiveWorkout}
                     // Same action as the card, which screen readers announce.
                     importantForAccessibility="no-hide-descendants"
                     accessibilityElementsHidden
@@ -484,6 +486,8 @@ export default function HomeScreen() {
               </View>
             </Pressable>
           )}
+          {/* Takes the resume card's place, never alongside it. */}
+          {!showResumeCard && !workoutInProgress && <BackupReminderCard />}
           {activePlan && settings ? (
             <>
               {settings.showOnboarding === "true" && <Onboarding />}

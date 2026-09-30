@@ -232,7 +232,12 @@ export const uploadDatabaseBackup = async (
   }
 };
 
-export const fetchLastBackupDate = async (): Promise<Date | null> => {
+/**
+ * When the account was last backed up; null only when it has no backup.
+ * Throws when that could not be determined, so a caller can tell "never
+ * backed up" apart from "could not check".
+ */
+export const readLastBackupDate = async (): Promise<Date | null> => {
   try {
     const userId = getUserId();
 
@@ -252,6 +257,15 @@ export const fetchLastBackupDate = async (): Promise<Date | null> => {
     if (isObjectNotFound(error)) {
       return null;
     }
+    throw error;
+  }
+};
+
+/** As readLastBackupDate, but reports a failure and returns null. */
+export const fetchLastBackupDate = async (): Promise<Date | null> => {
+  try {
+    return await readLastBackupDate();
+  } catch (error: any) {
     console.error("Error fetching last backup date:", error);
     Bugsnag.notify(error instanceof Error ? error : new Error(String(error)));
     return null;

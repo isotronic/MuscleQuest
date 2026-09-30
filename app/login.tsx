@@ -1,15 +1,6 @@
 import { ThemedView } from "@/components/ThemedView";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithCredential,
-} from "@react-native-firebase/auth";
-import {
-  GoogleSignin,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
 import { openDatabase } from "@/utils/database";
-import { Alert, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { Trans } from "@lingui/react/macro";
@@ -19,10 +10,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AppImage } from "@/components/ui";
 import Bugsnag from "@bugsnag/expo";
 import { ScrollView } from "react-native";
-import { useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
-import { useIsOnline } from "@/hooks/useIsOnline";
+import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
 
 const logo = require("@/assets/images/icon.png");
 
@@ -30,9 +21,7 @@ export default function LoginScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
-  const isOnline = useIsOnline();
-  const [isSigningIn, setIsSigningIn] = useState(false);
-  const isSigningInRef = useRef(false);
+  const { signIn, isSigningIn, isOnline } = useGoogleSignIn();
 
   async function saveLoginShown() {
     try {
@@ -54,36 +43,10 @@ export default function LoginScreen() {
   }
 
   async function handleSignIn() {
-    if (isSigningInRef.current) return;
-    isSigningInRef.current = true;
-    setIsSigningIn(true);
-    try {
-      const hasPlayServices = await GoogleSignin.hasPlayServices({
-        showPlayServicesUpdateDialog: true,
-      });
-      if (!hasPlayServices) {
-        throw new Error("Play services not available");
-      }
-      const { idToken } = await GoogleSignin.signIn();
-      const googleCredential = GoogleAuthProvider.credential(idToken);
-      const auth = getAuth();
-      await signInWithCredential(auth, googleCredential);
-      await saveLoginShown(); // Save setting to avoid showing login again
-      router.replace("/");
-    } catch (error: any) {
-      // User cancelled sign in — don't report to Bugsnag
-      if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
-        return;
-      }
-      console.error("handleSignIn error", error);
-      Bugsnag.notify(error);
-      Alert.alert(t`Error`, t`Failed to sign in. Please try again.`, [
-        { text: t`OK` },
-      ]);
-    } finally {
-      isSigningInRef.current = false;
-      setIsSigningIn(false);
-    }
+    const result = await signIn();
+    if (result?.status !== "success") return;
+    await saveLoginShown(); // Save setting to avoid showing login again
+    router.replace("/");
   }
 
   async function handleSkip() {

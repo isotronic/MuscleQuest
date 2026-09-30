@@ -122,6 +122,9 @@ interface ActiveWorkoutStore {
   timerRunning: boolean;
   timerExpiry: Date | null;
   currentSetStartedAt: Date | null;
+  // When the user last completed a set, edited a value or added an exercise.
+  // Null until the first of those; stale-workout checks then use startTime.
+  lastActivityAt: Date | null;
   setDurations: {
     [exerciseIndex: number]: { [setIndex: number]: number | null };
   };
@@ -243,6 +246,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       timerRunning: false,
       timerExpiry: null,
       currentSetStartedAt: null,
+      lastActivityAt: null,
       setDurations: {},
       appendedExerciseIndices: [],
       feedbackSubmittedUweIds: [],
@@ -265,6 +269,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           timerRunning: false,
           timerExpiry: null,
           currentSetStartedAt: null,
+          lastActivityAt: null,
           setDurations: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
@@ -292,6 +297,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           timerRunning: false,
           timerExpiry: null,
           currentSetStartedAt: null,
+          lastActivityAt: null,
           setDurations: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
@@ -325,7 +331,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           };
         }),
 
-      nextSet: () =>
+      nextSet: () => {
+        if (!get().workout) return;
+        set({ lastActivityAt: new Date() });
         set((state) => {
           const {
             workout,
@@ -757,7 +765,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentSetIndices: updatedSetIndices,
             completedSets: updatedCompletedSets,
           };
-        }),
+        });
+      },
 
       addSet: () =>
         set((state) => {
@@ -1041,6 +1050,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           }
 
           return {
+            lastActivityAt: new Date(),
             weightAndReps: {
               ...state.weightAndReps,
               [exerciseIndex]: {
@@ -1082,6 +1092,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           const newIndex = state.workout.exercises.length;
           const updatedExercises = [...state.workout.exercises, exercise];
           return {
+            lastActivityAt: new Date(),
             workout: { ...state.workout, exercises: updatedExercises },
             appendedExerciseIndices: [
               ...state.appendedExerciseIndices,
@@ -1471,6 +1482,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           timerRunning: false,
           timerExpiry: null,
           currentSetStartedAt: null,
+          lastActivityAt: null,
           setDurations: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
@@ -1597,6 +1609,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           );
 
           return {
+            lastActivityAt: new Date(),
             workout: { ...workout, exercises },
             completedSets: newCompletedSets,
             weightAndReps: newWeightAndReps,
@@ -1674,6 +1687,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           timerRunning: false,
           timerExpiry: null,
           currentSetStartedAt: null,
+          lastActivityAt: null,
           setDurations: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
@@ -1842,6 +1856,11 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               ? state.currentSetStartedAt.toISOString()
               : state.currentSetStartedAt
             : null,
+          lastActivityAt: state.lastActivityAt
+            ? state.lastActivityAt instanceof Date
+              ? state.lastActivityAt.toISOString()
+              : state.lastActivityAt
+            : null,
         };
       },
       onRehydrateStorage: () => (state) => {
@@ -1855,6 +1874,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           }
           if (state.currentSetStartedAt) {
             state.currentSetStartedAt = new Date(state.currentSetStartedAt);
+          }
+          if (state.lastActivityAt) {
+            state.lastActivityAt = new Date(state.lastActivityAt);
           }
         }
       },

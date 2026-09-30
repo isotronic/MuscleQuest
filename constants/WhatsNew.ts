@@ -482,6 +482,46 @@ The app is also clearer when you're offline: Friends shows a banner, and backup,
 • History and stats load faster, especially if you have a long training history.
 `,
   },
+  {
+    version: 2656,
+    message: msg`
+♿ Improved: Screen Readers, Large Text & Reduced Motion!
+
+MuscleQuest now works properly with TalkBack and VoiceOver. Buttons and fields are labelled, finishing a set and the rest countdown are announced, and every chart has a spoken summary. On an exercise's chart you can tap Show as table to read the numbers instead.
+
+Text and buttons now grow with your system font size, and animations are switched off when your device is set to reduce motion.
+`,
+  },
+  {
+    version: 2657,
+    message: msg`
+⚡ Improved: Faster Lists & Tidier Friend Profiles!
+
+The exercise library, home screen and stats open faster, especially with a long training history. The sections on a friend's profile now start collapsed, so a long profile is easier to scan; tap a heading to open it.
+`,
+  },
+  {
+    version: 2658,
+    message: msg`
+☁️ New: Backup Reminders!
+
+Your training history lives on your phone, so a backup is the only way to get it back if you lose or replace it. The home screen now reminds you when you have never backed up, or when your last backup is more than 30 days old, and you can back up right from the card.
+
+Not signed in? After a few workouts the card offers to sign you in instead. Tap Later to hide it for two weeks.
+`,
+  },
+  {
+    version: 2659,
+    message: msg`
+⏸️ New: Pick Up Where You Left Off!
+
+If you come back to an unfinished workout after more than four hours, MuscleQuest now asks whether to resume it or discard it, or, once you have completed at least one set, to finish and save it. A workout finished this way records its duration up to your last logged set, instead of counting the hours in between.
+
+Also in this update:
+• Correcting or deleting your latest session now updates the progression suggestion built on it, so a typo no longer carries into your next workout.
+• Sign-in problems now tell you what went wrong, such as being offline or missing Google Play Services, in your own language.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

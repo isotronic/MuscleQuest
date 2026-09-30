@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Trans } from "@lingui/react/macro";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "@/utils/relativeTime";
 import { AppText } from "@/components/ui";
 import { useAppTheme } from "@/theme";
 import { useFriendSharedStandaloneWorkoutsQuery } from "@/hooks/useFriendSharedStandaloneWorkoutsQuery";
@@ -60,10 +60,7 @@ export default function FriendWorkoutScreen() {
           style={{ color: colors.contentSecondary, marginBottom: 24 }}
         >
           <Trans>
-            Updated{" "}
-            {formatDistanceToNow(workout.updatedAt?.toDate() ?? new Date(), {
-              addSuffix: true,
-            })}
+            Updated {formatTimeAgo(workout.updatedAt?.toDate() ?? new Date())}
           </Trans>
         </AppText>
 

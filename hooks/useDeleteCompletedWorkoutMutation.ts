@@ -8,6 +8,7 @@ import {
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { showSnackbar } from "@/store/snackbarStore";
 import { t } from "@lingui/core/macro";
+import { refreshProgressionAfterHistoryChange } from "@/utils/progressionRecompute";
 
 const UNDO_WINDOW_MS = 5000;
 
@@ -24,6 +25,7 @@ export const useDeleteCompletedWorkoutMutation = () => {
     try {
       await restoreCompletedWorkout(id);
       invalidateHistory();
+      void refreshProgressionAfterHistoryChange(queryClient, id);
     } catch (error) {
       notifyBugsnag(error);
       showSnackbar(t`Couldn't restore the workout.`);
@@ -36,6 +38,8 @@ export const useDeleteCompletedWorkoutMutation = () => {
     // clears the flag again.
     onSuccess: (_data, id) => {
       invalidateHistory();
+      // The deleted session may be the one a pending suggestion was built on.
+      void refreshProgressionAfterHistoryChange(queryClient, id);
       router.back();
       showSnackbar(t`Workout deleted`, {
         duration: UNDO_WINDOW_MS,
