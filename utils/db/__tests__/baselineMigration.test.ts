@@ -124,4 +124,43 @@ describe("baseline migration", () => {
     ).toEqual([{ duration: 3600, is_deload: 0 }]);
     sqlite.close();
   });
+
+  it("orders existing workouts by id when it adds workout_order", async () => {
+    const { sqlite, db } = createNodeSqliteDb();
+    sqlite.exec(readFileSync(join(FIXTURE_DIR, fixtures[0]), "utf8"));
+    sqlite.exec(`
+      INSERT INTO user_plans (id, name) VALUES (1, 'My plan');
+      INSERT INTO user_workouts (id, plan_id, name)
+      VALUES (4, 1, 'Day 1'), (7, 1, 'Day 2'), (9, 1, 'Day 3');
+    `);
+
+    await runMigrations(db);
+
+    expect(
+      sqlite
+        .prepare(`SELECT id, workout_order FROM user_workouts ORDER BY id`)
+        .all(),
+    ).toEqual([
+      { id: 4, workout_order: 4 },
+      { id: 7, workout_order: 7 },
+      { id: 9, workout_order: 9 },
+    ]);
+    sqlite.close();
+  });
+
+  it("leaves workout_order alone when the column already exists", async () => {
+    const { sqlite, db } = createNodeSqliteDb();
+    await runMigrations(db);
+    sqlite.exec(`
+      INSERT INTO user_workouts (id, name, workout_order) VALUES (5, 'Day 1', 2);
+      PRAGMA user_version = 0;
+    `);
+
+    await runMigrations(db);
+
+    expect(
+      sqlite.prepare(`SELECT workout_order FROM user_workouts`).get(),
+    ).toEqual({ workout_order: 2 });
+    sqlite.close();
+  });
 });

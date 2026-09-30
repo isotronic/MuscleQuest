@@ -455,9 +455,11 @@ export async function up(db: SQLiteDatabase): Promise<void> {
     await db.execAsync(`
     ALTER TABLE user_workouts ADD COLUMN workout_order INTEGER DEFAULT 0 NOT NULL;
   `);
-    // Backfill existing rows: use id as the order so existing plans keep their original sequence
+    // Backfill existing rows: use id as the order so existing plans keep their
+    // original sequence. No NULL filter: the NOT NULL DEFAULT 0 column above
+    // has already given every existing row 0.
     await db.execAsync(`
-    UPDATE user_workouts SET workout_order = id WHERE workout_order IS NULL;
+    UPDATE user_workouts SET workout_order = id;
   `);
   }
   if (!workout_imageUrlExists) {

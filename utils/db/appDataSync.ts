@@ -251,7 +251,7 @@ export const copyDataFromAppDataToUserData = async (
       } catch (error: any) {
         console.error(`Error copying table ${tableName}:`, error);
         if (inTransaction) {
-          await userDataDB!.execAsync("ROLLBACK");
+          await safeRollback(userDataDB!);
         }
         throw error;
       }

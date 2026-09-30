@@ -1295,6 +1295,20 @@ describe("copyDataFromAppDataToUserData", () => {
       "equipment_list read failed",
     );
   });
+  it("rethrows the copy error when ROLLBACK also fails", async () => {
+    mockDb.getFirstAsync.mockResolvedValue(null);
+    mockDb.getAllAsync.mockResolvedValueOnce([{ muscle: "chest" }]);
+    mockDb.runAsync.mockRejectedValueOnce(new Error("insert failed"));
+    mockDb.execAsync.mockImplementation(async (sql: string) => {
+      if (sql === "ROLLBACK") throw new Error("rollback failed");
+    });
+
+    await expect(copyDataFromAppDataToUserData()).rejects.toThrow(
+      "insert failed",
+    );
+    expect(mockDb.execAsync).toHaveBeenCalledWith("ROLLBACK");
+  });
+
   it("reports exercise copy progress in batches up to the total", async () => {
     mockDb.getFirstAsync.mockResolvedValue(null);
     const exercises = Array.from({ length: 120 }, (_, i) => ({
