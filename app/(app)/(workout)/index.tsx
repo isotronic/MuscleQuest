@@ -894,6 +894,9 @@ export default function WorkoutOverviewScreen() {
     // The save converts units and tags deload weeks, so wait for both.
     if (!settings || deloadWeekLoading) return;
     autoFinishStartedRef.current = true;
+    // The ref only covers this mount; dropping the param stops a remount
+    // (or a return here after a failed save) from saving a second time.
+    router.setParams({ finish: undefined });
     void handleSaveWorkout();
     // Runs once per visit; handleSaveWorkout is recreated every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
