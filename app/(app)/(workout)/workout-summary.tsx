@@ -304,9 +304,10 @@ function WeeklyGoalBanner({
 export default function WorkoutSummaryScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { completedWorkoutId, fresh } = useLocalSearchParams<{
+  const { completedWorkoutId, fresh, durationTrimmed } = useLocalSearchParams<{
     completedWorkoutId: string;
     fresh?: string;
+    durationTrimmed?: string;
   }>();
   const showConfetti = fresh === "true";
   useClearFinishedWorkout(fresh);
@@ -474,6 +475,12 @@ export default function WorkoutSummaryScreen() {
           <StatChip label={t`Volume`} value={volumeDisplay} icon="scale" />
         </View>
 
+        {durationTrimmed === "true" && (
+          <ThemedText style={styles.durationNote}>
+            <Trans>Duration trimmed to your last logged set</Trans>
+          </ThemedText>
+        )}
+
         {prevWorkout && !workout.is_deload && !prevWorkout.is_deload && (
           <View style={styles.progressionCard}>
             <ThemedText style={styles.progressionTitle}>
@@ -583,6 +590,12 @@ function createStyles(colors: AppThemeColors) {
       color: colors.contentSecondary,
       textAlign: "center",
       fontSize: 16,
+    },
+    durationNote: {
+      color: colors.contentSecondary,
+      textAlign: "center",
+      fontSize: 13,
+      marginTop: 8,
     },
     statsRow: {
       flexDirection: "row",

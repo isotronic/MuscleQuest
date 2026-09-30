@@ -17,7 +17,12 @@ import {
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { router, Stack, useFocusEffect } from "expo-router";
+import {
+  router,
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+} from "expo-router";
 import { AppIcon, AppIconButton } from "@/components/ui";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
 import {
@@ -45,7 +50,7 @@ import {
   scheduleRestNotificationWithCancellation,
 } from "@/utils/restNotification";
 import { convertTimeStrToSeconds } from "@/utils/utility";
-import { computeWorkoutDurationSeconds } from "@/utils/workoutDuration";
+import { resolveWorkoutDuration } from "@/utils/staleWorkout";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserExercise } from "@/store/workoutStore";
 import {
@@ -94,6 +99,7 @@ export default function WorkoutOverviewScreen() {
     completedSets,
     weightAndReps,
     startTime,
+    lastActivityAt,
     activeWorkout,
     isQuickWorkout,
     deleteExercise,
@@ -116,9 +122,8 @@ export default function WorkoutOverviewScreen() {
 
   const recoverySheetRef = useRef<BottomSheetModal>(null);
   const progressionSettings = useProgressionSettingsQuery();
-  const { isCurrentWeekDeload } = useDeloadWeekQuery(
-    activeWorkout?.planId ?? undefined,
-  );
+  const { isCurrentWeekDeload, isLoading: deloadWeekLoading } =
+    useDeloadWeekQuery(activeWorkout?.planId ?? undefined);
   const { data: pendingRecovery } = usePendingRecoveryQuery(
     activeWorkout?.workoutId ?? undefined,
   );
@@ -238,6 +243,14 @@ export default function WorkoutOverviewScreen() {
     distanceUnit,
   );
   const lastCompletedWorkoutIdRef = useRef<number | null>(null);
+  // Set when the saved duration was capped at the last logged set, so the
+  // summary can say so.
+  const durationTrimmedRef = useRef(false);
+  const summaryParams = (completedWorkoutId: number) => ({
+    completedWorkoutId: String(completedWorkoutId),
+    fresh: "true",
+    ...(durationTrimmedRef.current ? { durationTrimmed: "true" } : {}),
+  });
 
   useKeepScreenOn();
   useWorkoutImmersiveMode();
@@ -412,7 +425,7 @@ export default function WorkoutOverviewScreen() {
     } else {
       router.push({
         pathname: "/(app)/(workout)/workout-summary" as any,
-        params: { completedWorkoutId: String(savedId), fresh: "true" },
+        params: summaryParams(savedId),
       });
     }
   };
@@ -732,7 +745,12 @@ export default function WorkoutOverviewScreen() {
     try {
       const planId = activeWorkout?.planId;
       const workoutId = activeWorkout?.workoutId;
-      const duration = computeWorkoutDurationSeconds(startTime);
+      // A workout left for hours is saved up to its last logged set, not now.
+      const { seconds: duration, trimmed } = resolveWorkoutDuration({
+        startTime,
+        lastActivityAt,
+      });
+      durationTrimmedRef.current = trimmed;
 
       // Ensure `completedSets` is initialized and properly formatted
       const totalSetsCompleted = Object.values(completedSets || {}).reduce(
@@ -829,10 +847,7 @@ export default function WorkoutOverviewScreen() {
                 markLeaving();
                 router.push({
                   pathname: "/(app)/(workout)/workout-summary" as any,
-                  params: {
-                    completedWorkoutId: String(completedWorkoutId),
-                    fresh: "true",
-                  },
+                  params: summaryParams(completedWorkoutId),
                 });
               },
               onError: (error) => {
@@ -869,6 +884,20 @@ export default function WorkoutOverviewScreen() {
       }, 500);
     }
   };
+
+  // "Finish and save" on the stale-workout prompt lands here with finish=true.
+  const { finish } = useLocalSearchParams<{ finish?: string }>();
+  const autoFinishStartedRef = useRef(false);
+  useEffect(() => {
+    if (finish !== "true" || autoFinishStartedRef.current) return;
+    if (!workout || !hasCompletedSets) return;
+    // The save converts units and tags deload weeks, so wait for both.
+    if (!settings || deloadWeekLoading) return;
+    autoFinishStartedRef.current = true;
+    void handleSaveWorkout();
+    // Runs once per visit; handleSaveWorkout is recreated every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finish, workout, hasCompletedSets, settings, deloadWeekLoading]);
 
   const handleCancelWorkout = () => {
     Alert.alert(

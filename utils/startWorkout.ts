@@ -2,6 +2,7 @@ import { Alert } from "react-native";
 import { router } from "expo-router";
 import Bugsnag from "@bugsnag/expo";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { resumeActiveWorkout } from "./resumeWorkout";
 
 export const confirmStartWorkout = async (
   setLoading: (v: boolean) => void,
@@ -32,7 +33,7 @@ export const confirmStartWorkout = async (
         { text: "Cancel", style: "cancel" },
         {
           text: "Continue Workout",
-          onPress: () => router.push("/(app)/(workout)"),
+          onPress: resumeActiveWorkout,
         },
         {
           text: "Start New",

@@ -1,6 +1,7 @@
 import { Alert } from "react-native";
 import { router } from "expo-router";
 import { confirmStartWorkout } from "../startWorkout";
+import { useStaleWorkoutPromptStore } from "@/store/staleWorkoutPromptStore";
 
 jest.mock("react-native", () => ({
   Alert: { alert: jest.fn() },
@@ -11,9 +12,13 @@ jest.mock("expo-router", () => ({
 }));
 
 const mockIsWorkoutInProgress = jest.fn();
+let mockActivity: { startTime?: Date; lastActivityAt?: Date | null } = {};
 jest.mock("@/store/activeWorkoutStore", () => ({
   useActiveWorkoutStore: {
-    getState: () => ({ isWorkoutInProgress: mockIsWorkoutInProgress }),
+    getState: () => ({
+      isWorkoutInProgress: mockIsWorkoutInProgress,
+      ...mockActivity,
+    }),
   },
 }));
 
@@ -115,6 +120,21 @@ describe("confirmStartWorkout", () => {
 
       expect(router.push).toHaveBeenCalledWith("/(app)/(workout)");
       expect(onStart).not.toHaveBeenCalled();
+    });
+
+    it("Continue Workout asks first when the workout was left for hours", async () => {
+      const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      mockActivity = { startTime: dayAgo, lastActivityAt: dayAgo };
+      await confirmStartWorkout(setLoading, onStart);
+
+      const [, , buttons] = (Alert.alert as jest.Mock).mock.calls[0];
+      buttons
+        .find((b: { text: string }) => b.text === "Continue Workout")
+        .onPress();
+
+      expect(router.push).not.toHaveBeenCalled();
+      expect(useStaleWorkoutPromptStore.getState().visible).toBe(true);
+      mockActivity = {};
     });
 
     it("Start New button calls onStart and navigates", async () => {
