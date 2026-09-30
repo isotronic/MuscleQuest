@@ -4,7 +4,7 @@
 // `git show <commit>:utils/initUserDataDB.ts` run against an empty database.
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
-import { LATEST_SCHEMA_VERSION } from "@/utils/db/migrations";
+import { LATEST_SCHEMA_VERSION, migrations } from "@/utils/db/migrations";
 import { getSchemaVersion, runMigrations } from "@/utils/db/runMigrations";
 import { createNodeSqliteDb } from "@/utils/db/testing/nodeSqliteDb";
 
@@ -52,6 +52,10 @@ const describeSchema = (sqlite: Sqlite) => {
   );
 };
 
+// Only the baseline is written to re-run over a schema that already has
+// everything it creates; later migrations run exactly once.
+const baselineOnly = migrations.filter((m) => m.version === 1);
+
 const freshSchema = async () => {
   const { sqlite, db } = createNodeSqliteDb();
   await runMigrations(db);
@@ -91,13 +95,12 @@ describe("baseline migration", () => {
   // schema but version 0, so the baseline runs over a complete database.
   it("is safe to run again over an up-to-date schema", async () => {
     const { sqlite, db } = createNodeSqliteDb();
-    await runMigrations(db);
-    const before = describeSchema(sqlite);
+    await runMigrations(db, baselineOnly);
     sqlite.exec("PRAGMA user_version = 0");
 
     await runMigrations(db);
 
-    expect(describeSchema(sqlite)).toEqual(before);
+    expect(describeSchema(sqlite)).toEqual(await freshSchema());
     expect(await getSchemaVersion(db)).toBe(LATEST_SCHEMA_VERSION);
     sqlite.close();
   });
@@ -150,7 +153,7 @@ describe("baseline migration", () => {
 
   it("leaves workout_order alone when the column already exists", async () => {
     const { sqlite, db } = createNodeSqliteDb();
-    await runMigrations(db);
+    await runMigrations(db, baselineOnly);
     sqlite.exec(`
       INSERT INTO user_workouts (id, name, workout_order) VALUES (5, 'Day 1', 2);
       PRAGMA user_version = 0;

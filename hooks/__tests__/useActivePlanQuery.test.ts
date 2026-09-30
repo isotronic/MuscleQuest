@@ -75,6 +75,7 @@ describe("fetchActivePlanData", () => {
               name: "Exercise 1",
               description: "Description 1",
               image: [],
+              image_uri: null,
               local_animated_uri: "",
               animated_url: "",
               equipment: "Dumbbells",

@@ -152,6 +152,7 @@ interface CompletedWorkoutRow {
   exercise_id: number | null;
   exercise_name: string | null;
   exercise_image: Uint8Array | null;
+  exercise_image_uri: string | null;
   exercise_order: number | null;
   exercise_tracking_type: string | null;
   is_unilateral: number | null;
@@ -189,7 +190,8 @@ export const fetchCompletedWorkoutById = async (
         ce.id as completed_exercise_id,
         e.exercise_id as exercise_id,
         e.name as exercise_name,
-        e.image as exercise_image,
+        e.image_uri as exercise_image_uri,
+        CASE WHEN e.image_uri IS NULL THEN e.image END as exercise_image,
         COALESCE(ce.resolved_tracking_type, uwe.tracking_type_override, e.tracking_type) as exercise_tracking_type,
         e.is_unilateral,
         e.double_weight,
@@ -252,6 +254,7 @@ export const fetchCompletedWorkoutById = async (
             exercise_image: row.exercise_image
               ? Array.from(row.exercise_image)
               : undefined,
+            exercise_image_uri: row.exercise_image_uri ?? null,
             exercise_tracking_type: row.exercise_tracking_type || "weight",
             is_unilateral: row.is_unilateral ?? 0,
             double_weight: row.double_weight ?? 0,

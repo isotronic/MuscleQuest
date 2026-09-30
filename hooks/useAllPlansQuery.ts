@@ -26,6 +26,7 @@ export interface RawPlan {
   exercise_name: string | null;
   description: string | null;
   image: Uint8Array | null;
+  image_uri?: string | null;
   local_animated_uri: string | null;
   animated_url: string | null;
   equipment: string | null;
@@ -82,6 +83,7 @@ export const transformRawPlans = (
         name: rawPlan.exercise_name,
         description: rawPlan.description || "",
         image: rawPlan.image ? Array.from(rawPlan.image) : [],
+        image_uri: rawPlan.image_uri ?? null,
         local_animated_uri: rawPlan.local_animated_uri || "",
         animated_url: rawPlan.animated_url || "",
         equipment: rawPlan.equipment || "",
@@ -125,7 +127,8 @@ export const fetchPlans = async (): Promise<{
         user_workout_exercises.exercise_id AS exercise_id,
         exercises.name AS exercise_name,
         exercises.description,
-        exercises.image,
+        exercises.image_uri,
+        CASE WHEN exercises.image_uri IS NULL THEN exercises.image END AS image,
         exercises.local_animated_uri,
         exercises.animated_url,
         exercises.equipment,

@@ -3,7 +3,8 @@ import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { Checkbox } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { AppImage, checkboxLabel } from "@/components/ui";
-import { bytesToBase64, capitalizeWords } from "@/utils/utility";
+import { capitalizeWords } from "@/utils/utility";
+import { exerciseThumbnailUri } from "@/utils/exerciseThumbnail";
 import { Exercise } from "@/utils/database";
 import { useLingui } from "@lingui/react";
 import { t } from "@lingui/core/macro";
@@ -34,10 +35,9 @@ const ExerciseItem = ({
   const { _ } = useLingui();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const base64Image = useMemo(
-    () =>
-      item.image ? `data:image/webp;base64,${bytesToBase64(item.image)}` : null,
-    [item.image],
+  const thumbnailUri = useMemo(
+    () => exerciseThumbnailUri(item.image_uri, item.image),
+    [item.image_uri, item.image],
   );
 
   const bodyPartLabel = bodyPartTranslations[item.body_part]
@@ -57,10 +57,10 @@ const ExerciseItem = ({
         accessibilityRole="button"
         accessibilityLabel={`${item.name}, ${bodyPartLabel}, ${equipmentLabel}`}
       >
-        {base64Image ? (
+        {thumbnailUri ? (
           <AppImage
             style={styles.exerciseImage}
-            source={{ uri: base64Image }}
+            source={{ uri: thumbnailUri }}
           />
         ) : (
           <AppImage style={styles.exerciseImage} source={fallbackImage} />

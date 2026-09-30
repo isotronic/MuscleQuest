@@ -19,7 +19,8 @@ import {
   Switch,
 } from "react-native-paper";
 import { Notes } from "@/components/Notes";
-import { bytesToBase64, formatFromTotalSeconds } from "@/utils/utility";
+import { formatFromTotalSeconds } from "@/utils/utility";
+import { exerciseThumbnailUri } from "@/utils/exerciseThumbnail";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
 import { useDeleteStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
@@ -99,10 +100,7 @@ export default function StandaloneWorkoutScreen() {
   };
 
   const renderExercise = (item: UserExercise) => {
-    let base64Image: string | undefined;
-    if (item.image && item.image.length > 0) {
-      base64Image = `data:image/webp;base64,${bytesToBase64(item.image)}`;
-    }
+    const thumbnailUri = exerciseThumbnailUri(item.image_uri, item.image);
 
     const minReps = Math.min(...item.sets.map((s) => s.repsMin ?? Infinity));
     const maxReps = Math.max(...item.sets.map((s) => s.repsMax ?? -Infinity));
@@ -155,10 +153,10 @@ export default function StandaloneWorkoutScreen() {
         }
       >
         <View style={styles.exerciseItem}>
-          {base64Image ? (
+          {thumbnailUri ? (
             <AppImage
               style={styles.exerciseImage}
-              source={{ uri: base64Image }}
+              source={{ uri: thumbnailUri }}
             />
           ) : item.local_animated_uri ? (
             <AppImage

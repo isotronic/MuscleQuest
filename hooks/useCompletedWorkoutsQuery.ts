@@ -18,7 +18,6 @@ interface WorkoutResult {
   completed_exercise_id: number;
   exercise_id: number;
   exercise_name: string;
-  exercise_image: Uint8Array | null;
   exercise_tracking_type: string;
   is_unilateral: number | null;
   double_weight: number | null;
@@ -48,7 +47,9 @@ export interface CompletedWorkout {
     completed_exercise_id: number;
     exercise_id: number;
     exercise_name: string;
+    /** Thumbnail bytes. Only fetchCompletedWorkoutById loads them. */
     exercise_image?: number[];
+    exercise_image_uri?: string | null;
     exercise_tracking_type: string;
     is_unilateral?: number;
     double_weight?: number;
@@ -88,7 +89,6 @@ const fetchCompletedWorkouts = async (
         completed_exercises.id as completed_exercise_id,
         completed_exercises.exercise_id,
         exercises.name AS exercise_name,
-        exercises.image AS exercise_image,
         COALESCE(
           completed_exercises.resolved_tracking_type,
           (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
@@ -176,7 +176,6 @@ const fetchAndOrganize = async (
         completed_exercise_id,
         exercise_id,
         exercise_name,
-        exercise_image,
         exercise_tracking_type,
         is_unilateral,
         double_weight,
@@ -218,9 +217,6 @@ const fetchAndOrganize = async (
           completed_exercise_id,
           exercise_id,
           exercise_name,
-          exercise_image: exercise_image
-            ? Array.from(exercise_image)
-            : undefined,
           exercise_tracking_type,
           is_unilateral: is_unilateral ?? 0,
           double_weight: double_weight ?? 0,

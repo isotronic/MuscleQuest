@@ -5,6 +5,7 @@ import { t } from "@lingui/core/macro";
 import { useAppTheme } from "@/theme";
 import { useSocialListeners } from "../../hooks/useSocialListeners";
 import { useSocialSyncOnStartup } from "../../hooks/useSocialSyncOnStartup";
+import { useExerciseImageFiles } from "@/hooks/useExerciseImageFiles";
 import { AppSnackbar } from "@/components/AppSnackbar";
 import { setShowRestNotificationInForeground } from "@/utils/restNotification";
 import { useEffect } from "react";
@@ -14,6 +15,7 @@ export default function AppLayout() {
   const { data: settings, isLoading: settingsLoading } = useSettingsQuery();
   useSocialListeners();
   useSocialSyncOnStartup();
+  useExerciseImageFiles();
 
   const showRestInForeground = settings?.restTimerNotification === "true";
   useEffect(() => {
