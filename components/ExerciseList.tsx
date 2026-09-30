@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { t } from "@lingui/core/macro";
@@ -24,6 +24,12 @@ interface ExerciseListProps {
   };
 }
 
+type ListRow =
+  | { type: "title"; title: string }
+  | { type: "exercise"; item: Exercise };
+
+const getItemType = (row: ListRow) => row.type;
+
 const ExerciseList = ({
   exercises,
   selectedExercises,
@@ -33,62 +39,74 @@ const ExerciseList = ({
   scrollKey,
   sectionTitles,
 }: ExerciseListProps) => {
-  const listData = [];
+  const listData = useMemo(() => {
+    const exerciseRows = (items: Exercise[]): ListRow[] =>
+      items.map((item) => ({ type: "exercise", item }));
+    const rows: ListRow[] = [];
 
-  if (exercises.favoriteExercises.length > 0) {
-    listData.push({
-      type: "title",
-      title: sectionTitles?.favorites ?? t`Favorites`,
-    });
-    listData.push(
-      ...exercises.favoriteExercises.map((item) => ({
-        type: "exercise",
-        item,
-      })),
-    );
-  }
-
-  if (exercises.activePlanExercises.length > 0) {
-    listData.push({
-      type: "title",
-      title: sectionTitles?.activePlan ?? t`Active Plan Exercises`,
-    });
-    listData.push(
-      ...exercises.activePlanExercises.map((item) => ({
-        type: "exercise",
-        item,
-      })),
-    );
-  }
-
-  if (exercises.otherExercises.length > 0) {
-    if (
-      exercises.favoriteExercises.length === 0 &&
-      exercises.activePlanExercises.length === 0
-    ) {
-      // If there are no favorites or active plan exercises, do not show the title for other exercises
-      listData.push(
-        ...exercises.otherExercises.map((item) => ({
-          type: "exercise",
-          item,
-        })),
-      );
-    } else {
-      listData.push({
+    if (exercises.favoriteExercises.length > 0) {
+      rows.push({
         type: "title",
-        title: sectionTitles?.other ?? t`Other Exercises`,
+        title: sectionTitles?.favorites ?? t`Favorites`,
       });
-      listData.push(
-        ...exercises.otherExercises.map((item) => ({
-          type: "exercise",
-          item,
-        })),
-      );
+      rows.push(...exerciseRows(exercises.favoriteExercises));
     }
-  }
+
+    if (exercises.activePlanExercises.length > 0) {
+      rows.push({
+        type: "title",
+        title: sectionTitles?.activePlan ?? t`Active Plan Exercises`,
+      });
+      rows.push(...exerciseRows(exercises.activePlanExercises));
+    }
+
+    if (exercises.otherExercises.length > 0) {
+      // If there are no favorites or active plan exercises, do not show the title for other exercises
+      if (
+        exercises.favoriteExercises.length > 0 ||
+        exercises.activePlanExercises.length > 0
+      ) {
+        rows.push({
+          type: "title",
+          title: sectionTitles?.other ?? t`Other Exercises`,
+        });
+      }
+      rows.push(...exerciseRows(exercises.otherExercises));
+    }
+
+    return rows;
+  }, [
+    exercises.favoriteExercises,
+    exercises.activePlanExercises,
+    exercises.otherExercises,
+    sectionTitles,
+  ]);
+
+  const selectedSet = useMemo(
+    () => new Set(selectedExercises),
+    [selectedExercises],
+  );
+
+  // Parents pass inline handlers. Rows get stable wrappers that call the
+  // latest one, so React.memo on ExerciseItem is not defeated by every parent
+  // render.
+  const onSelectRef = useRef(onSelect);
+  const onPressItemRef = useRef(onPressItem);
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+    onPressItemRef.current = onPressItem;
+  });
+  const handleSelect = useCallback(
+    (exerciseId: number) => onSelectRef.current(exerciseId),
+    [],
+  );
+  const handlePressItem = useCallback(
+    (item: Exercise) => onPressItemRef.current(item),
+    [],
+  );
 
   const renderExerciseItem = useCallback(
-    ({ item }: { item: any }) => {
+    ({ item }: { item: ListRow }) => {
       if (item.type === "title") {
         return (
           <View style={styles.titleContainer}>
@@ -99,25 +117,26 @@ const ExerciseList = ({
       return (
         <ExerciseItem
           item={item.item}
-          selected={selectedExercises.includes(item.item.exercise_id)}
-          onSelect={onSelect}
-          onPress={onPressItem}
+          selected={selectedSet.has(item.item.exercise_id)}
+          onSelect={handleSelect}
+          onPress={handlePressItem}
           showCheckbox={showCheckbox}
         />
       );
     },
-    [selectedExercises, onSelect, onPressItem, showCheckbox],
+    [selectedSet, handleSelect, handlePressItem, showCheckbox],
   );
 
   return (
     <FlashList
       key={scrollKey}
       data={listData}
-      keyExtractor={(item: any, index: number) =>
+      keyExtractor={(item, index) =>
         item.type === "title"
           ? `title-${index}`
           : item.item.exercise_id.toString()
       }
+      getItemType={getItemType}
       renderItem={renderExerciseItem}
       contentContainerStyle={styles.flatListContent}
     />
