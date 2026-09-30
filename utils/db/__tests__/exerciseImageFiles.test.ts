@@ -1,4 +1,7 @@
-import { writeExerciseImageFiles } from "@/utils/db/exerciseImageFiles";
+import {
+  forgetExerciseImageFiles,
+  writeExerciseImageFiles,
+} from "@/utils/db/exerciseImageFiles";
 import { runMigrations } from "@/utils/db/runMigrations";
 import { createNodeSqliteDb } from "@/utils/db/testing/nodeSqliteDb";
 
@@ -204,6 +207,38 @@ describe("writeExerciseImageFiles", () => {
     const result = await writeExerciseImageFiles();
 
     expect(result).toEqual({ written: 0, failed: 0 });
+    expect(imageUris()).toEqual({ 1: "file:///doc/photo.jpg" });
+  });
+});
+
+// A restored database can record the same uris as the files already on this
+// device while meaning different exercises by them: exercise ids are not the
+// same on every install.
+describe("forgetExerciseImageFiles", () => {
+  it("makes the next run replace files left by the previous database", async () => {
+    insertLibraryExercises(2);
+    await writeExerciseImageFiles();
+    const restoredBytes = new Uint8Array([9, 9, 9]);
+    mockDb.sqlite
+      .prepare(`UPDATE exercises SET image = ? WHERE exercise_id = 1`)
+      .run(restoredBytes);
+
+    await forgetExerciseImageFiles();
+    const result = await writeExerciseImageFiles();
+
+    expect(result).toEqual({ written: 2, failed: 0 });
+    expect(Array.from(mockFiles.get(uriFor(1))!)).toEqual([9, 9, 9]);
+    expect(imageUris()).toEqual({ 1: uriFor(1), 2: uriFor(2) });
+  });
+
+  it("keeps the photo uri of a custom exercise", async () => {
+    mockDb.sqlite.exec(`
+      INSERT INTO exercises (exercise_id, app_exercise_id, name, image_uri)
+      VALUES (1, NULL, 'Custom', 'file:///doc/photo.jpg');
+    `);
+
+    await forgetExerciseImageFiles();
+
     expect(imageUris()).toEqual({ 1: "file:///doc/photo.jpg" });
   });
 });

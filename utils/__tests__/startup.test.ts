@@ -16,6 +16,7 @@ import {
 } from "@/utils/database";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
 import { recoverInterruptedRestore } from "@/utils/restoreRollback";
+import { forgetExerciseImageFiles } from "@/utils/db/exerciseImageFiles";
 
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -38,6 +39,9 @@ jest.mock("@/utils/database", () => ({
 }));
 jest.mock("@/utils/loadPremadePlans", () => ({
   loadPremadePlans: jest.fn(),
+}));
+jest.mock("@/utils/db/exerciseImageFiles", () => ({
+  forgetExerciseImageFiles: jest.fn(),
 }));
 jest.mock("@/utils/restoreRollback", () => ({
   recoverInterruptedRestore: jest.fn(() => false),
@@ -81,6 +85,21 @@ describe("runStartup after a restore", () => {
     initSteps.forEach((step) => expect(step).toHaveBeenCalledTimes(1));
   });
 
+  // The restored uris describe files written for another database.
+  it("forgets recorded thumbnail files once the schema is migrated", async () => {
+    const order: string[] = [];
+    (initUserDataDB as jest.Mock).mockImplementation(async () => {
+      order.push("migrate");
+    });
+    (forgetExerciseImageFiles as jest.Mock).mockImplementation(async () => {
+      order.push("forget");
+    });
+
+    await runStartup(Promise.resolve());
+
+    expect(order).toEqual(["migrate", "forget"]);
+  });
+
   it("clears the restore flag after a successful init", async () => {
     const result = await runStartup(Promise.resolve());
     expect(result).toEqual({ status: "ok" });
@@ -93,6 +112,15 @@ describe("runStartup after a restore", () => {
     );
     await runStartup(Promise.resolve());
     expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBe("true");
+  });
+});
+
+describe("runStartup on an ordinary boot", () => {
+  it("keeps the recorded thumbnail files", async () => {
+    await runStartup(Promise.resolve());
+
+    expect(initUserDataDB).toHaveBeenCalled();
+    expect(forgetExerciseImageFiles).not.toHaveBeenCalled();
   });
 });
 

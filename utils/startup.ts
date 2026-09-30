@@ -10,6 +10,7 @@ import {
 } from "@/utils/database";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
 import { recoverInterruptedRestore } from "@/utils/restoreRollback";
+import { forgetExerciseImageFiles } from "@/utils/db/exerciseImageFiles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getAsyncStorageItem,
@@ -39,6 +40,7 @@ export type StartupResult =
 // missing (insertDefaultSettings, premade plans by app_plan_id). An older
 // backup runs the same upgrade path an older install would.
 const initializeDatabases = async (
+  databaseRestored: boolean,
   onProgress?: (progress: StartupProgress) => void,
 ) => {
   // Must run before userData.db is opened: if a restore swap was interrupted,
@@ -47,6 +49,10 @@ const initializeDatabases = async (
   recoverInterruptedRestore();
   await initializeAppData();
   await initUserDataDB();
+  // After the migrations, so a backup from before image_uri has the column.
+  // The thumbnail files on this device were written for the database the
+  // restore replaced.
+  if (databaseRestored) await forgetExerciseImageFiles();
   // Must run before copyData: it only acts on a legacy install (dataVersion
   // 1.1), and copyData matches exercises by app_exercise_id before advancing
   // the sync version past it.
@@ -80,7 +86,10 @@ export const runStartup = async (
   console.log("Restore complete:", databaseRestored);
 
   try {
-    await Promise.all([appCheckReady, initializeDatabases(onProgress)]);
+    await Promise.all([
+      appCheckReady,
+      initializeDatabases(databaseRestored, onProgress),
+    ]);
   } catch (e) {
     const error = e instanceof Error ? e : new Error(String(e));
     console.error("Database initialization error:", error);

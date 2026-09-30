@@ -92,3 +92,20 @@ export const writeExerciseImageFiles =
     }
     return result;
   };
+
+// Run on the first boot after a restore, before the job above. The restored
+// database can record exactly the uris of files already on this device while
+// meaning other exercises by them (exercise ids differ between installs), and
+// the job would then trust those files. Clearing the uris makes it rewrite
+// every file from the restored bytes. Custom photos (no image bytes) keep
+// theirs.
+export const forgetExerciseImageFiles = async (): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  try {
+    await db.runAsync(
+      `UPDATE exercises SET image_uri = NULL WHERE image IS NOT NULL`,
+    );
+  } finally {
+    await db.closeAsync();
+  }
+};
