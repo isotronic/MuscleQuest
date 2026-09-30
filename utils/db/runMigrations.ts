@@ -25,9 +25,6 @@ export const runMigrations = async (
       `Running migration ${migration.version} (${migration.name})...`,
     );
     await db.withExclusiveTransactionAsync(async (txn) => {
-      // The transaction runs on its own connection, which does not inherit
-      // the pragmas set on `db`.
-      await txn.execAsync("PRAGMA busy_timeout = 3000;");
       await migration.up(txn);
       // PRAGMA takes no bound parameters; version is a number from our own
       // migration list.

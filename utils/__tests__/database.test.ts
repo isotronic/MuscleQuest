@@ -36,6 +36,7 @@ import {
   fetchCompletedWorkoutById,
   createDatabaseSnapshot,
   checkDatabaseIntegrity,
+  openDatabase,
 } from "../database";
 import { ProgressionRuleResult } from "@/types/progression";
 import { parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
@@ -79,14 +80,30 @@ const makeDb = (overrides: Record<string, jest.Mock> = {}) => ({
 
 let mockDb = makeDb();
 
+// What expo-sqlite hands back for the current mockDb. openDatabase wraps
+// withExclusiveTransactionAsync on the handle it is given, so each open gets
+// its own object and assertions keep pointing at mockDb's jest.fns. A real
+// transaction handle always has execAsync; the partial ones these tests pass
+// in mostly do not, so one is supplied.
+const openMockDb = async () => {
+  const db = mockDb;
+  return {
+    ...db,
+    withExclusiveTransactionAsync: (task: (txn: any) => Promise<void>) =>
+      db.withExclusiveTransactionAsync((txn: any) =>
+        task({ execAsync: jest.fn(), ...txn }),
+      ),
+  };
+};
+
 jest.mock("expo-sqlite", () => ({
-  openDatabaseAsync: jest.fn(() => Promise.resolve(mockDb)),
+  openDatabaseAsync: jest.fn(),
 }));
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockDb = makeDb();
-  (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(mockDb);
+  (SQLite.openDatabaseAsync as jest.Mock).mockImplementation(openMockDb);
 });
 
 // ---------------------------------------------------------------------------
@@ -749,7 +766,7 @@ describe("reorderTrackedExercises", () => {
         },
       ),
     });
-    (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(mockDb);
+    (SQLite.openDatabaseAsync as jest.Mock).mockImplementation(openMockDb);
 
     await reorderTrackedExercises([3, 1, 2]);
 
@@ -780,7 +797,7 @@ describe("reorderTrackedExercises", () => {
         },
       ),
     });
-    (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(mockDb);
+    (SQLite.openDatabaseAsync as jest.Mock).mockImplementation(openMockDb);
 
     await reorderTrackedExercises([]);
 
@@ -794,7 +811,7 @@ describe("reorderTrackedExercises", () => {
         .fn()
         .mockRejectedValue(new Error("db error")),
     });
-    (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(mockDb);
+    (SQLite.openDatabaseAsync as jest.Mock).mockImplementation(openMockDb);
 
     await expect(reorderTrackedExercises([1])).rejects.toThrow("db error");
   });
@@ -1185,6 +1202,44 @@ describe("updateAppExerciseIds", () => {
 });
 
 describe("syncExerciseFlagsFromAppData", () => {
+  const settingWrites = () =>
+    mockDb.runAsync.mock.calls
+      .filter(([sql]: [string]) => sql.includes("INTO settings"))
+      .map(([, params]: [string, string[]]) => params);
+
+  // Regression: the premade plans step runs first and leaves dataVersion at
+  // 2.1, which used to satisfy this step's "already synced" check.
+  it("still syncs a database whose plans were loaded before its flags", async () => {
+    mockDb.getFirstAsync.mockImplementation(
+      async (_sql: string, params?: string[]) =>
+        params?.[0] === "dataVersion" ? { value: "2.1" } : null,
+    );
+    mockDb.getAllAsync.mockResolvedValue([
+      { exercise_id: 3, is_unilateral: 1, double_weight: 0 },
+    ]);
+
+    await syncExerciseFlagsFromAppData();
+
+    expect(mockDb.runAsync).toHaveBeenCalledWith(
+      "UPDATE exercises SET is_unilateral = ?, double_weight = ? WHERE app_exercise_id = ?",
+      [1, 0, 3],
+    );
+    // dataVersion is left alone so older bundles see no change.
+    expect(settingWrites()).toEqual([["appDataSyncVersion", "7"]]);
+  });
+
+  it("does nothing once the resync has run", async () => {
+    mockDb.getFirstAsync.mockImplementation(
+      async (_sql: string, params?: string[]) =>
+        params?.[0] === "appDataSyncVersion" ? { value: "7" } : null,
+    );
+
+    await syncExerciseFlagsFromAppData();
+
+    expect(mockDb.getAllAsync).not.toHaveBeenCalled();
+    expect(mockDb.runAsync).not.toHaveBeenCalled();
+  });
+
   it("rethrows the original error when ROLLBACK also fails", async () => {
     mockDb.getFirstAsync.mockResolvedValue({ value: "1.9" });
     mockDb.getAllAsync.mockResolvedValue([
@@ -1630,5 +1685,58 @@ describe("checkDatabaseIntegrity", () => {
 
     expect(await checkDatabaseIntegrity(file as any)).toBe(false);
     expect(mockDb.closeAsync).toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// openDatabase
+// ---------------------------------------------------------------------------
+
+describe("openDatabase", () => {
+  it("sets the busy timeout on the connection", async () => {
+    await openDatabase("userData.db");
+
+    expect(mockDb.execAsync).toHaveBeenCalledWith(
+      "PRAGMA busy_timeout = 3000;",
+    );
+  });
+
+  // expo-sqlite runs exclusive transactions on a second connection, which
+  // does not inherit the pragma above.
+  it("sets the busy timeout on the transaction connection before the task runs", async () => {
+    const order: string[] = [];
+    const txn = {
+      execAsync: jest.fn(async (sql: string) => {
+        order.push(sql);
+      }),
+    };
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (t: typeof txn) => Promise<void>) => {
+        await cb(txn);
+      },
+    );
+    const db = await openDatabase("userData.db");
+
+    await db.withExclusiveTransactionAsync(async (t) => {
+      order.push("task");
+      expect(t).toMatchObject({ execAsync: txn.execAsync });
+    });
+
+    expect(order).toEqual(["PRAGMA busy_timeout = 3000;", "task"]);
+  });
+
+  it("still rejects when the task throws", async () => {
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (t: any) => Promise<void>) => {
+        await cb({ execAsync: jest.fn() });
+      },
+    );
+    const db = await openDatabase("userData.db");
+
+    await expect(
+      db.withExclusiveTransactionAsync(async () => {
+        throw new Error("task failed");
+      }),
+    ).rejects.toThrow("task failed");
   });
 });

@@ -60,6 +60,7 @@ const initializeDatabases = async (
     onProgress &&
       ((done, total) => onProgress({ stage: "plans", done, total })),
   );
+  // Must run last: its sync version is above every step before it.
   await syncExerciseFlagsFromAppData();
 };
 

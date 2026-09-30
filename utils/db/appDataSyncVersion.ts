@@ -15,6 +15,8 @@ export const APP_DATA_SYNC = {
   premadePlansV1: 4, // "1.8"
   exerciseFlagsSynced: 5, // "2.0"
   premadePlansV2: 6, // "2.1"
+  // No legacy value from here on: dataVersion stays at "2.1".
+  exerciseFlagsResynced: 7,
 } as const;
 
 const SYNC_KEY = "appDataSyncVersion";

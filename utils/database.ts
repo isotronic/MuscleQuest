@@ -79,13 +79,26 @@ export interface SavedWorkout {
   }[];
 }
 
+const BUSY_TIMEOUT_PRAGMA = "PRAGMA busy_timeout = 3000;";
+
 export const openDatabase = async (
   databaseName: string,
 ): Promise<SQLite.SQLiteDatabase> => {
   const db = await SQLite.openDatabaseAsync(databaseName, {
     useNewConnection: true,
   });
-  await db.execAsync("PRAGMA busy_timeout = 3000;");
+  await db.execAsync(BUSY_TIMEOUT_PRAGMA);
+
+  // withExclusiveTransactionAsync runs on a second connection that expo-sqlite
+  // opens itself, and pragmas are per connection. Without this the transaction
+  // fails with "database is locked" the instant another connection holds the
+  // write lock, instead of waiting like every other query does.
+  const runExclusive = db.withExclusiveTransactionAsync.bind(db);
+  db.withExclusiveTransactionAsync = (task) =>
+    runExclusive(async (txn) => {
+      await txn.execAsync(BUSY_TIMEOUT_PRAGMA);
+      await task(txn);
+    });
   return db;
 };
 
@@ -431,13 +444,21 @@ export const copyDataFromAppDataToUserData = async (
   }
 };
 
+// Copies is_unilateral / double_weight from the shipped library onto the
+// user's library exercises. Custom exercises (app_exercise_id NULL) are never
+// touched, and library exercises cannot be edited in the app, so this only
+// ever overwrites values that came from an earlier copy of the library.
+//
+// Gated on exerciseFlagsResynced rather than the original exerciseFlagsSynced
+// step: that one sat below the premade-plans step that runs before it, so
+// anyone who updated straight past it never had their flags synced.
 export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
   let userDataDB: SQLite.SQLiteDatabase | undefined;
   let appDataDB: SQLite.SQLiteDatabase | undefined;
   try {
     userDataDB = await openDatabase("userData.db");
     const syncVersion = await getAppDataSyncVersion(userDataDB);
-    if (syncVersion >= APP_DATA_SYNC.exerciseFlagsSynced) return;
+    if (syncVersion >= APP_DATA_SYNC.exerciseFlagsResynced) return;
 
     appDataDB = await openDatabase("appData3.db");
     const appExercises = await appDataDB.getAllAsync<{
@@ -456,7 +477,7 @@ export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
       }
       await setAppDataSyncVersion(
         userDataDB,
-        APP_DATA_SYNC.exerciseFlagsSynced,
+        APP_DATA_SYNC.exerciseFlagsResynced,
       );
       await userDataDB.execAsync("COMMIT");
     } catch (err) {
