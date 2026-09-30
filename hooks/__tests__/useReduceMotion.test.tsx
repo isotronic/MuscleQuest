@@ -2,6 +2,11 @@ import { AccessibilityInfo } from "react-native";
 import { act, renderHook } from "@testing-library/react-native";
 import { useReduceMotion } from "../useReduceMotion";
 
+const mockLaunchValue = jest.fn(() => false);
+jest.mock("react-native-reanimated", () => ({
+  useReducedMotion: () => mockLaunchValue(),
+}));
+
 describe("useReduceMotion", () => {
   let listener: ((enabled: boolean) => void) | undefined;
   const remove = jest.fn();
@@ -39,5 +44,25 @@ describe("useReduceMotion", () => {
     await act(async () => {});
     unmount();
     expect(remove).toHaveBeenCalled();
+  });
+
+  it("starts from the value read at launch, before the query settles", () => {
+    mockLaunchValue.mockReturnValueOnce(true);
+    jest
+      .spyOn(AccessibilityInfo, "isReduceMotionEnabled")
+      .mockReturnValue(new Promise(() => {}));
+    const { result } = renderHook(() => useReduceMotion());
+    expect(result.current).toBe(true);
+  });
+
+  it("keeps a change event over a slower initial query", async () => {
+    let resolveQuery: (v: boolean) => void = () => {};
+    jest
+      .spyOn(AccessibilityInfo, "isReduceMotionEnabled")
+      .mockReturnValue(new Promise((r) => (resolveQuery = r)));
+    const { result } = renderHook(() => useReduceMotion());
+    act(() => listener?.(true));
+    await act(async () => resolveQuery(false));
+    expect(result.current).toBe(true);
   });
 });
