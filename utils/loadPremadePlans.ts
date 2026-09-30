@@ -2,6 +2,11 @@ import { Plan } from "@/hooks/useAllPlansQuery";
 import { openDatabase, type ProgressCallback } from "./database";
 import { SQLiteDatabase } from "expo-sqlite";
 import Bugsnag from "@bugsnag/expo";
+import {
+  APP_DATA_SYNC,
+  getAppDataSyncVersion,
+  setAppDataSyncVersion,
+} from "./db/appDataSyncVersion";
 
 export const ensureAppExercisesExist = async (
   userDb: SQLiteDatabase,
@@ -142,25 +147,20 @@ const insertPlans = async (db: SQLiteDatabase, plans: Plan[]) => {
 };
 
 export const loadPremadePlans = async (onProgress?: ProgressCallback) => {
-  let dataVersion: number | null = null;
   let db: SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db"); // Open the database
-    const versionResult = await db.getFirstAsync<{ value: string }>(
-      `SELECT value FROM settings WHERE key = ? LIMIT 1`,
-      ["dataVersion"],
-    );
-    dataVersion = versionResult ? Number(versionResult.value) : null;
+    let syncVersion = await getAppDataSyncVersion(db);
 
     // One step per plan file this boot will load (7 on a fresh install).
     const totalFiles =
-      (dataVersion === null || dataVersion < 1.8 ? 2 : 0) +
-      ((dataVersion ?? 0) < 2.1 ? 5 : 0);
+      (syncVersion < APP_DATA_SYNC.premadePlansV1 ? 2 : 0) +
+      (syncVersion < APP_DATA_SYNC.premadePlansV2 ? 5 : 0);
     let filesDone = 0;
     const fileDone = () => onProgress?.(++filesDone, totalFiles);
     if (totalFiles > 0) onProgress?.(0, totalFiles);
 
-    if (dataVersion === null || dataVersion < 1.8) {
+    if (syncVersion < APP_DATA_SYNC.premadePlansV1) {
       console.log("Condition met: Updating data version...");
       const plan1 = require("@/assets/data/3-day-full-body.json");
       const plan2 = require("@/assets/data/4-day-split.json");
@@ -172,14 +172,11 @@ export const loadPremadePlans = async (onProgress?: ProgressCallback) => {
       }
 
       console.log("Updating data version to 1.8...");
-      await db.runAsync(
-        "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-        ["dataVersion", "1.8"],
-      );
-      dataVersion = 1.8;
+      await setAppDataSyncVersion(db, APP_DATA_SYNC.premadePlansV1);
+      syncVersion = APP_DATA_SYNC.premadePlansV1;
     }
 
-    if ((dataVersion ?? 0) < 2.1) {
+    if (syncVersion < APP_DATA_SYNC.premadePlansV2) {
       console.log("Loading new premade plans (v2.1)...");
       const newPlanFiles = [
         require("@/assets/data/5-day-bro-split.json"),
@@ -214,10 +211,7 @@ export const loadPremadePlans = async (onProgress?: ProgressCallback) => {
       }
 
       console.log("Updating data version to 2.1...");
-      await db.runAsync(
-        "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-        ["dataVersion", "2.1"],
-      );
+      await setAppDataSyncVersion(db, APP_DATA_SYNC.premadePlansV2);
     }
   } catch (error: any) {
     Bugsnag.notify(error);

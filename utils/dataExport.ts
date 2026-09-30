@@ -25,6 +25,7 @@ const WORKOUT_PAGE_SIZE = 200;
 // Bookkeeping flags that mean nothing to the user.
 const INTERNAL_SETTING_KEYS = new Set([
   "dataVersion",
+  "appDataSyncVersion",
   "loginShown",
   "databaseRestored",
 ]);

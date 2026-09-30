@@ -1,0 +1,114 @@
+CREATE TABLE muscles (
+      muscle TEXT PRIMARY KEY
+    );
+CREATE TABLE body_parts (
+      body_part TEXT PRIMARY KEY
+    );
+CREATE TABLE equipment_list (
+      equipment TEXT PRIMARY KEY
+    );
+CREATE TABLE exercises (
+      exercise_id INTEGER PRIMARY KEY AUTOINCREMENT, 
+      app_exercise_id INTEGER DEFAULT NULL, -- NULL for custom exercises, non-NULL for copied exercises
+      name TEXT, 
+      image BLOB,
+      local_animated_uri TEXT, 
+      animated_url TEXT,
+      equipment TEXT, 
+      body_part TEXT, 
+      target_muscle TEXT, 
+      secondary_muscles TEXT, 
+      description TEXT,
+      tracking_type TEXT,
+      favorite BOOLEAN DEFAULT FALSE,
+      is_deleted BOOLEAN DEFAULT FALSE,
+      FOREIGN KEY (target_muscle) REFERENCES muscles(muscle),
+      FOREIGN KEY (body_part) REFERENCES body_parts(body_part),
+      FOREIGN KEY (equipment) REFERENCES equipment_list(equipment)
+    );
+CREATE TABLE user_plans (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      app_plan_id INTEGER DEFAULT NULL,
+      name TEXT NOT NULL,
+      image_url TEXT,
+      is_active BOOLEAN DEFAULT FALSE,
+      is_deleted BOOLEAN DEFAULT FALSE
+    );
+CREATE TABLE user_workouts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plan_id INTEGER,
+      name TEXT NOT NULL,
+      image_url TEXT,
+      is_deleted BOOLEAN DEFAULT FALSE, workout_order INTEGER DEFAULT 0 NOT NULL,
+      FOREIGN KEY (plan_id) REFERENCES user_plans(id)
+    );
+CREATE TABLE user_workout_exercises (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      workout_id INTEGER NOT NULL,  -- Foreign key to user_workouts table
+      exercise_id INTEGER NOT NULL, -- Foreign key to exercises table
+      sets TEXT,                    -- JSON array as a string representing the sets
+      exercise_order INTEGER,       -- The order of the exercise within the workout
+      is_deleted BOOLEAN DEFAULT FALSE, superset_group_id TEXT,
+      FOREIGN KEY (workout_id) REFERENCES user_workouts(id),
+      FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id)
+    );
+CREATE TABLE completed_workouts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plan_id INTEGER, -- Reference to the user's plan
+      workout_id INTEGER, -- Reference to the original workout from user_workouts
+      date_completed DATETIME NOT NULL, -- When the workout was completed
+      duration INTEGER, -- Duration of the workout in seconds
+      total_sets_completed INTEGER, -- Total number of sets completed in this workout
+      is_deleted BOOLEAN DEFAULT FALSE,
+      FOREIGN KEY (plan_id) REFERENCES user_plans(id),
+      FOREIGN KEY (workout_id) REFERENCES user_workouts(id)
+    );
+CREATE TABLE completed_exercises (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      completed_workout_id INTEGER, -- Reference to the completed_workouts table
+      exercise_id INTEGER, -- Reference to the original exercise from user_workout_exercises
+      is_deleted BOOLEAN DEFAULT FALSE,
+      FOREIGN KEY (completed_workout_id) REFERENCES completed_workouts(id),
+      FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id)
+    );
+CREATE TABLE completed_sets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      completed_exercise_id INTEGER, -- Reference to the completed_exercise
+      set_number INTEGER, -- Set number (1, 2, 3, etc.)
+      weight REAL, -- Weight used in this set
+      reps INTEGER, -- Number of reps in this set
+      time INTEGER, -- Duration in seconds of this set
+      is_deleted BOOLEAN DEFAULT FALSE,
+      FOREIGN KEY (completed_exercise_id) REFERENCES completed_exercises(id)
+    );
+CREATE TABLE settings (
+      key TEXT PRIMARY KEY,
+      value TEXT
+    );
+CREATE TABLE tracked_exercises (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      exercise_id INTEGER NOT NULL UNIQUE, -- References the exercise being tracked
+      date_added DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP -- When this exercise was added for tracking
+    );
+CREATE TABLE body_measurements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      body_weight REAL
+    );
+CREATE TABLE notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      note TEXT NOT NULL,
+      type TEXT NOT NULL CHECK(type IN ('exercise', 'workout_exercise', 'workout', 'plan')),
+      reference_id INTEGER NOT NULL,
+      secondary_reference_id INTEGER DEFAULT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (type, reference_id, secondary_reference_id)
+    );
+CREATE TABLE plan_schedule (
+      plan_id     INTEGER NOT NULL,
+      day_of_week INTEGER NOT NULL, -- 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
+      workout_id  INTEGER NOT NULL,
+      PRIMARY KEY (plan_id, day_of_week),
+      FOREIGN KEY (plan_id)   REFERENCES user_plans(id) ON DELETE CASCADE,
+      FOREIGN KEY (workout_id) REFERENCES user_workouts(id) ON DELETE CASCADE
+    );

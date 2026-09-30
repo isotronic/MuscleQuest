@@ -4,8 +4,8 @@ import {
   restoreDatabaseBackup,
   classifyBackupError,
   BackupError,
-  BACKUP_SCHEMA_VERSION,
 } from "../backup";
+import { LATEST_SCHEMA_VERSION } from "../db/migrations";
 import { Directory, File } from "expo-file-system";
 import { QueryClient } from "@tanstack/react-query";
 
@@ -50,6 +50,7 @@ jest.mock("../restoreRollback", () => ({
 jest.mock("../database", () => ({
   createDatabaseSnapshot: jest.fn((target: any) => Promise.resolve(target)),
   checkDatabaseIntegrity: jest.fn(() => Promise.resolve(true)),
+  readDatabaseSchemaVersion: jest.fn(() => Promise.resolve(1)),
 }));
 
 const mockStorage = require("@react-native-firebase/storage");
@@ -81,7 +82,7 @@ const manifestFor = (overrides: object = {}) => ({
   currentSlot: "slotA",
   createdAt: "2026-09-01T10:00:00.000Z",
   appVersion: "9.9.8",
-  schemaVersion: BACKUP_SCHEMA_VERSION,
+  schemaVersion: LATEST_SCHEMA_VERSION,
   sizeBytes: 1024,
   ...overrides,
 });
@@ -131,6 +132,21 @@ describe("uploadDatabaseBackup", () => {
     mockDatabase.checkDatabaseIntegrity.mockResolvedValue(true);
   });
 
+  it("records the snapshot's own user_version in the manifest", async () => {
+    mockRemote(manifestFor());
+    uploadSucceeds();
+    mockDatabase.readDatabaseSchemaVersion.mockResolvedValueOnce(7);
+
+    await uploadDatabaseBackup(setBackupProgressMock, setIsBackupLoadingMock);
+
+    expect(mockDatabase.readDatabaseSchemaVersion).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "userData-backup.db" }),
+    );
+    expect(
+      JSON.parse(mockStorage.uploadString.mock.calls[0][1]).schemaVersion,
+    ).toBe(7);
+  });
+
   it("writes the non-current slot, then points the manifest at it", async () => {
     mockRemote(manifestFor({ currentSlot: "slotA" }));
     uploadSucceeds();
@@ -146,7 +162,7 @@ describe("uploadDatabaseBackup", () => {
     expect(JSON.parse(body)).toMatchObject({
       currentSlot: "slotB",
       appVersion: "9.9.9",
-      schemaVersion: BACKUP_SCHEMA_VERSION,
+      schemaVersion: LATEST_SCHEMA_VERSION,
       sizeBytes: 2048,
     });
     expect(
@@ -376,7 +392,7 @@ describe("restoreDatabaseBackup", () => {
     });
 
     it("aborts on a newer schema without touching local files", async () => {
-      mockRemote(manifestFor({ schemaVersion: BACKUP_SCHEMA_VERSION + 1 }));
+      mockRemote(manifestFor({ schemaVersion: LATEST_SCHEMA_VERSION + 1 }));
 
       const error = await restore().catch((e) => e);
 
@@ -385,6 +401,20 @@ describe("restoreDatabaseBackup", () => {
       expect(swapInRestoredFiles).not.toHaveBeenCalled();
       expect(reloadAsync).not.toHaveBeenCalled();
       expect(setRestoreProgressMock).toHaveBeenLastCalledWith(0);
+    });
+
+    it("aborts when the downloaded database is newer than its manifest says", async () => {
+      mockRemote(manifestFor());
+      mockDatabase.readDatabaseSchemaVersion.mockResolvedValueOnce(
+        LATEST_SCHEMA_VERSION + 1,
+      );
+
+      const error = await restore().catch((e) => e);
+
+      expect(classifyBackupError(error)).toBe("newer-schema");
+      expect(swapInRestoredFiles).not.toHaveBeenCalled();
+      expect(stagingDir.delete).toHaveBeenCalled();
+      expect(reloadAsync).not.toHaveBeenCalled();
     });
 
     it("aborts when the downloaded backup fails its integrity check", async () => {
