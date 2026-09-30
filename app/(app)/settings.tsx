@@ -34,8 +34,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { saveBodyWeightMeasurement } from "@/utils/database";
 import { displayToKg, roundCanonical } from "@/utils/units";
 import { AuthContext } from "@/context/AuthProvider";
-import { signInWithGoogle } from "@/utils/auth";
-import { useIsOnline } from "@/hooks/useIsOnline";
+import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
 import { showSnackbar } from "@/store/snackbarStore";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { getAuth, signOut } from "@react-native-firebase/auth";
@@ -80,7 +79,7 @@ export default function SettingsScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const user = useContext(AuthContext);
-  const isOnline = useIsOnline();
+  const { signIn, isSigningIn, isOnline } = useGoogleSignIn();
 
   const handleSignOut = async () => {
     try {
@@ -622,8 +621,9 @@ export default function SettingsScreen() {
                 <Button
                   mode="outlined"
                   compact
-                  disabled={!isOnline}
-                  onPress={signInWithGoogle}
+                  loading={isSigningIn}
+                  disabled={isSigningIn || !isOnline}
+                  onPress={() => void signIn()}
                 >
                   <Trans>Sign in</Trans>
                 </Button>
