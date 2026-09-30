@@ -1,5 +1,5 @@
 import React from "react";
-import { render, act } from "@testing-library/react-native";
+import { render, act, fireEvent } from "@testing-library/react-native";
 import FriendProfileScreen from "../friend-profile";
 
 import { useFriendSharedPlansQuery } from "@/hooks/useFriendSharedPlansQuery";
@@ -131,7 +131,10 @@ describe("FriendProfileScreen", () => {
       isError: true,
     });
 
-    const { getByText, queryByText } = render(<FriendProfileScreen />);
+    const { getByText, getByTestId, queryByText } = render(
+      <FriendProfileScreen />,
+    );
+    fireEvent.press(getByTestId("section-toggle-plans"));
 
     expect(queryByText("No plans shared yet")).toBeNull();
     expect(getByText("Couldn't load plans")).toBeTruthy();
@@ -140,7 +143,8 @@ describe("FriendProfileScreen", () => {
   it("shows the empty state (not an error) when the plans query genuinely has no data", () => {
     (useFriendSharedPlansQuery as jest.Mock).mockReturnValue(loadedEmpty);
 
-    const { getByText } = render(<FriendProfileScreen />);
+    const { getByText, getByTestId } = render(<FriendProfileScreen />);
+    fireEvent.press(getByTestId("section-toggle-plans"));
 
     expect(getByText("No plans shared yet")).toBeTruthy();
   });
@@ -184,5 +188,105 @@ describe("FriendProfileScreen", () => {
     });
 
     refetches.forEach((refetch) => expect(refetch).toHaveBeenCalledTimes(1));
+  });
+
+  describe("collapsible sections", () => {
+    const timestamp = { toDate: () => new Date(2026, 0, 15, 12) };
+    const plan = {
+      localPlanId: 1,
+      name: "Push Pull Legs",
+      updatedAt: timestamp,
+    };
+
+    beforeEach(() => {
+      (useFriendSharedPlansQuery as jest.Mock).mockReturnValue({
+        ...loadedEmpty,
+        data: [plan],
+      });
+    });
+
+    it("starts with every section collapsed and shows the item count", () => {
+      const { getByText, getByTestId, queryByText } = render(
+        <FriendProfileScreen />,
+      );
+
+      expect(getByText("Plans (1)")).toBeTruthy();
+      expect(queryByText("Push Pull Legs")).toBeNull();
+      expect(queryByText("No strength data shared yet")).toBeNull();
+      expect(
+        getByTestId("section-toggle-plans").props.accessibilityState,
+      ).toEqual({ expanded: false });
+    });
+
+    it("expands a section on tap and collapses it again, leaving others closed", () => {
+      const { getByText, getByTestId, queryByText } = render(
+        <FriendProfileScreen />,
+      );
+
+      fireEvent.press(getByTestId("section-toggle-plans"));
+      expect(getByText("Push Pull Legs")).toBeTruthy();
+      expect(
+        getByTestId("section-toggle-plans").props.accessibilityState,
+      ).toEqual({ expanded: true });
+      expect(queryByText("No strength data shared yet")).toBeNull();
+
+      fireEvent.press(getByTestId("section-toggle-plans"));
+      expect(queryByText("Push Pull Legs")).toBeNull();
+    });
+
+    it("omits the count while a section is still loading", () => {
+      (useFriendSharedPlansQuery as jest.Mock).mockReturnValue({
+        data: undefined,
+        isLoading: true,
+        isError: false,
+      });
+
+      const { getByText } = render(<FriendProfileScreen />);
+
+      expect(getByText("Plans")).toBeTruthy();
+    });
+  });
+
+  describe("completed workout names", () => {
+    const timestamp = { toDate: () => new Date(2026, 0, 15, 12) };
+    const completed = (overrides: Record<string, unknown>) => ({
+      localWorkoutId: 1,
+      planName: "My Plan",
+      workoutName: "Leg Day",
+      dateCompleted: timestamp,
+      ...overrides,
+    });
+    const renderActivity = (workout: Record<string, unknown>) => {
+      (useFriendSharedPlansQuery as jest.Mock).mockReturnValue(loadedEmpty);
+      (useFriendSharedCompletedWorkoutsQuery as jest.Mock).mockReturnValue({
+        ...loadedEmpty,
+        data: [workout],
+      });
+      const utils = render(<FriendProfileScreen />);
+      fireEvent.press(utils.getByTestId("section-toggle-activity"));
+      return utils;
+    };
+
+    it("shows the workout and plan name when both are present", () => {
+      const { getByText } = renderActivity(completed({}));
+
+      expect(getByText("Leg Day")).toBeTruthy();
+      expect(getByText("My Plan · some time ago")).toBeTruthy();
+    });
+
+    it("falls back to Quick Workout when the workout has no name", () => {
+      const { getByText } = renderActivity(completed({ workoutName: null }));
+
+      expect(getByText("Quick Workout")).toBeTruthy();
+    });
+
+    it("drops the plan name and separator when there is no plan", () => {
+      const { getByText, queryByText } = renderActivity(
+        completed({ planName: null, workoutName: null }),
+      );
+
+      expect(getByText("some time ago")).toBeTruthy();
+      expect(queryByText(/·/)).toBeNull();
+    });
   });
 });
