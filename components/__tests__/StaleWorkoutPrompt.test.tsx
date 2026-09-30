@@ -10,6 +10,7 @@ import { cancelRestNotifications } from "@/utils/restNotification";
 jest.mock("@lingui/react/macro", () => ({
   Trans: ({ children }: { children: React.ReactNode }) => children,
 }));
+jest.mock("@lingui/core", () => ({ i18n: { locale: "en" } }));
 jest.mock("@lingui/core/macro", () => ({
   t: (s: TemplateStringsArray) => s[0],
 }));

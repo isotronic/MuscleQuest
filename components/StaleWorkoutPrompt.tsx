@@ -2,13 +2,13 @@ import { useMemo } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import { Button, Modal, Portal } from "react-native-paper";
 import { router } from "expo-router";
-import { formatDistanceToNow } from "date-fns";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useStaleWorkoutPromptStore } from "@/store/staleWorkoutPromptStore";
 import { cancelRestNotifications } from "@/utils/restNotification";
+import { formatTimeAgo } from "@/utils/relativeTime";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -33,11 +33,9 @@ export function StaleWorkoutPrompt() {
   if (!visible) return null;
 
   const workoutName = name ?? t`your workout`;
-  const startedAgo = startTime
-    ? formatDistanceToNow(new Date(startTime), { addSuffix: true })
-    : "";
+  const startedAgo = startTime ? formatTimeAgo(new Date(startTime)) : "";
   const lastSetAgo = lastActivityAt
-    ? formatDistanceToNow(new Date(lastActivityAt), { addSuffix: true })
+    ? formatTimeAgo(new Date(lastActivityAt))
     : null;
 
   const resume = () => {
