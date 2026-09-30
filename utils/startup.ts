@@ -32,13 +32,12 @@ export type StartupResult =
   | { status: "failed"; error: Error };
 
 // Runs on every boot, including the first boot after a restore. A backup taken
-// on an older app version needs initUserDataDB's ALTER/CREATE statements to
-// reach the current schema. The seeding steps are safe against restored data:
-// each is gated on the restored DB's own dataVersion (updateAppExerciseIds
-// == 1.1, copyData < 1.7, loadPremadePlans < 1.8/2.1, syncExerciseFlags
-// < 2.0) or only inserts rows that are missing (insertDefaultSettings, premade
-// plans by app_plan_id). An older backup runs the same upgrade path an older
-// install would.
+// on an older app version carries an older PRAGMA user_version, so
+// initUserDataDB runs the migrations it is missing. The seeding steps are safe
+// against restored data: each is gated on the restored DB's own app data sync
+// version (see utils/db/appDataSyncVersion.ts) or only inserts rows that are
+// missing (insertDefaultSettings, premade plans by app_plan_id). An older
+// backup runs the same upgrade path an older install would.
 const initializeDatabases = async (
   onProgress?: (progress: StartupProgress) => void,
 ) => {
@@ -48,8 +47,9 @@ const initializeDatabases = async (
   recoverInterruptedRestore();
   await initializeAppData();
   await initUserDataDB();
-  // Must run before copyData: it only acts on dataVersion 1.1, and copyData
-  // matches exercises by app_exercise_id before advancing the version to 1.7.
+  // Must run before copyData: it only acts on a legacy install (dataVersion
+  // 1.1), and copyData matches exercises by app_exercise_id before advancing
+  // the sync version past it.
   await updateAppExerciseIds();
   await copyDataFromAppDataToUserData(
     onProgress &&

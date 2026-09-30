@@ -1,6 +1,7 @@
 import { File, Directory, Paths } from "expo-file-system";
 import { Asset } from "expo-asset";
 import { openDatabase } from "./database";
+import { APP_DATA_SYNC, getAppDataSyncVersion } from "./db/appDataSyncVersion";
 
 const DATABASE_NAME = "appData3.db";
 
@@ -14,22 +15,17 @@ const copyDatabase = async (): Promise<void> => {
   try {
     dbFolder.create({ intermediates: true, idempotent: true });
 
-    let dataVersion: number | null = null;
+    let syncVersion: number = APP_DATA_SYNC.none;
     try {
-      const versionResult = await userDataDB.getFirstAsync<{ value: string }>(
-        `SELECT value FROM settings WHERE key = ? LIMIT 1`,
-        ["dataVersion"],
-      );
-      const parsed = Number(versionResult?.value);
-      dataVersion = isNaN(parsed) ? null : parsed;
-      console.log("Data version:", dataVersion);
+      syncVersion = await getAppDataSyncVersion(userDataDB);
+      console.log("App data sync version:", syncVersion);
     } catch {
       console.log(
         "Settings table does not exist. Proceeding to copy database...",
       );
     }
 
-    if (!dbFile.exists || dataVersion === null || dataVersion < 2.0) {
+    if (!dbFile.exists || syncVersion < APP_DATA_SYNC.exerciseFlagsSynced) {
       console.log(`Copying ${DATABASE_NAME} ...`);
       const tempFile = new File(
         Paths.document,

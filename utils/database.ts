@@ -20,6 +20,12 @@ import {
 import { computeLayoffReduction } from "@/utils/progressionEngine";
 import { nowForDb, parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
 import {
+  APP_DATA_SYNC,
+  getAppDataSyncVersion,
+  setAppDataSyncVersion,
+} from "@/utils/db/appDataSyncVersion";
+import { getSchemaVersion } from "@/utils/db/runMigrations";
+import {
   METRIC_EPSILON,
   formatWeight,
   kgToDisplay,
@@ -123,11 +129,25 @@ export const checkDatabaseIntegrity = async (file: File): Promise<boolean> => {
   }
 };
 
+// Reads PRAGMA user_version (the schema version, see utils/db/runMigrations.ts)
+// from a database file outside the default SQLite directory.
+export const readDatabaseSchemaVersion = async (
+  file: File,
+): Promise<number> => {
+  const db = await SQLite.openDatabaseAsync(
+    file.name,
+    { useNewConnection: true },
+    toFsPath(file.parentDirectory.uri),
+  );
+  try {
+    return await getSchemaVersion(db);
+  } finally {
+    await db.closeAsync();
+  }
+};
+
 interface SQLiteRow {
   [key: string]: any;
-}
-interface SettingsEntry {
-  value: string;
 }
 
 // Rolls back without letting a rollback failure mask the original error.
@@ -143,15 +163,9 @@ export const updateAppExerciseIds = async (): Promise<void> => {
   const userDataDB = await openDatabase("userData.db");
   let inTransaction = false;
   try {
-    // Check the current dataVersion
-    const versionResult = await userDataDB.getFirstAsync<{ value: string }>(
-      `SELECT value FROM settings WHERE key = ? LIMIT 1`,
-      ["dataVersion"],
-    );
+    const syncVersion = await getAppDataSyncVersion(userDataDB);
 
-    const dataVersion = versionResult?.value;
-
-    if (dataVersion === "1.1") {
+    if (syncVersion === APP_DATA_SYNC.legacyInstall) {
       console.log(
         "Data version is 1.1. Updating app_exercise_id for exercises...",
       );
@@ -178,16 +192,16 @@ export const updateAppExerciseIds = async (): Promise<void> => {
 
         console.log(`Updated ${nullAppExerciseIds.length} exercises.`);
 
-        await userDataDB.runAsync(
-          "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-          ["dataVersion", "1.2"],
+        await setAppDataSyncVersion(
+          userDataDB,
+          APP_DATA_SYNC.exerciseIdsLinked,
         );
         console.log("Updated data version to 1.2...");
       } else {
         console.log("No exercises with NULL app_exercise_id found.");
-        await userDataDB.runAsync(
-          "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-          ["dataVersion", "1.2"],
+        await setAppDataSyncVersion(
+          userDataDB,
+          APP_DATA_SYNC.exerciseIdsLinked,
         );
         console.log("Updated data version to 1.2...");
       }
@@ -233,14 +247,9 @@ export const copyDataFromAppDataToUserData = async (
       double_weight?: boolean;
     }
 
-    const dataVersionEntry: SettingsEntry | null =
-      await userDataDB.getFirstAsync<SettingsEntry>(
-        "SELECT value FROM settings WHERE key = 'dataVersion'",
-      );
+    const syncVersion = await getAppDataSyncVersion(userDataDB);
 
-    const dataVersion = Number(dataVersionEntry?.value) || null;
-
-    if (dataVersion && dataVersion >= 1.7) {
+    if (syncVersion >= APP_DATA_SYNC.exercisesCopied) {
       console.log("Data has already been copied.");
       return;
     }
@@ -412,10 +421,7 @@ export const copyDataFromAppDataToUserData = async (
 
     if (shouldUpdateDataVersion) {
       console.log("Updating data version to 1.7...");
-      await userDataDB.runAsync(
-        "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-        ["dataVersion", "1.7"],
-      );
+      await setAppDataSyncVersion(userDataDB, APP_DATA_SYNC.exercisesCopied);
 
       console.log("Data copy completed and version updated.");
     }
@@ -430,10 +436,8 @@ export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
   let appDataDB: SQLite.SQLiteDatabase | undefined;
   try {
     userDataDB = await openDatabase("userData.db");
-    const versionResult = await userDataDB.getFirstAsync<SettingsEntry>(
-      "SELECT value FROM settings WHERE key = 'dataVersion'",
-    );
-    if (Number(versionResult?.value) >= 2.0) return;
+    const syncVersion = await getAppDataSyncVersion(userDataDB);
+    if (syncVersion >= APP_DATA_SYNC.exerciseFlagsSynced) return;
 
     appDataDB = await openDatabase("appData3.db");
     const appExercises = await appDataDB.getAllAsync<{
@@ -450,9 +454,9 @@ export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
           [ex.is_unilateral ?? 0, ex.double_weight ?? 0, ex.exercise_id],
         );
       }
-      await userDataDB.runAsync(
-        "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-        ["dataVersion", "2.0"],
+      await setAppDataSyncVersion(
+        userDataDB,
+        APP_DATA_SYNC.exerciseFlagsSynced,
       );
       await userDataDB.execAsync("COMMIT");
     } catch (err) {

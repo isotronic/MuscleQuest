@@ -107,6 +107,27 @@ it("should insert v1.8 and v2.1 plans and update both data versions if dataVersi
     expect.stringContaining("INSERT INTO user_plans"),
     expect.any(Array),
   );
+  // The integer sync version is written alongside each legacy value.
+  expect(mockRunAsync).toHaveBeenCalledWith(
+    "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+    ["appDataSyncVersion", "4"],
+  );
+  expect(mockRunAsync).toHaveBeenLastCalledWith(
+    "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+    ["appDataSyncVersion", "6"],
+  );
+});
+
+it("should skip both plan batches when only the integer sync version is set", async () => {
+  mockGetFirstAsync.mockImplementation((_sql: string, params?: string[]) =>
+    Promise.resolve(
+      params?.[0] === "appDataSyncVersion" ? { value: "6" } : null,
+    ),
+  );
+
+  await loadPremadePlans();
+
+  expect(mockRunAsync).not.toHaveBeenCalled();
 });
 
 it("should handle database errors when inserting plans", async () => {

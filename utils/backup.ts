@@ -14,15 +14,19 @@ import { getAuth } from "@react-native-firebase/auth";
 import { QueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 import { setAsyncStorageItem } from "./asyncStorage";
-import { checkDatabaseIntegrity, createDatabaseSnapshot } from "./database";
+import {
+  checkDatabaseIntegrity,
+  createDatabaseSnapshot,
+  readDatabaseSchemaVersion,
+} from "./database";
+import { LATEST_SCHEMA_VERSION } from "./db/migrations";
 import { swapInRestoredFiles } from "./restoreRollback";
 
 const dbName = "userData.db";
 
-// Schema version written to the manifest. A backup with a newer version than
-// this is refused on restore, since the app can't migrate a schema it doesn't
-// know. Plan 12 replaces this with PRAGMA user_version.
-export const BACKUP_SCHEMA_VERSION = 1;
+// The manifest's schemaVersion is the backed-up database's PRAGMA
+// user_version. A backup newer than LATEST_SCHEMA_VERSION is refused on
+// restore, since the app can't migrate a schema it doesn't know.
 
 // Firebase Storage has no rename, so backups alternate between two slots. An
 // upload always writes the slot the manifest does not point at, and only then
@@ -192,7 +196,7 @@ export const uploadDatabaseBackup = async (
       currentSlot: targetSlot,
       createdAt: new Date().toISOString(),
       appVersion: Constants.expoConfig?.version ?? null,
-      schemaVersion: BACKUP_SCHEMA_VERSION,
+      schemaVersion: await readDatabaseSchemaVersion(snapshot),
       sizeBytes: snapshot.size,
     };
     await uploadString(
@@ -287,6 +291,12 @@ const stageLegacyBackup = async (
   return staged;
 };
 
+const newerSchemaError = () =>
+  new BackupError(
+    "newer-schema",
+    "This backup was made with a newer version of MuscleQuest.",
+  );
+
 export const restoreDatabaseBackup = async (
   setRestoreProgress: (progress: number) => void,
   setIsRestoreLoading: (loading: boolean) => void,
@@ -299,11 +309,8 @@ export const restoreDatabaseBackup = async (
     const userId = getUserId();
 
     const manifest = await readManifest(userId);
-    if (manifest && manifest.schemaVersion > BACKUP_SCHEMA_VERSION) {
-      throw new BackupError(
-        "newer-schema",
-        "This backup was made with a newer version of MuscleQuest.",
-      );
+    if (manifest && manifest.schemaVersion > LATEST_SCHEMA_VERSION) {
+      throw newerSchemaError();
     }
 
     // Download into a staging folder first so a failed download never leaves
@@ -327,6 +334,12 @@ export const restoreDatabaseBackup = async (
             "integrity",
             "The downloaded backup failed its integrity check.",
           );
+        }
+        // The file is the authority; the manifest only saves a download.
+        if (
+          (await readDatabaseSchemaVersion(stagedFile)) > LATEST_SCHEMA_VERSION
+        ) {
+          throw newerSchemaError();
         }
         setRestoreProgress(90);
         staged = [{ stagedFile, name: dbName }];
