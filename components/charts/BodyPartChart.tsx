@@ -2,8 +2,6 @@ import React, { useMemo, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 import { ThemedText } from "@/components/ThemedText";
-import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
-import { Exercise } from "@/utils/database";
 import { Card } from "react-native-paper";
 import { capitalizeWords } from "@/utils/utility";
 import { Trans } from "@lingui/react/macro";
@@ -17,16 +15,11 @@ import type { AppThemeColors } from "@/theme/types";
 
 // Define the props for the component
 interface BodyPartChartProps {
-  completedWorkouts: CompletedWorkout[] | undefined;
-  exercises: Exercise[] | undefined;
-  excludeWarmup?: boolean;
+  /** Sets per body part group, see mergeBodyPartCounts. */
+  bodyPartCounts: Record<string, number> | undefined;
 }
 
-const BodyPartChart: React.FC<BodyPartChartProps> = ({
-  completedWorkouts,
-  exercises,
-  excludeWarmup = false,
-}) => {
+const BodyPartChart: React.FC<BodyPartChartProps> = ({ bodyPartCounts }) => {
   const { _ } = useLingui();
   const { colors } = useAppTheme();
   const charts = useChartTheme();
@@ -36,53 +29,9 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
     null,
   );
 
-  // Map exercise_id to body_part
-  const exerciseIdToBodyPartMap = useMemo(() => {
-    if (!exercises) {
-      return {};
-    }
-    return exercises.reduce(
-      (acc, exercise) => {
-        acc[exercise.exercise_id] = exercise.body_part;
-        return acc;
-      },
-      {} as Record<number, string>,
-    );
-  }, [exercises]);
-
-  // Calculate body part counts based on completed sets
-  const bodyPartCounts = useMemo(() => {
-    if (!completedWorkouts || !exerciseIdToBodyPartMap) {
-      return {};
-    }
-
-    const counts: Record<string, number> = {};
-
-    completedWorkouts.forEach((workout) => {
-      workout.exercises.forEach((exercise) => {
-        let bodyPart = exerciseIdToBodyPartMap[exercise.exercise_id];
-        if (bodyPart) {
-          // Map upper/lower arms and legs to combined categories
-          if (bodyPart === "upper arms" || bodyPart === "lower arms") {
-            bodyPart = "arms";
-          } else if (bodyPart === "upper legs" || bodyPart === "lower legs") {
-            bodyPart = "legs";
-          }
-
-          // Count the number of sets for this exercise
-          const completedSets = excludeWarmup
-            ? exercise.sets.filter((s) => !s.is_warmup).length
-            : exercise.sets.length;
-          counts[bodyPart] = (counts[bodyPart] || 0) + completedSets;
-        }
-      });
-    });
-
-    return counts;
-  }, [completedWorkouts, exerciseIdToBodyPartMap, excludeWarmup]);
-
   // Calculate body part percentages
   const bodyPartPercentages = useMemo(() => {
+    if (!bodyPartCounts) return [];
     const total = Object.values(bodyPartCounts).reduce(
       (acc, count) => acc + count,
       0,

@@ -6,7 +6,7 @@ import BodyPartChart from "../BodyPartChart";
 import { ExerciseProgressionChart } from "../ExerciseProgressionChart";
 import { BodyMeasurementLineChart } from "../BodyMeasurementLineChart";
 import { ExerciseCompactCard } from "@/components/stats/ExerciseCompactCard";
-import type { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import type { WorkoutSummary } from "@/utils/db/workoutStats";
 import type { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
 
 const mockChartProps: Record<string, any> = {};
@@ -65,29 +65,14 @@ afterEach(() => jest.useRealTimers());
 const workout = (
   localDate: string,
   sets: { exercise_id: number; weight: number; reps: number }[],
-): CompletedWorkout =>
+): WorkoutSummary =>
   ({
     id: 1,
     local_date: localDate,
     date_completed: `${localDate}T10:00:00.000Z`,
-    exercises: sets.map((s, i) => ({
-      completed_exercise_id: i,
-      exercise_id: s.exercise_id,
-      exercise_name: "x",
-      exercise_tracking_type: "weight",
-      sets: [
-        {
-          set_id: i,
-          set_number: 1,
-          weight: s.weight,
-          reps: s.reps,
-          time: null,
-          distance: null,
-          is_warmup: 0,
-        },
-      ],
-    })),
-  }) as unknown as CompletedWorkout;
+    set_count: sets.length,
+    volume_kg: sets.reduce((sum, s) => sum + s.weight * s.reps, 0),
+  }) as WorkoutSummary;
 
 const workouts = [
   workout("2026-05-19", [{ exercise_id: 1, weight: 100, reps: 5 }]),
@@ -123,12 +108,8 @@ describe("chart text alternatives", () => {
   });
 
   it("lists the training split and prints each share beside its colour", () => {
-    const exercises = [
-      { exercise_id: 1, body_part: "chest" },
-      { exercise_id: 2, body_part: "back" },
-    ] as any;
     const { getByRole, getByText } = render(
-      <BodyPartChart completedWorkouts={workouts} exercises={exercises} />,
+      <BodyPartChart bodyPartCounts={{ chest: 2, back: 1 }} />,
     );
     expect(
       getByRole("image", {

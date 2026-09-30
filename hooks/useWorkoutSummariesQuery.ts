@@ -1,0 +1,77 @@
+import { useQuery } from "@tanstack/react-query";
+import {
+  fetchBodyPartSetCounts,
+  fetchHasCompletedWorkout,
+  fetchWorkoutSummaries,
+  type BodyPartSetCount,
+  type LocalDateRange,
+  type WorkoutStatsOptions,
+  type WorkoutSummary,
+} from "@/utils/db/workoutStats";
+import { toLocalDateKey } from "@/utils/dates";
+import { getPreviousPeriodDates } from "./useCompletedWorkoutsQuery";
+
+// All keys start with "completedWorkouts", which the save, edit and delete
+// mutations invalidate.
+const ROOT = "completedWorkouts";
+
+// The last `days` local days up to today; everything when days is 0.
+const currentPeriod = (days: number): LocalDateRange => {
+  if (days <= 0) return {};
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  return { from: toLocalDateKey(from) };
+};
+
+const optionsKey = (options: WorkoutStatsOptions) => [
+  options.excludeWarmup,
+  options.countUnilateralDouble,
+  options.doubleWeightForPaired,
+];
+
+// One row per completed workout with its sets totalled in SQL. timeRange is in
+// days, 0 for all time.
+export const useWorkoutSummariesQuery = (
+  timeRange: number,
+  options: WorkoutStatsOptions,
+) =>
+  useQuery<WorkoutSummary[]>({
+    queryKey: [ROOT, "summaries", timeRange, ...optionsKey(options)],
+    queryFn: () => fetchWorkoutSummaries(currentPeriod(timeRange), options),
+    staleTime: 60_000,
+  });
+
+export const usePreviousPeriodSummariesQuery = (
+  timeRange: number,
+  options: WorkoutStatsOptions,
+) => {
+  const enabled = timeRange > 0;
+  return useQuery<WorkoutSummary[]>({
+    queryKey: [ROOT, "summaries", timeRange, "prev", ...optionsKey(options)],
+    queryFn: () => {
+      const { startDate, endDate } = getPreviousPeriodDates(timeRange);
+      return fetchWorkoutSummaries({ from: startDate, to: endDate }, options);
+    },
+    enabled,
+    staleTime: 60_000,
+  });
+};
+
+export const useBodyPartSetCountsQuery = (
+  timeRange: number,
+  excludeWarmup: boolean,
+) =>
+  useQuery<BodyPartSetCount[]>({
+    queryKey: [ROOT, "bodyParts", timeRange, excludeWarmup],
+    queryFn: () =>
+      fetchBodyPartSetCounts(currentPeriod(timeRange), excludeWarmup),
+    staleTime: 60_000,
+  });
+
+/** Whether the user has ever completed a workout. */
+export const useHasCompletedWorkoutQuery = () =>
+  useQuery<boolean>({
+    queryKey: [ROOT, "any"],
+    queryFn: fetchHasCompletedWorkout,
+    staleTime: 60_000,
+  });

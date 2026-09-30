@@ -18,6 +18,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
 import {
+  RECENT_HISTORY_DAYS,
   useCompletedWorkoutsQuery,
   useWorkoutSessionHistoryQuery,
   type CompletedWorkout,
@@ -335,9 +336,11 @@ export default function WorkoutSummaryScreen() {
     weightUnit,
     distanceUnit,
   );
+  // Only this week's workouts are counted below.
   const { data: allWorkouts } = useCompletedWorkoutsQuery(
     weightUnit,
     distanceUnit,
+    RECENT_HISTORY_DAYS,
   );
 
   const weeklyGoal = Number(settings?.weeklyGoal ?? 0);

@@ -68,6 +68,10 @@ export interface CompletedWorkout {
 
 const QUICK_WORKOUT_FALLBACK = "Quick Workout";
 
+// How far back the home screen and weekly components look. They need this
+// week and last week; the rest is slack for a streak check after a break.
+export const RECENT_HISTORY_DAYS = 56;
+
 const fetchCompletedWorkouts = async (
   timeRange: number,
   startDate?: string,
@@ -270,7 +274,7 @@ export const useCompletedWorkoutsQuery = (
 // The window of the same size immediately before the current period, as
 // inclusive local date keys. toISOString() would give the UTC day, which is
 // the wrong day for anyone far enough from UTC.
-const getPreviousPeriodDates = (
+export const getPreviousPeriodDates = (
   days: number,
 ): { startDate: string; endDate: string } => {
   const endDate = new Date();

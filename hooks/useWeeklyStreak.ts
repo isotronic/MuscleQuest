@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { startOfWeek, endOfWeek, subWeeks, format } from "date-fns";
 import { getWeeklyCompletions, upsertWeeklyCompletion } from "@/utils/database";
 import { isLocalDateInRange } from "@/utils/dates";
-import { CompletedWorkout } from "./useCompletedWorkoutsQuery";
+
+// Only the training day of each workout matters here, and only for last
+// week, so callers can pass a recent window rather than the whole history.
+type DatedWorkout = { local_date: string };
 
 const syncWeeklyCompletions = async (
-  allCompletedWorkouts: CompletedWorkout[],
+  allCompletedWorkouts: readonly DatedWorkout[],
   weeklyGoal: number,
   uniqueWorkoutDaysCount: number,
   weeklyGoalReached: boolean,
@@ -66,7 +69,7 @@ const computeStreak = (
 };
 
 export function useWeeklyStreak(
-  allCompletedWorkouts: CompletedWorkout[] | undefined,
+  allCompletedWorkouts: readonly DatedWorkout[] | undefined,
   weeklyGoal: number,
   uniqueWorkoutDaysCount: number,
   weeklyGoalReached: boolean,

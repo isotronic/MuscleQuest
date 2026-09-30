@@ -1,7 +1,5 @@
 import { useMemo } from "react";
-import { CompletedWorkout } from "./useCompletedWorkoutsQuery";
 import { TrackedExerciseWithSets } from "./useTrackedExercisesQuery";
-import { Exercise } from "@/utils/database";
 import { METRIC_EPSILON, formatWeight } from "@/utils/units";
 
 interface StatsInsights {
@@ -11,25 +9,19 @@ interface StatsInsights {
   topBodyPart: string | null;
 }
 
-const mapBodyPart = (bp: string): string => {
-  if (bp === "upper arms" || bp === "lower arms") return "arms";
-  if (bp === "upper legs" || bp === "lower legs") return "legs";
-  return bp;
-};
-
 export const useStatsInsights = (
-  completedWorkouts: CompletedWorkout[] | undefined,
+  workoutCount: number | undefined,
   trackedExercises: TrackedExerciseWithSets[] | undefined,
-  exercises: Exercise[] | undefined,
+  /** Sets per body part group, see mergeBodyPartCounts. */
+  bodyPartCounts: Record<string, number> | undefined,
   timeRangeDays: number,
   weightUnit: string,
   distanceUnit: string = "m",
-  excludeWarmup: boolean = false,
 ): StatsInsights => {
   return useMemo(() => {
     const workoutsPerWeek =
-      completedWorkouts && completedWorkouts.length > 0 && timeRangeDays > 0
-        ? completedWorkouts.length / (timeRangeDays / 7)
+      workoutCount && timeRangeDays > 0
+        ? workoutCount / (timeRangeDays / 7)
         : null;
 
     // Biggest 1RM gain across tracked exercises in the current period
@@ -69,38 +61,18 @@ export const useStatsInsights = (
     }
 
     // Top body part by set count
-    let topBodyPart: string | null = null;
-    if (completedWorkouts && exercises) {
-      const bpMap: Record<number, string> = {};
-      exercises.forEach((e) => {
-        bpMap[e.exercise_id] = e.body_part;
-      });
-
-      const counts: Record<string, number> = {};
-      completedWorkouts.forEach((w) => {
-        w.exercises.forEach((ex) => {
-          const raw = bpMap[ex.exercise_id];
-          if (!raw) return;
-          const bp = mapBodyPart(raw);
-          const setCount = excludeWarmup
-            ? ex.sets.filter((s) => !s.is_warmup).length
-            : ex.sets.length;
-          counts[bp] = (counts[bp] || 0) + setCount;
-        });
-      });
-
-      const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
-      if (top) topBodyPart = top[0];
-    }
+    const top = Object.entries(bodyPartCounts ?? {}).sort(
+      (a, b) => b[1] - a[1],
+    )[0];
+    const topBodyPart = top ? top[0] : null;
 
     return { workoutsPerWeek, biggestGainLabel, biggestGainValue, topBodyPart };
   }, [
-    completedWorkouts,
+    workoutCount,
     trackedExercises,
-    exercises,
+    bodyPartCounts,
     timeRangeDays,
     weightUnit,
     distanceUnit,
-    excludeWarmup,
   ]);
 };

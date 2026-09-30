@@ -18,7 +18,7 @@ import { CalendarList, DateData } from "react-native-calendars";
 import { addMonths, format, parseISO, subMonths } from "date-fns";
 import { ThemedText } from "@/components/ThemedText";
 import WorkoutHistoryCard from "@/components/WorkoutHistoryCard";
-import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import type { WorkoutSummary } from "@/utils/db/workoutStats";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
@@ -30,7 +30,7 @@ interface WorkoutCalendarModalProps {
   markedDates: Record<string, object>;
   selectedDate: string | null;
   onDayPress: (dateString: string) => void;
-  workoutsForSelectedDate: CompletedWorkout[];
+  workoutsForSelectedDate: WorkoutSummary[];
   onWorkoutPress: (id: number) => void;
   excludeWarmup?: boolean;
   loading?: boolean;
