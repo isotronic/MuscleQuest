@@ -96,7 +96,7 @@ msgid ""
 "\n"
 "⏸️ New: Pick Up Where You Left Off!\n"
 "\n"
-"If you come back to an unfinished workout after more than four hours, MuscleQuest now asks whether to resume it, finish and save it, or discard it. A workout finished this way records its duration up to your last logged set, instead of counting the hours in between.\n"
+"If you come back to an unfinished workout after more than four hours, MuscleQuest now asks whether to resume it or discard it, or, once you have completed at least one set, to finish and save it. A workout finished this way records its duration up to your last logged set, instead of counting the hours in between.\n"
 "\n"
 "Also in this update:\n"
 "• Correcting or deleting your latest session now updates the progression suggestion built on it, so a typo no longer carries into your next workout.\n"
@@ -106,12 +106,34 @@ msgstr ""
 "\n"
 "⏸️ Neu: Dort weitermachen, wo du aufgehört hast!\n"
 "\n"
-"Wenn du nach mehr als vier Stunden zu einem unbeendeten Workout zurückkehrst, fragt MuscleQuest jetzt, ob du es fortsetzen, beenden und speichern oder verwerfen möchtest. Ein so beendetes Workout speichert seine Dauer bis zu deinem letzten erfassten Satz, statt die Stunden dazwischen mitzuzählen.\n"
+"Wenn du nach mehr als vier Stunden zu einem unbeendeten Workout zurückkehrst, fragt MuscleQuest jetzt, ob du es fortsetzen oder verwerfen möchtest, oder, sobald du mindestens einen Satz abgeschlossen hast, ob du es beenden und speichern möchtest. Ein so beendetes Workout speichert seine Dauer bis zu deinem letzten erfassten Satz, statt die Stunden dazwischen mitzuzählen.\n"
 "\n"
 "Außerdem in diesem Update:\n"
 "• Wenn du deine letzte Einheit korrigierst oder löschst, wird der darauf aufbauende Progressionsvorschlag jetzt aktualisiert, sodass ein Tippfehler nicht mehr in dein nächstes Workout übernommen wird.\n"
 "• Bei Anmeldeproblemen erfährst du jetzt, was schiefgelaufen ist, zum Beispiel dass du offline bist oder die Google Play-Dienste fehlen, und zwar in deiner Sprache.\n"
 ""
+
+#: constants/WhatsNew.ts:515
+#~ msgid ""
+#~ "\n"
+#~ "⏸️ New: Pick Up Where You Left Off!\n"
+#~ "\n"
+#~ "If you come back to an unfinished workout after more than four hours, MuscleQuest now asks whether to resume it, finish and save it, or discard it. A workout finished this way records its duration up to your last logged set, instead of counting the hours in between.\n"
+#~ "\n"
+#~ "Also in this update:\n"
+#~ "• Correcting or deleting your latest session now updates the progression suggestion built on it, so a typo no longer carries into your next workout.\n"
+#~ "• Sign-in problems now tell you what went wrong, such as being offline or missing Google Play Services, in your own language.\n"
+#~ ""
+#~ msgstr ""
+#~ "\n"
+#~ "⏸️ Neu: Dort weitermachen, wo du aufgehört hast!\n"
+#~ "\n"
+#~ "Wenn du nach mehr als vier Stunden zu einem unbeendeten Workout zurückkehrst, fragt MuscleQuest jetzt, ob du es fortsetzen, beenden und speichern oder verwerfen möchtest. Ein so beendetes Workout speichert seine Dauer bis zu deinem letzten erfassten Satz, statt die Stunden dazwischen mitzuzählen.\n"
+#~ "\n"
+#~ "Außerdem in diesem Update:\n"
+#~ "• Wenn du deine letzte Einheit korrigierst oder löschst, wird der darauf aufbauende Progressionsvorschlag jetzt aktualisiert, sodass ein Tippfehler nicht mehr in dein nächstes Workout übernommen wird.\n"
+#~ "• Bei Anmeldeproblemen erfährst du jetzt, was schiefgelaufen ist, zum Beispiel dass du offline bist oder die Google Play-Dienste fehlen, und zwar in deiner Sprache.\n"
+#~ ""
 
 #: constants/WhatsNew.ts:431
 msgid ""
@@ -1553,12 +1575,12 @@ msgstr "Eigenen Messwert hinzufügen"
 msgid "Add Drop Set"
 msgstr "Dropsatz hinzufügen"
 
-#: app/(app)/(workout)/index.tsx:1134
+#: app/(app)/(workout)/index.tsx:1137
 #: components/WorkoutCard.tsx:475
 msgid "Add Exercise"
 msgstr "Übung hinzufügen"
 
-#: app/(app)/(workout)/index.tsx:1109
+#: app/(app)/(workout)/index.tsx:1112
 msgid "Add exercises to get started"
 msgstr "Füge Übungen hinzu, um loszulegen"
 
@@ -1811,7 +1833,7 @@ msgstr "Auf alle Aufwärmsätze anwenden"
 msgid "Apply to all working sets"
 msgstr "Auf alle Arbeitssätze anwenden"
 
-#: app/(app)/(workout)/index.tsx:905
+#: app/(app)/(workout)/index.tsx:908
 #: components/StaleWorkoutPrompt.tsx:55
 msgid "Are you sure you want to cancel and delete this workout?"
 msgstr "Möchtest du dieses Training wirklich abbrechen und löschen?"
@@ -1858,7 +1880,7 @@ msgstr "Möchtest du {0} wirklich entfernen?"
 msgid "Are you sure you want to remove this workout?"
 msgstr "Möchtest du dieses Training wirklich entfernen?"
 
-#: app/(app)/(workout)/index.tsx:925
+#: app/(app)/(workout)/index.tsx:928
 msgid "Are you sure you want to restart this workout?"
 msgstr "Möchtest du dieses Training wirklich neu starten?"
 
@@ -2102,7 +2124,7 @@ msgstr "Waden"
 #: app/(app)/(tabs)/(plans)/overview.tsx:156
 #: app/(app)/(tabs)/(plans)/overview.tsx:207
 #: app/(app)/(tabs)/(stats)/measurements-manage.tsx:85
-#: app/(app)/(workout)/index.tsx:1012
+#: app/(app)/(workout)/index.tsx:1015
 #: app/(app)/delete-account.tsx:86
 #: app/(app)/delete-account.tsx:265
 #: app/(app)/plate-inventory.tsx:140
@@ -2123,7 +2145,7 @@ msgstr "Waden"
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: app/(app)/(workout)/index.tsx:904
+#: app/(app)/(workout)/index.tsx:907
 #: components/StaleWorkoutPrompt.tsx:54
 msgid "Cancel Workout"
 msgstr "Training abbrechen"
@@ -2694,7 +2716,7 @@ msgstr "Deaktiviert"
 
 #: app/(app)/(create-plan)/create-workout.tsx:176
 #: app/(app)/(create-plan)/create.tsx:229
-#: app/(app)/(workout)/index.tsx:1043
+#: app/(app)/(workout)/index.tsx:1046
 #: app/(app)/custom-exercise.tsx:91
 #: components/StaleWorkoutPrompt.tsx:122
 msgid "Discard"
@@ -3067,7 +3089,7 @@ msgstr "Gerät:"
 #: app/(app)/(create-plan)/image-search.tsx:43
 #: app/(app)/(tabs)/(plans)/overview.tsx:220
 #: app/(app)/(workout)/index.tsx:855
-#: app/(app)/(workout)/index.tsx:1071
+#: app/(app)/(workout)/index.tsx:1074
 #: app/(app)/custom-exercise.tsx:135
 #: app/(app)/custom-exercise.tsx:185
 #: app/(app)/custom-exercise.tsx:325
@@ -3124,7 +3146,7 @@ msgstr "Fehler: {0}"
 
 #. placeholder {0}: formatDurationEstimate(durationEstimate)
 #. placeholder {0}: formatDurationEstimate(estimate)
-#: app/(app)/(workout)/index.tsx:1090
+#: app/(app)/(workout)/index.tsx:1093
 #: components/WorkoutCard.tsx:449
 msgid "Estimated Duration: {0}"
 msgstr "Geschätzte Dauer: {0}"
@@ -3309,7 +3331,7 @@ msgid "Failed to save the image. Please try again."
 msgstr "Bild konnte nicht gespeichert werden. Bitte versuche es erneut."
 
 #: app/(app)/(workout)/index.tsx:856
-#: app/(app)/(workout)/index.tsx:1072
+#: app/(app)/(workout)/index.tsx:1075
 msgid "Failed to save workout. Please try again."
 msgstr "Training konnte nicht gespeichert werden. Bitte versuche es erneut."
 
@@ -3342,7 +3364,7 @@ msgstr "Lieblingsübungen"
 msgid "feet"
 msgstr "Füße"
 
-#: app/(app)/(workout)/index.tsx:984
+#: app/(app)/(workout)/index.tsx:987
 msgid "Finish"
 msgstr "Beenden"
 
@@ -3420,7 +3442,7 @@ msgstr "Freunde seit {0}"
 msgid "Get Ready..."
 msgstr "Mach dich bereit..."
 
-#: app/(app)/(workout)/index.tsx:1030
+#: app/(app)/(workout)/index.tsx:1033
 msgid "Give it a name to save it as a reusable workout."
 msgstr "Gib einen Namen ein, um es als wiederverwendbares Training zu speichern."
 
@@ -3575,8 +3597,12 @@ msgid "If you add, remove, or reorder exercises or sets, you'll be prompted at t
 msgstr "Wenn du während einer Einheit Übungen oder Sätze hinzufügst, entfernst oder neu anordnest, wirst du am Ende gefragt, ob du diese Änderungen im ursprünglichen Training oder Plan speichern möchtest."
 
 #: constants/HelpData.ts:88
-msgid "If you come back to a workout after more than four hours, you're asked whether to resume it, finish and save it, or discard it. Finishing it this way records the duration up to your last logged set."
-msgstr "Wenn du nach mehr als vier Stunden zu einem Training zurückkehrst, wirst du gefragt, ob du es fortsetzen, beenden und speichern oder verwerfen möchtest. Wenn du es so beendest, wird die Dauer bis zu deinem letzten erfassten Satz gespeichert."
+msgid "If you come back to a workout after more than four hours, you're asked whether to resume it or discard it, or, if you have completed at least one set, to finish and save it. Finishing it this way records the duration up to your last logged set."
+msgstr "Wenn du nach mehr als vier Stunden zu einem Training zurückkehrst, wirst du gefragt, ob du es fortsetzen oder verwerfen möchtest, oder, wenn du mindestens einen Satz abgeschlossen hast, ob du es beenden und speichern möchtest. Wenn du es so beendest, wird die Dauer bis zu deinem letzten erfassten Satz gespeichert."
+
+#: constants/HelpData.ts:88
+#~ msgid "If you come back to a workout after more than four hours, you're asked whether to resume it, finish and save it, or discard it. Finishing it this way records the duration up to your last logged set."
+#~ msgstr "Wenn du nach mehr als vier Stunden zu einem Training zurückkehrst, wirst du gefragt, ob du es fortsetzen, beenden und speichern oder verwerfen möchtest. Wenn du es so beendest, wird die Dauer bis zu deinem letzten erfassten Satz gespeichert."
 
 #: constants/HelpData.ts:175
 msgid "If you edit or delete your most recent session of a workout, its pending suggestions are recalculated from the corrected numbers."
@@ -4071,8 +4097,8 @@ msgstr "Weiter: "
 msgid "Next: {workoutName} on {0}"
 msgstr "Weiter: {workoutName} am {0}"
 
-#: app/(app)/(workout)/index.tsx:907
-#: app/(app)/(workout)/index.tsx:927
+#: app/(app)/(workout)/index.tsx:910
+#: app/(app)/(workout)/index.tsx:930
 #: components/StaleWorkoutPrompt.tsx:57
 msgid "No"
 msgstr "Nein"
@@ -4214,7 +4240,7 @@ msgstr "Kein Nutzer mit dieser E-Mail-Adresse gefunden."
 msgid "No values entered"
 msgstr "Keine Werte eingegeben"
 
-#: app/(app)/(workout)/index.tsx:952
+#: app/(app)/(workout)/index.tsx:955
 msgid "No workout available"
 msgstr "Kein Training verfügbar"
 
@@ -4582,7 +4608,7 @@ msgid "quads"
 msgstr "Quads"
 
 #: app/(app)/(tabs)/index.tsx:642
-#: app/(app)/(workout)/index.tsx:1049
+#: app/(app)/(workout)/index.tsx:1052
 #: app/(app)/friend-profile.tsx:653
 msgid "Quick Workout"
 msgstr "Schnelltraining"
@@ -4840,7 +4866,7 @@ msgstr "Pausentimer beendet!"
 msgid "Rest timer increment"
 msgstr "Pausentimer-Schritt"
 
-#: app/(app)/(workout)/index.tsx:1005
+#: app/(app)/(workout)/index.tsx:1008
 msgid "Restart"
 msgstr "Neu starten"
 
@@ -4852,7 +4878,7 @@ msgstr "App neu starten"
 msgid "Restart Failed"
 msgstr "Neustart fehlgeschlagen"
 
-#: app/(app)/(workout)/index.tsx:924
+#: app/(app)/(workout)/index.tsx:927
 msgid "Restart Workout"
 msgstr "Training neu starten"
 
@@ -4929,7 +4955,7 @@ msgstr "Samstag"
 
 #: app/(app)/(create-plan)/create-workout.tsx:256
 #: app/(app)/(create-plan)/create.tsx:356
-#: app/(app)/(workout)/index.tsx:1077
+#: app/(app)/(workout)/index.tsx:1080
 #: app/(app)/custom-exercise.tsx:607
 #: components/SettingsModal.tsx:310
 msgid "Save"
@@ -4964,7 +4990,7 @@ msgstr "Änderungen speichern"
 msgid "Save Set"
 msgstr "Satz speichern"
 
-#: app/(app)/(workout)/index.tsx:1027
+#: app/(app)/(workout)/index.tsx:1030
 msgid "Save this workout?"
 msgstr "Dieses Training speichern?"
 
@@ -4980,7 +5006,7 @@ msgstr "Speichere deine Workouts und Maße als CSV oder JSON"
 msgid "Saving Plan..."
 msgstr "Plan wird gespeichert..."
 
-#: app/(app)/(workout)/index.tsx:966
+#: app/(app)/(workout)/index.tsx:969
 msgid "Saving Workout..."
 msgstr "Training wird gespeichert..."
 
@@ -6480,8 +6506,8 @@ msgstr "Training läuft"
 msgid "Workout In Progress"
 msgstr "Workout läuft"
 
-#: app/(app)/(workout)/index.tsx:1033
-#: app/(app)/(workout)/index.tsx:1035
+#: app/(app)/(workout)/index.tsx:1036
+#: app/(app)/(workout)/index.tsx:1038
 #: components/CopyWorkoutModal.tsx:52
 #: components/CopyWorkoutModal.tsx:60
 #: components/WorkoutCard.tsx:441
@@ -6495,7 +6521,7 @@ msgstr "Trainingsname"
 msgid "Workout not found."
 msgstr "Training nicht gefunden."
 
-#: app/(app)/(workout)/index.tsx:991
+#: app/(app)/(workout)/index.tsx:994
 msgid "Workout options"
 msgstr "Trainingsoptionen"
 
@@ -6541,8 +6567,8 @@ msgstr "Handgelenke"
 msgid "x {0} reps "
 msgstr "x {0} Wdh. "
 
-#: app/(app)/(workout)/index.tsx:909
-#: app/(app)/(workout)/index.tsx:929
+#: app/(app)/(workout)/index.tsx:912
+#: app/(app)/(workout)/index.tsx:932
 #: components/StaleWorkoutPrompt.tsx:59
 msgid "Yes"
 msgstr "Ja"

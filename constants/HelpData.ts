@@ -85,7 +85,7 @@ export const HELP_DATA: GroupData[] = [
             msg`Add notes per-exercise via the notes icon in the exercise header, per workout from the workout overview screen, or per plan from the plan overview screen.`,
             msg`If you add, remove, or reorder exercises or sets, you'll be prompted at the end to save those changes back to the original workout or plan.`,
             msg`Leaving the workout overview mid-session asks you to confirm first. Your progress is saved, so you can resume from the home screen.`,
-            msg`If you come back to a workout after more than four hours, you're asked whether to resume it, finish and save it, or discard it. Finishing it this way records the duration up to your last logged set.`,
+            msg`If you come back to a workout after more than four hours, you're asked whether to resume it or discard it, or, if you have completed at least one set, to finish and save it. Finishing it this way records the duration up to your last logged set.`,
           ],
         },
       },

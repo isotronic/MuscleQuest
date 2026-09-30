@@ -515,7 +515,7 @@ Not signed in? After a few workouts the card offers to sign you in instead. Tap 
     message: msg`
 ⏸️ New: Pick Up Where You Left Off!
 
-If you come back to an unfinished workout after more than four hours, MuscleQuest now asks whether to resume it, finish and save it, or discard it. A workout finished this way records its duration up to your last logged set, instead of counting the hours in between.
+If you come back to an unfinished workout after more than four hours, MuscleQuest now asks whether to resume it or discard it, or, once you have completed at least one set, to finish and save it. A workout finished this way records its duration up to your last logged set, instead of counting the hours in between.
 
 Also in this update:
 • Correcting or deleting your latest session now updates the progression suggestion built on it, so a typo no longer carries into your next workout.
