@@ -816,3 +816,106 @@ export const getProgressionStatesForWorkout = async (
     if (db) await db.closeAsync();
   }
 };
+
+export interface ProgressionRecomputeTarget {
+  userWorkoutExerciseId: number;
+  /** Heaviest working set (kg) in the latest remaining session, if any. */
+  recentWorkingWeight: number | null;
+  /** Reps per working set in that session, in order. */
+  completedRepsPerSet: (number | null)[];
+}
+
+/**
+ * The pending suggestions that an edit to, or deletion of, this completed
+ * workout has made stale, each with the session data to rebuild it from.
+ *
+ * Empty unless the workout is the most recent session of its plan workout:
+ * an older session did not produce the current suggestion, and recomputing
+ * would override feedback given since. Quick workouts have no plan exercises.
+ * Works for a soft-deleted workout too, which is how deletion uses it.
+ */
+export const getProgressionRecomputeTargets = async (
+  completedWorkoutId: number,
+): Promise<ProgressionRecomputeTarget[]> => {
+  let db: SQLite.SQLiteDatabase | undefined;
+  try {
+    db = await openDatabase("userData.db");
+    const workout = await db.getFirstAsync<{
+      workout_id: number | null;
+      date_completed: string;
+    }>(
+      `SELECT workout_id, date_completed FROM completed_workouts WHERE id = ?`,
+      [completedWorkoutId],
+    );
+    if (workout?.workout_id == null) return [];
+
+    const newer = await db.getFirstAsync<{ id: number }>(
+      `SELECT id FROM completed_workouts
+       WHERE workout_id = ? AND is_deleted = 0 AND id != ?
+         AND (date_completed > ? OR (date_completed = ? AND id > ?))
+       LIMIT 1`,
+      [
+        workout.workout_id,
+        completedWorkoutId,
+        workout.date_completed,
+        workout.date_completed,
+        completedWorkoutId,
+      ],
+    );
+    if (newer) return [];
+
+    const pending = await db.getAllAsync<{
+      user_workout_exercise_id: number;
+      exercise_id: number;
+    }>(
+      `SELECT DISTINCT eps.user_workout_exercise_id, uwe.exercise_id
+       FROM completed_exercises ce
+       JOIN user_workout_exercises uwe
+         ON uwe.workout_id = ? AND uwe.exercise_id = ce.exercise_id
+        AND uwe.is_deleted = 0
+       JOIN exercise_progression_state eps
+         ON eps.user_workout_exercise_id = uwe.id
+       WHERE ce.completed_workout_id = ?
+         AND eps.is_applied = 0 AND eps.is_dismissed = 0`,
+      [workout.workout_id, completedWorkoutId],
+    );
+
+    const targets: ProgressionRecomputeTarget[] = [];
+    for (const row of pending) {
+      const sets = await db.getAllAsync<{
+        weight: number | null;
+        reps: number | null;
+      }>(
+        `SELECT cs.weight, cs.reps
+         FROM completed_sets cs
+         WHERE cs.completed_exercise_id = (
+           SELECT ce.id
+           FROM completed_exercises ce
+           JOIN completed_workouts cw ON cw.id = ce.completed_workout_id
+           WHERE cw.workout_id = ? AND ce.exercise_id = ?
+             AND cw.is_deleted = 0 AND ce.is_deleted = 0
+           ORDER BY cw.date_completed DESC, cw.id DESC
+           LIMIT 1
+         )
+           AND cs.is_deleted = 0 AND cs.is_warmup = 0 AND cs.is_drop_set = 0
+         ORDER BY cs.set_number ASC`,
+        [workout.workout_id, row.exercise_id],
+      );
+      const weights = sets
+        .map((s) => s.weight)
+        .filter((w): w is number => w != null);
+      targets.push({
+        userWorkoutExerciseId: row.user_workout_exercise_id,
+        recentWorkingWeight: weights.length > 0 ? Math.max(...weights) : null,
+        completedRepsPerSet: sets.map((s) => s.reps),
+      });
+    }
+    return targets;
+  } catch (error: any) {
+    console.error("Error fetching progression recompute targets:", error);
+    notifyBugsnag(error);
+    throw error;
+  } finally {
+    if (db) await db.closeAsync();
+  }
+};

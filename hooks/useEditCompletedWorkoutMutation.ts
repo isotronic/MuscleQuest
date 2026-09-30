@@ -5,6 +5,7 @@ import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { displayToKg, displayToMetres, roundCanonical } from "@/utils/units";
+import { refreshProgressionAfterHistoryChange } from "@/utils/progressionRecompute";
 
 const saveCompletedWorkoutWithConversion = async (
   completedWorkoutData: CompletedWorkout["exercises"],
@@ -89,6 +90,8 @@ export const useEditCompletedWorkoutMutation = (
       queryClient.invalidateQueries({
         queryKey: ["globalExerciseHistoryForSession"],
       });
+      // A pending suggestion may have been built on the values just corrected.
+      void refreshProgressionAfterHistoryChange(queryClient, id);
     },
     onError: (error) => {
       console.error("Error saving edited workout:", error);

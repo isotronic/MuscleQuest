@@ -2,6 +2,7 @@ import { useEditCompletedWorkoutMutation } from "../useEditCompletedWorkoutMutat
 import { openDatabase } from "@/utils/database";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { KG_PER_LB } from "@/utils/units";
+import { refreshProgressionAfterHistoryChange } from "@/utils/progressionRecompute";
 
 const mockRunAsync = jest.fn().mockResolvedValue(undefined);
 const mockCloseAsync = jest.fn().mockResolvedValue(undefined);
@@ -19,6 +20,9 @@ jest.mock("@/utils/database", () => ({
       withExclusiveTransactionAsync: mockWithExclusiveTransactionAsync,
     }),
   ),
+}));
+jest.mock("@/utils/progressionRecompute", () => ({
+  refreshProgressionAfterHistoryChange: jest.fn(),
 }));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -229,6 +233,17 @@ describe("useEditCompletedWorkoutMutation", () => {
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["exerciseDetail"],
     });
+  });
+
+  it("onSuccess refreshes progression suggestions for the edited workout", () => {
+    useEditCompletedWorkoutMutation(42, "kg", "m");
+
+    capturedArgs.onSuccess();
+
+    expect(refreshProgressionAfterHistoryChange).toHaveBeenCalledWith(
+      { invalidateQueries: mockInvalidateQueries },
+      42,
+    );
   });
 
   it("onSettled invalidates exerciseDetail", async () => {
