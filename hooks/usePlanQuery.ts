@@ -12,6 +12,7 @@ export interface WorkoutRecord {
     name: string;
     description: string;
     image: number[];
+    image_uri?: string | null;
     local_animated_uri: string;
     animated_url: string;
     equipment: string;
@@ -41,6 +42,7 @@ export interface RawWorkoutRecord {
   exercise_name: string | null;
   description: string | null;
   image: Uint8Array | null;
+  image_uri: string | null;
   local_animated_uri: string | null;
   animated_url: string | null;
   equipment: string | null;
@@ -77,7 +79,8 @@ const fetchWorkoutsForPlan = async (
         user_workout_exercises.exercise_id AS exercise_id,
         exercises.name AS exercise_name,
         exercises.description,
-        exercises.image,
+        exercises.image_uri,
+        CASE WHEN exercises.image_uri IS NULL THEN exercises.image END AS image,
         exercises.local_animated_uri,
         exercises.animated_url,
         exercises.equipment,
@@ -134,6 +137,7 @@ const parseWorkouts = (rawWorkouts: RawWorkoutRecord[]) => {
         name: rawWorkout.exercise_name,
         description: rawWorkout.description || "",
         image: rawWorkout.image ? Array.from(rawWorkout.image) : [],
+        image_uri: rawWorkout.image_uri ?? null,
         local_animated_uri: rawWorkout.local_animated_uri || "",
         animated_url: rawWorkout.animated_url || "",
         equipment: rawWorkout.equipment || "",

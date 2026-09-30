@@ -22,8 +22,10 @@ import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimateCompact } from "@/utils/estimateWorkoutDuration";
 import {
   CompletedWorkout,
+  RECENT_HISTORY_DAYS,
   useCompletedWorkoutsQuery,
 } from "@/hooks/useCompletedWorkoutsQuery";
+import { useHasCompletedWorkoutQuery } from "@/hooks/useWorkoutSummariesQuery";
 import { Workout, UserExercise } from "@/store/workoutStore";
 import Bugsnag from "@bugsnag/expo";
 import Onboarding, { shouldShowActivationCard } from "@/components/Onboarding";
@@ -104,7 +106,8 @@ export default function HomeScreen() {
     data: completedWorkouts,
     isLoading: completedWorkoutsLoading,
     error: completedWorkoutsError,
-  } = useCompletedWorkoutsQuery(weightUnit, distanceUnit);
+  } = useCompletedWorkoutsQuery(weightUnit, distanceUnit, RECENT_HISTORY_DAYS);
+  const { data: hasCompletedWorkout } = useHasCompletedWorkoutQuery();
 
   const { data: planScheduleEntries, isLoading: planScheduleLoading } =
     usePlanScheduleQuery(activePlan?.id ?? null);
@@ -616,7 +619,7 @@ export default function HomeScreen() {
             <Onboarding
               showActivationCard={shouldShowActivationCard(
                 !!activePlan,
-                completedWorkouts,
+                hasCompletedWorkout,
               )}
               onQuickWorkout={startQuickWorkout}
             />

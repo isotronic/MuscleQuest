@@ -6,7 +6,10 @@ export interface Exercise {
   exercise_id: number;
   app_exercise_id?: number;
   name: string;
+  /** Thumbnail bytes. Empty once the thumbnail is on disk, see image_uri. */
   image: number[];
+  /** Thumbnail file written by writeExerciseImageFiles, or a custom photo. */
+  image_uri?: string | null;
   local_animated_uri: string;
   animated_url: string;
   equipment: string;
@@ -19,6 +22,8 @@ export interface Exercise {
   is_unilateral?: number;
   double_weight?: number;
 }
+
+const IMAGE_UNLESS_ON_DISK = `CASE WHEN image_uri IS NULL THEN image END AS image`;
 
 export const fetchAllRecords = async (
   databaseName: string,
@@ -45,10 +50,21 @@ export const fetchAllRecords = async (
       (column: any) => column.name === "is_deleted",
     );
 
+    // The thumbnail bytes are only needed until the image is on disk. Leaving
+    // them out keeps the whole library's blobs from crossing into JS.
+    const columns =
+      tableName === "exercises"
+        ? tableInfo
+            .map((column: any) =>
+              column.name === "image" ? IMAGE_UNLESS_ON_DISK : column.name,
+            )
+            .join(", ")
+        : "*";
+
     // Build the query accordingly
     const query = hasIsDeletedField
-      ? `SELECT * FROM ${tableName} WHERE is_deleted = FALSE`
-      : `SELECT * FROM ${tableName}`;
+      ? `SELECT ${columns} FROM ${tableName} WHERE is_deleted = FALSE`
+      : `SELECT ${columns} FROM ${tableName}`;
 
     return await db.getAllAsync(query);
   } finally {

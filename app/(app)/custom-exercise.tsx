@@ -248,11 +248,13 @@ export default function AddCustomExerciseScreen() {
 
       if (isEditing) {
         await db.runAsync(
-          `UPDATE exercises SET name = ?, description = ?, local_animated_uri = ?, body_part = ?, target_muscle = ?, equipment = ?, secondary_muscles = ?, is_unilateral = ?, double_weight = ? WHERE exercise_id = ?`,
+          `UPDATE exercises SET name = ?, description = ?, local_animated_uri = ?, image_uri = ?, body_part = ?, target_muscle = ?, equipment = ?, secondary_muscles = ?, is_unilateral = ?, double_weight = ? WHERE exercise_id = ?`,
           [
             name,
             JSON.stringify([description]),
             newImageUri,
+            // The photo doubles as the list thumbnail.
+            newImageUri || null,
             bodyPart,
             targetMuscle,
             equipment,
@@ -264,11 +266,13 @@ export default function AddCustomExerciseScreen() {
         );
       } else {
         await db.runAsync(
-          `INSERT INTO exercises (app_exercise_id, name, description, local_animated_uri, body_part, target_muscle, equipment, secondary_muscles, tracking_type, is_unilateral, double_weight) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO exercises (app_exercise_id, name, description, local_animated_uri, image_uri, body_part, target_muscle, equipment, secondary_muscles, tracking_type, is_unilateral, double_weight) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             name,
             JSON.stringify([description]),
             newImageUri,
+            // The photo doubles as the list thumbnail.
+            newImageUri || null,
             bodyPart,
             targetMuscle,
             equipment,

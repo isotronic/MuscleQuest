@@ -1,5 +1,5 @@
 import {
-  byteArrayToBase64,
+  bytesToBase64,
   formatTimeInput,
   formatFromTotalSeconds,
   convertToTotalSeconds,
@@ -8,17 +8,37 @@ import {
 } from "@/utils/utility";
 
 describe("Utility Functions", () => {
-  describe("byteArrayToBase64", () => {
-    it("should convert a byte array to a base64 string", () => {
-      expect(byteArrayToBase64([72, 101, 108, 108, 111])).toBe("SGVsbG8=");
+  describe("bytesToBase64", () => {
+    const patterned = (length: number) => {
+      const bytes = new Uint8Array(length);
+      for (let i = 0; i < length; i++) bytes[i] = (i * 31 + 7) % 256;
+      return bytes;
+    };
+
+    it.each([0, 1, 3, 32767, 32768, 32769, 1000000])(
+      "matches a reference encoder for %i bytes",
+      (length) => {
+        const bytes = patterned(length);
+        expect(bytesToBase64(bytes)).toBe(
+          Buffer.from(bytes).toString("base64"),
+        );
+      },
+    );
+
+    it("accepts a plain number array", () => {
+      expect(bytesToBase64([72, 101, 108, 108, 111])).toBe("SGVsbG8=");
     });
 
-    it("should return an empty string for an empty array", () => {
-      expect(byteArrayToBase64([])).toBe("");
+    it("handles byte values at extremes", () => {
+      expect(bytesToBase64([0, 255])).toBe("AP8=");
     });
 
-    it("should handle byte values at extremes", () => {
-      expect(byteArrayToBase64([0, 255])).toBe("AP8=");
+    // A Uint8Array that went through JSON (persisted store state) comes back
+    // as an index-keyed object rather than an array.
+    it("accepts an index-keyed object", () => {
+      expect(bytesToBase64({ 0: 72, 1: 101, 2: 108, 3: 108, 4: 111 })).toBe(
+        "SGVsbG8=",
+      );
     });
   });
 

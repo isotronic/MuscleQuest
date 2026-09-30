@@ -8,7 +8,8 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { UserExercise } from "@/store/workoutStore";
 import { AppImage, AppIconButton } from "@/components/ui";
-import { byteArrayToBase64, formatFromTotalSeconds } from "@/utils/utility";
+import { formatFromTotalSeconds } from "@/utils/utility";
+import { exerciseThumbnailUri } from "@/utils/exerciseThumbnail";
 import { classifySupersetPosition } from "@/utils/supersetUtils";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { Notes } from "@/components/Notes";
@@ -98,11 +99,7 @@ export default function WorkoutDetailsScreen() {
     item: UserExercise;
     index: number;
   }) => {
-    let base64Image: string | undefined;
-    if (item.image) {
-      const base64String = byteArrayToBase64(item.image);
-      base64Image = `data:image/webp;base64,${base64String}`;
-    }
+    const thumbnailUri = exerciseThumbnailUri(item.image_uri, item.image);
 
     const exercises = workout?.exercises ?? [];
     const { isInSuperset, isFirstInSuperset, isSecondInSuperset } =
@@ -185,10 +182,10 @@ export default function WorkoutDetailsScreen() {
               isSecondInSuperset && styles.supersetExerciseLast,
             ]}
           >
-            {item.image.length > 0 ? (
+            {thumbnailUri ? (
               <AppImage
                 style={styles.exerciseImage}
-                source={{ uri: base64Image }}
+                source={{ uri: thumbnailUri }}
               />
             ) : item.local_animated_uri ? (
               <AppImage

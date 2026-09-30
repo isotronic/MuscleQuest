@@ -13,15 +13,31 @@ export function reportError(error: unknown): void {
   markReported(error);
 }
 
-// Convert a byte array to a base64 string
-export const byteArrayToBase64 = (byteArray: any) => {
-  const binaryString = Object.keys(byteArray)
-    .map((key) => {
-      return String.fromCharCode(byteArray[key]);
-    })
-    .join("");
-  return btoa(binaryString);
-};
+type ByteSource = Uint8Array | ArrayLike<number> | Record<number, number>;
+
+const BASE64_CHUNK_SIZE = 0x8000;
+
+// Convert bytes to a base64 string. Encodes in chunks so a large image neither
+// overflows the argument limit nor allocates a string per byte. Also accepts
+// the index-keyed object a Uint8Array turns into after a JSON round trip.
+export function bytesToBase64(bytes: ByteSource): string {
+  let arr: Uint8Array;
+  if (bytes instanceof Uint8Array) {
+    arr = bytes;
+  } else if (typeof (bytes as ArrayLike<number>).length === "number") {
+    arr = Uint8Array.from(bytes as ArrayLike<number>);
+  } else {
+    arr = Uint8Array.from(Object.values(bytes));
+  }
+  let binary = "";
+  for (let i = 0; i < arr.length; i += BASE64_CHUNK_SIZE) {
+    binary += String.fromCharCode.apply(
+      null,
+      arr.subarray(i, i + BASE64_CHUNK_SIZE) as unknown as number[],
+    );
+  }
+  return btoa(binary);
+}
 
 // Format a time string in minutes and seconds
 export const formatTimeInput = (value: string): string => {

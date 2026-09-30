@@ -60,6 +60,7 @@ export default function EditCompletedWorkoutScreen() {
                   exercise_id: picked.exercise_id,
                   exercise_name: picked.name,
                   exercise_image: picked.image,
+                  exercise_image_uri: picked.image_uri,
                   exercise_tracking_type: picked.tracking_type || "weight",
                   is_unilateral: picked.is_unilateral,
                   double_weight: picked.double_weight,

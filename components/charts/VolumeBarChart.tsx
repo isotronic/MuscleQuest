@@ -3,7 +3,8 @@ import { localDateKeyToDate } from "@/utils/dates";
 import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { Card } from "react-native-paper";
-import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import type { WorkoutSummary } from "@/utils/db/workoutStats";
+import { volumeInTons } from "@/utils/workoutStats";
 import { t } from "@lingui/core/macro";
 import { useReduceMotion } from "@/hooks/useReduceMotion";
 import { useChartTheme } from "./chartTheme";
@@ -11,13 +12,13 @@ import { spokenBucketLabels, summarizeTotals } from "./chartA11y";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
+type WorkoutVolume = Pick<WorkoutSummary, "local_date" | "volume_kg">;
+
 interface VolumeBarChartProps {
-  completedWorkouts: CompletedWorkout[];
+  /** volume_kg already reflects the warm-up and doubling settings. */
+  completedWorkouts: WorkoutVolume[];
   timeRange: string;
   weightUnit: string;
-  excludeWarmup?: boolean;
-  countUnilateralDouble?: boolean;
-  doubleWeightForPaired?: boolean;
 }
 
 interface Bucket {
@@ -31,17 +32,13 @@ interface Bucket {
 type BucketType = "weekly" | "monthly" | "quarterly" | "yearly";
 
 const groupVolumeByTime = (
-  completedWorkouts: CompletedWorkout[],
+  completedWorkouts: WorkoutVolume[],
   timeRange: string,
   weightUnit: string,
-  excludeWarmup: boolean = false,
-  countUnilateralDouble: boolean = false,
-  doubleWeightForPaired: boolean = false,
 ): Bucket[] => {
   type InternalBucket = Bucket & { internalKey: string };
   const buckets: InternalBucket[] = [];
   const keyToIndex = new Map<string, number>();
-  const tonDivisor = weightUnit === "lbs" ? 2000 : 1000;
 
   const today = new Date();
   let bucketType: BucketType = "monthly";
@@ -169,16 +166,7 @@ const groupVolumeByTime = (
     const idx = keyToIndex.get(internalKey);
     if (idx === undefined) return;
 
-    workout.exercises.forEach((exercise) => {
-      const weightM = doubleWeightForPaired && exercise.double_weight ? 2 : 1;
-      const repM = countUnilateralDouble && exercise.is_unilateral ? 2 : 1;
-      exercise.sets.forEach((set) => {
-        if ((!excludeWarmup || !set.is_warmup) && set.weight && set.reps) {
-          buckets[idx].value +=
-            (set.weight * weightM * set.reps * repM) / tonDivisor;
-        }
-      });
-    });
+    buckets[idx].value += volumeInTons(workout.volume_kg, weightUnit);
   });
 
   return buckets.map((b) => ({ ...b, value: parseFloat(b.value.toFixed(2)) }));
@@ -192,9 +180,6 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
   completedWorkouts,
   timeRange,
   weightUnit,
-  excludeWarmup = false,
-  countUnilateralDouble = false,
-  doubleWeightForPaired = false,
 }) => {
   const { width: screenWidth } = useWindowDimensions();
   const chartTheme = useChartTheme();
@@ -204,23 +189,8 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const buckets = useMemo(
-    () =>
-      groupVolumeByTime(
-        completedWorkouts,
-        timeRange,
-        weightUnit,
-        excludeWarmup,
-        countUnilateralDouble,
-        doubleWeightForPaired,
-      ),
-    [
-      completedWorkouts,
-      timeRange,
-      weightUnit,
-      excludeWarmup,
-      countUnilateralDouble,
-      doubleWeightForPaired,
-    ],
+    () => groupVolumeByTime(completedWorkouts, timeRange, weightUnit),
+    [completedWorkouts, timeRange, weightUnit],
   );
 
   if (buckets.length === 0) return null;

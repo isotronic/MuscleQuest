@@ -2,11 +2,11 @@ import React, { useCallback } from "react";
 import { FlatList, View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import WorkoutHistoryCard from "@/components/WorkoutHistoryCard";
-import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import type { WorkoutSummary } from "@/utils/db/workoutStats";
 import { Trans } from "@lingui/react/macro";
 
 interface WorkoutHistorySectionProps {
-  completedWorkouts: CompletedWorkout[];
+  completedWorkouts: WorkoutSummary[];
   onWorkoutPress: (id: number) => void;
   excludeWarmup?: boolean;
 }
@@ -17,7 +17,7 @@ export const WorkoutHistorySection: React.FC<WorkoutHistorySectionProps> = ({
   excludeWarmup = false,
 }) => {
   const renderItem = useCallback(
-    ({ item }: { item: CompletedWorkout }) => (
+    ({ item }: { item: WorkoutSummary }) => (
       <WorkoutHistoryCard
         workout={item}
         onPress={onWorkoutPress}
@@ -28,7 +28,7 @@ export const WorkoutHistorySection: React.FC<WorkoutHistorySectionProps> = ({
   );
 
   const keyExtractor = useCallback(
-    (item: CompletedWorkout) => item.id.toString(),
+    (item: WorkoutSummary) => item.id.toString(),
     [],
   );
 

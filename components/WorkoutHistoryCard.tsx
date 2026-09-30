@@ -2,14 +2,15 @@ import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { format } from "date-fns";
 import { localDateKeyToDate } from "@/utils/dates";
-import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import type { WorkoutSummary } from "@/utils/db/workoutStats";
 import { Plural } from "@lingui/react/macro";
 import { formatToHoursMinutes } from "@/utils/utility";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
 interface WorkoutCardProps {
-  workout: CompletedWorkout;
+  /** Its set_count must come from a query run with the same excludeWarmup. */
+  workout: WorkoutSummary;
   onPress: (id: number) => void;
   excludeWarmup?: boolean;
   variant?: "horizontal" | "vertical";
@@ -24,10 +25,7 @@ function WorkoutHistoryCard({
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const setsCount = excludeWarmup
-    ? workout.exercises.reduce(
-        (acc, e) => acc + e.sets.filter((s) => !s.is_warmup).length,
-        0,
-      )
+    ? workout.set_count
     : workout.total_sets_completed;
 
   const durationFormatted = formatToHoursMinutes(workout.duration);

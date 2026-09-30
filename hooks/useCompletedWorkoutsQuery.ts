@@ -18,7 +18,6 @@ interface WorkoutResult {
   completed_exercise_id: number;
   exercise_id: number;
   exercise_name: string;
-  exercise_image: Uint8Array | null;
   exercise_tracking_type: string;
   is_unilateral: number | null;
   double_weight: number | null;
@@ -48,7 +47,9 @@ export interface CompletedWorkout {
     completed_exercise_id: number;
     exercise_id: number;
     exercise_name: string;
+    /** Thumbnail bytes. Only fetchCompletedWorkoutById loads them. */
     exercise_image?: number[];
+    exercise_image_uri?: string | null;
     exercise_tracking_type: string;
     is_unilateral?: number;
     double_weight?: number;
@@ -66,6 +67,10 @@ export interface CompletedWorkout {
 }
 
 const QUICK_WORKOUT_FALLBACK = "Quick Workout";
+
+// How far back the home screen and weekly components look. They need this
+// week and last week; the rest is slack for a streak check after a break.
+export const RECENT_HISTORY_DAYS = 56;
 
 const fetchCompletedWorkouts = async (
   timeRange: number,
@@ -88,7 +93,6 @@ const fetchCompletedWorkouts = async (
         completed_exercises.id as completed_exercise_id,
         completed_exercises.exercise_id,
         exercises.name AS exercise_name,
-        exercises.image AS exercise_image,
         COALESCE(
           completed_exercises.resolved_tracking_type,
           (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
@@ -176,7 +180,6 @@ const fetchAndOrganize = async (
         completed_exercise_id,
         exercise_id,
         exercise_name,
-        exercise_image,
         exercise_tracking_type,
         is_unilateral,
         double_weight,
@@ -218,9 +221,6 @@ const fetchAndOrganize = async (
           completed_exercise_id,
           exercise_id,
           exercise_name,
-          exercise_image: exercise_image
-            ? Array.from(exercise_image)
-            : undefined,
           exercise_tracking_type,
           is_unilateral: is_unilateral ?? 0,
           double_weight: double_weight ?? 0,
@@ -274,7 +274,7 @@ export const useCompletedWorkoutsQuery = (
 // The window of the same size immediately before the current period, as
 // inclusive local date keys. toISOString() would give the UTC day, which is
 // the wrong day for anyone far enough from UTC.
-const getPreviousPeriodDates = (
+export const getPreviousPeriodDates = (
   days: number,
 ): { startDate: string; endDate: string } => {
   const endDate = new Date();

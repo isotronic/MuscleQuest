@@ -23,6 +23,7 @@ interface RawStandaloneWorkout {
   exercise_name: string | null;
   description: string | null;
   image: Uint8Array | null;
+  image_uri: string | null;
   local_animated_uri: string | null;
   animated_url: string | null;
   equipment: string | null;
@@ -48,7 +49,8 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
       e.exercise_id,
       e.name AS exercise_name,
       e.description,
-      e.image,
+      e.image_uri,
+      CASE WHEN e.image_uri IS NULL THEN e.image END AS image,
       e.local_animated_uri,
       e.animated_url,
       e.equipment,
@@ -84,6 +86,7 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
           name: row.exercise_name,
           description: row.description || "",
           image: row.image ? Array.from(row.image) : [],
+          image_uri: row.image_uri ?? null,
           local_animated_uri: row.local_animated_uri || "",
           animated_url: row.animated_url || "",
           equipment: row.equipment || "",

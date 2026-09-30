@@ -33,8 +33,9 @@ const STARTER_PLANS: { appPlanId: number; description: MessageDescriptor }[] = [
  */
 export const shouldShowActivationCard = (
   hasActivePlan: boolean,
-  completedWorkouts: readonly unknown[] | undefined,
-) => !hasActivePlan && completedWorkouts?.length === 0;
+  /** undefined while the check is still loading. */
+  hasCompletedWorkout: boolean | undefined,
+) => !hasActivePlan && hasCompletedWorkout === false;
 
 interface OnboardingProps {
   /** Shown to a new user: no active plan and no completed workouts yet. */

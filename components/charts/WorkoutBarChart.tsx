@@ -3,7 +3,7 @@ import { localDateKeyToDate } from "@/utils/dates";
 import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { Card } from "react-native-paper";
-import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import type { WorkoutSummary } from "@/utils/db/workoutStats";
 import { t } from "@lingui/core/macro";
 import { useReduceMotion } from "@/hooks/useReduceMotion";
 import { useChartTheme } from "./chartTheme";
@@ -11,8 +11,10 @@ import { spokenBucketLabels, summarizeTotals } from "./chartA11y";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
+type DatedWorkout = Pick<WorkoutSummary, "local_date">;
+
 interface WorkoutBarChartProps {
-  completedWorkouts: CompletedWorkout[];
+  completedWorkouts: DatedWorkout[];
   timeRange: string;
 }
 
@@ -27,7 +29,7 @@ interface Bucket {
 type BucketType = "weekly" | "monthly" | "quarterly" | "yearly";
 
 const groupWorkoutsByTime = (
-  completedWorkouts: CompletedWorkout[],
+  completedWorkouts: DatedWorkout[],
   timeRange: string,
 ): Bucket[] => {
   type InternalBucket = Bucket & { internalKey: string };

@@ -162,7 +162,8 @@ describe("uploadDatabaseBackup", () => {
     expect(JSON.parse(body)).toMatchObject({
       currentSlot: "slotB",
       appVersion: "9.9.9",
-      schemaVersion: LATEST_SCHEMA_VERSION,
+      // What the mocked readDatabaseSchemaVersion reports for the snapshot.
+      schemaVersion: 1,
       sizeBytes: 2048,
     });
     expect(

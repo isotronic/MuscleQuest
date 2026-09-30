@@ -11,7 +11,8 @@ import {
   useLocalSearchParams,
   useFocusEffect,
 } from "expo-router";
-import { byteArrayToBase64, formatToHoursMinutes } from "@/utils/utility";
+import { formatToHoursMinutes } from "@/utils/utility";
+import { exerciseThumbnailUri } from "@/utils/exerciseThumbnail";
 import { format } from "date-fns";
 import { parseDbTimestamp } from "@/utils/dates";
 import { AppIcon, AppImage, AppIconButton } from "@/components/ui";
@@ -232,11 +233,10 @@ export default function HistoryDetailsScreen() {
         {/* Exercise List */}
         <View style={styles.exerciseList}>
           {workout.exercises.map((exercise) => {
-            let imageUri = "";
-            if (exercise.exercise_image) {
-              const base64Image = byteArrayToBase64(exercise.exercise_image);
-              imageUri = `data:image/webp;base64,${base64Image}`;
-            }
+            const imageUri = exerciseThumbnailUri(
+              exercise.exercise_image_uri,
+              exercise.exercise_image,
+            );
 
             return (
               <Card key={exercise.exercise_id} style={styles.exerciseCard}>

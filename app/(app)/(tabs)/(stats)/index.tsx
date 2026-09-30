@@ -15,10 +15,12 @@ import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import {
-  CompletedWorkout,
-  useCompletedWorkoutsQuery,
-  usePreviousPeriodWorkoutsQuery,
-} from "@/hooks/useCompletedWorkoutsQuery";
+  useBodyPartSetCountsQuery,
+  usePreviousPeriodSummariesQuery,
+  useWorkoutSummariesQuery,
+} from "@/hooks/useWorkoutSummariesQuery";
+import type { WorkoutSummary } from "@/utils/db/workoutStats";
+import { computeStats, mergeBodyPartCounts } from "@/utils/workoutStats";
 import {
   startOfWeek,
   endOfWeek,
@@ -27,7 +29,6 @@ import {
 } from "date-fns";
 import { isLocalDateInRange, localDateKeyToDate } from "@/utils/dates";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
-import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { WorkoutHistorySection } from "@/components/stats/WorkoutHistorySection";
 import { WorkoutCalendarModal } from "@/components/stats/WorkoutCalendarModal";
 import { InsightsStrip } from "@/components/stats/InsightsStrip";
@@ -52,57 +53,7 @@ import Bugsnag from "@bugsnag/expo";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
-const computeStats = (
-  workouts: CompletedWorkout[],
-  weightUnit: string,
-  excludeWarmup: boolean,
-  countUnilateralDouble: boolean = false,
-  doubleWeightForPaired: boolean = false,
-) => {
-  const tonDivisor = weightUnit === "lbs" ? 2000 : 1000;
-  const totalWorkouts = workouts.length;
-  const totalSets = workouts.reduce(
-    (acc, w) =>
-      acc +
-      w.exercises.reduce(
-        (a, e) =>
-          a + e.sets.filter((s) => !excludeWarmup || !s.is_warmup).length,
-        0,
-      ),
-    0,
-  );
-  const totalVolume = workouts.reduce(
-    (acc, w) =>
-      acc +
-      w.exercises.reduce((a, e) => {
-        const weightM = doubleWeightForPaired && e.double_weight ? 2 : 1;
-        const repM = countUnilateralDouble && e.is_unilateral ? 2 : 1;
-        return (
-          a +
-          e.sets.reduce(
-            (s, set) =>
-              (!excludeWarmup || !set.is_warmup) && set.weight && set.reps
-                ? s + set.weight * weightM * set.reps * repM
-                : s,
-            0,
-          )
-        );
-      }, 0),
-    0,
-  );
-  const totalTimeSeconds = workouts.reduce((acc, w) => acc + w.duration, 0);
-  return {
-    totalWorkouts,
-    totalSets,
-    totalVolumeTons: totalVolume / tonDivisor,
-    totalTimeSeconds,
-    avgDurationSeconds:
-      totalWorkouts > 0 ? Math.round(totalTimeSeconds / totalWorkouts) : 0,
-  };
-};
-
 const STATS_QUERY_ROOTS = [
-  "exercises",
   "trackedExercises",
   "completedWorkouts",
   "bodyMeasurements",
@@ -143,11 +94,13 @@ export default function StatsScreen() {
     if (settings?.timeRange) setSelectedTimeRange(settings.timeRange);
   }, [settings?.timeRange]);
 
-  const {
-    data: exercises,
-    isLoading: isLoadingExercises,
-    error: exercisesError,
-  } = useExercisesQuery();
+  // Every workout figure on this screen comes from per-workout totals and
+  // per-body-part counts computed in SQL; no individual sets are loaded.
+  const statsOptions = useMemo(
+    () => ({ excludeWarmup, countUnilateralDouble, doubleWeightForPaired }),
+    [excludeWarmup, countUnilateralDouble, doubleWeightForPaired],
+  );
+  const timeRangeDays = parseInt(selectedTimeRange);
   const {
     data: trackedExercises,
     isLoading: isLoadingTracked,
@@ -163,16 +116,20 @@ export default function StatsScreen() {
     data: completedWorkouts,
     isLoading: isLoadingWorkouts,
     error,
-  } = useCompletedWorkoutsQuery(
-    weightUnit,
-    distanceUnit,
-    parseInt(selectedTimeRange),
+  } = useWorkoutSummariesQuery(timeRangeDays, statsOptions);
+
+  const { data: prevWorkouts } = usePreviousPeriodSummariesQuery(
+    timeRangeDays,
+    statsOptions,
   );
 
-  const { data: prevWorkouts } = usePreviousPeriodWorkoutsQuery(
-    weightUnit,
-    distanceUnit,
-    parseInt(selectedTimeRange),
+  const { data: bodyPartRows } = useBodyPartSetCountsQuery(
+    timeRangeDays,
+    excludeWarmup,
+  );
+  const bodyPartCounts = useMemo(
+    () => bodyPartRows && mergeBodyPartCounts(bodyPartRows),
+    [bodyPartRows],
   );
 
   const { data: latestMeasurements } = useBodyMeasurementSessionsQuery(
@@ -184,17 +141,16 @@ export default function StatsScreen() {
     data: allWorkouts,
     isLoading: isLoadingAllWorkouts,
     error: allWorkoutsError,
-  } = useCompletedWorkoutsQuery(weightUnit, distanceUnit);
+  } = useWorkoutSummariesQuery(0, statsOptions);
 
   useEffect(() => {
-    const anyError =
-      error || exercisesError || trackedError || allWorkoutsError;
+    const anyError = error || trackedError || allWorkoutsError;
     if (anyError) {
       Bugsnag.notify(
         anyError instanceof Error ? anyError : new Error(String(anyError)),
       );
     }
-  }, [error, exercisesError, trackedError, allWorkoutsError]);
+  }, [error, trackedError, allWorkoutsError]);
 
   const thisWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const thisWeekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
@@ -215,13 +171,12 @@ export default function StatsScreen() {
   );
 
   const insights = useStatsInsights(
-    completedWorkouts,
+    completedWorkouts?.length,
     trackedExercises,
-    exercises?.otherExercises,
-    parseInt(selectedTimeRange),
+    bodyPartCounts,
+    timeRangeDays,
     weightUnit,
     distanceUnit,
-    excludeWarmup,
   );
 
   const handleTimeRangeChange = useCallback(
@@ -244,7 +199,7 @@ export default function StatsScreen() {
   );
 
   const allWorkoutsByDate = useMemo(() => {
-    const map: Record<string, CompletedWorkout[]> = {};
+    const map: Record<string, WorkoutSummary[]> = {};
     for (const w of allWorkouts ?? []) {
       (map[w.local_date] ??= []).push(w);
     }
@@ -359,10 +314,7 @@ export default function StatsScreen() {
   );
 
   const isLoading =
-    isLoadingWorkouts ||
-    isLoadingExercises ||
-    isLoadingTracked ||
-    isLoadingAllWorkouts;
+    isLoadingWorkouts || isLoadingTracked || isLoadingAllWorkouts;
 
   if (isLoading) {
     return (
@@ -372,7 +324,7 @@ export default function StatsScreen() {
     );
   }
 
-  const anyError = error || exercisesError || trackedError || allWorkoutsError;
+  const anyError = error || trackedError || allWorkoutsError;
   if (anyError) {
     return (
       <ThemedView style={styles.centered}>
@@ -383,22 +335,8 @@ export default function StatsScreen() {
     );
   }
 
-  const current = computeStats(
-    completedWorkouts ?? [],
-    weightUnit,
-    excludeWarmup,
-    countUnilateralDouble,
-    doubleWeightForPaired,
-  );
-  const prev = prevWorkouts
-    ? computeStats(
-        prevWorkouts,
-        weightUnit,
-        excludeWarmup,
-        countUnilateralDouble,
-        doubleWeightForPaired,
-      )
-    : null;
+  const current = computeStats(completedWorkouts ?? [], weightUnit);
+  const prev = prevWorkouts ? computeStats(prevWorkouts, weightUnit) : null;
 
   const volumeUnit = weightUnit === "lbs" ? "tn" : "t";
   const formattedVolume = current.totalVolumeTons.toLocaleString(undefined, {
@@ -542,9 +480,6 @@ export default function StatsScreen() {
               completedWorkouts={completedWorkouts!}
               timeRange={selectedTimeRange}
               weightUnit={weightUnit}
-              excludeWarmup={excludeWarmup}
-              countUnilateralDouble={countUnilateralDouble}
-              doubleWeightForPaired={doubleWeightForPaired}
             />
           </View>
         )}
@@ -554,11 +489,7 @@ export default function StatsScreen() {
           <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
             <Trans>Training Split (by sets)</Trans>
           </ThemedText>
-          <BodyPartChart
-            completedWorkouts={completedWorkouts}
-            exercises={exercises?.otherExercises}
-            excludeWarmup={excludeWarmup}
-          />
+          <BodyPartChart bodyPartCounts={bodyPartCounts} />
         </View>
 
         {/* Exercises */}

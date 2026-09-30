@@ -130,15 +130,15 @@ describe("Onboarding", () => {
 
 describe("shouldShowActivationCard", () => {
   it("shows for a new user with no active plan and no workouts", () => {
-    expect(shouldShowActivationCard(false, [])).toBe(true);
+    expect(shouldShowActivationCard(false, false)).toBe(true);
   });
 
   it("hides after one completed workout, even without an active plan", () => {
-    expect(shouldShowActivationCard(false, [{ id: 1 }])).toBe(false);
+    expect(shouldShowActivationCard(false, true)).toBe(false);
   });
 
   it("hides while an active plan is set", () => {
-    expect(shouldShowActivationCard(true, [])).toBe(false);
+    expect(shouldShowActivationCard(true, false)).toBe(false);
   });
 
   it("waits for workout history to load before showing", () => {
