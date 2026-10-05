@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
@@ -15,6 +14,7 @@ import { Button, Divider } from "react-native-paper";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
+import { DecimalInput } from "@/components/ui/DecimalInput";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import { useAccessibilityFocusOnShow } from "@/hooks/useAccessibilityFocusOnShow";
@@ -116,14 +116,6 @@ export const PlateCalculatorModal: React.FC<PlateCalculatorModalProps> = ({
     updateSetting({ key: barSettingKey, value: String(weight) });
   };
 
-  const handleCustomBarChange = (text: string) => {
-    const cleaned = text.replace(/[^0-9.]/g, "");
-    const parts = cleaned.split(".");
-    setCustomBar(
-      parts.length > 1 ? `${parts[0]}.${parts.slice(1).join("")}` : cleaned,
-    );
-  };
-
   const handleClose = () => {
     commitCustomBar();
     onClose();
@@ -209,12 +201,11 @@ export const PlateCalculatorModal: React.FC<PlateCalculatorModalProps> = ({
               </View>
 
               {showCustomBar && (
-                <TextInput
+                <DecimalInput
                   style={styles.input}
                   value={customBar}
-                  onChangeText={handleCustomBarChange}
+                  onChangeValue={setCustomBar}
                   onBlur={commitCustomBar}
-                  keyboardType="numeric"
                   selectTextOnFocus
                   placeholder={t`Bar weight`}
                   accessibilityLabel={t`Custom bar weight in ${weightUnit}`}

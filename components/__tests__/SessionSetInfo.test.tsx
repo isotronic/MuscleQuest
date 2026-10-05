@@ -27,6 +27,9 @@ jest.mock("@/components/ui/AppBottomSheet", () => ({
 }));
 jest.mock("@/components/ProgressionSuggestionChip", () => () => null);
 jest.mock("../ExerciseTimerModal", () => ({ ExerciseTimerModal: () => null }));
+jest.mock("expo-localization", () => ({
+  getLocales: () => [{ languageCode: "de", decimalSeparator: "," }],
+}));
 
 const baseProps = {
   exercise_id: 7,
@@ -166,5 +169,36 @@ describe("SessionSetInfo accessibility", () => {
     }
     expect(styles.some((s) => s.minHeight === 55)).toBe(true);
     expect(styles.some((s) => s.height === 55)).toBe(false);
+  });
+});
+
+describe("SessionSetInfo decimal entry on a comma device", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it("reports a comma-typed weight as the canonical value", () => {
+    const { getByLabelText } = render(<SessionSetInfo {...baseProps} />);
+    fireEvent.changeText(getByLabelText("Weight in kg, set 2"), "62,5");
+    expect(baseProps.handleWeightInputChange).toHaveBeenCalledWith("62.5");
+  });
+
+  it("shows a stored weight with the device separator", () => {
+    const { getByLabelText } = render(
+      <SessionSetInfo {...baseProps} weight="62.5" />,
+    );
+    expect(getByLabelText("Weight in kg, set 2").props.value).toBe("62,5");
+  });
+
+  it("keeps only digits in the reps field", () => {
+    const { getByLabelText } = render(<SessionSetInfo {...baseProps} />);
+    fireEvent.changeText(getByLabelText("Reps, set 2"), "8,5");
+    expect(baseProps.handleRepsInputChange).toHaveBeenCalledWith("85");
+  });
+
+  it("reports a comma-typed distance as the canonical value", () => {
+    const { getByLabelText } = render(
+      <SessionSetInfo {...baseProps} trackingType="distance" />,
+    );
+    fireEvent.changeText(getByLabelText("Distance in km, set 2"), "1,5");
+    expect(baseProps.handleDistanceInputChange).toHaveBeenCalledWith("1.5");
   });
 });

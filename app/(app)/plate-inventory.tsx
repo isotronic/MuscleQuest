@@ -3,7 +3,6 @@ import {
   Alert,
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -13,7 +12,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { AppIcon } from "@/components/ui";
+import { AppIcon, DecimalInput } from "@/components/ui";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import {
@@ -150,14 +149,6 @@ export default function PlateInventoryScreen() {
     );
   };
 
-  const handleNewWeightChange = (text: string) => {
-    const cleaned = text.replace(/[^0-9.]/g, "");
-    const parts = cleaned.split(".");
-    setNewWeight(
-      parts.length > 1 ? `${parts[0]}.${parts.slice(1).join("")}` : cleaned,
-    );
-  };
-
   return (
     <ThemedView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -242,12 +233,11 @@ export default function PlateInventoryScreen() {
           <Trans>Add a plate size</Trans>
         </ThemedText>
         <View style={styles.addRow}>
-          <TextInput
+          <DecimalInput
             accessibilityLabel={t`Weight in ${weightUnit}`}
             style={styles.input}
             value={newWeight}
-            onChangeText={handleNewWeightChange}
-            keyboardType="numeric"
+            onChangeValue={setNewWeight}
             placeholder={t`Weight in ${weightUnit}`}
             placeholderTextColor={colors.contentDisabled}
             onSubmitEditing={addPlate}

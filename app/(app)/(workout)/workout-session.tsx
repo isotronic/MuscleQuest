@@ -687,23 +687,21 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleWeightInputChange = (inputValue: string) => {
-    const sanitizedInput = inputValue.replace(/[^0-9.]/g, "");
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
-      sanitizedInput,
+      inputValue,
       reps,
       time,
     );
   };
 
   const handleRepsInputChange = (inputValue: string) => {
-    const sanitizedInput = inputValue.replace(/[^0-9.]/g, "");
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
       weight,
-      sanitizedInput,
+      inputValue,
       time,
     );
   };
@@ -743,14 +741,13 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleDistanceInputChange = (inputValue: string) => {
-    const sanitizedInput = inputValue.replace(/[^0-9.]/g, "");
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
       undefined,
       undefined,
       undefined,
-      sanitizedInput,
+      inputValue,
     );
   };
 

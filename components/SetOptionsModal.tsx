@@ -13,7 +13,13 @@ import { Button, Checkbox, Divider } from "react-native-paper";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
-import { AppIcon, checkboxCaptionA11y, checkboxLabel } from "@/components/ui";
+import {
+  AppIcon,
+  checkboxCaptionA11y,
+  checkboxLabel,
+  DecimalInput,
+} from "@/components/ui";
+import { sanitizeIntegerInput } from "@/utils/numberFormat";
 import {
   formatTimeInput,
   formatFromTotalSeconds,
@@ -244,20 +250,11 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                       }
                       accessibilityLabel={t`Decrease target distance`}
                     />
-                    <TextInput
+                    <DecimalInput
                       style={styles.input}
                       value={distance}
                       accessibilityLabel={t`Target distance in ${distanceUnit}`}
-                      onChangeText={(v: string) => {
-                        const cleaned = v.replace(/[^0-9.]/g, "");
-                        const parts = cleaned.split(".");
-                        setDistance(
-                          parts.length > 1
-                            ? parts[0] + "." + parts.slice(1).join("")
-                            : cleaned,
-                        );
-                      }}
-                      keyboardType="numeric"
+                      onChangeValue={setDistance}
                       selectTextOnFocus={true}
                     />
                     <AppIcon
@@ -296,7 +293,9 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                       style={styles.input}
                       value={repsMin ? repsMin : ""}
                       accessibilityLabel={t`Min reps`}
-                      onChangeText={setRepsMin}
+                      onChangeText={(v: string) =>
+                        setRepsMin(sanitizeIntegerInput(v))
+                      }
                       keyboardType="numeric"
                       selectTextOnFocus={true}
                     />
@@ -332,7 +331,9 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
                       style={styles.input}
                       value={repsMax ? repsMax : ""}
                       accessibilityLabel={t`Max reps`}
-                      onChangeText={setRepsMax}
+                      onChangeText={(v: string) =>
+                        setRepsMax(sanitizeIntegerInput(v))
+                      }
                       keyboardType="numeric"
                       selectTextOnFocus={true}
                     />

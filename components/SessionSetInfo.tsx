@@ -4,11 +4,17 @@ import { View, TextInput, StyleSheet } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ActivityIndicator, Button, Menu } from "react-native-paper";
-import { AppImage, AppIcon, AppIconButton } from "@/components/ui";
+import {
+  AppImage,
+  AppIcon,
+  AppIconButton,
+  DecimalInput,
+} from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
 import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { formatFromTotalSeconds, formatTimeInput } from "@/utils/utility";
+import { sanitizeIntegerInput } from "@/utils/numberFormat";
 import { TimeInput } from "./TimeInput";
 import { useContinuousPress } from "@/hooks/useContinuousPress";
 import { ExerciseTimerModal } from "./ExerciseTimerModal";
@@ -475,12 +481,11 @@ export default function SessionSetInfo({
               size={buttonSize}
               iconColor={colors.contentPrimary}
             />
-            <TextInput
+            <DecimalInput
               placeholderTextColor={colors.contentPrimary}
               value={weight}
               accessibilityLabel={weightInputLabel}
-              onChangeText={(text: string) => handleWeightInputChange(text)}
-              keyboardType="numeric"
+              onChangeValue={handleWeightInputChange}
               selectTextOnFocus
               style={styles.input}
             />
@@ -513,7 +518,9 @@ export default function SessionSetInfo({
               placeholderTextColor={colors.contentPrimary}
               value={reps}
               accessibilityLabel={t`Reps, set ${setNumber}`}
-              onChangeText={(text: string) => handleRepsInputChange(text)}
+              onChangeText={(text: string) =>
+                handleRepsInputChange(sanitizeIntegerInput(text))
+              }
               keyboardType="numeric"
               selectTextOnFocus
               style={styles.input}
@@ -582,12 +589,11 @@ export default function SessionSetInfo({
               size={buttonSize}
               iconColor={colors.contentPrimary}
             />
-            <TextInput
+            <DecimalInput
               placeholderTextColor={colors.contentPrimary}
               value={distance}
               accessibilityLabel={t`Distance in ${distanceUnit}, set ${setNumber}`}
-              onChangeText={(text: string) => handleDistanceInputChange(text)}
-              keyboardType="numeric"
+              onChangeValue={handleDistanceInputChange}
               selectTextOnFocus
               style={styles.input}
             />

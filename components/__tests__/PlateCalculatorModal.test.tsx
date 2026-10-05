@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal } from "react-native";
-import { render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import { PlateCalculatorModal } from "../PlateCalculatorModal";
 
 // Its keyboard listeners cannot unsubscribe from the mocked event emitter.
@@ -20,8 +20,12 @@ jest.mock("@lingui/react/macro", () => ({
 jest.mock("@/hooks/useSettingsQuery", () => ({
   useSettingsQuery: () => ({ data: { plateCalcBarKg: "20" } }),
 }));
+const mockUpdateSetting = jest.fn();
 jest.mock("@/hooks/useUpdateSettingsMutation", () => ({
-  useUpdateSettingsMutation: () => ({ mutate: jest.fn() }),
+  useUpdateSettingsMutation: () => ({ mutate: mockUpdateSetting }),
+}));
+jest.mock("expo-localization", () => ({
+  getLocales: () => [{ languageCode: "de", decimalSeparator: "," }],
 }));
 
 const renderModal = (onClose = jest.fn()) =>
@@ -76,5 +80,22 @@ describe("PlateCalculatorModal accessibility", () => {
         ).length > 0,
     ).map((node) => `${String(node.type)} ${node.props.testID ?? ""}`);
     expect(grouped).toEqual([]);
+  });
+});
+
+describe("PlateCalculatorModal custom bar on a comma device", () => {
+  beforeEach(() => mockUpdateSetting.mockClear());
+
+  it("saves a comma-typed bar weight as a canonical number", () => {
+    const { getByRole, getByLabelText } = renderModal();
+    fireEvent.press(getByRole("button", { name: "Custom bar weight" }));
+    const input = getByLabelText("Custom bar weight in kg");
+    fireEvent.changeText(input, "17,5");
+    expect(getByLabelText("Custom bar weight in kg").props.value).toBe("17,5");
+    fireEvent(input, "blur");
+    expect(mockUpdateSetting).toHaveBeenCalledWith({
+      key: "plateCalcBarKg",
+      value: "17.5",
+    });
   });
 });

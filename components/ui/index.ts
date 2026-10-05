@@ -8,3 +8,4 @@ export { AppBottomSheet } from "./AppBottomSheet";
 export { AppSelect, type SelectOption } from "./AppSelect";
 export { AppSlider } from "./AppSlider";
 export { checkboxLabel, checkboxCaptionA11y } from "./checkboxLabel";
+export { DecimalInput, type DecimalInputProps } from "./DecimalInput";

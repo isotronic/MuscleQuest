@@ -20,6 +20,9 @@ jest.mock("@lingui/react/macro", () => ({
 jest.mock("@/components/ui/AppBottomSheet", () => ({
   AppBottomSheet: () => null,
 }));
+jest.mock("expo-localization", () => ({
+  getLocales: () => [{ languageCode: "de", decimalSeparator: "," }],
+}));
 
 const initialValues = {
   repsMin: "8",
@@ -88,5 +91,55 @@ describe("SetOptionsModal accessibility", () => {
         ).length > 0,
     ).map((node) => `${String(node.type)} ${node.props.testID ?? ""}`);
     expect(grouped).toEqual([]);
+  });
+});
+
+describe("SetOptionsModal number entry on a comma device", () => {
+  const renderDistance = (onSave = jest.fn(), distance = "") =>
+    render(
+      <SetOptionsModal
+        visible
+        onClose={jest.fn()}
+        trackingType="distance"
+        distanceUnit="km"
+        initialValues={{ ...initialValues, distance }}
+        defaultRepsMin={8}
+        defaultRepsMax={12}
+        saveLabel="Save"
+        onSave={onSave}
+      />,
+    );
+
+  it("saves a comma-typed target distance as a number", () => {
+    const onSave = jest.fn();
+    const { getByLabelText, getByText } = renderDistance(onSave);
+    fireEvent.changeText(getByLabelText("Target distance in km"), "1,5");
+    fireEvent.press(getByText("Save"));
+    expect(onSave.mock.calls[0][0].distance).toBe(1.5);
+  });
+
+  it("shows the seeded distance with the device separator", () => {
+    const { getByLabelText } = renderDistance(jest.fn(), "2.5");
+    expect(getByLabelText("Target distance in km").props.value).toBe("2,5");
+  });
+
+  it("keeps only digits in the rep fields", () => {
+    const onSave = jest.fn();
+    const { getByLabelText, getByText } = render(
+      <SetOptionsModal
+        visible
+        onClose={jest.fn()}
+        trackingType="weight"
+        initialValues={initialValues}
+        defaultRepsMin={8}
+        defaultRepsMax={12}
+        showSetTypeOptions={false}
+        saveLabel="Save"
+        onSave={onSave}
+      />,
+    );
+    fireEvent.changeText(getByLabelText("Min reps"), "6,5");
+    fireEvent.press(getByText("Save"));
+    expect(onSave.mock.calls[0][0].repsMin).toBe(65);
   });
 });

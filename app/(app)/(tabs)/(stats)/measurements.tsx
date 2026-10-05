@@ -2,7 +2,6 @@ import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Modal,
@@ -12,7 +11,7 @@ import { Trans } from "@lingui/react/macro";
 import { t, plural } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { ActivityIndicator, Button, Divider } from "react-native-paper";
-import { AppIcon } from "@/components/ui";
+import { AppIcon, DecimalInput } from "@/components/ui";
 import { Calendar } from "react-native-calendars";
 import { useRouter } from "expo-router";
 import { format } from "date-fns";
@@ -27,10 +26,7 @@ import { bodyMetricTranslations } from "@/constants/dbTranslations";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { parseDbTimestamp } from "@/utils/dates";
-
-const DECIMAL_SEP =
-  new Intl.NumberFormat().formatToParts(1.1).find((p) => p.type === "decimal")
-    ?.value ?? ".";
+import { parseDecimalInput } from "@/utils/numberFormat";
 
 function formatEntryDate(recorded_at: string): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -98,10 +94,7 @@ export default function MeasurementsScreen() {
           next[metric.id] = prev[metric.id];
         } else {
           const latest = latestValueForMetric(sessions, metric.id);
-          next[metric.id] =
-            latest !== undefined
-              ? String(latest).replace(".", DECIMAL_SEP)
-              : "";
+          next[metric.id] = latest !== undefined ? String(latest) : "";
         }
       }
       return next;
@@ -112,13 +105,12 @@ export default function MeasurementsScreen() {
     if (!metrics) return;
     const values = metrics
       .filter((m) => {
-        const v = parseFloat((inputValues[m.id] ?? "").replace(",", "."));
-        return !isNaN(v);
+        return parseDecimalInput(inputValues[m.id] ?? "") !== null;
       })
       .map((m) => ({
         metric_id: m.id,
         value_kind: m.value_kind,
-        displayValue: parseFloat((inputValues[m.id] ?? "").replace(",", ".")),
+        displayValue: parseDecimalInput(inputValues[m.id] ?? "") as number,
       }));
 
     if (values.length === 0) {
@@ -211,7 +203,7 @@ export default function MeasurementsScreen() {
                   : metric.label}
               </ThemedText>
               <View style={styles.metricInputWrap}>
-                <TextInput
+                <DecimalInput
                   style={styles.metricInput}
                   accessibilityLabel={
                     bodyMetricTranslations[metric.key]
@@ -219,10 +211,9 @@ export default function MeasurementsScreen() {
                       : metric.label
                   }
                   value={inputValues[metric.id] ?? ""}
-                  onChangeText={(text: string) =>
+                  onChangeValue={(text: string) =>
                     setInputValues((prev) => ({ ...prev, [metric.id]: text }))
                   }
-                  keyboardType="numeric"
                   placeholder="—"
                   placeholderTextColor={colors.contentSecondary}
                   returnKeyType="done"

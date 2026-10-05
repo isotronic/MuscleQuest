@@ -47,6 +47,9 @@ jest.mock("@/theme", () => ({
   }),
   radii: { sm: 4, md: 8, lg: 12, xl: 16 },
 }));
+jest.mock("expo-localization", () => ({
+  getLocales: () => [{ languageCode: "de", decimalSeparator: "," }],
+}));
 jest.mock("@/components/ThemedText", () => {
   const { Text } = require("react-native");
   return {
@@ -76,7 +79,7 @@ describe("MeasurementQuickLogForm", () => {
   it("prefills each input from the latest reading", () => {
     const { getByTestId } = renderForm();
 
-    expect(getByTestId("measurement-input-1").props.value).toBe("82.5");
+    expect(getByTestId("measurement-input-1").props.value).toBe("82,5");
     expect(getByTestId("measurement-input-2").props.value).toBe("");
   });
 
@@ -89,6 +92,17 @@ describe("MeasurementQuickLogForm", () => {
     fireEvent.press(getByTestId("measurement-log-button"));
 
     expect(onSubmit).toHaveBeenCalledWith({ 1: "83.1", 2: "80" });
+  });
+
+  it("submits a comma-typed value with a point", () => {
+    const onSubmit = jest.fn();
+    const { getByTestId } = renderForm({ onSubmit });
+
+    fireEvent.changeText(getByTestId("measurement-input-1"), "83,1");
+    expect(getByTestId("measurement-input-1").props.value).toBe("83,1");
+    fireEvent.press(getByTestId("measurement-log-button"));
+
+    expect(onSubmit).toHaveBeenCalledWith({ 1: "83.1", 2: "" });
   });
 
   it("refuses to submit when the user clears every field", () => {
