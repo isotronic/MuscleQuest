@@ -1,4 +1,4 @@
-const { withAndroidManifest } = require("@expo/config-plugins");
+const { withAndroidManifest } = require("expo/config-plugins");
 
 // expo-audio registers AudioControlsService (mediaPlayback) and AudioRecordingService (microphone)
 // as foreground services. Both types are restricted in Android 15+ when started from BOOT_COMPLETED

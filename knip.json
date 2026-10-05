@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "scripts/*.js",
+    "plugins/*.js",
+    "jest.rules.config.js",
+    "lingui.config.ts"
+  ],
+  "ignoreDependencies": [
+    "@react-native-firebase/analytics",
+    "expo-application",
+    "expo-device",
+    "@lingui/babel-plugin-lingui-macro",
+    "babel-plugin-transform-remove-console",
+    "baseline-browser-mapping",
+    "@expo/metro-config"
+  ],
+  "ignoreBinaries": [
+    "eas",
+    "firebase"
+  ]
+}

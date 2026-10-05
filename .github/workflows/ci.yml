@@ -50,6 +50,11 @@ jobs:
       - name: Test
         run: npx jest --ci
 
+      # Report only: unused files and dependencies (config in knip.json).
+      - name: Unused code report
+        continue-on-error: true
+        run: npx --yes knip@5 --include files,dependencies,unlisted,binaries
+
   # Day attribution (streaks, the calendar, weekly goals) is computed in the
   # device's local timezone, so a suite that only ever runs at UTC cannot catch
   # a regression. These cover both sides of UTC, a half-hour offset, and a zone
