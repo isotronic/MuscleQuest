@@ -283,15 +283,15 @@ export default function HistoryDetailsScreen() {
                     ) : exercise.exercise_tracking_type === "weight" ? (
                       <ThemedText style={styles.setText}>
                         <Trans>
-                          {set.weight} {settings?.weightUnit} | {set.reps ?? 0}{" "}
-                          Reps
+                          {set.weight ?? 0} {settings?.weightUnit} |{" "}
+                          {set.reps ?? 0} Reps
                         </Trans>
                       </ThemedText>
                     ) : (
                       <ThemedText style={styles.setText}>
                         <Trans>
-                          Assist {set.weight} {settings?.weightUnit} | Resist{" "}
-                          {bodyWeight - (set.weight || 0)}{" "}
+                          Assist {set.weight ?? 0} {settings?.weightUnit} |
+                          Resist {bodyWeight - (set.weight || 0)}{" "}
                           {settings?.weightUnit} | {set.reps ?? 0} Reps
                         </Trans>
                       </ThemedText>

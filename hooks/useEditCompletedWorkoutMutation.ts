@@ -8,50 +8,89 @@ import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { displayToKg, displayToMetres, roundCanonical } from "@/utils/units";
 import { refreshProgressionAfterHistoryChange } from "@/utils/progressionRecompute";
 
-const saveCompletedWorkoutWithConversion = async (
-  completedWorkoutData: CompletedWorkout["exercises"],
+type EditedExercises = CompletedWorkout["exercises"];
+type EditedSet = EditedExercises[number]["sets"][number];
+type SetField = "weight" | "reps" | "time" | "distance";
+
+export interface CompletedWorkoutEdit {
+  /** The exercises as the edit screen loaded them, in display units. */
+  original: EditedExercises;
+  /** The same exercises after editing. */
+  edited: EditedExercises;
+}
+
+const SET_FIELDS: SetField[] = ["weight", "reps", "time", "distance"];
+
+/**
+ * Converts one edited display value back to storage. Null stays null: a
+ * missing weight is not a 0 kg set. Rounded so the same input always stores
+ * the same value; see roundCanonical.
+ */
+const toStored = (
+  field: SetField,
+  value: number | null,
+  weightUnit: string,
+  distanceUnit: string,
+): number | null => {
+  if (value == null) return null;
+  if (field === "weight") return roundCanonical(displayToKg(value, weightUnit));
+  if (field === "distance")
+    return roundCanonical(displayToMetres(value, distanceUnit));
+  return value;
+};
+
+const findSet = (sets: EditedSet[] | undefined, set: EditedSet) =>
+  sets?.find((s) => s.set_id === set.set_id && s.set_number === set.set_number);
+
+/**
+ * Writes only what the user changed. Untouched values went through a display
+ * round trip (kg to lbs to one decimal and back), so writing them would
+ * silently alter history.
+ */
+const saveEditedWorkout = async (
+  { original, edited }: CompletedWorkoutEdit,
   weightUnit: string,
   distanceUnit: string,
 ) => {
-  // Deep copy to avoid mutating the original data. Rounded so the same input
-  // always stores the same value; see roundCanonical.
-  const workoutDataConverted = completedWorkoutData.map((exercise) => ({
-    ...exercise,
-    sets: exercise.sets.map((set) => ({
-      ...set,
-      weight: set.weight
-        ? roundCanonical(displayToKg(set.weight, weightUnit))
-        : 0,
-      reps: set.reps || 0,
-      time: set.time || 0,
-      distance:
-        set.distance != null
-          ? roundCanonical(displayToMetres(set.distance, distanceUnit))
-          : null,
-    })),
-  }));
+  const originalById = new Map(
+    original.map((exercise) => [exercise.completed_exercise_id, exercise]),
+  );
 
   let db: SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
     await db.withExclusiveTransactionAsync(async (txn) => {
-      for (const exercise of workoutDataConverted) {
-        await txn.runAsync(
-          `UPDATE completed_exercises SET exercise_id = ?, resolved_tracking_type = ? WHERE id = ?`,
-          [
-            exercise.exercise_id,
-            exercise.exercise_tracking_type,
-            exercise.completed_exercise_id,
-          ],
-        );
-        for (const set of exercise.sets) {
+      for (const exercise of edited) {
+        const before = originalById.get(exercise.completed_exercise_id);
+        if (
+          !before ||
+          before.exercise_id !== exercise.exercise_id ||
+          before.exercise_tracking_type !== exercise.exercise_tracking_type
+        ) {
           await txn.runAsync(
-            `UPDATE completed_sets SET weight = ?, reps = ?, time = ?, distance = ? WHERE id = ? AND set_number = ?`,
+            `UPDATE completed_exercises SET exercise_id = ?, resolved_tracking_type = ? WHERE id = ?`,
             [
-              set.weight,
-              set.reps,
-              set.time,
-              set.distance,
+              exercise.exercise_id,
+              exercise.exercise_tracking_type,
+              exercise.completed_exercise_id,
+            ],
+          );
+        }
+        for (const set of exercise.sets) {
+          const previous = findSet(before?.sets, set);
+          const changed = SET_FIELDS.filter(
+            (field) =>
+              !previous || (previous[field] ?? null) !== (set[field] ?? null),
+          );
+          if (changed.length === 0) continue;
+          await txn.runAsync(
+            `UPDATE completed_sets SET ${changed
+              .map((field) => `${field} = ?`)
+              .join(", ")} WHERE id = ? AND set_number = ?`,
+            [
+              ...changed.map((field) =>
+                toStored(field, set[field] ?? null, weightUnit, distanceUnit),
+              ),
               set.set_id,
               set.set_number,
             ],
@@ -75,12 +114,8 @@ export const useEditCompletedWorkoutMutation = (
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (completedWorkoutData: CompletedWorkout["exercises"]) => {
-      return await saveCompletedWorkoutWithConversion(
-        completedWorkoutData,
-        weightUnit,
-        distanceUnit,
-      );
+    mutationFn: async (edit: CompletedWorkoutEdit) => {
+      return await saveEditedWorkout(edit, weightUnit, distanceUnit);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["completedWorkout", id] });

@@ -94,18 +94,24 @@ describe("useEditCompletedWorkoutMutation", () => {
   it("mutationFn runs UPDATE for each set in kg", async () => {
     useEditCompletedWorkoutMutation(42, "kg", "m");
 
-    await capturedArgs.mutationFn(makeExercises(100));
+    await capturedArgs.mutationFn({
+      original: [],
+      edited: makeExercises(100),
+    });
 
     expect(mockTxnRunAsync).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE completed_sets"),
-      expect.arrayContaining([100, 8, 0, null, 1001, 1]),
+      expect.arrayContaining([100, 8, null, null, 1001, 1]),
     );
   });
 
   it("mutationFn converts weight from lbs to kg", async () => {
     useEditCompletedWorkoutMutation(42, "lbs", "m");
 
-    await capturedArgs.mutationFn(makeExercises(220));
+    await capturedArgs.mutationFn({
+      original: [],
+      edited: makeExercises(220),
+    });
 
     expect(mockTxnRunAsync).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE completed_sets"),
@@ -170,7 +176,10 @@ describe("useEditCompletedWorkoutMutation", () => {
       },
     ];
 
-    await capturedArgs.mutationFn(multiExerciseData);
+    await capturedArgs.mutationFn({
+      original: [],
+      edited: multiExerciseData,
+    });
 
     expect(mockWithExclusiveTransactionAsync).toHaveBeenCalledTimes(1);
     // 3 set updates + 2 completed_exercises updates (one per exercise)
@@ -181,26 +190,29 @@ describe("useEditCompletedWorkoutMutation", () => {
   it("updates completed_exercises.exercise_id for each exercise", async () => {
     useEditCompletedWorkoutMutation(42, "kg", "m");
 
-    await capturedArgs.mutationFn([
-      {
-        completed_exercise_id: 9001,
-        exercise_id: 300,
-        exercise_name: "Incline Bench Press",
-        exercise_tracking_type: "weight",
-        sets: [
-          {
-            set_id: 1001,
-            set_number: 1,
-            weight: 80,
-            reps: 8,
-            time: null,
-            distance: null,
-            is_warmup: false,
-            set_duration: null,
-          },
-        ],
-      },
-    ]);
+    await capturedArgs.mutationFn({
+      original: [],
+      edited: [
+        {
+          completed_exercise_id: 9001,
+          exercise_id: 300,
+          exercise_name: "Incline Bench Press",
+          exercise_tracking_type: "weight",
+          sets: [
+            {
+              set_id: 1001,
+              set_number: 1,
+              weight: 80,
+              reps: 8,
+              time: null,
+              distance: null,
+              is_warmup: false,
+              set_duration: null,
+            },
+          ],
+        },
+      ],
+    });
 
     expect(mockTxnRunAsync).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE completed_exercises"),

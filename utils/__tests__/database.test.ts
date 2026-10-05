@@ -1624,6 +1624,45 @@ describe("fetchCompletedWorkoutById", () => {
     expect(result.exercises[0].sets).toHaveLength(1);
     expect(result.exercises[1].sets).toHaveLength(1);
   });
+
+  it("keeps a missing weight and reps as null instead of 0", async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      {
+        id: 1,
+        plan_id: null,
+        workout_id: 10,
+        workout_name: "Plank",
+        is_deload: 0,
+        date_completed: "2026-06-01T00:00:00.000Z",
+        duration: 600,
+        total_sets_completed: 1,
+        completed_exercise_id: 555,
+        exercise_id: 100,
+        exercise_name: "Plank",
+        exercise_image: null,
+        exercise_order: 0,
+        exercise_tracking_type: "time",
+        is_unilateral: 0,
+        double_weight: 0,
+        set_id: 1001,
+        set_number: 1,
+        weight: null,
+        reps: null,
+        time: 60,
+        distance: null,
+        is_warmup: 0,
+        set_duration: null,
+      },
+    ]);
+
+    const [set] = (await fetchCompletedWorkoutById(1, "lbs", "ft")).exercises[0]
+      .sets;
+
+    expect(set.weight).toBeNull();
+    expect(set.reps).toBeNull();
+    expect(set.distance).toBeNull();
+    expect(set.time).toBe(60);
+  });
 });
 
 // ---------------------------------------------------------------------------
