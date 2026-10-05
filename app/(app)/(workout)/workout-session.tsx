@@ -559,13 +559,27 @@ export default function WorkoutSessionScreen() {
       setShowExactAlarmHint(false);
     }
   }, [timerRunning]);
-  // Back from the "Alarms & reminders" screen: drop the hint once granted.
+  // Back from the "Alarms & reminders" screen: the running rest's alert was
+  // scheduled inexact, so schedule it again as exact, then drop the hint.
   useEffect(() => {
     if (!showExactAlarmHint) return;
     const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "active" && exactAlarmsAllowed()) {
+      if (state !== "active" || !exactAlarmsAllowed()) return;
+      const expiry = expiryTimestampRef.current;
+      const remaining = expiry
+        ? Math.round((expiry.getTime() - Date.now()) / 1000)
+        : 0;
+      void (async () => {
+        if (remaining > 0) {
+          await scheduleRestNotificationWithCancellation(
+            remaining,
+            t`Rest Timer Finished!`,
+            t`Time to do your next set!`,
+            "rest-timer1",
+          );
+        }
         setShowExactAlarmHint(false);
-      }
+      })();
     });
     return () => subscription.remove();
   }, [showExactAlarmHint]);

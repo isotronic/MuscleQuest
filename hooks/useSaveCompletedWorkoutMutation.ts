@@ -4,8 +4,13 @@ import { saveCompletedWorkout, SavedWorkout } from "@/utils/database";
 import { AuthContext, waitForAuthUser } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
-import { pushCompletedWorkout, pushStrengthPRs } from "@/utils/sharing";
+import {
+  fetchPrivacySettings,
+  pushCompletedWorkout,
+  pushStrengthPRs,
+} from "@/utils/sharing";
 import { displayToKg, displayToMetres, roundCanonical } from "@/utils/units";
+import type { FirestorePrivateSettings } from "@/types/firestore";
 
 const saveCompletedWorkoutWithConversion = async (
   completedWorkoutData: SavedWorkout,
@@ -64,14 +69,17 @@ export const useSaveCompletedWorkoutMutation = (
         queryKey: ["globalExerciseHistoryForSession", weightUnit, distanceUnit],
       });
 
-      const share = (uid: string) => {
-        if (privacySettings?.shareCompletedWorkouts) {
+      const share = (
+        uid: string,
+        settings: FirestorePrivateSettings | null,
+      ) => {
+        if (settings?.shareCompletedWorkouts) {
           pushCompletedWorkout(uid, completedWorkoutId).catch((err) =>
             notifyBugsnag(err),
           );
         }
 
-        if (privacySettings?.shareStrengthProgress) {
+        if (settings?.shareStrengthProgress) {
           const exerciseIds = completedWorkoutData.exercises.map(
             (e) => e.exercise_id,
           );
@@ -80,14 +88,15 @@ export const useSaveCompletedWorkoutMutation = (
       };
 
       if (user) {
-        share(user.uid);
+        share(user.uid, privacySettings);
         return;
       }
       // A save right after launch can land before the session is restored;
       // nothing re-pushes completed workouts later, so wait for it here.
       waitForAuthUser()
-        .then((restored) => {
-          if (restored) share(restored.uid);
+        .then(async (restored) => {
+          if (!restored) return;
+          share(restored.uid, await fetchPrivacySettings(restored.uid));
         })
         .catch(notifyBugsnag);
     },
