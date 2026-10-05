@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import type { LayoutChangeEvent } from "react-native";
 import Animated from "react-native-reanimated";
+import { Button } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Trans } from "@lingui/react/macro";
 import { plural, t } from "@lingui/core/macro";
@@ -35,6 +36,8 @@ interface RestTimerOverlayProps {
   onLayout?: (event: LayoutChangeEvent) => void;
   /** One-line note under the countdown, e.g. that notifications are off. */
   hint?: React.ReactNode;
+  /** A button under the hint, e.g. to open the setting it mentions. */
+  hintAction?: { label: string; onPress: () => void };
 }
 
 export default function RestTimerOverlay({
@@ -47,6 +50,7 @@ export default function RestTimerOverlay({
   onAdjust,
   onLayout,
   hint,
+  hintAction,
 }: RestTimerOverlayProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -139,6 +143,11 @@ export default function RestTimerOverlay({
         </TouchableOpacity>
       </View>
       {hint ? <ThemedText style={styles.hint}>{hint}</ThemedText> : null}
+      {hint && hintAction ? (
+        <Button mode="text" compact onPress={hintAction.onPress}>
+          {hintAction.label}
+        </Button>
+      ) : null}
     </AnimatedView>
   );
 }
