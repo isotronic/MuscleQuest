@@ -12,7 +12,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedView } from "@/components/ThemedView";
 import { useWorkoutStore } from "@/store/workoutStore";
-import { PlanImages } from "@/constants/PlanImages";
+import { PlanImages, planImageSource } from "@/constants/PlanImages";
 import * as ImagePicker from "expo-image-picker";
 import { Button } from "react-native-paper";
 import Bugsnag from "@bugsnag/expo";
@@ -64,7 +64,10 @@ export default function ImageSearchScreen() {
               accessibilityRole="imagebutton"
               accessibilityLabel={t`Use this image`}
             >
-              <AppImage source={{ uri: item.uri }} style={styles.image} />
+              <AppImage
+                source={planImageSource(item.uri)}
+                style={styles.image}
+              />
             </TouchableOpacity>
           </View>
         )}

@@ -12,6 +12,7 @@ import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { planImageSource } from "@/constants/PlanImages";
 
 export default function TrainingPlanCard({
   title,
@@ -69,9 +70,7 @@ export default function TrainingPlanCard({
           <Card style={styles.card}>
             <Card.Cover
               style={{ borderRadius: radii.md }}
-              source={{
-                uri: imageUrl,
-              }}
+              source={imageUrl ? planImageSource(imageUrl) : { uri: imageUrl }}
             />
             <View style={styles.floatingTitleContainer}>
               <Text style={styles.floatingTitleText}>

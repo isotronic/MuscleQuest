@@ -44,6 +44,7 @@ import { useSocialStore } from "@/store/socialStore";
 import { useCreateStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
 import { useDuplicatePlanMutation } from "@/hooks/useDuplicatePlanMutation";
 import { CopyWorkoutModal } from "@/components/CopyWorkoutModal";
+import { planImageSource } from "@/constants/PlanImages";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -196,7 +197,9 @@ export default function PlanOverviewScreen() {
     }
   };
 
-  const imageSource = plan?.image_url ? { uri: plan.image_url } : fallbackImage;
+  const imageSource = plan?.image_url
+    ? planImageSource(plan.image_url)
+    : fallbackImage;
 
   const handleDeletePlan = () => {
     Alert.alert(
