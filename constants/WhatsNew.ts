@@ -703,6 +703,15 @@ Also in this update:
 • Distance targets in your plans are now stored in metres, so changing units no longer changes them. If you use feet and had an unsaved plan draft open during this update, check its distance targets before saving. Friends on an older version see your shared distance targets in metres until they update.
 `,
   },
+  {
+    version: 2661,
+    release: "1.5",
+    message: msg`
+📜 New: Changelog!
+
+Missed a What's New message, or want to see how MuscleQuest has grown? Open the menu and tap Changelog, below Help & Info, to browse every update by release, all the way back to the first version.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

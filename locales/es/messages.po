@@ -839,6 +839,20 @@ msgstr ""
 "La sección de Ayuda e información ahora se abre con grupos de temas contraídos y expandibles, y una fila de chips para saltar directamente a una sección. La búsqueda es más rápida e inteligente, resalta el texto exacto que coincide en cada resultado, y muestra un estado vacío útil con un enlace para solicitar una función si no hay coincidencias.\n"
 ""
 
+#: constants/WhatsNew.ts:709
+msgid ""
+"\n"
+"📜 New: Changelog!\n"
+"\n"
+"Missed a What's New message, or want to see how MuscleQuest has grown? Open the menu and tap Changelog, below Help & Info, to browse every update by release, all the way back to the first version.\n"
+""
+msgstr ""
+"\n"
+"📜 Nuevo: ¡Registro de cambios!\n"
+"\n"
+"¿Te perdiste un mensaje de Novedades o quieres ver cómo ha crecido MuscleQuest? Abre el menú y toca Registro de cambios, debajo de Ayuda e información, para ver todas las actualizaciones por versión, desde la primera.\n"
+""
+
 #: constants/WhatsNew.ts:103
 msgid ""
 "\n"
