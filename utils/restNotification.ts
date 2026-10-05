@@ -179,11 +179,21 @@ export function exactAlarmsAllowed(): boolean {
  * expo-notifications falls back to an inexact alarm that can fire well after
  * the rest ends. True once, ever, so the overlay can offer the setting.
  */
+let exactAlarmHintClaimInFlight = false;
+
 async function claimExactAlarmHint(): Promise<boolean> {
   if (Platform.OS !== "android" || exactAlarmsAllowed()) return false;
-  if (await getAsyncStorageItem(EXACT_ALARM_HINT_SHOWN_KEY)) return false;
-  await setAsyncStorageItem(EXACT_ALARM_HINT_SHOWN_KEY, "true");
-  return true;
+  // Overlapping rests must not both read "not shown" before either writes it.
+  // Taken synchronously; released afterwards, when the stored flag decides.
+  if (exactAlarmHintClaimInFlight) return false;
+  exactAlarmHintClaimInFlight = true;
+  try {
+    if (await getAsyncStorageItem(EXACT_ALARM_HINT_SHOWN_KEY)) return false;
+    await setAsyncStorageItem(EXACT_ALARM_HINT_SHOWN_KEY, "true");
+    return true;
+  } finally {
+    exactAlarmHintClaimInFlight = false;
+  }
 }
 
 /**

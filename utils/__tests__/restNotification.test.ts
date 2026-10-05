@@ -359,6 +359,28 @@ describe("startRestNotification", () => {
       expect(second.showExactAlarmHint).toBe(false);
     });
 
+    it("returns the hint once when rests start back to back", async () => {
+      (canScheduleExactAlarms as jest.Mock).mockReturnValue(false);
+      // A slow read of the hint flag lets the second claim start before the
+      // first one has written it.
+      (getAsyncStorageItem as jest.Mock).mockImplementation((k: string) => {
+        const value = storage[k] ?? "";
+        return new Promise((resolve) =>
+          setTimeout(
+            () => resolve(value),
+            k === "restNotificationExactAlarmHintShown" ? 50 : 0,
+          ),
+        );
+      });
+
+      const results = await Promise.all([
+        startRestNotification(90, "Rest", "Go"),
+        startRestNotification(60, "Rest", "Go"),
+      ]);
+
+      expect(results.filter((r) => r.showExactAlarmHint)).toHaveLength(1);
+    });
+
     it("returns no hint when exact alarms are allowed", async () => {
       const result = await startRestNotification(90, "Rest", "Go");
 
