@@ -1082,7 +1082,7 @@ msgstr "{0} {1}"
 msgid "{0} {1} (used for assisted exercises)"
 msgstr "{0} {1} (usado en ejercicios asistidos)"
 
-#. placeholder {0}: set.weight ?? 0
+#. placeholder {0}: set.weight ?? "—"
 #. placeholder {1}: settings?.weightUnit
 #. placeholder {2}: set.reps ?? 0
 #: app/(app)/(tabs)/(stats)/history-details.tsx:285
@@ -1924,9 +1924,9 @@ msgstr "Asigna entrenamientos a días específicos en el editor de horarios: toc
 msgid "Assist"
 msgstr "Asistencia"
 
-#. placeholder {0}: set.weight ?? 0
+#. placeholder {0}: set.weight ?? "—"
 #. placeholder {1}: settings?.weightUnit
-#. placeholder {2}: bodyWeight - (set.weight || 0)
+#. placeholder {2}: set.weight != null ? bodyWeight - set.weight : "—"
 #. placeholder {3}: settings?.weightUnit
 #. placeholder {4}: set.reps ?? 0
 #: app/(app)/(tabs)/(stats)/history-details.tsx:292
