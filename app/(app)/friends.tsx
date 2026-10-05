@@ -16,7 +16,7 @@ import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { AppText, AppIcon, AppIconButton } from "@/components/ui";
 import { useAppTheme } from "@/theme";
-import { AuthContext } from "@/context/AuthProvider";
+import { AuthContext, AuthLoadingContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
 import { useSocialRefreshStore } from "@/store/socialRefreshStore";
 import type { PendingRequest, SentRequest } from "@/store/socialStore";
@@ -35,6 +35,7 @@ export default function FriendsScreen() {
   const { colors, borders } = useAppTheme();
   const router = useRouter();
   const user = useContext(AuthContext);
+  const isAuthLoading = useContext(AuthLoadingContext);
   const { friends, pendingRequests, sentRequests } = useSocialStore();
   const [activeTab, setActiveTab] = useState<Tab>("friends");
   const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
@@ -56,6 +57,14 @@ export default function FriendsScreen() {
     setRefreshing(true);
     requestRefresh();
   };
+
+  if (isAuthLoading) {
+    return (
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Stack.Screen options={{ title: t`Friends` }} />
+      </View>
+    );
+  }
 
   if (!user) {
     return (

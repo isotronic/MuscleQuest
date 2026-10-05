@@ -83,7 +83,9 @@ export const runStartup = async (
 ): Promise<StartupResult> => {
   const databaseRestored =
     (await getAsyncStorageItem(DATABASE_RESTORED_KEY)) === "true";
-  console.log("Restore complete:", databaseRestored);
+  if (databaseRestored) {
+    Bugsnag.leaveBreadcrumb("First boot after a backup restore");
+  }
 
   try {
     await Promise.all([

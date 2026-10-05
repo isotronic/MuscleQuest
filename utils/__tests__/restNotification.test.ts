@@ -14,6 +14,8 @@ import {
   removeAsyncStorageItem,
 } from "@/utils/asyncStorage";
 import Bugsnag from "@bugsnag/expo";
+import { Platform } from "react-native";
+import { canScheduleExactAlarms } from "@/modules/exact-alarm";
 
 jest.mock("expo-notifications", () => ({
   scheduleNotificationAsync: jest.fn(),
@@ -27,6 +29,9 @@ jest.mock("@/utils/asyncStorage", () => ({
   getAsyncStorageItem: jest.fn(),
   setAsyncStorageItem: jest.fn(),
   removeAsyncStorageItem: jest.fn(),
+}));
+jest.mock("@/modules/exact-alarm", () => ({
+  canScheduleExactAlarms: jest.fn(() => true),
 }));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -227,7 +232,10 @@ describe("startRestNotification", () => {
       }),
     );
     expect(Notifications.requestPermissionsAsync).not.toHaveBeenCalled();
-    expect(result).toEqual({ showPermissionHint: false });
+    expect(result).toEqual({
+      showPermissionHint: false,
+      showExactAlarmHint: false,
+    });
   });
 
   it("replaces a pending rest notification when rescheduled", async () => {
@@ -318,8 +326,77 @@ describe("startRestNotification", () => {
 
     expect(Notifications.requestPermissionsAsync).not.toHaveBeenCalled();
     expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
-    expect(first).toEqual({ showPermissionHint: true });
-    expect(second).toEqual({ showPermissionHint: false });
+    expect(first).toEqual({
+      showPermissionHint: true,
+      showExactAlarmHint: false,
+    });
+    expect(second).toEqual({
+      showPermissionHint: false,
+      showExactAlarmHint: false,
+    });
+  });
+
+  describe("exact alarms on Android", () => {
+    beforeEach(() => {
+      jest.replaceProperty(Platform, "OS", "android");
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue(
+        permission(true),
+      );
+    });
+
+    afterEach(() => {
+      (canScheduleExactAlarms as jest.Mock).mockReturnValue(true);
+    });
+
+    it("returns a hint once when alerts would be inexact", async () => {
+      (canScheduleExactAlarms as jest.Mock).mockReturnValue(false);
+
+      const first = await startRestNotification(90, "Rest", "Go");
+      const second = await startRestNotification(90, "Rest", "Go");
+
+      expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(2);
+      expect(first.showExactAlarmHint).toBe(true);
+      expect(second.showExactAlarmHint).toBe(false);
+    });
+
+    it("returns the hint once when rests start back to back", async () => {
+      (canScheduleExactAlarms as jest.Mock).mockReturnValue(false);
+      // A slow read of the hint flag lets the second claim start before the
+      // first one has written it.
+      (getAsyncStorageItem as jest.Mock).mockImplementation((k: string) => {
+        const value = storage[k] ?? "";
+        return new Promise((resolve) =>
+          setTimeout(
+            () => resolve(value),
+            k === "restNotificationExactAlarmHintShown" ? 50 : 0,
+          ),
+        );
+      });
+
+      const results = await Promise.all([
+        startRestNotification(90, "Rest", "Go"),
+        startRestNotification(60, "Rest", "Go"),
+      ]);
+
+      expect(results.filter((r) => r.showExactAlarmHint)).toHaveLength(1);
+    });
+
+    it("returns no hint when exact alarms are allowed", async () => {
+      const result = await startRestNotification(90, "Rest", "Go");
+
+      expect(result.showExactAlarmHint).toBe(false);
+    });
+
+    it("treats a failed check as allowed and reports it", async () => {
+      (canScheduleExactAlarms as jest.Mock).mockImplementation(() => {
+        throw new Error("no context");
+      });
+
+      const result = await startRestNotification(90, "Rest", "Go");
+
+      expect(result.showExactAlarmHint).toBe(false);
+      expect(Bugsnag.notify).toHaveBeenCalled();
+    });
   });
 });
 

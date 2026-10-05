@@ -8,6 +8,7 @@ import { Plural } from "@lingui/react/macro";
 import { Trans } from "@lingui/react/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { planImageSource } from "@/constants/PlanImages";
 
 interface TrainingPlanListItemProps {
   plan: Plan;
@@ -33,7 +34,10 @@ export default function TrainingPlanListItem({
     >
       <View style={styles.imageContainer}>
         {plan.image_url ? (
-          <Card.Cover style={styles.image} source={{ uri: plan.image_url }} />
+          <Card.Cover
+            style={styles.image}
+            source={planImageSource(plan.image_url)}
+          />
         ) : (
           <View style={styles.imagePlaceholder}>
             <AppIcon

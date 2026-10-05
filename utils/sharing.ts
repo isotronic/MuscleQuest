@@ -27,6 +27,8 @@ import {
   fetchAllCustomExercisesForSharing,
 } from "./database";
 import type { Exercise } from "./database";
+import type { FirestorePrivateSettings } from "@/types/firestore";
+import { withTimeout } from "@/utils/withTimeout";
 import { localDateKeyToDate, parseDbTimestamp } from "@/utils/dates";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -595,4 +597,18 @@ export const deleteAllSharedData = async (
     });
     throw error;
   }
+};
+
+// One read of a user's sharing toggles, for work that cannot wait for the
+// settings listener (which reports null both before its first result and for
+// a missing document). A missing or unreadable document counts as opted out.
+export const fetchPrivacySettings = async (
+  uid: string,
+): Promise<FirestorePrivateSettings | null> => {
+  const snap = await withTimeout(
+    getDoc(doc(getFirestore(), "users", uid, "private", "settings")),
+    15000,
+    "privacySettings",
+  );
+  return snap.exists() ? (snap.data() as FirestorePrivateSettings) : null;
 };

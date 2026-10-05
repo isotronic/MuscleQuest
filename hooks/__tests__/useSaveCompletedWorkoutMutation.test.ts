@@ -9,7 +9,11 @@ jest.mock("react", () => ({
 }));
 jest.mock("@/context/AuthProvider", () => {
   const React = jest.requireActual("react");
-  return { AuthContext: React.createContext(null) };
+  return {
+    AuthContext: React.createContext(null),
+    AuthLoadingContext: React.createContext(false),
+    waitForAuthUser: jest.fn().mockResolvedValue(null),
+  };
 });
 jest.mock("@react-native-firebase/firestore", () => {
   const mockFirestore: any = jest.fn(() => ({ collection: jest.fn() }));
@@ -29,6 +33,7 @@ jest.mock("@/store/socialStore", () => ({
 jest.mock("@/utils/sharing", () => ({
   pushCompletedWorkout: jest.fn(() => Promise.resolve()),
   pushStrengthPRs: jest.fn(() => Promise.resolve()),
+  fetchPrivacySettings: jest.fn(),
 }));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -261,6 +266,62 @@ describe("useSaveCompletedWorkoutMutation", () => {
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["exerciseDetail"],
+    });
+  });
+
+  describe("sharing a workout saved before the session is restored", () => {
+    const { useSocialStore } = jest.requireMock("@/store/socialStore");
+    const { pushCompletedWorkout } = jest.requireMock("@/utils/sharing");
+    const { waitForAuthUser } = jest.requireMock("@/context/AuthProvider");
+    const { fetchPrivacySettings } = jest.requireMock("@/utils/sharing");
+
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    beforeEach(() => {
+      // The store has not caught up with this session yet.
+      useSocialStore.mockReturnValue({ privacySettings: null });
+      pushCompletedWorkout.mockClear();
+      fetchPrivacySettings.mockReset();
+    });
+
+    afterEach(() => {
+      waitForAuthUser.mockResolvedValue(null);
+    });
+
+    it("pushes when the restored user's settings opt in", async () => {
+      waitForAuthUser.mockResolvedValue({ uid: "late-uid" });
+      fetchPrivacySettings.mockResolvedValue({ shareCompletedWorkouts: true });
+      useSaveCompletedWorkoutMutation("kg", "m");
+
+      capturedArgs.onSuccess(42, makeWorkoutData());
+      await flush();
+
+      expect(fetchPrivacySettings).toHaveBeenCalledWith("late-uid");
+      expect(pushCompletedWorkout).toHaveBeenCalledWith("late-uid", 42);
+    });
+
+    it("treats a missing settings document as opted out", async () => {
+      waitForAuthUser.mockResolvedValue({ uid: "late-uid" });
+      fetchPrivacySettings.mockResolvedValue(null);
+      useSocialStore.mockReturnValue({
+        privacySettings: { shareCompletedWorkouts: true },
+      });
+      useSaveCompletedWorkoutMutation("kg", "m");
+
+      capturedArgs.onSuccess(42, makeWorkoutData());
+      await flush();
+
+      expect(pushCompletedWorkout).not.toHaveBeenCalled();
+    });
+
+    it("pushes nothing when the user is signed out", async () => {
+      useSaveCompletedWorkoutMutation("kg", "m");
+
+      capturedArgs.onSuccess(42, makeWorkoutData());
+      await flush();
+
+      expect(fetchPrivacySettings).not.toHaveBeenCalled();
+      expect(pushCompletedWorkout).not.toHaveBeenCalled();
     });
   });
 });

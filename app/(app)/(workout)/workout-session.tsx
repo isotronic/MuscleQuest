@@ -8,6 +8,7 @@ import React, {
 import { useShallow } from "zustand/react/shallow";
 import {
   AccessibilityInfo,
+  AppState,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
@@ -39,9 +40,11 @@ import WorkoutTimer from "@/components/WorkoutTimer";
 import Bugsnag from "@bugsnag/expo";
 import {
   cancelRestNotifications,
+  exactAlarmsAllowed,
   scheduleRestNotificationWithCancellation,
   startRestNotification,
 } from "@/utils/restNotification";
+import { openExactAlarmSettings } from "@/modules/exact-alarm";
 import { Notes } from "@/components/Notes";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
@@ -548,9 +551,38 @@ export default function WorkoutSessionScreen() {
 
   // Shown once, during the first rest after notifications turned out blocked.
   const [showPermissionHint, setShowPermissionHint] = useState(false);
+  // Shown once, during the first rest whose alert would be inexact.
+  const [showExactAlarmHint, setShowExactAlarmHint] = useState(false);
   useEffect(() => {
-    if (!timerRunning) setShowPermissionHint(false);
+    if (!timerRunning) {
+      setShowPermissionHint(false);
+      setShowExactAlarmHint(false);
+    }
   }, [timerRunning]);
+  // Back from the "Alarms & reminders" screen: the running rest's alert was
+  // scheduled inexact, so schedule it again as exact, then drop the hint.
+  useEffect(() => {
+    if (!showExactAlarmHint) return;
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state !== "active" || !exactAlarmsAllowed()) return;
+      const expiry = expiryTimestampRef.current;
+      const remaining = expiry
+        ? Math.round((expiry.getTime() - Date.now()) / 1000)
+        : 0;
+      void (async () => {
+        if (remaining > 0) {
+          await scheduleRestNotificationWithCancellation(
+            remaining,
+            t`Rest Timer Finished!`,
+            t`Time to do your next set!`,
+            "rest-timer1",
+          );
+        }
+        setShowExactAlarmHint(false);
+      })();
+    });
+    return () => subscription.remove();
+  }, [showExactAlarmHint]);
 
   async function handleExpire() {
     if (!expiryTimestampRef.current) {
@@ -636,8 +668,9 @@ export default function WorkoutSessionScreen() {
         totalSeconds,
         t`Rest Timer Finished!`,
         t`Time to do your next set!`,
-      ).then(({ showPermissionHint }) => {
+      ).then(({ showPermissionHint, showExactAlarmHint }) => {
         if (showPermissionHint) setShowPermissionHint(true);
+        if (showExactAlarmHint) setShowExactAlarmHint(true);
       });
 
       Bugsnag.leaveBreadcrumb("Timer started", {
@@ -1855,6 +1888,13 @@ export default function WorkoutSessionScreen() {
         hint={
           showPermissionHint
             ? t`Notifications are off, so there is no rest alert while your phone is locked. You can turn them on in your phone's settings.`
+            : showExactAlarmHint
+              ? t`Rest alerts may arrive late. Allow alarms for exact timing.`
+              : undefined
+        }
+        hintAction={
+          showExactAlarmHint && !showPermissionHint
+            ? { label: t`Allow alarms`, onPress: openExactAlarmSettings }
             : undefined
         }
       />

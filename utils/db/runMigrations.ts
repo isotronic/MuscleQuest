@@ -1,3 +1,4 @@
+import Bugsnag from "@bugsnag/expo";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { migrations as allMigrations, type Migration } from "./migrations";
 
@@ -21,9 +22,10 @@ export const runMigrations = async (
   let current = await getSchemaVersion(db);
   for (const migration of migrations) {
     if (migration.version <= current) continue;
-    console.log(
-      `Running migration ${migration.version} (${migration.name})...`,
-    );
+    Bugsnag.leaveBreadcrumb("Running migration", {
+      version: migration.version,
+      name: migration.name,
+    });
     await db.withExclusiveTransactionAsync(async (txn) => {
       await migration.up(txn);
       // PRAGMA takes no bound parameters; version is a number from our own

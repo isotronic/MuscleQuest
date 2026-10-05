@@ -1,11 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
 import { saveCompletedWorkout, SavedWorkout } from "@/utils/database";
-import { AuthContext } from "@/context/AuthProvider";
+import { AuthContext, waitForAuthUser } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
-import { pushCompletedWorkout, pushStrengthPRs } from "@/utils/sharing";
+import {
+  fetchPrivacySettings,
+  pushCompletedWorkout,
+  pushStrengthPRs,
+} from "@/utils/sharing";
 import { displayToKg, displayToMetres, roundCanonical } from "@/utils/units";
+import type { FirestorePrivateSettings } from "@/types/firestore";
 
 const saveCompletedWorkoutWithConversion = async (
   completedWorkoutData: SavedWorkout,
@@ -64,22 +69,36 @@ export const useSaveCompletedWorkoutMutation = (
         queryKey: ["globalExerciseHistoryForSession", weightUnit, distanceUnit],
       });
 
-      if (!user) return;
+      const share = (
+        uid: string,
+        settings: FirestorePrivateSettings | null,
+      ) => {
+        if (settings?.shareCompletedWorkouts) {
+          pushCompletedWorkout(uid, completedWorkoutId).catch((err) =>
+            notifyBugsnag(err),
+          );
+        }
 
-      if (privacySettings?.shareCompletedWorkouts) {
-        pushCompletedWorkout(user.uid, completedWorkoutId).catch((err) =>
-          notifyBugsnag(err),
-        );
-      }
+        if (settings?.shareStrengthProgress) {
+          const exerciseIds = completedWorkoutData.exercises.map(
+            (e) => e.exercise_id,
+          );
+          pushStrengthPRs(uid, exerciseIds).catch((err) => notifyBugsnag(err));
+        }
+      };
 
-      if (privacySettings?.shareStrengthProgress) {
-        const exerciseIds = completedWorkoutData.exercises.map(
-          (e) => e.exercise_id,
-        );
-        pushStrengthPRs(user.uid, exerciseIds).catch((err) =>
-          notifyBugsnag(err),
-        );
+      if (user) {
+        share(user.uid, privacySettings);
+        return;
       }
+      // A save right after launch can land before the session is restored;
+      // nothing re-pushes completed workouts later, so wait for it here.
+      waitForAuthUser()
+        .then(async (restored) => {
+          if (!restored) return;
+          share(restored.uid, await fetchPrivacySettings(restored.uid));
+        })
+        .catch(notifyBugsnag);
     },
   });
 };

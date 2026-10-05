@@ -1,3 +1,4 @@
+import Bugsnag from "@bugsnag/expo";
 import { File, Directory, Paths } from "expo-file-system";
 import { Asset } from "expo-asset";
 import { openDatabase } from "./database";
@@ -18,15 +19,12 @@ const copyDatabase = async (): Promise<void> => {
     let syncVersion: number = APP_DATA_SYNC.none;
     try {
       syncVersion = await getAppDataSyncVersion(userDataDB);
-      console.log("App data sync version:", syncVersion);
     } catch {
-      console.log(
-        "Settings table does not exist. Proceeding to copy database...",
-      );
+      // No settings table yet (first launch): copy the database.
     }
 
     if (!dbFile.exists || syncVersion < APP_DATA_SYNC.exerciseFlagsSynced) {
-      console.log(`Copying ${DATABASE_NAME} ...`);
+      Bugsnag.leaveBreadcrumb(`Copying ${DATABASE_NAME}`, { syncVersion });
       const tempFile = new File(
         Paths.document,
         "SQLite",
@@ -49,12 +47,10 @@ const copyDatabase = async (): Promise<void> => {
     }
 
     if (oldDbFile1.exists) {
-      console.log(`Removing outdated ${oldDbFile1.name} ...`);
       oldDbFile1.delete();
     }
 
     if (oldDbFile2.exists) {
-      console.log(`Removing outdated ${oldDbFile2.name} ...`);
       oldDbFile2.delete();
     }
   } finally {

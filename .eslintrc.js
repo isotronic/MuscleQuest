@@ -63,8 +63,25 @@ module.exports = {
       decimalInputRestriction,
     ],
     "no-restricted-imports": ["error", { paths: [iconButtonRestriction] }],
+    // console.log is stripped from release bundles (babel.config.js); use a
+    // Bugsnag breadcrumb for anything worth keeping.
+    "no-console": ["warn", { allow: ["error", "warn"] }],
   },
   overrides: [
+    {
+      // Node scripts, config plugins and tests print to a terminal.
+      files: [
+        "scripts/**",
+        "plugins/**",
+        "rules-tests/**",
+        "**/__tests__/**",
+        "*.config.js",
+        "*.config.ts",
+      ],
+      rules: {
+        "no-console": "off",
+      },
+    },
     {
       // The wrapper that enforces the label.
       files: ["components/ui/AppIconButton.tsx"],

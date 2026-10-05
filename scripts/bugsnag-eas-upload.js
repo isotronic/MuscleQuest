@@ -3,7 +3,7 @@
 const { access } = require("fs").promises;
 const { reactNative } = require("@bugsnag/source-maps");
 const { exit } = require("process");
-const { getConfig } = require("@expo/config");
+const { getConfig } = require("expo/config");
 
 const PROJECT_ROOT = process.cwd();
 

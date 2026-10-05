@@ -1,5 +1,6 @@
 // Startup steps that bring userData.db in line with the content shipped in
 // appData3.db. Each is gated on the app data sync version.
+import Bugsnag from "@bugsnag/expo";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import * as SQLite from "expo-sqlite";
 import {
@@ -29,10 +30,6 @@ export const updateAppExerciseIds = async (): Promise<void> => {
     const syncVersion = await getAppDataSyncVersion(userDataDB);
 
     if (syncVersion === APP_DATA_SYNC.legacyInstall) {
-      console.log(
-        "Data version is 1.1. Updating app_exercise_id for exercises...",
-      );
-
       // Find all exercises where app_exercise_id is NULL
       const nullAppExerciseIds: SQLiteRow[] = await userDataDB.getAllAsync(
         `SELECT exercise_id FROM exercises WHERE app_exercise_id IS NULL AND exercise_id BETWEEN 0 AND 779`,
@@ -53,23 +50,11 @@ export const updateAppExerciseIds = async (): Promise<void> => {
         await userDataDB.execAsync("COMMIT");
         inTransaction = false;
 
-        console.log(`Updated ${nullAppExerciseIds.length} exercises.`);
-
-        await setAppDataSyncVersion(
-          userDataDB,
-          APP_DATA_SYNC.exerciseIdsLinked,
-        );
-        console.log("Updated data version to 1.2...");
-      } else {
-        console.log("No exercises with NULL app_exercise_id found.");
-        await setAppDataSyncVersion(
-          userDataDB,
-          APP_DATA_SYNC.exerciseIdsLinked,
-        );
-        console.log("Updated data version to 1.2...");
+        Bugsnag.leaveBreadcrumb("Linked legacy exercise ids", {
+          count: nullAppExerciseIds.length,
+        });
       }
-    } else {
-      console.log("Data version is not 1.1. No update needed.");
+      await setAppDataSyncVersion(userDataDB, APP_DATA_SYNC.exerciseIdsLinked);
     }
   } catch (error: any) {
     console.error("Error updating app_exercise_id:", error);
@@ -113,7 +98,6 @@ export const copyDataFromAppDataToUserData = async (
     const syncVersion = await getAppDataSyncVersion(userDataDB);
 
     if (syncVersion >= APP_DATA_SYNC.exercisesCopied) {
-      console.log("Data has already been copied.");
       return;
     }
 
@@ -129,8 +113,6 @@ export const copyDataFromAppDataToUserData = async (
         const result: SQLiteRow[] = await appDataDB!.getAllAsync(
           `SELECT ${columns.join(", ")} FROM ${tableName}`,
         );
-
-        console.log(`Copying ${result.length} rows into ${tableName}`);
 
         if (result.length > 0) {
           await userDataDB!.execAsync("BEGIN TRANSACTION");
@@ -226,9 +208,6 @@ export const copyDataFromAppDataToUserData = async (
                 });
 
                 if (fieldsToUpdate.length > 0) {
-                  console.log(
-                    `Updating exercise: ${row["name"]} with changed fields: ${fieldsToUpdate.join(", ")}`,
-                  );
                   // The library row has no app_exercise_id column; it is
                   // the row's own exercise_id, as in the insert below.
                   const values = updateColumns.map((col) =>
@@ -290,10 +269,8 @@ export const copyDataFromAppDataToUserData = async (
     );
 
     if (shouldUpdateDataVersion) {
-      console.log("Updating data version to 1.7...");
       await setAppDataSyncVersion(userDataDB, APP_DATA_SYNC.exercisesCopied);
-
-      console.log("Data copy completed and version updated.");
+      Bugsnag.leaveBreadcrumb("Library exercises copied");
     }
   } finally {
     if (userDataDB) await userDataDB.closeAsync();

@@ -275,7 +275,6 @@ export default function ExercisesScreen() {
   if (exercisesError || settingsError) {
     const error = exercisesError || settingsError;
     if (error !== null) {
-      console.log(error);
       Bugsnag.notify(error);
     }
     return (

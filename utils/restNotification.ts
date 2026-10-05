@@ -6,10 +6,12 @@ import {
   setAsyncStorageItem,
   removeAsyncStorageItem,
 } from "@/utils/asyncStorage";
+import { canScheduleExactAlarms } from "@/modules/exact-alarm";
 
 const REST_TIMER_NOTIFICATION_ID_KEY = "restTimerNotificationId";
 const PERMISSION_HINT_SHOWN_KEY = "restNotificationPermissionHintShown";
 const PERMISSION_ASKED_KEY = "restNotificationPermissionAsked";
+const EXACT_ALARM_HINT_SHOWN_KEY = "restNotificationExactAlarmHintShown";
 
 /** `content.data.kind` of rest timer notifications. */
 export const REST_NOTIFICATION_KIND = "rest-timer";
@@ -162,16 +164,49 @@ async function ensureNotificationPermission(): Promise<boolean> {
   }
 }
 
+/** Safe to call anywhere: a failed native check counts as allowed. */
+export function exactAlarmsAllowed(): boolean {
+  try {
+    return canScheduleExactAlarms();
+  } catch (error: any) {
+    Bugsnag.notify(error);
+    return true;
+  }
+}
+
+/**
+ * Without "Alarms & reminders" (not granted by default on Android 14+),
+ * expo-notifications falls back to an inexact alarm that can fire well after
+ * the rest ends. True once, ever, so the overlay can offer the setting.
+ */
+let exactAlarmHintClaimInFlight = false;
+
+async function claimExactAlarmHint(): Promise<boolean> {
+  if (Platform.OS !== "android" || exactAlarmsAllowed()) return false;
+  // Overlapping rests must not both read "not shown" before either writes it.
+  // Taken synchronously; released afterwards, when the stored flag decides.
+  if (exactAlarmHintClaimInFlight) return false;
+  exactAlarmHintClaimInFlight = true;
+  try {
+    if (await getAsyncStorageItem(EXACT_ALARM_HINT_SHOWN_KEY)) return false;
+    await setAsyncStorageItem(EXACT_ALARM_HINT_SHOWN_KEY, "true");
+    return true;
+  } finally {
+    exactAlarmHintClaimInFlight = false;
+  }
+}
+
 /**
  * Schedules the rest notification when a rest timer starts, asking for
  * permission the first time. When notifications are blocked,
- * `showPermissionHint` is true exactly once so the overlay can explain.
+ * `showPermissionHint` is true exactly once so the overlay can explain; when
+ * they are allowed but alerts would be inexact, `showExactAlarmHint` is.
  */
 export async function startRestNotification(
   secondsFromNow: number,
   title: string,
   body: string,
-): Promise<{ showPermissionHint: boolean }> {
+): Promise<{ showPermissionHint: boolean; showExactAlarmHint: boolean }> {
   // Taken before the permission check, so a newer timer started meanwhile wins.
   const ticket = ++latestTicket;
   if (await ensureNotificationPermission()) {
@@ -182,12 +217,15 @@ export async function startRestNotification(
       body,
       "rest-timer1",
     );
-    return { showPermissionHint: false };
+    return {
+      showPermissionHint: false,
+      showExactAlarmHint: await claimExactAlarmHint(),
+    };
   }
   await cancelRestNotifications();
   if (await getAsyncStorageItem(PERMISSION_HINT_SHOWN_KEY)) {
-    return { showPermissionHint: false };
+    return { showPermissionHint: false, showExactAlarmHint: false };
   }
   await setAsyncStorageItem(PERMISSION_HINT_SHOWN_KEY, "true");
-  return { showPermissionHint: true };
+  return { showPermissionHint: true, showExactAlarmHint: false };
 }

@@ -52,7 +52,7 @@ jest.mock("@/store/workoutStore", () => ({}));
 
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
-  default: { notify: jest.fn() },
+  default: { notify: jest.fn(), leaveBreadcrumb: jest.fn() },
 }));
 
 // ---------------------------------------------------------------------------

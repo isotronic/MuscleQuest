@@ -12,7 +12,7 @@ import {
   onSnapshot,
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
-import { AuthContext } from "../context/AuthProvider";
+import { AuthContext, AuthLoadingContext } from "../context/AuthProvider";
 import {
   useSocialStore,
   PendingRequest,
@@ -36,6 +36,7 @@ type ListenerScope =
 
 export const useSocialListeners = () => {
   const user = useContext(AuthContext);
+  const isAuthLoading = useContext(AuthLoadingContext);
   const {
     setPendingRequests,
     setSentRequests,
@@ -109,6 +110,9 @@ export const useSocialListeners = () => {
   };
 
   useEffect(() => {
+    // Before Firebase restores the session the user is null even when signed
+    // in; clearing here would wipe the persisted social state on every launch.
+    if (isAuthLoading) return;
     if (!user) {
       setPendingRequests([]);
       setSentRequests([]);
@@ -317,5 +321,5 @@ export const useSocialListeners = () => {
     // changes; store setters are stable and re-running on every user object
     // change would tear down and rebuild all six listeners.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid, resubscribeGeneration, refreshGeneration]);
+  }, [user?.uid, isAuthLoading, resubscribeGeneration, refreshGeneration]);
 };

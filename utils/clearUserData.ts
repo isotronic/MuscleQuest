@@ -11,13 +11,9 @@ export const clearDatabaseAndReinitialize = async () => {
     for (const fileName of filesToDelete) {
       const file = new File(Paths.document, "SQLite", fileName);
       if (file.exists) {
-        console.log(`Deleting ${fileName}...`);
         file.delete();
       }
     }
-    console.log("Database deleted successfully.");
-
-    console.log("Restarting the app...");
     await Updates.reloadAsync();
   } catch (error: any) {
     Bugsnag.notify(error);
