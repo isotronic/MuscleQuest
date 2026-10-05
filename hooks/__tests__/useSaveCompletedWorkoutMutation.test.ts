@@ -9,7 +9,11 @@ jest.mock("react", () => ({
 }));
 jest.mock("@/context/AuthProvider", () => {
   const React = jest.requireActual("react");
-  return { AuthContext: React.createContext(null) };
+  return {
+    AuthContext: React.createContext(null),
+    AuthLoadingContext: React.createContext(false),
+    waitForAuthUser: jest.fn().mockResolvedValue(null),
+  };
 });
 jest.mock("@react-native-firebase/firestore", () => {
   const mockFirestore: any = jest.fn(() => ({ collection: jest.fn() }));
@@ -261,6 +265,44 @@ describe("useSaveCompletedWorkoutMutation", () => {
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["exerciseDetail"],
+    });
+  });
+
+  describe("sharing a workout saved before the session is restored", () => {
+    const { useSocialStore } = jest.requireMock("@/store/socialStore");
+    const { pushCompletedWorkout } = jest.requireMock("@/utils/sharing");
+    const { waitForAuthUser } = jest.requireMock("@/context/AuthProvider");
+
+    beforeEach(() => {
+      useSocialStore.mockReturnValue({
+        privacySettings: { shareCompletedWorkouts: true },
+      });
+      pushCompletedWorkout.mockClear();
+    });
+
+    afterEach(() => {
+      waitForAuthUser.mockResolvedValue(null);
+    });
+
+    it("pushes once the restored user is known", async () => {
+      waitForAuthUser.mockResolvedValue({ uid: "late-uid" });
+      useSaveCompletedWorkoutMutation("kg", "m");
+
+      capturedArgs.onSuccess(42, makeWorkoutData());
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(pushCompletedWorkout).toHaveBeenCalledWith("late-uid", 42);
+    });
+
+    it("pushes nothing when the user is signed out", async () => {
+      useSaveCompletedWorkoutMutation("kg", "m");
+
+      capturedArgs.onSuccess(42, makeWorkoutData());
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(pushCompletedWorkout).not.toHaveBeenCalled();
     });
   });
 });

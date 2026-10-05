@@ -34,7 +34,7 @@ import { useTrainingDataExport } from "@/hooks/useTrainingDataExport";
 import { useQueryClient } from "@tanstack/react-query";
 import { saveBodyWeightMeasurement } from "@/utils/database";
 import { displayToKg, roundCanonical } from "@/utils/units";
-import { AuthContext } from "@/context/AuthProvider";
+import { AuthContext, AuthLoadingContext } from "@/context/AuthProvider";
 import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
 import { showSnackbar } from "@/store/snackbarStore";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -80,6 +80,7 @@ export default function SettingsScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const user = useContext(AuthContext);
+  const isAuthLoading = useContext(AuthLoadingContext);
   const { signIn, isSigningIn, isOnline } = useGoogleSignIn();
 
   const handleSignOut = async () => {
@@ -604,8 +605,8 @@ export default function SettingsScreen() {
                 <Button
                   mode="outlined"
                   compact
-                  loading={isSigningIn}
-                  disabled={isSigningIn || !isOnline}
+                  loading={isSigningIn || isAuthLoading}
+                  disabled={isSigningIn || isAuthLoading || !isOnline}
                   onPress={() => void signIn()}
                 >
                   <Trans>Sign in</Trans>

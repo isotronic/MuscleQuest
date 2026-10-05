@@ -63,7 +63,10 @@ jest.mock("@/components/ui", () => {
 });
 jest.mock("@/context/AuthProvider", () => {
   const React = jest.requireActual("react");
-  return { AuthContext: React.createContext({ uid: "me" }) };
+  return {
+    AuthContext: React.createContext({ uid: "me" }),
+    AuthLoadingContext: React.createContext(false),
+  };
 });
 jest.mock("@/store/socialStore", () => ({
   useSocialStore: () => ({

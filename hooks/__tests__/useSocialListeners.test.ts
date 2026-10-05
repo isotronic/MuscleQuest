@@ -55,15 +55,27 @@ jest.mock("@/store/socialRefreshStore", () => ({
 
 const mockUser = { uid: "my-uid" };
 
+// useContext is mocked: the auth context yields the user, the auth loading
+// context reports the session as restored.
+function mockAuthContexts(user: unknown) {
+  return (context: unknown) =>
+    context === jest.requireMock("@/context/AuthProvider").AuthLoadingContext
+      ? false
+      : user;
+}
+
 jest.mock("react", () => ({
   ...jest.requireActual("react"),
-  useContext: jest.fn().mockReturnValue(mockUser),
+  useContext: jest.fn(mockAuthContexts(mockUser)),
   useEffect: jest.fn((fn) => fn()),
   useState: jest.fn((initial: unknown) => [initial, jest.fn()]),
 }));
 jest.mock("@/context/AuthProvider", () => {
   const React = jest.requireActual("react");
-  return { AuthContext: React.createContext(null) };
+  return {
+    AuthContext: React.createContext(null),
+    AuthLoadingContext: React.createContext(false),
+  };
 });
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -78,7 +90,9 @@ describe("useSocialListeners - friends snapshot", () => {
     jest.clearAllMocks();
     Object.keys(snapshotCallbacks).forEach((k) => delete snapshotCallbacks[k]);
     Object.keys(errorCallbacks).forEach((k) => delete errorCallbacks[k]);
-    jest.requireMock("react").useContext.mockReturnValue(mockUser);
+    jest
+      .requireMock("react")
+      .useContext.mockImplementation(mockAuthContexts(mockUser));
     mockOnSnapshot.mockImplementation(
       (ref: string, cb: Function, errCb?: Function) => {
         snapshotCallbacks[ref] = cb;
@@ -406,7 +420,9 @@ describe("useSocialListeners - listener error scoping", () => {
     jest.clearAllMocks();
     Object.keys(snapshotCallbacks).forEach((k) => delete snapshotCallbacks[k]);
     Object.keys(errorCallbacks).forEach((k) => delete errorCallbacks[k]);
-    jest.requireMock("react").useContext.mockReturnValue(mockUser);
+    jest
+      .requireMock("react")
+      .useContext.mockImplementation(mockAuthContexts(mockUser));
     mockOnSnapshot.mockImplementation(
       (ref: string, cb: Function, errCb?: Function) => {
         snapshotCallbacks[ref] = cb;
@@ -476,5 +492,45 @@ describe("useSocialListeners - listener error scoping", () => {
 
     expect(Bugsnag.notify).toHaveBeenCalledTimes(1);
     expect(mockSetPublishedPlanIds).not.toHaveBeenCalled();
+  });
+});
+
+describe("useSocialListeners - before the session is restored", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest
+      .requireMock("react")
+      .useContext.mockImplementation(mockAuthContexts(mockUser));
+  });
+
+  const authLoading = (context: unknown) =>
+    context === jest.requireMock("@/context/AuthProvider").AuthLoadingContext
+      ? true
+      : null;
+
+  it("keeps the persisted social state while auth is loading", () => {
+    jest.requireMock("react").useContext.mockImplementation(authLoading);
+
+    useSocialListeners();
+
+    expect(mockSetFriends).not.toHaveBeenCalled();
+    expect(mockSetPrivacySettings).not.toHaveBeenCalled();
+    expect(mockSetPublishedPlanIds).not.toHaveBeenCalled();
+    expect(mockOnSnapshot).not.toHaveBeenCalled();
+  });
+
+  it("clears the social state once auth reports signed out", () => {
+    jest
+      .requireMock("react")
+      .useContext.mockImplementation(mockAuthContexts(null));
+
+    useSocialListeners();
+
+    expect(mockSetFriends).toHaveBeenCalledWith([]);
+    expect(mockSetPrivacySettings).toHaveBeenCalledWith(null);
+    expect(mockSetPublishedPlanIds).toHaveBeenCalledWith(null);
   });
 });
