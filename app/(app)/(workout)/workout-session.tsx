@@ -45,6 +45,11 @@ import {
 import { Notes } from "@/components/Notes";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
+import {
+  checkWeightPlausibility,
+  heaviestWorkingWeight,
+} from "@/utils/weightPlausibility";
+import { confirmImplausibleWeight } from "@/utils/confirmImplausibleWeight";
 import { computeSteppedWeight } from "@/utils/weightStep";
 import {
   buildExerciseMap,
@@ -1123,6 +1128,9 @@ export default function WorkoutSessionScreen() {
     // Skip feedback for unsupported tracking types
     if (trackingType === "time" || trackingType === "distance") return null;
 
+    // Read live: a confirmed weight correction lands in the store after this
+    // render's snapshot was taken.
+    const liveWeightAndReps = useActiveWorkoutStore.getState().weightAndReps;
     const workingSets = exercise.sets
       .map((set, idx) => ({ set, idx }))
       .filter(({ set }) => !set.isWarmup && !set.isDropSet);
@@ -1161,18 +1169,20 @@ export default function WorkoutSessionScreen() {
       0,
     );
     const actualReps = workingSets.reduce((sum, { idx }) => {
-      const r = parseInt(weightAndReps[exIdx]?.[idx]?.reps ?? "0", 10);
+      const r = parseInt(liveWeightAndReps[exIdx]?.[idx]?.reps ?? "0", 10);
       return sum + (isNaN(r) ? 0 : r);
     }, 0);
     const performanceRatio =
       targetReps > 0 ? Math.min(actualReps / targetReps, 1.5) : 1.0;
 
     const maxWeight = workingSets
-      .map(({ idx }) => parseFloat(weightAndReps[exIdx]?.[idx]?.weight ?? ""))
+      .map(({ idx }) =>
+        parseFloat(liveWeightAndReps[exIdx]?.[idx]?.weight ?? ""),
+      )
       .filter((w) => !isNaN(w));
 
     const completedRepsPerSet = workingSets.map(({ idx }) => {
-      const r = parseInt(weightAndReps[exIdx]?.[idx]?.reps ?? "", 10);
+      const r = parseInt(liveWeightAndReps[exIdx]?.[idx]?.reps ?? "", 10);
       return isNaN(r) ? null : r;
     });
 
@@ -1236,6 +1246,10 @@ export default function WorkoutSessionScreen() {
     return [ctxFirst, ctxSecond];
   };
 
+  // Weights the user already confirmed this session, per exercise, so the
+  // same entry is not questioned twice.
+  const confirmedWeightsRef = useRef(new Set<string>());
+
   const handleCompleteSet = () => {
     if (!currentExercise || !currentSet) {
       return;
@@ -1243,10 +1257,61 @@ export default function WorkoutSessionScreen() {
     if (currentSetCompleted) return;
     if (outgoingSnapshot || isTransitioning.value) return;
 
+    const trackingType = resolvedTrackingType(currentExercise);
+    const enteredWeight = parseFloat(weight);
+    const confirmKey = `${currentExercise.exercise_id}:${enteredWeight}`;
+    if (
+      (trackingType === "weight" || trackingType === "assisted") &&
+      !confirmedWeightsRef.current.has(confirmKey)
+    ) {
+      const reference = heaviestWorkingWeight([
+        ...(prevExercisesByExerciseId.get(currentExercise.exercise_id) ?? []),
+        ...(globalExercisesByExerciseId.get(currentExercise.exercise_id) ?? []),
+      ]);
+      const weightUnit = settings?.weightUnit || "kg";
+      const check = checkWeightPlausibility({
+        weight: enteredWeight,
+        reference,
+        weightUnit,
+      });
+      if (check.implausible) {
+        confirmImplausibleWeight({
+          weight: enteredWeight,
+          suggestion: check.suggestion,
+          reference,
+          weightUnit,
+          onUse: (corrected) => {
+            updateWeightAndReps(
+              currentExerciseIndex,
+              currentSetIndex,
+              String(corrected),
+              reps,
+              time,
+            );
+            completeSet(String(corrected));
+          },
+          onKeep: () => {
+            confirmedWeightsRef.current.add(confirmKey);
+            completeSet();
+          },
+        });
+        return;
+      }
+    }
+
+    completeSet();
+  };
+
+  const completeSet = (weightOverride?: string) => {
+    if (!currentExercise || !currentSet) {
+      return;
+    }
+
     // Capture feedback contexts before any state changes
     const feedbackContexts = buildFeedbackContexts();
 
     const weightStr =
+      weightOverride ??
       weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight ??
       previousWorkoutSetData?.weight?.toString() ??
       "";
