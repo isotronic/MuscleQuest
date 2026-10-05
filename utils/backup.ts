@@ -207,7 +207,7 @@ export const uploadDatabaseBackup = async (
     );
 
     setBackupProgress(100);
-    console.log(`Backup uploaded to ${targetSlot}.`);
+    Bugsnag.leaveBreadcrumb("Backup uploaded", { slot: targetSlot });
 
     // The first new-format backup supersedes the legacy files. Failing to
     // delete them is harmless, since the manifest takes precedence.
@@ -374,7 +374,7 @@ export const restoreDatabaseBackup = async (
       }
     }
 
-    console.log("Backup restored successfully.");
+    Bugsnag.leaveBreadcrumb("Backup restored");
     await setAsyncStorageItem("databaseRestored", "true");
     setRestoreProgress(100);
     await reloadAsync();

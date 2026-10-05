@@ -20,7 +20,7 @@ import { forgetExerciseImageFiles } from "@/utils/db/exerciseImageFiles";
 
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
-  default: { notify: jest.fn() },
+  default: { notify: jest.fn(), leaveBreadcrumb: jest.fn() },
 }));
 jest.mock("expo-updates", () => ({
   reloadAsync: jest.fn(),

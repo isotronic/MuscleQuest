@@ -45,9 +45,6 @@ export const ensureAppExercisesExist = async (
               row.double_weight ?? null,
             ],
           );
-          console.log(
-            `Copied exercise app_exercise_id=${appId} to userData.db`,
-          );
         } else {
           console.warn(
             `Exercise with app_exercise_id=${appId} not found in appData3.db`,
@@ -70,15 +67,8 @@ const insertPlans = async (db: SQLiteDatabase, plans: Plan[]) => {
       [Number(plan.app_plan_id)],
     )) as any;
 
-    if (planExistsResult) {
-      console.log(
-        `Plan with app_plan_id ${plan.app_plan_id} already exists. Skipping insertion.`,
-      );
-    } else {
+    if (!planExistsResult) {
       plansToInsert.push(plan);
-      console.log(
-        `Plan with app_plan_id ${plan.app_plan_id} does not exist. Inserting...`,
-      );
     }
   }
   // Start the transaction
@@ -161,7 +151,6 @@ export const loadPremadePlans = async (onProgress?: ProgressCallback) => {
     if (totalFiles > 0) onProgress?.(0, totalFiles);
 
     if (syncVersion < APP_DATA_SYNC.premadePlansV1) {
-      console.log("Condition met: Updating data version...");
       const plan1 = require("@/assets/data/3-day-full-body.json");
       const plan2 = require("@/assets/data/4-day-split.json");
       const planFiles = [plan1, plan2];
@@ -171,13 +160,12 @@ export const loadPremadePlans = async (onProgress?: ProgressCallback) => {
         fileDone();
       }
 
-      console.log("Updating data version to 1.8...");
       await setAppDataSyncVersion(db, APP_DATA_SYNC.premadePlansV1);
+      Bugsnag.leaveBreadcrumb("Premade plans v1 loaded");
       syncVersion = APP_DATA_SYNC.premadePlansV1;
     }
 
     if (syncVersion < APP_DATA_SYNC.premadePlansV2) {
-      console.log("Loading new premade plans (v2.1)...");
       const newPlanFiles = [
         require("@/assets/data/5-day-bro-split.json"),
         require("@/assets/data/5-day-ppl.json"),
@@ -210,8 +198,8 @@ export const loadPremadePlans = async (onProgress?: ProgressCallback) => {
         fileDone();
       }
 
-      console.log("Updating data version to 2.1...");
       await setAppDataSyncVersion(db, APP_DATA_SYNC.premadePlansV2);
+      Bugsnag.leaveBreadcrumb("Premade plans v2 loaded");
     }
   } catch (error: any) {
     Bugsnag.notify(error);
