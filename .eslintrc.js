@@ -27,6 +27,16 @@ const unitRestrictions = [
   message: "Use the helpers and constants in @/utils/units.",
 }));
 
+// Decimal text goes through utils/numberFormat.ts (DecimalInput or its
+// helpers): a hand-written sanitiser that keeps digits and "." drops the comma
+// a European keyboard types, turning 62,5 into 625.
+const decimalInputRestriction = {
+  selector:
+    'CallExpression[callee.property.name="replace"] > Literal[regex.pattern=/(0-9|\\\\d)\\./]',
+  message:
+    "Use DecimalInput from @/components/ui or the helpers in @/utils/numberFormat for decimal input.",
+};
+
 // Icon-only buttons need a spoken label; AppIconButton makes it a required prop.
 const iconButtonRestriction = {
   name: "react-native-paper",
@@ -46,7 +56,12 @@ module.exports = {
       },
     ],
     "expo/use-dom-exports": "off",
-    "no-restricted-syntax": ["error", ...dateRestrictions, ...unitRestrictions],
+    "no-restricted-syntax": [
+      "error",
+      ...dateRestrictions,
+      ...unitRestrictions,
+      decimalInputRestriction,
+    ],
     "no-restricted-imports": ["error", { paths: [iconButtonRestriction] }],
   },
   overrides: [
@@ -68,7 +83,11 @@ module.exports = {
       // The one place the conversion factors are defined.
       files: ["utils/units.ts"],
       rules: {
-        "no-restricted-syntax": ["error", ...dateRestrictions],
+        "no-restricted-syntax": [
+          "error",
+          ...dateRestrictions,
+          decimalInputRestriction,
+        ],
       },
     },
   ],

@@ -94,7 +94,7 @@ describe("biggestGain", () => {
         "lbs",
       ),
     );
-    const numStr = result.current.biggestGainValue!.replace(/[^0-9.]/g, "");
+    const numStr = result.current.biggestGainValue!.match(/[\d.]+/)![0];
     expect(parseFloat(numStr)).toBeCloseTo(20 / KG_PER_LB, 1);
   });
 

@@ -1,17 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
-import {
-  View,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
+import { View, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
 import { ActivityIndicator, Button, Card } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
+import { DecimalInput } from "@/components/ui";
 import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
 import { BodyMeasurementLineChart } from "@/components/charts/BodyMeasurementLineChart";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
@@ -26,10 +21,7 @@ import { bodyMetricTranslations } from "@/constants/dbTranslations";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { parseDbTimestamp } from "@/utils/dates";
-
-const DECIMAL_SEP =
-  new Intl.NumberFormat().formatToParts(1.1).find((p) => p.type === "decimal")
-    ?.value ?? ".";
+import { parseDecimalInput } from "@/utils/numberFormat";
 
 export default function MeasurementDetailScreen() {
   const { colors } = useAppTheme();
@@ -70,7 +62,7 @@ export default function MeasurementDetailScreen() {
     if (session && !initialised) {
       const initial: Record<number, string> = {};
       for (const v of session.values) {
-        initial[v.metric.id] = String(v.displayValue).replace(".", DECIMAL_SEP);
+        initial[v.metric.id] = String(v.displayValue);
       }
       setInputValues(initial);
       setSelectedMetric(session.values[0]?.metric ?? null);
@@ -89,11 +81,12 @@ export default function MeasurementDetailScreen() {
       .map((v) => ({
         metric_id: v.metric.id,
         value_kind: v.metric.value_kind,
-        displayValue: parseFloat(
-          (inputValues[v.metric.id] ?? "").replace(",", "."),
-        ),
+        displayValue: parseDecimalInput(inputValues[v.metric.id] ?? ""),
       }))
-      .filter((v) => !isNaN(v.displayValue));
+      .filter(
+        (v): v is typeof v & { displayValue: number } =>
+          v.displayValue !== null,
+      );
 
     if (values.length === 0) return;
 
@@ -159,7 +152,7 @@ export default function MeasurementDetailScreen() {
                   : v.metric.label}
               </ThemedText>
               <View style={styles.metricInputWrap}>
-                <TextInput
+                <DecimalInput
                   style={styles.metricInput}
                   accessibilityLabel={
                     bodyMetricTranslations[v.metric.key]
@@ -167,10 +160,9 @@ export default function MeasurementDetailScreen() {
                       : v.metric.label
                   }
                   value={inputValues[v.metric.id] ?? ""}
-                  onChangeText={(text: string) =>
+                  onChangeValue={(text: string) =>
                     setInputValues((prev) => ({ ...prev, [v.metric.id]: text }))
                   }
-                  keyboardType="numeric"
                   returnKeyType="done"
                 />
                 <ThemedText style={styles.metricUnit}>

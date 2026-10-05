@@ -1,5 +1,6 @@
-import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { AppIconButton } from "@/components/ui";
+import { DecimalInput } from "@/components/ui/DecimalInput";
 import { ScrollView, TextInput, StyleSheet, View } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -18,6 +19,7 @@ import { useEditCompletedWorkoutMutation } from "@/hooks/useEditCompletedWorkout
 import { ActivityIndicator } from "react-native-paper";
 import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
 import { formatFromTotalSeconds, convertToTotalSeconds } from "@/utils/utility";
+import { parseDecimalInput, sanitizeIntegerInput } from "@/utils/numberFormat";
 import { TimeInput } from "@/components/TimeInput";
 import Bugsnag from "@bugsnag/expo";
 import { useExercisePickerStore } from "@/store/exercisePickerStore";
@@ -38,11 +40,19 @@ export default function EditCompletedWorkoutScreen() {
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
 
-  const [exercises, setExercises] = useState<CompletedWorkout["exercises"]>([]);
-  const [weightInputs, setWeightInputs] = useState<{ [key: string]: string }>(
+  type Exercises = CompletedWorkout["exercises"];
+  type EditedSet = Exercises[number]["sets"][number];
+
+  // Edited copy of the loaded workout. Updated immutably: the loaded data is
+  // the query cache's object and doubles as the original the save diffs
+  // against.
+  const [exercises, setExercises] = useState<Exercises>([]);
+  // Decimal fields are held as canonical text while typing ("62." must
+  // survive a keystroke) and parsed on save. Keyed by set_id.
+  const [weightInputs, setWeightInputs] = useState<Record<number, string>>({});
+  const [distanceInputs, setDistanceInputs] = useState<Record<number, string>>(
     {},
   );
-  const weightInputRefs = useRef<{ [key: string]: any }>({});
 
   const [editingCompletedExerciseId, setEditingCompletedExerciseId] = useState<
     number | null
@@ -85,47 +95,60 @@ export default function EditCompletedWorkoutScreen() {
     weightUnit,
     distanceUnit,
   );
-  // Update exercises when workout data is available
+  // Seed the edit state when the workout loads
   useEffect(() => {
-    if (workoutData) {
-      setExercises(workoutData.exercises);
+    if (!workoutData) return;
+    setExercises(workoutData.exercises);
+    const weights: Record<number, string> = {};
+    const distances: Record<number, string> = {};
+    for (const exercise of workoutData.exercises) {
+      for (const set of exercise.sets) {
+        weights[set.set_id] = set.weight != null ? String(set.weight) : "";
+        distances[set.set_id] =
+          set.distance != null ? String(set.distance) : "";
+      }
     }
+    setWeightInputs(weights);
+    setDistanceInputs(distances);
   }, [workoutData]);
 
-  useEffect(() => {
-    const initialWeightInputs: { [key: string]: string } = {};
-    exercises.forEach((exercise, exerciseIndex) => {
-      exercise.sets.forEach((set, setIndex) => {
-        const key = `${exerciseIndex}-${setIndex}`;
-        initialWeightInputs[key] =
-          set.weight !== null ? String(set.weight) : "";
-      });
-    });
-    setWeightInputs(initialWeightInputs);
-  }, [exercises]);
+  const updateSet = (
+    exerciseIndex: number,
+    setIndex: number,
+    patch: Partial<EditedSet>,
+  ) =>
+    setExercises((prev) =>
+      prev.map((exercise, i) =>
+        i !== exerciseIndex
+          ? exercise
+          : {
+              ...exercise,
+              sets: exercise.sets.map((set, j) =>
+                j === setIndex ? { ...set, ...patch } : set,
+              ),
+            },
+      ),
+    );
 
   const handleSave = () => {
-    Object.values(weightInputRefs.current).forEach((input) => input?.blur());
-
-    // Merge weightInputs into exercises synchronously — onBlur state updates
-    // are batched by React and won't be applied before mutate runs.
-    const finalExercises = exercises.map((exercise, exerciseIndex) => ({
+    if (!workoutData) return;
+    const edited = exercises.map((exercise) => ({
       ...exercise,
-      sets: exercise.sets.map((set, setIndex) => {
-        const key = `${exerciseIndex}-${setIndex}`;
-        if (weightInputs[key] === undefined) return set;
-        const raw = weightInputs[key];
-        if (raw == null || raw.trim() === "") return { ...set, weight: null };
-        const parsedWeight = parseFloat(raw);
-        return { ...set, weight: isNaN(parsedWeight) ? null : parsedWeight };
-      }),
+      sets: exercise.sets.map((set) => ({
+        ...set,
+        weight: parseDecimalInput(weightInputs[set.set_id] ?? ""),
+        distance: parseDecimalInput(distanceInputs[set.set_id] ?? ""),
+      })),
     }));
 
-    editWorkout.mutate(finalExercises, {
-      onSuccess: () => {
-        router.back();
+    editWorkout.mutate(
+      { original: workoutData.exercises, edited },
+      {
+        onSuccess: () => {
+          router.back();
+        },
       },
-    });
+    );
   };
 
   const handleChangeExercise = (exercise: CompletedWorkout["exercises"][0]) => {
@@ -216,46 +239,23 @@ export default function EditCompletedWorkoutScreen() {
                         )}{" "}
                         ({weightUnit})
                       </ThemedText>
-                      <TextInput
+                      <DecimalInput
                         accessibilityLabel={
                           exercise.exercise_tracking_type === "weight"
                             ? t`Weight in ${weightUnit}, set ${set.set_number}`
                             : t`Assistance in ${weightUnit}, set ${set.set_number}`
                         }
-                        ref={(ref: any) =>
-                          (weightInputRefs.current[
-                            `${exerciseIndex}-${setIndex}`
-                          ] = ref)
-                        }
                         style={styles.input}
                         placeholder={t`Weight`}
-                        value={
-                          weightInputs[`${exerciseIndex}-${setIndex}`] || ""
-                        }
+                        value={weightInputs[set.set_id] ?? ""}
                         placeholderTextColor={colors.contentSecondary}
                         selectTextOnFocus={true}
-                        keyboardType="numeric"
-                        onChangeText={(value: string) => {
-                          // Update temporary weightInputs state
-                          if (/^\d*\.?\d*$/.test(value)) {
-                            setWeightInputs((prev) => ({
-                              ...prev,
-                              [`${exerciseIndex}-${setIndex}`]: value,
-                            }));
-                          }
-                        }}
-                        onBlur={() => {
-                          const parsedWeight = parseFloat(
-                            weightInputs[`${exerciseIndex}-${setIndex}`] || "0",
-                          );
-
-                          setExercises((prev) => {
-                            const updated = [...prev];
-                            updated[exerciseIndex].sets[setIndex].weight =
-                              isNaN(parsedWeight) ? null : parsedWeight;
-                            return updated;
-                          });
-                        }}
+                        onChangeValue={(value) =>
+                          setWeightInputs((prev) => ({
+                            ...prev,
+                            [set.set_id]: value,
+                          }))
+                        }
                       />
                     </View>
                     <View style={styles.inputContainer}>
@@ -269,13 +269,11 @@ export default function EditCompletedWorkoutScreen() {
                         value={String(set.reps || "")}
                         placeholderTextColor={colors.contentSecondary}
                         selectTextOnFocus={true}
-                        keyboardType="numeric"
+                        keyboardType="number-pad"
                         onChangeText={(value: string) => {
-                          setExercises((prev) => {
-                            const updated = [...prev];
-                            updated[exerciseIndex].sets[setIndex].reps =
-                              Number(value);
-                            return updated;
+                          const digits = sanitizeIntegerInput(value);
+                          updateSet(exerciseIndex, setIndex, {
+                            reps: digits === "" ? null : Number(digits),
                           });
                         }}
                       />
@@ -289,14 +287,11 @@ export default function EditCompletedWorkoutScreen() {
                     <TimeInput
                       accessibilityLabel={t`Time, set ${set.set_number}`}
                       value={formatFromTotalSeconds(set.time || 0)}
-                      onChange={(value: string) => {
-                        setExercises((prev) => {
-                          const updated = [...prev];
-                          updated[exerciseIndex].sets[setIndex].time =
-                            convertToTotalSeconds(value);
-                          return updated;
-                        });
-                      }}
+                      onChange={(value: string) =>
+                        updateSet(exerciseIndex, setIndex, {
+                          time: convertToTotalSeconds(value),
+                        })
+                      }
                       style={styles.timeInput}
                     />
                   </View>
@@ -312,13 +307,11 @@ export default function EditCompletedWorkoutScreen() {
                       value={String(set.reps || "")}
                       placeholderTextColor={colors.contentSecondary}
                       selectTextOnFocus={true}
-                      keyboardType="numeric"
+                      keyboardType="number-pad"
                       onChangeText={(value: string) => {
-                        setExercises((prev) => {
-                          const updated = [...prev];
-                          updated[exerciseIndex].sets[setIndex].reps =
-                            Number(value);
-                          return updated;
+                        const digits = sanitizeIntegerInput(value);
+                        updateSet(exerciseIndex, setIndex, {
+                          reps: digits === "" ? null : Number(digits),
                         });
                       }}
                     />
@@ -328,22 +321,19 @@ export default function EditCompletedWorkoutScreen() {
                     <ThemedText style={styles.label}>
                       <Trans>Distance ({distanceUnit})</Trans>
                     </ThemedText>
-                    <TextInput
+                    <DecimalInput
                       accessibilityLabel={t`Distance in ${distanceUnit}, set ${set.set_number}`}
                       style={styles.input}
                       placeholder={t`Distance`}
-                      value={set.distance != null ? String(set.distance) : ""}
+                      value={distanceInputs[set.set_id] ?? ""}
                       placeholderTextColor={colors.contentSecondary}
                       selectTextOnFocus={true}
-                      keyboardType="numeric"
-                      onChangeText={(value: string) => {
-                        setExercises((prev) => {
-                          const updated = [...prev];
-                          updated[exerciseIndex].sets[setIndex].distance =
-                            value === "" ? null : parseFloat(value);
-                          return updated;
-                        });
-                      }}
+                      onChangeValue={(value) =>
+                        setDistanceInputs((prev) => ({
+                          ...prev,
+                          [set.set_id]: value,
+                        }))
+                      }
                     />
                   </View>
                 ) : null}

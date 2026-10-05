@@ -27,6 +27,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import { SettingsModal } from "@/components/SettingsModal";
 import { PrivacySettings } from "@/components/PrivacySettings";
+import { UnitSettingItem } from "@/components/UnitSettingItem";
 // import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 import { useImageManagement } from "@/hooks/useImageManagement";
 import { useTrainingDataExport } from "@/hooks/useTrainingDataExport";
@@ -740,35 +741,21 @@ export default function SettingsScreen() {
           <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
             <Trans>Units of measurement</Trans>
           </ThemedText>
-          <TouchableOpacity
-            accessibilityRole="button"
-            style={styles.item}
+          <UnitSettingItem
+            icon="weight"
+            label={t`Weight unit`}
+            value={settings?.weightUnit || ""}
             onPress={() =>
               showOverlay("weightUnit", settings?.weightUnit || "", "radio", [
                 "kg",
                 "lbs",
               ])
             }
-          >
-            <AppIcon
-              set="mci"
-              name="weight"
-              size={24}
-              color={colors.contentSecondary}
-              style={styles.icon}
-            />
-            <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>
-                <Trans>Weight unit</Trans>
-              </ThemedText>
-              <ThemedText style={styles.currentSetting}>
-                {settings?.weightUnit}
-              </ThemedText>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            style={styles.item}
+          />
+          <UnitSettingItem
+            icon="map-marker-distance"
+            label={t`Distance unit`}
+            value={settings?.distanceUnit || "m"}
             onPress={() =>
               showOverlay(
                 "distanceUnit",
@@ -777,23 +764,7 @@ export default function SettingsScreen() {
                 ["m", "ft"],
               )
             }
-          >
-            <AppIcon
-              set="mci"
-              name="map-marker-distance"
-              size={24}
-              color={colors.contentSecondary}
-              style={styles.icon}
-            />
-            <View style={styles.textContainer}>
-              <ThemedText style={styles.itemText}>
-                <Trans>Distance unit</Trans>
-              </ThemedText>
-              <ThemedText style={styles.currentSetting}>
-                {settings?.distanceUnit || "m"}
-              </ThemedText>
-            </View>
-          </TouchableOpacity>
+          />
           <TouchableOpacity
             accessibilityRole="button"
             style={styles.item}

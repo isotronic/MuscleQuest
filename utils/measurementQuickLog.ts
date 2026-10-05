@@ -1,4 +1,5 @@
 import { differenceInCalendarDays } from "date-fns";
+import { parseDecimalInput } from "./numberFormat";
 import type {
   BodyMetricDefinition,
   LatestBodyMetricValue,
@@ -130,10 +131,8 @@ const MEASUREMENT_PATTERN = /^\d*(?:[.,]\d*)?$/;
 export function parseMeasurementInput(text: string): number | null {
   const trimmed = (text ?? "").trim();
   if (!MEASUREMENT_PATTERN.test(trimmed)) return null;
-  // The pattern alone accepts "" and ".", so require at least one digit.
-  if (!/\d/.test(trimmed)) return null;
-  const value = Number(trimmed.replace(",", "."));
-  return Number.isFinite(value) ? value : null;
+  // The pattern alone accepts "" and ".", which parse to null.
+  return parseDecimalInput(trimmed);
 }
 
 /** Whether the user has typed something in this field that cannot be logged. */

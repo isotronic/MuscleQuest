@@ -268,8 +268,10 @@ export const fetchCompletedWorkoutById = async (
             row.completed_exercise_id!
           ].sets.some((s) => s.set_id === row.set_id);
           if (!alreadySeen) {
-            // Convert weight from kg to the user's unit
-            const weightInKg = parseFloat(row.weight?.toString() || "0");
+            // Convert weight from kg to the user's unit. A missing weight
+            // stays null rather than reading as a 0 kg set.
+            const weightInKg =
+              row.weight == null ? NaN : parseFloat(row.weight.toString());
             const convertedWeight = parseFloat(
               kgToDisplay(weightInKg, weightUnit).toFixed(1),
             );

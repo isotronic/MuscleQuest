@@ -7,6 +7,7 @@ import { Button } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { bodyMetricTranslations } from "@/constants/dbTranslations";
 import { isInvalidMeasurementInput } from "@/utils/measurementQuickLog";
+import { toDisplayDecimal } from "@/utils/numberFormat";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import type { BodyMetricDefinition } from "@/utils/database";
@@ -63,9 +64,14 @@ export function MeasurementQuickLogForm({
                   testID={`measurement-input-${metric.id}`}
                   accessibilityLabel={t`${metricName} in ${unit}`}
                   style={[styles.input, isInvalid ? styles.inputInvalid : null]}
-                  value={values[metric.id] ?? ""}
+                  value={toDisplayDecimal(values[metric.id] ?? "")}
+                  // Only the mark is normalised: anything else stays so the
+                  // field can be flagged instead of silently stripped.
                   onChangeText={(text) =>
-                    setValues((prev) => ({ ...prev, [metric.id]: text }))
+                    setValues((prev) => ({
+                      ...prev,
+                      [metric.id]: text.replace(/,/g, "."),
+                    }))
                   }
                   keyboardType="decimal-pad"
                   placeholder="-"
