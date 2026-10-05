@@ -26,6 +26,8 @@ import {
   convertToTotalSeconds,
 } from "@/utils/utility";
 import { TimeInput } from "./TimeInput";
+import { displayToMetres, roundCanonical } from "@/utils/units";
+import { planDistanceToDisplay } from "@/utils/planDistance";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -39,6 +41,7 @@ export interface SetOptionsValues {
   restMinutes: number;
   restSeconds: number;
   time: number;
+  /** Metres. */
   distance: number | undefined;
   isWarmup: boolean;
   isDropSet: boolean;
@@ -51,6 +54,7 @@ export interface SetOptionsInitialValues {
   repsMax: string;
   restTotalSeconds: number;
   timeSeconds: number;
+  /** Metres, as text; shown in distanceUnit. */
   distance: string;
   isWarmup: boolean;
   isDropSet: boolean;
@@ -106,7 +110,12 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
   const [time, setTime] = useState(
     formatFromTotalSeconds(initialValues.timeSeconds),
   );
-  const [distance, setDistance] = useState(initialValues.distance);
+  // The field works in the display unit; targets are stored in metres.
+  const seededDistance = useMemo(
+    () => metresTextToDisplay(initialValues.distance, distanceUnit),
+    [initialValues.distance, distanceUnit],
+  );
+  const [distance, setDistance] = useState(seededDistance);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -142,8 +151,8 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
     setRepsMax(initialValues.repsMax);
     setRestTime(formatFromTotalSeconds(initialValues.restTotalSeconds));
     setTime(formatFromTotalSeconds(initialValues.timeSeconds));
-    setDistance(initialValues.distance);
-  }, [initialValues, visible]);
+    setDistance(seededDistance);
+  }, [initialValues, seededDistance, visible]);
 
   const handleToFailureChange = () => {
     const newValue = !isToFailure;
@@ -178,7 +187,12 @@ export const SetOptionsModal: React.FC<SetOptionsModalProps> = ({
         time: convertToTotalSeconds(time || "00:00"),
         distance:
           trackingType === "distance" && distance !== ""
-            ? parseFloat(distance)
+            ? distance === seededDistance
+              ? // Untouched: keep the stored value rather than round-trip it.
+                parseFloat(initialValues.distance)
+              : roundCanonical(
+                  displayToMetres(parseFloat(distance), distanceUnit),
+                )
             : undefined,
         isWarmup,
         isDropSet,
@@ -523,4 +537,11 @@ function createStyles(colors: AppThemeColors) {
       fontSize: 16,
     },
   });
+}
+
+/** Canonical text for a stored metres value in the display unit. */
+function metresTextToDisplay(metres: string, distanceUnit: string): string {
+  const value = parseFloat(metres);
+  if (Number.isNaN(value)) return "";
+  return String(planDistanceToDisplay(value, distanceUnit));
 }

@@ -202,3 +202,29 @@ describe("SessionSetInfo decimal entry on a comma device", () => {
     expect(baseProps.handleDistanceInputChange).toHaveBeenCalledWith("1.5");
   });
 });
+
+describe("SessionSetInfo distance target", () => {
+  it("shows a target stored in metres in the user's unit", () => {
+    const { getByText } = render(
+      <SessionSetInfo
+        {...baseProps}
+        trackingType="distance"
+        distanceUnit="ft"
+        distanceMin={400}
+      />,
+    );
+    getByText("Target: 1312.34 ft");
+  });
+
+  it("shows a metre target unchanged", () => {
+    const { getByText } = render(
+      <SessionSetInfo
+        {...baseProps}
+        trackingType="distance"
+        distanceUnit="m"
+        distanceMin={400}
+      />,
+    );
+    getByText("Target: 400 m");
+  });
+});

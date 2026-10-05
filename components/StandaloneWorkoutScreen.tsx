@@ -35,6 +35,7 @@ import type { AppThemeColors } from "@/theme/types";
 import { AuthContext } from "@/context/AuthProvider";
 import { useWorkoutPublishMutation } from "@/hooks/useWorkoutPublishMutation";
 import { useSocialStore } from "@/store/socialStore";
+import { planDistanceRange } from "@/utils/planDistance";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -127,17 +128,7 @@ export default function StandaloneWorkoutScreen() {
       timeRange = formatFromTotalSeconds(minTime);
     }
 
-    const minDist = Math.min(...item.sets.map((s) => s.distance ?? Infinity));
-    const maxDist = Math.max(...item.sets.map((s) => s.distance ?? -Infinity));
-    let distanceRange: string | undefined;
-    if (minDist !== Infinity && maxDist !== -Infinity) {
-      distanceRange =
-        minDist === maxDist ? `${minDist}` : `${minDist} - ${maxDist}`;
-    } else if (maxDist !== -Infinity) {
-      distanceRange = `${maxDist}`;
-    } else if (minDist !== Infinity) {
-      distanceRange = `${minDist}`;
-    }
+    const distanceRange = planDistanceRange(item.sets, distanceUnit);
 
     const isToFailure = item.sets.some((s) => s.isToFailure);
 

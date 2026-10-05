@@ -15,6 +15,7 @@ import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { formatFromTotalSeconds, formatTimeInput } from "@/utils/utility";
 import { sanitizeIntegerInput } from "@/utils/numberFormat";
+import { planDistanceToDisplay } from "@/utils/planDistance";
 import { TimeInput } from "./TimeInput";
 import { useContinuousPress } from "@/hooks/useContinuousPress";
 import { ExerciseTimerModal } from "./ExerciseTimerModal";
@@ -51,6 +52,7 @@ interface SessionSetInfoProps {
   trackingType: string;
   distance: string;
   distanceUnit: string;
+  /** The plan's target distance, in metres. */
   distanceMin: number | undefined;
   handleWeightInputChange: (text: string) => void;
   handleWeightChange: (amount: number) => void;
@@ -107,7 +109,7 @@ export default function SessionSetInfo({
   trackingType,
   distance,
   distanceUnit,
-  distanceMin,
+  distanceMin: distanceMinMetres,
   handleWeightInputChange,
   handleWeightChange,
   handleRepsInputChange,
@@ -130,6 +132,10 @@ export default function SessionSetInfo({
   workingSetOrdinal,
   progressionSuggestion,
 }: SessionSetInfoProps) {
+  const distanceMin =
+    distanceMinMetres != null
+      ? planDistanceToDisplay(distanceMinMetres, distanceUnit)
+      : undefined;
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [menuVisible, setMenuVisible] = useState(false);

@@ -15,6 +15,7 @@ import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { planDistanceRange } from "@/utils/planDistance";
 
 // Each item fed to Sortable.Grid is either a solo exercise or an adjacent superset pair.
 // The pair is treated as a single draggable unit so both exercises move together.
@@ -211,22 +212,7 @@ export default function WorkoutCard({
         timeRange = `${formatFromTotalSeconds(minTime)} - ${formatFromTotalSeconds(maxTime)}`;
       }
 
-      const minDist = Math.min(
-        ...item.sets.map((set) => set.distance ?? Infinity),
-      );
-      const maxDist = Math.max(
-        ...item.sets.map((set) => set.distance ?? -Infinity),
-      );
-
-      let distanceRange: string | undefined;
-      if (minDist !== Infinity && maxDist !== -Infinity) {
-        distanceRange =
-          minDist === maxDist ? `${minDist}` : `${minDist} - ${maxDist}`;
-      } else if (minDist !== Infinity) {
-        distanceRange = `${minDist}`;
-      } else if (maxDist !== -Infinity) {
-        distanceRange = `${maxDist}`;
-      }
+      const distanceRange = planDistanceRange(item.sets, distanceUnit);
 
       const isToFailure = item.sets.some((set) => set.isToFailure);
       const isMenuOpen = menuVisible === item.exercise_id;
