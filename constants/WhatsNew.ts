@@ -3,12 +3,121 @@ import type { MessageDescriptor } from "@lingui/core";
 
 export interface WhatsNewEntry {
   version: number;
+  // Key into RELEASES: the app version whose users first got this change,
+  // whether through a store build or an OTA update on that runtime. A new
+  // entry takes the version app.config.js currently has.
+  release: string;
   message: MessageDescriptor;
 }
 
+export interface Release {
+  version: string;
+  // YYYY-MM the release first reached users
+  date: string;
+}
+
+// Oldest first. The changelog screen shows them newest first and hides any
+// release that has no entries yet.
+export const RELEASES: Release[] = [
+  { version: "0.8", date: "2024-11" },
+  { version: "0.9", date: "2025-02" },
+  { version: "0.10", date: "2025-02" },
+  { version: "0.12", date: "2025-02" },
+  { version: "0.14", date: "2025-03" },
+  { version: "0.16", date: "2025-03" },
+  { version: "0.17", date: "2025-11" },
+  { version: "0.20", date: "2026-05" },
+  { version: "0.21", date: "2026-05" },
+  { version: "1.0", date: "2026-05" },
+  { version: "1.3", date: "2026-06" },
+  { version: "1.4", date: "2026-07" },
+  { version: "1.5", date: "2026-10" },
+];
+
+// Entries below 2601 are changelog history and never pop up in
+// WhatsNewModal: every stored lastSeenVersion is already above them.
 export const WHATS_NEW_ENTRIES: WhatsNewEntry[] = [
   {
+    version: 801,
+    release: "0.8",
+    message: msg`
+🚀 MuscleQuest Is Here!
+
+The first public release. Build your own training plans or start from a premade one, then log weight, reps, or time for every set as you train. A rest timer counts down between sets and alerts you with a sound and vibration when it's done.
+
+The home screen tracks your weekly goal, Stats shows your workout history and a progression chart for every exercise, and you can edit any completed workout. Everything is stored on your phone, so the app works offline.
+`,
+  },
+  {
+    version: 802,
+    release: "0.8",
+    message: msg`
+☁️ New: Backup & Restore!
+
+Sign in to back up your training data to the cloud and restore it on a new phone, so a lost or replaced device no longer means losing your history.
+
+Also new in this release: a short introduction for first-time users, a 4-Day Upper/Lower Split premade plan, more bodyweight exercises, replacing an exercise in the plan editor, and an "Active" badge on your current plan.
+`,
+  },
+  {
+    version: 803,
+    release: "0.8",
+    message: msg`
+🔔 New: Rest Timer Notifications!
+
+The rest timer now sends a notification when your rest is over, so you don't miss your next set while you're in another app. You can switch it off in Settings.
+`,
+  },
+  {
+    version: 901,
+    release: "0.9",
+    message: msg`
+📋 New: Pre-Filled Sets!
+
+Weight and reps are now pre-filled from the last time you did the workout, so you can see what to beat without looking it up.
+
+You can also give your plans a picture from a built-in gallery or from your own photos.
+`,
+  },
+  {
+    version: 1001,
+    release: "0.10",
+    message: msg`
+⚙️ New: More in Settings!
+
+You can now replay the app introduction, request a feature, and find MuscleQuest on Instagram, all from Settings.
+`,
+  },
+  {
+    version: 1201,
+    release: "0.12",
+    message: msg`
+↕️ Improved: Smoother Plan Editing!
+
+Dragging exercises to reorder them in the plan editor is smoother and more reliable, and a newly added workout scrolls into view straight away. Loading indicators now show while workouts start, save, and open, so you always know the app is working.
+`,
+  },
+  {
+    version: 1300,
+    release: "0.14",
+    message: msg`
+📝 New Feature: Notes!
+
+You can now add notes to exercises, workouts and plans. Use this to jot down technique tips, machine settings, reminders, or anything else that helps you crush your session!
+`,
+  },
+  {
+    version: 1600,
+    release: "0.16",
+    message: msg`
+🔥 New Feature: To Failure Sets!
+
+You can now mark a set "to failure", instead of adding a rep range, which is especially useful for isolation machine, dumbbell, or bodyweight exercises, when you want to push yourself to the limit.
+`,
+  },
+  {
     version: 2601,
+    release: "0.17",
     message: msg`
 🎯 Improved: Smarter Exercise Filters!
 
@@ -17,6 +126,7 @@ When replacing an exercise, the filter now automatically preselects the target m
   },
   {
     version: 2602,
+    release: "0.17",
     message: msg`
 🐛 Fixed: Workout Session Buttons & Edit Set Modal!
 
@@ -25,6 +135,7 @@ Fixed a bug where all buttons (increment/decrement, next/previous set, complete 
   },
   {
     version: 2603,
+    release: "0.17",
     message: msg`
 🔔 New: In-App Update Notifications!
 
@@ -33,6 +144,7 @@ A new update modal now appears when an over-the-air update is available, so you 
   },
   {
     version: 2604,
+    release: "0.20",
     message: msg`
 📋 New: View Workout Details from the Home Screen!
 
@@ -41,6 +153,7 @@ You can now tap any recent workout on the home screen to view its full details. 
   },
   {
     version: 2605,
+    release: "0.20",
     message: msg`
 ↕️ New: Reorder Workouts in Your Plan!
 
@@ -49,6 +162,7 @@ You can now reorder workouts directly in the plan creation screen and workout ca
   },
   {
     version: 2606,
+    release: "0.20",
     message: msg`
 🐛 Fixed: Various Bug Fixes & Improvements!
 
@@ -57,6 +171,7 @@ Fixed the rest timer notification not triggering correctly, exercise name wrappi
   },
   {
     version: 2607,
+    release: "0.20",
     message: msg`
 🏋️ New: Single Workouts & Quick Workouts!
 
@@ -67,6 +182,7 @@ Or start a Quick Workout from the home screen, add exercises on the fly, and opt
   },
   {
     version: 2608,
+    release: "0.20",
     message: msg`
 📅 New: Weekly Schedule for Your Plan!
 
@@ -75,6 +191,7 @@ You can now assign workouts to specific days of the week directly in the plan ed
   },
   {
     version: 2609,
+    release: "0.21",
     message: msg`
 🔗 New: Supersets!
 
@@ -83,6 +200,7 @@ Pair two exercises together as a superset directly in the plan editor. Sets are 
   },
   {
     version: 2610,
+    release: "0.21",
     message: msg`
 ✨ New: Workout Session Animations!
 
@@ -91,6 +209,7 @@ Navigating between sets now features smooth slide transitions. Swipe left or rig
   },
   {
     version: 2611,
+    release: "0.21",
     message: msg`
 📊 New: Workout Summary!
 
@@ -99,6 +218,7 @@ After completing a workout, you'll now see a full summary of your session: total
   },
   {
     version: 2612,
+    release: "0.21",
     message: msg`
 ⏱️ New: Adjustable Rest Timer!
 
@@ -107,6 +227,7 @@ A new slide-in panel lets you fine-tune your rest duration on the fly during a w
   },
   {
     version: 2613,
+    release: "0.21",
     message: msg`
 🔵 New: Exercise Timer Modal!
 
@@ -115,6 +236,7 @@ Time-based exercises now show a dedicated countdown modal with a progress ring, 
   },
   {
     version: 2614,
+    release: "0.21",
     message: msg`
 ↕️ New: Reorder Exercises in the Workout Overview!
 
@@ -123,6 +245,7 @@ You can now drag and drop exercises and supersets to reorder them directly from 
   },
   {
     version: 2615,
+    release: "0.21",
     message: msg`
 💾 New: Save Workout Changes Back to Your Plan!
 
@@ -131,6 +254,7 @@ When you finish a session where you added, removed, or reordered exercises, or s
   },
   {
     version: 2616,
+    release: "0.21",
     message: msg`
 📊 New: Improved Stats Screen!
 
@@ -139,6 +263,7 @@ The stats screen has been redesigned with a fresh new look and improved insights
   },
   {
     version: 2617,
+    release: "0.21",
     message: msg`
 📏 New: Distance Tracking for Custom Exercises!
 
@@ -147,6 +272,7 @@ Custom exercises can now use a distance tracking type, perfect for cardio and co
   },
   {
     version: 2618,
+    release: "0.21",
     message: msg`
 🔔 New: Workout Reminder Notifications!
 
@@ -155,6 +281,7 @@ Never miss a session. Set reminder notifications for your workouts directly from
   },
   {
     version: 2619,
+    release: "0.21",
     message: msg`
 📈 New: Exercise History in the Info Screen!
 
@@ -163,6 +290,7 @@ The exercise info screen now includes a full history of every time you've perfor
   },
   {
     version: 2620,
+    release: "0.21",
     message: msg`
 ⚙️ New: Three New Stats Settings!
 
@@ -175,6 +303,7 @@ Customise how your volume and stats are calculated with three new options in Set
   },
   {
     version: 2621,
+    release: "0.21",
     message: msg`
 🕐 New: Workout Duration Estimate!
 
@@ -183,6 +312,7 @@ Each workout card now shows an estimated duration so you can plan your sessions 
   },
   {
     version: 2622,
+    release: "0.21",
     message: msg`
 🔔 New: Exercise Timer Sounds!
 
@@ -191,6 +321,7 @@ The exercise timer now plays audio cues to keep you on track. A countdown beep a
   },
   {
     version: 2623,
+    release: "0.21",
     message: msg`
 📋 New: "More" Menu and Help & Info Section!
 
@@ -201,6 +332,7 @@ Settings has moved here from the tab bar, and Help & Info covers everything from
   },
   {
     version: 2624,
+    release: "0.21",
     message: msg`
 💾 New: Save & Resume Plan and Workout Drafts!
 
@@ -209,6 +341,7 @@ Your work in the plan and standalone workout editors is now automatically saved 
   },
   {
     version: 2625,
+    release: "0.21",
     message: msg`
 🔥 Improved: Warm-Up Set Management!
 
@@ -217,6 +350,7 @@ Warm-up sets are visually grouped and styled separately from working sets, and "
   },
   {
     version: 2626,
+    release: "0.21",
     message: msg`
 🗂️ New: Five New Premade Training Plans!
 
@@ -225,6 +359,7 @@ Five new ready-to-use plans are now available: 5-Day Bro Split, 5-Day Push/Pull/
   },
   {
     version: 2627,
+    release: "0.21",
     message: msg`
 📅 New: Workout Calendar!
 
@@ -233,6 +368,7 @@ Tap the calendar icon in the Workout History section on the Stats tab to browse 
   },
   {
     version: 2628,
+    release: "1.0",
     message: msg`
 🔍 Improved: Smarter Exercise Search & Easy Access to the Exercise Library!
 
@@ -243,6 +379,7 @@ You can also browse the full exercise library any time from the menu, without ne
   },
   {
     version: 2629,
+    release: "1.0",
     message: msg`
 📋 Improved: Smarter History Pre-Fill During Workouts!
 
@@ -253,6 +390,7 @@ A new setting in the Workout section lets you always use the most recent history
   },
   {
     version: 2630,
+    release: "1.0",
     message: msg`
 📏 New: Body Measurements!
 
@@ -266,6 +404,7 @@ Track your body composition alongside your training from the new Measurements se
   },
   {
     version: 2631,
+    release: "1.0",
     message: msg`
 🔃 New: Sort the Exercise Library!
 
@@ -274,6 +413,7 @@ The exercise library now has sort chips so you can find exercises faster. Sort b
   },
   {
     version: 2632,
+    release: "1.0",
     message: msg`
 ⚖️ New: Track Weight for Bodyweight Exercises!
 
@@ -282,6 +422,7 @@ For bodyweight exercises like pull-ups or dips, you can now toggle on weight tra
   },
   {
     version: 2633,
+    release: "1.0",
     message: msg`
 🗂️ New: Plan View Options!
 
@@ -290,6 +431,7 @@ The Plans screen now has three display modes. Use the icons next to the "Your Tr
   },
   {
     version: 2634,
+    release: "1.0",
     message: msg`
 📈 Beta: Adaptive Progression!
 
@@ -302,6 +444,7 @@ Enable it in Settings under Adaptive Progression, and configure your preferred l
   },
   {
     version: 2635,
+    release: "1.3",
     message: msg`
 👥 New: Friends & Social Sharing!
 
@@ -314,6 +457,7 @@ Tap any accepted friend's name to open their profile and import their plans, sta
   },
   {
     version: 2636,
+    release: "1.3",
     message: msg`
 📋 New: Duplicate a Plan!
 
@@ -322,6 +466,7 @@ You can now duplicate any of your training plans directly from the plan overview
   },
   {
     version: 2637,
+    release: "1.3",
     message: msg`
 🔃 Improved: Drop Set Flow!
 
@@ -330,6 +475,7 @@ Adding a drop set during a session now appends a brand new set rather than flagg
   },
   {
     version: 2638,
+    release: "1.3",
     message: msg`
 🏋️ New: Choose Workout from the Home Screen!
 
@@ -338,6 +484,7 @@ Tap the new "Choose Workout" button next to Quick Workout to search and browse e
   },
   {
     version: 2639,
+    release: "1.3",
     message: msg`
 📉 New: Layoff-Aware Weight Suggestions!
 
@@ -348,6 +495,7 @@ We also fixed a batch of Adaptive Progression bugs: rep-increase suggestions now
   },
   {
     version: 2640,
+    release: "1.3",
     message: msg`
 🔃 New: Reorder Tracked Exercises!
 
@@ -356,6 +504,7 @@ You can now drag and drop to reorder the exercises you're tracking on the Stats 
   },
   {
     version: 2641,
+    release: "1.4",
     message: msg`
 📋 New: Copy a Workout to Your Standalone Library!
 
@@ -364,6 +513,7 @@ Any workout in a plan can now be copied straight to your standalone workout libr
   },
   {
     version: 2642,
+    release: "1.4",
     message: msg`
 ✏️ New: Fix a Logged Exercise!
 
@@ -372,6 +522,7 @@ Made a mistake in a completed workout? Tap the pencil icon next to any exercise 
   },
   {
     version: 2643,
+    release: "1.4",
     message: msg`
 🐛 Fixed: Cloud Backup Errors!
 
@@ -380,6 +531,7 @@ Backup would silently fail after a clean shutdown because it required extra data
   },
   {
     version: 2644,
+    release: "1.4",
     message: msg`
 📖 Improved: Redesigned Help Screen!
 
@@ -388,6 +540,7 @@ The Help & Info screen now opens with collapsed, expandable topic groups and a c
   },
   {
     version: 2645,
+    release: "1.4",
     message: msg`
 🔍 Improved: More Accurate Exercise Search!
 
@@ -396,6 +549,7 @@ Exercise search has been rebuilt on a more robust matching engine, improving how
   },
   {
     version: 2646,
+    release: "1.4",
     message: msg`
 👀 Improved: Preview Before You Start!
 
@@ -404,6 +558,7 @@ In the Choose Workout list, tapping a workout now opens its details so you can c
   },
   {
     version: 2647,
+    release: "1.4",
     message: msg`
 ⚙️ Improved: More Control During Your Workout!
 
@@ -412,6 +567,7 @@ You can now change an exercise's rep range and rest time mid-workout from the th
   },
   {
     version: 2648,
+    release: "1.4",
     message: msg`
 🏋️ New: Plate Calculator!
 
@@ -420,6 +576,7 @@ Open the three-dot menu during a workout and tap Plate Calculator to see exactly
   },
   {
     version: 2649,
+    release: "1.4",
     message: msg`
 🐛 Fixed: Weight Suggestions in Pounds!
 
@@ -428,6 +585,7 @@ If you train in pounds, adaptive progression suggestions now use your weight uni
   },
   {
     version: 2650,
+    release: "1.4",
     message: msg`
 ☁️ Improved: Safer Backups & Restores!
 
@@ -436,6 +594,7 @@ A backup that fails partway can no longer overwrite your last good one, and ever
   },
   {
     version: 2651,
+    release: "1.4",
     message: msg`
 📤 New: Export Your Data & Delete Your Account!
 
@@ -444,6 +603,7 @@ Under Settings > Your data you can now export your workouts and body measurement
   },
   {
     version: 2652,
+    release: "1.4",
     message: msg`
 📏 New: Log Measurements from the Home Screen!
 
@@ -454,6 +614,7 @@ The card highlights itself once it has been a week since your last entry, and fo
   },
   {
     version: 2653,
+    release: "1.4",
     message: msg`
 ⏱️ Improved: Rest Timer Alerts When Your Phone Is Locked!
 
@@ -464,6 +625,7 @@ The notification setting now only decides whether that alert also shows while th
   },
   {
     version: 2654,
+    release: "1.4",
     message: msg`
 ↩️ New: Undo Instead of "Are You Sure?"
 
@@ -474,6 +636,7 @@ The app is also clearer when you're offline: Friends shows a banner, and backup,
   },
   {
     version: 2655,
+    release: "1.4",
     message: msg`
 🐛 Fixed: Dates, Pounds & Speed!
 
@@ -484,6 +647,7 @@ The app is also clearer when you're offline: Friends shows a banner, and backup,
   },
   {
     version: 2656,
+    release: "1.4",
     message: msg`
 ♿ Improved: Screen Readers, Large Text & Reduced Motion!
 
@@ -494,6 +658,7 @@ Text and buttons now grow with your system font size, and animations are switche
   },
   {
     version: 2657,
+    release: "1.4",
     message: msg`
 ⚡ Improved: Faster Lists & Tidier Friend Profiles!
 
@@ -502,6 +667,7 @@ The exercise library, home screen and stats open faster, especially with a long 
   },
   {
     version: 2658,
+    release: "1.4",
     message: msg`
 ☁️ New: Backup Reminders!
 
@@ -512,6 +678,7 @@ Not signed in? After a few workouts the card offers to sign you in instead. Tap 
   },
   {
     version: 2659,
+    release: "1.4",
     message: msg`
 ⏸️ New: Pick Up Where You Left Off!
 
@@ -524,6 +691,7 @@ Also in this update:
   },
   {
     version: 2660,
+    release: "1.4",
     message: msg`
 ✅ Fixed: Logged Values Are Right!
 
@@ -533,6 +701,15 @@ Also in this update:
 • Weight and distance units are locked while a workout is in progress, so values you have entered are not reinterpreted.
 • Editing a past workout now saves only the sets you changed.
 • Distance targets in your plans are now stored in metres, so changing units no longer changes them. If you use feet and had an unsaved plan draft open during this update, check its distance targets before saving. Friends on an older version see your shared distance targets in metres until they update.
+`,
+  },
+  {
+    version: 2661,
+    release: "1.5",
+    message: msg`
+📜 New: Changelog!
+
+Missed a What's New message, or want to see how MuscleQuest has grown? Open the menu and tap Changelog, below Help & Info, to browse every update by release, all the way back to the first version.
 `,
   },
 ];
