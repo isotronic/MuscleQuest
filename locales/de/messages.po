@@ -13,7 +13,21 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: constants/WhatsNew.ts:118
+#: constants/WhatsNew.ts:94
+msgid ""
+"\n"
+"↕️ Improved: Smoother Plan Editing!\n"
+"\n"
+"Dragging exercises to reorder them in the plan editor is smoother and more reliable, and a newly added workout scrolls into view straight away. Loading indicators now show while workouts start, save, and open, so you always know the app is working.\n"
+""
+msgstr ""
+"\n"
+"↕️ Verbessert: Flüssigeres Bearbeiten von Plänen!\n"
+"\n"
+"Das Verschieben von Übungen per Drag & Drop im Plan-Editor ist flüssiger und zuverlässiger, und ein neu hinzugefügtes Training wird sofort ins Bild gescrollt. Ladeanzeigen erscheinen jetzt, während Trainings starten, gespeichert und geöffnet werden, damit du immer weißt, dass die App arbeitet.\n"
+""
+
+#: constants/WhatsNew.ts:240
 msgid ""
 "\n"
 "↕️ New: Reorder Exercises in the Workout Overview!\n"
@@ -27,7 +41,7 @@ msgstr ""
 "Du kannst jetzt Übungen und Supersätze per Drag-and-drop direkt in der Trainingsübersicht während einer Trainingseinheit neu anordnen.\n"
 ""
 
-#: constants/WhatsNew.ts:44
+#: constants/WhatsNew.ts:157
 msgid ""
 "\n"
 "↕️ New: Reorder Workouts in Your Plan!\n"
@@ -41,7 +55,7 @@ msgstr ""
 "Du kannst Trainings jetzt direkt in der Planerstellungsansicht und auf den Trainingskarten neu anordnen und hast so die volle Kontrolle über die Struktur deines Trainingsplans.\n"
 ""
 
-#: constants/WhatsNew.ts:467
+#: constants/WhatsNew.ts:629
 msgid ""
 "\n"
 "↩️ New: Undo Instead of \"Are You Sure?\"\n"
@@ -59,7 +73,7 @@ msgstr ""
 "Die App zeigt außerdem klarer an, wenn du offline bist: Freunde zeigt einen Hinweis, und Backup, Wiederherstellung und Anmeldung erklären, warum sie gerade nicht verfügbar sind. Zieh auf Statistiken, Freunde oder dem Profil eines Freundes nach unten, um zu aktualisieren. Wenn du die Trainingsübersicht während einer Einheit verlassen willst, fragt die App jetzt vorher nach, damit du nicht versehentlich rauskommst.\n"
 ""
 
-#: constants/WhatsNew.ts:457
+#: constants/WhatsNew.ts:618
 msgid ""
 "\n"
 "⏱️ Improved: Rest Timer Alerts When Your Phone Is Locked!\n"
@@ -77,7 +91,7 @@ msgstr ""
 "Die Benachrichtigungseinstellung legt jetzt nur noch fest, ob dieser Alarm auch angezeigt wird, während die App geöffnet ist. Du findest sie in den Einstellungen unter \"Pausen-Benachrichtigung bei geöffneter App anzeigen\".\n"
 ""
 
-#: constants/WhatsNew.ts:102
+#: constants/WhatsNew.ts:222
 msgid ""
 "\n"
 "⏱️ New: Adjustable Rest Timer!\n"
@@ -91,7 +105,7 @@ msgstr ""
 "Ein neues Einblendmenü lässt dich die Pausendauer während des Trainings spontan anpassen. Deine individuelle Pausenzeit wird pro Satz gespeichert, sodass jeder Satz genau weiß, wie lange du pausieren möchtest.\n"
 ""
 
-#: constants/WhatsNew.ts:515
+#: constants/WhatsNew.ts:682
 msgid ""
 "\n"
 "⏸️ New: Pick Up Where You Left Off!\n"
@@ -135,7 +149,7 @@ msgstr ""
 #~ "• Bei Anmeldeproblemen erfährst du jetzt, was schiefgelaufen ist, zum Beispiel dass du offline bist oder die Google Play-Dienste fehlen, und zwar in deiner Sprache.\n"
 #~ ""
 
-#: constants/WhatsNew.ts:431
+#: constants/WhatsNew.ts:589
 msgid ""
 "\n"
 "☁️ Improved: Safer Backups & Restores!\n"
@@ -149,7 +163,25 @@ msgstr ""
 "Eine Sicherung, die unterwegs fehlschlägt, kann deine letzte funktionierende Sicherung nicht mehr überschreiben, und jede Sicherung wird vor dem Hochladen geprüft. Das Wiederherstellen einer Sicherung aus einer älteren App-Version funktioniert jetzt zuverlässig, und die Wiederherstellungsabfrage sagt dir genau, was ersetzt wird.\n"
 ""
 
-#: constants/WhatsNew.ts:505
+#: constants/WhatsNew.ts:54
+msgid ""
+"\n"
+"☁️ New: Backup & Restore!\n"
+"\n"
+"Sign in to back up your training data to the cloud and restore it on a new phone, so a lost or replaced device no longer means losing your history.\n"
+"\n"
+"Also new in this release: a short introduction for first-time users, a 4-Day Upper/Lower Split premade plan, more bodyweight exercises, replacing an exercise in the plan editor, and an \"Active\" badge on your current plan.\n"
+""
+msgstr ""
+"\n"
+"☁️ Neu: Sichern & Wiederherstellen!\n"
+"\n"
+"Melde dich an, um deine Trainingsdaten in der Cloud zu sichern und auf einem neuen Handy wiederherzustellen. Ein verlorenes oder ersetztes Gerät bedeutet so nicht mehr, dass dein Verlauf weg ist.\n"
+"\n"
+"Außerdem neu in dieser Version: eine kurze Einführung für neue Nutzer, ein vorgefertigter 4-Tage-Oberkörper/Unterkörper-Plan, mehr Übungen mit dem eigenen Körpergewicht, das Ersetzen einer Übung im Plan-Editor und ein „Aktiv“-Abzeichen an deinem aktuellen Plan.\n"
+""
+
+#: constants/WhatsNew.ts:671
 msgid ""
 "\n"
 "☁️ New: Backup Reminders!\n"
@@ -167,7 +199,7 @@ msgstr ""
 "Nicht angemeldet? Nach einigen Workouts bietet dir die Karte stattdessen die Anmeldung an. Tippe auf Später, um sie für zwei Wochen auszublenden.\n"
 ""
 
-#: constants/WhatsNew.ts:487
+#: constants/WhatsNew.ts:651
 msgid ""
 "\n"
 "♿ Improved: Screen Readers, Large Text & Reduced Motion!\n"
@@ -185,7 +217,7 @@ msgstr ""
 "Text und Schaltflächen wachsen jetzt mit deiner Systemschriftgröße, und Animationen sind ausgeschaltet, wenn auf deinem Gerät Bewegungen reduziert werden.\n"
 ""
 
-#: constants/WhatsNew.ts:277
+#: constants/WhatsNew.ts:417
 msgid ""
 "\n"
 "⚖️ New: Track Weight for Bodyweight Exercises!\n"
@@ -199,7 +231,7 @@ msgstr ""
 "Für Körpergewichtsübungen wie Klimmzüge oder Dips kannst du jetzt die Gewichtserfassung pro Training aktivieren. Perfekt für gewichtete Varianten, um das zusätzliche Gewicht zu protokollieren und den Fortschritt über Zeit zu verfolgen.\n"
 ""
 
-#: constants/WhatsNew.ts:407
+#: constants/WhatsNew.ts:562
 msgid ""
 "\n"
 "⚙️ Improved: More Control During Your Workout!\n"
@@ -213,7 +245,21 @@ msgstr ""
 "Du kannst den Wiederholungsbereich und die Pausenzeit einer Übung jetzt mitten im Training über das Drei-Punkte-Menü ändern. Wenn du ein anderes als das vorgeschlagene Gewicht einträgst, wird es nun auf deine restlichen Sätze übernommen. Gewichtsvorschläge bleiben außerdem ausgeblendet, wenn die Adaptive Progression ausgeschaltet ist.\n"
 ""
 
-#: constants/WhatsNew.ts:166
+#: constants/WhatsNew.ts:85
+msgid ""
+"\n"
+"⚙️ New: More in Settings!\n"
+"\n"
+"You can now replay the app introduction, request a feature, and find MuscleQuest on Instagram, all from Settings.\n"
+""
+msgstr ""
+"\n"
+"⚙️ Neu: Mehr in den Einstellungen!\n"
+"\n"
+"Du kannst jetzt die Einführung erneut ansehen, eine Funktion vorschlagen und MuscleQuest auf Instagram finden, alles direkt aus den Einstellungen.\n"
+""
+
+#: constants/WhatsNew.ts:294
 msgid ""
 "\n"
 "⚙️ New: Three New Stats Settings!\n"
@@ -235,7 +281,7 @@ msgstr ""
 "• Wiederholungen für einseitige Arm-/Beinübungen verdoppeln, damit unilaterale Bewegungen korrekt in deinem Gesamtvolumen gezählt werden.\n"
 ""
 
-#: constants/WhatsNew.ts:497
+#: constants/WhatsNew.ts:662
 msgid ""
 "\n"
 "⚡ Improved: Faster Lists & Tidier Friend Profiles!\n"
@@ -249,7 +295,7 @@ msgstr ""
 "Die Übungsbibliothek, der Startbildschirm und die Statistiken öffnen sich schneller, besonders bei einem langen Trainingsverlauf. Die Abschnitte im Profil eines Freundes sind jetzt zunächst eingeklappt, damit ein langes Profil leichter zu überblicken ist; tippe auf eine Überschrift, um sie zu öffnen.\n"
 ""
 
-#: constants/WhatsNew.ts:527
+#: constants/WhatsNew.ts:695
 msgid ""
 "\n"
 "✅ Fixed: Logged Values Are Right!\n"
@@ -273,7 +319,7 @@ msgstr ""
 "• Distanzziele in deinen Plänen werden jetzt in Metern gespeichert, sodass ein Wechsel der Einheit sie nicht mehr verändert. Wenn du Fuß verwendest und während dieses Updates einen ungespeicherten Planentwurf offen hattest, prüfe vor dem Speichern dessen Distanzziele. Freunde mit einer älteren Version sehen deine geteilten Distanzziele in Metern, bis sie aktualisieren.\n"
 ""
 
-#: constants/WhatsNew.ts:367
+#: constants/WhatsNew.ts:517
 msgid ""
 "\n"
 "✏️ New: Fix a Logged Exercise!\n"
@@ -287,7 +333,7 @@ msgstr ""
 "Hast du dich bei einem abgeschlossenen Workout vertan? Tippe auf das Stift-Symbol neben einer Übung im Bearbeiten-Verlauf, um sie gegen die richtige auszutauschen, gefiltert nach passendem Tracking-Typ.\n"
 ""
 
-#: constants/WhatsNew.ts:86
+#: constants/WhatsNew.ts:204
 msgid ""
 "\n"
 "✨ New: Workout Session Animations!\n"
@@ -301,7 +347,7 @@ msgstr ""
 "Das Wechseln zwischen Sätzen erfolgt jetzt mit flüssigen Übergangsanimationen. Wische nach links oder rechts, um zwischen Sätzen zu wechseln, oder nutze die vorhandenen Pfeilschaltflächen für denselben Effekt.\n"
 ""
 
-#: constants/WhatsNew.ts:12
+#: constants/WhatsNew.ts:121
 msgid ""
 "\n"
 "🎯 Improved: Smarter Exercise Filters!\n"
@@ -315,7 +361,7 @@ msgstr ""
 "Wenn du eine Übung ersetzt, wählt der Filter jetzt automatisch den passenden Zielmuskel vor. Es werden nur relevante Filter basierend auf deiner aktuellen Auswahl angezeigt, sodass du deutlich schneller die richtige Alternative findest.\n"
 ""
 
-#: constants/WhatsNew.ts:333
+#: constants/WhatsNew.ts:479
 msgid ""
 "\n"
 "🏋️ New: Choose Workout from the Home Screen!\n"
@@ -329,7 +375,7 @@ msgstr ""
 "Tippe neben Schnelltraining auf die neue Schaltfläche „Training auswählen“, um jedes Training in deinen Plänen und deiner eigenständigen Bibliothek zu durchsuchen und sofort zu starten.\n"
 ""
 
-#: constants/WhatsNew.ts:415
+#: constants/WhatsNew.ts:571
 msgid ""
 "\n"
 "🏋️ New: Plate Calculator!\n"
@@ -343,7 +389,7 @@ msgstr ""
 "Öffne während des Trainings das Drei-Punkte-Menü und tippe auf Scheibenrechner, um genau zu sehen, welche Scheiben du auf jede Seite der Stange laden musst. Wähle dein Stangengewicht einmal aus, es wird gemerkt. Unter Einstellungen > Training > Scheiben kannst du der App mitteilen, welche Scheiben du tatsächlich besitzt, damit sie nie ein Gewicht vorschlägt, das du gar nicht zusammenstellen kannst.\n"
 ""
 
-#: constants/WhatsNew.ts:60
+#: constants/WhatsNew.ts:175
 msgid ""
 "\n"
 "🏋️ New: Single Workouts & Quick Workouts!\n"
@@ -361,7 +407,7 @@ msgstr ""
 "Oder starte ein Schnelltraining direkt vom Startbildschirm, füge Übungen spontan hinzu und speichere es am Ende optional als eigenständiges Training.\n"
 ""
 
-#: constants/WhatsNew.ts:375
+#: constants/WhatsNew.ts:526
 msgid ""
 "\n"
 "🐛 Fixed: Cloud Backup Errors!\n"
@@ -375,7 +421,7 @@ msgstr ""
 "Die Sicherung schlug nach einem sauberen Beenden der App unbemerkt fehl, weil zusätzliche Datenbankdateien vorausgesetzt wurden, die nicht immer vorhanden sind. Sicherungen funktionieren jetzt auch in diesem Fall korrekt, und ein tatsächlicher Fehler bei der Sicherung wird jetzt als Meldung auf dem Bildschirm angezeigt, statt unbemerkt zu bleiben.\n"
 ""
 
-#: constants/WhatsNew.ts:477
+#: constants/WhatsNew.ts:640
 msgid ""
 "\n"
 "🐛 Fixed: Dates, Pounds & Speed!\n"
@@ -393,7 +439,7 @@ msgstr ""
 "• Verlauf und Statistiken laden schneller, besonders wenn du schon lange trainierst.\n"
 ""
 
-#: constants/WhatsNew.ts:52
+#: constants/WhatsNew.ts:166
 msgid ""
 "\n"
 "🐛 Fixed: Various Bug Fixes & Improvements!\n"
@@ -407,7 +453,7 @@ msgstr ""
 "Behoben: Pausentimer-Benachrichtigung wurde nicht korrekt ausgelöst, Übungsname wurde in der Trainingsansicht falsch umgebrochen, die Breite des Trainingsabschlusskreises war falsch, Notizen wurden beim Tippen nicht korrekt aktualisiert und Trainingsdetails öffneten sich manchmal im falschen Tab. Trainings werden dank interner Leistungsverbesserungen jetzt schneller geladen.\n"
 ""
 
-#: constants/WhatsNew.ts:423
+#: constants/WhatsNew.ts:580
 msgid ""
 "\n"
 "🐛 Fixed: Weight Suggestions in Pounds!\n"
@@ -421,7 +467,7 @@ msgstr ""
 "Wenn du in Pfund trainierst, verwenden die Vorschläge der adaptiven Progression jetzt deine Gewichtseinheit korrekt. Bisher fielen manche Vorschläge zu klein aus oder wurden mit dem falschen Wert eingetragen.\n"
 ""
 
-#: constants/WhatsNew.ts:20
+#: constants/WhatsNew.ts:130
 msgid ""
 "\n"
 "🐛 Fixed: Workout Session Buttons & Edit Set Modal!\n"
@@ -435,7 +481,7 @@ msgstr ""
 "Ein Fehler wurde behoben, bei dem alle Schaltflächen (erhöhen/verringern, nächster/vorheriger Satz, Satz abschließen) nach dem Abschließen eines Satzes nicht mehr funktionierten. Außerdem wurde ein Fehler im Satz-Bearbeiten-Fenster behoben. Satzübergänge erfolgen jetzt sofort für einen flüssigeren Trainingsablauf.\n"
 ""
 
-#: constants/WhatsNew.ts:399
+#: constants/WhatsNew.ts:553
 msgid ""
 "\n"
 "👀 Improved: Preview Before You Start!\n"
@@ -449,7 +495,7 @@ msgstr ""
 "In der Liste \"Training auswählen\" öffnet ein Tippen auf ein Training jetzt dessen Details, sodass du die Übungen zuerst prüfen kannst. Mit der Schaltfläche \"Starten\" rechts springst du direkt in die Einheit. Trainings aus einem Plan haben jetzt ebenfalls eine Schaltfläche \"Training starten\" auf ihrer Detailseite.\n"
 ""
 
-#: constants/WhatsNew.ts:305
+#: constants/WhatsNew.ts:448
 msgid ""
 "\n"
 "👥 New: Friends & Social Sharing!\n"
@@ -471,7 +517,7 @@ msgstr ""
 "Tippe auf den Namen eines akzeptierten Freundes, um sein Profil zu öffnen und seine Pläne, eigenständigen Trainings oder eigenen Übungen direkt in deine eigene Bibliothek zu importieren.\n"
 ""
 
-#: constants/WhatsNew.ts:204
+#: constants/WhatsNew.ts:336
 msgid ""
 "\n"
 "💾 New: Save & Resume Plan and Workout Drafts!\n"
@@ -485,7 +531,7 @@ msgstr ""
 "Deine Arbeit in den Plan- und Trainings-Editoren wird jetzt automatisch als Entwurf gespeichert. Wenn du mittendrin abbrichst, wirst du gefragt, ob du weitermachen oder den Entwurf verwerfen möchtest, damit du deinen Fortschritt nie versehentlich verlierst.\n"
 ""
 
-#: constants/WhatsNew.ts:126
+#: constants/WhatsNew.ts:249
 msgid ""
 "\n"
 "💾 New: Save Workout Changes Back to Your Plan!\n"
@@ -499,7 +545,7 @@ msgstr ""
 "Wenn du eine Einheit beendest, in der du Übungen oder Sätze hinzugefügt, entfernt oder neu angeordnet hast, wirst du gefragt, ob du diese Änderungen in den ursprünglichen Plan oder das eigenständige Training zurückspeichern möchtest, damit dein Training automatisch aktuell bleibt.\n"
 ""
 
-#: constants/WhatsNew.ts:70
+#: constants/WhatsNew.ts:186
 msgid ""
 "\n"
 "📅 New: Weekly Schedule for Your Plan!\n"
@@ -513,7 +559,7 @@ msgstr ""
 "Du kannst jetzt direkt im Plan-Editor bestimmten Wochentagen Trainings zuweisen. Tippe auf einen Tag, um ein Training auszuwählen oder ihn als Ruhetag zu markieren. Nutze die Auto-Vorschlag-Schaltfläche, um sofort einen ausgewogenen Wochenplan basierend auf deinem Wochenziel zu erstellen.\n"
 ""
 
-#: constants/WhatsNew.ts:228
+#: constants/WhatsNew.ts:363
 msgid ""
 "\n"
 "📅 New: Workout Calendar!\n"
@@ -527,7 +573,7 @@ msgstr ""
 "Tippe auf das Kalendersymbol im Bereich Trainingshistorie auf dem Statistiken-Tab, um deine Trainingshistorie nach Datum zu durchsuchen. Tage mit Trainings sind hervorgehoben, und ein Tippen auf einen Tag zeigt die an diesem Datum protokollierten Einheiten.\n"
 ""
 
-#: constants/WhatsNew.ts:293
+#: constants/WhatsNew.ts:435
 msgid ""
 "\n"
 "📈 Beta: Adaptive Progression!\n"
@@ -549,7 +595,7 @@ msgstr ""
 "Aktiviere es in den Einstellungen unter Adaptive Progression und konfiguriere deinen bevorzugten Gewichtsschritt pro Gerätekategorie.\n"
 ""
 
-#: constants/WhatsNew.ts:158
+#: constants/WhatsNew.ts:285
 msgid ""
 "\n"
 "📈 New: Exercise History in the Info Screen!\n"
@@ -563,7 +609,7 @@ msgstr ""
 "Die Übungsinfoansicht enthält jetzt eine vollständige Übungshistorie mit Gewicht, Wiederholungen, Zeit und Distanz für jeden Satz aus vergangenen Einheiten. Zugriff während eines Trainings, über deinen Plan oder überall dort, wo Übungsinfos verfügbar sind.\n"
 ""
 
-#: constants/WhatsNew.ts:341
+#: constants/WhatsNew.ts:488
 msgid ""
 "\n"
 "📉 New: Layoff-Aware Weight Suggestions!\n"
@@ -581,7 +627,7 @@ msgstr ""
 "Außerdem haben wir mehrere Fehler in Adaptive Progression behoben: Vorschläge zur Erhöhung der Wiederholungen erscheinen jetzt korrekt statt nur Gewichtsvorschläge, der Regenerations-Check-in erscheint zuverlässig auch nach dem Schließen der App mitten im Training, und Feedback-Abfragen wiederholen sich nicht mehr bei Dropsätzen.\n"
 ""
 
-#: constants/WhatsNew.ts:134
+#: constants/WhatsNew.ts:258
 msgid ""
 "\n"
 "📊 New: Improved Stats Screen!\n"
@@ -595,7 +641,7 @@ msgstr ""
 "Der Statistiken-Bildschirm wurde mit einem neuen Look und verbesserten Einblicken neu gestaltet. Erkunde deine Trainingshistorie mit besseren Diagrammen, klareren Zusammenfassungen und detaillierteren Aufschlüsselungen deines Fortschritts über die Zeit.\n"
 ""
 
-#: constants/WhatsNew.ts:94
+#: constants/WhatsNew.ts:213
 msgid ""
 "\n"
 "📊 New: Workout Summary!\n"
@@ -609,7 +655,7 @@ msgstr ""
 "Nach dem Abschließen eines Trainings siehst du jetzt eine vollständige Übersicht deiner Einheit: Gesamtdauer, Sätze und Volumen sowie einen Vergleich mit deiner vorherigen Einheit. Tippe auf eine Übung, um ihre einzelnen Sätze und Gewichte anzuzeigen.\n"
 ""
 
-#: constants/WhatsNew.ts:246
+#: constants/WhatsNew.ts:383
 msgid ""
 "\n"
 "📋 Improved: Smarter History Pre-Fill During Workouts!\n"
@@ -627,7 +673,7 @@ msgstr ""
 "Eine neue Einstellung im Bereich „Training\" ermöglicht es, stets die aktuellste Historie aus allen Trainings zu verwenden, unabhängig davon, aus welcher Routine sie stammt.\n"
 ""
 
-#: constants/WhatsNew.ts:194
+#: constants/WhatsNew.ts:325
 msgid ""
 "\n"
 "📋 New: \"More\" Menu and Help & Info Section!\n"
@@ -645,7 +691,7 @@ msgstr ""
 "Die Einstellungen wurden von der Tab-Leiste hierher verschoben, und Hilfe & Info deckt alles ab, von Plänen und Trainings bis hin zu Statistiken und deinem Konto, mit einer Suchleiste, um schnell Antworten zu finden.\n"
 ""
 
-#: constants/WhatsNew.ts:359
+#: constants/WhatsNew.ts:508
 msgid ""
 "\n"
 "📋 New: Copy a Workout to Your Standalone Library!\n"
@@ -659,7 +705,7 @@ msgstr ""
 "Jedes Workout in einem Plan kann jetzt mit einem Tipp direkt in deine eigenständige Workout-Bibliothek kopiert werden, von der Plan- oder Workout-Detailansicht aus, damit du es jederzeit unabhängig ausführen kannst.\n"
 ""
 
-#: constants/WhatsNew.ts:317
+#: constants/WhatsNew.ts:461
 msgid ""
 "\n"
 "📋 New: Duplicate a Plan!\n"
@@ -673,7 +719,25 @@ msgstr ""
 "Du kannst jetzt jeden deiner Trainingspläne direkt vom Planübersichtsbildschirm duplizieren. Eine vollständige Kopie wird sofort mit allen Trainings und Übungen erstellt, bereit zum Umbenennen und Anpassen.\n"
 ""
 
-#: constants/WhatsNew.ts:36
+#: constants/WhatsNew.ts:74
+msgid ""
+"\n"
+"📋 New: Pre-Filled Sets!\n"
+"\n"
+"Weight and reps are now pre-filled from the last time you did the workout, so you can see what to beat without looking it up.\n"
+"\n"
+"You can also give your plans a picture from a built-in gallery or from your own photos.\n"
+""
+msgstr ""
+"\n"
+"📋 Neu: Vorausgefüllte Sätze!\n"
+"\n"
+"Gewicht und Wiederholungen werden jetzt mit den Werten vom letzten Mal vorausgefüllt, als du dieses Training gemacht hast. So siehst du sofort, was es zu schlagen gilt.\n"
+"\n"
+"Außerdem kannst du deinen Plänen ein Bild aus einer eingebauten Galerie oder aus deinen eigenen Fotos geben.\n"
+""
+
+#: constants/WhatsNew.ts:148
 msgid ""
 "\n"
 "📋 New: View Workout Details from the Home Screen!\n"
@@ -687,7 +751,7 @@ msgstr ""
 "Du kannst jetzt auf ein beliebiges kürzliches Training auf dem Startbildschirm tippen, um alle Details anzuzeigen. Jede Trainings- und Satzübersicht hat außerdem eine neue Details-Schaltfläche für schnellen Zugriff auf Übungsinformationen.\n"
 ""
 
-#: constants/WhatsNew.ts:256
+#: constants/WhatsNew.ts:394
 msgid ""
 "\n"
 "📏 New: Body Measurements!\n"
@@ -711,7 +775,7 @@ msgstr ""
 "• Einheiten folgen deinen Gewichts- und Größeneinstellungen\n"
 ""
 
-#: constants/WhatsNew.ts:142
+#: constants/WhatsNew.ts:267
 msgid ""
 "\n"
 "📏 New: Distance Tracking for Custom Exercises!\n"
@@ -743,7 +807,7 @@ msgstr ""
 #~ "Die Karte wird hervorgehoben, sobald dein letzter Eintrag eine Woche zurückliegt, und richtet sich nach den Messwerten, die du im Bereich Körpermaße aktiviert hast.\n"
 #~ ""
 
-#: constants/WhatsNew.ts:447
+#: constants/WhatsNew.ts:607
 msgid ""
 "\n"
 "📏 New: Log Measurements from the Home Screen!\n"
@@ -761,7 +825,7 @@ msgstr ""
 "Die Karte wird hervorgehoben, sobald dein letzter Eintrag eine Woche zurückliegt, und richtet sich nach den Messwerten, die du im Bereich Körpermaße aktiviert hast.\n"
 ""
 
-#: constants/WhatsNew.ts:383
+#: constants/WhatsNew.ts:535
 msgid ""
 "\n"
 "📖 Improved: Redesigned Help Screen!\n"
@@ -775,7 +839,21 @@ msgstr ""
 "Der Hilfe & Info-Bereich öffnet sich jetzt mit eingeklappten, aufklappbaren Themengruppen und einer Chip-Leiste, um direkt zu einem Abschnitt zu springen. Die Suche ist schneller und intelligenter, hebt den genau passenden Text in jedem Ergebnis hervor und zeigt bei keinem Treffer einen hilfreichen leeren Zustand mit einem Link zum Einreichen eines Funktionswunsches.\n"
 ""
 
-#: constants/WhatsNew.ts:439
+#: constants/WhatsNew.ts:103
+msgid ""
+"\n"
+"📝 New Feature: Notes!\n"
+"\n"
+"You can now add notes to exercises, workouts and plans. Use this to jot down technique tips, machine settings, reminders, or anything else that helps you crush your session!\n"
+""
+msgstr ""
+"\n"
+"📝 Neue Funktion: Notizen!\n"
+"\n"
+"Du kannst jetzt Notizen zu Übungen, Trainings und Plänen hinzufügen. Halte damit Technik-Tipps, Geräteeinstellungen, Erinnerungen oder alles andere fest, was dir hilft, dein Training zu rocken!\n"
+""
+
+#: constants/WhatsNew.ts:598
 msgid ""
 "\n"
 "📤 New: Export Your Data & Delete Your Account!\n"
@@ -789,7 +867,7 @@ msgstr ""
 "Unter Einstellungen > Deine Daten kannst du jetzt deine Workouts und Körpermaße als CSV für Tabellen exportieren oder als JSON mit allem, einschließlich Plänen und eigenen Übungen. Wenn du angemeldet bist, kannst du dort auch dein Konto löschen, wodurch alles online Gespeicherte entfernt wird. Du entscheidest, ob du deinen Trainingsverlauf auf diesem Gerät behältst.\n"
 ""
 
-#: constants/WhatsNew.ts:325
+#: constants/WhatsNew.ts:470
 msgid ""
 "\n"
 "🔃 Improved: Drop Set Flow!\n"
@@ -803,7 +881,7 @@ msgstr ""
 "Einen Dropsatz während einer Einheit hinzuzufügen hängt jetzt einen brandneuen Satz an, anstatt den aktuellen zu markieren, sodass du die volle Kontrolle über deine Dropsatz-Struktur hast. Der neue Satz wird automatisch mit Gewicht und 10 Sekunden Pausenzeit vorgefüllt.\n"
 ""
 
-#: constants/WhatsNew.ts:351
+#: constants/WhatsNew.ts:499
 msgid ""
 "\n"
 "🔃 New: Reorder Tracked Exercises!\n"
@@ -817,7 +895,7 @@ msgstr ""
 "Du kannst jetzt die Übungen, die du auf dem Statistik-Bildschirm verfolgst, per Drag & Drop neu anordnen, damit deine wichtigsten Übungen genau dort bleiben, wo du sie willst.\n"
 ""
 
-#: constants/WhatsNew.ts:269
+#: constants/WhatsNew.ts:408
 msgid ""
 "\n"
 "🔃 New: Sort the Exercise Library!\n"
@@ -831,7 +909,7 @@ msgstr ""
 "Die Übungsbibliothek hat jetzt Sortier-Chips, damit du Übungen schneller findest. Sortiere nach Standard, Aktiver Plan, Zuletzt oder Häufig, um die für dich relevantesten Übungen oben zu sehen.\n"
 ""
 
-#: constants/WhatsNew.ts:391
+#: constants/WhatsNew.ts:544
 msgid ""
 "\n"
 "🔍 Improved: More Accurate Exercise Search!\n"
@@ -845,7 +923,7 @@ msgstr ""
 "Die Übungssuche wurde auf eine robustere Such-Engine umgestellt, die Tippfehler, Abkürzungen und mehrteilige Suchbegriffe besser erkennt und einordnet, damit die gesuchte Übung häufiger ganz oben erscheint.\n"
 ""
 
-#: constants/WhatsNew.ts:236
+#: constants/WhatsNew.ts:372
 msgid ""
 "\n"
 "🔍 Improved: Smarter Exercise Search & Easy Access to the Exercise Library!\n"
@@ -863,7 +941,7 @@ msgstr ""
 "Du kannst die vollständige Übungsbibliothek jederzeit über das Menü durchsuchen, ohne dich in einem Training oder Plan befinden zu müssen.\n"
 ""
 
-#: constants/WhatsNew.ts:186
+#: constants/WhatsNew.ts:316
 msgid ""
 "\n"
 "🔔 New: Exercise Timer Sounds!\n"
@@ -877,7 +955,7 @@ msgstr ""
 "Der Übungstimer gibt jetzt Audiosignale aus, damit du auf Kurs bleibst. Ein Countdown-Piep, wenn der Timer sich null nähert, und ein Sound, wenn du dein Ziel erreichst. Schalte jeden Ton unabhängig in den Einstellungen ein oder aus.\n"
 ""
 
-#: constants/WhatsNew.ts:28
+#: constants/WhatsNew.ts:139
 msgid ""
 "\n"
 "🔔 New: In-App Update Notifications!\n"
@@ -891,7 +969,21 @@ msgstr ""
 "Ein neues Update-Fenster erscheint jetzt, wenn ein Over-the-Air-Update verfügbar ist, damit du immer weißt, wann Verbesserungen heruntergeladen wurden und bereit zur Anwendung sind.\n"
 ""
 
-#: constants/WhatsNew.ts:150
+#: constants/WhatsNew.ts:65
+msgid ""
+"\n"
+"🔔 New: Rest Timer Notifications!\n"
+"\n"
+"The rest timer now sends a notification when your rest is over, so you don't miss your next set while you're in another app. You can switch it off in Settings.\n"
+""
+msgstr ""
+"\n"
+"🔔 Neu: Benachrichtigungen für den Pausentimer!\n"
+"\n"
+"Der Pausentimer schickt jetzt eine Benachrichtigung, wenn deine Pause vorbei ist, damit du deinen nächsten Satz nicht verpasst, während du in einer anderen App bist. Du kannst das in den Einstellungen ausschalten.\n"
+""
+
+#: constants/WhatsNew.ts:276
 msgid ""
 "\n"
 "🔔 New: Workout Reminder Notifications!\n"
@@ -905,7 +997,7 @@ msgstr ""
 "Verpasse keine Einheit mehr. Richte Erinnerungsbenachrichtigungen für deine Trainings direkt in der App ein. Wähle die Tage, an denen du erinnert werden möchtest, und lege eine Uhrzeit fest.\n"
 ""
 
-#: constants/WhatsNew.ts:78
+#: constants/WhatsNew.ts:195
 msgid ""
 "\n"
 "🔗 New: Supersets!\n"
@@ -919,7 +1011,7 @@ msgstr ""
 "Verbinde zwei Übungen direkt im Plan-Editor zu einem Supersatz. Die Sätze beider Übungen werden synchron gehalten, und Supersätze sind überall in der App mit einem visuellen Indikator klar gruppiert.\n"
 ""
 
-#: constants/WhatsNew.ts:212
+#: constants/WhatsNew.ts:345
 msgid ""
 "\n"
 "🔥 Improved: Warm-Up Set Management!\n"
@@ -933,7 +1025,21 @@ msgstr ""
 "Aufwärmsätze werden visuell gruppiert und getrennt von Arbeitssätzen dargestellt, und \"Auf alle anwenden\" ermöglicht das gleichzeitige Bearbeiten von Aufwärm- oder Arbeitssätzen unabhängig voneinander.\n"
 ""
 
-#: constants/WhatsNew.ts:110
+#: constants/WhatsNew.ts:112
+msgid ""
+"\n"
+"🔥 New Feature: To Failure Sets!\n"
+"\n"
+"You can now mark a set \"to failure\", instead of adding a rep range, which is especially useful for isolation machine, dumbbell, or bodyweight exercises, when you want to push yourself to the limit.\n"
+""
+msgstr ""
+"\n"
+"🔥 Neue Funktion: Sätze bis zum Versagen!\n"
+"\n"
+"Du kannst einen Satz jetzt als „bis zum Versagen“ markieren, statt einen Wiederholungsbereich anzugeben. Das ist besonders nützlich bei Isolationsübungen an Maschinen, mit Kurzhanteln oder mit dem eigenen Körpergewicht, wenn du an deine Grenzen gehen willst.\n"
+""
+
+#: constants/WhatsNew.ts:231
 msgid ""
 "\n"
 "🔵 New: Exercise Timer Modal!\n"
@@ -947,7 +1053,7 @@ msgstr ""
 "Zeitbasierte Übungen zeigen jetzt ein eigenes Countdown-Fenster mit einem Fortschrittsring, damit du deinen Einsatz leicht verfolgen und bei zeitgesteuerten Sätzen im Rhythmus bleiben kannst.\n"
 ""
 
-#: constants/WhatsNew.ts:178
+#: constants/WhatsNew.ts:307
 msgid ""
 "\n"
 "🕐 New: Workout Duration Estimate!\n"
@@ -961,7 +1067,7 @@ msgstr ""
 "Jede Trainingskarte zeigt jetzt eine geschätzte Dauer an, damit du deine Einheiten auf einen Blick planen kannst, bevor du startest.\n"
 ""
 
-#: constants/WhatsNew.ts:220
+#: constants/WhatsNew.ts:354
 msgid ""
 "\n"
 "🗂️ New: Five New Premade Training Plans!\n"
@@ -975,7 +1081,7 @@ msgstr ""
 "Fünf neue sofort einsatzbereite Pläne sind jetzt verfügbar: 5-Tage-Bro-Split, 5-Tage-Push/Pull/Beine, 6-Tage-Split, Körpergewicht und Nur Kurzhanteln. Ob du zuhause oder im Gym trainierst, es gibt einen Plan, mit dem du sofort loslegen kannst.\n"
 ""
 
-#: constants/WhatsNew.ts:285
+#: constants/WhatsNew.ts:426
 msgid ""
 "\n"
 "🗂️ New: Plan View Options!\n"
@@ -987,6 +1093,24 @@ msgstr ""
 "🗂️ Neu: Planansichtsoptionen!\n"
 "\n"
 "Der Pläne-Bildschirm hat jetzt drei Anzeigemodi. Nutze die Symbole neben der Überschrift „Deine Trainingspläne“, um zwischen Karussell-, Listen- und Rasteransicht zu wechseln. Deine bevorzugte Darstellung wird automatisch gespeichert.\n"
+""
+
+#: constants/WhatsNew.ts:43
+msgid ""
+"\n"
+"🚀 MuscleQuest Is Here!\n"
+"\n"
+"The first public release. Build your own training plans or start from a premade one, then log weight, reps, or time for every set as you train. A rest timer counts down between sets and alerts you with a sound and vibration when it's done.\n"
+"\n"
+"The home screen tracks your weekly goal, Stats shows your workout history and a progression chart for every exercise, and you can edit any completed workout. Everything is stored on your phone, so the app works offline.\n"
+""
+msgstr ""
+"\n"
+"🚀 MuscleQuest ist da!\n"
+"\n"
+"Die erste öffentliche Version. Erstelle deine eigenen Trainingspläne oder starte mit einem vorgefertigten Plan und erfasse beim Training Gewicht, Wiederholungen oder Zeit für jeden Satz. Ein Pausentimer zählt zwischen den Sätzen herunter und meldet sich mit Ton und Vibration, sobald die Pause vorbei ist.\n"
+"\n"
+"Der Startbildschirm verfolgt dein Wochenziel, die Statistiken zeigen deinen Trainingsverlauf und ein Fortschrittsdiagramm für jede Übung, und du kannst jedes abgeschlossene Training bearbeiten. Alles wird auf deinem Handy gespeichert, die App funktioniert also auch offline.\n"
 ""
 
 #: components/StandaloneWorkoutScreen.tsx:166
@@ -1787,7 +1911,7 @@ msgstr "Der gesamte Trainingsverlauf auf diesem Gerät wird gelöscht. Er kann n
 msgid "All-time PR"
 msgstr "Bester PR aller Zeiten"
 
-#: app/(app)/(workout)/workout-session.tsx:1883
+#: app/(app)/(workout)/workout-session.tsx:1897
 msgid "Allow alarms"
 msgstr "Wecker erlauben"
 
@@ -2122,7 +2246,7 @@ msgstr "Schaltflächengröße beim Training"
 msgid "Buy me a coffee"
 msgstr "Kauf mir einen Kaffee"
 
-#: components/AppMenu.tsx:220
+#: components/AppMenu.tsx:225
 msgid "Buy Me a Coffee"
 msgstr "Kauf mir einen Kaffee"
 
@@ -2202,6 +2326,11 @@ msgstr "Bild ändern"
 #: app/(app)/(create-plan)/create.tsx:378
 msgid "Change plan image"
 msgstr "Planbild ändern"
+
+#: app/(app)/_layout.tsx:70
+#: components/AppMenu.tsx:217
+msgid "Changelog"
+msgstr "Änderungsprotokoll"
 
 #: components/WorkoutDetailsScreen.tsx:231
 msgid "Changes for this session"
@@ -3171,7 +3300,7 @@ msgstr "Fehler beim Speichern des Trainings"
 #. placeholder {0}: error.message
 #. placeholder {0}: settingsError.message
 #: app/(app)/(tabs)/(plans)/overview.tsx:263
-#: app/(app)/(workout)/workout-session.tsx:1662
+#: app/(app)/(workout)/workout-session.tsx:1676
 #: components/WorkoutDetailsScreen.tsx:222
 msgid "Error: {0}"
 msgstr "Fehler: {0}"
@@ -3186,6 +3315,10 @@ msgstr "Geschätzte Dauer: {0}"
 #: components/charts/ExerciseProgressionChart.tsx:448
 msgid "estimated one-rep max"
 msgstr "geschätztes Maximalgewicht (1RM)"
+
+#: app/(app)/changelog.tsx:109
+msgid "Everything that has changed in MuscleQuest, newest release first."
+msgstr "Alles, was sich in MuscleQuest geändert hat, die neueste Version zuerst."
 
 #: app/(app)/delete-account.tsx:183
 msgid "Everything you shared with friends"
@@ -3216,7 +3349,7 @@ msgstr "Übung"
 msgid "Exercise Already Added"
 msgstr "Übung bereits hinzugefügt"
 
-#: app/(app)/_layout.tsx:85
+#: app/(app)/_layout.tsx:86
 msgid "Exercise Details"
 msgstr "Übungsdetails"
 
@@ -3230,7 +3363,7 @@ msgstr "Übungsdetails für {exerciseName}"
 msgid "Exercise Info"
 msgstr "Übungsinfo"
 
-#: app/(app)/_layout.tsx:72
+#: app/(app)/_layout.tsx:73
 #: components/AppMenu.tsx:202
 #: constants/HelpData.ts:222
 msgid "Exercise Library"
@@ -3453,7 +3586,7 @@ msgstr "Fr"
 msgid "Friday"
 msgstr "Freitag"
 
-#: app/(app)/_layout.tsx:76
+#: app/(app)/_layout.tsx:77
 msgid "Friend Profile"
 msgstr "Freundesprofil"
 
@@ -4079,7 +4212,7 @@ msgstr "MuscleQuest funktioniert mit TalkBack und VoiceOver: Schaltflächen und 
 msgid "MuscleQuest.app"
 msgstr "MuscleQuest.app"
 
-#: components/AppMenu.tsx:226
+#: components/AppMenu.tsx:231
 msgid "MuscleQuest's Instagram"
 msgstr "MuscleQuest auf Instagram"
 
@@ -4131,8 +4264,8 @@ msgstr "Nächste Einheit"
 msgid "Next set"
 msgstr "Nächster Satz"
 
-#: app/(app)/(workout)/workout-session.tsx:1722
-#: app/(app)/(workout)/workout-session.tsx:1820
+#: app/(app)/(workout)/workout-session.tsx:1736
+#: app/(app)/(workout)/workout-session.tsx:1834
 msgid "Next: "
 msgstr "Weiter: "
 
@@ -4332,7 +4465,7 @@ msgstr "Notiz"
 msgid "Nothing is sent anywhere else."
 msgstr "Nichts wird an andere Stellen gesendet."
 
-#: app/(app)/(workout)/workout-session.tsx:1876
+#: app/(app)/(workout)/workout-session.tsx:1890
 msgid "Notifications are off, so there is no rest alert while your phone is locked. You can turn them on in your phone's settings."
 msgstr "Benachrichtigungen sind aus, daher gibt es keinen Pausen-Alarm, während dein Handy gesperrt ist. Du kannst sie in den Einstellungen deines Handys einschalten."
 
@@ -4408,8 +4541,8 @@ msgstr "Öffne den Plan und tippe auf Plan starten, wenn er fertig ist, um ihn z
 msgid "Open workout calendar"
 msgstr "Trainingskalender öffnen"
 
-#: components/AppMenu.tsx:222
-#: components/AppMenu.tsx:228
+#: components/AppMenu.tsx:227
+#: components/AppMenu.tsx:233
 msgid "Opens in your browser"
 msgstr "Öffnet sich in deinem Browser"
 
@@ -4522,7 +4655,7 @@ msgstr "Dort weitermachen, wo du aufgehört hast?"
 msgid "Plan deleted"
 msgstr "Plan gelöscht"
 
-#: app/(app)/_layout.tsx:78
+#: app/(app)/_layout.tsx:79
 msgid "Plan Details"
 msgstr "Plandetails"
 
@@ -4603,8 +4736,8 @@ msgstr "Vorgefertigte Pläne"
 msgid "Premade Plans"
 msgstr "Vorgefertigte Pläne"
 
-#: app/(app)/(workout)/workout-session.tsx:1724
-#: app/(app)/(workout)/workout-session.tsx:1822
+#: app/(app)/(workout)/workout-session.tsx:1738
+#: app/(app)/(workout)/workout-session.tsx:1836
 msgid "Prev: "
 msgstr "Zurück: "
 
@@ -4867,7 +5000,7 @@ msgstr "Scheiben zurücksetzen"
 msgid "Rest"
 msgstr "Pause"
 
-#: app/(app)/(workout)/workout-session.tsx:1878
+#: app/(app)/(workout)/workout-session.tsx:1892
 msgid "Rest alerts may arrive late. Allow alarms for exact timing."
 msgstr "Pausen-Alarme kommen eventuell zu spät. Erlaube Wecker für genaues Timing."
 
@@ -4906,8 +5039,9 @@ msgid "Rest Timer"
 msgstr "Pausentimer"
 
 #: app/(app)/(workout)/index.tsx:333
-#: app/(app)/(workout)/workout-session.tsx:655
-#: app/(app)/(workout)/workout-session.tsx:696
+#: app/(app)/(workout)/workout-session.tsx:576
+#: app/(app)/(workout)/workout-session.tsx:669
+#: app/(app)/(workout)/workout-session.tsx:710
 msgid "Rest Timer Finished!"
 msgstr "Pausentimer beendet!"
 
@@ -5193,7 +5327,7 @@ msgstr "Lege fest, wie viele Paare du von jeder Scheibe hast. Der Scheibenrechne
 msgid "Set options"
 msgstr "Satzoptionen"
 
-#: app/(app)/(workout)/workout-session.tsx:837
+#: app/(app)/(workout)/workout-session.tsx:851
 msgid "Set removed"
 msgstr "Satz entfernt"
 
@@ -5605,8 +5739,8 @@ msgstr "Supersatz"
 
 #. placeholder {0}: outgoingSnapshot.isFirstInSuperset ? "A" : "B"
 #. placeholder {0}: ss.isFirstInSuperset ? "A" : "B"
-#: app/(app)/(workout)/workout-session.tsx:1712
-#: app/(app)/(workout)/workout-session.tsx:1809
+#: app/(app)/(workout)/workout-session.tsx:1726
+#: app/(app)/(workout)/workout-session.tsx:1823
 msgid "Superset {0}"
 msgstr "Supersatz {0}"
 
@@ -5890,8 +6024,9 @@ msgid "Time PR"
 msgstr "Zeit-PR"
 
 #: app/(app)/(workout)/index.tsx:334
-#: app/(app)/(workout)/workout-session.tsx:656
-#: app/(app)/(workout)/workout-session.tsx:697
+#: app/(app)/(workout)/workout-session.tsx:577
+#: app/(app)/(workout)/workout-session.tsx:670
+#: app/(app)/(workout)/workout-session.tsx:711
 msgid "Time to do your next set!"
 msgstr "Zeit für deinen nächsten Satz!"
 
@@ -6168,7 +6303,7 @@ msgid "Under Your data in Settings, tap Export training data to save your workou
 msgstr "Tippe in den Einstellungen unter Deine Daten auf Trainingsdaten exportieren, um deine Trainings und Messungen als CSV für Tabellenkalkulationen zu speichern, oder als JSON mit allem, einschließlich Plänen und eigenen Übungen. Wenn du angemeldet bist, entfernt Konto löschen dein Anmeldekonto, dein Profil und deine Freundschaften, alles, was du mit Freunden geteilt hast, und deine Cloud-Sicherungen. Du entscheidest, ob die Trainingsdaten auf diesem Gerät erhalten bleiben. Exportiere vorher eine Kopie, wenn du deine Historie behalten möchtest."
 
 #: app/(app)/(workout)/index.tsx:442
-#: app/(app)/(workout)/workout-session.tsx:840
+#: app/(app)/(workout)/workout-session.tsx:854
 #: hooks/useBodyMeasurementMutations.ts:132
 #: hooks/useCreateStandaloneWorkout.ts:108
 #: hooks/useDeleteCompletedWorkoutMutation.ts:46
@@ -6285,6 +6420,10 @@ msgstr "Aktuellste aus beliebigem Training"
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:145
 msgid "Values"
 msgstr "Werte"
+
+#: app/(app)/changelog.tsx:54
+msgid "Version {version}"
+msgstr "Version {version}"
 
 #: app/(app)/settings.tsx:968
 #: app/(app)/settings.tsx:977
@@ -6546,7 +6685,7 @@ msgid "Workout deleted"
 msgstr "Training gelöscht"
 
 #: app/(app)/_layout.tsx:52
-#: app/(app)/_layout.tsx:81
+#: app/(app)/_layout.tsx:82
 #: app/(app)/(tabs)/(stats)/_layout.tsx:19
 msgid "Workout Details"
 msgstr "Trainingsdetails"

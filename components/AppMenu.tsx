@@ -212,6 +212,11 @@ export function AppMenu() {
           label={t`Help & Info`}
           onPress={() => navigate("/(app)/help")}
         />
+        <MenuItem
+          icon="newspaper-outline"
+          label={t`Changelog`}
+          onPress={() => navigate("/(app)/changelog")}
+        />
 
         <MenuDivider />
 
