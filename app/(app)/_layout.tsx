@@ -27,6 +27,9 @@ export default function AppLayout() {
     return <ThemedView style={{ flex: 1 }}></ThemedView>;
   }
 
+  // An onboarding gate, not an auth gate: sign-in and "skip" both set
+  // loginShown. Authentication is optional by design, so AuthContext can be
+  // null anywhere under (app).
   if (settings && !settings.loginShown) {
     return <Redirect href="/login" />;
   }
