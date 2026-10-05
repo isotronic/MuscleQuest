@@ -522,6 +522,19 @@ Also in this update:
 • Sign-in problems now tell you what went wrong, such as being offline or missing Google Play Services, in your own language.
 `,
   },
+  {
+    version: 2660,
+    message: msg`
+✅ Fixed: Logged Values Are Right!
+
+Number fields now use your phone's decimal separator. Typing 62,5 logs 62.5, not 625. If a weight looks far heavier than your recent sets, MuscleQuest asks before saving it and offers the likely intended value.
+
+Also in this update:
+• Weight and distance units are locked while a workout is in progress, so values you have entered are not reinterpreted.
+• Editing a past workout now saves only the sets you changed.
+• Distance targets in your plans are now stored in metres, so changing units no longer changes them. If you use feet and had an unsaved plan draft open during this update, check its distance targets before saving. Friends on an older version see your shared distance targets in metres until they update.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

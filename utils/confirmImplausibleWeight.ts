@@ -28,22 +28,20 @@ export function confirmImplausibleWeight({
   onKeep: () => void;
 }): void {
   const entered = show(weight);
+  const best = reference !== null ? show(reference) : "";
+  const limit = show(
+    weightUnit === "lbs" ? NO_HISTORY_LIMIT_LBS : NO_HISTORY_LIMIT_KG,
+  );
+  const corrected = suggestion !== null ? show(suggestion) : "";
   const body =
     reference !== null
-      ? t`Your heaviest recent set is ${show(reference)} ${weightUnit}.`
-      : t`That is more than ${show(
-          weightUnit === "lbs" ? NO_HISTORY_LIMIT_LBS : NO_HISTORY_LIMIT_KG,
-        )} ${weightUnit}.`;
+      ? t`Your heaviest recent set is ${best} ${weightUnit}.`
+      : t`That is more than ${limit} ${weightUnit}.`;
 
   Alert.alert(t`Is ${entered} ${weightUnit} right?`, body, [
     { text: t`Edit`, style: "cancel" },
     ...(suggestion !== null
-      ? [
-          {
-            text: t`Use ${show(suggestion)}`,
-            onPress: () => onUse(suggestion),
-          },
-        ]
+      ? [{ text: t`Use ${corrected}`, onPress: () => onUse(suggestion) }]
       : []),
     { text: t`Keep ${entered}`, onPress: onKeep },
   ]);
