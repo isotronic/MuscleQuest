@@ -11,7 +11,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { router } from "expo-router";
 
-function getRuleExplanation(ruleKey: string): string {
+export function getRuleExplanation(ruleKey: string): string {
   const map: Record<string, string> = {
     PAIN_BLOCK: t`Pain reported. Keeping load unchanged until you feel better.`,
     PAIN_LOAD: t`Pain reported again. Consider reducing load to help your recovery.`,
@@ -33,6 +33,7 @@ function getRuleExplanation(ruleKey: string): string {
     UNSUPPORTED_TRACKING: t`No progression tracking for this exercise type.`,
     NO_RANGE: t`No rep range defined. Add a rep range (e.g. 8-12) to enable auto-progression.`,
     NO_PRIOR_WEIGHT: t`No prior weight data. Hold steady for now.`,
+    MUSCLE_LAYOFF: t`It's been a while since you trained this muscle. Start a little lighter to ease back in.`,
     DEFAULT: t`Hold steady this session.`,
   };
   return map[ruleKey] ?? t`Hold steady this session.`;

@@ -1674,11 +1674,11 @@ msgid "abs"
 msgstr "abs"
 
 #: components/friends/FriendRequestItem.tsx:44
-#: components/ProgressionSummaryCard.tsx:224
+#: components/ProgressionSummaryCard.tsx:225
 msgid "Accept"
 msgstr "Accept"
 
-#: components/ProgressionSummaryCard.tsx:111
+#: components/ProgressionSummaryCard.tsx:112
 msgid "Accept all"
 msgstr "Accept all"
 
@@ -3059,7 +3059,7 @@ msgstr "Discard Changes?"
 msgid "Discomfort is tracked across sessions: one report keeps the load steady, a second consecutive report adds a form-check note."
 msgstr "Discomfort is tracked across sessions: one report keeps the load steady, a second consecutive report adds a form-check note."
 
-#: components/ProgressionSummaryCard.tsx:232
+#: components/ProgressionSummaryCard.tsx:233
 #: components/UpdateModal.tsx:43
 #: components/UpdateModal.tsx:59
 msgid "Dismiss"
@@ -3929,8 +3929,8 @@ msgstr "Hips"
 msgid "History"
 msgstr "History"
 
-#: components/ProgressionSummaryCard.tsx:36
-#: components/ProgressionSummaryCard.tsx:38
+#: components/ProgressionSummaryCard.tsx:37
+#: components/ProgressionSummaryCard.tsx:39
 msgid "Hold steady this session."
 msgstr "Hold steady this session."
 
@@ -4061,6 +4061,10 @@ msgstr "Insights"
 msgid "Is {entered} {weightUnit} right?"
 msgstr "Is {entered} {weightUnit} right?"
 
+#: components/ProgressionSummaryCard.tsx:36
+msgid "It's been a while since you trained this muscle. Start a little lighter to ease back in."
+msgstr "It's been a while since you trained this muscle. Start a little lighter to ease back in."
+
 #: hooks/useTrainingDataExport.ts:39
 msgid "JSON"
 msgstr "JSON"
@@ -4133,36 +4137,36 @@ msgstr "Last 90 days"
 msgid "Last backup: {0}"
 msgstr "Last backup: {0}"
 
-#: components/ProgressionSummaryCard.tsx:48
+#: components/ProgressionSummaryCard.tsx:49
 msgid "Last increased: {days} days ago"
 msgstr "Last increased: {days} days ago"
 
-#: components/ProgressionSummaryCard.tsx:54
+#: components/ProgressionSummaryCard.tsx:55
 msgid "Last increased: {months} months ago"
 msgstr "Last increased: {months} months ago"
 
-#: components/ProgressionSummaryCard.tsx:51
+#: components/ProgressionSummaryCard.tsx:52
 msgid "Last increased: {weeks} weeks ago"
 msgstr "Last increased: {weeks} weeks ago"
 
-#: components/ProgressionSummaryCard.tsx:53
+#: components/ProgressionSummaryCard.tsx:54
 msgid "Last increased: 1 month ago"
 msgstr "Last increased: 1 month ago"
 
-#: components/ProgressionSummaryCard.tsx:50
+#: components/ProgressionSummaryCard.tsx:51
 msgid "Last increased: 1 week ago"
 msgstr "Last increased: 1 week ago"
 
-#: components/ProgressionSummaryCard.tsx:46
+#: components/ProgressionSummaryCard.tsx:47
 msgid "Last increased: today"
 msgstr "Last increased: today"
 
-#: components/ProgressionSummaryCard.tsx:42
-#: components/ProgressionSummaryCard.tsx:44
+#: components/ProgressionSummaryCard.tsx:43
+#: components/ProgressionSummaryCard.tsx:45
 msgid "Last increased: unknown"
 msgstr "Last increased: unknown"
 
-#: components/ProgressionSummaryCard.tsx:47
+#: components/ProgressionSummaryCard.tsx:48
 msgid "Last increased: yesterday"
 msgstr "Last increased: yesterday"
 
@@ -4422,7 +4426,7 @@ msgstr "Move workout {0} down"
 msgid "Move workout {0} up"
 msgstr "Move workout {0} up"
 
-#: components/ProgressionSummaryCard.tsx:145
+#: components/ProgressionSummaryCard.tsx:146
 msgid "Multiple exercises showing fatigue signs. A deload week may help you recover and come back stronger."
 msgstr "Multiple exercises showing fatigue signs. A deload week may help you recover and come back stronger."
 
@@ -4500,7 +4504,7 @@ msgstr "New Workout"
 msgid "Next"
 msgstr "Next"
 
-#: components/ProgressionSummaryCard.tsx:101
+#: components/ProgressionSummaryCard.tsx:102
 msgid "Next Session"
 msgstr "Next Session"
 
@@ -6280,7 +6284,7 @@ msgstr "This backup was made with a newer version of MuscleQuest. Update the app
 msgid "This email is already linked to a different sign-in method."
 msgstr "This email is already linked to a different sign-in method."
 
-#: components/ProgressionSummaryCard.tsx:201
+#: components/ProgressionSummaryCard.tsx:202
 msgid "This exercise has held steady for 4 sessions. A technique check or a brief deload may help break the plateau."
 msgstr "This exercise has held steady for 4 sessions. A technique check or a brief deload may help break the plateau."
 
@@ -6861,7 +6865,7 @@ msgstr "Vibrate after rest"
 msgid "View All"
 msgstr "View All"
 
-#: components/ProgressionSummaryCard.tsx:159
+#: components/ProgressionSummaryCard.tsx:160
 msgid "View Deload Option"
 msgstr "View Deload Option"
 

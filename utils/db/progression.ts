@@ -12,6 +12,33 @@ import {
 import { computeLayoffReduction } from "@/utils/progressionEngine";
 import { openDatabase } from "./connection";
 
+// The session progression is measured against: the latest logged session of
+// this exercise in this plan workout, skipping deleted and deload sessions
+// (live feedback is off during deload weeks too). Returns the
+// completed_exercises id, or NULL when there is none.
+const baselineSessionSql = (workoutId: string, exerciseId: string) => `(
+  SELECT ce.id
+  FROM completed_exercises ce
+  JOIN completed_workouts cw ON cw.id = ce.completed_workout_id
+  WHERE cw.workout_id = ${workoutId} AND ce.exercise_id = ${exerciseId}
+    AND cw.is_deleted = 0 AND ce.is_deleted = 0
+    AND cw.is_deload = 0
+  ORDER BY cw.date_completed DESC, cw.id DESC
+  LIMIT 1
+)`;
+
+const WORKING_SET_SQL =
+  "cs.is_deleted = 0 AND cs.is_warmup = 0 AND cs.is_drop_set = 0";
+
+// Heaviest working set of the baseline session, correlated on `uwe` and `e`.
+const RECENT_WEIGHT_SQL = `(
+  SELECT MAX(cs.weight)
+  FROM completed_sets cs
+  WHERE cs.completed_exercise_id = ${baselineSessionSql("uwe.workout_id", "e.exercise_id")}
+    AND ${WORKING_SET_SQL}
+    AND cs.weight IS NOT NULL
+) AS recent_weight`;
+
 export interface ProgressionSettings {
   enabled: boolean;
   increments: UserProgressionIncrements;
@@ -347,17 +374,7 @@ export const getProgressionState = async (
         e.equipment,
         uwe.tracking_type_override,
         e.tracking_type,
-        (
-          SELECT MAX(cs.weight)
-          FROM completed_sets cs
-          JOIN completed_exercises ce ON cs.completed_exercise_id = ce.id
-          JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-          WHERE ce.exercise_id = e.exercise_id
-            AND cw.workout_id = uwe.workout_id
-            AND cs.is_warmup = 0
-            AND cs.is_drop_set = 0
-            AND cs.weight IS NOT NULL
-        ) AS recent_weight
+        ${RECENT_WEIGHT_SQL}
       FROM exercise_progression_state eps
       JOIN user_workout_exercises uwe ON uwe.id = eps.user_workout_exercise_id
       JOIN exercises e ON e.exercise_id = uwe.exercise_id
@@ -607,17 +624,7 @@ export const getExerciseProgressionContext = async (
         uwe.tracking_type_override,
         e.tracking_type,
         e.equipment,
-        (
-          SELECT MAX(cs.weight)
-          FROM completed_sets cs
-          JOIN completed_exercises ce ON cs.completed_exercise_id = ce.id
-          JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-          WHERE ce.exercise_id = e.exercise_id
-            AND cw.workout_id = uwe.workout_id
-            AND cs.is_warmup = 0
-            AND cs.is_drop_set = 0
-            AND cs.weight IS NOT NULL
-        ) AS recent_weight
+        ${RECENT_WEIGHT_SQL}
       FROM user_workout_exercises uwe
       JOIN exercises e ON e.exercise_id = uwe.exercise_id
       WHERE uwe.id = ?`,
@@ -725,17 +732,7 @@ export const getProgressionStatesForWorkout = async (
         e.equipment,
         uwe.tracking_type_override,
         e.tracking_type,
-        (
-          SELECT MAX(cs.weight)
-          FROM completed_sets cs
-          JOIN completed_exercises ce ON cs.completed_exercise_id = ce.id
-          JOIN completed_workouts cw ON ce.completed_workout_id = cw.id
-          WHERE ce.exercise_id = e.exercise_id
-            AND cw.workout_id = uwe.workout_id
-            AND cs.is_warmup = 0
-            AND cs.is_drop_set = 0
-            AND cs.weight IS NOT NULL
-        ) AS recent_weight
+        ${RECENT_WEIGHT_SQL}
       FROM exercise_progression_state eps
       JOIN user_workout_exercises uwe ON uwe.id = eps.user_workout_exercise_id
       JOIN exercises e ON e.exercise_id = uwe.exercise_id
@@ -843,15 +840,17 @@ export const getProgressionRecomputeTargets = async (
     const workout = await db.getFirstAsync<{
       workout_id: number | null;
       date_completed: string;
+      is_deload: number;
     }>(
-      `SELECT workout_id, date_completed FROM completed_workouts WHERE id = ?`,
+      `SELECT workout_id, date_completed, is_deload FROM completed_workouts WHERE id = ?`,
       [completedWorkoutId],
     );
-    if (workout?.workout_id == null) return [];
+    // A deload session is never the baseline, so changing it moves nothing.
+    if (workout?.workout_id == null || workout.is_deload) return [];
 
     const newer = await db.getFirstAsync<{ id: number }>(
       `SELECT id FROM completed_workouts
-       WHERE workout_id = ? AND is_deleted = 0 AND id != ?
+       WHERE workout_id = ? AND is_deleted = 0 AND is_deload = 0 AND id != ?
          AND (date_completed > ? OR (date_completed = ? AND id > ?))
        LIMIT 1`,
       [
@@ -888,16 +887,8 @@ export const getProgressionRecomputeTargets = async (
       }>(
         `SELECT cs.weight, cs.reps
          FROM completed_sets cs
-         WHERE cs.completed_exercise_id = (
-           SELECT ce.id
-           FROM completed_exercises ce
-           JOIN completed_workouts cw ON cw.id = ce.completed_workout_id
-           WHERE cw.workout_id = ? AND ce.exercise_id = ?
-             AND cw.is_deleted = 0 AND ce.is_deleted = 0
-           ORDER BY cw.date_completed DESC, cw.id DESC
-           LIMIT 1
-         )
-           AND cs.is_deleted = 0 AND cs.is_warmup = 0 AND cs.is_drop_set = 0
+         WHERE cs.completed_exercise_id = ${baselineSessionSql("?", "?")}
+           AND ${WORKING_SET_SQL}
          ORDER BY cs.set_number ASC`,
         [workout.workout_id, row.exercise_id],
       );
