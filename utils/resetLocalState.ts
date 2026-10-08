@@ -14,6 +14,8 @@ import { notifyBugsnag } from "@/utils/bugsnagDedup";
 export async function resetLocalSessionState(): Promise<void> {
   const steps: (() => unknown)[] = [
     () => useActiveWorkoutStore.getState().clearPersistedStore(),
+    // clearPersistedStore does not wait for its removal; the reload must.
+    () => useActiveWorkoutStore.persist.clearStorage(),
     () => cancelRestNotifications(),
     () => {
       useWorkoutStore.setState({ drafts: {} });

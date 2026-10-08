@@ -67,4 +67,27 @@ describe("resetLocalSessionState", () => {
     // Later steps still ran.
     expect(useSocialStore.getState().publishedPlanIds).toBeNull();
   });
+
+  it("waits until the persisted workout is removed from storage", async () => {
+    let finishRemoval!: () => void;
+    const clearStorage = jest
+      .spyOn(useActiveWorkoutStore.persist, "clearStorage")
+      .mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          finishRemoval = resolve;
+        }) as never,
+      );
+    let done = false;
+
+    const reset = resetLocalSessionState().then(() => {
+      done = true;
+    });
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(clearStorage).toHaveBeenCalled();
+    expect(done).toBe(false);
+    finishRemoval();
+    await reset;
+    expect(done).toBe(true);
+  });
 });
