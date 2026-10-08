@@ -7,6 +7,7 @@ import { useSettingsQuery } from "./useSettingsQuery";
 import { normalizeStatsLayout, type StatsLayout } from "@/utils/statsLayout";
 
 export const STATS_LAYOUT_KEY = "statsLayout";
+const SAVE_MUTATION_KEY = ["statsLayout", "save"];
 
 /** The stats screen layout, with defaults for anything not stored. */
 export const useStatsLayout = () => {
@@ -18,11 +19,15 @@ export const useStatsLayout = () => {
 
 /**
  * Saves a whole layout. The settings cache is updated first so toggles and
- * drags feel instant; a failed write rolls it back.
+ * drags feel instant; a failed write rolls it back. Saves run one at a time
+ * in the order made, so quick toggles cannot land out of order, and the
+ * settings refetch waits for the last of them.
  */
 export const useUpdateStatsLayoutMutation = () => {
   const queryClient = useQueryClient();
   const mutation = useMutation({
+    mutationKey: SAVE_MUTATION_KEY,
+    scope: { id: STATS_LAYOUT_KEY },
     mutationFn: (layout: StatsLayout) =>
       updateSettings(STATS_LAYOUT_KEY, JSON.stringify(layout)),
     onMutate: async (layout) => {
@@ -43,7 +48,11 @@ export const useUpdateStatsLayoutMutation = () => {
       notifyBugsnag(error);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      // An earlier save refetching now would overwrite the newer layout
+      // still in the cache. This save still counts, so 1 means it is last.
+      if (queryClient.isMutating({ mutationKey: SAVE_MUTATION_KEY }) === 1) {
+        queryClient.invalidateQueries({ queryKey: ["settings"] });
+      }
     },
   });
   const { mutate } = mutation;
