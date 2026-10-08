@@ -92,4 +92,41 @@ describe("useUpdateStatsLayoutMutation", () => {
       weightUnit: "kg",
     });
   });
+
+  it("keeps a queued edit in the cache when an earlier save fails", async () => {
+    const pending: { resolve: () => void; reject: (e: Error) => void }[] = [];
+    const writes: string[] = [];
+    mockUpdate.mockImplementation(
+      (_key: string, value: string) =>
+        new Promise<void>((resolve, reject) => {
+          writes.push(value);
+          pending.push({ resolve, reject });
+        }),
+    );
+    const { queryClient, invalidate, result } = setup();
+    const first = setWidgetVisible(defaultStatsLayout(), "heatmap", false);
+    const second = setWidgetVisible(first, "summary", false);
+    const cachedLayout = () =>
+      queryClient.getQueryData<{ statsLayout?: string }>(["settings"])
+        ?.statsLayout;
+
+    act(() => {
+      result.current.save(first);
+      result.current.save(second);
+    });
+    await waitFor(() => expect(writes).toHaveLength(1));
+    expect(cachedLayout()).toBe(JSON.stringify(second));
+
+    await act(async () => pending[0].reject(new Error("disk full")));
+
+    // The queued edit is still shown and is the next write.
+    await waitFor(() => expect(writes).toHaveLength(2));
+    expect(cachedLayout()).toBe(JSON.stringify(second));
+    expect(writes[1]).toBe(JSON.stringify(second));
+    expect(invalidate).not.toHaveBeenCalled();
+
+    await act(async () => pending[1].resolve());
+    await waitFor(() => expect(invalidate).toHaveBeenCalledTimes(1));
+    expect(cachedLayout()).toBe(JSON.stringify(second));
+  });
 });

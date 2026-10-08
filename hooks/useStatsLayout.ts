@@ -42,7 +42,13 @@ export const useUpdateStatsLayoutMutation = () => {
       return { previous };
     },
     onError: (error, _layout, context) => {
-      if (context?.previous) {
+      // A queued save has already put its newer layout in the cache, and
+      // its snapshot was taken after ours. Restoring ours would wipe it, so
+      // only the last pending save rolls back; the refetch after it fixes the
+      // cache either way.
+      const isLast =
+        queryClient.isMutating({ mutationKey: SAVE_MUTATION_KEY }) === 1;
+      if (isLast && context?.previous) {
         queryClient.setQueryData(["settings"], context.previous);
       }
       notifyBugsnag(error);
