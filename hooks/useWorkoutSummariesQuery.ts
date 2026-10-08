@@ -2,8 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchBodyPartSetCounts,
   fetchHasCompletedWorkout,
+  fetchRecentPRs,
+  fetchTrainingSplit,
   fetchWorkoutSummaries,
   type BodyPartSetCount,
+  type RecentPR,
+  type SplitGrouping,
+  type SplitRow,
   type LocalDateRange,
   type WorkoutStatsOptions,
   type WorkoutSummary,
@@ -73,5 +78,31 @@ export const useHasCompletedWorkoutQuery = () =>
   useQuery<boolean>({
     queryKey: [ROOT, "any"],
     queryFn: fetchHasCompletedWorkout,
+    staleTime: 60_000,
+  });
+
+/** Raw sets and volume per body part or muscle; see mergeSplitRows. */
+export const useTrainingSplitQuery = (
+  timeRange: number,
+  groupBy: SplitGrouping,
+  options: WorkoutStatsOptions,
+) =>
+  useQuery<SplitRow[]>({
+    queryKey: [ROOT, "split", timeRange, groupBy, ...optionsKey(options)],
+    queryFn: () =>
+      fetchTrainingSplit(currentPeriod(timeRange), groupBy, options),
+    staleTime: 60_000,
+  });
+
+export const useRecentPRsQuery = (
+  timeRange: number,
+  trackedOnly: boolean,
+  limit: number,
+) =>
+  useQuery<RecentPR[]>({
+    // Changing the tracked exercises invalidates this key as well.
+    queryKey: [ROOT, "recentPRs", timeRange, trackedOnly, limit],
+    queryFn: () =>
+      fetchRecentPRs(currentPeriod(timeRange), { trackedOnly, limit }),
     staleTime: 60_000,
   });

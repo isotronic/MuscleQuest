@@ -4,6 +4,7 @@ import * as SQLite from "expo-sqlite";
 import { nowForDb, parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
 import { METRIC_EPSILON, kgToDisplay, metresToDisplay } from "@/utils/units";
 import { openDatabase } from "./connection";
+import { progressionMetricSql } from "./progressionMetricSql";
 
 export interface SavedWorkout {
   planId: number | null;
@@ -484,14 +485,7 @@ export const fetchPRDataForExercises = async (
   try {
     const placeholders = exerciseIds.map(() => "?").join(", ");
 
-    const pmExpr = `CASE e.tracking_type
-    WHEN 'weight' THEN (COALESCE(cs.weight, 0) * CASE WHEN e.double_weight = 1 THEN 2 ELSE 1 END) * (1.0 + COALESCE(cs.reps, 0) / 30.0)
-    WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - COALESCE(cs.weight, 0)) * (1.0 + COALESCE(cs.reps, 0) / 30.0)
-    WHEN 'reps' THEN CAST(COALESCE(cs.reps, 0) AS REAL)
-    WHEN 'time' THEN CAST(COALESCE(cs.time, 0) AS REAL)
-    WHEN 'distance' THEN CAST(COALESCE(cs.distance, 0) AS REAL)
-    ELSE (COALESCE(cs.weight, 0) * CASE WHEN e.double_weight = 1 THEN 2 ELSE 1 END) * (1.0 + COALESCE(cs.reps, 0) / 30.0)
-  END`;
+    const pmExpr = progressionMetricSql();
 
     const rows = await db.getAllAsync<{
       exercise_id: number;
