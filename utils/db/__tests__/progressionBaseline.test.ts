@@ -158,7 +158,8 @@ describe("progression baseline", () => {
     seedFeedback("easy", "none");
     const state = await getProgressionState(UWE_ID);
     expect(state?.ruleKey).toBe("MUSCLE_LAYOFF");
-    expect(state?.suggestedWeight).toBeLessThan(80);
+    // Last workout 24 days ago: 80 kg less 17%, rounded to the 2.5 kg step.
+    expect(state?.suggestedWeight).toBe(67.5);
 
     const [row] = await getProgressionStatesForWorkout(1);
     expect(row.ruleKey).toBe("MUSCLE_LAYOFF");
@@ -197,6 +198,31 @@ describe("progression baseline", () => {
       seedHistory();
       seedFeedback("easy", "none");
       expect(await getProgressionRecomputeTargets(4)).toEqual([]);
+    });
+
+    it("refreshes when a later workout skipped the exercise", async () => {
+      seedHistory();
+      seedFeedback("easy", "none");
+      const when = new Date(Date.now() - DAY_MS);
+      mockDb.sqlite
+        .prepare(
+          `INSERT INTO completed_workouts (id, workout_id, date_completed, local_date, duration, total_sets_completed)
+           VALUES (5, 1, ?, ?, 1800, 0)`,
+        )
+        .run(when.toISOString(), when.toISOString().slice(0, 10));
+      expect(await getProgressionRecomputeTargets(2)).toEqual([
+        {
+          userWorkoutExerciseId: UWE_ID,
+          recentWorkingWeight: 80,
+          completedRepsPerSet: [8, 8],
+        },
+      ]);
+    });
+
+    it("leaves an older session alone", async () => {
+      seedHistory();
+      seedFeedback("easy", "none");
+      expect(await getProgressionRecomputeTargets(1)).toEqual([]);
     });
   });
 });

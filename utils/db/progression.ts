@@ -826,9 +826,10 @@ export interface ProgressionRecomputeTarget {
  * The pending suggestions that an edit to, or deletion of, this completed
  * workout has made stale, each with the session data to rebuild it from.
  *
- * Empty unless the workout is the most recent session of its plan workout:
- * an older session did not produce the current suggestion, and recomputing
- * would override feedback given since. Quick workouts have no plan exercises.
+ * Only exercises for which the workout is their most recent session of the
+ * plan workout: an older session did not produce the current suggestion, and
+ * recomputing would override feedback given since. Quick workouts have no plan
+ * exercises.
  * Works for a soft-deleted workout too, which is how deletion uses it.
  */
 export const getProgressionRecomputeTargets = async (
@@ -848,21 +849,6 @@ export const getProgressionRecomputeTargets = async (
     // A deload session is never the baseline, so changing it moves nothing.
     if (workout?.workout_id == null || workout.is_deload) return [];
 
-    const newer = await db.getFirstAsync<{ id: number }>(
-      `SELECT id FROM completed_workouts
-       WHERE workout_id = ? AND is_deleted = 0 AND is_deload = 0 AND id != ?
-         AND (date_completed > ? OR (date_completed = ? AND id > ?))
-       LIMIT 1`,
-      [
-        workout.workout_id,
-        completedWorkoutId,
-        workout.date_completed,
-        workout.date_completed,
-        completedWorkoutId,
-      ],
-    );
-    if (newer) return [];
-
     const pending = await db.getAllAsync<{
       user_workout_exercise_id: number;
       exercise_id: number;
@@ -881,6 +867,27 @@ export const getProgressionRecomputeTargets = async (
 
     const targets: ProgressionRecomputeTarget[] = [];
     for (const row of pending) {
+      // Only the latest session of this exercise feeds its suggestion. A later
+      // workout that skipped the exercise does not count as newer.
+      const newer = await db.getFirstAsync<{ id: number }>(
+        `SELECT cw.id FROM completed_workouts cw
+         JOIN completed_exercises ce ON ce.completed_workout_id = cw.id
+         WHERE cw.workout_id = ? AND ce.exercise_id = ?
+           AND cw.is_deleted = 0 AND ce.is_deleted = 0 AND cw.is_deload = 0
+           AND cw.id != ?
+           AND (cw.date_completed > ? OR (cw.date_completed = ? AND cw.id > ?))
+         LIMIT 1`,
+        [
+          workout.workout_id,
+          row.exercise_id,
+          completedWorkoutId,
+          workout.date_completed,
+          workout.date_completed,
+          completedWorkoutId,
+        ],
+      );
+      if (newer) continue;
+
       const sets = await db.getAllAsync<{
         weight: number | null;
         reps: number | null;

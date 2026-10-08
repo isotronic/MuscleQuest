@@ -9,8 +9,8 @@ jest.mock("@lingui/core/macro", () => ({
 
 describe("getRuleExplanation", () => {
   it("explains the layoff override instead of falling back to the default", () => {
-    expect(getRuleExplanation("MUSCLE_LAYOFF")).not.toBe(
-      getRuleExplanation("DEFAULT"),
+    expect(getRuleExplanation("MUSCLE_LAYOFF")).toBe(
+      "It's been a while since you trained this muscle. Start a little lighter to ease back in.",
     );
   });
 });
