@@ -41,6 +41,8 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { getAuth, signOut } from "@react-native-firebase/auth";
 import Bugsnag from "@bugsnag/expo";
 import { getBackupErrorMessage } from "@/utils/backupErrorMessage";
+import { restoreConfirmMessage } from "@/utils/restoreConfirmMessage";
+import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import {
   fetchLastBackupDate,
   restoreDatabaseBackup,
@@ -529,9 +531,10 @@ export default function SettingsScreen() {
     const date = lastBackupDate?.toLocaleDateString();
     Alert.alert(
       t`Restore Backup`,
-      date
-        ? t`Restore backup from ${date}? This replaces all training data on this device. Anything logged since that backup will be lost.`
-        : t`Restore your backup? This replaces all training data on this device. Anything logged since that backup will be lost.`,
+      restoreConfirmMessage(
+        date,
+        useActiveWorkoutStore.getState().isWorkoutInProgress(),
+      ),
       [
         { text: t`Cancel`, style: "cancel" },
         {

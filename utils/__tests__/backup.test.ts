@@ -48,6 +48,10 @@ jest.mock("../restoreRollback", () => ({
   swapInRestoredFiles: jest.fn(),
 }));
 
+jest.mock("../resetLocalState", () => ({
+  resetLocalSessionState: jest.fn(() => Promise.resolve()),
+}));
+
 jest.mock("../database", () => ({
   createDatabaseSnapshot: jest.fn((target: any) => Promise.resolve(target)),
   checkDatabaseIntegrity: jest.fn(() => Promise.resolve(true)),
@@ -59,6 +63,7 @@ const mockDatabase = require("../database");
 const { swapInRestoredFiles } = require("../restoreRollback");
 const { reloadAsync } = require("expo-updates");
 const { setAsyncStorageItem } = require("../asyncStorage");
+const { resetLocalSessionState } = require("../resetLocalState");
 
 const USER_PREFIX = "backups/mockUserId/";
 const notFound = () => ({ code: "storage/object-not-found" });
@@ -416,6 +421,30 @@ describe("restoreDatabaseBackup", () => {
       expect(setRestoreProgressMock).toHaveBeenLastCalledWith(100);
       expect(reloadAsync).toHaveBeenCalled();
       expect(stagingDir.delete).toHaveBeenCalled();
+    });
+
+    it("clears the old session state after the swap and before the reload", async () => {
+      mockRemote(manifestFor());
+
+      await restore();
+
+      const resetOrder = (resetLocalSessionState as jest.Mock).mock
+        .invocationCallOrder[0];
+      expect(resetOrder).toBeGreaterThan(
+        (swapInRestoredFiles as jest.Mock).mock.invocationCallOrder[0],
+      );
+      expect(resetOrder).toBeLessThan(
+        (reloadAsync as jest.Mock).mock.invocationCallOrder[0],
+      );
+    });
+
+    it("keeps the session state when the restore fails", async () => {
+      mockRemote(manifestFor());
+      mockDatabase.checkDatabaseIntegrity.mockResolvedValue(false);
+
+      await restore().catch(() => undefined);
+
+      expect(resetLocalSessionState).not.toHaveBeenCalled();
     });
 
     it("aborts on a newer schema without touching local files", async () => {

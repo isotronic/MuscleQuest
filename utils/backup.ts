@@ -21,6 +21,7 @@ import {
 } from "./database";
 import { LATEST_SCHEMA_VERSION } from "./db/migrations";
 import { swapInRestoredFiles } from "./restoreRollback";
+import { resetLocalSessionState } from "./resetLocalState";
 
 const dbName = "userData.db";
 
@@ -376,6 +377,8 @@ export const restoreDatabaseBackup = async (
 
     Bugsnag.leaveBreadcrumb("Backup restored");
     await setAsyncStorageItem("databaseRestored", "true");
+    // The session, drafts and published ids refer to the replaced database.
+    await resetLocalSessionState();
     setRestoreProgress(100);
     await reloadAsync();
   } catch (error) {

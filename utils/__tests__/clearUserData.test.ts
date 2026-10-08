@@ -5,6 +5,7 @@ import {
 import { openDatabase } from "@/utils/database";
 import * as Updates from "expo-updates";
 import Bugsnag from "@bugsnag/expo";
+import { resetLocalSessionState } from "../resetLocalState";
 
 // jest.mock factories are hoisted; only `mock*` (lowercase) variables are
 // accessible inside factories, so we embed the mock state in the factory and
@@ -28,6 +29,9 @@ jest.mock("expo-updates", () => ({
 jest.mock("@/utils/database", () => ({
   openDatabase: jest.fn(),
 }));
+jest.mock("../resetLocalState", () => ({
+  resetLocalSessionState: jest.fn(() => Promise.resolve()),
+}));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
   default: { notify: jest.fn() },
@@ -50,6 +54,16 @@ describe("clearDatabaseAndReinitialize", () => {
     jest.clearAllMocks();
     (Updates.reloadAsync as jest.Mock).mockResolvedValue(undefined);
     getFileMocks().__mockFileInst.exists = true;
+  });
+
+  it("clears the old session state before the reload", async () => {
+    await clearDatabaseAndReinitialize();
+    expect(resetLocalSessionState).toHaveBeenCalled();
+    expect(
+      (resetLocalSessionState as jest.Mock).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      (Updates.reloadAsync as jest.Mock).mock.invocationCallOrder[0],
+    );
   });
 
   it("deletes the database file when it exists", async () => {

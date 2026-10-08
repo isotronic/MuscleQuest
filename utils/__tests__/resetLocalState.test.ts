@@ -1,0 +1,60 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { resetLocalSessionState } from "../resetLocalState";
+import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { useWorkoutStore } from "@/store/workoutStore";
+import { useSocialStore } from "@/store/socialStore";
+import { cancelRestNotifications } from "@/utils/restNotification";
+
+jest.mock("expo-router", () => ({
+  router: { push: jest.fn(), back: jest.fn() },
+}));
+jest.mock("@/utils/restNotification", () => ({
+  cancelRestNotifications: jest.fn().mockResolvedValue(undefined),
+}));
+
+describe("resetLocalSessionState", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useActiveWorkoutStore.setState({
+      activeWorkout: { planId: 1, workoutId: 2, name: "Push" },
+      workout: { id: 2, name: "Push", exercises: [] } as any,
+      savedCompletedWorkoutId: 9,
+    });
+    useWorkoutStore.setState({
+      workouts: [{ name: "Draft" } as any],
+      drafts: { "plan:1": {} as any },
+    });
+    useSocialStore.setState({
+      publishedPlanIds: ["1"],
+      publishedWorkoutIds: ["2"],
+    });
+  });
+
+  it("discards the in-progress workout and its rest alerts", async () => {
+    await resetLocalSessionState();
+
+    const active = useActiveWorkoutStore.getState();
+    expect(active.activeWorkout).toBeNull();
+    expect(active.workout).toBeNull();
+    expect(active.savedCompletedWorkoutId).toBeNull();
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith(
+      "active-workout-store",
+    );
+    expect(cancelRestNotifications).toHaveBeenCalled();
+  });
+
+  it("drops plan editor drafts that point at the replaced database", async () => {
+    await resetLocalSessionState();
+
+    expect(useWorkoutStore.getState().drafts).toEqual({});
+    expect(useWorkoutStore.getState().workouts).toEqual([]);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith("workout-draft-store");
+  });
+
+  it("forgets published ids so the listeners repopulate them", async () => {
+    await resetLocalSessionState();
+
+    expect(useSocialStore.getState().publishedPlanIds).toBeNull();
+    expect(useSocialStore.getState().publishedWorkoutIds).toBeNull();
+  });
+});
