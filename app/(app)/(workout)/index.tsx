@@ -122,8 +122,11 @@ export default function WorkoutOverviewScreen() {
 
   const recoverySheetRef = useRef<BottomSheetModal>(null);
   const progressionSettings = useProgressionSettingsQuery();
-  const { isCurrentWeekDeload, isLoading: deloadWeekLoading } =
-    useDeloadWeekQuery(activeWorkout?.planId ?? undefined);
+  const {
+    isCurrentWeekDeload,
+    isDeloadWeekOf,
+    isLoading: deloadWeekLoading,
+  } = useDeloadWeekQuery(activeWorkout?.planId ?? undefined);
   const { data: pendingRecovery } = usePendingRecoveryQuery(
     activeWorkout?.workoutId ?? undefined,
   );
@@ -836,7 +839,8 @@ export default function WorkoutOverviewScreen() {
               workoutId: workoutId ?? null,
               duration,
               totalSetsCompleted,
-              isDeload: planId != null && isCurrentWeekDeload,
+              // The week it was trained in, which a stale save can have left.
+              isDeload: planId != null && isDeloadWeekOf(endedAt ?? new Date()),
               exercises,
               // A stale workout counts towards the day it was trained.
               completedAt: endedAt ?? undefined,
