@@ -57,4 +57,14 @@ describe("resetLocalSessionState", () => {
     expect(useSocialStore.getState().publishedPlanIds).toBeNull();
     expect(useSocialStore.getState().publishedWorkoutIds).toBeNull();
   });
+
+  it("never throws, so the reload after a swap always runs", async () => {
+    jest
+      .spyOn(useWorkoutStore.persist, "clearStorage")
+      .mockRejectedValueOnce(new Error("storage full") as never);
+
+    await expect(resetLocalSessionState()).resolves.toBeUndefined();
+    // Later steps still ran.
+    expect(useSocialStore.getState().publishedPlanIds).toBeNull();
+  });
 });
