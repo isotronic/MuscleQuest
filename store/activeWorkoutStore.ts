@@ -324,13 +324,26 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           }
 
           const totalSets = workout.exercises[index].sets.length;
-          const isExerciseCompleted = completedSets[index]
-            ? Object.keys(completedSets[index]).length === totalSets
-            : false;
+          const exerciseSets = completedSets[index] ?? {};
+          // Sets can be marked false, so count only the true ones (as nextSet does).
+          const completedCount =
+            Object.values(exerciseSets).filter(Boolean).length;
+          const isExerciseCompleted = completedCount >= totalSets;
 
-          const currentSetIndex = isExerciseCompleted
-            ? 0
-            : currentSetIndices[index] || 0;
+          const storedSetIndex = currentSetIndices[index] || 0;
+          let currentSetIndex = storedSetIndex;
+          if (isExerciseCompleted) {
+            currentSetIndex = 0;
+          } else if (exerciseSets[storedSetIndex] === true) {
+            // The stored set is done (e.g. a set was added after the last one
+            // was completed): open the first one that is not.
+            for (let i = 0; i < totalSets; i++) {
+              if (exerciseSets[i] !== true) {
+                currentSetIndex = i;
+                break;
+              }
+            }
+          }
 
           return {
             currentExerciseIndex: index,
