@@ -9,12 +9,19 @@ import {
   updateAppExerciseIds,
 } from "@/utils/database";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
-import { recoverInterruptedRestore } from "@/utils/restoreRollback";
+import {
+  confirmRestoredDatabase,
+  hasRestoreToUndo,
+  recoverInterruptedRestore,
+  undoLastRestore,
+} from "@/utils/restoreRollback";
+import { resetLocalSessionStateAfterHydration } from "@/utils/resetLocalState";
 import { forgetExerciseImageFiles } from "@/utils/db/exerciseImageFiles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getAsyncStorageItem,
   removeAsyncStorageItem,
+  setAsyncStorageItem,
 } from "@/utils/asyncStorage";
 
 export const DATABASE_RESTORED_KEY = "databaseRestored";
@@ -70,6 +77,14 @@ const initializeDatabases = async (
   await syncExerciseFlagsFromAppData();
 };
 
+const restoreSwappedWithoutFinishing = (): boolean => {
+  try {
+    return hasRestoreToUndo();
+  } catch {
+    return false;
+  }
+};
+
 export const resetStartupFailureCount = () =>
   removeAsyncStorageItem(STARTUP_FAILURE_COUNT_KEY);
 
@@ -81,10 +96,20 @@ export const runStartup = async (
   appCheckReady: Promise<unknown>,
   onProgress?: (progress: StartupProgress) => void,
 ): Promise<StartupResult> => {
-  const databaseRestored =
+  let databaseRestored =
     (await getAsyncStorageItem(DATABASE_RESTORED_KEY)) === "true";
+  if (!databaseRestored && restoreSwappedWithoutFinishing()) {
+    // Killed between the swap and the end of the restore: the flag was never
+    // set and the old session refers to the replaced database.
+    Bugsnag.leaveBreadcrumb("Finishing a restore killed after its swap");
+    databaseRestored = true;
+  }
+  // The old session refers to the replaced database. Normally already cleared
+  // before the reload; done again in case that failed or never ran.
+  let sessionReset = true;
   if (databaseRestored) {
     Bugsnag.leaveBreadcrumb("First boot after a backup restore");
+    sessionReset = await resetLocalSessionStateAfterHydration();
   }
 
   try {
@@ -128,8 +153,26 @@ export const runStartup = async (
   }
 
   // Cleared only after success, so a failed post-restore boot retries with
-  // the flag still set.
-  await removeAsyncStorageItem(DATABASE_RESTORED_KEY);
+  // the flag still set and the pre-restore database still kept.
+  confirmRestoredDatabase();
+  if (sessionReset) {
+    await removeAsyncStorageItem(DATABASE_RESTORED_KEY);
+  } else {
+    // Kept (or set, after a killed restore) so the next boot retries the reset.
+    await setAsyncStorageItem(DATABASE_RESTORED_KEY, "true");
+  }
   await resetStartupFailureCount();
   return { status: "ok" };
+};
+
+// From the startup recovery screen: puts back the database from before the
+// last restore and starts again with it.
+export const undoLastRestoreAndReload = async () => {
+  // Reloading without an undo would only hit the same failure again.
+  if (!undoLastRestore()) {
+    throw new Error("There was no restore to undo.");
+  }
+  await removeAsyncStorageItem(DATABASE_RESTORED_KEY);
+  await resetStartupFailureCount();
+  await Updates.reloadAsync();
 };

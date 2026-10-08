@@ -12,6 +12,8 @@ export interface SavedWorkout {
   duration: number;
   totalSetsCompleted: number;
   isDeload?: boolean;
+  /** When the workout ended, if not now (a stale session saved later). */
+  completedAt?: Date;
   exercises: {
     exercise_id: number;
     resolved_tracking_type?: string | null;
@@ -50,6 +52,7 @@ export const saveCompletedWorkout = async (
       set_duration?: number | null;
     }[];
   }[],
+  completedAt?: Date,
 ) => {
   const db = await openDatabase("userData.db");
   let completedWorkoutId: number;
@@ -58,7 +61,12 @@ export const saveCompletedWorkout = async (
     await db.withExclusiveTransactionAsync(async (txn) => {
       // date_completed is the instant (UTC, ISO with an explicit Z); local_date is
       // the training day the workout counts towards. See utils/dates.ts.
-      const { utc, localDate } = nowForDb();
+      const { utc, localDate } = completedAt
+        ? {
+            utc: completedAt.toISOString(),
+            localDate: toLocalDateKey(completedAt),
+          }
+        : nowForDb();
       const completedWorkoutResult = await txn.runAsync(
         `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, local_date, duration, total_sets_completed, is_deload) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [

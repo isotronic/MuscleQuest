@@ -106,6 +106,18 @@ describe("useSaveCompletedWorkoutMutation", () => {
           ]),
         }),
       ]),
+      undefined, // completedAt
+    );
+  });
+
+  it("mutationFn passes completedAt through for a backdated save", async () => {
+    useSaveCompletedWorkoutMutation("kg", "m");
+    const completedAt = new Date(2026, 2, 1, 21, 0, 0);
+
+    await capturedArgs.mutationFn(makeWorkoutData({ completedAt }));
+
+    expect((saveCompletedWorkout as jest.Mock).mock.calls[0][6]).toBe(
+      completedAt,
     );
   });
 
@@ -130,6 +142,7 @@ describe("useSaveCompletedWorkoutMutation", () => {
           ]),
         }),
       ]),
+      undefined, // completedAt
     );
   });
 
@@ -170,6 +183,7 @@ describe("useSaveCompletedWorkoutMutation", () => {
           ]),
         }),
       ]),
+      undefined, // completedAt
     );
   });
 
@@ -233,6 +247,7 @@ describe("useSaveCompletedWorkoutMutation", () => {
           ]),
         }),
       ]),
+      undefined, // completedAt
     );
   });
 

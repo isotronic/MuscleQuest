@@ -1,8 +1,11 @@
 import { File } from "expo-file-system";
 import Bugsnag from "@bugsnag/expo";
 import {
+  confirmRestoredDatabase,
+  hasRestoreToUndo,
   recoverInterruptedRestore,
   swapInRestoredFiles,
+  undoLastRestore,
 } from "../restoreRollback";
 
 // In-memory filesystem: file path -> contents, plus a set of directories.
@@ -11,6 +14,7 @@ import {
 const mockFiles = new Map<string, string>();
 const mockDirs = new Set<string>();
 const mockFailingMoves = new Set<string>();
+const mockFreeSpace = { bytes: 10 * 1024 * 1024 * 1024 };
 
 jest.mock("expo-file-system", () => {
   const join = (parts: any[]) =>
@@ -70,18 +74,30 @@ jest.mock("expo-file-system", () => {
   return {
     File: MockFile,
     Directory: MockDirectory,
-    Paths: { document: { uri: "/doc" }, cache: { uri: "/cache" } },
+    Paths: {
+      document: { uri: "/doc" },
+      cache: { uri: "/cache" },
+      get availableDiskSpace() {
+        return mockFreeSpace.bytes;
+      },
+    },
   };
 });
 
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
-  default: { notify: jest.fn() },
+  default: { notify: jest.fn(), leaveBreadcrumb: jest.fn() },
 }));
 
 const LIVE = "/doc/SQLite/userData.db";
 const ROLLBACK_DIR = "/doc/restore-rollback";
 const MARKER = `${ROLLBACK_DIR}/swap-in-progress.json`;
+const AWAITING = `${ROLLBACK_DIR}/awaiting-first-boot.json`;
+const ORIGINAL_LIVE = {
+  [LIVE]: "old-db",
+  [`${LIVE}-wal`]: "old-wal",
+  [`${LIVE}-shm`]: "old-shm",
+};
 
 const stage = (name: string, contents: string) => {
   mockFiles.set(`/cache/restore-staging/${name}`, contents);
@@ -104,18 +120,47 @@ beforeEach(() => {
   mockFiles.clear();
   mockDirs.clear();
   mockFailingMoves.clear();
+  mockFreeSpace.bytes = 10 * 1024 * 1024 * 1024;
   mockFiles.set(LIVE, "old-db");
   mockFiles.set(`${LIVE}-wal`, "old-wal");
   mockFiles.set(`${LIVE}-shm`, "old-shm");
 });
 
 describe("swapInRestoredFiles", () => {
-  it("replaces the DB and removes the local WAL/SHM, then cleans up", () => {
+  it("replaces the DB and removes the local WAL/SHM, keeping the originals until the first boot", () => {
+    swapInRestoredFiles([stage("userData.db", "new-db")]);
+
+    expect(liveState()).toEqual({ [LIVE]: "new-db" });
+    expect(mockFiles.has(MARKER)).toBe(false);
+    expect(mockFiles.has(AWAITING)).toBe(true);
+    expect(mockFiles.get(`${ROLLBACK_DIR}/rollback-userData.db`)).toBe(
+      "old-db",
+    );
+    expect(mockFiles.get(`${ROLLBACK_DIR}/rollback-userData.db-wal`)).toBe(
+      "old-wal",
+    );
+    expect(hasRestoreToUndo()).toBe(true);
+  });
+
+  it("drops the originals when free space is low", () => {
+    mockFreeSpace.bytes = 10 * 1024 * 1024;
+
     swapInRestoredFiles([stage("userData.db", "new-db")]);
 
     expect(liveState()).toEqual({ [LIVE]: "new-db" });
     expect(mockDirs.has(ROLLBACK_DIR)).toBe(false);
-    expect(mockFiles.has(MARKER)).toBe(false);
+    expect(hasRestoreToUndo()).toBe(false);
+  });
+
+  it("treats a restore still awaiting its first boot as confirmed", () => {
+    swapInRestoredFiles([stage("userData.db", "new-db")]);
+
+    swapInRestoredFiles([stage("userData.db", "newer-db")]);
+
+    expect(liveState()).toEqual({ [LIVE]: "newer-db" });
+    expect(mockFiles.get(`${ROLLBACK_DIR}/rollback-userData.db`)).toBe(
+      "new-db",
+    );
   });
 
   it("puts the originals back and rethrows when moving the backup in fails", () => {
@@ -183,7 +228,9 @@ describe("swapInRestoredFiles", () => {
     swapInRestoredFiles([stage("userData.db", "new-db")]);
 
     expect(liveState()).toEqual({ [LIVE]: "new-db" });
-    expect(mockFiles.has(`${ROLLBACK_DIR}/rollback-userData.db`)).toBe(false);
+    expect(mockFiles.get(`${ROLLBACK_DIR}/rollback-userData.db`)).toBe(
+      "old-db",
+    );
   });
 });
 
@@ -288,6 +335,97 @@ describe("recoverInterruptedRestore", () => {
 
     expect(() => recoverInterruptedRestore()).toThrow("Move failed");
     expect(mockFiles.has(MARKER)).toBe(true);
+    expect(mockFiles.get(`${ROLLBACK_DIR}/rollback-userData.db`)).toBe(
+      "old-db",
+    );
+  });
+});
+
+describe("after the swap", () => {
+  beforeEach(() => {
+    swapInRestoredFiles([
+      stage("userData.db", "new-db"),
+      stage("userData.db-wal", "new-wal"),
+    ]);
+  });
+
+  it("startup recovery leaves a finished swap for the restored database to boot", () => {
+    expect(recoverInterruptedRestore()).toBe(false);
+    expect(liveState()).toEqual({
+      [LIVE]: "new-db",
+      [`${LIVE}-wal`]: "new-wal",
+    });
+    expect(hasRestoreToUndo()).toBe(true);
+  });
+
+  it("confirmRestoredDatabase removes the originals once startup succeeded", () => {
+    confirmRestoredDatabase();
+
+    expect(mockDirs.has(ROLLBACK_DIR)).toBe(false);
+    expect(liveState()).toEqual({
+      [LIVE]: "new-db",
+      [`${LIVE}-wal`]: "new-wal",
+    });
+    expect(hasRestoreToUndo()).toBe(false);
+  });
+
+  it("undoLastRestore puts the originals back and removes the restored files", () => {
+    expect(undoLastRestore()).toBe(true);
+
+    expect(liveState()).toEqual(ORIGINAL_LIVE);
+    expect(mockDirs.has(ROLLBACK_DIR)).toBe(false);
+    expect(hasRestoreToUndo()).toBe(false);
+  });
+
+  it("a failed undo is finished by startup recovery before any database opens", () => {
+    mockFailingMoves.add(`${ROLLBACK_DIR}/rollback-userData.db-wal`);
+
+    expect(() => undoLastRestore()).toThrow("Move failed");
+    // Never the original DB beside the restored WAL with no journal to fix it.
+    expect(mockFiles.has(MARKER)).toBe(true);
+
+    mockFailingMoves.clear();
+    expect(recoverInterruptedRestore()).toBe(true);
+    expect(liveState()).toEqual(ORIGINAL_LIVE);
+    expect(mockDirs.has(ROLLBACK_DIR)).toBe(false);
+  });
+});
+
+describe("undoLastRestore", () => {
+  it("still undoes when the awaiting marker is unreadable, using the copies that exist", () => {
+    swapInRestoredFiles([
+      stage("userData.db", "new-db"),
+      stage("userData.db-wal", "new-wal"),
+    ]);
+    mockFiles.set(AWAITING, '{"origi');
+
+    expect(undoLastRestore()).toBe(true);
+    expect(liveState()).toEqual(ORIGINAL_LIVE);
+    expect(mockDirs.has(ROLLBACK_DIR)).toBe(false);
+  });
+
+  it("does nothing when there is no restore to undo", () => {
+    expect(undoLastRestore()).toBe(false);
+    expect(liveState()).toEqual(ORIGINAL_LIVE);
+  });
+
+  it("does not run over an interrupted swap", () => {
+    mockDirs.add(ROLLBACK_DIR);
+    mockFiles.set(MARKER, JSON.stringify({ originals: ["userData.db"] }));
+
+    expect(undoLastRestore()).toBe(false);
+    expect(mockFiles.has(MARKER)).toBe(true);
+  });
+});
+
+describe("confirmRestoredDatabase", () => {
+  it("never removes an interrupted swap's rollback copies", () => {
+    mockDirs.add(ROLLBACK_DIR);
+    mockFiles.set(MARKER, JSON.stringify({ originals: ["userData.db"] }));
+    mockFiles.set(`${ROLLBACK_DIR}/rollback-userData.db`, "old-db");
+
+    confirmRestoredDatabase();
+
     expect(mockFiles.get(`${ROLLBACK_DIR}/rollback-userData.db`)).toBe(
       "old-db",
     );

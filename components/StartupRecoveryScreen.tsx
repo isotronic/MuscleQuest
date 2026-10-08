@@ -11,7 +11,9 @@ import { clearDatabaseAndReinitialize } from "@/utils/clearUserData";
 import {
   DATABASE_RESTORED_KEY,
   resetStartupFailureCount,
+  undoLastRestoreAndReload,
 } from "@/utils/startup";
+import { hasRestoreToUndo } from "@/utils/restoreRollback";
 import { removeAsyncStorageItem } from "@/utils/asyncStorage";
 
 interface Props {
@@ -21,6 +23,16 @@ interface Props {
 // Rendered by the root layout when startup failed repeatedly. It sits outside
 // AuthProvider and QueryClientProvider, so it must not use hooks that need them.
 export function StartupRecoveryScreen({ error }: Props) {
+  // Checked once: the screen is shown after startup failed and nothing else
+  // touches the rollback folder until the app reloads.
+  const [canUndoRestore] = React.useState(() => {
+    try {
+      return hasRestoreToUndo();
+    } catch {
+      return false;
+    }
+  });
+
   const handleTryAgain = async () => {
     await resetStartupFailureCount();
     try {
@@ -32,6 +44,35 @@ export function StartupRecoveryScreen({ error }: Props) {
           : new Error(String(reloadError)),
       );
     }
+  };
+
+  const handleUndoRestore = () => {
+    Alert.alert(
+      t`Undo last restore?`,
+      t`This brings back the training data that was on this device before the restore. The restored backup stays in the cloud.`,
+      [
+        { text: t`Cancel`, style: "cancel" },
+        {
+          text: t`Undo restore`,
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await undoLastRestoreAndReload();
+            } catch (undoError) {
+              Bugsnag.notify(
+                undoError instanceof Error
+                  ? undoError
+                  : new Error(String(undoError)),
+              );
+              Alert.alert(
+                t`Error`,
+                t`The restore could not be undone. Try again, or reset the data on this device.`,
+              );
+            }
+          },
+        },
+      ],
+    );
   };
 
   const handleReset = () => {
@@ -71,6 +112,19 @@ export function StartupRecoveryScreen({ error }: Props) {
         <AppButton onPress={handleTryAgain}>
           <Trans>Try again</Trans>
         </AppButton>
+        {canUndoRestore && (
+          <>
+            <ThemedText style={styles.centered}>
+              <Trans>
+                This started after a backup restore. Undoing it brings back the
+                data from before the restore.
+              </Trans>
+            </ThemedText>
+            <AppButton variant="secondary" onPress={handleUndoRestore}>
+              <Trans>Undo last restore</Trans>
+            </AppButton>
+          </>
+        )}
         <AppButton variant="danger" onPress={handleReset}>
           <Trans>Reset local data</Trans>
         </AppButton>

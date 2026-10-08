@@ -569,6 +569,25 @@ describe("local_date on new writes", () => {
     expect(localDate).toBe(toLocalDateKey(parseDbTimestamp(dateCompleted)));
   });
 
+  it("records a given completedAt on its own training day, not today", async () => {
+    const txnRunAsync = jest
+      .fn()
+      .mockResolvedValue({ lastInsertRowId: 7, changes: 1 });
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync });
+      },
+    );
+    // 21:00 local on day 1; saved the next morning.
+    const completedAt = new Date(2026, 2, 1, 21, 0, 0);
+
+    await saveCompletedWorkout(1, 2, 600, 0, false, [], completedAt);
+
+    const params = txnRunAsync.mock.calls[0][1];
+    expect(params[2]).toBe(completedAt.toISOString());
+    expect(params[3]).toBe("2026-03-01");
+  });
+
   it("stores the local training day of a body measurement session", async () => {
     const txnRunAsync = jest
       .fn()

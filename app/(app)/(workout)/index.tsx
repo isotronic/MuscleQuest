@@ -51,6 +51,7 @@ import {
 } from "@/utils/restNotification";
 import { convertTimeStrToSeconds } from "@/utils/utility";
 import { resolveWorkoutDuration } from "@/utils/staleWorkout";
+import { savedWorkoutSummaryParams } from "@/utils/resumeWorkout";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserExercise } from "@/store/workoutStore";
 import {
@@ -122,8 +123,11 @@ export default function WorkoutOverviewScreen() {
 
   const recoverySheetRef = useRef<BottomSheetModal>(null);
   const progressionSettings = useProgressionSettingsQuery();
-  const { isCurrentWeekDeload, isLoading: deloadWeekLoading } =
-    useDeloadWeekQuery(activeWorkout?.planId ?? undefined);
+  const {
+    isCurrentWeekDeload,
+    isDeloadWeekOf,
+    isLoading: deloadWeekLoading,
+  } = useDeloadWeekQuery(activeWorkout?.planId ?? undefined);
   const { data: pendingRecovery } = usePendingRecoveryQuery(
     activeWorkout?.workoutId ?? undefined,
   );
@@ -739,6 +743,16 @@ export default function WorkoutOverviewScreen() {
 
   const handleSaveWorkout = async () => {
     if (isSavingRef.current) return;
+    // Saved already, then killed during a post-save prompt: never save twice.
+    const savedParams = savedWorkoutSummaryParams();
+    if (savedParams) {
+      markLeaving();
+      router.push({
+        pathname: "/(app)/(workout)/workout-summary" as any,
+        params: savedParams,
+      });
+      return;
+    }
     isSavingRef.current = true;
     setIsSaving(true);
     let mutateStarted = false;
@@ -746,7 +760,11 @@ export default function WorkoutOverviewScreen() {
       const planId = activeWorkout?.planId;
       const workoutId = activeWorkout?.workoutId;
       // A workout left for hours is saved up to its last logged set, not now.
-      const { seconds: duration, trimmed } = resolveWorkoutDuration({
+      const {
+        seconds: duration,
+        trimmed,
+        endedAt,
+      } = resolveWorkoutDuration({
         startTime,
         lastActivityAt,
       });
@@ -822,11 +840,19 @@ export default function WorkoutOverviewScreen() {
               workoutId: workoutId ?? null,
               duration,
               totalSetsCompleted,
-              isDeload: planId != null && isCurrentWeekDeload,
+              // The week it was trained in, which a stale save can have left.
+              isDeload: planId != null && isDeloadWeekOf(endedAt ?? new Date()),
               exercises,
+              // A stale workout counts towards the day it was trained.
+              completedAt: endedAt ?? undefined,
             },
             {
               onSuccess: async (completedWorkoutId) => {
+                // First, before any prompt below gives the app a chance to be
+                // killed with the session still in the store.
+                useActiveWorkoutStore
+                  .getState()
+                  .setSavedCompletedWorkoutId(completedWorkoutId, trimmed);
                 const outcome = await completeWorkout({
                   isQuickWorkout,
                   planId,

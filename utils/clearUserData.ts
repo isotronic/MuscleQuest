@@ -2,6 +2,7 @@ import Bugsnag from "@bugsnag/expo";
 import { File, Paths } from "expo-file-system";
 import * as Updates from "expo-updates";
 import { openDatabase } from "./database";
+import { resetLocalSessionState } from "./resetLocalState";
 import type * as SQLite from "expo-sqlite";
 
 export const clearDatabaseAndReinitialize = async () => {
@@ -14,6 +15,7 @@ export const clearDatabaseAndReinitialize = async () => {
         file.delete();
       }
     }
+    await resetLocalSessionState();
     await Updates.reloadAsync();
   } catch (error: any) {
     Bugsnag.notify(error);

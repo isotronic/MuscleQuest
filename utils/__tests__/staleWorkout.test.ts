@@ -54,6 +54,7 @@ describe("resolveWorkoutDuration", () => {
     expect(resolveWorkoutDuration(state, at(1.5).getTime())).toEqual({
       seconds: 5400,
       trimmed: false,
+      endedAt: null,
     });
   });
 
@@ -62,6 +63,7 @@ describe("resolveWorkoutDuration", () => {
     expect(resolveWorkoutDuration(state, at(72).getTime())).toEqual({
       seconds: 3600,
       trimmed: true,
+      endedAt: at(1),
     });
   });
 
@@ -70,6 +72,7 @@ describe("resolveWorkoutDuration", () => {
     expect(resolveWorkoutDuration(state, at(72).getTime())).toEqual({
       seconds: 0,
       trimmed: true,
+      endedAt: start,
     });
   });
 });

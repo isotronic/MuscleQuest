@@ -5,13 +5,24 @@ import Bugsnag from "@bugsnag/expo";
 // the app is killed partway through, or a rollback move fails.
 //
 // The live database files are moved aside into restore-rollback/ in the
-// documents folder, which the OS never purges. A marker listing which live
-// files existed is written before anything moves and removed only once the
-// swap completes, so at startup a marker means the swap never finished and
-// the originals must be put back before any database is opened.
+// documents folder, which the OS never purges. The folder goes through three
+// states:
+//
+// 1. Swapping: swap-in-progress.json lists which live files existed. It is
+//    written before anything moves, so at startup it means the swap never
+//    finished and the originals must be put back before any database is
+//    opened.
+// 2. Awaiting first boot: the swap finished. awaiting-first-boot.json replaces
+//    the swap marker and the originals are kept, so a restored database that
+//    fails to start can be undone from the startup recovery screen.
+// 3. Confirmed: startup succeeded and the folder is deleted.
 
 const LIVE_FILE_NAMES = ["userData.db", "userData.db-wal", "userData.db-shm"];
 const MARKER_NAME = "swap-in-progress.json";
+const AWAITING_MARKER_NAME = "awaiting-first-boot.json";
+// Below this, the originals are not kept after the swap: the old database
+// would otherwise sit on disk twice until the next boot.
+const MIN_FREE_BYTES_TO_KEEP_ORIGINALS = 100 * 1024 * 1024;
 
 interface SwapMarker {
   originals: string[];
@@ -36,7 +47,8 @@ export const swapInRestoredFiles = (
         "An earlier restore could not be undone. Restart the app and try again.",
       );
     }
-    // Left over from a completed swap whose cleanup failed.
+    // Left over from a completed swap whose cleanup failed, or an earlier
+    // restore awaiting its first boot: the app is running, so it booted.
     dir.delete();
   }
   dir.create({ intermediates: true });
@@ -68,10 +80,27 @@ export const swapInRestoredFiles = (
     throw error;
   }
 
-  // Removing the marker commits the swap. The rollback copies are only
-  // needed until then.
-  new File(dir, MARKER_NAME).delete();
-  deleteQuietly(dir);
+  // Replacing the swap marker commits the swap. The awaiting marker is
+  // written first: killed between the two, startup undoes the swap rather
+  // than losing the originals.
+  if (hasSpaceToKeepOriginals()) {
+    new File(dir, AWAITING_MARKER_NAME).write(JSON.stringify(marker));
+    new File(dir, MARKER_NAME).delete();
+  } else {
+    Bugsnag.leaveBreadcrumb("Restore: low free space, originals not kept");
+    new File(dir, MARKER_NAME).delete();
+    deleteQuietly(dir);
+  }
+};
+
+const hasSpaceToKeepOriginals = (): boolean => {
+  try {
+    const free = Paths.availableDiskSpace;
+    // Unknown free space keeps the originals; they already fit before the swap.
+    return typeof free !== "number" || free >= MIN_FREE_BYTES_TO_KEEP_ORIGINALS;
+  } catch {
+    return true;
+  }
 };
 
 // Puts the original live files back. Every file is attempted even if an
@@ -121,9 +150,26 @@ const deleteQuietly = (dir: Directory) => {
   }
 };
 
+const readMarker = (markerFile: File): SwapMarker | null => {
+  try {
+    const parsed = JSON.parse(markerFile.textSync());
+    if (parsed && Array.isArray(parsed.originals)) {
+      return {
+        originals: parsed.originals.filter(
+          (name: unknown): name is string => typeof name === "string",
+        ),
+      };
+    }
+  } catch {
+    // Handled by the caller as unreadable.
+  }
+  return null;
+};
+
 // Runs at startup before any database is opened. Returns true if an
 // unfinished restore swap was undone. Throws if it could not be, so startup
-// fails instead of opening (and creating) an empty database.
+// fails instead of opening (and creating) an empty database. A finished swap
+// awaiting its first boot is left alone, so startup tries the restored file.
 export const recoverInterruptedRestore = (): boolean => {
   const dir = rollbackDirectory();
   if (!dir.exists) {
@@ -131,23 +177,13 @@ export const recoverInterruptedRestore = (): boolean => {
   }
   const markerFile = new File(dir, MARKER_NAME);
   if (!markerFile.exists) {
-    deleteQuietly(dir);
+    if (!new File(dir, AWAITING_MARKER_NAME).exists) {
+      deleteQuietly(dir);
+    }
     return false;
   }
 
-  let marker: SwapMarker | null = null;
-  try {
-    const parsed = JSON.parse(markerFile.textSync());
-    if (parsed && Array.isArray(parsed.originals)) {
-      marker = {
-        originals: parsed.originals.filter(
-          (name: unknown): name is string => typeof name === "string",
-        ),
-      };
-    }
-  } catch {
-    // Handled below as unreadable.
-  }
+  const marker = readMarker(markerFile);
   if (!marker) {
     // The marker is written before any file moves, so an unreadable or
     // malformed one means the app stopped while writing it and nothing was
@@ -157,5 +193,52 @@ export const recoverInterruptedRestore = (): boolean => {
   }
   undoSwap(dir, marker);
   Bugsnag.notify(new Error("Undid an interrupted restore at startup"));
+  return true;
+};
+
+// Whether the last restore is awaiting its first boot and can still be undone.
+export const hasRestoreToUndo = (): boolean => {
+  const dir = rollbackDirectory();
+  return (
+    dir.exists &&
+    new File(dir, AWAITING_MARKER_NAME).exists &&
+    !new File(dir, MARKER_NAME).exists
+  );
+};
+
+// Called once startup has succeeded: the restored database works, so the
+// originals are no longer needed. An interrupted swap's copies are kept.
+export const confirmRestoredDatabase = () => {
+  const dir = rollbackDirectory();
+  if (dir.exists && !new File(dir, MARKER_NAME).exists) {
+    deleteQuietly(dir);
+  }
+};
+
+// Puts back the database from before the last restore, if it is still kept.
+// Returns false when there is nothing to undo. Throws if a file could not be
+// put back, leaving a swap marker and the remaining copies for startup to
+// finish.
+export const undoLastRestore = (): boolean => {
+  if (!hasRestoreToUndo()) {
+    return false;
+  }
+  const dir = rollbackDirectory();
+  const awaitingFile = new File(dir, AWAITING_MARKER_NAME);
+  // A torn marker write still leaves the copies, and every copy is an
+  // original that was moved aside.
+  const marker = readMarker(awaitingFile) ?? {
+    originals: LIVE_FILE_NAMES.filter((name) => rollbackFile(dir, name).exists),
+  };
+  if (marker.originals.length === 0) {
+    return false;
+  }
+  // Journaled like the swap itself: from here the folder is an interrupted
+  // swap, so a kill or failed move is finished by startup recovery before
+  // any database opens, never booting the original DB beside a restored WAL.
+  new File(dir, MARKER_NAME).write(JSON.stringify(marker));
+  awaitingFile.delete();
+  undoSwap(dir, marker);
+  Bugsnag.leaveBreadcrumb("Undid the last restore");
   return true;
 };

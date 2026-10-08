@@ -145,4 +145,59 @@ describe("useWeeklyStreak", () => {
       false,
     );
   });
+
+  it("recounts last week when a backdated save lands in it after the week was recorded", async () => {
+    const lastWeekStart = subWeeks(
+      startOfWeek(new Date(), { weekStartsOn: 1 }),
+      1,
+    );
+    const lastWeekStartStr = format(lastWeekStart, "yyyy-MM-dd");
+    // Recorded on Monday with one day; a stale workout from last Friday was
+    // saved afterwards.
+    (getWeeklyCompletions as jest.Mock).mockResolvedValue([
+      {
+        week_start: lastWeekStartStr,
+        goal: 2,
+        completed: 1,
+        goal_reached: 0,
+      },
+    ]);
+    const friday = new Date(lastWeekStart);
+    friday.setDate(friday.getDate() + 4);
+    const workouts = [
+      makeWorkout(lastWeekStart),
+      makeWorkout(friday),
+    ] as CompletedWorkout[];
+
+    // The current goal changed since; the recorded goal is kept.
+    renderHook(() => useWeeklyStreak(workouts, 5, 0, false));
+    await waitFor(() =>
+      expect(upsertWeeklyCompletion).toHaveBeenCalledWith(
+        lastWeekStartStr,
+        2,
+        2,
+        true,
+      ),
+    );
+  });
+
+  it("leaves a recorded last week alone when its count has not changed", async () => {
+    const lastWeekStart = subWeeks(
+      startOfWeek(new Date(), { weekStartsOn: 1 }),
+      1,
+    );
+    (getWeeklyCompletions as jest.Mock).mockResolvedValue([
+      {
+        week_start: format(lastWeekStart, "yyyy-MM-dd"),
+        goal: 2,
+        completed: 1,
+        goal_reached: 0,
+      },
+    ]);
+    const workouts = [makeWorkout(lastWeekStart)] as CompletedWorkout[];
+
+    renderHook(() => useWeeklyStreak(workouts, 2, 0, false));
+    await waitFor(() => expect(getWeeklyCompletions).toHaveBeenCalledTimes(2));
+    expect(upsertWeeklyCompletion).not.toHaveBeenCalled();
+  });
 });

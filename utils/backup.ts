@@ -21,6 +21,7 @@ import {
 } from "./database";
 import { LATEST_SCHEMA_VERSION } from "./db/migrations";
 import { swapInRestoredFiles } from "./restoreRollback";
+import { resetLocalSessionState } from "./resetLocalState";
 
 const dbName = "userData.db";
 
@@ -311,6 +312,21 @@ const newerSchemaError = () =>
     "This backup was made with a newer version of MuscleQuest.",
   );
 
+// Throws unless the staged database passes its integrity check and is not
+// from a newer schema. The file is the authority; a manifest only saves a
+// download.
+const checkStagedDatabase = async (stagedFile: File) => {
+  if (!(await checkDatabaseIntegrity(stagedFile))) {
+    throw new BackupError(
+      "integrity",
+      "The downloaded backup failed its integrity check.",
+    );
+  }
+  if ((await readDatabaseSchemaVersion(stagedFile)) > LATEST_SCHEMA_VERSION) {
+    throw newerSchemaError();
+  }
+};
+
 export const restoreDatabaseBackup = async (
   setRestoreProgress: (progress: number) => void,
   setIsRestoreLoading: (loading: boolean) => void,
@@ -343,26 +359,21 @@ export const restoreDatabaseBackup = async (
         });
         setRestoreProgress(80);
 
-        if (!(await checkDatabaseIntegrity(stagedFile))) {
-          throw new BackupError(
-            "integrity",
-            "The downloaded backup failed its integrity check.",
-          );
-        }
-        // The file is the authority; the manifest only saves a download.
-        if (
-          (await readDatabaseSchemaVersion(stagedFile)) > LATEST_SCHEMA_VERSION
-        ) {
-          throw newerSchemaError();
-        }
+        await checkStagedDatabase(stagedFile);
         setRestoreProgress(90);
         staged = [{ stagedFile, name: dbName }];
       } else {
-        staged = await stageLegacyBackup(
+        const legacy = await stageLegacyBackup(
           userId,
           stagingDir,
           setRestoreProgress,
         );
+        // Checked in the staging folder beside its WAL, so the check sees
+        // the database as it will be restored.
+        await checkStagedDatabase(legacy[0].stagedFile);
+        // Closing the check's connection can checkpoint the WAL into the .db
+        // and remove the WAL/SHM; the .db is then complete on its own.
+        staged = legacy.filter(({ stagedFile }) => stagedFile.exists);
       }
 
       // Journaled, so a failed or interrupted swap is undone here or at the
@@ -376,6 +387,8 @@ export const restoreDatabaseBackup = async (
 
     Bugsnag.leaveBreadcrumb("Backup restored");
     await setAsyncStorageItem("databaseRestored", "true");
+    // The session, drafts and published ids refer to the replaced database.
+    await resetLocalSessionState();
     setRestoreProgress(100);
     await reloadAsync();
   } catch (error) {

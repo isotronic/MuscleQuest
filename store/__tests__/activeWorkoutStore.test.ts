@@ -220,6 +220,56 @@ describe("useActiveWorkoutStore", () => {
     expect(currentSetIndices[1]).toBe(0);
   });
 
+  describe("setCurrentExerciseIndex returns to the first unfinished set", () => {
+    const fourSetWorkout = () => ({
+      id: 1,
+      name: "W",
+      exercises: [
+        {
+          exercise_id: 101,
+          name: "Squat",
+          sets: [workingSet(), workingSet(), workingSet(), workingSet()],
+        },
+      ],
+    });
+
+    it("opens the added set after 3 of 3 were done and a set was added", () => {
+      useActiveWorkoutStore.setState({
+        workout: fourSetWorkout() as any,
+        completedSets: { 0: { 0: true, 1: true, 2: true } },
+        currentSetIndices: { 0: 0 },
+      });
+
+      useActiveWorkoutStore.getState().setCurrentExerciseIndex(0);
+
+      expect(useActiveWorkoutStore.getState().currentSetIndices[0]).toBe(3);
+    });
+
+    it("counts only completed sets, not sets marked false", () => {
+      useActiveWorkoutStore.setState({
+        workout: fourSetWorkout() as any,
+        completedSets: { 0: { 0: true, 1: false, 2: true, 3: true } },
+        currentSetIndices: { 0: 3 },
+      });
+
+      useActiveWorkoutStore.getState().setCurrentExerciseIndex(0);
+
+      expect(useActiveWorkoutStore.getState().currentSetIndices[0]).toBe(1);
+    });
+
+    it("keeps the stored set when it is not completed", () => {
+      useActiveWorkoutStore.setState({
+        workout: fourSetWorkout() as any,
+        completedSets: { 0: { 0: true } },
+        currentSetIndices: { 0: 2 },
+      });
+
+      useActiveWorkoutStore.getState().setCurrentExerciseIndex(0);
+
+      expect(useActiveWorkoutStore.getState().currentSetIndices[0]).toBe(2);
+    });
+  });
+
   it("setCurrentSetIndex should correctly update the set index for a specific exercise", () => {
     act(() => {
       useActiveWorkoutStore.getState().setCurrentSetIndex(2, 5);
