@@ -24,7 +24,11 @@ import {
   type CompletedWorkout,
 } from "@/hooks/useCompletedWorkoutsQuery";
 import { startOfWeek, endOfWeek } from "date-fns";
-import { isLocalDateInRange, localDateKeyToDate } from "@/utils/dates";
+import {
+  isLocalDateInRange,
+  localDateKeyToDate,
+  toLocalDateKey,
+} from "@/utils/dates";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import ProgressionSummaryCard from "@/components/ProgressionSummaryCard";
@@ -438,6 +442,8 @@ export default function WorkoutSummaryScreen() {
     : 0;
   const setsUnit = ` ${plural(Math.abs(setsDiff), { one: "set", other: "sets" })}`;
   const volumeDiff = currentVolume - prevVolume;
+  // Only worth saying when the workout went to an earlier day than today.
+  const savedOnEarlierDay = workout.local_date !== toLocalDateKey(new Date());
   const savedDay = localDateKeyToDate(workout.local_date).toLocaleDateString(
     undefined,
     { weekday: "long", day: "numeric", month: "long" },
@@ -482,8 +488,8 @@ export default function WorkoutSummaryScreen() {
         {durationTrimmed === "true" && (
           <ThemedText style={styles.durationNote}>
             <Trans>Duration trimmed to your last logged set</Trans>
-            {"\n"}
-            {t`Saved to ${savedDay}, when you logged your last set.`}
+            {savedOnEarlierDay &&
+              `\n${t`Saved to ${savedDay}, when you logged your last set.`}`}
           </ThemedText>
         )}
 
