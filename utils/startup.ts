@@ -11,9 +11,11 @@ import {
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
 import {
   confirmRestoredDatabase,
+  hasRestoreToUndo,
   recoverInterruptedRestore,
   undoLastRestore,
 } from "@/utils/restoreRollback";
+import { resetLocalSessionStateAfterHydration } from "@/utils/resetLocalState";
 import { forgetExerciseImageFiles } from "@/utils/db/exerciseImageFiles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -74,6 +76,14 @@ const initializeDatabases = async (
   await syncExerciseFlagsFromAppData();
 };
 
+const restoreSwappedWithoutFinishing = (): boolean => {
+  try {
+    return hasRestoreToUndo();
+  } catch {
+    return false;
+  }
+};
+
 export const resetStartupFailureCount = () =>
   removeAsyncStorageItem(STARTUP_FAILURE_COUNT_KEY);
 
@@ -85,8 +95,15 @@ export const runStartup = async (
   appCheckReady: Promise<unknown>,
   onProgress?: (progress: StartupProgress) => void,
 ): Promise<StartupResult> => {
-  const databaseRestored =
+  let databaseRestored =
     (await getAsyncStorageItem(DATABASE_RESTORED_KEY)) === "true";
+  if (!databaseRestored && restoreSwappedWithoutFinishing()) {
+    // Killed between the swap and the end of the restore: the flag was never
+    // set and the old session refers to the replaced database.
+    Bugsnag.leaveBreadcrumb("Finishing a restore killed after its swap");
+    await resetLocalSessionStateAfterHydration();
+    databaseRestored = true;
+  }
   if (databaseRestored) {
     Bugsnag.leaveBreadcrumb("First boot after a backup restore");
   }

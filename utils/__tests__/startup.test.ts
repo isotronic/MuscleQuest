@@ -18,9 +18,11 @@ import {
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
 import {
   confirmRestoredDatabase,
+  hasRestoreToUndo,
   recoverInterruptedRestore,
   undoLastRestore,
 } from "@/utils/restoreRollback";
+import { resetLocalSessionStateAfterHydration } from "@/utils/resetLocalState";
 import { forgetExerciseImageFiles } from "@/utils/db/exerciseImageFiles";
 
 jest.mock("@bugsnag/expo", () => ({
@@ -52,6 +54,10 @@ jest.mock("@/utils/restoreRollback", () => ({
   recoverInterruptedRestore: jest.fn(() => false),
   confirmRestoredDatabase: jest.fn(),
   undoLastRestore: jest.fn(() => true),
+  hasRestoreToUndo: jest.fn(() => false),
+}));
+jest.mock("@/utils/resetLocalState", () => ({
+  resetLocalSessionStateAfterHydration: jest.fn(() => Promise.resolve()),
 }));
 
 const initSteps = [
@@ -132,6 +138,38 @@ describe("runStartup after a restore", () => {
     );
     await runStartup(Promise.resolve());
     expect(confirmRestoredDatabase).not.toHaveBeenCalled();
+  });
+});
+
+describe("runStartup after a swap that was killed before the restore finished", () => {
+  beforeEach(() => {
+    (hasRestoreToUndo as jest.Mock).mockReturnValue(true);
+  });
+  afterEach(() => {
+    (hasRestoreToUndo as jest.Mock).mockReturnValue(false);
+  });
+
+  it("clears the replaced database's session before anything renders", async () => {
+    await runStartup(Promise.resolve());
+    expect(resetLocalSessionStateAfterHydration).toHaveBeenCalled();
+  });
+
+  it("treats the boot as the first after a restore", async () => {
+    await runStartup(Promise.resolve());
+    expect(forgetExerciseImageFiles).toHaveBeenCalled();
+  });
+
+  it("does not clear the session again when the restore finished normally", async () => {
+    await AsyncStorage.setItem(DATABASE_RESTORED_KEY, "true");
+    await runStartup(Promise.resolve());
+    expect(resetLocalSessionStateAfterHydration).not.toHaveBeenCalled();
+  });
+});
+
+describe("runStartup without a pending restore", () => {
+  it("leaves the session alone", async () => {
+    await runStartup(Promise.resolve());
+    expect(resetLocalSessionStateAfterHydration).not.toHaveBeenCalled();
   });
 });
 

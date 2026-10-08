@@ -37,3 +37,21 @@ export async function resetLocalSessionState(): Promise<void> {
     }
   }
 }
+
+/**
+ * The startup form, for a restore whose swap finished but which was killed
+ * before resetLocalSessionState ran. The persisted stores load asynchronously,
+ * so they are loaded first: a late load would bring the cleared state back.
+ */
+export async function resetLocalSessionStateAfterHydration(): Promise<void> {
+  try {
+    await Promise.all([
+      useActiveWorkoutStore.persist.rehydrate(),
+      useWorkoutStore.persist.rehydrate(),
+      useSocialStore.persist.rehydrate(),
+    ]);
+  } catch (error) {
+    notifyBugsnag(error);
+  }
+  await resetLocalSessionState();
+}

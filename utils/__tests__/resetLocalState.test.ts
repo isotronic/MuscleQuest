@@ -1,5 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { resetLocalSessionState } from "../resetLocalState";
+import {
+  resetLocalSessionState,
+  resetLocalSessionStateAfterHydration,
+} from "../resetLocalState";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useWorkoutStore } from "@/store/workoutStore";
 import { useSocialStore } from "@/store/socialStore";
@@ -89,5 +92,24 @@ describe("resetLocalSessionState", () => {
     finishRemoval();
     await reset;
     expect(done).toBe(true);
+  });
+
+  it("at startup, loads the persisted stores before clearing them", async () => {
+    const order: string[] = [];
+    jest
+      .spyOn(useActiveWorkoutStore.persist, "rehydrate")
+      .mockImplementationOnce(async () => {
+        order.push("rehydrate");
+      });
+    jest
+      .spyOn(useActiveWorkoutStore.persist, "clearStorage")
+      .mockImplementationOnce(() => {
+        order.push("clear");
+      });
+
+    await resetLocalSessionStateAfterHydration();
+
+    expect(order).toEqual(["rehydrate", "clear"]);
+    expect(useActiveWorkoutStore.getState().activeWorkout).toBeNull();
   });
 });
