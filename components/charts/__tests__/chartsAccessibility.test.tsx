@@ -1,7 +1,6 @@
 import React from "react";
 import { fireEvent, render } from "@testing-library/react-native";
-import { WorkoutBarChart } from "../WorkoutBarChart";
-import { VolumeBarChart } from "../VolumeBarChart";
+import { TrendBarChart } from "../TrendBarChart";
 import BodyPartChart from "../BodyPartChart";
 import { ExerciseProgressionChart } from "../ExerciseProgressionChart";
 import { BodyMeasurementLineChart } from "../BodyMeasurementLineChart";
@@ -85,7 +84,11 @@ const workouts = [
 describe("chart text alternatives", () => {
   it("summarises workouts per period", () => {
     const { getByRole } = render(
-      <WorkoutBarChart completedWorkouts={workouts} timeRange="30" />,
+      <TrendBarChart
+        completedWorkouts={workouts}
+        timeRange="30"
+        metric="workouts"
+      />,
     );
     expect(
       getByRole("image", { name: /^Workouts, last 30 days: 2 in total/ }),
@@ -94,15 +97,31 @@ describe("chart text alternatives", () => {
 
   it("summarises volume per period with its unit", () => {
     const { getByRole } = render(
-      <VolumeBarChart
+      <TrendBarChart
         completedWorkouts={workouts}
         timeRange="30"
+        metric="volume"
         weightUnit="kg"
       />,
     );
     expect(
       getByRole("image", {
         name: /^Volume, last 30 days: 1.5 tonnes in total/,
+      }),
+    ).toBeTruthy();
+  });
+
+  it("summarises training time in hours", () => {
+    const { getByRole } = render(
+      <TrendBarChart
+        completedWorkouts={workouts.map((w) => ({ ...w, duration: 5400 }))}
+        timeRange="30"
+        metric="duration"
+      />,
+    );
+    expect(
+      getByRole("image", {
+        name: /^Training time, last 30 days: 3 hours in total/,
       }),
     ).toBeTruthy();
   });
@@ -120,6 +139,32 @@ describe("chart text alternatives", () => {
     // The legend is hidden from screen readers, which hear the chart label.
     expect(
       getByText("chest 66.7%", { includeHiddenElements: true }),
+    ).toBeTruthy();
+  });
+
+  it("groups small muscles into one slice and names the volume split", () => {
+    const counts = {
+      pectorals: 9,
+      lats: 8,
+      quads: 7,
+      delts: 6,
+      triceps: 5,
+      biceps: 4,
+      glutes: 3,
+      calves: 2,
+      abs: 2,
+    };
+    const { getByRole } = render(
+      <BodyPartChart
+        bodyPartCounts={counts}
+        grouping="muscle"
+        measure="volume"
+      />,
+    );
+    expect(
+      getByRole("image", {
+        name: /^Training split by volume: pectorals 19.6%, .*Other 8.7%/,
+      }),
     ).toBeTruthy();
   });
 
@@ -265,10 +310,22 @@ describe("chart text alternatives", () => {
 
   it("does not animate charts when the system asks for reduced motion", () => {
     mockReducedMotion.mockReturnValue(true);
-    render(<WorkoutBarChart completedWorkouts={workouts} timeRange="30" />);
+    render(
+      <TrendBarChart
+        completedWorkouts={workouts}
+        timeRange="30"
+        metric="workouts"
+      />,
+    );
     expect(mockChartProps.BarChart.isAnimated).toBe(false);
     mockReducedMotion.mockReturnValue(false);
-    render(<WorkoutBarChart completedWorkouts={workouts} timeRange="30" />);
+    render(
+      <TrendBarChart
+        completedWorkouts={workouts}
+        timeRange="30"
+        metric="workouts"
+      />,
+    );
     expect(mockChartProps.BarChart.isAnimated).toBe(true);
   });
 
@@ -308,7 +365,11 @@ describe("chart text alternatives", () => {
       workout("2026-05-21", [{ exercise_id: 1, weight: 100, reps: 5 }]),
     ];
     const { getByRole } = render(
-      <WorkoutBarChart completedWorkouts={yearly} timeRange="365" />,
+      <TrendBarChart
+        completedWorkouts={yearly}
+        timeRange="365"
+        metric="workouts"
+      />,
     );
     expect(
       getByRole("image", {

@@ -7,19 +7,31 @@ import { capitalizeWords } from "@/utils/utility";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import { bodyPartTranslations } from "@/constants/dbTranslations";
+import {
+  bodyPartTranslations,
+  muscleTranslations,
+} from "@/constants/dbTranslations";
 import { useAppTheme } from "@/theme";
 import { useChartTheme } from "./chartTheme";
 import { summarizeShares } from "./chartA11y";
 import type { AppThemeColors } from "@/theme/types";
 
-// Define the props for the component
 interface BodyPartChartProps {
-  /** Sets per body part group, see mergeBodyPartCounts. */
+  /** Sets (or volume) per body part group or muscle, see mergeSplitRows. */
   bodyPartCounts: Record<string, number> | undefined;
+  grouping?: "bodyPart" | "muscle";
+  measure?: "sets" | "volume";
 }
 
-const BodyPartChart: React.FC<BodyPartChartProps> = ({ bodyPartCounts }) => {
+/** Muscles get this many coloured slices; the rest share one. */
+const MAX_MUSCLE_SLICES = 7;
+const OTHER = "__other__";
+
+const BodyPartChart: React.FC<BodyPartChartProps> = ({
+  bodyPartCounts,
+  grouping = "bodyPart",
+  measure = "sets",
+}) => {
   const { _ } = useLingui();
   const { colors } = useAppTheme();
   const charts = useChartTheme();
@@ -40,27 +52,53 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({ bodyPartCounts }) => {
       return [];
     }
 
-    return Object.entries(bodyPartCounts).map(([bodyPart, count]) => ({
+    let entries = Object.entries(bodyPartCounts);
+    if (grouping === "muscle" && entries.length > MAX_MUSCLE_SLICES + 1) {
+      entries.sort((a, b) => b[1] - a[1]);
+      const rest = entries
+        .slice(MAX_MUSCLE_SLICES)
+        .reduce((sum, [, count]) => sum + count, 0);
+      entries = [...entries.slice(0, MAX_MUSCLE_SLICES), [OTHER, rest]];
+    }
+
+    return entries.map(([bodyPart, count]) => ({
       name: bodyPart,
       count,
       percentage: ((count / total) * 100).toFixed(1),
     }));
-  }, [bodyPartCounts]);
+  }, [bodyPartCounts, grouping]);
 
-  const chartData = bodyPartPercentages.map((item) => ({
+  // Muscles have no colours of their own; they take the palette in order.
+  const palette = Object.values(charts.bodyPartColors);
+  const sliceColor = (name: string, index: number) => {
+    if (name === OTHER) return charts.bodyPartFallbackColor;
+    if (grouping === "muscle") {
+      return palette[index % palette.length] ?? charts.bodyPartFallbackColor;
+    }
+    return charts.bodyPartColors[name] ?? charts.bodyPartFallbackColor;
+  };
+
+  const chartData = bodyPartPercentages.map((item, index) => ({
     text: item.name,
     value: parseFloat(item.percentage),
-    color: charts.bodyPartColors[item.name] ?? charts.bodyPartFallbackColor,
+    color: sliceColor(item.name, index),
     focused: item.name === selectedBodyPart,
   }));
 
+  const translations =
+    grouping === "muscle" ? muscleTranslations : bodyPartTranslations;
   const bodyPartName = (key: string) =>
-    bodyPartTranslations[key]
-      ? _(bodyPartTranslations[key])
-      : capitalizeWords(key);
+    key === OTHER
+      ? t`Other`
+      : translations[key]
+        ? _(translations[key])
+        : capitalizeWords(key);
 
   const summary = summarizeShares({
-    title: t`Training split by sets`,
+    title:
+      measure === "volume"
+        ? t`Training split by volume`
+        : t`Training split by sets`,
     shares: chartData.map((item) => ({
       name: bodyPartName(item.text),
       percent: item.value,
@@ -149,14 +187,16 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({ bodyPartCounts }) => {
                           {`${selectedPercentage}%`}
                         </ThemedText>
                         <ThemedText style={{ fontSize: 18 }}>
-                          {bodyPartTranslations[selectedBodyPart]
-                            ? _(bodyPartTranslations[selectedBodyPart])
-                            : capitalizeWords(selectedBodyPart)}
+                          {bodyPartName(selectedBodyPart)}
                         </ThemedText>
                       </>
                     ) : (
                       <ThemedText style={{ fontSize: 18, fontWeight: "bold" }}>
-                        <Trans>Body Parts</Trans>
+                        {grouping === "muscle" ? (
+                          <Trans>Muscles</Trans>
+                        ) : (
+                          <Trans>Body Parts</Trans>
+                        )}
                       </ThemedText>
                     )}
                   </View>
