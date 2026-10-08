@@ -26,27 +26,35 @@ const syncWeeklyCompletions = async (
     );
   }
 
-  // Check if last week needs recording (one week lookback only)
+  // Record last week once it is over (one week lookback only). A recorded week
+  // is recounted if a stale workout saved later landed in it, keeping the goal
+  // that was recorded.
   const lastWeekStart = subWeeks(currentWeekStart, 1);
   const lastWeekStartStr = format(lastWeekStart, "yyyy-MM-dd");
   const existing = await getWeeklyCompletions();
-  const lastWeekExists = existing.some(
-    (e) => e.week_start === lastWeekStartStr,
-  );
+  const lastWeekRow = existing.find((e) => e.week_start === lastWeekStartStr);
 
-  if (!lastWeekExists) {
-    const lastWeekEnd = endOfWeek(lastWeekStart, { weekStartsOn: 1 });
-    // local_date is the training day as it was when the workout was logged, so
-    // a week's count does not change if the user later travels.
-    const lastWeekWorkouts = allCompletedWorkouts.filter((w) =>
-      isLocalDateInRange(w.local_date, lastWeekStart, lastWeekEnd),
-    );
-    const uniqueDays = new Set(lastWeekWorkouts.map((w) => w.local_date)).size;
+  const lastWeekEnd = endOfWeek(lastWeekStart, { weekStartsOn: 1 });
+  // local_date is the training day as it was when the workout was logged, so
+  // a week's count does not change if the user later travels.
+  const lastWeekWorkouts = allCompletedWorkouts.filter((w) =>
+    isLocalDateInRange(w.local_date, lastWeekStart, lastWeekEnd),
+  );
+  const uniqueDays = new Set(lastWeekWorkouts.map((w) => w.local_date)).size;
+
+  if (!lastWeekRow) {
     await upsertWeeklyCompletion(
       lastWeekStartStr,
       weeklyGoal,
       uniqueDays,
       uniqueDays >= weeklyGoal,
+    );
+  } else if (uniqueDays > lastWeekRow.completed) {
+    await upsertWeeklyCompletion(
+      lastWeekStartStr,
+      lastWeekRow.goal,
+      uniqueDays,
+      uniqueDays >= lastWeekRow.goal,
     );
   }
 };

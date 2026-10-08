@@ -746,7 +746,11 @@ export default function WorkoutOverviewScreen() {
       const planId = activeWorkout?.planId;
       const workoutId = activeWorkout?.workoutId;
       // A workout left for hours is saved up to its last logged set, not now.
-      const { seconds: duration, trimmed } = resolveWorkoutDuration({
+      const {
+        seconds: duration,
+        trimmed,
+        endedAt,
+      } = resolveWorkoutDuration({
         startTime,
         lastActivityAt,
       });
@@ -824,6 +828,8 @@ export default function WorkoutOverviewScreen() {
               totalSetsCompleted,
               isDeload: planId != null && isCurrentWeekDeload,
               exercises,
+              // A stale workout counts towards the day it was trained.
+              completedAt: endedAt ?? undefined,
             },
             {
               onSuccess: async (completedWorkoutId) => {

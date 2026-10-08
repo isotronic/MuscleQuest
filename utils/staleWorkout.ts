@@ -35,16 +35,19 @@ export function isWorkoutStale(
 
 /**
  * The duration to save. A stale workout is capped at its last activity so a
- * session resumed days later does not record a duration of days.
+ * session resumed days later does not record a duration of days. `endedAt` is
+ * that last activity (null when the workout ends now), so the save can record
+ * the day it was trained rather than the day it was saved.
  */
 export function resolveWorkoutDuration(
   activity: WorkoutActivity,
   nowMs: number = Date.now(),
-): { seconds: number; trimmed: boolean } {
+): { seconds: number; trimmed: boolean; endedAt: Date | null } {
   const trimmed = isWorkoutStale(activity, nowMs);
   const endMs = trimmed ? (lastActivityMs(activity) ?? nowMs) : nowMs;
   return {
     seconds: computeWorkoutDurationSeconds(activity.startTime, endMs),
     trimmed,
+    endedAt: trimmed ? new Date(endMs) : null,
   };
 }
