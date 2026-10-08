@@ -359,6 +359,7 @@ describe("restoreDatabaseBackup", () => {
   const setIsRestoreLoadingMock = jest.fn();
   const queryClient = new QueryClient();
   let stagingDir: any;
+  let createdFiles: { name: string; exists: boolean }[] = [];
 
   const restore = () =>
     restoreDatabaseBackup(
@@ -379,9 +380,12 @@ describe("restoreDatabaseBackup", () => {
     mockAuthInstance.currentUser = { uid: "mockUserId" };
     (File as any).downloadFileAsync = jest.fn().mockResolvedValue(undefined);
     mockDatabase.checkDatabaseIntegrity.mockResolvedValue(true);
+    createdFiles = [];
     (File as unknown as jest.Mock).mockImplementation((...args: any[]) => {
       const name = String(args[args.length - 1]);
-      return { name, uri: `staged:${name}` };
+      const file = { name, uri: `staged:${name}`, exists: true };
+      createdFiles.push(file);
+      return file;
     });
     stagingDir = {
       exists: false,
@@ -494,7 +498,6 @@ describe("restoreDatabaseBackup", () => {
       await restore();
 
       expect((File as any).downloadFileAsync).toHaveBeenCalledTimes(3);
-      expect(mockDatabase.checkDatabaseIntegrity).not.toHaveBeenCalled();
       expect(swappedNames()).toEqual([
         "userData.db",
         "userData.db-wal",
@@ -516,6 +519,63 @@ describe("restoreDatabaseBackup", () => {
 
       expect(swappedNames()).toEqual(["userData.db"]);
       expect(reloadAsync).toHaveBeenCalled();
+    });
+
+    it("checks the staged DB with its WAL before swapping it in", async () => {
+      mockRemote(null);
+
+      await restore();
+
+      expect(mockDatabase.checkDatabaseIntegrity).toHaveBeenCalledWith(
+        expect.objectContaining({ uri: "staged:userData.db" }),
+      );
+      expect(mockDatabase.readDatabaseSchemaVersion).toHaveBeenCalled();
+      expect(
+        (swapInRestoredFiles as jest.Mock).mock.invocationCallOrder[0],
+      ).toBeGreaterThan(
+        mockDatabase.checkDatabaseIntegrity.mock.invocationCallOrder[0],
+      );
+    });
+
+    it("aborts a corrupt legacy backup without touching local files", async () => {
+      mockRemote(null);
+      mockDatabase.checkDatabaseIntegrity.mockResolvedValue(false);
+
+      const error = await restore().catch((e) => e);
+
+      expect(classifyBackupError(error)).toBe("integrity");
+      expect(swapInRestoredFiles).not.toHaveBeenCalled();
+      expect(reloadAsync).not.toHaveBeenCalled();
+      expect(stagingDir.delete).toHaveBeenCalled();
+    });
+
+    it("aborts a legacy backup from a newer schema", async () => {
+      mockRemote(null);
+      mockDatabase.readDatabaseSchemaVersion.mockResolvedValueOnce(
+        LATEST_SCHEMA_VERSION + 1,
+      );
+
+      const error = await restore().catch((e) => e);
+
+      expect(classifyBackupError(error)).toBe("newer-schema");
+      expect(swapInRestoredFiles).not.toHaveBeenCalled();
+    });
+
+    it("swaps in only the files left after the check folded the WAL into the DB", async () => {
+      mockRemote(null);
+      mockDatabase.checkDatabaseIntegrity.mockImplementation(async () => {
+        // Closing the last connection checkpoints and removes the WAL/SHM.
+        createdFiles
+          .filter((f) => /-(wal|shm)$/.test(f.name))
+          .forEach((f) => {
+            f.exists = false;
+          });
+        return true;
+      });
+
+      await restore();
+
+      expect(swappedNames()).toEqual(["userData.db"]);
     });
 
     it("reports not-found when there is no backup at all", async () => {
