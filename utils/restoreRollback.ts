@@ -225,8 +225,12 @@ export const undoLastRestore = (): boolean => {
   }
   const dir = rollbackDirectory();
   const awaitingFile = new File(dir, AWAITING_MARKER_NAME);
-  const marker = readMarker(awaitingFile);
-  if (!marker) {
+  // A torn marker write still leaves the copies, and every copy is an
+  // original that was moved aside.
+  const marker = readMarker(awaitingFile) ?? {
+    originals: LIVE_FILE_NAMES.filter((name) => rollbackFile(dir, name).exists),
+  };
+  if (marker.originals.length === 0) {
     return false;
   }
   // Journaled like the swap itself: from here the folder is an interrupted

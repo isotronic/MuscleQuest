@@ -150,6 +150,13 @@ describe("undoLastRestoreAndReload", () => {
     expect(Updates.reloadAsync).toHaveBeenCalled();
   });
 
+  it("does not reload into the same failure when there was nothing to undo", async () => {
+    (undoLastRestore as jest.Mock).mockReturnValueOnce(false);
+
+    await expect(undoLastRestoreAndReload()).rejects.toThrow();
+    expect(Updates.reloadAsync).not.toHaveBeenCalled();
+  });
+
   it("propagates a failed undo without reloading", async () => {
     (undoLastRestore as jest.Mock).mockImplementationOnce(() => {
       throw new Error("Move failed");

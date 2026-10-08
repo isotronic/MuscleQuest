@@ -142,7 +142,10 @@ export const runStartup = async (
 // From the startup recovery screen: puts back the database from before the
 // last restore and starts again with it.
 export const undoLastRestoreAndReload = async () => {
-  undoLastRestore();
+  // Reloading without an undo would only hit the same failure again.
+  if (!undoLastRestore()) {
+    throw new Error("There was no restore to undo.");
+  }
   await removeAsyncStorageItem(DATABASE_RESTORED_KEY);
   await resetStartupFailureCount();
   await Updates.reloadAsync();

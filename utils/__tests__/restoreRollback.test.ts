@@ -392,6 +392,18 @@ describe("after the swap", () => {
 });
 
 describe("undoLastRestore", () => {
+  it("still undoes when the awaiting marker is unreadable, using the copies that exist", () => {
+    swapInRestoredFiles([
+      stage("userData.db", "new-db"),
+      stage("userData.db-wal", "new-wal"),
+    ]);
+    mockFiles.set(AWAITING, '{"origi');
+
+    expect(undoLastRestore()).toBe(true);
+    expect(liveState()).toEqual(ORIGINAL_LIVE);
+    expect(mockDirs.has(ROLLBACK_DIR)).toBe(false);
+  });
+
   it("does nothing when there is no restore to undo", () => {
     expect(undoLastRestore()).toBe(false);
     expect(liveState()).toEqual(ORIGINAL_LIVE);
