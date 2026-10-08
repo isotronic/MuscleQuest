@@ -308,12 +308,15 @@ function WeeklyGoalBanner({
 export default function WorkoutSummaryScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { completedWorkoutId, fresh, durationTrimmed } = useLocalSearchParams<{
-    completedWorkoutId: string;
-    fresh?: string;
-    durationTrimmed?: string;
-  }>();
-  const showConfetti = fresh === "true";
+  const { completedWorkoutId, fresh, resumed, durationTrimmed } =
+    useLocalSearchParams<{
+      completedWorkoutId: string;
+      fresh?: string;
+      // Reopened after the app was killed post-save: no second celebration.
+      resumed?: string;
+      durationTrimmed?: string;
+    }>();
+  const showConfetti = fresh === "true" && resumed !== "true";
   useClearFinishedWorkout(fresh);
   const insets = useSafeAreaInsets();
   const { data: settings } = useSettingsQuery();

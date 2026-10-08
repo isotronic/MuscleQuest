@@ -181,11 +181,12 @@ describe("activeWorkoutStore persistence", () => {
 
   describe("savedCompletedWorkoutId", () => {
     it("is persisted so a kill after the save cannot save it again", () => {
-      useActiveWorkoutStore.setState({ savedCompletedWorkoutId: 42 });
+      useActiveWorkoutStore.getState().setSavedCompletedWorkoutId(42, true);
       const persisted = persistOptions().partialize!(
         useActiveWorkoutStore.getState(),
       );
       expect(persisted.savedCompletedWorkoutId).toBe(42);
+      expect(persisted.savedDurationTrimmed).toBe(true);
     });
 
     it("is cleared when a new session starts or the store is cleared", () => {
@@ -204,11 +205,15 @@ describe("activeWorkoutStore persistence", () => {
         null,
       );
 
-      useActiveWorkoutStore.setState({ savedCompletedWorkoutId: 42 });
+      useActiveWorkoutStore.setState({
+        savedCompletedWorkoutId: 42,
+        savedDurationTrimmed: true,
+      });
       clearPersistedStore();
       expect(useActiveWorkoutStore.getState().savedCompletedWorkoutId).toBe(
         null,
       );
+      expect(useActiveWorkoutStore.getState().savedDurationTrimmed).toBe(false);
     });
   });
 });

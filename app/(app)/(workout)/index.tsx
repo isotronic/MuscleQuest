@@ -51,6 +51,7 @@ import {
 } from "@/utils/restNotification";
 import { convertTimeStrToSeconds } from "@/utils/utility";
 import { resolveWorkoutDuration } from "@/utils/staleWorkout";
+import { savedWorkoutSummaryParams } from "@/utils/resumeWorkout";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserExercise } from "@/store/workoutStore";
 import {
@@ -743,12 +744,12 @@ export default function WorkoutOverviewScreen() {
   const handleSaveWorkout = async () => {
     if (isSavingRef.current) return;
     // Saved already, then killed during a post-save prompt: never save twice.
-    const { savedCompletedWorkoutId } = useActiveWorkoutStore.getState();
-    if (savedCompletedWorkoutId != null) {
+    const savedParams = savedWorkoutSummaryParams();
+    if (savedParams) {
       markLeaving();
       router.push({
         pathname: "/(app)/(workout)/workout-summary" as any,
-        params: summaryParams(savedCompletedWorkoutId),
+        params: savedParams,
       });
       return;
     }
@@ -851,7 +852,7 @@ export default function WorkoutOverviewScreen() {
                 // killed with the session still in the store.
                 useActiveWorkoutStore
                   .getState()
-                  .setSavedCompletedWorkoutId(completedWorkoutId);
+                  .setSavedCompletedWorkoutId(completedWorkoutId, trimmed);
                 const outcome = await completeWorkout({
                   isQuickWorkout,
                   planId,

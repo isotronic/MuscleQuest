@@ -13,7 +13,10 @@ describe("resumeActiveWorkout", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     useStaleWorkoutPromptStore.setState({ visible: false });
-    useActiveWorkoutStore.setState({ savedCompletedWorkoutId: null });
+    useActiveWorkoutStore.setState({
+      savedCompletedWorkoutId: null,
+      savedDurationTrimmed: false,
+    });
   });
 
   it("opens the summary, not the session, when the workout was already saved", () => {
@@ -27,9 +30,28 @@ describe("resumeActiveWorkout", () => {
 
     expect(router.push).toHaveBeenCalledWith({
       pathname: "/(app)/(workout)/workout-summary",
-      params: { completedWorkoutId: "42", fresh: "true" },
+      params: { completedWorkoutId: "42", fresh: "true", resumed: "true" },
     });
     expect(useStaleWorkoutPromptStore.getState().visible).toBe(false);
+  });
+
+  it("keeps the trimmed-duration note for a saved stale workout", () => {
+    useActiveWorkoutStore.setState({
+      savedCompletedWorkoutId: 42,
+      savedDurationTrimmed: true,
+    });
+
+    resumeActiveWorkout();
+
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: "/(app)/(workout)/workout-summary",
+      params: {
+        completedWorkoutId: "42",
+        fresh: "true",
+        resumed: "true",
+        durationTrimmed: "true",
+      },
+    });
   });
 
   it("navigates straight in when the last activity was within four hours", () => {
