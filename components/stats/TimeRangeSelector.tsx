@@ -7,7 +7,7 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
 // The short labels fit the pills; screen readers get the spelled-out form.
-const RANGES = [
+export const TIME_RANGES = [
   { label: msg`30d`, spoken: msg`Last 30 days`, value: "30" },
   { label: msg`90d`, spoken: msg`Last 90 days`, value: "90" },
   { label: msg`1yr`, spoken: msg`Last year`, value: "365" },
@@ -28,7 +28,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   const { _ } = useLingui();
   return (
     <View style={styles.row}>
-      {RANGES.map((r) => {
+      {TIME_RANGES.map((r) => {
         const active = selected === r.value;
         return (
           <TouchableOpacity

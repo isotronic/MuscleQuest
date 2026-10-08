@@ -18,6 +18,7 @@ interface ExerciseCompactCardProps {
   distanceUnit: string;
   onPress: () => void;
   isReorderMode?: boolean;
+  showSparkline?: boolean;
 }
 
 // `dateStr` is a local_date key: the day the user trained. Counting elapsed
@@ -61,6 +62,7 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
       distanceUnit,
       onPress,
       isReorderMode = false,
+      showSparkline = true,
     }) => {
       const { colors } = useAppTheme();
       const styles = useMemo(() => createStyles(colors), [colors]);
@@ -103,9 +105,11 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
                 {daysAgo ? `  ·  ${daysAgo}` : ""}
               </ThemedText>
             </View>
-            <View style={styles.right}>
-              <SparklineChart data={sparkData} width={100} height={44} />
-            </View>
+            {showSparkline && (
+              <View style={styles.right}>
+                <SparklineChart data={sparkData} width={100} height={44} />
+              </View>
+            )}
           </Sortable.Touchable>
         );
       }
@@ -128,7 +132,9 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
             </ThemedText>
           </View>
           <View style={styles.right}>
-            <SparklineChart data={sparkData} width={100} height={44} />
+            {showSparkline && (
+              <SparklineChart data={sparkData} width={100} height={44} />
+            )}
             <ThemedText style={styles.chevron}>›</ThemedText>
           </View>
         </TouchableOpacity>

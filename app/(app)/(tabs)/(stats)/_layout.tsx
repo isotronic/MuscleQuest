@@ -30,6 +30,8 @@ export default function StatsLayout() {
         name="measurements-manage"
         options={{ title: t`Manage Metrics` }}
       />
+      <Stack.Screen name="customize" options={{ title: t`Customize Stats` }} />
+      <Stack.Screen name="customize-widget" options={{ title: "" }} />
     </Stack>
   );
 }

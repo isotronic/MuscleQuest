@@ -1,57 +1,37 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { AppIconButton } from "@/components/ui";
-import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { useLingui } from "@lingui/react";
 import { ActivityIndicator, Button, Divider } from "react-native-paper";
-import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import {
-  useBodyPartSetCountsQuery,
-  usePreviousPeriodSummariesQuery,
-  useWorkoutSummariesQuery,
-} from "@/hooks/useWorkoutSummariesQuery";
-import type { WorkoutSummary } from "@/utils/db/workoutStats";
-import { computeStats, mergeBodyPartCounts } from "@/utils/workoutStats";
+import { Stack, useRouter } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   startOfWeek,
   endOfWeek,
   format,
   differenceInCalendarMonths,
 } from "date-fns";
-import { isLocalDateInRange, localDateKeyToDate } from "@/utils/dates";
-import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
-import { WorkoutHistorySection } from "@/components/stats/WorkoutHistorySection";
+import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
 import { WorkoutCalendarModal } from "@/components/stats/WorkoutCalendarModal";
-import { InsightsStrip } from "@/components/stats/InsightsStrip";
-import { StatsTile } from "@/components/stats/StatsTile";
-import { ExerciseCompactCard } from "@/components/stats/ExerciseCompactCard";
-import { useRouter, useFocusEffect } from "expo-router";
+import {
+  StatsWidgetContext,
+  type StatsWidgetContextValue,
+} from "@/components/stats/widgets/StatsWidgetContext";
+import { WIDGETS } from "@/components/stats/widgets/registry";
+import { useWorkoutSummariesQuery } from "@/hooks/useWorkoutSummariesQuery";
+import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
-import { useBodyMeasurementSessionsQuery } from "@/hooks/useBodyMeasurementSessionsQuery";
-import { useTrackedExercisesQuery } from "@/hooks/useTrackedExercisesQuery";
-import { useReorderTrackedExercisesMutation } from "@/hooks/useReorderTrackedExercisesMutation";
-import { useStatsInsights } from "@/hooks/useStatsInsights";
-import Sortable from "react-native-sortables";
-import { WorkoutBarChart } from "@/components/charts/WorkoutBarChart";
-import { VolumeBarChart } from "@/components/charts/VolumeBarChart";
-import BodyPartChart from "@/components/charts/BodyPartChart";
-import { updateSettings } from "@/utils/database";
+import { useStatsLayout } from "@/hooks/useStatsLayout";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import { useQueryClient } from "@tanstack/react-query";
-import { formatToHoursMinutes } from "@/utils/utility";
-import { bodyMetricTranslations } from "@/constants/dbTranslations";
-import Bugsnag from "@bugsnag/expo";
+import type { WorkoutSummary } from "@/utils/db/workoutStats";
+import type { StatsWidget } from "@/utils/statsLayout";
+import { isLocalDateInRange, localDateKeyToDate } from "@/utils/dates";
+import { updateSettings } from "@/utils/database";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { useAppTheme, radii } from "@/theme";
-import type { AppThemeColors } from "@/theme/types";
 
 const STATS_QUERY_ROOTS = [
   "trackedExercises",
@@ -59,13 +39,19 @@ const STATS_QUERY_ROOTS = [
   "bodyMeasurements",
 ];
 
+const renderWidget = (widget: StatsWidget) => {
+  const { Component } = WIDGETS[widget.id] as {
+    Component: React.ComponentType<{ config: StatsWidget["config"] }>;
+  };
+  return <Component key={widget.id} config={widget.config} />;
+};
+
 export default function StatsScreen() {
   const { colors } = useAppTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-  const { _ } = useLingui();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: settings } = useSettingsQuery();
+  const { data: settings, isLoading: isLoadingSettings } = useSettingsQuery();
+  const { layout } = useStatsLayout();
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
   const sizeUnit = (settings?.sizeUnit || "cm") as "cm" | "in";
@@ -78,8 +64,6 @@ export default function StatsScreen() {
   );
   const [historyVisible, setHistoryVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [isReorderMode, setIsReorderMode] = useState(false);
-  const reorderMutation = useReorderTrackedExercisesMutation();
   // Refetch only this screen's data, so a slow query on another mounted
   // screen cannot hold the spinner.
   const { refreshing, onRefresh } = usePullToRefresh(() =>
@@ -100,65 +84,19 @@ export default function StatsScreen() {
     () => ({ excludeWarmup, countUnilateralDouble, doubleWeightForPaired }),
     [excludeWarmup, countUnilateralDouble, doubleWeightForPaired],
   );
-  const timeRangeDays = parseInt(selectedTimeRange);
-  const {
-    data: trackedExercises,
-    isLoading: isLoadingTracked,
-    error: trackedError,
-  } = useTrackedExercisesQuery(
-    selectedTimeRange,
-    excludeWarmup,
-    countUnilateralDouble,
-    doubleWeightForPaired,
-    excludeDeload,
-  );
-  const {
-    data: completedWorkouts,
-    isLoading: isLoadingWorkouts,
-    error,
-  } = useWorkoutSummariesQuery(timeRangeDays, statsOptions);
 
-  const { data: prevWorkouts } = usePreviousPeriodSummariesQuery(
-    timeRangeDays,
-    statsOptions,
-  );
-
-  const { data: bodyPartRows } = useBodyPartSetCountsQuery(
-    timeRangeDays,
-    excludeWarmup,
-  );
-  const bodyPartCounts = useMemo(
-    () => bodyPartRows && mergeBodyPartCounts(bodyPartRows),
-    [bodyPartRows],
-  );
-
-  const { data: latestMeasurements } = useBodyMeasurementSessionsQuery(
-    { weightUnit: weightUnit as "kg" | "lbs", sizeUnit },
-    1,
-  );
-
-  const {
-    data: allWorkouts,
-    isLoading: isLoadingAllWorkouts,
-    error: allWorkoutsError,
-  } = useWorkoutSummariesQuery(0, statsOptions);
-
-  useEffect(() => {
-    const anyError = error || trackedError || allWorkoutsError;
-    if (anyError) {
-      Bugsnag.notify(
-        anyError instanceof Error ? anyError : new Error(String(anyError)),
-      );
-    }
-  }, [error, trackedError, allWorkoutsError]);
+  // The whole history feeds the calendar, the heatmap and the streak. The
+  // streak also records finished weeks, so it runs whatever is shown.
+  const { data: allWorkouts } = useWorkoutSummariesQuery(0, statsOptions);
 
   const thisWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const thisWeekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
-  const thisWeekWorkouts = allWorkouts?.filter((w) =>
-    isLocalDateInRange(w.local_date, thisWeekStart, thisWeekEnd),
-  );
   const uniqueWorkoutDaysCount = new Set(
-    thisWeekWorkouts?.map((w) => w.local_date),
+    allWorkouts
+      ?.filter((w) =>
+        isLocalDateInRange(w.local_date, thisWeekStart, thisWeekEnd),
+      )
+      .map((w) => w.local_date),
   ).size;
   const weeklyGoal = Number(settings?.weeklyGoal ?? 0);
   const weeklyGoalReached =
@@ -170,22 +108,13 @@ export default function StatsScreen() {
     weeklyGoalReached,
   );
 
-  const insights = useStatsInsights(
-    completedWorkouts?.length,
-    trackedExercises,
-    bodyPartCounts,
-    timeRangeDays,
-    weightUnit,
-    distanceUnit,
-  );
-
   const handleTimeRangeChange = useCallback(
     async (range: string) => {
       setSelectedTimeRange(range);
       try {
         await updateSettings("timeRange", range);
-      } catch (err: any) {
-        Bugsnag.notify(err);
+      } catch (err: unknown) {
+        notifyBugsnag(err as Error);
       } finally {
         queryClient.invalidateQueries({ queryKey: ["settings"] });
       }
@@ -268,55 +197,65 @@ export default function StatsScreen() {
     return marks;
   }, [allWorkoutsByDate, selectedDate, colors]);
 
-  const handleOpenCalendar = useCallback(() => {
-    const today = format(new Date(), "yyyy-MM-dd");
-    const fallback = Object.keys(allWorkoutsByDate).sort().reverse()[0] ?? null;
-    setSelectedDate(allWorkoutsByDate[today] ? today : fallback);
-    setHistoryVisible(true);
-  }, [allWorkoutsByDate]);
+  const handleOpenCalendar = useCallback(
+    (date?: string) => {
+      const today = format(new Date(), "yyyy-MM-dd");
+      const fallback =
+        Object.keys(allWorkoutsByDate).sort().reverse()[0] ?? null;
+      setSelectedDate(date ?? (allWorkoutsByDate[today] ? today : fallback));
+      setHistoryVisible(true);
+    },
+    [allWorkoutsByDate],
+  );
 
-  const handleExercisePress = useCallback(
-    (exerciseId: number, name: string) =>
-      router.push({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        pathname: "/(app)/(tabs)/(stats)/exercise-detail" as any,
-        params: { exerciseId: exerciseId.toString(), name },
-      }),
+  const widgetContext = useMemo<StatsWidgetContextValue>(
+    () => ({
+      globalRange: selectedTimeRange,
+      weightUnit,
+      distanceUnit,
+      sizeUnit,
+      statsOptions,
+      excludeDeload,
+      weeklyGoal,
+      streak,
+      allWorkouts,
+      openCalendar: handleOpenCalendar,
+      openWorkout: handleWorkoutPress,
+    }),
+    [
+      selectedTimeRange,
+      weightUnit,
+      distanceUnit,
+      sizeUnit,
+      statsOptions,
+      excludeDeload,
+      weeklyGoal,
+      streak,
+      allWorkouts,
+      handleOpenCalendar,
+      handleWorkoutPress,
+    ],
+  );
+
+  const openCustomize = useCallback(
+    () => router.push("/(app)/(tabs)/(stats)/customize" as never),
     [router],
   );
 
-  const handleManageExercisesPress = useCallback(() => {
-    router.push({
-      pathname: "/(app)/(tabs)/(stats)/exercises",
-      params: {
-        selectedExercises: JSON.stringify(
-          trackedExercises?.map((te) => te.exercise_id),
-        ),
-      },
-    });
-  }, [router, trackedExercises]);
-
-  const handleReorderDragEnd = useCallback(
-    ({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => {
-      if (fromIndex === toIndex) return;
-      const reordered = [...(trackedExercises ?? [])];
-      const [moved] = reordered.splice(fromIndex, 1);
-      reordered.splice(toIndex, 0, moved);
-      reorderMutation.mutate(reordered.map((e) => e.exercise_id));
-    },
-    [trackedExercises, reorderMutation],
+  const headerRight = useCallback(
+    () => (
+      <AppIconButton
+        accessibilityLabel={t`Customize stats`}
+        icon="pencil-outline"
+        size={22}
+        iconColor={colors.contentPrimary}
+        onPress={openCustomize}
+      />
+    ),
+    [colors.contentPrimary, openCustomize],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      return () => setIsReorderMode(false);
-    }, []),
-  );
-
-  const isLoading =
-    isLoadingWorkouts || isLoadingTracked || isLoadingAllWorkouts;
-
-  if (isLoading) {
+  if (isLoadingSettings) {
     return (
       <ThemedView style={styles.centered}>
         <ActivityIndicator size="large" color={colors.contentPrimary} />
@@ -324,49 +263,11 @@ export default function StatsScreen() {
     );
   }
 
-  const anyError = error || trackedError || allWorkoutsError;
-  if (anyError) {
-    return (
-      <ThemedView style={styles.centered}>
-        <ThemedText>
-          <Trans>Error loading stats. Please try again.</Trans>
-        </ThemedText>
-      </ThemedView>
-    );
-  }
-
-  const current = computeStats(completedWorkouts ?? [], weightUnit);
-  const prev = prevWorkouts ? computeStats(prevWorkouts, weightUnit) : null;
-
-  const volumeUnit = weightUnit === "lbs" ? "tn" : "t";
-  const formattedVolume = current.totalVolumeTons.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  const workoutsDelta = prev
-    ? current.totalWorkouts - prev.totalWorkouts
-    : null;
-  const volumeDelta =
-    prev != null
-      ? parseFloat((current.totalVolumeTons - prev.totalVolumeTons).toFixed(2))
-      : null;
-  const timeDeltaMinutes =
-    prev != null
-      ? Math.round((current.totalTimeSeconds - prev.totalTimeSeconds) / 60)
-      : null;
-  const timeDeltaFormatted = (() => {
-    if (timeDeltaMinutes == null) return undefined;
-    const abs = Math.abs(timeDeltaMinutes);
-    const h = Math.floor(abs / 60);
-    const m = abs % 60;
-    if (h === 0) return `${m}m`;
-    if (m === 0) return `${h}h`;
-    return `${h}h${m}m`;
-  })();
+  const visibleWidgets = layout.widgets.filter((w) => w.visible);
 
   return (
     <ThemedView>
+      <Stack.Screen options={{ headerRight }} />
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -379,247 +280,30 @@ export default function StatsScreen() {
           />
         }
       >
-        {/* Time range selector */}
         <TimeRangeSelector
           selected={selectedTimeRange}
           onChange={handleTimeRangeChange}
         />
         <Divider style={styles.divider} />
 
-        {/* Insights strip */}
-        {(completedWorkouts?.length ?? 0) > 0 && (
-          <View style={styles.section}>
-            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
-              <Trans>Insights</Trans>
-            </ThemedText>
-            <InsightsStrip
-              workoutsPerWeek={insights.workoutsPerWeek}
-              biggestGainLabel={insights.biggestGainLabel}
-              biggestGainValue={insights.biggestGainValue}
-              topBodyPart={insights.topBodyPart}
-              streak={streak}
-              weightUnit={weightUnit}
-            />
-          </View>
-        )}
+        <StatsWidgetContext.Provider value={widgetContext}>
+          {visibleWidgets.map(renderWidget)}
+        </StatsWidgetContext.Provider>
 
-        {/* Summary tiles */}
-        <View style={styles.section}>
-          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
-            <Trans>Summary</Trans>
-          </ThemedText>
-          <View style={styles.tileGrid}>
-            <StatsTile
-              label={t`Workouts`}
-              value={String(current.totalWorkouts)}
-              delta={workoutsDelta}
-            />
-            <StatsTile
-              label={t`Volume (${volumeUnit})`}
-              value={formattedVolume}
-              delta={volumeDelta}
-              deltaLabel={volumeUnit}
-            />
-            <StatsTile
-              label={t`Total Time`}
-              value={formatToHoursMinutes(current.totalTimeSeconds)}
-              delta={timeDeltaMinutes}
-              deltaText={timeDeltaFormatted}
-            />
-            <StatsTile
-              label={t`Avg Duration`}
-              value={formatToHoursMinutes(current.avgDurationSeconds)}
-            />
-          </View>
-        </View>
-
-        {/* Workout history */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
-              <Trans>Workout History</Trans>
-            </ThemedText>
-            {(completedWorkouts?.length ?? 0) > 0 && (
-              <AppIconButton
-                accessibilityLabel={t`Open workout calendar`}
-                icon="calendar-month"
-                size={20}
-                iconColor={colors.accent}
-                style={{ margin: 0 }}
-                onPress={handleOpenCalendar}
-              />
-            )}
-          </View>
-          <WorkoutHistorySection
-            completedWorkouts={completedWorkouts ?? []}
-            onWorkoutPress={handleWorkoutPress}
-            excludeWarmup={excludeWarmup}
-          />
-        </View>
-
-        {/* Workouts over time */}
-        {(completedWorkouts?.length ?? 0) > 0 && (
-          <View style={styles.section}>
-            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
-              <Trans>Workouts per Week</Trans>
-            </ThemedText>
-            <WorkoutBarChart
-              completedWorkouts={completedWorkouts!}
-              timeRange={selectedTimeRange}
-            />
-          </View>
-        )}
-
-        {/* Volume over time */}
-        {(completedWorkouts?.length ?? 0) > 0 && (
-          <View style={styles.section}>
-            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
-              <Trans>Volume per Week ({volumeUnit})</Trans>
-            </ThemedText>
-            <VolumeBarChart
-              completedWorkouts={completedWorkouts!}
-              timeRange={selectedTimeRange}
-              weightUnit={weightUnit}
-            />
-          </View>
-        )}
-
-        {/* Training split */}
-        <View style={styles.section}>
-          <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
-            <Trans>Training Split (by sets)</Trans>
-          </ThemedText>
-          <BodyPartChart bodyPartCounts={bodyPartCounts} />
-        </View>
-
-        {/* Exercises */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
-              <Trans>Tracked Exercises</Trans>
-            </ThemedText>
-            <View style={styles.exerciseHeaderButtons}>
-              {!isReorderMode && (
-                <Button
-                  mode="text"
-                  compact
-                  labelStyle={{ color: colors.accent, fontSize: 13 }}
-                  onPress={handleManageExercisesPress}
-                >
-                  {trackedExercises && trackedExercises.length > 0 ? (
-                    <Trans>Manage</Trans>
-                  ) : (
-                    <Trans>+ Add</Trans>
-                  )}
-                </Button>
-              )}
-              {trackedExercises && trackedExercises.length > 1 && (
-                <Button
-                  mode="text"
-                  compact
-                  labelStyle={{
-                    color: isReorderMode
-                      ? colors.accent
-                      : colors.contentSecondary,
-                    fontSize: 13,
-                  }}
-                  onPress={() => setIsReorderMode((v) => !v)}
-                >
-                  {isReorderMode ? <Trans>Done</Trans> : <Trans>Reorder</Trans>}
-                </Button>
-              )}
-            </View>
-          </View>
-          {trackedExercises && trackedExercises.length > 0 ? (
-            isReorderMode ? (
-              <Sortable.Grid
-                columns={1}
-                data={trackedExercises}
-                keyExtractor={(item) => item.exercise_id.toString()}
-                renderItem={({ item }) => (
-                  <ExerciseCompactCard
-                    exercise={item}
-                    weightUnit={weightUnit}
-                    distanceUnit={distanceUnit}
-                    isReorderMode
-                    onPress={() => {}}
-                  />
-                )}
-                onDragEnd={handleReorderDragEnd}
-                showDropIndicator
-              />
-            ) : (
-              trackedExercises.map((exercise) => (
-                <ExerciseCompactCard
-                  key={exercise.exercise_id}
-                  exercise={exercise}
-                  weightUnit={weightUnit}
-                  distanceUnit={distanceUnit}
-                  onPress={() =>
-                    handleExercisePress(exercise.exercise_id, exercise.name)
-                  }
-                />
-              ))
-            )
-          ) : (
+        {visibleWidgets.length === 0 && (
+          <View style={styles.empty}>
             <ThemedText style={{ color: colors.contentSecondary }}>
-              <Trans>No exercises tracked yet. Tap + Add to start.</Trans>
-            </ThemedText>
-          )}
-        </View>
-
-        {/* Body Measurements */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
-              <Trans>Body Measurements</Trans>
+              <Trans>Every section is hidden.</Trans>
             </ThemedText>
             <Button
               mode="text"
-              compact
-              labelStyle={{ color: colors.accent, fontSize: 13 }}
-              onPress={() =>
-                router.push("/(app)/(tabs)/(stats)/measurements" as never)
-              }
+              textColor={colors.accent}
+              onPress={openCustomize}
             >
-              <Trans>View All</Trans>
+              <Trans>Customize</Trans>
             </Button>
           </View>
-          {latestMeasurements && latestMeasurements.length > 0 ? (
-            <TouchableOpacity
-              accessibilityRole="button"
-              style={styles.measurementTile}
-              activeOpacity={0.7}
-              onPress={() =>
-                router.push("/(app)/(tabs)/(stats)/measurements" as never)
-              }
-            >
-              <View style={styles.measurementGrid}>
-                {latestMeasurements[0].values.map((v) => (
-                  <ThemedText key={v.metric.id} style={styles.measurementValue}>
-                    {bodyMetricTranslations[v.metric.key]
-                      ? _(bodyMetricTranslations[v.metric.key])
-                      : v.metric.label}
-                    {": "}
-                    {v.displayValue} {v.displayUnit}
-                  </ThemedText>
-                ))}
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              accessibilityRole="button"
-              activeOpacity={0.7}
-              onPress={() =>
-                router.push("/(app)/(tabs)/(stats)/measurements" as never)
-              }
-            >
-              <ThemedText style={{ color: colors.contentSecondary }}>
-                <Trans>No measurements yet. Tap to log your first entry.</Trans>
-              </ThemedText>
-            </TouchableOpacity>
-          )}
-        </View>
+        )}
       </ScrollView>
       <WorkoutCalendarModal
         visible={historyVisible}
@@ -635,64 +319,31 @@ export default function StatsScreen() {
           handleWorkoutPress(id);
         }}
         excludeWarmup={excludeWarmup}
-        loading={isLoadingWorkouts}
+        loading={!allWorkouts}
         pastScrollRange={calendarPastScrollRange}
       />
     </ThemedView>
   );
 }
 
-function createStyles(colors: AppThemeColors) {
-  return StyleSheet.create({
-    centered: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    container: {
-      flex: 1,
-      paddingHorizontal: 16,
-      paddingTop: 8,
-      paddingBottom: 50,
-    },
-    divider: {
-      marginBottom: 16,
-    },
-    section: {
-      marginBottom: 28,
-    },
-    sectionHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-    sectionTitle: {
-      fontSize: 17,
-      fontWeight: "bold",
-    },
-    tileGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: 8,
-    },
-    exerciseHeaderButtons: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    measurementTile: {
-      padding: 12,
-      borderRadius: radii.md,
-      backgroundColor: colors.card,
-    },
-    measurementGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-    },
-    measurementValue: {
-      width: "50%",
-      fontSize: 13,
-      lineHeight: 19,
-      color: colors.contentSecondary,
-    },
-  });
-}
+const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 50,
+  },
+  divider: {
+    marginBottom: 16,
+  },
+  empty: {
+    alignItems: "center",
+    paddingVertical: 32,
+    gap: 8,
+  },
+});

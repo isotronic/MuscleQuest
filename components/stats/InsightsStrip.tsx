@@ -7,6 +7,7 @@ import { bodyPartTranslations } from "@/constants/dbTranslations";
 import { capitalizeWords } from "@/utils/utility";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { INSIGHT_PILLS, type InsightPillId } from "@/utils/statsLayout";
 
 interface InsightPill {
   label: string;
@@ -21,6 +22,8 @@ interface InsightsStripProps {
   topBodyPart: string | null;
   streak: number | null;
   weightUnit: string;
+  /** Which pills may show; each still needs data. Defaults to all. */
+  show?: readonly InsightPillId[];
 }
 
 export const InsightsStrip: React.FC<InsightsStripProps> = ({
@@ -29,6 +32,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
   biggestGainValue,
   topBodyPart,
   streak,
+  show = INSIGHT_PILLS,
 }) => {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -69,26 +73,26 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
 
   const pills: InsightPill[] = [];
 
-  if (workoutsPerWeek != null) {
+  if (workoutsPerWeek != null && show.includes("perWeek")) {
     pills.push({
       label: t`Per week (avg)`,
       value: t`${workoutsPerWeek.toFixed(1)} workouts`,
     });
   }
-  if (biggestGainLabel && biggestGainValue) {
+  if (biggestGainLabel && biggestGainValue && show.includes("bestGain")) {
     pills.push({
       label: t`Best gain`,
       value: biggestGainValue,
       tooltip: t`${biggestGainLabel} 1RM`,
     });
   }
-  if (topBodyPart) {
+  if (topBodyPart && show.includes("mostTrained")) {
     const translatedBodyPart = bodyPartTranslations[topBodyPart]
       ? _(bodyPartTranslations[topBodyPart])
       : capitalizeWords(topBodyPart);
     pills.push({ label: t`Most trained`, value: translatedBodyPart });
   }
-  if (streak != null && streak > 0) {
+  if (streak != null && streak > 0 && show.includes("streak")) {
     pills.push({ label: t`Week streak`, value: `${streak} 🔥` });
   }
 

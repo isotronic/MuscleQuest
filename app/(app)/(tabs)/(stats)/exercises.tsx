@@ -114,6 +114,10 @@ export default function ExercisesScreen() {
       });
 
       queryclient.invalidateQueries({ queryKey: ["trackedExercises"] });
+      // The recent PRs widget can be limited to tracked exercises.
+      queryclient.invalidateQueries({
+        queryKey: ["completedWorkouts", "recentPRs"],
+      });
       router.back();
     } catch (error: any) {
       console.error("Error saving exercises for tracking:", error);

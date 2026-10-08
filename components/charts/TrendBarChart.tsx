@@ -4,6 +4,7 @@ import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { Card } from "react-native-paper";
 import type { WorkoutSummary } from "@/utils/db/workoutStats";
+import type { TrendMetric } from "@/utils/statsLayout";
 import { volumeInTons } from "@/utils/workoutStats";
 import { t } from "@lingui/core/macro";
 import { useReduceMotion } from "@/hooks/useReduceMotion";
@@ -12,14 +13,38 @@ import { spokenBucketLabels, summarizeTotals } from "./chartA11y";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
-type WorkoutVolume = Pick<WorkoutSummary, "local_date" | "volume_kg">;
+type TrendWorkout = Pick<WorkoutSummary, "local_date"> &
+  Partial<
+    Pick<WorkoutSummary, "volume_kg" | "set_count" | "rep_count" | "duration">
+  >;
 
-interface VolumeBarChartProps {
-  /** volume_kg already reflects the warm-up and doubling settings. */
-  completedWorkouts: WorkoutVolume[];
+interface TrendBarChartProps {
+  /** Totals already reflect the warm-up and doubling settings. */
+  completedWorkouts: TrendWorkout[];
   timeRange: string;
-  weightUnit: string;
+  metric: TrendMetric;
+  weightUnit?: string;
 }
+
+/** What one workout adds to its bar: tonnes/tons for volume, hours for time. */
+const metricValue = (
+  workout: TrendWorkout,
+  metric: TrendMetric,
+  weightUnit: string,
+): number => {
+  switch (metric) {
+    case "workouts":
+      return 1;
+    case "volume":
+      return volumeInTons(workout.volume_kg ?? 0, weightUnit);
+    case "sets":
+      return workout.set_count ?? 0;
+    case "reps":
+      return workout.rep_count ?? 0;
+    case "duration":
+      return (workout.duration ?? 0) / 3600;
+  }
+};
 
 interface Bucket {
   label: string;
@@ -31,10 +56,10 @@ interface Bucket {
 
 type BucketType = "weekly" | "monthly" | "quarterly" | "yearly";
 
-const groupVolumeByTime = (
-  completedWorkouts: WorkoutVolume[],
+export const groupWorkoutsByTime = (
+  completedWorkouts: TrendWorkout[],
   timeRange: string,
-  weightUnit: string,
+  valueOf: (workout: TrendWorkout) => number = () => 1,
 ): Bucket[] => {
   type InternalBucket = Bucket & { internalKey: string };
   const buckets: InternalBucket[] = [];
@@ -73,11 +98,8 @@ const groupVolumeByTime = (
     cursor.setHours(0, 0, 0, 0);
     while (cursor <= today) {
       const internalKey = `${cursor.getFullYear()}-${cursor.getMonth()}`;
-      buckets.push({
-        internalKey,
-        label: cursor.toLocaleString(undefined, { month: "short" }),
-        value: 0,
-      });
+      const label = cursor.toLocaleString(undefined, { month: "short" });
+      buckets.push({ internalKey, label, value: 0 });
       keyToIndex.set(internalKey, buckets.length - 1);
       cursor.setMonth(cursor.getMonth() + 1);
     }
@@ -164,22 +186,25 @@ const groupVolumeByTime = (
       internalKey = `${d.getFullYear()}`;
     }
     const idx = keyToIndex.get(internalKey);
-    if (idx === undefined) return;
-
-    buckets[idx].value += volumeInTons(workout.volume_kg, weightUnit);
+    if (idx !== undefined) {
+      buckets[idx].value += valueOf(workout);
+    }
   });
 
+  // Fractional metrics (tonnes, hours) carry float noise from the sums.
   return buckets.map((b) => ({ ...b, value: parseFloat(b.value.toFixed(2)) }));
 };
 
 const INITIAL_SPACING = 10;
 const Y_AXIS_WIDTH = 35;
+// screen paddingHorizontal 16 each side + card paddingHorizontal 8 each side
 const HORIZONTAL_INSETS = 16 * 2 + 8 * 2;
 
-export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
+export const TrendBarChart: React.FC<TrendBarChartProps> = ({
   completedWorkouts,
   timeRange,
-  weightUnit,
+  metric,
+  weightUnit = "kg",
 }) => {
   const { width: screenWidth } = useWindowDimensions();
   const chartTheme = useChartTheme();
@@ -189,11 +214,12 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const buckets = useMemo(
-    () => groupVolumeByTime(completedWorkouts, timeRange, weightUnit),
-    [completedWorkouts, timeRange, weightUnit],
+    () =>
+      groupWorkoutsByTime(completedWorkouts, timeRange, (w) =>
+        metricValue(w, metric, weightUnit),
+      ),
+    [completedWorkouts, timeRange, metric, weightUnit],
   );
-
-  if (buckets.length === 0) return null;
 
   const chartWidth =
     screenWidth - HORIZONTAL_INSETS - Y_AXIS_WIDTH - INITIAL_SPACING - 16;
@@ -217,17 +243,30 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
     return { value: bucket.value, label: bucket.label };
   });
 
-  const maxVal = Math.max(...buckets.map((b) => b.value));
+  // Tonnes and hours can peak below 1; counts start at an axis of 1.
+  const peak = Math.max(0, ...buckets.map((b) => b.value));
+  const maxValue = peak > 0 ? peak : 1;
+
+  const spoken = {
+    workouts: { title: t`Workouts`, unit: undefined },
+    // Bars are in thousands of the weight unit; spell the unit out.
+    volume: {
+      title: t`Volume`,
+      unit: weightUnit === "lbs" ? t`tons` : t`tonnes`,
+    },
+    sets: { title: t`Sets`, unit: undefined },
+    reps: { title: t`Reps`, unit: undefined },
+    duration: { title: t`Training time`, unit: t`hours` },
+  }[metric];
 
   const summary = summarizeTotals({
-    title: t`Volume`,
+    title: spoken.title,
     timeRange,
     buckets: spokenBucketLabels(buckets).map((label, i) => ({
       label,
       value: buckets[i].value,
     })),
-    // Bars are in thousands of the weight unit; spell the unit out.
-    unit: weightUnit === "lbs" ? t`tons` : t`tonnes`,
+    unit: spoken.unit,
     emptyText: t`No workouts in this period`,
   });
 
@@ -249,7 +288,7 @@ export const VolumeBarChart: React.FC<VolumeBarChartProps> = ({
           width={chartWidth}
           noOfSections={chartTheme.noOfSections}
           initialSpacing={INITIAL_SPACING}
-          maxValue={maxVal > 0 ? maxVal : 1}
+          maxValue={maxValue}
           hideRules
         />
       </View>

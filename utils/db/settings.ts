@@ -130,6 +130,8 @@ export interface Settings {
   plateCalcBarLbs: string;
   /** ISO instant; the home backup reminder stays hidden until then. */
   backupReminderSnoozedUntil?: string;
+  /** JSON, see utils/statsLayout.ts. Absent until the user customises. */
+  statsLayout?: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

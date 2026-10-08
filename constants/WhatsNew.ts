@@ -712,6 +712,20 @@ Also in this update:
 Missed a What's New message, or want to see how MuscleQuest has grown? Open the menu and tap Changelog, below Help & Info, to browse every update by release, all the way back to the first version.
 `,
   },
+  {
+    version: 2662,
+    release: "1.5",
+    message: msg`
+📊 New: Make Stats Your Own!
+
+Tap the pencil on the Stats screen to show, hide and reorder every section, and the gear beside a section to change what it shows. Trend charts can plot workouts, volume, sets, reps or training time, and any section can keep its own time range.
+
+Also new on Stats:
+• Sets per Muscle / Week: your weekly working sets for each muscle, against a target range you choose.
+• Recent PRs: every new personal record, with what it beat.
+• Consistency: a calendar grid of your training days.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
