@@ -57,7 +57,7 @@ jest.mock("@/utils/restoreRollback", () => ({
   hasRestoreToUndo: jest.fn(() => false),
 }));
 jest.mock("@/utils/resetLocalState", () => ({
-  resetLocalSessionStateAfterHydration: jest.fn(() => Promise.resolve()),
+  resetLocalSessionStateAfterHydration: jest.fn(() => Promise.resolve(true)),
 }));
 
 const initSteps = [
@@ -127,6 +127,20 @@ describe("runStartup after a restore", () => {
     expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBe("true");
   });
 
+  it("clears the session again, in case the reset before the reload failed", async () => {
+    await runStartup(Promise.resolve());
+    expect(resetLocalSessionStateAfterHydration).toHaveBeenCalled();
+  });
+
+  it("keeps the restore flag so the next boot retries a failed session reset", async () => {
+    (resetLocalSessionStateAfterHydration as jest.Mock).mockResolvedValueOnce(
+      false,
+    );
+    const result = await runStartup(Promise.resolve());
+    expect(result).toEqual({ status: "ok" });
+    expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBe("true");
+  });
+
   it("drops the pre-restore database once the restored one booted", async () => {
     await runStartup(Promise.resolve());
     expect(confirmRestoredDatabase).toHaveBeenCalled();
@@ -159,10 +173,13 @@ describe("runStartup after a swap that was killed before the restore finished", 
     expect(forgetExerciseImageFiles).toHaveBeenCalled();
   });
 
-  it("does not clear the session again when the restore finished normally", async () => {
-    await AsyncStorage.setItem(DATABASE_RESTORED_KEY, "true");
-    await runStartup(Promise.resolve());
-    expect(resetLocalSessionStateAfterHydration).not.toHaveBeenCalled();
+  it("keeps the restore flag for the next boot when the session reset fails", async () => {
+    (resetLocalSessionStateAfterHydration as jest.Mock).mockResolvedValueOnce(
+      false,
+    );
+    const result = await runStartup(Promise.resolve());
+    expect(result).toEqual({ status: "ok" });
+    expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBe("true");
   });
 });
 

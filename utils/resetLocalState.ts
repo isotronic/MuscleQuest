@@ -9,9 +9,10 @@ import { notifyBugsnag } from "@/utils/bugsnagDedup";
  * database is about to be replaced (restore) or deleted (reset). Call it after
  * the files are in place and right before the reload, so a failed restore
  * keeps the session. Never throws: the files have already changed, so the
- * reload that follows must run regardless.
+ * reload that follows must run regardless. Returns false if any step failed,
+ * so startup can retry it.
  */
-export async function resetLocalSessionState(): Promise<void> {
+export async function resetLocalSessionState(): Promise<boolean> {
   const steps: (() => unknown)[] = [
     () => useActiveWorkoutStore.getState().clearPersistedStore(),
     // clearPersistedStore does not wait for its removal; the reload must.
@@ -29,21 +30,26 @@ export async function resetLocalSessionState(): Promise<void> {
         publishedWorkoutIds: null,
       }),
   ];
+  let ok = true;
   for (const step of steps) {
     try {
       await step();
     } catch (error) {
       notifyBugsnag(error);
+      ok = false;
     }
   }
+  return ok;
 }
 
 /**
- * The startup form, for a restore whose swap finished but which was killed
- * before resetLocalSessionState ran. The persisted stores load asynchronously,
- * so they are loaded first: a late load would bring the cleared state back.
+ * The startup form, for the first boot after a restore: it retries a reset
+ * that failed before the reload, and does the one a restore killed right after
+ * its swap never ran. The persisted stores load asynchronously, so they are
+ * loaded first: a late load would bring the cleared state back.
  */
-export async function resetLocalSessionStateAfterHydration(): Promise<void> {
+export async function resetLocalSessionStateAfterHydration(): Promise<boolean> {
+  let ok = true;
   try {
     await Promise.all([
       useActiveWorkoutStore.persist.rehydrate(),
@@ -52,6 +58,7 @@ export async function resetLocalSessionStateAfterHydration(): Promise<void> {
     ]);
   } catch (error) {
     notifyBugsnag(error);
+    ok = false;
   }
-  await resetLocalSessionState();
+  return (await resetLocalSessionState()) && ok;
 }

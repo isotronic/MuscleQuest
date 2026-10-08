@@ -21,6 +21,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getAsyncStorageItem,
   removeAsyncStorageItem,
+  setAsyncStorageItem,
 } from "@/utils/asyncStorage";
 
 export const DATABASE_RESTORED_KEY = "databaseRestored";
@@ -101,11 +102,14 @@ export const runStartup = async (
     // Killed between the swap and the end of the restore: the flag was never
     // set and the old session refers to the replaced database.
     Bugsnag.leaveBreadcrumb("Finishing a restore killed after its swap");
-    await resetLocalSessionStateAfterHydration();
     databaseRestored = true;
   }
+  // The old session refers to the replaced database. Normally already cleared
+  // before the reload; done again in case that failed or never ran.
+  let sessionReset = true;
   if (databaseRestored) {
     Bugsnag.leaveBreadcrumb("First boot after a backup restore");
+    sessionReset = await resetLocalSessionStateAfterHydration();
   }
 
   try {
@@ -151,7 +155,12 @@ export const runStartup = async (
   // Cleared only after success, so a failed post-restore boot retries with
   // the flag still set and the pre-restore database still kept.
   confirmRestoredDatabase();
-  await removeAsyncStorageItem(DATABASE_RESTORED_KEY);
+  if (sessionReset) {
+    await removeAsyncStorageItem(DATABASE_RESTORED_KEY);
+  } else {
+    // Kept (or set, after a killed restore) so the next boot retries the reset.
+    await setAsyncStorageItem(DATABASE_RESTORED_KEY, "true");
+  }
   await resetStartupFailureCount();
   return { status: "ok" };
 };

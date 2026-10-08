@@ -34,7 +34,7 @@ describe("resetLocalSessionState", () => {
   });
 
   it("discards the in-progress workout and its rest alerts", async () => {
-    await resetLocalSessionState();
+    await expect(resetLocalSessionState()).resolves.toBe(true);
 
     const active = useActiveWorkoutStore.getState();
     expect(active.activeWorkout).toBeNull();
@@ -66,7 +66,8 @@ describe("resetLocalSessionState", () => {
       .spyOn(useWorkoutStore.persist, "clearStorage")
       .mockRejectedValueOnce(new Error("storage full") as never);
 
-    await expect(resetLocalSessionState()).resolves.toBeUndefined();
+    // Reports the failure so startup can retry, without throwing.
+    await expect(resetLocalSessionState()).resolves.toBe(false);
     // Later steps still ran.
     expect(useSocialStore.getState().publishedPlanIds).toBeNull();
   });
