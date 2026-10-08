@@ -125,6 +125,11 @@ interface ActiveWorkoutStore {
   // When the user last completed a set, edited a value or added an exercise.
   // Null until the first of those; stale-workout checks then use startTime.
   lastActivityAt: Date | null;
+  // Set as soon as this session is saved to history. A session that is still
+  // in the store after that (killed during a post-save prompt) must not be
+  // saved again; resuming it opens the summary instead.
+  savedCompletedWorkoutId: number | null;
+  setSavedCompletedWorkoutId: (id: number) => void;
   setDurations: {
     [exerciseIndex: number]: { [setIndex: number]: number | null };
   };
@@ -247,7 +252,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       timerExpiry: null,
       currentSetStartedAt: null,
       lastActivityAt: null,
+      savedCompletedWorkoutId: null,
       setDurations: {},
+
+      setSavedCompletedWorkoutId: (id) => set({ savedCompletedWorkoutId: id }),
       appendedExerciseIndices: [],
       feedbackSubmittedUweIds: [],
       recoveryCheckInShown: false,
@@ -270,6 +278,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           timerExpiry: null,
           currentSetStartedAt: null,
           lastActivityAt: null,
+          savedCompletedWorkoutId: null,
           setDurations: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
@@ -298,6 +307,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           timerExpiry: null,
           currentSetStartedAt: null,
           lastActivityAt: null,
+          savedCompletedWorkoutId: null,
           setDurations: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
@@ -1483,6 +1493,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           timerExpiry: null,
           currentSetStartedAt: null,
           lastActivityAt: null,
+          savedCompletedWorkoutId: null,
           setDurations: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
@@ -1688,6 +1699,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           timerExpiry: null,
           currentSetStartedAt: null,
           lastActivityAt: null,
+          savedCompletedWorkoutId: null,
           setDurations: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
@@ -1841,6 +1853,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           feedbackSubmittedUweIds: state.feedbackSubmittedUweIds,
           recoveryCheckInShown: state.recoveryCheckInShown,
           suggestedWeightPrefills: state.suggestedWeightPrefills,
+          savedCompletedWorkoutId: state.savedCompletedWorkoutId,
           timerRunning: state.timerRunning,
           startTime:
             state.startTime instanceof Date

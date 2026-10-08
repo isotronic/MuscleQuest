@@ -178,4 +178,37 @@ describe("activeWorkoutStore persistence", () => {
       expect(persistOptions().version).toBe(1);
     });
   });
+
+  describe("savedCompletedWorkoutId", () => {
+    it("is persisted so a kill after the save cannot save it again", () => {
+      useActiveWorkoutStore.setState({ savedCompletedWorkoutId: 42 });
+      const persisted = persistOptions().partialize!(
+        useActiveWorkoutStore.getState(),
+      );
+      expect(persisted.savedCompletedWorkoutId).toBe(42);
+    });
+
+    it("is cleared when a new session starts or the store is cleared", () => {
+      const { setWorkout, startQuickWorkout, clearPersistedStore } =
+        useActiveWorkoutStore.getState();
+
+      useActiveWorkoutStore.setState({ savedCompletedWorkoutId: 42 });
+      setWorkout(buildWorkout(1) as any, 1, 1, "Push");
+      expect(useActiveWorkoutStore.getState().savedCompletedWorkoutId).toBe(
+        null,
+      );
+
+      useActiveWorkoutStore.setState({ savedCompletedWorkoutId: 42 });
+      startQuickWorkout();
+      expect(useActiveWorkoutStore.getState().savedCompletedWorkoutId).toBe(
+        null,
+      );
+
+      useActiveWorkoutStore.setState({ savedCompletedWorkoutId: 42 });
+      clearPersistedStore();
+      expect(useActiveWorkoutStore.getState().savedCompletedWorkoutId).toBe(
+        null,
+      );
+    });
+  });
 });

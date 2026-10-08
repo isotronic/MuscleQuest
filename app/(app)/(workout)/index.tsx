@@ -739,6 +739,16 @@ export default function WorkoutOverviewScreen() {
 
   const handleSaveWorkout = async () => {
     if (isSavingRef.current) return;
+    // Saved already, then killed during a post-save prompt: never save twice.
+    const { savedCompletedWorkoutId } = useActiveWorkoutStore.getState();
+    if (savedCompletedWorkoutId != null) {
+      markLeaving();
+      router.push({
+        pathname: "/(app)/(workout)/workout-summary" as any,
+        params: summaryParams(savedCompletedWorkoutId),
+      });
+      return;
+    }
     isSavingRef.current = true;
     setIsSaving(true);
     let mutateStarted = false;
@@ -833,6 +843,11 @@ export default function WorkoutOverviewScreen() {
             },
             {
               onSuccess: async (completedWorkoutId) => {
+                // First, before any prompt below gives the app a chance to be
+                // killed with the session still in the store.
+                useActiveWorkoutStore
+                  .getState()
+                  .setSavedCompletedWorkoutId(completedWorkoutId);
                 const outcome = await completeWorkout({
                   isQuickWorkout,
                   planId,
