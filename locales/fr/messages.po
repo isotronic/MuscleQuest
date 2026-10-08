@@ -1675,11 +1675,11 @@ msgid "abs"
 msgstr "abdominaux"
 
 #: components/friends/FriendRequestItem.tsx:44
-#: components/ProgressionSummaryCard.tsx:224
+#: components/ProgressionSummaryCard.tsx:225
 msgid "Accept"
 msgstr "Accepter"
 
-#: components/ProgressionSummaryCard.tsx:111
+#: components/ProgressionSummaryCard.tsx:112
 msgid "Accept all"
 msgstr "Tout accepter"
 
@@ -3060,7 +3060,7 @@ msgstr "Abandonner les modifications ?"
 msgid "Discomfort is tracked across sessions: one report keeps the load steady, a second consecutive report adds a form-check note."
 msgstr "Les gênes sont suivies d'une séance à l'autre : un rapport maintient la charge stable, et un second rapport consécutif ajoute une note de contrôle de technique."
 
-#: components/ProgressionSummaryCard.tsx:232
+#: components/ProgressionSummaryCard.tsx:233
 #: components/UpdateModal.tsx:43
 #: components/UpdateModal.tsx:59
 msgid "Dismiss"
@@ -3930,8 +3930,8 @@ msgstr "Hanches"
 msgid "History"
 msgstr "Historique"
 
-#: components/ProgressionSummaryCard.tsx:36
-#: components/ProgressionSummaryCard.tsx:38
+#: components/ProgressionSummaryCard.tsx:37
+#: components/ProgressionSummaryCard.tsx:39
 msgid "Hold steady this session."
 msgstr "Maintiens cette charge cette séance."
 
@@ -4062,6 +4062,10 @@ msgstr "Aperçus"
 msgid "Is {entered} {weightUnit} right?"
 msgstr "{entered} {weightUnit}, c'est correct ?"
 
+#: components/ProgressionSummaryCard.tsx:36
+msgid "It's been a while since you trained this muscle. Start a little lighter to ease back in."
+msgstr "Cela fait un moment que tu n'as pas entraîné ce muscle. Commence un peu plus léger pour reprendre en douceur."
+
 #: hooks/useTrainingDataExport.ts:39
 msgid "JSON"
 msgstr "JSON"
@@ -4134,36 +4138,36 @@ msgstr "90 derniers jours"
 msgid "Last backup: {0}"
 msgstr "Dernière sauvegarde : {0}"
 
-#: components/ProgressionSummaryCard.tsx:48
+#: components/ProgressionSummaryCard.tsx:49
 msgid "Last increased: {days} days ago"
 msgstr "Dernière augmentation : il y a {days} jours"
 
-#: components/ProgressionSummaryCard.tsx:54
+#: components/ProgressionSummaryCard.tsx:55
 msgid "Last increased: {months} months ago"
 msgstr "Dernière augmentation : il y a {months} mois"
 
-#: components/ProgressionSummaryCard.tsx:51
+#: components/ProgressionSummaryCard.tsx:52
 msgid "Last increased: {weeks} weeks ago"
 msgstr "Dernière augmentation : il y a {weeks} semaines"
 
-#: components/ProgressionSummaryCard.tsx:53
+#: components/ProgressionSummaryCard.tsx:54
 msgid "Last increased: 1 month ago"
 msgstr "Dernière augmentation : il y a 1 mois"
 
-#: components/ProgressionSummaryCard.tsx:50
+#: components/ProgressionSummaryCard.tsx:51
 msgid "Last increased: 1 week ago"
 msgstr "Dernière augmentation : il y a 1 semaine"
 
-#: components/ProgressionSummaryCard.tsx:46
+#: components/ProgressionSummaryCard.tsx:47
 msgid "Last increased: today"
 msgstr "Dernière augmentation : aujourd'hui"
 
-#: components/ProgressionSummaryCard.tsx:42
-#: components/ProgressionSummaryCard.tsx:44
+#: components/ProgressionSummaryCard.tsx:43
+#: components/ProgressionSummaryCard.tsx:45
 msgid "Last increased: unknown"
 msgstr "Dernière augmentation : inconnue"
 
-#: components/ProgressionSummaryCard.tsx:47
+#: components/ProgressionSummaryCard.tsx:48
 msgid "Last increased: yesterday"
 msgstr "Dernière augmentation : hier"
 
@@ -4423,7 +4427,7 @@ msgstr "Descendre l'entraînement {0}"
 msgid "Move workout {0} up"
 msgstr "Monter l'entraînement {0}"
 
-#: components/ProgressionSummaryCard.tsx:145
+#: components/ProgressionSummaryCard.tsx:146
 msgid "Multiple exercises showing fatigue signs. A deload week may help you recover and come back stronger."
 msgstr "Plusieurs exercices montrent des signes de fatigue. Une semaine de décharge peut t'aider à récupérer et revenir plus fort."
 
@@ -4501,7 +4505,7 @@ msgstr "Nouvel entraînement"
 msgid "Next"
 msgstr "Suivant"
 
-#: components/ProgressionSummaryCard.tsx:101
+#: components/ProgressionSummaryCard.tsx:102
 msgid "Next Session"
 msgstr "Prochaine séance"
 
@@ -6281,7 +6285,7 @@ msgstr "Cette sauvegarde a été créée avec une version plus récente de Muscl
 msgid "This email is already linked to a different sign-in method."
 msgstr "Cette adresse e-mail est déjà associée à une autre méthode de connexion."
 
-#: components/ProgressionSummaryCard.tsx:201
+#: components/ProgressionSummaryCard.tsx:202
 msgid "This exercise has held steady for 4 sessions. A technique check or a brief deload may help break the plateau."
 msgstr "Cet exercice stagne depuis 4 séances. Un contrôle de technique ou une courte semaine de décharge peut aider à briser le plateau."
 
@@ -6862,7 +6866,7 @@ msgstr "Vibrer après le repos"
 msgid "View All"
 msgstr "Tout afficher"
 
-#: components/ProgressionSummaryCard.tsx:159
+#: components/ProgressionSummaryCard.tsx:160
 msgid "View Deload Option"
 msgstr "Voir l'option de décharge"
 
