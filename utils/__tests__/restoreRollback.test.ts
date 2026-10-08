@@ -376,6 +376,19 @@ describe("after the swap", () => {
     expect(mockDirs.has(ROLLBACK_DIR)).toBe(false);
     expect(hasRestoreToUndo()).toBe(false);
   });
+
+  it("a failed undo is finished by startup recovery before any database opens", () => {
+    mockFailingMoves.add(`${ROLLBACK_DIR}/rollback-userData.db-wal`);
+
+    expect(() => undoLastRestore()).toThrow("Move failed");
+    // Never the original DB beside the restored WAL with no journal to fix it.
+    expect(mockFiles.has(MARKER)).toBe(true);
+
+    mockFailingMoves.clear();
+    expect(recoverInterruptedRestore()).toBe(true);
+    expect(liveState()).toEqual(ORIGINAL_LIVE);
+    expect(mockDirs.has(ROLLBACK_DIR)).toBe(false);
+  });
 });
 
 describe("undoLastRestore", () => {

@@ -106,11 +106,7 @@ const hasSpaceToKeepOriginals = (): boolean => {
 // Puts the original live files back. Every file is attempted even if an
 // earlier one fails; the first failure is thrown at the end, leaving the
 // marker and rollback copies in place for another attempt.
-const undoSwap = (
-  dir: Directory,
-  marker: SwapMarker,
-  markerName: string = MARKER_NAME,
-) => {
+const undoSwap = (dir: Directory, marker: SwapMarker) => {
   let firstError: unknown = null;
 
   for (const name of LIVE_FILE_NAMES) {
@@ -139,7 +135,7 @@ const undoSwap = (
   if (firstError) {
     throw firstError;
   }
-  new File(dir, markerName).delete();
+  new File(dir, MARKER_NAME).delete();
   deleteQuietly(dir);
 };
 
@@ -221,18 +217,24 @@ export const confirmRestoredDatabase = () => {
 
 // Puts back the database from before the last restore, if it is still kept.
 // Returns false when there is nothing to undo. Throws if a file could not be
-// put back, leaving the marker and remaining copies for another attempt.
+// put back, leaving a swap marker and the remaining copies for startup to
+// finish.
 export const undoLastRestore = (): boolean => {
   if (!hasRestoreToUndo()) {
     return false;
   }
   const dir = rollbackDirectory();
-  const markerFile = new File(dir, AWAITING_MARKER_NAME);
-  const marker = readMarker(markerFile);
+  const awaitingFile = new File(dir, AWAITING_MARKER_NAME);
+  const marker = readMarker(awaitingFile);
   if (!marker) {
     return false;
   }
-  undoSwap(dir, marker, AWAITING_MARKER_NAME);
+  // Journaled like the swap itself: from here the folder is an interrupted
+  // swap, so a kill or failed move is finished by startup recovery before
+  // any database opens, never booting the original DB beside a restored WAL.
+  new File(dir, MARKER_NAME).write(JSON.stringify(marker));
+  awaitingFile.delete();
+  undoSwap(dir, marker);
   Bugsnag.leaveBreadcrumb("Undid the last restore");
   return true;
 };
