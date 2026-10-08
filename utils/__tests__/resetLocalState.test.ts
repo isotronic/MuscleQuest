@@ -113,4 +113,29 @@ describe("resetLocalSessionState", () => {
     expect(order).toEqual(["rehydrate", "clear"]);
     expect(useActiveWorkoutStore.getState().activeWorkout).toBeNull();
   });
+
+  it("at startup, waits for every store to load even when one load fails", async () => {
+    let finishSlowLoad!: () => void;
+    jest
+      .spyOn(useActiveWorkoutStore.persist, "rehydrate")
+      .mockRejectedValueOnce(new Error("bad json") as never);
+    jest.spyOn(useWorkoutStore.persist, "rehydrate").mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishSlowLoad = resolve;
+      }) as never,
+    );
+    const clearStorage = jest.spyOn(
+      useActiveWorkoutStore.persist,
+      "clearStorage",
+    );
+
+    const reset = resetLocalSessionStateAfterHydration();
+    await new Promise((r) => setTimeout(r, 0));
+
+    // A late load would bring back what the reset cleared.
+    expect(clearStorage).not.toHaveBeenCalled();
+    finishSlowLoad();
+    await expect(reset).resolves.toBe(false);
+    expect(clearStorage).toHaveBeenCalled();
+  });
 });

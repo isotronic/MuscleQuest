@@ -49,16 +49,19 @@ export async function resetLocalSessionState(): Promise<boolean> {
  * loaded first: a late load would bring the cleared state back.
  */
 export async function resetLocalSessionStateAfterHydration(): Promise<boolean> {
+  // allSettled, not all: one failed load must not start the reset while
+  // another is still in flight.
+  const loads = await Promise.allSettled([
+    useActiveWorkoutStore.persist.rehydrate(),
+    useWorkoutStore.persist.rehydrate(),
+    useSocialStore.persist.rehydrate(),
+  ]);
   let ok = true;
-  try {
-    await Promise.all([
-      useActiveWorkoutStore.persist.rehydrate(),
-      useWorkoutStore.persist.rehydrate(),
-      useSocialStore.persist.rehydrate(),
-    ]);
-  } catch (error) {
-    notifyBugsnag(error);
-    ok = false;
+  for (const load of loads) {
+    if (load.status === "rejected") {
+      notifyBugsnag(load.reason);
+      ok = false;
+    }
   }
   return (await resetLocalSessionState()) && ok;
 }
