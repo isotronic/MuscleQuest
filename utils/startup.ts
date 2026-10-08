@@ -9,7 +9,11 @@ import {
   updateAppExerciseIds,
 } from "@/utils/database";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
-import { recoverInterruptedRestore } from "@/utils/restoreRollback";
+import {
+  confirmRestoredDatabase,
+  recoverInterruptedRestore,
+  undoLastRestore,
+} from "@/utils/restoreRollback";
 import { forgetExerciseImageFiles } from "@/utils/db/exerciseImageFiles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -128,8 +132,18 @@ export const runStartup = async (
   }
 
   // Cleared only after success, so a failed post-restore boot retries with
-  // the flag still set.
+  // the flag still set and the pre-restore database still kept.
+  confirmRestoredDatabase();
   await removeAsyncStorageItem(DATABASE_RESTORED_KEY);
   await resetStartupFailureCount();
   return { status: "ok" };
+};
+
+// From the startup recovery screen: puts back the database from before the
+// last restore and starts again with it.
+export const undoLastRestoreAndReload = async () => {
+  undoLastRestore();
+  await removeAsyncStorageItem(DATABASE_RESTORED_KEY);
+  await resetStartupFailureCount();
+  await Updates.reloadAsync();
 };

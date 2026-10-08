@@ -3,6 +3,7 @@ import * as Updates from "expo-updates";
 import Bugsnag from "@bugsnag/expo";
 import {
   runStartup,
+  undoLastRestoreAndReload,
   DATABASE_RESTORED_KEY,
   STARTUP_FAILURE_COUNT_KEY,
 } from "../startup";
@@ -15,7 +16,11 @@ import {
   updateAppExerciseIds,
 } from "@/utils/database";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
-import { recoverInterruptedRestore } from "@/utils/restoreRollback";
+import {
+  confirmRestoredDatabase,
+  recoverInterruptedRestore,
+  undoLastRestore,
+} from "@/utils/restoreRollback";
 import { forgetExerciseImageFiles } from "@/utils/db/exerciseImageFiles";
 
 jest.mock("@bugsnag/expo", () => ({
@@ -45,6 +50,8 @@ jest.mock("@/utils/db/exerciseImageFiles", () => ({
 }));
 jest.mock("@/utils/restoreRollback", () => ({
   recoverInterruptedRestore: jest.fn(() => false),
+  confirmRestoredDatabase: jest.fn(),
+  undoLastRestore: jest.fn(() => true),
 }));
 
 const initSteps = [
@@ -111,6 +118,45 @@ describe("runStartup after a restore", () => {
       new Error("no such column"),
     );
     await runStartup(Promise.resolve());
+    expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBe("true");
+  });
+
+  it("drops the pre-restore database once the restored one booted", async () => {
+    await runStartup(Promise.resolve());
+    expect(confirmRestoredDatabase).toHaveBeenCalled();
+  });
+
+  it("keeps the pre-restore database when the restored one fails to boot", async () => {
+    (initUserDataDB as jest.Mock).mockRejectedValue(
+      new Error("no such column"),
+    );
+    await runStartup(Promise.resolve());
+    expect(confirmRestoredDatabase).not.toHaveBeenCalled();
+  });
+});
+
+describe("undoLastRestoreAndReload", () => {
+  beforeEach(async () => {
+    await AsyncStorage.setItem(DATABASE_RESTORED_KEY, "true");
+    await AsyncStorage.setItem(STARTUP_FAILURE_COUNT_KEY, "2");
+  });
+
+  it("puts the old database back, clears the restore state and reloads", async () => {
+    await undoLastRestoreAndReload();
+
+    expect(undoLastRestore).toHaveBeenCalled();
+    expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBeNull();
+    expect(await AsyncStorage.getItem(STARTUP_FAILURE_COUNT_KEY)).toBeNull();
+    expect(Updates.reloadAsync).toHaveBeenCalled();
+  });
+
+  it("propagates a failed undo without reloading", async () => {
+    (undoLastRestore as jest.Mock).mockImplementationOnce(() => {
+      throw new Error("Move failed");
+    });
+
+    await expect(undoLastRestoreAndReload()).rejects.toThrow("Move failed");
+    expect(Updates.reloadAsync).not.toHaveBeenCalled();
     expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBe("true");
   });
 });
