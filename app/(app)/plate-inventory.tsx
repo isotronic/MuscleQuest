@@ -24,10 +24,12 @@ import {
 } from "@/utils/plateCalculator";
 import { radii, useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { formatNumber } from "@/utils/numberFormat";
 
 const MAX_PAIRS = 20;
 
-const formatWeight = (value: number) => String(parseFloat(value.toFixed(2)));
+// Display only: trailing zeros trimmed, device decimal separator.
+const formatWeight = (value: number) => formatNumber(value, 2);
 
 /**
  * Edits the plates the user actually owns, which the plate calculator then

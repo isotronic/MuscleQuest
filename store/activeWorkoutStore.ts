@@ -12,6 +12,7 @@ import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { findHistoricalSetByOrdinal } from "@/utils/historyUtils";
 import { suggestedWeightForDisplay } from "@/utils/weightUnits";
 import Bugsnag from "@bugsnag/expo";
+import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
 
 /**
  * Helper function to re-index an object after removing an item at a specific index.
@@ -299,10 +300,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           activeWorkout: {
             planId: null,
             workoutId: null,
-            name: "Quick Workout",
+            name: QUICK_WORKOUT_NAME,
           },
-          workout: { id: 0, name: "Quick Workout", exercises: [] },
-          originalWorkout: { id: 0, name: "Quick Workout", exercises: [] },
+          workout: { id: 0, name: QUICK_WORKOUT_NAME, exercises: [] },
+          originalWorkout: { id: 0, name: QUICK_WORKOUT_NAME, exercises: [] },
           isQuickWorkout: true,
           currentExerciseIndex: 0,
           currentSetIndices: {},

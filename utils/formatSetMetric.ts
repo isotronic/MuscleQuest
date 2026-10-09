@@ -1,4 +1,5 @@
 import { t, plural } from "@lingui/core/macro";
+import { formatNumber } from "./numberFormat";
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -7,7 +8,7 @@ function formatDuration(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-const oneDecimal = (value: number) => parseFloat(value.toFixed(1));
+const oneDecimal = (value: number) => formatNumber(value, 1);
 
 /**
  * One-line summary of a set for history lists. `weight` and `distance` must
@@ -35,8 +36,9 @@ export function formatSetMetric(
     case "distance":
       return `${oneDecimal(set.distance ?? 0)} ${distanceUnit}`;
     case "assisted": {
-      const assist = oneDecimal(set.weight ?? 0);
-      const resist = oneDecimal(Math.max(0, bodyWeight - assist));
+      const assistValue = set.weight ?? 0;
+      const assist = oneDecimal(assistValue);
+      const resist = oneDecimal(Math.max(0, bodyWeight - assistValue));
       const reps = set.reps ?? 0;
       return t`${assist} ${weightUnit} assist / ${resist} ${weightUnit} resist × ${reps}`;
     }

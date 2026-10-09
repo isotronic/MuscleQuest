@@ -21,6 +21,7 @@ import { useContinuousPress } from "@/hooks/useContinuousPress";
 import { ExerciseTimerModal } from "./ExerciseTimerModal";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { formatNumber } from "@/utils/numberFormat";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -132,9 +133,10 @@ export default function SessionSetInfo({
   workingSetOrdinal,
   progressionSuggestion,
 }: SessionSetInfoProps) {
+  // Shown only for a positive target, as text with the device separator.
   const distanceMin =
-    distanceMinMetres != null
-      ? planDistanceToDisplay(distanceMinMetres, distanceUnit)
+    distanceMinMetres != null && distanceMinMetres > 0
+      ? formatNumber(planDistanceToDisplay(distanceMinMetres, distanceUnit), 2)
       : undefined;
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);

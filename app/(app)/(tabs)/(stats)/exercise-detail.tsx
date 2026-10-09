@@ -14,6 +14,7 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { localDateKeyToDate } from "@/utils/dates";
 import { formatWeight, nearlyEqual } from "@/utils/units";
+import { formatDecimal, formatNumber } from "@/utils/numberFormat";
 
 export default function ExerciseDetailScreen() {
   const { colors } = useAppTheme();
@@ -54,7 +55,7 @@ export default function ExerciseDetailScreen() {
   const latestMetric = data?.latestMetric ?? null;
   const deltaPercent =
     prValue > 0 && latestMetric != null && !nearlyEqual(latestMetric, prValue)
-      ? (((latestMetric - prValue) / prValue) * 100).toFixed(1)
+      ? Math.round(((latestMetric - prValue) / prValue) * 1000) / 10
       : null;
 
   const formatMetric = (
@@ -64,7 +65,8 @@ export default function ExerciseDetailScreen() {
     if (val == null) return "—";
     if (trackingType === "reps") return `${Math.round(val)} reps`;
     if (trackingType === "time") return `${Math.round(val)}s`;
-    if (trackingType === "distance") return `${val.toFixed(1)} ${distanceUnit}`;
+    if (trackingType === "distance")
+      return `${formatDecimal(val, 1)} ${distanceUnit}`;
     return `${formatWeight(val, weightUnit)} ${weightUnit}`;
   };
 
@@ -115,15 +117,12 @@ export default function ExerciseDetailScreen() {
                   style={[
                     styles.pillValue,
                     {
-                      color:
-                        parseFloat(deltaPercent) >= 0
-                          ? colors.success
-                          : colors.danger,
+                      color: deltaPercent >= 0 ? colors.success : colors.danger,
                     },
                   ]}
                 >
-                  {parseFloat(deltaPercent) >= 0 ? "▲" : "▼"}{" "}
-                  {Math.abs(parseFloat(deltaPercent))}%
+                  {deltaPercent >= 0 ? "▲" : "▼"}{" "}
+                  {formatNumber(Math.abs(deltaPercent), 1)}%
                 </ThemedText>
               </View>
             </>
@@ -155,7 +154,7 @@ export default function ExerciseDetailScreen() {
               <View key={i} style={styles.listRow}>
                 <ThemedText style={styles.listMain}>
                   {set.distance != null
-                    ? `${set.distance.toFixed(1)} ${distanceUnit}`
+                    ? `${formatDecimal(set.distance, 1)} ${distanceUnit}`
                     : set.weight != null
                       ? `${formatWeight(set.weight, weightUnit)} ${weightUnit} × ${set.reps} reps`
                       : set.reps != null
@@ -201,7 +200,7 @@ export default function ExerciseDetailScreen() {
                 </ThemedText>
                 <ThemedText style={styles.listSub}>
                   {session.bestSet.distance != null
-                    ? `${session.bestSet.distance.toFixed(1)} ${distanceUnit}`
+                    ? `${formatDecimal(session.bestSet.distance, 1)} ${distanceUnit}`
                     : session.bestSet.weight != null
                       ? `${formatWeight(session.bestSet.weight, weightUnit)} ${weightUnit} × ${session.bestSet.reps} reps`
                       : session.bestSet.reps != null

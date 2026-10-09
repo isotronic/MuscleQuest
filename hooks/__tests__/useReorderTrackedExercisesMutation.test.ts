@@ -51,6 +51,7 @@ describe("useReorderTrackedExercisesMutation", () => {
   });
 
   it("onError reports to Bugsnag", () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     useReorderTrackedExercisesMutation();
 
     const error = new Error("db error");

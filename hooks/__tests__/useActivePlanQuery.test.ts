@@ -94,6 +94,7 @@ describe("fetchActivePlanData", () => {
   });
 
   it("should handle and report errors", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("Database error");
     mockDb.getAllAsync.mockRejectedValueOnce(error);
 

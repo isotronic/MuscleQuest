@@ -13,6 +13,7 @@ import {
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
 import { withTimeout } from "@/utils/withTimeout";
+import { appCheckReady } from "@/utils/initAppCheck";
 import { AuthContext, AuthLoadingContext } from "../context/AuthProvider";
 import {
   useSocialStore,
@@ -124,215 +125,231 @@ export const useSocialListeners = () => {
       return;
     }
 
-    const db = getFirestore();
     // Request snapshots await profile reads; once this effect is cleaned up
     // (resubscribe, sign-out) a late result must not overwrite newer data.
     let active = true;
+    let unsubscribe: (() => void) | undefined;
 
-    // A request is still worth showing without a name, so a profile read that
-    // fails or stalls costs only that one name, not the whole list.
-    const readRequestProfile = async (
-      uid: string,
-    ): Promise<{ displayName?: string; photoURL?: string } | undefined> => {
-      try {
-        const snap = await withTimeout(
-          getDoc(doc(db, "users", uid)),
-          15000,
-          "requestProfile",
-        );
-        return snap.data();
-      } catch (error) {
-        notifyBugsnag(error);
-        return undefined;
-      }
-    };
+    const subscribe = () => {
+      const db = getFirestore();
 
-    // Incoming pending requests
-    const unsubPending = onSnapshot(
-      query(
-        collection(db, "friendRequests"),
-        where("to", "==", user.uid),
-        where("status", "==", "pending"),
-      ),
-      async (snapshot) => {
+      // A request is still worth showing without a name, so a profile read that
+      // fails or stalls costs only that one name, not the whole list.
+      const readRequestProfile = async (
+        uid: string,
+      ): Promise<{ displayName?: string; photoURL?: string } | undefined> => {
         try {
-          const requests: PendingRequest[] = await Promise.all(
-            snapshot.docs.map(async (docSnap: QDocSnap) => {
-              const data = docSnap.data();
-              const sender = await readRequestProfile(data.from);
-              return {
-                id: docSnap.id,
-                fromUid: data.from,
-                displayName: sender?.displayName ?? "",
-                photoURL: sender?.photoURL ?? "",
-                createdAt: data.createdAt?.toDate() ?? new Date(),
-              };
-            }),
+          const snap = await withTimeout(
+            getDoc(doc(db, "users", uid)),
+            15000,
+            "requestProfile",
           );
-          if (active) setPendingRequests(requests);
+          return snap.data();
         } catch (error) {
-          notifyError("pendingRequests", error);
+          notifyBugsnag(error);
+          return undefined;
         }
-      },
-      (error) => {
-        notifyError("pendingRequests", error);
-      },
-    );
+      };
 
-    // Outgoing sent requests (still pending)
-    const unsubSent = onSnapshot(
-      query(
-        collection(db, "friendRequests"),
-        where("from", "==", user.uid),
-        where("status", "==", "pending"),
-      ),
-      async (snapshot) => {
-        try {
-          const requests: SentRequest[] = await Promise.all(
-            snapshot.docs.map(async (docSnap: QDocSnap) => {
-              const data = docSnap.data();
-              const receiver = await readRequestProfile(data.to);
-              return {
-                id: docSnap.id,
-                toUid: data.to,
-                displayName: receiver?.displayName ?? "",
-                photoURL: receiver?.photoURL ?? "",
-                createdAt: data.createdAt?.toDate() ?? new Date(),
-              };
-            }),
-          );
-          if (active) setSentRequests(requests);
-        } catch (error) {
-          notifyError("sentRequests", error);
-        }
-      },
-      (error) => {
-        notifyError("sentRequests", error);
-      },
-    );
-
-    // Friends list — synchronous pass first (renders immediately), then background
-    // retry for any docs that lack inline profile data (old friendships).
-    const unsubFriends = onSnapshot(
-      collection(db, "users", user.uid, "friends"),
-      (snapshot) => {
-        // Populate store immediately from whatever the snapshot contains.
-        const friends: FriendInfo[] = snapshot.docs.map((docSnap: QDocSnap) => {
-          const data = docSnap.data();
-          return {
-            uid: docSnap.id,
-            displayName: data.displayName ?? "",
-            photoURL: data.photoURL ?? "",
-            since: data.since ? data.since.toDate().getTime() : Date.now(),
-          };
-        });
-        setFriends(friends);
-
-        // For docs without inline profile data, fetch with retry in background.
-        snapshot.docs.forEach((docSnap: QDocSnap) => {
-          const docData = docSnap.data();
-          const friendRef = doc(db, "users", user.uid, "friends", docSnap.id);
-
-          const reportWriteError = (error: unknown) =>
-            notifyBugsnag(
-              error instanceof Error ? error : new Error(String(error)),
-              (event) => {
-                event.addMetadata("useSocialListeners", {
-                  scope: "friendProfileWrite",
-                  friendUid: docSnap.id,
-                  code: (error as any)?.code ?? null,
-                });
-              },
+      // Incoming pending requests
+      const unsubPending = onSnapshot(
+        query(
+          collection(db, "friendRequests"),
+          where("to", "==", user.uid),
+          where("status", "==", "pending"),
+        ),
+        async (snapshot) => {
+          try {
+            const requests: PendingRequest[] = await Promise.all(
+              snapshot.docs.map(async (docSnap: QDocSnap) => {
+                const data = docSnap.data();
+                const sender = await readRequestProfile(data.from);
+                return {
+                  id: docSnap.id,
+                  fromUid: data.from,
+                  displayName: sender?.displayName ?? "",
+                  photoURL: sender?.photoURL ?? "",
+                  createdAt: data.createdAt?.toDate() ?? new Date(),
+                };
+              }),
             );
+            if (active) setPendingRequests(requests);
+          } catch (error) {
+            notifyError("pendingRequests", error);
+          }
+        },
+        (error) => {
+          notifyError("pendingRequests", error);
+        },
+      );
 
-          // Records written before the address left public profiles still
-          // carry a copy of it. A write allowlist stops new ones; it does not
-          // clean these, and the rules now reject any write to a document that
-          // still has the field, so it has to be cleared here.
-          const clearLegacyEmail =
-            docData.email !== undefined ? { email: deleteField() } : null;
+      // Outgoing sent requests (still pending)
+      const unsubSent = onSnapshot(
+        query(
+          collection(db, "friendRequests"),
+          where("from", "==", user.uid),
+          where("status", "==", "pending"),
+        ),
+        async (snapshot) => {
+          try {
+            const requests: SentRequest[] = await Promise.all(
+              snapshot.docs.map(async (docSnap: QDocSnap) => {
+                const data = docSnap.data();
+                const receiver = await readRequestProfile(data.to);
+                return {
+                  id: docSnap.id,
+                  toUid: data.to,
+                  displayName: receiver?.displayName ?? "",
+                  photoURL: receiver?.photoURL ?? "",
+                  createdAt: data.createdAt?.toDate() ?? new Date(),
+                };
+              }),
+            );
+            if (active) setSentRequests(requests);
+          } catch (error) {
+            notifyError("sentRequests", error);
+          }
+        },
+        (error) => {
+          notifyError("sentRequests", error);
+        },
+      );
 
-          if (docData.displayName == null || docData.photoURL == null) {
-            fetchFriendProfile(docSnap.id)
-              .then((profile) => {
-                updateFriendProfile(docSnap.id, profile);
-                updateDoc(friendRef, {
-                  ...profile,
-                  ...clearLegacyEmail,
-                } as unknown as Record<string, unknown>).catch(
-                  reportWriteError,
-                );
-              })
-              .catch((error: unknown) => {
-                // The legacy address does not depend on the profile read, and
-                // must not be stranded by it: the rules reject every write to a
-                // record that still carries the field, so a record left with
-                // one while this fetch keeps failing could never be written
-                // again.
-                if (clearLegacyEmail) {
-                  updateDoc(friendRef, clearLegacyEmail).catch(
+      // Friends list — synchronous pass first (renders immediately), then background
+      // retry for any docs that lack inline profile data (old friendships).
+      const unsubFriends = onSnapshot(
+        collection(db, "users", user.uid, "friends"),
+        (snapshot) => {
+          // Populate store immediately from whatever the snapshot contains.
+          const friends: FriendInfo[] = snapshot.docs.map(
+            (docSnap: QDocSnap) => {
+              const data = docSnap.data();
+              return {
+                uid: docSnap.id,
+                displayName: data.displayName ?? "",
+                photoURL: data.photoURL ?? "",
+                since: data.since ? data.since.toDate().getTime() : Date.now(),
+              };
+            },
+          );
+          setFriends(friends);
+
+          // For docs without inline profile data, fetch with retry in background.
+          snapshot.docs.forEach((docSnap: QDocSnap) => {
+            const docData = docSnap.data();
+            const friendRef = doc(db, "users", user.uid, "friends", docSnap.id);
+
+            const reportWriteError = (error: unknown) =>
+              notifyBugsnag(
+                error instanceof Error ? error : new Error(String(error)),
+                (event) => {
+                  event.addMetadata("useSocialListeners", {
+                    scope: "friendProfileWrite",
+                    friendUid: docSnap.id,
+                    code: (error as any)?.code ?? null,
+                  });
+                },
+              );
+
+            // Records written before the address left public profiles still
+            // carry a copy of it. A write allowlist stops new ones; it does not
+            // clean these, and the rules now reject any write to a document that
+            // still has the field, so it has to be cleared here.
+            const clearLegacyEmail =
+              docData.email !== undefined ? { email: deleteField() } : null;
+
+            if (docData.displayName == null || docData.photoURL == null) {
+              fetchFriendProfile(docSnap.id)
+                .then((profile) => {
+                  updateFriendProfile(docSnap.id, profile);
+                  updateDoc(friendRef, {
+                    ...profile,
+                    ...clearLegacyEmail,
+                  } as unknown as Record<string, unknown>).catch(
                     reportWriteError,
                   );
-                }
-                // Friend-profile read failed after all retries. Report instead
-                // of swallowing so recurring production read failures are
-                // visible (this path previously dropped the error silently).
-                notifyBugsnag(
-                  error instanceof Error ? error : new Error(String(error)),
-                  (event) => {
-                    event.addMetadata("useSocialListeners", {
-                      scope: "friendProfileFetch",
-                      friendUid: docSnap.id,
-                      code: (error as any)?.code ?? null,
-                    });
-                  },
-                );
-              });
-          } else if (clearLegacyEmail) {
-            updateDoc(friendRef, clearLegacyEmail).catch(reportWriteError);
+                })
+                .catch((error: unknown) => {
+                  // The legacy address does not depend on the profile read, and
+                  // must not be stranded by it: the rules reject every write to a
+                  // record that still carries the field, so a record left with
+                  // one while this fetch keeps failing could never be written
+                  // again.
+                  if (clearLegacyEmail) {
+                    updateDoc(friendRef, clearLegacyEmail).catch(
+                      reportWriteError,
+                    );
+                  }
+                  // Friend-profile read failed after all retries. Report instead
+                  // of swallowing so recurring production read failures are
+                  // visible (this path previously dropped the error silently).
+                  notifyBugsnag(
+                    error instanceof Error ? error : new Error(String(error)),
+                    (event) => {
+                      event.addMetadata("useSocialListeners", {
+                        scope: "friendProfileFetch",
+                        friendUid: docSnap.id,
+                        code: (error as any)?.code ?? null,
+                      });
+                    },
+                  );
+                });
+            } else if (clearLegacyEmail) {
+              updateDoc(friendRef, clearLegacyEmail).catch(reportWriteError);
+            }
+          });
+        },
+        (error) => {
+          notifyError("friends", error);
+        },
+      );
+
+      // Privacy settings
+      const unsubSettings = onSnapshot(
+        doc(db, "users", user.uid, "private", "settings"),
+        (docSnap: DocSnap) => {
+          if (docSnap.exists()) {
+            setPrivacySettings(docSnap.data() as FirestorePrivateSettings);
+          } else {
+            setPrivacySettings(null);
           }
-        });
-      },
-      (error) => {
-        notifyError("friends", error);
-      },
-    );
+        },
+        (error) => {
+          notifyError("privacySettings", error);
+        },
+      );
 
-    // Privacy settings
-    const unsubSettings = onSnapshot(
-      doc(db, "users", user.uid, "private", "settings"),
-      (docSnap: DocSnap) => {
-        if (docSnap.exists()) {
-          setPrivacySettings(docSnap.data() as FirestorePrivateSettings);
-        } else {
-          setPrivacySettings(null);
-        }
-      },
-      (error) => {
-        notifyError("privacySettings", error);
-      },
-    );
+      const unsubPublishedPlans = onSnapshot(
+        collection(db, "users", user.uid, "sharedPlans"),
+        (snap) => setPublishedPlanIds(snap.docs.map((d: QDocSnap) => d.id)),
+        (error) => notifyError("publishedPlanIds", error),
+      );
 
-    const unsubPublishedPlans = onSnapshot(
-      collection(db, "users", user.uid, "sharedPlans"),
-      (snap) => setPublishedPlanIds(snap.docs.map((d: QDocSnap) => d.id)),
-      (error) => notifyError("publishedPlanIds", error),
-    );
+      const unsubPublishedWorkouts = onSnapshot(
+        collection(db, "users", user.uid, "sharedStandaloneWorkouts"),
+        (snap) => setPublishedWorkoutIds(snap.docs.map((d: QDocSnap) => d.id)),
+        (error) => notifyError("publishedWorkoutIds", error),
+      );
 
-    const unsubPublishedWorkouts = onSnapshot(
-      collection(db, "users", user.uid, "sharedStandaloneWorkouts"),
-      (snap) => setPublishedWorkoutIds(snap.docs.map((d: QDocSnap) => d.id)),
-      (error) => notifyError("publishedWorkoutIds", error),
-    );
+      unsubscribe = () => {
+        unsubPending();
+        unsubSent();
+        unsubFriends();
+        unsubSettings();
+        unsubPublishedPlans();
+        unsubPublishedWorkouts();
+      };
+    };
+
+    // Startup no longer waits for App Check, so the first requests wait here
+    // and carry a token whenever one could be fetched.
+    appCheckReady().then(() => {
+      if (active) subscribe();
+    });
 
     return () => {
       active = false;
-      unsubPending();
-      unsubSent();
-      unsubFriends();
-      unsubSettings();
-      unsubPublishedPlans();
-      unsubPublishedWorkouts();
+      unsubscribe?.();
     };
     // Resubscribe only when the signed-in account or the retry generation
     // changes; store setters are stable and re-running on every user object

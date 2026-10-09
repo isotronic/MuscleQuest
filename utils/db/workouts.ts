@@ -5,6 +5,7 @@ import { nowForDb, parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
 import { METRIC_EPSILON, kgToDisplay, metresToDisplay } from "@/utils/units";
 import { openDatabase } from "./connection";
 import { progressionMetricSql } from "./progressionMetricSql";
+import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
 
 export interface SavedWorkout {
   planId: number | null;
@@ -190,7 +191,7 @@ export const fetchCompletedWorkoutById = async (
         cw.id,
         cw.plan_id as plan_id,
         cw.workout_id as workout_id,
-        COALESCE(uw.name, 'Quick Workout') as workout_name,
+        COALESCE(uw.name, '${QUICK_WORKOUT_NAME}') as workout_name,
         cw.date_completed,
         cw.local_date,
         cw.duration,

@@ -16,6 +16,7 @@ import type { AppThemeColors } from "@/theme/types";
 import { useStatsWidgetContext } from "./StatsWidgetContext";
 import { useWidgetRange } from "./useWidgetRange";
 import { WidgetSection } from "./WidgetSection";
+import { formatNumber } from "@/utils/numberFormat";
 
 /** The record set, and what it improved on, in the user's units. */
 export const describePR = (
@@ -37,8 +38,8 @@ export const describePR = (
       };
     case "distance":
       return {
-        set: `${planDistanceToDisplay(pr.value, distanceUnit)} ${distanceUnit}`,
-        gain: `+${planDistanceToDisplay(gain, distanceUnit)} ${distanceUnit}`,
+        set: `${formatNumber(planDistanceToDisplay(pr.value, distanceUnit), 2)} ${distanceUnit}`,
+        gain: `+${formatNumber(planDistanceToDisplay(gain, distanceUnit), 2)} ${distanceUnit}`,
       };
     default: {
       const weight = formatWeight(pr.weight ?? 0, weightUnit);

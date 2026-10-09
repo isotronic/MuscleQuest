@@ -112,10 +112,24 @@ describe("signInWithGoogle", () => {
     expect(Bugsnag.notify).toHaveBeenCalledTimes(1);
     expect(mockEvent.addMetadata).toHaveBeenCalledWith("sign_in_error", {
       code: "test-code",
-      message: "test-code",
       name: "TestError",
-      stack: expect.any(String),
     });
+  });
+
+  it("redacts email addresses from the reported message", async () => {
+    const error = withCode("test-code");
+    (GoogleSignin.signIn as jest.Mock).mockRejectedValue(error);
+    const reported = {
+      errorMessage: "Account jane.doe@example.com is not allowed",
+    };
+    const mockEvent = { addMetadata: jest.fn(), errors: [reported] };
+    (Bugsnag.notify as jest.Mock).mockImplementation((_error, callback) => {
+      callback(mockEvent);
+    });
+
+    await signInWithGoogle();
+
+    expect(reported.errorMessage).toBe("Account [email] is not allowed");
   });
 
   it("never shows an alert itself", async () => {

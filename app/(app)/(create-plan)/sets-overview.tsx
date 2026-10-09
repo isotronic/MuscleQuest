@@ -21,6 +21,7 @@ import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { planDistanceToDisplay } from "@/utils/planDistance";
+import { formatNumber } from "@/utils/numberFormat";
 
 export default function SetsOverviewScreen() {
   const { colors } = useAppTheme();
@@ -166,7 +167,7 @@ export default function SetsOverviewScreen() {
                   ? `${formattedTime}, `
                   : effectiveTrackingType === "distance"
                     ? item.distance !== undefined
-                      ? `${planDistanceToDisplay(item.distance, distanceUnit)} ${distanceUnit}, `
+                      ? `${formatNumber(planDistanceToDisplay(item.distance, distanceUnit), 2)} ${distanceUnit}, `
                       : ""
                     : repRange !== undefined
                       ? t`${repRange} Reps, `

@@ -1,5 +1,7 @@
 import { setupAppCheck } from "../initAppCheck";
 
+jest.unmock("@/utils/initAppCheck");
+
 const mockAppInstance = { name: "mock-app" };
 const mockAppCheckInstance = { app: mockAppInstance };
 const mockInitializeAppCheck = jest.fn();
@@ -73,6 +75,7 @@ describe("setupAppCheck", () => {
   });
 
   it("resolves without throwing when getToken fails", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockGetToken.mockRejectedValueOnce(new Error("Play Integrity unavailable"));
 
     await expect(setupAppCheck()).resolves.toBeUndefined();
@@ -113,5 +116,59 @@ describe("setupAppCheck", () => {
         }),
       }),
     );
+  });
+});
+
+describe("appCheckReady", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.resetModules();
+    mockInitializeAppCheck.mockResolvedValue(mockAppCheckInstance);
+    mockGetToken.mockResolvedValue({ token: "test-token" });
+  });
+
+  const load = (): typeof import("../initAppCheck") =>
+    jest.requireActual("../initAppCheck");
+
+  it("starts App Check once and returns the same promise", async () => {
+    const { appCheckReady } = load();
+
+    const first = appCheckReady();
+    const second = appCheckReady();
+
+    expect(second).toBe(first);
+    await first;
+    expect(mockInitializeAppCheck).toHaveBeenCalledTimes(1);
+  });
+
+  it("resolves and reports when App Check cannot be initialised", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    mockInitializeAppCheck.mockRejectedValueOnce(new Error("init failed"));
+    const { appCheckReady } = load();
+
+    await expect(appCheckReady()).resolves.toBeUndefined();
+    expect(jest.requireMock("@bugsnag/expo").notify).toHaveBeenCalled();
+  });
+
+  it("starts App Check again after its initialisation failed", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    mockInitializeAppCheck.mockRejectedValueOnce(new Error("init failed"));
+    const { appCheckReady } = load();
+
+    await appCheckReady();
+    await appCheckReady();
+
+    expect(mockInitializeAppCheck).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not start again after a token fetch failure", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    mockGetToken.mockRejectedValueOnce(new Error("Play Integrity unavailable"));
+    const { appCheckReady } = load();
+
+    await appCheckReady();
+    await appCheckReady();
+
+    expect(mockInitializeAppCheck).toHaveBeenCalledTimes(1);
   });
 });

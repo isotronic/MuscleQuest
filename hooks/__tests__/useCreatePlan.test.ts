@@ -8,6 +8,10 @@ import { getDoc } from "@react-native-firebase/firestore";
 
 const mockUser = { uid: "user-123" };
 
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray, ...v: unknown[]) => String.raw({ raw: s }, ...v),
+}));
+
 jest.mock("react", () => ({
   ...jest.requireActual("react"),
   useContext: jest.fn(() => mockUser),
@@ -44,6 +48,11 @@ jest.mock("@react-native-firebase/firestore", () => ({
   getFirestore: jest.fn(() => ({})),
   doc: jest.fn(() => ({})),
   getDoc: jest.fn(() => new Promise(() => {})),
+}));
+// Passthrough: the real one would keep a 15 s timer running for the
+// never-settling getDoc above and hold the Jest worker open.
+jest.mock("@/utils/withTimeout", () => ({
+  withTimeout: (promise: Promise<unknown>) => promise,
 }));
 
 jest.mock("@bugsnag/expo", () => ({

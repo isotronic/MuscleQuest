@@ -13,6 +13,7 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { useStatsWidgetContext } from "./StatsWidgetContext";
 import { WidgetSection } from "./WidgetSection";
+import { formatNumber } from "@/utils/numberFormat";
 
 export const MeasurementsWidget: React.FC<{
   config: WidgetConfigs["measurements"];
@@ -66,7 +67,7 @@ export const MeasurementsWidget: React.FC<{
                     ? _(bodyMetricTranslations[v.metric.key])
                     : v.metric.label}
                   {": "}
-                  {v.displayValue} {v.displayUnit}
+                  {formatNumber(v.displayValue, 1)} {v.displayUnit}
                 </ThemedText>
               ))}
             </View>

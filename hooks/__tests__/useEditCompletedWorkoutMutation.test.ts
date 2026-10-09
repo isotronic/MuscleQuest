@@ -36,6 +36,10 @@ jest.mock("@bugsnag/expo", () => ({
 jest.mock("react-native", () => ({
   Alert: { alert: jest.fn() },
 }));
+// The real module needs react-native's Platform, mocked away above.
+jest.mock("expo-localization", () => ({
+  getLocales: () => [{ decimalSeparator: ".", languageTag: "en-US" }],
+}));
 // Marks everything that goes through `t`, so an untranslated literal fails.
 jest.mock("@lingui/core/macro", () => ({
   t: (s: TemplateStringsArray) => `[t] ${s[0]}`,

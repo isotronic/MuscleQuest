@@ -57,6 +57,8 @@ jest.mock("@bugsnag/expo", () => ({
 describe("useSocialListeners after a resubscribe", () => {
   it("ignores request lookups that finish after their listener was torn down", async () => {
     renderHook(() => useSocialListeners());
+    // Listeners subscribe once App Check has settled (mocked as resolved).
+    await act(async () => {});
     // The first onSnapshot registered is the incoming pending requests one.
     const stalePendingCallback = mockSnapshotCallbacks[0];
 

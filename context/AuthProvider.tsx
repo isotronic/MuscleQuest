@@ -49,11 +49,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (userState) {
         // Attribute every subsequent Bugsnag report to this user so errors
         // can be correlated to accounts and blast radius can be measured.
-        Bugsnag.setUser(
-          userState.uid,
-          userState.email ?? undefined,
-          userState.displayName ?? undefined,
-        );
+        // The uid only: the email and name are not sent to the reporter.
+        Bugsnag.setUser(userState.uid);
         // Catches and reports internally; this is a backstop.
         upsertUserProfile(userState).catch(notifyBugsnag);
       } else {

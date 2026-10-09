@@ -1,7 +1,8 @@
 import React from "react";
-import { render } from "@testing-library/react-native";
+import { act, render } from "@testing-library/react-native";
 import { AuthProvider } from "../AuthProvider";
 import { resolveAccountOwnership } from "../../utils/accountOwnership";
+import Bugsnag from "@bugsnag/expo";
 
 let authCallback: (user: unknown) => void = () => {};
 
@@ -28,7 +29,7 @@ beforeEach(() => jest.clearAllMocks());
 it("resolves who owns the local data on sign-in", () => {
   render(<AuthProvider>{null}</AuthProvider>);
 
-  authCallback({ uid: "alice", email: null, displayName: null });
+  act(() => authCallback({ uid: "alice", email: null, displayName: null }));
 
   expect(resolveAccountOwnership).toHaveBeenCalledWith("alice");
 });
@@ -36,7 +37,22 @@ it("resolves who owns the local data on sign-in", () => {
 it("resolves again on sign-out", () => {
   render(<AuthProvider>{null}</AuthProvider>);
 
-  authCallback(null);
+  act(() => authCallback(null));
 
   expect(resolveAccountOwnership).toHaveBeenCalledWith(null);
+});
+
+it("attributes reports to the uid only", () => {
+  render(<AuthProvider>{null}</AuthProvider>);
+
+  act(() =>
+    authCallback({
+      uid: "alice",
+      email: "alice@example.com",
+      displayName: "Alice",
+    }),
+  );
+
+  expect(Bugsnag.setUser).toHaveBeenCalledWith("alice");
+  expect((Bugsnag.setUser as jest.Mock).mock.calls[0]).toHaveLength(1);
 });

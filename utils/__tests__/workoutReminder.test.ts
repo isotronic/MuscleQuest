@@ -22,6 +22,13 @@ jest.mock("@/utils/asyncStorage", () => ({
   setAsyncStorageItem: jest.fn(),
   removeAsyncStorageItem: jest.fn(),
 }));
+// Stands in for the active catalog: t returns the English text with a prefix
+// for the current language, read at call time.
+let mockLanguagePrefix = "";
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray, ...v: unknown[]) =>
+    mockLanguagePrefix + String.raw({ raw: s }, ...v),
+}));
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
   default: { notify: jest.fn() },
@@ -120,15 +127,58 @@ describe("rescheduleWorkoutReminders (enabled)", () => {
   });
 
   it("does not schedule when days string is invalid JSON", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     await rescheduleWorkoutReminders("true", "not-json", "08:00");
     expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
     expect(Bugsnag.notify).toHaveBeenCalled();
   });
 
   it("does not schedule when time is invalid", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     await rescheduleWorkoutReminders("true", "[1]", "25:99");
     expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
     expect(Bugsnag.notify).toHaveBeenCalled();
+  });
+
+  it("writes the reminder in the active language", async () => {
+    mockLanguagePrefix = "[de] ";
+    try {
+      await rescheduleWorkoutReminders("true", "[1]", "08:00");
+    } finally {
+      mockLanguagePrefix = "";
+    }
+    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.objectContaining({
+          title: "[de] Time to train!",
+          body: "[de] Your workout is scheduled for today. Let's go!",
+          data: { kind: "workoutReminder" },
+        }),
+      }),
+    );
+  });
+
+  it("cancels untracked reminders in any language, and legacy English ones", async () => {
+    (
+      Notifications.getAllScheduledNotificationsAsync as jest.Mock
+    ).mockResolvedValue([
+      {
+        identifier: "tagged",
+        content: {
+          title: "Zeit zu trainieren!",
+          data: { kind: "workoutReminder" },
+        },
+      },
+      { identifier: "legacy", content: { title: "Time to train!", data: {} } },
+      { identifier: "other", content: { title: "Rest over", data: {} } },
+    ]);
+
+    await rescheduleWorkoutReminders("false", "[]", "08:00");
+
+    const cancelled = (
+      Notifications.cancelScheduledNotificationAsync as jest.Mock
+    ).mock.calls.map(([id]) => id);
+    expect(cancelled).toEqual(["tagged", "legacy"]);
   });
 
   it("deduplicates day values", async () => {

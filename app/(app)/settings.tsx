@@ -58,6 +58,7 @@ import {
   requestNotificationPermission,
 } from "@/utils/workoutReminder";
 import { radii } from "@/theme";
+import { toDisplayDecimal } from "@/utils/numberFormat";
 // import { clearActivePlanStatus } from "@/utils/clearUserData";
 
 const REMINDER_DAY_LABELS = [
@@ -110,7 +111,7 @@ export default function SettingsScreen() {
   const { isExporting, promptExport } = useTrainingDataExport();
 
   const queryClient = useQueryClient();
-  const { data: settings, isLoading, isError, error } = useSettingsQuery();
+  const { data: settings, isLoading, isError, refetch } = useSettingsQuery();
   const { mutate: updateSetting } = useUpdateSettingsMutation();
 
   const {
@@ -566,12 +567,7 @@ export default function SettingsScreen() {
     );
   };
 
-  useEffect(() => {
-    if (isError) {
-      console.error("Error fetching settings:", error);
-      Bugsnag.notify(error);
-    }
-  }, [isError, error]);
+  // A failed load is reported by the query client's global error handler.
 
   if (isLoading) {
     return (
@@ -582,7 +578,16 @@ export default function SettingsScreen() {
   }
 
   if (isError) {
-    return <ThemedText>Error: {error.message}</ThemedText>;
+    return (
+      <ThemedView style={[styles.container, styles.errorState]}>
+        <ThemedText style={styles.errorText}>
+          <Trans>Your settings could not be loaded.</Trans>
+        </ThemedText>
+        <Button mode="contained" onPress={() => refetch()}>
+          <Trans>Try again</Trans>
+        </Button>
+      </ThemedView>
+    );
   }
 
   return (
@@ -691,8 +696,8 @@ export default function SettingsScreen() {
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 <Trans>
-                  {settings?.bodyWeight} {settings?.weightUnit} (used for
-                  assisted exercises)
+                  {toDisplayDecimal(settings?.bodyWeight ?? "")}{" "}
+                  {settings?.weightUnit} (used for assisted exercises)
                 </Trans>
               </ThemedText>
             </View>
@@ -847,7 +852,8 @@ export default function SettingsScreen() {
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 <Trans>
-                  {settings?.weightIncrement} {settings?.weightUnit}
+                  {toDisplayDecimal(settings?.weightIncrement ?? "")}{" "}
+                  {settings?.weightUnit}
                 </Trans>
               </ThemedText>
             </View>
@@ -1250,7 +1256,9 @@ export default function SettingsScreen() {
                     <Trans>Barbell load increment</Trans>
                   </ThemedText>
                   <ThemedText style={styles.currentSetting}>
-                    {settings?.progression_increment_barbell_kg || "2.5"}{" "}
+                    {toDisplayDecimal(
+                      settings?.progression_increment_barbell_kg || "2.5",
+                    )}{" "}
                     {settings?.weightUnit || "kg"}
                   </ThemedText>
                 </View>
@@ -1278,7 +1286,9 @@ export default function SettingsScreen() {
                     <Trans>Dumbbell load increment</Trans>
                   </ThemedText>
                   <ThemedText style={styles.currentSetting}>
-                    {settings?.progression_increment_dumbbell_kg || "2.0"}{" "}
+                    {toDisplayDecimal(
+                      settings?.progression_increment_dumbbell_kg || "2.0",
+                    )}{" "}
                     {settings?.weightUnit || "kg"}
                   </ThemedText>
                 </View>
@@ -1306,7 +1316,9 @@ export default function SettingsScreen() {
                     <Trans>Cable load increment</Trans>
                   </ThemedText>
                   <ThemedText style={styles.currentSetting}>
-                    {settings?.progression_increment_cable_kg || "2.5"}{" "}
+                    {toDisplayDecimal(
+                      settings?.progression_increment_cable_kg || "2.5",
+                    )}{" "}
                     {settings?.weightUnit || "kg"}
                   </ThemedText>
                 </View>
@@ -1334,7 +1346,9 @@ export default function SettingsScreen() {
                     <Trans>Machine load increment</Trans>
                   </ThemedText>
                   <ThemedText style={styles.currentSetting}>
-                    {settings?.progression_increment_machine_kg || "2.5"}{" "}
+                    {toDisplayDecimal(
+                      settings?.progression_increment_machine_kg || "2.5",
+                    )}{" "}
                     {settings?.weightUnit || "kg"}
                   </ThemedText>
                 </View>
@@ -1940,6 +1954,15 @@ function createStyles(colors: AppThemeColors) {
       marginVertical: 16,
     },
     progressBarText: {},
+    errorState: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 16,
+    },
+    errorText: {
+      textAlign: "center",
+    },
     backupButton: {
       marginRight: 4,
     },

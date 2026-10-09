@@ -36,6 +36,8 @@ import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import { useClearFinishedWorkout } from "@/hooks/useClearFinishedWorkout";
 import { ConfettiAnimation } from "@/components/ConfettiAnimation";
+import { displayWorkoutName } from "@/utils/workoutName";
+import { formatDecimal, formatNumber } from "@/utils/numberFormat";
 
 // --- Helpers ---
 
@@ -84,8 +86,10 @@ function getBestSetLabel(
     return t`best ${maxTime}s`;
   }
   if (exercise.exercise_tracking_type === "distance") {
-    const maxDist = Math.max(...exercise.sets.map((s) => s.distance ?? 0));
-    return maxDist > 0 ? t`best ${maxDist}${distanceUnit}` : "";
+    const longest = Math.max(...exercise.sets.map((s) => s.distance ?? 0));
+    if (longest <= 0) return "";
+    const maxDist = formatNumber(longest, 2);
+    return t`best ${maxDist}${distanceUnit}`;
   }
   const best = exercise.sets.reduce((b, s) => {
     const vol = (s.weight ?? 0) * (s.reps ?? 0);
@@ -93,7 +97,7 @@ function getBestSetLabel(
     return vol > bVol ? s : b;
   }, exercise.sets[0]);
   if (best.weight != null && best.weight > 0 && best.reps != null) {
-    return t`best ${best.weight}${weightUnit} × ${best.reps}`;
+    return t`best ${formatNumber(best.weight, 2)}${weightUnit} × ${best.reps}`;
   }
   if (best.reps != null) return t`best ${best.reps} reps`;
   return "";
@@ -107,10 +111,12 @@ function formatSetValue(
 ): string {
   if (trackingType === "time") return t`${set.time ?? 0}s`;
   if (trackingType === "distance") {
-    return set.distance != null ? t`${set.distance}${distanceUnit}` : "—";
+    return set.distance != null
+      ? t`${formatNumber(set.distance, 2)}${distanceUnit}`
+      : "—";
   }
   if (set.weight != null && set.reps != null) {
-    return t`${set.weight}${weightUnit} × ${set.reps}`;
+    return t`${formatNumber(set.weight, 2)}${weightUnit} × ${set.reps}`;
   }
   if (set.reps != null) return t`${set.reps} reps`;
   return "—";
@@ -165,7 +171,7 @@ function DiffChip({
   const sign = diff > 0 ? "+" : "";
   const displayVal = Number.isInteger(diff)
     ? `${sign}${diff}${unit}`
-    : `${sign}${diff.toFixed(1)}${unit}`;
+    : `${sign}${formatDecimal(diff, 1)}${unit}`;
 
   return (
     <View style={styles.diffChip}>
@@ -433,9 +439,7 @@ export default function WorkoutSummaryScreen() {
   }
 
   const volumeDisplay =
-    currentVolume > 0
-      ? `${Number.isInteger(currentVolume) ? currentVolume : currentVolume.toFixed(1)}${weightUnit}`
-      : "—";
+    currentVolume > 0 ? `${formatNumber(currentVolume, 1)}${weightUnit}` : "—";
 
   const durationDiffMin = prevWorkout
     ? Math.round((workout.duration - prevWorkout.duration) / 60)
@@ -468,7 +472,7 @@ export default function WorkoutSummaryScreen() {
             <Trans>Workout Complete!</Trans>
           </ThemedText>
           <ThemedText style={styles.workoutName}>
-            {workout.workout_name}
+            {displayWorkoutName(workout.workout_name)}
           </ThemedText>
         </View>
 
@@ -499,7 +503,9 @@ export default function WorkoutSummaryScreen() {
         {prevWorkout && !workout.is_deload && !prevWorkout.is_deload && (
           <View style={styles.progressionCard}>
             <ThemedText style={styles.progressionTitle}>
-              <Trans>vs. last "{workout.workout_name}"</Trans>
+              <Trans>
+                vs. last "{displayWorkoutName(workout.workout_name)}"
+              </Trans>
             </ThemedText>
             <View style={styles.diffRow}>
               <DiffChip

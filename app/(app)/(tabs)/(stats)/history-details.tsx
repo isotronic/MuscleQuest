@@ -24,6 +24,12 @@ import { formatFromTotalSeconds } from "@/utils/utility";
 import Bugsnag from "@bugsnag/expo";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { displayWorkoutName } from "@/utils/workoutName";
+import { formatNumber } from "@/utils/numberFormat";
+
+// Set values arrive in display units; shown with the device separator.
+const showValue = (value: number | null | undefined) =>
+  value != null ? formatNumber(value, 2) : "—";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -184,7 +190,7 @@ export default function HistoryDetailsScreen() {
         {/* Top Section */}
         <View style={styles.topSection}>
           <ThemedText style={styles.workoutName}>
-            {workout.workout_name}
+            {displayWorkoutName(workout.workout_name)}
           </ThemedText>
           <ThemedText style={styles.workoutDate}>
             <Trans>Completed on: {formattedDate}</Trans>
@@ -225,7 +231,7 @@ export default function HistoryDetailsScreen() {
               color={colors.contentSecondary}
             />
             <ThemedText style={styles.summaryText}>
-              {totalVolume} {settings?.weightUnit}
+              {formatNumber(totalVolume, 1)} {settings?.weightUnit}
             </ThemedText>
           </View>
         </View>
@@ -278,21 +284,23 @@ export default function HistoryDetailsScreen() {
                       </ThemedText>
                     ) : exercise.exercise_tracking_type === "distance" ? (
                       <ThemedText style={styles.setText}>
-                        {set.distance} {distanceUnit}
+                        {showValue(set.distance)} {distanceUnit}
                       </ThemedText>
                     ) : exercise.exercise_tracking_type === "weight" ? (
                       <ThemedText style={styles.setText}>
                         <Trans>
-                          {set.weight ?? "—"} {settings?.weightUnit} |{" "}
+                          {showValue(set.weight)} {settings?.weightUnit} |{" "}
                           {set.reps ?? 0} Reps
                         </Trans>
                       </ThemedText>
                     ) : (
                       <ThemedText style={styles.setText}>
                         <Trans>
-                          Assist {set.weight ?? "—"} {settings?.weightUnit} |
-                          Resist{" "}
-                          {set.weight != null ? bodyWeight - set.weight : "—"}{" "}
+                          Assist {showValue(set.weight)} {settings?.weightUnit}{" "}
+                          | Resist{" "}
+                          {showValue(
+                            set.weight != null ? bodyWeight - set.weight : null,
+                          )}{" "}
                           {settings?.weightUnit} | {set.reps ?? 0} Reps
                         </Trans>
                       </ThemedText>

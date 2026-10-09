@@ -12,6 +12,7 @@ import { useChartTheme } from "./chartTheme";
 import { spokenBucketLabels, summarizeTotals } from "./chartA11y";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { toDisplayDecimal } from "@/utils/numberFormat";
 
 type TrendWorkout = Pick<WorkoutSummary, "local_date"> &
   Partial<
@@ -289,6 +290,7 @@ export const TrendBarChart: React.FC<TrendBarChartProps> = ({
           noOfSections={chartTheme.noOfSections}
           initialSpacing={INITIAL_SPACING}
           maxValue={maxValue}
+          formatYLabel={toDisplayDecimal}
           hideRules
         />
       </View>

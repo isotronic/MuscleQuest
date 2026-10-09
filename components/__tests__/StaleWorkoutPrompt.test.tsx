@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { act, render, fireEvent } from "@testing-library/react-native";
 import { Alert } from "react-native";
 import { router } from "expo-router";
 import { StaleWorkoutPrompt } from "../StaleWorkoutPrompt";
@@ -133,7 +133,7 @@ describe("StaleWorkoutPrompt", () => {
 
     expect(useActiveWorkoutStore.getState().workout).not.toBeNull();
     const [, , buttons] = (Alert.alert as jest.Mock).mock.calls[0];
-    buttons.find((b: any) => b.style === "destructive").onPress();
+    act(() => buttons.find((b: any) => b.style === "destructive").onPress());
 
     expect(useActiveWorkoutStore.getState().workout).toBeNull();
     expect(cancelRestNotifications).toHaveBeenCalled();

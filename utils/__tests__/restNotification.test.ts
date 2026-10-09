@@ -88,6 +88,7 @@ describe("scheduleRestNotification", () => {
   });
 
   it("notifies Bugsnag when scheduling throws", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("scheduling failed");
     (Notifications.scheduleNotificationAsync as jest.Mock).mockRejectedValue(
       error,
@@ -137,6 +138,7 @@ describe("cancelRestNotifications", () => {
   });
 
   it("notifies Bugsnag on error", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("cancel failed");
     (getAsyncStorageItem as jest.Mock).mockRejectedValue(error);
     await cancelRestNotifications();

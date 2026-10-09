@@ -14,6 +14,7 @@ import type {
   BodyMetricDefinition,
   LatestBodyMetricValue,
 } from "@/utils/database";
+import { formatNumber } from "@/utils/numberFormat";
 
 interface MeasurementQuickLogCardProps {
   metrics: BodyMetricDefinition[] | undefined;
@@ -60,7 +61,8 @@ export function MeasurementQuickLogCard({
           <>
             <ThemedText style={styles.title}>{metricLabel}</ThemedText>
             <ThemedText style={styles.value}>
-              {summary.latest.displayValue} {summary.latest.displayUnit}
+              {formatNumber(summary.latest.displayValue, 1)}{" "}
+              {summary.latest.displayUnit}
             </ThemedText>
             <ThemedText style={styles.subtitle}>
               {summary.daysSinceLastLog === 0 ? (

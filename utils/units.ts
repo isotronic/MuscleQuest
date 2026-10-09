@@ -1,6 +1,8 @@
 // The single home for unit conversion. Storage is canonical (weights in kg,
 // distances in metres, body lengths in cm); convert only at the display
 // boundary. The eslint config rejects these factors anywhere else.
+import { formatDecimal } from "./numberFormat";
+
 export type WeightUnit = "kg" | "lbs";
 
 // Exact by definition. The inverses are derived, never typed, so a round trip
@@ -35,12 +37,15 @@ export const displayToCm = (value: number, unit: string): number =>
 export const roundCanonical = (value: number): number =>
   Math.round(value * 1000) / 1000;
 
-/** Converts kg for display and formats it, without the unit label. */
+/**
+ * Converts kg for display and formats it with the device decimal separator,
+ * without the unit label. Text only: never parse or store the result.
+ */
 export const formatWeight = (
   kg: number,
   unit: string,
   { decimals = 1 }: { decimals?: number } = {},
-): string => kgToDisplay(kg, unit).toFixed(decimals);
+): string => formatDecimal(kgToDisplay(kg, unit), decimals);
 
 /**
  * Rows saved before roundCanonical carry float noise, and rounding moves a

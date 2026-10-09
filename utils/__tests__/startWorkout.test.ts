@@ -76,6 +76,7 @@ describe("confirmStartWorkout", () => {
     });
 
     it("calls setLoading(false) on error and does not navigate", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {});
       onStart.mockImplementation(() => {
         throw new Error("start failed");
       });

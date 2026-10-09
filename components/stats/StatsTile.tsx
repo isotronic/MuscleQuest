@@ -4,6 +4,7 @@ import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { formatNumber } from "@/utils/numberFormat";
 
 interface StatsTileProps {
   label: string;
@@ -27,7 +28,7 @@ const DeltaText: React.FC<{
       ? colors.success
       : colors.danger;
   const prefix = isNeutral ? "─" : isPositive ? "▲" : "▼";
-  const absVal = Math.abs(delta);
+  const absVal = formatNumber(Math.abs(delta), 2);
   const formatted = deltaText ?? (label ? `${absVal}${label}` : absVal);
   const text = `${prefix} ${formatted}`;
 

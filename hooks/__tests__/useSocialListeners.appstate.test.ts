@@ -60,14 +60,18 @@ jest.mock("react-native", () => ({
   },
 }));
 
+// Listeners subscribe once App Check has settled (mocked as resolved).
+const flushAppCheck = () => act(async () => {});
+
 describe("useSocialListeners - AppState-driven resubscription", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     appStateHandler = undefined;
   });
 
-  it("re-subscribes all listeners when the app returns to the foreground", () => {
+  it("re-subscribes all listeners when the app returns to the foreground", async () => {
     renderHook(() => useSocialListeners());
+    await flushAppCheck();
 
     const initialSubscriptionCount = mockOnSnapshot.mock.calls.length;
     expect(initialSubscriptionCount).toBeGreaterThan(0);
@@ -76,6 +80,7 @@ describe("useSocialListeners - AppState-driven resubscription", () => {
     act(() => {
       appStateHandler?.("active");
     });
+    await flushAppCheck();
 
     // The previous round of listeners was torn down...
     expect(mockUnsub).toHaveBeenCalledTimes(initialSubscriptionCount);
@@ -83,8 +88,9 @@ describe("useSocialListeners - AppState-driven resubscription", () => {
     expect(mockOnSnapshot.mock.calls.length).toBe(initialSubscriptionCount * 2);
   });
 
-  it("does not resubscribe for a transition to an inactive/background state", () => {
+  it("does not resubscribe for a transition to an inactive/background state", async () => {
     renderHook(() => useSocialListeners());
+    await flushAppCheck();
     const initialSubscriptionCount = mockOnSnapshot.mock.calls.length;
 
     act(() => {
@@ -95,13 +101,15 @@ describe("useSocialListeners - AppState-driven resubscription", () => {
     expect(mockOnSnapshot.mock.calls.length).toBe(initialSubscriptionCount);
   });
 
-  it("re-subscribes all listeners when a screen asks for a refresh", () => {
+  it("re-subscribes all listeners when a screen asks for a refresh", async () => {
     renderHook(() => useSocialListeners());
+    await flushAppCheck();
     const initialSubscriptionCount = mockOnSnapshot.mock.calls.length;
 
     act(() => {
       useSocialRefreshStore.getState().requestRefresh();
     });
+    await flushAppCheck();
 
     expect(mockUnsub).toHaveBeenCalledTimes(initialSubscriptionCount);
     expect(mockOnSnapshot.mock.calls.length).toBe(initialSubscriptionCount * 2);

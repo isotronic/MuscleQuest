@@ -18,6 +18,7 @@ import type { AppThemeColors } from "@/theme/types";
 import { useStatsWidgetContext } from "./StatsWidgetContext";
 import { useWidgetRange } from "./useWidgetRange";
 import { WidgetSection } from "./WidgetSection";
+import { DEVICE_LOCALE } from "@/utils/numberFormat";
 
 type Zone = "below" | "within" | "above";
 
@@ -49,7 +50,7 @@ export const buildMuscleSetsRows = (
     .sort((a, b) => b.perWeek - a.perWeek || a.key.localeCompare(b.key));
 
 const formatSets = (value: number) =>
-  value.toLocaleString(undefined, { maximumFractionDigits: 1 });
+  value.toLocaleString(DEVICE_LOCALE, { maximumFractionDigits: 1 });
 
 export const MuscleSetsWidget: React.FC<{
   config: WidgetConfigs["muscleSets"];

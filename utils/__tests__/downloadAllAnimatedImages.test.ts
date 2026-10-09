@@ -53,6 +53,7 @@ describe("downloadAllAnimatedImages", () => {
   });
 
   it("should handle partial download failures", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const mockExercises = [
       { exercise_id: 1, animated_url: "path/to/image1" },
       { exercise_id: 2, animated_url: "path/to/image2" },
@@ -104,6 +105,7 @@ describe("downloadAllAnimatedImages", () => {
   });
 
   it("should handle database fetch errors", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     (fetchExercisesWithoutLocalAnimatedUri as jest.Mock).mockRejectedValue(
       new Error("Database fetch failed"),
     );
@@ -122,6 +124,7 @@ describe("downloadAllAnimatedImages", () => {
   });
 
   it("should retry failed downloads before giving up", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const mockExercises = [{ exercise_id: 1, animated_url: "path/to/image1" }];
 
     (fetchExercisesWithoutLocalAnimatedUri as jest.Mock).mockResolvedValue(

@@ -6,10 +6,12 @@ import {
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
 import { withTimeout } from "@/utils/withTimeout";
+import { appCheckReady } from "@/utils/initAppCheck";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { AuthContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
 import { useAccountOwnershipStore } from "@/store/accountOwnershipStore";
+import type { FirestorePrivateSettings } from "@/types/firestore";
 import {
   fetchAllPlanIds,
   fetchAllStandaloneWorkoutIds,
@@ -66,7 +68,9 @@ export const useSocialSyncOnStartup = () => {
     hasRetriedRevocations.current = true;
 
     const { uid } = user;
-    deleteAllSharedData(uid, pendingRevocation.subcollections)
+    const { subcollections } = pendingRevocation;
+    appCheckReady()
+      .then(() => deleteAllSharedData(uid, subcollections))
       .then(() => useSocialStore.getState().setPendingRevocation(null))
       .catch((error) => {
         // deleteAllSharedData already reported this; keep the remaining names
@@ -89,11 +93,17 @@ export const useSocialSyncOnStartup = () => {
     hasSynced.current = true;
 
     const sync = async () => {
+      await appCheckReady();
       const db = getFirestore();
       const { uid } = user;
       // Same cap as the bulk publishers: a large library would otherwise open
       // one request per missing item at app start.
       const throttle = pLimit(BULK_PUBLISH_CONCURRENCY);
+      // Waiting for App Check, the local reads and earlier publishes all take
+      // time, and sharing may have been turned off meanwhile. Each publish
+      // checks the current toggle rather than the one this effect started with.
+      const stillShared = (key: keyof FirestorePrivateSettings) =>
+        useSocialStore.getState().privacySettings?.[key] === true;
 
       // Unpublishes shared items deleted locally, including deletes made by
       // app versions that did not unpublish. Only ids this database knows as
@@ -125,29 +135,37 @@ export const useSocialSyncOnStartup = () => {
         ),
 
         (async () => {
-          if (!privacySettings.sharePlans) return;
+          if (!stillShared("sharePlans")) return;
           const localIds = await fetchAllPlanIds();
           const published = new Set(publishedPlanIds);
           const missing = localIds.filter((id) => !published.has(String(id)));
           await Promise.allSettled(
-            missing.map((id) => throttle(() => publishPlan(uid, id))),
-          );
-        })(),
-
-        (async () => {
-          if (!privacySettings.shareStandaloneWorkouts) return;
-          const localIds = await fetchAllStandaloneWorkoutIds();
-          const published = new Set(publishedWorkoutIds);
-          const missing = localIds.filter((id) => !published.has(String(id)));
-          await Promise.allSettled(
             missing.map((id) =>
-              throttle(() => publishStandaloneWorkout(uid, id)),
+              throttle(async () => {
+                if (stillShared("sharePlans")) await publishPlan(uid, id);
+              }),
             ),
           );
         })(),
 
         (async () => {
-          if (!privacySettings.shareCustomExercises) return;
+          if (!stillShared("shareStandaloneWorkouts")) return;
+          const localIds = await fetchAllStandaloneWorkoutIds();
+          const published = new Set(publishedWorkoutIds);
+          const missing = localIds.filter((id) => !published.has(String(id)));
+          await Promise.allSettled(
+            missing.map((id) =>
+              throttle(async () => {
+                if (stillShared("shareStandaloneWorkouts")) {
+                  await publishStandaloneWorkout(uid, id);
+                }
+              }),
+            ),
+          );
+        })(),
+
+        (async () => {
+          if (!stillShared("shareCustomExercises")) return;
           const [exercises, snap] = await Promise.all([
             fetchAllCustomExercisesForSharing(),
             withTimeout(
@@ -167,7 +185,11 @@ export const useSocialSyncOnStartup = () => {
           );
           await Promise.allSettled(
             missing.map((ex: Exercise) =>
-              throttle(() => pushCustomExercise(uid, ex)),
+              throttle(async () => {
+                if (stillShared("shareCustomExercises")) {
+                  await pushCustomExercise(uid, ex);
+                }
+              }),
             ),
           );
         })(),

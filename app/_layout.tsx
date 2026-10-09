@@ -59,7 +59,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { setupNotificationChannel } from "@/utils/notificationSetup";
 import { rescheduleWorkoutReminders } from "@/utils/workoutReminder";
-import { setupAppCheck } from "@/utils/initAppCheck";
+import { appCheckReady } from "@/utils/initAppCheck";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { I18nProvider } from "@lingui/react";
 import { Trans } from "@lingui/react/macro";
@@ -118,14 +118,9 @@ GoogleSignin.configure({
   webClientId: googleServices.client[0].oauth_client[2].client_id,
 });
 
-// Start App Check as early as possible (before any React render).
-// The promise is awaited inside initializeDatabase so the app never mounts
-// Firebase-dependent components until a Play Integrity / DeviceCheck token
-// is in hand. Errors are swallowed so a failed attestation doesn't block startup.
-const appCheckReady = setupAppCheck().catch((error) => {
-  console.error(error);
-  Bugsnag.notify(error);
-});
+// Start App Check as early as possible (before any React render). Startup does
+// not wait for it; the first Firebase requests do (see appCheckReady).
+appCheckReady();
 
 function RootLayout() {
   // null while startup is still running (or the app is about to reload).
@@ -158,7 +153,7 @@ function RootLayout() {
       SplashScreen.hide();
       setProgress(next);
     }, 100);
-    runStartup(appCheckReady, reportProgress)
+    runStartup(reportProgress)
       .then((result) => {
         if (result.status !== "reloading") setStartup(result);
       })

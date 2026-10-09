@@ -49,6 +49,7 @@ import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { displayWorkoutName } from "@/utils/workoutName";
 
 function WorkoutDurationInfo({
   exercises,
@@ -312,7 +313,9 @@ export default function HomeScreen() {
   // Only show a specific workout's name when exactly one was completed today —
   // with multiple, WorkoutDoneCard falls back to a generic title.
   const completedWorkoutName =
-    todayWorkouts.length === 1 ? todayWorkouts[0].workout_name : null;
+    todayWorkouts.length === 1
+      ? displayWorkoutName(todayWorkouts[0].workout_name)
+      : null;
 
   return (
     <ThemedView>
@@ -352,7 +355,7 @@ export default function HomeScreen() {
                 }}
               >
                 <ThemedText style={styles.pickerItemName}>
-                  {workout.workout_name}
+                  {displayWorkoutName(workout.workout_name)}
                 </ThemedText>
                 <ThemedText style={styles.pickerItemTime}>
                   {format(parseDbTimestamp(workout.date_completed), "h:mm a")}
@@ -464,7 +467,7 @@ export default function HomeScreen() {
                 />
                 <View style={styles.workoutTextContainer}>
                   <ThemedText type="subtitle" style={styles.workoutCardTitle}>
-                    {activeWorkout?.name ?? "Workout"}
+                    {displayWorkoutName(activeWorkout?.name)}
                   </ThemedText>
                   <ThemedText style={styles.exerciseInfo}>
                     <Trans>Workout in progress</Trans>

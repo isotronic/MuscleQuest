@@ -39,6 +39,7 @@ describe("deleteAllAnimatedImages", () => {
   });
 
   it("should handle partial deletion failures", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const mockExercises = [
       { exercise_id: 1, local_animated_uri: "/path/to/image1.webp" },
       { exercise_id: 2, local_animated_uri: "/path/to/image2.webp" },
@@ -86,6 +87,7 @@ describe("deleteAllAnimatedImages", () => {
   });
 
   it("should handle errors during database fetch", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     (fetchExercisesWithLocalAnimatedUri as jest.Mock).mockRejectedValue(
       new Error("Database fetch failed"),
     );

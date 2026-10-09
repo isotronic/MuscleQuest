@@ -105,6 +105,7 @@ describe("useDeleteCompletedWorkoutMutation", () => {
   });
 
   it("onError notifies Bugsnag", () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const Bugsnag = require("@bugsnag/expo").default;
     useDeleteCompletedWorkoutMutation();
 

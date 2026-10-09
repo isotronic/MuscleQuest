@@ -9,6 +9,7 @@ import { summarizeTrend } from "./chartA11y";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { localDateKeyToDate, parseDbTimestamp } from "@/utils/dates";
+import { formatDecimal } from "@/utils/numberFormat";
 
 interface DataPoint {
   recorded_at: string;
@@ -333,7 +334,9 @@ export const BodyMeasurementLineChart: React.FC<
             ) => {
               const val = items[0]?.value;
               if (val == null) return null;
-              const display = Number.isInteger(val) ? `${val}` : val.toFixed(1);
+              const display = Number.isInteger(val)
+                ? `${val}`
+                : formatDecimal(val, 1);
               const isLast = idx === n - 1 && n > 1;
               return (
                 <View style={[styles.tooltip, isLast && styles.tooltipLast]}>

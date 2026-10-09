@@ -22,6 +22,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { localDateKeyToDate } from "@/utils/dates";
 import { kgToDisplay } from "@/utils/units";
+import { formatDecimal } from "@/utils/numberFormat";
 
 interface ExerciseProgressionChartProps {
   exercise: TrackedExerciseWithSets;
@@ -479,14 +480,16 @@ export const ExerciseProgressionChart: React.FC<
             <ThemedText style={styles.latestMetric}>
               <Trans>
                 Latest {metricLabel}:{" "}
-                {latestMetric !== undefined ? latestMetric.toFixed(1) : t`N/A`}
+                {latestMetric !== undefined
+                  ? formatDecimal(latestMetric, 1)
+                  : t`N/A`}
               </Trans>
             </ThemedText>
 
             <ThemedText style={styles.additionalInfo}>
               {isWeightType &&
                 latestWeight !== undefined &&
-                `${latestWeight.toFixed(1)}${weightUnitLabel} `}
+                `${formatDecimal(latestWeight, 1)}${weightUnitLabel} `}
               {exercise.tracking_type === "assisted" && t`assistance `}
               {(isWeightType || exercise.tracking_type === "reps") &&
                 latestSet.reps !== undefined &&
@@ -621,7 +624,7 @@ export const ExerciseProgressionChart: React.FC<
                   if (val == null) return null;
                   const display = Number.isInteger(val)
                     ? `${val}`
-                    : val.toFixed(1);
+                    : formatDecimal(val, 1);
                   const isLast = idx === n - 1 && n > 1;
                   return (
                     <View
@@ -643,7 +646,7 @@ export const ExerciseProgressionChart: React.FC<
 };
 
 const formatTableValue = (value: number) =>
-  Number.isInteger(value) ? String(value) : value.toFixed(1);
+  Number.isInteger(value) ? String(value) : formatDecimal(value, 1);
 
 function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({

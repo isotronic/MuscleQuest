@@ -1,6 +1,6 @@
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import * as SQLite from "expo-sqlite";
-import { formatWeight } from "@/utils/units";
+import { kgToDisplay } from "@/utils/units";
 import {
   DEFAULT_BAR_WEIGHT_KG,
   DEFAULT_BAR_WEIGHT_LBS,
@@ -149,14 +149,15 @@ export const fetchSettings = async (): Promise<Settings> => {
       settings[row.key as keyof Settings] = row.value;
     });
 
-    // Stored in kg to 3 decimals so a pound entry round-trips. Shown in the
-    // user's unit to one decimal; kg keeps whole numbers bare ("80").
+    // Stored in kg to 3 decimals so a pound entry round-trips. Returned in
+    // the user's unit to one decimal as a canonical string (it fills an
+    // input); kg keeps whole numbers bare ("80").
     if (settings.bodyWeight) {
       const kg = Number(settings.bodyWeight);
       settings.bodyWeight =
         settings.weightUnit === "lbs"
-          ? formatWeight(kg, "lbs")
-          : String(parseFloat(formatWeight(kg, "kg")));
+          ? kgToDisplay(kg, "lbs").toFixed(1)
+          : String(parseFloat(kg.toFixed(1)));
     }
 
     return settings as Settings;

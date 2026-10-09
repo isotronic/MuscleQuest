@@ -11,6 +11,7 @@ import { cancelRestNotifications } from "@/utils/restNotification";
 import { formatTimeAgo } from "@/utils/relativeTime";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { displayWorkoutName } from "@/utils/workoutName";
 
 /**
  * Asks what to do with a workout that was left for hours, instead of resuming
@@ -32,7 +33,7 @@ export function StaleWorkoutPrompt() {
 
   if (!visible) return null;
 
-  const workoutName = name ?? t`your workout`;
+  const workoutName = name ? displayWorkoutName(name) : t`your workout`;
   const startedAgo = startTime ? formatTimeAgo(new Date(startTime)) : "";
   const lastSetAgo = lastActivityAt
     ? formatTimeAgo(new Date(lastActivityAt))

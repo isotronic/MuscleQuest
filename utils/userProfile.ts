@@ -10,6 +10,7 @@ import {
 import { withTimeout } from "./withTimeout";
 import { upsertEmailIndex } from "./emailIndex";
 import { notifyBugsnag } from "./bugsnagDedup";
+import { appCheckReady } from "./initAppCheck";
 import { FirestorePrivateSettings } from "../types/firestore";
 
 const DEFAULT_PRIVACY_SETTINGS: FirestorePrivateSettings = {
@@ -25,6 +26,7 @@ export const upsertUserProfile = async (
   user: FirebaseAuthTypes.User,
 ): Promise<void> => {
   try {
+    await appCheckReady();
     const db = getFirestore();
     const userRef = doc(db, "users", user.uid);
     const privateSettingsRef = doc(

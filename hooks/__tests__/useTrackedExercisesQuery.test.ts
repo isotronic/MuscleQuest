@@ -190,6 +190,7 @@ describe("useTrackedExercisesQuery", () => {
   });
 
   it("queryFn returns empty array on error (swallows errors)", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("db error");
     mockDb.getAllAsync.mockRejectedValue(error);
 

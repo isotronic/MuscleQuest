@@ -1,4 +1,5 @@
 import { metresToDisplay } from "./units";
+import { formatNumber } from "./numberFormat";
 
 /** A plan set's target distance (stored in metres) in the display unit. */
 export function planDistanceToDisplay(
@@ -24,5 +25,7 @@ export function planDistanceRange(
   if (targets.length === 0) return undefined;
   const min = Math.min(...targets);
   const max = Math.max(...targets);
-  return min === max ? `${min}` : `${min} - ${max}`;
+  return min === max
+    ? formatNumber(min, 2)
+    : `${formatNumber(min, 2)} - ${formatNumber(max, 2)}`;
 }

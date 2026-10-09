@@ -81,3 +81,31 @@ describe("numberFormat with no locale information", () => {
     expect(loadWithSeparator(null).DECIMAL_SEPARATOR).toBe(".");
   });
 });
+
+describe("formatNumber and formatGroupedInteger", () => {
+  function load(decimalSeparator: string, languageTag: string): NumberFormat {
+    let mod: NumberFormat | undefined;
+    jest.isolateModules(() => {
+      jest.doMock("expo-localization", () => ({
+        getLocales: () => [{ decimalSeparator, languageTag }],
+      }));
+      mod = require("../numberFormat");
+    });
+    return mod!;
+  }
+
+  it("trims trailing zeros and uses the device separator", () => {
+    const de = load(",", "de-DE");
+    expect(de.formatNumber(62.5, 2)).toBe("62,5");
+    expect(de.formatNumber(80, 1)).toBe("80");
+    expect(de.formatNumber(2.504, 2)).toBe("2,5");
+
+    const en = load(".", "en-US");
+    expect(en.formatNumber(62.5, 2)).toBe("62.5");
+  });
+
+  it("groups digits for the device region", () => {
+    expect(load(",", "de-DE").formatGroupedInteger(12345.4)).toBe("12.345");
+    expect(load(".", "en-US").formatGroupedInteger(12345.4)).toBe("12,345");
+  });
+});

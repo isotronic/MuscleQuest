@@ -24,6 +24,7 @@ import { swapInRestoredFiles } from "./restoreRollback";
 import { resetLocalSessionState } from "./resetLocalState";
 import { claimLocalData, isLocalDataOwnedBy } from "./accountOwnership";
 import { notifyBugsnag } from "./bugsnagDedup";
+import { appCheckReady } from "./initAppCheck";
 
 const dbName = "userData.db";
 
@@ -157,6 +158,7 @@ export const uploadDatabaseBackup = async (
     setBackupProgress(0);
 
     const userId = getUserId();
+    await appCheckReady();
 
     // Another account's training data must not land in this account's backup.
     if (!(await isLocalDataOwnedBy(userId))) {
@@ -252,6 +254,7 @@ export const uploadDatabaseBackup = async (
 export const readLastBackupDate = async (): Promise<Date | null> => {
   try {
     const userId = getUserId();
+    await appCheckReady();
 
     const manifest = await readManifest(userId);
     if (manifest) {
@@ -348,6 +351,7 @@ export const restoreDatabaseBackup = async (
     setRestoreProgress(0);
 
     const userId = getUserId();
+    await appCheckReady();
 
     const manifest = await readManifest(userId);
     if (manifest && manifest.schemaVersion > LATEST_SCHEMA_VERSION) {

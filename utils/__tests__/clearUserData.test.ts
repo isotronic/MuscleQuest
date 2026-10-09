@@ -102,6 +102,7 @@ describe("clearDatabaseAndReinitialize", () => {
   });
 
   it("notifies Bugsnag when an error occurs", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("reload failed");
     (Updates.reloadAsync as jest.Mock).mockRejectedValue(error);
     await clearDatabaseAndReinitialize();
@@ -139,6 +140,7 @@ describe("clearActivePlanStatus", () => {
   });
 
   it("notifies Bugsnag when the DB call fails", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("db error");
     (openDatabase as jest.Mock).mockRejectedValue(error);
     await clearActivePlanStatus();
