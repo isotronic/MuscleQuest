@@ -74,6 +74,10 @@ import { useRecoveryCheckInMutation } from "@/hooks/useRecoveryCheckInMutation";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import {
+  confirmUnfinishedSets,
+  findUnfinishedSets,
+} from "@/utils/confirmUnfinishedSets";
 
 type SingleItem = {
   type: "single";
@@ -749,6 +753,19 @@ export default function WorkoutOverviewScreen() {
     ],
   );
 
+  // Finish saves completed sets only, so say what would be left behind.
+  const handleFinishPress = () => {
+    if (isSavingRef.current) return;
+    if (savedWorkoutSummaryParams() || !workout) {
+      void handleSaveWorkout();
+      return;
+    }
+    confirmUnfinishedSets(
+      findUnfinishedSets(workout.exercises, completedSets),
+      () => void handleSaveWorkout(),
+    );
+  };
+
   const handleSaveWorkout = async () => {
     if (isSavingRef.current) return;
     // Saved already, then killed during a post-save prompt: never save twice.
@@ -1016,7 +1033,7 @@ export default function WorkoutOverviewScreen() {
                 style={{ marginRight: 0 }}
                 labelStyle={styles.buttonLabel}
                 disabled={!hasCompletedSets || isSaving}
-                onPressIn={handleSaveWorkout}
+                onPressIn={handleFinishPress}
               >
                 <Trans>Finish</Trans>
               </Button>
