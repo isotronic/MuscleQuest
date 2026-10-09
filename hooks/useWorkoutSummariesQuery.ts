@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   fetchBodyPartSetCounts,
   fetchHasCompletedWorkout,
@@ -132,5 +132,7 @@ export const usePriorBestsQuery = (exerciseIds: number[]) =>
     queryKey: [ROOT, "priorBests", exerciseIds],
     queryFn: () => fetchPriorBests(exerciseIds),
     enabled: exerciseIds.length > 0,
+    // Keeps the badges while an added or replaced exercise's best loads.
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
   });
