@@ -15,6 +15,10 @@ import { showSnackbar } from "@/store/snackbarStore";
 import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
 import { publishStandaloneWorkout } from "@/utils/sharing";
 import { useSocialStore } from "@/store/socialStore";
+import {
+  syncStandaloneWorkoutRemoved,
+  syncStandaloneWorkoutRestored,
+} from "@/utils/sharedSync";
 
 export const useCreateStandaloneWorkout = () => {
   const queryClient = useQueryClient();
@@ -89,10 +93,14 @@ export const useUpdateStandaloneWorkout = () => {
 export const useDeleteStandaloneWorkout = () => {
   const queryClient = useQueryClient();
 
-  const undoDelete = async (snapshot: DeletedStandaloneWorkoutSnapshot) => {
+  const undoDelete = async (
+    snapshot: DeletedStandaloneWorkoutSnapshot,
+    wasPublished: boolean,
+  ) => {
     try {
       await restoreStandaloneWorkout(snapshot);
       queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
+      syncStandaloneWorkoutRestored(snapshot.workoutId, wasPublished);
     } catch (error) {
       notifyBugsnag(error);
       showSnackbar(t`Couldn't restore the workout.`);
@@ -101,11 +109,18 @@ export const useDeleteStandaloneWorkout = () => {
 
   return useMutation({
     mutationFn: (workoutId: number) => deleteStandaloneWorkout(workoutId),
-    onSuccess: (snapshot: DeletedStandaloneWorkoutSnapshot) => {
+    onSuccess: (
+      snapshot: DeletedStandaloneWorkoutSnapshot,
+      workoutId: number,
+    ) => {
       queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
+      const wasPublished = syncStandaloneWorkoutRemoved(workoutId);
       showSnackbar(t`Workout deleted`, {
         duration: 5000,
-        action: { label: t`Undo`, onPress: () => void undoDelete(snapshot) },
+        action: {
+          label: t`Undo`,
+          onPress: () => void undoDelete(snapshot, wasPublished),
+        },
       });
     },
     onError: (error: Error) => {

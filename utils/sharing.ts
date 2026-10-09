@@ -25,8 +25,9 @@ import {
   fetchAllPlanIds,
   fetchAllStandaloneWorkoutIds,
   fetchAllCustomExercisesForSharing,
+  fetchAppExerciseIds,
 } from "./database";
-import type { Exercise } from "./database";
+import type { Exercise, ExercisePRData } from "./database";
 import type { FirestorePrivateSettings } from "@/types/firestore";
 import { withTimeout } from "@/utils/withTimeout";
 import { localDateKeyToDate, parseDbTimestamp } from "@/utils/dates";
@@ -358,6 +359,20 @@ export const pushCompletedWorkout = async (
   }
 };
 
+export const unpublishCompletedWorkout = async (
+  uid: string,
+  completedWorkoutId: number,
+): Promise<void> => {
+  try {
+    const db = getFirestore();
+    await deleteDoc(
+      doc(db, "users", uid, "sharedWorkouts", String(completedWorkoutId)),
+    );
+  } catch (error) {
+    notifyBugsnag(error);
+  }
+};
+
 // ─── body measurements ────────────────────────────────────────────────────────
 
 export const pushBodyMeasurement = async (
@@ -385,7 +400,76 @@ export const pushBodyMeasurement = async (
   }
 };
 
+export const unpublishBodyMeasurement = async (
+  uid: string,
+  entryId: number,
+): Promise<void> => {
+  try {
+    const db = getFirestore();
+    await deleteDoc(
+      doc(db, "users", uid, "sharedMeasurements", String(entryId)),
+    );
+  } catch (error) {
+    notifyBugsnag(error);
+  }
+};
+
 // ─── strength PRs ─────────────────────────────────────────────────────────────
+
+const strengthDocId = (ex: {
+  exercise_id: number;
+  app_exercise_id: number | null;
+}): string =>
+  ex.app_exercise_id != null
+    ? `app_${ex.app_exercise_id}`
+    : `custom_${ex.exercise_id}`;
+
+const buildStrengthPayload = (pr: ExercisePRData) => ({
+  exerciseName: pr.exercise_name,
+  appExerciseId: pr.app_exercise_id,
+  trackingType: pr.tracking_type,
+  allTimePR: pr.all_time_pr,
+  allTimePRDate: Timestamp.fromDate(localDateKeyToDate(pr.all_time_pr_date)),
+  topPRSets: pr.top_sets.map((s) => ({
+    weight: s.weight,
+    reps: s.reps,
+    time: s.time,
+    distance: s.distance,
+    date: Timestamp.fromDate(localDateKeyToDate(s.date_completed)),
+  })),
+});
+
+type StrengthWrite =
+  | { kind: "set"; docId: string; payload: object }
+  | { kind: "delete"; docId: string };
+
+const commitStrengthWrites = async (
+  uid: string,
+  writes: StrengthWrite[],
+): Promise<void> => {
+  const db = getFirestore();
+  const BATCH_LIMIT = 500;
+
+  for (let i = 0; i < writes.length; i += BATCH_LIMIT) {
+    const batch = writeBatch(db);
+    for (const write of writes.slice(i, i + BATCH_LIMIT)) {
+      const ref = doc(db, "users", uid, "sharedStrength", write.docId);
+      if (write.kind === "set") {
+        batch.set(ref, write.payload);
+      } else {
+        batch.delete(ref);
+      }
+    }
+    await batch.commit();
+  }
+};
+
+const strengthSetWrites = (prData: ExercisePRData[]): StrengthWrite[] =>
+  prData.map((pr) => {
+    const payload = buildStrengthPayload(pr);
+    assertWithinSizeBudget(payload);
+    return { kind: "set", docId: strengthDocId(pr), payload };
+  });
 
 export const pushStrengthPRs = async (
   uid: string,
@@ -394,44 +478,33 @@ export const pushStrengthPRs = async (
   try {
     const prData = await fetchPRDataForExercises(exerciseIds);
     if (prData.length === 0) return;
+    await commitStrengthWrites(uid, strengthSetWrites(prData));
+  } catch (error) {
+    notifyBugsnag(error);
+  }
+};
 
-    const db = getFirestore();
-    const BATCH_LIMIT = 500;
+/**
+ * Like pushStrengthPRs, for after history was deleted or edited: an exercise
+ * whose only sets were removed has no PR data left, and its old doc would
+ * otherwise stay visible.
+ */
+export const refreshStrengthPRs = async (
+  uid: string,
+  exerciseIds: number[],
+): Promise<void> => {
+  try {
+    if (exerciseIds.length === 0) return;
+    const [prData, exercises] = await Promise.all([
+      fetchPRDataForExercises(exerciseIds),
+      fetchAppExerciseIds(exerciseIds),
+    ]);
+    const withData = new Set(prData.map((pr) => pr.exercise_id));
+    const deletes: StrengthWrite[] = exercises
+      .filter((ex) => !withData.has(ex.exercise_id))
+      .map((ex) => ({ kind: "delete", docId: strengthDocId(ex) }));
 
-    for (let i = 0; i < prData.length; i += BATCH_LIMIT) {
-      const chunk = prData.slice(i, i + BATCH_LIMIT);
-      const batch = writeBatch(db);
-
-      for (const pr of chunk) {
-        const docId =
-          pr.app_exercise_id != null
-            ? `app_${pr.app_exercise_id}`
-            : `custom_${pr.exercise_id}`;
-        const ref = doc(db, "users", uid, "sharedStrength", docId);
-
-        const payload = {
-          exerciseName: pr.exercise_name,
-          appExerciseId: pr.app_exercise_id,
-          trackingType: pr.tracking_type,
-          allTimePR: pr.all_time_pr,
-          allTimePRDate: Timestamp.fromDate(
-            localDateKeyToDate(pr.all_time_pr_date),
-          ),
-          topPRSets: pr.top_sets.map((s) => ({
-            weight: s.weight,
-            reps: s.reps,
-            time: s.time,
-            distance: s.distance,
-            date: Timestamp.fromDate(localDateKeyToDate(s.date_completed)),
-          })),
-        };
-
-        assertWithinSizeBudget(payload);
-        batch.set(ref, payload);
-      }
-
-      await batch.commit();
-    }
+    await commitStrengthWrites(uid, [...strengthSetWrites(prData), ...deletes]);
   } catch (error) {
     notifyBugsnag(error);
   }

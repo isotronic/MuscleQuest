@@ -2,10 +2,15 @@ import { useDeletePlanMutation } from "../useDeletePlanMutation";
 import { deleteWorkoutPlan, restoreWorkoutPlan } from "@/utils/database";
 import { useSnackbarStore } from "@/store/snackbarStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { syncPlanRemoved, syncPlanRestored } from "@/utils/sharedSync";
 
 jest.mock("@/utils/database", () => ({
   deleteWorkoutPlan: jest.fn(),
   restoreWorkoutPlan: jest.fn().mockResolvedValue(undefined),
+}));
+jest.mock("@/utils/sharedSync", () => ({
+  syncPlanRemoved: jest.fn(() => true),
+  syncPlanRestored: jest.fn(),
 }));
 jest.mock("@lingui/core/macro", () => ({
   t: (s: TemplateStringsArray) => s[0],
@@ -95,5 +100,18 @@ describe("useDeletePlanMutation", () => {
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["activePlan"],
     });
+  });
+
+  it("unpublishes on delete and republishes on Undo", async () => {
+    const snapshot = { planId: 42, workoutIds: [], workoutExerciseIds: [] };
+    useDeletePlanMutation();
+    capturedArgs.onSuccess(snapshot, 42);
+
+    expect(syncPlanRemoved).toHaveBeenCalledWith(42);
+
+    useSnackbarStore.getState().pressAction();
+    await new Promise((r) => setImmediate(r));
+
+    expect(syncPlanRestored).toHaveBeenCalledWith(42, true);
   });
 });

@@ -11,6 +11,8 @@ import { useSocialStore } from "@/store/socialStore";
 import {
   fetchAllPlanIds,
   fetchAllStandaloneWorkoutIds,
+  fetchDeletedPlanIds,
+  fetchDeletedStandaloneWorkoutIds,
   fetchAllCustomExercisesForSharing,
   Exercise,
 } from "@/utils/database";
@@ -20,6 +22,8 @@ import {
   publishPlan,
   publishStandaloneWorkout,
   pushCustomExercise,
+  unpublishPlan,
+  unpublishStandaloneWorkout,
   deleteAllSharedData,
 } from "@/utils/sharing";
 
@@ -83,7 +87,35 @@ export const useSocialSyncOnStartup = () => {
       // one request per missing item at app start.
       const throttle = pLimit(BULK_PUBLISH_CONCURRENCY);
 
+      // Unpublishes shared items deleted locally, including deletes made by
+      // app versions that did not unpublish. Only ids this database knows as
+      // deleted: an unknown id may come from another install of the account.
+      // Runs whatever the toggle says, since removing a doc is always safe.
+      const prune = async (
+        publishedIds: string[],
+        fetchDeletedIds: () => Promise<number[]>,
+        unpublish: (uid: string, id: number) => Promise<void>,
+      ) => {
+        const published = new Set(publishedIds);
+        const stale = (await fetchDeletedIds()).filter((id) =>
+          published.has(String(id)),
+        );
+        const results = await Promise.allSettled(
+          stale.map((id) => throttle(() => unpublish(uid, id))),
+        );
+        results.forEach((r) => {
+          if (r.status === "rejected") notifyBugsnag(r.reason);
+        });
+      };
+
       await Promise.allSettled([
+        prune(publishedPlanIds, fetchDeletedPlanIds, unpublishPlan),
+        prune(
+          publishedWorkoutIds,
+          fetchDeletedStandaloneWorkoutIds,
+          unpublishStandaloneWorkout,
+        ),
+
         (async () => {
           if (!privacySettings.sharePlans) return;
           const localIds = await fetchAllPlanIds();

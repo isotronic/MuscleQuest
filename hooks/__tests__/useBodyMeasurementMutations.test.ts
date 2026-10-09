@@ -1,5 +1,6 @@
 import {
   useInsertBodyMeasurementMutation,
+  useUpdateBodyMeasurementMutation,
   useDeleteBodyMeasurementMutation,
   useDeleteBodyMeasurementWithUndo,
 } from "../useBodyMeasurementMutations";
@@ -10,6 +11,10 @@ import {
   deleteBodyMeasurementSession,
 } from "@/utils/database";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  syncMeasurementChanged,
+  syncMeasurementRemoved,
+} from "@/utils/sharedSync";
 
 jest.mock("react", () => ({
   ...jest.requireActual("react"),
@@ -36,6 +41,10 @@ jest.mock("@/store/socialStore", () => ({
 }));
 jest.mock("@/utils/sharing", () => ({
   pushBodyMeasurement: jest.fn(() => Promise.resolve()),
+}));
+jest.mock("@/utils/sharedSync", () => ({
+  syncMeasurementChanged: jest.fn(),
+  syncMeasurementRemoved: jest.fn(),
 }));
 jest.mock("@/utils/database", () => ({
   insertBodyMeasurementSession: jest.fn(),
@@ -145,6 +154,29 @@ describe("useInsertBodyMeasurementMutation", () => {
   });
 });
 
+describe("useUpdateBodyMeasurementMutation", () => {
+  let capturedArgs: any;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useQueryClient as jest.Mock).mockReturnValue({
+      invalidateQueries: mockInvalidateQueries,
+    });
+    (useMutation as jest.Mock).mockImplementation((args: any) => {
+      capturedArgs = args;
+      return { mutate: jest.fn() };
+    });
+  });
+
+  it("onSuccess re-shares the updated entry", () => {
+    useUpdateBodyMeasurementMutation(OPTIONS);
+
+    capturedArgs.onSuccess(undefined, { entry_id: 12, values: [] });
+
+    expect(syncMeasurementChanged).toHaveBeenCalledWith(12);
+  });
+});
+
 describe("useDeleteBodyMeasurementMutation", () => {
   let capturedArgs: any;
 
@@ -176,10 +208,18 @@ describe("useDeleteBodyMeasurementMutation", () => {
     expect(deleteBodyMeasurementSession).toHaveBeenCalledWith(99);
   });
 
+  it("onSuccess removes the shared copy", () => {
+    useDeleteBodyMeasurementMutation();
+
+    capturedArgs.onSuccess(undefined, 99);
+
+    expect(syncMeasurementRemoved).toHaveBeenCalledWith(99);
+  });
+
   it("onSuccess invalidates bodyMeasurements", () => {
     useDeleteBodyMeasurementMutation();
 
-    capturedArgs.onSuccess();
+    capturedArgs.onSuccess(undefined, 99);
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["bodyMeasurements"],
@@ -215,6 +255,7 @@ describe("useDeleteBodyMeasurementWithUndo", () => {
     await flush();
 
     expect(deleteBodyMeasurementSession).not.toHaveBeenCalled();
+    expect(syncMeasurementRemoved).not.toHaveBeenCalled();
     expect(usePendingDeleteStore.getState().measurementEntryIds).toEqual([]);
   });
 
@@ -225,9 +266,29 @@ describe("useDeleteBodyMeasurementWithUndo", () => {
     await flush();
 
     expect(deleteBodyMeasurementSession).toHaveBeenCalledWith(5);
+    expect(syncMeasurementRemoved).toHaveBeenCalledWith(5);
     expect(usePendingDeleteStore.getState().measurementEntryIds).toEqual([]);
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["bodyMeasurements"],
     });
+  });
+});
+
+describe("useDeleteBodyMeasurementWithUndo when the delete fails", () => {
+  it("keeps the shared copy", async () => {
+    jest.clearAllMocks();
+    (deleteBodyMeasurementSession as jest.Mock).mockRejectedValue(
+      new Error("locked"),
+    );
+    (useQueryClient as jest.Mock).mockReturnValue({
+      invalidateQueries: mockInvalidateQueries,
+    });
+    useSnackbarStore.setState({ current: null });
+
+    useDeleteBodyMeasurementWithUndo()(5);
+    useSnackbarStore.getState().dismiss();
+    await new Promise((r) => setImmediate(r));
+
+    expect(syncMeasurementRemoved).not.toHaveBeenCalled();
   });
 });

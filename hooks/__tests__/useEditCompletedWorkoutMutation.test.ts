@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { KG_PER_LB } from "@/utils/units";
 import { Alert } from "react-native";
 import { refreshProgressionAfterHistoryChange } from "@/utils/progressionRecompute";
+import { syncCompletedWorkoutChanged } from "@/utils/sharedSync";
 
 const mockRunAsync = jest.fn().mockResolvedValue(undefined);
 const mockCloseAsync = jest.fn().mockResolvedValue(undefined);
@@ -21,6 +22,9 @@ jest.mock("@/utils/database", () => ({
       withExclusiveTransactionAsync: mockWithExclusiveTransactionAsync,
     }),
   ),
+}));
+jest.mock("@/utils/sharedSync", () => ({
+  syncCompletedWorkoutChanged: jest.fn(),
 }));
 jest.mock("@/utils/progressionRecompute", () => ({
   refreshProgressionAfterHistoryChange: jest.fn(),
@@ -63,6 +67,8 @@ const makeExercises = (weight: number) => [
     ],
   },
 ];
+
+const sampleEdit = { original: makeExercises(100), edited: makeExercises(105) };
 
 describe("useEditCompletedWorkoutMutation", () => {
   let capturedArgs: any;
@@ -223,7 +229,7 @@ describe("useEditCompletedWorkoutMutation", () => {
   it("onSuccess invalidates completedWorkout, completedWorkouts, trackedExercises, and history families", () => {
     useEditCompletedWorkoutMutation(42, "kg", "m");
 
-    capturedArgs.onSuccess();
+    capturedArgs.onSuccess(undefined, sampleEdit);
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["completedWorkout", 42],
@@ -245,7 +251,7 @@ describe("useEditCompletedWorkoutMutation", () => {
   it("onSuccess invalidates exerciseDetail so the exercise screen refetches", () => {
     useEditCompletedWorkoutMutation(42, "kg", "m");
 
-    capturedArgs.onSuccess();
+    capturedArgs.onSuccess(undefined, sampleEdit);
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["exerciseDetail"],
@@ -255,12 +261,25 @@ describe("useEditCompletedWorkoutMutation", () => {
   it("onSuccess refreshes progression suggestions for the edited workout", () => {
     useEditCompletedWorkoutMutation(42, "kg", "m");
 
-    capturedArgs.onSuccess();
+    capturedArgs.onSuccess(undefined, sampleEdit);
 
     expect(refreshProgressionAfterHistoryChange).toHaveBeenCalledWith(
       { invalidateQueries: mockInvalidateQueries },
       42,
     );
+  });
+
+  it("onSuccess re-shares the workout, including exercises swapped out", () => {
+    useEditCompletedWorkoutMutation(42, "kg", "m");
+
+    const swapped = makeExercises(100);
+    swapped[0].exercise_id = 200;
+    capturedArgs.onSuccess(undefined, {
+      original: makeExercises(100),
+      edited: swapped,
+    });
+
+    expect(syncCompletedWorkoutChanged).toHaveBeenCalledWith(42, [100]);
   });
 
   it("onError shows a translated alert", () => {

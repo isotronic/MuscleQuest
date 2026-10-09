@@ -305,3 +305,44 @@ export const fetchBodyMeasurementEntryForSharing = async (
     await db.closeAsync();
   }
 };
+
+/**
+ * Every exercise logged in a completed workout, deleted rows included, so the
+ * list is still available after the workout has been soft-deleted.
+ */
+export const fetchCompletedWorkoutExerciseIds = async (
+  completedWorkoutId: number,
+): Promise<number[]> => {
+  const db = await openDatabase("userData.db");
+  try {
+    const rows = await db.getAllAsync<{ exercise_id: number }>(
+      `SELECT DISTINCT exercise_id FROM completed_exercises
+     WHERE completed_workout_id = ?`,
+      [completedWorkoutId],
+    );
+    return rows.map((r) => r.exercise_id);
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+/** The library id of each exercise, which names its sharedStrength doc. */
+export const fetchAppExerciseIds = async (
+  exerciseIds: number[],
+): Promise<{ exercise_id: number; app_exercise_id: number | null }[]> => {
+  if (exerciseIds.length === 0) return [];
+  const db = await openDatabase("userData.db");
+  try {
+    const placeholders = exerciseIds.map(() => "?").join(", ");
+    return await db.getAllAsync<{
+      exercise_id: number;
+      app_exercise_id: number | null;
+    }>(
+      `SELECT exercise_id, app_exercise_id FROM exercises
+     WHERE exercise_id IN (${placeholders})`,
+      exerciseIds,
+    );
+  } finally {
+    await db.closeAsync();
+  }
+};

@@ -5,6 +5,9 @@ import { useMutation } from "@tanstack/react-query";
 import type { CompletedWorkout } from "../useCompletedWorkoutsQuery";
 
 jest.mock("@/utils/database", () => ({ openDatabase: jest.fn() }));
+jest.mock("@/utils/sharedSync", () => ({
+  syncCompletedWorkoutChanged: jest.fn(),
+}));
 jest.mock("@/utils/progressionRecompute", () => ({
   refreshProgressionAfterHistoryChange: jest.fn(),
 }));
