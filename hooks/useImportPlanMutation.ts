@@ -2,16 +2,28 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { openDatabase } from "@/utils/database";
 import { ensureAppExercisesExist } from "@/utils/loadPremadePlans";
-import { resolveExerciseId } from "@/utils/importUtils";
+import {
+  ImportValidationError,
+  resolveExerciseId,
+  sanitizeImportedExercise,
+} from "@/utils/importUtils";
+import { showSnackbar } from "@/store/snackbarStore";
+import { t } from "@lingui/core/macro";
 import { SharedPlan } from "@/types/firestore";
 
 export const useImportPlanMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (plan: SharedPlan): Promise<number> => {
+      // Validate everything before opening the database: a friend's plan is
+      // untrusted input, and a bad exercise must not leave half a plan behind.
+      const workouts = plan.workouts.map((workout) => ({
+        name: workout.name,
+        exercises: workout.exercises.map(sanitizeImportedExercise),
+      }));
       const db = await openDatabase("userData.db");
       try {
-        const appExerciseIds = plan.workouts
+        const appExerciseIds = workouts
           .flatMap((w) => w.exercises)
           .map((e) => e.appExerciseId)
           .filter((id): id is number => id !== null);
@@ -25,7 +37,7 @@ export const useImportPlanMutation = () => {
           );
           newPlanId = planResult.lastInsertRowId;
 
-          for (const [workoutOrder, workout] of plan.workouts.entries()) {
+          for (const [workoutOrder, workout] of workouts.entries()) {
             const workoutResult = await txn.runAsync(
               `INSERT INTO user_workouts (plan_id, name, workout_order) VALUES (?, ?, ?)`,
               [newPlanId, workout.name, workoutOrder],
@@ -44,8 +56,8 @@ export const useImportPlanMutation = () => {
                   exerciseId,
                   JSON.stringify(exercise.sets),
                   exerciseOrder,
-                  exercise.supersetGroupId ?? null,
-                  exercise.trackingTypeOverride ?? null,
+                  exercise.supersetGroupId,
+                  exercise.trackingTypeOverride,
                 ],
               );
             }
@@ -61,6 +73,12 @@ export const useImportPlanMutation = () => {
       queryClient.invalidateQueries({ queryKey: ["allPlans"] });
     },
     onError: (error: Error) => {
+      if (error instanceof ImportValidationError) {
+        showSnackbar(
+          t`This plan couldn't be added because some of its sets aren't valid.`,
+        );
+        return;
+      }
       notifyBugsnag(error);
     },
   });
