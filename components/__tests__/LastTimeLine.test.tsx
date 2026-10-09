@@ -73,7 +73,9 @@ describe("LastTimeLine", () => {
     const { getByText } = render(
       <LastTimeLine {...props} suggestedWeight={62.5} />,
     );
-    expect(getByText("Last: 60 kg × 8 · Suggested: 62.5 kg")).toBeTruthy();
+    expect(
+      getByText(`Last: 60 kg × 8 (${day}) · Suggested: 62.5 kg`),
+    ).toBeTruthy();
   });
 
   it("renders nothing when history has no values for this type", () => {

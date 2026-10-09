@@ -109,12 +109,14 @@ export default function LastTimeLine({
   if (!described) return null;
 
   const value = described.text;
+  const day = previous.localDate ? shortDay(previous.localDate) : null;
   let text: string;
   if (suggestedWeight != null && isWeightType(trackingType)) {
     const suggested = formatNumber(suggestedWeight, 2);
-    text = t`Last: ${value} · Suggested: ${suggested} ${weightUnit}`;
-  } else if (previous.localDate) {
-    const day = shortDay(previous.localDate);
+    text = day
+      ? t`Last: ${value} (${day}) · Suggested: ${suggested} ${weightUnit}`
+      : t`Last: ${value} · Suggested: ${suggested} ${weightUnit}`;
+  } else if (day) {
     text = t`Last time: ${value} (${day})`;
   } else {
     text = t`Last time: ${value}`;
