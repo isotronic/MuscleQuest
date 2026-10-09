@@ -38,6 +38,7 @@ function achievementMetric(
   exercise: HistoryExercise,
   set: HistoryExercise["sets"][number],
   bodyWeight: number,
+  doubleWeightForPaired: boolean,
 ): number | null {
   const trackingType = exercise.exercise_tracking_type;
   if (trackingType === "distance") return null;
@@ -50,7 +51,8 @@ function achievementMetric(
     if (trackingType === "assisted" && bodyWeight <= 0) return null;
   }
   return setMetric(set, trackingType, {
-    doubleWeight: !!exercise.double_weight,
+    // The card shows the weight, so it follows the stats doubling setting.
+    doubleWeight: doubleWeightForPaired && !!exercise.double_weight,
     bodyWeight,
   });
 }
@@ -69,6 +71,7 @@ function computeBestAchievement(
   weightUnit: string,
   excludeWarmup: boolean = false,
   bodyWeight: number = 0,
+  doubleWeightForPaired: boolean = false,
 ): BestAchievement | null {
   const today = new Date();
   const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -85,7 +88,12 @@ function computeBestAchievement(
     for (const ex of workout.exercises) {
       for (const set of ex.sets) {
         if (excludeWarmup && set.is_warmup) continue;
-        const metric = achievementMetric(ex, set, bodyWeight);
+        const metric = achievementMetric(
+          ex,
+          set,
+          bodyWeight,
+          doubleWeightForPaired,
+        );
         if (metric == null) continue;
         const prev = lastWeekBest.get(ex.exercise_id) ?? -Infinity;
         if (metric > prev) lastWeekBest.set(ex.exercise_id, metric);
@@ -102,7 +110,12 @@ function computeBestAchievement(
     for (const ex of workout.exercises) {
       for (const set of ex.sets) {
         if (excludeWarmup && set.is_warmup) continue;
-        const metric = achievementMetric(ex, set, bodyWeight);
+        const metric = achievementMetric(
+          ex,
+          set,
+          bodyWeight,
+          doubleWeightForPaired,
+        );
         if (metric == null) continue;
         const prev = thisWeekBest.get(ex.exercise_id);
         if (!prev || metric > prev.best) {
@@ -223,6 +236,7 @@ export default function WeeklySummaryCard({
         weightUnit,
         excludeWarmup,
         bodyWeight,
+        doubleWeightForPaired,
       ),
     [
       workoutsThisWeek,
@@ -230,6 +244,7 @@ export default function WeeklySummaryCard({
       weightUnit,
       excludeWarmup,
       bodyWeight,
+      doubleWeightForPaired,
     ],
   );
 
