@@ -6353,9 +6353,9 @@ msgstr "Das passiert nur einmal."
 msgid "This permanently deletes your MuscleQuest account. It cannot be undone."
 msgstr "Dadurch wird dein MuscleQuest-Konto dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden."
 
-#: hooks/useImportPlanMutation.ts:78
-msgid "This plan couldn't be added because some of its sets aren't valid."
-msgstr "Dieser Plan konnte nicht hinzugefügt werden, weil einige seiner Sätze ungültig sind."
+#: hooks/useImportPlanMutation.ts:75
+msgid "This plan couldn't be added because part of it isn't valid."
+msgstr "Dieser Plan konnte nicht hinzugefügt werden, weil ein Teil davon ungültig ist."
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:421
 msgid "This plan is too large to share. Try splitting it into smaller plans."
@@ -6390,8 +6390,8 @@ msgstr "Das Problem trat nach einer Wiederherstellung auf. Wenn du sie rückgän
 #~ msgstr "Dies aktualisiert das Training für alle zukünftigen Einheiten."
 
 #: hooks/useImportStandaloneWorkoutMutation.ts:61
-msgid "This workout couldn't be added because some of its sets aren't valid."
-msgstr "Dieses Training konnte nicht hinzugefügt werden, weil einige seiner Sätze ungültig sind."
+msgid "This workout couldn't be added because part of it isn't valid."
+msgstr "Dieses Training konnte nicht hinzugefügt werden, weil ein Teil davon ungültig ist."
 
 #: components/StandaloneWorkoutScreen.tsx:293
 msgid "This workout is too large to share. Try splitting it into smaller workouts."

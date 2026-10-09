@@ -5,7 +5,7 @@ import { ensureAppExercisesExist } from "@/utils/loadPremadePlans";
 import {
   ImportValidationError,
   resolveExerciseId,
-  sanitizeImportedExercise,
+  sanitizeImportedWorkouts,
 } from "@/utils/importUtils";
 import { showSnackbar } from "@/store/snackbarStore";
 import { t } from "@lingui/core/macro";
@@ -17,10 +17,7 @@ export const useImportPlanMutation = () => {
     mutationFn: async (plan: SharedPlan): Promise<number> => {
       // Validate everything before opening the database: a friend's plan is
       // untrusted input, and a bad exercise must not leave half a plan behind.
-      const workouts = plan.workouts.map((workout) => ({
-        name: workout.name,
-        exercises: workout.exercises.map(sanitizeImportedExercise),
-      }));
+      const workouts = sanitizeImportedWorkouts(plan.workouts);
       const db = await openDatabase("userData.db");
       try {
         const appExerciseIds = workouts
@@ -75,7 +72,7 @@ export const useImportPlanMutation = () => {
     onError: (error: Error) => {
       if (error instanceof ImportValidationError) {
         showSnackbar(
-          t`This plan couldn't be added because some of its sets aren't valid.`,
+          t`This plan couldn't be added because part of it isn't valid.`,
         );
         return;
       }

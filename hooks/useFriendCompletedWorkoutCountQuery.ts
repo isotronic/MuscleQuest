@@ -8,6 +8,7 @@ import {
 import { AuthContext } from "@/context/AuthProvider";
 import { withTimeout } from "@/utils/withTimeout";
 import { reportFirestoreReadError } from "@/utils/reportFirestoreReadError";
+import { useIsOnline } from "./useIsOnline";
 
 /**
  * How many workouts a friend has shared. The list query only fetches the
@@ -18,6 +19,10 @@ export const useFriendCompletedWorkoutCountQuery = (
   friendUid: string | null,
 ) => {
   const user = useContext(AuthContext);
+  // A server count has no offline cache, so offline it can only fail, and
+  // each retry would send another report. The profile falls back to the
+  // length of the recent list meanwhile.
+  const isOnline = useIsOnline();
   return useQuery({
     queryKey: ["friendCompletedWorkoutCount", friendUid],
     queryFn: async (): Promise<number> => {
@@ -37,7 +42,7 @@ export const useFriendCompletedWorkoutCountQuery = (
         throw error;
       }
     },
-    enabled: !!user && !!friendUid,
+    enabled: !!user && !!friendUid && isOnline,
     staleTime: 60_000,
   });
 };

@@ -125,6 +125,29 @@ describe("useImportPlanMutation", () => {
   });
 });
 
+describe("useImportPlanMutation with a malformed structure", () => {
+  it.each([
+    ["workouts that are not a list", { name: "x", workouts: "nope" }],
+    [
+      "exercises that are not a list",
+      { name: "x", workouts: [{ name: "A", exercises: null }] },
+    ],
+    ["a workout that is not an object", { name: "x", workouts: [42] }],
+    [
+      "an exercise that is not an object",
+      { name: "x", workouts: [{ name: "A", exercises: ["nope"] }] },
+    ],
+  ])("rejects %s with a validation error", async (_label, plan) => {
+    const { ImportValidationError } = jest.requireActual("@/utils/importUtils");
+    useImportPlanMutation();
+
+    await expect(captured.mutationFn(plan)).rejects.toBeInstanceOf(
+      ImportValidationError,
+    );
+    expect(openDatabase).not.toHaveBeenCalled();
+  });
+});
+
 describe("useImportStandaloneWorkoutMutation", () => {
   const workout = (exercises: SharedExercise[]) =>
     ({ name: "Shared", imageUrl: null, exercises }) as any;
@@ -155,5 +178,15 @@ describe("useImportStandaloneWorkoutMutation", () => {
     captured.onError(new ImportValidationError("not a list"));
 
     expect(useSnackbarStore.getState().current?.message).toBeTruthy();
+  });
+
+  it("rejects exercises that are not a list with a validation error", async () => {
+    const { ImportValidationError } = jest.requireActual("@/utils/importUtils");
+    useImportStandaloneWorkoutMutation();
+
+    await expect(
+      captured.mutationFn({ name: "x", exercises: { 0: {} } }),
+    ).rejects.toBeInstanceOf(ImportValidationError);
+    expect(openDatabase).not.toHaveBeenCalled();
   });
 });

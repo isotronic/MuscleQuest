@@ -23,6 +23,8 @@ jest.mock("react", () => ({
   useContext: () => ({ uid: "me" }),
 }));
 jest.mock("@/context/AuthProvider", () => ({ AuthContext: {} }));
+const mockIsOnline = jest.fn(() => true);
+jest.mock("../useIsOnline", () => ({ useIsOnline: () => mockIsOnline() }));
 jest.mock("@/utils/reportFirestoreReadError", () => ({
   reportFirestoreReadError: jest.fn(),
 }));
@@ -68,4 +70,19 @@ it("counts all shared workouts on the server", async () => {
   expect(mockGetCountFromServer).toHaveBeenCalledWith({
     path: "users/friend/sharedWorkouts",
   });
+});
+
+// A server count has no offline cache, so it can only fail offline, and each
+// retry would send another report.
+it("does not run the count while offline", () => {
+  mockIsOnline.mockReturnValueOnce(false);
+
+  useFriendCompletedWorkoutCountQuery("friend");
+
+  expect(captured.enabled).toBe(false);
+});
+
+it("runs the count when online", () => {
+  useFriendCompletedWorkoutCountQuery("friend");
+  expect(captured.enabled).toBe(true);
 });

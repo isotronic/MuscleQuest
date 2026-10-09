@@ -89,6 +89,47 @@ export const sanitizeSupersetGroupId = (raw: unknown): string | null =>
 export const sanitizeTrackingTypeOverride = (raw: unknown): string | null =>
   typeof raw === "string" && TRACKING_TYPES.has(raw) ? raw : null;
 
+/** The value as a list, or an ImportValidationError naming what it was. */
+export const requireImportedList = (raw: unknown, what: string): unknown[] => {
+  if (!Array.isArray(raw)) {
+    throw new ImportValidationError(`Imported ${what} are not a list`);
+  }
+  return raw;
+};
+
+const requireImportedObject = (
+  raw: unknown,
+  what: string,
+): Record<string, unknown> => {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new ImportValidationError(`Imported ${what} is not an object`);
+  }
+  return raw as Record<string, unknown>;
+};
+
+/**
+ * A shared workout's exercises, each checked and sanitised. The rules bound
+ * the list's length, not its shape.
+ */
+export const sanitizeImportedExercises = (raw: unknown): ImportedExercise[] =>
+  requireImportedList(raw, "exercises").map((exercise) =>
+    sanitizeImportedExercise(
+      requireImportedObject(exercise, "exercise") as unknown as SharedExercise,
+    ),
+  );
+
+/** A shared plan's workouts with their exercises; see sanitizeImportedExercises. */
+export const sanitizeImportedWorkouts = (
+  raw: unknown,
+): { name: string; exercises: ImportedExercise[] }[] =>
+  requireImportedList(raw, "workouts").map((entry) => {
+    const workout = requireImportedObject(entry, "workout");
+    return {
+      name: typeof workout.name === "string" ? workout.name : "",
+      exercises: sanitizeImportedExercises(workout.exercises),
+    };
+  });
+
 export type ImportedExercise = Omit<SharedExercise, "sets"> & {
   sets: PlanSet[];
 };
