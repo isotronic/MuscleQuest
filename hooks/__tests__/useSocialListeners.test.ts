@@ -635,4 +635,33 @@ describe("useSocialListeners - App Check", () => {
     await flushAppCheck();
     expect(mockOnSnapshot).toHaveBeenCalled();
   });
+
+  it("never subscribes when torn down before App Check settles", async () => {
+    let settle!: () => void;
+    appCheckReady().mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        settle = resolve;
+      }),
+    );
+    let cleanup: (() => void) | undefined;
+    jest
+      .requireMock("react")
+      .useEffect.mockImplementation((fn: () => unknown) => {
+        const result = fn();
+        if (typeof result === "function") cleanup = result as () => void;
+      });
+
+    try {
+      useSocialListeners();
+      cleanup?.();
+      settle();
+      await flushAppCheck();
+    } finally {
+      jest
+        .requireMock("react")
+        .useEffect.mockImplementation((fn: () => unknown) => fn());
+    }
+
+    expect(mockOnSnapshot).not.toHaveBeenCalled();
+  });
 });
