@@ -93,7 +93,6 @@ export const resetStartupFailureCount = () =>
 // process. A repeated failure returns "failed" so the caller can show a
 // recovery screen instead of reloading forever.
 export const runStartup = async (
-  appCheckReady: Promise<unknown>,
   onProgress?: (progress: StartupProgress) => void,
 ): Promise<StartupResult> => {
   let databaseRestored =
@@ -113,10 +112,7 @@ export const runStartup = async (
   }
 
   try {
-    await Promise.all([
-      appCheckReady,
-      initializeDatabases(databaseRestored, onProgress),
-    ]);
+    await initializeDatabases(databaseRestored, onProgress);
   } catch (e) {
     const error = e instanceof Error ? e : new Error(String(e));
     console.error("Database initialization error:", error);

@@ -174,6 +174,13 @@ jest.mock("react-native", () => {
   };
 });
 
+// The real module loads the native App Check SDK. Firebase-facing code awaits
+// appCheckReady() first; tests treat App Check as already settled.
+jest.mock("@/utils/initAppCheck", () => ({
+  setupAppCheck: jest.fn(() => Promise.resolve()),
+  appCheckReady: jest.fn(() => Promise.resolve()),
+}));
+
 jest.mock("@/utils/database", () => ({
   fetchExercisesWithLocalAnimatedUri: jest.fn(),
   clearAllLocalAnimatedUri: jest.fn(),

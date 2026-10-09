@@ -1,5 +1,11 @@
 import { useSocialListeners } from "../useSocialListeners";
 
+// Listeners subscribe once App Check has settled (mocked as resolved).
+async function flushAppCheck() {
+  await Promise.resolve();
+  await Promise.resolve();
+}
+
 const snapshotCallbacks: Record<string, Function> = {};
 const errorCallbacks: Record<string, Function> = {};
 const mockOnSnapshot = jest.fn(
@@ -109,8 +115,9 @@ describe("useSocialListeners - friends snapshot", () => {
 
   const friendsRef = "users/my-uid/friends";
 
-  it("calls setFriends immediately using inline profile data when displayName is present", () => {
+  it("calls setFriends immediately using inline profile data when displayName is present", async () => {
     useSocialListeners();
+    await flushAppCheck();
     const sinceDate = new Date("2024-01-01");
     const snapshot = {
       docs: [
@@ -138,8 +145,9 @@ describe("useSocialListeners - friends snapshot", () => {
     expect(mockFetchFriendProfile).not.toHaveBeenCalled();
   });
 
-  it("calls setFriends immediately with empty profile when displayName is absent", () => {
+  it("calls setFriends immediately with empty profile when displayName is absent", async () => {
     useSocialListeners();
+    await flushAppCheck();
     const sinceDate = new Date("2024-01-01");
     const snapshot = {
       docs: [
@@ -157,12 +165,13 @@ describe("useSocialListeners - friends snapshot", () => {
     ]);
   });
 
-  it("calls fetchFriendProfile in background for docs without displayName", () => {
+  it("calls fetchFriendProfile in background for docs without displayName", async () => {
     mockFetchFriendProfile.mockResolvedValue({
       displayName: "Alice",
       photoURL: "",
     });
     useSocialListeners();
+    await flushAppCheck();
     const snapshot = {
       docs: [
         {
@@ -177,12 +186,13 @@ describe("useSocialListeners - friends snapshot", () => {
     expect(mockFetchFriendProfile).toHaveBeenCalledWith("friend-uid");
   });
 
-  it("calls fetchFriendProfile in background for docs with displayName but missing photoURL", () => {
+  it("calls fetchFriendProfile in background for docs with displayName but missing photoURL", async () => {
     mockFetchFriendProfile.mockResolvedValue({
       displayName: "Alice",
       photoURL: "https://example.com/alice.jpg",
     });
     useSocialListeners();
+    await flushAppCheck();
     const snapshot = {
       docs: [
         {
@@ -207,6 +217,7 @@ describe("useSocialListeners - friends snapshot", () => {
     };
     mockFetchFriendProfile.mockResolvedValue(profile);
     useSocialListeners();
+    await flushAppCheck();
     const snapshot = {
       docs: [
         {
@@ -231,6 +242,7 @@ describe("useSocialListeners - friends snapshot", () => {
   // the field.
   it("clears a legacy email off a friend record", async () => {
     useSocialListeners();
+    await flushAppCheck();
     const snapshot = {
       docs: [
         {
@@ -258,6 +270,7 @@ describe("useSocialListeners - friends snapshot", () => {
 
   it("leaves a friend record with no legacy email untouched", async () => {
     useSocialListeners();
+    await flushAppCheck();
     const snapshot = {
       docs: [
         {
@@ -285,6 +298,7 @@ describe("useSocialListeners - friends snapshot", () => {
   it("still clears the legacy email when the profile fetch fails", async () => {
     mockFetchFriendProfile.mockRejectedValue(new Error("unreachable"));
     useSocialListeners();
+    await flushAppCheck();
     const snapshot = {
       docs: [
         {
@@ -313,6 +327,7 @@ describe("useSocialListeners - friends snapshot", () => {
       photoURL: "https://example.com/alice.jpg",
     });
     useSocialListeners();
+    await flushAppCheck();
     const snapshot = {
       docs: [
         {
@@ -344,6 +359,7 @@ describe("useSocialListeners - friends snapshot", () => {
   it("does not throw when fetchFriendProfile exhausts all retries", async () => {
     mockFetchFriendProfile.mockRejectedValue(new Error("unreachable"));
     useSocialListeners();
+    await flushAppCheck();
     const snapshot = {
       docs: [
         {
@@ -366,6 +382,7 @@ describe("useSocialListeners - friends snapshot", () => {
     const error = new Error("unreachable");
     mockFetchFriendProfile.mockRejectedValue(error);
     useSocialListeners();
+    await flushAppCheck();
     const snapshot = {
       docs: [
         {
@@ -393,6 +410,7 @@ describe("useSocialListeners - friends snapshot", () => {
     const writeError = new Error("write failed");
     mockUpdateDoc.mockRejectedValue(writeError);
     useSocialListeners();
+    await flushAppCheck();
     const snapshot = {
       docs: [
         {
@@ -440,8 +458,9 @@ describe("useSocialListeners - listener error scoping", () => {
   const sharedPlansRef = "users/my-uid/sharedPlans";
   const settingsRef = "users/my-uid/private/settings";
 
-  it("resets only publishedPlanIds when the sharedPlans listener gets permission-denied, leaving other state untouched", () => {
+  it("resets only publishedPlanIds when the sharedPlans listener gets permission-denied, leaving other state untouched", async () => {
     useSocialListeners();
+    await flushAppCheck();
     const error = Object.assign(new Error("denied"), {
       code: "firestore/permission-denied",
     });
@@ -456,8 +475,9 @@ describe("useSocialListeners - listener error scoping", () => {
     expect(mockSetPublishedWorkoutIds).not.toHaveBeenCalled();
   });
 
-  it("resets only privacySettings when the settings listener gets permission-denied", () => {
+  it("resets only privacySettings when the settings listener gets permission-denied", async () => {
     useSocialListeners();
+    await flushAppCheck();
     const error = Object.assign(new Error("denied"), {
       code: "firestore/permission-denied",
     });
@@ -470,8 +490,9 @@ describe("useSocialListeners - listener error scoping", () => {
     expect(mockSetFriends).not.toHaveBeenCalled();
   });
 
-  it("reports permission-denied errors to Bugsnag instead of swallowing them", () => {
+  it("reports permission-denied errors to Bugsnag instead of swallowing them", async () => {
     useSocialListeners();
+    await flushAppCheck();
     const Bugsnag = jest.requireMock("@bugsnag/expo").default;
     const error = Object.assign(new Error("denied"), {
       code: "firestore/permission-denied",
@@ -483,8 +504,9 @@ describe("useSocialListeners - listener error scoping", () => {
     expect(Bugsnag.notify).toHaveBeenCalledWith(error, expect.any(Function));
   });
 
-  it("still reports non-permission-denied errors to Bugsnag without resetting any state", () => {
+  it("still reports non-permission-denied errors to Bugsnag without resetting any state", async () => {
     useSocialListeners();
+    await flushAppCheck();
     const Bugsnag = jest.requireMock("@bugsnag/expo").default;
     const error = new Error("network hiccup");
 
@@ -511,10 +533,11 @@ describe("useSocialListeners - before the session is restored", () => {
       ? true
       : null;
 
-  it("keeps the persisted social state while auth is loading", () => {
+  it("keeps the persisted social state while auth is loading", async () => {
     jest.requireMock("react").useContext.mockImplementation(authLoading);
 
     useSocialListeners();
+    await flushAppCheck();
 
     expect(mockSetFriends).not.toHaveBeenCalled();
     expect(mockSetPrivacySettings).not.toHaveBeenCalled();
@@ -522,12 +545,13 @@ describe("useSocialListeners - before the session is restored", () => {
     expect(mockOnSnapshot).not.toHaveBeenCalled();
   });
 
-  it("clears the social state once auth reports signed out", () => {
+  it("clears the social state once auth reports signed out", async () => {
     jest
       .requireMock("react")
       .useContext.mockImplementation(mockAuthContexts(null));
 
     useSocialListeners();
+    await flushAppCheck();
 
     expect(mockSetFriends).toHaveBeenCalledWith([]);
     expect(mockSetPrivacySettings).toHaveBeenCalledWith(null);
@@ -560,6 +584,7 @@ describe("useSocialListeners - request hydration", () => {
         : Promise.reject(new Error("unavailable")),
     );
     useSocialListeners();
+    await flushAppCheck();
 
     // Incoming and sent requests both query friendRequests; incoming is first.
     const onPending = mockOnSnapshot.mock.calls.find(
@@ -576,5 +601,38 @@ describe("useSocialListeners - request hydration", () => {
       expect.objectContaining({ id: "r1", displayName: "Alice" }),
       expect.objectContaining({ id: "r2", fromUid: "bob", displayName: "" }),
     ]);
+  });
+});
+
+describe("useSocialListeners - App Check", () => {
+  const appCheckReady = () =>
+    jest.requireMock("@/utils/initAppCheck").appCheckReady as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest
+      .requireMock("react")
+      .useContext.mockImplementation(mockAuthContexts(mockUser));
+  });
+
+  afterEach(() => {
+    appCheckReady().mockImplementation(() => Promise.resolve());
+  });
+
+  it("does not subscribe until App Check has settled", async () => {
+    let settle!: () => void;
+    appCheckReady().mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        settle = resolve;
+      }),
+    );
+
+    useSocialListeners();
+    await flushAppCheck();
+    expect(mockOnSnapshot).not.toHaveBeenCalled();
+
+    settle();
+    await flushAppCheck();
+    expect(mockOnSnapshot).toHaveBeenCalled();
   });
 });

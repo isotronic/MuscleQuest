@@ -89,12 +89,12 @@ describe("runStartup after a restore", () => {
   });
 
   it("runs schema migrations", async () => {
-    await runStartup(Promise.resolve());
+    await runStartup();
     expect(initUserDataDB).toHaveBeenCalled();
   });
 
   it("runs every version-gated seeding step", async () => {
-    await runStartup(Promise.resolve());
+    await runStartup();
     initSteps.forEach((step) => expect(step).toHaveBeenCalledTimes(1));
   });
 
@@ -108,13 +108,13 @@ describe("runStartup after a restore", () => {
       order.push("forget");
     });
 
-    await runStartup(Promise.resolve());
+    await runStartup();
 
     expect(order).toEqual(["migrate", "forget"]);
   });
 
   it("clears the restore flag after a successful init", async () => {
-    const result = await runStartup(Promise.resolve());
+    const result = await runStartup();
     expect(result).toEqual({ status: "ok" });
     expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBeNull();
   });
@@ -123,12 +123,12 @@ describe("runStartup after a restore", () => {
     (initUserDataDB as jest.Mock).mockRejectedValue(
       new Error("no such column"),
     );
-    await runStartup(Promise.resolve());
+    await runStartup();
     expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBe("true");
   });
 
   it("clears the session again, in case the reset before the reload failed", async () => {
-    await runStartup(Promise.resolve());
+    await runStartup();
     expect(resetLocalSessionStateAfterHydration).toHaveBeenCalled();
   });
 
@@ -136,13 +136,13 @@ describe("runStartup after a restore", () => {
     (resetLocalSessionStateAfterHydration as jest.Mock).mockResolvedValueOnce(
       false,
     );
-    const result = await runStartup(Promise.resolve());
+    const result = await runStartup();
     expect(result).toEqual({ status: "ok" });
     expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBe("true");
   });
 
   it("drops the pre-restore database once the restored one booted", async () => {
-    await runStartup(Promise.resolve());
+    await runStartup();
     expect(confirmRestoredDatabase).toHaveBeenCalled();
   });
 
@@ -150,7 +150,7 @@ describe("runStartup after a restore", () => {
     (initUserDataDB as jest.Mock).mockRejectedValue(
       new Error("no such column"),
     );
-    await runStartup(Promise.resolve());
+    await runStartup();
     expect(confirmRestoredDatabase).not.toHaveBeenCalled();
   });
 });
@@ -164,12 +164,12 @@ describe("runStartup after a swap that was killed before the restore finished", 
   });
 
   it("clears the replaced database's session before anything renders", async () => {
-    await runStartup(Promise.resolve());
+    await runStartup();
     expect(resetLocalSessionStateAfterHydration).toHaveBeenCalled();
   });
 
   it("treats the boot as the first after a restore", async () => {
-    await runStartup(Promise.resolve());
+    await runStartup();
     expect(forgetExerciseImageFiles).toHaveBeenCalled();
   });
 
@@ -177,7 +177,7 @@ describe("runStartup after a swap that was killed before the restore finished", 
     (resetLocalSessionStateAfterHydration as jest.Mock).mockResolvedValueOnce(
       false,
     );
-    const result = await runStartup(Promise.resolve());
+    const result = await runStartup();
     expect(result).toEqual({ status: "ok" });
     expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBe("true");
   });
@@ -185,7 +185,7 @@ describe("runStartup after a swap that was killed before the restore finished", 
 
 describe("runStartup without a pending restore", () => {
   it("leaves the session alone", async () => {
-    await runStartup(Promise.resolve());
+    await runStartup();
     expect(resetLocalSessionStateAfterHydration).not.toHaveBeenCalled();
   });
 });
@@ -225,7 +225,7 @@ describe("undoLastRestoreAndReload", () => {
 
 describe("runStartup on an ordinary boot", () => {
   it("keeps the recorded thumbnail files", async () => {
-    await runStartup(Promise.resolve());
+    await runStartup();
 
     expect(initUserDataDB).toHaveBeenCalled();
     expect(forgetExerciseImageFiles).not.toHaveBeenCalled();
@@ -237,10 +237,10 @@ describe("runStartup failure handling", () => {
     const error = new Error("disk full");
     (initUserDataDB as jest.Mock).mockRejectedValue(error);
 
-    const first = await runStartup(Promise.resolve());
+    const first = await runStartup();
     expect(first).toEqual({ status: "reloading" });
 
-    const second = await runStartup(Promise.resolve());
+    const second = await runStartup();
     expect(second).toEqual({ status: "failed", error });
 
     expect(Updates.reloadAsync).toHaveBeenCalledTimes(1);
@@ -253,7 +253,7 @@ describe("runStartup failure handling", () => {
       new Error("reload unavailable"),
     );
 
-    const result = await runStartup(Promise.resolve());
+    const result = await runStartup();
     expect(result.status).toBe("failed");
   });
 
@@ -263,7 +263,7 @@ describe("runStartup failure handling", () => {
       .spyOn(AsyncStorage, "setItem")
       .mockRejectedValueOnce(new Error("storage full"));
 
-    const result = await runStartup(Promise.resolve());
+    const result = await runStartup();
     expect(result.status).toBe("failed");
     expect(Updates.reloadAsync).not.toHaveBeenCalled();
   });
@@ -275,13 +275,13 @@ describe("runStartup failure handling", () => {
       .mockResolvedValueOnce(null) // databaseRestored read
       .mockRejectedValueOnce(new Error("storage unavailable"));
 
-    const result = await runStartup(Promise.resolve());
+    const result = await runStartup();
     expect(result.status).toBe("failed");
     expect(Updates.reloadAsync).not.toHaveBeenCalled();
   });
 
   it("runs the 1.1 exercise id migration before copying app data", async () => {
-    await runStartup(Promise.resolve());
+    await runStartup();
     const idOrder = (updateAppExerciseIds as jest.Mock).mock
       .invocationCallOrder[0];
     const copyOrder = (copyDataFromAppDataToUserData as jest.Mock).mock
@@ -295,13 +295,13 @@ describe("runStartup failure handling", () => {
       new Error("sync failed"),
     );
 
-    const result = await runStartup(Promise.resolve());
+    const result = await runStartup();
     expect(result.status).not.toBe("ok");
     expect(await AsyncStorage.getItem(DATABASE_RESTORED_KEY)).toBe("true");
   });
 
   it("undoes an interrupted restore before opening any database", async () => {
-    await runStartup(Promise.resolve());
+    await runStartup();
     const recoverOrder = (recoverInterruptedRestore as jest.Mock).mock
       .invocationCallOrder[0];
     initSteps.forEach((step) =>
@@ -314,7 +314,7 @@ describe("runStartup failure handling", () => {
       throw new Error("Move failed");
     });
 
-    const result = await runStartup(Promise.resolve());
+    const result = await runStartup();
 
     expect(result.status).not.toBe("ok");
     initSteps.forEach((step) => expect(step).not.toHaveBeenCalled());
@@ -323,10 +323,10 @@ describe("runStartup failure handling", () => {
   it("resets the failure count after a successful boot", async () => {
     (initUserDataDB as jest.Mock).mockRejectedValueOnce(new Error("transient"));
 
-    await runStartup(Promise.resolve());
+    await runStartup();
     expect(await AsyncStorage.getItem(STARTUP_FAILURE_COUNT_KEY)).toBe("1");
 
-    const result = await runStartup(Promise.resolve());
+    const result = await runStartup();
     expect(result).toEqual({ status: "ok" });
     expect(await AsyncStorage.getItem(STARTUP_FAILURE_COUNT_KEY)).toBeNull();
   });
@@ -346,7 +346,7 @@ describe("runStartup progress", () => {
     );
     const onProgress = jest.fn();
 
-    await runStartup(Promise.resolve(), onProgress);
+    await runStartup(onProgress);
 
     expect(onProgress.mock.calls).toEqual([
       [{ stage: "exercises", done: 50, total: 780 }],
@@ -356,7 +356,18 @@ describe("runStartup progress", () => {
 
   it("reports nothing on a returning user's boot", async () => {
     const onProgress = jest.fn();
-    await runStartup(Promise.resolve(), onProgress);
+    await runStartup(onProgress);
     expect(onProgress).not.toHaveBeenCalled();
+  });
+});
+
+describe("runStartup and App Check", () => {
+  it("does not wait for App Check", async () => {
+    const { appCheckReady } = jest.requireMock("@/utils/initAppCheck");
+    (appCheckReady as jest.Mock).mockReturnValue(new Promise(() => {}));
+
+    await expect(runStartup()).resolves.toEqual({ status: "ok" });
+
+    (appCheckReady as jest.Mock).mockImplementation(() => Promise.resolve());
   });
 });

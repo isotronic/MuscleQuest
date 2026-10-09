@@ -6,6 +6,7 @@ import {
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
 import { withTimeout } from "@/utils/withTimeout";
+import { appCheckReady } from "@/utils/initAppCheck";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { AuthContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
@@ -66,7 +67,9 @@ export const useSocialSyncOnStartup = () => {
     hasRetriedRevocations.current = true;
 
     const { uid } = user;
-    deleteAllSharedData(uid, pendingRevocation.subcollections)
+    const { subcollections } = pendingRevocation;
+    appCheckReady()
+      .then(() => deleteAllSharedData(uid, subcollections))
       .then(() => useSocialStore.getState().setPendingRevocation(null))
       .catch((error) => {
         // deleteAllSharedData already reported this; keep the remaining names
@@ -89,6 +92,7 @@ export const useSocialSyncOnStartup = () => {
     hasSynced.current = true;
 
     const sync = async () => {
+      await appCheckReady();
       const db = getFirestore();
       const { uid } = user;
       // Same cap as the bulk publishers: a large library would otherwise open

@@ -107,7 +107,7 @@ jest.mock("@/components/StartupRecoveryScreen", () => ({
 }));
 jest.mock("@/utils/startup", () => ({ runStartup: jest.fn() }));
 jest.mock("@/utils/initAppCheck", () => ({
-  setupAppCheck: jest.fn(() => Promise.resolve()),
+  appCheckReady: jest.fn(() => Promise.resolve()),
 }));
 jest.mock("@/utils/database", () => ({
   fetchSettings: jest.fn(() => Promise.resolve({})),
@@ -165,7 +165,7 @@ describe("RootLayout", () => {
 
   it("shows setup progress on first launch and hides the splash for it", async () => {
     (runStartup as jest.Mock).mockImplementation(
-      (_appCheck: unknown, onProgress: (p: unknown) => void) => {
+      (onProgress: (p: unknown) => void) => {
         onProgress({ stage: "exercises", done: 50, total: 780 });
         return new Promise(() => {});
       },
