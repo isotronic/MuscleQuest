@@ -149,4 +149,26 @@ describe("appCheckReady", () => {
     await expect(appCheckReady()).resolves.toBeUndefined();
     expect(jest.requireMock("@bugsnag/expo").notify).toHaveBeenCalled();
   });
+
+  it("starts App Check again after its initialisation failed", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    mockInitializeAppCheck.mockRejectedValueOnce(new Error("init failed"));
+    const { appCheckReady } = load();
+
+    await appCheckReady();
+    await appCheckReady();
+
+    expect(mockInitializeAppCheck).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not start again after a token fetch failure", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    mockGetToken.mockRejectedValueOnce(new Error("Play Integrity unavailable"));
+    const { appCheckReady } = load();
+
+    await appCheckReady();
+    await appCheckReady();
+
+    expect(mockInitializeAppCheck).toHaveBeenCalledTimes(1);
+  });
 });

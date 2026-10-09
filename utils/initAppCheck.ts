@@ -59,7 +59,8 @@ export async function setupAppCheck(): Promise<void> {
 let ready: Promise<void> | undefined;
 
 // Starts App Check on the first call and returns the same promise after that.
-// It settles within the 8 s token timeout above and never rejects. Startup
+// It settles within the 8 s token timeout above and never rejects. If
+// initialisation itself fails, the next call starts it again. Startup
 // does not wait for it (App Check only guards Firebase requests, and local
 // data needs none), so code that makes the first Firebase request of a flow
 // awaits it instead: the social listeners and startup sync, backup and
@@ -68,6 +69,7 @@ export function appCheckReady(): Promise<void> {
   ready ??= setupAppCheck().catch((error) => {
     console.error(error);
     Bugsnag.notify(error);
+    ready = undefined;
   });
   return ready;
 }

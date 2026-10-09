@@ -141,3 +141,42 @@ it("waits until ownership is known", async () => {
 
   expect(db.fetchDeletedPlanIds).not.toHaveBeenCalled();
 });
+
+it("does not publish when sharing is turned off while App Check settles", async () => {
+  const { appCheckReady } = jest.requireMock("@/utils/initAppCheck");
+  let settle!: () => void;
+  (appCheckReady as jest.Mock).mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      settle = resolve;
+    }),
+  );
+  (db.fetchAllPlanIds as jest.Mock).mockResolvedValue([1, 9]);
+  (db.fetchAllStandaloneWorkoutIds as jest.Mock).mockResolvedValue([7, 10]);
+
+  useSocialSyncOnStartup();
+  mockStoreState = {
+    ...mockStoreState,
+    privacySettings: { sharePlans: false, shareStandaloneWorkouts: false },
+  };
+  settle();
+  await flush();
+
+  expect(sharing.publishPlan).not.toHaveBeenCalled();
+  expect(sharing.publishStandaloneWorkout).not.toHaveBeenCalled();
+});
+
+it("stops publishing once sharing is turned off mid-sync", async () => {
+  (db.fetchAllPlanIds as jest.Mock).mockResolvedValue([1, 9, 10]);
+  // The first publish turns sharing off, as a toggle during the sync would.
+  (sharing.publishPlan as jest.Mock).mockImplementationOnce(async () => {
+    mockStoreState = {
+      ...mockStoreState,
+      privacySettings: { sharePlans: false, shareStandaloneWorkouts: true },
+    };
+  });
+
+  useSocialSyncOnStartup();
+  await flush();
+
+  expect(sharing.publishPlan).toHaveBeenCalledTimes(1);
+});
