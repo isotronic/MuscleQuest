@@ -9,6 +9,10 @@ import {
 } from "@react-native-google-signin/google-signin";
 import { notifyBugsnag } from "./bugsnagDedup";
 
+const EMAIL_PATTERN = /[^\s@"'<>()]+@[^\s@"'<>()]+\.[^\s@"'<>()]+/g;
+
+const redactEmails = (text: string) => text.replace(EMAIL_PATTERN, "[email]");
+
 export type SignInErrorReason =
   | "offline"
   | "playServicesMissing"
@@ -65,12 +69,13 @@ export const signInWithGoogle = async ({
     if (reason === "unknown") {
       console.error("Sign in error", error);
       notifyBugsnag(error, (event) => {
-        event.addMetadata("sign_in_error", {
-          code,
-          message: error?.message,
-          name: error?.name,
-          stack: error?.stack,
-        });
+        // Google sign-in messages can quote the account's address. The
+        // message and stack are on the event already; keep them out of the
+        // metadata and redact addresses from the message itself.
+        event.addMetadata("sign_in_error", { code, name: error?.name });
+        for (const e of event.errors ?? []) {
+          e.errorMessage = redactEmails(e.errorMessage);
+        }
       });
     }
     return { status: "error", reason, error };

@@ -2,6 +2,7 @@ import React from "react";
 import { render } from "@testing-library/react-native";
 import { AuthProvider } from "../AuthProvider";
 import { resolveAccountOwnership } from "../../utils/accountOwnership";
+import Bugsnag from "@bugsnag/expo";
 
 let authCallback: (user: unknown) => void = () => {};
 
@@ -39,4 +40,17 @@ it("resolves again on sign-out", () => {
   authCallback(null);
 
   expect(resolveAccountOwnership).toHaveBeenCalledWith(null);
+});
+
+it("attributes reports to the uid only", () => {
+  render(<AuthProvider>{null}</AuthProvider>);
+
+  authCallback({
+    uid: "alice",
+    email: "alice@example.com",
+    displayName: "Alice",
+  });
+
+  expect(Bugsnag.setUser).toHaveBeenCalledWith("alice");
+  expect((Bugsnag.setUser as jest.Mock).mock.calls[0]).toHaveLength(1);
 });
