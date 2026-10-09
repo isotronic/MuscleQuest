@@ -836,6 +836,13 @@ export default function WorkoutSessionScreen() {
     );
   };
 
+  const skipRest = () => {
+    stopTimer();
+    void cancelRestNotifications();
+    // The next set starts now, as it would have when the rest ran out.
+    setCurrentSetStartedAt(new Date());
+  };
+
   const handleToggleSetType = (type: "isWarmup" | "isToFailure") => {
     const currentVal = currentSet?.[type] || false;
     updateSetType(currentExerciseIndex, currentSetIndex, type, !currentVal);
@@ -1410,6 +1417,13 @@ export default function WorkoutSessionScreen() {
       distanceStr,
     );
 
+    // Completing a set during a rest ends that rest; any rest for this set
+    // starts below.
+    if (useActiveWorkoutStore.getState().timerRunning) {
+      stopTimer();
+      void cancelRestNotifications();
+    }
+
     // Only animate when nextSet() will keep this screen mounted.
     // hasNextSet can be true even when the store calls router.back() — e.g. the
     // next sequential exercise exists but is already fully completed.
@@ -1921,6 +1935,7 @@ export default function WorkoutSessionScreen() {
         animStyle={timerAnimStyle}
         buttonSize={buttonSize}
         onAdjust={(delta) => void adjustTimer(delta)}
+        onSkip={skipRest}
         hint={
           showPermissionHint
             ? t`Notifications are off, so there is no rest alert while your phone is locked. You can turn them on in your phone's settings.`

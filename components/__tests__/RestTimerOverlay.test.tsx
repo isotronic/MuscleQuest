@@ -41,6 +41,7 @@ const baseProps = {
   timerRunning: true,
   animStyle: {},
   onAdjust: jest.fn(),
+  onSkip: jest.fn(),
 };
 
 describe("RestTimerOverlay", () => {
@@ -75,6 +76,15 @@ describe("RestTimerOverlay accessibility", () => {
     expect(onAdjust).toHaveBeenCalledWith(15);
     fireEvent.press(getByRole("button", { name: "Remove 15 seconds" }));
     expect(onAdjust).toHaveBeenCalledWith(-15);
+  });
+
+  it("offers a labelled button to skip the rest", () => {
+    const onSkip = jest.fn();
+    const { getByRole } = render(
+      <RestTimerOverlay {...baseProps} onSkip={onSkip} />,
+    );
+    fireEvent.press(getByRole("button", { name: "Skip rest" }));
+    expect(onSkip).toHaveBeenCalledTimes(1);
   });
 
   it("reads the countdown as one element", () => {

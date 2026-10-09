@@ -317,6 +317,14 @@ export default function WorkoutOverviewScreen() {
     }
   }, [timerRunning, timerExpiry, restart]);
 
+  const skipRest = () => {
+    stopTimer();
+    void cancelRestNotifications();
+    // The next set starts now, as it would have when the rest ran out.
+    const store = useActiveWorkoutStore.getState();
+    if (!store.currentSetStartedAt) store.setCurrentSetStartedAt(new Date());
+  };
+
   const adjustTimerOverview = async (deltaSeconds: number) => {
     const currentRemaining = expiryTimestampRef.current
       ? Math.max(
@@ -1171,6 +1179,7 @@ export default function WorkoutOverviewScreen() {
         animStyle={timerAnimStyle}
         buttonSize={buttonSize}
         onAdjust={(delta) => void adjustTimerOverview(delta)}
+        onSkip={skipRest}
         onLayout={(e) => setTimerHeight(e.nativeEvent.layout.height)}
       />
       {pendingRecovery && pendingRecovery.length > 0 && (
