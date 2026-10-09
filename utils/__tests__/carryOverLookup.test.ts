@@ -20,6 +20,35 @@ const makeSet = (
 });
 
 describe("findLastAvailableSetData", () => {
+  it("reports the training day of the session the set came from", () => {
+    const previousWorkoutData: CarryOverWorkout[] = [
+      {
+        local_date: "2026-09-12",
+        exercises: [{ exercise_id: 1, sets: [makeSet({ weight: 60 })] }],
+      },
+    ];
+    const params = {
+      isWarmup: false,
+      ordinal: 0,
+      previousWorkoutData,
+      prevExercisesByExerciseId: buildExerciseMap(previousWorkoutData),
+      globalExercisesByExerciseId: new Map(),
+      alwaysUseGlobalHistory: false,
+    };
+
+    expect(
+      findLastAvailableSetData({ ...params, exerciseId: 1 }),
+    ).toMatchObject({ weight: 60, local_date: "2026-09-12" });
+    // Found by position after a swap: still dated.
+    expect(
+      findLastAvailableSetData({
+        ...params,
+        exerciseId: 99,
+        exercisePosition: 0,
+      }),
+    ).toMatchObject({ weight: 60, local_date: "2026-09-12" });
+  });
+
   it("returns the set at the same ordinal when it exists in the most recent session", () => {
     const previousWorkoutData: CarryOverWorkout[] = [
       {

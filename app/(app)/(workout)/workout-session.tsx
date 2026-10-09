@@ -66,6 +66,8 @@ import { useProgressionStateQuery } from "@/hooks/useProgressionStateQuery";
 import { useExerciseFeedbackMutation } from "@/hooks/useExerciseFeedbackMutation";
 import { ExerciseFeedbackPayload } from "@/types/progression";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import type { PreviousSet } from "@/components/LastTimeLine";
+import type { CarryOverMatch } from "@/utils/carryOverLookup";
 import { useSoundStore } from "@/store/soundStore";
 import Animated, {
   useSharedValue,
@@ -77,6 +79,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { radii } from "@/theme";
 import { displayToKg } from "@/utils/weightUnits";
+import { formatFromTotalSeconds } from "@/utils/utility";
 
 // Reanimated 4: Animated.View types don't include children in strict TS
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
@@ -115,6 +118,7 @@ interface OutgoingSnapshot {
   isInSuperset: boolean;
   isFirstInSuperset: boolean;
   partnerName?: string;
+  previousSet: PreviousSet | null;
 }
 
 interface SlotData {
@@ -204,6 +208,18 @@ function getPrevSlotData(
       }
     : null;
 }
+
+/** A carried-over set as the "Last time" line shows it. */
+const toPreviousSet = (match: CarryOverMatch | null): PreviousSet | null =>
+  match
+    ? {
+        weight: match.weight,
+        reps: match.reps,
+        time: match.time,
+        distance: match.distance,
+        localDate: match.local_date,
+      }
+    : null;
 
 const noop = () => {};
 const noopNum = (_: number) => {};
@@ -347,6 +363,7 @@ export default function WorkoutSessionScreen() {
     setCurrentSetStartedAt,
     recordSetDuration,
     setExerciseTrackingTypeOverride,
+    suggestedWeightPrefills,
   } = useActiveWorkoutStore(
     useShallow((s) => ({
       workout: s.workout,
@@ -374,6 +391,7 @@ export default function WorkoutSessionScreen() {
       setCurrentSetStartedAt: s.setCurrentSetStartedAt,
       recordSetDuration: s.recordSetDuration,
       setExerciseTrackingTypeOverride: s.setExerciseTrackingTypeOverride,
+      suggestedWeightPrefills: s.suggestedWeightPrefills,
     })),
   );
 
@@ -804,6 +822,20 @@ export default function WorkoutSessionScreen() {
     );
   };
 
+  // Fills the inputs with this set's values from last time.
+  const handleUsePreviousSet = () => {
+    const previous = previousWorkoutSetData;
+    if (!previous) return;
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      previous.weight != null ? String(previous.weight) : undefined,
+      previous.reps != null ? String(previous.reps) : undefined,
+      previous.time != null ? formatFromTotalSeconds(previous.time) : undefined,
+      previous.distance != null ? String(previous.distance) : undefined,
+    );
+  };
+
   const handleToggleSetType = (type: "isWarmup" | "isToFailure") => {
     const currentVal = currentSet?.[type] || false;
     updateSetType(currentExerciseIndex, currentSetIndex, type, !currentVal);
@@ -1050,6 +1082,8 @@ export default function WorkoutSessionScreen() {
       workingSetOrdinal: set.isWarmup
         ? undefined
         : exercise.sets.slice(0, setIndex).filter((s) => !s.isWarmup).length,
+      previousSet: toPreviousSet(prevData),
+      suggestedWeight: suggestedWeightPrefills[exerciseIndex]?.[setIndex],
     };
   };
 
@@ -1485,6 +1519,7 @@ export default function WorkoutSessionScreen() {
       partnerName: isInSuperset
         ? workout?.exercises[supersetPartnerIndex]?.name
         : undefined,
+      previousSet: toPreviousSet(previousWorkoutSetData),
     };
 
     if (isFirstInSuperset) {
@@ -1766,6 +1801,7 @@ export default function WorkoutSessionScreen() {
                             handlePreviousSet={handlePreviousSet}
                             handleNextSet={handleNextSet}
                             handleCompleteSet={handleCompleteSet}
+                            onUsePreviousSet={handleUsePreviousSet}
                             removeSet={handleRemoveSet}
                             addSet={handleAddSet}
                             onAddDropSet={handleAddDropSet}
