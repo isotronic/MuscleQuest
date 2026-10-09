@@ -5,6 +5,7 @@ import {
   getDocs,
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
+import { withTimeout } from "@/utils/withTimeout";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { AuthContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
@@ -142,7 +143,11 @@ export const useSocialSyncOnStartup = () => {
           if (!privacySettings.shareCustomExercises) return;
           const [exercises, snap] = await Promise.all([
             fetchAllCustomExercisesForSharing(),
-            getDocs(collection(db, "users", uid, "sharedCustomExercises")),
+            withTimeout(
+              getDocs(collection(db, "users", uid, "sharedCustomExercises")),
+              15000,
+              "startupSharedCustomExercises",
+            ),
           ]);
           const published = new Set(
             snap.docs.map(

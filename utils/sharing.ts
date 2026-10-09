@@ -161,7 +161,7 @@ const shouldSetPublishedAt = async (
   const ids = kind === "plan" ? publishedPlanIds : publishedWorkoutIds;
   if (ids) return !ids.includes(String(id));
 
-  const existing = await getDoc(ref);
+  const existing = await withTimeout(getDoc(ref), 15000, "publishedAtCheck");
   return !existing.exists();
 };
 
@@ -271,7 +271,11 @@ export const pushCustomExercise = async (
       String(exercise.exercise_id),
     );
 
-    const existing = await getDoc(ref);
+    const existing = await withTimeout(
+      getDoc(ref),
+      15000,
+      "customExercisePublishedAt",
+    );
     const publishedAt = existing.exists() ? existing.data()?.publishedAt : now;
 
     const payload = {
@@ -583,7 +587,14 @@ const deleteSubcollection = async (
   const db = getFirestore();
   const collRef = collection(db, "users", uid, subcollection);
 
-  let snapshot = await getDocs(query(collRef, limit(500)));
+  const readPage = () =>
+    withTimeout(
+      getDocs(query(collRef, limit(500))),
+      15000,
+      `deleteSubcollection:${subcollection}`,
+    );
+
+  let snapshot = await readPage();
   while (!snapshot.empty) {
     const batch = writeBatch(db);
     for (const docSnap of snapshot.docs) {
@@ -591,7 +602,7 @@ const deleteSubcollection = async (
     }
     await batch.commit();
     if (snapshot.docs.length < 500) break;
-    snapshot = await getDocs(query(collRef, limit(500)));
+    snapshot = await readPage();
   }
 };
 
@@ -632,8 +643,10 @@ const deleteSubcollectionAndVerify = async (
   await deleteSubcollection(uid, subcollection);
 
   const db = getFirestore();
-  const remaining = await getDocs(
-    query(collection(db, "users", uid, subcollection), limit(1)),
+  const remaining = await withTimeout(
+    getDocs(query(collection(db, "users", uid, subcollection), limit(1))),
+    15000,
+    `verifySubcollectionEmpty:${subcollection}`,
   );
   if (!remaining.empty) {
     throw new Error(`${subcollection} still has documents after deletion`);

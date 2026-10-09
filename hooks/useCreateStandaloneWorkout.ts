@@ -13,6 +13,7 @@ import { AuthContext } from "@/context/AuthProvider";
 import { t } from "@lingui/core/macro";
 import { showSnackbar } from "@/store/snackbarStore";
 import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
+import { withTimeout } from "@/utils/withTimeout";
 import { publishStandaloneWorkout } from "@/utils/sharing";
 import { useSocialStore } from "@/store/socialStore";
 import {
@@ -73,7 +74,7 @@ export const useUpdateStandaloneWorkout = () => {
           "sharedStandaloneWorkouts",
           String(workoutId),
         );
-        getDoc(docRef)
+        withTimeout(getDoc(docRef), 15000, "standaloneWorkoutPublishedCheck")
           .then((snap) => {
             if (snap.exists()) {
               publishStandaloneWorkout(user.uid, workoutId).catch((err) =>
