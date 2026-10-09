@@ -61,6 +61,7 @@ import {
 } from "react-native-reanimated";
 import { useTimer } from "react-timer-hook";
 import { useRestTimerResync } from "@/hooks/useRestTimerResync";
+import { usePauseWhenRestEndsEarly } from "@/hooks/usePauseWhenRestEndsEarly";
 import { useSoundStore } from "@/store/soundStore";
 import RestTimerOverlay from "@/components/RestTimerOverlay";
 import { useAppTheme, radii } from "@/theme";
@@ -296,7 +297,7 @@ export default function WorkoutOverviewScreen() {
     transform: [{ translateY: timerTranslateY.value }],
   }));
 
-  const { seconds, minutes, restart } = useTimer({
+  const { seconds, minutes, restart, pause } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
     onExpire: () => {
@@ -309,6 +310,7 @@ export default function WorkoutOverviewScreen() {
   });
 
   useRestTimerResync(restart);
+  usePauseWhenRestEndsEarly(timerRunning, expiryTimestampRef, pause);
 
   useEffect(() => {
     timerTranslateY.value = withTiming(timerRunning ? 0 : 200, {

@@ -27,6 +27,7 @@ import { SessionSetOptionsModal } from "@/components/SessionSetOptionsModal";
 import { PlateCalculatorModal } from "@/components/PlateCalculatorModal";
 import { useTimer } from "react-timer-hook";
 import { useRestTimerResync } from "@/hooks/useRestTimerResync";
+import { usePauseWhenRestEndsEarly } from "@/hooks/usePauseWhenRestEndsEarly";
 import { showSnackbar } from "@/store/snackbarStore";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
@@ -564,7 +565,7 @@ export default function WorkoutSessionScreen() {
   } | null>(null);
   const adjustedRestSecondsRef = useRef<number>(0);
   const { playSound, triggerVibration } = useSoundStore();
-  const { seconds, minutes, restart } = useTimer({
+  const { seconds, minutes, restart, pause } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
     onExpire: () => {
@@ -574,6 +575,7 @@ export default function WorkoutSessionScreen() {
     },
   });
   useRestTimerResync(restart);
+  usePauseWhenRestEndsEarly(timerRunning, expiryTimestampRef, pause);
 
   // Shown once, during the first rest after notifications turned out blocked.
   const [showPermissionHint, setShowPermissionHint] = useState(false);
