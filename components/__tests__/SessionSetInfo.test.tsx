@@ -213,7 +213,7 @@ describe("SessionSetInfo distance target", () => {
         distanceMin={400}
       />,
     );
-    getByText("Target: 1312.34 ft");
+    getByText("Target: 1312,34 ft");
   });
 
   it("shows a metre target unchanged", () => {

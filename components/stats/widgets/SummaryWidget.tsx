@@ -11,6 +11,7 @@ import { formatToHoursMinutes } from "@/utils/utility";
 import type { SummaryTile, WidgetConfigs } from "@/utils/statsLayout";
 import { useStatsWidgetContext } from "./StatsWidgetContext";
 import { WidgetSection } from "./WidgetSection";
+import { DEVICE_LOCALE } from "@/utils/numberFormat";
 
 type Stats = ReturnType<typeof computeStats>;
 
@@ -36,7 +37,7 @@ const round = (value: number, decimals: number) =>
   parseFloat(value.toFixed(decimals));
 
 const formatCount = (value: number) =>
-  value.toLocaleString(undefined, { maximumFractionDigits: 1 });
+  value.toLocaleString(DEVICE_LOCALE, { maximumFractionDigits: 1 });
 
 export const buildTile = (
   tile: SummaryTile,
@@ -57,7 +58,7 @@ export const buildTile = (
       const volumeUnit = weightUnit === "lbs" ? "tn" : "t";
       return {
         label: t`Volume (${volumeUnit})`,
-        value: current.totalVolumeTons.toLocaleString(undefined, {
+        value: current.totalVolumeTons.toLocaleString(DEVICE_LOCALE, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         }),

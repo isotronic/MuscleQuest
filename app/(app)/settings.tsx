@@ -58,6 +58,7 @@ import {
   requestNotificationPermission,
 } from "@/utils/workoutReminder";
 import { radii } from "@/theme";
+import { toDisplayDecimal } from "@/utils/numberFormat";
 // import { clearActivePlanStatus } from "@/utils/clearUserData";
 
 const REMINDER_DAY_LABELS = [
@@ -695,8 +696,8 @@ export default function SettingsScreen() {
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 <Trans>
-                  {settings?.bodyWeight} {settings?.weightUnit} (used for
-                  assisted exercises)
+                  {toDisplayDecimal(settings?.bodyWeight ?? "")}{" "}
+                  {settings?.weightUnit} (used for assisted exercises)
                 </Trans>
               </ThemedText>
             </View>
@@ -851,7 +852,8 @@ export default function SettingsScreen() {
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 <Trans>
-                  {settings?.weightIncrement} {settings?.weightUnit}
+                  {toDisplayDecimal(settings?.weightIncrement ?? "")}{" "}
+                  {settings?.weightUnit}
                 </Trans>
               </ThemedText>
             </View>
@@ -1254,7 +1256,9 @@ export default function SettingsScreen() {
                     <Trans>Barbell load increment</Trans>
                   </ThemedText>
                   <ThemedText style={styles.currentSetting}>
-                    {settings?.progression_increment_barbell_kg || "2.5"}{" "}
+                    {toDisplayDecimal(
+                      settings?.progression_increment_barbell_kg || "2.5",
+                    )}{" "}
                     {settings?.weightUnit || "kg"}
                   </ThemedText>
                 </View>
@@ -1282,7 +1286,9 @@ export default function SettingsScreen() {
                     <Trans>Dumbbell load increment</Trans>
                   </ThemedText>
                   <ThemedText style={styles.currentSetting}>
-                    {settings?.progression_increment_dumbbell_kg || "2.0"}{" "}
+                    {toDisplayDecimal(
+                      settings?.progression_increment_dumbbell_kg || "2.0",
+                    )}{" "}
                     {settings?.weightUnit || "kg"}
                   </ThemedText>
                 </View>
@@ -1310,7 +1316,9 @@ export default function SettingsScreen() {
                     <Trans>Cable load increment</Trans>
                   </ThemedText>
                   <ThemedText style={styles.currentSetting}>
-                    {settings?.progression_increment_cable_kg || "2.5"}{" "}
+                    {toDisplayDecimal(
+                      settings?.progression_increment_cable_kg || "2.5",
+                    )}{" "}
                     {settings?.weightUnit || "kg"}
                   </ThemedText>
                 </View>
@@ -1338,7 +1346,9 @@ export default function SettingsScreen() {
                     <Trans>Machine load increment</Trans>
                   </ThemedText>
                   <ThemedText style={styles.currentSetting}>
-                    {settings?.progression_increment_machine_kg || "2.5"}{" "}
+                    {toDisplayDecimal(
+                      settings?.progression_increment_machine_kg || "2.5",
+                    )}{" "}
                     {settings?.weightUnit || "kg"}
                   </ThemedText>
                 </View>

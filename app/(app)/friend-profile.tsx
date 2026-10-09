@@ -33,6 +33,7 @@ import { formatWeight } from "@/utils/units";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { displayWorkoutName } from "@/utils/workoutName";
+import { formatDecimal, formatNumber } from "@/utils/numberFormat";
 
 type SectionKey = "strength" | "plans" | "workouts" | "exercises" | "activity";
 
@@ -46,7 +47,7 @@ function formatPR(pr: SharedStrengthPR, weightUnit: string): string {
     case "time":
       return `${Math.round(pr.allTimePR)}s`;
     case "distance":
-      return `${pr.allTimePR.toFixed(1)} m`;
+      return `${formatDecimal(pr.allTimePR, 1)} m`;
     default:
       return `1RM ${formatWeight(pr.allTimePR, weightUnit)} ${weightUnit}`;
   }
@@ -57,7 +58,7 @@ function formatMeasurementSummary(values: Record<string, number>): string {
     .slice(0, 3)
     .map(
       ([k, v]) =>
-        `${k.charAt(0).toUpperCase() + k.slice(1)}: ${parseFloat(v.toFixed(1))}`,
+        `${k.charAt(0).toUpperCase() + k.slice(1)}: ${formatNumber(v, 1)}`,
     )
     .join("  ·  ");
 }

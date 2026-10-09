@@ -26,6 +26,7 @@ import {
 } from "@/utils/plateCalculator";
 import { radii, useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { formatNumber } from "@/utils/numberFormat";
 
 interface PlateCalculatorModalProps {
   visible: boolean;
@@ -35,8 +36,11 @@ interface PlateCalculatorModalProps {
   weightUnit: string;
 }
 
-/** Trims trailing zeros so 20 reads as "20" and 2.50 as "2.5". */
-const formatWeight = (value: number) => String(parseFloat(value.toFixed(2)));
+/**
+ * Trims trailing zeros so 20 reads as "20" and 2.50 as "2.5", with the device
+ * decimal separator. Display only.
+ */
+const formatWeight = (value: number) => formatNumber(value, 2);
 
 /**
  * Read-only plate breakdown for the weight on the current set, opened from the
@@ -94,7 +98,8 @@ export const PlateCalculatorModal: React.FC<PlateCalculatorModalProps> = ({
 
     const isPreset = presets.includes(savedBarWeight);
     setShowCustomBar(!isPreset);
-    setCustomBar(isPreset ? "" : formatWeight(savedBarWeight));
+    // The input holds a canonical string; DecimalInput shows the separator.
+    setCustomBar(isPreset ? "" : String(parseFloat(savedBarWeight.toFixed(2))));
   }, [visible, savedBarWeight, presets]);
 
   const parsedCustomBar = parseFloat(customBar);
@@ -160,12 +165,14 @@ export const PlateCalculatorModal: React.FC<PlateCalculatorModalProps> = ({
                 <Trans>Bar weight ({weightUnit})</Trans>
               </ThemedText>
               <View style={styles.chipRow}>
-                {presets.map((preset) => {
-                  const selected = !showCustomBar && savedBarWeight === preset;
+                {presets.map((presetWeight) => {
+                  const selected =
+                    !showCustomBar && savedBarWeight === presetWeight;
+                  const preset = formatWeight(presetWeight);
                   return (
                     <TouchableOpacity
-                      key={preset}
-                      onPress={() => selectPresetBar(preset)}
+                      key={presetWeight}
+                      onPress={() => selectPresetBar(presetWeight)}
                       style={[styles.chip, selected && styles.chipSelected]}
                       accessibilityRole="button"
                       accessibilityLabel={t`${preset} ${weightUnit} bar`}

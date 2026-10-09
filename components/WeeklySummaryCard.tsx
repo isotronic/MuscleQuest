@@ -11,6 +11,7 @@ import { t, plural } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
 import { formatToHoursMinutes } from "@/utils/utility";
 import type { AppThemeColors } from "@/theme/types";
+import { formatDecimal, formatGroupedInteger } from "@/utils/numberFormat";
 
 interface Props {
   workoutsThisWeek: CompletedWorkout[];
@@ -166,8 +167,8 @@ function formatAchievement(a: BestAchievement): {
       value: t`${a.exerciseName}: ${best}s (+${delta}s, ${pctStr})`,
     };
   }
-  const best = a.thisWeekBest.toFixed(1);
-  const delta = a.delta.toFixed(1);
+  const best = formatDecimal(a.thisWeekBest, 1);
+  const delta = formatDecimal(a.delta, 1);
   return {
     label: t`1RM`,
     value: t`${a.exerciseName}: ${best}${unit} (+${delta}${unit}, ${pctStr})`,
@@ -237,7 +238,7 @@ export default function WeeklySummaryCard({
     ],
   );
 
-  const volumeLabel = `${Math.round(totalVolume).toLocaleString()} ${weightUnit}`;
+  const volumeLabel = `${formatGroupedInteger(totalVolume)} ${weightUnit}`;
 
   const achievementFormatted = bestAchievement
     ? formatAchievement(bestAchievement)

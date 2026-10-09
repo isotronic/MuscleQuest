@@ -27,6 +27,7 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { parseDbTimestamp } from "@/utils/dates";
 import { parseDecimalInput } from "@/utils/numberFormat";
+import { formatNumber } from "@/utils/numberFormat";
 
 function formatEntryDate(recorded_at: string): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -280,7 +281,8 @@ export default function MeasurementsScreen() {
                       : v.metric.label;
                     return (
                       <ThemedText key={v.metric.id} style={styles.sessionValue}>
-                        {label}: {v.displayValue} {v.displayUnit}
+                        {label}: {formatNumber(v.displayValue, 1)}{" "}
+                        {v.displayUnit}
                       </ThemedText>
                     );
                   })}

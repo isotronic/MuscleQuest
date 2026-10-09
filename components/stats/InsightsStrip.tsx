@@ -8,6 +8,7 @@ import { capitalizeWords } from "@/utils/utility";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { INSIGHT_PILLS, type InsightPillId } from "@/utils/statsLayout";
+import { formatDecimal } from "@/utils/numberFormat";
 
 interface InsightPill {
   label: string;
@@ -76,7 +77,7 @@ export const InsightsStrip: React.FC<InsightsStripProps> = ({
   if (workoutsPerWeek != null && show.includes("perWeek")) {
     pills.push({
       label: t`Per week (avg)`,
-      value: t`${workoutsPerWeek.toFixed(1)} workouts`,
+      value: t`${formatDecimal(workoutsPerWeek, 1)} workouts`,
     });
   }
   if (biggestGainLabel && biggestGainValue && show.includes("bestGain")) {

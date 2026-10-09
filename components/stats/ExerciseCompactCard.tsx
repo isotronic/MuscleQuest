@@ -11,6 +11,7 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import Sortable from "react-native-sortables";
 import { AppIcon } from "@/components/ui";
+import { formatDecimal } from "@/utils/numberFormat";
 
 interface ExerciseCompactCardProps {
   exercise: TrackedExerciseWithSets;
@@ -48,7 +49,7 @@ const formatPRLabel = (
     case "time":
       return `${Math.round(pr)}s`;
     case "distance":
-      return `${pr.toFixed(1)} ${distanceUnit}`;
+      return `${formatDecimal(pr, 1)} ${distanceUnit}`;
     default:
       return t`1RM ${formatWeight(pr, unit)} ${unit}`;
   }

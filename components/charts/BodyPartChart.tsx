@@ -15,6 +15,7 @@ import { useAppTheme } from "@/theme";
 import { useChartTheme } from "./chartTheme";
 import { summarizeShares } from "./chartA11y";
 import type { AppThemeColors } from "@/theme/types";
+import { formatNumber } from "@/utils/numberFormat";
 
 interface BodyPartChartProps {
   /** Sets (or volume) per body part group or muscle, see mergeSplitRows. */
@@ -64,7 +65,7 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
     return entries.map(([bodyPart, count]) => ({
       name: bodyPart,
       count,
-      percentage: ((count / total) * 100).toFixed(1),
+      percentage: Math.round((count / total) * 1000) / 10,
     }));
   }, [bodyPartCounts, grouping]);
 
@@ -80,7 +81,7 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
 
   const chartData = bodyPartPercentages.map((item, index) => ({
     text: item.name,
-    value: parseFloat(item.percentage),
+    value: item.percentage,
     color: sliceColor(item.name, index),
     focused: item.name === selectedBodyPart,
   }));
@@ -149,7 +150,7 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
             >
               {/* The share is printed so slices are not told apart by colour
                   alone. */}
-              {`${bodyPartName(item.text)} ${item.value}%`}
+              {`${bodyPartName(item.text)} ${formatNumber(item.value, 1)}%`}
             </ThemedText>
           </View>
         );
@@ -184,7 +185,7 @@ const BodyPartChart: React.FC<BodyPartChartProps> = ({
                         <ThemedText
                           style={{ fontSize: 18, fontWeight: "bold" }}
                         >
-                          {`${selectedPercentage}%`}
+                          {`${formatNumber(selectedPercentage ?? 0, 1)}%`}
                         </ThemedText>
                         <ThemedText style={{ fontSize: 18 }}>
                           {bodyPartName(selectedBodyPart)}

@@ -8,6 +8,10 @@ import { getLocales } from "expo-localization";
 export const DECIMAL_SEPARATOR: string =
   getLocales()[0]?.decimalSeparator || ".";
 
+// Device region's language tag, for formatting that also groups digits. Pass
+// it to toLocaleString rather than undefined (the JS default locale).
+export const DEVICE_LOCALE: string | undefined = getLocales()[0]?.languageTag;
+
 /**
  * Normalises typed text to a canonical decimal string. Both "," and "." are
  * accepted as the decimal mark (inputs never use grouping); everything else
@@ -48,4 +52,22 @@ export function sanitizeIntegerInput(text: string): string {
 /** Formats a number for display with the device separator. */
 export function formatDecimal(value: number, decimals: number): string {
   return toDisplayDecimal(value.toFixed(decimals));
+}
+
+/**
+ * Formats a number for display with the device separator, rounded to at most
+ * `maxDecimals` places without trailing zeros: 80 shows as "80", 62.5 as
+ * "62,5" on a comma device.
+ */
+export function formatNumber(value: number, maxDecimals: number): string {
+  return toDisplayDecimal(String(parseFloat(value.toFixed(maxDecimals))));
+}
+
+/**
+ * Formats a whole number with the device region's digit grouping ("12,345" or
+ * "12.345"). The region is passed explicitly so it cannot drift from the
+ * decimal separator if the JS default locale differs.
+ */
+export function formatGroupedInteger(value: number): string {
+  return Math.round(value).toLocaleString(DEVICE_LOCALE);
 }

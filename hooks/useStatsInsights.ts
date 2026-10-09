@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { TrackedExerciseWithSets } from "./useTrackedExercisesQuery";
 import { METRIC_EPSILON, formatWeight } from "@/utils/units";
+import { formatDecimal } from "@/utils/numberFormat";
 
 interface StatsInsights {
   workoutsPerWeek: number | null;
@@ -51,7 +52,7 @@ export const useStatsInsights = (
           } else if (ex.tracking_type === "time" && maxGain > 0) {
             biggestGainValue = `+${Math.round(maxGain)}s`;
           } else if (ex.tracking_type === "distance" && maxGain > 0) {
-            biggestGainValue = `+${maxGain.toFixed(1)} ${distanceUnit}`;
+            biggestGainValue = `+${formatDecimal(maxGain, 1)} ${distanceUnit}`;
           } else {
             biggestGainLabel = null;
             biggestGainValue = null;

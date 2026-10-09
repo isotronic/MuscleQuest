@@ -1,4 +1,5 @@
 import { t } from "@lingui/core/macro";
+import { formatDecimal } from "@/utils/numberFormat";
 
 /**
  * Text alternatives for the charts. A screen reader cannot read a plotted
@@ -11,7 +12,7 @@ const STEADY_THRESHOLD = 0.02;
 
 /** Whole numbers stay whole; anything else is rounded to one decimal. */
 function formatChartNumber(value: number): string {
-  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+  return Number.isInteger(value) ? String(value) : formatDecimal(value, 1);
 }
 
 function withUnit(value: number, unit: string | undefined): string {
