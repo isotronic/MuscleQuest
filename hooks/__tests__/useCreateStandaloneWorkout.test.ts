@@ -58,6 +58,10 @@ jest.mock("@/utils/sharing", () => ({
   publishStandaloneWorkout: jest.fn(() => Promise.resolve()),
   unpublishStandaloneWorkout: jest.fn(() => Promise.resolve()),
 }));
+jest.mock("@/utils/sharedSync", () => ({
+  syncStandaloneWorkoutRemoved: jest.fn(() => true),
+  syncStandaloneWorkoutRestored: jest.fn(),
+}));
 jest.mock("@/utils/database", () => ({
   createStandaloneWorkout: jest.fn(),
   updateStandaloneWorkout: jest.fn(),
@@ -83,6 +87,8 @@ function setupMocks() {
     invalidateQueries: mockInvalidateQueries,
   });
 }
+
+const sharedSync = jest.requireMock("@/utils/sharedSync");
 
 // ---------------------------------------------------------------------------
 // useCreateStandaloneWorkout
@@ -247,6 +253,22 @@ describe("useDeleteStandaloneWorkout", () => {
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["standaloneWorkouts"],
     });
+  });
+
+  it("unpublishes on delete and republishes on Undo", async () => {
+    const snapshot = { workoutId: 99, workoutExerciseIds: [] };
+    useDeleteStandaloneWorkout();
+    capturedArgs.onSuccess(snapshot, 99);
+
+    expect(sharedSync.syncStandaloneWorkoutRemoved).toHaveBeenCalledWith(99);
+
+    useSnackbarStore.getState().pressAction();
+    await new Promise((r) => setImmediate(r));
+
+    expect(sharedSync.syncStandaloneWorkoutRestored).toHaveBeenCalledWith(
+      99,
+      true,
+    );
   });
 
   it("onError notifies Bugsnag", () => {

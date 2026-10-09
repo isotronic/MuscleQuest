@@ -9,6 +9,7 @@ import { useFriendSharedCompletedWorkoutsQuery } from "@/hooks/useFriendSharedCo
 import { useFriendSharedMeasurementsQuery } from "@/hooks/useFriendSharedMeasurementsQuery";
 import { useFriendSharedStrengthQuery } from "@/hooks/useFriendSharedStrengthQuery";
 import { useIsOnline } from "@/hooks/useIsOnline";
+import { useFriendCompletedWorkoutCountQuery } from "@/hooks/useFriendCompletedWorkoutCountQuery";
 
 jest.mock("@lingui/react/macro", () => ({
   Trans: ({ children }: { children: React.ReactNode }) => children,
@@ -94,6 +95,12 @@ jest.mock("@/hooks/useFriendSharedCustomExercisesQuery", () => ({
 }));
 jest.mock("@/hooks/useFriendSharedCompletedWorkoutsQuery", () => ({
   useFriendSharedCompletedWorkoutsQuery: jest.fn(),
+}));
+jest.mock("@/hooks/useFriendCompletedWorkoutCountQuery", () => ({
+  useFriendCompletedWorkoutCountQuery: jest.fn(() => ({
+    data: undefined,
+    refetch: jest.fn(),
+  })),
 }));
 jest.mock("@/hooks/useFriendSharedMeasurementsQuery", () => ({
   useFriendSharedMeasurementsQuery: jest.fn(),
@@ -188,6 +195,19 @@ describe("FriendProfileScreen", () => {
     });
 
     refetches.forEach((refetch) => expect(refetch).toHaveBeenCalledTimes(1));
+  });
+
+  // The list only holds the recent workouts, so the stat needs the total.
+  it("shows the server count of shared workouts", () => {
+    (useFriendSharedPlansQuery as jest.Mock).mockReturnValue(loadedEmpty);
+    (useFriendCompletedWorkoutCountQuery as jest.Mock).mockReturnValue({
+      data: 137,
+      refetch: jest.fn(),
+    });
+
+    const { getByText } = render(<FriendProfileScreen />);
+
+    expect(getByText("137")).toBeTruthy();
   });
 
   describe("collapsible sections", () => {

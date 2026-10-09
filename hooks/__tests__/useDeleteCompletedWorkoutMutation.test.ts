@@ -6,10 +6,18 @@ import {
 import { useSnackbarStore } from "@/store/snackbarStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { refreshProgressionAfterHistoryChange } from "@/utils/progressionRecompute";
+import {
+  syncCompletedWorkoutChanged,
+  syncCompletedWorkoutRemoved,
+} from "@/utils/sharedSync";
 
 jest.mock("@/utils/database", () => ({
   deleteCompletedWorkout: jest.fn(),
   restoreCompletedWorkout: jest.fn().mockResolvedValue(undefined),
+}));
+jest.mock("@/utils/sharedSync", () => ({
+  syncCompletedWorkoutRemoved: jest.fn(),
+  syncCompletedWorkoutChanged: jest.fn(),
 }));
 jest.mock("@/utils/progressionRecompute", () => ({
   refreshProgressionAfterHistoryChange: jest.fn(),
@@ -154,5 +162,21 @@ describe("useDeleteCompletedWorkoutMutation", () => {
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ["completedWorkouts"],
     });
+  });
+
+  it("onSuccess removes the shared copy", () => {
+    useDeleteCompletedWorkoutMutation();
+    capturedArgs.onSuccess(undefined, 7);
+    expect(syncCompletedWorkoutRemoved).toHaveBeenCalledWith(7);
+  });
+
+  it("Undo shares the workout again", async () => {
+    useDeleteCompletedWorkoutMutation();
+    capturedArgs.onSuccess(undefined, 7);
+
+    useSnackbarStore.getState().pressAction();
+    await new Promise((r) => setImmediate(r));
+
+    expect(syncCompletedWorkoutChanged).toHaveBeenCalledWith(7);
   });
 });

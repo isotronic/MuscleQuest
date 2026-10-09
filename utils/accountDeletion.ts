@@ -13,6 +13,7 @@ import {
   query,
   where,
 } from "@react-native-firebase/firestore";
+import { withTimeout } from "./withTimeout";
 import {
   getStorage,
   ref,
@@ -27,6 +28,7 @@ import { removeFriend } from "./friends";
 import { deleteAllSharedData } from "./sharing";
 import { deleteEmailIndex } from "./emailIndex";
 import { notifyBugsnag } from "./bugsnagDedup";
+import { clearLocalDataOwner } from "./accountOwnership";
 import { useSocialStore } from "../store/socialStore";
 
 // Order matters: what other people can see goes first, the auth user last.
@@ -82,7 +84,11 @@ const reauthenticate = async (uid: string): Promise<void> => {
 
 const removeAllFriends = async (uid: string): Promise<void> => {
   const db = getFirestore();
-  const snapshot = await getDocs(collection(db, "users", uid, "friends"));
+  const snapshot = await withTimeout(
+    getDocs(collection(db, "users", uid, "friends")),
+    15000,
+    "accountDeletionFriends",
+  );
   // Attempt every removal so one failure doesn't leave the rest for a retry.
   const results = await Promise.allSettled(
     snapshot.docs.map((friendDoc: { id: string }) =>
@@ -100,8 +106,16 @@ const deletePendingRequests = async (uid: string): Promise<void> => {
   const db = getFirestore();
   const requests = collection(db, "friendRequests");
   const [sent, received] = await Promise.all([
-    getDocs(query(requests, where("from", "==", uid))),
-    getDocs(query(requests, where("to", "==", uid))),
+    withTimeout(
+      getDocs(query(requests, where("from", "==", uid))),
+      15000,
+      "accountDeletionSentRequests",
+    ),
+    withTimeout(
+      getDocs(query(requests, where("to", "==", uid))),
+      15000,
+      "accountDeletionReceivedRequests",
+    ),
   ]);
   await Promise.all(
     [...sent.docs, ...received.docs].map((d) => deleteDoc(d.ref)),
@@ -168,6 +182,12 @@ const cleanUpAfterDeletion = async (): Promise<void> => {
   });
   try {
     await useSocialStore.persist.clearStorage();
+  } catch (error) {
+    notifyBugsnag(error);
+  }
+  // The training data stays on the device for whoever signs in next.
+  try {
+    await clearLocalDataOwner();
   } catch (error) {
     notifyBugsnag(error);
   }

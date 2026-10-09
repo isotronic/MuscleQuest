@@ -1,4 +1,5 @@
 import { acceptFriendRequest, searchUserByEmail } from "../friends";
+import { TimeoutError } from "../withTimeout";
 
 const mockBatchSet = jest.fn();
 const mockBatchUpdate = jest.fn();
@@ -160,5 +161,20 @@ describe("searchUserByEmail", () => {
     ).resolves.toBeNull();
     expect(mockGetDocs).not.toHaveBeenCalled();
     expect(mockGetDoc).not.toHaveBeenCalled();
+  });
+
+  it("rejects with a timeout when the profile read never settles", async () => {
+    jest.useFakeTimers();
+    try {
+      mockLookupUidByEmail.mockResolvedValue("uid-alice");
+      mockGetDoc.mockReturnValue(new Promise(() => {}));
+
+      const result = searchUserByEmail("alice@example.com", "my-uid");
+      const assertion = expect(result).rejects.toBeInstanceOf(TimeoutError);
+      await jest.advanceTimersByTimeAsync(15000);
+      await assertion;
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

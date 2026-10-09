@@ -7,6 +7,7 @@ import type { SQLiteDatabase } from "expo-sqlite";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { displayToKg, displayToMetres, roundCanonical } from "@/utils/units";
 import { refreshProgressionAfterHistoryChange } from "@/utils/progressionRecompute";
+import { syncCompletedWorkoutChanged } from "@/utils/sharedSync";
 
 type EditedExercises = CompletedWorkout["exercises"];
 type EditedSet = EditedExercises[number]["sets"][number];
@@ -117,7 +118,7 @@ export const useEditCompletedWorkoutMutation = (
     mutationFn: async (edit: CompletedWorkoutEdit) => {
       return await saveEditedWorkout(edit, weightUnit, distanceUnit);
     },
-    onSuccess: () => {
+    onSuccess: (_data, edit) => {
       queryClient.invalidateQueries({ queryKey: ["completedWorkout", id] });
       queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
       queryClient.invalidateQueries({ queryKey: ["exerciseDetail"] });
@@ -128,6 +129,12 @@ export const useEditCompletedWorkoutMutation = (
       });
       // A pending suggestion may have been built on the values just corrected.
       void refreshProgressionAfterHistoryChange(queryClient, id);
+      // Friends see the corrected values. The exercises from before the edit
+      // are included because one swapped out may have lost its PR here.
+      syncCompletedWorkoutChanged(
+        id,
+        edit.original.map((exercise) => exercise.exercise_id),
+      );
     },
     onError: (error) => {
       console.error("Error saving edited workout:", error);

@@ -12,8 +12,10 @@ import {
   deleteField,
   doc,
   getDoc,
+  getCountFromServer,
   getDocs,
   limit,
+  orderBy,
   query,
   setDoc,
   updateDoc,
@@ -360,6 +362,12 @@ describe.each(Object.entries(payloads))(
       await seed({ [path]: payload });
       await assertSucceeds(deleteDoc(doc(asAlice(), path)));
     });
+
+    it("denies a friend deleting it", async () => {
+      await seed({ [path]: payload, "users/alice/friends/bob": {} });
+      const bob = testEnv.authenticatedContext("bob").firestore();
+      await assertFails(deleteDoc(doc(bob, path)));
+    });
   },
 );
 
@@ -482,5 +490,62 @@ describe("shared content reads", () => {
   it("blocks an unauthenticated reader", async () => {
     const anon = testEnv.unauthenticatedContext().firestore();
     await assertFails(getDoc(doc(anon, "users/alice/sharedPlans/doc1")));
+  });
+});
+
+// The friend profile's queries (useFriendSharedCompletedWorkoutsQuery,
+// useFriendSharedMeasurementsQuery, useFriendCompletedWorkoutCountQuery).
+describe("friend recent activity queries", () => {
+  beforeEach(async () => {
+    await seed({
+      "users/alice/sharedWorkouts/doc1": payloads.sharedWorkouts,
+      "users/alice/sharedMeasurements/doc1": payloads.sharedMeasurements,
+      "users/alice/friends/bob": { displayName: "Bob" },
+    });
+  });
+
+  const bob = () => testEnv.authenticatedContext("bob").firestore();
+  const carol = () => testEnv.authenticatedContext("carol").firestore();
+
+  it("lets a friend list recent workouts by date", async () => {
+    await assertSucceeds(
+      getDocs(
+        query(
+          collection(bob(), "users/alice/sharedWorkouts"),
+          orderBy("dateCompleted", "desc"),
+          limit(10),
+        ),
+      ),
+    );
+  });
+
+  it("lets a friend count shared workouts", async () => {
+    await assertSucceeds(
+      getCountFromServer(collection(bob(), "users/alice/sharedWorkouts")),
+    );
+  });
+
+  it("lets a friend list recent measurements by date", async () => {
+    await assertSucceeds(
+      getDocs(
+        query(
+          collection(bob(), "users/alice/sharedMeasurements"),
+          orderBy("recordedAt", "desc"),
+          limit(5),
+        ),
+      ),
+    );
+  });
+
+  it("blocks a non-friend from measurements", async () => {
+    await assertFails(
+      getDocs(collection(carol(), "users/alice/sharedMeasurements")),
+    );
+  });
+
+  it("blocks a non-friend from counting workouts", async () => {
+    await assertFails(
+      getCountFromServer(collection(carol(), "users/alice/sharedWorkouts")),
+    );
   });
 });

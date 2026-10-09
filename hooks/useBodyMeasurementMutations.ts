@@ -13,6 +13,10 @@ import { usePendingDeleteStore } from "@/store/pendingDeleteStore";
 import { useSocialStore } from "@/store/socialStore";
 import { pushBodyMeasurement } from "@/utils/sharing";
 import {
+  syncMeasurementChanged,
+  syncMeasurementRemoved,
+} from "@/utils/sharedSync";
+import {
   toCanonicalValue,
   type ValueKind,
   type MeasurementDisplayOptions,
@@ -88,8 +92,9 @@ export const useUpdateBodyMeasurementMutation = (
         }));
       return updateBodyMeasurementSession(entry_id, canonicalValues);
     },
-    onSuccess: () => {
+    onSuccess: (_data, { entry_id }) => {
       invalidateBodyMeasurements(queryClient);
+      syncMeasurementChanged(entry_id);
     },
     onError: (error) => {
       console.error("Failed to update body measurement session:", error);
@@ -102,8 +107,9 @@ export const useDeleteBodyMeasurementMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (entry_id: number) => deleteBodyMeasurementSession(entry_id),
-    onSuccess: () => {
+    onSuccess: (_data, entry_id) => {
       invalidateBodyMeasurements(queryClient);
+      syncMeasurementRemoved(entry_id);
     },
     onError: (error) => {
       console.error("Failed to delete body measurement session:", error);
@@ -134,6 +140,7 @@ export const useDeleteBodyMeasurementWithUndo = () => {
         if (!undone) {
           try {
             await deleteBodyMeasurementSession(entryId);
+            syncMeasurementRemoved(entryId);
           } catch (error) {
             notifyBugsnag(error);
             showSnackbar(t`Couldn't delete the measurement.`);

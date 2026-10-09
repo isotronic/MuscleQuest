@@ -7,6 +7,7 @@ import {
   deleteField,
   serverTimestamp,
 } from "@react-native-firebase/firestore";
+import { withTimeout } from "./withTimeout";
 import { upsertEmailIndex } from "./emailIndex";
 import { notifyBugsnag } from "./bugsnagDedup";
 import { FirestorePrivateSettings } from "../types/firestore";
@@ -35,8 +36,8 @@ export const upsertUserProfile = async (
     );
 
     const [userDoc, settingsDoc] = await Promise.all([
-      getDoc(userRef),
-      getDoc(privateSettingsRef),
+      withTimeout(getDoc(userRef), 15000, "upsertUserProfile"),
+      withTimeout(getDoc(privateSettingsRef), 15000, "upsertPrivateSettings"),
     ]);
 
     const profileData: Record<string, unknown> = {

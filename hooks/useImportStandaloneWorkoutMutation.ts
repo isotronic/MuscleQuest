@@ -2,16 +2,24 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { openDatabase } from "@/utils/database";
 import { ensureAppExercisesExist } from "@/utils/loadPremadePlans";
-import { resolveExerciseId } from "@/utils/importUtils";
+import {
+  ImportValidationError,
+  resolveExerciseId,
+  sanitizeImportedExercises,
+} from "@/utils/importUtils";
+import { showSnackbar } from "@/store/snackbarStore";
+import { t } from "@lingui/core/macro";
 import { SharedStandaloneWorkout } from "@/types/firestore";
 
 export const useImportStandaloneWorkoutMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (workout: SharedStandaloneWorkout): Promise<number> => {
+      // Validate before opening the database; see useImportPlanMutation.
+      const exercises = sanitizeImportedExercises(workout.exercises);
       const db = await openDatabase("userData.db");
       try {
-        const appExerciseIds = workout.exercises
+        const appExerciseIds = exercises
           .map((e) => e.appExerciseId)
           .filter((id): id is number => id !== null);
         await ensureAppExercisesExist(db, appExerciseIds);
@@ -24,7 +32,7 @@ export const useImportStandaloneWorkoutMutation = () => {
           );
           newWorkoutId = workoutResult.lastInsertRowId;
 
-          for (const [exerciseOrder, exercise] of workout.exercises.entries()) {
+          for (const [exerciseOrder, exercise] of exercises.entries()) {
             const exerciseId = await resolveExerciseId(txn, exercise);
             await txn.runAsync(
               `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
@@ -33,8 +41,8 @@ export const useImportStandaloneWorkoutMutation = () => {
                 exerciseId,
                 JSON.stringify(exercise.sets),
                 exerciseOrder,
-                exercise.supersetGroupId ?? null,
-                exercise.trackingTypeOverride ?? null,
+                exercise.supersetGroupId,
+                exercise.trackingTypeOverride,
               ],
             );
           }
@@ -48,6 +56,12 @@ export const useImportStandaloneWorkoutMutation = () => {
       queryClient.invalidateQueries({ queryKey: ["standaloneWorkouts"] });
     },
     onError: (error: Error) => {
+      if (error instanceof ImportValidationError) {
+        showSnackbar(
+          t`This workout couldn't be added because part of it isn't valid.`,
+        );
+        return;
+      }
       notifyBugsnag(error);
     },
   });

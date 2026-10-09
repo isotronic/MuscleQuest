@@ -1,4 +1,5 @@
 import { useSocialSyncOnStartup } from "../useSocialSyncOnStartup";
+import { useAccountOwnershipStore } from "@/store/accountOwnershipStore";
 
 const mockDeleteAllSharedData = jest.fn();
 
@@ -22,6 +23,17 @@ jest.mock("@/utils/database", () => ({
   fetchAllCustomExercisesForSharing: jest.fn().mockResolvedValue([]),
 }));
 
+// Called outside a renderer, so the store hook is a plain selector call.
+const mockOwnership: Record<string, unknown> = {};
+jest.mock("@/store/accountOwnershipStore", () => ({
+  useAccountOwnershipStore: Object.assign(
+    (selector: (s: unknown) => unknown) => selector(mockOwnership),
+    {
+      setState: (patch: object) => Object.assign(mockOwnership, patch),
+      getState: () => mockOwnership,
+    },
+  ),
+}));
 jest.mock("@/utils/bugsnagDedup", () => ({ notifyBugsnag: jest.fn() }));
 
 const mockSetPendingRevocation = jest.fn();
@@ -53,6 +65,10 @@ const flush = () => new Promise((resolve) => setImmediate(resolve));
 
 beforeEach(() => {
   jest.clearAllMocks();
+  useAccountOwnershipStore.setState({
+    resolvedFor: "my-uid",
+    ownedByCurrentUser: true,
+  });
   mockStoreState = {
     privacySettings: {},
     publishedPlanIds: [],

@@ -5,12 +5,16 @@ import {
   getDocs,
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
+import { withTimeout } from "@/utils/withTimeout";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { AuthContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
+import { useAccountOwnershipStore } from "@/store/accountOwnershipStore";
 import {
   fetchAllPlanIds,
   fetchAllStandaloneWorkoutIds,
+  fetchDeletedPlanIds,
+  fetchDeletedStandaloneWorkoutIds,
   fetchAllCustomExercisesForSharing,
   Exercise,
 } from "@/utils/database";
@@ -20,6 +24,8 @@ import {
   publishPlan,
   publishStandaloneWorkout,
   pushCustomExercise,
+  unpublishPlan,
+  unpublishStandaloneWorkout,
   deleteAllSharedData,
 } from "@/utils/sharing";
 
@@ -31,6 +37,10 @@ export const useSocialSyncOnStartup = () => {
     publishedWorkoutIds,
     pendingRevocation,
   } = useSocialStore();
+  // Not owned also covers "not resolved yet"; the effect reruns once it is.
+  const ownsLocalData = useAccountOwnershipStore(
+    (s) => !!user && s.resolvedFor === user.uid && s.ownedByCurrentUser,
+  );
   const hasSynced = useRef(false);
   const hasRetriedRevocations = useRef(false);
 
@@ -73,6 +83,8 @@ export const useSocialSyncOnStartup = () => {
 
   useEffect(() => {
     if (!user || !privacySettings || hasSynced.current) return;
+    // Local data from another account is not published as this one's.
+    if (!ownsLocalData) return;
     if (publishedPlanIds === null || publishedWorkoutIds === null) return;
     hasSynced.current = true;
 
@@ -83,7 +95,35 @@ export const useSocialSyncOnStartup = () => {
       // one request per missing item at app start.
       const throttle = pLimit(BULK_PUBLISH_CONCURRENCY);
 
+      // Unpublishes shared items deleted locally, including deletes made by
+      // app versions that did not unpublish. Only ids this database knows as
+      // deleted: an unknown id may come from another install of the account.
+      // Runs whatever the toggle says, since removing a doc is always safe.
+      const prune = async (
+        publishedIds: string[],
+        fetchDeletedIds: () => Promise<number[]>,
+        unpublish: (uid: string, id: number) => Promise<void>,
+      ) => {
+        const published = new Set(publishedIds);
+        const stale = (await fetchDeletedIds()).filter((id) =>
+          published.has(String(id)),
+        );
+        const results = await Promise.allSettled(
+          stale.map((id) => throttle(() => unpublish(uid, id))),
+        );
+        results.forEach((r) => {
+          if (r.status === "rejected") notifyBugsnag(r.reason);
+        });
+      };
+
       await Promise.allSettled([
+        prune(publishedPlanIds, fetchDeletedPlanIds, unpublishPlan),
+        prune(
+          publishedWorkoutIds,
+          fetchDeletedStandaloneWorkoutIds,
+          unpublishStandaloneWorkout,
+        ),
+
         (async () => {
           if (!privacySettings.sharePlans) return;
           const localIds = await fetchAllPlanIds();
@@ -110,7 +150,11 @@ export const useSocialSyncOnStartup = () => {
           if (!privacySettings.shareCustomExercises) return;
           const [exercises, snap] = await Promise.all([
             fetchAllCustomExercisesForSharing(),
-            getDocs(collection(db, "users", uid, "sharedCustomExercises")),
+            withTimeout(
+              getDocs(collection(db, "users", uid, "sharedCustomExercises")),
+              15000,
+              "startupSharedCustomExercises",
+            ),
           ]);
           const published = new Set(
             snap.docs.map(
@@ -131,5 +175,11 @@ export const useSocialSyncOnStartup = () => {
     };
 
     sync().catch((err) => notifyBugsnag(err));
-  }, [user, privacySettings, publishedPlanIds, publishedWorkoutIds]);
+  }, [
+    user,
+    privacySettings,
+    publishedPlanIds,
+    publishedWorkoutIds,
+    ownsLocalData,
+  ]);
 };

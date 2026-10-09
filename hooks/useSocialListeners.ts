@@ -12,6 +12,7 @@ import {
   onSnapshot,
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
+import { withTimeout } from "@/utils/withTimeout";
 import { AuthContext, AuthLoadingContext } from "../context/AuthProvider";
 import {
   useSocialStore,
@@ -128,6 +129,24 @@ export const useSocialListeners = () => {
     // (resubscribe, sign-out) a late result must not overwrite newer data.
     let active = true;
 
+    // A request is still worth showing without a name, so a profile read that
+    // fails or stalls costs only that one name, not the whole list.
+    const readRequestProfile = async (
+      uid: string,
+    ): Promise<{ displayName?: string; photoURL?: string } | undefined> => {
+      try {
+        const snap = await withTimeout(
+          getDoc(doc(db, "users", uid)),
+          15000,
+          "requestProfile",
+        );
+        return snap.data();
+      } catch (error) {
+        notifyBugsnag(error);
+        return undefined;
+      }
+    };
+
     // Incoming pending requests
     const unsubPending = onSnapshot(
       query(
@@ -140,8 +159,7 @@ export const useSocialListeners = () => {
           const requests: PendingRequest[] = await Promise.all(
             snapshot.docs.map(async (docSnap: QDocSnap) => {
               const data = docSnap.data();
-              const senderDoc = await getDoc(doc(db, "users", data.from));
-              const sender = senderDoc.data();
+              const sender = await readRequestProfile(data.from);
               return {
                 id: docSnap.id,
                 fromUid: data.from,
@@ -173,8 +191,7 @@ export const useSocialListeners = () => {
           const requests: SentRequest[] = await Promise.all(
             snapshot.docs.map(async (docSnap: QDocSnap) => {
               const data = docSnap.data();
-              const receiverDoc = await getDoc(doc(db, "users", data.to));
-              const receiver = receiverDoc.data();
+              const receiver = await readRequestProfile(data.to);
               return {
                 id: docSnap.id,
                 toUid: data.to,

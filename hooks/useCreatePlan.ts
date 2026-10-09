@@ -14,6 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { AuthContext } from "@/context/AuthProvider";
 import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
+import { withTimeout } from "@/utils/withTimeout";
 import { publishPlan } from "@/utils/sharing";
 import { useSocialStore } from "@/store/socialStore";
 
@@ -87,8 +88,18 @@ export const useCreatePlan = (existingPlan?: Plan) => {
           if (publishedPlanIds) {
             if (publishedPlanIds.includes(String(planId))) republish();
           } else {
-            getDoc(
-              doc(getFirestore(), "users", uid, "sharedPlans", String(planId)),
+            withTimeout(
+              getDoc(
+                doc(
+                  getFirestore(),
+                  "users",
+                  uid,
+                  "sharedPlans",
+                  String(planId),
+                ),
+              ),
+              15000,
+              "planPublishedCheck",
             )
               .then((snap) => {
                 if (snap.exists()) return republish();

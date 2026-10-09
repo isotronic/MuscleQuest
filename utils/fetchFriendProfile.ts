@@ -1,4 +1,5 @@
 import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
+import { withTimeout } from "./withTimeout";
 
 // No email: it is no longer on the public profile, and another user's
 // address is not something this app shows (plan 07 phase C2).
@@ -16,7 +17,11 @@ export const fetchFriendProfile = async (
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       const db = getFirestore();
-      const snap = await getDoc(doc(db, "users", friendUid));
+      const snap = await withTimeout(
+        getDoc(doc(db, "users", friendUid)),
+        15000,
+        "fetchFriendProfile",
+      );
       const data = snap.data();
       return {
         displayName: data?.displayName ?? "",

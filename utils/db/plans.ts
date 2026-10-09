@@ -26,6 +26,22 @@ export const fetchAllPlanIds = async (): Promise<number[]> => {
   }
 };
 
+/**
+ * User plans that were soft-deleted, so startup can unpublish any that an
+ * older app version deleted while they were shared.
+ */
+export const fetchDeletedPlanIds = async (): Promise<number[]> => {
+  const db = await openDatabase("userData.db");
+  try {
+    const rows = await db.getAllAsync<{ id: number }>(
+      `SELECT id FROM user_plans WHERE app_plan_id IS NULL AND is_deleted = TRUE`,
+    );
+    return rows.map((r) => r.id);
+  } finally {
+    await db.closeAsync();
+  }
+};
+
 export const updateActivePlan = async (id: number) => {
   const db = await openDatabase("userData.db");
   try {

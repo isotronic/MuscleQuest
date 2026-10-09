@@ -534,3 +534,47 @@ describe("useSocialListeners - before the session is restored", () => {
     expect(mockSetPublishedPlanIds).toHaveBeenCalledWith(null);
   });
 });
+
+describe("useSocialListeners - request hydration", () => {
+  const getDocMock = () =>
+    jest.requireMock("@react-native-firebase/firestore").getDoc as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    Object.keys(snapshotCallbacks).forEach((k) => delete snapshotCallbacks[k]);
+    jest
+      .requireMock("react")
+      .useContext.mockImplementation(mockAuthContexts(mockUser));
+    mockOnSnapshot.mockImplementation((ref: string, cb: Function) => {
+      snapshotCallbacks[ref] = cb;
+      return jest.fn();
+    });
+  });
+
+  // A profile read that fails or times out must cost only that sender's
+  // name, not the whole list of requests.
+  it("keeps every request when one sender's profile cannot be read", async () => {
+    getDocMock().mockImplementation((path: string) =>
+      path === "users/alice"
+        ? Promise.resolve({ data: () => ({ displayName: "Alice" }) })
+        : Promise.reject(new Error("unavailable")),
+    );
+    useSocialListeners();
+
+    // Incoming and sent requests both query friendRequests; incoming is first.
+    const onPending = mockOnSnapshot.mock.calls.find(
+      ([ref]) => ref === "friendRequests",
+    )![1];
+    await onPending({
+      docs: [
+        { id: "r1", data: () => ({ from: "alice", to: "my-uid" }) },
+        { id: "r2", data: () => ({ from: "bob", to: "my-uid" }) },
+      ],
+    });
+
+    expect(mockSetPendingRequests).toHaveBeenCalledWith([
+      expect.objectContaining({ id: "r1", displayName: "Alice" }),
+      expect.objectContaining({ id: "r2", fromUid: "bob", displayName: "" }),
+    ]);
+  });
+});

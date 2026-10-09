@@ -7,6 +7,7 @@ import {
   writeBatch,
   serverTimestamp,
 } from "@react-native-firebase/firestore";
+import { withTimeout } from "./withTimeout";
 import { fetchFriendProfile } from "./fetchFriendProfile";
 import { lookupUidByEmail } from "./emailIndex";
 
@@ -111,7 +112,11 @@ export const searchUserByEmail = async (
   if (!uid || uid === currentUid) return null;
 
   const db = getFirestore();
-  const snapshot = await getDoc(doc(db, "users", uid));
+  const snapshot = await withTimeout(
+    getDoc(doc(db, "users", uid)),
+    15000,
+    "searchUserProfile",
+  );
   if (!snapshot.exists()) return null;
 
   const data = snapshot.data();

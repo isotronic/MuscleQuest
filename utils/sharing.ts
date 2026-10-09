@@ -25,11 +25,19 @@ import {
   fetchAllPlanIds,
   fetchAllStandaloneWorkoutIds,
   fetchAllCustomExercisesForSharing,
+  fetchAppExerciseIds,
 } from "./database";
-import type { Exercise } from "./database";
+import type { Exercise, ExercisePRData } from "./database";
 import type { FirestorePrivateSettings } from "@/types/firestore";
 import { withTimeout } from "@/utils/withTimeout";
+import { isLocalDataOwnedBy } from "@/utils/accountOwnership";
 import { localDateKeyToDate, parseDbTimestamp } from "@/utils/dates";
+
+// Every exported push, publish and unpublish starts with isLocalDataOwnedBy:
+// local data that belongs to another account is never published as this one
+// (see utils/accountOwnership.ts). Checking here rather than at call sites
+// means no caller can miss it. deleteAllSharedData is not gated: revoking is
+// about the account's own shared data, not the local database.
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -160,7 +168,7 @@ const shouldSetPublishedAt = async (
   const ids = kind === "plan" ? publishedPlanIds : publishedWorkoutIds;
   if (ids) return !ids.includes(String(id));
 
-  const existing = await getDoc(ref);
+  const existing = await withTimeout(getDoc(ref), 15000, "publishedAtCheck");
   return !existing.exists();
 };
 
@@ -175,6 +183,7 @@ export const publishPlan = async (
   uid: string,
   planId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   const data = await fetchFullPlanForSharing(planId);
   if (!data || data.plan.app_plan_id !== null) return;
 
@@ -205,6 +214,7 @@ export const unpublishPlan = async (
   uid: string,
   planId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   const db = getFirestore();
   await deleteDoc(doc(db, "users", uid, "sharedPlans", String(planId)));
 };
@@ -215,6 +225,7 @@ export const publishStandaloneWorkout = async (
   uid: string,
   workoutId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   const data = await fetchStandaloneWorkoutForSharing(workoutId);
   if (!data) return;
 
@@ -247,6 +258,7 @@ export const unpublishStandaloneWorkout = async (
   uid: string,
   workoutId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   const db = getFirestore();
   await deleteDoc(
     doc(db, "users", uid, "sharedStandaloneWorkouts", String(workoutId)),
@@ -259,6 +271,7 @@ export const pushCustomExercise = async (
   uid: string,
   exercise: Exercise,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const now = serverTimestamp();
     const db = getFirestore();
@@ -270,7 +283,11 @@ export const pushCustomExercise = async (
       String(exercise.exercise_id),
     );
 
-    const existing = await getDoc(ref);
+    const existing = await withTimeout(
+      getDoc(ref),
+      15000,
+      "customExercisePublishedAt",
+    );
     const publishedAt = existing.exists() ? existing.data()?.publishedAt : now;
 
     const payload = {
@@ -304,6 +321,7 @@ export const removeCustomExercise = async (
   uid: string,
   exerciseId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const db = getFirestore();
     await deleteDoc(
@@ -320,6 +338,7 @@ export const pushCompletedWorkout = async (
   uid: string,
   completedWorkoutId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const data = await fetchCompletedWorkoutForSharing(completedWorkoutId);
     if (!data) return;
@@ -358,12 +377,28 @@ export const pushCompletedWorkout = async (
   }
 };
 
+export const unpublishCompletedWorkout = async (
+  uid: string,
+  completedWorkoutId: number,
+): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
+  try {
+    const db = getFirestore();
+    await deleteDoc(
+      doc(db, "users", uid, "sharedWorkouts", String(completedWorkoutId)),
+    );
+  } catch (error) {
+    notifyBugsnag(error);
+  }
+};
+
 // ─── body measurements ────────────────────────────────────────────────────────
 
 export const pushBodyMeasurement = async (
   uid: string,
   entryId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const data = await fetchBodyMeasurementEntryForSharing(entryId);
     if (!data) return;
@@ -385,53 +420,114 @@ export const pushBodyMeasurement = async (
   }
 };
 
+export const unpublishBodyMeasurement = async (
+  uid: string,
+  entryId: number,
+): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
+  try {
+    const db = getFirestore();
+    await deleteDoc(
+      doc(db, "users", uid, "sharedMeasurements", String(entryId)),
+    );
+  } catch (error) {
+    notifyBugsnag(error);
+  }
+};
+
 // ─── strength PRs ─────────────────────────────────────────────────────────────
+
+const strengthDocId = (ex: {
+  exercise_id: number;
+  app_exercise_id: number | null;
+}): string =>
+  ex.app_exercise_id != null
+    ? `app_${ex.app_exercise_id}`
+    : `custom_${ex.exercise_id}`;
+
+const buildStrengthPayload = (pr: ExercisePRData) => ({
+  exerciseName: pr.exercise_name,
+  appExerciseId: pr.app_exercise_id,
+  trackingType: pr.tracking_type,
+  allTimePR: pr.all_time_pr,
+  allTimePRDate: Timestamp.fromDate(localDateKeyToDate(pr.all_time_pr_date)),
+  topPRSets: pr.top_sets.map((s) => ({
+    weight: s.weight,
+    reps: s.reps,
+    time: s.time,
+    distance: s.distance,
+    date: Timestamp.fromDate(localDateKeyToDate(s.date_completed)),
+  })),
+});
+
+type StrengthWrite =
+  | { kind: "set"; docId: string; payload: object }
+  | { kind: "delete"; docId: string };
+
+const commitStrengthWrites = async (
+  uid: string,
+  writes: StrengthWrite[],
+): Promise<void> => {
+  const db = getFirestore();
+  const BATCH_LIMIT = 500;
+
+  for (let i = 0; i < writes.length; i += BATCH_LIMIT) {
+    const batch = writeBatch(db);
+    for (const write of writes.slice(i, i + BATCH_LIMIT)) {
+      const ref = doc(db, "users", uid, "sharedStrength", write.docId);
+      if (write.kind === "set") {
+        batch.set(ref, write.payload);
+      } else {
+        batch.delete(ref);
+      }
+    }
+    await batch.commit();
+  }
+};
+
+const strengthSetWrites = (prData: ExercisePRData[]): StrengthWrite[] =>
+  prData.map((pr) => {
+    const payload = buildStrengthPayload(pr);
+    assertWithinSizeBudget(payload);
+    return { kind: "set", docId: strengthDocId(pr), payload };
+  });
 
 export const pushStrengthPRs = async (
   uid: string,
   exerciseIds: number[],
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const prData = await fetchPRDataForExercises(exerciseIds);
     if (prData.length === 0) return;
+    await commitStrengthWrites(uid, strengthSetWrites(prData));
+  } catch (error) {
+    notifyBugsnag(error);
+  }
+};
 
-    const db = getFirestore();
-    const BATCH_LIMIT = 500;
+/**
+ * Like pushStrengthPRs, for after history was deleted or edited: an exercise
+ * whose only sets were removed has no PR data left, and its old doc would
+ * otherwise stay visible.
+ */
+export const refreshStrengthPRs = async (
+  uid: string,
+  exerciseIds: number[],
+): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
+  try {
+    if (exerciseIds.length === 0) return;
+    const [prData, exercises] = await Promise.all([
+      fetchPRDataForExercises(exerciseIds),
+      fetchAppExerciseIds(exerciseIds),
+    ]);
+    const withData = new Set(prData.map((pr) => pr.exercise_id));
+    const deletes: StrengthWrite[] = exercises
+      .filter((ex) => !withData.has(ex.exercise_id))
+      .map((ex) => ({ kind: "delete", docId: strengthDocId(ex) }));
 
-    for (let i = 0; i < prData.length; i += BATCH_LIMIT) {
-      const chunk = prData.slice(i, i + BATCH_LIMIT);
-      const batch = writeBatch(db);
-
-      for (const pr of chunk) {
-        const docId =
-          pr.app_exercise_id != null
-            ? `app_${pr.app_exercise_id}`
-            : `custom_${pr.exercise_id}`;
-        const ref = doc(db, "users", uid, "sharedStrength", docId);
-
-        const payload = {
-          exerciseName: pr.exercise_name,
-          appExerciseId: pr.app_exercise_id,
-          trackingType: pr.tracking_type,
-          allTimePR: pr.all_time_pr,
-          allTimePRDate: Timestamp.fromDate(
-            localDateKeyToDate(pr.all_time_pr_date),
-          ),
-          topPRSets: pr.top_sets.map((s) => ({
-            weight: s.weight,
-            reps: s.reps,
-            time: s.time,
-            distance: s.distance,
-            date: Timestamp.fromDate(localDateKeyToDate(s.date_completed)),
-          })),
-        };
-
-        assertWithinSizeBudget(payload);
-        batch.set(ref, payload);
-      }
-
-      await batch.commit();
-    }
+    await commitStrengthWrites(uid, [...strengthSetWrites(prData), ...deletes]);
   } catch (error) {
     notifyBugsnag(error);
   }
@@ -440,6 +536,7 @@ export const pushStrengthPRs = async (
 // ─── bulk publish ─────────────────────────────────────────────────────────────
 
 export const bulkPublishAllPlans = async (uid: string): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const planIds = await fetchAllPlanIds();
     const throttle = pLimit(BULK_PUBLISH_CONCURRENCY);
@@ -461,6 +558,7 @@ export const bulkPublishAllPlans = async (uid: string): Promise<void> => {
 export const bulkPublishAllStandaloneWorkouts = async (
   uid: string,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const workoutIds = await fetchAllStandaloneWorkoutIds();
     const throttle = pLimit(BULK_PUBLISH_CONCURRENCY);
@@ -482,6 +580,7 @@ export const bulkPublishAllStandaloneWorkouts = async (
 export const bulkPublishAllCustomExercises = async (
   uid: string,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const exercises = await fetchAllCustomExercisesForSharing();
     // pushCustomExercise catches its own errors and reports to Bugsnag, so allSettled sees fulfilled
@@ -510,7 +609,14 @@ const deleteSubcollection = async (
   const db = getFirestore();
   const collRef = collection(db, "users", uid, subcollection);
 
-  let snapshot = await getDocs(query(collRef, limit(500)));
+  const readPage = () =>
+    withTimeout(
+      getDocs(query(collRef, limit(500))),
+      15000,
+      `deleteSubcollection:${subcollection}`,
+    );
+
+  let snapshot = await readPage();
   while (!snapshot.empty) {
     const batch = writeBatch(db);
     for (const docSnap of snapshot.docs) {
@@ -518,7 +624,7 @@ const deleteSubcollection = async (
     }
     await batch.commit();
     if (snapshot.docs.length < 500) break;
-    snapshot = await getDocs(query(collRef, limit(500)));
+    snapshot = await readPage();
   }
 };
 
@@ -559,8 +665,10 @@ const deleteSubcollectionAndVerify = async (
   await deleteSubcollection(uid, subcollection);
 
   const db = getFirestore();
-  const remaining = await getDocs(
-    query(collection(db, "users", uid, subcollection), limit(1)),
+  const remaining = await withTimeout(
+    getDocs(query(collection(db, "users", uid, subcollection), limit(1))),
+    15000,
+    `verifySubcollectionEmpty:${subcollection}`,
   );
   if (!remaining.empty) {
     throw new Error(`${subcollection} still has documents after deletion`);

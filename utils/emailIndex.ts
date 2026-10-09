@@ -6,6 +6,7 @@ import {
   setDoc,
   deleteDoc,
 } from "@react-native-firebase/firestore";
+import { withTimeout } from "./withTimeout";
 
 // Maps an email address to a uid without storing the address itself, so
 // friend search no longer needs `email` on the public profile and the users
@@ -46,7 +47,11 @@ export const lookupUidByEmail = async (
   email: string,
 ): Promise<string | null> => {
   const db = getFirestore();
-  const snap = await getDoc(doc(db, "emailIndex", await hashEmail(email)));
+  const snap = await withTimeout(
+    getDoc(doc(db, "emailIndex", await hashEmail(email))),
+    15000,
+    "emailIndexLookup",
+  );
   if (!snap.exists()) return null;
   const uid = snap.data()?.uid;
   return typeof uid === "string" ? uid : null;

@@ -185,3 +185,26 @@ export const updateSettings = async (key: string, value: string) => {
     if (db) await db.closeAsync();
   }
 };
+
+/** One setting's raw value, or null when it is not set. */
+export const fetchSetting = async (key: string): Promise<string | null> => {
+  const db = await openDatabase("userData.db");
+  try {
+    const row = await db.getFirstAsync<{ value: string }>(
+      "SELECT value FROM settings WHERE key = ?",
+      [key],
+    );
+    return row?.value ?? null;
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+export const deleteSetting = async (key: string): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  try {
+    await db.runAsync("DELETE FROM settings WHERE key = ?", [key]);
+  } finally {
+    await db.closeAsync();
+  }
+};

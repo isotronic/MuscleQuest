@@ -5,12 +5,16 @@ import {
   BULK_PUBLISH_CONCURRENCY,
   deleteAllSharedData,
   publishPlan,
+  refreshStrengthPRs,
   SharedDataDeletionError,
   SharedDocTooLargeError,
   SHARED_SUBCOLLECTIONS,
+  unpublishBodyMeasurement,
+  unpublishCompletedWorkout,
 } from "../sharing";
 import * as db from "@/utils/database";
 import { useSocialStore } from "@/store/socialStore";
+import { useAccountOwnershipStore } from "@/store/accountOwnershipStore";
 import Bugsnag from "@bugsnag/expo";
 
 jest.mock("@/utils/database", () => ({
@@ -19,6 +23,8 @@ jest.mock("@/utils/database", () => ({
   fetchAllCustomExercisesForSharing: jest.fn(),
   fetchFullPlanForSharing: jest.fn(),
   fetchStandaloneWorkoutForSharing: jest.fn(),
+  fetchPRDataForExercises: jest.fn(),
+  fetchAppExerciseIds: jest.fn(),
 }));
 
 jest.mock("@bugsnag/expo", () => ({
@@ -33,6 +39,8 @@ const mockGetDoc = jest
 const mockDeleteDoc = jest.fn().mockResolvedValue(undefined);
 const mockGetDocs = jest.fn();
 const mockBatchCommit = jest.fn().mockResolvedValue(undefined);
+const mockBatchSet = jest.fn();
+const mockBatchDelete = jest.fn();
 
 jest.mock("@react-native-firebase/firestore", () => ({
   getFirestore: jest.fn(),
@@ -44,8 +52,8 @@ jest.mock("@react-native-firebase/firestore", () => ({
   collection: jest.fn((_db, ...segments: string[]) => segments.join("/")),
   getDocs: (...args: any[]) => mockGetDocs(...args),
   writeBatch: jest.fn(() => ({
-    set: jest.fn(),
-    delete: jest.fn(),
+    set: mockBatchSet,
+    delete: mockBatchDelete,
     commit: mockBatchCommit,
   })),
   limit: jest.fn(),
@@ -69,6 +77,12 @@ beforeEach(() => {
   mockGetDocs.mockResolvedValue({ docs: [], empty: true });
   mockGetDoc.mockResolvedValue({ exists: () => false, data: () => ({}) });
   useSocialStore.setState({ publishedPlanIds: [], publishedWorkoutIds: [] });
+  useAccountOwnershipStore.setState({
+    ownerUid: "uid123",
+    currentUid: "uid123",
+    resolvedFor: "uid123",
+    ownedByCurrentUser: true,
+  });
   (db.fetchFullPlanForSharing as jest.Mock).mockResolvedValue(minimalPlanData);
   (db.fetchStandaloneWorkoutForSharing as jest.Mock).mockResolvedValue(
     minimalWorkoutData,
@@ -324,5 +338,114 @@ describe("deleteAllSharedData", () => {
   it("only touches the subcollections it is given", async () => {
     await deleteAllSharedData("uid123", ["sharedPlans"]);
     expect(mockGetDocs).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("unpublishing single items", () => {
+  it("deletes the shared copy of a completed workout", async () => {
+    await unpublishCompletedWorkout("uid123", 42);
+    expect(mockDeleteDoc).toHaveBeenCalledWith(
+      "users/uid123/sharedWorkouts/42",
+    );
+  });
+
+  it("deletes the shared copy of a body measurement", async () => {
+    await unpublishBodyMeasurement("uid123", 9);
+    expect(mockDeleteDoc).toHaveBeenCalledWith(
+      "users/uid123/sharedMeasurements/9",
+    );
+  });
+
+  it("reports a failed delete instead of throwing", async () => {
+    mockDeleteDoc.mockRejectedValueOnce(new Error("unavailable"));
+    await expect(
+      unpublishCompletedWorkout("uid123", 42),
+    ).resolves.toBeUndefined();
+    expect(Bugsnag.notify).toHaveBeenCalled();
+  });
+});
+
+describe("refreshStrengthPRs", () => {
+  const prFor = (exerciseId: number, appExerciseId: number | null) => ({
+    exercise_id: exerciseId,
+    app_exercise_id: appExerciseId,
+    exercise_name: "Squat",
+    tracking_type: "weight",
+    all_time_pr: 100,
+    all_time_pr_date: "2026-10-01",
+    top_sets: [],
+  });
+
+  it("rewrites exercises that still have PR data", async () => {
+    (db.fetchPRDataForExercises as jest.Mock).mockResolvedValue([prFor(1, 11)]);
+    (db.fetchAppExerciseIds as jest.Mock).mockResolvedValue([
+      { exercise_id: 1, app_exercise_id: 11 },
+    ]);
+
+    await refreshStrengthPRs("uid123", [1]);
+
+    expect(mockBatchSet).toHaveBeenCalledWith(
+      "users/uid123/sharedStrength/app_11",
+      expect.objectContaining({ allTimePR: 100 }),
+    );
+    expect(mockBatchDelete).not.toHaveBeenCalled();
+  });
+
+  // A PR set only in the deleted session leaves no rows for that exercise,
+  // so pushing alone would leave the old PR visible.
+  it("deletes the doc of an exercise with no PR data left", async () => {
+    (db.fetchPRDataForExercises as jest.Mock).mockResolvedValue([prFor(1, 11)]);
+    (db.fetchAppExerciseIds as jest.Mock).mockResolvedValue([
+      { exercise_id: 1, app_exercise_id: 11 },
+      { exercise_id: 2, app_exercise_id: null },
+    ]);
+
+    await refreshStrengthPRs("uid123", [1, 2]);
+
+    expect(mockBatchDelete).toHaveBeenCalledWith(
+      "users/uid123/sharedStrength/custom_2",
+    );
+    expect(mockBatchCommit).toHaveBeenCalledTimes(1);
+  });
+
+  it("does nothing for an empty list", async () => {
+    await refreshStrengthPRs("uid123", []);
+    expect(mockBatchCommit).not.toHaveBeenCalled();
+  });
+});
+
+// Local data from another account must not be published as this one's.
+describe("account ownership gate", () => {
+  beforeEach(() => {
+    useAccountOwnershipStore.setState({
+      ownerUid: "someone-else",
+      currentUid: "uid123",
+      resolvedFor: "uid123",
+      ownedByCurrentUser: false,
+    });
+    (db.fetchAllPlanIds as jest.Mock).mockResolvedValue([1]);
+  });
+
+  it("does not publish while the data belongs to another account", async () => {
+    await publishPlan("uid123", 1);
+    await bulkPublishAllPlans("uid123");
+    await refreshStrengthPRs("uid123", [1]);
+
+    expect(mockSetDoc).not.toHaveBeenCalled();
+    expect(mockBatchCommit).not.toHaveBeenCalled();
+    expect(db.fetchFullPlanForSharing).not.toHaveBeenCalled();
+  });
+
+  it("does not unpublish either", async () => {
+    await unpublishCompletedWorkout("uid123", 42);
+    await unpublishBodyMeasurement("uid123", 9);
+
+    expect(mockDeleteDoc).not.toHaveBeenCalled();
+  });
+
+  // Revoking a sharing category is about the account's own data.
+  it("still lets the account revoke its shared data", async () => {
+    await deleteAllSharedData("uid123", ["sharedPlans"]);
+    expect(mockGetDocs).toHaveBeenCalled();
   });
 });

@@ -14,6 +14,19 @@ export const fetchAllStandaloneWorkoutIds = async (): Promise<number[]> => {
   }
 };
 
+/** Soft-deleted standalone workouts; see fetchDeletedPlanIds. */
+export const fetchDeletedStandaloneWorkoutIds = async (): Promise<number[]> => {
+  const db = await openDatabase("userData.db");
+  try {
+    const rows = await db.getAllAsync<{ id: number }>(
+      `SELECT id FROM user_workouts WHERE plan_id IS NULL AND is_deleted = TRUE`,
+    );
+    return rows.map((r) => r.id);
+  } finally {
+    await db.closeAsync();
+  }
+};
+
 interface RawStandaloneWorkout {
   workout_id: number;
   workout_name: string;

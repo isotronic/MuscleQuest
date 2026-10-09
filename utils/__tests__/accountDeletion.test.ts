@@ -67,6 +67,11 @@ jest.mock("../sharing", () => ({
   deleteAllSharedData: (...args: unknown[]) => mockDeleteShared(...args),
 }));
 
+const mockClearLocalDataOwner = jest.fn();
+jest.mock("../accountOwnership", () => ({
+  clearLocalDataOwner: (...args: unknown[]) => mockClearLocalDataOwner(...args),
+}));
+
 jest.mock("../emailIndex", () => ({
   deleteEmailIndex: (...args: unknown[]) => mockDeleteEmailIndex(...args),
 }));
@@ -99,6 +104,7 @@ beforeEach(() => {
   mockRemoveFriend.mockImplementation(record("removeFriend"));
   mockDeleteShared.mockImplementation(record("deleteShared"));
   mockDeleteEmailIndex.mockImplementation(record("deleteEmailIndex"));
+  mockClearLocalDataOwner.mockResolvedValue(undefined);
   mockGetDocs.mockImplementation(async (target: string) => {
     if (target === "users/me/friends") return snapshot(["f1", "f2"]);
     if (target === "friendRequests?from=me") return snapshot(["me_x"]);
@@ -255,6 +261,12 @@ describe("deleteAccount", () => {
     const state = useSocialStore.getState();
     expect(state.friends).toEqual([]);
     expect(state.publishedPlanIds).toBeNull();
+  });
+
+  // The local data stays on the device; whoever signs in next takes it over.
+  it("forgets which account owned the local data", async () => {
+    await deleteAccount("me");
+    expect(mockClearLocalDataOwner).toHaveBeenCalledTimes(1);
   });
 
   it("still succeeds when Google revoke fails after deletion", async () => {
