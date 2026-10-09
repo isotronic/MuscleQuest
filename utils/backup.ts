@@ -22,6 +22,8 @@ import {
 import { LATEST_SCHEMA_VERSION } from "./db/migrations";
 import { swapInRestoredFiles } from "./restoreRollback";
 import { resetLocalSessionState } from "./resetLocalState";
+import { claimLocalData, isLocalDataOwnedBy } from "./accountOwnership";
+import { notifyBugsnag } from "./bugsnagDedup";
 
 const dbName = "userData.db";
 
@@ -43,6 +45,7 @@ export interface BackupManifest {
 }
 
 export type BackupErrorCode =
+  | "account-mismatch"
   | "integrity"
   | "newer-schema"
   | "not-found"
@@ -154,6 +157,14 @@ export const uploadDatabaseBackup = async (
     setBackupProgress(0);
 
     const userId = getUserId();
+
+    // Another account's training data must not land in this account's backup.
+    if (!(await isLocalDataOwnedBy(userId))) {
+      throw new BackupError(
+        "account-mismatch",
+        "The data on this device belongs to another account.",
+      );
+    }
 
     const dbFile = new File(Paths.document, "SQLite", dbName);
     if (!dbFile.exists) {
@@ -386,6 +397,13 @@ export const restoreDatabaseBackup = async (
     }
 
     Bugsnag.leaveBreadcrumb("Backup restored");
+    // The data now comes from this account's backup. Not fatal: without it the
+    // next sign-in asks, or claims an empty owner silently.
+    try {
+      await claimLocalData(userId);
+    } catch (error) {
+      notifyBugsnag(error);
+    }
     await setAsyncStorageItem("databaseRestored", "true");
     // The session, drafts and published ids refer to the replaced database.
     await resetLocalSessionState();

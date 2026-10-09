@@ -7,6 +7,8 @@ export const getBackupErrorMessage = (
   operation: "backup" | "restore",
 ) => {
   switch (classifyBackupError(error)) {
+    case "account-mismatch":
+      return t`The data on this device was used with another account. Choose to use it with this account before backing up.`;
     case "offline":
       return t`You're offline. Connect to the internet and try again.`;
     case "not-found":

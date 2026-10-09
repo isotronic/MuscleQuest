@@ -9,6 +9,7 @@ import { withTimeout } from "@/utils/withTimeout";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { AuthContext } from "@/context/AuthProvider";
 import { useSocialStore } from "@/store/socialStore";
+import { useAccountOwnershipStore } from "@/store/accountOwnershipStore";
 import {
   fetchAllPlanIds,
   fetchAllStandaloneWorkoutIds,
@@ -36,6 +37,10 @@ export const useSocialSyncOnStartup = () => {
     publishedWorkoutIds,
     pendingRevocation,
   } = useSocialStore();
+  // Not owned also covers "not resolved yet"; the effect reruns once it is.
+  const ownsLocalData = useAccountOwnershipStore(
+    (s) => !!user && s.resolvedFor === user.uid && s.ownedByCurrentUser,
+  );
   const hasSynced = useRef(false);
   const hasRetriedRevocations = useRef(false);
 
@@ -78,6 +83,8 @@ export const useSocialSyncOnStartup = () => {
 
   useEffect(() => {
     if (!user || !privacySettings || hasSynced.current) return;
+    // Local data from another account is not published as this one's.
+    if (!ownsLocalData) return;
     if (publishedPlanIds === null || publishedWorkoutIds === null) return;
     hasSynced.current = true;
 
@@ -168,5 +175,11 @@ export const useSocialSyncOnStartup = () => {
     };
 
     sync().catch((err) => notifyBugsnag(err));
-  }, [user, privacySettings, publishedPlanIds, publishedWorkoutIds]);
+  }, [
+    user,
+    privacySettings,
+    publishedPlanIds,
+    publishedWorkoutIds,
+    ownsLocalData,
+  ]);
 };

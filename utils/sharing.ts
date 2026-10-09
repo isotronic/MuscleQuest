@@ -30,7 +30,14 @@ import {
 import type { Exercise, ExercisePRData } from "./database";
 import type { FirestorePrivateSettings } from "@/types/firestore";
 import { withTimeout } from "@/utils/withTimeout";
+import { isLocalDataOwnedBy } from "@/utils/accountOwnership";
 import { localDateKeyToDate, parseDbTimestamp } from "@/utils/dates";
+
+// Every exported push, publish and unpublish starts with isLocalDataOwnedBy:
+// local data that belongs to another account is never published as this one
+// (see utils/accountOwnership.ts). Checking here rather than at call sites
+// means no caller can miss it. deleteAllSharedData is not gated: revoking is
+// about the account's own shared data, not the local database.
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -176,6 +183,7 @@ export const publishPlan = async (
   uid: string,
   planId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   const data = await fetchFullPlanForSharing(planId);
   if (!data || data.plan.app_plan_id !== null) return;
 
@@ -206,6 +214,7 @@ export const unpublishPlan = async (
   uid: string,
   planId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   const db = getFirestore();
   await deleteDoc(doc(db, "users", uid, "sharedPlans", String(planId)));
 };
@@ -216,6 +225,7 @@ export const publishStandaloneWorkout = async (
   uid: string,
   workoutId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   const data = await fetchStandaloneWorkoutForSharing(workoutId);
   if (!data) return;
 
@@ -248,6 +258,7 @@ export const unpublishStandaloneWorkout = async (
   uid: string,
   workoutId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   const db = getFirestore();
   await deleteDoc(
     doc(db, "users", uid, "sharedStandaloneWorkouts", String(workoutId)),
@@ -260,6 +271,7 @@ export const pushCustomExercise = async (
   uid: string,
   exercise: Exercise,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const now = serverTimestamp();
     const db = getFirestore();
@@ -309,6 +321,7 @@ export const removeCustomExercise = async (
   uid: string,
   exerciseId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const db = getFirestore();
     await deleteDoc(
@@ -325,6 +338,7 @@ export const pushCompletedWorkout = async (
   uid: string,
   completedWorkoutId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const data = await fetchCompletedWorkoutForSharing(completedWorkoutId);
     if (!data) return;
@@ -367,6 +381,7 @@ export const unpublishCompletedWorkout = async (
   uid: string,
   completedWorkoutId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const db = getFirestore();
     await deleteDoc(
@@ -383,6 +398,7 @@ export const pushBodyMeasurement = async (
   uid: string,
   entryId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const data = await fetchBodyMeasurementEntryForSharing(entryId);
     if (!data) return;
@@ -408,6 +424,7 @@ export const unpublishBodyMeasurement = async (
   uid: string,
   entryId: number,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const db = getFirestore();
     await deleteDoc(
@@ -479,6 +496,7 @@ export const pushStrengthPRs = async (
   uid: string,
   exerciseIds: number[],
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const prData = await fetchPRDataForExercises(exerciseIds);
     if (prData.length === 0) return;
@@ -497,6 +515,7 @@ export const refreshStrengthPRs = async (
   uid: string,
   exerciseIds: number[],
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     if (exerciseIds.length === 0) return;
     const [prData, exercises] = await Promise.all([
@@ -517,6 +536,7 @@ export const refreshStrengthPRs = async (
 // ─── bulk publish ─────────────────────────────────────────────────────────────
 
 export const bulkPublishAllPlans = async (uid: string): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const planIds = await fetchAllPlanIds();
     const throttle = pLimit(BULK_PUBLISH_CONCURRENCY);
@@ -538,6 +558,7 @@ export const bulkPublishAllPlans = async (uid: string): Promise<void> => {
 export const bulkPublishAllStandaloneWorkouts = async (
   uid: string,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const workoutIds = await fetchAllStandaloneWorkoutIds();
     const throttle = pLimit(BULK_PUBLISH_CONCURRENCY);
@@ -559,6 +580,7 @@ export const bulkPublishAllStandaloneWorkouts = async (
 export const bulkPublishAllCustomExercises = async (
   uid: string,
 ): Promise<void> => {
+  if (!(await isLocalDataOwnedBy(uid))) return;
   try {
     const exercises = await fetchAllCustomExercisesForSharing();
     // pushCustomExercise catches its own errors and reports to Bugsnag, so allSettled sees fulfilled

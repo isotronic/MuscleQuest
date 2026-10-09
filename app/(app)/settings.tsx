@@ -41,9 +41,13 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { getAuth, signOut } from "@react-native-firebase/auth";
 import Bugsnag from "@bugsnag/expo";
 import { getBackupErrorMessage } from "@/utils/backupErrorMessage";
+import { AccountOwnershipNotice } from "@/components/AccountOwnershipNotice";
+import { claimLocalData } from "@/utils/accountOwnership";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { restoreConfirmMessage } from "@/utils/restoreConfirmMessage";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import {
+  classifyBackupError,
   fetchLastBackupDate,
   restoreDatabaseBackup,
   uploadDatabaseBackup,
@@ -510,6 +514,22 @@ export default function SettingsScreen() {
       queryClient.invalidateQueries({ queryKey: ["lastBackupDate"] });
       showSnackbar(t`Backup complete.`);
     } catch (error) {
+      if (classifyBackupError(error) === "account-mismatch" && user) {
+        const uid = user.uid;
+        Alert.alert(t`Backup Failed`, getBackupErrorMessage(error, "backup"), [
+          { text: t`Not now`, style: "cancel" },
+          {
+            text: t`Use with this account`,
+            onPress: () => {
+              claimLocalData(uid).catch((claimError) => {
+                notifyBugsnag(claimError);
+                showSnackbar(t`Couldn't save your choice. Try again.`);
+              });
+            },
+          },
+        ]);
+        return;
+      }
       Alert.alert(t`Backup Failed`, getBackupErrorMessage(error, "backup"));
     }
   };
@@ -677,6 +697,7 @@ export default function SettingsScreen() {
               </ThemedText>
             </View>
           </TouchableOpacity>
+          <AccountOwnershipNotice user={user} />
           <View style={styles.item}>
             <AppIcon
               set="mci"

@@ -1,6 +1,7 @@
 import { useSocialSyncOnStartup } from "../useSocialSyncOnStartup";
 import * as sharing from "@/utils/sharing";
 import * as db from "@/utils/database";
+import { useAccountOwnershipStore } from "@/store/accountOwnershipStore";
 
 jest.mock("@/utils/sharing", () => ({
   BULK_PUBLISH_CONCURRENCY: 4,
@@ -26,6 +27,17 @@ jest.mock("@/utils/database", () => ({
   fetchAllCustomExercisesForSharing: jest.fn().mockResolvedValue([]),
 }));
 
+// Called outside a renderer, so the store hook is a plain selector call.
+const mockOwnership: Record<string, unknown> = {};
+jest.mock("@/store/accountOwnershipStore", () => ({
+  useAccountOwnershipStore: Object.assign(
+    (selector: (s: unknown) => unknown) => selector(mockOwnership),
+    {
+      setState: (patch: object) => Object.assign(mockOwnership, patch),
+      getState: () => mockOwnership,
+    },
+  ),
+}));
 jest.mock("@/utils/bugsnagDedup", () => ({ notifyBugsnag: jest.fn() }));
 
 let mockStoreState: Record<string, unknown> = {};
@@ -55,6 +67,12 @@ beforeEach(() => {
     publishedWorkoutIds: ["7", "8"],
     pendingRevocation: null,
   };
+  useAccountOwnershipStore.setState({
+    ownerUid: "my-uid",
+    currentUid: "my-uid",
+    resolvedFor: "my-uid",
+    ownedByCurrentUser: true,
+  });
   (db.fetchAllPlanIds as jest.Mock).mockResolvedValue([1]);
   (db.fetchDeletedPlanIds as jest.Mock).mockResolvedValue([2, 5]);
   (db.fetchAllStandaloneWorkoutIds as jest.Mock).mockResolvedValue([7]);
@@ -97,4 +115,29 @@ it("prunes even when the category toggle is off", async () => {
 
   expect(sharing.unpublishPlan).toHaveBeenCalledWith("my-uid", 2);
   expect(sharing.publishPlan).not.toHaveBeenCalled();
+});
+
+it("skips the whole sync while the local data belongs to another account", async () => {
+  useAccountOwnershipStore.setState({
+    ownerUid: "someone-else",
+    resolvedFor: "my-uid",
+    ownedByCurrentUser: false,
+  });
+  (db.fetchAllPlanIds as jest.Mock).mockResolvedValue([1, 4]);
+
+  useSocialSyncOnStartup();
+  await flush();
+
+  expect(db.fetchAllPlanIds).not.toHaveBeenCalled();
+  expect(db.fetchDeletedPlanIds).not.toHaveBeenCalled();
+  expect(sharing.publishPlan).not.toHaveBeenCalled();
+});
+
+it("waits until ownership is known", async () => {
+  useAccountOwnershipStore.setState({ resolvedFor: null });
+
+  useSocialSyncOnStartup();
+  await flush();
+
+  expect(db.fetchDeletedPlanIds).not.toHaveBeenCalled();
 });

@@ -14,6 +14,7 @@ import {
 } from "../sharing";
 import * as db from "@/utils/database";
 import { useSocialStore } from "@/store/socialStore";
+import { useAccountOwnershipStore } from "@/store/accountOwnershipStore";
 import Bugsnag from "@bugsnag/expo";
 
 jest.mock("@/utils/database", () => ({
@@ -76,6 +77,12 @@ beforeEach(() => {
   mockGetDocs.mockResolvedValue({ docs: [], empty: true });
   mockGetDoc.mockResolvedValue({ exists: () => false, data: () => ({}) });
   useSocialStore.setState({ publishedPlanIds: [], publishedWorkoutIds: [] });
+  useAccountOwnershipStore.setState({
+    ownerUid: "uid123",
+    currentUid: "uid123",
+    resolvedFor: "uid123",
+    ownedByCurrentUser: true,
+  });
   (db.fetchFullPlanForSharing as jest.Mock).mockResolvedValue(minimalPlanData);
   (db.fetchStandaloneWorkoutForSharing as jest.Mock).mockResolvedValue(
     minimalWorkoutData,
@@ -404,5 +411,41 @@ describe("refreshStrengthPRs", () => {
   it("does nothing for an empty list", async () => {
     await refreshStrengthPRs("uid123", []);
     expect(mockBatchCommit).not.toHaveBeenCalled();
+  });
+});
+
+// Local data from another account must not be published as this one's.
+describe("account ownership gate", () => {
+  beforeEach(() => {
+    useAccountOwnershipStore.setState({
+      ownerUid: "someone-else",
+      currentUid: "uid123",
+      resolvedFor: "uid123",
+      ownedByCurrentUser: false,
+    });
+    (db.fetchAllPlanIds as jest.Mock).mockResolvedValue([1]);
+  });
+
+  it("does not publish while the data belongs to another account", async () => {
+    await publishPlan("uid123", 1);
+    await bulkPublishAllPlans("uid123");
+    await refreshStrengthPRs("uid123", [1]);
+
+    expect(mockSetDoc).not.toHaveBeenCalled();
+    expect(mockBatchCommit).not.toHaveBeenCalled();
+    expect(db.fetchFullPlanForSharing).not.toHaveBeenCalled();
+  });
+
+  it("does not unpublish either", async () => {
+    await unpublishCompletedWorkout("uid123", 42);
+    await unpublishBodyMeasurement("uid123", 9);
+
+    expect(mockDeleteDoc).not.toHaveBeenCalled();
+  });
+
+  // Revoking a sharing category is about the account's own data.
+  it("still lets the account revoke its shared data", async () => {
+    await deleteAllSharedData("uid123", ["sharedPlans"]);
+    expect(mockGetDocs).toHaveBeenCalled();
   });
 });

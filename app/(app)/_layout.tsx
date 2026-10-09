@@ -8,6 +8,7 @@ import { useSocialSyncOnStartup } from "../../hooks/useSocialSyncOnStartup";
 import { useExerciseImageFiles } from "@/hooks/useExerciseImageFiles";
 import { AppSnackbar } from "@/components/AppSnackbar";
 import { StaleWorkoutPrompt } from "@/components/StaleWorkoutPrompt";
+import { AccountOwnershipPrompt } from "@/components/AccountOwnershipPrompt";
 import { setShowRestNotificationInForeground } from "@/utils/restNotification";
 import { useEffect } from "react";
 
@@ -88,6 +89,7 @@ export default function AppLayout() {
         <Stack.Screen name="+not-found" />
       </Stack>
       <StaleWorkoutPrompt />
+      <AccountOwnershipPrompt />
       <AppSnackbar />
     </>
   );

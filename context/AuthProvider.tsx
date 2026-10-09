@@ -6,6 +6,7 @@ import {
 } from "@react-native-firebase/auth";
 import { upsertUserProfile } from "../utils/userProfile";
 import { notifyBugsnag } from "../utils/bugsnagDedup";
+import { resolveAccountOwnership } from "../utils/accountOwnership";
 import Bugsnag from "@bugsnag/expo";
 
 // Signing in is optional: the user is null anywhere in the app when signed
@@ -43,6 +44,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(userState);
       setIsAuthLoading(false);
       resolveInitialAuth();
+      // Backups and sharing wait on this before acting as the new account.
+      resolveAccountOwnership(userState?.uid ?? null).catch(notifyBugsnag);
       if (userState) {
         // Attribute every subsequent Bugsnag report to this user so errors
         // can be correlated to accounts and blast radius can be measured.

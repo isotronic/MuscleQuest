@@ -5,6 +5,7 @@ import { readLastBackupDate } from "@/utils/backup";
 import { countCompletedWorkouts } from "@/utils/db/workoutStats";
 import { getBackupReminder, snoozeUntil } from "@/utils/backupReminder";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { useAccountOwnershipStore } from "@/store/accountOwnershipStore";
 import { useSettingsQuery } from "./useSettingsQuery";
 import { useUpdateSettingsMutation } from "./useUpdateSettingsMutation";
 import { useIsOnline } from "./useIsOnline";
@@ -26,6 +27,10 @@ export function useBackupReminder() {
   const { mutate: updateSetting } = useUpdateSettingsMutation();
   const workoutInProgress = useActiveWorkoutStore((state) =>
     Boolean(state.activeWorkout && state.workout),
+  );
+  // Backups are refused while this account has not taken over the data.
+  const backupsPaused = useAccountOwnershipStore(
+    (s) => !!user && s.resolvedFor === user.uid && !s.ownedByCurrentUser,
   );
 
   // Keyed under completedWorkouts so saving or deleting a workout refetches.
@@ -64,7 +69,7 @@ export function useBackupReminder() {
     (backupDate == null || workoutsSinceBackup !== undefined);
 
   const reminder =
-    settings && countsReady
+    settings && countsReady && !backupsPaused
       ? getBackupReminder({
           isSignedIn: !!user,
           workoutCount,

@@ -28,6 +28,7 @@ import { removeFriend } from "./friends";
 import { deleteAllSharedData } from "./sharing";
 import { deleteEmailIndex } from "./emailIndex";
 import { notifyBugsnag } from "./bugsnagDedup";
+import { clearLocalDataOwner } from "./accountOwnership";
 import { useSocialStore } from "../store/socialStore";
 
 // Order matters: what other people can see goes first, the auth user last.
@@ -181,6 +182,12 @@ const cleanUpAfterDeletion = async (): Promise<void> => {
   });
   try {
     await useSocialStore.persist.clearStorage();
+  } catch (error) {
+    notifyBugsnag(error);
+  }
+  // The training data stays on the device for whoever signs in next.
+  try {
+    await clearLocalDataOwner();
   } catch (error) {
     notifyBugsnag(error);
   }

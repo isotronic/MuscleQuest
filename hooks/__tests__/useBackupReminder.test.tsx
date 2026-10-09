@@ -8,6 +8,7 @@ import { countCompletedWorkouts } from "@/utils/db/workoutStats";
 import { useSettingsQuery } from "../useSettingsQuery";
 import { useIsOnline } from "../useIsOnline";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { useAccountOwnershipStore } from "@/store/accountOwnershipStore";
 
 jest.mock("@/context/AuthProvider", () => {
   const { createContext } = require("react");
@@ -52,6 +53,25 @@ describe("useBackupReminder", () => {
       async (since?: Date) => (since ? 4 : 20),
     );
     useActiveWorkoutStore.setState({ activeWorkout: null, workout: null });
+    useAccountOwnershipStore.setState({
+      resolvedFor: null,
+      ownedByCurrentUser: false,
+    });
+  });
+
+  // Backups are refused until the user decides whose data this is, so a
+  // nudge to back up would only lead to an error.
+  it("stays quiet while backups are paused for another account's data", async () => {
+    (readLastBackupDate as jest.Mock).mockResolvedValue(null);
+    useAccountOwnershipStore.setState({
+      resolvedFor: "u1",
+      ownedByCurrentUser: false,
+    });
+    const { result } = renderReminder({ uid: "u1" });
+
+    await waitFor(() => expect(countCompletedWorkouts).toHaveBeenCalled());
+    await act(async () => {});
+    expect(result.current.reminder).toBeNull();
   });
 
   it("reminds a signed-out user with enough workouts, without touching the network", async () => {

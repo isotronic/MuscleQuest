@@ -52,6 +52,11 @@ jest.mock("../resetLocalState", () => ({
   resetLocalSessionState: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock("../accountOwnership", () => ({
+  isLocalDataOwnedBy: jest.fn(() => Promise.resolve(true)),
+  claimLocalData: jest.fn(() => Promise.resolve()),
+}));
+
 jest.mock("../database", () => ({
   createDatabaseSnapshot: jest.fn((target: any) => Promise.resolve(target)),
   checkDatabaseIntegrity: jest.fn(() => Promise.resolve(true)),
@@ -60,6 +65,7 @@ jest.mock("../database", () => ({
 
 const mockStorage = require("@react-native-firebase/storage");
 const mockDatabase = require("../database");
+const mockOwnership = require("../accountOwnership");
 const { swapInRestoredFiles } = require("../restoreRollback");
 const { reloadAsync } = require("expo-updates");
 const { setAsyncStorageItem } = require("../asyncStorage");
@@ -266,6 +272,21 @@ describe("uploadDatabaseBackup", () => {
     expect(setBackupProgressMock).not.toHaveBeenCalledWith(100);
   });
 
+  it("refuses to upload data that belongs to another account", async () => {
+    mockOwnership.isLocalDataOwnedBy.mockResolvedValueOnce(false);
+    uploadSucceeds();
+
+    const error = await uploadDatabaseBackup(
+      setBackupProgressMock,
+      setIsBackupLoadingMock,
+    ).catch((e) => e);
+
+    expect(error).toBeInstanceOf(BackupError);
+    expect(classifyBackupError(error)).toBe("account-mismatch");
+    expect(mockOwnership.isLocalDataOwnedBy).toHaveBeenCalledWith("mockUserId");
+    expect(mockStorage.putFile).not.toHaveBeenCalled();
+  });
+
   it("should throw an error if the database file does not exist", async () => {
     (File as unknown as jest.Mock).mockImplementationOnce(() => ({
       exists: false,
@@ -425,6 +446,23 @@ describe("restoreDatabaseBackup", () => {
       expect(setRestoreProgressMock).toHaveBeenLastCalledWith(100);
       expect(reloadAsync).toHaveBeenCalled();
       expect(stagingDir.delete).toHaveBeenCalled();
+    });
+
+    // The restored data came from this account's own backup.
+    it("makes this account the owner of the restored data", async () => {
+      mockRemote(manifestFor());
+
+      await restore();
+
+      expect(mockOwnership.claimLocalData).toHaveBeenCalledWith("mockUserId");
+      expect(
+        mockOwnership.claimLocalData.mock.invocationCallOrder[0],
+      ).toBeGreaterThan(
+        (swapInRestoredFiles as jest.Mock).mock.invocationCallOrder[0],
+      );
+      expect(
+        mockOwnership.claimLocalData.mock.invocationCallOrder[0],
+      ).toBeLessThan((reloadAsync as jest.Mock).mock.invocationCallOrder[0]);
     });
 
     it("clears the old session state after the swap and before the reload", async () => {
