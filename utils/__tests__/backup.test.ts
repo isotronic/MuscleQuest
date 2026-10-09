@@ -220,6 +220,7 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("still succeeds when deleting the legacy files fails", async () => {
+    jest.spyOn(console, "warn").mockImplementation(() => {});
     mockRemote(null);
     uploadSucceeds();
     mockStorage.deleteObject.mockRejectedValueOnce(new Error("Denied"));
@@ -231,6 +232,7 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("leaves the manifest untouched when the upload fails", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockRemote(manifestFor());
     uploadFails();
 
@@ -246,6 +248,7 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("uploads nothing when the snapshot fails its integrity check", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockRemote(manifestFor());
     mockDatabase.checkDatabaseIntegrity.mockResolvedValue(false);
 
@@ -261,6 +264,7 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("should throw an error if user is not authenticated", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockAuthInstance.currentUser = null;
 
     await expect(
@@ -273,6 +277,7 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("refuses to upload data that belongs to another account", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockOwnership.isLocalDataOwnedBy.mockResolvedValueOnce(false);
     uploadSucceeds();
 
@@ -288,6 +293,7 @@ describe("uploadDatabaseBackup", () => {
   });
 
   it("should throw an error if the database file does not exist", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     (File as unknown as jest.Mock).mockImplementationOnce(() => ({
       exists: false,
       uri: "/mock/document/directory/SQLite/userData.db",
@@ -339,6 +345,7 @@ describe("fetchLastBackupDate", () => {
   });
 
   it("should return null if user is not authenticated", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockAuthInstance.currentUser = null;
 
     expect(await fetchLastBackupDate()).toBeNull();
@@ -481,6 +488,7 @@ describe("restoreDatabaseBackup", () => {
     });
 
     it("keeps the session state when the restore fails", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {});
       mockRemote(manifestFor());
       mockDatabase.checkDatabaseIntegrity.mockResolvedValue(false);
 
@@ -490,6 +498,7 @@ describe("restoreDatabaseBackup", () => {
     });
 
     it("aborts on a newer schema without touching local files", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {});
       mockRemote(manifestFor({ schemaVersion: LATEST_SCHEMA_VERSION + 1 }));
 
       const error = await restore().catch((e) => e);
@@ -502,6 +511,7 @@ describe("restoreDatabaseBackup", () => {
     });
 
     it("aborts when the downloaded database is newer than its manifest says", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {});
       mockRemote(manifestFor());
       mockDatabase.readDatabaseSchemaVersion.mockResolvedValueOnce(
         LATEST_SCHEMA_VERSION + 1,
@@ -516,6 +526,7 @@ describe("restoreDatabaseBackup", () => {
     });
 
     it("aborts when the downloaded backup fails its integrity check", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {});
       mockRemote(manifestFor());
       mockDatabase.checkDatabaseIntegrity.mockResolvedValue(false);
 
@@ -576,6 +587,7 @@ describe("restoreDatabaseBackup", () => {
     });
 
     it("aborts a corrupt legacy backup without touching local files", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {});
       mockRemote(null);
       mockDatabase.checkDatabaseIntegrity.mockResolvedValue(false);
 
@@ -588,6 +600,7 @@ describe("restoreDatabaseBackup", () => {
     });
 
     it("aborts a legacy backup from a newer schema", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {});
       mockRemote(null);
       mockDatabase.readDatabaseSchemaVersion.mockResolvedValueOnce(
         LATEST_SCHEMA_VERSION + 1,
@@ -617,6 +630,7 @@ describe("restoreDatabaseBackup", () => {
     });
 
     it("reports not-found when there is no backup at all", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {});
       mockRemote(null);
       mockStorage.getDownloadURL.mockRejectedValue(notFound());
 
@@ -628,6 +642,7 @@ describe("restoreDatabaseBackup", () => {
   });
 
   it("rethrows a failed swap without reloading", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockRemote(manifestFor());
     (swapInRestoredFiles as jest.Mock).mockImplementationOnce(() => {
       throw new Error("Disk full");
@@ -642,6 +657,7 @@ describe("restoreDatabaseBackup", () => {
   });
 
   it("leaves local files untouched when a download fails", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockRemote(null);
     (File as any).downloadFileAsync = jest
       .fn()
@@ -657,6 +673,7 @@ describe("restoreDatabaseBackup", () => {
   });
 
   it("should throw an error if user is not authenticated", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockAuthInstance.currentUser = null;
 
     await expect(restore()).rejects.toThrow("User not authenticated");

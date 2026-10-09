@@ -202,6 +202,7 @@ describe("useExerciseDetailQuery — queryFn", () => {
   });
 
   it("notifies Bugsnag and rethrows on error", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     (openDatabase as jest.Mock).mockRejectedValue(new Error("crash"));
     useExerciseDetailQuery(1, "0", "kg");
     await expect(capturedArgs.queryFn()).rejects.toThrow("crash");

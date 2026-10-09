@@ -227,6 +227,7 @@ describe("useAllPlansQuery Tests", () => {
     });
 
     it("should handle and report database errors", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {});
       const error = new Error("Database error");
       mockDb.getAllAsync.mockRejectedValueOnce(error);
 

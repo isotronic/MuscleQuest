@@ -204,15 +204,20 @@ jest.mock("@/utils/downloadAllAnimatedImages", () => {
 // Mock NativeEventEmitter
 jest.mock("react-native/Libraries/EventEmitter/NativeEventEmitter");
 
-// Suppress specific warnings
+// Suppress specific library warnings. SafeAreaView's deprecation fires
+// whenever the react-native mock above spreads the module's exports.
+const SUPPRESSED_WARNINGS = [
+  "ProgressBarAndroid has been extracted",
+  "Clipboard has been extracted",
+  "PushNotificationIOS has been extracted",
+  "NativeEventEmitter",
+  "SafeAreaView has been deprecated",
+  "expo-notifications: Android Push notifications",
+];
 const originalWarn = console.warn;
 console.warn = (...args) => {
-  if (
-    args[0].includes("ProgressBarAndroid has been extracted") ||
-    args[0].includes("Clipboard has been extracted") ||
-    args[0].includes("PushNotificationIOS has been extracted") ||
-    args[0].includes("NativeEventEmitter")
-  ) {
+  const message = typeof args[0] === "string" ? args[0] : "";
+  if (SUPPRESSED_WARNINGS.some((warning) => message.includes(warning))) {
     return;
   }
   originalWarn(...args);

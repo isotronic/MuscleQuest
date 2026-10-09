@@ -212,6 +212,7 @@ describe("fetchSettings", () => {
   });
 
   it("throws and notifies Bugsnag on database error", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("db failure");
     mockDb.getAllAsync.mockRejectedValue(error);
 
@@ -235,6 +236,7 @@ describe("updateSettings", () => {
   });
 
   it("throws and notifies Bugsnag on database error", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("write failed");
     mockDb.runAsync.mockRejectedValue(error);
 
@@ -531,6 +533,7 @@ describe("saveCompletedWorkout", () => {
   });
 
   it("propagates and does not swallow errors from within the transaction", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("disk full");
     mockDb.withExclusiveTransactionAsync.mockRejectedValue(error);
 
@@ -681,6 +684,7 @@ describe("fetchPlanSchedule", () => {
   });
 
   it("throws and notifies Bugsnag on error", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("schedule fetch failed");
     mockDb.getAllAsync.mockRejectedValue(error);
 
@@ -733,6 +737,7 @@ describe("fetchActiveBodyMetricDefinitions", () => {
   });
 
   it("throws and notifies Bugsnag on error", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("metric fetch failed");
     mockDb.getAllAsync.mockRejectedValue(error);
 
@@ -761,6 +766,7 @@ describe("fetchAllBodyMetricDefinitions", () => {
   });
 
   it("throws and notifies Bugsnag on error", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("all metrics failed");
     mockDb.getAllAsync.mockRejectedValue(error);
 
@@ -825,6 +831,7 @@ describe("reorderTrackedExercises", () => {
   });
 
   it("propagates when the transaction fails", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockDb = makeDb({
       withExclusiveTransactionAsync: jest
         .fn()
@@ -1190,6 +1197,7 @@ describe("getProgressionStatesForWorkout — muscle-layoff override", () => {
 
 describe("updateAppExerciseIds", () => {
   it("does not call ROLLBACK if the version check itself fails before any transaction starts", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockDb.getFirstAsync.mockRejectedValue(new Error("read failed"));
 
     await expect(updateAppExerciseIds()).rejects.toThrow("read failed");
@@ -1199,6 +1207,7 @@ describe("updateAppExerciseIds", () => {
   });
 
   it("rethrows the original error when ROLLBACK also fails", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockDb.getFirstAsync.mockResolvedValue({ value: "1.1" });
     mockDb.getAllAsync.mockResolvedValue([{ exercise_id: 5 }]);
     mockDb.runAsync.mockRejectedValueOnce(new Error("update failed"));
@@ -1210,6 +1219,7 @@ describe("updateAppExerciseIds", () => {
   });
 
   it("rolls back if an update fails mid-transaction", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockDb.getFirstAsync.mockResolvedValue({ value: "1.1" });
     mockDb.getAllAsync.mockResolvedValue([{ exercise_id: 5 }]);
     mockDb.runAsync.mockRejectedValueOnce(new Error("update failed"));
@@ -1260,6 +1270,7 @@ describe("syncExerciseFlagsFromAppData", () => {
   });
 
   it("rethrows the original error when ROLLBACK also fails", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockDb.getFirstAsync.mockResolvedValue({ value: "1.9" });
     mockDb.getAllAsync.mockResolvedValue([
       { exercise_id: 1, is_unilateral: 1, double_weight: 0 },
@@ -1295,6 +1306,7 @@ describe("syncExerciseFlagsFromAppData", () => {
 
 describe("copyDataFromAppDataToUserData", () => {
   it("does not call ROLLBACK if the initial read fails before any transaction starts", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockDb.getFirstAsync.mockResolvedValue(null); // dataVersion check passes through
     mockDb.getAllAsync.mockRejectedValue(new Error("appData read failed"));
 
@@ -1305,6 +1317,7 @@ describe("copyDataFromAppDataToUserData", () => {
   });
 
   it("propagates the error instead of silently continuing to the next table", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockDb.getFirstAsync.mockResolvedValue(null);
     mockDb.getAllAsync
       .mockResolvedValueOnce([{ muscle: "chest" }]) // muscles table read succeeds
@@ -1315,6 +1328,7 @@ describe("copyDataFromAppDataToUserData", () => {
     );
   });
   it("rethrows the copy error when ROLLBACK also fails", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockDb.getFirstAsync.mockResolvedValue(null);
     mockDb.getAllAsync.mockResolvedValueOnce([{ muscle: "chest" }]);
     mockDb.runAsync.mockRejectedValueOnce(new Error("insert failed"));

@@ -26,6 +26,9 @@
     "setupFiles": [
       "./jestSetupFile.js"
     ],
+    "setupFilesAfterEnv": [
+      "./jestAfterEnvSetup.js"
+    ],
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/android/",

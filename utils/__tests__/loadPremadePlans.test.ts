@@ -131,6 +131,7 @@ it("should skip both plan batches when only the integer sync version is set", as
 });
 
 it("should handle database errors when inserting plans", async () => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
   mockGetFirstAsync.mockResolvedValue(null);
   const dbError = new Error("Database insertion failed");
   mockRunAsync.mockRejectedValue(dbError);
@@ -183,6 +184,7 @@ it("should skip all plan insertions if dataVersion is 2.1 or higher", async () =
 });
 
 it("should handle database errors and notify Bugsnag", async () => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
   mockGetFirstAsync.mockRejectedValue(new Error("Database error"));
 
   await expect(loadPremadePlans()).rejects.toThrow("Database error");
@@ -208,6 +210,8 @@ it("should translate app exercise IDs to local userData IDs when inserting exerc
 });
 
 it("should throw and roll back when an exercise's app_exercise_id is not found in userData", async () => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  jest.spyOn(console, "warn").mockImplementation(() => {});
   mockGetFirstAsync.mockImplementation((sql: string) => {
     if (sql.includes("key = ?")) return Promise.resolve({ value: "1.8" });
     return Promise.resolve(null); // exercise not found anywhere

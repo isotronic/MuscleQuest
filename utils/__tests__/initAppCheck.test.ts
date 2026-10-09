@@ -75,6 +75,7 @@ describe("setupAppCheck", () => {
   });
 
   it("resolves without throwing when getToken fails", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockGetToken.mockRejectedValueOnce(new Error("Play Integrity unavailable"));
 
     await expect(setupAppCheck()).resolves.toBeUndefined();
@@ -141,6 +142,7 @@ describe("appCheckReady", () => {
   });
 
   it("resolves and reports when App Check cannot be initialised", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockInitializeAppCheck.mockRejectedValueOnce(new Error("init failed"));
     const { appCheckReady } = load();
 

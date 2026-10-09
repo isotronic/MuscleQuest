@@ -127,12 +127,14 @@ describe("rescheduleWorkoutReminders (enabled)", () => {
   });
 
   it("does not schedule when days string is invalid JSON", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     await rescheduleWorkoutReminders("true", "not-json", "08:00");
     expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
     expect(Bugsnag.notify).toHaveBeenCalled();
   });
 
   it("does not schedule when time is invalid", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     await rescheduleWorkoutReminders("true", "[1]", "25:99");
     expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
     expect(Bugsnag.notify).toHaveBeenCalled();

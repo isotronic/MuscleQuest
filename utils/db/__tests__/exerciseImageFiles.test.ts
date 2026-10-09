@@ -179,6 +179,7 @@ describe("writeExerciseImageFiles", () => {
   });
 
   it("leaves image_uri empty when a write fails so readers fall back", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     insertLibraryExercises(3);
     mockFailingWrites.add("2.webp");
 
@@ -189,6 +190,7 @@ describe("writeExerciseImageFiles", () => {
   });
 
   it("clears a stale uri when its file cannot be rewritten", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     insertLibraryExercises(1);
     mockDb.sqlite
       .prepare(`UPDATE exercises SET image_uri = ? WHERE exercise_id = 1`)
@@ -201,6 +203,7 @@ describe("writeExerciseImageFiles", () => {
   });
 
   it("retries a failed write on the next run", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     insertLibraryExercises(1);
     mockFailingWrites.add("1.webp");
     await writeExerciseImageFiles();

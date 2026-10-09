@@ -181,6 +181,7 @@ describe("useCompletedWorkoutsQuery", () => {
   });
 
   it("queryFn notifies Bugsnag and rethrows when DB query fails", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("DB failure");
     mockDb.getAllAsync.mockRejectedValueOnce(error);
 

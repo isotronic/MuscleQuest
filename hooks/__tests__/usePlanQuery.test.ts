@@ -168,6 +168,7 @@ describe("usePlanQuery — queryFn", () => {
   });
 
   it("returns null and notifies Bugsnag on DB error", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockDb.getAllAsync.mockRejectedValue(new Error("DB crash"));
     const result = await capturedArgs.queryFn();
     expect(result).toBeNull();

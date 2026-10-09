@@ -124,6 +124,7 @@ describe("useExercisesQuery", () => {
   });
 
   it("queryFn handles fetchAllRecords error by notifying Bugsnag and rethrowing", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("fetch failed");
     (fetchAllRecords as jest.Mock).mockRejectedValue(error);
 

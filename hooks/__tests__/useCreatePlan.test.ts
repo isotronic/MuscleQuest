@@ -49,6 +49,11 @@ jest.mock("@react-native-firebase/firestore", () => ({
   doc: jest.fn(() => ({})),
   getDoc: jest.fn(() => new Promise(() => {})),
 }));
+// Passthrough: the real one would keep a 15 s timer running for the
+// never-settling getDoc above and hold the Jest worker open.
+jest.mock("@/utils/withTimeout", () => ({
+  withTimeout: (promise: Promise<unknown>) => promise,
+}));
 
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,

@@ -61,6 +61,7 @@ describe("useUpdateSettingsMutation", () => {
   });
 
   it("onError notifies Bugsnag", () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     useUpdateSettingsMutation();
 
     const error = new Error("update failed");
