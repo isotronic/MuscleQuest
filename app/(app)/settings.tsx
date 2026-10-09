@@ -110,7 +110,7 @@ export default function SettingsScreen() {
   const { isExporting, promptExport } = useTrainingDataExport();
 
   const queryClient = useQueryClient();
-  const { data: settings, isLoading, isError, error } = useSettingsQuery();
+  const { data: settings, isLoading, isError, refetch } = useSettingsQuery();
   const { mutate: updateSetting } = useUpdateSettingsMutation();
 
   const {
@@ -566,12 +566,7 @@ export default function SettingsScreen() {
     );
   };
 
-  useEffect(() => {
-    if (isError) {
-      console.error("Error fetching settings:", error);
-      Bugsnag.notify(error);
-    }
-  }, [isError, error]);
+  // A failed load is reported by the query client's global error handler.
 
   if (isLoading) {
     return (
@@ -582,7 +577,16 @@ export default function SettingsScreen() {
   }
 
   if (isError) {
-    return <ThemedText>Error: {error.message}</ThemedText>;
+    return (
+      <ThemedView style={[styles.container, styles.errorState]}>
+        <ThemedText style={styles.errorText}>
+          <Trans>Your settings could not be loaded.</Trans>
+        </ThemedText>
+        <Button mode="contained" onPress={() => refetch()}>
+          <Trans>Try again</Trans>
+        </Button>
+      </ThemedView>
+    );
   }
 
   return (
@@ -1940,6 +1944,15 @@ function createStyles(colors: AppThemeColors) {
       marginVertical: 16,
     },
     progressBarText: {},
+    errorState: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 16,
+    },
+    errorText: {
+      textAlign: "center",
+    },
     backupButton: {
       marginRight: 4,
     },

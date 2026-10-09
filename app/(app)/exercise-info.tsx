@@ -36,6 +36,7 @@ import {
   muscleTranslations,
   equipmentTranslations,
 } from "@/constants/dbTranslations";
+import { displayWorkoutName } from "@/utils/workoutName";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -349,7 +350,7 @@ export default function ExerciseInfoScreen() {
               <ThemedText style={styles.sectionDate}>{section.date}</ThemedText>
               {section.workout_name ? (
                 <ThemedText style={styles.sectionWorkout}>
-                  {section.workout_name}
+                  {displayWorkoutName(section.workout_name)}
                 </ThemedText>
               ) : null}
             </View>

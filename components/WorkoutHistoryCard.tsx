@@ -7,6 +7,7 @@ import { Plural } from "@lingui/react/macro";
 import { formatToHoursMinutes } from "@/utils/utility";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { displayWorkoutName } from "@/utils/workoutName";
 
 interface WorkoutCardProps {
   /** Its set_count must come from a query run with the same excludeWarmup. */
@@ -53,7 +54,7 @@ function WorkoutHistoryCard({
       >
         <View style={styles.row}>
           <Text style={styles.name} numberOfLines={1}>
-            {workout.workout_name}
+            {displayWorkoutName(workout.workout_name)}
           </Text>
           {isVertical && <Text style={styles.chevron}>›</Text>}
         </View>

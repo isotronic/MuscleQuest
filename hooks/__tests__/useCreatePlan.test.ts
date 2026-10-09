@@ -8,6 +8,10 @@ import { getDoc } from "@react-native-firebase/firestore";
 
 const mockUser = { uid: "user-123" };
 
+jest.mock("@lingui/core/macro", () => ({
+  t: (s: TemplateStringsArray, ...v: unknown[]) => String.raw({ raw: s }, ...v),
+}));
+
 jest.mock("react", () => ({
   ...jest.requireActual("react"),
   useContext: jest.fn(() => mockUser),

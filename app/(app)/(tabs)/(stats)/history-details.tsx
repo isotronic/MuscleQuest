@@ -24,6 +24,7 @@ import { formatFromTotalSeconds } from "@/utils/utility";
 import Bugsnag from "@bugsnag/expo";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { displayWorkoutName } from "@/utils/workoutName";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -184,7 +185,7 @@ export default function HistoryDetailsScreen() {
         {/* Top Section */}
         <View style={styles.topSection}>
           <ThemedText style={styles.workoutName}>
-            {workout.workout_name}
+            {displayWorkoutName(workout.workout_name)}
           </ThemedText>
           <ThemedText style={styles.workoutDate}>
             <Trans>Completed on: {formattedDate}</Trans>

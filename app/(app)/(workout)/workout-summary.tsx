@@ -36,6 +36,7 @@ import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import { useClearFinishedWorkout } from "@/hooks/useClearFinishedWorkout";
 import { ConfettiAnimation } from "@/components/ConfettiAnimation";
+import { displayWorkoutName } from "@/utils/workoutName";
 
 // --- Helpers ---
 
@@ -468,7 +469,7 @@ export default function WorkoutSummaryScreen() {
             <Trans>Workout Complete!</Trans>
           </ThemedText>
           <ThemedText style={styles.workoutName}>
-            {workout.workout_name}
+            {displayWorkoutName(workout.workout_name)}
           </ThemedText>
         </View>
 
@@ -499,7 +500,9 @@ export default function WorkoutSummaryScreen() {
         {prevWorkout && !workout.is_deload && !prevWorkout.is_deload && (
           <View style={styles.progressionCard}>
             <ThemedText style={styles.progressionTitle}>
-              <Trans>vs. last "{workout.workout_name}"</Trans>
+              <Trans>
+                vs. last "{displayWorkoutName(workout.workout_name)}"
+              </Trans>
             </ThemedText>
             <View style={styles.diffRow}>
               <DiffChip

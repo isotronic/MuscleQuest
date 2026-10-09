@@ -1,6 +1,7 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import Bugsnag from "@bugsnag/expo";
+import { t } from "@lingui/core/macro";
 import {
   getAsyncStorageItem,
   setAsyncStorageItem,
@@ -9,7 +10,11 @@ import {
 
 const WORKOUT_REMINDER_IDS_KEY = "workoutReminderIds";
 const CHANNEL_ID = "workout-reminders";
-const WORKOUT_REMINDER_TITLE = "Time to train!";
+// Reminders are tagged with this in their data so the fallback scan finds
+// them whatever language their title was written in.
+const WORKOUT_REMINDER_KIND = "workoutReminder";
+// Title of reminders scheduled before they were tagged and translated.
+const LEGACY_WORKOUT_REMINDER_TITLE = "Time to train!";
 
 export async function requestNotificationPermission(): Promise<boolean> {
   const { status } = await Notifications.requestPermissionsAsync();
@@ -47,7 +52,11 @@ async function cancelWorkoutReminders(): Promise<void> {
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
     await Promise.allSettled(
       scheduled
-        .filter((n) => n.content.title === WORKOUT_REMINDER_TITLE)
+        .filter(
+          (n) =>
+            n.content.data?.kind === WORKOUT_REMINDER_KIND ||
+            n.content.title === LEGACY_WORKOUT_REMINDER_TITLE,
+        )
         .map((n) =>
           Notifications.cancelScheduledNotificationAsync(n.identifier),
         ),
@@ -84,6 +93,11 @@ async function scheduleWorkoutReminders(
 
   await cancelWorkoutReminders();
 
+  // Built here rather than at import so the text follows the active catalog.
+  // Reminders are rescheduled on every boot, which picks up a language change.
+  const title = t`Time to train!`;
+  const body = t`Your workout is scheduled for today. Let's go!`;
+
   const ids: string[] = [];
   for (const day of days) {
     // expo-notifications weekday: 1=Sunday, 2=Monday, ..., 7=Saturday
@@ -91,8 +105,9 @@ async function scheduleWorkoutReminders(
     try {
       const id = await Notifications.scheduleNotificationAsync({
         content: {
-          title: WORKOUT_REMINDER_TITLE,
-          body: "Your workout is scheduled for today. Let's go!",
+          title,
+          body,
+          data: { kind: WORKOUT_REMINDER_KIND },
           sound: true,
         },
         trigger: {

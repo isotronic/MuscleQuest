@@ -3,6 +3,7 @@
 import { openDatabase } from "./connection";
 import { progressionMetricSql } from "./progressionMetricSql";
 import { METRIC_EPSILON } from "@/utils/units";
+import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
 
 /** Inclusive local_date keys ("YYYY-MM-DD"). Either end may be left open. */
 export interface LocalDateRange {
@@ -41,8 +42,6 @@ export interface BodyPartSetCount {
   body_part: string;
   set_count: number;
 }
-
-const QUICK_WORKOUT_FALLBACK = "Quick Workout";
 
 const NOT_WARMUP = `COALESCE(cs.is_warmup, 0) = 0`;
 
@@ -122,7 +121,7 @@ export const fetchWorkoutSummaries = async (
     );
     return rows.map((row) => ({
       ...row,
-      workout_name: row.workout_name ?? QUICK_WORKOUT_FALLBACK,
+      workout_name: row.workout_name ?? QUICK_WORKOUT_NAME,
       duration: row.duration ?? 0,
       total_sets_completed: row.total_sets_completed ?? 0,
       is_deload: row.is_deload ?? 0,

@@ -32,6 +32,7 @@ import type { SharedStrengthPR } from "@/types/firestore";
 import { formatWeight } from "@/utils/units";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { displayWorkoutName } from "@/utils/workoutName";
 
 type SectionKey = "strength" | "plans" | "workouts" | "exercises" | "activity";
 
@@ -652,7 +653,7 @@ export default function FriendProfileScreen() {
                     variant="bodyBold"
                     style={{ color: colors.contentPrimary }}
                   >
-                    {w.workoutName || t`Quick Workout`}
+                    {displayWorkoutName(w.workoutName)}
                   </AppText>
                   <AppText
                     variant="caption"

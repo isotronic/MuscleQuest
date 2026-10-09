@@ -4,6 +4,7 @@ import type { SQLiteDatabase } from "expo-sqlite";
 import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 import { toLocalDateKey } from "@/utils/dates";
 import { kgToDisplay, metresToDisplay } from "@/utils/units";
+import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
 
 interface WorkoutResult {
   id: number;
@@ -65,8 +66,6 @@ export interface CompletedWorkout {
     }[];
   }[];
 }
-
-const QUICK_WORKOUT_FALLBACK = "Quick Workout";
 
 // How far back the home screen and weekly components look. They need this
 // week and last week; the rest is slack for a streak check after a break.
@@ -199,7 +198,7 @@ const fetchAndOrganize = async (
           id,
           workout_id,
           plan_id,
-          workout_name: workout_name ?? QUICK_WORKOUT_FALLBACK,
+          workout_name: workout_name ?? QUICK_WORKOUT_NAME,
           date_completed,
           local_date,
           duration,
@@ -404,7 +403,7 @@ const fetchWorkoutHistoryForSession = async (
           id,
           workout_id,
           plan_id,
-          workout_name: workout_name ?? QUICK_WORKOUT_FALLBACK,
+          workout_name: workout_name ?? QUICK_WORKOUT_NAME,
           date_completed,
           local_date,
           duration,
@@ -576,7 +575,7 @@ const fetchGlobalExerciseHistoryForSession = async (
           id,
           workout_id,
           plan_id,
-          workout_name: workout_name ?? QUICK_WORKOUT_FALLBACK,
+          workout_name: workout_name ?? QUICK_WORKOUT_NAME,
           date_completed,
           local_date,
           duration,

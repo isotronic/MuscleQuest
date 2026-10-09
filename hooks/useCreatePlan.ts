@@ -9,6 +9,7 @@ import {
 import type { SQLiteDatabase } from "expo-sqlite";
 import { useEffect, useState, useContext } from "react";
 import { Alert } from "react-native";
+import { t } from "@lingui/core/macro";
 import { Plan } from "./useAllPlansQuery";
 import { useQueryClient } from "@tanstack/react-query";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
@@ -40,12 +41,12 @@ export const useCreatePlan = (existingPlan?: Plan) => {
     appPlanId?: number | null,
   ): Promise<number | void> => {
     if (!planName.trim()) {
-      Alert.alert("Please enter a plan name");
+      Alert.alert(t`Please enter a plan name`);
       return;
     }
 
     if (!workouts.length) {
-      Alert.alert("Please add at least one workout");
+      Alert.alert(t`Please add at least one workout`);
       return;
     }
 
