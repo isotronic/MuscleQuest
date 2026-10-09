@@ -40,6 +40,9 @@ const decimalInputRestriction = {
 // A one-shot Firestore read can hang forever on a stale connection instead of
 // rejecting, leaving a spinner that never ends. Wrap each in withTimeout from
 // @/utils/withTimeout; disable the rule on the line for a deliberate exception.
+// The selector only sees the modular calls this app uses (getDoc(ref)), not
+// namespaced ones like firestore().doc().get(), and only a read passed
+// straight into withTimeout counts as wrapped, not one assigned first.
 const firestoreReadRestriction = {
   selector:
     'CallExpression[callee.name=/^(getDoc|getDocs|getCountFromServer)$/]:not(CallExpression[callee.name="withTimeout"] > CallExpression)',

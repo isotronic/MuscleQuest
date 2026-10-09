@@ -148,6 +148,45 @@ describe("useImportPlanMutation with a malformed structure", () => {
   });
 });
 
+describe("exercise fields stored for a new custom exercise", () => {
+  it.each([
+    ["a name that is not a string", { name: { evil: true } }],
+    ["an empty name", { name: "" }],
+    ["a library id that is not an integer", { appExerciseId: "12" }],
+    ["a negative library id", { appExerciseId: -3 }],
+    ["a body part that is not a string", { bodyPart: 7 }],
+    ["a target muscle that is not a string", { targetMuscle: null }],
+    ["equipment that is not a string", { equipment: ["bar"] }],
+    ["secondary muscles that are not a list", { secondaryMuscles: "abs" }],
+    ["secondary muscles that are not strings", { secondaryMuscles: [1] }],
+    ["a unilateral flag that is not a boolean", { isUnilateral: "yes" }],
+    ["a double-weight flag that is not a boolean", { doubleWeight: 1 }],
+    ["an animation url that is not a string", { animatedUrl: 5 }],
+  ])("rejects %s before writing anything", async (_label, overrides) => {
+    const { ImportValidationError } = jest.requireActual("@/utils/importUtils");
+    useImportStandaloneWorkoutMutation();
+
+    await expect(
+      captured.mutationFn({
+        name: "x",
+        exercises: [exercise(overrides as any)],
+      }),
+    ).rejects.toBeInstanceOf(ImportValidationError);
+    expect(openDatabase).not.toHaveBeenCalled();
+  });
+
+  it("accepts a library exercise and a null animation url", async () => {
+    useImportStandaloneWorkoutMutation();
+
+    await expect(
+      captured.mutationFn({
+        name: "x",
+        exercises: [exercise({ appExerciseId: 12, animatedUrl: null })],
+      }),
+    ).resolves.toBeDefined();
+  });
+});
+
 describe("useImportStandaloneWorkoutMutation", () => {
   const workout = (exercises: SharedExercise[]) =>
     ({ name: "Shared", imageUrl: null, exercises }) as any;

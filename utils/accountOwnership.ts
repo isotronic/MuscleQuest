@@ -35,10 +35,18 @@ export const resolveAccountOwnership = async (
   try {
     ownerUid = (await fetchSetting(OWNER_UID_SETTING)) || null;
   } catch (error) {
-    // Fail open: before this check, every account could back up and share,
-    // and locking someone out of their own backups is worse.
+    // Fail closed: with the owner unknown, this account is not known to own
+    // the data. Resolved as not owned so callers get an answer at once; no
+    // prompt, since no mismatch is known. The settings notice still offers
+    // "Use with this account".
     notifyBugsnag(error);
-    ownerUid = uid;
+    if (useAccountOwnershipStore.getState().currentUid !== uid) return;
+    setState({
+      resolvedFor: uid,
+      ownedByCurrentUser: false,
+      promptVisible: false,
+    });
+    return;
   }
 
   if (!ownerUid) {

@@ -72,15 +72,21 @@ describe("resolveAccountOwnership", () => {
     expect(state().ownedByCurrentUser).toBe(false);
   });
 
-  // An unreadable setting must not lock the user out of backups and sharing
-  // that worked before this check existed.
-  it("treats an unreadable setting as owned", async () => {
+  // When the owner cannot be read, nobody is known to own the data, so it is
+  // not backed up or shared. Resolved rather than left pending, so callers do
+  // not wait out the timeout; no prompt, since no mismatch is known.
+  it("treats an unreadable setting as not owned", async () => {
     (fetchSetting as jest.Mock).mockRejectedValue(new Error("locked"));
 
     await resolveAccountOwnership("alice");
 
-    expect(state().ownedByCurrentUser).toBe(true);
-    expect(state().promptVisible).toBe(false);
+    expect(updateSettings).not.toHaveBeenCalled();
+    expect(state()).toMatchObject({
+      resolvedFor: "alice",
+      ownedByCurrentUser: false,
+      promptVisible: false,
+    });
+    await expect(isLocalDataOwnedBy("alice")).resolves.toBe(false);
   });
 });
 

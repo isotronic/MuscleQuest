@@ -134,6 +134,73 @@ export type ImportedExercise = Omit<SharedExercise, "sets"> & {
   sets: PlanSet[];
 };
 
+const isString = (value: unknown): value is string => typeof value === "string";
+
+/**
+ * The fields resolveExerciseId looks up or writes into a new custom exercise.
+ * A wrong type would otherwise fail inside the transaction with a raw SQLite
+ * error, or store an object as text. trackingType is passed through as before.
+ */
+const validateExerciseFields = (
+  exercise: SharedExercise,
+): Pick<
+  SharedExercise,
+  | "appExerciseId"
+  | "name"
+  | "bodyPart"
+  | "targetMuscle"
+  | "equipment"
+  | "secondaryMuscles"
+  | "isUnilateral"
+  | "doubleWeight"
+  | "animatedUrl"
+> => {
+  const invalid = (field: string) =>
+    new ImportValidationError(`Imported exercise has an invalid ${field}`);
+  const {
+    appExerciseId,
+    name,
+    bodyPart,
+    targetMuscle,
+    equipment,
+    secondaryMuscles,
+    isUnilateral,
+    doubleWeight,
+    animatedUrl,
+  } = exercise as unknown as Record<string, unknown>;
+
+  if (
+    appExerciseId !== null &&
+    !(Number.isInteger(appExerciseId) && (appExerciseId as number) > 0)
+  ) {
+    throw invalid("appExerciseId");
+  }
+  if (!isString(name) || name.length === 0) throw invalid("name");
+  if (!isString(bodyPart)) throw invalid("bodyPart");
+  if (!isString(targetMuscle)) throw invalid("targetMuscle");
+  if (!isString(equipment)) throw invalid("equipment");
+  if (!Array.isArray(secondaryMuscles) || !secondaryMuscles.every(isString)) {
+    throw invalid("secondaryMuscles");
+  }
+  if (typeof isUnilateral !== "boolean") throw invalid("isUnilateral");
+  if (typeof doubleWeight !== "boolean") throw invalid("doubleWeight");
+  if (animatedUrl !== null && !isString(animatedUrl)) {
+    throw invalid("animatedUrl");
+  }
+
+  return {
+    appExerciseId: appExerciseId as number | null,
+    name,
+    bodyPart,
+    targetMuscle,
+    equipment,
+    secondaryMuscles,
+    isUnilateral,
+    doubleWeight,
+    animatedUrl: animatedUrl as string | null,
+  };
+};
+
 /**
  * Sanitises the parts of a shared exercise that are stored as-is on the plan.
  * Run it over the whole import before writing, so a bad exercise rejects the
@@ -143,6 +210,7 @@ export const sanitizeImportedExercise = (
   exercise: SharedExercise,
 ): ImportedExercise => ({
   ...exercise,
+  ...validateExerciseFields(exercise),
   sets: sanitizeImportedSets(exercise.sets),
   supersetGroupId: sanitizeSupersetGroupId(exercise.supersetGroupId),
   trackingTypeOverride: sanitizeTrackingTypeOverride(
