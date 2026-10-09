@@ -21,6 +21,7 @@ import { useFriendSharedStandaloneWorkoutsQuery } from "@/hooks/useFriendSharedS
 import { useFriendSharedCustomExercisesQuery } from "@/hooks/useFriendSharedCustomExercisesQuery";
 import { useFriendSharedCompletedWorkoutsQuery } from "@/hooks/useFriendSharedCompletedWorkoutsQuery";
 import { useFriendSharedMeasurementsQuery } from "@/hooks/useFriendSharedMeasurementsQuery";
+import { useFriendCompletedWorkoutCountQuery } from "@/hooks/useFriendCompletedWorkoutCountQuery";
 import { useFriendSharedStrengthQuery } from "@/hooks/useFriendSharedStrengthQuery";
 import { useImportPlanMutation } from "@/hooks/useImportPlanMutation";
 import { useImportStandaloneWorkoutMutation } from "@/hooks/useImportStandaloneWorkoutMutation";
@@ -95,6 +96,8 @@ export default function FriendProfileScreen() {
     refetch: refetchCompletedWorkouts,
     isError: completedError,
   } = useFriendSharedCompletedWorkoutsQuery(friendUid);
+  const { data: completedWorkoutCount, refetch: refetchCompletedWorkoutCount } =
+    useFriendCompletedWorkoutCountQuery(friendUid);
   const {
     data: measurements = [],
     isLoading: measurementsLoading,
@@ -136,6 +139,7 @@ export default function FriendProfileScreen() {
       refetchWorkouts(),
       refetchExercises(),
       refetchCompletedWorkouts(),
+      refetchCompletedWorkoutCount(),
       refetchMeasurements(),
       refetchStrength(),
     ]),
@@ -144,8 +148,6 @@ export default function FriendProfileScreen() {
   if (!user) return null;
 
   const sharedCount = plans.length + workouts.length + exercises.length;
-  const recentWorkouts = completedWorkouts.slice(0, 10);
-  const recentMeasurements = measurements.slice(0, 5);
 
   return (
     <ScrollView
@@ -205,7 +207,7 @@ export default function FriendProfileScreen() {
               colors={colors}
             />
             <StatChip
-              value={completedWorkouts.length}
+              value={completedWorkoutCount ?? completedWorkouts.length}
               label={<Trans>Workouts</Trans>}
               colors={colors}
             />
@@ -610,7 +612,7 @@ export default function FriendProfileScreen() {
           completedError ||
           measurementsError
             ? undefined
-            : recentWorkouts.length + recentMeasurements.length
+            : completedWorkouts.length + measurements.length
         }
         isOpen={openSections.has("activity")}
         onToggle={() => toggleSection("activity")}
@@ -633,7 +635,7 @@ export default function FriendProfileScreen() {
           />
         ) : (
           <View style={styles.cardGroup}>
-            {recentWorkouts.map((w) => (
+            {completedWorkouts.map((w) => (
               <View
                 key={w.localWorkoutId}
                 style={[styles.card, { backgroundColor: colors.card }]}
@@ -662,7 +664,7 @@ export default function FriendProfileScreen() {
                 </View>
               </View>
             ))}
-            {recentMeasurements.map((m) => (
+            {measurements.map((m) => (
               <View
                 key={m.localEntryId}
                 style={[styles.card, { backgroundColor: colors.card }]}

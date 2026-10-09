@@ -4,6 +4,9 @@ import {
   getFirestore,
   collection,
   getDocs,
+  limit,
+  orderBy,
+  query,
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
 import { AuthContext } from "@/context/AuthProvider";
@@ -22,7 +25,13 @@ export const useFriendSharedCompletedWorkoutsQuery = (
       const db = getFirestore();
       try {
         const snap = await withTimeout(
-          getDocs(collection(db, "users", friendUid, "sharedWorkouts")),
+          getDocs(
+            query(
+              collection(db, "users", friendUid, "sharedWorkouts"),
+              orderBy("dateCompleted", "desc"),
+              limit(10),
+            ),
+          ),
           15000,
           "friendSharedCompletedWorkouts",
         );
