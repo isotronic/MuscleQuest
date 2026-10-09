@@ -8,6 +8,8 @@ import { deleteSetting, fetchSetting, updateSettings } from "./database";
 // so a backup carries it, and it survives sign-out.
 
 export const OWNER_UID_SETTING = "ownerUid";
+// The account that chose "Not now", so it is not asked again on every launch.
+export const OWNERSHIP_PROMPT_DISMISSED_SETTING = "ownershipPromptDismissedFor";
 
 // Long enough for the settings read at sign-in; a caller still waiting after
 // this treats the data as not owned rather than hanging forever.
@@ -53,11 +55,21 @@ export const resolveAccountOwnership = async (
   if (useAccountOwnershipStore.getState().currentUid !== uid) return;
 
   const owned = ownerUid === uid;
+  let promptVisible = !owned;
+  if (!owned) {
+    try {
+      promptVisible =
+        (await fetchSetting(OWNERSHIP_PROMPT_DISMISSED_SETTING)) !== uid;
+    } catch (error) {
+      notifyBugsnag(error);
+    }
+    if (useAccountOwnershipStore.getState().currentUid !== uid) return;
+  }
   setState({
     ownerUid,
     resolvedFor: uid,
     ownedByCurrentUser: owned,
-    promptVisible: !owned,
+    promptVisible,
   });
 };
 
@@ -72,8 +84,20 @@ export const claimLocalData = async (uid: string): Promise<void> => {
   });
 };
 
-/** "Not now": backups and sharing stay paused. */
-export const dismissOwnershipPrompt = () => setState({ promptVisible: false });
+/**
+ * "Not now": backups and sharing stay paused, and this account is not asked
+ * again. The settings notice still offers the choice.
+ */
+export const dismissOwnershipPrompt = async (): Promise<void> => {
+  setState({ promptVisible: false });
+  const uid = useAccountOwnershipStore.getState().currentUid;
+  if (!uid) return;
+  try {
+    await updateSettings(OWNERSHIP_PROMPT_DISMISSED_SETTING, uid);
+  } catch (error) {
+    notifyBugsnag(error);
+  }
+};
 
 /** After the owning account is deleted, the next account claims the data. */
 export const clearLocalDataOwner = async (): Promise<void> => {

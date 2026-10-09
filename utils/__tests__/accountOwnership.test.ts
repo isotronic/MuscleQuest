@@ -4,6 +4,7 @@ import {
   dismissOwnershipPrompt,
   isLocalDataOwnedBy,
   OWNER_UID_SETTING,
+  OWNERSHIP_PROMPT_DISMISSED_SETTING,
   resolveAccountOwnership,
 } from "../accountOwnership";
 import { useAccountOwnershipStore } from "@/store/accountOwnershipStore";
@@ -100,14 +101,48 @@ describe("claimLocalData", () => {
 });
 
 describe("dismissOwnershipPrompt", () => {
+  const settings = (values: Record<string, string>) =>
+    (fetchSetting as jest.Mock).mockImplementation(
+      async (key: string) => values[key] ?? null,
+    );
+
   it("hides the prompt but stays paused", async () => {
-    (fetchSetting as jest.Mock).mockResolvedValue("alice");
+    settings({ [OWNER_UID_SETTING]: "alice" });
     await resolveAccountOwnership("bob");
 
-    dismissOwnershipPrompt();
+    await dismissOwnershipPrompt();
 
     expect(state().promptVisible).toBe(false);
     expect(state().ownedByCurrentUser).toBe(false);
+    expect(updateSettings).toHaveBeenCalledWith(
+      OWNERSHIP_PROMPT_DISMISSED_SETTING,
+      "bob",
+    );
+  });
+
+  // Sign-in is resolved on every launch; Not now must not mean "ask again
+  // tomorrow". The settings notice keeps the choice reachable.
+  it("does not ask the same account again after Not now", async () => {
+    settings({
+      [OWNER_UID_SETTING]: "alice",
+      [OWNERSHIP_PROMPT_DISMISSED_SETTING]: "bob",
+    });
+
+    await resolveAccountOwnership("bob");
+
+    expect(state().ownedByCurrentUser).toBe(false);
+    expect(state().promptVisible).toBe(false);
+  });
+
+  it("still asks a third account", async () => {
+    settings({
+      [OWNER_UID_SETTING]: "alice",
+      [OWNERSHIP_PROMPT_DISMISSED_SETTING]: "bob",
+    });
+
+    await resolveAccountOwnership("carol");
+
+    expect(state().promptVisible).toBe(true);
   });
 });
 
