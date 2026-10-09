@@ -2,10 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchBodyPartSetCounts,
   fetchHasCompletedWorkout,
+  fetchPriorBests,
   fetchRecentPRs,
   fetchTrainingSplit,
   fetchWorkoutSummaries,
   type BodyPartSetCount,
+  type PriorBest,
   type RecentPR,
   type SplitGrouping,
   type SplitRow,
@@ -105,4 +107,30 @@ export const useRecentPRsQuery = (
     queryFn: () =>
       fetchRecentPRs(currentPeriod(timeRange), { trackedOnly, limit }),
     staleTime: 60_000,
+  });
+
+/** The PRs set in one saved session, for its summary. */
+export const useWorkoutPRsQuery = (completedWorkoutId: number) =>
+  useQuery<RecentPR[]>({
+    queryKey: [ROOT, "workoutPRs", completedWorkoutId],
+    queryFn: () =>
+      fetchRecentPRs(
+        {},
+        { trackedOnly: false, limit: 100, completedWorkoutId },
+      ),
+    enabled: completedWorkoutId > 0,
+    staleTime: 60_000,
+  });
+
+/**
+ * Each exercise's best set before the session, to spot PRs as they happen.
+ * Keyed on the exercise ids, so adding or replacing an exercise loads its
+ * best too.
+ */
+export const usePriorBestsQuery = (exerciseIds: number[]) =>
+  useQuery<PriorBest[]>({
+    queryKey: [ROOT, "priorBests", exerciseIds],
+    queryFn: () => fetchPriorBests(exerciseIds),
+    enabled: exerciseIds.length > 0,
+    staleTime: 5 * 60 * 1000,
   });

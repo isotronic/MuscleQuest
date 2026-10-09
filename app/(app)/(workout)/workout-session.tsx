@@ -13,6 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Vibration,
   View,
 } from "react-native";
 import { Trans } from "@lingui/react/macro";
@@ -66,6 +67,8 @@ import { useProgressionStateQuery } from "@/hooks/useProgressionStateQuery";
 import { useExerciseFeedbackMutation } from "@/hooks/useExerciseFeedbackMutation";
 import { ExerciseFeedbackPayload } from "@/types/progression";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import { useSessionPRs } from "@/hooks/useSessionPRs";
+import { isSessionPR } from "@/utils/sessionPRs";
 import type { PreviousSet } from "@/components/LastTimeLine";
 import type { CarryOverMatch } from "@/utils/carryOverLookup";
 import { useSoundStore } from "@/store/soundStore";
@@ -119,6 +122,7 @@ interface OutgoingSnapshot {
   isFirstInSuperset: boolean;
   partnerName?: string;
   previousSet: PreviousSet | null;
+  isPR: boolean;
 }
 
 interface SlotData {
@@ -208,6 +212,9 @@ function getPrevSlotData(
       }
     : null;
 }
+
+// Brief, so it reads as a cue rather than the rest timer's alarm.
+const PR_VIBRATION = [0, 60, 80, 60];
 
 /** A carried-over set as the "Last time" line shows it. */
 const toPreviousSet = (match: CarryOverMatch | null): PreviousSet | null =>
@@ -394,6 +401,7 @@ export default function WorkoutSessionScreen() {
       suggestedWeightPrefills: s.suggestedWeightPrefills,
     })),
   );
+  const { prs: sessionPRs, prsWithSetCompleted } = useSessionPRs();
 
   const {
     data: settings,
@@ -1091,6 +1099,7 @@ export default function WorkoutSessionScreen() {
         : exercise.sets.slice(0, setIndex).filter((s) => !s.isWarmup).length,
       previousSet: toPreviousSet(prevData),
       suggestedWeight: suggestedWeightPrefills[exerciseIndex]?.[setIndex],
+      isPR: isSessionPR(sessionPRs, exerciseIndex, setIndex),
     };
   };
 
@@ -1417,6 +1426,14 @@ export default function WorkoutSessionScreen() {
       distanceStr,
     );
 
+    // Judged on the values just written, before the set is marked complete.
+    const isPR = isSessionPR(
+      prsWithSetCompleted(currentExerciseIndex, currentSetIndex),
+      currentExerciseIndex,
+      currentSetIndex,
+    );
+    if (isPR) Vibration.vibrate(PR_VIBRATION);
+
     // Completing a set during a rest ends that rest; any rest for this set
     // starts below.
     if (useActiveWorkoutStore.getState().timerRunning) {
@@ -1474,8 +1491,14 @@ export default function WorkoutSessionScreen() {
       shouldAnimate && !isFirstInSuperset && hasNextSet
         ? (currentSet.restMinutes || 0) * 60 + (currentSet.restSeconds || 0)
         : 0;
+    const completedAnnouncement = setCompleteAnnouncement(
+      currentSetIndex + 1,
+      restAfterSeconds,
+    );
     AccessibilityInfo.announceForAccessibility(
-      setCompleteAnnouncement(currentSetIndex + 1, restAfterSeconds),
+      isPR
+        ? `${completedAnnouncement} ${t`New personal record.`}`
+        : completedAnnouncement,
     );
 
     if (!shouldAnimate) {
@@ -1534,6 +1557,7 @@ export default function WorkoutSessionScreen() {
         ? workout?.exercises[supersetPartnerIndex]?.name
         : undefined,
       previousSet: toPreviousSet(previousWorkoutSetData),
+      isPR,
     };
 
     if (isFirstInSuperset) {

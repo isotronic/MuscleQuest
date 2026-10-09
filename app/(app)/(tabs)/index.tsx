@@ -38,6 +38,7 @@ import RestDayCard from "@/components/RestDayCard";
 import { BackupReminderCard } from "@/components/BackupReminderCard";
 import WorkoutDoneCard from "@/components/WorkoutDoneCard";
 import WeeklySummaryCard from "@/components/WeeklySummaryCard";
+import { kgToDisplay } from "@/utils/units";
 import WorkoutPickerModal from "@/components/WorkoutPickerModal";
 import { MeasurementQuickLog } from "@/components/MeasurementQuickLog";
 import {
@@ -412,6 +413,10 @@ export default function HomeScreen() {
               excludeWarmup={settings?.excludeWarmupSets === "true"}
               countUnilateralDouble={settings?.countUnilateralDouble === "true"}
               doubleWeightForPaired={settings?.doubleWeightForPaired === "true"}
+              bodyWeight={kgToDisplay(
+                parseFloat(settings?.bodyWeight ?? "") || 0,
+                settings?.weightUnit ?? "kg",
+              )}
             />
           </View>
         )}

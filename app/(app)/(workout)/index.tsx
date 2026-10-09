@@ -74,6 +74,7 @@ import { useRecoveryCheckInMutation } from "@/hooks/useRecoveryCheckInMutation";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import { useSessionPRs } from "@/hooks/useSessionPRs";
 import {
   confirmUnfinishedSets,
   findUnfinishedSets,
@@ -198,6 +199,8 @@ export default function WorkoutOverviewScreen() {
       initializeWeightAndReps(sessionHistory);
     }
   }, [sessionHistory, initializeWeightAndReps]);
+
+  const { prs: sessionPRs } = useSessionPRs();
 
   const { data: workoutProgressionStates } = useWorkoutProgressionStatesQuery(
     progressionSettings.enabled
@@ -545,6 +548,33 @@ export default function WorkoutOverviewScreen() {
         ).length;
         const allSetsCompleted = completedCount === exercise.sets.length;
         const isLoading = loadingExerciseIndex === exerciseIndex;
+        const prCount = sessionPRs[exerciseIndex]?.length ?? 0;
+        const setInfo = (
+          <View style={styles.setInfoRow}>
+            <ThemedText style={styles.setInfo}>
+              <Trans>
+                {completedCount}/{exercise.sets.length} sets completed
+              </Trans>
+            </ThemedText>
+            {prCount > 0 && (
+              <View
+                style={styles.prBadge}
+                accessible={true}
+                accessibilityLabel={t`New personal record`}
+              >
+                <AppIcon
+                  set="mci"
+                  name="trophy"
+                  size={12}
+                  color={colors.onAccent}
+                />
+                <ThemedText style={styles.prBadgeText}>
+                  <Trans>PR</Trans>
+                </ThemedText>
+              </View>
+            )}
+          </View>
+        );
 
         const progressionState =
           exercise.id != null
@@ -600,11 +630,7 @@ export default function WorkoutOverviewScreen() {
               <ThemedText style={styles.exerciseName}>
                 {exercise.name}
               </ThemedText>
-              <ThemedText style={styles.setInfo}>
-                <Trans>
-                  {completedCount}/{exercise.sets.length} sets completed
-                </Trans>
-              </ThemedText>
+              {setInfo}
               {progressionChip}
             </View>
           </Sortable.Touchable>
@@ -640,11 +666,7 @@ export default function WorkoutOverviewScreen() {
               <ThemedText style={styles.exerciseName}>
                 {exercise.name}
               </ThemedText>
-              <ThemedText style={styles.setInfo}>
-                <Trans>
-                  {completedCount}/{exercise.sets.length} sets completed
-                </Trans>
-              </ThemedText>
+              {setInfo}
               {progressionChip}
             </View>
           </View>
@@ -747,6 +769,7 @@ export default function WorkoutOverviewScreen() {
       itemLabels,
       progressionStatesByUweId,
       feedbackSubmittedUweIds,
+      sessionPRs,
       styles,
       colors,
       weightUnit,
@@ -1318,6 +1341,26 @@ function createStyles(colors: AppThemeColors) {
     setInfo: {
       fontSize: 14,
       color: colors.contentSecondary,
+    },
+    setInfoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: 6,
+    },
+    prBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 2,
+      paddingHorizontal: 6,
+      borderRadius: radii.sm,
+      backgroundColor: colors.accent,
+    },
+    prBadgeText: {
+      fontSize: 11,
+      lineHeight: 16,
+      fontWeight: "700",
+      color: colors.onAccent,
     },
     optionsButton: {
       padding: 0,

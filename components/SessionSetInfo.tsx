@@ -87,6 +87,8 @@ interface SessionSetInfoProps {
   suggestedWeight?: number;
   /** Copies previousSet into the inputs. */
   onUsePreviousSet?: () => void;
+  /** The completed set beat the exercise's best. */
+  isPR?: boolean;
 }
 
 export default function SessionSetInfo({
@@ -142,6 +144,7 @@ export default function SessionSetInfo({
   previousSet,
   suggestedWeight,
   onUsePreviousSet,
+  isPR = false,
 }: SessionSetInfoProps) {
   // Shown only for a positive target, as text with the device separator.
   const distanceMin =
@@ -400,8 +403,31 @@ export default function SessionSetInfo({
         />
       </View>
       {/* Set Type Indicators */}
-      {(isWarmup || isDropSet || isToFailure || showProgressionChip) && (
+      {(isWarmup ||
+        isDropSet ||
+        isToFailure ||
+        showProgressionChip ||
+        isPR) && (
         <View style={styles.setTypeContainer}>
+          {isPR && (
+            <View
+              style={[styles.setTypeBadge, styles.setTypeBadgePR]}
+              accessible={true}
+              accessibilityLabel={t`Personal record`}
+              accessibilityRole="text"
+            >
+              <AppIcon
+                set="mci"
+                name="trophy"
+                size={16}
+                color={colors.onAccent}
+                style={styles.setIcon}
+              />
+              <ThemedText style={[styles.setTypeLabel, styles.prLabel]}>
+                <Trans>PR</Trans>
+              </ThemedText>
+            </View>
+          )}
           {isWarmup && (
             <View
               style={[styles.setTypeBadge, styles.setTypeBadgeWarmup]}
@@ -735,6 +761,12 @@ function createStyles(colors: AppThemeColors) {
     },
     setTypeBadgeFailure: {
       backgroundColor: colors.badgeFailure,
+    },
+    setTypeBadgePR: {
+      backgroundColor: colors.accent,
+    },
+    prLabel: {
+      color: colors.onAccent,
     },
     setTypeLabel: {
       fontSize: 13,

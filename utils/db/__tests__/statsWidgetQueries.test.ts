@@ -1,6 +1,7 @@
 // The stats widget queries against a real SQLite: training split by muscle,
 // recent personal records and the rep totals of the workout summaries.
 import {
+  fetchPriorBests,
   fetchRecentPRs,
   fetchTrainingSplit,
   fetchWorkoutSummaries,
@@ -278,5 +279,83 @@ describe("fetchRecentPRs", () => {
     );
     const tracked = await fetchRecentPRs({}, { trackedOnly: true, limit: 10 });
     expect(tracked.map((pr) => pr.name)).toEqual(["Lunge"]);
+  });
+
+  it("returns only one session's PRs, judged against everything before it", async () => {
+    workout("2026-01-05", [
+      { id: 1, sets: [{ weight: 100, reps: 5 }] },
+      { id: 5, sets: [{ reps: 20 }] },
+    ]);
+    const earlier = workout("2026-01-12", [
+      { id: 1, sets: [{ weight: 105, reps: 5 }] },
+    ]);
+    const session = workout("2026-01-19", [
+      { id: 1, sets: [{ weight: 102.5, reps: 5 }] },
+      { id: 5, sets: [{ reps: 25 }] },
+    ]);
+
+    const prs = await fetchRecentPRs(
+      {},
+      { ...ALL, completedWorkoutId: session },
+    );
+    // The bench press beat the first session but not the second.
+    expect(prs.map((pr) => pr.name)).toEqual(["Push-up"]);
+    expect(prs[0]).toMatchObject({ completed_workout_id: session, value: 25 });
+    expect(
+      await fetchRecentPRs({}, { ...ALL, completedWorkoutId: earlier }),
+    ).toHaveLength(1);
+  });
+});
+
+describe("fetchPriorBests", () => {
+  it("takes the best working set per exercise and tracking type", async () => {
+    workout("2026-01-05", [
+      {
+        id: 1,
+        sets: [
+          { weight: 140, reps: 5, warmup: true },
+          { weight: 100, reps: 5 },
+        ],
+      },
+      { id: 5, sets: [{ reps: 20 }] },
+    ]);
+    workout("2026-01-12", [
+      { id: 1, sets: [{ weight: 105, reps: 3 }] },
+      { id: 5, sets: [{ weight: 10, reps: 12 }], resolved: "weight" },
+    ]);
+    workout("2026-01-19", [{ id: 1, sets: [{ weight: 200, reps: 5 }] }], {
+      deleted: true,
+    });
+
+    const bests = await fetchPriorBests([1, 5, 2]);
+    const byKey = Object.fromEntries(
+      bests.map((b) => [`${b.exercise_id}:${b.tracking_type}`, b.best]),
+    );
+    expect(Object.keys(byKey).sort()).toEqual([
+      "1:weight",
+      "5:reps",
+      "5:weight",
+    ]);
+    // 100 x 5 beats 105 x 3 on estimated 1RM; the warm-up and the deleted
+    // workout do not count.
+    expect(byKey["1:weight"]).toBeCloseTo(100 * (1 + 5 / 30), 6);
+    expect(byKey["5:reps"]).toBe(20);
+    expect(byKey["5:weight"]).toBeCloseTo(10 * (1 + 12 / 30), 6);
+  });
+
+  it("leaves out deleted sets", async () => {
+    const id = workout("2026-01-05", [
+      { id: 5, sets: [{ reps: 20 }, { reps: 30 }] },
+    ]);
+    mockDb.sqlite.exec(
+      `UPDATE completed_sets SET is_deleted = 1 WHERE reps = 30 AND completed_exercise_id IN (SELECT id FROM completed_exercises WHERE completed_workout_id = ${id})`,
+    );
+    expect(await fetchPriorBests([5])).toEqual([
+      { exercise_id: 5, tracking_type: "reps", best: 20 },
+    ]);
+  });
+
+  it("returns nothing for no exercises", async () => {
+    expect(await fetchPriorBests([])).toEqual([]);
   });
 });
