@@ -122,6 +122,9 @@ interface ActiveWorkoutStore {
   startTime: Date;
   timerRunning: boolean;
   timerExpiry: Date | null;
+  // True after a rest was ended before it ran out, until the next one
+  // starts. Not persisted: the screens' countdowns do not survive a restart.
+  restEndedEarly: boolean;
   currentSetStartedAt: Date | null;
   // When the user last completed a set, edited a value or added an exercise.
   // Null until the first of those; stale-workout checks then use startTime.
@@ -201,6 +204,8 @@ interface ActiveWorkoutStore {
   removeFromSuperset: (exerciseIndex: number) => void;
   startTimer: (expiry: Date) => void;
   stopTimer: () => void;
+  /** Stops a rest before it runs out: Skip, or a set completed mid-rest. */
+  endRestEarly: () => void;
   setCurrentSetStartedAt: (date: Date | null) => void;
   recordSetDuration: (
     exerciseIndex: number,
@@ -253,6 +258,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       startTime: new Date(),
       timerRunning: false,
       timerExpiry: null,
+      restEndedEarly: false,
       currentSetStartedAt: null,
       lastActivityAt: null,
       savedCompletedWorkoutId: null,
@@ -1677,9 +1683,13 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         set({
           timerRunning: true,
           timerExpiry: expiry,
+          restEndedEarly: false,
         }),
 
       stopTimer: () => set({ timerRunning: false, timerExpiry: null }),
+
+      endRestEarly: () =>
+        set({ timerRunning: false, timerExpiry: null, restEndedEarly: true }),
 
       setCurrentSetStartedAt: (date) => set({ currentSetStartedAt: date }),
 

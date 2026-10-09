@@ -575,7 +575,7 @@ export default function WorkoutSessionScreen() {
     },
   });
   useRestTimerResync(restart);
-  usePauseWhenRestEndsEarly(timerRunning, expiryTimestampRef, pause);
+  usePauseWhenRestEndsEarly(pause);
 
   // Shown once, during the first rest after notifications turned out blocked.
   const [showPermissionHint, setShowPermissionHint] = useState(false);
@@ -847,7 +847,7 @@ export default function WorkoutSessionScreen() {
   };
 
   const skipRest = () => {
-    stopTimer();
+    useActiveWorkoutStore.getState().endRestEarly();
     void cancelRestNotifications();
     // The next set starts now, as it would have when the rest ran out.
     setCurrentSetStartedAt(new Date());
@@ -1439,7 +1439,7 @@ export default function WorkoutSessionScreen() {
     // Completing a set during a rest ends that rest; any rest for this set
     // starts below.
     if (useActiveWorkoutStore.getState().timerRunning) {
-      stopTimer();
+      useActiveWorkoutStore.getState().endRestEarly();
       void cancelRestNotifications();
     }
 

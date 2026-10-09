@@ -310,7 +310,7 @@ export default function WorkoutOverviewScreen() {
   });
 
   useRestTimerResync(restart);
-  usePauseWhenRestEndsEarly(timerRunning, expiryTimestampRef, pause);
+  usePauseWhenRestEndsEarly(pause);
 
   useEffect(() => {
     timerTranslateY.value = withTiming(timerRunning ? 0 : 200, {
@@ -327,10 +327,10 @@ export default function WorkoutOverviewScreen() {
   }, [timerRunning, timerExpiry, restart]);
 
   const skipRest = () => {
-    stopTimer();
+    const store = useActiveWorkoutStore.getState();
+    store.endRestEarly();
     void cancelRestNotifications();
     // The next set starts now, as it would have when the rest ran out.
-    const store = useActiveWorkoutStore.getState();
     if (!store.currentSetStartedAt) store.setCurrentSetStartedAt(new Date());
   };
 

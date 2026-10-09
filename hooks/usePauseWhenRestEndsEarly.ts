@@ -1,23 +1,19 @@
-import { useEffect, type RefObject } from "react";
-
-// Within this much of the expiry, a stop is the rest running out.
-const EXPIRY_SLACK_MS = 1000;
+import { useEffect } from "react";
+import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 
 /**
- * Pauses a screen's react-timer-hook countdown when the store's rest stops
- * before it runs out (Skip, or a set completed mid-rest). The hook only
- * reads autoStart once, so without this it still expires at the old time
- * and plays the rest cue mid-set. A rest that ran out is left alone, so a
- * second screen's countdown still reaches its own expiry and cue.
+ * Pauses a screen's react-timer-hook countdown when a rest is ended before
+ * it runs out (Skip, or a set completed mid-rest), however little was left.
+ * The hook only reads autoStart once, so without this it still expires at
+ * the old time and plays the rest cue mid-set. A rest that runs out is
+ * stopped with stopTimer instead, so a second screen's countdown still
+ * reaches its own expiry and cue.
  */
-export function usePauseWhenRestEndsEarly(
-  timerRunning: boolean,
-  expiryRef: RefObject<Date | null>,
-  pause: () => void,
-) {
+export function usePauseWhenRestEndsEarly(pause: () => void) {
+  const endedEarly = useActiveWorkoutStore(
+    (s) => s.restEndedEarly && !s.timerRunning,
+  );
   useEffect(() => {
-    if (timerRunning) return;
-    const expiry = expiryRef.current;
-    if (expiry && expiry.getTime() - Date.now() > EXPIRY_SLACK_MS) pause();
-  }, [timerRunning, expiryRef, pause]);
+    if (endedEarly) pause();
+  }, [endedEarly, pause]);
 }
