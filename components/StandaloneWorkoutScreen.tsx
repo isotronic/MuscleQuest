@@ -36,6 +36,7 @@ import { AuthContext } from "@/context/AuthProvider";
 import { useWorkoutPublishMutation } from "@/hooks/useWorkoutPublishMutation";
 import { useSocialStore } from "@/store/socialStore";
 import { planDistanceRange } from "@/utils/planDistance";
+import { displayWorkoutName } from "@/utils/workoutName";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -215,7 +216,7 @@ export default function StandaloneWorkoutScreen() {
       )}
       <Stack.Screen
         options={{
-          title: workout.name,
+          title: displayWorkoutName(workout.name),
           headerRight: () => (
             <>
               <Cues

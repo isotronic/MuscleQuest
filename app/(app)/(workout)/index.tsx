@@ -35,6 +35,7 @@ import { useWorkoutBackGuard } from "@/hooks/useWorkoutBackGuard";
 import { useWorkoutCompletion } from "@/hooks/useWorkoutCompletion";
 import { showSnackbar } from "@/store/snackbarStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
 import { parsePlateInventory, smallestLoadStep } from "@/utils/plateCalculator";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
@@ -1110,7 +1111,8 @@ export default function WorkoutOverviewScreen() {
               mode="contained"
               theme={{ colors: { primary: colors.accent } }}
               onPress={async () => {
-                const name = saveWorkoutName.trim() || t`Quick workout`;
+                // The fallback is stored in English and translated on display.
+                const name = saveWorkoutName.trim() || QUICK_WORKOUT_NAME;
                 try {
                   const newWorkoutId = await createStandaloneWorkout(
                     name,
