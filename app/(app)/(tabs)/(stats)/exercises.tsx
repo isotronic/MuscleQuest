@@ -16,8 +16,7 @@ import ExerciseSuggestions from "@/components/ExerciseSuggestions";
 import ExerciseSortChips, {
   type SortMode,
 } from "@/components/ExerciseSortChips";
-import { openDatabase } from "@/utils/database";
-import type { SQLiteDatabase } from "expo-sqlite";
+import { updatePinnedExercises } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 import { useAppTheme, radii } from "@/theme";
@@ -73,58 +72,25 @@ export default function ExercisesScreen() {
   }, []);
 
   const handleAddExercise = async () => {
-    let db: SQLiteDatabase | undefined;
     try {
-      db = await openDatabase("userData.db");
-      // Fetch already tracked exercises
-      const trackedExercises = (await db.getAllAsync(`
-        SELECT exercise_id FROM tracked_exercises
-      `)) as { exercise_id: number }[];
-
-      const trackedExerciseIds = trackedExercises.map((exercise) =>
-        Number(exercise.exercise_id),
+      const initial = initialSelectedExercises.map((id: number | string) =>
+        Number(id),
       );
-
-      // Find exercises that are newly selected (need to be added)
-      const newExercises = selectedExercises.filter(
-        (exerciseId) => !trackedExerciseIds.includes(exerciseId),
-      );
-
-      // Find exercises that are unselected (need to be removed)
-      const removedExercises = trackedExerciseIds.filter(
-        (exerciseId) => !selectedExercises.includes(exerciseId),
-      );
-
-      await db.withExclusiveTransactionAsync(async (txn) => {
-        // Insert new exercises into the tracked_exercises table
-        for (const exerciseId of newExercises) {
-          await txn.runAsync(
-            `INSERT INTO tracked_exercises (exercise_id, sort_order)
-             VALUES (?, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM tracked_exercises))`,
-            [exerciseId],
-          );
-        }
-
-        // Delete unselected exercises from the tracked_exercises table
-        for (const exerciseId of removedExercises) {
-          await txn.runAsync(
-            `DELETE FROM tracked_exercises WHERE exercise_id = ?`,
-            [exerciseId],
-          );
-        }
+      // Only what changed here: the exercise screen, opened from this list,
+      // can pin and unpin too.
+      await updatePinnedExercises({
+        pin: selectedExercises.filter((id) => !initial.includes(id)),
+        unpin: initial.filter((id: number) => !selectedExercises.includes(id)),
       });
-
       queryclient.invalidateQueries({ queryKey: ["trackedExercises"] });
-      // The recent PRs widget can be limited to tracked exercises.
+      // The recent PRs widget can be limited to pinned exercises.
       queryclient.invalidateQueries({
         queryKey: ["completedWorkouts", "recentPRs"],
       });
       router.back();
     } catch (error: any) {
-      console.error("Error saving exercises for tracking:", error);
+      console.error("Error saving pinned exercises:", error);
       Bugsnag.notify(error);
-    } finally {
-      if (db) await db.closeAsync();
     }
   };
 
@@ -205,7 +171,7 @@ export default function ExercisesScreen() {
           labelStyle={styles.addButtonLabel}
           onPressIn={handleAddExercise}
         >
-          <Trans>Track ({selectedExercises.length})</Trans>
+          <Trans>Pin ({selectedExercises.length})</Trans>
         </Button>
       </View>
     </ThemedView>

@@ -264,3 +264,64 @@ export const reorderTrackedExercises = async (
     if (db) await db.closeAsync();
   }
 };
+
+// Pinned exercises ("Pinned to Stats") live in tracked_exercises. New pins
+// go to the end of the Stats widget's order.
+const PIN_EXERCISE_SQL = `INSERT OR IGNORE INTO tracked_exercises (exercise_id, sort_order)
+  VALUES (?, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM tracked_exercises))`;
+const UNPIN_EXERCISE_SQL = `DELETE FROM tracked_exercises WHERE exercise_id = ?`;
+
+export const isExercisePinned = async (
+  exerciseId: number,
+): Promise<boolean> => {
+  const db = await openDatabase("userData.db");
+  try {
+    const row = await db.getFirstAsync<{ exercise_id: number }>(
+      `SELECT exercise_id FROM tracked_exercises WHERE exercise_id = ?`,
+      [exerciseId],
+    );
+    return row != null;
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+export const pinExercise = async (exerciseId: number): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  try {
+    await db.runAsync(PIN_EXERCISE_SQL, [exerciseId]);
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+export const unpinExercise = async (exerciseId: number): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  try {
+    await db.runAsync(UNPIN_EXERCISE_SQL, [exerciseId]);
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+/**
+ * Applies a picker's changes in one transaction. Takes the delta rather than
+ * the full set, so pins made elsewhere meanwhile (the exercise screen) stay.
+ */
+export const updatePinnedExercises = async ({
+  pin: toPin,
+  unpin: toUnpin,
+}: {
+  pin: number[];
+  unpin: number[];
+}): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  try {
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      for (const id of toPin) await txn.runAsync(PIN_EXERCISE_SQL, [id]);
+      for (const id of toUnpin) await txn.runAsync(UNPIN_EXERCISE_SQL, [id]);
+    });
+  } finally {
+    await db.closeAsync();
+  }
+};
