@@ -8,7 +8,8 @@ import {
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Button } from "react-native-paper";
-import { AppIcon } from "@/components/ui";
+import { AppIcon, AppIconButton } from "@/components/ui";
+import { exerciseHref } from "@/utils/exerciseHref";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t, plural } from "@lingui/core/macro";
 import React from "react";
@@ -202,32 +203,46 @@ function ExerciseRow({
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [expanded, setExpanded] = useState(false);
   const bestLabel = getBestSetLabel(exercise, weightUnit, distanceUnit);
+  const exerciseName = exercise.exercise_name;
 
   return (
     <View style={styles.exerciseCard}>
-      <TouchableOpacity
-        accessibilityRole="button"
-        onPress={() => setExpanded((prev) => !prev)}
-        accessibilityState={{ expanded }}
-        style={styles.exerciseHeader}
-        activeOpacity={0.7}
-      >
-        <View style={styles.exerciseHeaderText}>
-          <ThemedText type="defaultSemiBold" style={styles.exerciseName}>
-            {exercise.exercise_name}
-          </ThemedText>
-          <ThemedText style={styles.exerciseMeta}>
-            <Plural value={exercise.sets.length} one="# set" other="# sets" />
-            {bestLabel ? ` · ${bestLabel}` : ""}
-          </ThemedText>
-        </View>
-        <AppIcon
-          set="mci"
-          name={expanded ? "chevron-up" : "chevron-down"}
+      <View style={styles.exerciseHeaderRow}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => setExpanded((prev) => !prev)}
+          accessibilityState={{ expanded }}
+          style={styles.exerciseHeader}
+          activeOpacity={0.7}
+        >
+          <View style={styles.exerciseHeaderText}>
+            <ThemedText type="defaultSemiBold" style={styles.exerciseName}>
+              {exercise.exercise_name}
+            </ThemedText>
+            <ThemedText style={styles.exerciseMeta}>
+              <Plural value={exercise.sets.length} one="# set" other="# sets" />
+              {bestLabel ? ` · ${bestLabel}` : ""}
+            </ThemedText>
+          </View>
+          <AppIcon
+            set="mci"
+            name={expanded ? "chevron-up" : "chevron-down"}
+            size={20}
+            color={colors.contentSecondary}
+          />
+        </TouchableOpacity>
+        {/* Sibling of the expand toggle, not nested, so both stay reachable. */}
+        <AppIconButton
+          accessibilityLabel={t`Show progress for ${exerciseName}`}
+          icon="chart-line"
+          iconColor={colors.accent}
           size={20}
-          color={colors.contentSecondary}
+          style={styles.progressButton}
+          onPress={() =>
+            router.push(exerciseHref(exercise.exercise_id, "progress"))
+          }
         />
-      </TouchableOpacity>
+      </View>
       {expanded && (
         <View style={styles.setsContainer}>
           {exercise.sets.map((set) => (
@@ -273,11 +288,16 @@ function NewPRsCard({
       {prs.map((pr) => {
         const { set, gain } = describePR(pr, weightUnit, distanceUnit);
         return (
-          <View
+          <TouchableOpacity
             key={`${pr.exercise_id}-${pr.tracking_type}`}
             style={styles.prRow}
-            accessible={true}
+            accessibilityRole="button"
             accessibilityLabel={t`New record: ${pr.name}, ${set}, ${gain}`}
+            accessibilityHint={t`Opens this exercise`}
+            activeOpacity={0.7}
+            onPress={() =>
+              router.push(exerciseHref(pr.exercise_id, "progress"))
+            }
           >
             <ThemedText type="defaultSemiBold" style={styles.prName}>
               {pr.name}
@@ -287,7 +307,7 @@ function NewPRsCard({
               {"  ·  "}
               {gain}
             </ThemedText>
-          </View>
+          </TouchableOpacity>
         );
       })}
     </View>
@@ -815,10 +835,19 @@ function createStyles(colors: AppThemeColors) {
       marginBottom: 8,
       overflow: "hidden",
     },
+    exerciseHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
     exerciseHeader: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       padding: 14,
+    },
+    progressButton: {
+      marginLeft: 0,
+      marginRight: 6,
     },
     exerciseHeaderText: {
       flex: 1,

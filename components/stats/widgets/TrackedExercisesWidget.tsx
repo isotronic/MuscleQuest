@@ -11,6 +11,7 @@ import { useTrackedExercisesQuery } from "@/hooks/useTrackedExercisesQuery";
 import { useReorderTrackedExercisesMutation } from "@/hooks/useReorderTrackedExercisesMutation";
 import type { WidgetConfigs } from "@/utils/statsLayout";
 import { useAppTheme } from "@/theme";
+import { exerciseHref } from "@/utils/exerciseHref";
 import { useStatsWidgetContext } from "./StatsWidgetContext";
 import { WidgetSection } from "./WidgetSection";
 
@@ -39,12 +40,7 @@ export const TrackedExercisesWidget: React.FC<{
   );
 
   const handleExercisePress = useCallback(
-    (exerciseId: number, name: string) =>
-      router.push({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        pathname: "/(app)/(tabs)/(stats)/exercise-detail" as any,
-        params: { exerciseId: exerciseId.toString(), name },
-      }),
+    (exerciseId: number) => router.push(exerciseHref(exerciseId, "progress")),
     [router],
   );
 
@@ -136,9 +132,7 @@ export const TrackedExercisesWidget: React.FC<{
               weightUnit={weightUnit}
               distanceUnit={distanceUnit}
               showSparkline={config.showSparkline}
-              onPress={() =>
-                handleExercisePress(exercise.exercise_id, exercise.name)
-              }
+              onPress={() => handleExercisePress(exercise.exercise_id)}
             />
           ))
         )
