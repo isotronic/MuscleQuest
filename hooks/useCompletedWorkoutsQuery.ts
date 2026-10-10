@@ -30,6 +30,8 @@ interface WorkoutResult {
   distance: number | null;
   is_warmup: number | null;
   set_duration: number | null;
+  notes?: string | null;
+  note?: string | null;
 }
 
 export interface CompletedWorkout {
@@ -44,6 +46,8 @@ export interface CompletedWorkout {
   duration: number;
   total_sets_completed: number;
   is_deload?: number;
+  /** The session note. Loaded by the by-id and session history reads only. */
+  notes?: string | null;
   exercises: {
     completed_exercise_id: number;
     exercise_id: number;
@@ -63,6 +67,7 @@ export interface CompletedWorkout {
       distance: number | null;
       is_warmup: boolean;
       set_duration: number | null;
+      note?: string | null;
     }[];
   }[];
 }
@@ -353,7 +358,9 @@ const fetchWorkoutHistoryForSession = async (
         cs.time,
         cs.distance,
         cs.is_warmup,
-        cs.set_duration
+        cs.set_duration,
+        cs.note,
+        cw.notes
       FROM (
         SELECT * FROM completed_workouts
         WHERE workout_id = ? AND is_deleted = FALSE
@@ -409,6 +416,7 @@ const fetchWorkoutHistoryForSession = async (
           duration,
           total_sets_completed,
           is_deload: item.is_deload ?? 0,
+          notes: item.notes ?? null,
           exercises: [],
         };
         workoutsMap.set(id, workout);
@@ -446,6 +454,7 @@ const fetchWorkoutHistoryForSession = async (
             : null,
         is_warmup: !!is_warmup,
         set_duration: item.set_duration ?? null,
+        note: item.note ?? null,
       });
     });
 
@@ -518,7 +527,9 @@ const fetchGlobalExerciseHistoryForSession = async (
         cs.time,
         cs.distance,
         cs.is_warmup,
-        cs.set_duration
+        cs.set_duration,
+        cs.note,
+        cw.notes
       FROM completed_exercises ce
       JOIN completed_workouts cw ON cw.id = ce.completed_workout_id
       JOIN exercises e ON e.exercise_id = ce.exercise_id
@@ -581,6 +592,7 @@ const fetchGlobalExerciseHistoryForSession = async (
           duration,
           total_sets_completed,
           is_deload: item.is_deload ?? 0,
+          notes: item.notes ?? null,
           exercises: [],
         };
         workoutsMap.set(id, workout);
@@ -618,6 +630,7 @@ const fetchGlobalExerciseHistoryForSession = async (
             : null,
         is_warmup: !!is_warmup,
         set_duration: item.set_duration ?? null,
+        note: item.note ?? null,
       });
     });
 

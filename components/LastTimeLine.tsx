@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import React, { useMemo, useState } from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { t, plural } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
 import { useAppTheme } from "@/theme";
@@ -16,6 +16,10 @@ export interface PreviousSet {
   distance: number | null;
   /** The training day it was logged on, "YYYY-MM-DD". */
   localDate?: string;
+  /** The set's note, or failing that its session's note. */
+  note?: string | null;
+  /** The note is the session's, not this set's. */
+  noteIsSession?: boolean;
 }
 
 interface LastTimeLineProps {
@@ -99,6 +103,7 @@ export default function LastTimeLine({
 }: LastTimeLineProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const [noteExpanded, setNoteExpanded] = useState(false);
 
   const described = describePreviousSet(
     previous,
@@ -106,7 +111,28 @@ export default function LastTimeLine({
     weightUnit,
     distanceUnit,
   );
-  if (!described) return null;
+  const note = previous.note?.trim();
+  if (!described && !note) return null;
+
+  const noteLine = note ? (
+    <TouchableOpacity
+      onPress={() => setNoteExpanded((expanded) => !expanded)}
+      accessibilityRole="button"
+      accessibilityLabel={t`Last time's note: ${note}`}
+      accessibilityState={{ expanded: noteExpanded }}
+      hitSlop={{ top: 4, bottom: 4 }}
+      style={styles.touchable}
+    >
+      <ThemedText
+        style={[styles.text, styles.note]}
+        numberOfLines={noteExpanded ? undefined : 1}
+      >
+        {previous.noteIsSession ? t`Session note: ${note}` : t`Note: ${note}`}
+      </ThemedText>
+    </TouchableOpacity>
+  ) : null;
+
+  if (!described) return noteLine;
 
   const value = described.text;
   const day = previous.localDate ? shortDay(previous.localDate) : null;
@@ -127,10 +153,8 @@ export default function LastTimeLine({
       {text}
     </ThemedText>
   );
-  if (!onPress) return line;
-
   const spoken = described.spoken;
-  return (
+  const valueLine = onPress ? (
     <TouchableOpacity
       onPress={onPress}
       accessibilityRole="button"
@@ -140,6 +164,16 @@ export default function LastTimeLine({
     >
       {line}
     </TouchableOpacity>
+  ) : (
+    line
+  );
+  if (!noteLine) return valueLine;
+
+  return (
+    <View>
+      {valueLine}
+      {noteLine}
+    </View>
   );
 }
 
@@ -152,6 +186,10 @@ function createStyles(colors: AppThemeColors) {
       fontSize: 14,
       color: colors.contentSecondary,
       textAlign: "center",
+    },
+    note: {
+      fontStyle: "italic",
+      paddingHorizontal: 16,
     },
   });
 }

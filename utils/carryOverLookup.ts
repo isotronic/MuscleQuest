@@ -6,6 +6,7 @@ export interface CarryOverSet {
   time: number | null;
   distance: number | null;
   is_warmup: boolean;
+  note?: string | null;
 }
 
 export interface CarryOverExercise {
@@ -13,15 +14,21 @@ export interface CarryOverExercise {
   sets: CarryOverSet[];
   /** The training day of the session it came from, "YYYY-MM-DD". */
   local_date?: string;
+  /** The session note of the workout it came from. */
+  workout_notes?: string | null;
 }
 
 export interface CarryOverWorkout {
   local_date?: string;
+  notes?: string | null;
   exercises: CarryOverExercise[];
 }
 
-/** A carried-over set and the training day it was logged on. */
-export type CarryOverMatch = CarryOverSet & { local_date?: string };
+/** A carried-over set, the training day it was logged on and its session note. */
+export type CarryOverMatch = CarryOverSet & {
+  local_date?: string;
+  workout_notes?: string | null;
+};
 
 export function buildExerciseMap(
   data: CarryOverWorkout[] | null,
@@ -31,7 +38,7 @@ export function buildExerciseMap(
   for (const w of data) {
     for (const ex of w.exercises) {
       const arr = map.get(ex.exercise_id) ?? [];
-      arr.push({ ...ex, local_date: w.local_date });
+      arr.push({ ...ex, local_date: w.local_date, workout_notes: w.notes });
       map.set(ex.exercise_id, arr);
     }
   }
@@ -54,7 +61,11 @@ function lookup(
     const setsOfType = ex.sets.filter((s) => s.is_warmup === isWarmup);
     if (setsOfType.length === 0) continue;
     const set = setsOfType[ordinal] ?? setsOfType[setsOfType.length - 1];
-    return { ...set, local_date: ex.local_date };
+    return {
+      ...set,
+      local_date: ex.local_date,
+      workout_notes: ex.workout_notes,
+    };
   }
   return null;
 }
@@ -76,7 +87,11 @@ function lookupByPosition(
   const setsOfType = prevExAtPos.sets.filter((s) => s.is_warmup === isWarmup);
   if (setsOfType.length === 0) return null;
   const set = setsOfType[ordinal] ?? setsOfType[setsOfType.length - 1];
-  return { ...set, local_date: previous.local_date };
+  return {
+    ...set,
+    local_date: previous.local_date,
+    workout_notes: previous.notes,
+  };
 }
 
 export function findLastAvailableSetData(params: {

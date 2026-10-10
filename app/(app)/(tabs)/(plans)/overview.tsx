@@ -24,7 +24,7 @@ import {
   ActivityIndicator,
 } from "react-native-paper";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
-import { Notes } from "@/components/Notes";
+import { Cues } from "@/components/Cues";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
@@ -284,7 +284,7 @@ export default function PlanOverviewScreen() {
           options={{
             headerRight: () => (
               <>
-                <Notes
+                <Cues
                   noteType="plan"
                   referenceId={Number(planId)}
                   buttonType="icon"

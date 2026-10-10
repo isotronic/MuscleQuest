@@ -47,7 +47,8 @@ import {
   startRestNotification,
 } from "@/utils/restNotification";
 import { openExactAlarmSettings } from "@/modules/exact-alarm";
-import { Notes } from "@/components/Notes";
+import { Cues } from "@/components/Cues";
+import { NoteSheet, type NoteSheetHandle } from "@/components/NoteSheet";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 import {
@@ -124,6 +125,7 @@ interface OutgoingSnapshot {
   partnerName?: string;
   previousSet: PreviousSet | null;
   isPR: boolean;
+  setNote?: string;
 }
 
 interface SlotData {
@@ -226,6 +228,9 @@ const toPreviousSet = (match: CarryOverMatch | null): PreviousSet | null =>
         time: match.time,
         distance: match.distance,
         localDate: match.local_date,
+        // The set's own note says more about this set than the session's.
+        note: match.note?.trim() || match.workout_notes?.trim() || null,
+        noteIsSession: !match.note?.trim() && !!match.workout_notes?.trim(),
       }
     : null;
 
@@ -299,6 +304,13 @@ export default function WorkoutSessionScreen() {
     }
   }, [feedbackQueue.length]);
   const [editSetModalVisible, setEditSetModalVisible] = useState(false);
+  const setNoteSheetRef = useRef<NoteSheetHandle>(null);
+  // The set the note sheet was opened on, so a swipe while it is open cannot
+  // save the note onto another set.
+  const noteTargetRef = useRef<{ exerciseIndex: number; setIndex: number }>({
+    exerciseIndex: 0,
+    setIndex: 0,
+  });
   const [plateCalcVisible, setPlateCalcVisible] = useState(false);
   const [currentSlotIndex, setCurrentSlotIndex] = useState(0);
   const [slots, setSlots] = useState<[SlotData, SlotData, SlotData]>([
@@ -372,6 +384,8 @@ export default function WorkoutSessionScreen() {
     recordSetDuration,
     setExerciseTrackingTypeOverride,
     suggestedWeightPrefills,
+    setNotes,
+    setSetNote,
   } = useActiveWorkoutStore(
     useShallow((s) => ({
       workout: s.workout,
@@ -399,6 +413,8 @@ export default function WorkoutSessionScreen() {
       setCurrentSetStartedAt: s.setCurrentSetStartedAt,
       recordSetDuration: s.recordSetDuration,
       setExerciseTrackingTypeOverride: s.setExerciseTrackingTypeOverride,
+      setNotes: s.setNotes,
+      setSetNote: s.setSetNote,
       suggestedWeightPrefills: s.suggestedWeightPrefills,
     })),
   );
@@ -1033,6 +1049,16 @@ export default function WorkoutSessionScreen() {
     };
   };
 
+  const handleEditSetNote = () => {
+    noteTargetRef.current = {
+      exerciseIndex: currentExerciseIndex,
+      setIndex: currentSetIndex,
+    };
+    setNoteSheetRef.current?.open(
+      setNotes[currentExerciseIndex]?.[currentSetIndex] ?? "",
+    );
+  };
+
   // Returns full SessionSetInfo props for any (exerciseIndex, setIndex) without
   // touching store indices — used to pre-render adjacent panels with correct data
   const getPanelData = (exerciseIndex: number, setIndex: number) => {
@@ -1102,6 +1128,7 @@ export default function WorkoutSessionScreen() {
       previousSet: toPreviousSet(prevData),
       suggestedWeight: suggestedWeightPrefills[exerciseIndex]?.[setIndex],
       isPR: isSessionPR(sessionPRs, exerciseIndex, setIndex),
+      setNote: setNotes[exerciseIndex]?.[setIndex],
     };
   };
 
@@ -1560,6 +1587,7 @@ export default function WorkoutSessionScreen() {
         : undefined,
       previousSet: toPreviousSet(previousWorkoutSetData),
       isPR,
+      setNote: setNotes[currentExerciseIndex]?.[currentSetIndex],
     };
 
     if (isFirstInSuperset) {
@@ -1760,7 +1788,7 @@ export default function WorkoutSessionScreen() {
         options={{
           headerRight: () => (
             <>
-              <Notes
+              <Cues
                 noteType="exercise"
                 referenceId={currentExercise?.exercise_id || 0}
                 buttonType="icon"
@@ -1847,6 +1875,7 @@ export default function WorkoutSessionScreen() {
                             onAddDropSet={handleAddDropSet}
                             onToggleSetType={handleToggleSetType}
                             onEditSet={() => setEditSetModalVisible(true)}
+                            onEditNote={handleEditSetNote}
                             onOpenPlateCalculator={() =>
                               setPlateCalcVisible(true)
                             }
@@ -1922,6 +1951,15 @@ export default function WorkoutSessionScreen() {
           </View>
         </GestureDetector>
       </KeyboardAvoidingView>
+      <NoteSheet
+        ref={setNoteSheetRef}
+        title={t`Set note`}
+        placeholder={t`How did this set feel?`}
+        onSave={(text) => {
+          const { exerciseIndex, setIndex } = noteTargetRef.current;
+          setSetNote(exerciseIndex, setIndex, text);
+        }}
+      />
       {feedbackQueue.length > 0 && (
         <ExerciseFeedbackSheet
           ref={feedbackSheetRef}

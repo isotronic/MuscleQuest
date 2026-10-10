@@ -89,6 +89,10 @@ interface SessionSetInfoProps {
   onUsePreviousSet?: () => void;
   /** The completed set beat the exercise's best. */
   isPR?: boolean;
+  /** This set's note for the session. */
+  setNote?: string;
+  /** Opens the note editor for this set. */
+  onEditNote?: () => void;
 }
 
 export default function SessionSetInfo({
@@ -145,6 +149,8 @@ export default function SessionSetInfo({
   suggestedWeight,
   onUsePreviousSet,
   isPR = false,
+  setNote,
+  onEditNote,
 }: SessionSetInfoProps) {
   // Shown only for a positive target, as text with the device separator.
   const distanceMin =
@@ -211,6 +217,9 @@ export default function SessionSetInfo({
         : repsMax
           ? `${repsMin} - ${repsMax}`
           : repsMin;
+
+  const trimmedNote = setNote?.trim() ?? "";
+  const hasNote = trimmedNote.length > 0;
 
   const showProgressionChip =
     !isWarmup &&
@@ -366,6 +375,15 @@ export default function SessionSetInfo({
             title={t`To Failure`}
             leadingIcon={isToFailure ? "check" : undefined}
           />
+          {!!onEditNote && (
+            <Menu.Item
+              onPress={() => {
+                onEditNote();
+                closeMenu();
+              }}
+              title={hasNote ? t`Edit note` : t`Add note`}
+            />
+          )}
           {baseTrackingType === "reps" && !!onToggleWeighted && (
             <Menu.Item
               onPress={() => {
@@ -407,6 +425,7 @@ export default function SessionSetInfo({
         isDropSet ||
         isToFailure ||
         showProgressionChip ||
+        hasNote ||
         isPR) && (
         <View style={styles.setTypeContainer}>
           {isPR && (
@@ -484,6 +503,31 @@ export default function SessionSetInfo({
                 <Trans>To Failure</Trans>
               </ThemedText>
             </View>
+          )}
+          {hasNote && (
+            <TouchableOpacity
+              style={[styles.setTypeBadge, styles.setTypeBadgeNote]}
+              onPress={onEditNote}
+              disabled={!onEditNote}
+              hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+              accessibilityRole={onEditNote ? "button" : "text"}
+              accessibilityLabel={
+                onEditNote
+                  ? t`Set note: ${trimmedNote}. Edit`
+                  : t`Set note: ${trimmedNote}`
+              }
+            >
+              <AppIcon
+                set="mci"
+                name="note-text-outline"
+                size={16}
+                color={colors.contentPrimary}
+                style={styles.setIcon}
+              />
+              <ThemedText style={styles.setTypeLabel}>
+                <Trans>Note</Trans>
+              </ThemedText>
+            </TouchableOpacity>
           )}
           {showProgressionChip && progressionSuggestion && (
             <ProgressionSuggestionChip
@@ -653,6 +697,8 @@ export default function SessionSetInfo({
       ) : null}
       {previousSet && (
         <LastTimeLine
+          // A new set starts with its note collapsed.
+          key={`${exercise_id}-${currentSetIndex}`}
           previous={previousSet}
           trackingType={trackingType}
           weightUnit={weightUnit}
@@ -761,6 +807,9 @@ function createStyles(colors: AppThemeColors) {
     },
     setTypeBadgeFailure: {
       backgroundColor: colors.badgeFailure,
+    },
+    setTypeBadgeNote: {
+      backgroundColor: colors.surfaceHighlight,
     },
     setTypeBadgePR: {
       backgroundColor: colors.accent,

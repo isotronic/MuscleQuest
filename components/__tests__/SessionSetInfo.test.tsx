@@ -4,6 +4,8 @@ import SessionSetInfo from "../SessionSetInfo";
 
 jest.mock("@lingui/core/macro", () => ({
   t: (s: TemplateStringsArray, ...v: unknown[]) => String.raw({ raw: s }, ...v),
+  plural: (n: number, forms: { one: string; other: string }) =>
+    (n === 1 ? forms.one : forms.other).replace("#", String(n)),
 }));
 jest.mock("@lingui/react/macro", () => ({
   Trans: ({ children }: { children: React.ReactNode }) => children,
@@ -26,6 +28,26 @@ jest.mock("@/components/ui/AppBottomSheet", () => ({
   AppBottomSheet: () => null,
 }));
 jest.mock("@/components/ProgressionSuggestionChip", () => () => null);
+// Paper's Menu measures its anchor asynchronously; a plain stand-in keeps the
+// items pressable without act() noise.
+jest.mock("react-native-paper", () => {
+  const actual = jest.requireActual("react-native-paper");
+  const { Pressable, Text, View } = require("react-native");
+  const Menu = ({ visible, anchor, children }: any) => (
+    <View>
+      {anchor}
+      {visible ? children : null}
+    </View>
+  );
+  Menu.Item = function MenuItem({ title, onPress }: any) {
+    return (
+      <Pressable onPress={onPress} accessibilityRole="menuitem">
+        <Text>{title}</Text>
+      </Pressable>
+    );
+  };
+  return { ...actual, Menu };
+});
 jest.mock("../ExerciseTimerModal", () => ({ ExerciseTimerModal: () => null }));
 jest.mock("expo-localization", () => ({
   getLocales: () => [{ languageCode: "de", decimalSeparator: "," }],
@@ -226,5 +248,79 @@ describe("SessionSetInfo distance target", () => {
       />,
     );
     getByText("Target: 400 m");
+  });
+});
+
+describe("SessionSetInfo set note", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it("shows a note chip that opens the note", () => {
+    const onEditNote = jest.fn();
+    const { getByRole } = render(
+      <SessionSetInfo
+        {...baseProps}
+        setNote="shoulder on rep 6"
+        onEditNote={onEditNote}
+      />,
+    );
+    fireEvent.press(
+      getByRole("button", { name: "Set note: shoulder on rep 6. Edit" }),
+    );
+    expect(onEditNote).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows no chip without a note", () => {
+    const { queryByText } = render(
+      <SessionSetInfo {...baseProps} onEditNote={jest.fn()} />,
+    );
+    expect(queryByText("Note")).toBeNull();
+  });
+
+  it("offers Add note in the set menu", () => {
+    const onEditNote = jest.fn();
+    const { getByRole, getByText } = render(
+      <SessionSetInfo {...baseProps} onEditNote={onEditNote} />,
+    );
+    fireEvent.press(getByRole("button", { name: "Set options" }));
+    fireEvent.press(getByText("Add note"));
+    expect(onEditNote).toHaveBeenCalledTimes(1);
+  });
+
+  it("says Edit note in the menu once the set has one", () => {
+    const { getByRole, getByText } = render(
+      <SessionSetInfo {...baseProps} setNote="x" onEditNote={jest.fn()} />,
+    );
+    fireEvent.press(getByRole("button", { name: "Set options" }));
+    expect(getByText("Edit note")).toBeTruthy();
+  });
+});
+
+describe("SessionSetInfo last time note", () => {
+  it("starts collapsed again on the next set", () => {
+    const previousSet = {
+      weight: 80,
+      reps: 8,
+      time: null,
+      distance: null,
+      note: "shoulder on rep 6",
+    };
+    const { getByRole, getByText, rerender } = render(
+      <SessionSetInfo {...baseProps} previousSet={previousSet} />,
+    );
+    fireEvent.press(
+      getByRole("button", { name: "Last time's note: shoulder on rep 6" }),
+    );
+    expect(getByText("Note: shoulder on rep 6").props.numberOfLines).toBe(
+      undefined,
+    );
+
+    rerender(
+      <SessionSetInfo
+        {...baseProps}
+        currentSetIndex={2}
+        previousSet={previousSet}
+      />,
+    );
+    expect(getByText("Note: shoulder on rep 6").props.numberOfLines).toBe(1);
   });
 });

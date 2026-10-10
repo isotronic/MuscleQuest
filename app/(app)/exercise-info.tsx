@@ -24,7 +24,7 @@ import { formatSetMetric } from "@/utils/formatSetMetric";
 import { kgToDisplay, metresToDisplay } from "@/utils/units";
 import Bugsnag from "@bugsnag/expo";
 import { AppIcon, AppImage, AppIconButton } from "@/components/ui";
-import { Notes } from "@/components/Notes";
+import { Cues } from "@/components/Cues";
 import { ExerciseProgressionChart } from "@/components/charts/ExerciseProgressionChart";
 import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
 import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
@@ -156,7 +156,7 @@ export default function ExerciseInfoScreen() {
         options={{
           headerRight: () => (
             <>
-              <Notes
+              <Cues
                 noteType="exercise"
                 referenceId={exerciseData.exercise_id}
                 buttonType="icon"
@@ -399,6 +399,11 @@ export default function ExerciseInfoScreen() {
                   distanceUnit,
                 )}
               </ThemedText>
+              {!!item.note?.trim() && (
+                <ThemedText style={styles.setNote}>
+                  {item.note.trim()}
+                </ThemedText>
+              )}
             </View>
           )}
           ListEmptyComponent={
@@ -574,6 +579,12 @@ function createStyles(colors: AppThemeColors) {
       marginBottom: 4,
       backgroundColor: colors.card,
       gap: 8,
+      flexWrap: "wrap",
+    },
+    setNote: {
+      width: "100%",
+      fontSize: 13,
+      color: colors.contentSecondary,
     },
     setRowPR: {
       backgroundColor: colors.accentSubtle,

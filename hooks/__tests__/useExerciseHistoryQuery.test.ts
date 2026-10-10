@@ -120,6 +120,19 @@ describe("useExerciseHistoryQuery — queryFn", () => {
     expect(result.sections[1].data).toHaveLength(1);
   });
 
+  it("carries each set's note", async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      makeRow({ id: 1, note: "shoulder on rep 6" }),
+      makeRow({ id: 2, set_number: 2, note: null }),
+    ]);
+    const result = await capturedArgs.queryFn();
+    expect(mockDb.getAllAsync.mock.calls[0][0]).toContain("cs.note");
+    expect(result.sections[0].data.map((s: any) => s.note)).toEqual([
+      "shoulder on rep 6",
+      null,
+    ]);
+  });
+
   it("formats section dates using en-US locale", async () => {
     mockDb.getAllAsync.mockResolvedValue([
       makeRow({ date_completed: "2026-01-10" }),

@@ -40,7 +40,8 @@ import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
-import { Notes } from "@/components/Notes";
+import { Cues } from "@/components/Cues";
+import SessionNoteField from "@/components/SessionNoteField";
 import {
   createStandaloneWorkout,
   linkCompletedWorkoutToWorkout,
@@ -49,7 +50,10 @@ import {
   cancelRestNotifications,
   scheduleRestNotificationWithCancellation,
 } from "@/utils/restNotification";
-import { convertTimeStrToSeconds } from "@/utils/utility";
+import {
+  buildCompletedExercises,
+  unsavedSetNotes,
+} from "@/utils/completedExercises";
 import { resolveWorkoutDuration } from "@/utils/staleWorkout";
 import { savedWorkoutSummaryParams } from "@/utils/resumeWorkout";
 import { useQueryClient } from "@tanstack/react-query";
@@ -118,6 +122,9 @@ export default function WorkoutOverviewScreen() {
     loadProgressionSuggestions,
     removeFromSuperset,
     setDurations,
+    sessionNote,
+    setSessionNote,
+    setNotes,
     timerRunning,
     timerExpiry,
     stopTimer,
@@ -837,50 +844,25 @@ export default function WorkoutOverviewScreen() {
       const canSave = workout && (isQuickWorkout || workoutId != null);
 
       if (canSave) {
-        const exercises = workout!.exercises
-          .map((exercise, index) => {
-            const completedSetIndices = Object.entries(
-              completedSets[index] || {},
-            )
-              .filter(([, isCompleted]) => isCompleted)
-              .map(([setIndex]) => parseInt(setIndex));
-
-            if (completedSetIndices.length === 0) {
-              return null;
-            }
-
-            const sets = Object.entries(weightAndReps[index] || {})
-              .filter(([setIndex]) =>
-                completedSetIndices.includes(parseInt(setIndex)),
-              )
-              .map(([setIndex, set]) => ({
-                set_number: parseInt(setIndex) + 1,
-                weight: set.weight ? parseFloat(set.weight) : null,
-                reps: set.reps ? parseInt(set.reps) : null,
-                time: set.time ? convertTimeStrToSeconds(set.time) : null,
-                distance:
-                  set.distance !== "" && set.distance != null
-                    ? parseFloat(set.distance)
-                    : null,
-                is_warmup: exercise.sets[parseInt(setIndex)]?.isWarmup || false,
-                is_drop_set:
-                  exercise.sets[parseInt(setIndex)]?.isDropSet || false,
-                is_to_failure:
-                  exercise.sets[parseInt(setIndex)]?.isToFailure || false,
-                set_duration:
-                  setDurations?.[index]?.[parseInt(setIndex)] ?? null,
-              }));
-
-            return {
-              exercise_id: exercise.exercise_id,
-              resolved_tracking_type:
-                exercise.tracking_type_override ??
-                exercise.tracking_type ??
-                null,
-              sets,
-            };
-          })
-          .filter((exercise) => exercise !== null);
+        const session = {
+          exercises: workout!.exercises,
+          completedSets,
+          weightAndReps,
+          setDurations,
+          setNotes,
+        };
+        const exercises = buildCompletedExercises(session);
+        // Only completed sets are saved; keep notes on the others in the
+        // session note rather than dropping them.
+        const notes = [
+          sessionNote.trim(),
+          ...unsavedSetNotes(session).map(
+            ({ exerciseName, setNumber, note }) =>
+              t`${exerciseName}, set ${setNumber}: ${note}`,
+          ),
+        ]
+          .filter(Boolean)
+          .join("\n");
 
         if (exercises.length > 0) {
           mutateStarted = true;
@@ -895,6 +877,7 @@ export default function WorkoutOverviewScreen() {
               exercises,
               // A stale workout counts towards the day it was trained.
               completedAt: endedAt ?? undefined,
+              notes,
             },
             {
               onSuccess: async (completedWorkoutId) => {
@@ -1171,11 +1154,19 @@ export default function WorkoutOverviewScreen() {
             </Trans>
           </ThemedText>
         )}
-        <Notes
-          noteType="workout"
-          referenceId={workout?.id || 0}
-          buttonType="button"
-        />
+        <View style={styles.notesRow}>
+          <SessionNoteField note={sessionNote} onSave={setSessionNote} />
+          {/* A quick workout has no template to hang cues on. */}
+          {!isQuickWorkout && !!workout.id && (
+            <View style={styles.cuesButton}>
+              <Cues
+                noteType="workout"
+                referenceId={workout.id}
+                buttonType="button"
+              />
+            </View>
+          )}
+        </View>
         {isQuickWorkout && workout.exercises.length === 0 && (
           <View style={styles.emptyQuickWorkout}>
             <AppIcon
@@ -1304,6 +1295,13 @@ function createStyles(colors: AppThemeColors) {
       color: colors.contentSecondary,
       marginTop: 4,
       marginBottom: 4,
+    },
+    notesRow: {
+      gap: 8,
+      marginBottom: 16,
+    },
+    cuesButton: {
+      alignSelf: "flex-start",
     },
     saveModal: {
       backgroundColor: colors.card,

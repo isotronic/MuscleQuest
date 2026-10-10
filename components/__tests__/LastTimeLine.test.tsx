@@ -98,4 +98,44 @@ describe("LastTimeLine", () => {
     const { queryByRole } = render(<LastTimeLine {...props} />);
     expect(queryByRole("button")).toBeNull();
   });
+
+  it("shows last time's note on a line of its own, expanding on tap", () => {
+    const { getByText, getByRole } = render(
+      <LastTimeLine
+        {...props}
+        previous={{ ...previous, note: "felt shoulder on rep 6" }}
+      />,
+    );
+    const note = getByText("Note: felt shoulder on rep 6");
+    expect(note.props.numberOfLines).toBe(1);
+
+    fireEvent.press(
+      getByRole("button", { name: "Last time's note: felt shoulder on rep 6" }),
+    );
+    expect(getByText("Note: felt shoulder on rep 6").props.numberOfLines).toBe(
+      undefined,
+    );
+  });
+
+  it("still shows the note when history has no values for this type", () => {
+    const { getByText, queryByText } = render(
+      <LastTimeLine
+        {...props}
+        trackingType="time"
+        previous={{ ...previous, note: "skipped, knee" }}
+      />,
+    );
+    expect(getByText("Note: skipped, knee")).toBeTruthy();
+    expect(queryByText(/Last time/)).toBeNull();
+  });
+
+  it("labels a session note as one, not as the set's", () => {
+    const { getByText } = render(
+      <LastTimeLine
+        {...props}
+        previous={{ ...previous, note: "Slept 4h", noteIsSession: true }}
+      />,
+    );
+    expect(getByText("Session note: Slept 4h")).toBeTruthy();
+  });
 });
