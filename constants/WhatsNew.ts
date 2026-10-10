@@ -726,6 +726,56 @@ Also new on Stats:
 • Consistency: a calendar grid of your training days.
 `,
   },
+  {
+    version: 2663,
+    release: "1.5",
+    message: msg`
+🔁 New: Last Time on Every Set!
+
+Each set now shows what you did last time, such as "Last time: 60 kg × 8 (12 Sep)", just above Complete Set. Tap it to fill in those values. When a progression suggestion has set the weight, you see both, so you know where the number came from.
+
+Also in this update:
+• Tap Skip on the rest timer to end your rest early.
+• Finishing with sets left undone now asks first and tells you which ones won't be saved.
+`,
+  },
+  {
+    version: 2664,
+    release: "1.5",
+    message: msg`
+🏆 New: PRs as They Happen!
+
+Beat your best on an exercise and the set gets a PR badge and a short buzz, right as you log it. The workout summary lists every new personal record with what it beat.
+
+The confetti is now saved for the moments that count: a new PR, or the workout that reaches your weekly goal.
+`,
+  },
+  {
+    version: 2665,
+    release: "1.5",
+    message: msg`
+👥 Improved: Sharing Keeps Up With Your Changes!
+
+Deleting or editing a workout, measurement, plan or workout you've shared now updates what your friends see. A friend's profile shows their latest workouts and their full workout count.
+
+If someone signs in to a different account on your phone, backups and sharing now pause, and MuscleQuest asks whether to use your training data with that account.
+`,
+  },
+  {
+    version: 2666,
+    release: "1.5",
+    message: msg`
+🐛 Fixed: Suggestions, Saves & Restores!
+
+• Progression suggestions now start from your latest session, not your heaviest ever, so a deleted or deload session no longer pushes them too high.
+• Finishing an old workout with "Finish and save" records it on the day you trained.
+• If the app closes right after you finish a workout, reopening it shows the summary instead of saving the workout twice.
+• Going back to an exercise opens its first unfinished set.
+• Restoring a backup warns you if a workout is in progress, and a restore that fails to open can be undone.
+• The app opens faster, numbers everywhere use your phone's decimal separator, and workout reminders appear in your language.
+• Crash reports no longer include your email address or name.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
