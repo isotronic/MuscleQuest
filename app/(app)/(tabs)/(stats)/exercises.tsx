@@ -163,7 +163,7 @@ export default function ExercisesScreen() {
           labelStyle={styles.addButtonLabel}
           onPressIn={handleAddExercise}
         >
-          <Trans>Track ({selectedExercises.length})</Trans>
+          <Trans>Pin ({selectedExercises.length})</Trans>
         </Button>
       </View>
     </ThemedView>

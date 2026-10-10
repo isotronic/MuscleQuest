@@ -1273,6 +1273,8 @@ msgstr "{0, plural, one {# ejercicio} other {# ejercicios}}"
 #: app/(app)/friend-profile.tsx:43
 #: components/stats/ExerciseCompactCard.tsx:48
 #: components/stats/widgets/RecentPRsWidget.tsx:31
+#: utils/exerciseProgressFormat.ts:24
+#: utils/exerciseProgressFormat.ts:49
 msgid "{0, plural, one {# rep} other {# reps}}"
 msgstr "{0, plural, one {# rep} other {# reps}}"
 
@@ -1642,6 +1644,7 @@ msgid "{weeks, plural, one {# week ago} other {# weeks ago}}"
 msgstr "{weeks, plural, one {hace # semana} other {hace # semanas}}"
 
 #: components/stats/widgets/RecentPRsWidget.tsx:52
+#: utils/exerciseProgressFormat.ts:62
 msgid "{weight} {weightUnit} assist × {reps}"
 msgstr "{weight} {weightUnit} de asistencia × {reps}"
 
@@ -1716,6 +1719,10 @@ msgstr "1RM ({weightUnitLabel})"
 msgid "1RM {0} {unit}"
 msgstr "1RM {0} {unit}"
 
+#: utils/exerciseProgressFormat.ts:75
+msgid "1RM {e1rm} {weightUnit}"
+msgstr "1RM {e1rm} {weightUnit}"
+
 #: components/stats/TimeRangeSelector.tsx:13
 msgid "1yr"
 msgstr "1 año"
@@ -1773,6 +1780,7 @@ msgstr "Un gráfico semanal de la métrica que elijas"
 msgid "abductors"
 msgstr "abductores"
 
+#: app/(app)/exercise-info.tsx:158
 #: app/(app)/settings.tsx:1785
 msgid "About"
 msgstr "Acerca de"
@@ -1973,7 +1981,7 @@ msgstr "Añadir nota de la sesión"
 msgid "Add Set"
 msgstr "Añadir serie"
 
-#: app/(app)/exercise-info.tsx:168
+#: app/(app)/exercise-info.tsx:193
 msgid "Add to favorites"
 msgstr "Añadir a favoritos"
 
@@ -2144,7 +2152,7 @@ msgstr "Se eliminará todo el historial de entrenamiento de este dispositivo. So
 msgid "All workouts outside plans are published and new ones are published automatically."
 msgstr "Todos los entrenamientos fuera de planes están publicados y los nuevos se publican automáticamente."
 
-#: app/(app)/(tabs)/(stats)/exercise-detail.tsx:94
+#: components/exercise/ExerciseProgressTab.tsx:125
 msgid "All-time PR"
 msgstr "PR histórico"
 
@@ -2452,6 +2460,10 @@ msgstr "mejor {maxTime}s"
 msgid "Best gain"
 msgstr "Mejor ganancia"
 
+#: components/exercise/ExerciseProgressTab.tsx:84
+msgid "Best set so far"
+msgstr "Mejor serie hasta ahora"
+
 #: constants/dbTranslations.ts:23
 msgid "biceps"
 msgstr "bíceps"
@@ -2712,7 +2724,7 @@ msgstr "Completar serie {setNumber} de {totalSets}"
 msgid "Completed on: {formattedDate}"
 msgstr "Completado el: {formattedDate}"
 
-#: app/(app)/exercise-info.tsx:438
+#: app/(app)/exercise-info.tsx:454
 msgid "Completed sets will appear here"
 msgstr "Las series completadas aparecerán aquí"
 
@@ -2898,6 +2910,10 @@ msgstr "No se pudo dejar de compartir este entrenamiento. Inténtalo de nuevo cu
 #: hooks/useToggleFavoriteExerciseMutation.ts:63
 msgid "Couldn't update favourites. Please try again."
 msgstr "No se pudieron actualizar los favoritos. Inténtalo de nuevo."
+
+#: hooks/usePinExerciseMutation.ts:20
+msgid "Couldn't update pinned exercises. Please try again."
+msgstr "No se pudieron actualizar los ejercicios fijados. Inténtalo de nuevo."
 
 #: app/(app)/custom-exercise.tsx:564
 msgid "Count reps ×2 for volume when the setting is enabled"
@@ -3224,7 +3240,7 @@ msgstr "deltoides"
 msgid "Description"
 msgstr "Descripción"
 
-#: app/(app)/exercise-info.tsx:296
+#: app/(app)/exercise-info.tsx:325
 msgid "Description:"
 msgstr "Descripción:"
 
@@ -3492,7 +3508,7 @@ msgid "Edit cues"
 msgstr "Editar indicaciones"
 
 #: app/(app)/custom-exercise.tsx:77
-#: app/(app)/exercise-info.tsx:318
+#: app/(app)/exercise-info.tsx:347
 msgid "Edit Exercise"
 msgstr "Editar ejercicio"
 
@@ -3649,7 +3665,7 @@ msgstr "Equipamiento y seguimiento"
 msgid "Equipment is required."
 msgstr "El equipamiento es obligatorio."
 
-#: app/(app)/exercise-info.tsx:255
+#: app/(app)/exercise-info.tsx:284
 msgid "Equipment:"
 msgstr "Equipamiento:"
 
@@ -3679,7 +3695,7 @@ msgstr "Error"
 #~ msgid "Error fetching {0}: {1}"
 #~ msgstr "Error al obtener {0}: {1}"
 
-#: app/(app)/exercise-info.tsx:137
+#: app/(app)/exercise-info.tsx:130
 msgid "Error loading exercise details"
 msgstr "Error al cargar los detalles del ejercicio"
 
@@ -3800,6 +3816,10 @@ msgstr "Nombre del ejercicio"
 msgid "Exercise not found."
 msgstr "Ejercicio no encontrado."
 
+#: constants/HelpData.ts:274
+msgid "Exercise progress"
+msgstr "Progreso del ejercicio"
+
 #: app/(app)/(workout)/index.tsx:468
 msgid "Exercise removed"
 msgstr "Ejercicio eliminado"
@@ -3817,8 +3837,8 @@ msgid "Exercise timer options: the length of the Get Ready countdown, countdown 
 msgstr "Opciones del temporizador de ejercicio: la duración de la cuenta atrás ¡Prepárate!, los pitidos de cuenta atrás y un sonido al alcanzar tu tiempo objetivo."
 
 #: constants/HelpData.ts:274
-msgid "Exercise Tracking"
-msgstr "Seguimiento de ejercicio"
+#~ msgid "Exercise Tracking"
+#~ msgstr "Seguimiento de ejercicio"
 
 #: app/(app)/(create-plan)/_layout.tsx:25
 #: app/(app)/(tabs)/(stats)/_layout.tsx:21
@@ -3907,7 +3927,7 @@ msgstr "Error al obtener los datos. Por favor, inténtalo de nuevo."
 msgid "Failed to load exercise details."
 msgstr "Error al cargar los detalles del ejercicio."
 
-#: app/(app)/exercise-info.tsx:423
+#: app/(app)/exercise-info.tsx:439
 msgid "Failed to load history"
 msgstr "Error al cargar el historial"
 
@@ -4206,7 +4226,7 @@ msgstr "Caderas"
 
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:179
 #: app/(app)/(tabs)/(stats)/measurements.tsx:251
-#: app/(app)/exercise-info.tsx:210
+#: app/(app)/exercise-info.tsx:157
 msgid "History"
 msgstr "Historial"
 
@@ -4337,8 +4357,8 @@ msgid "Increase weight by {weightIncrement} {weightUnit}"
 msgstr "Aumentar el peso en {weightIncrement} {weightUnit}"
 
 #: app/(app)/exercise-info.tsx:210
-msgid "Info"
-msgstr "Info"
+#~ msgid "Info"
+#~ msgstr "Info"
 
 #: components/stats/widgets/InsightsWidget.tsx:57
 #: components/stats/widgets/registry.ts:82
@@ -4514,7 +4534,7 @@ msgstr "Última: {value} ({day}) · Sugerido: {suggested} {weightUnit}"
 msgid "Later"
 msgstr "Más tarde"
 
-#: app/(app)/(tabs)/(stats)/exercise-detail.tsx:103
+#: components/exercise/ExerciseProgressTab.tsx:134
 msgid "Latest"
 msgstr "Último"
 
@@ -4605,6 +4625,10 @@ msgstr "Registrar medidas"
 #: app/(app)/settings.tsx:1058
 #~ msgid "Log one side only for single-arm/leg exercises"
 #~ msgstr "Registrar solo un lado para ejercicios de un brazo/pierna"
+
+#: components/exercise/ExerciseProgressTab.tsx:79
+msgid "Log this exercise twice to see a trend"
+msgstr "Registra este ejercicio dos veces para ver una tendencia"
 
 #: components/MeasurementQuickLogCard.tsx:69
 msgid "Logged today"
@@ -4901,7 +4925,7 @@ msgstr "No hay datos disponibles."
 msgid "No data for this period"
 msgstr "No hay datos para este período"
 
-#: app/(app)/(tabs)/(stats)/exercise-detail.tsx:224
+#: components/exercise/ExerciseProgressTab.tsx:236
 msgid "No data for this period."
 msgstr "No hay datos para este período."
 
@@ -4922,14 +4946,14 @@ msgid "No exercises in this workout yet."
 msgstr "Aún no hay ejercicios en este entrenamiento."
 
 #: components/stats/widgets/TrackedExercisesWidget.tsx:147
-msgid "No exercises tracked yet. Tap + Add to start."
-msgstr "Aún no se han registrado ejercicios. Toca + Añadir para empezar."
+#~ msgid "No exercises tracked yet. Tap + Add to start."
+#~ msgstr "Aún no se han registrado ejercicios. Toca + Añadir para empezar."
 
 #: app/(app)/friends.tsx:264
 msgid "No friends yet. Search by email to add someone."
 msgstr "Aún no tienes amigos. Busca por correo para añadir a alguien."
 
-#: app/(app)/exercise-info.tsx:435
+#: app/(app)/exercise-info.tsx:451
 msgid "No history yet"
 msgstr "Aún no hay historial"
 
@@ -4946,8 +4970,12 @@ msgid "No measurements yet. Tap to log your first entry."
 msgstr "Aún no hay medidas. Toca para registrar tu primera entrada."
 
 #: components/stats/widgets/RecentPRsWidget.tsx:83
-msgid "No new personal records for your tracked exercises in this period."
-msgstr "No hay nuevos récords personales en tus ejercicios seguidos en este periodo."
+msgid "No new personal records for your pinned exercises in this period."
+msgstr "No hay nuevos récords personales en tus ejercicios fijados en este periodo."
+
+#: components/stats/widgets/RecentPRsWidget.tsx:83
+#~ msgid "No new personal records for your tracked exercises in this period."
+#~ msgstr "No hay nuevos récords personales en tus ejercicios seguidos en este periodo."
 
 #: components/stats/widgets/RecentPRsWidget.tsx:87
 msgid "No new personal records in this period."
@@ -4964,6 +4992,10 @@ msgstr "No hay solicitudes de amistad pendientes."
 #: components/ProgressionSummaryCard.tsx:31
 #~ msgid "No per-set rep target defined. Add a rep target (e.g. 8) for each set to enable auto-progression."
 #~ msgstr "Sin objetivo de reps por serie definido. Añade un objetivo (p. ej. 8) para cada serie para activar la progresión automática."
+
+#: components/stats/widgets/TrackedExercisesWidget.tsx:147
+msgid "No pinned exercises yet. Tap + Add, or the pin on any exercise."
+msgstr "Aún no hay ejercicios fijados. Toca + Añadir o la chincheta de cualquier ejercicio."
 
 #: app/(app)/friend-profile.tsx:310
 msgid "No plans shared yet"
@@ -5171,6 +5203,10 @@ msgstr "Abrir el calendario de entrenamientos"
 msgid "Opens in your browser"
 msgstr "Se abre en tu navegador"
 
+#: app/(app)/exercise-info.tsx:363
+msgid "Opens this workout"
+msgstr "Abre este entrenamiento"
+
 #: components/ExerciseFeedbackSheet.tsx:258
 msgid "Optional description"
 msgstr "Descripción opcional"
@@ -5221,7 +5257,7 @@ msgstr "Dolor: Sin dolor, Molestia leve o Dolor o problemas de técnica."
 
 #: app/(app)/custom-exercise.tsx:582
 #: app/(app)/custom-exercise.tsx:591
-#: app/(app)/exercise-info.tsx:285
+#: app/(app)/exercise-info.tsx:314
 msgid "Paired implements"
 msgstr "Implementos pareados"
 
@@ -5284,6 +5320,11 @@ msgstr "Elige un plan para empezar"
 msgid "Pick up where you left off?"
 msgstr "¿Continuar donde lo dejaste?"
 
+#. placeholder {0}: selectedExercises.length
+#: app/(app)/(tabs)/(stats)/exercises.tsx:166
+msgid "Pin ({0})"
+msgstr "Fijar ({0})"
+
 #: components/stats/widgets/registry.ts:49
 msgid "Pin a range for this section, or follow the selector at the top."
 msgstr "Fija un periodo para esta sección o sigue el selector de arriba."
@@ -5291,6 +5332,19 @@ msgstr "Fija un periodo para esta sección o sigue el selector de arriba."
 #: constants/HelpData.ts:252
 #~ msgid "Pin exercises in the Stats tab to track their strength progression over time. Each tracked exercise shows a chart of your performance over the selected time range, your all-time personal record, your top sets, and a list of recent sessions showing the best set per day. Charts update automatically after each workout that includes that exercise."
 #~ msgstr "Fija ejercicios en la pestaña Estadísticas para seguir su progresión de fuerza con el tiempo. Cada ejercicio fijado muestra un gráfico de tu rendimiento en el rango de tiempo seleccionado, tu récord personal histórico, tus mejores series y una lista de sesiones recientes con la mejor serie por día. Los gráficos se actualizan automáticamente tras cada entrenamiento que incluya ese ejercicio."
+
+#: app/(app)/exercise-info.tsx:170
+msgid "Pin to Stats"
+msgstr "Fijar en Estadísticas"
+
+#: components/stats/widgets/registry.ts:259
+#: components/stats/widgets/TrackedExercisesWidget.tsx:107
+msgid "Pinned exercises"
+msgstr "Ejercicios fijados"
+
+#: components/stats/widgets/registry.ts:149
+msgid "Pinned exercises only"
+msgstr "Solo ejercicios fijados"
 
 #: components/Cues.tsx:20
 msgid "Plan cues"
@@ -5423,6 +5477,10 @@ msgstr "Ajustes de privacidad"
 msgid "Privacy Settings"
 msgstr "Configuración de privacidad"
 
+#: app/(app)/exercise-info.tsx:156
+msgid "Progress"
+msgstr "Progreso"
+
 #: constants/HelpData.ts:166
 msgid "Progression Suggestions"
 msgstr "Sugerencias de progresión"
@@ -5467,7 +5525,7 @@ msgstr "Reciente"
 msgid "Recent PRs"
 msgstr "Récords recientes"
 
-#: app/(app)/(tabs)/(stats)/exercise-detail.tsx:188
+#: components/exercise/ExerciseProgressTab.tsx:206
 msgid "Recent Sessions"
 msgstr "Sesiones recientes"
 
@@ -5558,7 +5616,7 @@ msgstr "Quitar una serie"
 msgid "Remove Exercise"
 msgstr "Eliminar ejercicio"
 
-#: app/(app)/exercise-info.tsx:167
+#: app/(app)/exercise-info.tsx:192
 msgid "Remove from favorites"
 msgstr "Quitar de favoritos"
 
@@ -5917,7 +5975,7 @@ msgid "Saving Workout..."
 msgstr "Guardando entrenamiento..."
 
 #: app/(app)/(create-plan)/exercises.tsx:314
-#: app/(app)/(tabs)/(stats)/exercises.tsx:166
+#: app/(app)/(tabs)/(stats)/exercises.tsx:124
 #: app/(app)/(workout)/exercises.tsx:226
 #: app/(app)/exercise-library.tsx:98
 #: app/(app)/friends.tsx:92
@@ -5927,7 +5985,7 @@ msgid "Search"
 msgstr "Buscar"
 
 #: app/(app)/(create-plan)/exercises.tsx:311
-#: app/(app)/(tabs)/(stats)/exercises.tsx:163
+#: app/(app)/(tabs)/(stats)/exercises.tsx:121
 #: app/(app)/(workout)/exercises.tsx:223
 #: app/(app)/exercise-library.tsx:95
 msgid "Search exercises"
@@ -5956,7 +6014,7 @@ msgstr "Buscar..."
 msgid "Secondary Muscles"
 msgstr "Músculos secundarios"
 
-#: app/(app)/exercise-info.tsx:237
+#: app/(app)/exercise-info.tsx:266
 msgid "Secondary muscles:"
 msgstr "Músculos secundarios:"
 
@@ -6044,7 +6102,7 @@ msgstr "Nota de la sesión: {trimmed}. Editar"
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:232
 #: app/(app)/(tabs)/(stats)/history-details.tsx:278
 #: app/(app)/(workout)/workout-summary.tsx:236
-#: app/(app)/exercise-info.tsx:362
+#: app/(app)/exercise-info.tsx:391
 msgid "Set {0}"
 msgstr "Serie {0}"
 
@@ -6321,7 +6379,7 @@ msgstr "Inicio de sesión"
 
 #: app/(app)/custom-exercise.tsx:561
 #: app/(app)/custom-exercise.tsx:570
-#: app/(app)/exercise-info.tsx:271
+#: app/(app)/exercise-info.tsx:300
 msgid "Single-arm / single-leg"
 msgstr "Un solo brazo / una sola pierna"
 
@@ -6580,12 +6638,16 @@ msgstr "Desliza a izquierda/derecha o usa los botones de flecha para moverte ent
 #~ msgstr "Toca + Añadir en la sección Ejercicios seguidos de la pestaña Estadísticas para seguir la progresión de fuerza de un ejercicio con el tiempo, y toca Reordenar para arrastrar tus ejercicios seguidos al orden que quieras. Cada ejercicio seguido muestra un gráfico de tu rendimiento en el rango de tiempo seleccionado, tu récord personal histórico, tus mejores series y una lista de sesiones recientes con la mejor serie por día. Los gráficos se actualizan automáticamente tras cada entrenamiento que incluya ese ejercicio."
 
 #: constants/HelpData.ts:275
-msgid "Tap + Add in the Tracked Exercises section of the Stats tab to track an exercise's strength progression over time, and tap Reorder to drag your tracked exercises into the order you want. Each tracked exercise shows a chart of your performance over the selected time range, your all-time personal record, your top sets, and a list of recent sessions showing the best set per day. Charts update automatically after each workout that includes that exercise. Tap Show as table under a chart to read the same numbers as a list."
-msgstr "Toca + Añadir en la sección Ejercicios seguidos de la pestaña Estadísticas para seguir la progresión de fuerza de un ejercicio con el tiempo, y toca Reordenar para arrastrar tus ejercicios seguidos al orden que quieras. Cada ejercicio seguido muestra un gráfico de tu rendimiento en el rango de tiempo seleccionado, tu récord personal histórico, tus mejores series y una lista de sesiones recientes con la mejor serie por día. Los gráficos se actualizan automáticamente tras cada entrenamiento que incluya ese ejercicio. Toca Mostrar como tabla debajo de un gráfico para leer los mismos números en forma de lista."
+#~ msgid "Tap + Add in the Tracked Exercises section of the Stats tab to track an exercise's strength progression over time, and tap Reorder to drag your tracked exercises into the order you want. Each tracked exercise shows a chart of your performance over the selected time range, your all-time personal record, your top sets, and a list of recent sessions showing the best set per day. Charts update automatically after each workout that includes that exercise. Tap Show as table under a chart to read the same numbers as a list."
+#~ msgstr "Toca + Añadir en la sección Ejercicios seguidos de la pestaña Estadísticas para seguir la progresión de fuerza de un ejercicio con el tiempo, y toca Reordenar para arrastrar tus ejercicios seguidos al orden que quieras. Cada ejercicio seguido muestra un gráfico de tu rendimiento en el rango de tiempo seleccionado, tu récord personal histórico, tus mejores series y una lista de sesiones recientes con la mejor serie por día. Los gráficos se actualizan automáticamente tras cada entrenamiento que incluya ese ejercicio. Toca Mostrar como tabla debajo de un gráfico para leer los mismos números en forma de lista."
 
 #: constants/HelpData.ts:170
 msgid "Tap Accept to apply a suggestion for your next session, or Dismiss to ignore it; Accept All applies every suggestion at once."
 msgstr "Toca Aceptar para aplicar una sugerencia en tu próxima sesión, o Descartar para ignorarla; Aceptar todo aplica todas las sugerencias a la vez."
+
+#: constants/HelpData.ts:275
+msgid "Tap an exercise's name almost anywhere in the app to open its screen. Progress shows a chart of your performance over the selected time range, your all-time personal record, your top sets, and your recent sessions with the best set of each day. History lists every set you have logged; tap a session to open that workout. About has the exercise's muscles, equipment and description. Tap the pin at the top of an exercise's screen, or + Add in the Pinned exercises section of the Stats tab, to keep its chart on the Stats tab, and tap Reorder there to drag pinned exercises into the order you want. Charts update automatically after each workout that includes that exercise. Tap Show as table under a chart to read the same numbers as a list."
+msgstr "Toca el nombre de un ejercicio casi en cualquier parte de la app para abrir su pantalla. Progreso muestra un gráfico de tu rendimiento en el rango de tiempo seleccionado, tu récord personal histórico, tus mejores series y tus sesiones recientes con la mejor serie de cada día. Historial lista cada serie que has registrado; toca una sesión para abrir ese entrenamiento. Acerca de muestra los músculos, el equipo y la descripción del ejercicio. Toca la chincheta en la parte superior de la pantalla de un ejercicio, o + Añadir en la sección Ejercicios fijados de la pestaña Estadísticas, para mantener su gráfico en la pestaña Estadísticas, y toca Reordenar allí para arrastrar los ejercicios fijados al orden que quieras. Los gráficos se actualizan automáticamente tras cada entrenamiento que incluya ese ejercicio. Toca Mostrar como tabla debajo de un gráfico para leer los mismos números en forma de lista."
 
 #: constants/HelpData.ts:309
 #~ msgid "Tap any accepted friend in your Friends list to open their profile. Their profile shows the plans, standalone workouts, and custom exercises they have chosen to share. Tap Import on any item to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts."
@@ -6664,7 +6726,7 @@ msgstr "Músculo objetivo *"
 msgid "Target muscle is required."
 msgstr "El músculo objetivo es obligatorio."
 
-#: app/(app)/exercise-info.tsx:226
+#: app/(app)/exercise-info.tsx:255
 msgid "Target muscle:"
 msgstr "Músculo objetivo:"
 
@@ -6713,8 +6775,12 @@ msgstr "La pantalla de inicio muestra tu progreso hacia tu objetivo semanal de e
 #~ msgstr "La pantalla de inicio muestra tu progreso hacia tu objetivo semanal de entrenamiento, que es el número de días que quieres entrenar cada semana, establecido en Ajustes. Una franja en la parte superior registra cuántos días has completado y resalta cada día completado. Debajo, los entrenamientos de tu plan activo se listan con su estado de finalización para la semana; toca Iniciar en cualquier entrenamiento para comenzar. La tarjeta que se muestra debajo cambia según tu estado: aparece una tarjeta Reanudar si hay una sesión en curso, una tarjeta Día de descanso en los días sin entrenamiento programado, y una tarjeta Entrenamiento completado que confirma que la sesión de hoy está terminada. Cuando alcanzas tu objetivo semanal, aparece una tarjeta Resumen semanal que muestra el total de entrenamientos, series y volumen de la semana, más tu racha, que cuenta el número de semanas consecutivas en las que has cumplido tu objetivo."
 
 #: constants/HelpData.ts:263
-msgid "The Insights strip at the top of the Stats tab gives four at-a-glance highlights for the selected time range: your average workouts per week, your biggest strength gain across tracked exercises, the body part you have trained most, and your current weekly streak. These update automatically after each workout."
-msgstr "La franja de Estadísticas clave en la parte superior de la pestaña Estadísticas ofrece cuatro aspectos destacados de un vistazo para el rango de tiempo seleccionado: tu promedio de entrenamientos por semana, tu mayor ganancia de fuerza entre los ejercicios seguidos, la parte del cuerpo que más has entrenado y tu racha semanal actual. Se actualizan automáticamente tras cada entrenamiento."
+msgid "The Insights strip at the top of the Stats tab gives four at-a-glance highlights for the selected time range: your average workouts per week, your biggest strength gain across pinned exercises, the body part you have trained most, and your current weekly streak. These update automatically after each workout."
+msgstr "La franja de Estadísticas clave en la parte superior de la pestaña Estadísticas ofrece cuatro aspectos destacados de un vistazo para el rango de tiempo seleccionado: tu promedio de entrenamientos por semana, tu mayor ganancia de fuerza entre los ejercicios fijados, la parte del cuerpo que más has entrenado y tu racha semanal actual. Se actualizan automáticamente tras cada entrenamiento."
+
+#: constants/HelpData.ts:263
+#~ msgid "The Insights strip at the top of the Stats tab gives four at-a-glance highlights for the selected time range: your average workouts per week, your biggest strength gain across tracked exercises, the body part you have trained most, and your current weekly streak. These update automatically after each workout."
+#~ msgstr "La franja de Estadísticas clave en la parte superior de la pestaña Estadísticas ofrece cuatro aspectos destacados de un vistazo para el rango de tiempo seleccionado: tu promedio de entrenamientos por semana, tu mayor ganancia de fuerza entre los ejercicios seguidos, la parte del cuerpo que más has entrenado y tu racha semanal actual. Se actualizan automáticamente tras cada entrenamiento."
 
 #: app/(app)/settings.tsx:1614
 msgid "The introduction cards show on the home screen."
@@ -6999,7 +7065,7 @@ msgstr "toneladas"
 msgid "tons"
 msgstr "toneladas cortas"
 
-#: app/(app)/(tabs)/(stats)/exercise-detail.tsx:151
+#: components/exercise/ExerciseProgressTab.tsx:180
 msgid "Top PR Sets"
 msgstr "Mejores series PR"
 
@@ -7021,8 +7087,8 @@ msgstr "Sesión dura. Manteniendo por ahora. Si vuelve a ocurrir, se reducirá l
 
 #. placeholder {0}: selectedExercises.length
 #: app/(app)/(tabs)/(stats)/exercises.tsx:208
-msgid "Track ({0})"
-msgstr "Seguir ({0})"
+#~ msgid "Track ({0})"
+#~ msgstr "Seguir ({0})"
 
 #: app/(app)/(create-plan)/sets-overview.tsx:241
 #: app/(app)/(create-plan)/sets-overview.tsx:245
@@ -7065,12 +7131,12 @@ msgstr "Registra tus entrenamientos, mira tu progreso y alcanza tus objetivos. D
 
 #: components/stats/widgets/registry.ts:259
 #: components/stats/widgets/TrackedExercisesWidget.tsx:107
-msgid "Tracked Exercises"
-msgstr "Ejercicios seguidos"
+#~ msgid "Tracked Exercises"
+#~ msgstr "Ejercicios seguidos"
 
 #: components/stats/widgets/registry.ts:149
-msgid "Tracked exercises only"
-msgstr "Solo ejercicios seguidos"
+#~ msgid "Tracked exercises only"
+#~ msgstr "Solo ejercicios seguidos"
 
 #: constants/HelpData.ts:257
 msgid "Tracking"
@@ -7300,6 +7366,10 @@ msgstr "Unidades de medida"
 msgid "Unknown"
 msgstr "Desconocido"
 
+#: app/(app)/exercise-info.tsx:170
+msgid "Unpin from Stats"
+msgstr "Quitar de Estadísticas"
+
 #: components/SessionSetInfo.tsx:727
 msgid "Update"
 msgstr "Actualizar"
@@ -7472,7 +7542,7 @@ msgstr "Volumen ({volumeUnit})"
 msgid "Volume per Week ({volumeUnit})"
 msgstr "Volumen por semana ({volumeUnit})"
 
-#: app/(app)/(tabs)/(stats)/exercise-detail.tsx:114
+#: components/exercise/ExerciseProgressTab.tsx:145
 msgid "vs PR"
 msgstr "vs PR"
 

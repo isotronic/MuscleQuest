@@ -104,7 +104,7 @@ export const TrackedExercisesWidget: React.FC<{
 
   return (
     <WidgetSection
-      title={t`Tracked Exercises`}
+      title={t`Pinned exercises`}
       actions={actions}
       loading={tracked.isLoading}
       error={!!tracked.error}
@@ -144,7 +144,9 @@ export const TrackedExercisesWidget: React.FC<{
         )
       ) : (
         <ThemedText style={{ color: colors.contentSecondary }}>
-          <Trans>No exercises tracked yet. Tap + Add to start.</Trans>
+          <Trans>
+            No pinned exercises yet. Tap + Add, or the pin on any exercise.
+          </Trans>
         </ThemedText>
       )}
     </WidgetSection>
