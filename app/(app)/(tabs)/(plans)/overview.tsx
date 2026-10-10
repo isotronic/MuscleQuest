@@ -120,6 +120,8 @@ export default function PlanOverviewScreen() {
   const { data: scheduleEntries = [] } = usePlanScheduleQuery(Number(planId));
   const { data: settings } = useSettingsQuery();
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
+  // is_active comes back as 0/1 from SQLite but is typed number | boolean.
+  const isActive = !!plan?.is_active;
   const deletePlanMutation = useDeletePlanMutation();
   const setActivePlanMutation = useSetActivePlanMutation();
   const progressionSettings = useProgressionSettingsQuery();
@@ -312,7 +314,7 @@ export default function PlanOverviewScreen() {
         <View style={styles.planHeader}>
           <AppImage source={imageSource} style={styles.planImage} />
           <ThemedText style={styles.planName}>{plan?.name}</ThemedText>
-          {plan?.is_active === 1 && (
+          {isActive && (
             <View style={styles.activeBadge}>
               <ThemedText style={styles.activeBadgeText}>
                 <Trans>Active</Trans>
@@ -337,7 +339,7 @@ export default function PlanOverviewScreen() {
           scheduleEntries={scheduleEntries}
         />
 
-        {plan?.is_active === 1 && progressionSettings.enabled && (
+        {isActive && progressionSettings.enabled && (
           <TouchableOpacity
             onPress={handleToggleDeload}
             style={[styles.deloadRow]}
@@ -462,7 +464,7 @@ export default function PlanOverviewScreen() {
 
       <View style={styles.buttonContainer}>
         <ActivePlanAction
-          isActive={plan?.is_active === 1}
+          isActive={isActive}
           onActivate={handleStartPlan}
           disabled={setActivePlanMutation.isPending}
           style={styles.paperButton}
