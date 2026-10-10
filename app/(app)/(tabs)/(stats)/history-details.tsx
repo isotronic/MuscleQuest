@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -16,12 +16,13 @@ import { exerciseThumbnailUri } from "@/utils/exerciseThumbnail";
 import { format } from "date-fns";
 import { parseDbTimestamp } from "@/utils/dates";
 import { AppIcon, AppImage, AppIconButton } from "@/components/ui";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { fetchCompletedWorkoutById } from "@/utils/database";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useDeleteCompletedWorkoutMutation } from "@/hooks/useDeleteCompletedWorkoutMutation";
 import { formatFromTotalSeconds } from "@/utils/utility";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { displayWorkoutName } from "@/utils/workoutName";
@@ -40,11 +41,13 @@ export default function HistoryDetailsScreen() {
   const [workout, setWorkout] = useState<CompletedWorkout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const {
     data: settings,
     isLoading: settingsLoading,
     error: settingsError,
+    refetch: refetchSettings,
   } = useSettingsQuery();
 
   const weightUnit = settings?.weightUnit || "kg";
@@ -53,12 +56,6 @@ export default function HistoryDetailsScreen() {
   const excludeWarmup = settings?.excludeWarmupSets === "true";
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
-
-  useEffect(() => {
-    if (settingsError instanceof Error) {
-      Bugsnag.notify(settingsError);
-    }
-  }, [settingsError]);
 
   const deleteMutation = useDeleteCompletedWorkoutMutation();
 
@@ -88,14 +85,16 @@ export default function HistoryDetailsScreen() {
             setError(err instanceof Error ? err : new Error(String(err)));
             setWorkout(null);
             setIsLoading(false);
-            Bugsnag.notify(err);
+            notifyBugsnag(err);
           }
         });
 
       return () => {
         cancelled = true;
       };
-    }, [id, weightUnit, distanceUnit]),
+      // reloadKey re-runs the fetch when the error state's Try again is tapped.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id, weightUnit, distanceUnit, reloadKey]),
   );
 
   const totalVolume = useMemo(() => {
@@ -132,11 +131,11 @@ export default function HistoryDetailsScreen() {
   }
 
   if (settingsError instanceof Error) {
-    return <ThemedText>Error: {settingsError.message}</ThemedText>;
+    return <ErrorState onRetry={() => void refetchSettings()} />;
   }
 
   if (error) {
-    return <ThemedText>Error: {error.message}</ThemedText>;
+    return <ErrorState onRetry={() => setReloadKey((k) => k + 1)} />;
   }
 
   if (!workout) {

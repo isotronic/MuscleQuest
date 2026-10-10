@@ -93,14 +93,13 @@ describe("fetchActivePlanData", () => {
     expect(mockDb.closeAsync).toHaveBeenCalledTimes(1);
   });
 
-  it("should handle and report errors", async () => {
+  it("reports and rethrows errors so the screen can offer a retry", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("Database error");
     mockDb.getAllAsync.mockRejectedValueOnce(error);
 
-    const result = await fetchActivePlanData();
+    await expect(fetchActivePlanData()).rejects.toBe(error);
 
-    expect(result).toBeNull();
     expect(Bugsnag.notify).toHaveBeenCalledWith(error);
     expect(mockDb.closeAsync).toHaveBeenCalledTimes(1);
   });

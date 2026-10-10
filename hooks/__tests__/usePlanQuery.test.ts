@@ -167,11 +167,10 @@ describe("usePlanQuery — queryFn", () => {
     expect(result!.workouts[0].exercises[0].supersetGroupId).toBe("group-A");
   });
 
-  it("returns null and notifies Bugsnag on DB error", async () => {
+  it("notifies Bugsnag and rethrows on DB error", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
     mockDb.getAllAsync.mockRejectedValue(new Error("DB crash"));
-    const result = await capturedArgs.queryFn();
-    expect(result).toBeNull();
+    await expect(capturedArgs.queryFn()).rejects.toThrow();
     expect(Bugsnag.notify).toHaveBeenCalled();
     expect(mockDb.closeAsync).toHaveBeenCalledTimes(1);
   });

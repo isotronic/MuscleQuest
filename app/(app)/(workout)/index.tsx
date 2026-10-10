@@ -35,6 +35,7 @@ import { useWorkoutBackGuard } from "@/hooks/useWorkoutBackGuard";
 import { useWorkoutCompletion } from "@/hooks/useWorkoutCompletion";
 import { showSnackbar } from "@/store/snackbarStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
 import { parsePlateInventory, smallestLoadStep } from "@/utils/plateCalculator";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
@@ -963,12 +964,12 @@ export default function WorkoutOverviewScreen() {
 
   const handleCancelWorkout = () => {
     Alert.alert(
-      t`Cancel Workout`,
-      t`Are you sure you want to cancel and delete this workout?`,
+      t`Discard workout?`,
+      t`Your sets from this session will not be saved.`,
       [
-        { text: t`No`, style: "cancel" },
+        { text: t`Keep training`, style: "cancel" },
         {
-          text: t`Yes`,
+          text: t`Discard`,
           style: "destructive",
           onPress: () => {
             void cancelRestNotifications();
@@ -983,12 +984,12 @@ export default function WorkoutOverviewScreen() {
 
   const handleRestartWorkout = () => {
     Alert.alert(
-      t`Restart Workout`,
-      t`Are you sure you want to restart this workout?`,
+      t`Restart workout?`,
+      t`Your sets from this session will be cleared.`,
       [
-        { text: t`No`, style: "cancel" },
+        { text: t`Keep training`, style: "cancel" },
         {
-          text: t`Yes`,
+          text: t`Restart`,
           style: "destructive",
           onPress: () => {
             restartWorkout();
@@ -1071,7 +1072,7 @@ export default function WorkoutOverviewScreen() {
                     handleMenuClose(69420);
                     handleCancelWorkout();
                   }}
-                  title={t`Cancel`}
+                  title={t`Discard workout`}
                 />
               </Menu>
             </View>
@@ -1086,10 +1087,12 @@ export default function WorkoutOverviewScreen() {
           theme={{ colors: { backdrop: colors.modalBackdrop } }}
         >
           <ThemedText style={styles.saveModalTitle}>
-            <Trans>Save this workout?</Trans>
+            <Trans>Save as a reusable workout?</Trans>
           </ThemedText>
           <ThemedText style={styles.saveModalSubtitle}>
-            <Trans>Give it a name to save it as a reusable workout.</Trans>
+            <Trans>
+              Your session is saved. Give it a name to reuse it later.
+            </Trans>
           </ThemedText>
           <TextInput
             accessibilityLabel={t`Workout name`}
@@ -1102,13 +1105,14 @@ export default function WorkoutOverviewScreen() {
           />
           <View style={styles.saveModalButtons}>
             <Button mode="outlined" onPress={handleExitSaveModal}>
-              <Trans>Discard</Trans>
+              <Trans>Not now</Trans>
             </Button>
             <Button
               mode="contained"
               theme={{ colors: { primary: colors.accent } }}
               onPress={async () => {
-                const name = saveWorkoutName.trim() || t`Quick Workout`;
+                // The fallback is stored in English and translated on display.
+                const name = saveWorkoutName.trim() || QUICK_WORKOUT_NAME;
                 try {
                   const newWorkoutId = await createStandaloneWorkout(
                     name,

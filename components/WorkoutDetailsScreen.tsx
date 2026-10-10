@@ -8,10 +8,10 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { usePlanQuery } from "@/hooks/usePlanQuery";
 import { UserExercise } from "@/store/workoutStore";
 import { AppImage, AppIconButton } from "@/components/ui";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { exerciseThumbnailUri } from "@/utils/exerciseThumbnail";
 import { classifySupersetPosition } from "@/utils/supersetUtils";
-import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { Cues } from "@/components/Cues";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
@@ -33,7 +33,12 @@ export default function WorkoutDetailsScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { workoutIndex, planId } = useLocalSearchParams();
-  const { data: plan, isLoading, error } = usePlanQuery(Number(planId));
+  const {
+    data: plan,
+    isLoading,
+    error,
+    refetch,
+  } = usePlanQuery(Number(planId));
   const { data: settings } = useSettingsQuery();
   const distanceUnit = settings?.distanceUnit || "m";
   const weightUnit = settings?.weightUnit || "kg";
@@ -83,7 +88,7 @@ export default function WorkoutDetailsScreen() {
         exercises: workout.exercises,
       });
       setIsCopyModalVisible(false);
-      setSnackbarMessage(t`Workout copied to standalone workouts`);
+      setSnackbarMessage(t`Workout copied to Your workouts`);
       setSnackbarError(false);
       setSnackbarVisible(true);
     } catch {
@@ -216,12 +221,7 @@ export default function WorkoutDetailsScreen() {
   }
 
   if (error) {
-    notifyBugsnag(error);
-    return (
-      <ThemedText>
-        <Trans>Error: {error.message}</Trans>
-      </ThemedText>
-    );
+    return <ErrorState onRetry={() => void refetch()} />;
   }
 
   const previewHeader =
@@ -262,7 +262,7 @@ export default function WorkoutDetailsScreen() {
                 buttonType="icon"
               />
               <AppIconButton
-                accessibilityLabel={t`Copy workout to standalone workouts`}
+                accessibilityLabel={t`Copy workout to Your workouts`}
                 icon="content-copy"
                 size={25}
                 iconColor={colors.contentSecondary}
@@ -308,7 +308,7 @@ export default function WorkoutDetailsScreen() {
           backgroundColor: snackbarError ? colors.danger : colors.success,
         }}
         action={{
-          label: t`DISMISS`,
+          label: t`Dismiss`,
           onPress: () => setSnackbarVisible(false),
         }}
       >

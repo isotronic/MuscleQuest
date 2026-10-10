@@ -8,7 +8,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { Button, ActivityIndicator } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { router, useLocalSearchParams } from "expo-router";
 import { useWorkoutStore } from "@/store/workoutStore";
@@ -19,7 +19,6 @@ import ExerciseSuggestions from "@/components/ExerciseSuggestions";
 import ExerciseSortChips, {
   type SortMode,
 } from "@/components/ExerciseSortChips";
-import Bugsnag from "@bugsnag/expo";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -47,6 +46,7 @@ export default function ExercisesScreen() {
     data: exercises,
     isLoading: exercisesLoading,
     error: exercisesError,
+    refetch: refetchExercises,
   } = useExercisesQuery(sortMode === "activePlan", true);
 
   const { data: usageData } = useExerciseUsageQuery();
@@ -74,6 +74,7 @@ export default function ExercisesScreen() {
     data: settings,
     isLoading: settingsLoading,
     error: settingsError,
+    refetch: refetchSettings,
   } = useSettingsQuery();
 
   const defaultSetNumber = settings ? parseInt(settings?.defaultSets) : 3;
@@ -273,16 +274,13 @@ export default function ExercisesScreen() {
   );
 
   if (exercisesError || settingsError) {
-    const error = exercisesError || settingsError;
-    if (error !== null) {
-      Bugsnag.notify(error);
-    }
     return (
-      <ThemedView style={styles.container}>
-        <ThemedText style={styles.errorText}>
-          <Trans>Error loading exercises: {error?.message}</Trans>
-        </ThemedText>
-      </ThemedView>
+      <ErrorState
+        onRetry={() => {
+          if (exercisesError) void refetchExercises();
+          if (settingsError) void refetchSettings();
+        }}
+      />
     );
   }
 
@@ -404,10 +402,6 @@ function createStyles(colors: AppThemeColors) {
     },
     addButtonLabel: {
       fontWeight: "bold",
-    },
-    errorText: {
-      fontSize: 18,
-      color: colors.exerciseHighlight,
     },
     bottomButtons: {
       flexDirection: "row",

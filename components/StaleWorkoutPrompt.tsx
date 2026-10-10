@@ -52,12 +52,12 @@ export function StaleWorkoutPrompt() {
 
   const discard = () => {
     Alert.alert(
-      t`Cancel Workout`,
-      t`Are you sure you want to cancel and delete this workout?`,
+      t`Discard workout?`,
+      t`Your sets from this session will not be saved.`,
       [
-        { text: t`No`, style: "cancel" },
+        { text: t`Keep`, style: "cancel" },
         {
-          text: t`Yes`,
+          text: t`Discard`,
           style: "destructive",
           onPress: () => {
             void cancelRestNotifications();

@@ -7,6 +7,7 @@ import {
   Alert,
 } from "react-native";
 import { AppImage, AppIcon, AppIconButton } from "@/components/ui";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
@@ -45,6 +46,7 @@ import { useCreateStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
 import { useDuplicatePlanMutation } from "@/hooks/useDuplicatePlanMutation";
 import { CopyWorkoutModal } from "@/components/CopyWorkoutModal";
 import { planImageSource } from "@/constants/PlanImages";
+import { ActivePlanAction } from "@/components/ActivePlanAction";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -94,7 +96,7 @@ function PlanWorkoutCard({
         </ThemedText>
       </TouchableOpacity>
       <AppIconButton
-        accessibilityLabel={t`Copy ${spokenName} to standalone workouts`}
+        accessibilityLabel={t`Copy ${spokenName} to Your workouts`}
         icon="content-copy"
         size={20}
         iconColor={colors.contentSecondary}
@@ -109,10 +111,17 @@ export default function PlanOverviewScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { planId } = useLocalSearchParams();
-  const { data: plan, isLoading, error } = usePlanQuery(Number(planId));
+  const {
+    data: plan,
+    isLoading,
+    error,
+    refetch,
+  } = usePlanQuery(Number(planId));
   const { data: scheduleEntries = [] } = usePlanScheduleQuery(Number(planId));
   const { data: settings } = useSettingsQuery();
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
+  // is_active comes back as 0/1 from SQLite but is typed number | boolean.
+  const isActive = !!plan?.is_active;
   const deletePlanMutation = useDeletePlanMutation();
   const setActivePlanMutation = useSetActivePlanMutation();
   const progressionSettings = useProgressionSettingsQuery();
@@ -187,7 +196,7 @@ export default function PlanOverviewScreen() {
         exercises: copyTarget.exercises,
       });
       setCopyTarget(null);
-      setSnackbarMessage(t`Workout copied to standalone workouts`);
+      setSnackbarMessage(t`Workout copied to Your workouts`);
       setSnackbarError(false);
       setSnackbarVisible(true);
     } catch {
@@ -221,7 +230,7 @@ export default function PlanOverviewScreen() {
               onError: (error) => {
                 Alert.alert(
                   t`Error`,
-                  t`Failed to delete plan: ${error.message}`,
+                  t`Couldn't delete this plan. Please try again.`,
                 );
                 notifyBugsnag(error);
               },
@@ -241,7 +250,9 @@ export default function PlanOverviewScreen() {
         setSnackbarVisible(true);
       },
       onError: (error) => {
-        setSnackbarMessage(t`Failed to activate this plan: ${error.message}`);
+        setSnackbarMessage(
+          t`Couldn't set this plan as active. Please try again.`,
+        );
         setSnackbarError(true);
         setSnackbarVisible(true);
         notifyBugsnag(error);
@@ -258,11 +269,7 @@ export default function PlanOverviewScreen() {
   }
 
   if (error) {
-    return (
-      <ThemedText>
-        <Trans>Error: {error.message}</Trans>
-      </ThemedText>
-    );
+    return <ErrorState onRetry={() => void refetch()} />;
   }
 
   return (
@@ -307,7 +314,7 @@ export default function PlanOverviewScreen() {
         <View style={styles.planHeader}>
           <AppImage source={imageSource} style={styles.planImage} />
           <ThemedText style={styles.planName}>{plan?.name}</ThemedText>
-          {plan?.is_active === 1 && (
+          {isActive && (
             <View style={styles.activeBadge}>
               <ThemedText style={styles.activeBadgeText}>
                 <Trans>Active</Trans>
@@ -332,7 +339,7 @@ export default function PlanOverviewScreen() {
           scheduleEntries={scheduleEntries}
         />
 
-        {plan?.is_active === 1 && progressionSettings.enabled && (
+        {isActive && progressionSettings.enabled && (
           <TouchableOpacity
             onPress={handleToggleDeload}
             style={[styles.deloadRow]}
@@ -456,14 +463,12 @@ export default function PlanOverviewScreen() {
       </ScrollView>
 
       <View style={styles.buttonContainer}>
-        <Button
-          mode="contained"
-          onPress={handleStartPlan}
+        <ActivePlanAction
+          isActive={isActive}
+          onActivate={handleStartPlan}
+          disabled={setActivePlanMutation.isPending}
           style={styles.paperButton}
-          labelStyle={styles.buttonLabel}
-        >
-          <Trans>Start Plan</Trans>
-        </Button>
+        />
         <Button
           mode="outlined"
           onPress={async () => {
@@ -500,7 +505,7 @@ export default function PlanOverviewScreen() {
           backgroundColor: snackbarError ? colors.danger : colors.success,
         }}
         action={{
-          label: t`DISMISS`,
+          label: t`Dismiss`,
           onPress: () => {
             setSnackbarVisible(false);
           },

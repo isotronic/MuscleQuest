@@ -391,9 +391,9 @@ export default function FriendProfileScreen() {
           </View>
         ))}
 
-      {/* Standalone Workouts */}
+      {/* Workouts outside plans */}
       <ZoneLabel
-        title={<Trans>Standalone Workouts</Trans>}
+        title={<Trans>Workouts outside plans</Trans>}
         count={workoutsLoading || workoutsError ? undefined : workouts.length}
         isOpen={openSections.has("workouts")}
         onToggle={() => toggleSection("workouts")}

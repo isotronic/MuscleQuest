@@ -117,7 +117,7 @@ describe("Onboarding", () => {
     );
 
     expect(queryByText("Pick a plan to get started")).toBeNull();
-    expect(getByText("MuscleQuest Introduction")).toBeTruthy();
+    expect(getByText("Welcome to MuscleQuest")).toBeTruthy();
   });
 
   it("no longer has a Hide / Show Onboarding card", () => {

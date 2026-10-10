@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useEffect } from "react";
 import { router, Stack } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
@@ -24,7 +25,7 @@ export default function PlansScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
-  const { data: plans, isLoading, isError, error } = useAllPlansQuery();
+  const { data: plans, isLoading, isError, refetch } = useAllPlansQuery();
   const { data: settings } = useSettingsQuery();
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const [viewMode, setViewMode] = useState<PlanViewMode>(
@@ -89,12 +90,7 @@ export default function PlansScreen() {
   }
 
   if (isError) {
-    Bugsnag.notify(error);
-    return (
-      <ThemedText>
-        <Trans>Error loading plans</Trans>
-      </ThemedText>
-    );
+    return <ErrorState onRetry={() => void refetch()} />;
   }
 
   return (

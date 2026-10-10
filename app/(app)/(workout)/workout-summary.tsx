@@ -299,13 +299,13 @@ function NewPRsCard({
 function getGoalMessage(completed: number, goal: number): string {
   if (completed >= goal) {
     return completed > goal
-      ? t`${completed} workouts this week. You've smashed your goal!`
-      : t`You've hit your weekly goal. Incredible work!`;
+      ? t`Weekly goal reached: ${completed} workouts this week.`
+      : t`Weekly goal reached`;
   }
   const remaining = goal - completed;
-  if (completed === 1) return t`Great start to the week!`;
-  if (remaining === 1) return t`One more workout to hit your goal!`;
-  return t`Keep the momentum going!`;
+  if (completed === 1) return t`Good start to the week.`;
+  if (remaining === 1) return t`One more workout to reach your goal.`;
+  return t`Keep it going.`;
 }
 
 function WeeklyGoalBanner({

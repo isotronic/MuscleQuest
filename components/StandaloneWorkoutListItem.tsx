@@ -13,6 +13,7 @@ import { Plural, Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { displayWorkoutName } from "@/utils/workoutName";
 
 interface StandaloneWorkoutListItemProps {
   workout: Workout;
@@ -66,7 +67,7 @@ export default function StandaloneWorkoutListItem({
         <View style={styles.textContainer}>
           <View style={styles.nameRow}>
             <ThemedText style={styles.name} numberOfLines={1}>
-              {workout.name}
+              {displayWorkoutName(workout.name)}
             </ThemedText>
             {isPublished && (
               <AppIcon
@@ -109,7 +110,7 @@ export default function StandaloneWorkoutListItem({
           onPress={onStart}
           disabled={disabled}
           labelStyle={styles.startButtonLabel}
-          accessibilityLabel={t`Start ${workout.name}`}
+          accessibilityLabel={t`Start ${displayWorkoutName(workout.name)}`}
         >
           <Trans>Start</Trans>
         </Button>
