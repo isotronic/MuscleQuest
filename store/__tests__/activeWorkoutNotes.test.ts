@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act } from "@testing-library/react-native";
 import { useActiveWorkoutStore } from "../activeWorkoutStore";
 
@@ -177,5 +178,34 @@ describe("set notes", () => {
     act(() => store().addDropSet());
 
     expect(store().setNotes[1]).toEqual({ 2: "shoulder on rep 6" });
+  });
+});
+
+describe("a session saved before notes existed", () => {
+  it("restores with an empty session note and no set notes", async () => {
+    act(() => store().clearPersistedStore());
+    await AsyncStorage.setItem(
+      "active-workout-store",
+      JSON.stringify({
+        version: 1,
+        state: {
+          activeWorkout: { planId: 1, workoutId: 2, name: "Push" },
+          workout: { id: 2, name: "Push", exercises: [exercise(1)] },
+          weightAndReps: { 0: { 0: { weight: "60", reps: "8" } } },
+          completedSets: { 0: { 0: true } },
+          startTime: "2026-01-01T10:00:00.000Z",
+        },
+      }),
+    );
+
+    await (useActiveWorkoutStore as any).persist.rehydrate();
+
+    expect(store().weightAndReps).toEqual({
+      0: { 0: { weight: "60", reps: "8" } },
+    });
+    expect(store().sessionNote).toBe("");
+    expect(store().setNotes).toEqual({});
+    act(() => store().setSetNote(0, 0, "felt fine"));
+    expect(store().setNotes).toEqual({ 0: { 0: "felt fine" } });
   });
 });

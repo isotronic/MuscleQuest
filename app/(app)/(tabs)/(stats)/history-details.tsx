@@ -197,12 +197,12 @@ export default function HistoryDetailsScreen() {
             <Trans>Completed on: {formattedDate}</Trans>
           </ThemedText>
           {!!sessionNote && (
-            <ThemedText
-              style={styles.sessionNote}
-              accessibilityLabel={t`Session note: ${sessionNote}`}
-            >
-              {sessionNote}
-            </ThemedText>
+            <View style={styles.sessionNoteBox}>
+              <ThemedText style={styles.sessionNoteLabel}>
+                {t`Session note`}
+              </ThemedText>
+              <ThemedText style={styles.sessionNote}>{sessionNote}</ThemedText>
+            </View>
           )}
         </View>
         <View style={styles.summaryRow}>
@@ -416,12 +416,20 @@ function createStyles(colors: AppThemeColors) {
       paddingHorizontal: 16,
       paddingBottom: 4,
     },
+    sessionNoteBox: {
+      alignSelf: "stretch",
+      backgroundColor: colors.cardSecondary,
+      borderRadius: radii.md,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      marginTop: 12,
+    },
+    sessionNoteLabel: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+    },
     sessionNote: {
       fontSize: 15,
-      fontStyle: "italic",
-      color: colors.contentSecondary,
-      textAlign: "center",
-      marginTop: 12,
     },
   });
 }

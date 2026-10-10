@@ -567,9 +567,14 @@ export default function WorkoutSummaryScreen() {
           </View>
         ) : (
           !!workout.notes?.trim() && (
-            <ThemedText style={styles.sessionNoteText}>
-              {workout.notes.trim()}
-            </ThemedText>
+            <View style={styles.sessionNoteBox}>
+              <ThemedText style={styles.sessionNoteLabel}>
+                {t`Session note`}
+              </ThemedText>
+              <ThemedText style={styles.sessionNoteText}>
+                {workout.notes.trim()}
+              </ThemedText>
+            </View>
           )
         )}
 
@@ -719,12 +724,19 @@ function createStyles(colors: AppThemeColors) {
     sessionNote: {
       marginBottom: 16,
     },
+    sessionNoteBox: {
+      backgroundColor: colors.cardSecondary,
+      borderRadius: radii.md,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      marginBottom: 16,
+    },
+    sessionNoteLabel: {
+      fontSize: 12,
+      color: colors.contentSecondary,
+    },
     sessionNoteText: {
       fontSize: 14,
-      fontStyle: "italic",
-      color: colors.contentSecondary,
-      textAlign: "center",
-      marginBottom: 16,
     },
     statChip: {
       flex: 1,

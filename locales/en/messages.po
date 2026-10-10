@@ -2285,7 +2285,7 @@ msgstr "Assist"
 msgid "Assist {0} {1} | Resist {2} {3} | {4} Reps"
 msgstr "Assist {0} {1} | Resist {2} {3} | {4} Reps"
 
-#: components/SessionSetInfo.tsx:559
+#: components/SessionSetInfo.tsx:560
 msgid "Assistance"
 msgstr "Assistance"
 
@@ -2680,11 +2680,11 @@ msgstr "Closest"
 msgid "Cloud backups are deleted with your account. Export your training data if you want a copy."
 msgstr "Cloud backups are deleted with your account. Export your training data if you want a copy."
 
-#: components/SessionSetInfo.tsx:726
+#: components/SessionSetInfo.tsx:729
 msgid "Complete Set"
 msgstr "Complete Set"
 
-#: components/SessionSetInfo.tsx:713
+#: components/SessionSetInfo.tsx:716
 msgid "Complete set {setNumber} of {totalSets}"
 msgstr "Complete set {setNumber} of {totalSets}"
 
@@ -2831,7 +2831,7 @@ msgid "Couldn't save your choice. Try again."
 msgstr "Couldn't save your choice. Try again."
 
 #: hooks/useNotes.ts:36
-#: hooks/useUpdateCompletedWorkoutNoteMutation.ts:25
+#: hooks/useUpdateCompletedWorkoutNoteMutation.ts:36
 msgid "Couldn't save your note. Please try again."
 msgstr "Couldn't save your note. Please try again."
 
@@ -2999,7 +2999,7 @@ msgstr "Decrease"
 msgid "Decrease assistance by {weightIncrement} {weightUnit}"
 msgstr "Decrease assistance by {weightIncrement} {weightUnit}"
 
-#: components/SessionSetInfo.tsx:675
+#: components/SessionSetInfo.tsx:676
 msgid "Decrease distance by 1 {distanceUnit}"
 msgstr "Decrease distance by 1 {distanceUnit}"
 
@@ -3011,7 +3011,7 @@ msgstr "Decrease maximum reps"
 msgid "Decrease minimum reps"
 msgstr "Decrease minimum reps"
 
-#: components/SessionSetInfo.tsx:600
+#: components/SessionSetInfo.tsx:601
 msgid "Decrease reps by 1"
 msgstr "Decrease reps by 1"
 
@@ -3154,7 +3154,7 @@ msgstr "Deletion stopped before it finished. Your account still exists and you a
 msgid "Deload Week"
 msgstr "Deload Week"
 
-#: app/(app)/(workout)/workout-summary.tsx:619
+#: app/(app)/(workout)/workout-summary.tsx:624
 msgid "Deload week — comparison paused."
 msgstr "Deload week — comparison paused."
 
@@ -3245,7 +3245,7 @@ msgstr "Distance"
 
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:322
 #: components/charts/ExerciseProgressionChart.tsx:406
-#: components/SessionSetInfo.tsx:668
+#: components/SessionSetInfo.tsx:669
 msgid "Distance ({distanceUnit})"
 msgstr "Distance ({distanceUnit})"
 
@@ -3254,7 +3254,7 @@ msgstr "Distance ({distanceUnit})"
 msgid "Distance in {distanceUnit}, set {0}"
 msgstr "Distance in {distanceUnit}, set {0}"
 
-#: components/SessionSetInfo.tsx:682
+#: components/SessionSetInfo.tsx:683
 msgid "Distance in {distanceUnit}, set {setNumber}"
 msgstr "Distance in {distanceUnit}, set {setNumber}"
 
@@ -3266,7 +3266,7 @@ msgstr "Distance unit"
 msgid "Don't remind me"
 msgstr "Don't remind me"
 
-#: app/(app)/(workout)/workout-summary.tsx:669
+#: app/(app)/(workout)/workout-summary.tsx:674
 #: app/(app)/delete-account.tsx:315
 #: components/ExerciseFeedbackSheet.tsx:276
 #: components/PrivacySettings.tsx:77
@@ -3359,11 +3359,11 @@ msgid "Duplicate Plan"
 msgstr "Duplicate Plan"
 
 #: app/(app)/(workout)/workout-summary.tsx:547
-#: app/(app)/(workout)/workout-summary.tsx:593
+#: app/(app)/(workout)/workout-summary.tsx:598
 msgid "Duration"
 msgstr "Duration"
 
-#: app/(app)/(workout)/workout-summary.tsx:578
+#: app/(app)/(workout)/workout-summary.tsx:583
 msgid "Duration trimmed to your last logged set"
 msgstr "Duration trimmed to your last logged set"
 
@@ -3755,7 +3755,7 @@ msgstr "Exercise Tracking"
 #: app/(app)/(create-plan)/_layout.tsx:25
 #: app/(app)/(tabs)/(stats)/_layout.tsx:21
 #: app/(app)/(workout)/_layout.tsx:18
-#: app/(app)/(workout)/workout-summary.tsx:652
+#: app/(app)/(workout)/workout-summary.tsx:657
 #: components/stats/widgets/registry.ts:146
 msgid "Exercises"
 msgstr "Exercises"
@@ -4220,7 +4220,7 @@ msgstr "Increase"
 msgid "Increase assistance by {weightIncrement} {weightUnit}"
 msgstr "Increase assistance by {weightIncrement} {weightUnit}"
 
-#: components/SessionSetInfo.tsx:690
+#: components/SessionSetInfo.tsx:691
 msgid "Increase distance by 1 {distanceUnit}"
 msgstr "Increase distance by 1 {distanceUnit}"
 
@@ -4232,7 +4232,7 @@ msgstr "Increase maximum reps"
 msgid "Increase minimum reps"
 msgstr "Increase minimum reps"
 
-#: components/SessionSetInfo.tsx:618
+#: components/SessionSetInfo.tsx:619
 msgid "Increase reps by 1"
 msgstr "Increase reps by 1"
 
@@ -4371,7 +4371,7 @@ msgstr "Last increased: unknown"
 msgid "Last increased: yesterday"
 msgstr "Last increased: yesterday"
 
-#: app/(app)/(workout)/workout-summary.tsx:626
+#: app/(app)/(workout)/workout-summary.tsx:631
 msgid "Last session was a deload — comparison skipped."
 msgstr "Last session was a deload — comparison skipped."
 
@@ -4955,7 +4955,7 @@ msgstr "Not logged yet. Tap to add today's entry."
 msgid "Not now"
 msgstr "Not now"
 
-#: components/SessionSetInfo.tsx:527
+#: components/SessionSetInfo.tsx:528
 msgid "Note"
 msgstr "Note"
 
@@ -5502,7 +5502,7 @@ msgstr "reps"
 #: app/(app)/custom-exercise.tsx:70
 #: components/charts/ExerciseProgressionChart.tsx:404
 #: components/charts/TrendBarChart.tsx:259
-#: components/SessionSetInfo.tsx:593
+#: components/SessionSetInfo.tsx:594
 #: components/StandaloneWorkoutScreen.tsx:173
 #: components/stats/widgets/registry.ts:73
 #: components/stats/widgets/registry.ts:114
@@ -5522,7 +5522,7 @@ msgstr "Reps per Week"
 msgid "Reps, set {0}"
 msgstr "Reps, set {0}"
 
-#: components/SessionSetInfo.tsx:607
+#: components/SessionSetInfo.tsx:608
 msgid "Reps, set {setNumber}"
 msgstr "Reps, set {setNumber}"
 
@@ -5766,7 +5766,7 @@ msgstr "Save this workout?"
 msgid "Save your workouts and measurements as CSV or JSON"
 msgstr "Save your workouts and measurements as CSV or JSON"
 
-#: app/(app)/(workout)/workout-summary.tsx:580
+#: app/(app)/(workout)/workout-summary.tsx:585
 msgid "Saved to {savedDay}, when you logged your last set."
 msgstr "Saved to {savedDay}, when you logged your last set."
 
@@ -5880,6 +5880,8 @@ msgstr "Sent"
 msgid "serratus anterior"
 msgstr "serratus anterior"
 
+#: app/(app)/(tabs)/(stats)/history-details.tsx:202
+#: app/(app)/(workout)/workout-summary.tsx:572
 #: components/SessionNoteField.tsx:38
 #: components/SessionNoteField.tsx:50
 msgid "Session note"
@@ -5888,10 +5890,6 @@ msgstr "Session note"
 #: components/LastTimeLine.tsx:130
 msgid "Session note: {note}"
 msgstr "Session note: {note}"
-
-#: app/(app)/(tabs)/(stats)/history-details.tsx:202
-msgid "Session note: {sessionNote}"
-msgstr "Session note: {sessionNote}"
 
 #: components/SessionNoteField.tsx:35
 msgid "Session note: {trimmed}. Edit"
@@ -5929,11 +5927,11 @@ msgstr "Set how many pairs of each plate you have. The plate calculator will onl
 msgid "Set note"
 msgstr "Set note"
 
-#: components/SessionSetInfo.tsx:516
+#: components/SessionSetInfo.tsx:517
 msgid "Set note: {trimmedNote}"
 msgstr "Set note: {trimmedNote}"
 
-#: components/SessionSetInfo.tsx:515
+#: components/SessionSetInfo.tsx:516
 msgid "Set note: {trimmedNote}. Edit"
 msgstr "Set note: {trimmedNote}. Edit"
 
@@ -5959,7 +5957,7 @@ msgid "sets"
 msgstr "sets"
 
 #: app/(app)/(workout)/workout-summary.tsx:553
-#: app/(app)/(workout)/workout-summary.tsx:601
+#: app/(app)/(workout)/workout-summary.tsx:606
 #: components/charts/TrendBarChart.tsx:258
 #: components/stats/widgets/registry.ts:72
 #: components/stats/widgets/registry.ts:113
@@ -6291,7 +6289,7 @@ msgstr "Start New"
 msgid "Start Plan"
 msgstr "Start Plan"
 
-#: components/SessionSetInfo.tsx:652
+#: components/SessionSetInfo.tsx:653
 msgid "Start Timer"
 msgstr "Start Timer"
 
@@ -6718,7 +6716,7 @@ msgid "Time (Hour:Min)"
 msgstr "Time (Hour:Min)"
 
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:285
-#: components/SessionSetInfo.tsx:628
+#: components/SessionSetInfo.tsx:629
 #: components/SettingsModal.tsx:263
 msgid "Time (Min:Sec)"
 msgstr "Time (Min:Sec)"
@@ -6755,7 +6753,7 @@ msgstr "Time to train!"
 msgid "Time, set {0}"
 msgstr "Time, set {0}"
 
-#: components/SessionSetInfo.tsx:636
+#: components/SessionSetInfo.tsx:637
 msgid "Time, set {setNumber}"
 msgstr "Time, set {setNumber}"
 
@@ -7116,7 +7114,7 @@ msgstr "Units of measurement"
 msgid "Unknown"
 msgstr "Unknown"
 
-#: components/SessionSetInfo.tsx:724
+#: components/SessionSetInfo.tsx:727
 msgid "Update"
 msgstr "Update"
 
@@ -7128,7 +7126,7 @@ msgstr "Update plan"
 msgid "Update Ready"
 msgstr "Update Ready"
 
-#: components/SessionSetInfo.tsx:712
+#: components/SessionSetInfo.tsx:715
 msgid "Update set {setNumber} of {totalSets}"
 msgstr "Update set {setNumber} of {totalSets}"
 
@@ -7266,7 +7264,7 @@ msgstr "View workout on {dayName}"
 #~ msgstr "View/Edit"
 
 #: app/(app)/(workout)/workout-summary.tsx:558
-#: app/(app)/(workout)/workout-summary.tsx:608
+#: app/(app)/(workout)/workout-summary.tsx:613
 #: components/charts/TrendBarChart.tsx:255
 #: components/stats/widgets/registry.ts:71
 #: components/stats/widgets/registry.ts:110
@@ -7289,7 +7287,7 @@ msgid "vs PR"
 msgstr "vs PR"
 
 #. placeholder {0}: displayWorkoutName(workout.workout_name)
-#: app/(app)/(workout)/workout-summary.tsx:587
+#: app/(app)/(workout)/workout-summary.tsx:592
 msgid "vs. last \"{0}\""
 msgstr "vs. last \"{0}\""
 
@@ -7365,7 +7363,7 @@ msgstr "Weekly working sets against a target range"
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:236
 #: app/(app)/(tabs)/(stats)/edit-history.tsx:249
 #: components/charts/ExerciseProgressionChart.tsx:512
-#: components/SessionSetInfo.tsx:559
+#: components/SessionSetInfo.tsx:560
 msgid "Weight"
 msgstr "Weight"
 

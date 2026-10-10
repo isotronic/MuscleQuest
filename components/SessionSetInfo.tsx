@@ -509,6 +509,7 @@ export default function SessionSetInfo({
               style={[styles.setTypeBadge, styles.setTypeBadgeNote]}
               onPress={onEditNote}
               disabled={!onEditNote}
+              hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
               accessibilityRole={onEditNote ? "button" : "text"}
               accessibilityLabel={
                 onEditNote
@@ -696,6 +697,8 @@ export default function SessionSetInfo({
       ) : null}
       {previousSet && (
         <LastTimeLine
+          // A new set starts with its note collapsed.
+          key={`${exercise_id}-${currentSetIndex}`}
           previous={previousSet}
           trackingType={trackingType}
           weightUnit={weightUnit}

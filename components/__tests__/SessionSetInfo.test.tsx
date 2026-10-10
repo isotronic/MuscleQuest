@@ -4,6 +4,8 @@ import SessionSetInfo from "../SessionSetInfo";
 
 jest.mock("@lingui/core/macro", () => ({
   t: (s: TemplateStringsArray, ...v: unknown[]) => String.raw({ raw: s }, ...v),
+  plural: (n: number, forms: { one: string; other: string }) =>
+    (n === 1 ? forms.one : forms.other).replace("#", String(n)),
 }));
 jest.mock("@lingui/react/macro", () => ({
   Trans: ({ children }: { children: React.ReactNode }) => children,
@@ -290,5 +292,35 @@ describe("SessionSetInfo set note", () => {
     );
     fireEvent.press(getByRole("button", { name: "Set options" }));
     expect(getByText("Edit note")).toBeTruthy();
+  });
+});
+
+describe("SessionSetInfo last time note", () => {
+  it("starts collapsed again on the next set", () => {
+    const previousSet = {
+      weight: 80,
+      reps: 8,
+      time: null,
+      distance: null,
+      note: "shoulder on rep 6",
+    };
+    const { getByRole, getByText, rerender } = render(
+      <SessionSetInfo {...baseProps} previousSet={previousSet} />,
+    );
+    fireEvent.press(
+      getByRole("button", { name: "Last time's note: shoulder on rep 6" }),
+    );
+    expect(getByText("Note: shoulder on rep 6").props.numberOfLines).toBe(
+      undefined,
+    );
+
+    rerender(
+      <SessionSetInfo
+        {...baseProps}
+        currentSetIndex={2}
+        previousSet={previousSet}
+      />,
+    );
+    expect(getByText("Note: shoulder on rep 6").props.numberOfLines).toBe(1);
   });
 });

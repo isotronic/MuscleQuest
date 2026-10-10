@@ -36,7 +36,7 @@ export interface SavedWorkout {
 }
 
 /** Trimmed note text, or null when there is nothing to store. */
-export const noteOrNull = (note: string | null | undefined): string | null => {
+const noteOrNull = (note: string | null | undefined): string | null => {
   const trimmed = note?.trim();
   return trimmed ? trimmed : null;
 };

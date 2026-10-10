@@ -1049,8 +1049,6 @@ export default function WorkoutSessionScreen() {
     };
   };
 
-  // Returns full SessionSetInfo props for any (exerciseIndex, setIndex) without
-  // touching store indices — used to pre-render adjacent panels with correct data
   const handleEditSetNote = () => {
     noteTargetRef.current = {
       exerciseIndex: currentExerciseIndex,
@@ -1061,6 +1059,8 @@ export default function WorkoutSessionScreen() {
     );
   };
 
+  // Returns full SessionSetInfo props for any (exerciseIndex, setIndex) without
+  // touching store indices — used to pre-render adjacent panels with correct data
   const getPanelData = (exerciseIndex: number, setIndex: number) => {
     if (!workout) return null;
     const exercise = workout.exercises[exerciseIndex];
