@@ -11,6 +11,7 @@ Write for someone between sets: friendly, plain, brief.
 - **One or two sentences** for descriptions and hints. Cut what the screen already shows.
 - **No slang or hype**: "Weekly goal reached", not "You've smashed your goal!". Use exclamation marks rarely.
 - **No trailing colons** on labels ("Rest", not "Rest Time Left:").
+- **Names of buttons and sections** are written as they appear on screen, capitals included, so they can be found: "tap Set as active plan", "copied to Your workouts".
 - **Numbers with units**, formatted through `utils/units.ts` and `utils/numberFormat.ts`.
 - **Errors** say what failed and what to do next ("Try again"), never a raw `error.message`.
 
