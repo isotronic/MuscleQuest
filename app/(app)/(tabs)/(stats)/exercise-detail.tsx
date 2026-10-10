@@ -1,17 +1,20 @@
-import { Redirect, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { ExerciseProgressTab } from "@/components/exercise/ExerciseProgressTab";
 
 /**
- * Exercise progress now lives on the exercise screen. Kept so persisted
- * navigation state and old links still land somewhere.
+ * Exercise progress now lives on the exercise screen's Progress tab. Kept so
+ * persisted navigation state and old links still land somewhere; renders in
+ * place rather than redirecting across stacks.
  */
 export default function ExerciseDetailScreen() {
-  const { exerciseId } = useLocalSearchParams<{ exerciseId: string }>();
+  const { exerciseId, name } = useLocalSearchParams<{
+    exerciseId: string;
+    name?: string;
+  }>();
   return (
-    <Redirect
-      href={{
-        pathname: "/(app)/exercise-info",
-        params: { exercise_id: exerciseId ?? "", tab: "progress" },
-      }}
-    />
+    <>
+      <Stack.Screen options={{ title: name ?? "" }} />
+      <ExerciseProgressTab exerciseId={Number(exerciseId ?? 0)} />
+    </>
   );
 }

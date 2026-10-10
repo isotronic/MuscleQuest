@@ -53,8 +53,11 @@ export function ExerciseProgressTab({ exerciseId }: { exerciseId: number }) {
     doubleWeightForPaired,
     excludeDeload,
   );
-  const { data: history, isLoading: historyLoading } =
-    useExerciseHistoryQuery(exerciseId);
+  const {
+    data: history,
+    isLoading: historyLoading,
+    isError: historyError,
+  } = useExerciseHistoryQuery(exerciseId);
 
   if (isLoading || historyLoading) {
     return (
@@ -65,8 +68,12 @@ export function ExerciseProgressTab({ exerciseId }: { exerciseId: number }) {
   }
 
   const sessions = history?.sections ?? [];
-  if (sessions.length < 2) {
-    const bestSet = sessions[0]?.data.find((set) => set.is_pr);
+  // Without the session count, fall through to the detail data rather than
+  // claim there is no history.
+  if (!historyError && sessions.length < 2) {
+    const bestSet = sessions[0]?.data.find(
+      (set) => set.is_pr && !set.is_warmup,
+    );
     return (
       <ScrollView contentContainerStyle={styles.emptyState}>
         <AppIcon

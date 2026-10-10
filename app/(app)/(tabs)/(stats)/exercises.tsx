@@ -16,7 +16,7 @@ import ExerciseSuggestions from "@/components/ExerciseSuggestions";
 import ExerciseSortChips, {
   type SortMode,
 } from "@/components/ExerciseSortChips";
-import { setPinnedExercises } from "@/utils/database";
+import { updatePinnedExercises } from "@/utils/database";
 import { useQueryClient } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
 import { useAppTheme, radii } from "@/theme";
@@ -73,7 +73,15 @@ export default function ExercisesScreen() {
 
   const handleAddExercise = async () => {
     try {
-      await setPinnedExercises(selectedExercises);
+      const initial = initialSelectedExercises.map((id: number | string) =>
+        Number(id),
+      );
+      // Only what changed here: the exercise screen, opened from this list,
+      // can pin and unpin too.
+      await updatePinnedExercises({
+        pin: selectedExercises.filter((id) => !initial.includes(id)),
+        unpin: initial.filter((id: number) => !selectedExercises.includes(id)),
+      });
       queryclient.invalidateQueries({ queryKey: ["trackedExercises"] });
       // The recent PRs widget can be limited to pinned exercises.
       queryclient.invalidateQueries({

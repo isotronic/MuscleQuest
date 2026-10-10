@@ -21,6 +21,7 @@ jest.mock("@/components/ui", () => ({ AppIcon: () => null }));
 let mockSettings: Record<string, string> = {};
 let mockDetail: any = null;
 let mockHistory: any = null;
+let mockHistoryError = false;
 
 jest.mock("@/hooks/useSettingsQuery", () => ({
   useSettingsQuery: () => ({ data: mockSettings }),
@@ -29,7 +30,11 @@ jest.mock("@/hooks/useExerciseDetailQuery", () => ({
   useExerciseDetailQuery: () => ({ data: mockDetail, isLoading: false }),
 }));
 jest.mock("@/hooks/useExerciseHistoryQuery", () => ({
-  useExerciseHistoryQuery: () => ({ data: mockHistory, isLoading: false }),
+  useExerciseHistoryQuery: () => ({
+    data: mockHistory,
+    isLoading: false,
+    isError: mockHistoryError,
+  }),
 }));
 
 const set = (weight: number, reps: number, date: string, e1rm: number) => ({
@@ -66,6 +71,7 @@ const texts = (getAllByText: any) =>
 
 describe("ExerciseProgressTab", () => {
   beforeEach(() => {
+    mockHistoryError = false;
     mockSettings = { weightUnit: "kg", distanceUnit: "m", timeRange: "30" };
     mockHistory = {
       trackingType: "weight",
@@ -124,5 +130,29 @@ describe("ExerciseProgressTab", () => {
     expect(getByText("Log this exercise twice to see a trend")).toBeTruthy();
     expect(getByText("90 kg × 5")).toBeTruthy();
     expect(queryByText("All-time PR")).toBeNull();
+  });
+
+  it("never shows a warm-up as the best set", () => {
+    const warmup = { ...historySet(1, 60, 20, true), is_warmup: true };
+    mockHistory.sections = [
+      {
+        date: "Oct 1, 2026",
+        workout_name: "A",
+        workout_id: 1,
+        data: [warmup],
+      },
+    ];
+    const { queryByText } = render(<ExerciseProgressTab exerciseId={1} />);
+    expect(queryByText("Best set so far")).toBeNull();
+  });
+
+  it("shows the progress data when the session count failed to load", () => {
+    mockHistoryError = true;
+    mockHistory = undefined;
+    const { getByText, queryByText } = render(
+      <ExerciseProgressTab exerciseId={1} />,
+    );
+    expect(queryByText("Log this exercise twice to see a trend")).toBeNull();
+    expect(getByText("All-time PR")).toBeTruthy();
   });
 });

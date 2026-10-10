@@ -19,7 +19,7 @@ import {
   pinExercise,
   unpinExercise,
   isExercisePinned,
-  setPinnedExercises,
+  updatePinnedExercises,
   fetchAllPlanIds,
   fetchAllStandaloneWorkoutIds,
   fetchAllCustomExercisesForSharing,
@@ -896,12 +896,9 @@ describe("pinned exercises", () => {
     expect(mockDb.closeAsync).toHaveBeenCalled();
   });
 
-  it("setPinnedExercises pins the new ids and unpins the dropped ones", async () => {
+  it("updatePinnedExercises applies only the given changes", async () => {
     const txn = { runAsync: jest.fn().mockResolvedValue({ changes: 1 }) };
     mockDb = makeDb({
-      getAllAsync: jest
-        .fn()
-        .mockResolvedValue([{ exercise_id: 1 }, { exercise_id: 2 }]),
       withExclusiveTransactionAsync: jest.fn(
         async (cb: (t: typeof txn) => Promise<void>) => {
           await cb(txn);
@@ -910,7 +907,7 @@ describe("pinned exercises", () => {
     });
     (SQLite.openDatabaseAsync as jest.Mock).mockImplementation(openMockDb);
 
-    await setPinnedExercises([2, 3]);
+    await updatePinnedExercises({ pin: [3], unpin: [1] });
 
     expect(txn.runAsync).toHaveBeenCalledTimes(2);
     expect(txn.runAsync.mock.calls[0][0]).toContain(

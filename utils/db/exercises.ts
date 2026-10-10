@@ -304,18 +304,19 @@ export const unpinExercise = async (exerciseId: number): Promise<void> => {
   }
 };
 
-/** Makes the pinned set exactly `exerciseIds`, keeping existing pins' order. */
-export const setPinnedExercises = async (
-  exerciseIds: number[],
-): Promise<void> => {
+/**
+ * Applies a picker's changes in one transaction. Takes the delta rather than
+ * the full set, so pins made elsewhere meanwhile (the exercise screen) stay.
+ */
+export const updatePinnedExercises = async ({
+  pin: toPin,
+  unpin: toUnpin,
+}: {
+  pin: number[];
+  unpin: number[];
+}): Promise<void> => {
   const db = await openDatabase("userData.db");
   try {
-    const pinned = await db.getAllAsync<{ exercise_id: number }>(
-      `SELECT exercise_id FROM tracked_exercises`,
-    );
-    const pinnedIds = pinned.map((row) => Number(row.exercise_id));
-    const toPin = exerciseIds.filter((id) => !pinnedIds.includes(id));
-    const toUnpin = pinnedIds.filter((id) => !exerciseIds.includes(id));
     await db.withExclusiveTransactionAsync(async (txn) => {
       for (const id of toPin) await txn.runAsync(PIN_EXERCISE_SQL, [id]);
       for (const id of toUnpin) await txn.runAsync(UNPIN_EXERCISE_SQL, [id]);
