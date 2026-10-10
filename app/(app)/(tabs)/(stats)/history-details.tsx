@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -22,7 +22,7 @@ import { fetchCompletedWorkoutById } from "@/utils/database";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useDeleteCompletedWorkoutMutation } from "@/hooks/useDeleteCompletedWorkoutMutation";
 import { formatFromTotalSeconds } from "@/utils/utility";
-import Bugsnag from "@bugsnag/expo";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { displayWorkoutName } from "@/utils/workoutName";
@@ -57,12 +57,6 @@ export default function HistoryDetailsScreen() {
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
 
-  useEffect(() => {
-    if (settingsError instanceof Error) {
-      Bugsnag.notify(settingsError);
-    }
-  }, [settingsError]);
-
   const deleteMutation = useDeleteCompletedWorkoutMutation();
 
   useFocusEffect(
@@ -91,7 +85,7 @@ export default function HistoryDetailsScreen() {
             setError(err instanceof Error ? err : new Error(String(err)));
             setWorkout(null);
             setIsLoading(false);
-            Bugsnag.notify(err);
+            notifyBugsnag(err);
           }
         });
 
