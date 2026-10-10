@@ -40,7 +40,8 @@ import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
-import { Notes } from "@/components/Notes";
+import { Cues } from "@/components/Cues";
+import SessionNoteField from "@/components/SessionNoteField";
 import {
   createStandaloneWorkout,
   linkCompletedWorkoutToWorkout,
@@ -119,6 +120,7 @@ export default function WorkoutOverviewScreen() {
     removeFromSuperset,
     setDurations,
     sessionNote,
+    setSessionNote,
     setNotes,
     timerRunning,
     timerExpiry,
@@ -1137,11 +1139,19 @@ export default function WorkoutOverviewScreen() {
             </Trans>
           </ThemedText>
         )}
-        <Notes
-          noteType="workout"
-          referenceId={workout?.id || 0}
-          buttonType="button"
-        />
+        <View style={styles.notesRow}>
+          <SessionNoteField note={sessionNote} onSave={setSessionNote} />
+          {/* A quick workout has no template to hang cues on. */}
+          {!isQuickWorkout && !!workout.id && (
+            <View style={styles.cuesButton}>
+              <Cues
+                noteType="workout"
+                referenceId={workout.id}
+                buttonType="button"
+              />
+            </View>
+          )}
+        </View>
         {isQuickWorkout && workout.exercises.length === 0 && (
           <View style={styles.emptyQuickWorkout}>
             <AppIcon
@@ -1270,6 +1280,13 @@ function createStyles(colors: AppThemeColors) {
       color: colors.contentSecondary,
       marginTop: 4,
       marginBottom: 4,
+    },
+    notesRow: {
+      gap: 8,
+      marginBottom: 16,
+    },
+    cuesButton: {
+      alignSelf: "flex-start",
     },
     saveModal: {
       backgroundColor: colors.card,

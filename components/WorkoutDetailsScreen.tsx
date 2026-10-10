@@ -12,7 +12,7 @@ import { formatFromTotalSeconds } from "@/utils/utility";
 import { exerciseThumbnailUri } from "@/utils/exerciseThumbnail";
 import { classifySupersetPosition } from "@/utils/supersetUtils";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
-import { Notes } from "@/components/Notes";
+import { Cues } from "@/components/Cues";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
@@ -256,7 +256,7 @@ export default function WorkoutDetailsScreen() {
           title: workout?.name,
           headerRight: () => (
             <>
-              <Notes
+              <Cues
                 noteType="workout"
                 referenceId={workout?.id || 0}
                 buttonType="icon"

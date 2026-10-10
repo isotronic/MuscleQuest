@@ -18,7 +18,7 @@ import {
   Modal,
   Switch,
 } from "react-native-paper";
-import { Notes } from "@/components/Notes";
+import { Cues } from "@/components/Cues";
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { exerciseThumbnailUri } from "@/utils/exerciseThumbnail";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
@@ -218,7 +218,7 @@ export default function StandaloneWorkoutScreen() {
           title: workout.name,
           headerRight: () => (
             <>
-              <Notes
+              <Cues
                 noteType="workout"
                 referenceId={workoutId}
                 buttonType="icon"
