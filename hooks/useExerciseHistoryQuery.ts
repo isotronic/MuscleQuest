@@ -26,23 +26,9 @@ export interface HistorySection {
   data: HistorySet[];
 }
 
-/** Flat set shape compatible with ExerciseProgressionChart (same as CompletedSet). */
-export interface ChartSet {
-  set_number: number;
-  weight: number;
-  reps: number;
-  time: number;
-  distance: number | undefined;
-  date_completed: string;
-  oneRepMax: number | undefined;
-  progressionMetric: number;
-}
-
 export interface ExerciseHistory {
   sections: HistorySection[];
   trackingType: string | null;
-  /** Non-warmup sets ordered newest-first, for ExerciseProgressionChart. */
-  chartSets: ChartSet[];
 }
 
 const fetchExerciseHistory = async (
@@ -153,7 +139,7 @@ const fetchExerciseHistoryBody = async (
   }[];
 
   if (rows.length === 0) {
-    return { sections: [], trackingType: null, chartSets: [] };
+    return { sections: [], trackingType: null };
   }
 
   const trackingType = rows[0].tracking_type;
@@ -212,26 +198,7 @@ const fetchExerciseHistoryBody = async (
     }),
   );
 
-  const trackingTypeForChart = rows[0].tracking_type;
-  const chartSets: ChartSet[] = rows
-    .filter((r) => !r.is_warmup && r.progression_metric != null)
-    .map((r) => ({
-      set_number: r.set_number,
-      weight: r.weight ?? 0,
-      reps: r.reps ?? 0,
-      time: r.time ?? 0,
-      distance: r.distance ?? undefined,
-      date_completed: r.date_completed,
-      oneRepMax:
-        trackingTypeForChart === "weight" ||
-        trackingTypeForChart === "assisted" ||
-        trackingTypeForChart === null
-          ? Math.round(r.progression_metric! * 10) / 10
-          : undefined,
-      progressionMetric: r.progression_metric!,
-    }));
-
-  return { sections, trackingType, chartSets };
+  return { sections, trackingType };
 };
 
 export const useExerciseHistoryQuery = (exerciseId: number) => {

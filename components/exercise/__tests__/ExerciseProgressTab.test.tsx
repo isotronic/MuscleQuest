@@ -69,7 +69,6 @@ describe("ExerciseProgressTab", () => {
     mockSettings = { weightUnit: "kg", distanceUnit: "m", timeRange: "30" };
     mockHistory = {
       trackingType: "weight",
-      chartSets: [],
       sections: [
         { date: "Oct 2, 2026", workout_name: "A", workout_id: 2, data: [] },
         { date: "Oct 1, 2026", workout_name: "A", workout_id: 1, data: [] },

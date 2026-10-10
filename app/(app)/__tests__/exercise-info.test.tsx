@@ -78,7 +78,7 @@ jest.mock("@/hooks/useSettingsQuery", () => ({
 let mockSections: any[] = [];
 jest.mock("@/hooks/useExerciseHistoryQuery", () => ({
   useExerciseHistoryQuery: () => ({
-    data: { sections: mockSections, trackingType: "weight", chartSets: [] },
+    data: { sections: mockSections, trackingType: "weight" },
     isLoading: false,
     isError: false,
   }),
