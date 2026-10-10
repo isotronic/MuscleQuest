@@ -65,7 +65,7 @@ const volumeSql = (options: WorkoutStatsOptions) => {
 
 const rangeFilter = (range: LocalDateRange) => {
   const conditions: string[] = [];
-  const params: string[] = [];
+  const params: (string | number)[] = [];
   if (range.from) {
     conditions.push(`cw.local_date >= ?`);
     params.push(range.from);
@@ -257,9 +257,18 @@ export interface RecentPR {
  */
 export const fetchRecentPRs = async (
   range: LocalDateRange,
-  options: { trackedOnly: boolean; limit: number },
+  options: {
+    trackedOnly: boolean;
+    limit: number;
+    /** Only this session's PRs, still judged against all earlier ones. */
+    completedWorkoutId?: number;
+  },
 ): Promise<RecentPR[]> => {
   const filter = rangeFilter(range);
+  if (options.completedWorkoutId != null) {
+    filter.sql += ` AND cw.completed_workout_id = ?`;
+    filter.params.push(options.completedWorkoutId);
+  }
   const type = `COALESCE(NULLIF(ce.resolved_tracking_type, ''), e.tracking_type)`;
   const metric = progressionMetricSql(type);
   const db = await openDatabase("userData.db");
@@ -301,6 +310,48 @@ export const fetchRecentPRs = async (
       LIMIT ?
       `,
       [...filter.params, options.limit],
+    );
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+/** An exercise's best set so far, under one tracking type. */
+export interface PriorBest {
+  exercise_id: number;
+  tracking_type: string;
+  /** The metric of fetchRecentPRs: estimated 1RM, reps, seconds or metres. */
+  best: number;
+}
+
+/**
+ * The best logged set of each exercise, per tracking type, so a session can
+ * spot a new PR as it happens. Same rules as fetchRecentPRs: warm-ups and
+ * deleted sets or workouts do not count, and deload sessions do, as they do
+ * there. An exercise never logged has no row, so its first session is not a
+ * PR.
+ */
+export const fetchPriorBests = async (
+  exerciseIds: number[],
+): Promise<PriorBest[]> => {
+  if (exerciseIds.length === 0) return [];
+  const type = `COALESCE(NULLIF(ce.resolved_tracking_type, ''), e.tracking_type)`;
+  const placeholders = exerciseIds.map(() => "?").join(", ");
+  const db = await openDatabase("userData.db");
+  try {
+    return await db.getAllAsync<PriorBest>(
+      `
+      SELECT e.exercise_id, ${type} AS tracking_type,
+        MAX(${progressionMetricSql(type)}) AS best
+      FROM completed_workouts cw
+      JOIN completed_exercises ce ON ce.completed_workout_id = cw.id
+      JOIN exercises e ON e.exercise_id = ce.exercise_id AND e.is_deleted = FALSE
+      JOIN completed_sets cs ON cs.completed_exercise_id = ce.id
+        AND ${NOT_WARMUP} AND COALESCE(cs.is_deleted, 0) = 0
+      WHERE cw.is_deleted = FALSE AND e.exercise_id IN (${placeholders})
+      GROUP BY e.exercise_id, ${type}
+      `,
+      exerciseIds,
     );
   } finally {
     await db.closeAsync();

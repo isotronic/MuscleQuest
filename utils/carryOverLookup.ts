@@ -11,11 +11,17 @@ export interface CarryOverSet {
 export interface CarryOverExercise {
   exercise_id: number;
   sets: CarryOverSet[];
+  /** The training day of the session it came from, "YYYY-MM-DD". */
+  local_date?: string;
 }
 
 export interface CarryOverWorkout {
+  local_date?: string;
   exercises: CarryOverExercise[];
 }
+
+/** A carried-over set and the training day it was logged on. */
+export type CarryOverMatch = CarryOverSet & { local_date?: string };
 
 export function buildExerciseMap(
   data: CarryOverWorkout[] | null,
@@ -25,7 +31,7 @@ export function buildExerciseMap(
   for (const w of data) {
     for (const ex of w.exercises) {
       const arr = map.get(ex.exercise_id) ?? [];
-      arr.push(ex);
+      arr.push({ ...ex, local_date: w.local_date });
       map.set(ex.exercise_id, arr);
     }
   }
@@ -41,13 +47,14 @@ function lookup(
   exerciseId: number,
   isWarmup: boolean,
   ordinal: number,
-): CarryOverSet | null {
+): CarryOverMatch | null {
   const exercises = map.get(exerciseId);
   if (!exercises) return null;
   for (const ex of exercises) {
     const setsOfType = ex.sets.filter((s) => s.is_warmup === isWarmup);
     if (setsOfType.length === 0) continue;
-    return setsOfType[ordinal] ?? setsOfType[setsOfType.length - 1];
+    const set = setsOfType[ordinal] ?? setsOfType[setsOfType.length - 1];
+    return { ...set, local_date: ex.local_date };
   }
   return null;
 }
@@ -61,13 +68,15 @@ function lookupByPosition(
   isWarmup: boolean,
   ordinal: number,
   exercisePosition?: number,
-): CarryOverSet | null {
+): CarryOverMatch | null {
   if (exercisePosition === undefined) return null;
-  const prevExAtPos = previousWorkoutData?.[0]?.exercises[exercisePosition];
-  if (!prevExAtPos) return null;
+  const previous = previousWorkoutData?.[0];
+  const prevExAtPos = previous?.exercises[exercisePosition];
+  if (!previous || !prevExAtPos) return null;
   const setsOfType = prevExAtPos.sets.filter((s) => s.is_warmup === isWarmup);
   if (setsOfType.length === 0) return null;
-  return setsOfType[ordinal] ?? setsOfType[setsOfType.length - 1];
+  const set = setsOfType[ordinal] ?? setsOfType[setsOfType.length - 1];
+  return { ...set, local_date: previous.local_date };
 }
 
 export function findLastAvailableSetData(params: {
@@ -79,7 +88,7 @@ export function findLastAvailableSetData(params: {
   prevExercisesByExerciseId: Map<number, CarryOverExercise[]>;
   globalExercisesByExerciseId: Map<number, CarryOverExercise[]>;
   alwaysUseGlobalHistory: boolean;
-}): CarryOverSet | null {
+}): CarryOverMatch | null {
   const {
     exerciseId,
     isWarmup,

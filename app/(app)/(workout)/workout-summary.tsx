@@ -38,6 +38,10 @@ import { useClearFinishedWorkout } from "@/hooks/useClearFinishedWorkout";
 import { ConfettiAnimation } from "@/components/ConfettiAnimation";
 import { displayWorkoutName } from "@/utils/workoutName";
 import { formatDecimal, formatNumber } from "@/utils/numberFormat";
+import { useWorkoutPRsQuery } from "@/hooks/useWorkoutSummariesQuery";
+import { describePR } from "@/components/stats/widgets/RecentPRsWidget";
+import type { RecentPR } from "@/utils/db/workoutStats";
+import { reachedGoalWithWorkout } from "@/utils/weeklyGoal";
 
 // --- Helpers ---
 
@@ -245,6 +249,49 @@ function ExerciseRow({
   );
 }
 
+function NewPRsCard({
+  prs,
+  weightUnit,
+  distanceUnit,
+}: {
+  prs: RecentPR[];
+  weightUnit: string;
+  distanceUnit: string;
+}) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  return (
+    <View style={styles.prCard}>
+      <View style={styles.prHeader}>
+        <AppIcon set="mci" name="trophy" size={18} color={colors.accent} />
+        <ThemedText accessibilityRole="header" style={styles.prTitle}>
+          <Plural value={prs.length} one="New PR" other="New PRs" />
+        </ThemedText>
+      </View>
+      {prs.map((pr) => {
+        const { set, gain } = describePR(pr, weightUnit, distanceUnit);
+        return (
+          <View
+            key={`${pr.exercise_id}-${pr.tracking_type}`}
+            style={styles.prRow}
+            accessible={true}
+            accessibilityLabel={t`New record: ${pr.name}, ${set}, ${gain}`}
+          >
+            <ThemedText type="defaultSemiBold" style={styles.prName}>
+              {pr.name}
+            </ThemedText>
+            <ThemedText style={styles.prDetail}>
+              {set}
+              {"  ·  "}
+              {gain}
+            </ThemedText>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 // --- Weekly goal banner ---
 
 function getGoalMessage(completed: number, goal: number): string {
@@ -322,7 +369,6 @@ export default function WorkoutSummaryScreen() {
       resumed?: string;
       durationTrimmed?: string;
     }>();
-  const showConfetti = fresh === "true" && resumed !== "true";
   useClearFinishedWorkout(fresh);
   const insets = useSafeAreaInsets();
   const { data: settings } = useSettingsQuery();
@@ -358,6 +404,22 @@ export default function WorkoutSummaryScreen() {
   );
 
   const weeklyGoal = Number(settings?.weeklyGoal ?? 0);
+
+  const { data: workoutPRs } = useWorkoutPRsQuery(isValidId ? id : 0);
+  // A deload week is not for records, as in the session itself.
+  const prs = workout?.is_deload ? [] : (workoutPRs ?? []);
+  const weeklyGoalJustReached = useMemo(
+    () =>
+      !!workout &&
+      !!allWorkouts &&
+      reachedGoalWithWorkout(workout, allWorkouts, weeklyGoal),
+    [workout, allWorkouts, weeklyGoal],
+  );
+  // Kept for the moments worth it, so it still means something.
+  const showConfetti =
+    fresh === "true" &&
+    resumed !== "true" &&
+    (prs.length > 0 || weeklyGoalJustReached);
 
   const workoutsThisWeek = useMemo(() => {
     if (!allWorkouts) return 0;
@@ -559,6 +621,14 @@ export default function WorkoutSummaryScreen() {
           />
         )}
 
+        {prs.length > 0 && (
+          <NewPRsCard
+            prs={prs}
+            weightUnit={weightUnit}
+            distanceUnit={distanceUnit}
+          />
+        )}
+
         <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
           <Trans>Exercises</Trans>
         </ThemedText>
@@ -750,6 +820,33 @@ function createStyles(colors: AppThemeColors) {
       fontSize: 16,
       fontWeight: "700",
       paddingVertical: 4,
+    },
+    prCard: {
+      backgroundColor: colors.card,
+      borderRadius: radii.lg,
+      padding: 14,
+      marginBottom: 16,
+      gap: 10,
+    },
+    prHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 7,
+    },
+    prTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: colors.accent,
+    },
+    prRow: {
+      gap: 2,
+    },
+    prName: {
+      fontSize: 15,
+    },
+    prDetail: {
+      fontSize: 13,
+      color: colors.contentSecondary,
     },
     weeklyGoalCard: {
       backgroundColor: colors.card,

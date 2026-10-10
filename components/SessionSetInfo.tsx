@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
 import ProgressionSuggestionChip from "@/components/ProgressionSuggestionChip";
+import LastTimeLine, { type PreviousSet } from "@/components/LastTimeLine";
 import { View, TextInput, StyleSheet } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -80,6 +81,14 @@ interface SessionSetInfoProps {
   progressionSuggestion?:
     | import("@/types/progression").ExerciseProgressionState
     | null;
+  /** This set last time, in display units. Hidden when there is none. */
+  previousSet?: PreviousSet | null;
+  /** The weight a progression suggestion prefilled for this set. */
+  suggestedWeight?: number;
+  /** Copies previousSet into the inputs. */
+  onUsePreviousSet?: () => void;
+  /** The completed set beat the exercise's best. */
+  isPR?: boolean;
 }
 
 export default function SessionSetInfo({
@@ -132,6 +141,10 @@ export default function SessionSetInfo({
   onOpenPlateCalculator,
   workingSetOrdinal,
   progressionSuggestion,
+  previousSet,
+  suggestedWeight,
+  onUsePreviousSet,
+  isPR = false,
 }: SessionSetInfoProps) {
   // Shown only for a positive target, as text with the device separator.
   const distanceMin =
@@ -390,8 +403,31 @@ export default function SessionSetInfo({
         />
       </View>
       {/* Set Type Indicators */}
-      {(isWarmup || isDropSet || isToFailure || showProgressionChip) && (
+      {(isWarmup ||
+        isDropSet ||
+        isToFailure ||
+        showProgressionChip ||
+        isPR) && (
         <View style={styles.setTypeContainer}>
+          {isPR && (
+            <View
+              style={[styles.setTypeBadge, styles.setTypeBadgePR]}
+              accessible={true}
+              accessibilityLabel={t`Personal record`}
+              accessibilityRole="text"
+            >
+              <AppIcon
+                set="mci"
+                name="trophy"
+                size={16}
+                color={colors.onAccent}
+                style={styles.setIcon}
+              />
+              <ThemedText style={[styles.setTypeLabel, styles.prLabel]}>
+                <Trans>PR</Trans>
+              </ThemedText>
+            </View>
+          )}
           {isWarmup && (
             <View
               style={[styles.setTypeBadge, styles.setTypeBadgeWarmup]}
@@ -615,6 +651,16 @@ export default function SessionSetInfo({
           </View>
         </>
       ) : null}
+      {previousSet && (
+        <LastTimeLine
+          previous={previousSet}
+          trackingType={trackingType}
+          weightUnit={weightUnit}
+          distanceUnit={distanceUnit}
+          suggestedWeight={suggestedWeight}
+          onPress={onUsePreviousSet}
+        />
+      )}
       <Button
         mode={currentSetCompleted ? "outlined" : "contained"}
         onPress={handleCompleteSet}
@@ -715,6 +761,12 @@ function createStyles(colors: AppThemeColors) {
     },
     setTypeBadgeFailure: {
       backgroundColor: colors.badgeFailure,
+    },
+    setTypeBadgePR: {
+      backgroundColor: colors.accent,
+    },
+    prLabel: {
+      color: colors.onAccent,
     },
     setTypeLabel: {
       fontSize: 13,

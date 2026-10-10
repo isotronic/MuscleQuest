@@ -33,6 +33,8 @@ interface RestTimerOverlayProps {
   animStyle: any;
   buttonSize?: number;
   onAdjust: (delta: number) => void;
+  /** Ends the rest now. */
+  onSkip: () => void;
   onLayout?: (event: LayoutChangeEvent) => void;
   /** One-line note under the countdown, e.g. that notifications are off. */
   hint?: React.ReactNode;
@@ -48,6 +50,7 @@ export default function RestTimerOverlay({
   animStyle,
   buttonSize = 40,
   onAdjust,
+  onSkip,
   onLayout,
   hint,
   hintAction,
@@ -142,6 +145,15 @@ export default function RestTimerOverlay({
           </ThemedText>
         </TouchableOpacity>
       </View>
+      <Button
+        mode="text"
+        compact
+        onPress={onSkip}
+        accessibilityLabel={t`Skip rest`}
+        labelStyle={isLarge ? styles.skipLabelLarge : undefined}
+      >
+        <Trans>Skip</Trans>
+      </Button>
       {hint ? <ThemedText style={styles.hint}>{hint}</ThemedText> : null}
       {hint && hintAction ? (
         <Button mode="text" compact onPress={hintAction.onPress}>
@@ -208,6 +220,10 @@ function createStyles(colors: AppThemeColors) {
     },
     adjustTextLarge: {
       fontSize: 20,
+    },
+    skipLabelLarge: {
+      fontSize: 18,
+      lineHeight: 24,
     },
     timerText: {
       fontSize: 32,

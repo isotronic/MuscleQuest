@@ -13,6 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Vibration,
   View,
 } from "react-native";
 import { Trans } from "@lingui/react/macro";
@@ -26,6 +27,7 @@ import { SessionSetOptionsModal } from "@/components/SessionSetOptionsModal";
 import { PlateCalculatorModal } from "@/components/PlateCalculatorModal";
 import { useTimer } from "react-timer-hook";
 import { useRestTimerResync } from "@/hooks/useRestTimerResync";
+import { usePauseWhenRestEndsEarly } from "@/hooks/usePauseWhenRestEndsEarly";
 import { showSnackbar } from "@/store/snackbarStore";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
@@ -66,6 +68,10 @@ import { useProgressionStateQuery } from "@/hooks/useProgressionStateQuery";
 import { useExerciseFeedbackMutation } from "@/hooks/useExerciseFeedbackMutation";
 import { ExerciseFeedbackPayload } from "@/types/progression";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import { useSessionPRs } from "@/hooks/useSessionPRs";
+import { isSessionPR } from "@/utils/sessionPRs";
+import type { PreviousSet } from "@/components/LastTimeLine";
+import type { CarryOverMatch } from "@/utils/carryOverLookup";
 import { useSoundStore } from "@/store/soundStore";
 import Animated, {
   useSharedValue,
@@ -77,6 +83,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { radii } from "@/theme";
 import { displayToKg } from "@/utils/weightUnits";
+import { formatFromTotalSeconds } from "@/utils/utility";
 
 // Reanimated 4: Animated.View types don't include children in strict TS
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
@@ -115,6 +122,8 @@ interface OutgoingSnapshot {
   isInSuperset: boolean;
   isFirstInSuperset: boolean;
   partnerName?: string;
+  previousSet: PreviousSet | null;
+  isPR: boolean;
 }
 
 interface SlotData {
@@ -204,6 +213,21 @@ function getPrevSlotData(
       }
     : null;
 }
+
+// Brief, so it reads as a cue rather than the rest timer's alarm.
+const PR_VIBRATION = [0, 60, 80, 60];
+
+/** A carried-over set as the "Last time" line shows it. */
+const toPreviousSet = (match: CarryOverMatch | null): PreviousSet | null =>
+  match
+    ? {
+        weight: match.weight,
+        reps: match.reps,
+        time: match.time,
+        distance: match.distance,
+        localDate: match.local_date,
+      }
+    : null;
 
 const noop = () => {};
 const noopNum = (_: number) => {};
@@ -347,6 +371,7 @@ export default function WorkoutSessionScreen() {
     setCurrentSetStartedAt,
     recordSetDuration,
     setExerciseTrackingTypeOverride,
+    suggestedWeightPrefills,
   } = useActiveWorkoutStore(
     useShallow((s) => ({
       workout: s.workout,
@@ -374,8 +399,10 @@ export default function WorkoutSessionScreen() {
       setCurrentSetStartedAt: s.setCurrentSetStartedAt,
       recordSetDuration: s.recordSetDuration,
       setExerciseTrackingTypeOverride: s.setExerciseTrackingTypeOverride,
+      suggestedWeightPrefills: s.suggestedWeightPrefills,
     })),
   );
+  const { prs: sessionPRs, prsWithSetCompleted } = useSessionPRs();
 
   const {
     data: settings,
@@ -538,7 +565,7 @@ export default function WorkoutSessionScreen() {
   } | null>(null);
   const adjustedRestSecondsRef = useRef<number>(0);
   const { playSound, triggerVibration } = useSoundStore();
-  const { seconds, minutes, restart } = useTimer({
+  const { seconds, minutes, restart, pause } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
     onExpire: () => {
@@ -548,6 +575,7 @@ export default function WorkoutSessionScreen() {
     },
   });
   useRestTimerResync(restart);
+  usePauseWhenRestEndsEarly(pause);
 
   // Shown once, during the first rest after notifications turned out blocked.
   const [showPermissionHint, setShowPermissionHint] = useState(false);
@@ -804,6 +832,27 @@ export default function WorkoutSessionScreen() {
     );
   };
 
+  // Fills the inputs with this set's values from last time.
+  const handleUsePreviousSet = () => {
+    const previous = previousWorkoutSetData;
+    if (!previous) return;
+    updateWeightAndReps(
+      currentExerciseIndex,
+      currentSetIndex,
+      previous.weight != null ? String(previous.weight) : undefined,
+      previous.reps != null ? String(previous.reps) : undefined,
+      previous.time != null ? formatFromTotalSeconds(previous.time) : undefined,
+      previous.distance != null ? String(previous.distance) : undefined,
+    );
+  };
+
+  const skipRest = () => {
+    useActiveWorkoutStore.getState().endRestEarly();
+    void cancelRestNotifications();
+    // The next set starts now, as it would have when the rest ran out.
+    setCurrentSetStartedAt(new Date());
+  };
+
   const handleToggleSetType = (type: "isWarmup" | "isToFailure") => {
     const currentVal = currentSet?.[type] || false;
     updateSetType(currentExerciseIndex, currentSetIndex, type, !currentVal);
@@ -1050,6 +1099,9 @@ export default function WorkoutSessionScreen() {
       workingSetOrdinal: set.isWarmup
         ? undefined
         : exercise.sets.slice(0, setIndex).filter((s) => !s.isWarmup).length,
+      previousSet: toPreviousSet(prevData),
+      suggestedWeight: suggestedWeightPrefills[exerciseIndex]?.[setIndex],
+      isPR: isSessionPR(sessionPRs, exerciseIndex, setIndex),
     };
   };
 
@@ -1376,6 +1428,21 @@ export default function WorkoutSessionScreen() {
       distanceStr,
     );
 
+    // Judged on the values just written, before the set is marked complete.
+    const isPR = isSessionPR(
+      prsWithSetCompleted(currentExerciseIndex, currentSetIndex),
+      currentExerciseIndex,
+      currentSetIndex,
+    );
+    if (isPR) Vibration.vibrate(PR_VIBRATION);
+
+    // Completing a set during a rest ends that rest; any rest for this set
+    // starts below.
+    if (useActiveWorkoutStore.getState().timerRunning) {
+      useActiveWorkoutStore.getState().endRestEarly();
+      void cancelRestNotifications();
+    }
+
     // Only animate when nextSet() will keep this screen mounted.
     // hasNextSet can be true even when the store calls router.back() — e.g. the
     // next sequential exercise exists but is already fully completed.
@@ -1426,8 +1493,14 @@ export default function WorkoutSessionScreen() {
       shouldAnimate && !isFirstInSuperset && hasNextSet
         ? (currentSet.restMinutes || 0) * 60 + (currentSet.restSeconds || 0)
         : 0;
+    const completedAnnouncement = setCompleteAnnouncement(
+      currentSetIndex + 1,
+      restAfterSeconds,
+    );
     AccessibilityInfo.announceForAccessibility(
-      setCompleteAnnouncement(currentSetIndex + 1, restAfterSeconds),
+      isPR
+        ? `${completedAnnouncement} ${t`New personal record.`}`
+        : completedAnnouncement,
     );
 
     if (!shouldAnimate) {
@@ -1485,6 +1558,8 @@ export default function WorkoutSessionScreen() {
       partnerName: isInSuperset
         ? workout?.exercises[supersetPartnerIndex]?.name
         : undefined,
+      previousSet: toPreviousSet(previousWorkoutSetData),
+      isPR,
     };
 
     if (isFirstInSuperset) {
@@ -1766,6 +1841,7 @@ export default function WorkoutSessionScreen() {
                             handlePreviousSet={handlePreviousSet}
                             handleNextSet={handleNextSet}
                             handleCompleteSet={handleCompleteSet}
+                            onUsePreviousSet={handleUsePreviousSet}
                             removeSet={handleRemoveSet}
                             addSet={handleAddSet}
                             onAddDropSet={handleAddDropSet}
@@ -1885,6 +1961,7 @@ export default function WorkoutSessionScreen() {
         animStyle={timerAnimStyle}
         buttonSize={buttonSize}
         onAdjust={(delta) => void adjustTimer(delta)}
+        onSkip={skipRest}
         hint={
           showPermissionHint
             ? t`Notifications are off, so there is no rest alert while your phone is locked. You can turn them on in your phone's settings.`

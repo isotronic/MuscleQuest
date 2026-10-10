@@ -12,6 +12,7 @@ import { useAppTheme, radii } from "@/theme";
 import { formatToHoursMinutes } from "@/utils/utility";
 import type { AppThemeColors } from "@/theme/types";
 import { formatDecimal, formatGroupedInteger } from "@/utils/numberFormat";
+import { setMetric } from "@/utils/prMetric";
 
 interface Props {
   workoutsThisWeek: CompletedWorkout[];
@@ -22,22 +23,38 @@ interface Props {
   excludeWarmup?: boolean;
   countUnilateralDouble?: boolean;
   doubleWeightForPaired?: boolean;
+  /** In the display weight unit, for assisted exercises. */
+  bodyWeight?: number;
 }
 
-function getProgressionMetric(
-  weight: number | null,
-  reps: number | null,
-  time: number | null,
-  trackingType: string,
-  weightM: number = 1,
-  repM: number = 1,
+type HistoryExercise = CompletedWorkout["exercises"][number];
+
+/**
+ * The PR metric (utils/prMetric.ts) of a set, in display units, or null for
+ * what this card cannot show: distance, assisted without a body weight, and
+ * sets missing the values the metric needs.
+ */
+function achievementMetric(
+  exercise: HistoryExercise,
+  set: HistoryExercise["sets"][number],
+  bodyWeight: number,
+  doubleWeightForPaired: boolean,
 ): number | null {
-  if (trackingType === "reps") return reps != null ? reps * repM : null;
-  if (trackingType === "time") return time;
-  // weight, assisted, or null → Epley 1RM (weightM applies; repM does not affect 1RM)
-  if (weight != null && reps != null)
-    return weight * weightM * (1 + reps / 30.0);
-  return null;
+  const trackingType = exercise.exercise_tracking_type;
+  if (trackingType === "distance") return null;
+  if (trackingType === "reps") {
+    if (set.reps == null) return null;
+  } else if (trackingType === "time") {
+    if (set.time == null) return null;
+  } else {
+    if (set.weight == null || set.reps == null) return null;
+    if (trackingType === "assisted" && bodyWeight <= 0) return null;
+  }
+  return setMetric(set, trackingType, {
+    // The card shows the weight, so it follows the stats doubling setting.
+    doubleWeight: doubleWeightForPaired && !!exercise.double_weight,
+    bodyWeight,
+  });
 }
 
 interface BestAchievement {
@@ -53,7 +70,7 @@ function computeBestAchievement(
   allCompletedWorkouts: CompletedWorkout[],
   weightUnit: string,
   excludeWarmup: boolean = false,
-  countUnilateralDouble: boolean = false,
+  bodyWeight: number = 0,
   doubleWeightForPaired: boolean = false,
 ): BestAchievement | null {
   const today = new Date();
@@ -69,17 +86,13 @@ function computeBestAchievement(
   const lastWeekBest = new Map<number, number>();
   for (const workout of lastWeekWorkouts) {
     for (const ex of workout.exercises) {
-      const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1;
-      const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1;
       for (const set of ex.sets) {
         if (excludeWarmup && set.is_warmup) continue;
-        const metric = getProgressionMetric(
-          set.weight,
-          set.reps,
-          set.time,
-          ex.exercise_tracking_type,
-          weightM,
-          repM,
+        const metric = achievementMetric(
+          ex,
+          set,
+          bodyWeight,
+          doubleWeightForPaired,
         );
         if (metric == null) continue;
         const prev = lastWeekBest.get(ex.exercise_id) ?? -Infinity;
@@ -95,17 +108,13 @@ function computeBestAchievement(
   >();
   for (const workout of workoutsThisWeek) {
     for (const ex of workout.exercises) {
-      const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1;
-      const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1;
       for (const set of ex.sets) {
         if (excludeWarmup && set.is_warmup) continue;
-        const metric = getProgressionMetric(
-          set.weight,
-          set.reps,
-          set.time,
-          ex.exercise_tracking_type,
-          weightM,
-          repM,
+        const metric = achievementMetric(
+          ex,
+          set,
+          bodyWeight,
+          doubleWeightForPaired,
         );
         if (metric == null) continue;
         const prev = thisWeekBest.get(ex.exercise_id);
@@ -184,6 +193,7 @@ export default function WeeklySummaryCard({
   excludeWarmup = false,
   countUnilateralDouble = false,
   doubleWeightForPaired = false,
+  bodyWeight = 0,
 }: Props) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -225,7 +235,7 @@ export default function WeeklySummaryCard({
         allCompletedWorkouts,
         weightUnit,
         excludeWarmup,
-        countUnilateralDouble,
+        bodyWeight,
         doubleWeightForPaired,
       ),
     [
@@ -233,7 +243,7 @@ export default function WeeklySummaryCard({
       allCompletedWorkouts,
       weightUnit,
       excludeWarmup,
-      countUnilateralDouble,
+      bodyWeight,
       doubleWeightForPaired,
     ],
   );

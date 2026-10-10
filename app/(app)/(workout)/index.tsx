@@ -61,6 +61,7 @@ import {
 } from "react-native-reanimated";
 import { useTimer } from "react-timer-hook";
 import { useRestTimerResync } from "@/hooks/useRestTimerResync";
+import { usePauseWhenRestEndsEarly } from "@/hooks/usePauseWhenRestEndsEarly";
 import { useSoundStore } from "@/store/soundStore";
 import RestTimerOverlay from "@/components/RestTimerOverlay";
 import { useAppTheme, radii } from "@/theme";
@@ -74,6 +75,11 @@ import { useRecoveryCheckInMutation } from "@/hooks/useRecoveryCheckInMutation";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import { useSessionPRs } from "@/hooks/useSessionPRs";
+import {
+  confirmUnfinishedSets,
+  findUnfinishedSets,
+} from "@/utils/confirmUnfinishedSets";
 
 type SingleItem = {
   type: "single";
@@ -195,6 +201,8 @@ export default function WorkoutOverviewScreen() {
     }
   }, [sessionHistory, initializeWeightAndReps]);
 
+  const { prs: sessionPRs } = useSessionPRs();
+
   const { data: workoutProgressionStates } = useWorkoutProgressionStatesQuery(
     progressionSettings.enabled
       ? (activeWorkout?.workoutId ?? undefined)
@@ -289,7 +297,7 @@ export default function WorkoutOverviewScreen() {
     transform: [{ translateY: timerTranslateY.value }],
   }));
 
-  const { seconds, minutes, restart } = useTimer({
+  const { seconds, minutes, restart, pause } = useTimer({
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
     onExpire: () => {
@@ -302,6 +310,7 @@ export default function WorkoutOverviewScreen() {
   });
 
   useRestTimerResync(restart);
+  usePauseWhenRestEndsEarly(pause);
 
   useEffect(() => {
     timerTranslateY.value = withTiming(timerRunning ? 0 : 200, {
@@ -316,6 +325,14 @@ export default function WorkoutOverviewScreen() {
       restart(time);
     }
   }, [timerRunning, timerExpiry, restart]);
+
+  const skipRest = () => {
+    const store = useActiveWorkoutStore.getState();
+    store.endRestEarly();
+    void cancelRestNotifications();
+    // The next set starts now, as it would have when the rest ran out.
+    if (!store.currentSetStartedAt) store.setCurrentSetStartedAt(new Date());
+  };
 
   const adjustTimerOverview = async (deltaSeconds: number) => {
     const currentRemaining = expiryTimestampRef.current
@@ -533,6 +550,33 @@ export default function WorkoutOverviewScreen() {
         ).length;
         const allSetsCompleted = completedCount === exercise.sets.length;
         const isLoading = loadingExerciseIndex === exerciseIndex;
+        const prCount = sessionPRs[exerciseIndex]?.length ?? 0;
+        const setInfo = (
+          <View style={styles.setInfoRow}>
+            <ThemedText style={styles.setInfo}>
+              <Trans>
+                {completedCount}/{exercise.sets.length} sets completed
+              </Trans>
+            </ThemedText>
+            {prCount > 0 && (
+              <View
+                style={styles.prBadge}
+                accessible={true}
+                accessibilityLabel={t`New personal record`}
+              >
+                <AppIcon
+                  set="mci"
+                  name="trophy"
+                  size={12}
+                  color={colors.onAccent}
+                />
+                <ThemedText style={styles.prBadgeText}>
+                  <Trans>PR</Trans>
+                </ThemedText>
+              </View>
+            )}
+          </View>
+        );
 
         const progressionState =
           exercise.id != null
@@ -588,11 +632,7 @@ export default function WorkoutOverviewScreen() {
               <ThemedText style={styles.exerciseName}>
                 {exercise.name}
               </ThemedText>
-              <ThemedText style={styles.setInfo}>
-                <Trans>
-                  {completedCount}/{exercise.sets.length} sets completed
-                </Trans>
-              </ThemedText>
+              {setInfo}
               {progressionChip}
             </View>
           </Sortable.Touchable>
@@ -628,11 +668,7 @@ export default function WorkoutOverviewScreen() {
               <ThemedText style={styles.exerciseName}>
                 {exercise.name}
               </ThemedText>
-              <ThemedText style={styles.setInfo}>
-                <Trans>
-                  {completedCount}/{exercise.sets.length} sets completed
-                </Trans>
-              </ThemedText>
+              {setInfo}
               {progressionChip}
             </View>
           </View>
@@ -735,11 +771,25 @@ export default function WorkoutOverviewScreen() {
       itemLabels,
       progressionStatesByUweId,
       feedbackSubmittedUweIds,
+      sessionPRs,
       styles,
       colors,
       weightUnit,
     ],
   );
+
+  // Finish saves completed sets only, so say what would be left behind.
+  const handleFinishPress = () => {
+    if (isSavingRef.current) return;
+    if (savedWorkoutSummaryParams() || !workout) {
+      void handleSaveWorkout();
+      return;
+    }
+    confirmUnfinishedSets(
+      findUnfinishedSets(workout.exercises, completedSets),
+      () => void handleSaveWorkout(),
+    );
+  };
 
   const handleSaveWorkout = async () => {
     if (isSavingRef.current) return;
@@ -1008,7 +1058,7 @@ export default function WorkoutOverviewScreen() {
                 style={{ marginRight: 0 }}
                 labelStyle={styles.buttonLabel}
                 disabled={!hasCompletedSets || isSaving}
-                onPressIn={handleSaveWorkout}
+                onPressIn={handleFinishPress}
               >
                 <Trans>Finish</Trans>
               </Button>
@@ -1171,6 +1221,7 @@ export default function WorkoutOverviewScreen() {
         animStyle={timerAnimStyle}
         buttonSize={buttonSize}
         onAdjust={(delta) => void adjustTimerOverview(delta)}
+        onSkip={skipRest}
         onLayout={(e) => setTimerHeight(e.nativeEvent.layout.height)}
       />
       {pendingRecovery && pendingRecovery.length > 0 && (
@@ -1292,6 +1343,26 @@ function createStyles(colors: AppThemeColors) {
     setInfo: {
       fontSize: 14,
       color: colors.contentSecondary,
+    },
+    setInfoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: 6,
+    },
+    prBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 2,
+      paddingHorizontal: 6,
+      borderRadius: radii.sm,
+      backgroundColor: colors.accent,
+    },
+    prBadgeText: {
+      fontSize: 11,
+      lineHeight: 16,
+      fontWeight: "700",
+      color: colors.onAccent,
     },
     optionsButton: {
       padding: 0,
