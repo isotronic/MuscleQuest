@@ -195,6 +195,14 @@ export default function HistoryDetailsScreen() {
           <ThemedText style={styles.workoutDate}>
             <Trans>Completed on: {formattedDate}</Trans>
           </ThemedText>
+          {!!workout.notes?.trim() && (
+            <ThemedText
+              style={styles.sessionNote}
+              accessibilityLabel={t`Session note: ${workout.notes.trim()}`}
+            >
+              {workout.notes.trim()}
+            </ThemedText>
+          )}
         </View>
         <View style={styles.summaryRow}>
           <View style={styles.summaryItem}>
@@ -264,45 +272,58 @@ export default function HistoryDetailsScreen() {
                 </View>
                 {/* Sets List */}
                 {exercise.sets.map((set, index) => (
-                  <View key={index} style={styles.setRow}>
-                    <ThemedText style={styles.setText}>
-                      <Trans>Set {set.set_number}</Trans>
-                    </ThemedText>
-                    {exercise.exercise_tracking_type === "time" ? (
+                  <View key={index}>
+                    <View style={styles.setRow}>
                       <ThemedText style={styles.setText}>
-                        {set.time != null
-                          ? formatFromTotalSeconds(set.time)
-                          : "—"}
+                        <Trans>Set {set.set_number}</Trans>
                       </ThemedText>
-                    ) : exercise.exercise_tracking_type === "reps" ? (
-                      <ThemedText style={styles.setText}>
-                        {set.reps != null ? (
-                          <Plural value={set.reps} one="# Rep" other="# Reps" />
-                        ) : (
-                          "—"
-                        )}
-                      </ThemedText>
-                    ) : exercise.exercise_tracking_type === "distance" ? (
-                      <ThemedText style={styles.setText}>
-                        {showValue(set.distance)} {distanceUnit}
-                      </ThemedText>
-                    ) : exercise.exercise_tracking_type === "weight" ? (
-                      <ThemedText style={styles.setText}>
-                        <Trans>
-                          {showValue(set.weight)} {settings?.weightUnit} |{" "}
-                          {set.reps ?? 0} Reps
-                        </Trans>
-                      </ThemedText>
-                    ) : (
-                      <ThemedText style={styles.setText}>
-                        <Trans>
-                          Assist {showValue(set.weight)} {settings?.weightUnit}{" "}
-                          | Resist{" "}
-                          {showValue(
-                            set.weight != null ? bodyWeight - set.weight : null,
-                          )}{" "}
-                          {settings?.weightUnit} | {set.reps ?? 0} Reps
-                        </Trans>
+                      {exercise.exercise_tracking_type === "time" ? (
+                        <ThemedText style={styles.setText}>
+                          {set.time != null
+                            ? formatFromTotalSeconds(set.time)
+                            : "—"}
+                        </ThemedText>
+                      ) : exercise.exercise_tracking_type === "reps" ? (
+                        <ThemedText style={styles.setText}>
+                          {set.reps != null ? (
+                            <Plural
+                              value={set.reps}
+                              one="# Rep"
+                              other="# Reps"
+                            />
+                          ) : (
+                            "—"
+                          )}
+                        </ThemedText>
+                      ) : exercise.exercise_tracking_type === "distance" ? (
+                        <ThemedText style={styles.setText}>
+                          {showValue(set.distance)} {distanceUnit}
+                        </ThemedText>
+                      ) : exercise.exercise_tracking_type === "weight" ? (
+                        <ThemedText style={styles.setText}>
+                          <Trans>
+                            {showValue(set.weight)} {settings?.weightUnit} |{" "}
+                            {set.reps ?? 0} Reps
+                          </Trans>
+                        </ThemedText>
+                      ) : (
+                        <ThemedText style={styles.setText}>
+                          <Trans>
+                            Assist {showValue(set.weight)}{" "}
+                            {settings?.weightUnit} | Resist{" "}
+                            {showValue(
+                              set.weight != null
+                                ? bodyWeight - set.weight
+                                : null,
+                            )}{" "}
+                            {settings?.weightUnit} | {set.reps ?? 0} Reps
+                          </Trans>
+                        </ThemedText>
+                      )}
+                    </View>
+                    {!!set.note?.trim() && (
+                      <ThemedText style={styles.setNote}>
+                        {set.note.trim()}
                       </ThemedText>
                     )}
                   </View>
@@ -387,6 +408,19 @@ function createStyles(colors: AppThemeColors) {
     },
     setText: {
       fontSize: 16,
+    },
+    setNote: {
+      fontSize: 14,
+      color: colors.contentSecondary,
+      paddingHorizontal: 16,
+      paddingBottom: 4,
+    },
+    sessionNote: {
+      fontSize: 15,
+      fontStyle: "italic",
+      color: colors.contentSecondary,
+      textAlign: "center",
+      marginTop: 12,
     },
   });
 }

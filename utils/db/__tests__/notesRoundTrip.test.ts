@@ -5,6 +5,7 @@ import { openDatabase as openFromBarrel } from "@/utils/database";
 import {
   fetchCompletedWorkoutById,
   saveCompletedWorkout,
+  updateCompletedWorkoutNotes,
 } from "@/utils/db/workouts";
 import {
   useGlobalExerciseHistoryForSessionQuery,
@@ -94,5 +95,19 @@ describe("session and set notes round trip", () => {
       expect(workout.notes).toBe("Slept badly");
       expect(workout.exercises[0].sets[1].note).toBe("felt shoulder on rep 6");
     }
+  });
+
+  it("updates the session note after the save, blank as NULL", async () => {
+    await updateCompletedWorkoutNotes(completedId, "  Felt strong after all ");
+    expect((await fetchCompletedWorkoutById(completedId)).notes).toBe(
+      "Felt strong after all",
+    );
+
+    await updateCompletedWorkoutNotes(completedId, "   ");
+    expect(
+      sqlite
+        .prepare(`SELECT notes FROM completed_workouts WHERE id = ?`)
+        .get(completedId),
+    ).toEqual({ notes: null });
   });
 });

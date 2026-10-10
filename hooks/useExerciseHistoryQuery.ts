@@ -15,6 +15,7 @@ export interface HistorySet {
   hist_bw_kg: number | null;
   is_warmup: boolean;
   is_pr: boolean;
+  note: string | null;
 }
 
 export interface HistorySection {
@@ -78,6 +79,7 @@ const fetchExerciseHistoryBody = async (
         cs.time,
         cs.distance,
         cs.is_warmup,
+        cs.note,
         cw.local_date AS date_completed,
         cw.id                   AS workout_id,
         uw.name                 AS workout_name,
@@ -118,6 +120,7 @@ const fetchExerciseHistoryBody = async (
       time,
       distance,
       is_warmup,
+      note,
       date_completed,
       workout_id,
       workout_name,
@@ -142,6 +145,7 @@ const fetchExerciseHistoryBody = async (
     tracking_type: string | null;
     hist_bw_kg: number | null;
     is_warmup: number | null;
+    note?: string | null;
     progression_metric: number | null;
     all_time_pr: number | null;
   }[];
@@ -183,6 +187,7 @@ const fetchExerciseHistoryBody = async (
       hist_bw_kg: row.hist_bw_kg,
       is_warmup: !!row.is_warmup,
       is_pr: isPR,
+      note: row.note ?? null,
     });
   }
 

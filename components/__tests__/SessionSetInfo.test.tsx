@@ -37,11 +37,13 @@ jest.mock("react-native-paper", () => {
       {visible ? children : null}
     </View>
   );
-  Menu.Item = ({ title, onPress }: any) => (
-    <Pressable onPress={onPress} accessibilityRole="menuitem">
-      <Text>{title}</Text>
-    </Pressable>
-  );
+  Menu.Item = function MenuItem({ title, onPress }: any) {
+    return (
+      <Pressable onPress={onPress} accessibilityRole="menuitem">
+        <Text>{title}</Text>
+      </Pressable>
+    );
+  };
   return { ...actual, Menu };
 });
 jest.mock("../ExerciseTimerModal", () => ({ ExerciseTimerModal: () => null }));

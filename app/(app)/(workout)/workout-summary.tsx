@@ -17,6 +17,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQuery";
+import { useUpdateCompletedWorkoutNoteMutation } from "@/hooks/useUpdateCompletedWorkoutNoteMutation";
+import SessionNoteField from "@/components/SessionNoteField";
 import {
   RECENT_HISTORY_DAYS,
   useCompletedWorkoutsQuery,
@@ -387,6 +389,8 @@ export default function WorkoutSummaryScreen() {
     isError,
   } = useCompletedWorkoutByIdQuery(id, weightUnit, distanceUnit);
 
+  const updateNote = useUpdateCompletedWorkoutNoteMutation(id);
+
   const workoutId = workout?.workout_id ?? 0;
   const { isCurrentWeekDeload } = useDeloadWeekQuery(
     workout?.plan_id ?? undefined,
@@ -554,6 +558,21 @@ export default function WorkoutSummaryScreen() {
           <StatChip label={t`Volume`} value={volumeDisplay} icon="scale" />
         </View>
 
+        {fresh === "true" ? (
+          <View style={styles.sessionNote}>
+            <SessionNoteField
+              note={workout.notes ?? ""}
+              onSave={(text) => updateNote.mutate(text)}
+            />
+          </View>
+        ) : (
+          !!workout.notes?.trim() && (
+            <ThemedText style={styles.sessionNoteText}>
+              {workout.notes.trim()}
+            </ThemedText>
+          )
+        )}
+
         {durationTrimmed === "true" && (
           <ThemedText style={styles.durationNote}>
             <Trans>Duration trimmed to your last logged set</Trans>
@@ -696,6 +715,16 @@ function createStyles(colors: AppThemeColors) {
       paddingHorizontal: 8,
       marginBottom: 16,
       alignItems: "center",
+    },
+    sessionNote: {
+      marginBottom: 16,
+    },
+    sessionNoteText: {
+      fontSize: 14,
+      fontStyle: "italic",
+      color: colors.contentSecondary,
+      textAlign: "center",
+      marginBottom: 16,
     },
     statChip: {
       flex: 1,

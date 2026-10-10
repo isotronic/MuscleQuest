@@ -138,6 +138,22 @@ export const saveCompletedWorkout = async (
   }
 };
 
+/** Sets or clears the session note of a saved workout. */
+export const updateCompletedWorkoutNotes = async (
+  completedWorkoutId: number,
+  notes: string,
+): Promise<void> => {
+  const db = await openDatabase("userData.db");
+  try {
+    await db.runAsync(`UPDATE completed_workouts SET notes = ? WHERE id = ?`, [
+      noteOrNull(notes),
+      completedWorkoutId,
+    ]);
+  } finally {
+    await db.closeAsync();
+  }
+};
+
 export const linkCompletedWorkoutToWorkout = async (
   completedWorkoutId: number,
   workoutId: number,

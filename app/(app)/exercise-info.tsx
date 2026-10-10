@@ -399,6 +399,11 @@ export default function ExerciseInfoScreen() {
                   distanceUnit,
                 )}
               </ThemedText>
+              {!!item.note?.trim() && (
+                <ThemedText style={styles.setNote}>
+                  {item.note.trim()}
+                </ThemedText>
+              )}
             </View>
           )}
           ListEmptyComponent={
@@ -574,6 +579,12 @@ function createStyles(colors: AppThemeColors) {
       marginBottom: 4,
       backgroundColor: colors.card,
       gap: 8,
+      flexWrap: "wrap",
+    },
+    setNote: {
+      width: "100%",
+      fontSize: 13,
+      color: colors.contentSecondary,
     },
     setRowPR: {
       backgroundColor: colors.accentSubtle,
