@@ -50,7 +50,10 @@ import {
   cancelRestNotifications,
   scheduleRestNotificationWithCancellation,
 } from "@/utils/restNotification";
-import { buildCompletedExercises } from "@/utils/completedExercises";
+import {
+  buildCompletedExercises,
+  unsavedSetNotes,
+} from "@/utils/completedExercises";
 import { resolveWorkoutDuration } from "@/utils/staleWorkout";
 import { savedWorkoutSummaryParams } from "@/utils/resumeWorkout";
 import { useQueryClient } from "@tanstack/react-query";
@@ -841,13 +844,25 @@ export default function WorkoutOverviewScreen() {
       const canSave = workout && (isQuickWorkout || workoutId != null);
 
       if (canSave) {
-        const exercises = buildCompletedExercises({
+        const session = {
           exercises: workout!.exercises,
           completedSets,
           weightAndReps,
           setDurations,
           setNotes,
-        });
+        };
+        const exercises = buildCompletedExercises(session);
+        // Only completed sets are saved; keep notes on the others in the
+        // session note rather than dropping them.
+        const notes = [
+          sessionNote.trim(),
+          ...unsavedSetNotes(session).map(
+            ({ exerciseName, setNumber, note }) =>
+              t`${exerciseName}, set ${setNumber}: ${note}`,
+          ),
+        ]
+          .filter(Boolean)
+          .join("\n");
 
         if (exercises.length > 0) {
           mutateStarted = true;
@@ -862,7 +877,7 @@ export default function WorkoutOverviewScreen() {
               exercises,
               // A stale workout counts towards the day it was trained.
               completedAt: endedAt ?? undefined,
-              notes: sessionNote,
+              notes,
             },
             {
               onSuccess: async (completedWorkoutId) => {

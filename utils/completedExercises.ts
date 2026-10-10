@@ -14,7 +14,7 @@ type SetEntry = {
  * completed sets, in display units, with their set notes. Exercises with no
  * completed set are left out.
  */
-export function buildCompletedExercises(session: {
+interface SessionSnapshot {
   exercises: UserExercise[];
   completedSets: { [exerciseIndex: number]: { [setIndex: number]: boolean } };
   weightAndReps: { [exerciseIndex: number]: { [setIndex: number]: SetEntry } };
@@ -22,7 +22,11 @@ export function buildCompletedExercises(session: {
     [exerciseIndex: number]: { [setIndex: number]: number | null };
   };
   setNotes: { [exerciseIndex: number]: { [setIndex: number]: string } };
-}): SavedWorkout["exercises"] {
+}
+
+export function buildCompletedExercises(
+  session: SessionSnapshot,
+): SavedWorkout["exercises"] {
   const { exercises, completedSets, weightAndReps, setDurations, setNotes } =
     session;
   return exercises
@@ -64,4 +68,33 @@ export function buildCompletedExercises(session: {
       };
     })
     .filter((exercise) => exercise !== null);
+}
+
+const isSaved = (session: SessionSnapshot, exIdx: number, setIdx: number) =>
+  session.completedSets[exIdx]?.[setIdx] === true &&
+  session.weightAndReps[exIdx]?.[setIdx] !== undefined;
+
+/**
+ * Notes on sets that buildCompletedExercises leaves out (never completed), so
+ * the caller can keep them in the session note instead of dropping them.
+ */
+export function unsavedSetNotes(
+  session: SessionSnapshot,
+): { exerciseName: string; setNumber: number; note: string }[] {
+  const result: { exerciseName: string; setNumber: number; note: string }[] =
+    [];
+  session.exercises.forEach((exercise, exIdx) => {
+    Object.entries(session.setNotes[exIdx] ?? {})
+      .map(([key, note]) => [parseInt(key, 10), note.trim()] as const)
+      .filter(([setIdx, note]) => note && !isSaved(session, exIdx, setIdx))
+      .sort(([a], [b]) => a - b)
+      .forEach(([setIdx, note]) =>
+        result.push({
+          exerciseName: exercise.name,
+          setNumber: setIdx + 1,
+          note,
+        }),
+      );
+  });
+  return result;
 }

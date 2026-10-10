@@ -128,4 +128,14 @@ describe("LastTimeLine", () => {
     expect(getByText("Note: skipped, knee")).toBeTruthy();
     expect(queryByText(/Last time/)).toBeNull();
   });
+
+  it("labels a session note as one, not as the set's", () => {
+    const { getByText } = render(
+      <LastTimeLine
+        {...props}
+        previous={{ ...previous, note: "Slept 4h", noteIsSession: true }}
+      />,
+    );
+    expect(getByText("Session note: Slept 4h")).toBeTruthy();
+  });
 });

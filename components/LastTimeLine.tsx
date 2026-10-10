@@ -18,6 +18,8 @@ export interface PreviousSet {
   localDate?: string;
   /** The set's note, or failing that its session's note. */
   note?: string | null;
+  /** The note is the session's, not this set's. */
+  noteIsSession?: boolean;
 }
 
 interface LastTimeLineProps {
@@ -125,7 +127,7 @@ export default function LastTimeLine({
         style={[styles.text, styles.note]}
         numberOfLines={noteExpanded ? undefined : 1}
       >
-        {t`Note: ${note}`}
+        {previous.noteIsSession ? t`Session note: ${note}` : t`Note: ${note}`}
       </ThemedText>
     </TouchableOpacity>
   ) : null;

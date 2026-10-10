@@ -1,4 +1,7 @@
-import { buildCompletedExercises } from "../completedExercises";
+import {
+  buildCompletedExercises,
+  unsavedSetNotes,
+} from "../completedExercises";
 
 const exercise = (id: number, sets = 3) =>
   ({
@@ -65,5 +68,25 @@ describe("buildCompletedExercises", () => {
         },
       ],
     });
+  });
+});
+
+describe("unsavedSetNotes", () => {
+  it("lists notes on sets the save leaves out", () => {
+    const session = {
+      exercises: [exercise(1), exercise(2)],
+      completedSets: { 0: { 0: true, 1: false } },
+      weightAndReps: { 0: { 0: { weight: "100", reps: "5" } } },
+      setDurations: {},
+      setNotes: {
+        0: { 0: "kept", 1: "skipped, elbow twinge" },
+        1: { 2: "never started" },
+      },
+    };
+
+    expect(unsavedSetNotes(session)).toEqual([
+      { exerciseName: "Ex 1", setNumber: 2, note: "skipped, elbow twinge" },
+      { exerciseName: "Ex 2", setNumber: 3, note: "never started" },
+    ]);
   });
 });
