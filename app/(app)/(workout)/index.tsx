@@ -49,7 +49,7 @@ import {
   cancelRestNotifications,
   scheduleRestNotificationWithCancellation,
 } from "@/utils/restNotification";
-import { convertTimeStrToSeconds } from "@/utils/utility";
+import { buildCompletedExercises } from "@/utils/completedExercises";
 import { resolveWorkoutDuration } from "@/utils/staleWorkout";
 import { savedWorkoutSummaryParams } from "@/utils/resumeWorkout";
 import { useQueryClient } from "@tanstack/react-query";
@@ -118,6 +118,8 @@ export default function WorkoutOverviewScreen() {
     loadProgressionSuggestions,
     removeFromSuperset,
     setDurations,
+    sessionNote,
+    setNotes,
     timerRunning,
     timerExpiry,
     stopTimer,
@@ -837,50 +839,13 @@ export default function WorkoutOverviewScreen() {
       const canSave = workout && (isQuickWorkout || workoutId != null);
 
       if (canSave) {
-        const exercises = workout!.exercises
-          .map((exercise, index) => {
-            const completedSetIndices = Object.entries(
-              completedSets[index] || {},
-            )
-              .filter(([, isCompleted]) => isCompleted)
-              .map(([setIndex]) => parseInt(setIndex));
-
-            if (completedSetIndices.length === 0) {
-              return null;
-            }
-
-            const sets = Object.entries(weightAndReps[index] || {})
-              .filter(([setIndex]) =>
-                completedSetIndices.includes(parseInt(setIndex)),
-              )
-              .map(([setIndex, set]) => ({
-                set_number: parseInt(setIndex) + 1,
-                weight: set.weight ? parseFloat(set.weight) : null,
-                reps: set.reps ? parseInt(set.reps) : null,
-                time: set.time ? convertTimeStrToSeconds(set.time) : null,
-                distance:
-                  set.distance !== "" && set.distance != null
-                    ? parseFloat(set.distance)
-                    : null,
-                is_warmup: exercise.sets[parseInt(setIndex)]?.isWarmup || false,
-                is_drop_set:
-                  exercise.sets[parseInt(setIndex)]?.isDropSet || false,
-                is_to_failure:
-                  exercise.sets[parseInt(setIndex)]?.isToFailure || false,
-                set_duration:
-                  setDurations?.[index]?.[parseInt(setIndex)] ?? null,
-              }));
-
-            return {
-              exercise_id: exercise.exercise_id,
-              resolved_tracking_type:
-                exercise.tracking_type_override ??
-                exercise.tracking_type ??
-                null,
-              sets,
-            };
-          })
-          .filter((exercise) => exercise !== null);
+        const exercises = buildCompletedExercises({
+          exercises: workout!.exercises,
+          completedSets,
+          weightAndReps,
+          setDurations,
+          setNotes,
+        });
 
         if (exercises.length > 0) {
           mutateStarted = true;
@@ -895,6 +860,7 @@ export default function WorkoutOverviewScreen() {
               exercises,
               // A stale workout counts towards the day it was trained.
               completedAt: endedAt ?? undefined,
+              notes: sessionNote,
             },
             {
               onSuccess: async (completedWorkoutId) => {

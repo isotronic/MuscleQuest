@@ -65,6 +65,7 @@ export interface RemovedExerciseSnapshot {
   currentSetIndex?: number;
   setDurations?: { [setIndex: number]: number | null };
   suggestedWeightPrefills?: Record<number, number>;
+  setNotes?: { [setIndex: number]: string };
   wasAppended: boolean;
 }
 
@@ -80,6 +81,7 @@ export interface RemovedSetSnapshot {
   weightAndReps?: SetEntry;
   setDuration?: number | null;
   suggestedWeightPrefill?: number;
+  setNote?: string;
 }
 
 /** Inserts `value` at `index`, shifting later keys up by one. */
@@ -139,6 +141,14 @@ interface ActiveWorkoutStore {
   setDurations: {
     [exerciseIndex: number]: { [setIndex: number]: number | null };
   };
+  /** Free-text note on the whole session, saved to completed_workouts.notes. */
+  sessionNote: string;
+  setSessionNote: (note: string) => void;
+  /** Notes on individual sets, keyed like weightAndReps. */
+  setNotes: {
+    [exerciseIndex: number]: { [setIndex: number]: string };
+  };
+  setSetNote: (exerciseIndex: number, setIndex: number, note: string) => void;
   appendedExerciseIndices: number[];
   appendExercise: (exercise: UserExercise) => void;
   setWorkout: (
@@ -264,6 +274,24 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       savedCompletedWorkoutId: null,
       savedDurationTrimmed: false,
       setDurations: {},
+      sessionNote: "",
+      setNotes: {},
+
+      setSessionNote: (note) => set({ sessionNote: note }),
+
+      setSetNote: (exerciseIndex, setIndex, note) =>
+        set((state) => {
+          const { [setIndex]: _, ...rest } =
+            state.setNotes[exerciseIndex] ?? {};
+          return {
+            setNotes: {
+              ...state.setNotes,
+              [exerciseIndex]: note.trim()
+                ? { ...rest, [setIndex]: note }
+                : rest,
+            },
+          };
+        }),
 
       setSavedCompletedWorkoutId: (id, durationTrimmed) =>
         set({
@@ -295,6 +323,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           savedCompletedWorkoutId: null,
           savedDurationTrimmed: false,
           setDurations: {},
+          sessionNote: "",
+          setNotes: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
           recoveryCheckInShown: false,
@@ -325,6 +355,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           savedCompletedWorkoutId: null,
           savedDurationTrimmed: false,
           setDurations: {},
+          sessionNote: "",
+          setNotes: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
           recoveryCheckInShown: false,
@@ -967,6 +999,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentExerciseIndex,
             setDurations,
             suggestedWeightPrefills,
+            setNotes,
           } = state;
 
           if (
@@ -1020,6 +1053,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             );
           }
 
+          const updatedSetNotes = { ...setNotes };
+          if (updatedSetNotes[currentExerciseIndex]) {
+            updatedSetNotes[currentExerciseIndex] = reindexAfterRemoval(
+              updatedSetNotes[currentExerciseIndex],
+              setIndex,
+            );
+          }
+
           // Navigate to the active set after deletion:
           // - first uncompleted set if the exercise still has one (the "active" set)
           // - last set if the exercise is fully completed (another exercise is active)
@@ -1048,6 +1089,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentSetIndices: updatedSetIndices,
             setDurations: updatedSetDurations,
             suggestedWeightPrefills: updatedPrefills,
+            setNotes: updatedSetNotes,
           };
         });
       },
@@ -1139,6 +1181,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             ],
             completedSets: { ...state.completedSets, [newIndex]: {} },
             weightAndReps: { ...state.weightAndReps, [newIndex]: {} },
+            setNotes: { ...state.setNotes, [newIndex]: {} },
             currentSetIndices: { ...state.currentSetIndices, [newIndex]: 0 },
           };
         }),
@@ -1185,6 +1228,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               ...state.weightAndReps,
               [index]: resetWeightAndReps, // Reset weight and reps to 0
             },
+            setNotes: { ...state.setNotes, [index]: {} },
             currentSetIndices: {
               ...currentSetIndices,
               [index]: 0, // Reset the current set index to 0
@@ -1209,6 +1253,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentExerciseIndex,
             appendedExerciseIndices,
             suggestedWeightPrefills,
+            setNotes,
           } = state;
           if (!workout) {
             return state;
@@ -1284,6 +1329,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
 
           return {
             workout: { ...workout, exercises: updatedExercises },
+            setNotes: reindexAfterRemoval(setNotes, index),
             completedSets: adjustedCompletedSets,
             weightAndReps: adjustedWeightAndReps,
             currentSetIndices: adjustedSetIndices,
@@ -1314,6 +1360,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           currentSetIndex: state.currentSetIndices[index],
           setDurations: state.setDurations[index],
           suggestedWeightPrefills: state.suggestedWeightPrefills[index],
+          setNotes: state.setNotes[index],
           wasAppended: state.appendedExerciseIndices.includes(index),
         };
       },
@@ -1357,6 +1404,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               index,
               snapshot.suggestedWeightPrefills,
             ),
+            setNotes: insertAtIndex(state.setNotes, index, snapshot.setNotes),
             currentExerciseIndex:
               state.currentExerciseIndex >= index
                 ? state.currentExerciseIndex + 1
@@ -1384,6 +1432,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           setDuration: state.setDurations[exerciseIndex]?.[setIndex],
           suggestedWeightPrefill:
             state.suggestedWeightPrefills[exerciseIndex]?.[setIndex],
+          setNote: state.setNotes[exerciseIndex]?.[setIndex],
         };
       },
 
@@ -1444,6 +1493,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                 snapshot.suggestedWeightPrefill,
               ),
             },
+            setNotes: {
+              ...state.setNotes,
+              [exerciseIndex]: insertAtIndex(
+                state.setNotes[exerciseIndex] ?? {},
+                index,
+                snapshot.setNote,
+              ),
+            },
             currentSetIndices:
               restoredPointer === undefined
                 ? state.currentSetIndices
@@ -1466,6 +1523,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             appendedExerciseIndices,
             setDurations,
             suggestedWeightPrefills,
+            setNotes,
           } = state;
           if (!workout) return state;
 
@@ -1495,6 +1553,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentSetIndices: remap(currentSetIndices),
             setDurations: remap(setDurations),
             suggestedWeightPrefills: remap(suggestedWeightPrefills),
+            setNotes: remap(setNotes),
             currentExerciseIndex:
               oldToNew[currentExerciseIndex] ?? currentExerciseIndex,
             appendedExerciseIndices: appendedExerciseIndices
@@ -1525,6 +1584,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           savedCompletedWorkoutId: null,
           savedDurationTrimmed: false,
           setDurations: {},
+          sessionNote: "",
+          setNotes: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
           recoveryCheckInShown: false,
@@ -1601,6 +1662,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             setDurations,
             currentExerciseIndex,
             suggestedWeightPrefills,
+            setNotes,
           } = state;
           if (!workout) return state;
 
@@ -1645,6 +1707,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           );
           newPrefills[exerciseIndex + 1] = {};
 
+          const newSetNotes = shiftIndicesForInsert(setNotes, exerciseIndex);
+          newSetNotes[exerciseIndex + 1] = {};
+
           const newAppendedIndices = appendedExerciseIndices.map((i) =>
             i > exerciseIndex ? i + 1 : i,
           );
@@ -1657,6 +1722,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentSetIndices: newSetIndices,
             setDurations: newSetDurations,
             suggestedWeightPrefills: newPrefills,
+            setNotes: newSetNotes,
             appendedExerciseIndices: newAppendedIndices,
             currentExerciseIndex:
               currentExerciseIndex > exerciseIndex
@@ -1736,6 +1802,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           savedCompletedWorkoutId: null,
           savedDurationTrimmed: false,
           setDurations: {},
+          sessionNote: "",
+          setNotes: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
           recoveryCheckInShown: false,
@@ -1884,6 +1952,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           completedSets: state.completedSets,
           weightAndReps: state.weightAndReps,
           setDurations: state.setDurations,
+          sessionNote: state.sessionNote,
+          setNotes: state.setNotes,
           appendedExerciseIndices: state.appendedExerciseIndices,
           feedbackSubmittedUweIds: state.feedbackSubmittedUweIds,
           recoveryCheckInShown: state.recoveryCheckInShown,
