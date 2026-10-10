@@ -226,6 +226,8 @@ const toPreviousSet = (match: CarryOverMatch | null): PreviousSet | null =>
         time: match.time,
         distance: match.distance,
         localDate: match.local_date,
+        // The set's own note says more about this set than the session's.
+        note: match.note?.trim() || match.workout_notes?.trim() || null,
       }
     : null;
 

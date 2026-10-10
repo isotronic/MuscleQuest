@@ -49,6 +49,47 @@ describe("findLastAvailableSetData", () => {
     ).toMatchObject({ weight: 60, local_date: "2026-09-12" });
   });
 
+  it("carries the set's note and its session's note", () => {
+    const previousWorkoutData: CarryOverWorkout[] = [
+      {
+        local_date: "2026-09-12",
+        notes: "Slept badly",
+        exercises: [
+          {
+            exercise_id: 1,
+            sets: [
+              makeSet(),
+              makeSet({ set_id: 2, note: "shoulder on rep 6" }),
+            ],
+          },
+        ],
+      },
+    ];
+    const params = {
+      isWarmup: false,
+      previousWorkoutData,
+      prevExercisesByExerciseId: buildExerciseMap(previousWorkoutData),
+      globalExercisesByExerciseId: new Map(),
+      alwaysUseGlobalHistory: false,
+    };
+
+    expect(
+      findLastAvailableSetData({ ...params, exerciseId: 1, ordinal: 1 }),
+    ).toMatchObject({
+      note: "shoulder on rep 6",
+      workout_notes: "Slept badly",
+    });
+    // Found by position after a swap: the session note still comes along.
+    expect(
+      findLastAvailableSetData({
+        ...params,
+        exerciseId: 99,
+        ordinal: 0,
+        exercisePosition: 0,
+      }),
+    ).toMatchObject({ workout_notes: "Slept badly" });
+  });
+
   it("returns the set at the same ordinal when it exists in the most recent session", () => {
     const previousWorkoutData: CarryOverWorkout[] = [
       {
