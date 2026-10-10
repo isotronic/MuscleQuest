@@ -2047,8 +2047,12 @@ msgstr "After completing the last working set of an exercise, a feedback sheet s
 #~ msgstr "After completing the last working set of an exercise, a feedback sheet slides up with two questions. The first asks how the effort felt: Easy (you could have done more), About right, Hard (near your limit), or Couldn't finish all sets. The second asks about pain: No pain, Minor discomfort, or Pain or form issues. If you answer Easy, a third question appears asking whether you want to push harder next time. This lets you deliberately hold the current load even when a session felt light, so the engine respects your intent. If you answer Pain, an optional text field lets you note where you felt it for your own reference. The sheet can be dismissed without answering if you prefer not to log feedback for that exercise in that session."
 
 #: constants/HelpData.ts:97
-msgid "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. Add a session note to remember how it went. When completing a Quick Workout, you will be prompted to save it as a standalone workout for future use or discard it."
-msgstr "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. Add a session note to remember how it went. When completing a Quick Workout, you will be prompted to save it as a standalone workout for future use or discard it."
+msgid "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. Add a session note to remember how it went. After a quick workout, your session is saved and you can give it a name to reuse it as a workout."
+msgstr "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. Add a session note to remember how it went. After a quick workout, your session is saved and you can give it a name to reuse it as a workout."
+
+#: constants/HelpData.ts:97
+#~ msgid "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. Add a session note to remember how it went. When completing a Quick Workout, you will be prompted to save it as a standalone workout for future use or discard it."
+#~ msgstr "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. Add a session note to remember how it went. When completing a Quick Workout, you will be prompted to save it as a standalone workout for future use or discard it."
 
 #: constants/HelpData.ts:96
 #~ msgid "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. When completing a Quick Workout, you will be prompted to save it as a standalone workout for future use or discard it."
@@ -2109,8 +2113,8 @@ msgid "All shared data has been removed."
 msgstr "All shared data has been removed."
 
 #: components/PrivacySettings.tsx:202
-msgid "All standalone workouts are published and new ones are published automatically."
-msgstr "All standalone workouts are published and new ones are published automatically."
+#~ msgid "All standalone workouts are published and new ones are published automatically."
+#~ msgstr "All standalone workouts are published and new ones are published automatically."
 
 #: components/FilterRow.tsx:62
 #: components/FilterRow.tsx:114
@@ -2134,6 +2138,10 @@ msgstr "All Time"
 #: components/StartupRecoveryScreen.tsx:81
 msgid "All training history on this device will be deleted. It can only be recovered from a cloud backup, which you can restore from Settings after the reset."
 msgstr "All training history on this device will be deleted. It can only be recovered from a cloud backup, which you can restore from Settings after the reset."
+
+#: components/PrivacySettings.tsx:202
+msgid "All workouts outside plans are published and new ones are published automatically."
+msgstr "All workouts outside plans are published and new ones are published automatically."
 
 #: app/(app)/(tabs)/(stats)/exercise-detail.tsx:94
 msgid "All-time PR"
@@ -2647,8 +2655,12 @@ msgid "Choose none to show every measurement in the latest entry."
 msgstr "Choose none to show every measurement in the latest entry."
 
 #: app/(app)/(tabs)/index.tsx:660
-msgid "Choose Workout"
-msgstr "Choose Workout"
+msgid "Choose workout"
+msgstr "Choose workout"
+
+#: app/(app)/(tabs)/index.tsx:660
+#~ msgid "Choose Workout"
+#~ msgstr "Choose Workout"
 
 #: app/(app)/help.tsx:381
 #: app/(app)/help.tsx:436
@@ -2760,8 +2772,12 @@ msgstr "Copy"
 #~ msgstr "Copy {0} to another plan"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:98
-msgid "Copy {spokenName} to standalone workouts"
-msgstr "Copy {spokenName} to standalone workouts"
+#~ msgid "Copy {spokenName} to standalone workouts"
+#~ msgstr "Copy {spokenName} to standalone workouts"
+
+#: app/(app)/(tabs)/(plans)/overview.tsx:98
+msgid "Copy {spokenName} to Your workouts"
+msgstr "Copy {spokenName} to Your workouts"
 
 #: components/CopyWorkoutModal.tsx:49
 msgid "Copy Workout"
@@ -2772,8 +2788,12 @@ msgstr "Copy Workout"
 #~ msgstr "Copy workout to another plan"
 
 #: components/WorkoutDetailsScreen.tsx:265
-msgid "Copy workout to standalone workouts"
-msgstr "Copy workout to standalone workouts"
+#~ msgid "Copy workout to standalone workouts"
+#~ msgstr "Copy workout to standalone workouts"
+
+#: components/WorkoutDetailsScreen.tsx:265
+msgid "Copy workout to Your workouts"
+msgstr "Copy workout to Your workouts"
 
 #: constants/dbTranslations.ts:44
 msgid "core"
@@ -3519,8 +3539,12 @@ msgid "Enable to publish all plans. Individual plans can still be toggled on the
 msgstr "Enable to publish all plans. Individual plans can still be toggled on the plan screen."
 
 #: components/PrivacySettings.tsx:209
-msgid "Enable to publish all standalone workouts. Individual workouts can still be toggled on the workout screen."
-msgstr "Enable to publish all standalone workouts. Individual workouts can still be toggled on the workout screen."
+#~ msgid "Enable to publish all standalone workouts. Individual workouts can still be toggled on the workout screen."
+#~ msgstr "Enable to publish all standalone workouts. Individual workouts can still be toggled on the workout screen."
+
+#: components/PrivacySettings.tsx:209
+msgid "Enable to publish all workouts outside plans. Individual workouts can still be toggled on the workout screen."
+msgstr "Enable to publish all workouts outside plans. Individual workouts can still be toggled on the workout screen."
 
 #: app/(app)/settings.tsx:950
 #: app/(app)/settings.tsx:976
@@ -5062,8 +5086,12 @@ msgstr "Open the Exercise Library from the menu at any time to browse almost 1,0
 #~ msgstr "Open the plan and tap Activate when it's ready. Your edits are auto-saved as a draft, so you can leave and resume later."
 
 #: constants/HelpData.ts:51
-msgid "Open the plan and tap Start Plan when it's ready to make it your active plan. Your edits are auto-saved as a draft, so you can leave and resume later."
-msgstr "Open the plan and tap Start Plan when it's ready to make it your active plan. Your edits are auto-saved as a draft, so you can leave and resume later."
+msgid "Open the plan and tap Set as active plan when it's ready. Your edits are auto-saved as a draft, so you can leave and resume later."
+msgstr "Open the plan and tap Set as active plan when it's ready. Your edits are auto-saved as a draft, so you can leave and resume later."
+
+#: constants/HelpData.ts:51
+#~ msgid "Open the plan and tap Start Plan when it's ready to make it your active plan. Your edits are auto-saved as a draft, so you can leave and resume later."
+#~ msgstr "Open the plan and tap Start Plan when it's ready to make it your active plan. Your edits are auto-saved as a draft, so you can leave and resume later."
 
 #: components/stats/widgets/HistoryWidget.tsx:33
 msgid "Open workout calendar"
@@ -5345,8 +5373,14 @@ msgstr "quads"
 #: app/(app)/(tabs)/index.tsx:650
 #: app/(app)/(workout)/index.tsx:1113
 #: utils/workoutName.ts:7
-msgid "Quick Workout"
-msgstr "Quick Workout"
+msgid "Quick workout"
+msgstr "Quick workout"
+
+#: app/(app)/(tabs)/index.tsx:650
+#: app/(app)/(workout)/index.tsx:1113
+#: utils/workoutName.ts:7
+#~ msgid "Quick Workout"
+#~ msgstr "Quick Workout"
 
 #: constants/dbTranslations.ts:54
 msgid "rear deltoids"
@@ -6062,8 +6096,8 @@ msgid "Share plans with friends"
 msgstr "Share plans with friends"
 
 #: components/PrivacySettings.tsx:198
-msgid "Share standalone workouts with friends"
-msgstr "Share standalone workouts with friends"
+#~ msgid "Share standalone workouts with friends"
+#~ msgstr "Share standalone workouts with friends"
 
 #: components/PrivacySettings.tsx:376
 msgid "Share strength PRs with friends"
@@ -6072,6 +6106,10 @@ msgstr "Share strength PRs with friends"
 #: components/StandaloneWorkoutScreen.tsx:273
 msgid "Share Workout"
 msgstr "Share Workout"
+
+#: components/PrivacySettings.tsx:198
+msgid "Share workouts outside plans with friends"
+msgstr "Share workouts outside plans with friends"
 
 #: app/(app)/friend-profile.tsx:218
 msgid "Shared"
@@ -6197,8 +6235,8 @@ msgid "Signing In"
 msgstr "Signing In"
 
 #: components/Onboarding.tsx:109
-msgid "Single & Quick Workouts"
-msgstr "Single & Quick Workouts"
+#~ msgid "Single & Quick Workouts"
+#~ msgstr "Single & Quick Workouts"
 
 #: app/(app)/custom-exercise.tsx:561
 #: app/(app)/custom-exercise.tsx:570
@@ -6287,8 +6325,8 @@ msgstr "spine"
 
 #: app/(app)/friend-profile.tsx:396
 #: components/WorkoutPickerModal.tsx:170
-msgid "Standalone Workouts"
-msgstr "Standalone Workouts"
+#~ msgid "Standalone Workouts"
+#~ msgstr "Standalone Workouts"
 
 #: constants/HelpData.ts:39
 #~ msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work."
@@ -6299,8 +6337,8 @@ msgstr "Standalone Workouts"
 #~ msgstr "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library, then start any one of them straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work."
 
 #: constants/HelpData.ts:69
-msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a standalone workout by mistake, tap Undo on the message that appears."
-msgstr "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a standalone workout by mistake, tap Undo on the message that appears."
+#~ msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a standalone workout by mistake, tap Undo on the message that appears."
+#~ msgstr "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a standalone workout by mistake, tap Undo on the message that appears."
 
 #: app/(app)/(tabs)/index.tsx:621
 #: components/StandaloneWorkoutListItem.tsx:114
@@ -6469,8 +6507,12 @@ msgstr "Tap Accept to apply a suggestion for your next session, or Dismiss to ig
 #~ msgstr "Tap any accepted friend in your Friends list to open their profile. Their profile shows whatever they have chosen to share: strength PRs, recent activity, body measurements, plans, standalone workouts, and custom exercises. Tap Add on a plan, workout, or custom exercise to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts."
 
 #: constants/HelpData.ts:340
-msgid "Tap any accepted friend in your Friends list to open their profile. Their profile shows whatever they have chosen to share: strength PRs, recent activity, body measurements, plans, standalone workouts, and custom exercises. Tap Add on a plan, workout, or custom exercise to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts. Each section of a profile starts collapsed; tap its heading to open it."
-msgstr "Tap any accepted friend in your Friends list to open their profile. Their profile shows whatever they have chosen to share: strength PRs, recent activity, body measurements, plans, standalone workouts, and custom exercises. Tap Add on a plan, workout, or custom exercise to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts. Each section of a profile starts collapsed; tap its heading to open it."
+#~ msgid "Tap any accepted friend in your Friends list to open their profile. Their profile shows whatever they have chosen to share: strength PRs, recent activity, body measurements, plans, standalone workouts, and custom exercises. Tap Add on a plan, workout, or custom exercise to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts. Each section of a profile starts collapsed; tap its heading to open it."
+#~ msgstr "Tap any accepted friend in your Friends list to open their profile. Their profile shows whatever they have chosen to share: strength PRs, recent activity, body measurements, plans, standalone workouts, and custom exercises. Tap Add on a plan, workout, or custom exercise to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts. Each section of a profile starts collapsed; tap its heading to open it."
+
+#: constants/HelpData.ts:340
+msgid "Tap any accepted friend in your Friends list to open their profile. Their profile shows whatever they have chosen to share: strength PRs, recent activity, body measurements, plans, workouts, and custom exercises. Tap Add on a plan, workout, or custom exercise to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts. Each section of a profile starts collapsed; tap its heading to open it."
+msgstr "Tap any accepted friend in your Friends list to open their profile. Their profile shows whatever they have chosen to share: strength PRs, recent activity, body measurements, plans, workouts, and custom exercises. Tap Add on a plan, workout, or custom exercise to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts. Each section of a profile starts collapsed; tap its heading to open it."
 
 #: constants/HelpData.ts:352
 msgid "Tap Sign in with Google in Settings to connect your account; signing in needs an internet connection. Signing in enables cloud backups so your data is safe if you switch devices or reinstall the app, lets you add friends, and shows your name in the home screen greeting. The app works fully offline without signing in, but cloud backups and Friends are unavailable. Your data is stored locally on your device and is not shared with anyone unless you choose to share it yourself."
@@ -6481,8 +6523,12 @@ msgstr "Tap Sign in with Google in Settings to connect your account; signing in 
 #~ msgstr "Tap Sign In With Google in Settings to connect your account. Signing in enables cloud backups so your data is safe if you switch devices or reinstall the app, and your name is shown in the home screen greeting. The app works fully offline without signing in, but cloud backups are unavailable. Your data is stored locally on your device and is not shared with anyone unless you choose to share it yourself."
 
 #: constants/HelpData.ts:54
-msgid "Tap the copy icon on any workout in a plan to copy it to your standalone workouts."
-msgstr "Tap the copy icon on any workout in a plan to copy it to your standalone workouts."
+#~ msgid "Tap the copy icon on any workout in a plan to copy it to your standalone workouts."
+#~ msgstr "Tap the copy icon on any workout in a plan to copy it to your standalone workouts."
+
+#: constants/HelpData.ts:54
+msgid "Tap the copy icon on any workout in a plan to copy it to Your workouts."
+msgstr "Tap the copy icon on any workout in a plan to copy it to Your workouts."
 
 #: constants/HelpData.ts:82
 msgid "Tap the menu (⋮) on a set and choose Edit Set to change its rep range or rest time mid-workout."
@@ -6594,8 +6640,12 @@ msgstr "The latest entry has none of the measurements chosen for this section."
 #~ msgstr "The Plans tab includes a library of ready-made training programmes you can start immediately. Scroll past Your Training Plans to find the Premade Plans section. Tap any programme to preview its workouts and schedule, then tap Activate to make it your active plan. You can edit a premade plan to adjust exercises, sets, or the weekly schedule. This will create a copy of the premade plan that you can modify without affecting the original, so you can always return to the default version if needed."
 
 #: constants/HelpData.ts:63
-msgid "The Plans tab includes a library of ready-made training programmes you can start immediately. Scroll past Your training plans to find the Premade plans section. Tap any programme to preview its workouts and schedule, then tap Start Plan to make it your active plan. To adjust exercises, sets, or the weekly schedule, tap Customise Plan. This creates a copy of the premade plan that you can modify without affecting the original, so you can always return to the default version if needed."
-msgstr "The Plans tab includes a library of ready-made training programmes you can start immediately. Scroll past Your training plans to find the Premade plans section. Tap any programme to preview its workouts and schedule, then tap Start Plan to make it your active plan. To adjust exercises, sets, or the weekly schedule, tap Customise Plan. This creates a copy of the premade plan that you can modify without affecting the original, so you can always return to the default version if needed."
+msgid "The Plans tab includes a library of ready-made training programmes you can start immediately. Scroll past Your training plans to find the Premade plans section. Tap any programme to preview its workouts and schedule, then tap Set as active plan. To adjust exercises, sets, or the weekly schedule, tap Customise Plan. This creates a copy of the premade plan that you can modify without affecting the original, so you can always return to the default version if needed."
+msgstr "The Plans tab includes a library of ready-made training programmes you can start immediately. Scroll past Your training plans to find the Premade plans section. Tap any programme to preview its workouts and schedule, then tap Set as active plan. To adjust exercises, sets, or the weekly schedule, tap Customise Plan. This creates a copy of the premade plan that you can modify without affecting the original, so you can always return to the default version if needed."
+
+#: constants/HelpData.ts:63
+#~ msgid "The Plans tab includes a library of ready-made training programmes you can start immediately. Scroll past Your training plans to find the Premade plans section. Tap any programme to preview its workouts and schedule, then tap Start Plan to make it your active plan. To adjust exercises, sets, or the weekly schedule, tap Customise Plan. This creates a copy of the premade plan that you can modify without affecting the original, so you can always return to the default version if needed."
+#~ msgstr "The Plans tab includes a library of ready-made training programmes you can start immediately. Scroll past Your training plans to find the Premade plans section. Tap any programme to preview its workouts and schedule, then tap Start Plan to make it your active plan. To adjust exercises, sets, or the weekly schedule, tap Customise Plan. This creates a copy of the premade plan that you can modify without affecting the original, so you can always return to the default version if needed."
 
 #: constants/HelpData.ts:104
 msgid "The rest timer starts automatically after each set and counts down to zero; each set remembers its own rest duration, so different sets within the same exercise can have different rest periods."
@@ -6946,14 +6996,18 @@ msgid "Tracking type is required."
 msgstr "Tracking type is required."
 
 #: components/Onboarding.tsx:110
-msgid ""
-"Train without a plan! Create standalone workouts that live outside your training plans — perfect for mobility sessions, warm-ups, or anything ad hoc.\n"
-"\n"
-"Or jump straight into a Quick Workout from the home screen, add exercises on the fly, and optionally save it as a standalone workout when you're done."
-msgstr ""
-"Train without a plan! Create standalone workouts that live outside your training plans — perfect for mobility sessions, warm-ups, or anything ad hoc.\n"
-"\n"
-"Or jump straight into a Quick Workout from the home screen, add exercises on the fly, and optionally save it as a standalone workout when you're done."
+#~ msgid ""
+#~ "Train without a plan! Create standalone workouts that live outside your training plans — perfect for mobility sessions, warm-ups, or anything ad hoc.\n"
+#~ "\n"
+#~ "Or jump straight into a Quick Workout from the home screen, add exercises on the fly, and optionally save it as a standalone workout when you're done."
+#~ msgstr ""
+#~ "Train without a plan! Create standalone workouts that live outside your training plans — perfect for mobility sessions, warm-ups, or anything ad hoc.\n"
+#~ "\n"
+#~ "Or jump straight into a Quick Workout from the home screen, add exercises on the fly, and optionally save it as a standalone workout when you're done."
+
+#: components/Onboarding.tsx:110
+msgid "Train without a plan. Save workouts outside your plans, or start a quick workout from home and add exercises as you go."
+msgstr "Train without a plan. Save workouts outside your plans, or start a quick workout from home and add exercises as you go."
 
 #: components/stats/widgets/registry.ts:174
 msgid "Trained or not"
@@ -7533,8 +7587,13 @@ msgstr "Workout Complete!"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:191
 #: components/WorkoutDetailsScreen.tsx:86
-msgid "Workout copied to standalone workouts"
-msgstr "Workout copied to standalone workouts"
+#~ msgid "Workout copied to standalone workouts"
+#~ msgstr "Workout copied to standalone workouts"
+
+#: app/(app)/(tabs)/(plans)/overview.tsx:191
+#: components/WorkoutDetailsScreen.tsx:86
+msgid "Workout copied to Your workouts"
+msgstr "Workout copied to Your workouts"
 
 #: components/Cues.tsx:25
 msgid "Workout cues"
@@ -7606,6 +7665,18 @@ msgstr "Workout Summary"
 msgid "Workouts"
 msgstr "Workouts"
 
+#: components/Onboarding.tsx:109
+msgid "Workouts and quick workouts"
+msgstr "Workouts and quick workouts"
+
+#: constants/HelpData.ts:69
+msgid "Workouts can also live outside of plans, under Your workouts on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each workout so you can plan your time before starting. A quick workout starts a session immediately from the home screen: tap Quick workout, add exercises as you go, and at the end you can give it a name to reuse it later. Tap Choose workout next to it to search and browse every workout across your plans and Your workouts; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a workout by mistake, tap Undo on the message that appears."
+msgstr "Workouts can also live outside of plans, under Your workouts on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each workout so you can plan your time before starting. A quick workout starts a session immediately from the home screen: tap Quick workout, add exercises as you go, and at the end you can give it a name to reuse it later. Tap Choose workout next to it to search and browse every workout across your plans and Your workouts; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a workout by mistake, tap Undo on the message that appears."
+
+#: app/(app)/friend-profile.tsx:396
+msgid "Workouts outside plans"
+msgstr "Workouts outside plans"
+
 #: components/stats/widgets/registry.ts:91
 msgid "Workouts per week"
 msgstr "Workouts per week"
@@ -7675,8 +7746,12 @@ msgstr "You can log in at any time from the settings screen, if you choose to sk
 #~ msgstr "You can share plans, standalone workouts, custom exercises, body measurements, and strength PRs with your friends. All five categories have a global toggle in Privacy Settings, found in the Account section of Settings. Enabling the global toggle for a category shares all items in that category and syncs new data automatically whenever it changes. Plans and standalone workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. To remove shared data, disable the toggle in Privacy Settings and tap Delete Shared Data for that category. You can also delete all shared data for every category from the same screen."
 
 #: constants/HelpData.ts:334
-msgid "You can share plans, standalone workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and standalone workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
-msgstr "You can share plans, standalone workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and standalone workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
+#~ msgid "You can share plans, standalone workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and standalone workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
+#~ msgstr "You can share plans, standalone workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and standalone workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
+
+#: constants/HelpData.ts:334
+msgid "You can share plans, workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
+msgstr "You can share plans, workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
 
 #: hooks/useWorkoutCompletion.ts:48
 msgid "You changed this workout. Apply those changes to future sessions?"
@@ -7854,6 +7929,7 @@ msgid "Your workout was saved, but the plan could not be updated."
 msgstr "Your workout was saved, but the plan could not be updated."
 
 #: app/(app)/(tabs)/(plans)/index.tsx:144
+#: components/WorkoutPickerModal.tsx:170
 msgid "Your workouts"
 msgstr "Your workouts"
 

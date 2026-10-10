@@ -95,7 +95,7 @@ function PlanWorkoutCard({
         </ThemedText>
       </TouchableOpacity>
       <AppIconButton
-        accessibilityLabel={t`Copy ${spokenName} to standalone workouts`}
+        accessibilityLabel={t`Copy ${spokenName} to Your workouts`}
         icon="content-copy"
         size={20}
         iconColor={colors.contentSecondary}
@@ -188,7 +188,7 @@ export default function PlanOverviewScreen() {
         exercises: copyTarget.exercises,
       });
       setCopyTarget(null);
-      setSnackbarMessage(t`Workout copied to standalone workouts`);
+      setSnackbarMessage(t`Workout copied to Your workouts`);
       setSnackbarError(false);
       setSnackbarVisible(true);
     } catch {

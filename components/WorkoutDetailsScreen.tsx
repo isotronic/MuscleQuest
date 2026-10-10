@@ -83,7 +83,7 @@ export default function WorkoutDetailsScreen() {
         exercises: workout.exercises,
       });
       setIsCopyModalVisible(false);
-      setSnackbarMessage(t`Workout copied to standalone workouts`);
+      setSnackbarMessage(t`Workout copied to Your workouts`);
       setSnackbarError(false);
       setSnackbarVisible(true);
     } catch {
@@ -262,7 +262,7 @@ export default function WorkoutDetailsScreen() {
                 buttonType="icon"
               />
               <AppIconButton
-                accessibilityLabel={t`Copy workout to standalone workouts`}
+                accessibilityLabel={t`Copy workout to Your workouts`}
                 icon="content-copy"
                 size={25}
                 iconColor={colors.contentSecondary}

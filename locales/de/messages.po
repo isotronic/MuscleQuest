@@ -2048,8 +2048,12 @@ msgstr "Nachdem du den letzten Arbeitssatz einer Übung abgeschlossen hast, ersc
 #~ msgstr "Nachdem du den letzten Arbeitssatz einer Übung abgeschlossen hast, erscheint ein Feedbackbogen mit zwei Fragen. Die erste fragt, wie sich die Anstrengung angefühlt hat: Leicht (du hättest mehr tun können), Passt so, Schwer (nah an deinem Limit) oder Nicht alle Sätze geschafft. Die zweite fragt nach Schmerzen: Keine Schmerzen, Leichtes Unbehagen oder Schmerzen oder Formprobleme. Wenn du Leicht antwortest, erscheint eine dritte Frage, ob du dich beim nächsten Mal mehr fordern möchtest. So kannst du die aktuelle Last bewusst beibehalten, auch wenn sich eine Einheit leicht angefühlt hat, und das System respektiert deine Entscheidung. Wenn du Schmerzen antwortest, kannst du in einem optionalen Textfeld notieren, wo du es gespürt hast. Der Bogen kann auch ohne Antworten geschlossen werden, falls du für diese Übung in dieser Einheit kein Feedback erfassen möchtest."
 
 #: constants/HelpData.ts:97
-msgid "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. Add a session note to remember how it went. When completing a Quick Workout, you will be prompted to save it as a standalone workout for future use or discard it."
-msgstr "Nach dem Beenden eines Trainings zeigt ein Übersichtsbildschirm die Gesamtdauer, abgeschlossene Sätze und das Gesamtvolumen. Wenn du dasselbe Training schon früher gemacht hast, zeigt eine Vergleichszeile, wie jede Kennzahl zur vorherigen Einheit abschneidet. Ein Wochenzielbanner zeigt, wie viele Einheiten du diese Woche im Vergleich zu deinem Ziel protokolliert hast. Tippe auf eine Übung in der Liste, um sie aufzuklappen und jeden Satz im Detail zu prüfen. Füge eine Trainingsnotiz hinzu, um festzuhalten, wie es lief. Beim Abschließen eines Schnelltrainings wirst du gefragt, ob du es als eigenständiges Training für die Zukunft speichern oder verwerfen möchtest."
+msgid "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. Add a session note to remember how it went. After a quick workout, your session is saved and you can give it a name to reuse it as a workout."
+msgstr "Nach dem Beenden eines Trainings zeigt ein Übersichtsbildschirm die Gesamtdauer, abgeschlossene Sätze und das Gesamtvolumen. Wenn du dasselbe Training schon früher gemacht hast, zeigt eine Vergleichszeile, wie jede Kennzahl zur vorherigen Einheit abschneidet. Ein Wochenzielbanner zeigt, wie viele Einheiten du diese Woche im Vergleich zu deinem Ziel protokolliert hast. Tippe auf eine Übung in der Liste, um sie aufzuklappen und jeden Satz im Detail zu prüfen. Füge eine Trainingsnotiz hinzu, um festzuhalten, wie es lief. Nach einem Schnelltraining ist deine Einheit gespeichert, und du kannst ihr einen Namen geben, um sie als Training wiederzuverwenden."
+
+#: constants/HelpData.ts:97
+#~ msgid "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. Add a session note to remember how it went. When completing a Quick Workout, you will be prompted to save it as a standalone workout for future use or discard it."
+#~ msgstr "Nach dem Beenden eines Trainings zeigt ein Übersichtsbildschirm die Gesamtdauer, abgeschlossene Sätze und das Gesamtvolumen. Wenn du dasselbe Training schon früher gemacht hast, zeigt eine Vergleichszeile, wie jede Kennzahl zur vorherigen Einheit abschneidet. Ein Wochenzielbanner zeigt, wie viele Einheiten du diese Woche im Vergleich zu deinem Ziel protokolliert hast. Tippe auf eine Übung in der Liste, um sie aufzuklappen und jeden Satz im Detail zu prüfen. Füge eine Trainingsnotiz hinzu, um festzuhalten, wie es lief. Beim Abschließen eines Schnelltrainings wirst du gefragt, ob du es als eigenständiges Training für die Zukunft speichern oder verwerfen möchtest."
 
 #: constants/HelpData.ts:96
 #~ msgid "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. When completing a Quick Workout, you will be prompted to save it as a standalone workout for future use or discard it."
@@ -2110,8 +2114,8 @@ msgid "All shared data has been removed."
 msgstr "Alle geteilten Daten wurden entfernt."
 
 #: components/PrivacySettings.tsx:202
-msgid "All standalone workouts are published and new ones are published automatically."
-msgstr "Alle eigenständigen Trainings sind veröffentlicht und neue werden automatisch veröffentlicht."
+#~ msgid "All standalone workouts are published and new ones are published automatically."
+#~ msgstr "Alle eigenständigen Trainings sind veröffentlicht und neue werden automatisch veröffentlicht."
 
 #: components/FilterRow.tsx:62
 #: components/FilterRow.tsx:114
@@ -2135,6 +2139,10 @@ msgstr "Gesamt"
 #: components/StartupRecoveryScreen.tsx:81
 msgid "All training history on this device will be deleted. It can only be recovered from a cloud backup, which you can restore from Settings after the reset."
 msgstr "Der gesamte Trainingsverlauf auf diesem Gerät wird gelöscht. Er kann nur aus einer Cloud-Sicherung wiederhergestellt werden, die du nach dem Zurücksetzen in den Einstellungen wiederherstellen kannst."
+
+#: components/PrivacySettings.tsx:202
+msgid "All workouts outside plans are published and new ones are published automatically."
+msgstr "Alle Trainings außerhalb von Plänen sind veröffentlicht, und neue werden automatisch veröffentlicht."
 
 #: app/(app)/(tabs)/(stats)/exercise-detail.tsx:94
 msgid "All-time PR"
@@ -2648,8 +2656,12 @@ msgid "Choose none to show every measurement in the latest entry."
 msgstr "Wähle keine aus, um alle Maße des letzten Eintrags anzuzeigen."
 
 #: app/(app)/(tabs)/index.tsx:660
-msgid "Choose Workout"
+msgid "Choose workout"
 msgstr "Training auswählen"
+
+#: app/(app)/(tabs)/index.tsx:660
+#~ msgid "Choose Workout"
+#~ msgstr "Training auswählen"
 
 #: app/(app)/help.tsx:381
 #: app/(app)/help.tsx:436
@@ -2761,8 +2773,12 @@ msgstr "Kopieren"
 #~ msgstr "{0} in einen anderen Plan kopieren"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:98
-msgid "Copy {spokenName} to standalone workouts"
-msgstr "{spokenName} in eigenständige Trainings kopieren"
+#~ msgid "Copy {spokenName} to standalone workouts"
+#~ msgstr "{spokenName} in eigenständige Trainings kopieren"
+
+#: app/(app)/(tabs)/(plans)/overview.tsx:98
+msgid "Copy {spokenName} to Your workouts"
+msgstr "{spokenName} in Deine Trainings kopieren"
 
 #: components/CopyWorkoutModal.tsx:49
 msgid "Copy Workout"
@@ -2773,8 +2789,12 @@ msgstr "Training kopieren"
 #~ msgstr "Training in einen anderen Plan kopieren"
 
 #: components/WorkoutDetailsScreen.tsx:265
-msgid "Copy workout to standalone workouts"
-msgstr "Training in eigenständige Trainings kopieren"
+#~ msgid "Copy workout to standalone workouts"
+#~ msgstr "Training in eigenständige Trainings kopieren"
+
+#: components/WorkoutDetailsScreen.tsx:265
+msgid "Copy workout to Your workouts"
+msgstr "Training in Deine Trainings kopieren"
 
 #: constants/dbTranslations.ts:44
 msgid "core"
@@ -3520,8 +3540,12 @@ msgid "Enable to publish all plans. Individual plans can still be toggled on the
 msgstr "Aktivieren, um alle Pläne zu veröffentlichen. Einzelne Pläne können auf dem Plan-Bildschirm weiterhin einzeln gesteuert werden."
 
 #: components/PrivacySettings.tsx:209
-msgid "Enable to publish all standalone workouts. Individual workouts can still be toggled on the workout screen."
-msgstr "Aktivieren, um alle eigenständigen Trainings zu veröffentlichen. Einzelne Trainings können auf dem Trainings-Bildschirm weiterhin einzeln gesteuert werden."
+#~ msgid "Enable to publish all standalone workouts. Individual workouts can still be toggled on the workout screen."
+#~ msgstr "Aktivieren, um alle eigenständigen Trainings zu veröffentlichen. Einzelne Trainings können auf dem Trainings-Bildschirm weiterhin einzeln gesteuert werden."
+
+#: components/PrivacySettings.tsx:209
+msgid "Enable to publish all workouts outside plans. Individual workouts can still be toggled on the workout screen."
+msgstr "Aktivieren, um alle Trainings außerhalb von Plänen zu veröffentlichen. Einzelne Trainings können weiterhin auf dem Trainingsbildschirm umgeschaltet werden."
 
 #: app/(app)/settings.tsx:950
 #: app/(app)/settings.tsx:976
@@ -5063,8 +5087,12 @@ msgstr "Öffne die Übungsbibliothek jederzeit über das Menü, um fast 1.000 Ü
 #~ msgstr "Öffne den Plan und tippe auf Aktivieren, wenn er fertig ist. Deine Änderungen werden automatisch als Entwurf gespeichert, sodass du ihn verlassen und später fortsetzen kannst."
 
 #: constants/HelpData.ts:51
-msgid "Open the plan and tap Start Plan when it's ready to make it your active plan. Your edits are auto-saved as a draft, so you can leave and resume later."
-msgstr "Öffne den Plan und tippe auf Plan starten, wenn er fertig ist, um ihn zu deinem aktiven Plan zu machen. Deine Änderungen werden automatisch als Entwurf gespeichert, sodass du ihn verlassen und später fortsetzen kannst."
+msgid "Open the plan and tap Set as active plan when it's ready. Your edits are auto-saved as a draft, so you can leave and resume later."
+msgstr "Öffne den Plan und tippe auf Als aktiven Plan festlegen, wenn er fertig ist. Deine Änderungen werden automatisch als Entwurf gespeichert, sodass du ihn verlassen und später fortsetzen kannst."
+
+#: constants/HelpData.ts:51
+#~ msgid "Open the plan and tap Start Plan when it's ready to make it your active plan. Your edits are auto-saved as a draft, so you can leave and resume later."
+#~ msgstr "Öffne den Plan und tippe auf Plan starten, wenn er fertig ist, um ihn zu deinem aktiven Plan zu machen. Deine Änderungen werden automatisch als Entwurf gespeichert, sodass du ihn verlassen und später fortsetzen kannst."
 
 #: components/stats/widgets/HistoryWidget.tsx:33
 msgid "Open workout calendar"
@@ -5346,8 +5374,14 @@ msgstr "Quads"
 #: app/(app)/(tabs)/index.tsx:650
 #: app/(app)/(workout)/index.tsx:1113
 #: utils/workoutName.ts:7
-msgid "Quick Workout"
+msgid "Quick workout"
 msgstr "Schnelltraining"
+
+#: app/(app)/(tabs)/index.tsx:650
+#: app/(app)/(workout)/index.tsx:1113
+#: utils/workoutName.ts:7
+#~ msgid "Quick Workout"
+#~ msgstr "Schnelltraining"
 
 #: constants/dbTranslations.ts:54
 msgid "rear deltoids"
@@ -6063,8 +6097,8 @@ msgid "Share plans with friends"
 msgstr "Pläne mit Freunden teilen"
 
 #: components/PrivacySettings.tsx:198
-msgid "Share standalone workouts with friends"
-msgstr "Eigenständige Trainings mit Freunden teilen"
+#~ msgid "Share standalone workouts with friends"
+#~ msgstr "Eigenständige Trainings mit Freunden teilen"
 
 #: components/PrivacySettings.tsx:376
 msgid "Share strength PRs with friends"
@@ -6073,6 +6107,10 @@ msgstr "Kraft-PRs mit Freunden teilen"
 #: components/StandaloneWorkoutScreen.tsx:273
 msgid "Share Workout"
 msgstr "Training teilen"
+
+#: components/PrivacySettings.tsx:198
+msgid "Share workouts outside plans with friends"
+msgstr "Trainings außerhalb von Plänen mit Freunden teilen"
 
 #: app/(app)/friend-profile.tsx:218
 msgid "Shared"
@@ -6198,8 +6236,8 @@ msgid "Signing In"
 msgstr "Anmelden"
 
 #: components/Onboarding.tsx:109
-msgid "Single & Quick Workouts"
-msgstr "Einzel- & Schnelltrainings"
+#~ msgid "Single & Quick Workouts"
+#~ msgstr "Einzel- & Schnelltrainings"
 
 #: app/(app)/custom-exercise.tsx:561
 #: app/(app)/custom-exercise.tsx:570
@@ -6288,8 +6326,8 @@ msgstr "Wirbelsäule"
 
 #: app/(app)/friend-profile.tsx:396
 #: components/WorkoutPickerModal.tsx:170
-msgid "Standalone Workouts"
-msgstr "Eigenständige Trainings"
+#~ msgid "Standalone Workouts"
+#~ msgstr "Eigenständige Trainings"
 
 #: constants/HelpData.ts:39
 #~ msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work."
@@ -6300,8 +6338,8 @@ msgstr "Eigenständige Trainings"
 #~ msgstr "Eigenständige Trainings existieren außerhalb von Plänen und erscheinen neben deinen Plänen auf dem Pläne-Bildschirm. Erstelle eines, indem du auf Neues Training tippst, einen Namen vergibst und Übungen hinzufügst; du kannst es jederzeit starten, ohne einen aktiven Plan zu benötigen. Eine geschätzte Dauer wird bei jedem eigenständigen Training angezeigt, damit du deine Zeit vor dem Start planen kannst. Schnelltrainings ermöglichen dir, eine Einheit sofort vom Startbildschirm aus zu starten: Tippe auf Schnelltraining, füge Übungen unterwegs hinzu, und am Ende kannst du es als eigenständiges Training für die Zukunft speichern oder einfach verwerfen. Tippe daneben auf „Training auswählen“, um jedes Training in deinen Plänen und deiner eigenständigen Bibliothek zu durchsuchen und direkt zu starten. Wie Pläne speichert der Trainings-Editor automatisch einen Entwurf, damit du sicher gehen und zurückkehren kannst, ohne deine Arbeit zu verlieren."
 
 #: constants/HelpData.ts:69
-msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a standalone workout by mistake, tap Undo on the message that appears."
-msgstr "Eigenständige Trainings existieren außerhalb von Plänen und erscheinen neben deinen Plänen auf dem Pläne-Bildschirm. Erstelle eines, indem du auf Neues Training tippst, einen Namen vergibst und Übungen hinzufügst; du kannst es jederzeit starten, ohne einen aktiven Plan zu benötigen. Eine geschätzte Dauer wird bei jedem eigenständigen Training angezeigt, damit du deine Zeit vor dem Start planen kannst. Schnelltrainings ermöglichen dir, eine Einheit sofort vom Startbildschirm aus zu starten: Tippe auf Schnelltraining, füge Übungen unterwegs hinzu, und am Ende kannst du es als eigenständiges Training für die Zukunft speichern oder einfach verwerfen. Tippe daneben auf „Training auswählen“, um jedes Training in deinen Plänen und deiner eigenständigen Bibliothek zu durchsuchen; tippe auf ein Training, um seine Übungen anzusehen, oder auf seinen Starten-Button, um direkt loszulegen. Wie Pläne speichert der Trainings-Editor automatisch einen Entwurf, damit du sicher gehen und zurückkehren kannst, ohne deine Arbeit zu verlieren. Wenn du ein eigenständiges Training versehentlich löschst, tippe in der eingeblendeten Meldung auf Rückgängig."
+#~ msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a standalone workout by mistake, tap Undo on the message that appears."
+#~ msgstr "Eigenständige Trainings existieren außerhalb von Plänen und erscheinen neben deinen Plänen auf dem Pläne-Bildschirm. Erstelle eines, indem du auf Neues Training tippst, einen Namen vergibst und Übungen hinzufügst; du kannst es jederzeit starten, ohne einen aktiven Plan zu benötigen. Eine geschätzte Dauer wird bei jedem eigenständigen Training angezeigt, damit du deine Zeit vor dem Start planen kannst. Schnelltrainings ermöglichen dir, eine Einheit sofort vom Startbildschirm aus zu starten: Tippe auf Schnelltraining, füge Übungen unterwegs hinzu, und am Ende kannst du es als eigenständiges Training für die Zukunft speichern oder einfach verwerfen. Tippe daneben auf „Training auswählen“, um jedes Training in deinen Plänen und deiner eigenständigen Bibliothek zu durchsuchen; tippe auf ein Training, um seine Übungen anzusehen, oder auf seinen Starten-Button, um direkt loszulegen. Wie Pläne speichert der Trainings-Editor automatisch einen Entwurf, damit du sicher gehen und zurückkehren kannst, ohne deine Arbeit zu verlieren. Wenn du ein eigenständiges Training versehentlich löschst, tippe in der eingeblendeten Meldung auf Rückgängig."
 
 #: app/(app)/(tabs)/index.tsx:621
 #: components/StandaloneWorkoutListItem.tsx:114
@@ -6470,8 +6508,12 @@ msgstr "Tippe auf Übernehmen, um einen Vorschlag für deine nächste Einheit an
 #~ msgstr "Tippe auf einen beliebigen akzeptierten Freund in deiner Freundesliste, um sein Profil zu öffnen. Das Profil zeigt alles, was dein Freund teilt: Kraft-PRs, letzte Aktivitäten, Körpermaße, Pläne, eigenständige Trainings und eigene Übungen. Tippe bei einem Plan, Training oder einer eigenen Übung auf Hinzufügen, um sie direkt in deine eigene Bibliothek zu übernehmen. Importierte Pläne und Trainings werden als neue Kopien gespeichert, die du frei bearbeiten kannst, ohne das Original zu beeinflussen. Importierte eigene Übungen werden deiner Übungsbibliothek hinzugefügt und sind sofort beim Erstellen von Trainings verfügbar."
 
 #: constants/HelpData.ts:340
-msgid "Tap any accepted friend in your Friends list to open their profile. Their profile shows whatever they have chosen to share: strength PRs, recent activity, body measurements, plans, standalone workouts, and custom exercises. Tap Add on a plan, workout, or custom exercise to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts. Each section of a profile starts collapsed; tap its heading to open it."
-msgstr "Tippe auf einen beliebigen akzeptierten Freund in deiner Freundesliste, um sein Profil zu öffnen. Das Profil zeigt alles, was dein Freund teilt: Kraft-PRs, letzte Aktivitäten, Körpermaße, Pläne, eigenständige Trainings und eigene Übungen. Tippe bei einem Plan, Training oder einer eigenen Übung auf Hinzufügen, um sie direkt in deine eigene Bibliothek zu übernehmen. Importierte Pläne und Trainings werden als neue Kopien gespeichert, die du frei bearbeiten kannst, ohne das Original zu beeinflussen. Importierte eigene Übungen werden deiner Übungsbibliothek hinzugefügt und sind sofort beim Erstellen von Trainings verfügbar. Jeder Abschnitt eines Profils ist zunächst eingeklappt; tippe auf die Überschrift, um ihn zu öffnen."
+#~ msgid "Tap any accepted friend in your Friends list to open their profile. Their profile shows whatever they have chosen to share: strength PRs, recent activity, body measurements, plans, standalone workouts, and custom exercises. Tap Add on a plan, workout, or custom exercise to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts. Each section of a profile starts collapsed; tap its heading to open it."
+#~ msgstr "Tippe auf einen beliebigen akzeptierten Freund in deiner Freundesliste, um sein Profil zu öffnen. Das Profil zeigt alles, was dein Freund teilt: Kraft-PRs, letzte Aktivitäten, Körpermaße, Pläne, eigenständige Trainings und eigene Übungen. Tippe bei einem Plan, Training oder einer eigenen Übung auf Hinzufügen, um sie direkt in deine eigene Bibliothek zu übernehmen. Importierte Pläne und Trainings werden als neue Kopien gespeichert, die du frei bearbeiten kannst, ohne das Original zu beeinflussen. Importierte eigene Übungen werden deiner Übungsbibliothek hinzugefügt und sind sofort beim Erstellen von Trainings verfügbar. Jeder Abschnitt eines Profils ist zunächst eingeklappt; tippe auf die Überschrift, um ihn zu öffnen."
+
+#: constants/HelpData.ts:340
+msgid "Tap any accepted friend in your Friends list to open their profile. Their profile shows whatever they have chosen to share: strength PRs, recent activity, body measurements, plans, workouts, and custom exercises. Tap Add on a plan, workout, or custom exercise to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts. Each section of a profile starts collapsed; tap its heading to open it."
+msgstr "Tippe auf einen beliebigen akzeptierten Freund in deiner Freundesliste, um sein Profil zu öffnen. Das Profil zeigt alles, was dein Freund teilt: Kraft-PRs, letzte Aktivitäten, Körpermaße, Pläne, Trainings und eigene Übungen. Tippe bei einem Plan, Training oder einer eigenen Übung auf Hinzufügen, um sie direkt in deine eigene Bibliothek zu übernehmen. Importierte Pläne und Trainings werden als neue Kopien gespeichert, die du frei bearbeiten kannst, ohne das Original zu beeinflussen. Importierte eigene Übungen werden deiner Übungsbibliothek hinzugefügt und sind sofort beim Erstellen von Trainings verfügbar. Jeder Abschnitt eines Profils ist zunächst eingeklappt; tippe auf die Überschrift, um ihn zu öffnen."
 
 #: constants/HelpData.ts:352
 msgid "Tap Sign in with Google in Settings to connect your account; signing in needs an internet connection. Signing in enables cloud backups so your data is safe if you switch devices or reinstall the app, lets you add friends, and shows your name in the home screen greeting. The app works fully offline without signing in, but cloud backups and Friends are unavailable. Your data is stored locally on your device and is not shared with anyone unless you choose to share it yourself."
@@ -6482,8 +6524,12 @@ msgstr "Tippe in den Einstellungen auf Mit Google anmelden, um dein Konto zu ver
 #~ msgstr "Tippe in den Einstellungen auf Mit Google anmelden, um dein Konto zu verbinden. Die Anmeldung ermöglicht Cloud-Sicherungen, damit deine Daten sicher sind, wenn du das Gerät wechselst oder die App neu installierst, und dein Name wird in der Startbildschirmbegrüßung angezeigt. Die App funktioniert vollständig offline ohne Anmeldung, aber Cloud-Sicherungen sind nicht verfügbar. Deine Daten werden lokal auf deinem Gerät gespeichert und nicht mit anderen geteilt, sofern du es nicht selbst tust."
 
 #: constants/HelpData.ts:54
-msgid "Tap the copy icon on any workout in a plan to copy it to your standalone workouts."
-msgstr "Tippe auf das Kopiersymbol bei einem Training in einem Plan, um es in deine eigenständigen Trainings zu kopieren."
+#~ msgid "Tap the copy icon on any workout in a plan to copy it to your standalone workouts."
+#~ msgstr "Tippe auf das Kopiersymbol bei einem Training in einem Plan, um es in deine eigenständigen Trainings zu kopieren."
+
+#: constants/HelpData.ts:54
+msgid "Tap the copy icon on any workout in a plan to copy it to Your workouts."
+msgstr "Tippe auf das Kopiersymbol bei einem Training in einem Plan, um es in Deine Trainings zu kopieren."
 
 #: constants/HelpData.ts:82
 msgid "Tap the menu (⋮) on a set and choose Edit Set to change its rep range or rest time mid-workout."
@@ -6595,8 +6641,12 @@ msgstr "Der letzte Eintrag enthält keines der für diesen Bereich gewählten Ma
 #~ msgstr "Der Pläne-Tab enthält eine Bibliothek vorgefertigter Trainingsprogramme, die du sofort starten kannst. Scrolle an Deine Trainingspläne vorbei, um den Bereich Vorgefertigte Pläne zu finden. Tippe auf ein Programm, um seine Trainings und den Zeitplan in der Vorschau anzuzeigen, dann tippe auf Aktivieren, um es zu deinem aktiven Plan zu machen. Du kannst einen vorgefertigten Plan bearbeiten, um Übungen, Sätze oder den Wochenplan anzupassen. Dabei wird eine Kopie des vorgefertigten Plans erstellt, die du ohne Auswirkungen auf das Original ändern kannst, sodass du bei Bedarf immer zur Standardversion zurückkehren kannst."
 
 #: constants/HelpData.ts:63
-msgid "The Plans tab includes a library of ready-made training programmes you can start immediately. Scroll past Your training plans to find the Premade plans section. Tap any programme to preview its workouts and schedule, then tap Start Plan to make it your active plan. To adjust exercises, sets, or the weekly schedule, tap Customise Plan. This creates a copy of the premade plan that you can modify without affecting the original, so you can always return to the default version if needed."
-msgstr "Der Pläne-Tab enthält eine Bibliothek vorgefertigter Trainingsprogramme, die du sofort starten kannst. Scrolle an Deine Trainingspläne vorbei, um den Bereich Vorgefertigte Pläne zu finden. Tippe auf ein Programm, um seine Trainings und den Zeitplan in der Vorschau anzuzeigen, dann tippe auf Plan starten, um es zu deinem aktiven Plan zu machen. Um Übungen, Sätze oder den Wochenplan anzupassen, tippe auf Plan anpassen. Dabei wird eine Kopie des vorgefertigten Plans erstellt, die du ohne Auswirkungen auf das Original ändern kannst, sodass du bei Bedarf immer zur Standardversion zurückkehren kannst."
+msgid "The Plans tab includes a library of ready-made training programmes you can start immediately. Scroll past Your training plans to find the Premade plans section. Tap any programme to preview its workouts and schedule, then tap Set as active plan. To adjust exercises, sets, or the weekly schedule, tap Customise Plan. This creates a copy of the premade plan that you can modify without affecting the original, so you can always return to the default version if needed."
+msgstr "Der Pläne-Tab enthält eine Bibliothek vorgefertigter Trainingsprogramme, die du sofort starten kannst. Scrolle an Deine Trainingspläne vorbei, um den Bereich Vorgefertigte Pläne zu finden. Tippe auf ein Programm, um seine Trainings und den Zeitplan in der Vorschau anzuzeigen, dann tippe auf Als aktiven Plan festlegen. Um Übungen, Sätze oder den Wochenplan anzupassen, tippe auf Plan anpassen. Dabei wird eine Kopie des vorgefertigten Plans erstellt, die du ohne Auswirkungen auf das Original ändern kannst, sodass du bei Bedarf immer zur Standardversion zurückkehren kannst."
+
+#: constants/HelpData.ts:63
+#~ msgid "The Plans tab includes a library of ready-made training programmes you can start immediately. Scroll past Your training plans to find the Premade plans section. Tap any programme to preview its workouts and schedule, then tap Start Plan to make it your active plan. To adjust exercises, sets, or the weekly schedule, tap Customise Plan. This creates a copy of the premade plan that you can modify without affecting the original, so you can always return to the default version if needed."
+#~ msgstr "Der Pläne-Tab enthält eine Bibliothek vorgefertigter Trainingsprogramme, die du sofort starten kannst. Scrolle an Deine Trainingspläne vorbei, um den Bereich Vorgefertigte Pläne zu finden. Tippe auf ein Programm, um seine Trainings und den Zeitplan in der Vorschau anzuzeigen, dann tippe auf Plan starten, um es zu deinem aktiven Plan zu machen. Um Übungen, Sätze oder den Wochenplan anzupassen, tippe auf Plan anpassen. Dabei wird eine Kopie des vorgefertigten Plans erstellt, die du ohne Auswirkungen auf das Original ändern kannst, sodass du bei Bedarf immer zur Standardversion zurückkehren kannst."
 
 #: constants/HelpData.ts:104
 msgid "The rest timer starts automatically after each set and counts down to zero; each set remembers its own rest duration, so different sets within the same exercise can have different rest periods."
@@ -6947,14 +6997,18 @@ msgid "Tracking type is required."
 msgstr "Tracking-Typ ist erforderlich."
 
 #: components/Onboarding.tsx:110
-msgid ""
-"Train without a plan! Create standalone workouts that live outside your training plans — perfect for mobility sessions, warm-ups, or anything ad hoc.\n"
-"\n"
-"Or jump straight into a Quick Workout from the home screen, add exercises on the fly, and optionally save it as a standalone workout when you're done."
-msgstr ""
-"Trainiere ohne Plan! Erstelle eigenständige Trainings außerhalb deiner Trainingspläne, perfekt für Mobilitätssessions, Aufwärmen oder alles Spontane.\n"
-"\n"
-"Oder starte direkt ein Schnelltraining vom Startbildschirm, füge Übungen unterwegs hinzu, und speichere es optional als eigenständiges Training, wenn du fertig bist."
+#~ msgid ""
+#~ "Train without a plan! Create standalone workouts that live outside your training plans — perfect for mobility sessions, warm-ups, or anything ad hoc.\n"
+#~ "\n"
+#~ "Or jump straight into a Quick Workout from the home screen, add exercises on the fly, and optionally save it as a standalone workout when you're done."
+#~ msgstr ""
+#~ "Trainiere ohne Plan! Erstelle eigenständige Trainings außerhalb deiner Trainingspläne, perfekt für Mobilitätssessions, Aufwärmen oder alles Spontane.\n"
+#~ "\n"
+#~ "Oder starte direkt ein Schnelltraining vom Startbildschirm, füge Übungen unterwegs hinzu, und speichere es optional als eigenständiges Training, wenn du fertig bist."
+
+#: components/Onboarding.tsx:110
+msgid "Train without a plan. Save workouts outside your plans, or start a quick workout from home and add exercises as you go."
+msgstr "Trainiere ohne Plan. Speichere Trainings außerhalb deiner Pläne oder starte ein Schnelltraining vom Startbildschirm und füge Übungen unterwegs hinzu."
 
 #: components/stats/widgets/registry.ts:174
 msgid "Trained or not"
@@ -7534,8 +7588,13 @@ msgstr "Training abgeschlossen!"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:191
 #: components/WorkoutDetailsScreen.tsx:86
-msgid "Workout copied to standalone workouts"
-msgstr "Training zu eigenständigen Trainings kopiert"
+#~ msgid "Workout copied to standalone workouts"
+#~ msgstr "Training zu eigenständigen Trainings kopiert"
+
+#: app/(app)/(tabs)/(plans)/overview.tsx:191
+#: components/WorkoutDetailsScreen.tsx:86
+msgid "Workout copied to Your workouts"
+msgstr "Training in Deine Trainings kopiert"
 
 #: components/Cues.tsx:25
 msgid "Workout cues"
@@ -7607,6 +7666,18 @@ msgstr "Trainingsübersicht"
 msgid "Workouts"
 msgstr "Trainings"
 
+#: components/Onboarding.tsx:109
+msgid "Workouts and quick workouts"
+msgstr "Trainings und Schnelltrainings"
+
+#: constants/HelpData.ts:69
+msgid "Workouts can also live outside of plans, under Your workouts on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each workout so you can plan your time before starting. A quick workout starts a session immediately from the home screen: tap Quick workout, add exercises as you go, and at the end you can give it a name to reuse it later. Tap Choose workout next to it to search and browse every workout across your plans and Your workouts; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a workout by mistake, tap Undo on the message that appears."
+msgstr "Trainings können auch außerhalb von Plänen existieren, unter Deine Trainings auf dem Pläne-Bildschirm. Erstelle eines, indem du auf Neues Training tippst, einen Namen vergibst und Übungen hinzufügst; du kannst es jederzeit starten, ohne einen aktiven Plan zu benötigen. Eine geschätzte Dauer wird bei jedem Training angezeigt, damit du deine Zeit vor dem Start planen kannst. Ein Schnelltraining startet eine Einheit sofort vom Startbildschirm aus: Tippe auf Schnelltraining, füge Übungen unterwegs hinzu, und am Ende kannst du ihm einen Namen geben, um es später wiederzuverwenden. Tippe daneben auf Training auswählen, um jedes Training in deinen Plänen und in Deine Trainings zu durchsuchen; tippe auf ein Training, um seine Übungen anzusehen, oder auf seinen Starten-Button, um direkt loszulegen. Wie Pläne speichert der Trainings-Editor automatisch einen Entwurf, damit du sicher gehen und zurückkehren kannst, ohne deine Arbeit zu verlieren. Wenn du ein Training versehentlich löschst, tippe in der eingeblendeten Meldung auf Rückgängig."
+
+#: app/(app)/friend-profile.tsx:396
+msgid "Workouts outside plans"
+msgstr "Trainings außerhalb von Plänen"
+
 #: components/stats/widgets/registry.ts:91
 msgid "Workouts per week"
 msgstr "Trainings pro Woche"
@@ -7676,8 +7747,12 @@ msgstr "Du kannst dich jederzeit über die Einstellungsseite anmelden, wenn du e
 #~ msgstr "Du kannst Pläne, eigenständige Trainings, eigene Übungen, Körpermaße und Kraft-PRs mit deinen Freunden teilen. Alle fünf Kategorien haben einen globalen Schalter in den Datenschutzeinstellungen im Konto-Bereich der Einstellungen. Wenn du den globalen Schalter für eine Kategorie aktivierst, werden alle Elemente dieser Kategorie geteilt und neue Daten werden automatisch synchronisiert, wenn sie sich ändern. Pläne und eigenständige Trainings haben zusätzlich einen individuellen Teilen-Schalter in der Übersicht jedes Eintrags, sodass du bestimmte Pläne oder Trainings veröffentlichen kannst, ohne alles zu teilen. Ein Wolken-Symbol auf der Plan- oder Trainingskarte bestätigt, dass er aktuell veröffentlicht ist. Um geteilte Daten zu entfernen, deaktiviere den Schalter in den Datenschutzeinstellungen und tippe auf Geteilte Daten löschen für diese Kategorie. Du kannst auch alle geteilten Daten jeder Kategorie über denselben Bildschirm löschen."
 
 #: constants/HelpData.ts:334
-msgid "You can share plans, standalone workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and standalone workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
-msgstr "Du kannst Pläne, eigenständige Trainings, eigene Übungen, abgeschlossene Trainings, Körpermaße und Kraft-PRs mit deinen Freunden teilen. Jede Kategorie hat einen Schalter im Bereich Datenschutz der Einstellungen, den du auch über das Zahnradsymbol auf dem Freunde-Bildschirm öffnen kannst. Wenn du eine Kategorie aktivierst, wird sie mit deinen Freunden geteilt und bei Änderungen synchron gehalten. Pläne und eigenständige Trainings haben zusätzlich einen individuellen Teilen-Schalter in der Übersicht jedes Eintrags, sodass du bestimmte Pläne oder Trainings veröffentlichen kannst, ohne alles zu teilen. Ein Wolken-Symbol auf der Plan- oder Trainingskarte bestätigt, dass er aktuell veröffentlicht ist. Wenn du eine Kategorie deaktivierst, werden keine neuen Einträge mehr geteilt, aber bereits Geteiltes bleibt sichtbar, bis du im Bereich Datenschutz der Einstellungen auf Alle geteilten Daten löschen tippst. Wenn ein Plan zu groß zum Teilen ist, teile ihn in kleinere Pläne auf."
+#~ msgid "You can share plans, standalone workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and standalone workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
+#~ msgstr "Du kannst Pläne, eigenständige Trainings, eigene Übungen, abgeschlossene Trainings, Körpermaße und Kraft-PRs mit deinen Freunden teilen. Jede Kategorie hat einen Schalter im Bereich Datenschutz der Einstellungen, den du auch über das Zahnradsymbol auf dem Freunde-Bildschirm öffnen kannst. Wenn du eine Kategorie aktivierst, wird sie mit deinen Freunden geteilt und bei Änderungen synchron gehalten. Pläne und eigenständige Trainings haben zusätzlich einen individuellen Teilen-Schalter in der Übersicht jedes Eintrags, sodass du bestimmte Pläne oder Trainings veröffentlichen kannst, ohne alles zu teilen. Ein Wolken-Symbol auf der Plan- oder Trainingskarte bestätigt, dass er aktuell veröffentlicht ist. Wenn du eine Kategorie deaktivierst, werden keine neuen Einträge mehr geteilt, aber bereits Geteiltes bleibt sichtbar, bis du im Bereich Datenschutz der Einstellungen auf Alle geteilten Daten löschen tippst. Wenn ein Plan zu groß zum Teilen ist, teile ihn in kleinere Pläne auf."
+
+#: constants/HelpData.ts:334
+msgid "You can share plans, workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
+msgstr "Du kannst Pläne, Trainings, eigene Übungen, abgeschlossene Trainings, Körpermaße und Kraft-PRs mit deinen Freunden teilen. Jede Kategorie hat einen Schalter im Bereich Datenschutz der Einstellungen, den du auch über das Zahnradsymbol auf dem Freunde-Bildschirm öffnen kannst. Wenn du eine Kategorie aktivierst, wird sie mit deinen Freunden geteilt und bei Änderungen synchron gehalten. Pläne und Trainings haben zusätzlich einen individuellen Teilen-Schalter in der Übersicht jedes Eintrags, sodass du bestimmte Pläne oder Trainings veröffentlichen kannst, ohne alles zu teilen. Ein Wolken-Symbol auf der Plan- oder Trainingskarte bestätigt, dass er aktuell veröffentlicht ist. Wenn du eine Kategorie deaktivierst, werden keine neuen Einträge mehr geteilt, aber bereits Geteiltes bleibt sichtbar, bis du im Bereich Datenschutz der Einstellungen auf Alle geteilten Daten löschen tippst. Wenn ein Plan zu groß zum Teilen ist, teile ihn in kleinere Pläne auf."
 
 #: hooks/useWorkoutCompletion.ts:48
 msgid "You changed this workout. Apply those changes to future sessions?"
@@ -7855,6 +7930,7 @@ msgid "Your workout was saved, but the plan could not be updated."
 msgstr "Dein Training wurde gespeichert, aber der Plan konnte nicht aktualisiert werden."
 
 #: app/(app)/(tabs)/(plans)/index.tsx:144
+#: components/WorkoutPickerModal.tsx:170
 msgid "Your workouts"
 msgstr "Deine Trainings"
 

@@ -123,7 +123,7 @@ describe("WorkoutPickerModal", () => {
     const { getByText } = render(<WorkoutPickerModal {...baseProps} />);
     expect(getByText("My Plan")).toBeTruthy();
     expect(getByText("Push Day")).toBeTruthy();
-    expect(getByText("Standalone Workouts")).toBeTruthy();
+    expect(getByText("Your workouts")).toBeTruthy();
     expect(getByText("Quick Legs")).toBeTruthy();
   });
 

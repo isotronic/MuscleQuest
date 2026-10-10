@@ -294,10 +294,10 @@ describe("FriendProfileScreen", () => {
       expect(getByText("My Plan · vor einiger Zeit")).toBeTruthy();
     });
 
-    it("falls back to Quick Workout when the workout has no name", () => {
+    it("falls back to Quick workout when the workout has no name", () => {
       const { getByText } = renderActivity(completed({ workoutName: null }));
 
-      expect(getByText("Quick Workout")).toBeTruthy();
+      expect(getByText("Quick workout")).toBeTruthy();
     });
 
     it("drops the plan name and separator when there is no plan", () => {

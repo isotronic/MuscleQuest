@@ -106,8 +106,8 @@ const Onboarding = ({
       route: "/(app)/(tabs)/(plans)" as Href,
     },
     {
-      title: t`Single & Quick Workouts`,
-      description: t`Train without a plan! Create standalone workouts that live outside your training plans — perfect for mobility sessions, warm-ups, or anything ad hoc.\n\nOr jump straight into a Quick Workout from the home screen, add exercises on the fly, and optionally save it as a standalone workout when you're done.`,
+      title: t`Workouts and quick workouts`,
+      description: t`Train without a plan. Save workouts outside your plans, or start a quick workout from home and add exercises as you go.`,
       buttonLabel: t`Go to Workouts` as string | null,
       route: "/(app)/(tabs)/(plans)" as Href,
     },

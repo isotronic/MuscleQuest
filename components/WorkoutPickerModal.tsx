@@ -167,7 +167,7 @@ export default function WorkoutPickerModal({
                       accessibilityRole="header"
                       style={styles.sectionTitle}
                     >
-                      <Trans>Standalone Workouts</Trans>
+                      <Trans>Your workouts</Trans>
                     </ThemedText>
                     {filteredStandalone.map((workout) => (
                       <StandaloneWorkoutListItem

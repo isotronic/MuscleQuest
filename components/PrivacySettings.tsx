@@ -195,20 +195,20 @@ export function PrivacySettings({ hideDeleteSection = false }: Props) {
       >
         <View style={styles.rowLeft}>
           <ThemedText style={styles.rowTitle}>
-            <Trans>Share standalone workouts with friends</Trans>
+            <Trans>Share workouts outside plans with friends</Trans>
           </ThemedText>
           {localPrivacySettings?.shareStandaloneWorkouts ? (
             <ThemedText style={styles.rowSubtitle}>
               <Trans>
-                All standalone workouts are published and new ones are published
-                automatically.
+                All workouts outside plans are published and new ones are
+                published automatically.
               </Trans>
             </ThemedText>
           ) : (
             <ThemedText style={styles.rowSubtitle}>
               <Trans>
-                Enable to publish all standalone workouts. Individual workouts
-                can still be toggled on the workout screen.
+                Enable to publish all workouts outside plans. Individual
+                workouts can still be toggled on the workout screen.
               </Trans>
             </ThemedText>
           )}

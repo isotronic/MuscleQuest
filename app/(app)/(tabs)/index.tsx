@@ -647,7 +647,7 @@ export default function HomeScreen() {
             style={styles.startWorkoutButton}
             labelStyle={styles.buttonLabel}
           >
-            <Trans>Quick Workout</Trans>
+            <Trans>Quick workout</Trans>
           </Button>
           <Button
             mode="outlined"
@@ -657,7 +657,7 @@ export default function HomeScreen() {
             style={styles.startWorkoutButton}
             labelStyle={styles.buttonLabel}
           >
-            <Trans>Choose Workout</Trans>
+            <Trans>Choose workout</Trans>
           </Button>
         </View>
 
