@@ -45,6 +45,7 @@ import { useCreateStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
 import { useDuplicatePlanMutation } from "@/hooks/useDuplicatePlanMutation";
 import { CopyWorkoutModal } from "@/components/CopyWorkoutModal";
 import { planImageSource } from "@/constants/PlanImages";
+import { ActivePlanAction } from "@/components/ActivePlanAction";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -456,14 +457,12 @@ export default function PlanOverviewScreen() {
       </ScrollView>
 
       <View style={styles.buttonContainer}>
-        <Button
-          mode="contained"
-          onPress={handleStartPlan}
+        <ActivePlanAction
+          isActive={plan?.is_active === 1}
+          onActivate={handleStartPlan}
+          disabled={setActivePlanMutation.isPending}
           style={styles.paperButton}
-          labelStyle={styles.buttonLabel}
-        >
-          <Trans>Start Plan</Trans>
-        </Button>
+        />
         <Button
           mode="outlined"
           onPress={async () => {
@@ -500,7 +499,7 @@ export default function PlanOverviewScreen() {
           backgroundColor: snackbarError ? colors.danger : colors.success,
         }}
         action={{
-          label: t`DISMISS`,
+          label: t`Dismiss`,
           onPress: () => {
             setSnackbarVisible(false);
           },

@@ -139,4 +139,18 @@ describe("StaleWorkoutPrompt", () => {
     expect(cancelRestNotifications).toHaveBeenCalled();
     expect(useStaleWorkoutPromptStore.getState().visible).toBe(false);
   });
+
+  it("Discard confirmation names the action on its buttons", () => {
+    const { getByTestId } = render(<StaleWorkoutPrompt />);
+
+    fireEvent.press(getByTestId("stale-discard"));
+
+    const [title, body, buttons] = (Alert.alert as jest.Mock).mock.calls[0];
+    expect(title).toBe("Discard workout?");
+    expect(body).toBe("Your sets from this session will not be saved.");
+    expect(buttons.map((b: any) => b.text)).toEqual(["Keep", "Discard"]);
+    const keep = buttons.find((b: any) => b.style === "cancel");
+    keep.onPress?.();
+    expect(useActiveWorkoutStore.getState().workout).not.toBeNull();
+  });
 });

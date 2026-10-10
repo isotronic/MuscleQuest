@@ -308,7 +308,7 @@ export default function WorkoutDetailsScreen() {
           backgroundColor: snackbarError ? colors.danger : colors.success,
         }}
         action={{
-          label: t`DISMISS`,
+          label: t`Dismiss`,
           onPress: () => setSnackbarVisible(false),
         }}
       >
