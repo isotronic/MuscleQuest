@@ -20,14 +20,13 @@ import {
   HistorySection,
 } from "@/hooks/useExerciseHistoryQuery";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
-import { formatSetMetric } from "@/utils/formatSetMetric";
-import { kgToDisplay, metresToDisplay } from "@/utils/units";
+import { useIsExercisePinnedQuery } from "@/hooks/useIsExercisePinnedQuery";
+import { usePinExerciseMutation } from "@/hooks/usePinExerciseMutation";
+import { formatHistorySet } from "@/utils/exerciseProgressFormat";
 import Bugsnag from "@bugsnag/expo";
 import { AppIcon, AppImage, AppIconButton } from "@/components/ui";
 import { Cues } from "@/components/Cues";
-import { ExerciseProgressionChart } from "@/components/charts/ExerciseProgressionChart";
-import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
-import { TrackedExerciseWithSets } from "@/hooks/useTrackedExercisesQuery";
+import { ExerciseProgressTab } from "@/components/exercise/ExerciseProgressTab";
 import { useMemo, useState } from "react";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
@@ -40,25 +39,34 @@ import { displayWorkoutName } from "@/utils/workoutName";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
-type Tab = "info" | "history";
+type Tab = "progress" | "history" | "about";
+const TABS: Tab[] = ["progress", "history", "about"];
+const isTab = (value: unknown): value is Tab =>
+  typeof value === "string" && (TABS as string[]).includes(value);
 
 export default function ExerciseInfoScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { exercise_id } = useLocalSearchParams();
-  const [activeTab, setActiveTab] = useState<Tab>("info");
+  const { exercise_id, tab: tabParam } = useLocalSearchParams<{
+    exercise_id: string;
+    tab?: string;
+  }>();
+  const exerciseId = Number(exercise_id);
+  const [selectedTab, setSelectedTab] = useState<Tab | null>(null);
 
   const {
     data: exerciseData,
     error: exerciseError,
     isLoading: exerciseLoading,
-  } = useExerciseInfoQuery(Number(exercise_id));
+  } = useExerciseInfoQuery(exerciseId);
 
   const { mutate: toggleFavorite } = useToggleFavoriteExerciseMutation();
+  const { data: isPinned = false } = useIsExercisePinnedQuery(exerciseId);
+  const { mutate: setPinned, isPending: pinPending } = usePinExerciseMutation();
 
   const { data: animatedUrl, isLoading: animatedImageLoading } =
     useAnimatedImageQuery(
-      Number(exercise_id),
+      exerciseId,
       exerciseData?.animated_url ?? "",
       exerciseData?.local_animated_uri,
     );
@@ -67,9 +75,7 @@ export default function ExerciseInfoScreen() {
     data: historyData,
     isLoading: historyLoading,
     isError: historyError,
-  } = useExerciseHistoryQuery(Number(exercise_id));
-
-  const [timeRange, setTimeRange] = useState("90");
+  } = useExerciseHistoryQuery(exerciseId);
 
   const { data: settings } = useSettingsQuery();
   const { _ } = useLingui();
@@ -106,19 +112,6 @@ export default function ExerciseInfoScreen() {
     }
   }
 
-  const chartExercise = useMemo<TrackedExerciseWithSets | null>(() => {
-    if (!historyData?.chartSets?.length || !exerciseData) return null;
-    return {
-      id: exerciseData.exercise_id,
-      exercise_id: exerciseData.exercise_id,
-      date_added: "",
-      name: exerciseData.name,
-      tracking_type: historyData.trackingType,
-      completed_sets: historyData.chartSets,
-      allTimePR: 0,
-    } as TrackedExerciseWithSets;
-  }, [historyData, exerciseData]);
-
   if (exerciseLoading) {
     return (
       <View style={styles.centered}>
@@ -149,13 +142,45 @@ export default function ExerciseInfoScreen() {
 
   const trackingType = historyData?.trackingType ?? null;
   const sections = historyData?.sections ?? [];
+  // An explicit choice wins, then the link's tab; otherwise Progress when
+  // there is something to show and About when there is not.
+  const activeTab: Tab | null =
+    selectedTab ??
+    (isTab(tabParam) ? tabParam : null) ??
+    (historyLoading
+      ? null
+      : historyError || sections.length > 0
+        ? "progress"
+        : "about");
+  const tabLabels: Record<Tab, string> = {
+    progress: t`Progress`,
+    history: t`History`,
+    about: t`About`,
+  };
 
   return (
     <ThemedView style={styles.screen}>
       <Stack.Screen
         options={{
+          title: exerciseData.name,
           headerRight: () => (
             <>
+              <AppIconButton
+                accessibilityLabel={
+                  isPinned ? t`Unpin from Stats` : t`Pin to Stats`
+                }
+                accessibilityState={{ selected: isPinned }}
+                icon={isPinned ? "pin" : "pin-outline"}
+                iconColor={isPinned ? colors.accent : colors.contentPrimary}
+                size={25}
+                disabled={pinPending}
+                onPress={() =>
+                  setPinned({
+                    exerciseId: exerciseData.exercise_id,
+                    pinned: !isPinned,
+                  })
+                }
+              />
               <Cues
                 noteType="exercise"
                 referenceId={exerciseData.exercise_id}
@@ -179,35 +204,23 @@ export default function ExerciseInfoScreen() {
         }}
       />
 
-      {/* Image — always visible above tabs */}
-      <View style={styles.imageContainer}>
-        {animatedImageLoading ? (
-          <ActivityIndicator size="large" />
-        ) : (
-          <AppImage
-            style={styles.image}
-            source={animatedUrl ? { uri: animatedUrl } : fallbackImage}
-          />
-        )}
-      </View>
-
       {/* Tab bar */}
       <View style={styles.tabBar} accessibilityRole="tablist">
-        {(["info", "history"] as Tab[]).map((tab) => {
+        {TABS.map((tab) => {
           const active = activeTab === tab;
           return (
             <TouchableOpacity
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
               key={tab}
-              onPress={() => setActiveTab(tab)}
+              onPress={() => setSelectedTab(tab)}
               style={[styles.tabPill, active && styles.tabPillActive]}
               activeOpacity={0.7}
             >
               <ThemedText
                 style={[styles.tabLabel, active && styles.tabLabelActive]}
               >
-                {tab === "info" ? <Trans>Info</Trans> : <Trans>History</Trans>}
+                {tabLabels[tab]}
               </ThemedText>
             </TouchableOpacity>
           );
@@ -215,8 +228,24 @@ export default function ExerciseInfoScreen() {
       </View>
 
       {/* Tab content */}
-      {activeTab === "info" ? (
+      {activeTab === null ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" />
+        </View>
+      ) : activeTab === "progress" ? (
+        <ExerciseProgressTab exerciseId={exerciseData.exercise_id} />
+      ) : activeTab === "about" ? (
         <ScrollView contentContainerStyle={styles.infoContent}>
+          <View style={styles.imageContainer}>
+            {animatedImageLoading ? (
+              <ActivityIndicator size="large" />
+            ) : (
+              <AppImage
+                style={styles.image}
+                source={animatedUrl ? { uri: animatedUrl } : fallbackImage}
+              />
+            )}
+          </View>
           <View style={styles.detailsContainer}>
             <ThemedText style={styles.title}>{exerciseData.name}</ThemedText>
 
@@ -328,32 +357,32 @@ export default function ExerciseInfoScreen() {
             styles.historyContent,
             sections.length === 0 && styles.historyEmpty,
           ]}
-          ListHeaderComponent={
-            chartExercise ? (
-              <View style={styles.chartHeader}>
-                <TimeRangeSelector
-                  selected={timeRange}
-                  onChange={setTimeRange}
-                />
-                <ExerciseProgressionChart
-                  exercise={chartExercise}
-                  timeRange={timeRange}
-                  weightUnit={weightUnit}
-                  distanceUnit={distanceUnit}
-                  preRangeBaseline={null}
-                />
-              </View>
-            ) : null
-          }
           renderSectionHeader={({ section }: { section: HistorySection }) => (
-            <View style={styles.sectionHeader}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityHint={t`Opens this workout`}
+              style={styles.sectionHeader}
+              activeOpacity={0.7}
+              onPress={() =>
+                router.push({
+                  pathname: "/(app)/(workout)/workout-summary",
+                  params: { completedWorkoutId: String(section.workout_id) },
+                })
+              }
+            >
               <ThemedText style={styles.sectionDate}>{section.date}</ThemedText>
               {section.workout_name ? (
-                <ThemedText style={styles.sectionWorkout}>
+                <ThemedText style={styles.sectionWorkout} numberOfLines={1}>
                   {displayWorkoutName(section.workout_name)}
                 </ThemedText>
               ) : null}
-            </View>
+              <AppIcon
+                set="mci"
+                name="chevron-right"
+                size={18}
+                color={colors.contentSecondary}
+              />
+            </TouchableOpacity>
           )}
           renderItem={({ item }: { item: HistorySet }) => (
             <View style={[styles.setRow, item.is_pr && styles.setRowPR]}>
@@ -378,25 +407,12 @@ export default function ExerciseInfoScreen() {
                   { fontVariant: ["tabular-nums"] },
                 ]}
               >
-                {formatSetMetric(
-                  {
-                    ...item,
-                    weight:
-                      item.weight != null
-                        ? kgToDisplay(item.weight, weightUnit)
-                        : null,
-                    distance:
-                      item.distance != null
-                        ? metresToDisplay(item.distance, distanceUnit)
-                        : null,
-                  },
+                {formatHistorySet(
+                  item,
                   trackingType,
                   weightUnit,
-                  // currentBodyWeight is already in the user's unit.
-                  item.hist_bw_kg != null
-                    ? kgToDisplay(item.hist_bw_kg, weightUnit)
-                    : currentBodyWeight,
                   distanceUnit,
+                  currentBodyWeight,
                 )}
               </ThemedText>
               {!!item.note?.trim() && (
@@ -463,9 +479,7 @@ function createStyles(colors: AppThemeColors) {
     imageContainer: {
       alignItems: "center",
       height: 350,
-      marginHorizontal: 16,
-      marginTop: 12,
-      marginBottom: 4,
+      marginBottom: 16,
     },
     image: {
       width: "100%",
@@ -498,7 +512,7 @@ function createStyles(colors: AppThemeColors) {
     tabLabelActive: {
       color: colors.accent,
     },
-    // Info tab
+    // About tab
     infoContent: {
       padding: 16,
       paddingBottom: 50,
@@ -543,9 +557,6 @@ function createStyles(colors: AppThemeColors) {
       fontSize: 16,
     },
     // History tab
-    chartHeader: {
-      marginBottom: 8,
-    },
     historyContent: {
       paddingHorizontal: 16,
       paddingBottom: 50,
@@ -567,6 +578,7 @@ function createStyles(colors: AppThemeColors) {
       color: colors.contentPrimary,
     },
     sectionWorkout: {
+      flex: 1,
       fontSize: 12,
       color: colors.contentSecondary,
     },

@@ -118,6 +118,8 @@ describe("useExerciseHistoryQuery — queryFn", () => {
     expect(result.sections).toHaveLength(2);
     expect(result.sections[0].data).toHaveLength(2);
     expect(result.sections[1].data).toHaveLength(1);
+    // Each session row links to its completed workout.
+    expect(result.sections.map((x: any) => x.workout_id)).toEqual([10, 9]);
   });
 
   it("carries each set's note", async () => {

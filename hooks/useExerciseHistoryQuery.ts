@@ -21,6 +21,8 @@ export interface HistorySet {
 export interface HistorySection {
   date: string;
   workout_name: string | null;
+  /** completed_workouts.id of this session. */
+  workout_id: number;
   data: HistorySet[];
 }
 
@@ -159,7 +161,12 @@ const fetchExerciseHistoryBody = async (
 
   const sectionMap = new Map<
     string,
-    { date: string; workout_name: string | null; sets: HistorySet[] }
+    {
+      date: string;
+      workout_name: string | null;
+      workout_id: number;
+      sets: HistorySet[];
+    }
   >();
 
   for (const row of rows) {
@@ -168,6 +175,7 @@ const fetchExerciseHistoryBody = async (
       sectionMap.set(key, {
         date: row.date_completed,
         workout_name: row.workout_name,
+        workout_id: row.workout_id,
         sets: [],
       });
     }
@@ -192,13 +200,14 @@ const fetchExerciseHistoryBody = async (
   }
 
   const sections: HistorySection[] = Array.from(sectionMap.entries()).map(
-    ([_, { date, workout_name, sets }]) => ({
+    ([_, { date, workout_name, workout_id, sets }]) => ({
       date: new Date(date + "T00:00:00").toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
       }),
       workout_name,
+      workout_id,
       data: sets,
     }),
   );
