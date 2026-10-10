@@ -5,6 +5,7 @@ import {
   BULK_PUBLISH_CONCURRENCY,
   deleteAllSharedData,
   publishPlan,
+  pushCompletedWorkout,
   refreshStrengthPRs,
   SharedDataDeletionError,
   SharedDocTooLargeError,
@@ -25,6 +26,7 @@ jest.mock("@/utils/database", () => ({
   fetchStandaloneWorkoutForSharing: jest.fn(),
   fetchPRDataForExercises: jest.fn(),
   fetchAppExerciseIds: jest.fn(),
+  fetchCompletedWorkoutForSharing: jest.fn(),
 }));
 
 jest.mock("@bugsnag/expo", () => ({
@@ -362,6 +364,49 @@ describe("unpublishing single items", () => {
       unpublishCompletedWorkout("uid123", 42),
     ).resolves.toBeUndefined();
     expect(Bugsnag.notify).toHaveBeenCalled();
+  });
+});
+
+describe("pushCompletedWorkout", () => {
+  it("never publishes session or set notes", async () => {
+    (db.fetchCompletedWorkoutForSharing as jest.Mock).mockResolvedValue({
+      id: 7,
+      plan_name: "PPL",
+      workout_name: "Push",
+      date_completed: "2026-01-01T10:00:00.000Z",
+      duration: 3600,
+      total_sets_completed: 1,
+      is_deload: 0,
+      notes: "shoulder pain",
+      exercises: [
+        {
+          completed_exercise_id: 1,
+          exercise_name: "Bench Press",
+          sets: [
+            {
+              set_number: 1,
+              weight: 100,
+              reps: 5,
+              time: null,
+              distance: null,
+              is_warmup: 0,
+              is_drop_set: 0,
+              is_to_failure: 0,
+              note: "felt shoulder on rep 6",
+            },
+          ],
+        },
+      ],
+    });
+
+    await pushCompletedWorkout("uid123", 7);
+
+    expect(mockSetDoc).toHaveBeenCalledTimes(1);
+    const payload = mockSetDoc.mock.calls[0][1];
+    expect(payload).not.toHaveProperty("notes");
+    expect(payload).not.toHaveProperty("note");
+    expect(payload.exercises[0].sets[0]).not.toHaveProperty("note");
+    expect(JSON.stringify(payload)).not.toContain("shoulder");
   });
 });
 

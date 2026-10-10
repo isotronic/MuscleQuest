@@ -107,6 +107,7 @@ describe("useSaveCompletedWorkoutMutation", () => {
         }),
       ]),
       undefined, // completedAt
+      undefined, // notes
     );
   });
 
@@ -118,6 +119,16 @@ describe("useSaveCompletedWorkoutMutation", () => {
 
     expect((saveCompletedWorkout as jest.Mock).mock.calls[0][6]).toBe(
       completedAt,
+    );
+  });
+
+  it("mutationFn passes the session note through", async () => {
+    useSaveCompletedWorkoutMutation("kg", "m");
+
+    await capturedArgs.mutationFn(makeWorkoutData({ notes: "Felt strong" }));
+
+    expect((saveCompletedWorkout as jest.Mock).mock.calls[0][7]).toBe(
+      "Felt strong",
     );
   });
 
@@ -143,6 +154,7 @@ describe("useSaveCompletedWorkoutMutation", () => {
         }),
       ]),
       undefined, // completedAt
+      undefined, // notes
     );
   });
 
@@ -184,6 +196,7 @@ describe("useSaveCompletedWorkoutMutation", () => {
         }),
       ]),
       undefined, // completedAt
+      undefined, // notes
     );
   });
 
@@ -248,6 +261,7 @@ describe("useSaveCompletedWorkoutMutation", () => {
         }),
       ]),
       undefined, // completedAt
+      undefined, // notes
     );
   });
 

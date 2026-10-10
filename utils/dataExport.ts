@@ -38,6 +38,7 @@ interface WorkoutRow {
   is_deload: number;
   workout_name: string | null;
   plan_name: string | null;
+  notes: string | null;
 }
 
 interface SetRow {
@@ -53,6 +54,7 @@ interface SetRow {
   is_warmup: number | null;
   is_drop_set: number | null;
   is_to_failure: number | null;
+  note: string | null;
 }
 
 interface MeasurementRow {
@@ -73,6 +75,7 @@ export interface ExportedSet {
   isWarmup: boolean;
   isDropSet: boolean;
   isToFailure: boolean;
+  note: string | null;
 }
 
 export interface ExportedWorkout {
@@ -81,6 +84,7 @@ export interface ExportedWorkout {
   plan: string | null;
   durationSeconds: number | null;
   isDeload: boolean;
+  notes: string | null;
   exercises: {
     name: string | null;
     trackingType: string | null;
@@ -99,7 +103,7 @@ async function* readWorkoutPages(
   let lastId = 0;
   for (;;) {
     const workouts = await db.getAllAsync<WorkoutRow>(
-      `SELECT cw.id, cw.date_completed, cw.duration, cw.is_deload,
+      `SELECT cw.id, cw.date_completed, cw.duration, cw.is_deload, cw.notes,
               uw.name AS workout_name, up.name AS plan_name
          FROM completed_workouts cw
          LEFT JOIN user_workouts uw ON uw.id = cw.workout_id
@@ -118,7 +122,7 @@ async function* readWorkoutPages(
               e.name AS exercise_name,
               COALESCE(ce.resolved_tracking_type, e.tracking_type) AS tracking_type,
               cs.set_number, cs.weight, cs.reps, cs.time, cs.distance,
-              cs.is_warmup, cs.is_drop_set, cs.is_to_failure
+              cs.is_warmup, cs.is_drop_set, cs.is_to_failure, cs.note
          FROM completed_exercises ce
          LEFT JOIN exercises e ON e.exercise_id = ce.exercise_id
          JOIN completed_sets cs ON cs.completed_exercise_id = ce.id
@@ -170,6 +174,7 @@ const toExportedWorkout = (
       isWarmup: bool(set.is_warmup),
       isDropSet: bool(set.is_drop_set),
       isToFailure: bool(set.is_to_failure),
+      note: set.note ?? null,
     });
   }
   return {
@@ -178,6 +183,7 @@ const toExportedWorkout = (
     plan: workout.plan_name,
     durationSeconds: workout.duration,
     isDeload: bool(workout.is_deload),
+    notes: workout.notes ?? null,
     exercises,
   };
 };
@@ -369,6 +375,8 @@ const buildCsv = async (db: SQLite.SQLiteDatabase): Promise<ExportFile[]> => {
     "is_warmup",
     "is_drop_set",
     "is_to_failure",
+    "set_note",
+    "session_note",
   ]);
   for await (const page of readWorkoutPages(db)) {
     for (const { workout, sets: rows } of page) {
@@ -385,6 +393,8 @@ const buildCsv = async (db: SQLite.SQLiteDatabase): Promise<ExportFile[]> => {
           bool(set.is_warmup),
           bool(set.is_drop_set),
           bool(set.is_to_failure),
+          set.note,
+          workout.notes,
         ]);
       }
     }

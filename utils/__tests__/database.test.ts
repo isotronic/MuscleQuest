@@ -532,6 +532,81 @@ describe("saveCompletedWorkout", () => {
     );
   });
 
+  it("stores the session note and set notes, blanks as NULL", async () => {
+    const txnRunAsync = jest
+      .fn()
+      .mockResolvedValue({ lastInsertRowId: 7, changes: 1 });
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync });
+      },
+    );
+
+    const exercises = [
+      {
+        exercise_id: 1,
+        sets: [
+          {
+            set_number: 1,
+            weight: 100,
+            reps: 8,
+            time: null,
+            distance: null,
+            note: "  felt shoulder on rep 6 ",
+          },
+          {
+            set_number: 2,
+            weight: 100,
+            reps: 7,
+            time: null,
+            distance: null,
+            note: "   ",
+          },
+          { set_number: 3, weight: 100, reps: 6, time: null, distance: null },
+        ],
+      },
+    ];
+
+    await saveCompletedWorkout(
+      1,
+      2,
+      600,
+      3,
+      false,
+      exercises,
+      undefined,
+      "Good session",
+    );
+
+    const [workoutSql, workoutParams] = txnRunAsync.mock.calls[0];
+    expect(workoutSql).toContain("notes");
+    expect(workoutParams[workoutParams.length - 1]).toBe("Good session");
+
+    const setCalls = txnRunAsync.mock.calls.slice(2);
+    expect(setCalls[0][0]).toContain("note");
+    expect(setCalls.map(([, params]) => params[params.length - 1])).toEqual([
+      "felt shoulder on rep 6",
+      null,
+      null,
+    ]);
+  });
+
+  it("stores an empty session note as NULL", async () => {
+    const txnRunAsync = jest
+      .fn()
+      .mockResolvedValue({ lastInsertRowId: 7, changes: 1 });
+    mockDb.withExclusiveTransactionAsync.mockImplementation(
+      async (cb: (txn: any) => Promise<void>) => {
+        await cb({ runAsync: txnRunAsync });
+      },
+    );
+
+    await saveCompletedWorkout(1, 2, 600, 0, false, [], undefined, "");
+
+    const params = txnRunAsync.mock.calls[0][1];
+    expect(params[params.length - 1]).toBeNull();
+  });
+
   it("propagates and does not swallow errors from within the transaction", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("disk full");

@@ -14,6 +14,7 @@ interface Workout {
   is_deload: number;
   workout_name: string | null;
   plan_name: string | null;
+  notes?: string | null;
 }
 
 let workouts: Workout[] = [];
@@ -143,11 +144,22 @@ describe("buildTrainingDataExport csv", () => {
 
     const lines = csvLines(setsFile);
     expect(lines[0]).toBe(
-      "date,workout,exercise,set_number,weight_kg,reps,time_s,distance_m,is_warmup,is_drop_set,is_to_failure",
+      "date,workout,exercise,set_number,weight_kg,reps,time_s,distance_m,is_warmup,is_drop_set,is_to_failure,set_note,session_note",
     );
     expect(lines).toHaveLength(1 + sets.length);
     expect(lines[1]).toBe(
-      "2026-01-01T10:00:00,Push Day,Bench Press,1,100,5,,,true,false,false",
+      "2026-01-01T10:00:00,Push Day,Bench Press,1,100,5,,,true,false,false,,",
+    );
+  });
+
+  it("includes set and session notes", async () => {
+    workouts = [{ ...workout(1), notes: "Slept badly, kept it light" }];
+    sets = [{ ...set(1, 10, 1), note: "felt shoulder" }];
+
+    const [setsFile] = await buildTrainingDataExport("csv");
+
+    expect(csvLines(setsFile)[1]).toBe(
+      '2026-01-01T10:00:00,Push Day,Bench Press,1,100,5,,,true,false,false,felt shoulder,"Slept badly, kept it light"',
     );
   });
 
@@ -236,6 +248,18 @@ describe("buildTrainingDataExport json", () => {
       reps: 5,
       isWarmup: true,
     });
+  });
+
+  it("includes set and session notes", async () => {
+    workouts = [{ ...workout(1), notes: "Slept badly" }, workout(2)];
+    sets = [{ ...set(1, 10, 1), note: "felt shoulder" }, set(2, 20, 1)];
+
+    const data = await parse();
+
+    expect(data.workouts[0].notes).toBe("Slept badly");
+    expect(data.workouts[0].exercises[0].sets[0].note).toBe("felt shoulder");
+    expect(data.workouts[1].notes).toBeNull();
+    expect(data.workouts[1].exercises[0].sets[0].note).toBeNull();
   });
 
   it("leaves out internal settings", async () => {

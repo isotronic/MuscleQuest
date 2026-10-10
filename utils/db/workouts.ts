@@ -28,9 +28,18 @@ export interface SavedWorkout {
       is_drop_set?: boolean;
       is_to_failure?: boolean;
       set_duration?: number | null;
+      note?: string | null;
     }[];
   }[];
+  /** Free-text note on the whole session. */
+  notes?: string | null;
 }
+
+/** Trimmed note text, or null when there is nothing to store. */
+export const noteOrNull = (note: string | null | undefined): string | null => {
+  const trimmed = note?.trim();
+  return trimmed ? trimmed : null;
+};
 
 export const saveCompletedWorkout = async (
   planId: number | null,
@@ -51,9 +60,11 @@ export const saveCompletedWorkout = async (
       is_drop_set?: boolean;
       is_to_failure?: boolean;
       set_duration?: number | null;
+      note?: string | null;
     }[];
   }[],
   completedAt?: Date,
+  notes?: string | null,
 ) => {
   const db = await openDatabase("userData.db");
   let completedWorkoutId: number;
@@ -69,7 +80,7 @@ export const saveCompletedWorkout = async (
           }
         : nowForDb();
       const completedWorkoutResult = await txn.runAsync(
-        `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, local_date, duration, total_sets_completed, is_deload) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO completed_workouts (plan_id, workout_id, date_completed, local_date, duration, total_sets_completed, is_deload, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           planId,
           workoutId,
@@ -78,6 +89,7 @@ export const saveCompletedWorkout = async (
           duration,
           totalSetsCompleted,
           isDeload ? 1 : 0,
+          noteOrNull(notes),
         ],
       );
 
@@ -97,7 +109,7 @@ export const saveCompletedWorkout = async (
 
         for (const set of exercise.sets) {
           await txn.runAsync(
-            `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup, is_drop_set, is_to_failure, set_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, time, distance, is_warmup, is_drop_set, is_to_failure, set_duration, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               completedExerciseId,
               set.set_number,
@@ -109,6 +121,7 @@ export const saveCompletedWorkout = async (
               set.is_drop_set ? 1 : 0,
               set.is_to_failure ? 1 : 0,
               set.set_duration ?? null,
+              noteOrNull(set.note),
             ],
           );
         }
@@ -175,6 +188,8 @@ interface CompletedWorkoutRow {
   distance: number | null;
   is_warmup: number | null;
   set_duration: number | null;
+  note: string | null;
+  notes: string | null;
 }
 
 export const fetchCompletedWorkoutById = async (
@@ -213,6 +228,8 @@ export const fetchCompletedWorkoutById = async (
         cs.distance,
         cs.is_warmup,
         cs.set_duration,
+        cs.note,
+        cw.notes,
         uwe.exercise_order -- Include exercise order from user_workout_exercises
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
@@ -243,6 +260,7 @@ export const fetchCompletedWorkoutById = async (
       duration: result[0]?.duration || 0,
       total_sets_completed: result[0]?.total_sets_completed || 0,
       is_deload: result[0]?.is_deload ?? 0,
+      notes: result[0]?.notes ?? null,
       exercises: [],
     };
 
@@ -305,6 +323,7 @@ export const fetchCompletedWorkoutById = async (
                   : null,
               is_warmup: !!row.is_warmup,
               set_duration: row.set_duration ?? null,
+              note: row.note ?? null,
             });
           }
         }
