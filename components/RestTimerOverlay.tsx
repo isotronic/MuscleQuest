@@ -108,7 +108,7 @@ export default function RestTimerOverlay({
       ]}
     >
       <ThemedText style={styles.label}>
-        <Trans>Rest Time Left:</Trans>
+        <Trans>Rest</Trans>
       </ThemedText>
       <View style={styles.row}>
         <TouchableOpacity

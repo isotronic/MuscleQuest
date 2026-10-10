@@ -97,10 +97,8 @@ describe("RestTimerOverlay accessibility", () => {
       <RestTimerOverlay {...baseProps} timerRunning={false} />,
     );
     // Default queries skip elements hidden from assistive technology.
-    expect(queryByText("Rest Time Left:")).toBeNull();
-    expect(
-      queryByText("Rest Time Left:", { includeHiddenElements: true }),
-    ).toBeTruthy();
+    expect(queryByText("Rest")).toBeNull();
+    expect(queryByText("Rest", { includeHiddenElements: true })).toBeTruthy();
   });
 
   it("announces the countdown thresholds while running", () => {

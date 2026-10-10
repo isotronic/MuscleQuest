@@ -395,9 +395,9 @@ export default function HomeScreen() {
           </ThemedText>
           <ThemedText type="default">
             {!activePlan ? (
-              <Trans>Your journey to Swoletown begins today!</Trans>
+              <Trans>Pick a plan or start a quick workout.</Trans>
             ) : (
-              <Trans>Make sure to track your progress!</Trans>
+              <Trans>Log every set to see your progress.</Trans>
             )}
           </ThemedText>
         </View>
