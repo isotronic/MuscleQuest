@@ -100,8 +100,9 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
     };
   } catch (error: any) {
     console.error("Error fetching or parsing active plan", error);
+    // Rethrow so home shows its error state instead of the no-plan state.
     notifyBugsnag(error);
-    return null;
+    throw error;
   } finally {
     if (db) {
       try {

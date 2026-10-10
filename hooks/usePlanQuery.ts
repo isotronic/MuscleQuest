@@ -176,8 +176,10 @@ const fetchPlan = async (planId: number): Promise<Plan | null> => {
     };
   } catch (error: any) {
     console.error("Error fetching plan", error);
+    // Rethrow so the screen shows its error state; notifyBugsnag marks the
+    // error so the global query handler does not report it again.
     notifyBugsnag(error);
-    return null;
+    throw error;
   }
 };
 
