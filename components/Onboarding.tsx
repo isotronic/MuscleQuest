@@ -88,8 +88,8 @@ const Onboarding = ({
       route: "/(app)/(tabs)/(stats)" as Href,
     },
     {
-      title: t`Add Personal Notes`,
-      description: t`Capture important cues, reminders, and personal insights for your exercises, workouts, and training plans. Stay focused and refine your technique with custom notes throughout your fitness journey. Notes save automatically when you're done editing.`,
+      title: t`Cues and Notes`,
+      description: t`Keep form cues and reminders on your exercises, workouts, and training plans. During a session, add a note to the whole workout or to a single set, and it shows up the next time you do that exercise. Notes stay on your device and save automatically when you're done editing.`,
       buttonLabel: null as string | null,
       route: null as Href | null,
     },

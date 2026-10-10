@@ -145,6 +145,7 @@ export default function HistoryDetailsScreen() {
 
   const parsedDate = parseDbTimestamp(workout.date_completed);
   const formattedDate = format(parsedDate, "dd/MM/yyyy 'at' HH:mm");
+  const sessionNote = workout.notes?.trim();
 
   return (
     <ThemedView>
@@ -195,12 +196,12 @@ export default function HistoryDetailsScreen() {
           <ThemedText style={styles.workoutDate}>
             <Trans>Completed on: {formattedDate}</Trans>
           </ThemedText>
-          {!!workout.notes?.trim() && (
+          {!!sessionNote && (
             <ThemedText
               style={styles.sessionNote}
-              accessibilityLabel={t`Session note: ${workout.notes.trim()}`}
+              accessibilityLabel={t`Session note: ${sessionNote}`}
             >
-              {workout.notes.trim()}
+              {sessionNote}
             </ThemedText>
           )}
         </View>
