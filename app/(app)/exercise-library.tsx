@@ -1,14 +1,13 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useExerciseSearch } from "@/hooks/useExerciseSearch";
 import { useExerciseSort } from "@/hooks/useExerciseSort";
 import { useExerciseUsageQuery } from "@/hooks/useExerciseUsageQuery";
 import { router, useLocalSearchParams } from "expo-router";
 import { View, TextInput, StyleSheet } from "react-native";
 import { t } from "@lingui/core/macro";
-import { Trans } from "@lingui/react/macro";
 import { ActivityIndicator } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import FilterRow from "@/components/FilterRow";
 import ExerciseList from "@/components/ExerciseList";
@@ -16,7 +15,6 @@ import ExerciseSuggestions from "@/components/ExerciseSuggestions";
 import ExerciseSortChips, {
   type SortMode,
 } from "@/components/ExerciseSortChips";
-import Bugsnag from "@bugsnag/expo";
 import { useExercisePickerStore } from "@/store/exercisePickerStore";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
@@ -45,6 +43,7 @@ export default function ExerciseLibraryScreen() {
     data: exercises,
     isLoading: exercisesLoading,
     error: exercisesError,
+    refetch: refetchExercises,
   } = useExercisesQuery(sortMode === "activePlan", false);
 
   const { data: usageData } = useExerciseUsageQuery();
@@ -77,13 +76,6 @@ export default function ExerciseLibraryScreen() {
     usageData,
   );
 
-  useEffect(() => {
-    if (exercisesError) {
-      console.error("Error loading exercises:", exercisesError);
-      Bugsnag.notify(exercisesError);
-    }
-  }, [exercisesError]);
-
   if (exercisesLoading) {
     return (
       <ThemedView style={styles.container}>
@@ -93,13 +85,7 @@ export default function ExerciseLibraryScreen() {
   }
 
   if (exercisesError) {
-    return (
-      <ThemedView style={styles.container}>
-        <ThemedText style={styles.errorText}>
-          <Trans>Error loading exercises: {exercisesError?.message}</Trans>
-        </ThemedText>
-      </ThemedView>
-    );
+    return <ErrorState onRetry={() => void refetchExercises()} />;
   }
 
   return (
@@ -174,10 +160,6 @@ function createStyles(colors: AppThemeColors) {
       flex: 1,
       padding: 10,
       color: colors.contentPrimary,
-    },
-    errorText: {
-      fontSize: 18,
-      color: colors.exerciseHighlight,
     },
   });
 }

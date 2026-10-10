@@ -22,6 +22,7 @@ import { ActivityIndicator } from "react-native-paper";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { ErrorState } from "@/components/ui/ErrorState";
 import SessionSetInfo from "@/components/SessionSetInfo";
 import { SessionSetOptionsModal } from "@/components/SessionSetOptionsModal";
 import { PlateCalculatorModal } from "@/components/PlateCalculatorModal";
@@ -424,6 +425,7 @@ export default function WorkoutSessionScreen() {
     data: settings,
     isLoading: settingsLoading,
     error: settingsError,
+    refetch: refetchSettings,
   } = useSettingsQuery();
 
   const progressionSettings = useProgressionSettingsQuery();
@@ -1772,14 +1774,7 @@ export default function WorkoutSessionScreen() {
   }
 
   if (settingsError) {
-    Bugsnag.notify(settingsError);
-    return (
-      <ThemedView style={styles.container}>
-        <ThemedText>
-          <Trans>Error: {settingsError.message}</Trans>
-        </ThemedText>
-      </ThemedView>
-    );
+    return <ErrorState onRetry={() => void refetchSettings()} />;
   }
 
   return (

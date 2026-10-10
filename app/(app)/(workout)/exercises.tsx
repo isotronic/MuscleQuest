@@ -8,7 +8,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ActivityIndicator, Button } from "react-native-paper";
 import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { useExercisesQuery } from "@/hooks/useExercisesQuery";
 import { router, useLocalSearchParams } from "expo-router";
 import FilterRow from "@/components/FilterRow";
@@ -20,7 +20,6 @@ import ExerciseSortChips, {
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { UserExercise } from "@/store/workoutStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
-import Bugsnag from "@bugsnag/expo";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -61,6 +60,7 @@ export default function ExercisesScreen() {
     data: exercises,
     isLoading: exercisesLoading,
     error: exercisesError,
+    refetch: refetchExercises,
   } = useExercisesQuery(sortMode === "activePlan", true);
 
   const { data: usageData } = useExerciseUsageQuery();
@@ -190,15 +190,7 @@ export default function ExercisesScreen() {
   );
 
   if (exercisesError) {
-    console.error("Error loading exercises:", exercisesError);
-    Bugsnag.notify(exercisesError);
-    return (
-      <ThemedView style={styles.container}>
-        <ThemedText style={styles.errorText}>
-          <Trans>Error loading exercises: {exercisesError?.message}</Trans>
-        </ThemedText>
-      </ThemedView>
-    );
+    return <ErrorState onRetry={() => void refetchExercises()} />;
   }
 
   const isLoading =
@@ -315,10 +307,6 @@ function createStyles(colors: AppThemeColors) {
     },
     addButtonLabel: {
       fontWeight: "bold",
-    },
-    errorText: {
-      fontSize: 18,
-      color: colors.exerciseHighlight,
     },
     bottomButtons: {
       paddingHorizontal: 16,

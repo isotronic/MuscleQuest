@@ -7,6 +7,7 @@ import {
   Alert,
 } from "react-native";
 import { AppImage, AppIcon, AppIconButton } from "@/components/ui";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useLocalSearchParams, router, Stack } from "expo-router";
@@ -110,7 +111,12 @@ export default function PlanOverviewScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { planId } = useLocalSearchParams();
-  const { data: plan, isLoading, error } = usePlanQuery(Number(planId));
+  const {
+    data: plan,
+    isLoading,
+    error,
+    refetch,
+  } = usePlanQuery(Number(planId));
   const { data: scheduleEntries = [] } = usePlanScheduleQuery(Number(planId));
   const { data: settings } = useSettingsQuery();
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
@@ -222,7 +228,7 @@ export default function PlanOverviewScreen() {
               onError: (error) => {
                 Alert.alert(
                   t`Error`,
-                  t`Failed to delete plan: ${error.message}`,
+                  t`Couldn't delete this plan. Please try again.`,
                 );
                 notifyBugsnag(error);
               },
@@ -242,7 +248,9 @@ export default function PlanOverviewScreen() {
         setSnackbarVisible(true);
       },
       onError: (error) => {
-        setSnackbarMessage(t`Failed to activate this plan: ${error.message}`);
+        setSnackbarMessage(
+          t`Couldn't set this plan as active. Please try again.`,
+        );
         setSnackbarError(true);
         setSnackbarVisible(true);
         notifyBugsnag(error);
@@ -259,11 +267,7 @@ export default function PlanOverviewScreen() {
   }
 
   if (error) {
-    return (
-      <ThemedText>
-        <Trans>Error: {error.message}</Trans>
-      </ThemedText>
-    );
+    return <ErrorState onRetry={() => void refetch()} />;
   }
 
   return (

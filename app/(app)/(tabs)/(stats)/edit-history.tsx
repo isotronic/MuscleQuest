@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { AppIconButton } from "@/components/ui";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { DecimalInput } from "@/components/ui/DecimalInput";
 import { ScrollView, TextInput, StyleSheet, View } from "react-native";
 import { Trans } from "@lingui/react/macro";
@@ -21,7 +22,6 @@ import { useCompletedWorkoutByIdQuery } from "@/hooks/useCompletedWorkoutByIdQue
 import { formatFromTotalSeconds, convertToTotalSeconds } from "@/utils/utility";
 import { parseDecimalInput, sanitizeIntegerInput } from "@/utils/numberFormat";
 import { TimeInput } from "@/components/TimeInput";
-import Bugsnag from "@bugsnag/expo";
 import { useExercisePickerStore } from "@/store/exercisePickerStore";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
@@ -35,6 +35,7 @@ export default function EditCompletedWorkoutScreen() {
     data: settings,
     isLoading: settingsLoading,
     error: settingsError,
+    refetch: refetchSettings,
   } = useSettingsQuery();
 
   const weightUnit = settings?.weightUnit || "kg";
@@ -88,6 +89,7 @@ export default function EditCompletedWorkoutScreen() {
     data: workoutData,
     isLoading: isWorkoutLoading,
     error: workoutError,
+    refetch: refetchWorkout,
   } = useCompletedWorkoutByIdQuery(Number(id), weightUnit, distanceUnit);
 
   const editWorkout = useEditCompletedWorkoutMutation(
@@ -171,11 +173,14 @@ export default function EditCompletedWorkoutScreen() {
   }
 
   if (settingsError || workoutError) {
-    const error = settingsError || workoutError;
-    if (error instanceof Error) {
-      Bugsnag.notify(error);
-      return <ThemedText>Error: {error.message}</ThemedText>;
-    }
+    return (
+      <ErrorState
+        onRetry={() => {
+          if (settingsError) void refetchSettings();
+          if (workoutError) void refetchWorkout();
+        }}
+      />
+    );
   }
 
   return (

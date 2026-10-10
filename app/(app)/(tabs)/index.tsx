@@ -11,6 +11,7 @@ import {
 } from "@/utils/dates";
 import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
 import { AppIcon } from "@/components/ui";
+import { ErrorState } from "@/components/ui/ErrorState";
 import WeekDays from "@/components/WeekDays";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { AuthContext } from "@/context/AuthProvider";
@@ -27,7 +28,6 @@ import {
 } from "@/hooks/useCompletedWorkoutsQuery";
 import { useHasCompletedWorkoutQuery } from "@/hooks/useWorkoutSummariesQuery";
 import { Workout, UserExercise } from "@/store/workoutStore";
-import Bugsnag from "@bugsnag/expo";
 import Onboarding, { shouldShowActivationCard } from "@/components/Onboarding";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
 import { UpdateModal } from "@/components/UpdateModal";
@@ -96,11 +96,13 @@ export default function HomeScreen() {
     data: activePlan,
     isLoading: activePlanLoading,
     error: activePlanError,
+    refetch: refetchActivePlan,
   } = useActivePlanQuery();
   const {
     data: settings,
     isLoading: settingsLoading,
     error: settingsError,
+    refetch: refetchSettings,
   } = useSettingsQuery();
 
   const weightUnit = settings?.weightUnit || "kg";
@@ -110,6 +112,7 @@ export default function HomeScreen() {
     data: completedWorkouts,
     isLoading: completedWorkoutsLoading,
     error: completedWorkoutsError,
+    refetch: refetchCompletedWorkouts,
   } = useCompletedWorkoutsQuery(weightUnit, distanceUnit, RECENT_HISTORY_DAYS);
   const { data: hasCompletedWorkout } = useHasCompletedWorkoutQuery();
 
@@ -184,23 +187,16 @@ export default function HomeScreen() {
       </ThemedView>
     );
   } else if (activePlanError || settingsError || completedWorkoutsError) {
-    const error = activePlanError || settingsError || completedWorkoutsError;
-
-    if (error) {
-      Bugsnag.notify(error);
-    }
+    // The global query cache handler reports the failure.
     return (
-      <ThemedText style={styles.loadingContainer}>
-        <Trans>
-          Error fetching{" "}
-          {activePlanError
-            ? t`active plan`
-            : settingsError
-              ? t`settings`
-              : t`completed workouts`}
-          : {error?.message}
-        </Trans>
-      </ThemedText>
+      <ErrorState
+        showHome={false}
+        onRetry={() => {
+          if (activePlanError) void refetchActivePlan();
+          if (settingsError) void refetchSettings();
+          if (completedWorkoutsError) void refetchCompletedWorkouts();
+        }}
+      />
     );
   }
 

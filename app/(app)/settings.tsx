@@ -19,6 +19,7 @@ import {
   Button,
 } from "react-native-paper";
 import { AppIcon } from "@/components/ui";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useAppTheme } from "@/theme";
@@ -579,14 +580,10 @@ export default function SettingsScreen() {
 
   if (isError) {
     return (
-      <ThemedView style={[styles.container, styles.errorState]}>
-        <ThemedText style={styles.errorText}>
-          <Trans>Your settings could not be loaded.</Trans>
-        </ThemedText>
-        <Button mode="contained" onPress={() => refetch()}>
-          <Trans>Try again</Trans>
-        </Button>
-      </ThemedView>
+      <ErrorState
+        message={t`Your settings could not be loaded.`}
+        onRetry={() => void refetch()}
+      />
     );
   }
 
@@ -1954,15 +1951,6 @@ function createStyles(colors: AppThemeColors) {
       marginVertical: 16,
     },
     progressBarText: {},
-    errorState: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      gap: 16,
-    },
-    errorText: {
-      textAlign: "center",
-    },
     backupButton: {
       marginRight: 4,
     },
