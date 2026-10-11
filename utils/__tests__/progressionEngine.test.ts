@@ -1269,3 +1269,33 @@ describe("evaluateProgression — explanation strings", () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// Compact feedback card (plan 27): below target the card sends effort "hard"
+// ---------------------------------------------------------------------------
+
+describe("evaluateProgression — below-target card submission", () => {
+  it.each([
+    [0.5, "BELOW_TARGET"],
+    [0.9, "NEAR_TARGET"],
+  ])(
+    "a 'hard' submission at ratio %s holds with %s, never a failed-sets rule",
+    (performanceRatio, ruleKey) => {
+      // Even after repeated sessions, "hard" never escalates like "failed".
+      for (const consecutiveDirectionCount of [1, 2, 5]) {
+        const result = evaluateProgression(
+          makeInputs({
+            latestFeedback: makeFeedback({
+              effortRating: "hard",
+              performanceRatio,
+            }),
+            consecutiveDirectionCount,
+          }),
+        );
+        expect(result.action).toBe("hold");
+        expect(result.ruleKey).toBe(ruleKey);
+        expect(result.ruleKey).not.toMatch(/^FAILED_/);
+      }
+    },
+  );
+});
