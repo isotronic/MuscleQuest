@@ -226,6 +226,8 @@ interface CompletedWorkoutRow {
   time: number | null;
   distance: number | null;
   is_warmup: number | null;
+  is_drop_set: number | null;
+  is_to_failure: number | null;
   set_duration: number | null;
   note: string | null;
   notes: string | null;
@@ -266,6 +268,8 @@ export const fetchCompletedWorkoutById = async (
         cs.time,
         cs.distance,
         cs.is_warmup,
+        cs.is_drop_set,
+        cs.is_to_failure,
         cs.set_duration,
         cs.note,
         cw.notes,
@@ -361,6 +365,8 @@ export const fetchCompletedWorkoutById = async (
                   ? convertedDistance
                   : null,
               is_warmup: !!row.is_warmup,
+              is_drop_set: !!row.is_drop_set,
+              is_to_failure: !!row.is_to_failure,
               set_duration: row.set_duration ?? null,
               note: row.note ?? null,
             });
