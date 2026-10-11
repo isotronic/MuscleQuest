@@ -37,10 +37,16 @@ jest.mock("@/components/ui", () => {
   return {
     AppIcon: () => null,
     AppImage: () => null,
-    AppIconButton: ({ accessibilityLabel, onPress, onPressIn }: any) => (
+    AppIconButton: ({
+      accessibilityLabel,
+      onPress,
+      onPressIn,
+      disabled,
+    }: any) => (
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
+        disabled={disabled}
         onPress={onPress ?? onPressIn}
       >
         <Text>{accessibilityLabel}</Text>
@@ -84,7 +90,7 @@ jest.mock("@/hooks/useExerciseHistoryQuery", () => ({
   }),
 }));
 
-let mockPinned = false;
+let mockPinned: boolean | undefined = false;
 const mockSetPinned = jest.fn();
 jest.mock("@/hooks/useIsExercisePinnedQuery", () => ({
   useIsExercisePinnedQuery: () => ({ data: mockPinned }),
@@ -172,5 +178,12 @@ describe("ExerciseInfoScreen", () => {
       exerciseId: 5,
       pinned: false,
     });
+  });
+
+  it("keeps the pin disabled until the pinned state has loaded", () => {
+    mockPinned = undefined;
+    const { getByRole } = render(<ExerciseInfoScreen />);
+    fireEvent.press(getByRole("button", { name: "Pin to Stats" }));
+    expect(mockSetPinned).not.toHaveBeenCalled();
   });
 });

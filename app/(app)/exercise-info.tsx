@@ -61,7 +61,10 @@ export default function ExerciseInfoScreen() {
   } = useExerciseInfoQuery(exerciseId);
 
   const { mutate: toggleFavorite } = useToggleFavoriteExerciseMutation();
-  const { data: isPinned = false } = useIsExercisePinnedQuery(exerciseId);
+  const { data: pinnedData } = useIsExercisePinnedQuery(exerciseId);
+  const isPinned = pinnedData ?? false;
+  // Until the state is known a tap could send the wrong toggle.
+  const pinStateKnown = pinnedData !== undefined;
   const { mutate: setPinned, isPending: pinPending } = usePinExerciseMutation();
 
   const { data: animatedUrl, isLoading: animatedImageLoading } =
@@ -173,7 +176,7 @@ export default function ExerciseInfoScreen() {
                 icon={isPinned ? "pin" : "pin-outline"}
                 iconColor={isPinned ? colors.accent : colors.contentPrimary}
                 size={25}
-                disabled={pinPending}
+                disabled={!pinStateKnown || pinPending}
                 onPress={() =>
                   setPinned({
                     exerciseId: exerciseData.exercise_id,
