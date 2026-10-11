@@ -88,6 +88,12 @@ const Onboarding = ({
       route: "/(app)/(tabs)/(stats)" as Href,
     },
     {
+      title: t`Suggested weights`,
+      description: t`Adaptive progression suggests your next weights from how your last session went.`,
+      buttonLabel: t`Go to settings` as string | null,
+      route: "/(app)/settings?section=progression" as Href,
+    },
+    {
       title: t`Cues and notes`,
       description: t`Keep form cues on exercises, workouts, and plans. A note on a session or set shows up the next time you do that exercise.`,
       buttonLabel: null as string | null,

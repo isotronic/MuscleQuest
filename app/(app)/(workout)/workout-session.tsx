@@ -12,6 +12,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Vibration,
   View,
@@ -63,13 +64,13 @@ import {
   findLastAvailableSetData as findLastAvailableSetDataUtil,
 } from "@/utils/carryOverLookup";
 import { UserExercise } from "@/store/workoutStore";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import ExerciseFeedbackSheet from "@/components/ExerciseFeedbackSheet";
+import ExerciseFeedbackCard from "@/components/ExerciseFeedbackCard";
+import type { FeedbackPrompt } from "@/utils/feedbackPrompts";
+import { useSubmitFeedbackPrompt } from "@/hooks/useSubmitFeedbackPrompt";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useProgressionStateQuery } from "@/hooks/useProgressionStateQuery";
-import { useExerciseFeedbackMutation } from "@/hooks/useExerciseFeedbackMutation";
-import { ExerciseFeedbackPayload } from "@/types/progression";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import { sessionSupportsProgression } from "@/utils/progressionEligibility";
 import { useSessionPRs } from "@/hooks/useSessionPRs";
 import { isSessionPR } from "@/utils/sessionPRs";
 import type { PreviousSet } from "@/components/LastTimeLine";
@@ -96,6 +97,7 @@ const AnimatedView = Animated.View as unknown as React.ComponentType<{
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const COMMIT_DISTANCE = SCREEN_WIDTH * 0.3;
 const COMMIT_VELOCITY = 500;
+const FEEDBACK_CARD_MAX_HEIGHT = Dimensions.get("window").height * 0.25;
 
 interface OutgoingSnapshot {
   exercise_id: number;
@@ -290,20 +292,9 @@ export default function WorkoutSessionScreen() {
 
   const [outgoingSnapshot, setOutgoingSnapshot] =
     useState<OutgoingSnapshot | null>(null);
-  type FeedbackCtx = {
-    userWorkoutExerciseId: number;
-    exerciseName: string;
-    performanceRatio: number;
-    exerciseContext: import("@/hooks/useExerciseFeedbackMutation").ExerciseContext;
-  };
-  const feedbackSheetRef = useRef<BottomSheetModal>(null);
-  const [feedbackQueue, setFeedbackQueue] = useState<FeedbackCtx[]>([]);
-
-  useEffect(() => {
-    if (feedbackQueue.length > 0) {
-      feedbackSheetRef.current?.present();
-    }
-  }, [feedbackQueue.length]);
+  // Height of the rest overlay, so a feedback card inside it never covers
+  // the Complete Set button.
+  const [restOverlayHeight, setRestOverlayHeight] = useState(0);
   const [editSetModalVisible, setEditSetModalVisible] = useState(false);
   const setNoteSheetRef = useRef<NoteSheetHandle>(null);
   // The set the note sheet was opened on, so a swipe while it is open cannot
@@ -387,6 +378,7 @@ export default function WorkoutSessionScreen() {
     suggestedWeightPrefills,
     setNotes,
     setSetNote,
+    isQuickWorkout,
   } = useActiveWorkoutStore(
     useShallow((s) => ({
       workout: s.workout,
@@ -417,6 +409,7 @@ export default function WorkoutSessionScreen() {
       setNotes: s.setNotes,
       setSetNote: s.setSetNote,
       suggestedWeightPrefills: s.suggestedWeightPrefills,
+      isQuickWorkout: s.isQuickWorkout,
     })),
   );
   const { prs: sessionPRs, prsWithSetCompleted } = useSessionPRs();
@@ -432,12 +425,21 @@ export default function WorkoutSessionScreen() {
   const { isCurrentWeekDeload } = useDeloadWeekQuery(
     activeWorkout?.planId ?? undefined,
   );
-  const { mutate: submitFeedback } = useExerciseFeedbackMutation();
+  const submitFeedbackPrompt = useSubmitFeedbackPrompt();
   const feedbackSubmittedUweIds = useActiveWorkoutStore(
     (s) => s.feedbackSubmittedUweIds,
   );
-  const recordFeedbackSubmitted = useActiveWorkoutStore(
-    (s) => s.recordFeedbackSubmitted,
+  // At most one card is visible; the rest wait their turn.
+  const activeFeedbackPrompt = useActiveWorkoutStore((s) => s.feedbackQueue[0]);
+  const queueFeedbackPrompts = useActiveWorkoutStore(
+    (s) => s.queueFeedbackPrompts,
+  );
+  const skipFeedbackPrompt = useActiveWorkoutStore((s) => s.skipFeedbackPrompt);
+  // Cards still waiting when the session screen closes (last set done, or
+  // back to the overview) are offered on the summary instead.
+  useEffect(
+    () => () => useActiveWorkoutStore.getState().flushFeedbackQueue(),
+    [],
   );
 
   const parsedIncrement = parseFloat(settings?.weightIncrement ?? "");
@@ -664,10 +666,12 @@ export default function WorkoutSessionScreen() {
   }
 
   useEffect(() => {
-    timerTranslateY.value = withTiming(timerRunning ? 0 : 200, {
-      duration: 300,
-    });
-  }, [timerRunning, timerTranslateY]);
+    // Parked below the screen; a feedback card can make it taller than 200.
+    timerTranslateY.value = withTiming(
+      timerRunning ? 0 : Math.max(200, restOverlayHeight + 16),
+      { duration: 300 },
+    );
+  }, [timerRunning, timerTranslateY, restOverlayHeight]);
 
   useEffect(() => {
     if (timerRunning && timerExpiry) {
@@ -1228,7 +1232,7 @@ export default function WorkoutSessionScreen() {
   const buildFeedbackContextForExercise = (
     exIdx: number,
     simulatedCompleted: typeof completedSets,
-  ): FeedbackCtx | null => {
+  ): FeedbackPrompt | null => {
     if (!workout) return null;
     const exercise = workout.exercises[exIdx];
     if (!exercise?.id) return null;
@@ -1319,10 +1323,14 @@ export default function WorkoutSessionScreen() {
     };
   };
 
-  const buildFeedbackContexts = (): FeedbackCtx[] => {
+  const buildFeedbackContexts = (): FeedbackPrompt[] => {
+    // Deload stays plan-only: isCurrentWeekDeload is false without a plan.
     if (
       !progressionSettings.enabled ||
-      activeWorkout?.planId == null ||
+      !sessionSupportsProgression({
+        workoutId: activeWorkout?.workoutId,
+        isQuickWorkout,
+      }) ||
       isCurrentWeekDeload
     )
       return [];
@@ -1551,9 +1559,7 @@ export default function WorkoutSessionScreen() {
       recordSetDuration(currentExerciseIndex, currentSetIndex, durationNoAnim);
       setCurrentSetStartedAt(null);
       nextSet();
-      if (feedbackContexts.length > 0) {
-        setFeedbackQueue(feedbackContexts);
-      }
+      queueFeedbackPrompts(feedbackContexts);
       return;
     }
 
@@ -1624,9 +1630,8 @@ export default function WorkoutSessionScreen() {
     recordSetDuration(currentExerciseIndex, currentSetIndex, durationAnim);
     setCurrentSetStartedAt(null);
     nextSet();
-    if (feedbackContexts.length > 0) {
-      setFeedbackQueue(feedbackContexts);
-    }
+    // Also moves any card left unanswered to the summary's catch-up list.
+    queueFeedbackPrompts(feedbackContexts);
     if (
       isFirstInSuperset ||
       (hasNextSet &&
@@ -1765,6 +1770,26 @@ export default function WorkoutSessionScreen() {
       }
     });
 
+  // Inside the rest overlay while resting, otherwise in the layout under the
+  // panel, so it never sits on top of the Complete Set button.
+  // Capped and scrollable, so an expanded card cannot squeeze the set panel
+  // (which does not scroll) past its Complete Set button.
+  const feedbackCard = activeFeedbackPrompt ? (
+    <ScrollView
+      style={styles.feedbackCardScroll}
+      keyboardShouldPersistTaps="handled"
+    >
+      <ExerciseFeedbackCard
+        key={activeFeedbackPrompt.userWorkoutExerciseId}
+        prompt={activeFeedbackPrompt}
+        onSubmit={(payload) =>
+          void submitFeedbackPrompt(activeFeedbackPrompt, payload)
+        }
+        onSkip={skipFeedbackPrompt}
+      />
+    </ScrollView>
+  ) : null;
+
   if (settingsLoading) {
     return (
       <ThemedView style={styles.container}>
@@ -1794,7 +1819,13 @@ export default function WorkoutSessionScreen() {
         }}
       />
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={[
+          { flex: 1 },
+          // The overlay grows with the card; keep the panel clear of it.
+          feedbackCard && timerRunning
+            ? { paddingBottom: Math.max(0, restOverlayHeight - 16) }
+            : null,
+        ]}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <GestureDetector gesture={panGesture}>
@@ -1955,21 +1986,9 @@ export default function WorkoutSessionScreen() {
           setSetNote(exerciseIndex, setIndex, text);
         }}
       />
-      {feedbackQueue.length > 0 && (
-        <ExerciseFeedbackSheet
-          ref={feedbackSheetRef}
-          exerciseName={feedbackQueue[0].exerciseName}
-          userWorkoutExerciseId={feedbackQueue[0].userWorkoutExerciseId}
-          performanceRatio={feedbackQueue[0].performanceRatio}
-          onSubmit={(payload: ExerciseFeedbackPayload) => {
-            recordFeedbackSubmitted(feedbackQueue[0].userWorkoutExerciseId);
-            submitFeedback({
-              feedback: payload,
-              exerciseContext: feedbackQueue[0].exerciseContext,
-            });
-          }}
-          onAfterDismiss={() => setFeedbackQueue((q) => q.slice(1))}
-        />
+      {/* Not during the slide either: a rest may start when it ends. */}
+      {feedbackCard && !timerRunning && !outgoingSnapshot && (
+        <View style={styles.feedbackCard}>{feedbackCard}</View>
       )}
       <SessionSetOptionsModal
         visible={editSetModalVisible}
@@ -1995,6 +2014,8 @@ export default function WorkoutSessionScreen() {
         buttonSize={buttonSize}
         onAdjust={(delta) => void adjustTimer(delta)}
         onSkip={skipRest}
+        onLayout={(e) => setRestOverlayHeight(e.nativeEvent.layout.height)}
+        topContent={timerRunning ? feedbackCard : null}
         hint={
           showPermissionHint
             ? t`Notifications are off, so there is no rest alert while your phone is locked. You can turn them on in your phone's settings.`
@@ -2022,6 +2043,13 @@ function createStyles(colors: AppThemeColors) {
     panelContainer: {
       flex: 1,
       overflow: "hidden",
+    },
+    feedbackCard: {
+      marginTop: 8,
+    },
+    feedbackCardScroll: {
+      flexGrow: 0,
+      maxHeight: FEEDBACK_CARD_MAX_HEIGHT,
     },
     supersetBanner: {
       flexDirection: "row",

@@ -132,6 +132,8 @@ export interface Settings {
   backupReminderSnoozedUntil?: string;
   /** JSON, see utils/statsLayout.ts. Absent until the user customises. */
   statsLayout?: string;
+  /** Answer to the summary's progression offer, see utils/progressionOffer.ts. */
+  progressionOfferAnswered?: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

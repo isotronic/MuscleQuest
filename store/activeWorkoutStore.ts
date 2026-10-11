@@ -13,6 +13,11 @@ import { findHistoricalSetByOrdinal } from "@/utils/historyUtils";
 import { suggestedWeightForDisplay } from "@/utils/weightUnits";
 import Bugsnag from "@bugsnag/expo";
 import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
+import {
+  mergePrompts,
+  withoutExercise,
+  type FeedbackPrompt,
+} from "@/utils/feedbackPrompts";
 
 /**
  * Helper function to re-index an object after removing an item at a specific index.
@@ -247,7 +252,21 @@ interface ActiveWorkoutStore {
   // apart from an accepted suggestion by comparing values.
   suggestedWeightPrefills: Record<number, Record<number, number>>;
   feedbackSubmittedUweIds: number[];
+  /** Also drops the exercise from the feedback queue and catch-up list. */
   recordFeedbackSubmitted: (uweId: number) => void;
+  // Post-exercise feedback cards for the live session; the first is shown.
+  feedbackQueue: FeedbackPrompt[];
+  // Cards that were skipped or left unanswered, offered again on the summary.
+  feedbackCatchUp: FeedbackPrompt[];
+  /**
+   * Called on every completed set: whatever was still waiting is no longer
+   * shown live and moves to the catch-up list; `prompts` take its place.
+   */
+  queueFeedbackPrompts: (prompts: FeedbackPrompt[]) => void;
+  /** Moves the visible card to the catch-up list. */
+  skipFeedbackPrompt: () => void;
+  /** Moves every waiting card to the catch-up list. */
+  flushFeedbackQueue: () => void;
   recoveryCheckInShown: boolean;
   markRecoveryCheckInShown: () => void;
 }
@@ -300,6 +319,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
         }),
       appendedExerciseIndices: [],
       feedbackSubmittedUweIds: [],
+      feedbackQueue: [],
+      feedbackCatchUp: [],
       recoveryCheckInShown: false,
       suggestedWeightPrefills: {},
 
@@ -327,6 +348,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           setNotes: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
+          feedbackQueue: [],
+          feedbackCatchUp: [],
           recoveryCheckInShown: false,
           suggestedWeightPrefills: {},
         }),
@@ -359,6 +382,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           setNotes: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
+          feedbackQueue: [],
+          feedbackCatchUp: [],
           recoveryCheckInShown: false,
           suggestedWeightPrefills: {},
         }),
@@ -1588,6 +1613,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           setNotes: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
+          feedbackQueue: [],
+          feedbackCatchUp: [],
           recoveryCheckInShown: false,
           suggestedWeightPrefills: {},
         });
@@ -1806,6 +1833,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           setNotes: {},
           appendedExerciseIndices: [],
           feedbackSubmittedUweIds: [],
+          feedbackQueue: [],
+          feedbackCatchUp: [],
           recoveryCheckInShown: false,
           suggestedWeightPrefills: {},
         });
@@ -1907,11 +1936,63 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       },
 
       recordFeedbackSubmitted: (uweId) =>
-        set((state) => ({
-          feedbackSubmittedUweIds: state.feedbackSubmittedUweIds.includes(uweId)
-            ? state.feedbackSubmittedUweIds
-            : [...state.feedbackSubmittedUweIds, uweId],
-        })),
+        // A summary catch-up answer arrives after the session was cleared;
+        // writing then would re-persist an empty session.
+        set((state) =>
+          !state.activeWorkout
+            ? state
+            : {
+                feedbackSubmittedUweIds: state.feedbackSubmittedUweIds.includes(
+                  uweId,
+                )
+                  ? state.feedbackSubmittedUweIds
+                  : [...state.feedbackSubmittedUweIds, uweId],
+                feedbackQueue: withoutExercise(state.feedbackQueue, uweId),
+                feedbackCatchUp: withoutExercise(state.feedbackCatchUp, uweId),
+              },
+        ),
+
+      queueFeedbackPrompts: (prompts) =>
+        set((state) => {
+          if (prompts.length === 0 && state.feedbackQueue.length === 0) {
+            return state;
+          }
+          const caughtUp = mergePrompts(
+            state.feedbackCatchUp,
+            state.feedbackQueue,
+          );
+          return {
+            feedbackQueue: prompts,
+            // A fresh card for an exercise replaces its catch-up entry.
+            feedbackCatchUp: prompts.reduce(
+              (list, p) => withoutExercise(list, p.userWorkoutExerciseId),
+              caughtUp,
+            ),
+          };
+        }),
+
+      skipFeedbackPrompt: () =>
+        set((state) => {
+          const [skipped, ...rest] = state.feedbackQueue;
+          if (!skipped) return state;
+          return {
+            feedbackQueue: rest,
+            feedbackCatchUp: mergePrompts(state.feedbackCatchUp, [skipped]),
+          };
+        }),
+
+      flushFeedbackQueue: () =>
+        set((state) =>
+          state.feedbackQueue.length === 0
+            ? state
+            : {
+                feedbackQueue: [],
+                feedbackCatchUp: mergePrompts(
+                  state.feedbackCatchUp,
+                  state.feedbackQueue,
+                ),
+              },
+        ),
 
       markRecoveryCheckInShown: () => set({ recoveryCheckInShown: true }),
     }),
@@ -1956,6 +2037,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           setNotes: state.setNotes,
           appendedExerciseIndices: state.appendedExerciseIndices,
           feedbackSubmittedUweIds: state.feedbackSubmittedUweIds,
+          feedbackQueue: state.feedbackQueue,
+          feedbackCatchUp: state.feedbackCatchUp,
           recoveryCheckInShown: state.recoveryCheckInShown,
           suggestedWeightPrefills: state.suggestedWeightPrefills,
           savedCompletedWorkoutId: state.savedCompletedWorkoutId,

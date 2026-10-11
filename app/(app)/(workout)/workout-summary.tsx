@@ -45,6 +45,10 @@ import { useWorkoutPRsQuery } from "@/hooks/useWorkoutSummariesQuery";
 import { describePR } from "@/components/stats/widgets/RecentPRsWidget";
 import type { RecentPR } from "@/utils/db/workoutStats";
 import { reachedGoalWithWorkout } from "@/utils/weeklyGoal";
+import FeedbackCatchUpCard from "@/components/FeedbackCatchUpCard";
+import ProgressionOfferCard from "@/components/ProgressionOfferCard";
+import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { mergePrompts } from "@/utils/feedbackPrompts";
 
 // --- Helpers ---
 
@@ -391,6 +395,12 @@ export default function WorkoutSummaryScreen() {
       resumed?: string;
       durationTrimmed?: string;
     }>();
+  // Read before useClearFinishedWorkout empties the store after this render.
+  const [catchUpPrompts] = useState(() => {
+    if (fresh !== "true") return [];
+    const { feedbackCatchUp, feedbackQueue } = useActiveWorkoutStore.getState();
+    return mergePrompts(feedbackCatchUp, feedbackQueue);
+  });
   useClearFinishedWorkout(fresh);
   const insets = useSafeAreaInsets();
   const { data: settings } = useSettingsQuery();
@@ -485,6 +495,15 @@ export default function WorkoutSummaryScreen() {
         : 0,
     [prevWorkout, excludeWarmup, countUnilateralDouble, doubleWeightForPaired],
   );
+
+  // Only exercises that were saved with this workout.
+  const savedCatchUpPrompts = useMemo(() => {
+    if (!workout || !progressionSettings.enabled) return [];
+    const saved = new Set(workout.exercises.map((e) => e.exercise_id));
+    return catchUpPrompts.filter((p) =>
+      saved.has(p.exerciseContext.exerciseId),
+    );
+  }, [catchUpPrompts, workout, progressionSettings.enabled]);
 
   const countSets = (w: CompletedWorkout) =>
     excludeWarmup
@@ -655,6 +674,14 @@ export default function WorkoutSummaryScreen() {
 
         {weeklyGoal > 0 && (
           <WeeklyGoalBanner completed={workoutsThisWeek} goal={weeklyGoal} />
+        )}
+
+        {fresh === "true" && (
+          <ProgressionOfferCard fromSavedWorkout={workout.workout_id != null} />
+        )}
+
+        {savedCatchUpPrompts.length > 0 && (
+          <FeedbackCatchUpCard prompts={savedCatchUpPrompts} />
         )}
 
         {progressionSettings.enabled && workoutId > 0 && (

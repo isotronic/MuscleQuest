@@ -80,6 +80,7 @@ import { useRecoveryCheckInMutation } from "@/hooks/useRecoveryCheckInMutation";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import { sessionSupportsProgression } from "@/utils/progressionEligibility";
 import { useSessionPRs } from "@/hooks/useSessionPRs";
 import {
   confirmUnfinishedSets,
@@ -151,7 +152,10 @@ export default function WorkoutOverviewScreen() {
     if (
       !recoveryCheckInShown &&
       progressionSettings.enabled &&
-      activeWorkout?.planId != null &&
+      sessionSupportsProgression({
+        workoutId: activeWorkout?.workoutId,
+        isQuickWorkout,
+      }) &&
       pendingRecovery &&
       pendingRecovery.length > 0
     ) {
@@ -161,7 +165,8 @@ export default function WorkoutOverviewScreen() {
   }, [
     pendingRecovery,
     progressionSettings.enabled,
-    activeWorkout?.planId,
+    activeWorkout?.workoutId,
+    isQuickWorkout,
     recoveryCheckInShown,
     markRecoveryCheckInShown,
   ]);

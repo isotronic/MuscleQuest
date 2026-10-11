@@ -40,6 +40,8 @@ interface RestTimerOverlayProps {
   hint?: React.ReactNode;
   /** A button under the hint, e.g. to open the setting it mentions. */
   hintAction?: { label: string; onPress: () => void };
+  /** Shown above the countdown, e.g. the post-exercise feedback card. */
+  topContent?: React.ReactNode;
 }
 
 export default function RestTimerOverlay({
@@ -54,6 +56,7 @@ export default function RestTimerOverlay({
   onLayout,
   hint,
   hintAction,
+  topContent,
 }: RestTimerOverlayProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -107,6 +110,7 @@ export default function RestTimerOverlay({
         animStyle,
       ]}
     >
+      {topContent ? <View style={styles.topContent}>{topContent}</View> : null}
       <ThemedText style={styles.label}>
         <Trans>Rest</Trans>
       </ThemedText>
@@ -183,6 +187,11 @@ function createStyles(colors: AppThemeColors) {
       shadowOpacity: 0.3,
       shadowRadius: 4,
       elevation: 5,
+    },
+    topContent: {
+      alignSelf: "stretch",
+      paddingHorizontal: 8,
+      marginBottom: 8,
     },
     label: {
       fontSize: 14,

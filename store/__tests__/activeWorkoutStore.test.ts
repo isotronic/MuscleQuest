@@ -2502,6 +2502,14 @@ describe("useActiveWorkoutStore", () => {
 
   it("persists feedbackSubmittedUweIds so a force-close mid-session doesn't re-show an already-actioned suggestion", () => {
     act(() => {
+      useActiveWorkoutStore
+        .getState()
+        .setWorkout(
+          { id: 1, name: "Push", exercises: [] } as any,
+          1,
+          1,
+          "Push",
+        );
       useActiveWorkoutStore.getState().recordFeedbackSubmitted(7);
     });
 
