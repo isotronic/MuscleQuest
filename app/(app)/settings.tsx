@@ -1219,6 +1219,12 @@ export default function SettingsScreen() {
                   ? t`Enabled`
                   : t`Disabled`}
               </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                <Trans>
+                  Suggestions work in plans and saved workouts, not quick
+                  workouts.
+                </Trans>
+              </ThemedText>
             </View>
             <Switch
               accessibilityLabel={t`Suggest load and rep adjustments`}

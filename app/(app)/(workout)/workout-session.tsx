@@ -70,6 +70,7 @@ import { useProgressionStateQuery } from "@/hooks/useProgressionStateQuery";
 import { useExerciseFeedbackMutation } from "@/hooks/useExerciseFeedbackMutation";
 import { ExerciseFeedbackPayload } from "@/types/progression";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
+import { sessionSupportsProgression } from "@/utils/progressionEligibility";
 import { useSessionPRs } from "@/hooks/useSessionPRs";
 import { isSessionPR } from "@/utils/sessionPRs";
 import type { PreviousSet } from "@/components/LastTimeLine";
@@ -387,6 +388,7 @@ export default function WorkoutSessionScreen() {
     suggestedWeightPrefills,
     setNotes,
     setSetNote,
+    isQuickWorkout,
   } = useActiveWorkoutStore(
     useShallow((s) => ({
       workout: s.workout,
@@ -417,6 +419,7 @@ export default function WorkoutSessionScreen() {
       setNotes: s.setNotes,
       setSetNote: s.setSetNote,
       suggestedWeightPrefills: s.suggestedWeightPrefills,
+      isQuickWorkout: s.isQuickWorkout,
     })),
   );
   const { prs: sessionPRs, prsWithSetCompleted } = useSessionPRs();
@@ -1320,9 +1323,13 @@ export default function WorkoutSessionScreen() {
   };
 
   const buildFeedbackContexts = (): FeedbackCtx[] => {
+    // Deload stays plan-only: isCurrentWeekDeload is false without a plan.
     if (
       !progressionSettings.enabled ||
-      activeWorkout?.planId == null ||
+      !sessionSupportsProgression({
+        workoutId: activeWorkout?.workoutId,
+        isQuickWorkout,
+      }) ||
       isCurrentWeekDeload
     )
       return [];

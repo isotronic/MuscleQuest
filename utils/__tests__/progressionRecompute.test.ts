@@ -263,6 +263,23 @@ describe("recomputeProgressionForCompletedWorkout", () => {
     expect(readState().suggested_weight).toBe(1002.5);
   });
 
+  it("rebases a saved workout outside a plan the same way", async () => {
+    mockSqlite
+      .prepare(
+        `INSERT INTO user_workouts (id, plan_id, name, is_deleted) VALUES (?, NULL, 'Push day', 0)`,
+      )
+      .run(WORKOUT_ID);
+    logSession("2026-09-01", 95);
+    const latest = logSession("2026-09-08", 1000);
+    seedState(addFeedback());
+
+    editWeight(latest, 100);
+    const recomputed = await recomputeProgressionForCompletedWorkout(latest);
+
+    expect(recomputed).toEqual([UWE_ID]);
+    expect(readState().suggested_weight).toBe(102.5);
+  });
+
   it("does nothing for a quick workout", async () => {
     const quick = logSession("2026-09-08", 1000, { workoutId: null });
     seedState(addFeedback());
