@@ -72,8 +72,9 @@ export default function HistoryDetailsScreen() {
   const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
 
   const deleteMutation = useDeleteCompletedWorkoutMutation();
-  const { data: plansData } = useAllPlansQuery();
-  const { data: standaloneWorkouts } = useStandaloneWorkoutsQuery();
+  const { data: plansData, isFetching: plansFetching } = useAllPlansQuery();
+  const { data: standaloneWorkouts, isFetching: standaloneFetching } =
+    useStandaloneWorkoutsQuery();
   const [isStarting, setIsStarting] = useState(false);
   // Covers the exercise lookup before confirmStartWorkout sets isStarting.
   const preparingCopy = useRef(false);
@@ -161,11 +162,16 @@ export default function HistoryDetailsScreen() {
     return null;
   }
 
-  const sourceWorkout = findSourceWorkout(
-    workout.workout_id,
-    [...(plansData?.userPlans ?? []), ...(plansData?.appPlans ?? [])],
-    standaloneWorkouts ?? [],
-  );
+  // A refetch after a delete may still be on its way; until it lands the
+  // cached lists can hold the deleted workout, so only the copy is offered.
+  const sourceWorkout =
+    plansFetching || standaloneFetching
+      ? null
+      : findSourceWorkout(
+          workout.workout_id,
+          [...(plansData?.userPlans ?? []), ...(plansData?.appPlans ?? [])],
+          standaloneWorkouts ?? [],
+        );
 
   const prepareCopy = async () => {
     try {
