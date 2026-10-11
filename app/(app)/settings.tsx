@@ -1,5 +1,5 @@
-import { useContext, useEffect, useState, useMemo } from "react";
-import { router } from "expo-router";
+import { useContext, useEffect, useRef, useState, useMemo } from "react";
+import { router, useLocalSearchParams } from "expo-router";
 import { Trans } from "@lingui/react/macro";
 import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
@@ -47,6 +47,7 @@ import { claimLocalData } from "@/utils/accountOwnership";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { restoreConfirmMessage } from "@/utils/restoreConfirmMessage";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { PROGRESSION_OFFER_SETTING } from "@/utils/progressionOffer";
 import {
   classifyBackupError,
   fetchLastBackupDate,
@@ -114,6 +115,10 @@ export default function SettingsScreen() {
   const queryClient = useQueryClient();
   const { data: settings, isLoading, isError, refetch } = useSettingsQuery();
   const { mutate: updateSetting } = useUpdateSettingsMutation();
+  // "progression" opens the screen at that section (from the summary offer).
+  const { section } = useLocalSearchParams<{ section?: string }>();
+  const scrollRef = useRef<ScrollView>(null);
+  const scrolledToSectionRef = useRef(false);
 
   const {
     isToggled: isDownloadToggled,
@@ -374,6 +379,10 @@ export default function SettingsScreen() {
       adaptive_progression_enabled: strValue,
     });
     updateSetting({ key: "adaptive_progression_enabled", value: strValue });
+    // Switched off on purpose: the summary should not offer it again.
+    if (!value) {
+      updateSetting({ key: PROGRESSION_OFFER_SETTING, value: "later" });
+    }
   };
 
   const toggleExcludeDeloadFromStats = (value: boolean) => {
@@ -589,7 +598,7 @@ export default function SettingsScreen() {
 
   return (
     <ThemedView>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.container}>
         {/* Modal for Overlay */}
         <SettingsModal
           visible={overlayVisible}
@@ -1198,9 +1207,20 @@ export default function SettingsScreen() {
         </View>
         <Divider style={styles.divider} />
 
-        <View style={styles.section}>
+        <View
+          style={styles.section}
+          onLayout={(e) => {
+            if (section === "progression" && !scrolledToSectionRef.current) {
+              scrolledToSectionRef.current = true;
+              scrollRef.current?.scrollTo({
+                y: e.nativeEvent.layout.y,
+                animated: true,
+              });
+            }
+          }}
+        >
           <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
-            <Trans>Adaptive Progression (beta)</Trans>
+            <Trans>Adaptive progression</Trans>
           </ThemedText>
           <View style={styles.item}>
             <AppIcon

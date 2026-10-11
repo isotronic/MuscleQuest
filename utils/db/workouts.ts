@@ -177,6 +177,29 @@ export const linkCompletedWorkoutToWorkout = async (
   }
 };
 
+/**
+ * Completed sessions of saved workouts (in a plan or not), the sessions
+ * adaptive progression can learn from. Quick workouts never saved as a
+ * workout have no workout id and are not counted.
+ */
+export const countSavedWorkoutSessions = async (): Promise<number> => {
+  let db: SQLite.SQLiteDatabase | undefined;
+  try {
+    db = await openDatabase("userData.db");
+    const row = await db.getFirstAsync<{ count: number }>(
+      `SELECT COUNT(*) AS count FROM completed_workouts
+       WHERE workout_id IS NOT NULL AND is_deleted = 0`,
+    );
+    return row?.count ?? 0;
+  } catch (error) {
+    console.error("Error counting saved workout sessions:", error);
+    notifyBugsnag(error as Error);
+    throw error;
+  } finally {
+    if (db) await db.closeAsync();
+  }
+};
+
 interface CompletedWorkoutRow {
   id: number;
   plan_id: number;

@@ -46,6 +46,7 @@ import { describePR } from "@/components/stats/widgets/RecentPRsWidget";
 import type { RecentPR } from "@/utils/db/workoutStats";
 import { reachedGoalWithWorkout } from "@/utils/weeklyGoal";
 import FeedbackCatchUpCard from "@/components/FeedbackCatchUpCard";
+import ProgressionOfferCard from "@/components/ProgressionOfferCard";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { mergePrompts } from "@/utils/feedbackPrompts";
 
@@ -673,6 +674,10 @@ export default function WorkoutSummaryScreen() {
 
         {weeklyGoal > 0 && (
           <WeeklyGoalBanner completed={workoutsThisWeek} goal={weeklyGoal} />
+        )}
+
+        {fresh === "true" && (
+          <ProgressionOfferCard fromSavedWorkout={workout.workout_id != null} />
         )}
 
         {savedCatchUpPrompts.length > 0 && (
