@@ -144,6 +144,19 @@ export const recountWeeklyCompletion = async (
   );
 };
 
+/** recountWeeklyCompletion for the week of one training day, on its own. */
+export const recountWeekOf = async (localDate: string): Promise<void> => {
+  let db: SQLiteDatabase | undefined;
+  try {
+    db = await openDatabase("userData.db");
+    await db.withExclusiveTransactionAsync((txn) =>
+      recountWeeklyCompletion(txn, weekStartKeyFor(localDate)),
+    );
+  } finally {
+    if (db) await db.closeAsync();
+  }
+};
+
 const applyOp = async (
   txn: SQLiteDatabase,
   completedWorkoutId: number,

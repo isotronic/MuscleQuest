@@ -43,6 +43,14 @@ jest.mock("react-native-paper", () => {
       const { View: RNView } = require("react-native");
       return <RNView testID="loading-indicator" />;
     },
+    Button: ({ children, onPress }: any) => {
+      const { Pressable, Text } = require("react-native");
+      return (
+        <Pressable accessibilityRole="button" onPress={onPress}>
+          <Text>{children}</Text>
+        </Pressable>
+      );
+    },
   };
 });
 jest.mock("@/components/StandaloneWorkoutListItem", () => ({
@@ -244,6 +252,13 @@ describe("WorkoutPickerModal", () => {
       pathname: "/standalone-workout",
       params: { workoutId: "20" },
     });
+  });
+
+  it("opens the log past workout form", () => {
+    const { getByText } = render(<WorkoutPickerModal {...baseProps} />);
+    fireEvent.press(getByText("Log past workout"));
+    expect(baseProps.onDismiss).toHaveBeenCalled();
+    expect(router.push).toHaveBeenCalledWith("/(app)/log-workout");
   });
 
   it("renders nothing when visible is false", () => {

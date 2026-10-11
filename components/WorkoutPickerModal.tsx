@@ -5,6 +5,7 @@ import { router } from "expo-router";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
+import { AppButton } from "@/components/ui/AppButton";
 import StandaloneWorkoutListItem from "@/components/StandaloneWorkoutListItem";
 import { useAllPlansQuery } from "@/hooks/useAllPlansQuery";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
@@ -186,6 +187,17 @@ export default function WorkoutPickerModal({
             )}
           </ScrollView>
         )}
+        <AppButton
+          variant="ghost"
+          style={styles.logPast}
+          accessibilityHint={t`Opens a form for a workout you did without logging it`}
+          onPress={() => {
+            onDismiss();
+            router.push("/(app)/log-workout");
+          }}
+        >
+          <Trans>Log past workout</Trans>
+        </AppButton>
       </Modal>
     </Portal>
   );
@@ -237,6 +249,9 @@ function createStyles(colors: AppThemeColors) {
       textTransform: "uppercase",
       letterSpacing: 0.5,
       marginBottom: 8,
+    },
+    logPast: {
+      marginTop: 8,
     },
     emptyText: {
       textAlign: "center",

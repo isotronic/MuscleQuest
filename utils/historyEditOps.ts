@@ -5,6 +5,7 @@ import type {
   SetField,
   StoredSetValues,
 } from "@/utils/db/historyEdits";
+import type { SavedWorkout } from "@/utils/db/workouts";
 import { displayToKg, displayToMetres, roundCanonical } from "@/utils/units";
 import { localDateKeyToDate } from "@/utils/dates";
 
@@ -222,3 +223,39 @@ export const composeLocalMoment = (
   moment.setHours(Math.floor(minutesOfDay / 60), minutesOfDay % 60, 0, 0);
   return moment;
 };
+
+/**
+ * A workout logged after the fact, in the shape the live session saves, so
+ * both are written by saveCompletedWorkout.
+ */
+export function toSavedWorkout(
+  edited: EditableWorkout,
+  source: { planId: number | null; workoutId: number | null } | null,
+  weightUnit: string,
+  distanceUnit: string,
+): SavedWorkout {
+  const exercises = edited.exercises.map((exercise) => ({
+    exercise_id: exercise.exercise_id,
+    resolved_tracking_type: exercise.exercise_tracking_type,
+    sets: exercise.sets.map((set, index) => {
+      const { values, flags, note } = newSet(set, weightUnit, distanceUnit);
+      return {
+        set_number: index + 1,
+        ...values,
+        is_warmup: flags.isWarmup,
+        is_drop_set: flags.isDropSet,
+        is_to_failure: flags.isToFailure,
+        note,
+      };
+    }),
+  }));
+  return {
+    planId: source?.planId ?? null,
+    workoutId: source?.workoutId ?? null,
+    duration: edited.durationSeconds,
+    totalSetsCompleted: exercises.reduce((n, e) => n + e.sets.length, 0),
+    completedAt: edited.completedAt,
+    notes: edited.notes,
+    exercises,
+  };
+}

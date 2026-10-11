@@ -70,6 +70,10 @@ export default function AppLayout() {
         <Stack.Screen name="help" options={{ title: t`Help & Info` }} />
         <Stack.Screen name="changelog" options={{ title: t`Changelog` }} />
         <Stack.Screen
+          name="log-workout"
+          options={{ title: t`Log past workout` }}
+        />
+        <Stack.Screen
           name="exercise-library"
           options={{ title: t`Exercise Library` }}
         />

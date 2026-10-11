@@ -107,7 +107,8 @@ export function WorkoutHistoryEditor({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [menuSetId, setMenuSetId] = useState<number | null>(null);
 
-  const nextTempId = useRef(-1);
+  // Below every id already in use, as a prefilled draft holds negative ones.
+  const nextTempId = useRef(lowestId(initial.exercises) - 1);
   const tempId = () => nextTempId.current--;
 
   const timeMinutes = parseClockMinutes(timeText);
@@ -546,6 +547,15 @@ export function WorkoutHistoryEditor({
       />
     </ScrollView>
   );
+}
+
+function lowestId(exercises: EditedExercise[]): number {
+  let lowest = 0;
+  for (const exercise of exercises) {
+    lowest = Math.min(lowest, exercise.completed_exercise_id);
+    for (const set of exercise.sets) lowest = Math.min(lowest, set.set_id);
+  }
+  return lowest;
 }
 
 function seedInputs(
