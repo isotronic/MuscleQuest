@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useRef, useState, useCallback } from "react";
 import {
   Alert,
   View,
@@ -75,6 +75,8 @@ export default function HistoryDetailsScreen() {
   const { data: plansData } = useAllPlansQuery();
   const { data: standaloneWorkouts } = useStandaloneWorkoutsQuery();
   const [isStarting, setIsStarting] = useState(false);
+  // Covers the exercise lookup before confirmStartWorkout sets isStarting.
+  const preparingCopy = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -165,13 +167,12 @@ export default function HistoryDetailsScreen() {
     standaloneWorkouts ?? [],
   );
 
-  const startCopy = async () => {
-    let exercises;
+  const prepareCopy = async () => {
     try {
       const library = await fetchExercisesByIds(
         workout.exercises.map((exercise) => exercise.exercise_id),
       );
-      exercises = buildDoAgainExercises(
+      return buildDoAgainExercises(
         workout,
         library,
         parseInt(settings?.defaultRestTime ?? "60", 10) || 0,
@@ -179,15 +180,26 @@ export default function HistoryDetailsScreen() {
     } catch (err) {
       notifyBugsnag(err);
       showSnackbar(t`Couldn't load this workout's exercises. Try again.`);
-      return;
+      return null;
     }
-    if (exercises.length === 0) {
-      showSnackbar(t`None of these exercises are in your library any more.`);
-      return;
+  };
+
+  const startCopy = async () => {
+    if (preparingCopy.current) return;
+    preparingCopy.current = true;
+    try {
+      const exercises = await prepareCopy();
+      if (!exercises) return;
+      if (exercises.length === 0) {
+        showSnackbar(t`None of these exercises are in your library any more.`);
+        return;
+      }
+      await confirmStartWorkout(setIsStarting, () =>
+        useActiveWorkoutStore.getState().startQuickWorkoutFrom(exercises),
+      );
+    } finally {
+      preparingCopy.current = false;
     }
-    void confirmStartWorkout(setIsStarting, () =>
-      useActiveWorkoutStore.getState().startQuickWorkoutFrom(exercises),
-    );
   };
 
   const startSource = () => {

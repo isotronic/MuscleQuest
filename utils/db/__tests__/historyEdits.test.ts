@@ -206,6 +206,7 @@ describe("applyHistoryEdits", () => {
     expect(result).toEqual({
       previousLocalDate: toLocalDateKey(WEDNESDAY),
       localDate: toLocalDateKey(moved),
+      passedSessionIds: [],
     });
   });
 
@@ -242,6 +243,30 @@ describe("applyHistoryEdits", () => {
       { week_start: lastWeek, goal: 2, completed: 2, goal_reached: 1 },
       { week_start: thisWeek, goal: 1, completed: 0, goal_reached: 0 },
     ]);
+  });
+
+  it("names the sessions of the same workout it moved past", async () => {
+    sqlite.exec(`
+      INSERT INTO user_plans (id, name) VALUES (1, 'Plan');
+      INSERT INTO user_workouts (id, plan_id, name) VALUES (5, 1, 'Push');
+      UPDATE completed_workouts SET workout_id = 5 WHERE id = 1;
+    `);
+    const insert = sqlite.prepare(
+      `INSERT INTO completed_workouts (id, workout_id, date_completed, local_date, duration, total_sets_completed)
+       VALUES (?, ?, ?, ?, 600, 1)`,
+    );
+    const at = (day: number) => new Date(2026, 8, day, 18);
+    // Between the old and new dates: 2 (same workout) and 3 (another one).
+    insert.run(2, 5, at(28).toISOString(), toLocalDateKey(at(28)));
+    insert.run(3, null, at(28).toISOString(), toLocalDateKey(at(28)));
+    // Before the new date, so not passed.
+    insert.run(4, 5, at(20).toISOString(), toLocalDateKey(at(20)));
+
+    const result = await save((w) => ({ ...w, completedAt: at(25) }));
+    expect(result.passedSessionIds).toEqual([2]);
+
+    const unmoved = await save((w) => ({ ...w, durationSeconds: 60 }));
+    expect(unmoved.passedSessionIds).toEqual([]);
   });
 
   it("rejects a finish time in the future and changes nothing", async () => {

@@ -90,21 +90,40 @@ describe("useEditCompletedWorkoutMutation", () => {
   });
 
   it("refreshes progression for the edited workout on success", () => {
-    capturedArgs.onSuccess(undefined, {
-      original: workout(100),
-      edited: workout(105),
-    });
+    capturedArgs.onSuccess(
+      { passedSessionIds: [] },
+      {
+        original: workout(100),
+        edited: workout(105),
+      },
+    );
     expect(refreshProgressionAfterHistoryChange).toHaveBeenCalledWith(
       expect.anything(),
       42,
     );
   });
 
+  it("also refreshes progression for sessions a date change moved past", async () => {
+    capturedArgs.onSuccess(
+      { passedSessionIds: [7, 8] },
+      { original: workout(100), edited: workout(100) },
+    );
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(
+      (refreshProgressionAfterHistoryChange as jest.Mock).mock.calls.map(
+        (call) => call[1],
+      ),
+    ).toEqual([42, 7, 8]);
+  });
+
   it("re-shares the workout, including exercises swapped out", () => {
-    capturedArgs.onSuccess(undefined, {
-      original: workout(100, 100),
-      edited: workout(100, 300),
-    });
+    capturedArgs.onSuccess(
+      { passedSessionIds: [] },
+      {
+        original: workout(100, 100),
+        edited: workout(100, 300),
+      },
+    );
     expect(syncCompletedWorkoutChanged).toHaveBeenCalledWith(42, [100]);
   });
 

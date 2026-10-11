@@ -248,6 +248,21 @@ describe("EditCompletedWorkoutScreen", () => {
     expect(save(getByLabelText).edited.exercises).toHaveLength(1);
   });
 
+  it("does not save a new set left empty", () => {
+    const { getByLabelText } = render(<EditCompletedWorkoutScreen />);
+    fireEvent.press(getByLabelText("Add set to Row"));
+    fireEvent.changeText(getByLabelText("Distance in m, set 2"), "");
+
+    expect(save(getByLabelText).edited.exercises[1].sets).toHaveLength(1);
+  });
+
+  it("refuses a duration whose minutes are over 59", () => {
+    const { getByLabelText } = render(<EditCompletedWorkoutScreen />);
+    fireEvent.changeText(getByLabelText("Duration, minutes"), "75");
+    fireEvent.press(getByLabelText("Save changes"));
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
+
   it("refuses a finish time that has not happened yet", () => {
     jest.useFakeTimers({ now: new Date(2026, 8, 30, 20, 0) });
     try {

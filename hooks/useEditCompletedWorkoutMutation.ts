@@ -43,11 +43,16 @@ export const useEditCompletedWorkoutMutation = (
         id,
         buildHistoryEditOps(original, edited, weightUnit, distanceUnit),
       ),
-    onSuccess: (_data, edit) => {
+    onSuccess: (result, edit) => {
       // A pending suggestion may have been built on the values just
       // corrected, and a new date can make this session the latest of its
-      // workout, or stop it being so.
-      void refreshProgressionAfterHistoryChange(queryClient, id);
+      // workout, or make a session it moved past the latest instead.
+      // One at a time: they can share plan exercises.
+      void (async () => {
+        for (const sessionId of [id, ...(result?.passedSessionIds ?? [])]) {
+          await refreshProgressionAfterHistoryChange(queryClient, sessionId);
+        }
+      })();
       // Friends see the corrected values. The exercises from before the edit
       // are included because one swapped out or removed may have lost its PR.
       syncCompletedWorkoutChanged(

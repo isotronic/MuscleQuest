@@ -21,6 +21,8 @@ export interface EditableWorkout {
   exercises: EditedExercise[];
   /** When the workout finished. */
   completedAt: Date;
+  /** The stored training day of a saved workout, "YYYY-MM-DD". */
+  localDate?: string;
   durationSeconds: number;
   notes: string | null;
 }

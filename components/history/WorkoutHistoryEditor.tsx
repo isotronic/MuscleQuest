@@ -24,6 +24,7 @@ import {
   clockText,
   composeLocalMoment,
   EditableWorkout,
+  isUnsavedId,
   parseClockMinutes,
 } from "@/utils/historyEditOps";
 import { formatFromTotalSeconds, convertToTotalSeconds } from "@/utils/utility";
@@ -95,7 +96,9 @@ export function WorkoutHistoryEditor({
   const [distanceInputs, setDistanceInputs] = useState<Record<number, string>>(
     () => seedInputs(initial.exercises, "distance"),
   );
-  const initialDate = toLocalDateKey(initial.completedAt);
+  // The stored training day, which can differ from the device-zone day of
+  // the instant if the workout was logged elsewhere.
+  const initialDate = initial.localDate ?? toLocalDateKey(initial.completedAt);
   const initialTime = clockText(
     initial.completedAt.getHours() * 60 + initial.completedAt.getMinutes(),
   );
@@ -133,6 +136,11 @@ export function WorkoutHistoryEditor({
     durationText === initialDuration
       ? initial.durationSeconds
       : (durationMinutes ?? 0) * 60;
+  // The minutes field only clamps on blur, and Save can fire before it.
+  const durationError =
+    durationText !== initialDuration && durationMinutes == null
+      ? t`Enter a duration in hours and minutes, up to 59 minutes.`
+      : null;
 
   const buildDraft = useCallback(
     (): EditableWorkout => ({
@@ -163,13 +171,24 @@ export function WorkoutHistoryEditor({
   }, [buildDraft, onChange]);
 
   const handleSave = () => {
-    if (timeError || futureError) {
-      Alert.alert(t`Check the time`, timeError ?? futureError ?? "");
+    const error = timeError ?? futureError ?? durationError;
+    if (error) {
+      Alert.alert(t`Check the time`, error);
       return;
     }
     const draft = buildDraft();
-    // An exercise left with no sets is dropped from the workout.
-    draft.exercises = draft.exercises.filter((e) => e.sets.length > 0);
+    // A new set left empty is not saved: the live session only saves sets
+    // that were done. An exercise left with no sets is dropped.
+    draft.exercises = draft.exercises
+      .map((exercise) => ({
+        ...exercise,
+        sets: exercise.sets.filter(
+          (set) =>
+            !isUnsavedId(set.set_id) ||
+            hasTrackedValue(exercise.exercise_tracking_type, set),
+        ),
+      }))
+      .filter((e) => e.sets.length > 0);
     if (draft.exercises.length === 0) {
       Alert.alert(t`No sets`, t`Add at least one set to save this workout.`);
       return;
@@ -388,9 +407,9 @@ export function WorkoutHistoryEditor({
           style={styles.timeInput}
         />
       </View>
-      {!!(timeError || futureError) && (
+      {!!(timeError || futureError || durationError) && (
         <ThemedText style={styles.error} accessibilityLiveRegion="polite">
-          {timeError ?? futureError}
+          {timeError ?? futureError ?? durationError}
         </ThemedText>
       )}
       <TextInput
@@ -547,6 +566,20 @@ export function WorkoutHistoryEditor({
       />
     </ScrollView>
   );
+}
+
+/** Whether a set holds the value its tracking type is measured by. */
+function hasTrackedValue(trackingType: string, set: EditedSet): boolean {
+  switch (trackingType) {
+    case "time":
+      return !!set.time;
+    case "distance":
+      return !!set.distance;
+    case "reps":
+      return !!set.reps;
+    default:
+      return !!set.reps || set.weight != null;
+  }
 }
 
 function lowestId(exercises: EditedExercise[]): number {

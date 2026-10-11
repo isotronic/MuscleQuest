@@ -281,6 +281,12 @@ export interface HistoryEditResult {
   /** The training day before and after; they differ when the date moved. */
   previousLocalDate: string | null;
   localDate: string | null;
+  /**
+   * Other sessions of the same saved workout that finished between the old
+   * and new time. Moving this one past them can make one of them the newest,
+   * so its progression suggestion needs rebuilding too.
+   */
+  passedSessionIds: number[];
 }
 
 /**
@@ -296,19 +302,23 @@ export const applyHistoryEdits = async (
   const result: HistoryEditResult = {
     previousLocalDate: null,
     localDate: null,
+    passedSessionIds: [],
   };
   try {
     db = await openDatabase("userData.db");
     await db.withExclusiveTransactionAsync(async (txn) => {
-      const readLocalDate = async () =>
-        (
-          await txn.getFirstAsync<{ local_date: string | null }>(
-            `SELECT local_date FROM completed_workouts WHERE id = ?`,
-            [completedWorkoutId],
-          )
-        )?.local_date ?? null;
+      const readWorkout = () =>
+        txn.getFirstAsync<{
+          local_date: string | null;
+          date_completed: string;
+          workout_id: number | null;
+        }>(
+          `SELECT local_date, date_completed, workout_id FROM completed_workouts WHERE id = ?`,
+          [completedWorkoutId],
+        );
 
-      result.previousLocalDate = await readLocalDate();
+      const before = await readWorkout();
+      result.previousLocalDate = before?.local_date ?? null;
       const touchedExercises = new Set<number>();
       for (const op of ops) {
         await applyOp(txn, completedWorkoutId, op, touchedExercises);
@@ -326,7 +336,24 @@ export const applyHistoryEdits = async (
           [completedWorkoutId, completedWorkoutId],
         );
       }
-      result.localDate = await readLocalDate();
+      const after = await readWorkout();
+      result.localDate = after?.local_date ?? null;
+      if (
+        before &&
+        after &&
+        after.workout_id != null &&
+        after.date_completed !== before.date_completed
+      ) {
+        // Both are ISO instants written by this app, so they sort as text.
+        const [from, to] = [before.date_completed, after.date_completed].sort();
+        const passed = await txn.getAllAsync<{ id: number }>(
+          `SELECT id FROM completed_workouts
+           WHERE workout_id = ? AND id != ? AND is_deleted = 0
+             AND date_completed BETWEEN ? AND ?`,
+          [after.workout_id, completedWorkoutId, from, to],
+        );
+        result.passedSessionIds = passed.map((row) => row.id);
+      }
       if (result.localDate !== result.previousLocalDate) {
         const weeks = new Set(
           [result.previousLocalDate, result.localDate]

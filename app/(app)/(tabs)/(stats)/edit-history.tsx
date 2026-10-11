@@ -46,6 +46,7 @@ export default function EditCompletedWorkoutScreen() {
         ? {
             exercises: workoutData.exercises,
             completedAt: parseDbTimestamp(workoutData.date_completed),
+            localDate: workoutData.local_date,
             durationSeconds: workoutData.duration,
             notes: workoutData.notes ?? null,
           }
