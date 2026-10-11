@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedView } from "@/components/ThemedView";
@@ -27,6 +27,7 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { displayWorkoutName } from "@/utils/workoutName";
 import { formatNumber } from "@/utils/numberFormat";
+import { exerciseHref } from "@/utils/exerciseHref";
 
 // Set values arrive in display units; shown with the device separator.
 const showValue = (value: number | null | undefined) =>
@@ -254,7 +255,15 @@ export default function HistoryDetailsScreen() {
 
             return (
               <Card key={exercise.exercise_id} style={styles.exerciseCard}>
-                <View style={styles.exerciseHeader}>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityHint={t`Opens this exercise`}
+                  style={styles.exerciseHeader}
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    router.push(exerciseHref(exercise.exercise_id, "progress"))
+                  }
+                >
                   {imageUri ? (
                     <AppImage
                       source={{ uri: imageUri }}
@@ -269,7 +278,13 @@ export default function HistoryDetailsScreen() {
                   <ThemedText style={styles.exerciseName}>
                     {exercise.exercise_name}
                   </ThemedText>
-                </View>
+                  <AppIcon
+                    set="mci"
+                    name="chevron-right"
+                    size={22}
+                    color={colors.contentSecondary}
+                  />
+                </TouchableOpacity>
                 {/* Sets List */}
                 {exercise.sets.map((set, index) => (
                   <View key={index}>

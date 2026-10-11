@@ -25,5 +25,6 @@ Write for someone between sets: friendly, plain, brief.
 | Plan          | A training plan; "Active plan" is the one home follows.                                                                                                              | Start plan                         |
 | Cues          | Standing reminders on an exercise, workout or plan.                                                                                                                  |                                    |
 | Notes         | Belong to one session or one set.                                                                                                                                    |                                    |
+| Pinned        | An exercise whose chart is on the Stats tab (pin it from the exercise's screen).                                                                                     | tracked exercise                   |
 
 The stored name `QUICK_WORKOUT_NAME` stays "Quick Workout" in English; show it through `displayWorkoutName()` (`utils/workoutName.ts`).

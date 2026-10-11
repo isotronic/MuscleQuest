@@ -260,7 +260,7 @@ export const HELP_DATA: GroupData[] = [
         id: "insights",
         icon: "bulb-outline",
         title: msg`Insights`,
-        body: msg`The Insights strip at the top of the Stats tab gives four at-a-glance highlights for the selected time range: your average workouts per week, your biggest strength gain across tracked exercises, the body part you have trained most, and your current weekly streak. These update automatically after each workout.`,
+        body: msg`The Insights strip at the top of the Stats tab gives four at-a-glance highlights for the selected time range: your average workouts per week, your biggest strength gain across pinned exercises, the body part you have trained most, and your current weekly streak. These update automatically after each workout.`,
       },
       {
         id: "stats-history",
@@ -271,8 +271,8 @@ export const HELP_DATA: GroupData[] = [
       {
         id: "exercise-tracking",
         icon: "trending-up-outline",
-        title: msg`Exercise Tracking`,
-        body: msg`Tap + Add in the Tracked Exercises section of the Stats tab to track an exercise's strength progression over time, and tap Reorder to drag your tracked exercises into the order you want. Each tracked exercise shows a chart of your performance over the selected time range, your all-time personal record, your top sets, and a list of recent sessions showing the best set per day. Charts update automatically after each workout that includes that exercise. Tap Show as table under a chart to read the same numbers as a list.`,
+        title: msg`Exercise progress`,
+        body: msg`Tap an exercise's name almost anywhere in the app to open its screen. Progress shows a chart of your performance over the selected time range, your all-time personal record, your top sets, and your recent sessions with the best set of each day. History lists every set you have logged; tap a session to open that workout. About has the exercise's muscles, equipment and description. Tap the pin at the top of an exercise's screen, or + Add in the Pinned exercises section of the Stats tab, to keep its chart on the Stats tab, and tap Reorder there to drag pinned exercises into the order you want. Charts update automatically after each workout that includes that exercise. Tap Show as table under a chart to read the same numbers as a list.`,
       },
       {
         id: "body-measurements",

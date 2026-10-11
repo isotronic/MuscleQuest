@@ -16,6 +16,10 @@ import {
   fetchActiveBodyMetricDefinitions,
   fetchAllBodyMetricDefinitions,
   reorderTrackedExercises,
+  pinExercise,
+  unpinExercise,
+  isExercisePinned,
+  updatePinnedExercises,
   fetchAllPlanIds,
   fetchAllStandaloneWorkoutIds,
   fetchAllCustomExercisesForSharing,
@@ -849,6 +853,71 @@ describe("fetchAllBodyMetricDefinitions", () => {
       "all metrics failed",
     );
     expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pinned exercises
+// ---------------------------------------------------------------------------
+
+describe("pinned exercises", () => {
+  it("pinExercise inserts the exercise at the end of the order", async () => {
+    await pinExercise(7);
+
+    const [sql, params] = mockDb.runAsync.mock.calls[0];
+    expect(sql).toContain("INSERT OR IGNORE INTO tracked_exercises");
+    expect(sql).toContain("MAX(sort_order)");
+    expect(params).toEqual([7]);
+    expect(mockDb.closeAsync).toHaveBeenCalled();
+  });
+
+  it("unpinExercise deletes the tracked_exercises row", async () => {
+    await unpinExercise(7);
+
+    expect(mockDb.runAsync).toHaveBeenCalledWith(
+      `DELETE FROM tracked_exercises WHERE exercise_id = ?`,
+      [7],
+    );
+    expect(mockDb.closeAsync).toHaveBeenCalled();
+  });
+
+  it("isExercisePinned reflects whether the row exists", async () => {
+    mockDb.getFirstAsync.mockResolvedValueOnce({ exercise_id: 7 });
+    await expect(isExercisePinned(7)).resolves.toBe(true);
+
+    mockDb.getFirstAsync.mockResolvedValueOnce(null);
+    await expect(isExercisePinned(8)).resolves.toBe(false);
+  });
+
+  it("closes the connection when a pin write fails", async () => {
+    mockDb.runAsync.mockRejectedValueOnce(new Error("disk full"));
+
+    await expect(pinExercise(7)).rejects.toThrow("disk full");
+    expect(mockDb.closeAsync).toHaveBeenCalled();
+  });
+
+  it("updatePinnedExercises applies only the given changes", async () => {
+    const txn = { runAsync: jest.fn().mockResolvedValue({ changes: 1 }) };
+    mockDb = makeDb({
+      withExclusiveTransactionAsync: jest.fn(
+        async (cb: (t: typeof txn) => Promise<void>) => {
+          await cb(txn);
+        },
+      ),
+    });
+    (SQLite.openDatabaseAsync as jest.Mock).mockImplementation(openMockDb);
+
+    await updatePinnedExercises({ pin: [3], unpin: [1] });
+
+    expect(txn.runAsync).toHaveBeenCalledTimes(2);
+    expect(txn.runAsync.mock.calls[0][0]).toContain(
+      "INSERT OR IGNORE INTO tracked_exercises",
+    );
+    expect(txn.runAsync.mock.calls[0][1]).toEqual([3]);
+    expect(txn.runAsync).toHaveBeenCalledWith(
+      `DELETE FROM tracked_exercises WHERE exercise_id = ?`,
+      [1],
+    );
   });
 });
 

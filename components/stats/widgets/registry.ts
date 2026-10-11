@@ -146,7 +146,7 @@ export const WIDGETS: { [K in WidgetId]: WidgetDefinition<K> } = {
         label: msg`Exercises`,
         options: [
           { value: "all", label: msg`All exercises` },
-          { value: "tracked", label: msg`Tracked exercises only` },
+          { value: "tracked", label: msg`Pinned exercises only` },
         ],
       },
       {
@@ -256,7 +256,7 @@ export const WIDGETS: { [K in WidgetId]: WidgetDefinition<K> } = {
     ],
   },
   tracked: {
-    title: msg`Tracked Exercises`,
+    title: msg`Pinned exercises`,
     description: msg`Your chosen lifts and their best`,
     Component: TrackedExercisesWidget,
     fields: [

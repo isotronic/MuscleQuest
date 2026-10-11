@@ -86,10 +86,10 @@ describe("useExerciseHistoryQuery — queryFn", () => {
     useExerciseHistoryQuery(1);
   });
 
-  it("returns empty sections, null trackingType, and empty chartSets when rows are empty", async () => {
+  it("returns empty sections and null trackingType when rows are empty", async () => {
     mockDb.getAllAsync.mockResolvedValue([]);
     const result = await capturedArgs.queryFn();
-    expect(result).toEqual({ sections: [], trackingType: null, chartSets: [] });
+    expect(result).toEqual({ sections: [], trackingType: null });
   });
 
   it("groups rows by date+workoutId into sections", async () => {
@@ -118,6 +118,8 @@ describe("useExerciseHistoryQuery — queryFn", () => {
     expect(result.sections).toHaveLength(2);
     expect(result.sections[0].data).toHaveLength(2);
     expect(result.sections[1].data).toHaveLength(1);
+    // Each session row links to its completed workout.
+    expect(result.sections.map((x: any) => x.workout_id)).toEqual([10, 9]);
   });
 
   it("carries each set's note", async () => {
@@ -174,52 +176,6 @@ describe("useExerciseHistoryQuery — queryFn", () => {
     ]);
     const result = await capturedArgs.queryFn();
     expect(result.sections[0].data[0].is_pr).toBe(false);
-  });
-
-  it("excludes warmup sets from chartSets", async () => {
-    mockDb.getAllAsync.mockResolvedValue([
-      makeRow({ is_warmup: 1, progression_metric: 80 }),
-      makeRow({
-        id: 2,
-        is_warmup: 0,
-        progression_metric: 116.7,
-        set_number: 2,
-      }),
-    ]);
-    const result = await capturedArgs.queryFn();
-    expect(result.chartSets).toHaveLength(1);
-    expect(result.chartSets[0].set_number).toBe(2);
-  });
-
-  it("excludes sets with null progression_metric from chartSets", async () => {
-    mockDb.getAllAsync.mockResolvedValue([
-      makeRow({ is_warmup: 0, progression_metric: null }),
-    ]);
-    const result = await capturedArgs.queryFn();
-    expect(result.chartSets).toHaveLength(0);
-  });
-
-  it("includes oneRepMax in chartSets for weight tracking", async () => {
-    mockDb.getAllAsync.mockResolvedValue([
-      makeRow({ tracking_type: "weight" }),
-    ]);
-    const result = await capturedArgs.queryFn();
-    expect(result.chartSets[0].oneRepMax).toBeDefined();
-    expect(result.chartSets[0].oneRepMax).toBe(Math.round(116.7 * 10) / 10);
-  });
-
-  it("does not include oneRepMax in chartSets for time tracking", async () => {
-    mockDb.getAllAsync.mockResolvedValue([
-      makeRow({
-        tracking_type: "time",
-        weight: null,
-        reps: null,
-        time: 60,
-        progression_metric: 60,
-      }),
-    ]);
-    const result = await capturedArgs.queryFn();
-    expect(result.chartSets[0].oneRepMax).toBeUndefined();
   });
 
   it("returns correct trackingType from the first row", async () => {

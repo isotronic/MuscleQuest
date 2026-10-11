@@ -81,7 +81,7 @@ export const RecentPRsWidget: React.FC<{
         <ThemedText style={styles.muted}>
           {config.scope === "tracked" ? (
             <Trans>
-              No new personal records for your tracked exercises in this period.
+              No new personal records for your pinned exercises in this period.
             </Trans>
           ) : (
             <Trans>No new personal records in this period.</Trans>
