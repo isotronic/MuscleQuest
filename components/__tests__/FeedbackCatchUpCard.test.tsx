@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import FeedbackCatchUpCard from "../FeedbackCatchUpCard";
 import ExerciseFeedbackCard from "../ExerciseFeedbackCard";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
@@ -7,9 +7,13 @@ import type { FeedbackPrompt } from "@/utils/feedbackPrompts";
 
 const mockMutate = jest.fn();
 const mockInvalidate = jest.fn();
+const mockShowSnackbar = jest.fn();
 
 jest.mock("@/hooks/useExerciseFeedbackMutation", () => ({
-  useExerciseFeedbackMutation: () => ({ mutate: mockMutate }),
+  useExerciseFeedbackMutation: () => ({ mutateAsync: mockMutate }),
+}));
+jest.mock("@/store/snackbarStore", () => ({
+  showSnackbar: (...args: unknown[]) => mockShowSnackbar(...args),
 }));
 jest.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries: mockInvalidate }),
@@ -59,12 +63,13 @@ const prompt = (id: number, name: string): FeedbackPrompt => ({
 });
 
 beforeEach(() => {
-  mockMutate.mockClear();
+  mockMutate.mockReset().mockResolvedValue(undefined);
   mockInvalidate.mockClear();
+  mockShowSnackbar.mockClear();
 });
 
 describe("FeedbackCatchUpCard", () => {
-  it("writes the same payload as the live card", () => {
+  it("writes the same payload as the live card", async () => {
     const squat = prompt(1, "Squat");
     const live = jest.fn();
     const liveCard = render(
@@ -76,12 +81,14 @@ describe("FeedbackCatchUpCard", () => {
     const { getByText } = render(<FeedbackCatchUpCard prompts={[squat]} />);
     fireEvent.press(getByText("About right"));
 
-    expect(mockMutate).toHaveBeenCalledWith(
-      {
-        feedback: live.mock.calls[0][0],
-        exerciseContext: squat.exerciseContext,
-      },
-      expect.anything(),
+    expect(mockMutate).toHaveBeenCalledWith({
+      feedback: live.mock.calls[0][0],
+      exerciseContext: squat.exerciseContext,
+    });
+    await waitFor(() =>
+      expect(mockInvalidate).toHaveBeenCalledWith({
+        queryKey: ["workoutProgressionStates"],
+      }),
     );
     // The finished session was already cleared; nothing is written back.
     expect(useActiveWorkoutStore.getState().activeWorkout).toBeNull();
@@ -90,7 +97,7 @@ describe("FeedbackCatchUpCard", () => {
     );
   });
 
-  it("lists one row per exercise and drops a row once answered", () => {
+  it("lists one row per exercise and drops a row once saved", async () => {
     const { getByText, getAllByText, queryByText } = render(
       <FeedbackCatchUpCard prompts={[prompt(1, "Squat"), prompt(2, "Row")]} />,
     );
@@ -101,8 +108,26 @@ describe("FeedbackCatchUpCard", () => {
     // Rows render in order; answer the first.
     fireEvent.press(getAllByText("Easy")[0]);
 
-    expect(queryByText("Squat: how did that feel?")).toBeNull();
+    await waitFor(() =>
+      expect(queryByText("Squat: how did that feel?")).toBeNull(),
+    );
     expect(getByText("Row: how did that feel?")).toBeTruthy();
     expect(mockMutate).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a row whose answer failed to save, and it can be sent again", async () => {
+    mockMutate.mockRejectedValueOnce(new Error("disk full"));
+    const { getByText } = render(
+      <FeedbackCatchUpCard prompts={[prompt(1, "Squat")]} />,
+    );
+
+    fireEvent.press(getByText("Easy"));
+    await waitFor(() => expect(mockShowSnackbar).toHaveBeenCalled());
+    expect(getByText("Squat: how did that feel?")).toBeTruthy();
+    expect(mockInvalidate).not.toHaveBeenCalled();
+
+    // Remounted, so the double-tap guard no longer blocks it.
+    fireEvent.press(getByText("Easy"));
+    expect(mockMutate).toHaveBeenCalledTimes(2);
   });
 });

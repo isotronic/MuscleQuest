@@ -1783,7 +1783,7 @@ export default function WorkoutSessionScreen() {
         key={activeFeedbackPrompt.userWorkoutExerciseId}
         prompt={activeFeedbackPrompt}
         onSubmit={(payload) =>
-          submitFeedbackPrompt(activeFeedbackPrompt, payload)
+          void submitFeedbackPrompt(activeFeedbackPrompt, payload)
         }
         onSkip={skipFeedbackPrompt}
       />

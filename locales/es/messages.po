@@ -1503,11 +1503,11 @@ msgstr "{exerciseName}, {spokenMetric}"
 msgid "{exerciseName}, set {setNumber}: {note}"
 msgstr "{exerciseName}, serie {setNumber}: {note}"
 
-#: components/ExerciseFeedbackCard.tsx:143
+#: components/ExerciseFeedbackCard.tsx:148
 msgid "{exerciseName}: any pain or discomfort?"
 msgstr "{exerciseName}: ¿dolor o molestias?"
 
-#: components/ExerciseFeedbackCard.tsx:144
+#: components/ExerciseFeedbackCard.tsx:149
 msgid "{exerciseName}: how did that feel?"
 msgstr "{exerciseName}: ¿qué tal te ha ido?"
 
@@ -2192,7 +2192,7 @@ msgstr "Todos los entrenamientos fuera de planes están publicados y los nuevos 
 msgid "All-time PR"
 msgstr "PR histórico"
 
-#: app/(app)/(workout)/workout-session.tsx:2016
+#: app/(app)/(workout)/workout-session.tsx:2028
 msgid "Allow alarms"
 msgstr "Permitir alarmas"
 
@@ -2249,7 +2249,7 @@ msgstr "tobillos"
 #~ msgid "Any pain or form breakdown?"
 #~ msgstr "¿Algún dolor o problema de técnica?"
 
-#: components/ExerciseFeedbackCard.tsx:214
+#: components/ExerciseFeedbackCard.tsx:219
 msgid "Any pain?"
 msgstr "¿Dolor?"
 
@@ -4254,7 +4254,7 @@ msgstr "peso máximo"
 msgid "Help & Info"
 msgstr "Ayuda e información"
 
-#: components/FeedbackCatchUpCard.tsx:36
+#: components/FeedbackCatchUpCard.tsx:40
 msgid "Help tune your next session"
 msgstr "Ayuda a ajustar tu próxima sesión"
 
@@ -4325,7 +4325,7 @@ msgstr "¿Cómo fue? Sueño, energía, algo que te doliera..."
 #~ msgid "How did that feel?"
 #~ msgstr "¿Cómo te fue?"
 
-#: app/(app)/(workout)/workout-session.tsx:1972
+#: app/(app)/(workout)/workout-session.tsx:1983
 msgid "How did this set feel?"
 msgstr "¿Qué tal te sentó esta serie?"
 
@@ -4333,7 +4333,7 @@ msgstr "¿Qué tal te sentó esta serie?"
 msgid "How your training is shared out"
 msgstr "Cómo se reparte tu entrenamiento"
 
-#: components/ExerciseFeedbackCard.tsx:187
+#: components/ExerciseFeedbackCard.tsx:192
 msgid "If it was about right, next time:"
 msgstr "Si fue más o menos bien, la próxima vez:"
 
@@ -4816,7 +4816,7 @@ msgstr "Lunes"
 #~ msgstr "Monitorea tu viaje fitness con estadísticas e información detalladas. Lleva un registro del historial de entrenamientos, analiza tus divisiones por parte del cuerpo y visualiza las mejoras con el tiempo mediante gráficos de progresión de ejercicios."
 
 #: app/(app)/(tabs)/_layout.tsx:97
-#: components/ExerciseFeedbackCard.tsx:215
+#: components/ExerciseFeedbackCard.tsx:224
 #: components/stats/widgets/HeatmapWidget.tsx:162
 msgid "More"
 msgstr "Más"
@@ -4914,7 +4914,7 @@ msgstr "Cuello"
 msgid "New personal record"
 msgstr "Nuevo récord personal"
 
-#: app/(app)/(workout)/workout-session.tsx:1535
+#: app/(app)/(workout)/workout-session.tsx:1539
 msgid "New personal record."
 msgstr "Nuevo récord personal."
 
@@ -4952,8 +4952,8 @@ msgstr "Próxima sesión"
 msgid "Next set"
 msgstr "Serie siguiente"
 
-#: app/(app)/(workout)/workout-session.tsx:1854
-#: app/(app)/(workout)/workout-session.tsx:1954
+#: app/(app)/(workout)/workout-session.tsx:1865
+#: app/(app)/(workout)/workout-session.tsx:1965
 msgid "Next: "
 msgstr "Siguiente: "
 
@@ -5185,7 +5185,7 @@ msgstr "Las notas pertenecen a una sesión. Añade una nota de la sesión desde 
 msgid "Nothing is sent anywhere else."
 msgstr "No se envía nada a ningún otro sitio."
 
-#: app/(app)/(workout)/workout-session.tsx:2009
+#: app/(app)/(workout)/workout-session.tsx:2021
 msgid "Notifications are off, so there is no rest alert while your phone is locked. You can turn them on in your phone's settings."
 msgstr "Las notificaciones están desactivadas, así que no habrá aviso de descanso con el móvil bloqueado. Puedes activarlas en los ajustes del móvil."
 
@@ -5533,8 +5533,8 @@ msgstr "Planes prediseñados"
 msgid "Premade Plans"
 msgstr "Planes prediseñados"
 
-#: app/(app)/(workout)/workout-session.tsx:1856
-#: app/(app)/(workout)/workout-session.tsx:1956
+#: app/(app)/(workout)/workout-session.tsx:1867
+#: app/(app)/(workout)/workout-session.tsx:1967
 msgid "Prev: "
 msgstr "Anterior: "
 
@@ -5849,7 +5849,7 @@ msgstr "Restablecer valores predeterminados"
 msgid "Rest"
 msgstr "Descanso"
 
-#: app/(app)/(workout)/workout-session.tsx:2011
+#: app/(app)/(workout)/workout-session.tsx:2023
 msgid "Rest alerts may arrive late. Allow alarms for exact timing."
 msgstr "Los avisos de descanso pueden llegar tarde. Permite las alarmas para que sean puntuales."
 
@@ -5888,9 +5888,9 @@ msgid "Rest Timer"
 msgstr "Temporizador de descanso"
 
 #: app/(app)/(workout)/index.tsx:367
-#: app/(app)/(workout)/workout-session.tsx:622
-#: app/(app)/(workout)/workout-session.tsx:715
-#: app/(app)/(workout)/workout-session.tsx:756
+#: app/(app)/(workout)/workout-session.tsx:624
+#: app/(app)/(workout)/workout-session.tsx:719
+#: app/(app)/(workout)/workout-session.tsx:760
 msgid "Rest Timer Finished!"
 msgstr "¡Temporizador de descanso finalizado!"
 
@@ -6212,7 +6212,7 @@ msgstr "Establecer como plan activo"
 msgid "Set how many pairs of each plate you have. The plate calculator will only suggest loads you can actually build."
 msgstr "Indica cuántos pares tienes de cada disco. La calculadora solo sugerirá cargas que puedas montar de verdad."
 
-#: app/(app)/(workout)/workout-session.tsx:1971
+#: app/(app)/(workout)/workout-session.tsx:1982
 msgid "Set note"
 msgstr "Nota de la serie"
 
@@ -6228,7 +6228,7 @@ msgstr "Nota de la serie: {trimmedNote}. Editar"
 msgid "Set options"
 msgstr "Opciones de la serie"
 
-#: app/(app)/(workout)/workout-session.tsx:918
+#: app/(app)/(workout)/workout-session.tsx:922
 msgid "Set removed"
 msgstr "Serie eliminada"
 
@@ -6485,7 +6485,7 @@ msgstr "Unidad de tamaño"
 msgid "Size: ~100MB"
 msgstr "Tamaño: ~100 MB"
 
-#: components/ExerciseFeedbackCard.tsx:153
+#: components/ExerciseFeedbackCard.tsx:158
 #: components/RestTimerOverlay.tsx:159
 msgid "Skip"
 msgstr "Saltar"
@@ -6494,7 +6494,7 @@ msgstr "Saltar"
 msgid "Skip all"
 msgstr "Omitir todo"
 
-#: components/ExerciseFeedbackCard.tsx:150
+#: components/ExerciseFeedbackCard.tsx:155
 msgid "Skip feedback for {exerciseName}"
 msgstr "Saltar feedback de {exerciseName}"
 
@@ -6726,8 +6726,8 @@ msgstr "Superserie"
 
 #. placeholder {0}: outgoingSnapshot.isFirstInSuperset ? "A" : "B"
 #. placeholder {0}: ss.isFirstInSuperset ? "A" : "B"
-#: app/(app)/(workout)/workout-session.tsx:1844
-#: app/(app)/(workout)/workout-session.tsx:1943
+#: app/(app)/(workout)/workout-session.tsx:1855
+#: app/(app)/(workout)/workout-session.tsx:1954
 msgid "Superset {0}"
 msgstr "Superserie {0}"
 
@@ -7096,9 +7096,9 @@ msgid "Time range"
 msgstr "Periodo"
 
 #: app/(app)/(workout)/index.tsx:368
-#: app/(app)/(workout)/workout-session.tsx:623
-#: app/(app)/(workout)/workout-session.tsx:716
-#: app/(app)/(workout)/workout-session.tsx:757
+#: app/(app)/(workout)/workout-session.tsx:625
+#: app/(app)/(workout)/workout-session.tsx:720
+#: app/(app)/(workout)/workout-session.tsx:761
 msgid "Time to do your next set!"
 msgstr "¡Es hora de tu próxima serie!"
 
@@ -7460,7 +7460,7 @@ msgid "Under Your data in Settings, tap Export training data to save your workou
 msgstr "En Tus datos, dentro de Ajustes, toca Exportar datos de entrenamiento para guardar tus entrenamientos y medidas en CSV para hojas de cálculo, o en JSON con todo, incluidos planes y ejercicios personalizados. Si has iniciado sesión, Eliminar cuenta borra tu cuenta de acceso, tu perfil y tus conexiones de amistad, todo lo que has compartido con amigos y tus copias de seguridad en la nube. Tú decides si conservas los datos de entrenamiento en este dispositivo. Exporta una copia antes si quieres conservar tu historial."
 
 #: app/(app)/(workout)/index.tsx:476
-#: app/(app)/(workout)/workout-session.tsx:921
+#: app/(app)/(workout)/workout-session.tsx:925
 #: hooks/useBodyMeasurementMutations.ts:138
 #: hooks/useCreateStandaloneWorkout.ts:122
 #: hooks/useDeleteCompletedWorkoutMutation.ts:52
@@ -7847,11 +7847,11 @@ msgstr "Cuando abres un entrenamiento con ejercicios que entrenaste recientement
 msgid "When your rest is over, you get a notification even if your phone is locked or you are in another app. The first time you start a rest, the app asks for permission to send it."
 msgstr "Cuando termina tu descanso, recibes una notificación aunque tu teléfono esté bloqueado o estés en otra app. La primera vez que inicias un descanso, la app te pide permiso para enviarla."
 
-#: components/ExerciseFeedbackCard.tsx:172
+#: components/ExerciseFeedbackCard.tsx:177
 msgid "Where did you feel it?"
 msgstr "¿Dónde lo sentiste?"
 
-#: components/ExerciseFeedbackCard.tsx:174
+#: components/ExerciseFeedbackCard.tsx:179
 msgid "Where did you feel it? (optional)"
 msgstr "¿Dónde lo sentiste? (opcional)"
 
@@ -8140,6 +8140,10 @@ msgstr "Estás alcanzando los objetivos con facilidad. Es hora de añadir un poc
 #: app/(app)/delete-account.tsx:306
 msgid "Your account has been deleted"
 msgstr "Tu cuenta ha sido eliminada"
+
+#: components/FeedbackCatchUpCard.tsx:52
+msgid "Your answer was not saved. Try again."
+msgstr "Tu respuesta no se ha guardado. Inténtalo de nuevo."
 
 #: constants/HelpData.ts:301
 msgid "Your body weight, used to calculate effective load for assisted exercises."
