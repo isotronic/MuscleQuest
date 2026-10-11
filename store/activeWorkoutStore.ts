@@ -163,6 +163,11 @@ interface ActiveWorkoutStore {
     name: string,
   ) => void;
   startQuickWorkout: () => void;
+  /**
+   * A quick workout that starts with these exercises, e.g. a copy of a
+   * finished session. Behaves like any other quick workout.
+   */
+  startQuickWorkoutFrom: (exercises: UserExercise[]) => void;
   nextSet: () => void;
   setCurrentExerciseIndex: (index: number) => void;
   setCurrentSetIndex: (exerciseIndex: number, setIndex: number) => void;
@@ -354,15 +359,25 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           suggestedWeightPrefills: {},
         }),
 
-      startQuickWorkout: () =>
+      startQuickWorkout: () => get().startQuickWorkoutFrom([]),
+
+      startQuickWorkoutFrom: (exercises) =>
         set({
           activeWorkout: {
             planId: null,
             workoutId: null,
             name: QUICK_WORKOUT_NAME,
           },
-          workout: { id: 0, name: QUICK_WORKOUT_NAME, exercises: [] },
-          originalWorkout: { id: 0, name: QUICK_WORKOUT_NAME, exercises: [] },
+          workout: {
+            id: 0,
+            name: QUICK_WORKOUT_NAME,
+            exercises: JSON.parse(JSON.stringify(exercises)),
+          },
+          originalWorkout: {
+            id: 0,
+            name: QUICK_WORKOUT_NAME,
+            exercises: JSON.parse(JSON.stringify(exercises)),
+          },
           isQuickWorkout: true,
           currentExerciseIndex: 0,
           currentSetIndices: {},
