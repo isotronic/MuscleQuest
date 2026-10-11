@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
@@ -92,7 +92,11 @@ export default function ExerciseFeedbackCard({
   const exerciseName = prompt.exerciseName;
   const belowTarget = isBelowTarget(prompt.performanceRatio);
 
-  const submit = (effort: EffortRating, painFlag: PainFlag) =>
+  // The card unmounts a render later; a quick second tap must not send twice.
+  const submittedRef = useRef(false);
+  const submit = (effort: EffortRating, painFlag: PainFlag) => {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
     onSubmit(
       buildFeedbackPayload(prompt, {
         effort,
@@ -101,6 +105,7 @@ export default function ExerciseFeedbackCard({
         notes,
       }),
     );
+  };
 
   const chip = (
     key: string,
@@ -211,7 +216,11 @@ export default function ExerciseFeedbackCard({
 
       {!belowTarget && (
         <View style={styles.links}>
-          {link(t`Any pain?`, painOpen, () => setPainOpen((v) => !v))}
+          {link(t`Any pain?`, painOpen, () => {
+            // A collapsed choice is not sent: only what is on screen counts.
+            if (painOpen) setPain("none");
+            setPainOpen(!painOpen);
+          })}
           {link(t`More`, moreOpen, () => setMoreOpen((v) => !v))}
         </View>
       )}

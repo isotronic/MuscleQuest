@@ -83,8 +83,10 @@ describe("FeedbackCatchUpCard", () => {
       },
       expect.anything(),
     );
-    expect(useActiveWorkoutStore.getState().feedbackSubmittedUweIds).toContain(
-      1,
+    // The finished session was already cleared; nothing is written back.
+    expect(useActiveWorkoutStore.getState().activeWorkout).toBeNull();
+    expect(useActiveWorkoutStore.getState().feedbackSubmittedUweIds).toEqual(
+      [],
     );
   });
 

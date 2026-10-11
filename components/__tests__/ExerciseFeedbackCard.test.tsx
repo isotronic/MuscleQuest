@@ -151,4 +151,28 @@ describe("ExerciseFeedbackCard", () => {
     rerender(<ExerciseFeedbackCard prompt={prompt(1)} onSubmit={jest.fn()} />);
     expect(queryByLabelText("Skip feedback for Bench press")).toBeNull();
   });
+
+  it("a quick second tap does not submit twice", () => {
+    const onSubmit = jest.fn();
+    const { getByText } = render(
+      <ExerciseFeedbackCard prompt={prompt(1.0)} onSubmit={onSubmit} />,
+    );
+    fireEvent.press(getByText("Easy"));
+    fireEvent.press(getByText("Hard"));
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it("a pain choice folded away again is not sent", () => {
+    const onSubmit = jest.fn();
+    const { getByText } = render(
+      <ExerciseFeedbackCard prompt={prompt(1.0)} onSubmit={onSubmit} />,
+    );
+    fireEvent.press(getByText("Any pain?"));
+    fireEvent.press(getByText("Pain"));
+    fireEvent.press(getByText("Any pain?"));
+    fireEvent.press(getByText("Easy"));
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ painFlag: "none" }),
+    );
+  });
 });

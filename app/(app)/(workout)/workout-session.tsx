@@ -12,6 +12,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Vibration,
   View,
@@ -96,6 +97,7 @@ const AnimatedView = Animated.View as unknown as React.ComponentType<{
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const COMMIT_DISTANCE = SCREEN_WIDTH * 0.3;
 const COMMIT_VELOCITY = 500;
+const FEEDBACK_CARD_MAX_HEIGHT = Dimensions.get("window").height * 0.25;
 
 interface OutgoingSnapshot {
   exercise_id: number;
@@ -664,10 +666,12 @@ export default function WorkoutSessionScreen() {
   }
 
   useEffect(() => {
-    timerTranslateY.value = withTiming(timerRunning ? 0 : 200, {
-      duration: 300,
-    });
-  }, [timerRunning, timerTranslateY]);
+    // Parked below the screen; a feedback card can make it taller than 200.
+    timerTranslateY.value = withTiming(
+      timerRunning ? 0 : Math.max(200, restOverlayHeight + 16),
+      { duration: 300 },
+    );
+  }, [timerRunning, timerTranslateY, restOverlayHeight]);
 
   useEffect(() => {
     if (timerRunning && timerExpiry) {
@@ -1768,15 +1772,22 @@ export default function WorkoutSessionScreen() {
 
   // Inside the rest overlay while resting, otherwise in the layout under the
   // panel, so it never sits on top of the Complete Set button.
+  // Capped and scrollable, so an expanded card cannot squeeze the set panel
+  // (which does not scroll) past its Complete Set button.
   const feedbackCard = activeFeedbackPrompt ? (
-    <ExerciseFeedbackCard
-      key={activeFeedbackPrompt.userWorkoutExerciseId}
-      prompt={activeFeedbackPrompt}
-      onSubmit={(payload) =>
-        submitFeedbackPrompt(activeFeedbackPrompt, payload)
-      }
-      onSkip={skipFeedbackPrompt}
-    />
+    <ScrollView
+      style={styles.feedbackCardScroll}
+      keyboardShouldPersistTaps="handled"
+    >
+      <ExerciseFeedbackCard
+        key={activeFeedbackPrompt.userWorkoutExerciseId}
+        prompt={activeFeedbackPrompt}
+        onSubmit={(payload) =>
+          submitFeedbackPrompt(activeFeedbackPrompt, payload)
+        }
+        onSkip={skipFeedbackPrompt}
+      />
+    </ScrollView>
   ) : null;
 
   if (settingsLoading) {
@@ -1975,7 +1986,8 @@ export default function WorkoutSessionScreen() {
           setSetNote(exerciseIndex, setIndex, text);
         }}
       />
-      {feedbackCard && !timerRunning && (
+      {/* Not during the slide either: a rest may start when it ends. */}
+      {feedbackCard && !timerRunning && !outgoingSnapshot && (
         <View style={styles.feedbackCard}>{feedbackCard}</View>
       )}
       <SessionSetOptionsModal
@@ -2034,6 +2046,10 @@ function createStyles(colors: AppThemeColors) {
     },
     feedbackCard: {
       marginTop: 8,
+    },
+    feedbackCardScroll: {
+      flexGrow: 0,
+      maxHeight: FEEDBACK_CARD_MAX_HEIGHT,
     },
     supersetBanner: {
       flexDirection: "row",

@@ -1936,13 +1936,21 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
       },
 
       recordFeedbackSubmitted: (uweId) =>
-        set((state) => ({
-          feedbackSubmittedUweIds: state.feedbackSubmittedUweIds.includes(uweId)
-            ? state.feedbackSubmittedUweIds
-            : [...state.feedbackSubmittedUweIds, uweId],
-          feedbackQueue: withoutExercise(state.feedbackQueue, uweId),
-          feedbackCatchUp: withoutExercise(state.feedbackCatchUp, uweId),
-        })),
+        // A summary catch-up answer arrives after the session was cleared;
+        // writing then would re-persist an empty session.
+        set((state) =>
+          !state.activeWorkout
+            ? state
+            : {
+                feedbackSubmittedUweIds: state.feedbackSubmittedUweIds.includes(
+                  uweId,
+                )
+                  ? state.feedbackSubmittedUweIds
+                  : [...state.feedbackSubmittedUweIds, uweId],
+                feedbackQueue: withoutExercise(state.feedbackQueue, uweId),
+                feedbackCatchUp: withoutExercise(state.feedbackCatchUp, uweId),
+              },
+        ),
 
       queueFeedbackPrompts: (prompts) =>
         set((state) => {
