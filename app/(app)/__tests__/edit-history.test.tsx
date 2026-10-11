@@ -1,4 +1,5 @@
 import React from "react";
+import { Alert } from "react-native";
 import { render, fireEvent } from "@testing-library/react-native";
 import EditCompletedWorkoutScreen from "../(tabs)/(stats)/edit-history";
 import type { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
@@ -7,6 +8,7 @@ const mockMutate = jest.fn();
 
 jest.mock("@lingui/react/macro", () => ({
   Trans: ({ children }: { children: React.ReactNode }) => children,
+  useLingui: () => ({ i18n: { locale: "en" } }),
 }));
 jest.mock("@lingui/core/macro", () => ({
   t: (s: TemplateStringsArray, ...v: unknown[]) => String.raw({ raw: s }, ...v),
@@ -20,6 +22,7 @@ jest.mock("@/theme", () => ({
       contentPrimary: "#000",
       contentSecondary: "#888",
       accent: "#f00",
+      danger: "#f00",
       card: "#eee",
       border: "#ccc",
     },
@@ -38,6 +41,25 @@ jest.mock("@/components/ThemedView", () => {
   const { View } = require("react-native");
   return { ThemedView: (props: any) => <View {...props} /> };
 });
+jest.mock("react-native-paper", () => {
+  const { View, Text, Pressable } = require("react-native");
+  const Menu = ({ visible, anchor, children }: any) => (
+    <View>
+      {anchor}
+      {visible ? children : null}
+    </View>
+  );
+  const MenuItem = ({ title, onPress }: any) => (
+    <Pressable accessibilityRole="menuitem" onPress={onPress}>
+      <Text>{title}</Text>
+    </Pressable>
+  );
+  Menu.Item = MenuItem;
+  return { ActivityIndicator: () => null, Divider: () => null, Menu };
+});
+jest.mock("@/components/history/DatePickerModal", () => ({
+  DatePickerModal: () => null,
+}));
 jest.mock("expo-router", () => {
   const { View } = require("react-native");
   return {
@@ -50,7 +72,7 @@ jest.mock("expo-router", () => {
   };
 });
 jest.mock("@/components/ui", () => {
-  const { Pressable } = require("react-native");
+  const { Pressable, Text } = require("react-native");
   return {
     AppIconButton: ({ accessibilityLabel, onPress, onPressIn }: any) => (
       <Pressable
@@ -58,6 +80,15 @@ jest.mock("@/components/ui", () => {
         accessibilityLabel={accessibilityLabel}
         onPress={onPress ?? onPressIn}
       />
+    ),
+    AppButton: ({ children, onPress, accessibilityLabel }: any) => (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        onPress={onPress}
+      >
+        <Text>{children}</Text>
+      </Pressable>
     ),
   };
 });
@@ -87,12 +118,19 @@ const set = (
   time: null,
   distance: null,
   is_warmup: false,
+  is_drop_set: false,
+  is_to_failure: false,
   set_duration: null,
   ...values,
 });
 
+const FINISHED = new Date(2026, 8, 30, 18, 15, 42);
+
 const workout = {
   id: 42,
+  date_completed: FINISHED.toISOString(),
+  duration: 3725,
+  notes: null,
   exercises: [
     {
       completed_exercise_id: 1,
@@ -125,7 +163,10 @@ const save = (getByLabelText: (label: string) => any) => {
 };
 
 describe("EditCompletedWorkoutScreen", () => {
-  beforeEach(() => mockMutate.mockClear());
+  beforeEach(() => {
+    mockMutate.mockClear();
+    jest.spyOn(Alert, "alert").mockImplementation(() => {});
+  });
 
   it("sends the loaded values as the original, untouched", () => {
     const { getAllByLabelText, getByLabelText } = render(
@@ -134,17 +175,24 @@ describe("EditCompletedWorkoutScreen", () => {
     fireEvent.changeText(getAllByLabelText("Reps, set 1")[0], "10");
 
     const { original, edited } = save(getByLabelText);
-    expect(original).toEqual(workout.exercises);
-    expect(edited[0].sets[0].reps).toBe(10);
-    expect(edited[0].sets[1]).toEqual(workout.exercises[0].sets[1]);
-    expect(edited[1]).toEqual(workout.exercises[1]);
+    expect(original.exercises).toEqual(workout.exercises);
+    expect(edited.exercises[0].sets[0].reps).toBe(10);
+    expect(edited.exercises[0].sets[1]).toEqual(workout.exercises[0].sets[1]);
+    expect(edited.exercises[1]).toEqual(workout.exercises[1]);
+  });
+
+  it("keeps the stored instant and duration when they are not touched", () => {
+    const { getByLabelText } = render(<EditCompletedWorkoutScreen />);
+    const { original, edited } = save(getByLabelText);
+    expect(edited.completedAt).toBe(original.completedAt);
+    expect(edited.durationSeconds).toBe(3725);
   });
 
   it("reads a comma-typed weight as a decimal", () => {
     const { getByLabelText } = render(<EditCompletedWorkoutScreen />);
     fireEvent.changeText(getByLabelText("Weight in kg, set 1"), "62,5");
 
-    expect(save(getByLabelText).edited[0].sets[0].weight).toBe(62.5);
+    expect(save(getByLabelText).edited.exercises[0].sets[0].weight).toBe(62.5);
   });
 
   it("shows stored decimals with the device separator", () => {
@@ -152,25 +200,64 @@ describe("EditCompletedWorkoutScreen", () => {
     expect(getByLabelText("Distance in m, set 1").props.value).toBe("2,5");
   });
 
-  it("reads a comma-typed distance as a decimal", () => {
-    const { getByLabelText } = render(<EditCompletedWorkoutScreen />);
-    fireEvent.changeText(getByLabelText("Distance in m, set 1"), "3,75");
-
-    expect(save(getByLabelText).edited[1].sets[0].distance).toBe(3.75);
-  });
-
   it("keeps a missing weight missing", () => {
     const { getByLabelText } = render(<EditCompletedWorkoutScreen />);
     expect(getByLabelText("Weight in kg, set 2").props.value).toBe("");
-    expect(save(getByLabelText).edited[0].sets[1].weight).toBeNull();
+    expect(save(getByLabelText).edited.exercises[0].sets[1].weight).toBeNull();
   });
 
-  it("keeps only digits in reps", () => {
+  it("adds a set prefilled from the last one", () => {
+    const { getByLabelText } = render(<EditCompletedWorkoutScreen />);
+    fireEvent.press(getByLabelText("Add set to Row"));
+
+    const added = save(getByLabelText).edited.exercises[1].sets[1];
+    expect(added).toMatchObject({ set_number: 2, distance: 2.5 });
+    expect(added.set_id).toBeLessThan(0);
+  });
+
+  it("removes a set and renumbers the rest", () => {
     const { getAllByLabelText, getByLabelText } = render(
       <EditCompletedWorkoutScreen />,
     );
-    fireEvent.changeText(getAllByLabelText("Reps, set 1")[0], "1,2");
+    fireEvent.press(getAllByLabelText("Remove set 1")[0]);
 
-    expect(save(getByLabelText).edited[0].sets[0].reps).toBe(12);
+    const sets = save(getByLabelText).edited.exercises[0].sets;
+    expect(sets).toEqual([
+      expect.objectContaining({ set_id: 12, set_number: 1 }),
+    ]);
+  });
+
+  it("marks a set as a warm-up from its set type menu", () => {
+    const { getAllByLabelText, getByText, getByLabelText } = render(
+      <EditCompletedWorkoutScreen />,
+    );
+    fireEvent.press(getAllByLabelText("Set type, set 1")[0]);
+    fireEvent.press(getByText("Warm-up"));
+
+    expect(save(getByLabelText).edited.exercises[0].sets[0].is_warmup).toBe(
+      true,
+    );
+  });
+
+  it("drops an exercise whose sets were all removed", () => {
+    const { getAllByLabelText, getByLabelText } = render(
+      <EditCompletedWorkoutScreen />,
+    );
+    fireEvent.press(getAllByLabelText("Remove set 1")[1]);
+
+    expect(save(getByLabelText).edited.exercises).toHaveLength(1);
+  });
+
+  it("refuses a finish time that has not happened yet", () => {
+    jest.useFakeTimers({ now: new Date(2026, 8, 30, 20, 0) });
+    try {
+      const { getByLabelText } = render(<EditCompletedWorkoutScreen />);
+      fireEvent.changeText(getByLabelText("Finished at, hours"), "23");
+      fireEvent.press(getByLabelText("Save changes"));
+      expect(mockMutate).not.toHaveBeenCalled();
+      expect(Alert.alert).toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

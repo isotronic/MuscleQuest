@@ -1526,6 +1526,10 @@ msgstr "{increment, plural, one {Remove # second} other {Remove # seconds}}"
 msgid "{metricName} in {unit}"
 msgstr "{metricName} in {unit}"
 
+#: components/history/WorkoutHistoryEditor.tsx:295
+msgid "{name} and its sets come out of this workout when you save."
+msgstr "{name} and its sets come out of this workout when you save."
+
 #: components/stats/widgets/MuscleSetsWidget.tsx:150
 msgid "{name}, {sets} sets per week"
 msgstr "{name}, {sets} sets per week"
@@ -1949,6 +1953,10 @@ msgstr "Add a set"
 msgid "Add a workout to get started"
 msgstr "Add a workout to get started"
 
+#: components/history/WorkoutHistoryEditor.tsx:173
+msgid "Add at least one set to save this workout."
+msgstr "Add at least one set to save this workout."
+
 #: components/Cues.tsx:61
 #: components/Cues.tsx:76
 msgid "Add cues"
@@ -1965,6 +1973,10 @@ msgstr "Add custom metric"
 #: components/SessionSetInfo.tsx:360
 msgid "Add Drop Set"
 msgstr "Add Drop Set"
+
+#: components/history/WorkoutHistoryEditor.tsx:539
+msgid "Add exercise"
+msgstr "Add exercise"
 
 #: app/(app)/(workout)/index.tsx:1213
 #: components/WorkoutCard.tsx:461
@@ -2003,10 +2015,19 @@ msgstr "Add note"
 msgid "Add session note"
 msgstr "Add session note"
 
+#: components/history/WorkoutHistoryEditor.tsx:531
+msgid "Add set"
+msgstr "Add set"
+
 #: app/(app)/(create-plan)/sets-overview.tsx:270
 #: components/SessionSetInfo.tsx:353
 msgid "Add Set"
 msgstr "Add Set"
+
+#. placeholder {0}: exercise.exercise_name
+#: components/history/WorkoutHistoryEditor.tsx:528
+msgid "Add set to {0}"
+msgstr "Add set to {0}"
 
 #: app/(app)/exercise-info.tsx:196
 msgid "Add to favorites"
@@ -2220,7 +2241,7 @@ msgstr "An error occurred while deleting images."
 msgid "An error occurred while downloading images."
 msgstr "An error occurred while downloading images."
 
-#: hooks/useEditCompletedWorkoutMutation.ts:144
+#: hooks/useEditCompletedWorkoutMutation.ts:63
 msgid "An error occurred while saving your edited workout. Please try again."
 msgstr "An error occurred while saving your edited workout. Please try again."
 
@@ -2332,7 +2353,7 @@ msgstr "arms"
 msgid "Assign workouts to days in the schedule editor: tap a day to pick a workout or leave it as a rest day, or use the auto-suggest button to space them out evenly."
 msgstr "Assign workouts to days in the schedule editor: tap a day to pick a workout or leave it as a rest day, or use the auto-suggest button to space them out evenly."
 
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:243
+#: components/history/WorkoutHistoryEditor.tsx:620
 msgid "Assist"
 msgstr "Assist"
 
@@ -2354,7 +2375,7 @@ msgid "assistance "
 msgstr "assistance "
 
 #. placeholder {0}: set.set_number
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:251
+#: components/history/WorkoutHistoryEditor.tsx:628
 msgid "Assistance in {weightUnit}, set {0}"
 msgstr "Assistance in {weightUnit}, set {0}"
 
@@ -2652,7 +2673,7 @@ msgid "cardiovascular system"
 msgstr "cardiovascular system"
 
 #. placeholder {0}: exercise.exercise_name
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:223
+#: components/history/WorkoutHistoryEditor.tsx:416
 msgid "Change exercise {0}"
 msgstr "Change exercise {0}"
 
@@ -2676,6 +2697,10 @@ msgstr "Changes are saved straight away."
 #: components/WorkoutDetailsScreen.tsx:231
 msgid "Changes for this session"
 msgstr "Changes for this session"
+
+#: components/history/WorkoutHistoryEditor.tsx:166
+msgid "Check the time"
+msgstr "Check the time"
 
 #: app/(app)/settings.tsx:730
 msgid "Checking for backups..."
@@ -2728,6 +2753,7 @@ msgid "Clears the search field"
 msgstr "Clears the search field"
 
 #: app/(app)/friends.tsx:198
+#: components/history/DatePickerModal.tsx:60
 #: components/NoteSheet.tsx:85
 #: components/PlateCalculatorModal.tsx:289
 #: components/stats/WorkoutCalendarModal.tsx:138
@@ -3099,6 +3125,15 @@ msgstr "Customize stats"
 msgid "Customize Stats"
 msgstr "Customize Stats"
 
+#: components/history/DatePickerModal.tsx:57
+#: components/history/WorkoutHistoryEditor.tsx:354
+msgid "Date"
+msgstr "Date"
+
+#: components/history/WorkoutHistoryEditor.tsx:358
+msgid "Date, {formattedDate}"
+msgstr "Date, {formattedDate}"
+
 #: components/friends/FriendRequestItem.tsx:53
 msgid "Decline"
 msgstr "Decline"
@@ -3367,19 +3402,19 @@ msgstr "Dismiss"
 msgid "distance"
 msgstr "distance"
 
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:332
 #: app/(app)/custom-exercise.tsx:72
+#: components/history/WorkoutHistoryEditor.tsx:669
 msgid "Distance"
 msgstr "Distance"
 
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:327
 #: components/charts/ExerciseProgressionChart.tsx:406
+#: components/history/WorkoutHistoryEditor.tsx:664
 #: components/SessionSetInfo.tsx:669
 msgid "Distance ({distanceUnit})"
 msgstr "Distance ({distanceUnit})"
 
 #. placeholder {0}: set.set_number
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:330
+#: components/history/WorkoutHistoryEditor.tsx:667
 msgid "Distance in {distanceUnit}, set {0}"
 msgstr "Distance in {distanceUnit}, set {0}"
 
@@ -3454,6 +3489,7 @@ msgstr "Drag the handle on any exercise card to reorder exercises mid-session."
 msgid "Drag to reorder, switch sections on or off, and tap the gear to change what a section shows."
 msgstr "Drag to reorder, switch sections on or off, and tap the gear to change what a section shows."
 
+#: components/history/WorkoutHistoryEditor.tsx:315
 #: components/SessionSetInfo.tsx:473
 #: components/SetOptionsModal.tsx:402
 #: components/SetOptionsModal.tsx:408
@@ -3488,6 +3524,8 @@ msgstr "Duplicate Plan"
 
 #: app/(app)/(workout)/workout-summary.tsx:586
 #: app/(app)/(workout)/workout-summary.tsx:637
+#: components/history/WorkoutHistoryEditor.tsx:380
+#: components/history/WorkoutHistoryEditor.tsx:383
 msgid "Duration"
 msgstr "Duration"
 
@@ -3672,6 +3710,10 @@ msgstr "Enter a name for the custom metric."
 msgid "Enter a number, for example 82.5"
 msgstr "Enter a number, for example 82.5"
 
+#: components/history/WorkoutHistoryEditor.tsx:116
+msgid "Enter a time between 0:00 and 23:59."
+msgstr "Enter a time between 0:00 and 23:59."
+
 #: app/(app)/(tabs)/(stats)/measurements.tsx:120
 msgid "Enter at least one measurement to log."
 msgstr "Enter at least one measurement to log."
@@ -3735,7 +3777,7 @@ msgstr "Equipment:"
 #: components/StandaloneWorkoutScreen.tsx:100
 #: components/StartupRecoveryScreen.tsx:68
 #: hooks/useDeleteCompletedWorkoutMutation.ts:58
-#: hooks/useEditCompletedWorkoutMutation.ts:143
+#: hooks/useEditCompletedWorkoutMutation.ts:62
 #: hooks/useImageManagement.ts:79
 #: hooks/useImageManagement.ts:114
 msgid "Error"
@@ -4052,6 +4094,11 @@ msgstr "Finish or cancel your workout to change units."
 #: utils/confirmUnfinishedSets.ts:58
 msgid "Finish workout?"
 msgstr "Finish workout?"
+
+#: components/history/WorkoutHistoryEditor.tsx:368
+#: components/history/WorkoutHistoryEditor.tsx:371
+msgid "Finished at"
+msgstr "Finished at"
 
 #: app/(app)/settings.tsx:1887
 msgid "Follow MuscleQuest on Instagram"
@@ -4452,6 +4499,7 @@ msgstr "JSON"
 #~ msgstr "Jumpstart your fitness journey with professionally designed training plans. Choose from a variety of options tailored to different goals and experience levels. "
 
 #: app/(app)/delete-account.tsx:283
+#: components/history/WorkoutHistoryEditor.tsx:297
 #: components/StaleWorkoutPrompt.tsx:58
 msgid "Keep"
 msgstr "Keep"
@@ -5094,6 +5142,10 @@ msgstr "No results for \"{query}\""
 msgid "No schedule set"
 msgstr "No schedule set"
 
+#: components/history/WorkoutHistoryEditor.tsx:173
+msgid "No sets"
+msgstr "No sets"
+
 #: components/StandaloneWorkoutScreen.tsx:164
 msgid "No Sets"
 msgstr "No Sets"
@@ -5171,6 +5223,11 @@ msgstr "Not now"
 #: components/SessionSetInfo.tsx:528
 msgid "Note"
 msgstr "Note"
+
+#. placeholder {0}: set.set_number
+#: components/history/WorkoutHistoryEditor.tsx:514
+msgid "Note, set {0}"
+msgstr "Note, set {0}"
 
 #: components/LastTimeLine.tsx:130
 msgid "Note: {note}"
@@ -5271,6 +5328,10 @@ msgstr "Open the plan and tap Set as active plan when it's ready. Your edits are
 #: components/stats/widgets/HistoryWidget.tsx:33
 msgid "Open workout calendar"
 msgstr "Open workout calendar"
+
+#: components/history/WorkoutHistoryEditor.tsx:359
+msgid "Opens a calendar"
+msgstr "Opens a calendar"
 
 #: components/AppMenu.tsx:227
 #: components/AppMenu.tsx:233
@@ -5678,6 +5739,7 @@ msgstr "Reminders for this workout"
 
 #: app/(app)/(create-plan)/create.tsx:276
 #: components/friends/FriendListItem.tsx:26
+#: components/history/WorkoutHistoryEditor.tsx:299
 #: components/WorkoutCard.tsx:90
 msgid "Remove"
 msgstr "Remove"
@@ -5700,9 +5762,23 @@ msgstr "Remove a set"
 msgid "Remove Exercise"
 msgstr "Remove Exercise"
 
+#. placeholder {0}: exercise.exercise_name
+#: components/history/WorkoutHistoryEditor.tsx:430
+msgid "Remove exercise {0}"
+msgstr "Remove exercise {0}"
+
+#: components/history/WorkoutHistoryEditor.tsx:294
+msgid "Remove exercise?"
+msgstr "Remove exercise?"
+
 #: app/(app)/exercise-info.tsx:195
 msgid "Remove from favorites"
 msgstr "Remove from favorites"
+
+#. placeholder {0}: set.set_number
+#: components/history/WorkoutHistoryEditor.tsx:483
+msgid "Remove set {0}"
+msgstr "Remove set {0}"
 
 #: app/(app)/(workout)/index.tsx:732
 #: components/WorkoutCard.tsx:301
@@ -5765,13 +5841,11 @@ msgstr "Replace"
 msgid "reps"
 msgstr "reps"
 
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:268
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:273
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:306
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:311
 #: app/(app)/custom-exercise.tsx:70
 #: components/charts/ExerciseProgressionChart.tsx:404
 #: components/charts/TrendBarChart.tsx:259
+#: components/history/WorkoutHistoryEditor.tsx:594
+#: components/history/WorkoutHistoryEditor.tsx:599
 #: components/SessionSetInfo.tsx:594
 #: components/StandaloneWorkoutScreen.tsx:174
 #: components/stats/widgets/registry.ts:73
@@ -5787,8 +5861,7 @@ msgid "Reps per Week"
 msgstr "Reps per Week"
 
 #. placeholder {0}: set.set_number
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:271
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:309
+#: components/history/WorkoutHistoryEditor.tsx:597
 msgid "Reps, set {0}"
 msgstr "Reps, set {0}"
 
@@ -6013,7 +6086,7 @@ msgstr "Save and select"
 msgid "Save as a reusable workout?"
 msgstr "Save as a reusable workout?"
 
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:200
+#: components/history/WorkoutHistoryEditor.tsx:341
 msgid "Save changes"
 msgstr "Save changes"
 
@@ -6166,6 +6239,8 @@ msgstr "serratus anterior"
 
 #: app/(app)/(tabs)/(stats)/history-details.tsx:202
 #: app/(app)/(workout)/workout-summary.tsx:611
+#: components/history/WorkoutHistoryEditor.tsx:396
+#: components/history/WorkoutHistoryEditor.tsx:398
 #: components/SessionNoteField.tsx:38
 #: components/SessionNoteField.tsx:50
 msgid "Session note"
@@ -6183,10 +6258,10 @@ msgstr "Session note: {trimmed}. Edit"
 #. placeholder {0}: item.set_number
 #. placeholder {0}: set.set_number
 #: app/(app)/(create-plan)/sets-overview.tsx:160
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:232
 #: app/(app)/(tabs)/(stats)/history-details.tsx:293
 #: app/(app)/(workout)/workout-summary.tsx:255
 #: app/(app)/exercise-info.tsx:394
+#: components/history/WorkoutHistoryEditor.tsx:444
 msgid "Set {0}"
 msgstr "Set {0}"
 
@@ -6212,6 +6287,7 @@ msgid "Set how many pairs of each plate you have. The plate calculator will only
 msgstr "Set how many pairs of each plate you have. The plate calculator will only suggest loads you can actually build."
 
 #: app/(app)/(workout)/workout-session.tsx:1982
+#: components/history/WorkoutHistoryEditor.tsx:516
 msgid "Set note"
 msgstr "Set note"
 
@@ -6230,6 +6306,11 @@ msgstr "Set options"
 #: app/(app)/(workout)/workout-session.tsx:922
 msgid "Set removed"
 msgstr "Set removed"
+
+#. placeholder {0}: set.set_number
+#: components/history/WorkoutHistoryEditor.tsx:457
+msgid "Set type, set {0}"
+msgstr "Set type, set {0}"
 
 #: constants/HelpData.ts:208
 msgid "Set Types"
@@ -6867,6 +6948,10 @@ msgstr "That is lighter than the bar on its own ({barLabel})."
 msgid "That is more than {limit} {weightUnit}."
 msgstr "That is more than {limit} {weightUnit}."
 
+#: components/history/WorkoutHistoryEditor.tsx:128
+msgid "That time is still to come. Pick a time that has passed."
+msgstr "That time is still to come. Pick a time that has passed."
+
 #: utils/backupErrorMessage.ts:19
 msgid "The backup is damaged and can't be restored. Your data on this device has not been changed."
 msgstr "The backup is damaged and can't be restored. Your data on this device has not been changed."
@@ -7072,7 +7157,7 @@ msgstr "Time"
 msgid "Time (Hour:Min)"
 msgstr "Time (Hour:Min)"
 
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:290
+#: components/history/WorkoutHistoryEditor.tsx:646
 #: components/SessionSetInfo.tsx:629
 #: components/SettingsModal.tsx:263
 msgid "Time (Min:Sec)"
@@ -7106,7 +7191,7 @@ msgid "Time to train!"
 msgstr "Time to train!"
 
 #. placeholder {0}: set.set_number
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:293
+#: components/history/WorkoutHistoryEditor.tsx:649
 msgid "Time, set {0}"
 msgstr "Time, set {0}"
 
@@ -7143,6 +7228,7 @@ msgstr "To enable rest timer notifications, grant notification permissions in yo
 msgid "To enable workout reminders, grant notification permissions in your device settings."
 msgstr "To enable workout reminders, grant notification permissions in your device settings."
 
+#: components/history/WorkoutHistoryEditor.tsx:316
 #: components/SessionSetInfo.tsx:492
 #: components/SetOptionsModal.tsx:417
 #: components/SetOptionsModal.tsx:423
@@ -7688,6 +7774,7 @@ msgstr "Waist"
 msgid "Want MuscleQuest to suggest your next weights?"
 msgstr "Want MuscleQuest to suggest your next weights?"
 
+#: components/history/WorkoutHistoryEditor.tsx:314
 #: components/SessionSetInfo.tsx:367
 #: components/SessionSetInfo.tsx:465
 msgid "Warm-up"
@@ -7757,9 +7844,9 @@ msgstr "Weekly Schedule"
 msgid "Weekly working sets against a target range"
 msgstr "Weekly working sets against a target range"
 
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:241
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:254
 #: components/charts/ExerciseProgressionChart.tsx:512
+#: components/history/WorkoutHistoryEditor.tsx:618
+#: components/history/WorkoutHistoryEditor.tsx:631
 #: components/SessionSetInfo.tsx:560
 msgid "Weight"
 msgstr "Weight"
@@ -7774,7 +7861,7 @@ msgid "Weight in {weightUnit}"
 msgstr "Weight in {weightUnit}"
 
 #. placeholder {0}: set.set_number
-#: app/(app)/(tabs)/(stats)/edit-history.tsx:250
+#: components/history/WorkoutHistoryEditor.tsx:627
 msgid "Weight in {weightUnit}, set {0}"
 msgstr "Weight in {weightUnit}, set {0}"
 
