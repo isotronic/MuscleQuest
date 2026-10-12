@@ -33,6 +33,7 @@ import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
 import { useWorkoutBackGuard } from "@/hooks/useWorkoutBackGuard";
 import { useWorkoutCompletion } from "@/hooks/useWorkoutCompletion";
+import { useWorkoutChangesPrompt } from "@/hooks/useWorkoutChangesPrompt";
 import { showSnackbar } from "@/store/snackbarStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
@@ -263,7 +264,9 @@ export default function WorkoutOverviewScreen() {
     }
   }, [globalHistory, initializeGlobalHistory]);
 
-  const completeWorkout = useWorkoutCompletion();
+  const { ask: askWhichChanges, prompt: changesPrompt } =
+    useWorkoutChangesPrompt();
+  const completeWorkout = useWorkoutCompletion(askWhichChanges);
   const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation(
     weightUnit,
     distanceUnit,
@@ -374,6 +377,8 @@ export default function WorkoutOverviewScreen() {
   const [timerHeight, setTimerHeight] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const isSavingRef = useRef(false);
+  // Saved and asking about plan changes: Finish must not leave a second time.
+  const isCompletingRef = useRef(false);
   const [loadingExerciseIndex, setLoadingExerciseIndex] = useState<
     number | null
   >(null);
@@ -803,7 +808,7 @@ export default function WorkoutOverviewScreen() {
 
   // Finish saves completed sets only, so say what would be left behind.
   const handleFinishPress = () => {
-    if (isSavingRef.current) return;
+    if (isSavingRef.current || isCompletingRef.current) return;
     if (savedWorkoutSummaryParams() || !workout) {
       void handleSaveWorkout();
       return;
@@ -815,7 +820,7 @@ export default function WorkoutOverviewScreen() {
   };
 
   const handleSaveWorkout = async () => {
-    if (isSavingRef.current) return;
+    if (isSavingRef.current || isCompletingRef.current) return;
     // Saved already, then killed during a post-save prompt: never save twice.
     const savedParams = savedWorkoutSummaryParams();
     if (savedParams) {
@@ -902,6 +907,7 @@ export default function WorkoutOverviewScreen() {
                 useActiveWorkoutStore
                   .getState()
                   .setSavedCompletedWorkoutId(completedWorkoutId, trimmed);
+                isCompletingRef.current = true;
                 const outcome = await completeWorkout({
                   isQuickWorkout,
                   planId,
@@ -910,6 +916,7 @@ export default function WorkoutOverviewScreen() {
                   originalWorkout,
                 });
                 if (outcome.next === "quickSave") {
+                  isCompletingRef.current = false;
                   lastCompletedWorkoutIdRef.current = completedWorkoutId;
                   setShowSaveModal(true);
                   return;
@@ -1241,6 +1248,7 @@ export default function WorkoutOverviewScreen() {
           onSubmit={(payloads) => submitRecovery(payloads)}
         />
       )}
+      {changesPrompt}
     </ThemedView>
   );
 }

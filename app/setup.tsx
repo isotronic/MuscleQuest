@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import {
   ActivityIndicator,
@@ -30,7 +30,7 @@ import {
 import { confirmStartWorkout } from "@/utils/startWorkout";
 import { toDisplayDecimal } from "@/utils/numberFormat";
 
-const GOALS = ["2", "3", "4", "5", "6"];
+const GOALS = ["1", "2", "3", "4", "5", "6", "7"];
 const INCREMENTS = ["1", "2.5", "5"];
 const STEP_COUNT = 3;
 
@@ -191,14 +191,30 @@ export default function SetupScreen() {
                 Training days a week. Your streak counts weeks you reach it.
               </Trans>
             </ThemedText>
-            <SegmentedButtons
-              value={values.weeklyGoal}
-              onValueChange={(v) => update({ weeklyGoal: v })}
-              buttons={withCurrent(GOALS, values.weeklyGoal).map((value) => ({
-                value,
-                label: value,
-              }))}
-            />
+            {/* Round chips, since seven segments do not fit a phone. */}
+            <View accessibilityRole="radiogroup" style={styles.goalRow}>
+              {withCurrent(GOALS, values.weeklyGoal).map((value) => {
+                const selected = value === values.weeklyGoal;
+                return (
+                  <Pressable
+                    key={value}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: selected }}
+                    onPress={() => update({ weeklyGoal: value })}
+                    style={[styles.goalChip, selected && styles.goalChipOn]}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.goalChipText,
+                        selected && styles.goalChipTextOn,
+                      ]}
+                    >
+                      {value}
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
+            </View>
             <ThemedText type="subtitle" style={styles.heading}>
               <Trans>Week starts on</Trans>
             </ThemedText>
@@ -358,6 +374,22 @@ function createStyles(colors: AppThemeColors) {
       color: colors.contentPrimary,
     },
     unit: { fontSize: 18, color: colors.contentPrimary },
+    goalRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    goalChip: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: colors.contentSecondary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    goalChipOn: {
+      backgroundColor: colors.accent,
+      borderColor: colors.accent,
+    },
+    goalChipText: { fontSize: 16, color: colors.contentPrimary },
+    goalChipTextOn: { color: colors.onAccent, fontWeight: "700" },
     footer: {
       flexDirection: "row",
       justifyContent: "space-between",

@@ -1,19 +1,12 @@
 import React from "react";
 import { renderHook, act } from "@testing-library/react-native";
-import { Alert } from "react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  useWorkoutCompletion,
-  hasStructuralChanges,
-} from "../useWorkoutCompletion";
+import { useWorkoutCompletion } from "../useWorkoutCompletion";
 import {
   updatePlanWorkoutExercises,
   updateStandaloneWorkout,
 } from "@/utils/database";
 
-jest.mock("@lingui/core/macro", () => ({
-  t: (s: TemplateStringsArray) => s[0],
-}));
 jest.mock("@/utils/database", () => ({
   updatePlanWorkoutExercises: jest.fn().mockResolvedValue(undefined),
   updateStandaloneWorkout: jest.fn().mockResolvedValue(undefined),
@@ -21,12 +14,17 @@ jest.mock("@/utils/database", () => ({
 
 const exercise = (id: number, sets = 3) =>
   ({
+    id: id * 10,
     exercise_id: id,
     name: `Ex ${id}`,
     sets: Array.from({ length: sets }, () => ({ repsMin: 8, repsMax: 10 })),
   }) as any;
 const original = { name: "Push", exercises: [exercise(1), exercise(2)] };
-const changed = { name: "Push", exercises: [exercise(1), exercise(2, 4)] };
+// More sets on one exercise, fewer on the other.
+const changed = {
+  name: "Push",
+  exercises: [exercise(1, 2), exercise(2, 4)],
+};
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <QueryClientProvider client={new QueryClient()}>
@@ -34,17 +32,12 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
   </QueryClientProvider>
 );
 
-/** Answers the next Alert by pressing the button with this label. */
-const answerAlertWith = (label: string) =>
-  (Alert.alert as jest.Mock).mockImplementationOnce(
-    (_title, _message, buttons: any[]) =>
-      buttons.find((b) => b.text === label).onPress(),
-  );
+const ask = jest.fn();
 
 const complete = async (
   input: Parameters<ReturnType<typeof useWorkoutCompletion>>[0],
 ) => {
-  const { result } = renderHook(() => useWorkoutCompletion(), { wrapper });
+  const { result } = renderHook(() => useWorkoutCompletion(ask), { wrapper });
   let outcome: Awaited<ReturnType<ReturnType<typeof useWorkoutCompletion>>>;
   await act(async () => {
     outcome = await result.current(input);
@@ -52,15 +45,13 @@ const complete = async (
   return outcome!;
 };
 
-describe("hasStructuralChanges", () => {
-  it("is false for the same exercises and sets", () => {
-    expect(hasStructuralChanges(original, { ...original })).toBe(false);
-  });
-
-  it("is true when a set was added", () => {
-    expect(hasStructuralChanges(changed, original)).toBe(true);
-  });
-});
+const planInput = {
+  isQuickWorkout: false,
+  planId: 1,
+  workoutId: 2,
+  workout: changed,
+  originalWorkout: original,
+};
 
 describe("useWorkoutCompletion", () => {
   beforeEach(() => {
@@ -76,51 +67,40 @@ describe("useWorkoutCompletion", () => {
       originalWorkout: null,
     });
     expect(outcome).toEqual({ next: "quickSave", updated: null });
-    expect(Alert.alert).not.toHaveBeenCalled();
+    expect(ask).not.toHaveBeenCalled();
   });
 
   it("goes straight to the summary for an unchanged plan workout", async () => {
-    const outcome = await complete({
-      isQuickWorkout: false,
-      planId: 1,
-      workoutId: 2,
-      workout: original,
-      originalWorkout: original,
-    });
+    const outcome = await complete({ ...planInput, workout: original });
     expect(outcome).toEqual({ next: "summary", updated: null });
-    expect(Alert.alert).not.toHaveBeenCalled();
+    expect(ask).not.toHaveBeenCalled();
   });
 
-  it("asks once and keeps the plan when the user says so", async () => {
-    answerAlertWith("Keep plan as is");
-    const outcome = await complete({
-      isQuickWorkout: false,
-      planId: 1,
-      workoutId: 2,
-      workout: changed,
-      originalWorkout: original,
+  it("lists each change once and keeps the plan when the user says so", async () => {
+    ask.mockResolvedValueOnce(null);
+    const outcome = await complete(planInput);
+    expect(ask).toHaveBeenCalledTimes(1);
+    expect(ask).toHaveBeenCalledWith({
+      isPlan: true,
+      changes: [
+        expect.objectContaining({ id: "modify:id:10", name: "Ex 1" }),
+        expect.objectContaining({ id: "modify:id:20", name: "Ex 2" }),
+      ],
     });
-    expect(Alert.alert).toHaveBeenCalledTimes(1);
-    expect(Alert.alert).toHaveBeenCalledWith(
-      "Update your plan?",
-      "You changed this workout. Apply those changes to future sessions?",
-      expect.any(Array),
-      expect.anything(),
-    );
     expect(updatePlanWorkoutExercises).not.toHaveBeenCalled();
     expect(outcome).toEqual({ next: "summary", updated: null });
   });
 
-  it("updates the plan after a single confirmation", async () => {
-    answerAlertWith("Update plan");
-    const outcome = await complete({
-      isQuickWorkout: false,
-      planId: 1,
-      workoutId: 2,
-      workout: changed,
-      originalWorkout: original,
-    });
-    expect(Alert.alert).toHaveBeenCalledTimes(1);
+  it("keeps the plan when no change is chosen", async () => {
+    ask.mockResolvedValueOnce([]);
+    const outcome = await complete(planInput);
+    expect(updatePlanWorkoutExercises).not.toHaveBeenCalled();
+    expect(outcome).toEqual({ next: "summary", updated: null });
+  });
+
+  it("updates the plan with every change when all are chosen", async () => {
+    ask.mockResolvedValueOnce(["modify:id:10", "modify:id:20"]);
+    const outcome = await complete(planInput);
     expect(updatePlanWorkoutExercises).toHaveBeenCalledWith(
       2,
       changed.exercises,
@@ -128,21 +108,29 @@ describe("useWorkoutCompletion", () => {
     expect(outcome).toEqual({ next: "summary", updated: "plan" });
   });
 
-  it("updates a changed standalone workout after a single confirmation", async () => {
-    answerAlertWith("Update workout");
+  it("updates the plan with only the chosen changes", async () => {
+    ask.mockResolvedValueOnce(["modify:id:20"]);
+    await complete(planInput);
+    expect(updatePlanWorkoutExercises).toHaveBeenCalledWith(2, [
+      original.exercises[0],
+      changed.exercises[1],
+    ]);
+  });
+
+  it("updates a changed workout outside plans", async () => {
+    ask.mockResolvedValueOnce(["modify:id:20"]);
     const outcome = await complete({
-      isQuickWorkout: false,
+      ...planInput,
       planId: null,
       workoutId: 7,
-      workout: changed,
-      originalWorkout: original,
     });
-    expect(Alert.alert).toHaveBeenCalledTimes(1);
-    expect(updateStandaloneWorkout).toHaveBeenCalledWith(
-      7,
-      "Push",
-      changed.exercises,
+    expect(ask).toHaveBeenCalledWith(
+      expect.objectContaining({ isPlan: false }),
     );
+    expect(updateStandaloneWorkout).toHaveBeenCalledWith(7, "Push", [
+      original.exercises[0],
+      changed.exercises[1],
+    ]);
     expect(outcome).toEqual({ next: "summary", updated: "workout" });
   });
 
@@ -150,14 +138,8 @@ describe("useWorkoutCompletion", () => {
     (updatePlanWorkoutExercises as jest.Mock).mockRejectedValueOnce(
       new Error("db locked"),
     );
-    answerAlertWith("Update plan");
-    const outcome = await complete({
-      isQuickWorkout: false,
-      planId: 1,
-      workoutId: 2,
-      workout: changed,
-      originalWorkout: original,
-    });
+    ask.mockResolvedValueOnce(["modify:id:10"]);
+    const outcome = await complete(planInput);
     expect(outcome).toEqual({
       next: "summary",
       updated: null,

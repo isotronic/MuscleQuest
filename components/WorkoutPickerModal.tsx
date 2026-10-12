@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { View, TextInput, ScrollView, StyleSheet } from "react-native";
-import { Portal, Modal, ActivityIndicator } from "react-native-paper";
+import { Portal, Modal, ActivityIndicator, Button } from "react-native-paper";
 import { router } from "expo-router";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedText } from "@/components/ThemedText";
-import { AppButton } from "@/components/ui/AppButton";
+import { AppIconButton } from "@/components/ui/AppIconButton";
 import StandaloneWorkoutListItem from "@/components/StandaloneWorkoutListItem";
 import { useAllPlansQuery } from "@/hooks/useAllPlansQuery";
 import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
@@ -101,9 +101,18 @@ export default function WorkoutPickerModal({
         contentContainerStyle={styles.modal}
         theme={{ colors: { backdrop: colors.modalBackdrop } }}
       >
-        <ThemedText style={styles.title}>
-          <Trans>Choose a Workout</Trans>
-        </ThemedText>
+        <View style={styles.header}>
+          <ThemedText accessibilityRole="header" style={styles.title}>
+            <Trans>Choose a Workout</Trans>
+          </ThemedText>
+          <AppIconButton
+            icon="close"
+            size={22}
+            accessibilityLabel={t`Close`}
+            onPress={onDismiss}
+            style={styles.closeButton}
+          />
+        </View>
         <View style={styles.searchContainer}>
           <TextInput
             accessibilityLabel={t`Search workouts`}
@@ -187,8 +196,9 @@ export default function WorkoutPickerModal({
             )}
           </ScrollView>
         )}
-        <AppButton
-          variant="ghost"
+        <Button
+          mode="outlined"
+          icon="history"
           style={styles.logPast}
           accessibilityHint={t`Opens a form for a workout you did without logging it`}
           onPress={() => {
@@ -197,7 +207,7 @@ export default function WorkoutPickerModal({
           }}
         >
           <Trans>Log past workout</Trans>
-        </AppButton>
+        </Button>
       </Modal>
     </Portal>
   );
@@ -214,10 +224,19 @@ function createStyles(colors: AppThemeColors) {
       padding: 20,
       flex: 1,
     },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 12,
+    },
     title: {
+      flex: 1,
       fontSize: 18,
       fontWeight: "600",
-      marginBottom: 12,
+    },
+    closeButton: {
+      margin: -8,
     },
     searchContainer: {
       flexDirection: "row",

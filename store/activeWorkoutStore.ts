@@ -1233,8 +1233,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             return state;
           }
 
-          const oldExerciseSets = workout.exercises[index].sets;
-          const newExerciseWithSets = { ...newExercise, sets: oldExerciseSets };
+          const replaced = workout.exercises[index];
+          const oldExerciseSets = replaced.sets;
+          const replacedFromId = replaced.id ?? replaced.replacedFromId;
+          const newExerciseWithSets = {
+            ...newExercise,
+            sets: oldExerciseSets,
+            ...(replacedFromId != null ? { replacedFromId } : {}),
+          };
 
           // Reset weight and reps to "0" for each set of the new exercise
           const resetWeightAndReps = oldExerciseSets.reduce(
@@ -2041,7 +2047,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           activeWorkout: state.activeWorkout,
           workout: state.workout,
           // Rebuildable in principle, but it is one workout, not the history,
-          // and hasStructuralChanges needs the shape the session started with.
+          // and diffWorkout needs the shape the session started with.
           originalWorkout: state.originalWorkout,
           isQuickWorkout: state.isQuickWorkout,
           currentExerciseIndex: state.currentExerciseIndex,

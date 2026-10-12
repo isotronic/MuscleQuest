@@ -6,7 +6,28 @@ import {
 } from "@react-native-firebase/storage";
 import { File, Paths } from "expo-file-system";
 import { insertAnimatedImageUri } from "@/utils/database";
-import { notifyBugsnag } from "@/utils/bugsnagDedup";
+import Bugsnag from "@bugsnag/expo";
+import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
+
+// Refusals by the rules: expected for a signed-out user under rules that
+// predate public exercise images.
+const REFUSED_STORAGE_ERRORS = new Set([
+  "storage/unauthorized",
+  "storage/unauthenticated",
+]);
+
+// Errors that another attempt cannot fix.
+const PERMANENT_STORAGE_ERRORS = new Set([
+  ...REFUSED_STORAGE_ERRORS,
+  "storage/object-not-found",
+]);
+
+const isPermanentStorageError = (error: unknown) =>
+  PERMANENT_STORAGE_ERRORS.has((error as { code?: string } | null)?.code ?? "");
+
+/** React Query's default three retries, but none for a permanent error. */
+export const shouldRetryAnimatedImage = (failureCount: number, error: Error) =>
+  !isPermanentStorageError(error) && failureCount < 3;
 
 export const fetchAnimatedImageUrl = async (
   exerciseId: number,
@@ -49,6 +70,17 @@ export const fetchAnimatedImageUrl = async (
       );
       lastError = error;
 
+      if (REFUSED_STORAGE_ERRORS.has(error?.code)) {
+        // Expected, so it stays out of Bugsnag and the global net.
+        Bugsnag.leaveBreadcrumb("Exercise image refused", { animatedUrlPath });
+        markReported(error);
+        throw error;
+      }
+      if (isPermanentStorageError(error)) {
+        notifyBugsnag(error);
+        throw error;
+      }
+
       if (attempt < maxRetries) {
         const delayTime = Math.pow(2, attempt) * 1000;
         await new Promise((resolve) => setTimeout(resolve, delayTime));
@@ -71,6 +103,7 @@ export const useAnimatedImageQuery = (
     queryFn: () =>
       fetchAnimatedImageUrl(exerciseId, animatedUrlPath, localPath),
     enabled: !!animatedUrlPath,
+    retry: shouldRetryAnimatedImage,
     staleTime: 1000 * 60 * 60, // 1 hour,
     gcTime: 1000 * 60 * 60, // 1 hour
   });

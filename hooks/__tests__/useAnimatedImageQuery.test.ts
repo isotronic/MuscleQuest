@@ -1,5 +1,6 @@
 import {
   fetchAnimatedImageUrl,
+  shouldRetryAnimatedImage,
   useAnimatedImageQuery,
 } from "../useAnimatedImageQuery";
 import { ref, getDownloadURL } from "@react-native-firebase/storage";
@@ -7,6 +8,7 @@ import { File } from "expo-file-system";
 import { insertAnimatedImageUri } from "@/utils/database";
 import { useQuery } from "@tanstack/react-query";
 import Bugsnag from "@bugsnag/expo";
+import { wasReported } from "@/utils/bugsnagDedup";
 
 jest.mock("@react-native-firebase/storage");
 jest.mock("@/utils/database");
@@ -84,6 +86,74 @@ describe("useAnimatedImageQuery Tests", () => {
       expect(getDownloadURL).toHaveBeenCalledTimes(3);
       expect(Bugsnag.notify).toHaveBeenCalledWith(error);
     });
+
+    it("gives up at once on storage/unauthorized and keeps it out of Bugsnag", async () => {
+      const error = Object.assign(new Error("not authorized"), {
+        code: "storage/unauthorized",
+      });
+      (ref as jest.Mock).mockReturnValue({});
+      (getDownloadURL as jest.Mock).mockRejectedValue(error);
+
+      await expect(fetchAnimatedImageUrl(1, "path/to/image")).rejects.toBe(
+        error,
+      );
+
+      expect(getDownloadURL).toHaveBeenCalledTimes(1);
+      expect(Bugsnag.notify).not.toHaveBeenCalled();
+      // The global query net skips it too.
+      expect(wasReported(error)).toBe(true);
+    });
+
+    it("treats storage/unauthenticated like unauthorized", async () => {
+      const error = Object.assign(new Error("not signed in"), {
+        code: "storage/unauthenticated",
+      });
+      (ref as jest.Mock).mockReturnValue({});
+      (getDownloadURL as jest.Mock).mockRejectedValue(error);
+
+      await expect(fetchAnimatedImageUrl(1, "path/to/image")).rejects.toBe(
+        error,
+      );
+
+      expect(getDownloadURL).toHaveBeenCalledTimes(1);
+      expect(Bugsnag.notify).not.toHaveBeenCalled();
+      expect(wasReported(error)).toBe(true);
+      expect(shouldRetryAnimatedImage(0, error)).toBe(false);
+    });
+
+    it("reports a missing file once without retrying", async () => {
+      const error = Object.assign(new Error("not found"), {
+        code: "storage/object-not-found",
+      });
+      (ref as jest.Mock).mockReturnValue({});
+      (getDownloadURL as jest.Mock).mockRejectedValue(error);
+
+      await expect(fetchAnimatedImageUrl(1, "path/to/image")).rejects.toBe(
+        error,
+      );
+
+      expect(getDownloadURL).toHaveBeenCalledTimes(1);
+      expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe("shouldRetryAnimatedImage", () => {
+    it("never retries a permanent storage error", () => {
+      expect(
+        shouldRetryAnimatedImage(0, { code: "storage/unauthorized" } as any),
+      ).toBe(false);
+      expect(
+        shouldRetryAnimatedImage(0, {
+          code: "storage/object-not-found",
+        } as any),
+      ).toBe(false);
+    });
+
+    it("retries other errors up to three times", () => {
+      const error = new Error("network");
+      expect(shouldRetryAnimatedImage(2, error)).toBe(true);
+      expect(shouldRetryAnimatedImage(3, error)).toBe(false);
+    });
   });
 
   describe("useAnimatedImageQuery", () => {
@@ -101,6 +171,7 @@ describe("useAnimatedImageQuery Tests", () => {
         queryKey: ["animatedImage", animatedUrlPath],
         queryFn: expect.any(Function),
         enabled: !!animatedUrlPath,
+        retry: shouldRetryAnimatedImage,
         staleTime: 1000 * 60 * 60,
         gcTime: 1000 * 60 * 60,
       });
