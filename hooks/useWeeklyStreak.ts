@@ -4,6 +4,7 @@ import { toLocalDateKey } from "@/utils/dates";
 import {
   countTrainingDaysInWeek,
   previousWeekStartKey,
+  weekEndKey,
   weekStartKeyFor,
   type WeekRule,
 } from "@/utils/week";
@@ -48,14 +49,25 @@ const syncWeeklyCompletions = async (
     rule,
   );
 
-  if (!lastWeekRow) {
+  // Only the last change of week start is remembered, so after two close
+  // together last week can come out overlapping a week already recorded
+  // under the older rule. Leave it to that row rather than count days twice.
+  const lastWeekEnd = weekEndKey(lastWeekStartStr, rule);
+  const overlapsRecorded = existing.some(
+    (e) =>
+      e.week_start !== lastWeekStartStr &&
+      e.week_start >= lastWeekStartStr &&
+      e.week_start <= lastWeekEnd,
+  );
+
+  if (!lastWeekRow && !overlapsRecorded) {
     await upsertWeeklyCompletion(
       lastWeekStartStr,
       weeklyGoal,
       uniqueDays,
       uniqueDays >= weeklyGoal,
     );
-  } else if (uniqueDays > lastWeekRow.completed) {
+  } else if (lastWeekRow && uniqueDays > lastWeekRow.completed) {
     await upsertWeeklyCompletion(
       lastWeekStartStr,
       lastWeekRow.goal,

@@ -46,6 +46,12 @@ describe("saveWeekStart", () => {
     });
   });
 
+  it("applies a change at once when asked, for a new install", async () => {
+    await saveWeekStart(0, WEDNESDAY, { immediately: true });
+    expect(await readWeekRule(created.db)).toEqual({ weekStartsOn: 0 });
+    expect(setting("weekStartsOnFrom")).toBe("");
+  });
+
   it("clears the transition when the change is undone before it starts", async () => {
     await saveWeekStart(0, WEDNESDAY);
     await saveWeekStart(1, WEDNESDAY);

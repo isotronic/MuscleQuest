@@ -112,6 +112,8 @@ describe("SetupScreen", () => {
         { key: "weeklyGoal", value: "4" },
       ],
       weekStartsOn: 1,
+      // A new install has no weeks to keep; no transition week.
+      weekStartImmediately: true,
       bodyWeightKg: 80,
     });
     expect(getByText("Pick a plan")).toBeTruthy();

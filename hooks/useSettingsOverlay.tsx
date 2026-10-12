@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { t } from "@lingui/core/macro";
-import Bugsnag from "@bugsnag/expo";
 import { SettingsModal } from "@/components/SettingsModal";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
@@ -12,6 +11,7 @@ import { localDateKeyToDate } from "@/utils/dates";
 import { parseWeekStartDay } from "@/utils/week";
 import { rescheduleWorkoutReminders } from "@/utils/workoutReminder";
 import { showSnackbar } from "@/store/snackbarStore";
+import { notifyBugsnag } from "@/utils/bugsnagDedup";
 
 type SettingType =
   | "number"
@@ -112,7 +112,7 @@ export function useSettingsOverlay() {
           JSON.stringify(reminderDays(settings?.workoutReminderDays)),
           timeStr,
         ).catch((err: any) => {
-          Bugsnag.notify(err);
+          notifyBugsnag(err);
           console.error("Failed to reschedule workout reminders:", err);
         });
       } else if (currentSettingKey === "weekStartsOn") {
@@ -157,9 +157,11 @@ export function useSettingsOverlay() {
           value: inputValue.toString(),
         });
       }
-    } catch (error: any) {
-      Bugsnag.notify(error);
+    } catch (error: unknown) {
+      // Deduplicated: a failed mutation has already reported itself.
+      notifyBugsnag(error);
       console.error("Error saving setting:", error);
+      showSnackbar(t`Couldn't save the setting. Try again.`);
     } finally {
       setOverlayVisible(false);
     }

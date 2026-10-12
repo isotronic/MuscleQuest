@@ -105,7 +105,7 @@ export default function SetupScreen() {
 
   const save = async () => {
     try {
-      await saveSetup(setupChanges(initial, values));
+      await saveSetup(setupChanges(initial, values, { firstRun }));
     } catch {
       showSnackbar(t`Couldn't save your setup. Try again.`);
       return;

@@ -34,6 +34,8 @@ export interface SetupWrite {
   settings: { key: string; value: string }[];
   /** Set when the week start changed; goes through saveWeekStart. */
   weekStartsOn?: WeekStartDay;
+  /** On first run there are no weeks to keep, so it applies at once. */
+  weekStartImmediately?: boolean;
   /** Set when a body weight was entered; logged as a measurement too. */
   bodyWeightKg?: number;
 }
@@ -46,6 +48,7 @@ export interface SetupWrite {
 export function setupChanges(
   initial: SetupValues,
   values: SetupValues,
+  { firstRun = false }: { firstRun?: boolean } = {},
 ): SetupWrite {
   const write: SetupWrite = { settings: [] };
   if (values.units !== initial.units) {
@@ -64,6 +67,7 @@ export function setupChanges(
   }
   if (values.weekStartsOn !== initial.weekStartsOn) {
     write.weekStartsOn = values.weekStartsOn;
+    write.weekStartImmediately = firstRun;
   }
   const bodyWeight = parseFloat(values.bodyWeight);
   if (Number.isFinite(bodyWeight) && bodyWeight > 0) {

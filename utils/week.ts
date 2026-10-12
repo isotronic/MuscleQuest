@@ -170,11 +170,12 @@ export function changeWeekStart(
   }
   if (pending) return rule; // `next` is already the pending rule
   const runningWeekStart = weekStartKeyFor(todayKey, rule);
-  return {
-    weekStartsOn: next,
-    previous: inEffect,
-    from: transitionFromKey(runningWeekStart, next),
-  };
+  let from = transitionFromKey(runningWeekStart, next);
+  // Changed on the running week's last day (Monday to Sunday, on a Sunday):
+  // the new rule would start today and move today into a second week, so
+  // the transition week is the next one instead.
+  if (from <= todayKey) from = shiftKey(from, 7);
+  return { weekStartsOn: next, previous: inEffect, from };
 }
 
 /**

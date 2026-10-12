@@ -1475,9 +1475,13 @@ msgstr "{accessibilityLabel}, minutes"
 msgid "{accessibilityLabel}, seconds"
 msgstr "{accessibilityLabel}, secondes"
 
-#: utils/formatSetMetric.ts:43
+#: utils/formatSetMetric.ts:47
 msgid "{assist} {weightUnit} assist / {resist} {weightUnit} resist × {reps}"
 msgstr "{assist} {weightUnit} assistance / {resist} {weightUnit} résistance × {reps}"
+
+#: utils/formatSetMetric.ts:44
+msgid "{assist} {weightUnit} assist × {reps}"
+msgstr "{assist} {weightUnit} d'assistance × {reps}"
 
 #: components/stats/InsightsStrip.tsx:87
 msgid "{biggestGainLabel} 1RM"
@@ -3000,6 +3004,10 @@ msgstr "Impossible de restaurer le programme."
 #: hooks/useDeleteCompletedWorkoutMutation.ts:36
 msgid "Couldn't restore the workout."
 msgstr "Impossible de restaurer la séance."
+
+#: hooks/useSettingsOverlay.tsx:164
+msgid "Couldn't save the setting. Try again."
+msgstr "Impossible d'enregistrer le paramètre. Réessaie."
 
 #: hooks/useLogPastWorkoutMutation.ts:76
 msgid "Couldn't save this workout. Please try again."

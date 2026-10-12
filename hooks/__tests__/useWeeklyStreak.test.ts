@@ -255,4 +255,30 @@ describe("useWeeklyStreak", () => {
       ),
     );
   });
+
+  it("adds no overlapping week after a second change of week start", async () => {
+    // Sunday weeks began this week (after a Monday-week transition), and the
+    // user has already switched back to Monday weeks from next week. Only
+    // that last change is remembered, so the day before this week groups by
+    // the plain Sunday rule, a week overlapping the recorded Monday one.
+    const sunday = startOfWeek(new Date(), { weekStartsOn: 0 });
+    const rule: WeekRule = {
+      weekStartsOn: 1,
+      previous: 0,
+      from: toLocalDateKey(addDays(sunday, 8)),
+    };
+    (getWeeklyCompletions as jest.Mock).mockResolvedValue([
+      {
+        week_start: toLocalDateKey(addDays(sunday, -6)),
+        goal: 2,
+        completed: 2,
+        goal_reached: 1,
+      },
+    ]);
+    const workouts: never[] = [];
+
+    renderHook(() => useWeeklyStreak(workouts, 2, 0, false, rule));
+    await waitFor(() => expect(getWeeklyCompletions).toHaveBeenCalledTimes(2));
+    expect(upsertWeeklyCompletion).not.toHaveBeenCalled();
+  });
 });

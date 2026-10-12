@@ -37,6 +37,14 @@ describe("setupChanges", () => {
     expect(write.weekStartsOn).toBe(0);
   });
 
+  it("applies a first-run week start at once, with no transition week", () => {
+    const changed = { ...initial, weekStartsOn: 0 as const };
+    expect(setupChanges(initial, changed).weekStartImmediately).toBe(false);
+    expect(
+      setupChanges(initial, changed, { firstRun: true }).weekStartImmediately,
+    ).toBe(true);
+  });
+
   it("converts an entered body weight to kg in the chosen unit", () => {
     const write = setupChanges(initial, {
       ...initial,

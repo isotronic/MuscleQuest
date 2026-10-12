@@ -272,17 +272,22 @@ export const readWeekRule = async (
 
 /**
  * Sets the user's week start from the next week on (see changeWeekStart),
+ * or at once with `immediately`,
  * reading the stored rule and writing all three keys in one transaction.
  */
 export const saveWeekStart = async (
   next: WeekStartDay,
   today: Date = new Date(),
+  /** For a new install with no weeks yet: no transition week. */
+  { immediately = false }: { immediately?: boolean } = {},
 ): Promise<WeekRule> => {
   const db = await openDatabase("userData.db");
   try {
     let saved: WeekRule = { weekStartsOn: next };
     await db.withExclusiveTransactionAsync(async (txn) => {
-      saved = changeWeekStart(await readWeekRule(txn), next, today);
+      if (!immediately) {
+        saved = changeWeekStart(await readWeekRule(txn), next, today);
+      }
       for (const [key, value] of Object.entries(weekRuleToSettings(saved))) {
         await txn.runAsync(
           "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",

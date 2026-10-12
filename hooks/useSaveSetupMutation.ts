@@ -20,7 +20,9 @@ export const useSaveSetupMutation = () => {
         await updateSettings(key, value);
       }
       if (write.weekStartsOn !== undefined) {
-        await saveWeekStart(write.weekStartsOn);
+        await saveWeekStart(write.weekStartsOn, new Date(), {
+          immediately: write.weekStartImmediately,
+        });
       }
       if (write.bodyWeightKg !== undefined) {
         await saveBodyWeightMeasurement(write.bodyWeightKg);

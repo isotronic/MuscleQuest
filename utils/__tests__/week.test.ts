@@ -93,8 +93,20 @@ describe("changeWeekStart", () => {
     expectContiguous(rule, 1, 30);
   });
 
+  it("keeps the running Monday week whole when changed on its Sunday", () => {
+    const rule = changeWeekStart(MONDAY, 0, at(18));
+    // Sunday 18 stays the last day of the Monday 12 week; the six-day
+    // transition week follows, then Sunday weeks from 25.
+    expect(weekStartKeyFor(key(18), rule)).toBe(key(12));
+    expect(weekEndKey(key(12), rule)).toBe(key(18));
+    expect(weekStartKeyFor(key(19), rule)).toBe(key(19));
+    expect(weekEndKey(key(19), rule)).toBe(key(24));
+    expect(rule.from).toBe(key(25));
+    expectContiguous(rule, 1, 40);
+  });
+
   it("gives the same transition whichever day of the week it is changed on", () => {
-    for (let date = 12; date <= 18; date++) {
+    for (let date = 12; date <= 17; date++) {
       expect(changeWeekStart(MONDAY, 0, at(date)).from).toBe(key(18));
     }
     for (let date = 11; date <= 17; date++) {

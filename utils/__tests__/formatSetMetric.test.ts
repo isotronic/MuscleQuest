@@ -173,9 +173,9 @@ describe("formatSetMetric", () => {
       ).toBe("0 kg assist / 70 kg resist × 0");
     });
 
-    it("uses 0 bodyWeight by default", () => {
+    it("leaves out resist without a body weight", () => {
       expect(formatSetMetric({ weight: 20, reps: 5 }, "assisted")).toBe(
-        "20 kg assist / 0 kg resist × 5",
+        "20 kg assist × 5",
       );
     });
   });
