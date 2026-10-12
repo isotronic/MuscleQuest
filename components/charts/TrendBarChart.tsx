@@ -13,6 +13,7 @@ import { spokenBucketLabels, summarizeTotals } from "./chartA11y";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { toDisplayDecimal } from "@/utils/numberFormat";
+import { daysIntoWeek, type WeekStartDay } from "@/utils/week";
 
 type TrendWorkout = Pick<WorkoutSummary, "local_date"> &
   Partial<
@@ -25,6 +26,7 @@ interface TrendBarChartProps {
   timeRange: string;
   metric: TrendMetric;
   weightUnit?: string;
+  weekStartsOn?: WeekStartDay;
 }
 
 /** What one workout adds to its bar: tonnes/tons for volume, hours for time. */
@@ -61,6 +63,7 @@ export const groupWorkoutsByTime = (
   completedWorkouts: TrendWorkout[],
   timeRange: string,
   valueOf: (workout: TrendWorkout) => number = () => 1,
+  weekStartsOn: WeekStartDay = 1,
 ): Bucket[] => {
   type InternalBucket = Bucket & { internalKey: string };
   const buckets: InternalBucket[] = [];
@@ -74,7 +77,7 @@ export const groupWorkoutsByTime = (
     const startDate = new Date(today);
     startDate.setDate(today.getDate() - parseInt(timeRange));
     const cursor = new Date(startDate);
-    cursor.setDate(cursor.getDate() - ((cursor.getDay() + 6) % 7));
+    cursor.setDate(cursor.getDate() - daysIntoWeek(cursor, weekStartsOn));
     cursor.setHours(0, 0, 0, 0);
     while (cursor <= today) {
       const internalKey = `${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`;
@@ -177,7 +180,9 @@ export const groupWorkoutsByTime = (
     let internalKey: string;
     if (bucketType === "weekly") {
       const weekStart = new Date(d);
-      weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+      weekStart.setDate(
+        weekStart.getDate() - daysIntoWeek(weekStart, weekStartsOn),
+      );
       internalKey = `${weekStart.getFullYear()}-${weekStart.getMonth()}-${weekStart.getDate()}`;
     } else if (bucketType === "monthly") {
       internalKey = `${d.getFullYear()}-${d.getMonth()}`;
@@ -206,6 +211,7 @@ export const TrendBarChart: React.FC<TrendBarChartProps> = ({
   timeRange,
   metric,
   weightUnit = "kg",
+  weekStartsOn = 1,
 }) => {
   const { width: screenWidth } = useWindowDimensions();
   const chartTheme = useChartTheme();
@@ -216,10 +222,13 @@ export const TrendBarChart: React.FC<TrendBarChartProps> = ({
 
   const buckets = useMemo(
     () =>
-      groupWorkoutsByTime(completedWorkouts, timeRange, (w) =>
-        metricValue(w, metric, weightUnit),
+      groupWorkoutsByTime(
+        completedWorkouts,
+        timeRange,
+        (w) => metricValue(w, metric, weightUnit),
+        weekStartsOn,
       ),
-    [completedWorkouts, timeRange, metric, weightUnit],
+    [completedWorkouts, timeRange, metric, weightUnit, weekStartsOn],
   );
 
   const chartWidth =

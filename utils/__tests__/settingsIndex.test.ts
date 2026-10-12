@@ -94,8 +94,6 @@ describe("settings search", () => {
     );
     expect(settingTarget("privacy", all)).toBe("privacy");
     expect(settingTarget("excludeDeload", all)).toBe("excludeDeload");
-    expect(settingTarget("defaultRestTime", signedOut)).toBe(
-      "defaultRestTime",
-    );
+    expect(settingTarget("defaultRestTime", signedOut)).toBe("defaultRestTime");
   });
 });

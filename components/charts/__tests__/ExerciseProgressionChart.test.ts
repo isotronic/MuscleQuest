@@ -63,4 +63,18 @@ describe("groupSetsByTime", () => {
     expect(filled).toHaveLength(1);
     expect(filled[0].value).toBe(105);
   });
+
+  it("starts weekly buckets on Sunday for Sunday weeks", () => {
+    // Sunday 24 May: a Monday week puts it in the 18 May bucket.
+    const sunday = groupSetsByTime(
+      [set("2026-05-24", 100)],
+      "30",
+      "weight",
+      1,
+      0,
+    );
+    expect(sunday.filter((b) => b.hasData)[0].label).toBe("24 May");
+    const monday = groupSetsByTime([set("2026-05-24", 100)], "30", "weight", 1);
+    expect(monday.filter((b) => b.hasData)[0].label).toBe("18 May");
+  });
 });

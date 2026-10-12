@@ -20,7 +20,7 @@ import { useWorkoutSummariesQuery } from "@/hooks/useWorkoutSummariesQuery";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useWeekRule } from "@/hooks/useWeekRule";
-import { endOfAppWeek, startOfAppWeek } from "@/utils/week";
+import { endOfAppWeek, startOfAppWeek, weekStartsOnToday } from "@/utils/week";
 import { useStatsLayout } from "@/hooks/useStatsLayout";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import type { WorkoutSummary } from "@/utils/db/workoutStats";
@@ -87,6 +87,7 @@ export default function StatsScreen() {
   const { data: allWorkouts } = useWorkoutSummariesQuery(0, statsOptions);
 
   const weekRule = useWeekRule();
+  const weekStartsOn = weekStartsOnToday(weekRule);
   const thisWeekStart = startOfAppWeek(new Date(), weekRule);
   const thisWeekEnd = endOfAppWeek(new Date(), weekRule);
   const uniqueWorkoutDaysCount = new Set(
@@ -216,6 +217,7 @@ export default function StatsScreen() {
       statsOptions,
       excludeDeload,
       weeklyGoal,
+      weekStartsOn,
       streak,
       allWorkouts,
       openCalendar: handleOpenCalendar,
@@ -229,6 +231,7 @@ export default function StatsScreen() {
       statsOptions,
       excludeDeload,
       weeklyGoal,
+      weekStartsOn,
       streak,
       allWorkouts,
       handleOpenCalendar,
@@ -305,6 +308,7 @@ export default function StatsScreen() {
         )}
       </ScrollView>
       <WorkoutCalendarModal
+        weekStartsOn={weekStartsOn}
         visible={historyVisible}
         onDismiss={() => setHistoryVisible(false)}
         markedDates={markedDates}

@@ -2,6 +2,7 @@
 // on Monday (like the weekly goal and streak), shaded by how much was done.
 import type { HeatmapIntensity } from "@/utils/statsLayout";
 import { localDateKeyToDate, toLocalDateKey } from "@/utils/dates";
+import { daysIntoWeek, type WeekStartDay } from "@/utils/week";
 
 export interface HeatmapDay {
   /** local_date key, "YYYY-MM-DD". */
@@ -14,7 +15,7 @@ export interface HeatmapDay {
 }
 
 export interface Heatmap {
-  /** Columns of seven days, Monday first. */
+  /** Columns of seven days, from the week start. */
   weeks: HeatmapDay[][];
   trainingDays: number;
 }
@@ -25,9 +26,9 @@ type DailyWorkout = {
   volume_kg: number;
 };
 
-const startOfIsoWeek = (date: Date) => {
+const startOfWeekFor = (date: Date, weekStartsOn: WeekStartDay) => {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  d.setDate(d.getDate() - daysIntoWeek(d, weekStartsOn));
   return d;
 };
 
@@ -40,6 +41,7 @@ export function buildHeatmap(
   from: Date,
   today: Date,
   intensity: HeatmapIntensity,
+  weekStartsOn: WeekStartDay = 1,
 ): Heatmap {
   const totals = new Map<string, number>();
   for (const w of workouts) {
@@ -76,8 +78,8 @@ export function buildHeatmap(
   const weeks: HeatmapDay[][] = [];
   // Stepping by calendar day, not 24 hours, stays on the right day across
   // daylight saving changes.
-  const cursor = startOfIsoWeek(from);
-  const end = startOfIsoWeek(today);
+  const cursor = startOfWeekFor(from, weekStartsOn);
+  const end = startOfWeekFor(today, weekStartsOn);
   end.setDate(end.getDate() + 6);
   while (cursor <= end) {
     const week: HeatmapDay[] = [];

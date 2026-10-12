@@ -22,6 +22,8 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { parseDbTimestamp } from "@/utils/dates";
 import { parseDecimalInput } from "@/utils/numberFormat";
+import { useWeekRule } from "@/hooks/useWeekRule";
+import { weekStartsOnToday } from "@/utils/week";
 
 export default function MeasurementDetailScreen() {
   const { colors } = useAppTheme();
@@ -31,6 +33,7 @@ export default function MeasurementDetailScreen() {
   const router = useRouter();
 
   const { data: settings } = useSettingsQuery();
+  const weekStartsOn = weekStartsOnToday(useWeekRule());
   const weightUnit = (settings?.weightUnit || "kg") as "kg" | "lbs";
   const sizeUnit = (settings?.sizeUnit || "cm") as "cm" | "in";
   const displayOptions = { weightUnit, sizeUnit };
@@ -213,6 +216,7 @@ export default function MeasurementDetailScreen() {
           {selectedMetric && (
             <Card style={styles.chartCard}>
               <BodyMeasurementLineChart
+                weekStartsOn={weekStartsOn}
                 data={chartData ?? []}
                 timeRange={timeRange}
                 unit={

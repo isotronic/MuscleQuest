@@ -223,3 +223,12 @@ describe("groupMeasurementsByTime with a stored local_date", () => {
     expect(filled[0].label).toBe("18 May");
   });
 });
+
+describe("groupMeasurementsByTime — week start", () => {
+  it("starts weekly buckets on Sunday for Sunday weeks", () => {
+    const result = groupMeasurementsByTime([pt("2026-05-24", 75)], "30", 0);
+    expect(result.filter((b) => b.hasData)[0].label).toMatch(/^24 /);
+    const monday = groupMeasurementsByTime([pt("2026-05-24", 75)], "30");
+    expect(monday.filter((b) => b.hasData)[0].label).toMatch(/^18 /);
+  });
+});

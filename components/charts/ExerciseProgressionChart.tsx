@@ -23,6 +23,7 @@ import { t } from "@lingui/core/macro";
 import { localDateKeyToDate } from "@/utils/dates";
 import { kgToDisplay } from "@/utils/units";
 import { formatDecimal } from "@/utils/numberFormat";
+import { daysIntoWeek, type WeekStartDay } from "@/utils/week";
 
 interface ExerciseProgressionChartProps {
   exercise: TrackedExerciseWithSets;
@@ -33,6 +34,7 @@ interface ExerciseProgressionChartProps {
   preRangeBaseline?: number | null;
   /** Offer a "Show as table" switch that lists the same series as rows. */
   showTableToggle?: boolean;
+  weekStartsOn?: WeekStartDay;
 }
 
 type Bucket = {
@@ -47,6 +49,7 @@ export const groupSetsByTime = (
   timeRange: string,
   trackingType: string | null,
   conversionFactor: number,
+  weekStartsOn: WeekStartDay = 1,
 ): Bucket[] => {
   const isWeightType =
     trackingType === null ||
@@ -57,7 +60,7 @@ export const groupSetsByTime = (
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // --- 30d / 90d: Monday-aligned weekly buckets ---
+  // --- 30d / 90d: weekly buckets from the week start ---
   if (timeRange === "30" || timeRange === "90") {
     const startDate = new Date(today);
     startDate.setDate(today.getDate() - parseInt(timeRange));
@@ -66,7 +69,7 @@ export const groupSetsByTime = (
     const keyToIndex = new Map<string, number>();
 
     const cursor = new Date(startDate);
-    cursor.setDate(cursor.getDate() - ((cursor.getDay() + 6) % 7));
+    cursor.setDate(cursor.getDate() - daysIntoWeek(cursor, weekStartsOn));
     cursor.setHours(0, 0, 0, 0);
     while (cursor <= today) {
       const internalKey = `${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`;
@@ -89,7 +92,9 @@ export const groupSetsByTime = (
     completedSets.forEach((set) => {
       const setDate = localDateKeyToDate(set.date_completed);
       const weekStart = new Date(setDate);
-      weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+      weekStart.setDate(
+        weekStart.getDate() - daysIntoWeek(weekStart, weekStartsOn),
+      );
       const internalKey = `${weekStart.getFullYear()}-${weekStart.getMonth()}-${weekStart.getDate()}`;
       const metric = toMetric(set.progressionMetric);
       const idx = keyToIndex.get(internalKey);
@@ -249,6 +254,7 @@ export const ExerciseProgressionChart: React.FC<
   distanceUnit,
   preRangeBaseline,
   showTableToggle = false,
+  weekStartsOn = 1,
 }) => {
   const { width: screenWidth } = useWindowDimensions();
   const chartTheme = useChartTheme();
@@ -295,6 +301,7 @@ export const ExerciseProgressionChart: React.FC<
       timeRange,
       exercise.tracking_type,
       conversionFactor,
+      weekStartsOn,
     );
 
     if (buckets.length === 0) return empty;
@@ -386,6 +393,7 @@ export const ExerciseProgressionChart: React.FC<
     showMetricToggle,
     styles,
     colors.contentPrimary,
+    weekStartsOn,
   ]);
 
   const latestSet = exercise.completed_sets[0];

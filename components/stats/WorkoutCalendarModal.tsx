@@ -23,6 +23,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import type { WeekStartDay } from "@/utils/week";
 
 interface WorkoutCalendarModalProps {
   visible: boolean;
@@ -35,6 +36,8 @@ interface WorkoutCalendarModalProps {
   excludeWarmup?: boolean;
   loading?: boolean;
   pastScrollRange?: number;
+  /** The calendar's first column, as the user's week start. */
+  weekStartsOn?: WeekStartDay;
 }
 
 // 16px modal margin + 16px padding on each side = 64px total
@@ -50,6 +53,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
   onWorkoutPress,
   excludeWarmup = false,
   loading = false,
+  weekStartsOn = 1,
   pastScrollRange = 24,
 }) => {
   const { colors } = useAppTheme();
@@ -157,7 +161,7 @@ export const WorkoutCalendarModal: React.FC<WorkoutCalendarModalProps> = ({
             markingType="custom"
             horizontal
             pagingEnabled
-            firstDay={1}
+            firstDay={weekStartsOn}
             calendarWidth={CALENDAR_WIDTH}
             pastScrollRange={pastScrollRange}
             futureScrollRange={1}

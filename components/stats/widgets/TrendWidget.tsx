@@ -27,7 +27,7 @@ export const trendTitle = (metric: TrendMetric, weightUnit: string) => {
 export const TrendWidget: React.FC<{
   config: WidgetConfigs["trendA"];
 }> = ({ config }) => {
-  const { statsOptions, weightUnit } = useStatsWidgetContext();
+  const { statsOptions, weightUnit, weekStartsOn } = useStatsWidgetContext();
   const { range, rangeDays, badge } = useWidgetRange(config.range);
   const workouts = useWorkoutSummariesQuery(rangeDays, statsOptions);
 
@@ -46,6 +46,7 @@ export const TrendWidget: React.FC<{
         timeRange={range}
         metric={config.metric}
         weightUnit={weightUnit}
+        weekStartsOn={weekStartsOn}
       />
     </WidgetSection>
   );

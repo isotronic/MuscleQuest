@@ -10,6 +10,12 @@ const day = (local_date: string, set_count = 10, volume_kg = 1000) => ({
 const TODAY = new Date(2026, 2, 25, 12);
 
 describe("buildHeatmap", () => {
+  it("lays out Sunday-first weeks for Sunday weeks", () => {
+    const { weeks } = buildHeatmap([], new Date(2026, 2, 10), TODAY, "sets", 0);
+    expect(weeks[0][0].key).toBe("2026-03-08");
+    expect(weeks[weeks.length - 1][6].key).toBe("2026-03-28");
+  });
+
   it("lays out Monday-first weeks up to the end of this week", () => {
     const { weeks } = buildHeatmap([], new Date(2026, 2, 10), TODAY, "sets");
     expect(weeks[0][0].key).toBe("2026-03-09");

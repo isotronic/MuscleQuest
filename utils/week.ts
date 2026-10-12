@@ -186,6 +186,15 @@ export function weekDayOrder(weekStartsOn: WeekStartDay): number[] {
   return weekStartsOn === 0 ? [6, 0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4, 5, 6];
 }
 
+/**
+ * Days since the start of a plain seven-day week. For chart buckets and the
+ * heatmap, which keep whole weeks aligned to the week start in effect today
+ * (weekStartsOnToday) rather than following a transition week.
+ */
+export function daysIntoWeek(date: Date, weekStartsOn: WeekStartDay): number {
+  return (date.getDay() - weekStartsOn + 7) % 7;
+}
+
 /** A date's index in the 0 = Monday … 6 = Sunday numbering. */
 export function mondayIndex(date: Date): number {
   return (date.getDay() + 6) % 7;
