@@ -33,6 +33,7 @@ import useKeepScreenOn from "@/hooks/useKeepScreenOn";
 import { useWorkoutImmersiveMode } from "@/hooks/useWorkoutImmersiveMode";
 import { useWorkoutBackGuard } from "@/hooks/useWorkoutBackGuard";
 import { useWorkoutCompletion } from "@/hooks/useWorkoutCompletion";
+import { useWorkoutChangesPrompt } from "@/hooks/useWorkoutChangesPrompt";
 import { showSnackbar } from "@/store/snackbarStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
@@ -263,7 +264,9 @@ export default function WorkoutOverviewScreen() {
     }
   }, [globalHistory, initializeGlobalHistory]);
 
-  const completeWorkout = useWorkoutCompletion();
+  const { ask: askWhichChanges, prompt: changesPrompt } =
+    useWorkoutChangesPrompt();
+  const completeWorkout = useWorkoutCompletion(askWhichChanges);
   const saveCompletedWorkoutMutation = useSaveCompletedWorkoutMutation(
     weightUnit,
     distanceUnit,
@@ -1241,6 +1244,7 @@ export default function WorkoutOverviewScreen() {
           onSubmit={(payloads) => submitRecovery(payloads)}
         />
       )}
+      {changesPrompt}
     </ThemedView>
   );
 }

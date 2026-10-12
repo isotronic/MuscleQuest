@@ -2041,7 +2041,7 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           activeWorkout: state.activeWorkout,
           workout: state.workout,
           // Rebuildable in principle, but it is one workout, not the history,
-          // and hasStructuralChanges needs the shape the session started with.
+          // and diffWorkout needs the shape the session started with.
           originalWorkout: state.originalWorkout,
           isQuickWorkout: state.isQuickWorkout,
           currentExerciseIndex: state.currentExerciseIndex,
