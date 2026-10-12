@@ -26,6 +26,11 @@ export interface UserExercise extends Exercise {
   is_deleted?: boolean;
   supersetGroupId?: string;
   tracking_type_override?: string;
+  /**
+   * Set mid-session on an exercise that replaced a saved one: that row's id,
+   * so finishing can show the replacement as one swap. Never written to SQLite.
+   */
+  replacedFromId?: number;
   /** A key for a row added in the plan editor, before it has an `id`. */
   clientKey?: string;
 }

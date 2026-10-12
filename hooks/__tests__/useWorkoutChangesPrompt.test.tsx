@@ -18,8 +18,8 @@ function setup() {
     api.current = useWorkoutChangesPrompt();
     return api.current.prompt;
   }
-  render(<Host />);
-  return api as Required<typeof api>;
+  const { unmount } = render(<Host />);
+  return Object.assign(api as Required<typeof api>, { unmount });
 }
 
 describe("useWorkoutChangesPrompt", () => {
@@ -54,5 +54,15 @@ describe("useWorkoutChangesPrompt", () => {
       void api.current.ask({ changes: [change], isPlan: false });
     });
     await expect(first!).resolves.toBeNull();
+  });
+
+  it("answers keep when the screen goes away with the question open", async () => {
+    const api = setup();
+    let answer: Promise<string[] | null>;
+    act(() => {
+      answer = api.current.ask({ changes: [change], isPlan: true });
+    });
+    api.unmount();
+    await expect(answer!).resolves.toBeNull();
   });
 });

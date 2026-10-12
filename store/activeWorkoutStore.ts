@@ -1233,8 +1233,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             return state;
           }
 
-          const oldExerciseSets = workout.exercises[index].sets;
-          const newExerciseWithSets = { ...newExercise, sets: oldExerciseSets };
+          const replaced = workout.exercises[index];
+          const oldExerciseSets = replaced.sets;
+          const replacedFromId = replaced.id ?? replaced.replacedFromId;
+          const newExerciseWithSets = {
+            ...newExercise,
+            sets: oldExerciseSets,
+            ...(replacedFromId != null ? { replacedFromId } : {}),
+          };
 
           // Reset weight and reps to "0" for each set of the new exercise
           const resetWeightAndReps = oldExerciseSets.reduce(

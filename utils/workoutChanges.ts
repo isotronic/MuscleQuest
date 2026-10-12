@@ -10,8 +10,8 @@ import type {
  * from a chosen subset of them.
  *
  * Exercises are matched by their user_workout_exercises row id. Exercises
- * added during the session have none; a replaced exercise also loses it, so
- * an addition sitting where a removal was is shown as one swap.
+ * added during the session have none; a replacement carries the replaced
+ * row's id as `replacedFromId`, so it is shown as one swap.
  */
 
 export type ExerciseDetail =
@@ -59,6 +59,17 @@ interface Analysis {
 }
 
 const groupOf = (e: UserExercise) => e.supersetGroupId ?? null;
+
+const isNew = (slot: Slot) => slot.startsWith("new:");
+
+const countGroups = (exercises: UserExercise[]) => {
+  const sizes = new Map<string, number>();
+  for (const e of exercises) {
+    const group = groupOf(e);
+    if (group) sizes.set(group, (sizes.get(group) ?? 0) + 1);
+  }
+  return sizes;
+};
 
 const differs = (
   a: WorkoutSet[],
@@ -108,50 +119,37 @@ function analyse(originalWorkout: Workout, currentWorkout: Workout): Analysis {
     return slot && slotIndex.has(slot) ? slot : `new:${j}`;
   });
 
-  const isMatched = (slot: Slot) => !slot.startsWith("new:");
-  const currentMatched = new Set(currentSlots.filter(isMatched));
-  const currentGroups = new Set(
-    current.filter((_, j) => currentMatched.has(currentSlots[j])).map(groupOf),
-  );
+  const currentMatched = new Set(currentSlots.filter((s) => !isNew(s)));
 
-  // The nearest matched exercise before each one, which a swap shares.
-  const anchors = (slots: Slot[], keep: (slot: Slot) => boolean) => {
-    let anchor = "^";
-    return slots.map((slot) => {
-      const before = anchor;
-      if (keep(slot)) anchor = slot;
-      return before;
-    });
-  };
-  const originalAnchors = anchors(originalSlots, (s) => currentMatched.has(s));
-  const currentAnchors = anchors(currentSlots, isMatched);
-
-  // Pair removals and additions that share an anchor, in order. A superset
-  // partner joined an exercise that stayed, so it is never half of a swap.
+  // A replacement takes the slot of the row it replaced.
   const swapped = new Map<Slot, { o: number; c: number }>();
-  const removed = new Map<Slot, number>();
-  const pairedCurrent = new Set<number>();
-  originalSlots.forEach((slot, o) => {
-    if (currentMatched.has(slot)) return;
-    const c = current.findIndex(
-      (e, j) =>
-        !isMatched(currentSlots[j]) &&
-        !pairedCurrent.has(j) &&
-        currentAnchors[j] === originalAnchors[o] &&
-        !(e.supersetGroupId && currentGroups.has(e.supersetGroupId)),
-    );
-    if (c === -1) {
-      removed.set(slot, o);
-    } else {
-      pairedCurrent.add(c);
-      swapped.set(slot, { o, c });
-      currentSlots[c] = slot;
+  current.forEach((e, c) => {
+    if (!isNew(currentSlots[c]) || e.replacedFromId == null) return;
+    const slot = `id:${e.replacedFromId}`;
+    const o = slotIndex.get(slot);
+    if (o === undefined || currentMatched.has(slot) || swapped.has(slot)) {
+      return;
     }
+    swapped.set(slot, { o, c });
+    currentSlots[c] = slot;
   });
+  const removed = new Map<Slot, number>();
+  originalSlots.forEach((slot, o) => {
+    if (!currentMatched.has(slot) && !swapped.has(slot)) removed.set(slot, o);
+  });
+
+  // A superset made in the session whose partner was then deleted is gone.
+  const groupSizes = countGroups(current);
+  const groupAfter = (e: UserExercise, before: string | null) => {
+    const group = groupOf(e);
+    return group && group !== before && groupSizes.get(group) === 1
+      ? null
+      : group;
+  };
 
   const added = new Map<Slot, { c: number; links: Slot[] }>();
   current.forEach((_, c) => {
-    if (currentSlots[c].startsWith("new:")) {
+    if (isNew(currentSlots[c])) {
       added.set(currentSlots[c], { c, links: [] });
     }
   });
@@ -166,7 +164,7 @@ function analyse(originalWorkout: Workout, currentWorkout: Workout): Analysis {
     if (!currentMatched.has(slot)) return;
     const o = slotIndex.get(slot)!;
     const before = groupOf(original[o]);
-    const after = groupOf(e);
+    const after = groupAfter(e, before);
     let supersetDetail = false;
     if (before !== after) {
       const partner = after
@@ -189,7 +187,7 @@ function analyse(originalWorkout: Workout, currentWorkout: Workout): Analysis {
     slots.filter((s) => matched.has(s) || swapped.has(s));
   const reordered =
     kept(originalSlots).join() !==
-    kept(currentSlots.filter((s) => !s.startsWith("new:"))).join();
+    kept(currentSlots.filter((s) => !isNew(s))).join();
 
   return {
     original,
@@ -224,7 +222,10 @@ export function diffWorkout(
     if (swap) {
       const to = a.current[swap.c];
       const details = exerciseDetails(a.original[o], to);
-      if (groupOf(a.original[o]) !== groupOf(to)) {
+      const sizes = countGroups(a.current);
+      const toGroup =
+        groupOf(to) && sizes.get(groupOf(to)!) === 2 ? groupOf(to) : null;
+      if (groupOf(a.original[o]) !== toGroup) {
         details.push({ kind: "superset" });
       }
       changes.push({
@@ -349,13 +350,21 @@ export function applyWorkoutChanges(
     result = runs.flatMap((run) => run.items);
   }
 
-  const exercises = result.map((r) => r.exercise);
-  const groupSizes = new Map<string, number>();
-  for (const e of exercises) {
+  // Every superset is a side-by-side pair; anything else is unlinked.
+  const exercises = result.map(({ exercise }) => {
+    const { replacedFromId: _, ...rest } = exercise;
+    return rest as UserExercise;
+  });
+  const pairs = countGroups(exercises);
+  return exercises.map((e, i) => {
     const group = groupOf(e);
-    if (group) groupSizes.set(group, (groupSizes.get(group) ?? 0) + 1);
-  }
-  return exercises.map((e) =>
-    groupOf(e) && groupSizes.get(groupOf(e)!) !== 2 ? withGroup(e, null) : e,
-  );
+    if (!group) return e;
+    const prev = exercises[i - 1];
+    const next = exercises[i + 1];
+    const besideItsPartner =
+      pairs.get(group) === 2 &&
+      ((prev !== undefined && groupOf(prev) === group) ||
+        (next !== undefined && groupOf(next) === group));
+    return besideItsPartner ? e : withGroup(e, null);
+  });
 }

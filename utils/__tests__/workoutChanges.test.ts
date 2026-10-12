@@ -66,7 +66,11 @@ describe("diffWorkout", () => {
   });
 
   it("pairs a replaced exercise into one swap", () => {
-    const current = workout(ex(1, 11), ex(9, undefined), ex(3, 13));
+    const current = workout(
+      ex(1, 11),
+      ex(9, undefined, { replacedFromId: 12 }),
+      ex(3, 13),
+    );
     expect(diffWorkout(original, current)).toEqual([
       {
         id: "swap:id:12",
@@ -76,6 +80,30 @@ describe("diffWorkout", () => {
         details: [],
       },
     ]);
+  });
+
+  it("pairs a swap with the exercise it replaced, not its position", () => {
+    // Deleted the first exercise, then replaced the second.
+    const current = workout(
+      ex(9, undefined, { replacedFromId: 12 }),
+      ex(3, 13),
+    );
+    expect(all(original, current)).toEqual(["remove:id:11", "swap:id:12"]);
+  });
+
+  it("treats an addition without a replaced row as an addition", () => {
+    // Deleted the last exercise and appended a new one.
+    const current = workout(ex(1, 11), ex(2, 12), ex(9, undefined));
+    expect(all(original, current)).toEqual(["remove:id:13", "add:new:2"]);
+  });
+
+  it("ignores a superset whose new partner was deleted again", () => {
+    const current = workout(
+      ex(1, 11, { supersetGroupId: "g" }),
+      ex(2, 12),
+      ex(3, 13),
+    );
+    expect(diffWorkout(original, current)).toEqual([]);
   });
 
   it("summarises what changed on an exercise", () => {
@@ -247,7 +275,11 @@ describe("applyWorkoutChanges", () => {
   });
 
   it("keeps the old exercise when a swap is not chosen", () => {
-    const current = workout(ex(1, 11), ex(9, undefined), ex(3, 13));
+    const current = workout(
+      ex(1, 11),
+      ex(9, undefined, { replacedFromId: 12 }),
+      ex(3, 13),
+    );
     expect(shape(applyWorkoutChanges(original, current, []))).toEqual([
       "1x3",
       "2x3",
@@ -303,6 +335,41 @@ describe("applyWorkoutChanges", () => {
     expect(
       shape(applyWorkoutChanges(linked, current, ["remove:id:12"])),
     ).toEqual(["1x3", "3x3"]);
+  });
+
+  it("applies a swap after a removal to the right exercises", () => {
+    const current = workout(
+      ex(9, undefined, { replacedFromId: 12 }),
+      ex(3, 13),
+    );
+    expect(
+      shape(applyWorkoutChanges(original, current, ["swap:id:12"])),
+    ).toEqual(["1x3", "9x3", "3x3"]);
+  });
+
+  it("never saves the replaced-row marker", () => {
+    const current = workout(
+      ex(1, 11),
+      ex(9, undefined, { replacedFromId: 12 }),
+      ex(3, 13),
+    );
+    const [, swapped] = applyWorkoutChanges(original, current, ["swap:id:12"]);
+    expect(swapped).not.toHaveProperty("replacedFromId");
+  });
+
+  it("unlinks a superset that a partial choice pulled apart", () => {
+    const linked = workout(
+      ex(1, 11),
+      ex(2, 12, { supersetGroupId: "g" }),
+      ex(3, 13, { supersetGroupId: "g" }),
+    );
+    // Deleted the first half and moved the second to the top.
+    const current = workout(ex(3, 13, { supersetGroupId: "g" }), ex(1, 11));
+    expect(shape(applyWorkoutChanges(linked, current, ["order"]))).toEqual([
+      "3x3",
+      "1x3",
+      "2x3",
+    ]);
   });
 
   it("does not change the workouts it was given", () => {

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { WorkoutChangesDialog } from "@/components/WorkoutChangesDialog";
 import type { WorkoutChange } from "@/utils/workoutChanges";
 
@@ -40,6 +40,10 @@ export function useWorkoutChangesPrompt() {
     setOpen(false);
     resolve?.(ids);
   }, []);
+
+  // Leaving the screen with the question open counts as keep, so the
+  // caller's continuation is not left waiting.
+  useEffect(() => () => resolveRef.current?.(null), []);
 
   const prompt = (
     <WorkoutChangesDialog
