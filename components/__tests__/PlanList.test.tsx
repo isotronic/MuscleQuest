@@ -18,6 +18,7 @@ jest.mock("@/components/ThemedText", () => {
   const { Text } = require("react-native");
   return { ThemedText: (props: any) => <Text {...props} /> };
 });
+jest.mock("@/components/PlanMetaChips", () => ({ PlanMetaChips: () => null }));
 jest.mock("@/components/ui", () => ({
   AppIcon: () => null,
 }));

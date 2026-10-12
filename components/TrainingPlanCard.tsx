@@ -21,6 +21,7 @@ export default function TrainingPlanCard({
   isActive,
   isPublished,
   width = 300,
+  footer,
 }: {
   title?: string;
   imageUrl?: string;
@@ -28,6 +29,8 @@ export default function TrainingPlanCard({
   isActive: boolean;
   isPublished?: boolean;
   width?: number;
+  /** Shown under the image, e.g. a premade plan's chips. */
+  footer?: React.ReactNode;
 }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors, width), [colors, width]);
@@ -97,6 +100,7 @@ export default function TrainingPlanCard({
           </Card>
         </Animated.View>
       </TouchableWithoutFeedback>
+      {footer ? <View style={styles.footer}>{footer}</View> : null}
     </ThemedView>
   );
 }
@@ -113,6 +117,10 @@ function createStyles(colors: AppThemeColors, width: number) {
       width,
       borderRadius: radii.md,
       overflow: "hidden",
+    },
+    footer: {
+      width,
+      marginTop: 6,
     },
     floatingTitleContainer: {
       position: "absolute",

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -20,6 +20,8 @@ import { t } from "@lingui/core/macro";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { useSocialStore } from "@/store/socialStore";
+import type { BottomSheetModal } from "@gorhom/bottom-sheet";
+import PlanPickerSheet from "@/components/PlanPickerSheet";
 
 export default function PlansScreen() {
   const { colors } = useAppTheme();
@@ -38,6 +40,7 @@ export default function PlansScreen() {
     error: standaloneError,
   } = useStandaloneWorkoutsQuery();
   const { publishedPlanIds, publishedWorkoutIds } = useSocialStore();
+  const pickerRef = useRef<BottomSheetModal>(null);
 
   useEffect(() => {
     if (standaloneIsError && standaloneError) {
@@ -134,6 +137,19 @@ export default function PlansScreen() {
           data={plans?.appPlans}
           onPressItem={handleViewPlan}
           viewMode={viewMode}
+          showPlanMeta
+          titleAction={
+            plans?.appPlans.length ? (
+              <Button
+                mode="text"
+                icon="help-circle-outline"
+                compact
+                onPress={() => pickerRef.current?.present()}
+              >
+                <Trans>Help me choose</Trans>
+              </Button>
+            ) : null
+          }
         />
         <View style={styles.workoutsSection}>
           <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
@@ -162,6 +178,14 @@ export default function PlansScreen() {
           )}
         </View>
       </ScrollView>
+      <PlanPickerSheet
+        ref={pickerRef}
+        plans={plans?.appPlans ?? []}
+        onSelectPlan={(plan) => {
+          pickerRef.current?.dismiss();
+          handleViewPlan(plan);
+        }}
+      />
     </ThemedView>
   );
 }

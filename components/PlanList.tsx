@@ -11,6 +11,7 @@ import TrainingPlanListItem from "@/components/TrainingPlanListItem";
 import { ThemedText } from "@/components/ThemedText";
 import { AppIcon } from "@/components/ui";
 import { Plan } from "@/hooks/useAllPlansQuery";
+import { PlanMetaChips } from "@/components/PlanMetaChips";
 import { Trans } from "@lingui/react/macro";
 import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
@@ -25,6 +26,10 @@ interface PlanListProps {
   showViewToggle?: boolean;
   onViewModeChange?: (mode: PlanViewMode) => void;
   publishedPlanIds?: string[];
+  /** Shown at the end of the title row. */
+  titleAction?: React.ReactNode;
+  /** Show premade plans' level, days and session length under each card. */
+  showPlanMeta?: boolean;
 }
 
 export const PlanList: React.FC<PlanListProps> = ({
@@ -35,11 +40,16 @@ export const PlanList: React.FC<PlanListProps> = ({
   showViewToggle = false,
   onViewModeChange,
   publishedPlanIds,
+  titleAction,
+  showPlanMeta = false,
 }) => {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { width: screenWidth } = useWindowDimensions();
   const gridCardWidth = Math.floor((screenWidth - 22) / 2) - 10;
+
+  const metaFor = (item: Plan) =>
+    showPlanMeta ? <PlanMetaChips appPlanId={item.app_plan_id} /> : undefined;
 
   const renderContent = () => {
     if (!data || data.length === 0) {
@@ -59,6 +69,7 @@ export const PlanList: React.FC<PlanListProps> = ({
               plan={item}
               onPress={() => onPressItem(item)}
               isPublished={!!publishedPlanIds?.includes(String(item.id))}
+              footer={metaFor(item)}
             />
           ))}
         </View>
@@ -80,6 +91,7 @@ export const PlanList: React.FC<PlanListProps> = ({
                 isActive={item.is_active === 1}
                 isPublished={!!publishedPlanIds?.includes(String(item.id))}
                 width={gridCardWidth}
+                footer={metaFor(item)}
               />
             </View>
           ))}
@@ -102,6 +114,7 @@ export const PlanList: React.FC<PlanListProps> = ({
             onPress={() => onPressItem(item)}
             isActive={item.is_active === 1}
             isPublished={!!publishedPlanIds?.includes(String(item.id))}
+            footer={metaFor(item)}
           />
         )}
         keyExtractor={(item: any, index: number) => index.toString()}
@@ -115,6 +128,7 @@ export const PlanList: React.FC<PlanListProps> = ({
         <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
           {title}
         </ThemedText>
+        {titleAction}
         {showViewToggle && onViewModeChange && (
           <View style={styles.toggleButtons}>
             <TouchableOpacity

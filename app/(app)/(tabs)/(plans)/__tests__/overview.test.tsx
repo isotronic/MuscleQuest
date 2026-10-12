@@ -9,7 +9,12 @@ jest.mock("@lingui/react/macro", () => ({
 jest.mock("@lingui/core/macro", () => ({
   t: (s: TemplateStringsArray, ...v: unknown[]) =>
     s.reduce((acc, part, i) => acc + part + (i < v.length ? v[i] : ""), ""),
+  msg: (s: TemplateStringsArray) => s[0],
 }));
+jest.mock("@lingui/react", () => ({
+  useLingui: () => ({ _: (descriptor: unknown) => descriptor }),
+}));
+jest.mock("@/components/PlanMetaChips", () => ({ PlanMetaChips: () => null }));
 jest.mock("expo-router", () => ({
   useLocalSearchParams: () => ({ planId: "7" }),
   router: { push: jest.fn(), back: jest.fn(), replace: jest.fn() },
@@ -86,9 +91,12 @@ jest.mock("@/store/socialStore", () => ({
   useSocialStore: () => ({ publishedPlanIds: [] }),
 }));
 
-const withPlan = (is_active: number | boolean) =>
+const withPlan = (
+  is_active: number | boolean,
+  app_plan_id: number | null = 3,
+) =>
   (usePlanQuery as jest.Mock).mockReturnValue({
-    data: { id: 7, name: "Push Pull", app_plan_id: 3, is_active, workouts: [] },
+    data: { id: 7, name: "Push Pull", app_plan_id, is_active, workouts: [] },
     isLoading: false,
     error: null,
     refetch: jest.fn(),
@@ -109,6 +117,20 @@ describe("PlanOverviewScreen", () => {
 
     expect(getByText("Active plan")).toBeTruthy();
     expect(queryByText("Set as active plan")).toBeNull();
+  });
+
+  it("describes a premade plan", () => {
+    withPlan(0, 3);
+    const { getByText } = render(<PlanOverviewScreen />);
+
+    expect(getByText(/focus on one area a day/)).toBeTruthy();
+  });
+
+  it("has no description for a user plan", () => {
+    withPlan(0, null);
+    const { queryByText } = render(<PlanOverviewScreen />);
+
+    expect(queryByText(/focus on one area a day/)).toBeNull();
   });
 
   it("shows the error state instead of a raw message", () => {
