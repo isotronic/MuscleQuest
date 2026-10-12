@@ -846,6 +846,20 @@ Also in this update:
 • A workout can include the same exercise twice, such as heavy squats and back-off squats. Each one keeps its own history and suggestions, and the second shows as "Squat (2)".
 `,
   },
+  {
+    version: 2673,
+    release: "1.5",
+    message: msg`
+✅ New: Keep the Changes You Want!
+
+Changed a workout while training? When you finish, MuscleQuest lists each change, such as an added exercise, an extra set or a new order. Tick the ones to keep for next time and leave the rest.
+
+Also in this update:
+• Exercise demos now play even if you skipped sign-in.
+• Tips on home show one tip a day; tap the arrow for the next one.
+• Choose workout has a close button, and plan cards no longer drift as you swipe.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
