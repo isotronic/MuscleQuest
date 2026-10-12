@@ -572,32 +572,40 @@ export const deleteBodyMeasurementSession = async (
   }
 };
 
+/** Logs a body weight on an open connection or transaction. */
+export const insertBodyWeightMeasurement = async (
+  db: SQLite.SQLiteDatabase,
+  weightKg: number,
+): Promise<void> => {
+  const { utc: now, localDate } = nowForDb();
+  // Legacy table — keeps useExerciseHistoryQuery.ts working unchanged
+  await db.runAsync(
+    `INSERT INTO body_measurements (date, body_weight) VALUES (?, ?)`,
+    [now, weightKg],
+  );
+  // New measurement tables
+  const weightMetric = await db.getFirstAsync<{ id: number }>(
+    `SELECT id FROM body_metric_definitions WHERE key = 'weight'`,
+  );
+  if (weightMetric) {
+    const result = await db.runAsync(
+      `INSERT INTO body_measurement_entries (recorded_at, local_date) VALUES (?, ?)`,
+      [now, localDate],
+    );
+    await db.runAsync(
+      `INSERT INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
+      [result.lastInsertRowId, weightMetric.id, weightKg],
+    );
+  }
+};
+
 export const saveBodyWeightMeasurement = async (
   weightKg: number,
 ): Promise<void> => {
   let db: SQLite.SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
-    const { utc: now, localDate } = nowForDb();
-    // Legacy table — keeps useExerciseHistoryQuery.ts working unchanged
-    await db.runAsync(
-      `INSERT INTO body_measurements (date, body_weight) VALUES (?, ?)`,
-      [now, weightKg],
-    );
-    // New measurement tables
-    const weightMetric = await db.getFirstAsync<{ id: number }>(
-      `SELECT id FROM body_metric_definitions WHERE key = 'weight'`,
-    );
-    if (weightMetric) {
-      const result = await db.runAsync(
-        `INSERT INTO body_measurement_entries (recorded_at, local_date) VALUES (?, ?)`,
-        [now, localDate],
-      );
-      await db.runAsync(
-        `INSERT INTO body_measurement_values (entry_id, metric_id, value) VALUES (?, ?, ?)`,
-        [result.lastInsertRowId, weightMetric.id, weightKg],
-      );
-    }
+    await insertBodyWeightMeasurement(db, weightKg);
   } catch (error: any) {
     console.error("Error saving body weight measurement:", error);
     notifyBugsnag(error);

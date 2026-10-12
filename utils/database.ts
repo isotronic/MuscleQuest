@@ -10,5 +10,6 @@ export * from "./db/standaloneWorkouts";
 export * from "./db/settings";
 export * from "./db/notes";
 export * from "./db/measurements";
+export * from "./db/setup";
 export * from "./db/progression";
 export * from "./db/sharingQueries";
