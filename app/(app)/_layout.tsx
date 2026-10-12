@@ -12,9 +12,12 @@ import { AccountOwnershipPrompt } from "@/components/AccountOwnershipPrompt";
 import { setShowRestNotificationInForeground } from "@/utils/restNotification";
 import { useEffect } from "react";
 import { SetupState } from "@/utils/setupState";
+import { SETTINGS_SCREENS } from "@/utils/settingsIndex";
+import { useLingui } from "@lingui/react";
 
 export default function AppLayout() {
   const { colors } = useAppTheme();
+  const { _ } = useLingui();
   const { data: settings, isLoading: settingsLoading } = useSettingsQuery();
   useSocialListeners();
   useSocialSyncOnStartup();
@@ -67,7 +70,14 @@ export default function AppLayout() {
           options={{ title: t`Exercise Info` }}
         />
         <Stack.Screen name="custom-exercise" />
-        <Stack.Screen name="settings" options={{ title: t`Settings` }} />
+        <Stack.Screen name="settings/index" options={{ title: t`Settings` }} />
+        {SETTINGS_SCREENS.map((screen) => (
+          <Stack.Screen
+            key={screen.id}
+            name={`settings/${screen.id}`}
+            options={{ title: _(screen.title) }}
+          />
+        ))}
         <Stack.Screen name="plate-inventory" options={{ title: t`Plates` }} />
         <Stack.Screen
           name="delete-account"
