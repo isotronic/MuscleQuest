@@ -28,6 +28,14 @@ jest.mock("expo-router", () => ({
 jest.mock("@/components/settings/AccountCard", () => ({
   AccountCard: () => null,
 }));
+jest.mock("@/context/AuthProvider", () => {
+  const { createContext } = require("react");
+  // Signed out.
+  return { AuthContext: createContext(null) };
+});
+jest.mock("@/hooks/useSettingsQuery", () => ({
+  useSettingsQuery: () => ({ data: { adaptive_progression_enabled: "0" } }),
+}));
 
 describe("Settings root", () => {
   beforeEach(() => {
@@ -68,5 +76,15 @@ describe("Settings root", () => {
     mockParams = { section: "progression" };
     const { getByText } = render(<SettingsScreen />);
     expect(getByText("redirect:/(app)/settings/progression")).toBeTruthy();
+  });
+
+  it("opens sign-in for a row that needs an account", () => {
+    const { getByLabelText, getByText } = render(<SettingsScreen />);
+    fireEvent.changeText(getByLabelText("Search settings"), "delete account");
+    fireEvent.press(getByText("Delete account"));
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: "/(app)/settings/profile",
+      params: { highlight: "account" },
+    });
   });
 });

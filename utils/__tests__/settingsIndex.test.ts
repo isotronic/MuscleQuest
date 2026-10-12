@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 import path from "path";
 import {
+  settingTarget,
   buildSettingsSearch,
   searchSettings,
   SETTINGS_INDEX,
@@ -78,5 +79,23 @@ describe("settings search", () => {
     for (const entry of SETTINGS_INDEX) {
       expect(screens.has(entry.screen)).toBe(true);
     }
+  });
+
+  it("opens the row that unlocks a hidden one", () => {
+    const signedOut = { signedIn: false, progressionOn: false };
+    const all = { signedIn: true, progressionOn: true };
+    expect(settingTarget("privacy", signedOut)).toBe("account");
+    expect(settingTarget("deleteAccount", signedOut)).toBe("account");
+    expect(settingTarget("progressionIncrements", signedOut)).toBe(
+      "adaptiveProgression",
+    );
+    expect(settingTarget("excludeDeload", signedOut)).toBe(
+      "adaptiveProgression",
+    );
+    expect(settingTarget("privacy", all)).toBe("privacy");
+    expect(settingTarget("excludeDeload", all)).toBe("excludeDeload");
+    expect(settingTarget("defaultRestTime", signedOut)).toBe(
+      "defaultRestTime",
+    );
   });
 });

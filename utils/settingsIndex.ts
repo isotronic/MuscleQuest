@@ -264,6 +264,29 @@ export const SETTINGS_INDEX = [
 
 export type SettingId = (typeof SETTINGS_INDEX)[number]["id"];
 
+/** What decides whether a row is on screen. */
+export interface SettingsState {
+  signedIn: boolean;
+  progressionOn: boolean;
+}
+
+// Rows shown only in some states, and the row on the same screen that
+// unlocks them: the search sends people there instead of to a missing row.
+const UNLOCKED_BY: Partial<
+  Record<SettingId, { when: keyof SettingsState; row: SettingId }>
+> = {
+  privacy: { when: "signedIn", row: "account" },
+  deleteAccount: { when: "signedIn", row: "account" },
+  progressionIncrements: { when: "progressionOn", row: "adaptiveProgression" },
+  excludeDeload: { when: "progressionOn", row: "adaptiveProgression" },
+};
+
+/** The row a search result should open and highlight in this state. */
+export function settingTarget(id: SettingId, state: SettingsState): SettingId {
+  const lock = UNLOCKED_BY[id];
+  return lock && !state[lock.when] ? lock.row : id;
+}
+
 /** An index entry with its text translated for the current locale. */
 export interface SettingsSearchDoc {
   id: SettingId;

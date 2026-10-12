@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -15,12 +15,15 @@ import { AppIcon } from "@/components/ui/AppIcon";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { AccountCard } from "@/components/settings/AccountCard";
+import { AuthContext } from "@/context/AuthProvider";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { SettingRow, useSettingStyles } from "@/components/settings/SettingRow";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import {
   buildSettingsSearch,
   searchSettings,
+  settingTarget,
   SETTINGS_SCREENS,
   translateSettingsIndex,
   type SettingsSearchDoc,
@@ -44,6 +47,12 @@ export default function SettingsScreen() {
   // "progression" opened this screen at that section before it had its own.
   const { section } = useLocalSearchParams<{ section?: string }>();
   const [query, setQuery] = useState("");
+  const user = useContext(AuthContext);
+  const { data: settings } = useSettingsQuery();
+  const state = {
+    signedIn: !!user,
+    progressionOn: settings?.adaptive_progression_enabled === "1",
+  };
 
   const index = useMemo(
     () => buildSettingsSearch(translateSettingsIndex((d) => i18n._(d))),
@@ -60,7 +69,7 @@ export default function SettingsScreen() {
       key={doc.id}
       accessibilityRole="button"
       style={styles.result}
-      onPress={() => openScreen(doc.screen, doc.id)}
+      onPress={() => openScreen(doc.screen, settingTarget(doc.id, state))}
     >
       <ThemedText style={rowStyles.itemText}>{doc.title}</ThemedText>
       <ThemedText style={rowStyles.currentSetting}>
