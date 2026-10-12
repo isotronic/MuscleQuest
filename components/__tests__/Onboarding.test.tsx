@@ -1,6 +1,10 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import Onboarding, { shouldShowActivationCard } from "../Onboarding";
+import Onboarding, {
+  shouldShowActivationCard,
+  tipIndexForDay,
+  TIPS,
+} from "../Onboarding";
 import { useAllPlansQuery } from "@/hooks/useAllPlansQuery";
 
 const mockPush = jest.fn();
@@ -29,6 +33,19 @@ jest.mock("react-native-paper", () => {
       <Pressable onPress={onPress}>
         <Text>{children}</Text>
       </Pressable>
+    ),
+  };
+});
+jest.mock("@/components/ui/AppIcon", () => ({ AppIcon: () => null }));
+jest.mock("@/components/ui/AppIconButton", () => {
+  const { Pressable } = require("react-native");
+  return {
+    AppIconButton: ({ onPress, accessibilityLabel }: any) => (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        onPress={onPress}
+      />
     ),
   };
 });
@@ -120,20 +137,36 @@ describe("Onboarding", () => {
     expect(getByText("Tips")).toBeTruthy();
   });
 
-  it("shows three short tips and no settings card, since setup covers it", () => {
-    const { getByText, queryByText } = render(<Onboarding />);
-    expect(getByText("Explore plans")).toBeTruthy();
-    expect(getByText("Exercise library")).toBeTruthy();
-    expect(getByText("View stats")).toBeTruthy();
+  it("shows one tip at a time and steps to the next", () => {
+    jest.useFakeTimers({ now: new Date(2026, 9, 12, 9) });
+    try {
+      const first = tipIndexForDay(new Date(), TIPS.length);
+      const second = (first + 1) % TIPS.length;
+      const { getByText, queryByText, getByLabelText } = render(<Onboarding />);
+
+      expect(getByText(TIPS[first].title as any)).toBeTruthy();
+      expect(queryByText(TIPS[second].title as any)).toBeNull();
+
+      fireEvent.press(getByLabelText("Next tip"));
+      expect(getByText(TIPS[second].title as any)).toBeTruthy();
+      fireEvent.press(getByText(TIPS[second].link as any));
+      expect(mockPush).toHaveBeenCalledWith(TIPS[second].route);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("does not offer the settings card, since setup covers it", () => {
+    const { queryByText } = render(<Onboarding />);
     expect(queryByText("Customise your settings")).toBeNull();
   });
 
-  it("hides the tips from their own button, and leaves them out when off", () => {
+  it("hides the tips from their close button, and leaves them out when off", () => {
     const onHideTips = jest.fn();
-    const { getByText, rerender, queryByText } = render(
+    const { getByLabelText, getByText, rerender, queryByText } = render(
       <Onboarding onHideTips={onHideTips} />,
     );
-    fireEvent.press(getByText("Hide tips"));
+    fireEvent.press(getByLabelText("Hide tips"));
     expect(onHideTips).toHaveBeenCalled();
 
     rerender(<Onboarding showActivationCard showTips={false} />);
@@ -146,6 +179,16 @@ describe("Onboarding", () => {
       <Onboarding showActivationCard onQuickWorkout={jest.fn()} />,
     );
     expect(queryByText("Hide / Show Onboarding")).toBeNull();
+  });
+});
+
+describe("tipIndexForDay", () => {
+  it("keeps the tip all day and moves on the next day", () => {
+    const morning = tipIndexForDay(new Date(2026, 9, 12, 0, 5), 6);
+    expect(tipIndexForDay(new Date(2026, 9, 12, 23, 55), 6)).toBe(morning);
+    expect(tipIndexForDay(new Date(2026, 9, 13, 0, 5), 6)).toBe(
+      (morning + 1) % 6,
+    );
   });
 });
 
