@@ -150,4 +150,19 @@ describe("computeSessionPRs", () => {
     // is not 5 km.
     expect(computeSessionPRs(input)).toEqual({ 0: [0], 1: [0], 2: [0] });
   });
+
+  it("flags no assisted record without a body weight", () => {
+    const prs = computeSessionPRs(
+      base({
+        exercises: [exercise(1, 1, { tracking_type: "assisted" })],
+        priorBests: [
+          { exercise_id: 1, tracking_type: "assisted", best: e1rm(50, 8) },
+        ],
+        completedSets: { 0: { 0: true } },
+        weightAndReps: { 0: { 0: { weight: "25", reps: "8" } } },
+        bodyWeightKg: 0,
+      }),
+    );
+    expect(prs).toEqual({});
+  });
 });

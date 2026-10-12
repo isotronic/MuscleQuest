@@ -27,6 +27,7 @@ const INTERNAL_SETTING_KEYS = new Set([
   "dataVersion",
   "appDataSyncVersion",
   "loginShown",
+  "setupDone",
   "databaseRestored",
 ]);
 const INTERNAL_SETTING_PATTERN = /(_backfill_completed|_v\d+)$/;
