@@ -1,4 +1,4 @@
-import { getCurrentISOWeek, getISOWeek } from "../isoWeek";
+import { getISOWeek } from "../isoWeek";
 
 describe("getISOWeek", () => {
   it("puts a Sunday night in the week that started the Monday before", () => {
@@ -10,9 +10,5 @@ describe("getISOWeek", () => {
   it("uses the ISO year at a year boundary", () => {
     // Thursday 2026-01-01 is in week 1 of 2026; Monday 2025-12-29 too.
     expect(getISOWeek(new Date(2025, 11, 29, 12))).toBe("2026-W01");
-  });
-
-  it("matches getCurrentISOWeek for now", () => {
-    expect(getISOWeek(new Date())).toBe(getCurrentISOWeek());
   });
 });

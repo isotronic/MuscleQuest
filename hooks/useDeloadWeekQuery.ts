@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getDeloadWeek } from "@/utils/database";
-import { getCurrentISOWeek, getISOWeek } from "@/utils/isoWeek";
+import { useWeekRule } from "@/hooks/useWeekRule";
+import { isDeloadWeek } from "@/utils/deloadWeek";
 
 export const useDeloadWeekQuery = (planId: number | undefined) => {
+  const weekRule = useWeekRule();
   const query = useQuery({
     queryKey: ["deloadWeek", planId],
     queryFn: () => getDeloadWeek(planId!),
@@ -12,9 +14,8 @@ export const useDeloadWeekQuery = (planId: number | undefined) => {
 
   return {
     ...query,
-    isCurrentWeekDeload: query.data === getCurrentISOWeek(),
+    isCurrentWeekDeload: isDeloadWeek(query.data, new Date(), weekRule),
     // For a workout saved after the day it was trained.
-    isDeloadWeekOf: (date: Date) =>
-      query.data != null && query.data === getISOWeek(date),
+    isDeloadWeekOf: (date: Date) => isDeloadWeek(query.data, date, weekRule),
   };
 };
