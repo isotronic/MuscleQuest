@@ -142,4 +142,22 @@ describe("SetupScreen", () => {
     expect(mockSave).toHaveBeenCalledWith({ settings: [] });
     expect(router.back).toHaveBeenCalled();
   });
+
+  it("restores the weight step when the units are switched back", async () => {
+    mockSettings = {
+      weightUnit: "kg",
+      weightIncrement: "1",
+      weeklyGoal: "3",
+      setupDone: "offered",
+    };
+    const { getByText } = render(<SetupScreen />);
+
+    await press(getByText, "lbs, ft, in");
+    await press(getByText, "kg, m, cm");
+    await press(getByText, "Next");
+    await press(getByText, "Next");
+    await press(getByText, "Save");
+
+    expect(mockSave).toHaveBeenCalledWith({ settings: [] });
+  });
 });

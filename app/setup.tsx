@@ -90,6 +90,11 @@ export default function SetupScreen() {
 
   const changeUnits = (units: SetupValues["units"]) => {
     if (units === values.units) return;
+    // Back to the units the screen opened with: their step comes back too.
+    if (units === initial.units) {
+      update({ units, weightIncrement: initial.weightIncrement });
+      return;
+    }
     // Steps are in the weight unit, so a default step follows the unit.
     const from = UNIT_SETTINGS[values.units].weightUnit as "kg" | "lbs";
     const to = UNIT_SETTINGS[units].weightUnit as "kg" | "lbs";
