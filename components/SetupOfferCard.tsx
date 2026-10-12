@@ -1,9 +1,10 @@
 import { useMemo } from "react";
-import { StyleSheet, View } from "react-native";
-import { Button } from "react-native-paper";
+import { Pressable, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
 import { AppIcon } from "@/components/ui";
+import { AppIconButton } from "@/components/ui/AppIconButton";
 import { ThemedText } from "@/components/ThemedText";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
@@ -23,15 +24,25 @@ export function SetupOfferCard() {
 
   if (settings?.setupDone !== SetupState.offered) return null;
 
+  const dismiss = () =>
+    updateSetting({ key: SETUP_DONE_KEY, value: SetupState.done });
+
   return (
     <View style={styles.card}>
-      <View style={styles.header}>
-        <AppIcon
-          set="mci"
-          name="tune-variant"
-          size={24}
-          color={colors.accent}
-        />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityHint={t`Opens setup`}
+        onPress={() => router.push("/setup")}
+        style={styles.main}
+      >
+        <View style={styles.iconTile}>
+          <AppIcon
+            set="mci"
+            name="tune-variant"
+            size={22}
+            color={colors.accent}
+          />
+        </View>
         <View style={styles.text}>
           <ThemedText style={styles.title}>
             <Trans>Check your units and week start</Trans>
@@ -43,21 +54,20 @@ export function SetupOfferCard() {
             </Trans>
           </ThemedText>
         </View>
-      </View>
-      <View style={styles.buttons}>
-        <Button
-          mode="text"
-          compact
-          onPress={() =>
-            updateSetting({ key: SETUP_DONE_KEY, value: SetupState.done })
-          }
-        >
-          <Trans>Dismiss</Trans>
-        </Button>
-        <Button mode="contained" compact onPress={() => router.push("/setup")}>
-          <Trans>Check</Trans>
-        </Button>
-      </View>
+        <AppIcon
+          set="mci"
+          name="chevron-right"
+          size={22}
+          color={colors.contentSecondary}
+        />
+      </Pressable>
+      <AppIconButton
+        icon="close"
+        size={18}
+        accessibilityLabel={t`Dismiss`}
+        onPress={dismiss}
+        style={styles.dismiss}
+      />
     </View>
   );
 }
@@ -67,30 +77,43 @@ function createStyles(colors: AppThemeColors) {
     card: {
       borderRadius: radii.md,
       backgroundColor: colors.card,
-      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.accentBorder,
       marginBottom: 16,
     },
-    header: {
+    main: {
       flexDirection: "row",
-      alignItems: "flex-start",
+      alignItems: "center",
       gap: 12,
+      paddingVertical: 14,
+      paddingLeft: 14,
+      // Room for the dismiss button in the corner.
+      paddingRight: 36,
+    },
+    iconTile: {
+      width: 40,
+      height: 40,
+      borderRadius: radii.md,
+      backgroundColor: colors.accentSubtle,
+      alignItems: "center",
+      justifyContent: "center",
     },
     text: { flex: 1 },
     title: {
       color: colors.contentPrimary,
       fontWeight: "600",
-      marginBottom: 4,
     },
     message: {
       color: colors.contentSecondary,
-      fontSize: 14,
+      fontSize: 13,
+      lineHeight: 18,
+      marginTop: 2,
     },
-    buttons: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      alignItems: "center",
-      gap: 4,
-      marginTop: 12,
+    dismiss: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      margin: 2,
     },
   });
 }

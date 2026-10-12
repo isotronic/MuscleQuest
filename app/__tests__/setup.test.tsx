@@ -1,5 +1,5 @@
 import React from "react";
-import { act, fireEvent, render } from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { router } from "expo-router";
 import SetupScreen from "../setup";
 
@@ -133,9 +133,10 @@ describe("SetupScreen", () => {
     const { getByText } = render(<SetupScreen />);
 
     expect(getByText("Check your setup")).toBeTruthy();
-    // A goal outside the usual range is still offered.
+    // The stored goal is offered and selected.
     await press(getByText, "Next");
     expect(getByText("7")).toBeTruthy();
+    expect(screen.getByRole("radio", { checked: true })).toHaveTextContent("7");
     await press(getByText, "Next");
     await press(getByText, "Save");
 
