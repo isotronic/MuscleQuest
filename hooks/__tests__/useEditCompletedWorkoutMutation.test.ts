@@ -1,37 +1,19 @@
 import { useEditCompletedWorkoutMutation } from "../useEditCompletedWorkoutMutation";
-import { openDatabase } from "@/utils/database";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { KG_PER_LB } from "@/utils/units";
 import { Alert } from "react-native";
 import { refreshProgressionAfterHistoryChange } from "@/utils/progressionRecompute";
 import { syncCompletedWorkoutChanged } from "@/utils/sharedSync";
+import { applyHistoryEdits } from "@/utils/db/historyEdits";
+import type { EditableWorkout } from "@/utils/historyEditOps";
 
-const mockRunAsync = jest.fn().mockResolvedValue(undefined);
-const mockCloseAsync = jest.fn().mockResolvedValue(undefined);
-const mockTxnRunAsync = jest.fn().mockResolvedValue(undefined);
-const mockWithExclusiveTransactionAsync = jest.fn(
-  async (cb: (txn: any) => Promise<void>) => {
-    await cb({ runAsync: mockTxnRunAsync });
-  },
-);
-jest.mock("@/utils/database", () => ({
-  openDatabase: jest.fn(() =>
-    Promise.resolve({
-      runAsync: mockRunAsync,
-      closeAsync: mockCloseAsync,
-      withExclusiveTransactionAsync: mockWithExclusiveTransactionAsync,
-    }),
-  ),
+jest.mock("@/utils/db/historyEdits", () => ({
+  applyHistoryEdits: jest.fn().mockResolvedValue({}),
 }));
 jest.mock("@/utils/sharedSync", () => ({
   syncCompletedWorkoutChanged: jest.fn(),
 }));
 jest.mock("@/utils/progressionRecompute", () => ({
   refreshProgressionAfterHistoryChange: jest.fn(),
-}));
-jest.mock("@bugsnag/expo", () => ({
-  __esModule: true,
-  default: { notify: jest.fn() },
 }));
 jest.mock("react-native", () => ({
   Alert: { alert: jest.fn() },
@@ -51,261 +33,121 @@ jest.mock("@tanstack/react-query", () => ({
 
 const mockInvalidateQueries = jest.fn();
 
-const makeExercises = (weight: number) => [
-  {
-    completed_exercise_id: 9000,
-    exercise_id: 100,
-    exercise_name: "Bench Press",
-    exercise_tracking_type: "weight",
-    sets: [
-      {
-        set_id: 1001,
-        set_number: 1,
-        weight,
-        reps: 8,
-        time: null,
-        distance: null,
-        is_warmup: false,
-        set_duration: null,
-      },
-    ],
-  },
-];
-
-const sampleEdit = { original: makeExercises(100), edited: makeExercises(105) };
+const workout = (weight: number, exerciseId = 100): EditableWorkout => ({
+  completedAt: new Date("2026-10-01T08:00:00Z"),
+  durationSeconds: 3600,
+  notes: null,
+  exercises: [
+    {
+      completed_exercise_id: 9000,
+      exercise_id: exerciseId,
+      exercise_name: "Bench Press",
+      exercise_tracking_type: "weight",
+      sets: [
+        {
+          set_id: 1001,
+          set_number: 1,
+          weight,
+          reps: 8,
+          time: null,
+          distance: null,
+          is_warmup: false,
+          set_duration: null,
+        },
+      ],
+    },
+  ],
+});
 
 describe("useEditCompletedWorkoutMutation", () => {
   let capturedArgs: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRunAsync.mockResolvedValue(undefined);
-    mockCloseAsync.mockResolvedValue(undefined);
-    mockTxnRunAsync.mockResolvedValue(undefined);
-    mockWithExclusiveTransactionAsync.mockImplementation(
-      async (cb: (txn: any) => Promise<void>) => {
-        await cb({ runAsync: mockTxnRunAsync });
-      },
-    );
-    (openDatabase as jest.Mock).mockResolvedValue({
-      runAsync: mockRunAsync,
-      closeAsync: mockCloseAsync,
-      withExclusiveTransactionAsync: mockWithExclusiveTransactionAsync,
-    });
     (useQueryClient as jest.Mock).mockReturnValue({
       invalidateQueries: mockInvalidateQueries,
     });
-    (useMutation as jest.Mock).mockImplementation((args: any) => {
+    (useMutation as jest.Mock).mockImplementation((args) => {
       capturedArgs = args;
       return { mutate: jest.fn() };
     });
+    useEditCompletedWorkoutMutation(42, "lbs", "km");
   });
 
-  it("mutationFn runs UPDATE for each set in kg", async () => {
-    useEditCompletedWorkoutMutation(42, "kg", "m");
-
+  it("applies only the changed values, converted to storage units", async () => {
     await capturedArgs.mutationFn({
-      original: [],
-      edited: makeExercises(100),
+      original: workout(100),
+      edited: workout(220),
     });
 
-    expect(mockTxnRunAsync).toHaveBeenCalledWith(
-      expect.stringContaining("UPDATE completed_sets"),
-      expect.arrayContaining([100, 8, null, null, 1001, 1]),
-    );
-  });
-
-  it("mutationFn converts weight from lbs to kg", async () => {
-    useEditCompletedWorkoutMutation(42, "lbs", "m");
-
-    await capturedArgs.mutationFn({
-      original: [],
-      edited: makeExercises(220),
-    });
-
-    expect(mockTxnRunAsync).toHaveBeenCalledWith(
-      expect.stringContaining("UPDATE completed_sets"),
-      expect.arrayContaining([
-        expect.closeTo(220 * KG_PER_LB, 2), // converted to kg
-      ]),
-    );
-  });
-
-  it("wraps all set updates in a single exclusive transaction and never calls db.runAsync directly", async () => {
-    useEditCompletedWorkoutMutation(42, "kg", "m");
-
-    // Multiple exercises, each with multiple sets, to prove the entire
-    // double loop (exercises -> sets) shares one transaction rather than
-    // opening a transaction per set or per exercise.
-    const multiExerciseData = [
+    expect(applyHistoryEdits).toHaveBeenCalledWith(42, [
       {
-        completed_exercise_id: 9001,
-        exercise_id: 100,
-        exercise_name: "Bench Press",
-        exercise_tracking_type: "weight",
-        sets: [
-          {
-            set_id: 1001,
-            set_number: 1,
-            weight: 100,
-            reps: 8,
-            time: null,
-            distance: null,
-            is_warmup: false,
-            set_duration: null,
-          },
-          {
-            set_id: 1002,
-            set_number: 2,
-            weight: 105,
-            reps: 6,
-            time: null,
-            distance: null,
-            is_warmup: false,
-            set_duration: null,
-          },
-        ],
+        kind: "setValues",
+        setId: 1001,
+        values: { weight: expect.closeTo(99.79, 2) },
       },
+    ]);
+  });
+
+  it("refreshes progression for the edited workout on success", () => {
+    capturedArgs.onSuccess(
+      { passedSessionIds: [] },
       {
-        completed_exercise_id: 9002,
-        exercise_id: 200,
-        exercise_name: "Squat",
-        exercise_tracking_type: "weight",
-        sets: [
-          {
-            set_id: 2001,
-            set_number: 1,
-            weight: 140,
-            reps: 5,
-            time: null,
-            distance: null,
-            is_warmup: false,
-            set_duration: null,
-          },
-        ],
+        original: workout(100),
+        edited: workout(105),
       },
-    ];
-
-    await capturedArgs.mutationFn({
-      original: [],
-      edited: multiExerciseData,
-    });
-
-    expect(mockWithExclusiveTransactionAsync).toHaveBeenCalledTimes(1);
-    // 3 set updates + 2 completed_exercises updates (one per exercise)
-    expect(mockTxnRunAsync).toHaveBeenCalledTimes(5);
-    expect(mockRunAsync).not.toHaveBeenCalled();
-  });
-
-  it("updates completed_exercises.exercise_id for each exercise", async () => {
-    useEditCompletedWorkoutMutation(42, "kg", "m");
-
-    await capturedArgs.mutationFn({
-      original: [],
-      edited: [
-        {
-          completed_exercise_id: 9001,
-          exercise_id: 300,
-          exercise_name: "Incline Bench Press",
-          exercise_tracking_type: "weight",
-          sets: [
-            {
-              set_id: 1001,
-              set_number: 1,
-              weight: 80,
-              reps: 8,
-              time: null,
-              distance: null,
-              is_warmup: false,
-              set_duration: null,
-            },
-          ],
-        },
-      ],
-    });
-
-    expect(mockTxnRunAsync).toHaveBeenCalledWith(
-      expect.stringContaining("UPDATE completed_exercises"),
-      [300, "weight", 9001],
     );
-  });
-
-  it("onSuccess invalidates completedWorkout, completedWorkouts, trackedExercises, and history families", () => {
-    useEditCompletedWorkoutMutation(42, "kg", "m");
-
-    capturedArgs.onSuccess(undefined, sampleEdit);
-
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["completedWorkout", 42],
-    });
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["completedWorkouts"],
-    });
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["trackedExercises"],
-    });
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["workoutSessionHistory"],
-    });
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["globalExerciseHistoryForSession"],
-    });
-  });
-
-  it("onSuccess invalidates exerciseDetail so the exercise screen refetches", () => {
-    useEditCompletedWorkoutMutation(42, "kg", "m");
-
-    capturedArgs.onSuccess(undefined, sampleEdit);
-
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["exerciseDetail"],
-    });
-  });
-
-  it("onSuccess refreshes progression suggestions for the edited workout", () => {
-    useEditCompletedWorkoutMutation(42, "kg", "m");
-
-    capturedArgs.onSuccess(undefined, sampleEdit);
-
     expect(refreshProgressionAfterHistoryChange).toHaveBeenCalledWith(
-      { invalidateQueries: mockInvalidateQueries },
+      expect.anything(),
       42,
     );
   });
 
-  it("onSuccess re-shares the workout, including exercises swapped out", () => {
-    useEditCompletedWorkoutMutation(42, "kg", "m");
+  it("also refreshes progression for sessions a date change moved past", async () => {
+    capturedArgs.onSuccess(
+      { passedSessionIds: [7, 8] },
+      { original: workout(100), edited: workout(100) },
+    );
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(
+      (refreshProgressionAfterHistoryChange as jest.Mock).mock.calls.map(
+        (call) => call[1],
+      ),
+    ).toEqual([42, 7, 8]);
+  });
 
-    const swapped = makeExercises(100);
-    swapped[0].exercise_id = 200;
-    capturedArgs.onSuccess(undefined, {
-      original: makeExercises(100),
-      edited: swapped,
-    });
-
+  it("re-shares the workout, including exercises swapped out", () => {
+    capturedArgs.onSuccess(
+      { passedSessionIds: [] },
+      {
+        original: workout(100, 100),
+        edited: workout(100, 300),
+      },
+    );
     expect(syncCompletedWorkoutChanged).toHaveBeenCalledWith(42, [100]);
   });
 
-  it("onError shows a translated alert", () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-    useEditCompletedWorkoutMutation(42, "kg", "m");
-
-    capturedArgs.onError(new Error("save failed"));
-
+  it("shows a translated alert on error", () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    capturedArgs.onError(new Error("boom"));
     expect(Alert.alert).toHaveBeenCalledWith(
       "[t] Error",
-      "[t] An error occurred while saving your edited workout. Please try again.",
+      expect.stringContaining("[t] "),
     );
-    consoleSpy.mockRestore();
   });
 
-  it("onSettled invalidates exerciseDetail", async () => {
-    useEditCompletedWorkoutMutation(42, "kg", "m");
-
-    await capturedArgs.onSettled();
-
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["exerciseDetail"],
-    });
+  it("invalidates the workout, history and stats keys once settled", () => {
+    capturedArgs.onSettled();
+    for (const queryKey of [
+      ["completedWorkout", 42],
+      ["completedWorkouts"],
+      ["exerciseDetail"],
+      ["exerciseHistory"],
+      ["trackedExercises"],
+      ["workoutSessionHistory"],
+      ["globalExerciseHistoryForSession"],
+    ]) {
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey });
+    }
   });
 });

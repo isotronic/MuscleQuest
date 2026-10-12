@@ -1,5 +1,11 @@
-import { useMemo, useState, useCallback } from "react";
-import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { useMemo, useRef, useState, useCallback } from "react";
+import {
+  Alert,
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { Trans, Plural } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ThemedView } from "@/components/ThemedView";
@@ -15,10 +21,17 @@ import { formatToHoursMinutes } from "@/utils/utility";
 import { exerciseThumbnailUri } from "@/utils/exerciseThumbnail";
 import { format } from "date-fns";
 import { parseDbTimestamp } from "@/utils/dates";
-import { AppIcon, AppImage, AppIconButton } from "@/components/ui";
+import { AppButton, AppIcon, AppImage, AppIconButton } from "@/components/ui";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { fetchCompletedWorkoutById } from "@/utils/database";
+import { fetchExercisesByIds } from "@/utils/db/exercises";
+import { useAllPlansQuery } from "@/hooks/useAllPlansQuery";
+import { useStandaloneWorkoutsQuery } from "@/hooks/useStandaloneWorkoutsQuery";
+import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { showSnackbar } from "@/store/snackbarStore";
+import { confirmStartWorkout } from "@/utils/startWorkout";
+import { buildDoAgainExercises, findSourceWorkout } from "@/utils/doAgain";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useDeleteCompletedWorkoutMutation } from "@/hooks/useDeleteCompletedWorkoutMutation";
 import { formatFromTotalSeconds } from "@/utils/utility";
@@ -59,6 +72,12 @@ export default function HistoryDetailsScreen() {
   const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
 
   const deleteMutation = useDeleteCompletedWorkoutMutation();
+  const { data: plansData, isFetching: plansFetching } = useAllPlansQuery();
+  const { data: standaloneWorkouts, isFetching: standaloneFetching } =
+    useStandaloneWorkoutsQuery();
+  const [isStarting, setIsStarting] = useState(false);
+  // Covers the exercise lookup before confirmStartWorkout sets isStarting.
+  const preparingCopy = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -143,6 +162,82 @@ export default function HistoryDetailsScreen() {
     return null;
   }
 
+  // A refetch after a delete may still be on its way; until it lands the
+  // cached lists can hold the deleted workout, so only the copy is offered.
+  const sourceWorkout =
+    plansFetching || standaloneFetching
+      ? null
+      : findSourceWorkout(
+          workout.workout_id,
+          [...(plansData?.userPlans ?? []), ...(plansData?.appPlans ?? [])],
+          standaloneWorkouts ?? [],
+        );
+
+  const prepareCopy = async () => {
+    try {
+      const library = await fetchExercisesByIds(
+        workout.exercises.map((exercise) => exercise.exercise_id),
+      );
+      return buildDoAgainExercises(
+        workout,
+        library,
+        parseInt(settings?.defaultRestTime ?? "60", 10) || 0,
+      );
+    } catch (err) {
+      notifyBugsnag(err);
+      showSnackbar(t`Couldn't load this workout's exercises. Try again.`);
+      return null;
+    }
+  };
+
+  const startCopy = async () => {
+    if (preparingCopy.current) return;
+    preparingCopy.current = true;
+    try {
+      const exercises = await prepareCopy();
+      if (!exercises) return;
+      if (exercises.length === 0) {
+        showSnackbar(t`None of these exercises are in your library any more.`);
+        return;
+      }
+      await confirmStartWorkout(setIsStarting, () =>
+        useActiveWorkoutStore.getState().startQuickWorkoutFrom(exercises),
+      );
+    } finally {
+      preparingCopy.current = false;
+    }
+  };
+
+  const startSource = () => {
+    if (!sourceWorkout) return;
+    const { workout: source, planId } = sourceWorkout;
+    void confirmStartWorkout(setIsStarting, () =>
+      useActiveWorkoutStore
+        .getState()
+        .setWorkout(source, planId, source.id ?? null, source.name),
+    );
+  };
+
+  const handleDoAgain = () => {
+    if (isStarting) return;
+    if (!sourceWorkout) {
+      void startCopy();
+      return;
+    }
+    const name = displayWorkoutName(sourceWorkout.workout.name);
+    // Starting the saved workout keeps its progression and history linked;
+    // a copy repeats exactly what was done this time.
+    Alert.alert(
+      t`Do again`,
+      t`Start ${name} as it is saved now, or a quick workout with the exercises and sets from this session.`,
+      [
+        { text: t`Cancel`, style: "cancel" },
+        { text: t`Quick workout`, onPress: () => void startCopy() },
+        { text: t`Start ${name}`, onPress: startSource },
+      ],
+    );
+  };
+
   const parsedDate = parseDbTimestamp(workout.date_completed);
   const formattedDate = format(parsedDate, "dd/MM/yyyy 'at' HH:mm");
   const sessionNote = workout.notes?.trim();
@@ -196,6 +291,16 @@ export default function HistoryDetailsScreen() {
           <ThemedText style={styles.workoutDate}>
             <Trans>Completed on: {formattedDate}</Trans>
           </ThemedText>
+          <AppButton
+            variant="secondary"
+            style={styles.doAgain}
+            loading={isStarting}
+            disabled={isStarting}
+            accessibilityHint={t`Starts a new session with these exercises`}
+            onPress={handleDoAgain}
+          >
+            <Trans>Do again</Trans>
+          </AppButton>
           {!!sessionNote && (
             <View style={styles.sessionNoteBox}>
               <ThemedText style={styles.sessionNoteLabel}>
@@ -374,6 +479,9 @@ function createStyles(colors: AppThemeColors) {
     workoutDate: {
       fontSize: 16,
       marginTop: 4,
+    },
+    doAgain: {
+      marginTop: 12,
     },
     summaryRow: {
       flexDirection: "row",

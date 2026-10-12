@@ -66,6 +66,10 @@ export interface CompletedWorkout {
       time: number | null;
       distance: number | null;
       is_warmup: boolean;
+      /** Loaded by fetchCompletedWorkoutById only. */
+      is_drop_set?: boolean;
+      /** Loaded by fetchCompletedWorkoutById only. */
+      is_to_failure?: boolean;
       set_duration: number | null;
       note?: string | null;
     }[];

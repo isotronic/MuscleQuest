@@ -1,4 +1,6 @@
 import React from "react";
+import { StyleSheet, View } from "react-native";
+import { router } from "expo-router";
 import { t } from "@lingui/core/macro";
 import { AppIconButton } from "@/components/ui";
 import { WorkoutHistorySection } from "@/components/stats/WorkoutHistorySection";
@@ -28,16 +30,26 @@ export const HistoryWidget: React.FC<{
       loading={workouts.isLoading}
       error={!!workouts.error}
       actions={
-        list.length > 0 ? (
+        <View style={styles.actions}>
           <AppIconButton
-            accessibilityLabel={t`Open workout calendar`}
-            icon="calendar-month"
+            accessibilityLabel={t`Log past workout`}
+            icon="calendar-plus"
             size={20}
             iconColor={colors.accent}
-            style={{ margin: 0 }}
-            onPress={() => openCalendar()}
+            style={styles.action}
+            onPress={() => router.push("/(app)/log-workout")}
           />
-        ) : null
+          {list.length > 0 && (
+            <AppIconButton
+              accessibilityLabel={t`Open workout calendar`}
+              icon="calendar-month"
+              size={20}
+              iconColor={colors.accent}
+              style={styles.action}
+              onPress={() => openCalendar()}
+            />
+          )}
+        </View>
       }
     >
       <WorkoutHistorySection
@@ -48,3 +60,8 @@ export const HistoryWidget: React.FC<{
     </WidgetSection>
   );
 };
+
+const styles = StyleSheet.create({
+  actions: { flexDirection: "row", alignItems: "center", gap: 8 },
+  action: { margin: 0 },
+});

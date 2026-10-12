@@ -241,6 +241,55 @@ export const fetchExerciseImagesByIds = async (
   }
 };
 
+/**
+ * The library rows of these exercises, deleted ones left out. Thumbnail bytes
+ * are skipped once the thumbnail is on disk.
+ */
+export const fetchExercisesByIds = async (
+  exerciseIds: number[],
+): Promise<Exercise[]> => {
+  if (exerciseIds.length === 0) return [];
+  const db = await openDatabase("userData.db");
+  try {
+    const placeholders = exerciseIds.map(() => "?").join(",");
+    const rows = await db.getAllAsync<
+      Omit<Exercise, "secondary_muscles" | "image"> & {
+        secondary_muscles: string | null;
+        image: Uint8Array | null;
+      }
+    >(
+      `SELECT exercise_id, app_exercise_id, name, ${IMAGE_UNLESS_ON_DISK}, image_uri,
+              local_animated_uri, animated_url, equipment, body_part, target_muscle,
+              secondary_muscles, description, tracking_type, favorite,
+              is_unilateral, double_weight
+       FROM exercises
+       WHERE exercise_id IN (${placeholders}) AND COALESCE(is_deleted, 0) = 0`,
+      exerciseIds,
+    );
+    return rows.map((row) => ({
+      ...row,
+      image: row.image ? Array.from(row.image) : [],
+      secondary_muscles: parseMuscleList(row.secondary_muscles),
+    }));
+  } catch (error: any) {
+    console.error("Error fetching exercises by id:", error);
+    notifyBugsnag(error);
+    throw error;
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+const parseMuscleList = (value: string | null): string[] => {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 export const reorderTrackedExercises = async (
   exerciseIds: number[],
 ): Promise<void> => {

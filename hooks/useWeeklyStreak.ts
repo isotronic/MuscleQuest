@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { startOfWeek, endOfWeek, subWeeks, format } from "date-fns";
+import { startOfWeek, subWeeks, format } from "date-fns";
 import { getWeeklyCompletions, upsertWeeklyCompletion } from "@/utils/database";
-import { isLocalDateInRange } from "@/utils/dates";
+import { countTrainingDaysInWeek } from "@/utils/trainingWeek";
 
 // Only the training day of each workout matters here, and only for last
 // week, so callers can pass a recent window rather than the whole history.
@@ -34,13 +34,12 @@ const syncWeeklyCompletions = async (
   const existing = await getWeeklyCompletions();
   const lastWeekRow = existing.find((e) => e.week_start === lastWeekStartStr);
 
-  const lastWeekEnd = endOfWeek(lastWeekStart, { weekStartsOn: 1 });
   // local_date is the training day as it was when the workout was logged, so
   // a week's count does not change if the user later travels.
-  const lastWeekWorkouts = allCompletedWorkouts.filter((w) =>
-    isLocalDateInRange(w.local_date, lastWeekStart, lastWeekEnd),
+  const uniqueDays = countTrainingDaysInWeek(
+    allCompletedWorkouts,
+    lastWeekStartStr,
   );
-  const uniqueDays = new Set(lastWeekWorkouts.map((w) => w.local_date)).size;
 
   if (!lastWeekRow) {
     await upsertWeeklyCompletion(
