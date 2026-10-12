@@ -22,8 +22,11 @@ const DAY_NAMES = [
 ];
 
 interface Props {
-  schedule: PlanScheduleEntry[];
+  /** Null for an unscheduled plan, which shows `rotationNext` instead. */
+  schedule: PlanScheduleEntry[] | null;
   workouts: Workout[];
+  /** The unscheduled plan's next workout in rotation. */
+  rotationNext?: Workout | null;
   todayDow: number; // 0=Mon … 6=Sun
   completedWorkoutName: string | null;
   onPress?: () => void;
@@ -32,6 +35,7 @@ interface Props {
 export default function WorkoutDoneCard({
   schedule,
   workouts,
+  rotationNext,
   todayDow,
   completedWorkoutName,
   onPress,
@@ -41,15 +45,20 @@ export default function WorkoutDoneCard({
   const { _ } = useLingui();
 
   let nextLabel: string | null = null;
-  for (let i = 1; i <= 7; i++) {
-    const nextDow = (todayDow + i) % 7;
-    const entry = schedule.find((e) => e.day_of_week === nextDow);
-    if (entry) {
-      const workout = workouts.find((w) => w.id === entry.workout_id);
-      const workoutName = workout?.name ?? t`Workout`;
-      nextLabel = t`Next: ${workoutName} on ${_(DAY_NAMES[nextDow])}`;
-      break;
+  if (schedule?.length) {
+    for (let i = 1; i <= 7; i++) {
+      const nextDow = (todayDow + i) % 7;
+      const entry = schedule.find((e) => e.day_of_week === nextDow);
+      if (entry) {
+        const workout = workouts.find((w) => w.id === entry.workout_id);
+        const workoutName = workout?.name ?? t`Workout`;
+        nextLabel = t`Next: ${workoutName} on ${_(DAY_NAMES[nextDow])}`;
+        break;
+      }
     }
+  } else if (rotationNext) {
+    const workoutName = rotationNext.name || t`Workout`;
+    nextLabel = t`Next: ${workoutName}`;
   }
 
   return (

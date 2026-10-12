@@ -18,6 +18,7 @@ interface WorkoutResult {
   total_sets_completed: number;
   completed_exercise_id: number;
   exercise_id: number;
+  user_workout_exercise_id?: number | null;
   exercise_name: string;
   exercise_tracking_type: string;
   is_unilateral: number | null;
@@ -51,6 +52,11 @@ export interface CompletedWorkout {
   exercises: {
     completed_exercise_id: number;
     exercise_id: number;
+    /** The plan row it was logged from. Session history and by-id reads. */
+    user_workout_exercise_id?: number | null;
+    /** Which block of its exercise that plan row is, 0 for the first.
+     * fetchCompletedWorkoutById only; null when no row was recorded. */
+    plan_occurrence?: number | null;
     exercise_name: string;
     /** Thumbnail bytes. Only fetchCompletedWorkoutById loads them. */
     exercise_image?: number[];
@@ -343,6 +349,7 @@ const fetchWorkoutHistoryForSession = async (
         cw.total_sets_completed,
         cw.is_deload,
         ce.id as completed_exercise_id,
+        ce.user_workout_exercise_id,
         ce.exercise_id,
         e.name AS exercise_name,
         COALESCE(
@@ -434,6 +441,7 @@ const fetchWorkoutHistoryForSession = async (
         exercise = {
           completed_exercise_id,
           exercise_id,
+          user_workout_exercise_id: item.user_workout_exercise_id ?? null,
           exercise_name,
           exercise_tracking_type,
           is_unilateral: item.is_unilateral ?? 0,
@@ -512,6 +520,7 @@ const fetchGlobalExerciseHistoryForSession = async (
         cw.duration,
         cw.total_sets_completed,
         ce.id as completed_exercise_id,
+        ce.user_workout_exercise_id,
         ce.exercise_id,
         e.name AS exercise_name,
         COALESCE(
@@ -610,6 +619,7 @@ const fetchGlobalExerciseHistoryForSession = async (
         exercise = {
           completed_exercise_id,
           exercise_id,
+          user_workout_exercise_id: item.user_workout_exercise_id ?? null,
           exercise_name,
           exercise_tracking_type,
           is_unilateral: item.is_unilateral ?? 0,

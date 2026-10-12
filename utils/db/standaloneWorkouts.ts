@@ -95,6 +95,7 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
       }
       if (row.exercise_id && row.exercise_name) {
         workout.exercises.push({
+          id: row.uwe_exercise_id ?? undefined,
           exercise_id: row.exercise_id,
           name: row.exercise_name,
           description: row.description || "",

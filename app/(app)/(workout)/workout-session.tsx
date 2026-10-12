@@ -63,6 +63,7 @@ import {
   buildExerciseMap,
   findLastAvailableSetData as findLastAvailableSetDataUtil,
 } from "@/utils/carryOverLookup";
+import { instanceName, rowIdentity } from "@/utils/exerciseInstance";
 import { UserExercise } from "@/store/workoutStore";
 import ExerciseFeedbackCard from "@/components/ExerciseFeedbackCard";
 import type { FeedbackPrompt } from "@/utils/feedbackPrompts";
@@ -513,6 +514,10 @@ export default function WorkoutSessionScreen() {
       isWarmup,
       ordinal,
       exercisePosition,
+      row:
+        exercisePosition !== undefined && workout
+          ? rowIdentity(workout.exercises, exercisePosition)
+          : undefined,
       previousWorkoutData,
       prevExercisesByExerciseId,
       globalExercisesByExerciseId,
@@ -1104,7 +1109,11 @@ export default function WorkoutSessionScreen() {
     return {
       ...READONLY_PANEL_DEFAULTS,
       exercise_id: exercise.exercise_id,
-      exerciseName: exercise.name,
+      exerciseName: instanceName(
+        workout.exercises,
+        exerciseIndex,
+        exercise.name,
+      ),
       currentSetIndex: setIndex,
       totalSets: exercise.sets.length,
       weight: panelWeight,
@@ -1306,7 +1315,7 @@ export default function WorkoutSessionScreen() {
 
     return {
       userWorkoutExerciseId: exercise.id,
-      exerciseName: exercise.name,
+      exerciseName: instanceName(workout.exercises, exIdx, exercise.name),
       performanceRatio,
       exerciseContext: {
         exerciseId: exercise.exercise_id,
@@ -1566,7 +1575,11 @@ export default function WorkoutSessionScreen() {
     // Build snapshot with superset info so the banner animates with the panel
     const snapshotData: OutgoingSnapshot = {
       exercise_id: currentExercise.exercise_id,
-      exerciseName: currentExercise.name,
+      exerciseName: instanceName(
+        workout.exercises,
+        currentExerciseIndex,
+        currentExercise.name,
+      ),
       currentSetIndex,
       totalSets: currentExercise.sets.length,
       weight: validWeightInKg.toString(),

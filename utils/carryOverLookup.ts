@@ -1,3 +1,8 @@
+import {
+  matchSessionInstance,
+  type RowIdentity,
+} from "@/utils/exerciseInstance";
+
 export interface CarryOverSet {
   set_id: number;
   set_number: number;
@@ -16,6 +21,10 @@ export interface CarryOverExercise {
   local_date?: string;
   /** The session note of the workout it came from. */
   workout_notes?: string | null;
+  /** The plan row it was logged from; null for older sessions. */
+  user_workout_exercise_id?: number | null;
+  /** Which past session it came from, 0 for the most recent. */
+  session?: number;
 }
 
 export interface CarryOverWorkout {
@@ -35,14 +44,38 @@ export function buildExerciseMap(
 ): Map<number, CarryOverExercise[]> {
   const map = new Map<number, CarryOverExercise[]>();
   if (!data) return map;
-  for (const w of data) {
+  data.forEach((w, session) => {
     for (const ex of w.exercises) {
       const arr = map.get(ex.exercise_id) ?? [];
-      arr.push({ ...ex, local_date: w.local_date, workout_notes: w.notes });
+      arr.push({
+        ...ex,
+        local_date: w.local_date,
+        workout_notes: w.notes,
+        session,
+      });
       map.set(ex.exercise_id, arr);
     }
-  }
+  });
   return map;
+}
+
+// One entry per past session for a workout row: that session's matching
+// block (see matchSessionInstance). Without a row, the first block.
+function forRow(
+  exercises: CarryOverExercise[],
+  row: RowIdentity | undefined,
+): CarryOverExercise[] {
+  const sessions = new Map<number, CarryOverExercise[]>();
+  for (const ex of exercises) {
+    const key = ex.session ?? 0;
+    sessions.set(key, [...(sessions.get(key) ?? []), ex]);
+  }
+  const picked: CarryOverExercise[] = [];
+  for (const instances of sessions.values()) {
+    const match = row ? matchSessionInstance(instances, row) : instances[0];
+    if (match) picked.push(match);
+  }
+  return picked;
 }
 
 // Finds the set to carry weight/reps/etc. over from. Prefers the set at the
@@ -54,10 +87,11 @@ function lookup(
   exerciseId: number,
   isWarmup: boolean,
   ordinal: number,
+  row: RowIdentity | undefined,
 ): CarryOverMatch | null {
   const exercises = map.get(exerciseId);
   if (!exercises) return null;
-  for (const ex of exercises) {
+  for (const ex of forRow(exercises, row)) {
     const setsOfType = ex.sets.filter((s) => s.is_warmup === isWarmup);
     if (setsOfType.length === 0) continue;
     const set = setsOfType[ordinal] ?? setsOfType[setsOfType.length - 1];
@@ -76,6 +110,7 @@ function lookup(
 // exercise at the same slot index in the most-recent previous workout.
 function lookupByPosition(
   previousWorkoutData: CarryOverWorkout[] | null,
+  exerciseId: number,
   isWarmup: boolean,
   ordinal: number,
   exercisePosition?: number,
@@ -84,6 +119,9 @@ function lookupByPosition(
   const previous = previousWorkoutData?.[0];
   const prevExAtPos = previous?.exercises[exercisePosition];
   if (!previous || !prevExAtPos) return null;
+  // The same exercise there is another block of it (this one was skipped),
+  // not a swap: the id lookup already had its chance.
+  if (prevExAtPos.exercise_id === exerciseId) return null;
   const setsOfType = prevExAtPos.sets.filter((s) => s.is_warmup === isWarmup);
   if (setsOfType.length === 0) return null;
   const set = setsOfType[ordinal] ?? setsOfType[setsOfType.length - 1];
@@ -99,6 +137,9 @@ export function findLastAvailableSetData(params: {
   isWarmup: boolean;
   ordinal: number;
   exercisePosition?: number;
+  /** The workout row being filled, so each block of a repeated exercise
+   * matches its own block in past sessions. */
+  row?: RowIdentity;
   previousWorkoutData: CarryOverWorkout[] | null;
   prevExercisesByExerciseId: Map<number, CarryOverExercise[]>;
   globalExercisesByExerciseId: Map<number, CarryOverExercise[]>;
@@ -109,24 +150,28 @@ export function findLastAvailableSetData(params: {
     isWarmup,
     ordinal,
     exercisePosition,
+    row,
     previousWorkoutData,
     prevExercisesByExerciseId,
     globalExercisesByExerciseId,
     alwaysUseGlobalHistory,
   } = params;
+  const find = (map: Map<number, CarryOverExercise[]>) =>
+    lookup(map, exerciseId, isWarmup, ordinal, row);
 
   if (alwaysUseGlobalHistory) {
-    return lookup(globalExercisesByExerciseId, exerciseId, isWarmup, ordinal);
+    return find(globalExercisesByExerciseId);
   }
 
   return (
-    lookup(prevExercisesByExerciseId, exerciseId, isWarmup, ordinal) ??
+    find(prevExercisesByExerciseId) ??
     lookupByPosition(
       previousWorkoutData,
+      exerciseId,
       isWarmup,
       ordinal,
       exercisePosition,
     ) ??
-    lookup(globalExercisesByExerciseId, exerciseId, isWarmup, ordinal)
+    find(globalExercisesByExerciseId)
   );
 }

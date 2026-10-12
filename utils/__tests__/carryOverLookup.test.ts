@@ -3,6 +3,7 @@ import {
   findLastAvailableSetData,
   type CarryOverWorkout,
 } from "../carryOverLookup";
+import { rowIdentity, type RowIdentity } from "../exerciseInstance";
 
 const makeSet = (
   overrides: Partial<
@@ -239,5 +240,91 @@ describe("findLastAvailableSetData", () => {
     });
 
     expect(result?.weight).toBe(110);
+  });
+});
+
+describe("two blocks of the same exercise", () => {
+  // The workout: heavy squats (plan row 11), bench, back-off squats (row 13).
+  const rows = [
+    { exercise_id: 1, id: 11 },
+    { exercise_id: 2, id: 12 },
+    { exercise_id: 1, id: 13 },
+  ];
+  const heavy = rowIdentity(rows, 0);
+  const backOff = rowIdentity(rows, 2);
+  const lookup = (data: CarryOverWorkout[], row: RowIdentity, position = 0) =>
+    findLastAvailableSetData({
+      exerciseId: 1,
+      isWarmup: false,
+      ordinal: 0,
+      exercisePosition: position,
+      row,
+      previousWorkoutData: data,
+      prevExercisesByExerciseId: buildExerciseMap(data),
+      globalExercisesByExerciseId: new Map(),
+      alwaysUseGlobalHistory: false,
+    })?.weight;
+
+  describe("older sessions, without plan rows", () => {
+    // Last session: 140, bench, 110. The one before only had 135.
+    const data: CarryOverWorkout[] = [
+      {
+        local_date: "2026-09-12",
+        exercises: [
+          { exercise_id: 1, sets: [makeSet({ weight: 140 })] },
+          { exercise_id: 2, sets: [makeSet({ weight: 80 })] },
+          { exercise_id: 1, sets: [makeSet({ weight: 110 })] },
+        ],
+      },
+      {
+        local_date: "2026-09-09",
+        exercises: [{ exercise_id: 1, sets: [makeSet({ weight: 135 })] }],
+      },
+    ];
+
+    it("prefills each block from the same block by order", () => {
+      expect(lookup(data, heavy)).toBe(140);
+      expect(lookup(data, backOff, 2)).toBe(110);
+    });
+
+    it("falls back to the first block when the session had fewer", () => {
+      expect(lookup([data[1]], backOff, 2)).toBe(135);
+    });
+  });
+
+  describe("sessions that recorded the plan row", () => {
+    // Last session skipped the heavy block; the one before logged both.
+    const data: CarryOverWorkout[] = [
+      {
+        local_date: "2026-09-12",
+        exercises: [
+          {
+            exercise_id: 1,
+            user_workout_exercise_id: 13,
+            sets: [makeSet({ weight: 112.5 })],
+          },
+        ],
+      },
+      {
+        local_date: "2026-09-09",
+        exercises: [
+          {
+            exercise_id: 1,
+            user_workout_exercise_id: 11,
+            sets: [makeSet({ weight: 140 })],
+          },
+          {
+            exercise_id: 1,
+            user_workout_exercise_id: 13,
+            sets: [makeSet({ weight: 110 })],
+          },
+        ],
+      },
+    ];
+
+    it("never fills a skipped block from the other block", () => {
+      expect(lookup(data, heavy)).toBe(140);
+      expect(lookup(data, backOff, 2)).toBe(112.5);
+    });
   });
 });

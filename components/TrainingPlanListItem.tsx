@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Card } from "react-native-paper";
 import { ThemedText } from "@/components/ThemedText";
@@ -14,12 +14,15 @@ interface TrainingPlanListItemProps {
   plan: Plan;
   onPress: () => void;
   isPublished?: boolean;
+  /** Shown under the workout count, e.g. a premade plan's chips. */
+  footer?: ReactNode;
 }
 
 export default function TrainingPlanListItem({
   plan,
   onPress,
   isPublished,
+  footer,
 }: TrainingPlanListItemProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -78,6 +81,7 @@ export default function TrainingPlanListItem({
             other="# workouts"
           />
         </ThemedText>
+        {footer ? <View style={styles.footer}>{footer}</View> : null}
       </View>
       <AppIcon
         set="mci"
@@ -132,6 +136,9 @@ function createStyles(colors: AppThemeColors) {
       fontSize: 16,
       fontWeight: "600",
       flexShrink: 1,
+    },
+    footer: {
+      marginTop: 6,
     },
     subtitle: {
       fontSize: 13,

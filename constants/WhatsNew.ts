@@ -776,6 +776,76 @@ If someone signs in to a different account on your phone, backups and sharing no
 • Crash reports no longer include your email address or name.
 `,
   },
+  {
+    version: 2667,
+    release: "1.5",
+    message: msg`
+📝 New: Session & Set Notes!
+
+Add a note to a whole session in the workout overview, or to a single set from its menu with Add note. Next time, the set shows your note under Last time, so you remember why the weight felt heavy.
+
+The notes you keep on a plan, workout or exercise are now called Cues, so they don't get mixed up with notes on a session.
+`,
+  },
+  {
+    version: 2668,
+    release: "1.5",
+    message: msg`
+🔎 New: One Screen Per Exercise!
+
+Exercises now open one screen with three tabs: Progress for your chart and bests, History for every time you logged it, and About for how to do it. Tap the pin at the top to add its chart to the Stats tab; these are now called Pinned exercises.
+`,
+  },
+  {
+    version: 2669,
+    release: "1.5",
+    message: msg`
+📈 Improved: Quieter Progression!
+
+After an exercise, a small card asks how it felt. One tap answers it; Any pain? opens more options. Cards you skip wait on the workout summary, so you can answer them there.
+
+Progression now also works for your workouts outside plans. If it is off, MuscleQuest offers to turn it on once you have a few sessions to learn from.
+`,
+  },
+  {
+    version: 2670,
+    release: "1.5",
+    message: msg`
+🛠️ New: Fix & Fill In Your History!
+
+Editing a past workout now covers everything: the date, finish time and duration, the session note, and adding or removing sets and exercises.
+
+Forgot to log a session? Tap Log past workout under Choose workout on home, or the calendar icon on Workout History in Stats. To repeat a session, open it in history and tap Do again.
+`,
+  },
+  {
+    version: 2671,
+    release: "1.5",
+    message: msg`
+⚙️ New: Settings by Topic & Your Week Start!
+
+Settings are now grouped into topics, with a search at the top. Choose whether your week starts on Monday or Sunday under Week starts on; the change applies from next week, so your streak carries on.
+
+New to MuscleQuest? A short setup asks for your units, weekly goal and week start. If you have used the app for a while, a card on home lets you check them once.
+
+Also in this update:
+• Buttons say what they do, such as Discard instead of Cancel.
+• If something fails to load, you see a short message with Try again instead of an error code.
+`,
+  },
+  {
+    version: 2672,
+    release: "1.5",
+    message: msg`
+🧭 New: Plans That Fit!
+
+Not sure where to start? Tap Help me choose above the premade plans, answer three questions, and see the two plans that suit you best. Every premade plan now shows its level, days a week and session length, with a short description.
+
+Also in this update:
+• A plan without a weekly schedule now runs in order: home puts the workout after your last one first, even in a new week.
+• A workout can include the same exercise twice, such as heavy squats and back-off squats. Each one keeps its own history and suggestions, and the second shows as "Squat (2)".
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

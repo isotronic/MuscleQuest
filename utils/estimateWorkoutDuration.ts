@@ -170,14 +170,15 @@ export function computeWorkoutDurationEstimate(
   countUnilateralDouble = false,
 ): DurationEstimate {
   // In a superset the transition from exercise A to B has no rest — only B's
-  // rest counts (the between-round recovery). Collect the exercise_id of the
-  // first exercise encountered in each superset group so we can zero its rest.
-  const supersetFirstIds = new Set<number>();
+  // rest counts (the between-round recovery). Collect the row index of the
+  // first exercise encountered in each superset group so we can zero its rest
+  // (by row, since the same exercise can appear again outside the superset).
+  const supersetFirstIndices = new Set<number>();
   const seenGroups = new Set<string>();
-  for (const ex of exercises) {
+  for (const [i, ex] of exercises.entries()) {
     if (ex.supersetGroupId && !seenGroups.has(ex.supersetGroupId)) {
       seenGroups.add(ex.supersetGroupId);
-      supersetFirstIds.add(ex.exercise_id);
+      supersetFirstIndices.add(i);
     }
   }
 
@@ -186,7 +187,7 @@ export function computeWorkoutDurationEstimate(
 
   for (const [exIdx, exercise] of exercises.entries()) {
     const history = historyByExerciseId[exercise.exercise_id] ?? [];
-    const skipRest = supersetFirstIds.has(exercise.exercise_id);
+    const skipRest = supersetFirstIndices.has(exIdx);
     for (const [setIdx, set] of exercise.sets.entries()) {
       const hasNextSlot =
         setIdx < exercise.sets.length - 1 ||

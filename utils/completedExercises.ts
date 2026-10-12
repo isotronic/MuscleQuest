@@ -64,6 +64,8 @@ export function buildCompletedExercises(
         exercise_id: exercise.exercise_id,
         resolved_tracking_type:
           exercise.tracking_type_override ?? exercise.tracking_type ?? null,
+        // Tells two blocks of one exercise apart once one is skipped.
+        user_workout_exercise_id: exercise.id ?? null,
         sets,
       };
     })

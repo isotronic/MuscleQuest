@@ -18,6 +18,7 @@ import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery
 import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionStatesQuery";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import ProgressionSuggestionChip from "@/components/ProgressionSuggestionChip";
+import { instanceName } from "@/utils/exerciseInstance";
 import { useAppTheme, radii } from "@/theme";
 import { Snackbar, Button } from "react-native-paper";
 import { useCreateStandaloneWorkout } from "@/hooks/useCreateStandaloneWorkout";
@@ -187,7 +188,9 @@ export default function WorkoutDetailsScreen() {
               <AppImage style={styles.exerciseImage} source={fallbackImage} />
             )}
             <View style={styles.exerciseInfo}>
-              <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
+              <ThemedText style={styles.exerciseName}>
+                {instanceName(exercises, exerciseIndex, item.name)}
+              </ThemedText>
               <ThemedText style={styles.exerciseSets}>
                 {item?.sets?.length
                   ? t`${item.sets.length} Sets`

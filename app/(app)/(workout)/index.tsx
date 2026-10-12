@@ -82,6 +82,7 @@ import { useWorkoutProgressionStatesQuery } from "@/hooks/useWorkoutProgressionS
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import { sessionSupportsProgression } from "@/utils/progressionEligibility";
 import { useSessionPRs } from "@/hooks/useSessionPRs";
+import { instanceName } from "@/utils/exerciseInstance";
 import {
   confirmUnfinishedSets,
   findUnfinishedSets,
@@ -643,7 +644,11 @@ export default function WorkoutOverviewScreen() {
             </View>
             <View style={styles.exerciseInfo}>
               <ThemedText style={styles.exerciseName}>
-                {exercise.name}
+                {instanceName(
+                  workout?.exercises ?? [],
+                  exerciseIndex,
+                  exercise.name,
+                )}
               </ThemedText>
               {setInfo}
               {progressionChip}
@@ -679,7 +684,11 @@ export default function WorkoutOverviewScreen() {
             </View>
             <View style={styles.exerciseInfo}>
               <ThemedText style={styles.exerciseName}>
-                {exercise.name}
+                {instanceName(
+                  workout?.exercises ?? [],
+                  exerciseIndex,
+                  exercise.name,
+                )}
               </ThemedText>
               {setInfo}
               {progressionChip}
@@ -771,6 +780,7 @@ export default function WorkoutOverviewScreen() {
       );
     },
     [
+      workout?.exercises,
       completedSets,
       loadingExerciseIndex,
       menuVisible,

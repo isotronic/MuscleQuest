@@ -8,6 +8,8 @@ export interface WorkoutRecord {
   plan_id: number;
   name: string;
   exercises: {
+    /** The plan row (user_workout_exercises.id). */
+    id?: number;
     exercise_id: number;
     name: string;
     description: string;
@@ -54,6 +56,7 @@ export interface RawWorkoutRecord {
   sets: string | null;
   exercise_order: number | null;
   superset_group_id: string | null;
+  uwe_id: number | null;
 }
 
 const fetchPlanData = async (planId: number): Promise<Plan | null> => {
@@ -91,7 +94,8 @@ const fetchWorkoutsForPlan = async (
         user_workout_exercises.tracking_type_override,
         user_workout_exercises.sets,
         user_workout_exercises.exercise_order,
-        user_workout_exercises.superset_group_id
+        user_workout_exercises.superset_group_id,
+        user_workout_exercises.id AS uwe_id
       FROM user_workouts
       LEFT JOIN user_workout_exercises ON user_workout_exercises.workout_id = user_workouts.id
       LEFT JOIN exercises ON exercises.exercise_id = user_workout_exercises.exercise_id
@@ -133,6 +137,8 @@ const parseWorkouts = (rawWorkouts: RawWorkoutRecord[]) => {
 
     if (rawWorkout.exercise_id && rawWorkout.exercise_name) {
       workout.exercises.push({
+        // The plan row, so saving the plan edits each block's own row.
+        id: rawWorkout.uwe_id ?? undefined,
         exercise_id: rawWorkout.exercise_id,
         name: rawWorkout.exercise_name,
         description: rawWorkout.description || "",

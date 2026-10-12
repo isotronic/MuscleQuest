@@ -21,6 +21,7 @@ export default function TrainingPlanCard({
   isActive,
   isPublished,
   width = 300,
+  footer,
 }: {
   title?: string;
   imageUrl?: string;
@@ -28,6 +29,8 @@ export default function TrainingPlanCard({
   isActive: boolean;
   isPublished?: boolean;
   width?: number;
+  /** Shown under the image, e.g. a premade plan's chips. */
+  footer?: React.ReactNode;
 }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors, width), [colors, width]);
@@ -66,36 +69,41 @@ export default function TrainingPlanCard({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
-        <Animated.View style={[styles.card, cardStyle]}>
-          <Card style={styles.card}>
-            <Card.Cover
-              style={{ borderRadius: radii.md }}
-              source={imageUrl ? planImageSource(imageUrl) : { uri: imageUrl }}
-            />
-            <View style={styles.floatingTitleContainer}>
-              <Text style={styles.floatingTitleText}>
-                {title || t`Training Plan`}
-              </Text>
-            </View>
-            {isActive && (
-              <View style={styles.activeBadge}>
-                <Text style={styles.activeBadgeText}>
-                  <Trans>Active</Trans>
+        <View>
+          <Animated.View style={[styles.card, cardStyle]}>
+            <Card style={styles.card}>
+              <Card.Cover
+                style={{ borderRadius: radii.md }}
+                source={
+                  imageUrl ? planImageSource(imageUrl) : { uri: imageUrl }
+                }
+              />
+              <View style={styles.floatingTitleContainer}>
+                <Text style={styles.floatingTitleText}>
+                  {title || t`Training Plan`}
                 </Text>
               </View>
-            )}
-            {isPublished && (
-              <View style={styles.publishedBadge}>
-                <AppIcon
-                  set="mci"
-                  name="cloud-check"
-                  size={16}
-                  color={colors.accent}
-                />
-              </View>
-            )}
-          </Card>
-        </Animated.View>
+              {isActive && (
+                <View style={styles.activeBadge}>
+                  <Text style={styles.activeBadgeText}>
+                    <Trans>Active</Trans>
+                  </Text>
+                </View>
+              )}
+              {isPublished && (
+                <View style={styles.publishedBadge}>
+                  <AppIcon
+                    set="mci"
+                    name="cloud-check"
+                    size={16}
+                    color={colors.accent}
+                  />
+                </View>
+              )}
+            </Card>
+          </Animated.View>
+          {footer ? <View style={styles.footer}>{footer}</View> : null}
+        </View>
       </TouchableWithoutFeedback>
     </ThemedView>
   );
@@ -113,6 +121,10 @@ function createStyles(colors: AppThemeColors, width: number) {
       width,
       borderRadius: radii.md,
       overflow: "hidden",
+    },
+    footer: {
+      width,
+      marginTop: 6,
     },
     floatingTitleContainer: {
       position: "absolute",

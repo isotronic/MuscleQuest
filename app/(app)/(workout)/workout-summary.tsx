@@ -32,6 +32,7 @@ import {
   toLocalDateKey,
 } from "@/utils/dates";
 import { useAppTheme, radii } from "@/theme";
+import { loggedInstanceName } from "@/utils/exerciseInstance";
 import type { AppThemeColors } from "@/theme/types";
 import ProgressionSummaryCard from "@/components/ProgressionSummaryCard";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
@@ -197,10 +198,13 @@ function DiffChip({
 
 function ExerciseRow({
   exercise,
+  name,
   weightUnit,
   distanceUnit,
 }: {
   exercise: CompletedWorkout["exercises"][0];
+  /** The exercise name, numbered when the workout repeats it. */
+  name: string;
   weightUnit: string;
   distanceUnit: string;
 }) {
@@ -208,7 +212,7 @@ function ExerciseRow({
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [expanded, setExpanded] = useState(false);
   const bestLabel = getBestSetLabel(exercise, weightUnit, distanceUnit);
-  const exerciseName = exercise.exercise_name;
+  const exerciseName = name;
 
   return (
     <View style={styles.exerciseCard}>
@@ -222,7 +226,7 @@ function ExerciseRow({
         >
           <View style={styles.exerciseHeaderText}>
             <ThemedText type="defaultSemiBold" style={styles.exerciseName}>
-              {exercise.exercise_name}
+              {name}
             </ThemedText>
             <ThemedText style={styles.exerciseMeta}>
               <Plural value={exercise.sets.length} one="# set" other="# sets" />
@@ -498,12 +502,24 @@ export default function WorkoutSummaryScreen() {
     [prevWorkout, excludeWarmup, countUnilateralDouble, doubleWeightForPaired],
   );
 
-  // Only exercises that were saved with this workout.
+  // Only blocks that were saved with this workout: by plan row, so a skipped
+  // block of an exercise logged twice gets no prompt; by exercise for
+  // anything saved without a row.
   const savedCatchUpPrompts = useMemo(() => {
     if (!workout || !progressionSettings.enabled) return [];
-    const saved = new Set(workout.exercises.map((e) => e.exercise_id));
+    const savedRows = new Set<number>();
+    const savedWithoutRow = new Set<number>();
+    for (const e of workout.exercises) {
+      if (e.user_workout_exercise_id != null) {
+        savedRows.add(e.user_workout_exercise_id);
+      } else {
+        savedWithoutRow.add(e.exercise_id);
+      }
+    }
     return catchUpPrompts.filter((p) =>
-      saved.has(p.exerciseContext.exerciseId),
+      p.userWorkoutExerciseId != null && savedRows.has(p.userWorkoutExerciseId)
+        ? true
+        : savedWithoutRow.has(p.exerciseContext.exerciseId),
     );
   }, [catchUpPrompts, workout, progressionSettings.enabled]);
 
@@ -705,10 +721,15 @@ export default function WorkoutSummaryScreen() {
         <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
           <Trans>Exercises</Trans>
         </ThemedText>
-        {workout.exercises.map((exercise) => (
+        {workout.exercises.map((exercise, i) => (
           <ExerciseRow
-            key={exercise.exercise_id}
+            key={exercise.completed_exercise_id}
             exercise={exercise}
+            name={loggedInstanceName(
+              workout.exercises,
+              i,
+              exercise.exercise_name,
+            )}
             weightUnit={weightUnit}
             distanceUnit={distanceUnit}
           />

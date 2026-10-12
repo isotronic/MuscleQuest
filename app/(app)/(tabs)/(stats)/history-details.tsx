@@ -37,6 +37,7 @@ import { useDeleteCompletedWorkoutMutation } from "@/hooks/useDeleteCompletedWor
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { useAppTheme, radii } from "@/theme";
+import { loggedInstanceName } from "@/utils/exerciseInstance";
 import type { AppThemeColors } from "@/theme/types";
 import { displayWorkoutName } from "@/utils/workoutName";
 import { formatNumber } from "@/utils/numberFormat";
@@ -355,14 +356,17 @@ export default function HistoryDetailsScreen() {
 
         {/* Exercise List */}
         <View style={styles.exerciseList}>
-          {workout.exercises.map((exercise) => {
+          {workout.exercises.map((exercise, exerciseIndex) => {
             const imageUri = exerciseThumbnailUri(
               exercise.exercise_image_uri,
               exercise.exercise_image,
             );
 
             return (
-              <Card key={exercise.exercise_id} style={styles.exerciseCard}>
+              <Card
+                key={exercise.completed_exercise_id}
+                style={styles.exerciseCard}
+              >
                 <TouchableOpacity
                   accessibilityRole="button"
                   accessibilityHint={t`Opens this exercise`}
@@ -384,7 +388,11 @@ export default function HistoryDetailsScreen() {
                     />
                   )}
                   <ThemedText style={styles.exerciseName}>
-                    {exercise.exercise_name}
+                    {loggedInstanceName(
+                      workout.exercises,
+                      exerciseIndex,
+                      exercise.exercise_name,
+                    )}
                   </ThemedText>
                   <AppIcon
                     set="mci"

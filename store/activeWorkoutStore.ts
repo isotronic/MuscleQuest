@@ -9,7 +9,11 @@ import { formatFromTotalSeconds } from "@/utils/utility";
 import { parseDbTimestamp } from "@/utils/dates";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
-import { findHistoricalSetByOrdinal } from "@/utils/historyUtils";
+import {
+  findHistoricalSetByOrdinal,
+  historyForRow,
+} from "@/utils/historyUtils";
+import { rowIdentity } from "@/utils/exerciseInstance";
 import { suggestedWeightForDisplay } from "@/utils/weightUnits";
 import Bugsnag from "@bugsnag/expo";
 import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
@@ -537,12 +541,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               fromSetIndex,
               toSetIndex,
             );
-            const historyExercises =
-              previousWorkoutData
-                ?.flatMap((w) => w.exercises)
-                .filter(
-                  (prevEx) => prevEx.exercise_id === exercise.exercise_id,
-                ) ?? [];
+            const historyExercises = historyForRow(
+              previousWorkoutData,
+              rowIdentity(workout.exercises, exerciseIndex),
+            );
             const nextHistorical = findHistoricalSetByOrdinal(
               exercise.sets,
               toSetIndex,
@@ -735,12 +737,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             [currentExerciseIndex]: nextSetIndex,
           };
 
-          const historyExercises =
-            previousWorkoutData
-              ?.flatMap((workout) => workout.exercises)
-              .filter(
-                (prevEx) => prevEx.exercise_id === currentExercise.exercise_id,
-              ) ?? [];
+          const historyExercises = historyForRow(
+            previousWorkoutData,
+            rowIdentity(workout.exercises, currentExerciseIndex),
+          );
 
           const currentSetValues =
             weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
@@ -1910,9 +1910,10 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             );
             const historyExercises =
               suggestion.suggestionAction === "increase_load"
-                ? (state.previousWorkoutData ?? [])
-                    .flatMap((w) => w.exercises)
-                    .filter((ex) => ex.exercise_id === exercise.exercise_id)
+                ? historyForRow(
+                    state.previousWorkoutData,
+                    rowIdentity(state.workout.exercises, exerciseIndex),
+                  )
                 : [];
             for (const idx of workingSetIndices) {
               // Never let an increase suggestion undercut what the user

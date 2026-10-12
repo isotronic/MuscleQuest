@@ -198,32 +198,44 @@ export const updateWorkoutPlan = async (
             );
           }
 
-          // Fetch existing exercises for the workout
+          // Existing rows, matched to the edited list so each block keeps
+          // its own row (and the progression state keyed on it): by the row
+          // id the editor carries, else (a draft from before ids were kept)
+          // the n-th instance of an exercise takes the n-th row of it.
           const existingExercises: { id: number; exercise_id: number }[] =
             await txn.getAllAsync(
-              `SELECT id, exercise_id FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE`,
+              `SELECT id, exercise_id FROM user_workout_exercises WHERE workout_id = ? AND is_deleted = FALSE ORDER BY exercise_order, id`,
               [workoutId],
             );
-          const existingExerciseIds = existingExercises.map(
-            (e) => e.exercise_id,
+          const existingById = new Map(
+            existingExercises.map((row) => [row.id, row]),
           );
-
-          // Find and mark exercises for deletion that are not in the updated workout
-          const exerciseIdsToKeep = workout.exercises.map((e) => e.exercise_id);
-          const exercisesToDelete = existingExercises.filter(
-            (e) => !exerciseIdsToKeep.includes(e.exercise_id),
-          );
-
-          for (const exercise of exercisesToDelete) {
-            await txn.runAsync(
-              `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
-              [exercise.id],
-            );
+          const matchedRows = new Map<number, number>(); // index -> row id
+          workout.exercises.forEach((exercise, index) => {
+            const row =
+              exercise.id != null ? existingById.get(exercise.id) : undefined;
+            if (row && row.exercise_id === exercise.exercise_id) {
+              matchedRows.set(index, row.id);
+              existingById.delete(row.id);
+            }
+          });
+          const carriesIds = workout.exercises.some((e) => e.id != null);
+          const rowsByExercise = new Map<number, number[]>();
+          if (!carriesIds) {
+            for (const row of existingById.values()) {
+              const ids = rowsByExercise.get(row.exercise_id) ?? [];
+              ids.push(row.id);
+              rowsByExercise.set(row.exercise_id, ids);
+            }
           }
 
           // Insert or update exercises and sets
           for (const [exerciseOrder, exercise] of workout.exercises.entries()) {
-            if (!existingExerciseIds.includes(exercise.exercise_id)) {
+            const rowId =
+              matchedRows.get(exerciseOrder) ??
+              rowsByExercise.get(exercise.exercise_id)?.shift();
+            if (rowId !== undefined) existingById.delete(rowId);
+            if (rowId === undefined) {
               // Insert new exercise
               await txn.runAsync(
                 `INSERT INTO user_workout_exercises (workout_id, exercise_id, sets, exercise_order, superset_group_id, tracking_type_override) VALUES (?, ?, ?, ?, ?, ?)`,
@@ -239,17 +251,24 @@ export const updateWorkoutPlan = async (
             } else {
               // Update existing exercise
               await txn.runAsync(
-                `UPDATE user_workout_exercises SET sets = ?, exercise_order = ?, superset_group_id = ?, tracking_type_override = ? WHERE workout_id = ? AND exercise_id = ?`,
+                `UPDATE user_workout_exercises SET sets = ?, exercise_order = ?, superset_group_id = ?, tracking_type_override = ? WHERE id = ?`,
                 [
                   JSON.stringify(exercise.sets),
                   exerciseOrder,
                   exercise.supersetGroupId ?? null,
                   exercise.tracking_type_override ?? null,
-                  workoutId,
-                  exercise.exercise_id,
+                  rowId,
                 ],
               );
             }
+          }
+
+          // Rows left over were removed in the editor
+          for (const rowId of existingById.keys()) {
+            await txn.runAsync(
+              `UPDATE user_workout_exercises SET is_deleted = TRUE WHERE id = ?`,
+              [rowId],
+            );
           }
         }
       } catch (error: any) {

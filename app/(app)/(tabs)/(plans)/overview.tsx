@@ -49,6 +49,9 @@ import { useDuplicatePlanMutation } from "@/hooks/useDuplicatePlanMutation";
 import { CopyWorkoutModal } from "@/components/CopyWorkoutModal";
 import { planImageSource } from "@/constants/PlanImages";
 import { ActivePlanAction } from "@/components/ActivePlanAction";
+import { PlanMetaChips } from "@/components/PlanMetaChips";
+import { premadePlanMeta } from "@/constants/premadePlanMeta";
+import { useLingui } from "@lingui/react";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -113,6 +116,7 @@ export default function PlanOverviewScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { planId } = useLocalSearchParams();
+  const { _ } = useLingui();
   const {
     data: plan,
     isLoading,
@@ -120,6 +124,7 @@ export default function PlanOverviewScreen() {
     refetch,
   } = usePlanQuery(Number(planId));
   const { data: scheduleEntries = [] } = usePlanScheduleQuery(Number(planId));
+  const premadeMeta = premadePlanMeta(plan?.app_plan_id);
   const { data: settings } = useSettingsQuery();
   const weekRule = useWeekRule();
   const weekStartsOn = weekStartsOnToday(weekRule);
@@ -326,6 +331,18 @@ export default function PlanOverviewScreen() {
                 <Trans>Active</Trans>
               </ThemedText>
             </View>
+          )}
+          {premadeMeta && (
+            <>
+              <PlanMetaChips
+                appPlanId={plan?.app_plan_id}
+                detailed
+                style={styles.metaChips}
+              />
+              <ThemedText style={styles.planDescription}>
+                {_(premadeMeta.description)}
+              </ThemedText>
+            </>
           )}
         </View>
 
@@ -546,6 +563,17 @@ function createStyles(colors: AppThemeColors) {
       width: "100%",
       height: 200,
       borderRadius: radii.md,
+    },
+    metaChips: {
+      justifyContent: "center",
+      marginTop: 10,
+    },
+    planDescription: {
+      fontSize: 15,
+      lineHeight: 21,
+      color: colors.contentSecondary,
+      textAlign: "center",
+      marginTop: 10,
     },
     planName: {
       fontSize: 24,

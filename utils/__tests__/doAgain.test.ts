@@ -111,7 +111,7 @@ describe("buildDoAgainExercises", () => {
     expect(exercise.tracking_type).toBe("reps");
   });
 
-  it("leaves out exercises no longer in the library and repeats", () => {
+  it("leaves out exercises no longer in the library, keeps repeats", () => {
     const result = buildDoAgainExercises(
       completed([
         {
@@ -139,7 +139,7 @@ describe("buildDoAgainExercises", () => {
       [libraryRow(100)],
       60,
     );
-    expect(result.map((e) => e.exercise_id)).toEqual([100]);
+    expect(result.map((e) => e.exercise_id)).toEqual([100, 100]);
   });
 });
 

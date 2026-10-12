@@ -1,6 +1,11 @@
 import { act } from "@testing-library/react-native";
 import { useWorkoutStore } from "../workoutStore";
 
+let mockUuid = 0;
+jest.mock("expo-crypto", () => ({
+  randomUUID: () => `uuid-${++mockUuid}`,
+}));
+
 describe("useWorkoutStore", () => {
   // Reset the store to a clean initial state before each test
   beforeEach(() => {
@@ -179,8 +184,8 @@ describe("useWorkoutStore", () => {
         ],
       });
 
-      // Remove exercise with exercise_id = 100 in workout index 0
-      useWorkoutStore.getState().removeExercise(0, 100);
+      // Remove the first exercise (Push-up) in workout index 0
+      useWorkoutStore.getState().removeExercise(0, 0);
     });
 
     const { workouts } = useWorkoutStore.getState();
@@ -301,7 +306,7 @@ describe("useWorkoutStore", () => {
         ],
       });
 
-      useWorkoutStore.getState().addSetToExercise(0, 400, {
+      useWorkoutStore.getState().addSetToExercise(0, 0, {
         repsMin: 5,
         repsMax: 8,
         restMinutes: 1,
@@ -358,7 +363,7 @@ describe("useWorkoutStore", () => {
       });
 
       // Update the second set (index 1)
-      useWorkoutStore.getState().updateSetInExercise(0, 500, 1, {
+      useWorkoutStore.getState().updateSetInExercise(0, 0, 1, {
         repsMin: 4,
         repsMax: 6,
         restMinutes: 3,
@@ -417,11 +422,79 @@ describe("useWorkoutStore", () => {
       });
 
       // Remove the first set (index 0)
-      useWorkoutStore.getState().removeSetFromExercise(0, 600, 0);
+      useWorkoutStore.getState().removeSetFromExercise(0, 0, 0);
     });
 
     const { workouts } = useWorkoutStore.getState();
     expect(workouts[0].exercises[0].sets).toHaveLength(1);
     expect(workouts[0].exercises[0].sets[0].repsMin).toBe(10); // The second set remains
+  });
+
+  describe("the same exercise twice", () => {
+    const squat = (reps: number) => ({
+      exercise_id: 200,
+      name: "Squat",
+      image: [],
+      local_animated_uri: "",
+      animated_url: "",
+      equipment: "barbell",
+      body_part: "legs",
+      target_muscle: "quads",
+      secondary_muscles: [],
+      description: "",
+      sets: [
+        {
+          repsMin: reps,
+          repsMax: reps,
+          restMinutes: 2,
+          restSeconds: 0,
+          time: undefined,
+        },
+      ],
+    });
+
+    beforeEach(() => {
+      act(() => {
+        useWorkoutStore.setState({
+          workouts: [{ id: 1, name: "Legs", exercises: [squat(3), squat(8)] }],
+        });
+      });
+    });
+
+    it("edits only the block it is given", () => {
+      act(() => {
+        useWorkoutStore.getState().addSetToExercise(0, 1, {
+          repsMin: 10,
+          repsMax: 10,
+          restMinutes: 1,
+          restSeconds: 0,
+          time: undefined,
+        });
+      });
+      const [heavy, backOff] = useWorkoutStore.getState().workouts[0].exercises;
+      expect(heavy.sets).toHaveLength(1);
+      expect(backOff.sets.map((s) => s.repsMin)).toEqual([8, 10]);
+    });
+
+    it("gives each added block its own row key", () => {
+      act(() => {
+        useWorkoutStore.getState().addExercise(0, squat(5));
+        useWorkoutStore.getState().addExercise(0, squat(5));
+      });
+      const keys = useWorkoutStore
+        .getState()
+        .workouts[0].exercises.slice(2)
+        .map((e) => e.clientKey);
+      expect(keys[0]).toBeTruthy();
+      expect(keys[0]).not.toBe(keys[1]);
+    });
+
+    it("removes only the block it is given", () => {
+      act(() => {
+        useWorkoutStore.getState().removeExercise(0, 1);
+      });
+      const { exercises } = useWorkoutStore.getState().workouts[0];
+      expect(exercises.map((e) => e.sets[0].repsMin)).toEqual([3]);
+    });
   });
 });
