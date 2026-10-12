@@ -74,6 +74,26 @@ describe("the same exercise twice in one workout", () => {
     ]);
   });
 
+  it("reads a lone back-off block as the second block", async () => {
+    // The heavy block (row 1) was skipped; bench and back-off (row 3) logged.
+    const id = await saveCompletedWorkout(1, 2, 600, 4, false, [
+      { exercise_id: 200, user_workout_exercise_id: 2, sets: sets(80, 8) },
+      { exercise_id: 100, user_workout_exercise_id: 3, sets: sets(110, 8) },
+    ]);
+
+    const workout = await fetchCompletedWorkoutById(id);
+    expect(
+      workout.exercises.map((e) => [
+        e.exercise_id,
+        e.user_workout_exercise_id,
+        e.plan_occurrence,
+      ]),
+    ).toEqual([
+      [200, 2, 0],
+      [100, 3, 1],
+    ]);
+  });
+
   it("keeps two plan rows when the plan is saved, matched in order", async () => {
     const block = (exercise_id: number, reps: number) =>
       ({
@@ -119,6 +139,35 @@ describe("the same exercise twice in one workout", () => {
       [2, 200, 1, null, 1],
       [3, 100, 1, 8, 0],
       [4, 100, 2, 12, 0],
+    ]);
+  });
+
+  it("keeps each block's own row when the editor carries row ids", async () => {
+    const block = (id: number | undefined, reps: number) =>
+      ({
+        id,
+        exercise_id: 100,
+        name: "",
+        sets: [
+          { repsMin: reps, repsMax: reps, restMinutes: 2, restSeconds: 0 },
+        ],
+      }) as unknown as UserExercise;
+
+    // The heavy block (row 1) and bench are deleted; back-off (row 3) stays,
+    // and a new block is added.
+    await updateWorkoutPlan(1, "Plan", "", [
+      { id: 2, name: "Legs", exercises: [block(3, 8), block(undefined, 15)] },
+    ]);
+
+    expect(
+      sqlite
+        .prepare(
+          `SELECT id, exercise_order FROM user_workout_exercises WHERE is_deleted = 0 ORDER BY exercise_order`,
+        )
+        .all(),
+    ).toEqual([
+      { id: 3, exercise_order: 0 },
+      { id: 4, exercise_order: 1 },
     ]);
   });
 });
