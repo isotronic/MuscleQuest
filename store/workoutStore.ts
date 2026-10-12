@@ -55,10 +55,7 @@ interface WorkoutStore {
   reorderWorkouts: (fromIndex: number, toIndex: number) => void;
   changeWorkoutName: (index: number, name: string) => void;
   addExercise: (index: number, exercise: UserExercise) => void;
-  removeExercise: (
-    index: number,
-    exerciseId: UserExercise["exercise_id"],
-  ) => void;
+  removeExercise: (index: number, exerciseIndex: number) => void;
   replaceExercise: (
     workoutIndex: number,
     exerciseIndex: number,
@@ -68,29 +65,29 @@ interface WorkoutStore {
   ) => void;
   addSetToExercise: (
     workoutIndex: number,
-    exerciseId: number,
+    exerciseIndex: number,
     set: Set,
   ) => void;
   insertSetAtExercise: (
     workoutIndex: number,
-    exerciseId: number,
+    exerciseIndex: number,
     atIndex: number,
     set: Set,
   ) => void;
   updateSetInExercise: (
     workoutIndex: number,
-    exerciseId: number,
+    exerciseIndex: number,
     setIndex: number,
     set: Set,
   ) => void;
   removeSetFromExercise: (
     workoutIndex: number,
-    exerciseId: number,
+    exerciseIndex: number,
     setIndex: number,
   ) => void;
   setExerciseTrackingTypeOverride: (
     workoutIndex: number,
-    exerciseId: number,
+    exerciseIndex: number,
     override: string | undefined,
   ) => void;
   createSuperset: (
@@ -109,6 +106,18 @@ interface WorkoutStore {
   saveDraftEntry: (key: string, entry: DraftEntry) => void;
   clearDraftEntry: (key: string) => void;
   clearDraft: () => void;
+}
+
+/** The index of the other half of the exercise's superset, or -1. */
+function supersetPartnerIndex(
+  exercises: UserExercise[],
+  exerciseIndex: number,
+): number {
+  const groupId = exercises[exerciseIndex]?.supersetGroupId;
+  if (!groupId) return -1;
+  return exercises.findIndex(
+    (e, i) => i !== exerciseIndex && e.supersetGroupId === groupId,
+  );
 }
 
 const useWorkoutStore = create<WorkoutStore>()(
@@ -203,16 +212,14 @@ const useWorkoutStore = create<WorkoutStore>()(
           }),
         }));
       },
-      removeExercise: (index, exerciseId) =>
+      removeExercise: (index, exerciseIndex) =>
         set((state) => ({
           ...state,
           workouts: state.workouts.map((w, i) => {
             if (i === index) {
               return {
                 ...w,
-                exercises: w.exercises.filter(
-                  (e) => e.exercise_id !== exerciseId,
-                ),
+                exercises: w.exercises.filter((_, j) => j !== exerciseIndex),
               };
             }
             return w;
@@ -267,35 +274,23 @@ const useWorkoutStore = create<WorkoutStore>()(
           return { workouts: updatedWorkouts };
         });
       },
-      addSetToExercise: (
-        workoutIndex: number,
-        exerciseId: number,
-        newSet: Set,
-      ) => {
+      addSetToExercise: (workoutIndex, exerciseIndex, newSet) => {
         set((state) => {
           const workout = state.workouts[workoutIndex];
-          if (!workout) return state;
-
-          const targetExercise = workout.exercises.find(
-            (e) => e.exercise_id === exerciseId,
+          if (!workout?.exercises[exerciseIndex]) return state;
+          const partner = supersetPartnerIndex(
+            workout.exercises,
+            exerciseIndex,
           );
-          const supersetGroupId = targetExercise?.supersetGroupId;
-          const partner = supersetGroupId
-            ? workout.exercises.find(
-                (e) =>
-                  e.exercise_id !== exerciseId &&
-                  e.supersetGroupId === supersetGroupId,
-              )
-            : null;
 
           const workouts = state.workouts.map((w, wIndex) => {
             if (wIndex !== workoutIndex) return w;
-            const exercises = w.exercises.map((exercise) => {
-              if (exercise.exercise_id === exerciseId) {
+            const exercises = w.exercises.map((exercise, eIndex) => {
+              if (eIndex === exerciseIndex) {
                 return { ...exercise, sets: [...exercise.sets, newSet] };
               }
               // Mirror to superset partner: copy partner's last set as template
-              if (partner && exercise.exercise_id === partner.exercise_id) {
+              if (eIndex === partner) {
                 const lastSet =
                   exercise.sets[exercise.sets.length - 1] ?? newSet;
                 return {
@@ -310,30 +305,24 @@ const useWorkoutStore = create<WorkoutStore>()(
           return { workouts };
         });
       },
-      insertSetAtExercise: (workoutIndex, exerciseId, atIndex, newSet) => {
+      insertSetAtExercise: (workoutIndex, exerciseIndex, atIndex, newSet) => {
         set((state) => {
           const workout = state.workouts[workoutIndex];
-          if (!workout) return state;
-          const targetExercise = workout.exercises.find(
-            (e) => e.exercise_id === exerciseId,
+          if (!workout?.exercises[exerciseIndex]) return state;
+          const partner = supersetPartnerIndex(
+            workout.exercises,
+            exerciseIndex,
           );
-          const partner = targetExercise?.supersetGroupId
-            ? workout.exercises.find(
-                (e) =>
-                  e.exercise_id !== exerciseId &&
-                  e.supersetGroupId === targetExercise.supersetGroupId,
-              )
-            : null;
 
           const workouts = state.workouts.map((w, wIndex) => {
             if (wIndex !== workoutIndex) return w;
-            const exercises = w.exercises.map((exercise) => {
-              if (exercise.exercise_id === exerciseId) {
+            const exercises = w.exercises.map((exercise, eIndex) => {
+              if (eIndex === exerciseIndex) {
                 const sets = [...exercise.sets];
                 sets.splice(atIndex, 0, newSet);
                 return { ...exercise, sets };
               }
-              if (partner && exercise.exercise_id === partner.exercise_id) {
+              if (eIndex === partner) {
                 const lastSet =
                   exercise.sets[exercise.sets.length - 1] ?? newSet;
                 const clone = {
@@ -354,18 +343,18 @@ const useWorkoutStore = create<WorkoutStore>()(
         });
       },
       updateSetInExercise: (
-        workoutIndex: number,
-        exerciseId: number,
-        setIndex: number,
-        updatedSet: Set,
+        workoutIndex,
+        exerciseIndex,
+        setIndex,
+        updatedSet,
       ) => {
         set((state) => {
           const workouts = state.workouts.map((workout, wIndex) => {
             if (wIndex !== workoutIndex) {
               return workout;
             }
-            const exercises = workout.exercises.map((exercise) => {
-              if (exercise.exercise_id !== exerciseId) {
+            const exercises = workout.exercises.map((exercise, eIndex) => {
+              if (eIndex !== exerciseIndex) {
                 return exercise;
               }
               const sets = exercise.sets.map((set, sIndex) => {
@@ -387,44 +376,23 @@ const useWorkoutStore = create<WorkoutStore>()(
           return { workouts };
         });
       },
-      removeSetFromExercise: (
-        workoutIndex: number,
-        exerciseId: number,
-        setIndex: number,
-      ) => {
+      removeSetFromExercise: (workoutIndex, exerciseIndex, setIndex) => {
         set((state) => {
           const workout = state.workouts[workoutIndex];
-          if (!workout) return state;
-
-          const targetExercise = workout.exercises.find(
-            (e) => e.exercise_id === exerciseId,
+          if (!workout?.exercises[exerciseIndex]) return state;
+          const partner = supersetPartnerIndex(
+            workout.exercises,
+            exerciseIndex,
           );
-          const supersetGroupId = targetExercise?.supersetGroupId;
-          const partner = supersetGroupId
-            ? workout.exercises.find(
-                (e) =>
-                  e.exercise_id !== exerciseId &&
-                  e.supersetGroupId === supersetGroupId,
-              )
-            : null;
 
           const workouts = state.workouts.map((w, wIndex) => {
             if (wIndex !== workoutIndex) {
               return w;
             }
-            const exercises = w.exercises.map((exercise) => {
-              if (exercise.exercise_id === exerciseId) {
-                // Must keep at least 1 set
-                if (exercise.sets.length <= 1) return exercise;
-                return {
-                  ...exercise,
-                  sets: exercise.sets.filter(
-                    (_, sIndex) => sIndex !== setIndex,
-                  ),
-                };
-              }
+            const exercises = w.exercises.map((exercise, eIndex) => {
               // Mirror removal to superset partner
-              if (partner && exercise.exercise_id === partner.exercise_id) {
+              if (eIndex === exerciseIndex || eIndex === partner) {
+                // Must keep at least 1 set
                 if (exercise.sets.length <= 1) return exercise;
                 return {
                   ...exercise,
@@ -443,14 +411,18 @@ const useWorkoutStore = create<WorkoutStore>()(
           return { workouts };
         });
       },
-      setExerciseTrackingTypeOverride: (workoutIndex, exerciseId, override) =>
+      setExerciseTrackingTypeOverride: (
+        workoutIndex,
+        exerciseIndex,
+        override,
+      ) =>
         set((state) => ({
           workouts: state.workouts.map((w, i) => {
             if (i !== workoutIndex) return w;
             return {
               ...w,
-              exercises: w.exercises.map((e) => {
-                if (e.exercise_id !== exerciseId) return e;
+              exercises: w.exercises.map((e, eIndex) => {
+                if (eIndex !== exerciseIndex) return e;
                 const { tracking_type_override: _, ...rest } = e;
                 return override !== undefined
                   ? { ...rest, tracking_type_override: override }

@@ -227,6 +227,31 @@ export const fetchLastCompletedPlanWorkout = async (
   }
 };
 
+// A column of the plan row a session's exercise `ce` came from, in the
+// session `cw`. With two blocks of one exercise, the n-th block saved matches
+// the n-th row in the plan; otherwise (the plan changed since) the first
+// row, a live one before a deleted one.
+const planRowSql = (column: string) => `COALESCE(
+  (SELECT u.${column} FROM user_workout_exercises u
+   WHERE u.workout_id = cw.workout_id AND u.exercise_id = ce.exercise_id
+     AND u.is_deleted = 0
+     AND (
+       SELECT COUNT(*) FROM user_workout_exercises u2
+       WHERE u2.workout_id = u.workout_id AND u2.exercise_id = u.exercise_id
+         AND u2.is_deleted = 0
+         AND (u2.exercise_order < u.exercise_order
+           OR (u2.exercise_order = u.exercise_order AND u2.id < u.id))
+     ) = (
+       SELECT COUNT(*) FROM completed_exercises c2
+       WHERE c2.completed_workout_id = ce.completed_workout_id
+         AND c2.exercise_id = ce.exercise_id AND c2.id < ce.id
+     )),
+  (SELECT u.${column} FROM user_workout_exercises u
+   WHERE u.workout_id = cw.workout_id AND u.exercise_id = ce.exercise_id
+   ORDER BY u.is_deleted, u.exercise_order, u.id
+   LIMIT 1)
+)`;
+
 interface CompletedWorkoutRow {
   id: number;
   plan_id: number;
@@ -285,7 +310,7 @@ export const fetchCompletedWorkoutById = async (
         e.name as exercise_name,
         e.image_uri as exercise_image_uri,
         CASE WHEN e.image_uri IS NULL THEN e.image END as exercise_image,
-        COALESCE(ce.resolved_tracking_type, uwe.tracking_type_override, e.tracking_type) as exercise_tracking_type,
+        COALESCE(ce.resolved_tracking_type, ${planRowSql("tracking_type_override")}, e.tracking_type) as exercise_tracking_type,
         e.is_unilateral,
         e.double_weight,
         cs.id as set_id,
@@ -300,13 +325,12 @@ export const fetchCompletedWorkoutById = async (
         cs.set_duration,
         cs.note,
         cw.notes,
-        uwe.exercise_order -- Include exercise order from user_workout_exercises
+        ${planRowSql("exercise_order")} as exercise_order
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
       LEFT JOIN exercises e ON e.exercise_id = ce.exercise_id -- Join exercises table for exercise details
       LEFT JOIN completed_sets cs ON ce.id = cs.completed_exercise_id
       LEFT JOIN user_workouts uw ON uw.id = cw.workout_id
-      LEFT JOIN user_workout_exercises uwe ON uwe.workout_id = cw.workout_id AND uwe.exercise_id = ce.exercise_id
       WHERE cw.id = ?
       ORDER BY ce.id, cs.set_number;
       `,

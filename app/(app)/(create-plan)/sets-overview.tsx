@@ -22,11 +22,17 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { planDistanceToDisplay } from "@/utils/planDistance";
 import { formatNumber } from "@/utils/numberFormat";
+import { instanceName } from "@/utils/exerciseInstance";
 
 export default function SetsOverviewScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { exerciseId, workoutIndex, trackingType } = useLocalSearchParams();
+  const {
+    exerciseIndex: exerciseIndexParam,
+    workoutIndex,
+    trackingType,
+  } = useLocalSearchParams();
+  const exerciseIndex = Number(exerciseIndexParam);
   const workouts = useWorkoutStore((state) => state.workouts);
 
   const { data: settings } = useSettingsQuery();
@@ -40,14 +46,12 @@ export default function SetsOverviewScreen() {
   const defaultTotalSeconds = totalSeconds;
 
   const currentWorkout = workouts[Number(workoutIndex)];
-  const exercise = currentWorkout?.exercises.find(
-    (ex) => ex.exercise_id === Number(exerciseId),
-  );
+  const exercise = currentWorkout?.exercises[exerciseIndex];
 
   const supersetPartner = exercise?.supersetGroupId
     ? currentWorkout?.exercises.find(
-        (ex) =>
-          ex.exercise_id !== Number(exerciseId) &&
+        (ex, i) =>
+          i !== exerciseIndex &&
           ex.supersetGroupId === exercise.supersetGroupId,
       )
     : null;
@@ -64,7 +68,7 @@ export default function SetsOverviewScreen() {
       .getState()
       .setExerciseTrackingTypeOverride(
         Number(workoutIndex),
-        Number(exerciseId),
+        exerciseIndex,
         isWeightedOverride ? undefined : "weight",
       );
   };
@@ -85,7 +89,7 @@ export default function SetsOverviewScreen() {
   const handleDeleteSet = (index: number) => {
     useWorkoutStore
       .getState()
-      .removeSetFromExercise(Number(workoutIndex), Number(exerciseId), index);
+      .removeSetFromExercise(Number(workoutIndex), exerciseIndex, index);
   };
 
   const handleAddWarmupSet = () => {
@@ -119,7 +123,7 @@ export default function SetsOverviewScreen() {
       .getState()
       .insertSetAtExercise(
         Number(workoutIndex),
-        Number(exerciseId),
+        exerciseIndex,
         insertIndex,
         newSet,
       );
@@ -195,12 +199,20 @@ export default function SetsOverviewScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen
         options={{
-          title: exercise?.name,
+          title: exercise
+            ? instanceName(
+                currentWorkout.exercises,
+                exerciseIndex,
+                exercise.name,
+              )
+            : undefined,
           headerRight: () => (
             <Button
               labelStyle={styles.buttonLabel}
               onPress={() =>
-                router.push(`/(app)/exercise-info?exercise_id=${exerciseId}`)
+                router.push(
+                  `/(app)/exercise-info?exercise_id=${exercise?.exercise_id}`,
+                )
               }
             >
               <Trans>Details</Trans>
@@ -274,7 +286,7 @@ export default function SetsOverviewScreen() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         workoutIndex={Number(workoutIndex)}
-        exerciseId={Number(exerciseId)}
+        exerciseIndex={exerciseIndex}
         setIndex={selectedSetIndex}
         defaultRepsMin={defaultRepsMin}
         defaultRepsMax={defaultRepsMax}

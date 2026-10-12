@@ -11,7 +11,7 @@ interface EditSetModalProps {
   visible: boolean;
   onClose: () => void;
   workoutIndex: number;
-  exerciseId: number;
+  exerciseIndex: number;
   setIndex: number | null;
   defaultRepsMin: number;
   defaultRepsMax: number;
@@ -31,7 +31,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
   visible,
   onClose,
   workoutIndex,
-  exerciseId,
+  exerciseIndex,
   setIndex,
   defaultRepsMin,
   defaultRepsMax,
@@ -47,9 +47,7 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
   const addSetToExercise = useWorkoutStore((state) => state.addSetToExercise);
   const workouts = useWorkoutStore((state) => state.workouts);
 
-  const exercise = workouts[Number(workoutIndex)]?.exercises.find(
-    (ex) => ex.exercise_id === Number(exerciseId),
-  );
+  const exercise = workouts[Number(workoutIndex)]?.exercises[exerciseIndex];
   const set = setIndex !== null ? exercise?.sets[setIndex] : null;
 
   const initialValues = useMemo<SetOptionsInitialValues>(() => {
@@ -140,15 +138,15 @@ export const EditSetModal: React.FC<EditSetModalProps> = ({
           (s.isWarmup ?? false) === values.isWarmup ||
           (setIndex !== null && sIndex === setIndex)
         ) {
-          updateSetInExercise(workoutIndex, exerciseId, sIndex, updatedSet);
+          updateSetInExercise(workoutIndex, exerciseIndex, sIndex, updatedSet);
         }
       });
     } else if (setIndex !== null) {
       // Update only the selected set
-      updateSetInExercise(workoutIndex, exerciseId, setIndex, updatedSet);
+      updateSetInExercise(workoutIndex, exerciseIndex, setIndex, updatedSet);
     } else {
       // Add a new set
-      addSetToExercise(workoutIndex, exerciseId, updatedSet);
+      addSetToExercise(workoutIndex, exerciseIndex, updatedSet);
     }
   };
 

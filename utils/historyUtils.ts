@@ -32,3 +32,21 @@ export function findHistoricalSetByOrdinal(
   }
   return undefined;
 }
+
+/**
+ * One history entry per past session for an exercise's n-th instance: the
+ * session's n-th instance of that exercise (sessions list them in save
+ * order), or its first when the session had fewer. Most recent first, as
+ * findHistoricalSetByOrdinal expects.
+ */
+export function historyForOccurrence<E extends { exercise_id: number }>(
+  workouts: { exercises: E[] }[] | null | undefined,
+  exerciseId: number,
+  occurrence: number,
+): E[] {
+  return (workouts ?? []).flatMap((w) => {
+    const instances = w.exercises.filter((e) => e.exercise_id === exerciseId);
+    const match = instances[occurrence] ?? instances[0];
+    return match ? [match] : [];
+  });
+}

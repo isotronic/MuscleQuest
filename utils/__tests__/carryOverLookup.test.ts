@@ -241,3 +241,51 @@ describe("findLastAvailableSetData", () => {
     expect(result?.weight).toBe(110);
   });
 });
+
+describe("two blocks of the same exercise", () => {
+  // Last session: heavy squats (140), bench, back-off squats (110). The one
+  // before only had the heavy block (135).
+  const previousWorkoutData: CarryOverWorkout[] = [
+    {
+      local_date: "2026-09-12",
+      exercises: [
+        { exercise_id: 1, sets: [makeSet({ weight: 140 })] },
+        { exercise_id: 2, sets: [makeSet({ weight: 80 })] },
+        { exercise_id: 1, sets: [makeSet({ weight: 110 })] },
+      ],
+    },
+    {
+      local_date: "2026-09-09",
+      exercises: [{ exercise_id: 1, sets: [makeSet({ weight: 135 })] }],
+    },
+  ];
+  const params = {
+    exerciseId: 1,
+    isWarmup: false,
+    ordinal: 0,
+    previousWorkoutData,
+    prevExercisesByExerciseId: buildExerciseMap(previousWorkoutData),
+    globalExercisesByExerciseId: new Map(),
+    alwaysUseGlobalHistory: false,
+  };
+
+  it("prefills each block from the same block last time", () => {
+    expect(findLastAvailableSetData({ ...params, occurrence: 0 })?.weight).toBe(
+      140,
+    );
+    expect(findLastAvailableSetData({ ...params, occurrence: 1 })?.weight).toBe(
+      110,
+    );
+  });
+
+  it("falls back to the first block when the session had fewer", () => {
+    expect(
+      findLastAvailableSetData({
+        ...params,
+        previousWorkoutData: [previousWorkoutData[1]],
+        prevExercisesByExerciseId: buildExerciseMap([previousWorkoutData[1]]),
+        occurrence: 1,
+      })?.weight,
+    ).toBe(135);
+  });
+});

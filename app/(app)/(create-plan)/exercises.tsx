@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { View, TextInput, StyleSheet, Alert } from "react-native";
+import { View, TextInput, StyleSheet } from "react-native";
 import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
 import { useExerciseSearch } from "@/hooks/useExerciseSearch";
 import { useExerciseSort } from "@/hooks/useExerciseSort";
@@ -51,7 +51,6 @@ export default function ExercisesScreen() {
 
   const { data: usageData } = useExerciseUsageQuery();
   const {
-    workouts,
     addExercise,
     newExerciseId,
     setNewExerciseId,
@@ -63,7 +62,6 @@ export default function ExercisesScreen() {
     supersetForIndex?: string;
   }>();
   const currentWorkoutIndex = Number(index);
-  const currentWorkout = workouts[currentWorkoutIndex];
   const replacing = replaceExerciseIndex !== undefined;
   const supersetMode = supersetForIndex !== undefined;
   const supersetForExerciseIndex = supersetMode
@@ -90,31 +88,16 @@ export default function ExercisesScreen() {
 
   const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
 
+  // Select a just-created custom exercise. The selection holds only what this
+  // visit adds: an exercise already in the workout can be added again.
   useEffect(() => {
-    if (currentWorkout?.exercises && !replacing && !supersetMode) {
-      const existingExerciseIds = currentWorkout.exercises.map(
-        (exercise) => exercise.exercise_id,
+    if (newExerciseId && !replacing && !supersetMode) {
+      setSelectedExercises((prev) =>
+        prev.includes(newExerciseId) ? prev : [...prev, newExerciseId],
       );
-      // If there is a newExerciseId, select it in addition to the existing exercises
-      if (newExerciseId) {
-        setSelectedExercises((prev) => [...prev, newExerciseId]);
-      } else {
-        setSelectedExercises((prev) => {
-          const newIds = existingExerciseIds.filter((id) => !prev.includes(id)); // Filter out duplicates
-          return [...prev, ...newIds]; // Add only new IDs
-        });
-      }
-
-      // Clear the newExerciseId after it's used
       setNewExerciseId(null);
     }
-  }, [
-    currentWorkout,
-    newExerciseId,
-    replacing,
-    supersetMode,
-    setNewExerciseId,
-  ]);
+  }, [newExerciseId, replacing, supersetMode, setNewExerciseId]);
 
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -137,21 +120,8 @@ export default function ExercisesScreen() {
 
   const handleSelectExercise = useCallback(
     (exerciseId: number) => {
-      const workout = workouts[currentWorkoutIndex];
-      const exerciseAlreadyExists = workout?.exercises.some(
-        (e) => e.exercise_id === exerciseId,
-      );
-
       if (supersetMode) {
         // Single-select: pair as superset partner
-        if (exerciseAlreadyExists) {
-          Alert.alert(
-            t`Exercise Already Added`,
-            t`This exercise is already in your workout. Please choose a different one.`,
-            [{ text: t`OK` }],
-          );
-          return;
-        }
         const exercise = allExercises.find(
           (ex) => ex.exercise_id === exerciseId,
         );
@@ -173,14 +143,6 @@ export default function ExercisesScreen() {
           router.back();
         }
       } else if (replacing) {
-        if (exerciseAlreadyExists) {
-          Alert.alert(
-            t`Exercise Already Added`,
-            t`This exercise is already in your workout. Please choose a different one.`,
-            [{ text: t`OK` }],
-          );
-          return;
-        }
         // Immediately replace the existing exercise with the selected one
         const exercise = allExercises.find(
           (ex) => ex.exercise_id === exerciseId,
@@ -214,7 +176,6 @@ export default function ExercisesScreen() {
       }
     },
     [
-      workouts,
       currentWorkoutIndex,
       supersetMode,
       replacing,
@@ -232,12 +193,7 @@ export default function ExercisesScreen() {
   const handleAddExercise = () => {
     selectedExercises.forEach((exerciseId) => {
       const exercise = allExercises.find((ex) => ex.exercise_id === exerciseId);
-      if (
-        exercise &&
-        !currentWorkout?.exercises.some(
-          (e) => e.exercise_id === exercise.exercise_id,
-        )
-      ) {
+      if (exercise) {
         const exerciseToAdd = {
           ...exercise,
           sets:

@@ -16,6 +16,7 @@ import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { planDistanceRange } from "@/utils/planDistance";
+import { instanceName, occurrenceIndex } from "@/utils/exerciseInstance";
 
 // Each item fed to Sortable.Grid is either a solo exercise or an adjacent superset pair.
 // The pair is treated as a single draggable unit so both exercises move together.
@@ -46,6 +47,14 @@ interface WorkoutCardProps {
   onAddExercise: (index: number) => void;
 }
 
+/**
+ * A row's key: its exercise plus which instance of it, so two blocks of the
+ * same exercise get their own rows and the key survives set edits.
+ */
+function rowKey(exercises: UserExercise[], index: number): string {
+  return `${exercises[index].exercise_id}-${occurrenceIndex(exercises, index)}`;
+}
+
 export default function WorkoutCard({
   workout,
   index,
@@ -70,16 +79,15 @@ export default function WorkoutCard({
     countUnilateralDouble,
   );
 
-  const openMenu = (exerciseId: number) => setMenuVisible(exerciseId);
+  // The open menu's row index.
+  const openMenu = (exerciseIndex: number) => setMenuVisible(exerciseIndex);
   const closeMenu = () => setMenuVisible(null);
 
   const workoutIndex = index;
 
   const removeExercise = useCallback(
-    (exerciseId: number) => {
-      const exercise = workout.exercises.find(
-        (ex) => ex.exercise_id === exerciseId,
-      );
+    (exerciseIndex: number) => {
+      const exercise = workout.exercises[exerciseIndex];
       if (!exercise) return;
       Alert.alert(
         t`Remove Exercise`,
@@ -92,7 +100,7 @@ export default function WorkoutCard({
             onPress: () => {
               useWorkoutStore
                 .getState()
-                .removeExercise(workoutIndex, exerciseId);
+                .removeExercise(workoutIndex, exerciseIndex);
             },
           },
         ],
@@ -144,8 +152,8 @@ export default function WorkoutCard({
     const seen = new Set<number>();
 
     workout.exercises.forEach((exercise, i) => {
-      if (seen.has(exercise.exercise_id)) return;
-      seen.add(exercise.exercise_id);
+      if (seen.has(i)) return;
+      seen.add(i);
 
       const { supersetGroupId } = exercise;
       if (supersetGroupId) {
@@ -154,8 +162,8 @@ export default function WorkoutCard({
         );
         const partner =
           partnerIdx !== -1 ? workout.exercises[partnerIdx] : null;
-        if (partner && !seen.has(partner.exercise_id)) {
-          seen.add(partner.exercise_id);
+        if (partner && !seen.has(partnerIdx)) {
+          seen.add(partnerIdx);
           result.push({
             type: "superset",
             exercises: [exercise, partner],
@@ -215,11 +223,11 @@ export default function WorkoutCard({
       const distanceRange = planDistanceRange(item.sets, distanceUnit);
 
       const isToFailure = item.sets.some((set) => set.isToFailure);
-      const isMenuOpen = menuVisible === item.exercise_id;
+      const isMenuOpen = menuVisible === exerciseIndex;
 
       return (
         <View
-          key={item.exercise_id}
+          key={rowKey(workout.exercises, exerciseIndex)}
           style={[
             styles.exerciseItem,
             isInSuperset && styles.supersetExerciseItem,
@@ -231,7 +239,7 @@ export default function WorkoutCard({
             accessibilityRole="button"
             onTap={() =>
               router.push(
-                `/sets-overview?exerciseId=${item.exercise_id}&workoutIndex=${workoutIndex}&exerciseIndex=${exerciseIndex}&trackingType=${item.tracking_type}`,
+                `/sets-overview?workoutIndex=${workoutIndex}&exerciseIndex=${exerciseIndex}&trackingType=${item.tracking_type}`,
               )
             }
             style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
@@ -244,7 +252,9 @@ export default function WorkoutCard({
               style={styles.dragIcon}
             />
             <View style={styles.exerciseInfo}>
-              <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
+              <ThemedText style={styles.exerciseName}>
+                {instanceName(workout.exercises, exerciseIndex, item.name)}
+              </ThemedText>
               <ThemedText style={styles.setsAndReps}>
                 {item?.sets?.length ? (
                   <Plural value={item.sets.length} one="# Set" other="# Sets" />
@@ -273,7 +283,7 @@ export default function WorkoutCard({
                 accessibilityLabel={t`Options for ${item.name}`}
                 icon="dots-vertical"
                 size={24}
-                onPress={() => openMenu(item.exercise_id)}
+                onPress={() => openMenu(exerciseIndex)}
                 iconColor={colors.contentPrimary}
               />
             }
@@ -281,7 +291,7 @@ export default function WorkoutCard({
             <Menu.Item
               onPress={() => {
                 closeMenu();
-                removeExercise(item.exercise_id);
+                removeExercise(exerciseIndex);
               }}
               title={t`Delete`}
             />
@@ -328,6 +338,7 @@ export default function WorkoutCard({
       handleReplace,
       menuVisible,
       removeExercise,
+      workout.exercises,
       workoutIndex,
       distanceUnit,
       styles,
@@ -441,8 +452,8 @@ export default function WorkoutCard({
           data={groupedData}
           keyExtractor={(item) =>
             item.type === "single"
-              ? item.exercise.exercise_id.toString()
-              : `ss-${item.exercises[0].exercise_id}-${item.exercises[1].exercise_id}`
+              ? rowKey(workout.exercises, item.exerciseIndex)
+              : `ss-${rowKey(workout.exercises, item.exerciseIndices[0])}-${rowKey(workout.exercises, item.exerciseIndices[1])}`
           }
           renderItem={renderItem}
           onDragEnd={handleOrderChange}

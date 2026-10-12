@@ -32,6 +32,7 @@ import {
   toLocalDateKey,
 } from "@/utils/dates";
 import { useAppTheme, radii } from "@/theme";
+import { instanceName } from "@/utils/exerciseInstance";
 import type { AppThemeColors } from "@/theme/types";
 import ProgressionSummaryCard from "@/components/ProgressionSummaryCard";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
@@ -197,10 +198,13 @@ function DiffChip({
 
 function ExerciseRow({
   exercise,
+  name,
   weightUnit,
   distanceUnit,
 }: {
   exercise: CompletedWorkout["exercises"][0];
+  /** The exercise name, numbered when the workout repeats it. */
+  name: string;
   weightUnit: string;
   distanceUnit: string;
 }) {
@@ -208,7 +212,7 @@ function ExerciseRow({
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [expanded, setExpanded] = useState(false);
   const bestLabel = getBestSetLabel(exercise, weightUnit, distanceUnit);
-  const exerciseName = exercise.exercise_name;
+  const exerciseName = name;
 
   return (
     <View style={styles.exerciseCard}>
@@ -222,7 +226,7 @@ function ExerciseRow({
         >
           <View style={styles.exerciseHeaderText}>
             <ThemedText type="defaultSemiBold" style={styles.exerciseName}>
-              {exercise.exercise_name}
+              {name}
             </ThemedText>
             <ThemedText style={styles.exerciseMeta}>
               <Plural value={exercise.sets.length} one="# set" other="# sets" />
@@ -705,10 +709,11 @@ export default function WorkoutSummaryScreen() {
         <ThemedText accessibilityRole="header" style={styles.sectionTitle}>
           <Trans>Exercises</Trans>
         </ThemedText>
-        {workout.exercises.map((exercise) => (
+        {workout.exercises.map((exercise, i) => (
           <ExerciseRow
-            key={exercise.exercise_id}
+            key={exercise.completed_exercise_id}
             exercise={exercise}
+            name={instanceName(workout.exercises, i, exercise.exercise_name)}
             weightUnit={weightUnit}
             distanceUnit={distanceUnit}
           />

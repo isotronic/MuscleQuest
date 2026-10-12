@@ -3,7 +3,7 @@ import { useExerciseSearch } from "@/hooks/useExerciseSearch";
 import { useExerciseSort } from "@/hooks/useExerciseSort";
 import { useExerciseUsageQuery } from "@/hooks/useExerciseUsageQuery";
 import { useExercisePreselectFilter } from "@/hooks/useExercisePreselectFilter";
-import { View, TextInput, StyleSheet, Alert } from "react-native";
+import { View, TextInput, StyleSheet } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { ActivityIndicator, Button } from "react-native-paper";
@@ -26,7 +26,7 @@ import type { AppThemeColors } from "@/theme/types";
 export default function ExercisesScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { workout, replaceExercise, appendExercise, createSuperset } =
+  const { replaceExercise, appendExercise, createSuperset } =
     useActiveWorkoutStore();
   const {
     initialTargetMuscle,
@@ -98,19 +98,6 @@ export default function ExercisesScreen() {
     const exercise = allExercises?.find((ex) => ex.exercise_id === exerciseId);
 
     if (exercise) {
-      const exerciseExists = workout?.exercises.some(
-        (ex) => ex.exercise_id === exercise.exercise_id,
-      );
-
-      if (exerciseExists) {
-        Alert.alert(
-          t`Exercise Already Added`,
-          t`This exercise is already in your workout. Please choose a different one.`,
-          [{ text: t`OK` }],
-        );
-        return;
-      }
-
       if (replaceExerciseIndex !== undefined) {
         replaceExercise(replaceExerciseIndex, exercise as UserExercise);
         router.back();
@@ -120,17 +107,6 @@ export default function ExercisesScreen() {
 
   const handleSupersetSelect = (exerciseId: number) => {
     const exercise = allExercises.find((ex) => ex.exercise_id === exerciseId);
-    const exerciseExists = workout?.exercises.some(
-      (ex) => ex.exercise_id === exerciseId,
-    );
-    if (exerciseExists) {
-      Alert.alert(
-        t`Exercise Already Added`,
-        t`This exercise is already in your workout. Please choose a different one.`,
-        [{ text: t`OK` }],
-      );
-      return;
-    }
     if (exercise && supersetForExerciseIndex !== undefined) {
       const exerciseToAdd = {
         ...exercise,

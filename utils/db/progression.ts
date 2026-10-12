@@ -14,17 +14,50 @@ import { openDatabase } from "./connection";
 
 // The session progression is measured against: the latest logged session of
 // this exercise in this plan workout, skipping deleted and deload sessions
-// (live feedback is off during deload weeks too). Returns the
-// completed_exercises id, or NULL when there is none.
-const baselineSessionSql = (workoutId: string, exerciseId: string) => `(
-  SELECT ce.id
-  FROM completed_exercises ce
-  JOIN completed_workouts cw ON cw.id = ce.completed_workout_id
-  WHERE cw.workout_id = ${workoutId} AND ce.exercise_id = ${exerciseId}
-    AND cw.is_deleted = 0 AND ce.is_deleted = 0
-    AND cw.is_deload = 0
-  ORDER BY cw.date_completed DESC, cw.id DESC
-  LIMIT 1
+// (live feedback is off during deload weeks too). Within that session it
+// takes the instance matching `occurrence` (0 for the first), or the first
+// when the session had fewer. Returns the completed_exercises id, or NULL
+// when there is none.
+const baselineSessionSql = (
+  workoutId: string,
+  exerciseId: string,
+  occurrence: string,
+) => {
+  const session = `(
+    SELECT cw.id
+    FROM completed_workouts cw
+    JOIN completed_exercises ce1 ON ce1.completed_workout_id = cw.id
+    WHERE cw.workout_id = ${workoutId} AND ce1.exercise_id = ${exerciseId}
+      AND cw.is_deleted = 0 AND ce1.is_deleted = 0
+      AND cw.is_deload = 0
+    ORDER BY cw.date_completed DESC, cw.id DESC
+    LIMIT 1
+  )`;
+  const instances = `completed_exercises ce
+    WHERE ce.completed_workout_id = ${session}
+      AND ce.exercise_id = ${exerciseId} AND ce.is_deleted = 0`;
+  return `COALESCE(
+  (SELECT ce.id FROM ${instances}
+     AND (
+       SELECT COUNT(*) FROM completed_exercises ce2
+       WHERE ce2.completed_workout_id = ce.completed_workout_id
+         AND ce2.exercise_id = ce.exercise_id
+         AND ce2.is_deleted = 0 AND ce2.id < ce.id
+     ) = ${occurrence}),
+  (SELECT MIN(ce.id) FROM ${instances})
+)`;
+};
+
+// Which instance of its exercise the plan row `uwe` is in its workout, 0 for
+// the first. Pairs with baselineSessionSql: a workout with two squat blocks
+// compares each block with the same block last session.
+const UWE_OCCURRENCE_SQL = `(
+  SELECT COUNT(*) FROM user_workout_exercises u2
+  WHERE u2.workout_id = uwe.workout_id
+    AND u2.exercise_id = uwe.exercise_id
+    AND u2.is_deleted = 0
+    AND (u2.exercise_order < uwe.exercise_order
+      OR (u2.exercise_order = uwe.exercise_order AND u2.id < uwe.id))
 )`;
 
 const WORKING_SET_SQL =
@@ -34,7 +67,7 @@ const WORKING_SET_SQL =
 const RECENT_WEIGHT_SQL = `(
   SELECT MAX(cs.weight)
   FROM completed_sets cs
-  WHERE cs.completed_exercise_id = ${baselineSessionSql("uwe.workout_id", "e.exercise_id")}
+  WHERE cs.completed_exercise_id = ${baselineSessionSql("uwe.workout_id", "uwe.exercise_id", UWE_OCCURRENCE_SQL)}
     AND ${WORKING_SET_SQL}
     AND cs.weight IS NOT NULL
 ) AS recent_weight`;
@@ -895,10 +928,11 @@ export const getProgressionRecomputeTargets = async (
       }>(
         `SELECT cs.weight, cs.reps
          FROM completed_sets cs
-         WHERE cs.completed_exercise_id = ${baselineSessionSql("?", "?")}
+         JOIN user_workout_exercises uwe ON uwe.id = ?
+         WHERE cs.completed_exercise_id = ${baselineSessionSql("uwe.workout_id", "uwe.exercise_id", UWE_OCCURRENCE_SQL)}
            AND ${WORKING_SET_SQL}
          ORDER BY cs.set_number ASC`,
-        [workout.workout_id, row.exercise_id],
+        [row.user_workout_exercise_id],
       );
       const weights = sets
         .map((s) => s.weight)

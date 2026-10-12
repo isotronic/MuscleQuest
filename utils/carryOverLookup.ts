@@ -16,6 +16,8 @@ export interface CarryOverExercise {
   local_date?: string;
   /** The session note of the workout it came from. */
   workout_notes?: string | null;
+  /** Which instance of the exercise in its session, 0 for the first. */
+  occurrence?: number;
 }
 
 export interface CarryOverWorkout {
@@ -36,13 +38,37 @@ export function buildExerciseMap(
   const map = new Map<number, CarryOverExercise[]>();
   if (!data) return map;
   for (const w of data) {
+    const seen = new Map<number, number>();
     for (const ex of w.exercises) {
       const arr = map.get(ex.exercise_id) ?? [];
-      arr.push({ ...ex, local_date: w.local_date, workout_notes: w.notes });
+      const occurrence = seen.get(ex.exercise_id) ?? 0;
+      seen.set(ex.exercise_id, occurrence + 1);
+      arr.push({
+        ...ex,
+        local_date: w.local_date,
+        workout_notes: w.notes,
+        occurrence,
+      });
       map.set(ex.exercise_id, arr);
     }
   }
   return map;
+}
+
+// One entry per session for an exercise's n-th instance in the workout: the
+// session's n-th instance, or its first when it had fewer. A session's
+// instances sit next to each other in the map, first one first.
+function forOccurrence(
+  exercises: CarryOverExercise[],
+  occurrence: number,
+): CarryOverExercise[] {
+  const picked: CarryOverExercise[] = [];
+  for (const ex of exercises) {
+    const n = ex.occurrence ?? 0;
+    if (n === 0) picked.push(ex);
+    else if (n === occurrence) picked[picked.length - 1] = ex;
+  }
+  return picked;
 }
 
 // Finds the set to carry weight/reps/etc. over from. Prefers the set at the
@@ -54,10 +80,11 @@ function lookup(
   exerciseId: number,
   isWarmup: boolean,
   ordinal: number,
+  occurrence: number,
 ): CarryOverMatch | null {
   const exercises = map.get(exerciseId);
   if (!exercises) return null;
-  for (const ex of exercises) {
+  for (const ex of forOccurrence(exercises, occurrence)) {
     const setsOfType = ex.sets.filter((s) => s.is_warmup === isWarmup);
     if (setsOfType.length === 0) continue;
     const set = setsOfType[ordinal] ?? setsOfType[setsOfType.length - 1];
@@ -99,6 +126,8 @@ export function findLastAvailableSetData(params: {
   isWarmup: boolean;
   ordinal: number;
   exercisePosition?: number;
+  /** Which instance of the exercise in the current workout, 0 for the first. */
+  occurrence?: number;
   previousWorkoutData: CarryOverWorkout[] | null;
   prevExercisesByExerciseId: Map<number, CarryOverExercise[]>;
   globalExercisesByExerciseId: Map<number, CarryOverExercise[]>;
@@ -109,24 +138,27 @@ export function findLastAvailableSetData(params: {
     isWarmup,
     ordinal,
     exercisePosition,
+    occurrence = 0,
     previousWorkoutData,
     prevExercisesByExerciseId,
     globalExercisesByExerciseId,
     alwaysUseGlobalHistory,
   } = params;
+  const find = (map: Map<number, CarryOverExercise[]>) =>
+    lookup(map, exerciseId, isWarmup, ordinal, occurrence);
 
   if (alwaysUseGlobalHistory) {
-    return lookup(globalExercisesByExerciseId, exerciseId, isWarmup, ordinal);
+    return find(globalExercisesByExerciseId);
   }
 
   return (
-    lookup(prevExercisesByExerciseId, exerciseId, isWarmup, ordinal) ??
+    find(prevExercisesByExerciseId) ??
     lookupByPosition(
       previousWorkoutData,
       isWarmup,
       ordinal,
       exercisePosition,
     ) ??
-    lookup(globalExercisesByExerciseId, exerciseId, isWarmup, ordinal)
+    find(globalExercisesByExerciseId)
   );
 }

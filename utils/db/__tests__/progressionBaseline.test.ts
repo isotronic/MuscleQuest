@@ -225,4 +225,93 @@ describe("progression baseline", () => {
       expect(await getProgressionRecomputeTargets(1)).toEqual([]);
     });
   });
+
+  describe("two blocks of the same exercise", () => {
+    const BACK_OFF_UWE = 2;
+
+    // One session: a heavy block (`heavy`, heavy - 5), then a back-off block
+    // (`backOff`, backOff - 5) when given.
+    const insertBlocks = (
+      id: number,
+      daysAgo: number,
+      heavy: number,
+      backOff?: number,
+    ) => {
+      const { sqlite } = mockDb;
+      const when = new Date(Date.now() - daysAgo * DAY_MS);
+      sqlite
+        .prepare(
+          `INSERT INTO completed_workouts (id, workout_id, date_completed, local_date, duration, total_sets_completed)
+           VALUES (?, 1, ?, ?, 1800, 4)`,
+        )
+        .run(id, when.toISOString(), when.toISOString().slice(0, 10));
+      for (const weight of backOff == null ? [heavy] : [heavy, backOff]) {
+        const { lastInsertRowid } = sqlite
+          .prepare(
+            `INSERT INTO completed_exercises (completed_workout_id, exercise_id) VALUES (?, 1)`,
+          )
+          .run(id);
+        const insertSet = sqlite.prepare(
+          `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, is_warmup) VALUES (?, ?, ?, 5, 0)`,
+        );
+        insertSet.run(Number(lastInsertRowid), 1, weight);
+        insertSet.run(Number(lastInsertRowid), 2, weight - 5);
+      }
+    };
+
+    beforeEach(() => {
+      mockDb.sqlite.exec(`
+        INSERT INTO user_workout_exercises (id, workout_id, exercise_id, sets, exercise_order)
+          VALUES (${BACK_OFF_UWE}, 1, 1, '[]', 1);
+      `);
+    });
+
+    it("measures each block against the same block last session", async () => {
+      insertBlocks(1, 3, 120, 90);
+      expect(
+        (await getExerciseProgressionContext(UWE_ID))?.recentWorkingWeight,
+      ).toBe(120);
+      expect(
+        (await getExerciseProgressionContext(BACK_OFF_UWE))
+          ?.recentWorkingWeight,
+      ).toBe(90);
+    });
+
+    it("falls back to the first block when the session had one", async () => {
+      insertBlocks(1, 3, 120);
+      expect(
+        (await getExerciseProgressionContext(BACK_OFF_UWE))
+          ?.recentWorkingWeight,
+      ).toBe(120);
+    });
+
+    it("refreshes each block from its own sets after a history edit", async () => {
+      insertBlocks(1, 3, 120, 90);
+      for (const uwe of [UWE_ID, BACK_OFF_UWE]) {
+        mockDb.sqlite
+          .prepare(
+            `INSERT INTO exercise_progression_state (user_workout_exercise_id, suggestion_action, rule_key, rule_explanation)
+             VALUES (?, 'hold', 'DEFAULT', 'Hold')`,
+          )
+          .run(uwe);
+      }
+      const targets = await getProgressionRecomputeTargets(1);
+      expect(
+        targets.sort(
+          (a, b) => a.userWorkoutExerciseId - b.userWorkoutExerciseId,
+        ),
+      ).toEqual([
+        {
+          userWorkoutExerciseId: UWE_ID,
+          recentWorkingWeight: 120,
+          completedRepsPerSet: [5, 5],
+        },
+        {
+          userWorkoutExerciseId: BACK_OFF_UWE,
+          recentWorkingWeight: 90,
+          completedRepsPerSet: [5, 5],
+        },
+      ]);
+    });
+  });
 });

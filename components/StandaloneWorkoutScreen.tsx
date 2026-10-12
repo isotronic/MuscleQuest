@@ -32,6 +32,7 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { instanceName, occurrenceIndex } from "@/utils/exerciseInstance";
 import { AuthContext } from "@/context/AuthProvider";
 import { useWorkoutPublishMutation } from "@/hooks/useWorkoutPublishMutation";
 import { useSocialStore } from "@/store/socialStore";
@@ -101,7 +102,7 @@ export default function StandaloneWorkoutScreen() {
     }
   };
 
-  const renderExercise = (item: UserExercise) => {
+  const renderExercise = (item: UserExercise, index: number) => {
     const thumbnailUri = exerciseThumbnailUri(item.image_uri, item.image);
 
     const minReps = Math.min(...item.sets.map((s) => s.repsMin ?? Infinity));
@@ -136,7 +137,7 @@ export default function StandaloneWorkoutScreen() {
     return (
       <TouchableOpacity
         accessibilityRole="button"
-        key={item.exercise_id}
+        key={`${item.exercise_id}-${occurrenceIndex(workout?.exercises ?? [], index)}`}
         onPress={() =>
           router.push({
             pathname: "/(app)/exercise-info",
@@ -159,7 +160,9 @@ export default function StandaloneWorkoutScreen() {
             <AppImage style={styles.exerciseImage} source={fallbackImage} />
           )}
           <View style={styles.exerciseInfo}>
-            <ThemedText style={styles.exerciseName}>{item.name}</ThemedText>
+            <ThemedText style={styles.exerciseName}>
+              {instanceName(workout?.exercises ?? [], index, item.name)}
+            </ThemedText>
             <ThemedText style={styles.exerciseSets}>
               {item.sets.length ? t`${item.sets.length} Sets` : t`No Sets`}
               {item.tracking_type === "time"
@@ -242,7 +245,9 @@ export default function StandaloneWorkoutScreen() {
             <Trans>No exercises in this workout yet.</Trans>
           </ThemedText>
         ) : (
-          workout.exercises.map((exercise) => renderExercise(exercise))
+          workout.exercises.map((exercise, index) =>
+            renderExercise(exercise, index),
+          )
         )}
         {showShareToggle && (
           <>
