@@ -1,6 +1,11 @@
 import { act } from "@testing-library/react-native";
 import { useWorkoutStore } from "../workoutStore";
 
+let mockUuid = 0;
+jest.mock("expo-crypto", () => ({
+  randomUUID: () => `uuid-${++mockUuid}`,
+}));
+
 describe("useWorkoutStore", () => {
   // Reset the store to a clean initial state before each test
   beforeEach(() => {
@@ -469,6 +474,19 @@ describe("useWorkoutStore", () => {
       const [heavy, backOff] = useWorkoutStore.getState().workouts[0].exercises;
       expect(heavy.sets).toHaveLength(1);
       expect(backOff.sets.map((s) => s.repsMin)).toEqual([8, 10]);
+    });
+
+    it("gives each added block its own row key", () => {
+      act(() => {
+        useWorkoutStore.getState().addExercise(0, squat(5));
+        useWorkoutStore.getState().addExercise(0, squat(5));
+      });
+      const keys = useWorkoutStore
+        .getState()
+        .workouts[0].exercises.slice(2)
+        .map((e) => e.clientKey);
+      expect(keys[0]).toBeTruthy();
+      expect(keys[0]).not.toBe(keys[1]);
     });
 
     it("removes only the block it is given", () => {

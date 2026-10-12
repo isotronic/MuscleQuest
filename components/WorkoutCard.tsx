@@ -48,11 +48,15 @@ interface WorkoutCardProps {
 }
 
 /**
- * A row's key: its exercise plus which instance of it, so two blocks of the
- * same exercise get their own rows and the key survives set edits.
+ * A row's key, stable across set edits and reorders: its plan row id, or the
+ * key the editor gave a new row. Rows from a draft saved before either
+ * existed fall back to their exercise plus which instance of it.
  */
 function rowKey(exercises: UserExercise[], index: number): string {
-  return `${exercises[index].exercise_id}-${occurrenceIndex(exercises, index)}`;
+  const exercise = exercises[index];
+  if (exercise.id != null) return `row-${exercise.id}`;
+  if (exercise.clientKey) return `new-${exercise.clientKey}`;
+  return `${exercise.exercise_id}-${occurrenceIndex(exercises, index)}`;
 }
 
 export default function WorkoutCard({

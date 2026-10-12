@@ -26,6 +26,8 @@ export interface UserExercise extends Exercise {
   is_deleted?: boolean;
   supersetGroupId?: string;
   tracking_type_override?: string;
+  /** A key for a row added in the plan editor, before it has an `id`. */
+  clientKey?: string;
 }
 
 export interface Workout {
@@ -206,7 +208,13 @@ const useWorkoutStore = create<WorkoutStore>()(
           ...state,
           workouts: state.workouts.map((w, i) => {
             if (i === index) {
-              return { ...w, exercises: [...w.exercises, exercise] };
+              return {
+                ...w,
+                exercises: [
+                  ...w.exercises,
+                  { ...exercise, clientKey: Crypto.randomUUID() },
+                ],
+              };
             }
             return w;
           }),
@@ -265,7 +273,10 @@ const useWorkoutStore = create<WorkoutStore>()(
           }
 
           const updatedExercises = [...workout.exercises];
-          updatedExercises[exerciseIndex] = newExercise;
+          updatedExercises[exerciseIndex] = {
+            ...newExercise,
+            clientKey: Crypto.randomUUID(),
+          };
           updatedWorkouts[workoutIndex] = {
             ...workout,
             exercises: updatedExercises,
@@ -445,6 +456,7 @@ const useWorkoutStore = create<WorkoutStore>()(
             exercises.splice(exerciseIndex + 1, 0, {
               ...newExercise,
               supersetGroupId: groupId,
+              clientKey: Crypto.randomUUID(),
             });
             return { ...w, exercises };
           });

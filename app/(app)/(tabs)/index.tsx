@@ -127,8 +127,12 @@ export default function HomeScreen() {
 
   const { data: planScheduleEntries, isLoading: planScheduleLoading } =
     usePlanScheduleQuery(activePlan?.id ?? null);
-  const { data: lastPlanWorkoutId, isLoading: lastPlanWorkoutLoading } =
-    useLastPlanWorkoutQuery(activePlan?.id ?? null);
+  const {
+    data: lastPlanWorkoutId,
+    isLoading: lastPlanWorkoutLoading,
+    error: lastPlanWorkoutError,
+    refetch: refetchLastPlanWorkout,
+  } = useLastPlanWorkoutQuery(activePlan?.id ?? null);
 
   const activeWorkout = useActiveWorkoutStore((state) => state.activeWorkout);
   const workoutInProgress = useActiveWorkoutStore((state) =>
@@ -199,7 +203,12 @@ export default function HomeScreen() {
         <ActivityIndicator size="large" color={colors.contentPrimary} />
       </ThemedView>
     );
-  } else if (activePlanError || settingsError || completedWorkoutsError) {
+  } else if (
+    activePlanError ||
+    settingsError ||
+    completedWorkoutsError ||
+    (!!activePlan && lastPlanWorkoutError)
+  ) {
     // The global query cache handler reports the failure.
     return (
       <ErrorState
@@ -208,6 +217,7 @@ export default function HomeScreen() {
           if (activePlanError) void refetchActivePlan();
           if (settingsError) void refetchSettings();
           if (completedWorkoutsError) void refetchCompletedWorkouts();
+          if (lastPlanWorkoutError) void refetchLastPlanWorkout();
         }}
       />
     );

@@ -69,38 +69,42 @@ export default function TrainingPlanCard({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
-        <Animated.View style={[styles.card, cardStyle]}>
-          <Card style={styles.card}>
-            <Card.Cover
-              style={{ borderRadius: radii.md }}
-              source={imageUrl ? planImageSource(imageUrl) : { uri: imageUrl }}
-            />
-            <View style={styles.floatingTitleContainer}>
-              <Text style={styles.floatingTitleText}>
-                {title || t`Training Plan`}
-              </Text>
-            </View>
-            {isActive && (
-              <View style={styles.activeBadge}>
-                <Text style={styles.activeBadgeText}>
-                  <Trans>Active</Trans>
+        <View>
+          <Animated.View style={[styles.card, cardStyle]}>
+            <Card style={styles.card}>
+              <Card.Cover
+                style={{ borderRadius: radii.md }}
+                source={
+                  imageUrl ? planImageSource(imageUrl) : { uri: imageUrl }
+                }
+              />
+              <View style={styles.floatingTitleContainer}>
+                <Text style={styles.floatingTitleText}>
+                  {title || t`Training Plan`}
                 </Text>
               </View>
-            )}
-            {isPublished && (
-              <View style={styles.publishedBadge}>
-                <AppIcon
-                  set="mci"
-                  name="cloud-check"
-                  size={16}
-                  color={colors.accent}
-                />
-              </View>
-            )}
-          </Card>
-        </Animated.View>
+              {isActive && (
+                <View style={styles.activeBadge}>
+                  <Text style={styles.activeBadgeText}>
+                    <Trans>Active</Trans>
+                  </Text>
+                </View>
+              )}
+              {isPublished && (
+                <View style={styles.publishedBadge}>
+                  <AppIcon
+                    set="mci"
+                    name="cloud-check"
+                    size={16}
+                    color={colors.accent}
+                  />
+                </View>
+              )}
+            </Card>
+          </Animated.View>
+          {footer ? <View style={styles.footer}>{footer}</View> : null}
+        </View>
       </TouchableWithoutFeedback>
-      {footer ? <View style={styles.footer}>{footer}</View> : null}
     </ThemedView>
   );
 }
