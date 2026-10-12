@@ -6,6 +6,7 @@ import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import { usePriorBestsQuery } from "@/hooks/useWorkoutSummariesQuery";
 import { computeSessionPRs, type SessionPRs } from "@/utils/sessionPRs";
 import type { PriorBest } from "@/utils/db/workoutStats";
+import { settingsBodyWeight } from "@/utils/settingsBodyWeight";
 
 const NONE: SessionPRs = {};
 
@@ -39,7 +40,8 @@ export function useSessionPRs() {
 
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
-  const bodyWeightKg = parseFloat(settings?.bodyWeight ?? "") || 0;
+  // The setting comes back in the display unit; PRs compare in kg.
+  const bodyWeightKg = settingsBodyWeight(settings).kg ?? 0;
   const enabled = !isCurrentWeekDeload && !!priorBests && !!workout;
 
   const prs = useMemo(

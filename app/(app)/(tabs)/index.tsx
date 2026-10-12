@@ -22,6 +22,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import { showSnackbar } from "@/store/snackbarStore";
 import { useWeekRule } from "@/hooks/useWeekRule";
+import { settingsBodyWeight } from "@/utils/settingsBodyWeight";
 import { endOfAppWeek, startOfAppWeek } from "@/utils/week";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimateCompact } from "@/utils/estimateWorkoutDuration";
@@ -44,7 +45,6 @@ import { SetupOfferCard } from "@/components/SetupOfferCard";
 import { SetupState } from "@/utils/setupState";
 import WorkoutDoneCard from "@/components/WorkoutDoneCard";
 import WeeklySummaryCard from "@/components/WeeklySummaryCard";
-import { kgToDisplay } from "@/utils/units";
 import WorkoutPickerModal from "@/components/WorkoutPickerModal";
 import { MeasurementQuickLog } from "@/components/MeasurementQuickLog";
 import {
@@ -423,10 +423,7 @@ export default function HomeScreen() {
               excludeWarmup={settings?.excludeWarmupSets === "true"}
               countUnilateralDouble={settings?.countUnilateralDouble === "true"}
               doubleWeightForPaired={settings?.doubleWeightForPaired === "true"}
-              bodyWeight={kgToDisplay(
-                parseFloat(settings?.bodyWeight ?? "") || 0,
-                settings?.weightUnit ?? "kg",
-              )}
+              bodyWeight={settingsBodyWeight(settings).display ?? 0}
               weekRule={weekRule}
             />
           </View>
