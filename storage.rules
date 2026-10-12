@@ -1,8 +1,9 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    // Public exercise demos; a user who skipped sign-in sees them too.
     match /exercise-webp/{fileName} {
-      allow read: if request.auth != null;
+      allow read: if true;
     }
     match /backups/{userId}/{fileName} {
       allow read, delete: if request.auth != null && request.auth.uid == userId;
