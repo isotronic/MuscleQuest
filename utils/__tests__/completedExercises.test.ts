@@ -53,6 +53,7 @@ describe("buildCompletedExercises", () => {
     expect(saved).toEqual({
       exercise_id: 1,
       resolved_tracking_type: "weight",
+      user_workout_exercise_id: null,
       sets: [
         {
           set_number: 1,
@@ -68,6 +69,22 @@ describe("buildCompletedExercises", () => {
         },
       ],
     });
+  });
+
+  it("records the plan row each block came from", () => {
+    const rows = [
+      { ...exercise(7, 1), id: 31 },
+      { ...exercise(7, 1), id: 32 },
+    ];
+    const saved = buildCompletedExercises({
+      exercises: rows,
+      completedSets: { 1: { 0: true } },
+      weightAndReps: { 1: { 0: { weight: "60", reps: "8" } } },
+      setDurations: {},
+      setNotes: {},
+    });
+    // The first block was skipped; the second still names its own row.
+    expect(saved.map((e) => e.user_workout_exercise_id)).toEqual([32]);
   });
 });
 

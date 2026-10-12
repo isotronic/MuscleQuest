@@ -18,6 +18,8 @@ export interface SavedWorkout {
   exercises: {
     exercise_id: number;
     resolved_tracking_type?: string | null;
+    /** The plan row it was logged from, when it came from one. */
+    user_workout_exercise_id?: number | null;
     sets: {
       set_number: number;
       weight: number | null;
@@ -50,6 +52,8 @@ export const saveCompletedWorkout = async (
   exercises: {
     exercise_id: number;
     resolved_tracking_type?: string | null;
+    /** The plan row it was logged from, when it came from one. */
+    user_workout_exercise_id?: number | null;
     sets: {
       set_number: number;
       weight: number | null;
@@ -97,11 +101,12 @@ export const saveCompletedWorkout = async (
 
       for (const exercise of exercises) {
         const completedExerciseResult = await txn.runAsync(
-          `INSERT INTO completed_exercises (completed_workout_id, exercise_id, resolved_tracking_type) VALUES (?, ?, ?)`,
+          `INSERT INTO completed_exercises (completed_workout_id, exercise_id, resolved_tracking_type, user_workout_exercise_id) VALUES (?, ?, ?, ?)`,
           [
             completedWorkoutId,
             exercise.exercise_id,
             exercise.resolved_tracking_type ?? null,
+            exercise.user_workout_exercise_id ?? null,
           ],
         );
 
@@ -228,10 +233,14 @@ export const fetchLastCompletedPlanWorkout = async (
 };
 
 // A column of the plan row a session's exercise `ce` came from, in the
-// session `cw`. With two blocks of one exercise, the n-th block saved matches
-// the n-th row in the plan; otherwise (the plan changed since) the first
-// row, a live one before a deleted one.
+// session `cw`: the row it recorded when saved. Older sessions did not record
+// one: with two blocks of one exercise, the n-th block saved matches the n-th
+// row in the plan; otherwise (the plan changed since) the first row, a live
+// one before a deleted one.
 const planRowSql = (column: string) => `COALESCE(
+  (SELECT u.${column} FROM user_workout_exercises u
+   WHERE u.id = ce.user_workout_exercise_id
+     AND u.exercise_id = ce.exercise_id),
   (SELECT u.${column} FROM user_workout_exercises u
    WHERE u.workout_id = cw.workout_id AND u.exercise_id = ce.exercise_id
      AND u.is_deleted = 0
@@ -254,6 +263,8 @@ const planRowSql = (column: string) => `COALESCE(
 
 interface CompletedWorkoutRow {
   id: number;
+  user_workout_exercise_id: number | null;
+  plan_occurrence: number | null;
   plan_id: number;
   workout_id: number;
   workout_name: string;
@@ -325,7 +336,21 @@ export const fetchCompletedWorkoutById = async (
         cs.set_duration,
         cs.note,
         cw.notes,
-        ${planRowSql("exercise_order")} as exercise_order
+        ${planRowSql("exercise_order")} as exercise_order,
+        ce.user_workout_exercise_id,
+        -- Which block of the exercise its recorded plan row is, 0 for the
+        -- first; NULL without a recorded row of this exercise.
+        (SELECT (
+           SELECT COUNT(*) FROM user_workout_exercises u2
+           WHERE u2.workout_id = u.workout_id AND u2.exercise_id = u.exercise_id
+             AND u2.is_deleted = 0
+             AND (u2.exercise_order < u.exercise_order
+               OR (u2.exercise_order = u.exercise_order AND u2.id < u.id))
+         )
+         FROM user_workout_exercises u
+         WHERE u.id = ce.user_workout_exercise_id
+           AND u.exercise_id = ce.exercise_id
+        ) as plan_occurrence
       FROM completed_workouts cw
       LEFT JOIN completed_exercises ce ON cw.id = ce.completed_workout_id
       LEFT JOIN exercises e ON e.exercise_id = ce.exercise_id -- Join exercises table for exercise details
@@ -372,6 +397,8 @@ export const fetchCompletedWorkoutById = async (
           exercisesMap[row.completed_exercise_id!] = {
             completed_exercise_id: row.completed_exercise_id!,
             exercise_id: row.exercise_id,
+            user_workout_exercise_id: row.user_workout_exercise_id ?? null,
+            plan_occurrence: row.plan_occurrence,
             exercise_name: row.exercise_name || "",
             exercise_image: row.exercise_image
               ? Array.from(row.exercise_image)

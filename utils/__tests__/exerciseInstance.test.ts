@@ -1,5 +1,11 @@
-import { instanceName, occurrenceIndex } from "../exerciseInstance";
-import { historyForOccurrence } from "../historyUtils";
+import {
+  instanceName,
+  loggedInstanceName,
+  matchSessionInstance,
+  occurrenceIndex,
+  rowIdentity,
+} from "../exerciseInstance";
+import { historyForRow } from "../historyUtils";
 
 const rows = [{ exercise_id: 1 }, { exercise_id: 2 }, { exercise_id: 1 }];
 
@@ -19,7 +25,22 @@ describe("instanceName", () => {
   });
 });
 
-describe("historyForOccurrence", () => {
+describe("loggedInstanceName", () => {
+  it("numbers a lone back-off block by its plan block", () => {
+    const logged = [{ exercise_id: 1, plan_occurrence: 1 }];
+    expect(loggedInstanceName(logged, 0, "Squat")).toBe("Squat (2)");
+  });
+
+  it("numbers by order when no plan block was recorded", () => {
+    const logged = [
+      { exercise_id: 1, plan_occurrence: null },
+      { exercise_id: 1, plan_occurrence: null },
+    ];
+    expect(loggedInstanceName(logged, 1, "Squat")).toBe("Squat (2)");
+  });
+});
+
+describe("historyForRow", () => {
   const sessions = [
     {
       exercises: [
@@ -31,14 +52,40 @@ describe("historyForOccurrence", () => {
     { exercises: [{ exercise_id: 2, tag: "other" }] },
   ];
 
-  it("takes each session's matching block, else its first", () => {
-    expect(historyForOccurrence(sessions, 1, 0).map((e) => e.tag)).toEqual([
-      "heavy",
-      "only",
-    ]);
-    expect(historyForOccurrence(sessions, 1, 1).map((e) => e.tag)).toEqual([
-      "back-off",
-      "only",
-    ]);
+  it("takes each session's matching block by order, else its first", () => {
+    const tags = (index: number) =>
+      historyForRow(sessions, rowIdentity(rows, index)).map((e) => e.tag);
+    expect(tags(0)).toEqual(["heavy", "only"]);
+    expect(tags(2)).toEqual(["back-off", "only"]);
+  });
+});
+
+describe("matchSessionInstance", () => {
+  const plan = [
+    { exercise_id: 1, id: 11 },
+    { exercise_id: 1, id: 13 },
+  ];
+  const logged = (...rowIds: (number | null)[]) =>
+    rowIds.map((id) => ({ exercise_id: 1, user_workout_exercise_id: id }));
+
+  it("prefers the block logged from the same plan row", () => {
+    expect(
+      matchSessionInstance(logged(13, 11), rowIdentity(plan, 0))
+        ?.user_workout_exercise_id,
+    ).toBe(11);
+  });
+
+  it("skips a session that only logged the other block", () => {
+    expect(
+      matchSessionInstance(logged(13), rowIdentity(plan, 0)),
+    ).toBeUndefined();
+  });
+
+  it("matches by order when the rows are unknown", () => {
+    const old = [
+      { exercise_id: 1, tag: "first" },
+      { exercise_id: 1, tag: "second" },
+    ];
+    expect(matchSessionInstance(old, rowIdentity(plan, 1))?.tag).toBe("second");
   });
 });

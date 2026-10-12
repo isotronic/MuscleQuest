@@ -37,7 +37,7 @@ import { useDeleteCompletedWorkoutMutation } from "@/hooks/useDeleteCompletedWor
 import { formatFromTotalSeconds } from "@/utils/utility";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { useAppTheme, radii } from "@/theme";
-import { instanceName } from "@/utils/exerciseInstance";
+import { loggedInstanceName } from "@/utils/exerciseInstance";
 import type { AppThemeColors } from "@/theme/types";
 import { displayWorkoutName } from "@/utils/workoutName";
 import { formatNumber } from "@/utils/numberFormat";
@@ -388,7 +388,7 @@ export default function HistoryDetailsScreen() {
                     />
                   )}
                   <ThemedText style={styles.exerciseName}>
-                    {instanceName(
+                    {loggedInstanceName(
                       workout.exercises,
                       exerciseIndex,
                       exercise.exercise_name,

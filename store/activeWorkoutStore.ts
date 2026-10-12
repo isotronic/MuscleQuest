@@ -11,9 +11,9 @@ import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import {
   findHistoricalSetByOrdinal,
-  historyForOccurrence,
+  historyForRow,
 } from "@/utils/historyUtils";
-import { occurrenceIndex } from "@/utils/exerciseInstance";
+import { rowIdentity } from "@/utils/exerciseInstance";
 import { suggestedWeightForDisplay } from "@/utils/weightUnits";
 import Bugsnag from "@bugsnag/expo";
 import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
@@ -541,10 +541,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               fromSetIndex,
               toSetIndex,
             );
-            const historyExercises = historyForOccurrence(
+            const historyExercises = historyForRow(
               previousWorkoutData,
-              exercise.exercise_id,
-              occurrenceIndex(workout.exercises, exerciseIndex),
+              rowIdentity(workout.exercises, exerciseIndex),
             );
             const nextHistorical = findHistoricalSetByOrdinal(
               exercise.sets,
@@ -738,10 +737,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             [currentExerciseIndex]: nextSetIndex,
           };
 
-          const historyExercises = historyForOccurrence(
+          const historyExercises = historyForRow(
             previousWorkoutData,
-            currentExercise.exercise_id,
-            occurrenceIndex(workout.exercises, currentExerciseIndex),
+            rowIdentity(workout.exercises, currentExerciseIndex),
           );
 
           const currentSetValues =
@@ -1912,10 +1910,9 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             );
             const historyExercises =
               suggestion.suggestionAction === "increase_load"
-                ? historyForOccurrence(
+                ? historyForRow(
                     state.previousWorkoutData,
-                    exercise.exercise_id,
-                    occurrenceIndex(state.workout.exercises, exerciseIndex),
+                    rowIdentity(state.workout.exercises, exerciseIndex),
                   )
                 : [];
             for (const idx of workingSetIndices) {

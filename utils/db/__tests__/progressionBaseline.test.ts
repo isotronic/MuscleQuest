@@ -236,6 +236,8 @@ describe("progression baseline", () => {
       daysAgo: number,
       heavy: number,
       backOff?: number,
+      // Plan rows recorded on each block, as sessions save them now.
+      rowIds?: number[],
     ) => {
       const { sqlite } = mockDb;
       const when = new Date(Date.now() - daysAgo * DAY_MS);
@@ -245,12 +247,13 @@ describe("progression baseline", () => {
            VALUES (?, 1, ?, ?, 1800, 4)`,
         )
         .run(id, when.toISOString(), when.toISOString().slice(0, 10));
-      for (const weight of backOff == null ? [heavy] : [heavy, backOff]) {
+      const weights = backOff == null ? [heavy] : [heavy, backOff];
+      for (const [i, weight] of weights.entries()) {
         const { lastInsertRowid } = sqlite
           .prepare(
-            `INSERT INTO completed_exercises (completed_workout_id, exercise_id) VALUES (?, 1)`,
+            `INSERT INTO completed_exercises (completed_workout_id, exercise_id, user_workout_exercise_id) VALUES (?, 1, ?)`,
           )
-          .run(id);
+          .run(id, rowIds?.[i] ?? null);
         const insertSet = sqlite.prepare(
           `INSERT INTO completed_sets (completed_exercise_id, set_number, weight, reps, is_warmup) VALUES (?, ?, ?, 5, 0)`,
         );
@@ -283,6 +286,19 @@ describe("progression baseline", () => {
         (await getExerciseProgressionContext(BACK_OFF_UWE))
           ?.recentWorkingWeight,
       ).toBe(120);
+    });
+
+    it("never measures a skipped block against the other block", async () => {
+      // Both blocks logged, then a session with only the back-off block.
+      insertBlocks(1, 6, 120, 90, [UWE_ID, BACK_OFF_UWE]);
+      insertBlocks(2, 3, 95, undefined, [BACK_OFF_UWE]);
+      expect(
+        (await getExerciseProgressionContext(UWE_ID))?.recentWorkingWeight,
+      ).toBe(120);
+      expect(
+        (await getExerciseProgressionContext(BACK_OFF_UWE))
+          ?.recentWorkingWeight,
+      ).toBe(95);
     });
 
     it("refreshes each block from its own sets after a history edit", async () => {

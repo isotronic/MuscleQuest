@@ -1,4 +1,9 @@
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
+import {
+  matchSessionInstance,
+  type LoggedInstance,
+  type RowIdentity,
+} from "@/utils/exerciseInstance";
 
 type HistorySet = CompletedWorkout["exercises"][number]["sets"][number];
 type HistoryExercise = CompletedWorkout["exercises"][number];
@@ -34,19 +39,16 @@ export function findHistoricalSetByOrdinal(
 }
 
 /**
- * One history entry per past session for an exercise's n-th instance: the
- * session's n-th instance of that exercise (sessions list them in save
- * order), or its first when the session had fewer. Most recent first, as
- * findHistoricalSetByOrdinal expects.
+ * One history entry per past session for a workout row (see
+ * matchSessionInstance), most recent first, as findHistoricalSetByOrdinal
+ * expects.
  */
-export function historyForOccurrence<E extends { exercise_id: number }>(
+export function historyForRow<E extends LoggedInstance>(
   workouts: { exercises: E[] }[] | null | undefined,
-  exerciseId: number,
-  occurrence: number,
+  row: RowIdentity,
 ): E[] {
   return (workouts ?? []).flatMap((w) => {
-    const instances = w.exercises.filter((e) => e.exercise_id === exerciseId);
-    const match = instances[occurrence] ?? instances[0];
+    const match = matchSessionInstance(w.exercises, row);
     return match ? [match] : [];
   });
 }

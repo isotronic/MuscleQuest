@@ -29,7 +29,7 @@ import {
 } from "@/utils/historyEditOps";
 import { formatFromTotalSeconds, convertToTotalSeconds } from "@/utils/utility";
 import { parseDecimalInput, sanitizeIntegerInput } from "@/utils/numberFormat";
-import { instanceName } from "@/utils/exerciseInstance";
+import { loggedInstanceName } from "@/utils/exerciseInstance";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -431,7 +431,11 @@ export function WorkoutHistoryEditor({
         >
           <View style={styles.exerciseHeader}>
             <ThemedText style={styles.exerciseName}>
-              {instanceName(exercises, exerciseIndex, exercise.exercise_name)}
+              {loggedInstanceName(
+                exercises,
+                exerciseIndex,
+                exercise.exercise_name,
+              )}
             </ThemedText>
             <AppIconButton
               accessibilityLabel={t`Change exercise ${exercise.exercise_name}`}

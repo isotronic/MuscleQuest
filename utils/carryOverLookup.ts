@@ -1,3 +1,8 @@
+import {
+  matchSessionInstance,
+  type RowIdentity,
+} from "@/utils/exerciseInstance";
+
 export interface CarryOverSet {
   set_id: number;
   set_number: number;
@@ -16,8 +21,10 @@ export interface CarryOverExercise {
   local_date?: string;
   /** The session note of the workout it came from. */
   workout_notes?: string | null;
-  /** Which instance of the exercise in its session, 0 for the first. */
-  occurrence?: number;
+  /** The plan row it was logged from; null for older sessions. */
+  user_workout_exercise_id?: number | null;
+  /** Which past session it came from, 0 for the most recent. */
+  session?: number;
 }
 
 export interface CarryOverWorkout {
@@ -37,36 +44,36 @@ export function buildExerciseMap(
 ): Map<number, CarryOverExercise[]> {
   const map = new Map<number, CarryOverExercise[]>();
   if (!data) return map;
-  for (const w of data) {
-    const seen = new Map<number, number>();
+  data.forEach((w, session) => {
     for (const ex of w.exercises) {
       const arr = map.get(ex.exercise_id) ?? [];
-      const occurrence = seen.get(ex.exercise_id) ?? 0;
-      seen.set(ex.exercise_id, occurrence + 1);
       arr.push({
         ...ex,
         local_date: w.local_date,
         workout_notes: w.notes,
-        occurrence,
+        session,
       });
       map.set(ex.exercise_id, arr);
     }
-  }
+  });
   return map;
 }
 
-// One entry per session for an exercise's n-th instance in the workout: the
-// session's n-th instance, or its first when it had fewer. A session's
-// instances sit next to each other in the map, first one first.
-function forOccurrence(
+// One entry per past session for a workout row: that session's matching
+// block (see matchSessionInstance). Without a row, the first block.
+function forRow(
   exercises: CarryOverExercise[],
-  occurrence: number,
+  row: RowIdentity | undefined,
 ): CarryOverExercise[] {
-  const picked: CarryOverExercise[] = [];
+  const sessions = new Map<number, CarryOverExercise[]>();
   for (const ex of exercises) {
-    const n = ex.occurrence ?? 0;
-    if (n === 0) picked.push(ex);
-    else if (n === occurrence) picked[picked.length - 1] = ex;
+    const key = ex.session ?? 0;
+    sessions.set(key, [...(sessions.get(key) ?? []), ex]);
+  }
+  const picked: CarryOverExercise[] = [];
+  for (const instances of sessions.values()) {
+    const match = row ? matchSessionInstance(instances, row) : instances[0];
+    if (match) picked.push(match);
   }
   return picked;
 }
@@ -80,11 +87,11 @@ function lookup(
   exerciseId: number,
   isWarmup: boolean,
   ordinal: number,
-  occurrence: number,
+  row: RowIdentity | undefined,
 ): CarryOverMatch | null {
   const exercises = map.get(exerciseId);
   if (!exercises) return null;
-  for (const ex of forOccurrence(exercises, occurrence)) {
+  for (const ex of forRow(exercises, row)) {
     const setsOfType = ex.sets.filter((s) => s.is_warmup === isWarmup);
     if (setsOfType.length === 0) continue;
     const set = setsOfType[ordinal] ?? setsOfType[setsOfType.length - 1];
@@ -103,6 +110,7 @@ function lookup(
 // exercise at the same slot index in the most-recent previous workout.
 function lookupByPosition(
   previousWorkoutData: CarryOverWorkout[] | null,
+  exerciseId: number,
   isWarmup: boolean,
   ordinal: number,
   exercisePosition?: number,
@@ -111,6 +119,9 @@ function lookupByPosition(
   const previous = previousWorkoutData?.[0];
   const prevExAtPos = previous?.exercises[exercisePosition];
   if (!previous || !prevExAtPos) return null;
+  // The same exercise there is another block of it (this one was skipped),
+  // not a swap: the id lookup already had its chance.
+  if (prevExAtPos.exercise_id === exerciseId) return null;
   const setsOfType = prevExAtPos.sets.filter((s) => s.is_warmup === isWarmup);
   if (setsOfType.length === 0) return null;
   const set = setsOfType[ordinal] ?? setsOfType[setsOfType.length - 1];
@@ -126,8 +137,9 @@ export function findLastAvailableSetData(params: {
   isWarmup: boolean;
   ordinal: number;
   exercisePosition?: number;
-  /** Which instance of the exercise in the current workout, 0 for the first. */
-  occurrence?: number;
+  /** The workout row being filled, so each block of a repeated exercise
+   * matches its own block in past sessions. */
+  row?: RowIdentity;
   previousWorkoutData: CarryOverWorkout[] | null;
   prevExercisesByExerciseId: Map<number, CarryOverExercise[]>;
   globalExercisesByExerciseId: Map<number, CarryOverExercise[]>;
@@ -138,14 +150,14 @@ export function findLastAvailableSetData(params: {
     isWarmup,
     ordinal,
     exercisePosition,
-    occurrence = 0,
+    row,
     previousWorkoutData,
     prevExercisesByExerciseId,
     globalExercisesByExerciseId,
     alwaysUseGlobalHistory,
   } = params;
   const find = (map: Map<number, CarryOverExercise[]>) =>
-    lookup(map, exerciseId, isWarmup, ordinal, occurrence);
+    lookup(map, exerciseId, isWarmup, ordinal, row);
 
   if (alwaysUseGlobalHistory) {
     return find(globalExercisesByExerciseId);
@@ -155,6 +167,7 @@ export function findLastAvailableSetData(params: {
     find(prevExercisesByExerciseId) ??
     lookupByPosition(
       previousWorkoutData,
+      exerciseId,
       isWarmup,
       ordinal,
       exercisePosition,

@@ -32,7 +32,7 @@ import {
   toLocalDateKey,
 } from "@/utils/dates";
 import { useAppTheme, radii } from "@/theme";
-import { instanceName } from "@/utils/exerciseInstance";
+import { loggedInstanceName } from "@/utils/exerciseInstance";
 import type { AppThemeColors } from "@/theme/types";
 import ProgressionSummaryCard from "@/components/ProgressionSummaryCard";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
@@ -502,12 +502,24 @@ export default function WorkoutSummaryScreen() {
     [prevWorkout, excludeWarmup, countUnilateralDouble, doubleWeightForPaired],
   );
 
-  // Only exercises that were saved with this workout.
+  // Only blocks that were saved with this workout: by plan row, so a skipped
+  // block of an exercise logged twice gets no prompt; by exercise for
+  // anything saved without a row.
   const savedCatchUpPrompts = useMemo(() => {
     if (!workout || !progressionSettings.enabled) return [];
-    const saved = new Set(workout.exercises.map((e) => e.exercise_id));
+    const savedRows = new Set<number>();
+    const savedWithoutRow = new Set<number>();
+    for (const e of workout.exercises) {
+      if (e.user_workout_exercise_id != null) {
+        savedRows.add(e.user_workout_exercise_id);
+      } else {
+        savedWithoutRow.add(e.exercise_id);
+      }
+    }
     return catchUpPrompts.filter((p) =>
-      saved.has(p.exerciseContext.exerciseId),
+      p.userWorkoutExerciseId != null && savedRows.has(p.userWorkoutExerciseId)
+        ? true
+        : savedWithoutRow.has(p.exerciseContext.exerciseId),
     );
   }, [catchUpPrompts, workout, progressionSettings.enabled]);
 
@@ -713,7 +725,11 @@ export default function WorkoutSummaryScreen() {
           <ExerciseRow
             key={exercise.completed_exercise_id}
             exercise={exercise}
-            name={instanceName(workout.exercises, i, exercise.exercise_name)}
+            name={loggedInstanceName(
+              workout.exercises,
+              i,
+              exercise.exercise_name,
+            )}
             weightUnit={weightUnit}
             distanceUnit={distanceUnit}
           />

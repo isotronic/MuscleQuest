@@ -63,7 +63,7 @@ import {
   buildExerciseMap,
   findLastAvailableSetData as findLastAvailableSetDataUtil,
 } from "@/utils/carryOverLookup";
-import { instanceName, occurrenceIndex } from "@/utils/exerciseInstance";
+import { instanceName, rowIdentity } from "@/utils/exerciseInstance";
 import { UserExercise } from "@/store/workoutStore";
 import ExerciseFeedbackCard from "@/components/ExerciseFeedbackCard";
 import type { FeedbackPrompt } from "@/utils/feedbackPrompts";
@@ -514,10 +514,10 @@ export default function WorkoutSessionScreen() {
       isWarmup,
       ordinal,
       exercisePosition,
-      occurrence:
+      row:
         exercisePosition !== undefined && workout
-          ? occurrenceIndex(workout.exercises, exercisePosition)
-          : 0,
+          ? rowIdentity(workout.exercises, exercisePosition)
+          : undefined,
       previousWorkoutData,
       prevExercisesByExerciseId,
       globalExercisesByExerciseId,
