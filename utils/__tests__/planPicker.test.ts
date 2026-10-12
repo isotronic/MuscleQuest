@@ -22,17 +22,12 @@ describe("rankPremadePlans", () => {
     });
   });
 
-  it("never puts a plan that needs missing equipment ahead of one that fits", () => {
+  it("leaves out plans that need equipment the user lacks", () => {
     // Only the bodyweight plan needs nothing.
-    expect(top({ days: 6, level: "advanced", equipment: "none" }, 1)).toEqual([
-      5,
-    ]);
-    // The dumbbell and bodyweight plans, then the gym plans.
-    const ranked = rankPremadePlans(
-      { days: 4, level: "intermediate", equipment: "dumbbells" },
-      PREMADE_PLAN_META,
-    ).map((p) => p.appPlanId);
-    expect(ranked.slice(0, 2)).toEqual([6, 5]);
+    expect(top({ days: 6, level: "advanced", equipment: "none" })).toEqual([5]);
+    expect(
+      top({ days: 4, level: "intermediate", equipment: "dumbbells" }, 7),
+    ).toEqual([6, 5]);
   });
 
   it("prefers fewer days than available over more", () => {

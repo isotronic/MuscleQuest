@@ -202,7 +202,11 @@ const PlanPickerSheet = React.forwardRef<
         {step === "result" && (
           <>
             <ThemedText style={styles.question}>
-              <Trans>These plans fit best</Trans>
+              {results.length === 1 ? (
+                <Trans>This plan fits best</Trans>
+              ) : (
+                <Trans>These plans fit best</Trans>
+              )}
             </ThemedText>
             {results.map(({ ranked, plan }) => (
               <TouchableOpacity
