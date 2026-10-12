@@ -341,7 +341,11 @@ export default function SettingsScreen() {
         // The field opens on the stored weight rounded for display. Saved
         // unchanged, that would overwrite the precise kg value and log a
         // duplicate measurement, so only an edited value is written.
-        if (Number(inputValue) !== Number(settings?.bodyWeight)) {
+        // An empty or zero entry leaves an unset body weight unset.
+        if (
+          Number(inputValue) > 0 &&
+          Number(inputValue) !== Number(settings?.bodyWeight)
+        ) {
           // Rounded to 0.1 kg, 180 lbs came back as 179.9 lbs.
           const bodyWeightInKg = roundCanonical(
             displayToKg(inputValue as number, settings?.weightUnit ?? "kg"),
@@ -781,10 +785,14 @@ export default function SettingsScreen() {
                 <Trans>Body weight</Trans>
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
-                <Trans>
-                  {toDisplayDecimal(settings?.bodyWeight ?? "")}{" "}
-                  {settings?.weightUnit} (used for assisted exercises)
-                </Trans>
+                {settings?.bodyWeight ? (
+                  <Trans>
+                    {toDisplayDecimal(settings.bodyWeight)}{" "}
+                    {settings?.weightUnit} (used for assisted exercises)
+                  </Trans>
+                ) : (
+                  <Trans>Not set (used for assisted exercises)</Trans>
+                )}
               </ThemedText>
             </View>
           </TouchableOpacity>

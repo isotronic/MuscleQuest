@@ -11,6 +11,7 @@ import { StaleWorkoutPrompt } from "@/components/StaleWorkoutPrompt";
 import { AccountOwnershipPrompt } from "@/components/AccountOwnershipPrompt";
 import { setShowRestNotificationInForeground } from "@/utils/restNotification";
 import { useEffect } from "react";
+import { SetupState } from "@/utils/setupState";
 
 export default function AppLayout() {
   const { colors } = useAppTheme();
@@ -33,6 +34,11 @@ export default function AppLayout() {
   // null anywhere under (app).
   if (settings && !settings.loginShown) {
     return <Redirect href="/login" />;
+  }
+
+  // A new install sets up units, goal and week start once, after login.
+  if (settings?.setupDone === SetupState.pending) {
+    return <Redirect href="/setup" />;
   }
 
   return (
