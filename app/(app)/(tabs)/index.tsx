@@ -19,6 +19,8 @@ import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
 import { router } from "expo-router";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
+import { showSnackbar } from "@/store/snackbarStore";
 import { useWeekRule } from "@/hooks/useWeekRule";
 import { endOfAppWeek, startOfAppWeek } from "@/utils/week";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
@@ -38,6 +40,8 @@ import { resumeActiveWorkout } from "@/utils/resumeWorkout";
 import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
 import RestDayCard from "@/components/RestDayCard";
 import { BackupReminderCard } from "@/components/BackupReminderCard";
+import { SetupOfferCard } from "@/components/SetupOfferCard";
+import { SetupState } from "@/utils/setupState";
 import WorkoutDoneCard from "@/components/WorkoutDoneCard";
 import WeeklySummaryCard from "@/components/WeeklySummaryCard";
 import { kgToDisplay } from "@/utils/units";
@@ -86,6 +90,11 @@ export default function HomeScreen() {
     confirmStartWorkout(setIsStartingWorkout, () => {
       useActiveWorkoutStore.getState().startQuickWorkout();
     });
+  };
+  const { mutate: updateSetting } = useUpdateSettingsMutation();
+  const hideTips = () => {
+    updateSetting({ key: "showOnboarding", value: "false" });
+    showSnackbar(t`Tips hidden. Turn them back on in Settings.`);
   };
   const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
   const [pickerWorkouts, setPickerWorkouts] = useState<CompletedWorkout[]>([]);
@@ -496,11 +505,20 @@ export default function HomeScreen() {
               </View>
             </Pressable>
           )}
-          {/* Takes the resume card's place, never alongside it. */}
-          {!showResumeCard && !workoutInProgress && <BackupReminderCard />}
+          {/* Takes the resume card's place, never alongside it; one nudge
+              at a time, the setup offer first. */}
+          {!showResumeCard &&
+            !workoutInProgress &&
+            (settings?.setupDone === SetupState.offered ? (
+              <SetupOfferCard />
+            ) : (
+              <BackupReminderCard />
+            ))}
           {activePlan && settings ? (
             <>
-              {settings.showOnboarding === "true" && <Onboarding />}
+              {settings.showOnboarding === "true" && (
+                <Onboarding onHideTips={hideTips} />
+              )}
               <View style={styles.planTitleRow}>
                 <ThemedText
                   accessibilityRole="header"
@@ -636,6 +654,8 @@ export default function HomeScreen() {
                 hasCompletedWorkout,
               )}
               onQuickWorkout={startQuickWorkout}
+              showTips={settings?.showOnboarding === "true"}
+              onHideTips={hideTips}
             />
           )}
         </View>

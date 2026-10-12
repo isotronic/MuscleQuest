@@ -117,7 +117,28 @@ describe("Onboarding", () => {
     );
 
     expect(queryByText("Pick a plan to get started")).toBeNull();
-    expect(getByText("Welcome to MuscleQuest")).toBeTruthy();
+    expect(getByText("Tips")).toBeTruthy();
+  });
+
+  it("shows three short tips and no settings card, since setup covers it", () => {
+    const { getByText, queryByText } = render(<Onboarding />);
+    expect(getByText("Explore plans")).toBeTruthy();
+    expect(getByText("Exercise library")).toBeTruthy();
+    expect(getByText("View stats")).toBeTruthy();
+    expect(queryByText("Customise your settings")).toBeNull();
+  });
+
+  it("hides the tips from their own button, and leaves them out when off", () => {
+    const onHideTips = jest.fn();
+    const { getByText, rerender, queryByText } = render(
+      <Onboarding onHideTips={onHideTips} />,
+    );
+    fireEvent.press(getByText("Hide tips"));
+    expect(onHideTips).toHaveBeenCalled();
+
+    rerender(<Onboarding showActivationCard showTips={false} />);
+    expect(queryByText("Tips")).toBeNull();
+    expect(getByText("Pick a plan to get started")).toBeTruthy();
   });
 
   it("no longer has a Hide / Show Onboarding card", () => {
