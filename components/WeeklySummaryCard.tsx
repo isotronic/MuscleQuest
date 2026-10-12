@@ -1,8 +1,13 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { AppIcon } from "@/components/ui";
-import { startOfWeek, endOfWeek, subWeeks } from "date-fns";
 import { isLocalDateInRange } from "@/utils/dates";
+import {
+  DEFAULT_WEEK_RULE,
+  endOfAppWeek,
+  startOfPreviousAppWeek,
+  type WeekRule,
+} from "@/utils/week";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
@@ -25,6 +30,7 @@ interface Props {
   doubleWeightForPaired?: boolean;
   /** In the display weight unit, for assisted exercises. */
   bodyWeight?: number;
+  weekRule?: WeekRule;
 }
 
 type HistoryExercise = CompletedWorkout["exercises"][number];
@@ -72,11 +78,11 @@ function computeBestAchievement(
   excludeWarmup: boolean = false,
   bodyWeight: number = 0,
   doubleWeightForPaired: boolean = false,
+  weekRule: WeekRule = DEFAULT_WEEK_RULE,
 ): BestAchievement | null {
   const today = new Date();
-  const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 });
-  const lastWeekStart = subWeeks(currentWeekStart, 1);
-  const lastWeekEnd = endOfWeek(lastWeekStart, { weekStartsOn: 1 });
+  const lastWeekStart = startOfPreviousAppWeek(today, weekRule);
+  const lastWeekEnd = endOfAppWeek(lastWeekStart, weekRule);
 
   const lastWeekWorkouts = allCompletedWorkouts.filter((w) =>
     isLocalDateInRange(w.local_date, lastWeekStart, lastWeekEnd),
@@ -194,6 +200,7 @@ export default function WeeklySummaryCard({
   countUnilateralDouble = false,
   doubleWeightForPaired = false,
   bodyWeight = 0,
+  weekRule = DEFAULT_WEEK_RULE,
 }: Props) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -237,6 +244,7 @@ export default function WeeklySummaryCard({
         excludeWarmup,
         bodyWeight,
         doubleWeightForPaired,
+        weekRule,
       ),
     [
       workoutsThisWeek,
@@ -245,6 +253,7 @@ export default function WeeklySummaryCard({
       excludeWarmup,
       bodyWeight,
       doubleWeightForPaired,
+      weekRule,
     ],
   );
 

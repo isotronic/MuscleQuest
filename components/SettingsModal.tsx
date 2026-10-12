@@ -51,6 +51,8 @@ interface SettingsModalProps {
   sliderMax?: number;
   sliderStep?: number;
   options?: string[];
+  /** Shown in place of a radio option's value. */
+  optionLabels?: Record<string, string>;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -62,6 +64,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onChangeValue,
   settingType,
   options,
+  optionLabels,
   sliderMin = 1,
   sliderMax = 7,
   sliderStep = 1,
@@ -212,8 +215,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 >
                   {options.map((option) => (
                     <View key={option} style={styles.radioItem}>
-                      <RadioButton value={option} {...checkboxLabel(option)} />
-                      <ThemedText {...checkboxCaptionA11y}>{option}</ThemedText>
+                      <RadioButton
+                        value={option}
+                        {...checkboxLabel(optionLabels?.[option] ?? option)}
+                      />
+                      <ThemedText {...checkboxCaptionA11y}>
+                        {optionLabels?.[option] ?? option}
+                      </ThemedText>
                     </View>
                   ))}
                 </RadioButton.Group>

@@ -27,6 +27,8 @@ import {
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { Cues } from "@/components/Cues";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useWeekRule } from "@/hooks/useWeekRule";
+import { weekStartsOnToday } from "@/utils/week";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import type { Workout } from "@/store/workoutStore";
@@ -119,6 +121,7 @@ export default function PlanOverviewScreen() {
   } = usePlanQuery(Number(planId));
   const { data: scheduleEntries = [] } = usePlanScheduleQuery(Number(planId));
   const { data: settings } = useSettingsQuery();
+  const weekStartsOn = weekStartsOnToday(useWeekRule());
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   // is_active comes back as 0/1 from SQLite but is typed number | boolean.
   const isActive = !!plan?.is_active;
@@ -337,6 +340,7 @@ export default function PlanOverviewScreen() {
         <WeeklyScheduleDisplay
           workouts={plan?.workouts ?? []}
           scheduleEntries={scheduleEntries}
+          weekStartsOn={weekStartsOn}
         />
 
         {isActive && progressionSettings.enabled && (

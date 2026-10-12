@@ -54,6 +54,23 @@ describe("PlanScheduleEditor", () => {
     expect(getByRole("button", { name: "Wednesday: Workout 2" })).toBeTruthy();
     expect(getByRole("button", { name: "Tuesday: Rest" })).toBeTruthy();
   });
+
+  it("starts the grid on Sunday for Sunday weeks, keeping 0 = Monday", () => {
+    const { getAllByRole } = render(
+      <PaperProvider>
+        <PlanScheduleEditor
+          workouts={workouts}
+          weeklyGoal={2}
+          schedule={{ 6: 0 }}
+          onChange={jest.fn()}
+          weekStartsOn={0}
+        />
+      </PaperProvider>,
+    );
+    const tiles = getAllByRole("button", { name: /day: / });
+    expect(tiles[0].props.accessibilityLabel).toBe("Sunday: Push");
+    expect(tiles[1].props.accessibilityLabel).toBe("Monday: Rest");
+  });
 });
 
 describe("WeekDays", () => {
@@ -61,5 +78,21 @@ describe("WeekDays", () => {
     const { getByText } = render(<WeekDays />);
     const today = String(new Date().getDate());
     expect(getByText(today).props.maxFontSizeMultiplier).toBeGreaterThan(1);
+  });
+
+  it("starts the row on Sunday for Sunday weeks", () => {
+    const { getAllByText } = render(
+      <WeekDays weekRule={{ weekStartsOn: 0 }} />,
+    );
+    const names = getAllByText(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/);
+    expect(names.map((n) => n.props.children)).toEqual([
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+    ]);
   });
 });

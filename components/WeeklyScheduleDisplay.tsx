@@ -9,6 +9,7 @@ import { t, msg } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
+import { weekDayOrder, type WeekStartDay } from "@/utils/week";
 
 const DAY_LABELS = [
   msg`Mon`,
@@ -28,11 +29,14 @@ interface WorkoutRef {
 interface Props {
   workouts: WorkoutRef[];
   scheduleEntries: PlanScheduleEntry[];
+  /** The day the grid starts on; day_of_week keeps 0 = Monday. */
+  weekStartsOn?: WeekStartDay;
 }
 
 export default function WeeklyScheduleDisplay({
   workouts,
   scheduleEntries,
+  weekStartsOn = 1,
 }: Props) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -83,7 +87,8 @@ export default function WeeklyScheduleDisplay({
         </ThemedText>
       </View>
       <View style={styles.grid}>
-        {DAY_LABELS.map((label, dow) => {
+        {weekDayOrder(weekStartsOn).map((dow) => {
+          const label = DAY_LABELS[dow];
           const hasWorkout = scheduleMap[dow] !== undefined;
           const workoutName = scheduleMap[dow] || t`Workout`;
           return (

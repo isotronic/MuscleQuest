@@ -26,6 +26,14 @@ import { useAppTheme } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
+import { useSaveWeekStartMutation } from "@/hooks/useSaveWeekStartMutation";
+import { useWeekRule } from "@/hooks/useWeekRule";
+import {
+  parseWeekStartDay,
+  weekStartsOnToday,
+  type WeekStartDay,
+} from "@/utils/week";
+import { localDateKeyToDate } from "@/utils/dates";
 import { SettingsModal } from "@/components/SettingsModal";
 import { PrivacySettings } from "@/components/PrivacySettings";
 import { UnitSettingItem } from "@/components/UnitSettingItem";
@@ -73,6 +81,10 @@ const REMINDER_DAY_LABELS = [
   msg`Su`,
 ];
 const REMINDER_DAY_VALUES = [1, 2, 3, 4, 5, 6, 0];
+const WEEK_START_NAMES: Record<WeekStartDay, ReturnType<typeof msg>> = {
+  1: msg`Monday`,
+  0: msg`Sunday`,
+};
 // The chips show two letters; screen readers get the whole day.
 const REMINDER_DAY_NAMES = [
   msg`Monday`,
@@ -115,6 +127,17 @@ export default function SettingsScreen() {
   const queryClient = useQueryClient();
   const { data: settings, isLoading, isError, refetch } = useSettingsQuery();
   const { mutate: updateSetting } = useUpdateSettingsMutation();
+  const { mutateAsync: saveWeekStart } = useSaveWeekStartMutation();
+  const weekRule = useWeekRule();
+  // The chosen start, which may only apply from next week.
+  const weekStartsOn = weekRule.weekStartsOn;
+  const weekStartPending =
+    weekStartsOnToday(weekRule) !== weekStartsOn && weekRule.from
+      ? localDateKeyToDate(weekRule.from).toLocaleDateString(undefined, {
+          day: "numeric",
+          month: "long",
+        })
+      : null;
   // "progression" opens the screen at that section (from the summary offer).
   const { section } = useLocalSearchParams<{ section?: string }>();
   const scrollRef = useRef<ScrollView>(null);
@@ -169,6 +192,9 @@ export default function SettingsScreen() {
     | null
   >(null);
   const [options, setOptions] = useState<string[] | undefined>(undefined);
+  const [optionLabels, setOptionLabels] = useState<
+    Record<string, string> | undefined
+  >(undefined);
 
   const [toggleValues, setToggleValues] = useState({
     keepScreenOn: settings?.keepScreenOn,
@@ -247,6 +273,7 @@ export default function SettingsScreen() {
       | "reminderTime"
       | "slider",
     options?: string[],
+    labels?: Record<string, string>,
   ) => {
     if (key === "defaultRestTime") {
       const totalSeconds = parseInt(value as string, 10);
@@ -265,6 +292,7 @@ export default function SettingsScreen() {
 
     setCurrentSettingKey(key);
     setOptions(options);
+    setOptionLabels(labels);
     setOverlayVisible(true);
   };
 
@@ -296,6 +324,19 @@ export default function SettingsScreen() {
           Bugsnag.notify(err);
           console.error("Failed to reschedule workout reminders:", err);
         });
+      } else if (currentSettingKey === "weekStartsOn") {
+        const next = parseWeekStartDay(String(inputValue));
+        if (next !== undefined && next !== weekStartsOn) {
+          const saved = await saveWeekStart(next);
+          // The running week keeps its start, so say when the change lands.
+          if (saved.from) {
+            const date = localDateKeyToDate(saved.from).toLocaleDateString(
+              undefined,
+              { weekday: "long", day: "numeric", month: "long" },
+            );
+            showSnackbar(t`Your new week starts on ${date}.`);
+          }
+        }
       } else if (currentSettingKey === "bodyWeight") {
         // The field opens on the stored weight rounded for display. Saved
         // unchanged, that would overwrite the precise kg value and log a
@@ -609,6 +650,7 @@ export default function SettingsScreen() {
           onChangeValue={setInputValue}
           settingType={settingType}
           options={options}
+          optionLabels={optionLabels}
         />
         <View style={styles.section}>
           <ThemedText accessibilityRole="header" style={styles.sectionHeader}>
@@ -679,6 +721,44 @@ export default function SettingsScreen() {
               </ThemedText>
               <ThemedText style={styles.currentSetting}>
                 <Trans>{settings?.weeklyGoal} days per week</Trans>
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={styles.item}
+            onPress={() =>
+              showOverlay(
+                "weekStartsOn",
+                String(weekStartsOn),
+                "radio",
+                ["1", "0"],
+                {
+                  "1": _(WEEK_START_NAMES[1]),
+                  "0": _(WEEK_START_NAMES[0]),
+                },
+              )
+            }
+          >
+            <AppIcon
+              set="mci"
+              name="calendar-week-begin"
+              size={24}
+              color={colors.contentSecondary}
+              style={styles.icon}
+            />
+            <View style={styles.textContainer}>
+              <ThemedText style={styles.itemText}>
+                <Trans>Week starts on</Trans>
+              </ThemedText>
+              <ThemedText style={styles.currentSetting}>
+                {weekStartPending ? (
+                  <Trans>
+                    {_(WEEK_START_NAMES[weekStartsOn])} from {weekStartPending}
+                  </Trans>
+                ) : (
+                  _(WEEK_START_NAMES[weekStartsOn])
+                )}
               </ThemedText>
             </View>
           </TouchableOpacity>

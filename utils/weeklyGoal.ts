@@ -1,5 +1,5 @@
-import { endOfWeek, startOfWeek } from "date-fns";
 import { isLocalDateInRange } from "@/utils/dates";
+import { endOfAppWeek, startOfAppWeek, type WeekRule } from "@/utils/week";
 
 interface DatedWorkout {
   id: number;
@@ -16,11 +16,12 @@ export function reachedGoalWithWorkout(
   workout: DatedWorkout,
   history: DatedWorkout[],
   goal: number,
+  weekRule: WeekRule,
   today: Date = new Date(),
 ): boolean {
   if (goal <= 0) return false;
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
+  const weekStart = startOfAppWeek(today, weekRule);
+  const weekEnd = endOfAppWeek(today, weekRule);
   if (!isLocalDateInRange(workout.local_date, weekStart, weekEnd)) {
     return false;
   }

@@ -1,5 +1,6 @@
 import { reachedGoalWithWorkout } from "../weeklyGoal";
 import { toLocalDateKey } from "@/utils/dates";
+import { DEFAULT_WEEK_RULE as MONDAY } from "@/utils/week";
 
 // Wednesday 7 October 2026, late evening local time: the week runs Monday
 // 5 to Sunday 11 October wherever the test runs.
@@ -14,10 +15,12 @@ describe("reachedGoalWithWorkout", () => {
       { id: 1, local_date: day(5) },
       { id: 2, local_date: day(6) },
     ];
-    expect(reachedGoalWithWorkout(workout, history, 3, today)).toBe(true);
+    expect(reachedGoalWithWorkout(workout, history, 3, MONDAY, today)).toBe(
+      true,
+    );
     // Also when the history already holds the workout itself.
     expect(
-      reachedGoalWithWorkout(workout, [...history, workout], 3, today),
+      reachedGoalWithWorkout(workout, [...history, workout], 3, MONDAY, today),
     ).toBe(true);
   });
 
@@ -26,8 +29,12 @@ describe("reachedGoalWithWorkout", () => {
       { id: 1, local_date: day(5) },
       { id: 2, local_date: day(6) },
     ];
-    expect(reachedGoalWithWorkout(workout, history, 4, today)).toBe(false);
-    expect(reachedGoalWithWorkout(workout, history, 2, today)).toBe(false);
+    expect(reachedGoalWithWorkout(workout, history, 4, MONDAY, today)).toBe(
+      false,
+    );
+    expect(reachedGoalWithWorkout(workout, history, 2, MONDAY, today)).toBe(
+      false,
+    );
     expect(
       reachedGoalWithWorkout(
         workout,
@@ -36,6 +43,7 @@ describe("reachedGoalWithWorkout", () => {
           { id: 3, local_date: day(7) },
         ],
         3,
+        MONDAY,
         today,
       ),
     ).toBe(false);
@@ -46,13 +54,21 @@ describe("reachedGoalWithWorkout", () => {
       { id: 1, local_date: day(4) }, // Sunday of last week
       { id: 2, local_date: day(6) },
     ];
-    expect(reachedGoalWithWorkout(workout, history, 3, today)).toBe(false);
+    expect(reachedGoalWithWorkout(workout, history, 3, MONDAY, today)).toBe(
+      false,
+    );
     expect(
-      reachedGoalWithWorkout({ id: 10, local_date: day(4) }, [], 1, today),
+      reachedGoalWithWorkout(
+        { id: 10, local_date: day(4) },
+        [],
+        1,
+        MONDAY,
+        today,
+      ),
     ).toBe(false);
   });
 
   it("is false without a goal", () => {
-    expect(reachedGoalWithWorkout(workout, [], 0, today)).toBe(false);
+    expect(reachedGoalWithWorkout(workout, [], 0, MONDAY, today)).toBe(false);
   });
 });

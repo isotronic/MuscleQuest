@@ -9,7 +9,7 @@ import { syncCompletedWorkoutChanged } from "@/utils/sharedSync";
 import { FutureWorkoutDateError } from "@/utils/db/historyEdits";
 import type { EditableWorkout } from "@/utils/historyEditOps";
 import { toLocalDateKey } from "@/utils/dates";
-import { weekStartKeyFor } from "@/utils/trainingWeek";
+import { DEFAULT_WEEK_RULE, weekStartKeyFor } from "@/utils/week";
 
 jest.mock("react", () => ({
   ...jest.requireActual("react"),
@@ -209,7 +209,10 @@ describe("useLogPastWorkoutMutation", () => {
   });
 
   it("counts the new day in a week already recorded", async () => {
-    const week = weekStartKeyFor(toLocalDateKey(LAST_TUESDAY));
+    const week = weekStartKeyFor(
+      toLocalDateKey(LAST_TUESDAY),
+      DEFAULT_WEEK_RULE,
+    );
     sqlite
       .prepare(
         `INSERT INTO weekly_completions (week_start, goal, completed, goal_reached)

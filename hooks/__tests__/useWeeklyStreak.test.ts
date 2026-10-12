@@ -1,9 +1,10 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
 import { useWeeklyStreak } from "../useWeeklyStreak";
 import { getWeeklyCompletions, upsertWeeklyCompletion } from "@/utils/database";
-import { startOfWeek, subWeeks, endOfWeek, format } from "date-fns";
+import { addDays, startOfWeek, subWeeks, endOfWeek, format } from "date-fns";
 import { toLocalDateKey } from "@/utils/dates";
 import type { CompletedWorkout } from "../useCompletedWorkoutsQuery";
+import { DEFAULT_WEEK_RULE as MONDAY, type WeekRule } from "@/utils/week";
 
 jest.mock("@/utils/database", () => ({
   getWeeklyCompletions: jest.fn(),
@@ -45,7 +46,7 @@ describe("useWeeklyStreak", () => {
   it("does not run and loading remains true when allCompletedWorkouts is undefined", () => {
     (getWeeklyCompletions as jest.Mock).mockResolvedValue([]);
     const { result } = renderHook(() =>
-      useWeeklyStreak(undefined, 3, 0, false),
+      useWeeklyStreak(undefined, 3, 0, false, MONDAY),
     );
     expect(result.current.loading).toBe(true);
     expect(getWeeklyCompletions).not.toHaveBeenCalled();
@@ -54,14 +55,18 @@ describe("useWeeklyStreak", () => {
   it("sets loading to false after sync completes", async () => {
     (getWeeklyCompletions as jest.Mock).mockResolvedValue([]);
     const workouts: never[] = [];
-    const { result } = renderHook(() => useWeeklyStreak(workouts, 3, 0, false));
+    const { result } = renderHook(() =>
+      useWeeklyStreak(workouts, 3, 0, false, MONDAY),
+    );
     await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
   it("returns streak = 0 when there are no completions", async () => {
     (getWeeklyCompletions as jest.Mock).mockResolvedValue([]);
     const workouts: never[] = [];
-    const { result } = renderHook(() => useWeeklyStreak(workouts, 3, 0, false));
+    const { result } = renderHook(() =>
+      useWeeklyStreak(workouts, 3, 0, false, MONDAY),
+    );
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.streak).toBe(0);
   });
@@ -73,7 +78,9 @@ describe("useWeeklyStreak", () => {
       { week_start: "2025-12-29", goal_reached: false },
     ]);
     const workouts: never[] = [];
-    const { result } = renderHook(() => useWeeklyStreak(workouts, 3, 0, false));
+    const { result } = renderHook(() =>
+      useWeeklyStreak(workouts, 3, 0, false, MONDAY),
+    );
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.streak).toBe(2);
   });
@@ -84,7 +91,9 @@ describe("useWeeklyStreak", () => {
       { week_start: "2026-01-05", goal_reached: true },
     ]);
     const workouts: never[] = [];
-    const { result } = renderHook(() => useWeeklyStreak(workouts, 3, 0, false));
+    const { result } = renderHook(() =>
+      useWeeklyStreak(workouts, 3, 0, false, MONDAY),
+    );
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.streak).toBe(0);
   });
@@ -93,7 +102,9 @@ describe("useWeeklyStreak", () => {
     (getWeeklyCompletions as jest.Mock).mockResolvedValue([]);
     // Stable like query data, so a re-render does not re-run the sync.
     const workouts: never[] = [];
-    const { result } = renderHook(() => useWeeklyStreak(workouts, 3, 3, true));
+    const { result } = renderHook(() =>
+      useWeeklyStreak(workouts, 3, 3, true, MONDAY),
+    );
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(upsertWeeklyCompletion).toHaveBeenCalledWith(
       expect.any(String),
@@ -120,7 +131,7 @@ describe("useWeeklyStreak", () => {
       makeTravelledWorkout(lastWeekEnd),
     ] as CompletedWorkout[];
 
-    renderHook(() => useWeeklyStreak(workouts, 2, 0, false));
+    renderHook(() => useWeeklyStreak(workouts, 2, 0, false, MONDAY));
     await waitFor(() => expect(upsertWeeklyCompletion).toHaveBeenCalled());
 
     const [, , uniqueDays, goalReached] = (upsertWeeklyCompletion as jest.Mock)
@@ -134,7 +145,9 @@ describe("useWeeklyStreak", () => {
     // Current week upsert only happens when weeklyGoalReached = true, so it must NOT be called.
     (getWeeklyCompletions as jest.Mock).mockResolvedValue([]);
     const workouts: never[] = [];
-    const { result } = renderHook(() => useWeeklyStreak(workouts, 3, 0, false));
+    const { result } = renderHook(() =>
+      useWeeklyStreak(workouts, 3, 0, false, MONDAY),
+    );
     await waitFor(() => expect(result.current.loading).toBe(false));
     // Exactly one upsert: for the previous week with goal_reached=false
     expect(upsertWeeklyCompletion).toHaveBeenCalledTimes(1);
@@ -176,7 +189,7 @@ describe("useWeeklyStreak", () => {
     ] as CompletedWorkout[];
 
     // The current goal changed since; the recorded goal is kept.
-    renderHook(() => useWeeklyStreak(workouts, 5, 0, false));
+    renderHook(() => useWeeklyStreak(workouts, 5, 0, false, MONDAY));
     await waitFor(() =>
       expect(upsertWeeklyCompletion).toHaveBeenCalledWith(
         lastWeekStartStr,
@@ -202,8 +215,44 @@ describe("useWeeklyStreak", () => {
     ]);
     const workouts = [makeWorkout(lastWeekStart)] as CompletedWorkout[];
 
-    renderHook(() => useWeeklyStreak(workouts, 2, 0, false));
+    renderHook(() => useWeeklyStreak(workouts, 2, 0, false, MONDAY));
     await waitFor(() => expect(getWeeklyCompletions).toHaveBeenCalledTimes(2));
     expect(upsertWeeklyCompletion).not.toHaveBeenCalled();
+  });
+
+  it("records the transition week as last week after a change to Sunday weeks", async () => {
+    // Sunday weeks started this week; last week was the six-day Monday to
+    // Saturday transition week, which a plain one-week step back would miss.
+    const sunday = startOfWeek(new Date(), { weekStartsOn: 0 });
+    const rule: WeekRule = {
+      weekStartsOn: 0,
+      previous: 1,
+      from: toLocalDateKey(sunday),
+    };
+    const transitionStart = startOfWeek(addDays(sunday, -4), {
+      weekStartsOn: 1,
+    });
+    (getWeeklyCompletions as jest.Mock).mockResolvedValue([
+      {
+        week_start: toLocalDateKey(subWeeks(transitionStart, 1)),
+        goal: 2,
+        completed: 2,
+        goal_reached: 1,
+      },
+    ]);
+    const workouts = [
+      makeWorkout(transitionStart),
+      makeWorkout(addDays(sunday, -1)),
+    ] as CompletedWorkout[];
+
+    renderHook(() => useWeeklyStreak(workouts, 2, 0, false, rule));
+    await waitFor(() =>
+      expect(upsertWeeklyCompletion).toHaveBeenCalledWith(
+        toLocalDateKey(transitionStart),
+        2,
+        2,
+        true,
+      ),
+    );
   });
 });

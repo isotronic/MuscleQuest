@@ -26,7 +26,6 @@ import {
   useWorkoutSessionHistoryQuery,
   type CompletedWorkout,
 } from "@/hooks/useCompletedWorkoutsQuery";
-import { startOfWeek, endOfWeek } from "date-fns";
 import {
   isLocalDateInRange,
   localDateKeyToDate,
@@ -45,6 +44,8 @@ import { useWorkoutPRsQuery } from "@/hooks/useWorkoutSummariesQuery";
 import { describePR } from "@/components/stats/widgets/RecentPRsWidget";
 import type { RecentPR } from "@/utils/db/workoutStats";
 import { reachedGoalWithWorkout } from "@/utils/weeklyGoal";
+import { endOfAppWeek, startOfAppWeek } from "@/utils/week";
+import { useWeekRule } from "@/hooks/useWeekRule";
 import FeedbackCatchUpCard from "@/components/FeedbackCatchUpCard";
 import ProgressionOfferCard from "@/components/ProgressionOfferCard";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
@@ -438,6 +439,7 @@ export default function WorkoutSummaryScreen() {
   );
 
   const weeklyGoal = Number(settings?.weeklyGoal ?? 0);
+  const weekRule = useWeekRule();
 
   const { data: workoutPRs } = useWorkoutPRsQuery(isValidId ? id : 0);
   // A deload week is not for records, as in the session itself.
@@ -446,8 +448,8 @@ export default function WorkoutSummaryScreen() {
     () =>
       !!workout &&
       !!allWorkouts &&
-      reachedGoalWithWorkout(workout, allWorkouts, weeklyGoal),
-    [workout, allWorkouts, weeklyGoal],
+      reachedGoalWithWorkout(workout, allWorkouts, weeklyGoal, weekRule),
+    [workout, allWorkouts, weeklyGoal, weekRule],
   );
   // Kept for the moments worth it, so it still means something.
   const showConfetti =
@@ -458,13 +460,13 @@ export default function WorkoutSummaryScreen() {
   const workoutsThisWeek = useMemo(() => {
     if (!allWorkouts) return 0;
     const today = new Date();
-    const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-    const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
+    const weekStart = startOfAppWeek(today, weekRule);
+    const weekEnd = endOfAppWeek(today, weekRule);
     const thisWeek = allWorkouts.filter((w) =>
       isLocalDateInRange(w.local_date, weekStart, weekEnd),
     );
     return new Set(thisWeek.map((w) => w.local_date)).size;
-  }, [allWorkouts]);
+  }, [allWorkouts, weekRule]);
 
   const prevWorkout = useMemo(() => {
     if (!history || !workout) return null;

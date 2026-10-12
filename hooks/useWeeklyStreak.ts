@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react";
-import { startOfWeek, subWeeks, format } from "date-fns";
 import { getWeeklyCompletions, upsertWeeklyCompletion } from "@/utils/database";
-import { countTrainingDaysInWeek } from "@/utils/trainingWeek";
+import { toLocalDateKey } from "@/utils/dates";
+import {
+  countTrainingDaysInWeek,
+  previousWeekStartKey,
+  weekStartKeyFor,
+  type WeekRule,
+} from "@/utils/week";
 
 // Only the training day of each workout matters here, and only for last
 // week, so callers can pass a recent window rather than the whole history.
@@ -12,14 +17,14 @@ const syncWeeklyCompletions = async (
   weeklyGoal: number,
   uniqueWorkoutDaysCount: number,
   weeklyGoalReached: boolean,
+  rule: WeekRule,
 ) => {
-  const today = new Date();
-  const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const currentWeekStart = weekStartKeyFor(toLocalDateKey(new Date()), rule);
 
   // Record current week immediately if goal is reached (locks in goal value)
   if (weeklyGoalReached) {
     await upsertWeeklyCompletion(
-      format(currentWeekStart, "yyyy-MM-dd"),
+      currentWeekStart,
       weeklyGoal,
       uniqueWorkoutDaysCount,
       true,
@@ -28,9 +33,10 @@ const syncWeeklyCompletions = async (
 
   // Record last week once it is over (one week lookback only). A recorded week
   // is recounted if a stale workout saved later landed in it, keeping the goal
-  // that was recorded.
-  const lastWeekStart = subWeeks(currentWeekStart, 1);
-  const lastWeekStartStr = format(lastWeekStart, "yyyy-MM-dd");
+  // that was recorded. Stepping back through the week rule finds the
+  // transition week after a change of week start, so the streak joins the
+  // old and new weeks without a gap.
+  const lastWeekStartStr = previousWeekStartKey(currentWeekStart, rule);
   const existing = await getWeeklyCompletions();
   const lastWeekRow = existing.find((e) => e.week_start === lastWeekStartStr);
 
@@ -39,6 +45,7 @@ const syncWeeklyCompletions = async (
   const uniqueDays = countTrainingDaysInWeek(
     allCompletedWorkouts,
     lastWeekStartStr,
+    rule,
   );
 
   if (!lastWeekRow) {
@@ -80,8 +87,11 @@ export function useWeeklyStreak(
   weeklyGoal: number,
   uniqueWorkoutDaysCount: number,
   weeklyGoalReached: boolean,
+  weekRule: WeekRule,
 ): { streak: number; loading: boolean } {
   const [streak, setStreak] = useState(0);
+  // Compared by value so a rule rebuilt on each render does not re-run it.
+  const { weekStartsOn, previous, from } = weekRule;
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -95,6 +105,7 @@ export function useWeeklyStreak(
           weeklyGoal,
           uniqueWorkoutDaysCount,
           weeklyGoalReached,
+          { weekStartsOn, previous, from },
         );
         const completions = await getWeeklyCompletions();
         if (!cancelled) {
@@ -113,6 +124,9 @@ export function useWeeklyStreak(
     weeklyGoal,
     uniqueWorkoutDaysCount,
     weeklyGoalReached,
+    weekStartsOn,
+    previous,
+    from,
   ]);
 
   return { streak, loading };

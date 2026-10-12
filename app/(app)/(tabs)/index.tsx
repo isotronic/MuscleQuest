@@ -3,7 +3,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { startOfWeek, endOfWeek, getDay, format } from "date-fns";
+import { getDay, format } from "date-fns";
 import {
   isLocalDateInRange,
   parseDbTimestamp,
@@ -19,6 +19,8 @@ import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
 import { router } from "expo-router";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useWeekRule } from "@/hooks/useWeekRule";
+import { endOfAppWeek, startOfAppWeek } from "@/utils/week";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimateCompact } from "@/utils/estimateWorkoutDuration";
 import {
@@ -134,11 +136,12 @@ export default function HomeScreen() {
     return () => clearTimeout(timer);
   }, [workoutInProgress]);
 
+  const weekRule = useWeekRule();
   const today = new Date();
   // day_of_week: 0=Mon … 6=Sun  (JS Sunday=0, so shift by +6 mod 7)
   const todayDow = (getDay(today) + 6) % 7;
-  const startOfWeekDate = startOfWeek(today, { weekStartsOn: 1 });
-  const endOfWeekDate = endOfWeek(today, { weekStartsOn: 1 });
+  const startOfWeekDate = startOfAppWeek(today, weekRule);
+  const endOfWeekDate = endOfAppWeek(today, weekRule);
 
   const todayKey = toLocalDateKey(today);
 
@@ -168,6 +171,7 @@ export default function HomeScreen() {
     Number(settings?.weeklyGoal ?? 0),
     uniqueWorkoutDaysCount,
     weeklyGoalReached,
+    weekRule,
   );
 
   const progressionSettings = useProgressionSettingsQuery();
@@ -367,6 +371,7 @@ export default function HomeScreen() {
           <WeekDays
             completedWorkoutsThisWeek={completedWorkoutsThisWeek}
             onDayPress={handleDayPress}
+            weekRule={weekRule}
             scheduledDayIndices={
               planScheduleEntries?.length
                 ? new Set(planScheduleEntries.map((e) => e.day_of_week))
@@ -413,6 +418,7 @@ export default function HomeScreen() {
                 parseFloat(settings?.bodyWeight ?? "") || 0,
                 settings?.weightUnit ?? "kg",
               )}
+              weekRule={weekRule}
             />
           </View>
         )}

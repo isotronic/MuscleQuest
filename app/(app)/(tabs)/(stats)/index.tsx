@@ -6,12 +6,7 @@ import { t } from "@lingui/core/macro";
 import { ActivityIndicator, Button, Divider } from "react-native-paper";
 import { Stack, useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  startOfWeek,
-  endOfWeek,
-  format,
-  differenceInCalendarMonths,
-} from "date-fns";
+import { format, differenceInCalendarMonths } from "date-fns";
 import { TimeRangeSelector } from "@/components/stats/TimeRangeSelector";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -24,6 +19,8 @@ import { WIDGETS } from "@/components/stats/widgets/registry";
 import { useWorkoutSummariesQuery } from "@/hooks/useWorkoutSummariesQuery";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useWeekRule } from "@/hooks/useWeekRule";
+import { endOfAppWeek, startOfAppWeek } from "@/utils/week";
 import { useStatsLayout } from "@/hooks/useStatsLayout";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import type { WorkoutSummary } from "@/utils/db/workoutStats";
@@ -89,8 +86,9 @@ export default function StatsScreen() {
   // streak also records finished weeks, so it runs whatever is shown.
   const { data: allWorkouts } = useWorkoutSummariesQuery(0, statsOptions);
 
-  const thisWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const thisWeekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekRule = useWeekRule();
+  const thisWeekStart = startOfAppWeek(new Date(), weekRule);
+  const thisWeekEnd = endOfAppWeek(new Date(), weekRule);
   const uniqueWorkoutDaysCount = new Set(
     allWorkouts
       ?.filter((w) =>
@@ -106,6 +104,7 @@ export default function StatsScreen() {
     weeklyGoal,
     uniqueWorkoutDaysCount,
     weeklyGoalReached,
+    weekRule,
   );
 
   const handleTimeRangeChange = useCallback(

@@ -7,6 +7,13 @@ import {
   DEFAULT_PLATE_INVENTORY_KG,
   DEFAULT_PLATE_INVENTORY_LBS,
 } from "@/utils/plateCalculator";
+import {
+  changeWeekStart,
+  weekRuleFromSettings,
+  weekRuleToSettings,
+  type WeekRule,
+  type WeekStartDay,
+} from "@/utils/week";
 import { openDatabase } from "./connection";
 
 export const insertDefaultSettings = async () => {
@@ -14,6 +21,8 @@ export const insertDefaultSettings = async () => {
   try {
     const defaultSettings = [
       { key: "weeklyGoal", value: "3" },
+      // Monday weeks, as before the setting existed. See utils/week.ts.
+      { key: "weekStartsOn", value: "1" },
       { key: "keepScreenOn", value: "false" },
       { key: "downloadImages", value: "false" },
       { key: "weightUnit", value: "kg" },
@@ -134,6 +143,12 @@ export interface Settings {
   statsLayout?: string;
   /** Answer to the summary's progression offer, see utils/progressionOffer.ts. */
   progressionOfferAnswered?: string;
+  /** "1" Monday or "0" Sunday; read through weekRuleFromSettings. */
+  weekStartsOn?: string;
+  /** The week start before the last change; "" when there is none. */
+  weekStartsOnPrevious?: string;
+  /** "YYYY-MM-DD" the last change took effect; "" when there is none. */
+  weekStartsOnFrom?: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
@@ -207,6 +222,51 @@ export const deleteSetting = async (key: string): Promise<void> => {
   const db = await openDatabase("userData.db");
   try {
     await db.runAsync("DELETE FROM settings WHERE key = ?", [key]);
+  } finally {
+    await db.closeAsync();
+  }
+};
+
+const WEEK_RULE_KEYS = [
+  "weekStartsOn",
+  "weekStartsOnPrevious",
+  "weekStartsOnFrom",
+] as const;
+
+/** The user's week rule, read on an open connection or transaction. */
+export const readWeekRule = async (
+  db: SQLite.SQLiteDatabase,
+): Promise<WeekRule> => {
+  const rows = await db.getAllAsync<SettingsResult>(
+    `SELECT key, value FROM settings WHERE key IN (?, ?, ?)`,
+    [...WEEK_RULE_KEYS],
+  );
+  return weekRuleFromSettings(
+    Object.fromEntries(rows.map((row) => [row.key, row.value])),
+  );
+};
+
+/**
+ * Sets the user's week start from the next week on (see changeWeekStart),
+ * reading the stored rule and writing all three keys in one transaction.
+ */
+export const saveWeekStart = async (
+  next: WeekStartDay,
+  today: Date = new Date(),
+): Promise<WeekRule> => {
+  const db = await openDatabase("userData.db");
+  try {
+    let saved: WeekRule = { weekStartsOn: next };
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      saved = changeWeekStart(await readWeekRule(txn), next, today);
+      for (const [key, value] of Object.entries(weekRuleToSettings(saved))) {
+        await txn.runAsync(
+          "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+          [key, value],
+        );
+      }
+    });
+    return saved;
   } finally {
     await db.closeAsync();
   }
