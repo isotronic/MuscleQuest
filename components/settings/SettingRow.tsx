@@ -16,7 +16,10 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
-import { Switch } from "react-native-paper";
+import { ActivityIndicator, Switch } from "react-native-paper";
+import { t } from "@lingui/core/macro";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useLocalSearchParams } from "expo-router";
 import type { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AppIcon } from "@/components/ui/AppIcon";
@@ -37,7 +40,9 @@ const HighlightContext = createContext<{
 
 /** A settings sub-screen's scroll view; rows inside can be highlighted. */
 export function SettingsScroll({ children }: { children: React.ReactNode }) {
+  const { colors } = useAppTheme();
   const styles = useSettingStyles();
+  const { isLoading, isError, refetch } = useSettingsQuery();
   const { highlight } = useLocalSearchParams<{ highlight?: string }>();
   const scrollRef = useRef<ScrollView>(null);
   const value = useMemo(
@@ -48,6 +53,27 @@ export function SettingsScroll({ children }: { children: React.ReactNode }) {
     }),
     [highlight],
   );
+  // A failed load is reported by the query client's global error handler.
+  if (isLoading) {
+    return (
+      <ThemedView style={[styles.screen, styles.centered]}>
+        <ActivityIndicator
+          testID="settings-loading"
+          size="large"
+          color={colors.contentPrimary}
+        />
+      </ThemedView>
+    );
+  }
+  if (isError) {
+    return (
+      <ErrorState
+        message={t`Your settings could not be loaded.`}
+        onRetry={() => void refetch()}
+      />
+    );
+  }
+
   return (
     <ThemedView style={styles.screen}>
       <ScrollView ref={scrollRef} contentContainerStyle={styles.container}>
@@ -244,6 +270,7 @@ export function useSettingStyles() {
 function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1 },
+    centered: { justifyContent: "center", alignItems: "center" },
     container: { padding: 16 },
     sectionHeader: {
       fontSize: 18,
