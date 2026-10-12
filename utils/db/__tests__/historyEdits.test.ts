@@ -8,7 +8,7 @@ import {
 import { fetchCompletedWorkoutById } from "@/utils/db/workouts";
 import { buildHistoryEditOps, EditableWorkout } from "@/utils/historyEditOps";
 import { parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
-import { weekStartKeyFor } from "@/utils/trainingWeek";
+import { DEFAULT_WEEK_RULE, weekStartKeyFor } from "@/utils/week";
 
 jest.mock("@/utils/db/connection", () => ({ openDatabase: jest.fn() }));
 
@@ -211,10 +211,13 @@ describe("applyHistoryEdits", () => {
   });
 
   it("recounts both weeks when a workout moves to the week before", async () => {
-    const thisWeek = weekStartKeyFor(toLocalDateKey(WEDNESDAY));
+    const thisWeek = weekStartKeyFor(
+      toLocalDateKey(WEDNESDAY),
+      DEFAULT_WEEK_RULE,
+    );
     // The Sunday before: the last day of the previous week.
     const sunday = new Date(2026, 8, 27, 10, 0);
-    const lastWeek = weekStartKeyFor(toLocalDateKey(sunday));
+    const lastWeek = weekStartKeyFor(toLocalDateKey(sunday), DEFAULT_WEEK_RULE);
     expect(lastWeek).not.toBe(thisWeek);
     sqlite
       .prepare(

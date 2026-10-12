@@ -38,8 +38,12 @@ export function formatSetMetric(
     case "assisted": {
       const assistValue = set.weight ?? 0;
       const assist = oneDecimal(assistValue);
-      const resist = oneDecimal(Math.max(0, bodyWeight - assistValue));
       const reps = set.reps ?? 0;
+      // Without a body weight there is no resist figure to show.
+      if (!(bodyWeight > 0)) {
+        return t`${assist} ${weightUnit} assist × ${reps}`;
+      }
+      const resist = oneDecimal(Math.max(0, bodyWeight - assistValue));
       return t`${assist} ${weightUnit} assist / ${resist} ${weightUnit} resist × ${reps}`;
     }
     case "weight":

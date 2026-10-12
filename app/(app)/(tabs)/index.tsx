@@ -3,7 +3,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { startOfWeek, endOfWeek, getDay, format } from "date-fns";
+import { getDay, format } from "date-fns";
 import {
   isLocalDateInRange,
   parseDbTimestamp,
@@ -19,6 +19,11 @@ import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
 import { router } from "expo-router";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
+import { showSnackbar } from "@/store/snackbarStore";
+import { useWeekRule } from "@/hooks/useWeekRule";
+import { settingsBodyWeight } from "@/utils/settingsBodyWeight";
+import { endOfAppWeek, startOfAppWeek } from "@/utils/week";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimateCompact } from "@/utils/estimateWorkoutDuration";
 import {
@@ -36,9 +41,10 @@ import { resumeActiveWorkout } from "@/utils/resumeWorkout";
 import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
 import RestDayCard from "@/components/RestDayCard";
 import { BackupReminderCard } from "@/components/BackupReminderCard";
+import { SetupOfferCard } from "@/components/SetupOfferCard";
+import { SetupState } from "@/utils/setupState";
 import WorkoutDoneCard from "@/components/WorkoutDoneCard";
 import WeeklySummaryCard from "@/components/WeeklySummaryCard";
-import { kgToDisplay } from "@/utils/units";
 import WorkoutPickerModal from "@/components/WorkoutPickerModal";
 import { MeasurementQuickLog } from "@/components/MeasurementQuickLog";
 import {
@@ -84,6 +90,11 @@ export default function HomeScreen() {
     confirmStartWorkout(setIsStartingWorkout, () => {
       useActiveWorkoutStore.getState().startQuickWorkout();
     });
+  };
+  const { mutate: updateSetting } = useUpdateSettingsMutation();
+  const hideTips = () => {
+    updateSetting({ key: "showOnboarding", value: "false" });
+    showSnackbar(t`Tips hidden. Turn them back on in Settings.`);
   };
   const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
   const [pickerWorkouts, setPickerWorkouts] = useState<CompletedWorkout[]>([]);
@@ -134,11 +145,12 @@ export default function HomeScreen() {
     return () => clearTimeout(timer);
   }, [workoutInProgress]);
 
+  const weekRule = useWeekRule();
   const today = new Date();
   // day_of_week: 0=Mon … 6=Sun  (JS Sunday=0, so shift by +6 mod 7)
   const todayDow = (getDay(today) + 6) % 7;
-  const startOfWeekDate = startOfWeek(today, { weekStartsOn: 1 });
-  const endOfWeekDate = endOfWeek(today, { weekStartsOn: 1 });
+  const startOfWeekDate = startOfAppWeek(today, weekRule);
+  const endOfWeekDate = endOfAppWeek(today, weekRule);
 
   const todayKey = toLocalDateKey(today);
 
@@ -168,6 +180,7 @@ export default function HomeScreen() {
     Number(settings?.weeklyGoal ?? 0),
     uniqueWorkoutDaysCount,
     weeklyGoalReached,
+    weekRule,
   );
 
   const progressionSettings = useProgressionSettingsQuery();
@@ -367,6 +380,7 @@ export default function HomeScreen() {
           <WeekDays
             completedWorkoutsThisWeek={completedWorkoutsThisWeek}
             onDayPress={handleDayPress}
+            weekRule={weekRule}
             scheduledDayIndices={
               planScheduleEntries?.length
                 ? new Set(planScheduleEntries.map((e) => e.day_of_week))
@@ -409,10 +423,8 @@ export default function HomeScreen() {
               excludeWarmup={settings?.excludeWarmupSets === "true"}
               countUnilateralDouble={settings?.countUnilateralDouble === "true"}
               doubleWeightForPaired={settings?.doubleWeightForPaired === "true"}
-              bodyWeight={kgToDisplay(
-                parseFloat(settings?.bodyWeight ?? "") || 0,
-                settings?.weightUnit ?? "kg",
-              )}
+              bodyWeight={settingsBodyWeight(settings).display ?? 0}
+              weekRule={weekRule}
             />
           </View>
         )}
@@ -490,11 +502,20 @@ export default function HomeScreen() {
               </View>
             </Pressable>
           )}
-          {/* Takes the resume card's place, never alongside it. */}
-          {!showResumeCard && !workoutInProgress && <BackupReminderCard />}
+          {/* Takes the resume card's place, never alongside it; one nudge
+              at a time, the setup offer first. */}
+          {!showResumeCard &&
+            !workoutInProgress &&
+            (settings?.setupDone === SetupState.offered ? (
+              <SetupOfferCard />
+            ) : (
+              <BackupReminderCard />
+            ))}
           {activePlan && settings ? (
             <>
-              {settings.showOnboarding === "true" && <Onboarding />}
+              {settings.showOnboarding === "true" && (
+                <Onboarding onHideTips={hideTips} />
+              )}
               <View style={styles.planTitleRow}>
                 <ThemedText
                   accessibilityRole="header"
@@ -630,6 +651,8 @@ export default function HomeScreen() {
                 hasCompletedWorkout,
               )}
               onQuickWorkout={startQuickWorkout}
+              showTips={settings?.showOnboarding === "true"}
+              onHideTips={hideTips}
             />
           )}
         </View>

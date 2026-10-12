@@ -1,8 +1,15 @@
 import { useMemo } from "react";
 import { View, StyleSheet, Pressable } from "react-native";
-import { format, startOfWeek, addDays, isSameDay } from "date-fns";
+import { format, isSameDay, eachDayOfInterval } from "date-fns";
 import { t } from "@lingui/core/macro";
 import { toLocalDateKey } from "@/utils/dates";
+import {
+  DEFAULT_WEEK_RULE,
+  endOfAppWeek,
+  mondayIndex,
+  startOfAppWeek,
+  type WeekRule,
+} from "@/utils/week";
 import { ThemedText } from "./ThemedText";
 import { CompletedWorkout } from "@/hooks/useCompletedWorkoutsQuery";
 import { useAppTheme, radii } from "@/theme";
@@ -12,22 +19,30 @@ interface WeekDaysProps {
   completedWorkoutsThisWeek?: CompletedWorkout[];
   onDayPress?: (completedWorkouts: CompletedWorkout[]) => void;
   scheduledDayIndices?: Set<number>; // 0=Mon … 6=Sun
+  weekRule?: WeekRule;
 }
 
 export default function WeekDays({
   completedWorkoutsThisWeek,
   onDayPress,
   scheduledDayIndices,
+  weekRule = DEFAULT_WEEK_RULE,
 }: WeekDaysProps) {
-  const { colors } = useAppTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   const today = new Date();
-  const start = startOfWeek(today, { weekStartsOn: 1 });
-  const days = Array.from({ length: 7 }).map((_, i) => addDays(start, i));
+  // Seven days, or six or eight in the week a change of week start lands.
+  const days = eachDayOfInterval({
+    start: startOfAppWeek(today, weekRule),
+    end: endOfAppWeek(today, weekRule),
+  });
+  const { colors } = useAppTheme();
+  const styles = useMemo(
+    () => createStyles(colors, days.length > 7),
+    [colors, days.length],
+  );
 
   return (
     <View style={styles.container}>
-      {days.map((day, index) => {
+      {days.map((day) => {
         const isToday = isSameDay(day, today);
         const dayKey = toLocalDateKey(day);
         const completedOnDay = completedWorkoutsThisWeek?.filter(
@@ -35,7 +50,8 @@ export default function WeekDays({
         );
         const isWorkoutCompleted = !!completedOnDay?.length;
         const isScheduledIncomplete =
-          (scheduledDayIndices?.has(index) ?? false) && !isWorkoutCompleted;
+          (scheduledDayIndices?.has(mondayIndex(day)) ?? false) &&
+          !isWorkoutCompleted;
 
         const circle = (
           <View
@@ -47,7 +63,7 @@ export default function WeekDays({
           >
             <ThemedText
               style={[styles.dayNumber, isToday && styles.todayDayNumber]}
-              // The circle is a fixed 45 px; unbounded text would overflow it.
+              // The circle has a fixed size; unbounded text would overflow it.
               maxFontSizeMultiplier={1.4}
             >
               {format(day, "d")}
@@ -62,7 +78,7 @@ export default function WeekDays({
         });
 
         return (
-          <View key={index} style={styles.dayContainer}>
+          <View key={dayKey} style={styles.dayContainer}>
             <ThemedText
               style={[styles.dayName, isToday && styles.todayDayName]}
             >
@@ -86,7 +102,9 @@ export default function WeekDays({
   );
 }
 
-function createStyles(colors: AppThemeColors) {
+function createStyles(colors: AppThemeColors, crowded: boolean) {
+  // Eight 45 px circles do not fit a phone's width.
+  const circleSize = crowded ? 38 : 45;
   return StyleSheet.create({
     container: {
       flexDirection: "row",
@@ -108,8 +126,8 @@ function createStyles(colors: AppThemeColors) {
       color: colors.contentPrimary,
     },
     circle: {
-      width: 45,
-      height: 45,
+      width: circleSize,
+      height: circleSize,
       borderRadius: radii.xl,
       borderWidth: 1,
       alignItems: "center",

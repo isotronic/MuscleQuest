@@ -27,6 +27,8 @@ import {
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { Cues } from "@/components/Cues";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useWeekRule } from "@/hooks/useWeekRule";
+import { weekStartsOnToday } from "@/utils/week";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
 import type { Workout } from "@/store/workoutStore";
@@ -37,7 +39,7 @@ import type { AppThemeColors } from "@/theme/types";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import { useDeloadWeekMutation } from "@/hooks/useDeloadWeekMutation";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
-import { getCurrentISOWeek } from "@/utils/isoWeek";
+import { deloadWeekKey } from "@/utils/deloadWeek";
 import { AuthContext } from "@/context/AuthProvider";
 import { usePlanPublishMutation } from "@/hooks/usePlanPublishMutation";
 import { SharedDocTooLargeError } from "@/utils/sharing";
@@ -119,6 +121,8 @@ export default function PlanOverviewScreen() {
   } = usePlanQuery(Number(planId));
   const { data: scheduleEntries = [] } = usePlanScheduleQuery(Number(planId));
   const { data: settings } = useSettingsQuery();
+  const weekRule = useWeekRule();
+  const weekStartsOn = weekStartsOnToday(weekRule);
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   // is_active comes back as 0/1 from SQLite but is typed number | boolean.
   const isActive = !!plan?.is_active;
@@ -176,8 +180,10 @@ export default function PlanOverviewScreen() {
   };
 
   const handleToggleDeload = useCallback(() => {
-    deloadMutation.mutate(isCurrentWeekDeload ? null : getCurrentISOWeek());
-  }, [isCurrentWeekDeload, deloadMutation]);
+    deloadMutation.mutate(
+      isCurrentWeekDeload ? null : deloadWeekKey(new Date(), weekRule),
+    );
+  }, [isCurrentWeekDeload, deloadMutation, weekRule]);
 
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -337,6 +343,7 @@ export default function PlanOverviewScreen() {
         <WeeklyScheduleDisplay
           workouts={plan?.workouts ?? []}
           scheduleEntries={scheduleEntries}
+          weekStartsOn={weekStartsOn}
         />
 
         {isActive && progressionSettings.enabled && (

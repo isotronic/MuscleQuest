@@ -20,6 +20,8 @@ import {
   formatProgressMetric,
   formatProgressSet,
 } from "@/utils/exerciseProgressFormat";
+import { useWeekRule } from "@/hooks/useWeekRule";
+import { weekStartsOnToday } from "@/utils/week";
 
 /**
  * Chart, PRs and recent sessions for one exercise. Reads its own settings
@@ -29,6 +31,7 @@ export function ExerciseProgressTab({ exerciseId }: { exerciseId: number }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { data: settings } = useSettingsQuery();
+  const weekStartsOn = weekStartsOnToday(useWeekRule());
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
   const excludeWarmup = settings?.excludeWarmupSets === "true";
@@ -177,6 +180,7 @@ export function ExerciseProgressTab({ exerciseId }: { exerciseId: number }) {
             prValue={prValue > 0 ? prValue : undefined}
             preRangeBaseline={data.preRangeBaseline}
             showTableToggle
+            weekStartsOn={weekStartsOn}
           />
         </View>
       )}

@@ -3,6 +3,7 @@ import type {
   WorkoutStatsOptions,
   WorkoutSummary,
 } from "@/utils/db/workoutStats";
+import type { WeekStartDay } from "@/utils/week";
 
 /** What every stats widget shares, provided once by the stats screen. */
 export interface StatsWidgetContextValue {
@@ -14,6 +15,8 @@ export interface StatsWidgetContextValue {
   statsOptions: WorkoutStatsOptions;
   excludeDeload: boolean;
   weeklyGoal: number;
+  /** The week start in effect today, for weekly chart buckets. */
+  weekStartsOn: WeekStartDay;
   /** Weeks in a row the weekly goal was met, from the screen's streak sync. */
   streak: number | null;
   /** Every completed workout, newest first; undefined while loading. */

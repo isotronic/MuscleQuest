@@ -50,6 +50,16 @@ const firestoreReadRestriction = {
     "Wrap one-shot Firestore reads in withTimeout from @/utils/withTimeout.",
 };
 
+// A week's first day is the user's setting (utils/week.ts); a hard-coded
+// weekStartsOn ignores it and its transition week. The selector sees options
+// passed to week functions such as date-fns startOfWeek.
+const weekStartRestriction = {
+  selector:
+    'CallExpression[callee.name=/^(startOfWeek|endOfWeek|lastDayOfWeek|isSameWeek|isThisWeek|eachWeekOfInterval|differenceInCalendarWeeks|getWeek|getWeekOfMonth|getWeeksInMonth|getWeekYear|setWeek|setDay|startOfWeekYear)$/] Property[key.name="weekStartsOn"]',
+  message:
+    "Use startOfAppWeek, endOfAppWeek or weekStartKeyFor from @/utils/week with the user's week rule (useWeekRule).",
+};
+
 // Icon-only buttons need a spoken label; AppIconButton makes it a required prop.
 const iconButtonRestriction = {
   name: "react-native-paper",
@@ -75,6 +85,7 @@ module.exports = {
       ...unitRestrictions,
       decimalInputRestriction,
       firestoreReadRestriction,
+      weekStartRestriction,
     ],
     "no-restricted-imports": ["error", { paths: [iconButtonRestriction] }],
     // console.log is stripped from release bundles (babel.config.js); use a
@@ -117,6 +128,20 @@ module.exports = {
         "no-restricted-syntax": [
           "error",
           ...dateRestrictions,
+          decimalInputRestriction,
+          firestoreReadRestriction,
+          weekStartRestriction,
+        ],
+      },
+    },
+    {
+      // The one place a week's first day is decided.
+      files: ["utils/week.ts"],
+      rules: {
+        "no-restricted-syntax": [
+          "error",
+          ...dateRestrictions,
+          ...unitRestrictions,
           decimalInputRestriction,
           firestoreReadRestriction,
         ],

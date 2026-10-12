@@ -66,7 +66,8 @@ export default function HistoryDetailsScreen() {
 
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
-  const bodyWeight = parseFloat(settings?.bodyWeight || "70");
+  // Unset until entered: assisted sets then have no resist figure or volume.
+  const bodyWeight = parseFloat(settings?.bodyWeight ?? "") || null;
   const excludeWarmup = settings?.excludeWarmupSets === "true";
   const countUnilateralDouble = settings?.countUnilateralDouble === "true";
   const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
@@ -127,7 +128,9 @@ export default function HistoryDetailsScreen() {
         if (excludeWarmup && set.is_warmup) return setAcc;
         const weight =
           exercise.exercise_tracking_type === "assisted"
-            ? bodyWeight - (set.weight || 0)
+            ? bodyWeight != null
+              ? bodyWeight - (set.weight || 0)
+              : 0
             : (set.weight || 0) * weightM;
         return setAcc + weight * (set.reps || 0) * repM;
       }, 0);
@@ -432,7 +435,7 @@ export default function HistoryDetailsScreen() {
                             Assist {showValue(set.weight)}{" "}
                             {settings?.weightUnit} | Resist{" "}
                             {showValue(
-                              set.weight != null
+                              set.weight != null && bodyWeight != null
                                 ? bodyWeight - set.weight
                                 : null,
                             )}{" "}

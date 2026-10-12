@@ -31,6 +31,8 @@ import SaveIcon from "@/components/SaveIcon";
 import PlanScheduleEditor from "@/components/PlanScheduleEditor";
 import { fetchPlanSchedule } from "@/utils/database";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
+import { useWeekRule } from "@/hooks/useWeekRule";
+import { weekStartsOnToday } from "@/utils/week";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 
@@ -64,6 +66,7 @@ export default function CreatePlanScreen() {
   const draftKey =
     currentPlanId !== null ? `plan:${currentPlanId}` : "plan:null";
   const { data: settings } = useSettingsQuery();
+  const weekStartsOn = weekStartsOnToday(useWeekRule());
   const weeklyGoal = Number(settings?.weeklyGoal ?? 3);
   const { planName, setPlanName, planSaved, setPlanSaved, handleSavePlan } =
     useCreatePlan();
@@ -427,6 +430,7 @@ export default function CreatePlanScreen() {
               weeklyGoal={weeklyGoal}
               schedule={planSchedule}
               onChange={setPlanSchedule}
+              weekStartsOn={weekStartsOn}
             />
           </ThemedView>
         )}

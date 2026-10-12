@@ -1,8 +1,9 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { toLocalDateKey } from "@/utils/dates";
-import { weekEndKey, weekStartKeyFor } from "@/utils/trainingWeek";
+import { weekEndKey, weekStartKeyFor, type WeekRule } from "@/utils/week";
 import { openDatabase } from "./connection";
+import { readWeekRule } from "./settings";
 
 export type SetField = "weight" | "reps" | "time" | "distance";
 
@@ -129,11 +130,12 @@ const renumberSets = async (
 export const recountWeeklyCompletion = async (
   txn: SQLiteDatabase,
   weekStart: string,
+  rule: WeekRule,
 ): Promise<void> => {
   const row = await txn.getFirstAsync<{ days: number }>(
     `SELECT COUNT(DISTINCT local_date) AS days FROM completed_workouts
      WHERE is_deleted = 0 AND local_date BETWEEN ? AND ?`,
-    [weekStart, weekEndKey(weekStart)],
+    [weekStart, weekEndKey(weekStart, rule)],
   );
   const days = row?.days ?? 0;
   await txn.runAsync(
@@ -149,9 +151,14 @@ export const recountWeekOf = async (localDate: string): Promise<void> => {
   let db: SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
-    await db.withExclusiveTransactionAsync((txn) =>
-      recountWeeklyCompletion(txn, weekStartKeyFor(localDate)),
-    );
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      const rule = await readWeekRule(txn);
+      await recountWeeklyCompletion(
+        txn,
+        weekStartKeyFor(localDate, rule),
+        rule,
+      );
+    });
   } finally {
     if (db) await db.closeAsync();
   }
@@ -355,13 +362,14 @@ export const applyHistoryEdits = async (
         result.passedSessionIds = passed.map((row) => row.id);
       }
       if (result.localDate !== result.previousLocalDate) {
+        const rule = await readWeekRule(txn);
         const weeks = new Set(
           [result.previousLocalDate, result.localDate]
             .filter((d): d is string => !!d)
-            .map(weekStartKeyFor),
+            .map((d) => weekStartKeyFor(d, rule)),
         );
         for (const weekStart of weeks) {
-          await recountWeeklyCompletion(txn, weekStart);
+          await recountWeeklyCompletion(txn, weekStart, rule);
         }
       }
     });

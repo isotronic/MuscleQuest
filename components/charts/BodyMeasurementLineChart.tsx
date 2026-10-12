@@ -10,6 +10,7 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { localDateKeyToDate, parseDbTimestamp } from "@/utils/dates";
 import { formatDecimal } from "@/utils/numberFormat";
+import { daysIntoWeek, type WeekStartDay } from "@/utils/week";
 
 interface DataPoint {
   recorded_at: string;
@@ -31,6 +32,7 @@ interface BodyMeasurementLineChartProps {
   timeRange: string;
   unit: string;
   metricLabel: string;
+  weekStartsOn?: WeekStartDay;
 }
 
 type Bucket = {
@@ -43,11 +45,12 @@ type Bucket = {
 export const groupMeasurementsByTime = (
   points: DataPoint[],
   timeRange: string,
+  weekStartsOn: WeekStartDay = 1,
 ): Bucket[] => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // 30d / 90d: Monday-aligned weekly buckets
+  // 30d / 90d: weekly buckets from the week start
   if (timeRange === "30" || timeRange === "90") {
     const startDate = new Date(today);
     startDate.setDate(today.getDate() - parseInt(timeRange));
@@ -56,7 +59,7 @@ export const groupMeasurementsByTime = (
     const keyToIndex = new Map<string, number>();
 
     const cursor = new Date(startDate);
-    cursor.setDate(cursor.getDate() - ((cursor.getDay() + 6) % 7));
+    cursor.setDate(cursor.getDate() - daysIntoWeek(cursor, weekStartsOn));
     cursor.setHours(0, 0, 0, 0);
     while (cursor <= today) {
       const internalKey = `${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`;
@@ -78,7 +81,9 @@ export const groupMeasurementsByTime = (
     for (const pt of points) {
       const d = pointDate(pt);
       const weekStart = new Date(d);
-      weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+      weekStart.setDate(
+        weekStart.getDate() - daysIntoWeek(weekStart, weekStartsOn),
+      );
       const internalKey = `${weekStart.getFullYear()}-${weekStart.getMonth()}-${weekStart.getDate()}`;
       const idx = keyToIndex.get(internalKey);
       if (idx !== undefined) {
@@ -215,7 +220,7 @@ const POINTER_LABEL_WIDTH = 65;
 
 export const BodyMeasurementLineChart: React.FC<
   BodyMeasurementLineChartProps
-> = ({ data, timeRange, unit, metricLabel }) => {
+> = ({ data, timeRange, unit, metricLabel, weekStartsOn = 1 }) => {
   const { width: screenWidth } = useWindowDimensions();
   const chartTheme = useChartTheme();
   // Gifted charts animate with RN Animated, which ignores the setting.
@@ -224,7 +229,7 @@ export const BodyMeasurementLineChart: React.FC<
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { chartData, yAxisOffset, yAxisMax } = useMemo(() => {
-    const buckets = groupMeasurementsByTime(data, timeRange);
+    const buckets = groupMeasurementsByTime(data, timeRange, weekStartsOn);
     // Only include buckets with actual data — measurements are point-in-time
     // snapshots, so gaps between measurements are real and should not be filled
     const dataPoints = buckets.filter((b) => b.hasData);
@@ -258,7 +263,7 @@ export const BodyMeasurementLineChart: React.FC<
     });
 
     return { chartData: points, yAxisOffset: yMin, yAxisMax: yMax - yMin };
-  }, [data, timeRange, styles, colors.contentPrimary]);
+  }, [data, timeRange, styles, colors.contentPrimary, weekStartsOn]);
 
   // 30d uses "4 May" labels (~28px at size 9), needs more room than single-digit labels
   const initialSpacing = timeRange === "30" ? 20 : 10;

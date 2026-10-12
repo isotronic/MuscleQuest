@@ -126,18 +126,19 @@ export const getDeloadWeek = async (planId: number): Promise<string | null> => {
 
 export const setDeloadWeek = async (
   planId: number,
-  isoWeek: string | null,
+  /** See utils/deloadWeek.ts; null clears it. */
+  weekKey: string | null,
 ): Promise<void> => {
   let db: SQLite.SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
     const key = `plan_${planId}_deload_week`;
-    if (isoWeek === null) {
+    if (weekKey === null) {
       await db.runAsync(`DELETE FROM settings WHERE key = ?`, [key]);
     } else {
       await db.runAsync(
         `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`,
-        [key, isoWeek],
+        [key, weekKey],
       );
     }
   } catch (error: any) {

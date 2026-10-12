@@ -33,7 +33,7 @@ export const HeatmapWidget: React.FC<{
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { width: screenWidth } = useWindowDimensions();
-  const { allWorkouts, openCalendar } = useStatsWidgetContext();
+  const { allWorkouts, openCalendar, weekStartsOn } = useStatsWidgetContext();
   const { range, rangeDays, badge } = useWidgetRange(config.range);
   const scrollRef = useRef<ScrollView>(null);
 
@@ -48,8 +48,9 @@ export const HeatmapWidget: React.FC<{
       heatmapStart(rangeDays, oldest, today),
       today,
       config.intensity,
+      weekStartsOn,
     );
-  }, [allWorkouts, rangeDays, oldest, config.intensity]);
+  }, [allWorkouts, rangeDays, oldest, config.intensity, weekStartsOn]);
 
   const available = screenWidth - HORIZONTAL_INSETS;
   const columns = heatmap.weeks.length;
