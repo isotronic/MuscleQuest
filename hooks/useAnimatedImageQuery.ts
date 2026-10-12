@@ -9,9 +9,16 @@ import { insertAnimatedImageUri } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
 import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 
+// Refusals by the rules: expected for a signed-out user under rules that
+// predate public exercise images.
+const REFUSED_STORAGE_ERRORS = new Set([
+  "storage/unauthorized",
+  "storage/unauthenticated",
+]);
+
 // Errors that another attempt cannot fix.
 const PERMANENT_STORAGE_ERRORS = new Set([
-  "storage/unauthorized",
+  ...REFUSED_STORAGE_ERRORS,
   "storage/object-not-found",
 ]);
 
@@ -63,9 +70,8 @@ export const fetchAnimatedImageUrl = async (
       );
       lastError = error;
 
-      if (error?.code === "storage/unauthorized") {
-        // Rules that predate public exercise images refuse a signed-out
-        // user. Expected, so it stays out of Bugsnag and the global net.
+      if (REFUSED_STORAGE_ERRORS.has(error?.code)) {
+        // Expected, so it stays out of Bugsnag and the global net.
         Bugsnag.leaveBreadcrumb("Exercise image refused", { animatedUrlPath });
         markReported(error);
         throw error;

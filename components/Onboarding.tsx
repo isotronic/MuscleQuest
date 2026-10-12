@@ -329,6 +329,8 @@ function createStyles(colors: AppThemeColors) {
     },
     tipFooter: {
       flexDirection: "row",
+      // A long translated link pushes the controls to their own line.
+      flexWrap: "wrap",
       alignItems: "center",
       justifyContent: "space-between",
       paddingLeft: 8,

@@ -104,6 +104,23 @@ describe("useAnimatedImageQuery Tests", () => {
       expect(wasReported(error)).toBe(true);
     });
 
+    it("treats storage/unauthenticated like unauthorized", async () => {
+      const error = Object.assign(new Error("not signed in"), {
+        code: "storage/unauthenticated",
+      });
+      (ref as jest.Mock).mockReturnValue({});
+      (getDownloadURL as jest.Mock).mockRejectedValue(error);
+
+      await expect(fetchAnimatedImageUrl(1, "path/to/image")).rejects.toBe(
+        error,
+      );
+
+      expect(getDownloadURL).toHaveBeenCalledTimes(1);
+      expect(Bugsnag.notify).not.toHaveBeenCalled();
+      expect(wasReported(error)).toBe(true);
+      expect(shouldRetryAnimatedImage(0, error)).toBe(false);
+    });
+
     it("reports a missing file once without retrying", async () => {
       const error = Object.assign(new Error("not found"), {
         code: "storage/object-not-found",
