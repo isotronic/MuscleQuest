@@ -6,7 +6,10 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import TrainingPlanCard from "@/components/TrainingPlanCard";
+import TrainingPlanCard, {
+  PLAN_CARD_GAP,
+  PLAN_CARD_WIDTH,
+} from "@/components/TrainingPlanCard";
 import TrainingPlanListItem from "@/components/TrainingPlanListItem";
 import { ThemedText } from "@/components/ThemedText";
 import { AppIcon } from "@/components/ui";
@@ -103,8 +106,10 @@ export const PlanList: React.FC<PlanListProps> = ({
       <FlatList
         horizontal={true}
         contentContainerStyle={styles.scrollViewContainer}
-        snapToInterval={320}
+        // One card per step, so every snap lands on a card's left edge.
+        snapToInterval={PLAN_CARD_WIDTH + PLAN_CARD_GAP}
         snapToAlignment="start"
+        decelerationRate="fast"
         data={data}
         showsHorizontalScrollIndicator={false}
         renderItem={({ item }: { item: Plan }) => (

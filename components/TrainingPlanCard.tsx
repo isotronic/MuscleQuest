@@ -14,13 +14,17 @@ import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { planImageSource } from "@/constants/PlanImages";
 
+export const PLAN_CARD_WIDTH = 300;
+/** The space before each card, so a carousel's snap step is width + gap. */
+export const PLAN_CARD_GAP = 10;
+
 export default function TrainingPlanCard({
   title,
   imageUrl,
   onPress,
   isActive,
   isPublished,
-  width = 300,
+  width = PLAN_CARD_WIDTH,
   footer,
 }: {
   title?: string;
@@ -114,7 +118,7 @@ function createStyles(colors: AppThemeColors, width: number) {
     container: {
       flex: 1,
       marginVertical: 5,
-      marginLeft: 10,
+      marginLeft: PLAN_CARD_GAP,
     },
     card: {
       height: 190,
