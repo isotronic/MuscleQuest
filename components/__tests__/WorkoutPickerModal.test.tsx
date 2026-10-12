@@ -43,6 +43,16 @@ jest.mock("react-native-paper", () => {
       const { View: RNView } = require("react-native");
       return <RNView testID="loading-indicator" />;
     },
+    IconButton: ({ onPress, accessibilityLabel }: any) => {
+      const { Pressable } = require("react-native");
+      return (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={accessibilityLabel}
+          onPress={onPress}
+        />
+      );
+    },
     Button: ({ children, onPress }: any) => {
       const { Pressable, Text } = require("react-native");
       return (
@@ -259,6 +269,13 @@ describe("WorkoutPickerModal", () => {
     fireEvent.press(getByText("Log past workout"));
     expect(baseProps.onDismiss).toHaveBeenCalled();
     expect(router.push).toHaveBeenCalledWith("/(app)/log-workout");
+  });
+
+  it("closes from the close button", () => {
+    const { getByLabelText } = render(<WorkoutPickerModal {...baseProps} />);
+    fireEvent.press(getByLabelText("Close"));
+    expect(baseProps.onDismiss).toHaveBeenCalled();
+    expect(router.push).not.toHaveBeenCalled();
   });
 
   it("renders nothing when visible is false", () => {
