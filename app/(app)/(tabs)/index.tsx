@@ -39,6 +39,7 @@ import { UpdateModal } from "@/components/UpdateModal";
 import { confirmStartWorkout } from "@/utils/startWorkout";
 import { resumeActiveWorkout } from "@/utils/resumeWorkout";
 import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
+import { useLastPlanWorkoutQuery } from "@/hooks/useLastPlanWorkoutQuery";
 import RestDayCard from "@/components/RestDayCard";
 import { BackupReminderCard } from "@/components/BackupReminderCard";
 import { SetupOfferCard } from "@/components/SetupOfferCard";
@@ -47,10 +48,7 @@ import WorkoutDoneCard from "@/components/WorkoutDoneCard";
 import WeeklySummaryCard from "@/components/WeeklySummaryCard";
 import WorkoutPickerModal from "@/components/WorkoutPickerModal";
 import { MeasurementQuickLog } from "@/components/MeasurementQuickLog";
-import {
-  computeWeeklyTargets,
-  prioritizeScheduledWorkout,
-} from "@/utils/planHelpers";
+import { planWorkoutsForWeek } from "@/utils/planHelpers";
 import { useWeeklyStreak } from "@/hooks/useWeeklyStreak";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
@@ -129,6 +127,8 @@ export default function HomeScreen() {
 
   const { data: planScheduleEntries, isLoading: planScheduleLoading } =
     usePlanScheduleQuery(activePlan?.id ?? null);
+  const { data: lastPlanWorkoutId, isLoading: lastPlanWorkoutLoading } =
+    useLastPlanWorkoutQuery(activePlan?.id ?? null);
 
   const activeWorkout = useActiveWorkoutStore((state) => state.activeWorkout);
   const workoutInProgress = useActiveWorkoutStore((state) =>
@@ -192,7 +192,7 @@ export default function HomeScreen() {
     activePlanLoading ||
     settingsLoading ||
     completedWorkoutsLoading ||
-    (!!activePlan && planScheduleLoading)
+    (!!activePlan && (planScheduleLoading || lastPlanWorkoutLoading))
   ) {
     return (
       <ThemedView style={styles.loadingContainer}>
@@ -213,76 +213,27 @@ export default function HomeScreen() {
     );
   }
 
-  let completedWorkoutsThisPlanThisWeek: CompletedWorkout[] = [];
   let workoutsToDisplay: Workout[] = [];
   let isRestDay = false;
-  let completedTodayWorkoutIds = new Set<number>();
-  // Map of workoutId -> required completions per week
-  const perWorkoutTarget = new Map<number, number>();
+  // Workouts done for this week: target met with a schedule, logged at least
+  // once without one.
+  let doneThisWeekIds = new Set<number>();
 
   if (activePlan) {
-    const sortedWorkouts = activePlan.workouts;
-    const weeklyGoal = Number(settings?.weeklyGoal ?? 0);
-
-    // Build per-workout targets and determine rest-day status
-    const { perWorkoutTarget: targets, isRestDay: restDay } =
-      computeWeeklyTargets(
-        sortedWorkouts,
-        weeklyGoal,
-        planScheduleEntries,
-        todayDow,
-      );
-    targets.forEach((v, k) => perWorkoutTarget.set(k, v));
-    isRestDay = restDay;
-
-    // Filter completed workouts for the active plan this week
-    completedWorkoutsThisPlanThisWeek =
-      completedWorkoutsThisWeek?.filter(
-        (workout) => String(workout.plan_id) === String(activePlan.id),
-      ) || [];
-
-    // Create a map to count how many times each workout has been completed
-    const completedWorkoutCounts = new Map<number, number>();
-    completedWorkoutsThisPlanThisWeek.forEach((completedWorkout) => {
-      const count =
-        completedWorkoutCounts.get(completedWorkout.workout_id) || 0;
-      completedWorkoutCounts.set(completedWorkout.workout_id, count + 1);
-    });
-
-    // Track which workout IDs were completed today (for schedule prioritization)
-    completedTodayWorkoutIds = new Set<number>(
-      completedWorkoutsThisPlanThisWeek
-        .filter((w) => w.local_date === todayKey)
-        .map((w) => w.workout_id),
-    );
-
-    // Separate workouts into uncompleted and completed arrays
-    const uncompletedWorkouts: Workout[] = [];
-    const completedWorkoutsList: Workout[] = [];
-
-    sortedWorkouts.forEach((workout) => {
-      const target = perWorkoutTarget.get(workout.id!);
-      const completedTimes = completedWorkoutCounts.get(workout.id!) || 0;
-      const workoutCompleted = target !== undefined && completedTimes >= target;
-
-      if (workoutCompleted) {
-        completedWorkoutsList.push(workout);
-      } else {
-        uncompletedWorkouts.push(workout);
-      }
-    });
-
-    // If there's a schedule, put today's (or next scheduled) workout first
-    const orderedUncompleted = prioritizeScheduledWorkout(
-      uncompletedWorkouts,
-      planScheduleEntries,
+    const planWeek = planWorkoutsForWeek({
+      workouts: activePlan.workouts,
+      schedule: planScheduleEntries,
       todayDow,
-      isRestDay,
-      completedTodayWorkoutIds,
-    );
-
-    // Combine uncompleted and completed workouts
-    workoutsToDisplay = [...orderedUncompleted, ...completedWorkoutsList];
+      todayKey,
+      sessionsThisWeek:
+        completedWorkoutsThisWeek?.filter(
+          (workout) => String(workout.plan_id) === String(activePlan.id),
+        ) ?? [],
+      lastWorkoutId: lastPlanWorkoutId,
+    });
+    workoutsToDisplay = planWeek.workouts;
+    doneThisWeekIds = planWeek.doneIds;
+    isRestDay = planWeek.isRestDay;
   }
 
   const navigateToWorkoutSummary = (id: number) =>
@@ -313,12 +264,13 @@ export default function HomeScreen() {
   const todayScheduledEntry = planScheduleEntries?.find(
     (e) => e.day_of_week === todayDow,
   );
+  const isScheduled = !!planScheduleEntries?.length;
+  // Unscheduled plans have no rest days, so done today always shows the card.
   const showWorkoutDoneCard =
     !isRestDay &&
-    !!planScheduleEntries &&
     !!activePlan &&
     !showResumeCard &&
-    !!todayScheduledEntry &&
+    (!isScheduled || !!todayScheduledEntry) &&
     completedAnyWorkoutToday;
   // Only show a specific workout's name when exactly one was completed today —
   // with multiple, WorkoutDoneCard falls back to a generic title.
@@ -446,8 +398,9 @@ export default function HomeScreen() {
         {!weeklyGoalReached && showWorkoutDoneCard && (
           <View style={styles.restDayContainer}>
             <WorkoutDoneCard
-              schedule={planScheduleEntries!}
+              schedule={isScheduled ? planScheduleEntries! : null}
               workouts={activePlan!.workouts}
+              rotationNext={workoutsToDisplay[0]}
               todayDow={todayDow}
               completedWorkoutName={completedWorkoutName}
               onPress={handleWorkoutDoneCardPress}
@@ -535,18 +488,7 @@ export default function HomeScreen() {
 
               <View style={styles.workoutList}>
                 {workoutsToDisplay.map((workout, index) => {
-                  const target = perWorkoutTarget.get(workout.id!);
-
-                  // Filter to check how many times this specific workout has been completed this week
-                  const completedTimes =
-                    completedWorkoutsThisPlanThisWeek?.filter(
-                      (completedWorkout) =>
-                        completedWorkout.workout_id === workout.id,
-                    ).length ?? 0;
-
-                  // Condition to check if the workout is completed enough times
-                  const workoutCompleted =
-                    target !== undefined && completedTimes >= target;
+                  const workoutCompleted = doneThisWeekIds.has(workout.id!);
                   const originalIndex = activePlan.workouts.findIndex(
                     (w) => w.id === workout.id,
                   );
@@ -610,6 +552,11 @@ export default function HomeScreen() {
                               countUnilateralDouble={countUnilateralDouble}
                               style={styles.exerciseInfo}
                             />
+                            {workoutCompleted && (
+                              <ThemedText style={styles.doneThisWeek}>
+                                <Trans>Done this week</Trans>
+                              </ThemedText>
+                            )}
                           </View>
                         </Pressable>
                         <View style={styles.smallButtonGroup}>
@@ -791,6 +738,10 @@ function createStyles(colors: AppThemeColors) {
     exerciseInfo: {
       color: colors.contentSecondary,
       fontSize: 14,
+    },
+    doneThisWeek: {
+      color: colors.success,
+      fontSize: 13,
     },
     smallButtonGroup: {
       flexDirection: "row",

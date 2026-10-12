@@ -200,6 +200,33 @@ export const countSavedWorkoutSessions = async (): Promise<number> => {
   }
 };
 
+/**
+ * The workout id of the plan's most recent completed session, or null when
+ * the plan has none. Unscheduled plans rotate from the workout after it.
+ */
+export const fetchLastCompletedPlanWorkout = async (
+  planId: number,
+): Promise<number | null> => {
+  let db: SQLite.SQLiteDatabase | undefined;
+  try {
+    db = await openDatabase("userData.db");
+    const row = await db.getFirstAsync<{ workout_id: number | null }>(
+      `SELECT workout_id FROM completed_workouts
+       WHERE plan_id = ? AND workout_id IS NOT NULL AND is_deleted = 0
+       ORDER BY date_completed DESC, id DESC
+       LIMIT 1`,
+      [planId],
+    );
+    return row?.workout_id ?? null;
+  } catch (error) {
+    console.error("Error fetching last completed plan workout:", error);
+    notifyBugsnag(error as Error);
+    throw error;
+  } finally {
+    if (db) await db.closeAsync();
+  }
+};
+
 interface CompletedWorkoutRow {
   id: number;
   plan_id: number;
