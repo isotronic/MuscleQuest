@@ -269,3 +269,14 @@ it("has a load for every exercise, week and working set", () => {
     }
   }
 });
+
+it("does not reactivate the previous plan once it has been deleted", async () => {
+  await seedDemoData(NOW);
+  mockDb.sqlite.exec(`UPDATE user_plans SET is_deleted = 1 WHERE id = 2`);
+
+  await removeDemoData();
+
+  expect(
+    count(`SELECT COUNT(*) AS n FROM user_plans WHERE is_active = 1`),
+  ).toBe(0);
+});

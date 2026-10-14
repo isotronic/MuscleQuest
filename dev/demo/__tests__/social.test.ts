@@ -55,7 +55,8 @@ jest.mock("react", () => ({
   useContext: () => ({ uid: "me" }),
 }));
 jest.mock("@/context/AuthProvider", () => ({ AuthContext: {} }));
-jest.mock("@/hooks/useIsOnline", () => ({ useIsOnline: () => true }));
+const mockIsOnline = jest.fn(() => true);
+jest.mock("@/hooks/useIsOnline", () => ({ useIsOnline: () => mockIsOnline() }));
 jest.mock("@/utils/reportFirestoreReadError", () => ({
   reportFirestoreReadError: jest.fn(),
 }));
@@ -242,4 +243,16 @@ describe("publishing and backups", () => {
     setDemoActive(false);
     expect(await isLocalDataOwnedBy("me")).toBe(true);
   });
+});
+
+it("counts a demo friend's workouts offline, but not a real friend's", () => {
+  mockIsOnline.mockReturnValue(false);
+  try {
+    useFriendCompletedWorkoutCountQuery("demo-maya");
+    expect((captured as unknown as { enabled: boolean }).enabled).toBe(true);
+    useFriendCompletedWorkoutCountQuery("real-friend-uid");
+    expect((captured as unknown as { enabled: boolean }).enabled).toBe(false);
+  } finally {
+    mockIsOnline.mockReturnValue(true);
+  }
 });

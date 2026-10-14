@@ -673,15 +673,22 @@ const removeRecordedRows = async (record: DemoSeedRecord): Promise<void> => {
         }
       }
 
-      // The demo plan was active; hand that back to the plan before it.
+      // The demo plan was active; hand that back to the plan before it,
+      // unless another live plan has been made active or that one has been
+      // deleted since. Deleted plans lose a stale active flag either way.
       if (record.previousActivePlanId != null) {
         const stillActive = await txn.getFirstAsync<{ id: number }>(
-          `SELECT id FROM user_plans WHERE is_active = TRUE LIMIT 1`,
+          `SELECT id FROM user_plans
+           WHERE is_active = TRUE AND is_deleted = FALSE LIMIT 1`,
         );
-        if (!stillActive) {
+        const previous = await txn.getFirstAsync<{ id: number }>(
+          `SELECT id FROM user_plans WHERE id = ? AND is_deleted = FALSE`,
+          [record.previousActivePlanId],
+        );
+        if (!stillActive && previous) {
           await txn.runAsync(
-            `UPDATE user_plans SET is_active = TRUE WHERE id = ?`,
-            [record.previousActivePlanId],
+            `UPDATE user_plans SET is_active = (id = ?) WHERE is_active != (id = ?)`,
+            [previous.id, previous.id],
           );
         }
       }

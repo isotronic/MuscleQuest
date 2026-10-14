@@ -46,7 +46,9 @@ export const useFriendCompletedWorkoutCountQuery = (
         throw error;
       }
     },
-    enabled: !!user && !!friendUid && isOnline,
+    // Demo friends are answered locally, so they need no connection.
+    enabled:
+      !!user && !!friendUid && (isOnline || !!demoMode?.isDemoUid(friendUid)),
     staleTime: 60_000,
   });
 };

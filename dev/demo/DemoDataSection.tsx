@@ -70,7 +70,9 @@ export function DemoDataSection() {
     } catch (e) {
       console.error("Demo data action failed:", e);
       Alert.alert("Demo data", String(e));
-      await refresh();
+      await refresh().catch((refreshError) =>
+        console.error("Demo status refresh failed:", refreshError),
+      );
     } finally {
       setBusy(false);
     }
