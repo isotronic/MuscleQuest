@@ -8,6 +8,7 @@ import {
 import { AuthContext } from "@/context/AuthProvider";
 import { withTimeout } from "@/utils/withTimeout";
 import { reportFirestoreReadError } from "@/utils/reportFirestoreReadError";
+import { demoMode } from "@/dev/demo/gate";
 import { useIsOnline } from "./useIsOnline";
 
 /**
@@ -26,6 +27,9 @@ export const useFriendCompletedWorkoutCountQuery = (
   return useQuery({
     queryKey: ["friendCompletedWorkoutCount", friendUid],
     queryFn: async (): Promise<number> => {
+      if (demoMode?.isDemoUid(friendUid)) {
+        return demoMode.demoFriendData(friendUid).completedWorkoutCount;
+      }
       if (!user || !friendUid) return 0;
       const db = getFirestore();
       try {
@@ -42,7 +46,9 @@ export const useFriendCompletedWorkoutCountQuery = (
         throw error;
       }
     },
-    enabled: !!user && !!friendUid && isOnline,
+    // Demo friends are answered locally, so they need no connection.
+    enabled:
+      !!user && !!friendUid && (isOnline || !!demoMode?.isDemoUid(friendUid)),
     staleTime: 60_000,
   });
 };

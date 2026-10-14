@@ -64,6 +64,7 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { I18nProvider } from "@lingui/react";
 import { Trans } from "@lingui/react/macro";
 import { i18n } from "@/utils/i18n";
+import { demoMode } from "@/dev/demo/gate";
 
 const manifest = Updates.manifest as
   | (Updates.Manifest & {
@@ -127,6 +128,8 @@ function RootLayout() {
   const [startup, setStartup] = useState<StartupResult | null>(null);
   // Only set on first launch, when the exercise library and plans are copied.
   const [progress, setProgress] = useState<StartupProgress | null>(null);
+  // Dev builds with EXPO_PUBLIC_DEMO_DATA=1: seeding after startup.
+  const [demoSeeding, setDemoSeeding] = useState(false);
   const [loaded, error] = useFonts({
     Inter_100Thin,
     Inter_200ExtraLight,
@@ -154,7 +157,13 @@ function RootLayout() {
       setProgress(next);
     }, 100);
     runStartup(reportProgress)
-      .then((result) => {
+      .then(async (result) => {
+        if (result.status === "ok" && demoMode) {
+          await demoMode.runStartupSeed(() => {
+            SplashScreen.hide();
+            setDemoSeeding(true);
+          });
+        }
         if (result.status !== "reloading") setStartup(result);
       })
       .catch((e) => {
@@ -221,7 +230,12 @@ function RootLayout() {
       <ThemedView
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
-        {progress ? (
+        {demoSeeding && demoMode ? (
+          <>
+            <ActivityIndicator size="large" />
+            <ThemedText>{demoMode.LOADING_LABEL}</ThemedText>
+          </>
+        ) : progress ? (
           <FirstLaunchProgress progress={progress} />
         ) : (
           <>

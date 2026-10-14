@@ -24,6 +24,7 @@ import { useSocialRefreshStore } from "../store/socialRefreshStore";
 import { fetchFriendProfile } from "../utils/fetchFriendProfile";
 import { FriendInfo, FirestorePrivateSettings } from "../types/firestore";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
+import { demoMode } from "@/dev/demo/gate";
 
 type QDocSnap = FirebaseFirestoreTypes.QueryDocumentSnapshot;
 type DocSnap = FirebaseFirestoreTypes.DocumentSnapshot;
@@ -122,6 +123,12 @@ export const useSocialListeners = () => {
       setPrivacySettings(null);
       setPublishedPlanIds(null);
       setPublishedWorkoutIds(null);
+      return;
+    }
+
+    // Dev demo mode: local demo friends instead of the listeners.
+    if (demoMode?.isDemoActive()) {
+      demoMode.applyDemoSocialState();
       return;
     }
 

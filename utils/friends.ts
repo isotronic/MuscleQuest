@@ -10,6 +10,7 @@ import {
 import { withTimeout } from "./withTimeout";
 import { fetchFriendProfile } from "./fetchFriendProfile";
 import { lookupUidByEmail } from "./emailIndex";
+import { demoMode } from "@/dev/demo/gate";
 
 export interface UserSearchResult {
   uid: string;
@@ -40,6 +41,7 @@ export const acceptFriendRequest = async (
   fromUid: string,
   myUid: string,
 ): Promise<void> => {
+  if (demoMode?.isDemoUid(fromUid)) return demoMode.acceptDemoRequest(fromUid);
   const [fromProfile, myProfile] = await Promise.all([
     fetchFriendProfile(fromUid),
     fetchFriendProfile(myUid),
@@ -69,6 +71,7 @@ export const declineFriendRequest = async (
   fromUid: string,
   myUid: string,
 ): Promise<void> => {
+  if (demoMode?.isDemoUid(fromUid)) return demoMode.declineDemoRequest(fromUid);
   const requestId = `${fromUid}_${myUid}`;
   const db = getFirestore();
   await updateDoc(doc(db, "friendRequests", requestId), { status: "declined" });
@@ -78,6 +81,8 @@ export const removeFriend = async (
   myUid: string,
   friendUid: string,
 ): Promise<void> => {
+  if (demoMode?.isDemoUid(friendUid))
+    return demoMode.removeDemoFriend(friendUid);
   const db = getFirestore();
   const batch = writeBatch(db);
 

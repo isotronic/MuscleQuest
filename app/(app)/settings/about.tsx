@@ -1,6 +1,7 @@
 import { Linking } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { SettingRow, SettingsScroll } from "@/components/settings/SettingRow";
+import { demoMode } from "@/dev/demo/gate";
 
 export default function AboutSettingsScreen() {
   return (
@@ -43,6 +44,7 @@ export default function AboutSettingsScreen() {
           Linking.openURL("https://musclequest.app/privacy-policy")
         }
       />
+      {demoMode && <demoMode.DemoDataSection />}
     </SettingsScroll>
   );
 }
