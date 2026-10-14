@@ -1,6 +1,7 @@
 import { useAccountOwnershipStore } from "@/store/accountOwnershipStore";
 import { notifyBugsnag } from "./bugsnagDedup";
 import { deleteSetting, fetchSetting, updateSettings } from "./database";
+import { demoMode } from "@/dev/demo/gate";
 
 // The training data on a device belongs to the first account that signed in
 // there. Another account signing in later must not back it up or publish it
@@ -120,6 +121,11 @@ export const clearLocalDataOwner = async (): Promise<void> => {
  */
 export const isLocalDataOwnedBy = (uid: string): Promise<boolean> =>
   new Promise((resolve) => {
+    // Dev demo data is never published or backed up as anyone's.
+    if (demoMode?.isDemoActive()) {
+      resolve(false);
+      return;
+    }
     const answer = (
       state: ReturnType<typeof useAccountOwnershipStore.getState>,
     ) => {

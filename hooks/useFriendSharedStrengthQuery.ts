@@ -10,12 +10,16 @@ import { AuthContext } from "@/context/AuthProvider";
 import { SharedStrengthPR } from "@/types/firestore";
 import { withTimeout } from "@/utils/withTimeout";
 import { reportFirestoreReadError } from "@/utils/reportFirestoreReadError";
+import { demoMode } from "@/dev/demo/gate";
 
 export const useFriendSharedStrengthQuery = (friendUid: string | null) => {
   const user = useContext(AuthContext);
   return useQuery({
     queryKey: ["friendSharedStrength", user?.uid, friendUid],
     queryFn: async (): Promise<SharedStrengthPR[]> => {
+      if (demoMode?.isDemoUid(friendUid)) {
+        return demoMode.demoFriendData(friendUid).strength;
+      }
       if (!user || !friendUid) return [];
       const db = getFirestore();
       try {

@@ -10,12 +10,16 @@ import { AuthContext } from "@/context/AuthProvider";
 import { SharedPlan } from "@/types/firestore";
 import { withTimeout } from "@/utils/withTimeout";
 import { reportFirestoreReadError } from "@/utils/reportFirestoreReadError";
+import { demoMode } from "@/dev/demo/gate";
 
 export const useFriendSharedPlansQuery = (friendUid: string | null) => {
   const user = useContext(AuthContext);
   return useQuery({
     queryKey: ["friendSharedPlans", friendUid],
     queryFn: async (): Promise<SharedPlan[]> => {
+      if (demoMode?.isDemoUid(friendUid)) {
+        return demoMode.demoFriendData(friendUid).plans;
+      }
       if (!user || !friendUid) return [];
       const db = getFirestore();
       try {

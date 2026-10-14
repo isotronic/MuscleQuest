@@ -13,12 +13,16 @@ import { AuthContext } from "@/context/AuthProvider";
 import { SharedMeasurement } from "@/types/firestore";
 import { withTimeout } from "@/utils/withTimeout";
 import { reportFirestoreReadError } from "@/utils/reportFirestoreReadError";
+import { demoMode } from "@/dev/demo/gate";
 
 export const useFriendSharedMeasurementsQuery = (friendUid: string | null) => {
   const user = useContext(AuthContext);
   return useQuery({
     queryKey: ["friendSharedMeasurements", friendUid],
     queryFn: async (): Promise<SharedMeasurement[]> => {
+      if (demoMode?.isDemoUid(friendUid)) {
+        return demoMode.demoFriendData(friendUid).measurements;
+      }
       if (!user || !friendUid) return [];
       const db = getFirestore();
       try {

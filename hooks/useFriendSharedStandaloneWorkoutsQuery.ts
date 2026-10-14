@@ -10,6 +10,7 @@ import { AuthContext } from "@/context/AuthProvider";
 import { SharedStandaloneWorkout } from "@/types/firestore";
 import { withTimeout } from "@/utils/withTimeout";
 import { reportFirestoreReadError } from "@/utils/reportFirestoreReadError";
+import { demoMode } from "@/dev/demo/gate";
 
 export const useFriendSharedStandaloneWorkoutsQuery = (
   friendUid: string | null,
@@ -18,6 +19,9 @@ export const useFriendSharedStandaloneWorkoutsQuery = (
   return useQuery({
     queryKey: ["friendSharedStandaloneWorkouts", user?.uid, friendUid],
     queryFn: async (): Promise<SharedStandaloneWorkout[]> => {
+      if (demoMode?.isDemoUid(friendUid)) {
+        return demoMode.demoFriendData(friendUid).standaloneWorkouts;
+      }
       if (!user || !friendUid) return [];
       const db = getFirestore();
       try {
