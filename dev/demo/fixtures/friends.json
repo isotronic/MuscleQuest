@@ -1,0 +1,1054 @@
+{
+  "about": "Local stand-ins for Firestore friends. Days are offsets from today. Exercises refer to the library by appExerciseId (details in `exercises`). Sets are [kg, reps]; plan sets give working sets, rep range, rest in seconds and warm-ups.",
+  "exercises": {
+    "11": {
+      "name": "Barbell Bench Press",
+      "equipment": "barbell",
+      "bodyPart": "chest",
+      "targetMuscle": "pectorals",
+      "secondaryMuscles": ["triceps", "shoulders"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/barbell_bench_press.webp"
+    },
+    "14": {
+      "name": "Barbell Bent Over Row",
+      "equipment": "barbell",
+      "bodyPart": "back",
+      "targetMuscle": "upper back",
+      "secondaryMuscles": ["biceps", "forearms"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/barbell_bent_over_row.webp"
+    },
+    "19": {
+      "name": "Barbell Curl",
+      "equipment": "barbell",
+      "bodyPart": "upper arms",
+      "targetMuscle": "biceps",
+      "secondaryMuscles": ["forearms"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/barbell_curl.webp"
+    },
+    "20": {
+      "name": "Barbell Deadlift",
+      "equipment": "barbell",
+      "bodyPart": "upper legs",
+      "targetMuscle": "glutes",
+      "secondaryMuscles": ["hamstrings", "lower back"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/barbell_deadlift.webp"
+    },
+    "33": {
+      "name": "Barbell Full Squat",
+      "equipment": "barbell",
+      "bodyPart": "upper legs",
+      "targetMuscle": "glutes",
+      "secondaryMuscles": ["quadriceps", "hamstrings", "calves", "core"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/barbell_full_squat.webp"
+    },
+    "37": {
+      "name": "Barbell Glute Bridge",
+      "equipment": "barbell",
+      "bodyPart": "upper legs",
+      "targetMuscle": "glutes",
+      "secondaryMuscles": ["hamstrings", "lower back"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/barbell_glute_bridge.webp"
+    },
+    "43": {
+      "name": "Barbell Incline Bench Press",
+      "equipment": "barbell",
+      "bodyPart": "chest",
+      "targetMuscle": "pectorals",
+      "secondaryMuscles": ["shoulders", "triceps"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/barbell_incline_bench_press.webp"
+    },
+    "95": {
+      "name": "Barbell Romanian Deadlift",
+      "equipment": "barbell",
+      "bodyPart": "upper legs",
+      "targetMuscle": "glutes",
+      "secondaryMuscles": ["hamstrings", "lower back"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/barbell_romanian_deadlift.webp"
+    },
+    "110": {
+      "name": "Barbell Single Leg Split Squat",
+      "equipment": "barbell",
+      "bodyPart": "upper legs",
+      "targetMuscle": "quads",
+      "secondaryMuscles": ["glutes", "hamstrings", "calves"],
+      "isUnilateral": true,
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/barbell_single_leg_split_squat.webp"
+    },
+    "133": {
+      "name": "Barbell Standing Wide Military Press",
+      "equipment": "barbell",
+      "bodyPart": "shoulders",
+      "targetMuscle": "delts",
+      "secondaryMuscles": ["triceps", "upper back"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/barbell_standing_wide_military_press.webp"
+    },
+    "153": {
+      "name": "Cable Bar Lateral Pulldown",
+      "equipment": "cable",
+      "bodyPart": "back",
+      "targetMuscle": "lats",
+      "secondaryMuscles": ["biceps", "rhomboids", "rear deltoids"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/cable_bar_lateral_pulldown.webp"
+    },
+    "161": {
+      "name": "Cable Curl",
+      "equipment": "cable",
+      "bodyPart": "upper arms",
+      "targetMuscle": "biceps",
+      "secondaryMuscles": ["forearms"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/cable_curl.webp"
+    },
+    "190": {
+      "name": "Cable Lateral Raise",
+      "equipment": "cable",
+      "bodyPart": "shoulders",
+      "targetMuscle": "delts",
+      "secondaryMuscles": ["traps", "triceps"],
+      "doubleWeight": true,
+      "animatedUrl": "/exercise-webp/cable_lateral_raise.webp"
+    },
+    "198": {
+      "name": "Cable Middle Fly",
+      "equipment": "cable",
+      "bodyPart": "chest",
+      "targetMuscle": "pectorals",
+      "secondaryMuscles": ["deltoids", "triceps"],
+      "doubleWeight": true,
+      "animatedUrl": "/exercise-webp/cable_middle_fly.webp"
+    },
+    "218": {
+      "name": "Cable Pushdown",
+      "equipment": "cable",
+      "bodyPart": "upper arms",
+      "targetMuscle": "triceps",
+      "secondaryMuscles": ["forearms"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/cable_pushdown.webp"
+    },
+    "222": {
+      "name": "Cable Rear Delt Row (With Rope)",
+      "equipment": "cable",
+      "bodyPart": "shoulders",
+      "targetMuscle": "delts",
+      "secondaryMuscles": ["trapezius", "rhomboids", "biceps"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/cable_rear_delt_row__with_rope_.webp"
+    },
+    "251": {
+      "name": "Cable Seated Row",
+      "equipment": "cable",
+      "bodyPart": "back",
+      "targetMuscle": "upper back",
+      "secondaryMuscles": ["biceps", "forearms"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/cable_seated_row.webp"
+    },
+    "308": {
+      "name": "Dumbbell Arnold Press",
+      "equipment": "dumbbell",
+      "bodyPart": "shoulders",
+      "targetMuscle": "delts",
+      "secondaryMuscles": ["triceps", "upper chest"],
+      "doubleWeight": true,
+      "animatedUrl": "/exercise-webp/dumbbell_arnold_press.webp"
+    },
+    "311": {
+      "name": "Dumbbell Bench Press",
+      "equipment": "dumbbell",
+      "bodyPart": "chest",
+      "targetMuscle": "pectorals",
+      "secondaryMuscles": ["triceps", "shoulders"],
+      "doubleWeight": true,
+      "animatedUrl": "/exercise-webp/dumbbell_bench_press.webp"
+    },
+    "349": {
+      "name": "Dumbbell Hammer Curl V. 2",
+      "equipment": "dumbbell",
+      "bodyPart": "upper arms",
+      "targetMuscle": "biceps",
+      "secondaryMuscles": ["forearms"],
+      "doubleWeight": true,
+      "animatedUrl": "/exercise-webp/dumbbell_hammer_curl_v__2.webp"
+    },
+    "379": {
+      "name": "Dumbbell Lateral Raise",
+      "equipment": "dumbbell",
+      "bodyPart": "shoulders",
+      "targetMuscle": "delts",
+      "secondaryMuscles": ["traps"],
+      "doubleWeight": true,
+      "animatedUrl": "/exercise-webp/dumbbell_lateral_raise.webp"
+    },
+    "405": {
+      "name": "Dumbbell Lying Triceps Extension",
+      "equipment": "dumbbell",
+      "bodyPart": "upper arms",
+      "targetMuscle": "triceps",
+      "secondaryMuscles": ["shoulders"],
+      "doubleWeight": true,
+      "animatedUrl": "/exercise-webp/dumbbell_lying_triceps_extension.webp"
+    },
+    "656": {
+      "name": "Lever Leg Extension",
+      "equipment": "leverage machine",
+      "bodyPart": "upper legs",
+      "targetMuscle": "quads",
+      "secondaryMuscles": ["hamstrings"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/lever_leg_extension.webp"
+    },
+    "657": {
+      "name": "Lever Lying Leg Curl",
+      "equipment": "leverage machine",
+      "bodyPart": "upper legs",
+      "targetMuscle": "hamstrings",
+      "secondaryMuscles": ["calves"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/lever_lying_leg_curl.webp"
+    },
+    "676": {
+      "name": "Lever Seated Calf Raise",
+      "equipment": "leverage machine",
+      "bodyPart": "lower legs",
+      "targetMuscle": "calves",
+      "secondaryMuscles": ["soleus", "ankle stabilizers"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/lever_seated_calf_raise.webp"
+    },
+    "710": {
+      "name": "Sled Leg Press",
+      "equipment": "sled machine",
+      "bodyPart": "upper legs",
+      "targetMuscle": "glutes",
+      "secondaryMuscles": ["quadriceps", "hamstrings", "calves"],
+      "doubleWeight": false,
+      "animatedUrl": "/exercise-webp/sled_45___leg_press.webp"
+    }
+  },
+  "friends": [
+    {
+      "uid": "demo-maya",
+      "displayName": "Maya",
+      "friendsSinceDays": -96,
+      "about": "Shares everything: plan, workouts with sets, strength PRs and measurements.",
+      "completedWorkoutCount": 57,
+      "plans": [
+        {
+          "localPlanId": 4101,
+          "name": "Full Body Strength",
+          "imageUrl": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1080&auto=format&fit=crop",
+          "publishedDays": -40,
+          "updatedDays": -9,
+          "workouts": [
+            {
+              "name": "Day A",
+              "exercises": [
+                {
+                  "appExerciseId": 33,
+                  "working": 3,
+                  "repsMin": 5,
+                  "repsMax": 5,
+                  "rest": 180,
+                  "warmups": 2
+                },
+                {
+                  "appExerciseId": 11,
+                  "working": 3,
+                  "repsMin": 6,
+                  "repsMax": 8,
+                  "rest": 150
+                },
+                {
+                  "appExerciseId": 14,
+                  "working": 3,
+                  "repsMin": 8,
+                  "repsMax": 10,
+                  "rest": 120
+                },
+                {
+                  "appExerciseId": 379,
+                  "working": 3,
+                  "repsMin": 12,
+                  "repsMax": 15,
+                  "rest": 60
+                }
+              ]
+            },
+            {
+              "name": "Day B",
+              "exercises": [
+                {
+                  "appExerciseId": 20,
+                  "working": 3,
+                  "repsMin": 5,
+                  "repsMax": 5,
+                  "rest": 180,
+                  "warmups": 2
+                },
+                {
+                  "appExerciseId": 133,
+                  "working": 3,
+                  "repsMin": 6,
+                  "repsMax": 8,
+                  "rest": 150
+                },
+                {
+                  "appExerciseId": 153,
+                  "working": 3,
+                  "repsMin": 10,
+                  "repsMax": 12,
+                  "rest": 90
+                },
+                {
+                  "appExerciseId": 37,
+                  "working": 3,
+                  "repsMin": 8,
+                  "repsMax": 12,
+                  "rest": 90
+                }
+              ]
+            },
+            {
+              "name": "Day C",
+              "exercises": [
+                {
+                  "appExerciseId": 110,
+                  "working": 3,
+                  "repsMin": 8,
+                  "repsMax": 10,
+                  "rest": 120,
+                  "warmups": 1
+                },
+                {
+                  "appExerciseId": 311,
+                  "working": 3,
+                  "repsMin": 8,
+                  "repsMax": 10,
+                  "rest": 120
+                },
+                {
+                  "appExerciseId": 251,
+                  "working": 3,
+                  "repsMin": 10,
+                  "repsMax": 12,
+                  "rest": 90
+                },
+                {
+                  "appExerciseId": 657,
+                  "working": 3,
+                  "repsMin": 10,
+                  "repsMax": 12,
+                  "rest": 90
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "completedWorkouts": [
+        {
+          "localWorkoutId": 5105,
+          "day": -1,
+          "start": "07:10",
+          "minutes": 54,
+          "planName": "Full Body Strength",
+          "workoutName": "Day B",
+          "exercises": [
+            {
+              "appExerciseId": 20,
+              "warmups": [
+                [40, 8],
+                [60, 5]
+              ],
+              "sets": [
+                [87.5, 5],
+                [87.5, 5],
+                [87.5, 5]
+              ]
+            },
+            {
+              "appExerciseId": 133,
+              "sets": [
+                [32.5, 8],
+                [32.5, 7],
+                [32.5, 7]
+              ]
+            },
+            {
+              "appExerciseId": 153,
+              "sets": [
+                [42.5, 12],
+                [42.5, 11],
+                [42.5, 10]
+              ]
+            },
+            {
+              "appExerciseId": 37,
+              "sets": [
+                [80, 12],
+                [80, 11],
+                [80, 10]
+              ]
+            }
+          ]
+        },
+        {
+          "localWorkoutId": 5104,
+          "day": -3,
+          "start": "06:55",
+          "minutes": 51,
+          "planName": "Full Body Strength",
+          "workoutName": "Day A",
+          "exercises": [
+            {
+              "appExerciseId": 33,
+              "warmups": [
+                [30, 8],
+                [45, 5]
+              ],
+              "sets": [
+                [67.5, 5],
+                [67.5, 5],
+                [67.5, 5]
+              ]
+            },
+            {
+              "appExerciseId": 11,
+              "sets": [
+                [45, 8],
+                [45, 7],
+                [45, 7]
+              ]
+            },
+            {
+              "appExerciseId": 14,
+              "sets": [
+                [40, 10],
+                [40, 9],
+                [40, 9]
+              ]
+            },
+            {
+              "appExerciseId": 379,
+              "sets": [
+                [7, 15],
+                [7, 13],
+                [7, 12]
+              ]
+            }
+          ]
+        },
+        {
+          "localWorkoutId": 5103,
+          "day": -6,
+          "start": "07:05",
+          "minutes": 49,
+          "planName": "Full Body Strength",
+          "workoutName": "Day C",
+          "exercises": [
+            {
+              "appExerciseId": 110,
+              "warmups": [[20, 10]],
+              "sets": [
+                [30, 10],
+                [30, 9],
+                [30, 9]
+              ]
+            },
+            {
+              "appExerciseId": 311,
+              "sets": [
+                [16, 10],
+                [16, 9],
+                [16, 8]
+              ]
+            },
+            {
+              "appExerciseId": 251,
+              "sets": [
+                [40, 12],
+                [40, 11],
+                [40, 11]
+              ]
+            },
+            {
+              "appExerciseId": 657,
+              "sets": [
+                [30, 12],
+                [30, 11],
+                [30, 10]
+              ]
+            }
+          ]
+        },
+        {
+          "localWorkoutId": 5102,
+          "day": -8,
+          "start": "07:15",
+          "minutes": 56,
+          "planName": "Full Body Strength",
+          "workoutName": "Day B",
+          "exercises": [
+            {
+              "appExerciseId": 20,
+              "warmups": [
+                [40, 8],
+                [60, 5]
+              ],
+              "sets": [
+                [85, 5],
+                [85, 5],
+                [85, 5]
+              ]
+            },
+            {
+              "appExerciseId": 133,
+              "sets": [
+                [32.5, 7],
+                [32.5, 7],
+                [30, 8]
+              ]
+            },
+            {
+              "appExerciseId": 153,
+              "sets": [
+                [40, 12],
+                [40, 12],
+                [40, 11]
+              ]
+            },
+            {
+              "appExerciseId": 37,
+              "sets": [
+                [77.5, 12],
+                [77.5, 11],
+                [77.5, 10]
+              ]
+            }
+          ]
+        },
+        {
+          "localWorkoutId": 5101,
+          "day": -10,
+          "start": "06:50",
+          "minutes": 50,
+          "planName": "Full Body Strength",
+          "workoutName": "Day A",
+          "exercises": [
+            {
+              "appExerciseId": 33,
+              "warmups": [
+                [30, 8],
+                [45, 5]
+              ],
+              "sets": [
+                [65, 5],
+                [65, 5],
+                [65, 5]
+              ]
+            },
+            {
+              "appExerciseId": 11,
+              "sets": [
+                [45, 7],
+                [45, 7],
+                [45, 6]
+              ]
+            },
+            {
+              "appExerciseId": 14,
+              "sets": [
+                [40, 10],
+                [40, 9],
+                [40, 8]
+              ]
+            },
+            {
+              "appExerciseId": 379,
+              "sets": [
+                [7, 14],
+                [7, 12],
+                [7, 12]
+              ]
+            }
+          ]
+        }
+      ],
+      "strength": [
+        {
+          "appExerciseId": 20,
+          "topSets": [
+            [87.5, 5, -1],
+            [87.5, 5, -1],
+            [85, 5, -8],
+            [85, 5, -8],
+            [82.5, 5, -15]
+          ]
+        },
+        {
+          "appExerciseId": 33,
+          "topSets": [
+            [67.5, 5, -3],
+            [67.5, 5, -3],
+            [65, 5, -10],
+            [65, 5, -10],
+            [62.5, 5, -17]
+          ]
+        },
+        {
+          "appExerciseId": 11,
+          "topSets": [
+            [45, 8, -3],
+            [45, 7, -3],
+            [45, 7, -10],
+            [42.5, 8, -17],
+            [45, 6, -10]
+          ]
+        },
+        {
+          "appExerciseId": 37,
+          "topSets": [
+            [80, 12, -1],
+            [80, 11, -1],
+            [77.5, 12, -8],
+            [80, 10, -1],
+            [77.5, 11, -8]
+          ]
+        }
+      ],
+      "measurements": [
+        {
+          "localEntryId": 7104,
+          "day": -2,
+          "values": { "weight": 63.4, "body_fat_pct": 23.6, "waist": 70.5 }
+        },
+        {
+          "localEntryId": 7103,
+          "day": -9,
+          "values": { "weight": 63.8, "body_fat_pct": 23.9, "waist": 70.9 }
+        },
+        {
+          "localEntryId": 7102,
+          "day": -16,
+          "values": { "weight": 64.1, "body_fat_pct": 24.2, "waist": 71.2 }
+        },
+        {
+          "localEntryId": 7101,
+          "day": -23,
+          "values": { "weight": 64.3, "body_fat_pct": 24.4, "waist": 71.6 }
+        }
+      ]
+    },
+    {
+      "uid": "demo-jonas",
+      "displayName": "Jonas",
+      "friendsSinceDays": -210,
+      "about": "Shares workouts and strength PRs only.",
+      "completedWorkoutCount": 118,
+      "plans": [],
+      "completedWorkouts": [
+        {
+          "localWorkoutId": 8204,
+          "day": -2,
+          "start": "19:30",
+          "minutes": 72,
+          "planName": "Push Pull Legs",
+          "workoutName": "Push",
+          "exercises": [
+            {
+              "appExerciseId": 11,
+              "warmups": [
+                [60, 8],
+                [80, 4]
+              ],
+              "sets": [
+                [100, 5],
+                [100, 5],
+                [100, 4]
+              ]
+            },
+            {
+              "appExerciseId": 43,
+              "sets": [
+                [80, 8],
+                [80, 7],
+                [80, 7]
+              ]
+            },
+            {
+              "appExerciseId": 190,
+              "sets": [
+                [10, 15],
+                [10, 14],
+                [10, 12]
+              ]
+            },
+            {
+              "appExerciseId": 218,
+              "sets": [
+                [40, 12],
+                [40, 11],
+                [40, 10],
+                [27.5, 12]
+              ]
+            }
+          ]
+        },
+        {
+          "localWorkoutId": 8203,
+          "day": -3,
+          "start": "19:15",
+          "minutes": 66,
+          "planName": "Push Pull Legs",
+          "workoutName": "Legs",
+          "exercises": [
+            {
+              "appExerciseId": 33,
+              "warmups": [
+                [60, 8],
+                [90, 5],
+                [110, 2]
+              ],
+              "sets": [
+                [130, 5],
+                [130, 5],
+                [130, 5]
+              ]
+            },
+            {
+              "appExerciseId": 95,
+              "sets": [
+                [110, 8],
+                [110, 8],
+                [110, 7]
+              ]
+            },
+            {
+              "appExerciseId": 710,
+              "sets": [
+                [220, 12],
+                [220, 11],
+                [220, 10]
+              ]
+            },
+            {
+              "appExerciseId": 676,
+              "sets": [
+                [60, 15],
+                [60, 14],
+                [60, 13]
+              ]
+            }
+          ]
+        },
+        {
+          "localWorkoutId": 8202,
+          "day": -5,
+          "start": "19:40",
+          "minutes": 64,
+          "planName": "Push Pull Legs",
+          "workoutName": "Pull",
+          "exercises": [
+            {
+              "appExerciseId": 20,
+              "warmups": [
+                [70, 6],
+                [110, 3],
+                [140, 1]
+              ],
+              "sets": [
+                [170, 3],
+                [170, 3],
+                [160, 4]
+              ]
+            },
+            {
+              "appExerciseId": 14,
+              "sets": [
+                [90, 8],
+                [90, 8],
+                [90, 7]
+              ]
+            },
+            {
+              "appExerciseId": 153,
+              "sets": [
+                [75, 10],
+                [75, 9],
+                [75, 9]
+              ]
+            },
+            {
+              "appExerciseId": 19,
+              "sets": [
+                [40, 10],
+                [40, 9],
+                [40, 8]
+              ]
+            }
+          ]
+        },
+        {
+          "localWorkoutId": 8201,
+          "day": -6,
+          "start": "18:50",
+          "minutes": 69,
+          "planName": "Push Pull Legs",
+          "workoutName": "Push",
+          "exercises": [
+            {
+              "appExerciseId": 11,
+              "warmups": [
+                [60, 8],
+                [80, 4]
+              ],
+              "sets": [
+                [97.5, 6],
+                [97.5, 5],
+                [97.5, 5]
+              ]
+            },
+            {
+              "appExerciseId": 133,
+              "sets": [
+                [60, 6],
+                [60, 5],
+                [60, 5]
+              ]
+            },
+            {
+              "appExerciseId": 190,
+              "sets": [
+                [10, 14],
+                [10, 13],
+                [10, 12]
+              ]
+            },
+            {
+              "appExerciseId": 218,
+              "sets": [
+                [40, 11],
+                [40, 10],
+                [40, 10]
+              ]
+            }
+          ]
+        }
+      ],
+      "strength": [
+        {
+          "appExerciseId": 20,
+          "topSets": [
+            [170, 3, -5],
+            [170, 3, -5],
+            [160, 4, -5],
+            [165, 3, -12],
+            [160, 3, -19]
+          ]
+        },
+        {
+          "appExerciseId": 33,
+          "topSets": [
+            [130, 5, -3],
+            [130, 5, -3],
+            [130, 5, -3],
+            [127.5, 5, -10],
+            [125, 5, -17]
+          ]
+        },
+        {
+          "appExerciseId": 11,
+          "topSets": [
+            [97.5, 6, -6],
+            [100, 5, -2],
+            [100, 5, -2],
+            [97.5, 5, -6],
+            [100, 4, -2]
+          ]
+        },
+        {
+          "appExerciseId": 133,
+          "topSets": [
+            [60, 6, -6],
+            [60, 5, -6],
+            [60, 5, -6],
+            [57.5, 6, -13],
+            [57.5, 5, -13]
+          ]
+        },
+        {
+          "appExerciseId": 14,
+          "topSets": [
+            [90, 8, -5],
+            [90, 8, -5],
+            [90, 7, -5],
+            [87.5, 8, -12],
+            [87.5, 7, -12]
+          ]
+        }
+      ],
+      "measurements": []
+    },
+    {
+      "uid": "demo-lena",
+      "displayName": "Lena",
+      "friendsSinceDays": -35,
+      "about": "Shares a plan only, for the import flow.",
+      "completedWorkoutCount": 0,
+      "plans": [
+        {
+          "localPlanId": 9301,
+          "name": "Push Pull Legs Hypertrophy",
+          "imageUrl": "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=1080&auto=format&fit=crop",
+          "publishedDays": -21,
+          "updatedDays": -3,
+          "workouts": [
+            {
+              "name": "Push",
+              "exercises": [
+                {
+                  "appExerciseId": 43,
+                  "working": 3,
+                  "repsMin": 8,
+                  "repsMax": 10,
+                  "rest": 120,
+                  "warmups": 2
+                },
+                {
+                  "appExerciseId": 311,
+                  "working": 3,
+                  "repsMin": 10,
+                  "repsMax": 12,
+                  "rest": 90
+                },
+                {
+                  "appExerciseId": 308,
+                  "working": 3,
+                  "repsMin": 10,
+                  "repsMax": 12,
+                  "rest": 90
+                },
+                {
+                  "appExerciseId": 190,
+                  "working": 3,
+                  "repsMin": 12,
+                  "repsMax": 15,
+                  "rest": 60,
+                  "superset": "push-arms"
+                },
+                {
+                  "appExerciseId": 218,
+                  "working": 3,
+                  "repsMin": 12,
+                  "repsMax": 15,
+                  "rest": 60,
+                  "superset": "push-arms"
+                }
+              ]
+            },
+            {
+              "name": "Pull",
+              "exercises": [
+                {
+                  "appExerciseId": 153,
+                  "working": 3,
+                  "repsMin": 10,
+                  "repsMax": 12,
+                  "rest": 90,
+                  "warmups": 1
+                },
+                {
+                  "appExerciseId": 251,
+                  "working": 3,
+                  "repsMin": 10,
+                  "repsMax": 12,
+                  "rest": 90
+                },
+                {
+                  "appExerciseId": 222,
+                  "working": 3,
+                  "repsMin": 12,
+                  "repsMax": 15,
+                  "rest": 60
+                },
+                {
+                  "appExerciseId": 161,
+                  "working": 3,
+                  "repsMin": 10,
+                  "repsMax": 12,
+                  "rest": 60,
+                  "superset": "pull-arms"
+                },
+                {
+                  "appExerciseId": 349,
+                  "working": 3,
+                  "repsMin": 10,
+                  "repsMax": 12,
+                  "rest": 60,
+                  "superset": "pull-arms"
+                }
+              ]
+            },
+            {
+              "name": "Legs",
+              "exercises": [
+                {
+                  "appExerciseId": 95,
+                  "working": 3,
+                  "repsMin": 8,
+                  "repsMax": 10,
+                  "rest": 150,
+                  "warmups": 2
+                },
+                {
+                  "appExerciseId": 710,
+                  "working": 3,
+                  "repsMin": 10,
+                  "repsMax": 12,
+                  "rest": 120
+                },
+                {
+                  "appExerciseId": 656,
+                  "working": 3,
+                  "repsMin": 12,
+                  "repsMax": 15,
+                  "rest": 90
+                },
+                {
+                  "appExerciseId": 657,
+                  "working": 3,
+                  "repsMin": 10,
+                  "repsMax": 12,
+                  "rest": 90
+                },
+                {
+                  "appExerciseId": 676,
+                  "working": 4,
+                  "repsMin": 12,
+                  "repsMax": 15,
+                  "rest": 60
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "completedWorkouts": [],
+      "strength": [],
+      "measurements": []
+    }
+  ],
+  "requests": [{ "uid": "demo-sam", "displayName": "Sam", "day": -1 }]
+}

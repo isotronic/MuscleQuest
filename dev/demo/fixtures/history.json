@@ -1,0 +1,628 @@
+{
+  "about": "8 weeks of an intermediate lifter on a customised 4-Day Upper/Lower Split. Weights are kg (dumbbells per hand). Weeks run 1-8, week 8 being the current week; a session's day is its slot's weekday in that week (see scheduleByWeekday), and sessions on or after today are skipped. Measurement days are offsets from today.",
+  "plan": {
+    "basedOnAppPlanId": 2,
+    "name": "4-Day Upper/Lower Split",
+    "workouts": [
+      {
+        "key": "upper1",
+        "name": "Upper 1",
+        "exercises": [
+          {
+            "key": "bench",
+            "appExerciseId": 11,
+            "working": 3,
+            "repsMin": 6,
+            "repsMax": 8,
+            "rest": 150,
+            "warmupReps": [8, 5, 3],
+            "warmupPercents": [0.5, 0.7, 0.85]
+          },
+          {
+            "key": "incline_db",
+            "appExerciseId": 353,
+            "working": 3,
+            "repsMin": 8,
+            "repsMax": 10,
+            "rest": 120
+          },
+          {
+            "key": "pulldown",
+            "appExerciseId": 153,
+            "working": 3,
+            "repsMin": 10,
+            "repsMax": 12,
+            "rest": 90
+          },
+          {
+            "key": "row",
+            "appExerciseId": 14,
+            "working": 3,
+            "repsMin": 8,
+            "repsMax": 10,
+            "rest": 120
+          },
+          {
+            "key": "db_shoulder_press",
+            "appExerciseId": 498,
+            "working": 3,
+            "repsMin": 8,
+            "repsMax": 10,
+            "rest": 90
+          },
+          {
+            "key": "ez_curl",
+            "appExerciseId": 567,
+            "working": 3,
+            "repsMin": 10,
+            "repsMax": 12,
+            "rest": 30,
+            "superset": "arms"
+          },
+          {
+            "key": "db_triceps_ext",
+            "appExerciseId": 473,
+            "working": 3,
+            "repsMin": 10,
+            "repsMax": 12,
+            "rest": 90,
+            "superset": "arms"
+          }
+        ]
+      },
+      {
+        "key": "lower1",
+        "name": "Lower 1",
+        "exercises": [
+          {
+            "key": "squat",
+            "appExerciseId": 33,
+            "working": 3,
+            "repsMin": 6,
+            "repsMax": 8,
+            "rest": 180,
+            "warmupReps": [8, 5, 3],
+            "warmupPercents": [0.5, 0.7, 0.85]
+          },
+          {
+            "key": "hip_thrust",
+            "appExerciseId": 58,
+            "working": 3,
+            "repsMin": 8,
+            "repsMax": 10,
+            "rest": 120
+          },
+          {
+            "key": "leg_ext",
+            "appExerciseId": 656,
+            "working": 3,
+            "repsMin": 10,
+            "repsMax": 12,
+            "rest": 90
+          },
+          {
+            "key": "seated_leg_curl",
+            "appExerciseId": 685,
+            "working": 3,
+            "repsMin": 10,
+            "repsMax": 12,
+            "rest": 90
+          },
+          {
+            "key": "standing_calf",
+            "appExerciseId": 695,
+            "working": 4,
+            "repsMin": 12,
+            "repsMax": 15,
+            "rest": 60
+          }
+        ]
+      },
+      {
+        "key": "upper2",
+        "name": "Upper 2",
+        "exercises": [
+          {
+            "key": "military",
+            "appExerciseId": 133,
+            "working": 3,
+            "repsMin": 6,
+            "repsMax": 8,
+            "rest": 150,
+            "warmupReps": [8, 5],
+            "warmupPercents": [0.55, 0.8]
+          },
+          {
+            "key": "assisted_pullup",
+            "appExerciseId": 4,
+            "working": 3,
+            "repsMin": 6,
+            "repsMax": 8,
+            "rest": 120
+          },
+          {
+            "key": "seated_fly",
+            "appExerciseId": 681,
+            "working": 3,
+            "repsMin": 10,
+            "repsMax": 12,
+            "rest": 90
+          },
+          {
+            "key": "hammer_curl",
+            "appExerciseId": 172,
+            "working": 3,
+            "repsMin": 10,
+            "repsMax": 12,
+            "rest": 60
+          },
+          {
+            "key": "oh_triceps",
+            "appExerciseId": 211,
+            "working": 3,
+            "repsMin": 10,
+            "repsMax": 12,
+            "rest": 60
+          },
+          {
+            "key": "pushdown",
+            "appExerciseId": 218,
+            "working": 3,
+            "repsMin": 10,
+            "repsMax": 12,
+            "rest": 60
+          }
+        ]
+      },
+      {
+        "key": "lower2",
+        "name": "Lower 2",
+        "exercises": [
+          {
+            "key": "deadlift",
+            "appExerciseId": 20,
+            "working": 3,
+            "repsMin": 5,
+            "repsMax": 6,
+            "rest": 180,
+            "warmupReps": [8, 5, 3],
+            "warmupPercents": [0.45, 0.65, 0.8]
+          },
+          {
+            "key": "leg_press",
+            "appExerciseId": 710,
+            "working": 3,
+            "repsMin": 10,
+            "repsMax": 12,
+            "rest": 120
+          },
+          {
+            "key": "lying_leg_curl",
+            "appExerciseId": 657,
+            "working": 3,
+            "repsMin": 10,
+            "repsMax": 12,
+            "rest": 90
+          },
+          {
+            "key": "adduction",
+            "appExerciseId": 684,
+            "working": 3,
+            "repsMin": 12,
+            "repsMax": 15,
+            "rest": 60
+          },
+          {
+            "key": "seated_calf",
+            "appExerciseId": 675,
+            "working": 3,
+            "repsMin": 12,
+            "repsMax": 15,
+            "rest": 60
+          }
+        ]
+      }
+    ]
+  },
+  "scheduleByWeekday": {
+    "about": "Keyed by today's weekday (0 = Monday): the weekdays of the plan's four workouts, so the current week shows two sessions done and the next one due today from Wednesday to Saturday. Monday and Tuesday cannot have two done yet; Sunday has three.",
+    "0": [0, 1, 3, 4],
+    "1": [0, 1, 3, 4],
+    "2": [0, 1, 2, 4],
+    "3": [0, 1, 3, 4],
+    "4": [0, 2, 4, 5],
+    "5": [1, 3, 5, 6],
+    "6": [0, 2, 4, 6]
+  },
+  "deloadWeeks": [6],
+  "progressions": {
+    "about": "Per exercise, one [kg, [reps per working set]] per week 1-8. Week 6 is the deload. Assisted pull-up weights are the assistance.",
+    "bench": [
+      [72.5, [8, 7, 7]],
+      [72.5, [8, 8, 7]],
+      [75, [7, 7, 6]],
+      [75, [8, 7, 7]],
+      [77.5, [7, 6, 6]],
+      [65, [8, 8, 8]],
+      [80, [8, 7, 7]],
+      [82.5, [8, 8, 7]]
+    ],
+    "incline_db": [
+      [24, [10, 9, 8]],
+      [24, [10, 10, 9]],
+      [26, [9, 8, 8]],
+      [26, [10, 9, 9]],
+      [26, [10, 10, 9]],
+      [22, [10, 10, 10]],
+      [28, [9, 9, 8]],
+      [28, [10, 9, 9]]
+    ],
+    "pulldown": [
+      [55, [12, 11, 10]],
+      [57.5, [11, 10, 10]],
+      [57.5, [12, 11, 11]],
+      [60, [11, 10, 10]],
+      [60, [12, 11, 10]],
+      [50, [12, 12, 12]],
+      [62.5, [11, 11, 10]],
+      [62.5, [12, 12, 11]]
+    ],
+    "row": [
+      [60, [10, 9, 9]],
+      [60, [10, 10, 9]],
+      [62.5, [9, 9, 8]],
+      [62.5, [10, 9, 9]],
+      [65, [9, 8, 8]],
+      [55, [10, 10, 10]],
+      [67.5, [9, 9, 8]],
+      [67.5, [10, 9, 9]]
+    ],
+    "db_shoulder_press": [
+      [18, [10, 9, 8]],
+      [18, [10, 10, 9]],
+      [20, [9, 8, 8]],
+      [20, [10, 9, 8]],
+      [20, [10, 10, 9]],
+      [16, [10, 10, 10]],
+      [22, [9, 8, 8]],
+      [22, [10, 9, 8]]
+    ],
+    "ez_curl": [
+      [30, [12, 11, 10]],
+      [30, [12, 12, 11]],
+      [32.5, [11, 10, 10]],
+      [32.5, [12, 11, 10]],
+      [32.5, [12, 12, 11]],
+      [27.5, [12, 12, 12]],
+      [35, [11, 10, 10]],
+      [35, [12, 11, 10]]
+    ],
+    "db_triceps_ext": [
+      [20, [12, 11, 10]],
+      [20, [12, 12, 11]],
+      [22.5, [11, 10, 10]],
+      [22.5, [12, 11, 10]],
+      [22.5, [12, 12, 11]],
+      [17.5, [12, 12, 12]],
+      [25, [11, 10, 9]],
+      [25, [12, 11, 10]]
+    ],
+    "squat": [
+      [85, [8, 7, 7]],
+      [87.5, [8, 7, 6]],
+      [90, [7, 7, 6]],
+      [90, [8, 8, 7]],
+      [92.5, [7, 7, 6]],
+      [75, [8, 8, 8]],
+      [95, [8, 7, 6]],
+      [97.5, [7, 7, 6]]
+    ],
+    "hip_thrust": [
+      [90, [10, 9, 9]],
+      [95, [10, 9, 8]],
+      [100, [9, 9, 8]],
+      [100, [10, 10, 9]],
+      [105, [9, 9, 8]],
+      [85, [10, 10, 10]],
+      [110, [10, 9, 8]],
+      [110, [10, 10, 9]]
+    ],
+    "leg_ext": [
+      [50, [12, 11, 10]],
+      [50, [12, 12, 11]],
+      [52.5, [11, 11, 10]],
+      [55, [11, 10, 10]],
+      [55, [12, 11, 11]],
+      [45, [12, 12, 12]],
+      [57.5, [11, 11, 10]],
+      [57.5, [12, 11, 11]]
+    ],
+    "seated_leg_curl": [
+      [45, [12, 11, 10]],
+      [47.5, [11, 10, 10]],
+      [47.5, [12, 11, 11]],
+      [50, [11, 10, 10]],
+      [50, [12, 11, 10]],
+      [40, [12, 12, 12]],
+      [52.5, [11, 10, 10]],
+      [52.5, [12, 11, 11]]
+    ],
+    "standing_calf": [
+      [70, [15, 14, 13, 12]],
+      [75, [14, 13, 12, 12]],
+      [75, [15, 14, 14, 13]],
+      [80, [14, 13, 13, 12]],
+      [80, [15, 14, 13, 13]],
+      [65, [15, 15, 15, 15]],
+      [85, [14, 13, 13, 12]],
+      [85, [15, 14, 13, 13]]
+    ],
+    "military": [
+      [40, [8, 7, 7]],
+      [42.5, [7, 6, 6]],
+      [42.5, [8, 7, 7]],
+      [45, [7, 6, 6]],
+      [45, [8, 7, 6]],
+      [37.5, [8, 8, 8]],
+      [47.5, [8, 8, 7]],
+      [47.5, [8, 8, 8]]
+    ],
+    "assisted_pullup": [
+      [30, [8, 7, 7]],
+      [30, [8, 8, 7]],
+      [27.5, [7, 7, 6]],
+      [27.5, [8, 7, 7]],
+      [25, [7, 7, 6]],
+      [30, [8, 8, 8]],
+      [22.5, [8, 7, 6]],
+      [22.5, [8, 8, 7]]
+    ],
+    "seated_fly": [
+      [50, [12, 11, 10]],
+      [52.5, [11, 10, 10]],
+      [52.5, [12, 11, 11]],
+      [55, [11, 10, 10]],
+      [55, [12, 11, 10]],
+      [45, [12, 12, 12]],
+      [57.5, [11, 10, 10]],
+      [57.5, [12, 11, 10]]
+    ],
+    "hammer_curl": [
+      [20, [12, 11, 10]],
+      [20, [12, 12, 11]],
+      [22.5, [11, 10, 10]],
+      [22.5, [12, 11, 10]],
+      [22.5, [12, 12, 11]],
+      [17.5, [12, 12, 12]],
+      [25, [11, 10, 10]],
+      [25, [12, 11, 10]]
+    ],
+    "oh_triceps": [
+      [22.5, [12, 11, 10]],
+      [22.5, [12, 12, 11]],
+      [25, [11, 10, 10]],
+      [25, [12, 11, 11]],
+      [25, [12, 12, 11]],
+      [20, [12, 12, 12]],
+      [27.5, [11, 10, 10]],
+      [27.5, [12, 11, 10]]
+    ],
+    "pushdown": [
+      [27.5, [12, 12, 11]],
+      [30, [11, 10, 10]],
+      [30, [12, 11, 11]],
+      [32.5, [11, 10, 9]],
+      [32.5, [12, 11, 10]],
+      [25, [12, 12, 12]],
+      [35, [11, 10, 10]],
+      [35, [12, 11, 11]]
+    ],
+    "deadlift": [
+      [110, [6, 5, 5]],
+      [112.5, [6, 6, 5]],
+      [115, [5, 5, 5]],
+      [117.5, [6, 5, 5]],
+      [117.5, [6, 6, 5]],
+      [100, [5, 5, 5]],
+      [122.5, [6, 5, 5]],
+      [125, [6, 5, 5]]
+    ],
+    "leg_press": [
+      [140, [12, 11, 10]],
+      [150, [11, 10, 10]],
+      [150, [12, 11, 11]],
+      [160, [11, 10, 10]],
+      [160, [12, 11, 10]],
+      [130, [12, 12, 12]],
+      [170, [11, 10, 10]],
+      [170, [12, 11, 11]]
+    ],
+    "lying_leg_curl": [
+      [40, [12, 11, 10]],
+      [40, [12, 12, 11]],
+      [42.5, [11, 11, 10]],
+      [45, [11, 10, 10]],
+      [45, [12, 11, 10]],
+      [37.5, [12, 12, 12]],
+      [47.5, [11, 10, 10]],
+      [47.5, [12, 11, 11]]
+    ],
+    "adduction": [
+      [55, [15, 14, 13]],
+      [60, [14, 13, 12]],
+      [60, [15, 14, 14]],
+      [65, [14, 13, 12]],
+      [65, [15, 14, 13]],
+      [50, [15, 15, 15]],
+      [70, [14, 13, 13]],
+      [70, [15, 14, 13]]
+    ],
+    "seated_calf": [
+      [40, [15, 14, 13]],
+      [45, [14, 13, 12]],
+      [45, [15, 14, 13]],
+      [50, [14, 13, 12]],
+      [50, [15, 14, 14]],
+      [35, [15, 15, 15]],
+      [52.5, [14, 13, 13]],
+      [52.5, [15, 14, 13]]
+    ]
+  },
+  "sessions": [
+    { "week": 1, "slot": 0, "start": "18:05", "minutes": 62 },
+    { "week": 1, "slot": 1, "start": "18:20", "minutes": 55 },
+    { "week": 1, "slot": 2, "start": "17:50", "minutes": 50 },
+    { "week": 1, "slot": 3, "start": "18:10", "minutes": 52 },
+    { "week": 2, "slot": 0, "start": "18:00", "minutes": 66 },
+    { "week": 2, "slot": 1, "start": "18:35", "minutes": 58 },
+    {
+      "week": 2,
+      "slot": 2,
+      "start": "18:15",
+      "minutes": 54,
+      "dropSets": ["pushdown"]
+    },
+    { "week": 2, "slot": 3, "start": "17:45", "minutes": 49 },
+    { "week": 3, "slot": 0, "start": "18:10", "minutes": 64 },
+    {
+      "week": 3,
+      "slot": 1,
+      "start": "18:05",
+      "minutes": 60,
+      "dropSets": ["leg_ext"]
+    },
+    { "week": 3, "slot": 2, "start": "18:25", "minutes": 52 },
+    { "week": 3, "slot": 3, "start": "18:00", "minutes": 55 },
+    { "week": 4, "slot": 0, "start": "17:55", "minutes": 68 },
+    { "week": 4, "slot": 1, "start": "18:15", "minutes": 57 },
+    {
+      "week": 4,
+      "slot": 2,
+      "start": "18:30",
+      "minutes": 56,
+      "dropSets": ["pushdown"]
+    },
+    { "week": 4, "slot": 3, "start": "18:05", "minutes": 53 },
+    { "week": 5, "slot": 0, "start": "18:20", "minutes": 63 },
+    { "week": 5, "slot": 1, "start": "18:10", "minutes": 61 },
+    { "week": 5, "slot": 2, "start": "17:40", "minutes": 51 },
+    { "week": 6, "slot": 0, "start": "18:00", "minutes": 48 },
+    { "week": 6, "slot": 1, "start": "18:15", "minutes": 46 },
+    { "week": 6, "slot": 2, "start": "18:05", "minutes": 45 },
+    { "week": 6, "slot": 3, "start": "17:50", "minutes": 47 },
+    { "week": 7, "slot": 0, "start": "18:10", "minutes": 71 },
+    { "week": 7, "slot": 1, "start": "18:25", "minutes": 62 },
+    {
+      "week": 7,
+      "slot": 2,
+      "start": "18:00",
+      "minutes": 58,
+      "dropSets": ["pushdown", "seated_fly"]
+    },
+    { "week": 7, "slot": 3, "start": "18:15", "minutes": 57 },
+    {
+      "week": 8,
+      "slot": 0,
+      "start": "18:05",
+      "minutes": 69,
+      "note": "Bench moved fast today. New best."
+    },
+    { "week": 8, "slot": 1, "start": "18:20", "minutes": 60 },
+    { "week": 8, "slot": 2, "start": "17:55", "minutes": 55 },
+    { "week": 8, "slot": 3, "start": "18:10", "minutes": 56 }
+  ],
+  "feedback": {
+    "about": "Effort rated after each exercise in each workout's latest session; the progression engine turns it into the pending suggestion.",
+    "bench": "easy",
+    "incline_db": "moderate",
+    "pulldown": "moderate",
+    "row": "moderate",
+    "db_shoulder_press": "hard",
+    "ez_curl": "moderate",
+    "db_triceps_ext": "moderate",
+    "squat": "moderate",
+    "hip_thrust": "easy",
+    "leg_ext": "moderate",
+    "seated_leg_curl": "moderate",
+    "standing_calf": "hard",
+    "military": "easy",
+    "assisted_pullup": "moderate",
+    "seated_fly": "moderate",
+    "hammer_curl": "moderate",
+    "oh_triceps": "moderate",
+    "pushdown": "easy",
+    "deadlift": "moderate",
+    "leg_press": "easy",
+    "lying_leg_curl": "moderate",
+    "adduction": "moderate",
+    "seated_calf": "hard"
+  },
+  "pinnedExercises": ["bench", "squat", "deadlift"],
+  "measurements": [
+    {
+      "day": -56,
+      "weight": 84.5,
+      "body_fat_pct": 19.6,
+      "waist": 88.8,
+      "chest": 104.1
+    },
+    { "day": -53, "weight": 84.4 },
+    { "day": -51, "weight": 83.9 },
+    { "day": -48, "weight": 84.2, "body_fat_pct": 19.2, "waist": 87.9 },
+    { "day": -45, "weight": 84.0 },
+    { "day": -43, "weight": 83.5 },
+    {
+      "day": -41,
+      "weight": 83.7,
+      "body_fat_pct": 19.2,
+      "waist": 87.8,
+      "chest": 104.1
+    },
+    { "day": -38, "weight": 83.8 },
+    { "day": -36, "weight": 83.2 },
+    { "day": -33, "weight": 83.5, "body_fat_pct": 18.8, "waist": 87.2 },
+    { "day": -30, "weight": 83.4 },
+    {
+      "day": -28,
+      "weight": 83.2,
+      "body_fat_pct": 18.8,
+      "waist": 87.2,
+      "chest": 104.2
+    },
+    { "day": -25, "weight": 83.3 },
+    { "day": -23, "weight": 82.9 },
+    { "day": -21, "weight": 83.2, "body_fat_pct": 18.5, "waist": 86.7 },
+    { "day": -19, "weight": 82.4 },
+    { "day": -16, "weight": 82.8 },
+    {
+      "day": -13,
+      "weight": 82.1,
+      "body_fat_pct": 18.3,
+      "waist": 86.4,
+      "chest": 104.3
+    },
+    { "day": -11, "weight": 82.3 },
+    { "day": -9, "weight": 82.3 },
+    { "day": -7, "weight": 81.8, "body_fat_pct": 18.2, "waist": 85.9 },
+    {
+      "day": -4,
+      "weight": 82.0,
+      "body_fat_pct": 18.2,
+      "waist": 86.0,
+      "chest": 104.6
+    }
+  ],
+  "measurementTime": "07:15",
+  "weeklyGoal": 4,
+  "settings": {
+    "about": "Written with updateSettings; the previous values are restored on removal. Week start is set separately with saveWeekStart. timeRange 90 shows all 8 weeks on the stats screen.",
+    "weightUnit": "kg",
+    "sizeUnit": "cm",
+    "distanceUnit": "m",
+    "adaptive_progression_enabled": "1",
+    "setupDone": "done",
+    "showOnboarding": "false",
+    "timeRange": "90"
+  },
+  "backupReminderSnoozeDays": 90
+}
