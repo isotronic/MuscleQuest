@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import {
+  BackHandler,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { router } from "expo-router";
 import {
   ActivityIndicator,
@@ -17,6 +23,8 @@ import type { AppThemeColors } from "@/theme/types";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useWeekRule } from "@/hooks/useWeekRule";
 import { useSaveSetupMutation } from "@/hooks/useSaveSetupMutation";
+import { useWhenSeeded } from "@/hooks/useWhenSeeded";
+import { SeedingFailedNotice } from "@/components/SeedingFailedNotice";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { showSnackbar } from "@/store/snackbarStore";
 import { DEFAULT_INCREMENT } from "@/utils/localeDefaults";
@@ -27,7 +35,6 @@ import {
   UNIT_SETTINGS,
   type SetupValues,
 } from "@/utils/setupChanges";
-import { confirmStartWorkout } from "@/utils/startWorkout";
 import { toDisplayDecimal } from "@/utils/numberFormat";
 
 const GOALS = ["1", "2", "3", "4", "5", "6", "7"];
@@ -42,9 +49,9 @@ const withCurrent = (choices: string[], current: string) =>
 
 /**
  * First-run setup: units and weight steps, weekly goal and week start, then
- * an optional body weight. A new install comes here once after the login
- * screen; an older install opens it from the home card, prefilled with its
- * current values, and only what the user changes is written.
+ * an optional body weight. A new install comes here from the welcome screen;
+ * an older install opens it from the home card, prefilled with its current
+ * values, and only what the user changes is written.
  */
 export default function SetupScreen() {
   const { colors } = useAppTheme();
@@ -58,7 +65,6 @@ export default function SetupScreen() {
   const [initial, setInitial] = useState<SetupValues | null>(null);
   const [values, setValues] = useState<SetupValues | null>(null);
   const [step, setStep] = useState(0);
-  const [finished, setFinished] = useState(false);
   // Fixed when the screen opens, so saving does not switch the mode.
   const [firstRun, setFirstRun] = useState<boolean | null>(null);
 
@@ -75,6 +81,28 @@ export default function SetupScreen() {
     setValues(opened);
     setFirstRun(settings.setupDone === SetupState.pending);
   }, [settings, initial, weekRule.weekStartsOn]);
+
+  const seeding = useWhenSeeded();
+
+  // First run only: Back steps through setup and then returns to welcome.
+  // An older install opened setup from home, where Back closes it as usual.
+  useEffect(() => {
+    if (!firstRun) return;
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        if (step > 0) {
+          setStep(step - 1);
+        } else if (router.canGoBack()) {
+          router.back();
+        } else {
+          router.replace("/welcome");
+        }
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [firstRun, step]);
 
   if (!initial || !values || firstRun === null) {
     return (
@@ -108,20 +136,34 @@ export default function SetupScreen() {
     });
   };
 
-  const save = async () => {
+  const write = async (): Promise<boolean> => {
     try {
       await saveSetup(setupChanges(initial, values, { firstRun }));
+      return true;
     } catch {
       showSnackbar(t`Couldn't save your setup. Try again.`);
-      return;
+      return false;
     }
-    if (firstRun) {
-      setFinished(true);
-    } else {
+  };
+
+  const save = async () => {
+    if (!firstRun) {
+      if (!(await write())) return;
       showSnackbar(t`Settings saved.`);
       if (router.canGoBack()) router.back();
       else router.replace("/");
+      return;
     }
+    // The library and plans may still be loading; saving waits for them.
+    await seeding.run(async () => {
+      if (!(await write())) return;
+      // A returning user passed sign-in before setup.
+      if (settings?.loginShown === "true") {
+        router.replace("/get-started");
+      } else {
+        router.replace({ pathname: "/login", params: { onboarding: "setup" } });
+      }
+    });
   };
 
   const next = () => {
@@ -264,39 +306,6 @@ export default function SetupScreen() {
     }
   };
 
-  if (finished) {
-    return (
-      <ThemedView style={[styles.container, { paddingTop: insets.top + 32 }]}>
-        <ThemedText type="title" style={styles.title}>
-          <Trans>You're set</Trans>
-        </ThemedText>
-        <ThemedText style={styles.hint}>
-          <Trans>Follow a plan, or start training right away.</Trans>
-        </ThemedText>
-        <Button
-          mode="contained"
-          style={styles.finishButton}
-          onPress={() => router.replace("/(app)/(tabs)/(plans)")}
-        >
-          <Trans>Pick a plan</Trans>
-        </Button>
-        <Button
-          mode="outlined"
-          style={styles.finishButton}
-          onPress={() => {
-            router.replace("/");
-            void confirmStartWorkout(
-              () => {},
-              () => useActiveWorkoutStore.getState().startQuickWorkout(),
-            );
-          }}
-        >
-          <Trans>Start a quick workout</Trans>
-        </Button>
-      </ThemedView>
-    );
-  }
-
   const isLastStep = step === STEP_COUNT - 1;
   const skipBodyWeight = isLastStep && values.bodyWeight === "";
 
@@ -319,6 +328,7 @@ export default function SetupScreen() {
           </Trans>
         </ThemedText>
         {renderStep()}
+        {seeding.failed && <SeedingFailedNotice onRetry={seeding.retry} />}
       </ScrollView>
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         {step > 0 ? (
@@ -335,10 +345,12 @@ export default function SetupScreen() {
         <Button
           mode="contained"
           onPress={next}
-          loading={isPending}
-          disabled={isPending}
+          loading={isPending || seeding.waiting}
+          disabled={isPending || seeding.waiting}
         >
-          {!isLastStep ? (
+          {seeding.waiting ? (
+            <Trans>Almost ready…</Trans>
+          ) : !isLastStep ? (
             <Trans>Next</Trans>
           ) : skipBodyWeight && firstRun ? (
             <Trans>Skip</Trans>
@@ -357,7 +369,7 @@ function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({
     loading: { flex: 1, justifyContent: "center", alignItems: "center" },
     container: { flex: 1, paddingHorizontal: 16 },
-    scroll: { paddingBottom: 24 },
+    scroll: { flexGrow: 1, justifyContent: "center", paddingBottom: 24 },
     title: { marginBottom: 4, color: colors.contentPrimary },
     progress: { color: colors.contentSecondary, marginBottom: 8 },
     heading: { marginTop: 24, marginBottom: 8 },
@@ -396,6 +408,5 @@ function createStyles(colors: AppThemeColors) {
       alignItems: "center",
       paddingTop: 12,
     },
-    finishButton: { marginTop: 16 },
   });
 }
