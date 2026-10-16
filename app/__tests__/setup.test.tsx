@@ -248,4 +248,26 @@ describe("SetupScreen", () => {
 
     expect(mockBackListener).toBeNull();
   });
+
+  it("tells a new user the choices can change later", () => {
+    mockSettings = { weightUnit: "kg", weeklyGoal: "3", setupDone: "pending" };
+    const { getByText } = render(<SetupScreen />);
+
+    expect(
+      getByText(
+        "A few quick choices. You can change them any time in Settings.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("leaves that out when an older install checks its setup", () => {
+    mockSettings = { weightUnit: "kg", weeklyGoal: "3", setupDone: "offered" };
+    const { queryByText } = render(<SetupScreen />);
+
+    expect(
+      queryByText(
+        "A few quick choices. You can change them any time in Settings.",
+      ),
+    ).toBeNull();
+  });
 });

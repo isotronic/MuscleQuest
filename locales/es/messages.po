@@ -1949,6 +1949,10 @@ msgstr "Una semana de descarga es una semana de recuperación planificada en la 
 msgid "A deload-week banner appears if three or more exercises in the workout show fatigue signs."
 msgstr "Aparece un banner de semana de deload si tres o más ejercicios del entrenamiento muestran signos de fatiga."
 
+#: app/setup.tsx:343
+msgid "A few quick choices. You can change them any time in Settings."
+msgstr "Solo unas elecciones rápidas. Puedes cambiarlas cuando quieras en Ajustes."
+
 #: app/(app)/settings/appearance.tsx:19
 msgid "A few tips show on the home screen."
 msgstr "Se muestran algunos consejos en la pantalla de inicio."
@@ -2425,7 +2429,7 @@ msgid "Allow alarms"
 msgstr "Permitir alarmas"
 
 #: app/login.tsx:234
-#: app/setup.tsx:351
+#: app/setup.tsx:370
 msgid "Almost ready…"
 msgstr "Casi listo…"
 
@@ -2642,7 +2646,7 @@ msgstr "Series medias / entreno"
 msgid "back"
 msgstr "espalda"
 
-#: app/setup.tsx:335
+#: app/setup.tsx:354
 #: components/PlanPickerSheet.tsx:236
 msgid "Back"
 msgstr "Atrás"
@@ -2800,7 +2804,7 @@ msgid "body weight"
 msgstr "peso corporal"
 
 #: app/(app)/settings/profile.tsx:90
-#: app/setup.tsx:284
+#: app/setup.tsx:295
 #: utils/settingsIndex.ts:55
 msgid "Body weight"
 msgstr "Peso corporal"
@@ -2809,7 +2813,7 @@ msgstr "Peso corporal"
 msgid "Body Weight"
 msgstr "Peso corporal"
 
-#: app/setup.tsx:294
+#: app/setup.tsx:306
 msgid "Body weight in {weightUnit}"
 msgstr "Peso corporal en {weightUnit}"
 
@@ -2883,7 +2887,7 @@ msgstr "gemelos"
 #: app/(app)/plate-inventory.tsx:141
 #: app/(app)/settings/data.tsx:123
 #: app/(app)/settings/reminders.tsx:83
-#: app/setup.tsx:339
+#: app/setup.tsx:358
 #: components/CopyWorkoutModal.tsx:71
 #: components/friends/FriendListItem.tsx:24
 #: components/PrivacySettings.tsx:91
@@ -2943,6 +2947,10 @@ msgstr "Los cambios se guardan al instante."
 msgid "Changes for this session"
 msgstr "Cambios para esta sesión"
 
+#: app/setup.tsx:187
+msgid "Changes how weights and distances are shown. Anything you log converts automatically."
+msgstr "Cambia cómo se muestran los pesos y las distancias. Todo lo que registres se convierte automáticamente."
+
 #: components/SetupOfferCard.tsx:58
 #~ msgid "Check"
 #~ msgstr "Revisar"
@@ -2951,7 +2959,7 @@ msgstr "Cambios para esta sesión"
 msgid "Check the time"
 msgstr "Revisa la hora"
 
-#: app/setup.tsx:321
+#: app/setup.tsx:333
 msgid "Check your setup"
 msgstr "Revisa tu configuración"
 
@@ -3236,7 +3244,7 @@ msgstr "No se pudo guardar tu elección. Inténtalo de nuevo."
 msgid "Couldn't save your note. Please try again."
 msgstr "No se pudo guardar tu nota. Inténtalo de nuevo."
 
-#: app/setup.tsx:143
+#: app/setup.tsx:144
 msgid "Couldn't save your setup. Try again."
 msgstr "No se pudo guardar tu configuración. Inténtalo de nuevo."
 
@@ -4428,7 +4436,7 @@ msgid "feet"
 msgstr "pies"
 
 #: app/(app)/(workout)/index.tsx:1069
-#: app/setup.tsx:357
+#: app/setup.tsx:376
 msgid "Finish"
 msgstr "Finalizar"
 
@@ -4440,7 +4448,7 @@ msgstr "Terminar y guardar"
 msgid "Finish anyway"
 msgstr "Terminar de todos modos"
 
-#: app/setup.tsx:203
+#: app/setup.tsx:210
 #: components/UnitSettingItem.tsx:53
 msgid "Finish or cancel your workout to change units."
 msgstr "Termina o cancela tu entrenamiento para cambiar las unidades."
@@ -4805,11 +4813,15 @@ msgstr "¿Qué tal te sentó esta serie?"
 msgid "How many days a week can you train?"
 msgstr "¿Cuántos días a la semana puedes entrenar?"
 
+#: app/setup.tsx:238
+msgid "How many days a week you plan to train. Each week you reach it adds to your streak."
+msgstr "Cuántos días a la semana piensas entrenar. Cada semana que lo cumplas suma a tu racha."
+
 #: components/PlanPickerSheet.tsx:173
 msgid "How much lifting experience do you have?"
 msgstr "¿Cuánta experiencia tienes con las pesas?"
 
-#: app/setup.tsx:210
+#: app/setup.tsx:217
 msgid "How much the + and − buttons add during a workout."
 msgstr "Cuánto suman los botones + y − durante un entrenamiento."
 
@@ -4918,6 +4930,10 @@ msgstr "Aumentar la distancia objetivo"
 msgid "Increase weight by {weightIncrement} {weightUnit}"
 msgstr "Aumentar el peso en {weightIncrement} {weightUnit}"
 
+#: utils/settingsIndex.ts:94
+msgid "increment, plus, minus, weight increment"
+msgstr "incremento, más, menos, incremento de peso"
+
 #: app/(app)/exercise-info.tsx:210
 #~ msgid "Info"
 #~ msgstr "Info"
@@ -5021,7 +5037,7 @@ msgstr "kettlebell"
 msgid "kg, lbs, pounds, kilograms"
 msgstr "kg, lbs, libras, kilogramos"
 
-#: app/setup.tsx:191
+#: app/setup.tsx:198
 msgid "kg, m, cm"
 msgstr "kg, m, cm"
 
@@ -5147,7 +5163,7 @@ msgstr "dorsal ancho"
 msgid "lats"
 msgstr "dorsales"
 
-#: app/setup.tsx:196
+#: app/setup.tsx:203
 msgid "lbs, ft, in"
 msgstr "lbs, ft, in"
 
@@ -5355,7 +5371,7 @@ msgstr "Lun"
 
 #: app/(app)/settings/profile.tsx:26
 #: app/(app)/settings/reminders.tsx:41
-#: app/setup.tsx:266
+#: app/setup.tsx:277
 #: components/PlanScheduleEditor.tsx:25
 #: components/RestDayCard.tsx:15
 #: components/WorkoutDoneCard.tsx:15
@@ -5523,7 +5539,7 @@ msgstr "Nuevo tipo de registro"
 msgid "New Workout"
 msgstr "Nuevo entrenamiento"
 
-#: app/setup.tsx:353
+#: app/setup.tsx:372
 #: components/WhatsNewModal.tsx:124
 msgid "Next"
 msgstr "Siguiente"
@@ -6042,7 +6058,7 @@ msgstr "Récord personal"
 msgid "Pick a plan or start a quick workout."
 msgstr "Elige un plan o empieza un entrenamiento rápido."
 
-#: app/get-started.tsx:36
+#: app/get-started.tsx:49
 msgid "Pick a plan to follow, or start training right away."
 msgstr "Elige un plan o empieza a entrenar ya."
 
@@ -6721,7 +6737,7 @@ msgstr "Sábado"
 #: app/(app)/(create-plan)/create.tsx:359
 #: app/(app)/(workout)/index.tsx:1165
 #: app/(app)/custom-exercise.tsx:607
-#: app/setup.tsx:359
+#: app/setup.tsx:378
 #: components/SettingsModal.tsx:318
 msgid "Save"
 msgstr "Guardar"
@@ -6985,7 +7001,7 @@ msgstr "Tipo de serie, serie {0}"
 msgid "Set Types"
 msgstr "Tipos de serie"
 
-#: app/setup.tsx:319
+#: app/setup.tsx:331
 msgid "Set up MuscleQuest"
 msgstr "Configura MuscleQuest"
 
@@ -7052,7 +7068,7 @@ msgstr "Ajustes"
 msgid "Settings lets you tune units and defaults across the app."
 msgstr "Los ajustes te permiten personalizar unidades y valores predeterminados en toda la app."
 
-#: app/setup.tsx:151
+#: app/setup.tsx:152
 msgid "Settings saved."
 msgstr "Ajustes guardados."
 
@@ -7278,7 +7294,7 @@ msgstr "Unidad de tamaño"
 msgid "Size: ~100MB"
 msgstr "Tamaño: ~100 MB"
 
-#: app/setup.tsx:355
+#: app/setup.tsx:374
 #: components/ExerciseFeedbackCard.tsx:158
 #: components/RestTimerOverlay.tsx:159
 msgid "Skip"
@@ -7304,7 +7320,7 @@ msgstr "Omitir por ahora"
 msgid "Skip rest"
 msgstr "Saltar descanso"
 
-#: app/get-started.tsx:64
+#: app/get-started.tsx:77
 msgid "Skip, go to home"
 msgstr "Saltar e ir al inicio"
 
@@ -7409,7 +7425,7 @@ msgstr "Inicia {name} tal como está guardado ahora, o un entrenamiento rápido 
 msgid "Start {spokenName}"
 msgstr "Empezar {spokenName}"
 
-#: app/get-started.tsx:61
+#: app/get-started.tsx:74
 msgid "Start a quick workout"
 msgstr "Empezar un entrenamiento rápido"
 
@@ -7487,7 +7503,7 @@ msgid "Stay here"
 msgstr "Mantener"
 
 #. placeholder {0}: step + 1
-#: app/setup.tsx:325
+#: app/setup.tsx:337
 msgid "Step {0} of {STEP_COUNT}"
 msgstr "Paso {0} de {STEP_COUNT}"
 
@@ -7496,8 +7512,8 @@ msgid "stepmill machine"
 msgstr "máquina de escalera"
 
 #: utils/settingsIndex.ts:94
-msgid "steps, plus, minus, weight steps"
-msgstr "pasos, más, menos, incrementos de peso"
+#~ msgid "steps, plus, minus, weight steps"
+#~ msgstr "pasos, más, menos, incrementos de peso"
 
 #: components/ProgressionSummaryCard.tsx:23
 msgid "Still recovering. Hold this load for now."
@@ -7570,7 +7586,7 @@ msgstr "Dom"
 
 #: app/(app)/settings/profile.tsx:27
 #: app/(app)/settings/reminders.tsx:47
-#: app/setup.tsx:267
+#: app/setup.tsx:278
 #: components/PlanScheduleEditor.tsx:31
 #: components/RestDayCard.tsx:21
 #: components/WorkoutDoneCard.tsx:21
@@ -7915,7 +7931,7 @@ msgstr "Esta sección ya no existe."
 msgid "This started after a backup restore. Undoing it brings back the data from before the restore."
 msgstr "Esto empezó tras restaurar una copia de seguridad. Si la deshaces, recuperas los datos de antes de la restauración."
 
-#: app/setup.tsx:272
+#: app/setup.tsx:283
 msgid "This week keeps its days. The change starts with the next week, and past weeks stay as they were."
 msgstr "Esta semana conserva sus días. El cambio empieza la próxima semana y las semanas pasadas quedan como estaban."
 
@@ -8233,8 +8249,8 @@ msgid "Training Days"
 msgstr "Días de entrenamiento"
 
 #: app/setup.tsx:231
-msgid "Training days a week. Your streak counts weeks you reach it."
-msgstr "Días de entrenamiento por semana. Tu racha cuenta las semanas en que lo alcanzas."
+#~ msgid "Training days a week. Your streak counts weeks you reach it."
+#~ msgstr "Días de entrenamiento por semana. Tu racha cuenta las semanas en que lo alcanzas."
 
 #. placeholder {0}: timeRangePhrase(range)
 #. placeholder {1}: heatmap.trainingDays
@@ -8411,7 +8427,7 @@ msgstr "Unilateral"
 msgid "unilateral, one side, reps, volume"
 msgstr "unilateral, un lado, repeticiones, volumen"
 
-#: app/setup.tsx:183
+#: app/setup.tsx:184
 #: utils/settingsIndex.ts:12
 msgid "Units"
 msgstr "Unidades"
@@ -8533,8 +8549,12 @@ msgid "Use with this account"
 msgstr "Usar con esta cuenta"
 
 #: app/setup.tsx:287
-msgid "Used for assisted exercises such as assisted pull-ups. You can skip this and add it later."
-msgstr "Se usa en ejercicios asistidos como las dominadas asistidas. Puedes saltarlo y añadirlo después."
+#~ msgid "Used for assisted exercises such as assisted pull-ups. You can skip this and add it later."
+#~ msgstr "Se usa en ejercicios asistidos como las dominadas asistidas. Puedes saltarlo y añadirlo después."
+
+#: app/setup.tsx:298
+msgid "Used to work out your load on assisted exercises, such as assisted pull-ups. It's also saved to your body measurements. You can skip this and add it later."
+msgstr "Se usa para calcular tu carga en ejercicios asistidos, como las dominadas asistidas. También se guarda en tus medidas corporales. Puedes saltarlo y añadirlo más tarde."
 
 #: app/(app)/settings/workout.tsx:101
 msgid "Using history from same workout"
@@ -8675,7 +8695,7 @@ msgid "Wednesday"
 msgstr "Miércoles"
 
 #: app/(app)/settings/profile.tsx:64
-#: app/setup.tsx:260
+#: app/setup.tsx:268
 #: utils/settingsIndex.ts:49
 msgid "Week starts on"
 msgstr "La semana empieza el"
@@ -8686,7 +8706,7 @@ msgid "Week streak"
 msgstr "Racha semanal"
 
 #: app/(app)/settings/profile.tsx:55
-#: app/setup.tsx:228
+#: app/setup.tsx:235
 #: utils/settingsIndex.ts:43
 msgid "Weekly goal"
 msgstr "Objetivo semanal"
@@ -8743,10 +8763,12 @@ msgstr "Peso en {weightUnit}, serie {setNumber}"
 
 #: app/(app)/settings/workout.tsx:69
 #: utils/settingsIndex.ts:93
-msgid "Weight increment"
-msgstr "Incremento de peso"
+#~ msgid "Weight increment"
+#~ msgstr "Incremento de peso"
 
-#: app/setup.tsx:207
+#: app/(app)/settings/workout.tsx:69
+#: app/setup.tsx:214
+#: utils/settingsIndex.ts:93
 msgid "Weight steps"
 msgstr "Incrementos de peso"
 
@@ -9117,7 +9139,7 @@ msgstr "No tienes conexión. Conéctate a internet para iniciar sesión. Puedes 
 msgid "You're offline. Friends and shared content will load when you reconnect. Training and logging still work."
 msgstr "Estás sin conexión. Los amigos y el contenido compartido se cargarán cuando vuelvas a conectarte. El entrenamiento y el registro siguen funcionando."
 
-#: app/get-started.tsx:33
+#: app/get-started.tsx:46
 msgid "You're set"
 msgstr "Todo listo"
 
@@ -9224,6 +9246,10 @@ msgstr "Tu historial de entrenamiento se queda en este dispositivo. Puedes segui
 #: app/(app)/(tabs)/(plans)/index.tsx:127
 msgid "Your training plans"
 msgstr "Tus planes de entrenamiento"
+
+#: app/setup.tsx:271
+msgid "Your weekly goal and streak count from this day."
+msgstr "Tu objetivo semanal y tu racha cuentan desde este día."
 
 #: components/SetupOfferCard.tsx:51
 msgid "Your weight steps, weekly goal and body weight are there too. Nothing changes unless you save."

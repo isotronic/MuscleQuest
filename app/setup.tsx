@@ -183,6 +183,12 @@ export default function SetupScreen() {
             <ThemedText type="subtitle" style={styles.heading}>
               <Trans>Units</Trans>
             </ThemedText>
+            <ThemedText style={styles.hint}>
+              <Trans>
+                Changes how weights and distances are shown. Anything you log
+                converts automatically.
+              </Trans>
+            </ThemedText>
             <ChoiceButtons
               value={values.units}
               onValueChange={(v) => changeUnits(v as SetupValues["units"])}
@@ -230,7 +236,8 @@ export default function SetupScreen() {
             </ThemedText>
             <ThemedText style={styles.hint}>
               <Trans>
-                Training days a week. Your streak counts weeks you reach it.
+                How many days a week you plan to train. Each week you reach it
+                adds to your streak.
               </Trans>
             </ThemedText>
             {/* Round chips, since seven segments do not fit a phone. */}
@@ -260,6 +267,9 @@ export default function SetupScreen() {
             <ThemedText type="subtitle" style={styles.heading}>
               <Trans>Week starts on</Trans>
             </ThemedText>
+            <ThemedText style={styles.hint}>
+              <Trans>Your weekly goal and streak count from this day.</Trans>
+            </ThemedText>
             <ChoiceButtons
               value={String(values.weekStartsOn)}
               onValueChange={(v) => update({ weekStartsOn: v === "0" ? 0 : 1 })}
@@ -286,8 +296,9 @@ export default function SetupScreen() {
             </ThemedText>
             <ThemedText style={styles.hint}>
               <Trans>
-                Used for assisted exercises such as assisted pull-ups. You can
-                skip this and add it later.
+                Used to work out your load on assisted exercises, such as
+                assisted pull-ups. It's also saved to your body measurements.
+                You can skip this and add it later.
               </Trans>
             </ThemedText>
             <View style={styles.inputRow}>
@@ -327,6 +338,13 @@ export default function SetupScreen() {
             Step {step + 1} of {STEP_COUNT}
           </Trans>
         </ThemedText>
+        {firstRun && (
+          <ThemedText style={styles.hint}>
+            <Trans>
+              A few quick choices. You can change them any time in Settings.
+            </Trans>
+          </ThemedText>
+        )}
         {renderStep()}
         {seeding.failed && <SeedingFailedNotice onRetry={seeding.retry} />}
       </ScrollView>

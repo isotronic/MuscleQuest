@@ -90,8 +90,8 @@ export const SETTINGS_INDEX = [
   {
     id: "weightIncrement",
     screen: "workout",
-    title: msg`Weight increment`,
-    keywords: msg`steps, plus, minus, weight steps`,
+    title: msg`Weight steps`,
+    keywords: msg`increment, plus, minus, weight increment`,
   },
   {
     id: "defaultSets",
