@@ -35,8 +35,8 @@ export default function WelcomeScreen() {
         </ThemedText>
         <ThemedText style={styles.text}>
           <Trans>
-            Follow a plan, log every set and see your progress. Everything
-            works offline.
+            Follow a plan, log every set and see your progress. Everything works
+            offline.
           </Trans>
         </ThemedText>
       </View>

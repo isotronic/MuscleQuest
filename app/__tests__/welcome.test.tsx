@@ -8,7 +8,11 @@ jest.mock("@lingui/react/macro", () => ({
 }));
 jest.mock("@/theme", () => ({
   useAppTheme: () => ({
-    colors: { background: "#000", contentPrimary: "#fff", contentSecondary: "#aaa" },
+    colors: {
+      background: "#000",
+      contentPrimary: "#fff",
+      contentSecondary: "#aaa",
+    },
   }),
 }));
 jest.mock("@/components/ThemedView", () => {
