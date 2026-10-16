@@ -182,7 +182,7 @@ export default function SetupScreen() {
             <ThemedText type="subtitle" style={styles.heading}>
               <Trans>Units</Trans>
             </ThemedText>
-            <SegmentedButtons
+            <ChoiceButtons
               value={values.units}
               onValueChange={(v) => changeUnits(v as SetupValues["units"])}
               buttons={[
@@ -209,7 +209,7 @@ export default function SetupScreen() {
             <ThemedText style={styles.hint}>
               <Trans>How much the + and − buttons add during a workout.</Trans>
             </ThemedText>
-            <SegmentedButtons
+            <ChoiceButtons
               value={values.weightIncrement}
               onValueChange={(v) => update({ weightIncrement: v })}
               buttons={withCurrent(INCREMENTS, values.weightIncrement).map(
@@ -259,7 +259,7 @@ export default function SetupScreen() {
             <ThemedText type="subtitle" style={styles.heading}>
               <Trans>Week starts on</Trans>
             </ThemedText>
-            <SegmentedButtons
+            <ChoiceButtons
               value={String(values.weekStartsOn)}
               onValueChange={(v) => update({ weekStartsOn: v === "0" ? 0 : 1 })}
               buttons={[
@@ -364,6 +364,43 @@ export default function SetupScreen() {
   );
 }
 
+type Choice = { value: string; label: string; disabled?: boolean };
+
+/**
+ * Segmented choices whose selected option reads clearly: the same gold tint,
+ * border and text as a selected goal chip, plus a check.
+ */
+function ChoiceButtons({
+  value,
+  onValueChange,
+  buttons,
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  buttons: Choice[];
+}) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  return (
+    <SegmentedButtons
+      value={value}
+      onValueChange={onValueChange}
+      theme={{ colors: { secondaryContainer: colors.accentSubtle } }}
+      buttons={buttons.map((button) =>
+        button.value === value
+          ? {
+              ...button,
+              checkedColor: colors.accent,
+              showSelectedCheck: true,
+              style: styles.segmentOn,
+              labelStyle: styles.segmentLabelOn,
+            }
+          : button,
+      )}
+    />
+  );
+}
+
 function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({
     loading: { flex: 1, justifyContent: "center", alignItems: "center" },
@@ -395,12 +432,17 @@ function createStyles(colors: AppThemeColors) {
       alignItems: "center",
       justifyContent: "center",
     },
+    // Selected choices share one look: a gold tint, border and text, so they
+    // stand out without looking like the solid gold buttons.
     goalChipOn: {
-      backgroundColor: colors.accent,
+      backgroundColor: colors.accentSubtle,
       borderColor: colors.accent,
+      borderWidth: 2,
     },
     goalChipText: { fontSize: 16, color: colors.contentPrimary },
-    goalChipTextOn: { color: colors.onAccent, fontWeight: "700" },
+    goalChipTextOn: { color: colors.accent, fontWeight: "700" },
+    segmentOn: { borderColor: colors.accent },
+    segmentLabelOn: { fontWeight: "700" },
     footer: {
       flexDirection: "row",
       justifyContent: "space-between",
