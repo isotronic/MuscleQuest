@@ -3,12 +3,16 @@ import * as Updates from "expo-updates";
 import { initializeAppData } from "@/utils/initAppDataDB";
 import { initUserDataDB } from "@/utils/initUserDataDB";
 import {
-  copyDataFromAppDataToUserData,
+  fetchSetting,
   insertDefaultSettings,
-  syncExerciseFlagsFromAppData,
   updateAppExerciseIds,
 } from "@/utils/database";
-import { loadPremadePlans } from "@/utils/loadPremadePlans";
+import {
+  runSeedingSteps,
+  startFirstLaunchSeeding,
+  type StartupProgress,
+} from "@/utils/firstLaunchSeeding";
+import { SETUP_DONE_KEY, SetupState } from "@/utils/setupState";
 import {
   confirmRestoredDatabase,
   hasRestoreToUndo,
@@ -27,12 +31,7 @@ import {
 export const DATABASE_RESTORED_KEY = "databaseRestored";
 export const STARTUP_FAILURE_COUNT_KEY = "startupFailureCount";
 
-/** First-launch seeding progress; returning users' boots report none. */
-export type StartupProgress = {
-  stage: "exercises" | "plans";
-  done: number;
-  total: number;
-};
+export type { StartupProgress };
 
 export type StartupResult =
   | { status: "ok" }
@@ -60,21 +59,25 @@ const initializeDatabases = async (
   // The thumbnail files on this device were written for the database the
   // restore replaced.
   if (databaseRestored) await forgetExerciseImageFiles();
-  // Must run before copyData: it only acts on a legacy install (dataVersion
-  // 1.1), and copyData matches exercises by app_exercise_id before advancing
-  // the sync version past it.
+  // Must run before the library copy: it only acts on a legacy install
+  // (dataVersion 1.1), and the copy matches exercises by app_exercise_id
+  // before advancing the sync version past it.
   await updateAppExerciseIds();
-  await copyDataFromAppDataToUserData(
-    onProgress &&
-      ((done, total) => onProgress({ stage: "exercises", done, total })),
-  );
+  // Before the seeding steps, which do not depend on it, so onboarding has
+  // its settings while they run in the background.
   await insertDefaultSettings();
-  await loadPremadePlans(
-    onProgress &&
-      ((done, total) => onProgress({ stage: "plans", done, total })),
-  );
-  // Must run last: its sync version is above every step before it.
-  await syncExerciseFlagsFromAppData();
+
+  // A new install goes through onboarding, which only needs the settings
+  // above; the library and plans load meanwhile and onboarding waits for
+  // them before writing (see utils/firstLaunchSeeding.ts). Every other boot
+  // seeds here, so home never reads half-inserted plans.
+  const setupPending =
+    (await fetchSetting(SETUP_DONE_KEY)) === SetupState.pending;
+  if (setupPending && !databaseRestored) {
+    void startFirstLaunchSeeding();
+    return;
+  }
+  await runSeedingSteps(onProgress);
 };
 
 const restoreSwappedWithoutFinishing = (): boolean => {

@@ -11,10 +11,12 @@ import { initializeAppData } from "@/utils/initAppDataDB";
 import { initUserDataDB } from "@/utils/initUserDataDB";
 import {
   copyDataFromAppDataToUserData,
+  fetchSetting,
   insertDefaultSettings,
   syncExerciseFlagsFromAppData,
   updateAppExerciseIds,
 } from "@/utils/database";
+import { startFirstLaunchSeeding } from "@/utils/firstLaunchSeeding";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
 import {
   confirmRestoredDatabase,
@@ -40,10 +42,15 @@ jest.mock("@/utils/initUserDataDB", () => ({
 }));
 jest.mock("@/utils/database", () => ({
   copyDataFromAppDataToUserData: jest.fn(),
+  fetchSetting: jest.fn(),
   insertDefaultSettings: jest.fn(),
   syncExerciseFlagsFromAppData: jest.fn(),
   updateAppExerciseIds: jest.fn(),
 }));
+jest.mock("@/utils/firstLaunchSeeding", () => {
+  const actual = jest.requireActual("@/utils/firstLaunchSeeding");
+  return { ...actual, startFirstLaunchSeeding: jest.fn() };
+});
 jest.mock("@/utils/loadPremadePlans", () => ({
   loadPremadePlans: jest.fn(),
 }));
@@ -76,6 +83,8 @@ beforeEach(async () => {
   jest.spyOn(console, "error").mockImplementation(() => {});
   await AsyncStorage.clear();
   initSteps.forEach((step) => step.mockResolvedValue(undefined));
+  // A returning install: every seeding step runs blocking.
+  (fetchSetting as jest.Mock).mockResolvedValue("done");
   (Updates.reloadAsync as jest.Mock).mockResolvedValue(undefined);
 });
 
@@ -369,5 +378,56 @@ describe("runStartup and App Check", () => {
     await expect(runStartup()).resolves.toEqual({ status: "ok" });
 
     (appCheckReady as jest.Mock).mockImplementation(() => Promise.resolve());
+  });
+});
+
+describe("runStartup on a new install", () => {
+  beforeEach(() => {
+    (fetchSetting as jest.Mock).mockResolvedValue("pending");
+  });
+
+  it("returns ok without waiting for the library and plans", async () => {
+    const result = await runStartup();
+
+    expect(result).toEqual({ status: "ok" });
+    expect(startFirstLaunchSeeding).toHaveBeenCalledTimes(1);
+    expect(copyDataFromAppDataToUserData).not.toHaveBeenCalled();
+    expect(loadPremadePlans).not.toHaveBeenCalled();
+    expect(syncExerciseFlagsFromAppData).not.toHaveBeenCalled();
+  });
+
+  it("writes default settings before handing off", async () => {
+    await runStartup();
+
+    expect(insertDefaultSettings).toHaveBeenCalled();
+    expect(fetchSetting).toHaveBeenCalledWith("setupDone");
+  });
+
+  it("seeds blocking after a restore even when setup is pending", async () => {
+    await AsyncStorage.setItem(DATABASE_RESTORED_KEY, "true");
+
+    await runStartup();
+
+    expect(startFirstLaunchSeeding).not.toHaveBeenCalled();
+    expect(copyDataFromAppDataToUserData).toHaveBeenCalled();
+  });
+});
+
+describe("runStartup on a returning install", () => {
+  it("runs the seeding steps blocking, after default settings", async () => {
+    const order: string[] = [];
+    (insertDefaultSettings as jest.Mock).mockImplementation(async () => {
+      order.push("settings");
+    });
+    (copyDataFromAppDataToUserData as jest.Mock).mockImplementation(
+      async () => {
+        order.push("copy");
+      },
+    );
+
+    await runStartup();
+
+    expect(order).toEqual(["settings", "copy"]);
+    expect(startFirstLaunchSeeding).not.toHaveBeenCalled();
   });
 });
