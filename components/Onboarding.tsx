@@ -1,34 +1,18 @@
 import React, { useMemo, useState } from "react";
-import { View, StyleSheet, Pressable } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Button, Card } from "react-native-paper";
 import type { MaterialCommunityIcons } from "@expo/vector-icons";
 import { type Href, useRouter } from "expo-router";
 import { msg, t } from "@lingui/core/macro";
 import type { MessageDescriptor } from "@lingui/core";
 import { useLingui } from "@lingui/react";
-import { Plural, Trans } from "@lingui/react/macro";
+import { Trans } from "@lingui/react/macro";
 import { ThemedText } from "./ThemedText";
 import { AppIcon } from "@/components/ui/AppIcon";
 import { AppIconButton } from "@/components/ui/AppIconButton";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
-import { useAllPlansQuery } from "@/hooks/useAllPlansQuery";
-
-// Ready-made plans suggested to a brand new user, by app_plan_id.
-const STARTER_PLANS: { appPlanId: number; description: MessageDescriptor }[] = [
-  {
-    appPlanId: 1,
-    description: msg`Your whole body three times a week. A good first plan.`,
-  },
-  {
-    appPlanId: 2,
-    description: msg`Upper and lower body on alternating days.`,
-  },
-  {
-    appPlanId: 5,
-    description: msg`No equipment needed. Train anywhere.`,
-  },
-];
+import { StarterPlanList } from "./StarterPlanList";
 
 /**
  * The pick-a-plan card is for someone who has never trained with the app:
@@ -121,16 +105,10 @@ const Onboarding = ({
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const { _ } = useLingui();
-  const { data: plans } = useAllPlansQuery();
   const [tipIndex, setTipIndex] = useState(() =>
     tipIndexForDay(new Date(), TIPS.length),
   );
   const tip = TIPS[tipIndex];
-
-  const starterPlans = STARTER_PLANS.flatMap(({ appPlanId, description }) => {
-    const plan = plans?.appPlans.find((p) => p.app_plan_id === appPlanId);
-    return plan ? [{ plan, description }] : [];
-  });
 
   return (
     <View style={styles.container}>
@@ -140,31 +118,14 @@ const Onboarding = ({
             <ThemedText type="subtitle" style={styles.title}>
               <Trans>Pick a plan to get started</Trans>
             </ThemedText>
-            {starterPlans.map(({ plan, description }) => (
-              <Pressable
-                key={plan.id}
-                accessibilityRole="button"
-                style={styles.planRow}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(app)/(tabs)/(plans)/overview",
-                    params: { planId: String(plan.id) },
-                  })
-                }
-              >
-                <ThemedText style={styles.planName}>{plan.name}</ThemedText>
-                <ThemedText style={styles.planMeta}>
-                  <Plural
-                    value={plan.workouts.length}
-                    one="# day per week"
-                    other="# days per week"
-                  />
-                </ThemedText>
-                <ThemedText style={styles.planMeta}>
-                  {_(description)}
-                </ThemedText>
-              </Pressable>
-            ))}
+            <StarterPlanList
+              onSelect={(planId) =>
+                router.push({
+                  pathname: "/(app)/(tabs)/(plans)/overview",
+                  params: { planId: String(planId) },
+                })
+              }
+            />
             {onQuickWorkout && (
               <Button
                 mode="text"
@@ -264,21 +225,6 @@ function createStyles(colors: AppThemeColors) {
     },
     button: {
       marginTop: 8,
-    },
-    planRow: {
-      backgroundColor: colors.cardSecondary,
-      borderRadius: radii.md,
-      paddingVertical: 10,
-      paddingHorizontal: 12,
-      marginBottom: 8,
-    },
-    planName: {
-      fontWeight: "600",
-      color: colors.contentPrimary,
-    },
-    planMeta: {
-      fontSize: 13,
-      color: colors.contentSecondary,
     },
     tipCard: {
       paddingVertical: 8,

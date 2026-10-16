@@ -1,6 +1,6 @@
 // Opening SQLite databases, and file-level operations on them.
 import * as SQLite from "expo-sqlite";
-import type { File } from "expo-file-system";
+import { File, Paths } from "expo-file-system";
 import { getSchemaVersion } from "@/utils/db/runMigrations";
 
 const BUSY_TIMEOUT_PRAGMA = "PRAGMA busy_timeout = 3000;";
@@ -28,7 +28,13 @@ export const openDatabase = async (
 
 // expo-sqlite takes a plain filesystem path for its directory argument and for
 // VACUUM INTO, not a file:// URI.
-const toFsPath = (uri: string) => decodeURI(uri.replace(/^file:\/\//, ""));
+export const toFsPath = (uri: string) =>
+  decodeURI(uri.replace(/^file:\/\//, ""));
+
+// A database in expo-sqlite's folder (where initAppDataDB copies the library),
+// as a plain path for ATTACH.
+export const databaseFilePath = (databaseName: string): string =>
+  toFsPath(new File(Paths.document, "SQLite", databaseName).uri);
 
 // Writes a consistent, self-contained copy of userData.db (including anything
 // still in the WAL) to `target`. VACUUM INTO leaves the live file and its WAL

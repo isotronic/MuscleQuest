@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import {
+  BackHandler,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { router } from "expo-router";
 import {
   ActivityIndicator,
@@ -17,6 +23,8 @@ import type { AppThemeColors } from "@/theme/types";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useWeekRule } from "@/hooks/useWeekRule";
 import { useSaveSetupMutation } from "@/hooks/useSaveSetupMutation";
+import { useWhenSeeded } from "@/hooks/useWhenSeeded";
+import { SeedingFailedNotice } from "@/components/SeedingFailedNotice";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { showSnackbar } from "@/store/snackbarStore";
 import { DEFAULT_INCREMENT } from "@/utils/localeDefaults";
@@ -27,8 +35,8 @@ import {
   UNIT_SETTINGS,
   type SetupValues,
 } from "@/utils/setupChanges";
-import { confirmStartWorkout } from "@/utils/startWorkout";
 import { toDisplayDecimal } from "@/utils/numberFormat";
+import { selectedSegmentBorders } from "@/utils/segmentBorders";
 
 const GOALS = ["1", "2", "3", "4", "5", "6", "7"];
 const INCREMENTS = ["1", "2.5", "5"];
@@ -42,9 +50,9 @@ const withCurrent = (choices: string[], current: string) =>
 
 /**
  * First-run setup: units and weight steps, weekly goal and week start, then
- * an optional body weight. A new install comes here once after the login
- * screen; an older install opens it from the home card, prefilled with its
- * current values, and only what the user changes is written.
+ * an optional body weight. A new install comes here from the welcome screen;
+ * an older install opens it from the home card, prefilled with its current
+ * values, and only what the user changes is written.
  */
 export default function SetupScreen() {
   const { colors } = useAppTheme();
@@ -58,7 +66,6 @@ export default function SetupScreen() {
   const [initial, setInitial] = useState<SetupValues | null>(null);
   const [values, setValues] = useState<SetupValues | null>(null);
   const [step, setStep] = useState(0);
-  const [finished, setFinished] = useState(false);
   // Fixed when the screen opens, so saving does not switch the mode.
   const [firstRun, setFirstRun] = useState<boolean | null>(null);
 
@@ -75,6 +82,27 @@ export default function SetupScreen() {
     setValues(opened);
     setFirstRun(settings.setupDone === SetupState.pending);
   }, [settings, initial, weekRule.weekStartsOn]);
+
+  const seeding = useWhenSeeded();
+
+  // First run only: Back steps through setup and then returns to welcome.
+  // An older install opened setup from home, where Back closes it as usual.
+  useEffect(() => {
+    if (!firstRun) return;
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        if (step > 0) {
+          setStep(step - 1);
+        } else {
+          // Welcome replaced itself with setup, so it is opened again.
+          router.replace("/welcome");
+        }
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [firstRun, step]);
 
   if (!initial || !values || firstRun === null) {
     return (
@@ -108,20 +136,34 @@ export default function SetupScreen() {
     });
   };
 
-  const save = async () => {
+  const write = async (): Promise<boolean> => {
     try {
       await saveSetup(setupChanges(initial, values, { firstRun }));
+      return true;
     } catch {
       showSnackbar(t`Couldn't save your setup. Try again.`);
-      return;
+      return false;
     }
-    if (firstRun) {
-      setFinished(true);
-    } else {
+  };
+
+  const save = async () => {
+    if (!firstRun) {
+      if (!(await write())) return;
       showSnackbar(t`Settings saved.`);
       if (router.canGoBack()) router.back();
       else router.replace("/");
+      return;
     }
+    // The library and plans may still be loading; saving waits for them.
+    await seeding.run(async () => {
+      if (!(await write())) return;
+      // A returning user passed sign-in before setup.
+      if (settings?.loginShown === "true") {
+        router.replace("/get-started");
+      } else {
+        router.replace({ pathname: "/login", params: { onboarding: "setup" } });
+      }
+    });
   };
 
   const next = () => {
@@ -141,7 +183,13 @@ export default function SetupScreen() {
             <ThemedText type="subtitle" style={styles.heading}>
               <Trans>Units</Trans>
             </ThemedText>
-            <SegmentedButtons
+            <ThemedText style={styles.hint}>
+              <Trans>
+                Changes how weights and distances are shown. Anything you log
+                converts automatically.
+              </Trans>
+            </ThemedText>
+            <ChoiceButtons
               value={values.units}
               onValueChange={(v) => changeUnits(v as SetupValues["units"])}
               buttons={[
@@ -168,7 +216,7 @@ export default function SetupScreen() {
             <ThemedText style={styles.hint}>
               <Trans>How much the + and − buttons add during a workout.</Trans>
             </ThemedText>
-            <SegmentedButtons
+            <ChoiceButtons
               value={values.weightIncrement}
               onValueChange={(v) => update({ weightIncrement: v })}
               buttons={withCurrent(INCREMENTS, values.weightIncrement).map(
@@ -188,7 +236,8 @@ export default function SetupScreen() {
             </ThemedText>
             <ThemedText style={styles.hint}>
               <Trans>
-                Training days a week. Your streak counts weeks you reach it.
+                How many days a week you plan to train. Each week you reach it
+                adds to your streak.
               </Trans>
             </ThemedText>
             {/* Round chips, since seven segments do not fit a phone. */}
@@ -218,7 +267,10 @@ export default function SetupScreen() {
             <ThemedText type="subtitle" style={styles.heading}>
               <Trans>Week starts on</Trans>
             </ThemedText>
-            <SegmentedButtons
+            <ThemedText style={styles.hint}>
+              <Trans>Your weekly goal and streak count from this day.</Trans>
+            </ThemedText>
+            <ChoiceButtons
               value={String(values.weekStartsOn)}
               onValueChange={(v) => update({ weekStartsOn: v === "0" ? 0 : 1 })}
               buttons={[
@@ -244,8 +296,9 @@ export default function SetupScreen() {
             </ThemedText>
             <ThemedText style={styles.hint}>
               <Trans>
-                Used for assisted exercises such as assisted pull-ups. You can
-                skip this and add it later.
+                Used to work out your load on assisted exercises, such as
+                assisted pull-ups. It's also saved to your body measurements.
+                You can skip this and add it later.
               </Trans>
             </ThemedText>
             <View style={styles.inputRow}>
@@ -263,39 +316,6 @@ export default function SetupScreen() {
         );
     }
   };
-
-  if (finished) {
-    return (
-      <ThemedView style={[styles.container, { paddingTop: insets.top + 32 }]}>
-        <ThemedText type="title" style={styles.title}>
-          <Trans>You're set</Trans>
-        </ThemedText>
-        <ThemedText style={styles.hint}>
-          <Trans>Follow a plan, or start training right away.</Trans>
-        </ThemedText>
-        <Button
-          mode="contained"
-          style={styles.finishButton}
-          onPress={() => router.replace("/(app)/(tabs)/(plans)")}
-        >
-          <Trans>Pick a plan</Trans>
-        </Button>
-        <Button
-          mode="outlined"
-          style={styles.finishButton}
-          onPress={() => {
-            router.replace("/");
-            void confirmStartWorkout(
-              () => {},
-              () => useActiveWorkoutStore.getState().startQuickWorkout(),
-            );
-          }}
-        >
-          <Trans>Start a quick workout</Trans>
-        </Button>
-      </ThemedView>
-    );
-  }
 
   const isLastStep = step === STEP_COUNT - 1;
   const skipBodyWeight = isLastStep && values.bodyWeight === "";
@@ -318,7 +338,15 @@ export default function SetupScreen() {
             Step {step + 1} of {STEP_COUNT}
           </Trans>
         </ThemedText>
+        {firstRun && (
+          <ThemedText style={styles.hint}>
+            <Trans>
+              A few quick choices. You can change them any time in Settings.
+            </Trans>
+          </ThemedText>
+        )}
         {renderStep()}
+        {seeding.failed && <SeedingFailedNotice onRetry={seeding.retry} />}
       </ScrollView>
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         {step > 0 ? (
@@ -335,10 +363,12 @@ export default function SetupScreen() {
         <Button
           mode="contained"
           onPress={next}
-          loading={isPending}
-          disabled={isPending}
+          loading={isPending || seeding.waiting}
+          disabled={isPending || seeding.waiting}
         >
-          {!isLastStep ? (
+          {seeding.waiting ? (
+            <Trans>Almost ready…</Trans>
+          ) : !isLastStep ? (
             <Trans>Next</Trans>
           ) : skipBodyWeight && firstRun ? (
             <Trans>Skip</Trans>
@@ -353,11 +383,53 @@ export default function SetupScreen() {
   );
 }
 
+type Choice = { value: string; label: string; disabled?: boolean };
+
+/**
+ * Segmented choices whose selected option reads clearly: the same gold tint,
+ * border and text as a selected goal chip, plus a check.
+ */
+function ChoiceButtons({
+  value,
+  onValueChange,
+  buttons,
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  buttons: Choice[];
+}) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  return (
+    <SegmentedButtons
+      value={value}
+      onValueChange={onValueChange}
+      theme={{ colors: { secondaryContainer: colors.accentSubtle } }}
+      buttons={buttons.map((button, index) => {
+        const borders = selectedSegmentBorders(
+          index,
+          buttons.findIndex((b) => b.value === value),
+          buttons.length,
+        );
+        return button.value === value
+          ? {
+              ...button,
+              checkedColor: colors.accent,
+              showSelectedCheck: true,
+              style: [styles.segmentOn, borders],
+              labelStyle: styles.segmentLabelOn,
+            }
+          : { ...button, style: borders };
+      })}
+    />
+  );
+}
+
 function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({
     loading: { flex: 1, justifyContent: "center", alignItems: "center" },
     container: { flex: 1, paddingHorizontal: 16 },
-    scroll: { paddingBottom: 24 },
+    scroll: { flexGrow: 1, justifyContent: "center", paddingBottom: 24 },
     title: { marginBottom: 4, color: colors.contentPrimary },
     progress: { color: colors.contentSecondary, marginBottom: 8 },
     heading: { marginTop: 24, marginBottom: 8 },
@@ -384,18 +456,22 @@ function createStyles(colors: AppThemeColors) {
       alignItems: "center",
       justifyContent: "center",
     },
+    // Selected choices share one look: a gold tint, border and text, so they
+    // stand out without looking like the solid gold buttons.
     goalChipOn: {
-      backgroundColor: colors.accent,
+      backgroundColor: colors.accentSubtle,
       borderColor: colors.accent,
+      borderWidth: 2,
     },
     goalChipText: { fontSize: 16, color: colors.contentPrimary },
-    goalChipTextOn: { color: colors.onAccent, fontWeight: "700" },
+    goalChipTextOn: { color: colors.accent, fontWeight: "700" },
+    segmentOn: { borderColor: colors.accent },
+    segmentLabelOn: { fontWeight: "700" },
     footer: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       paddingTop: 12,
     },
-    finishButton: { marginTop: 16 },
   });
 }

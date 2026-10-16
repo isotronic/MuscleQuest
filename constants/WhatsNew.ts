@@ -32,6 +32,7 @@ export const RELEASES: Release[] = [
   { version: "1.3", date: "2026-06" },
   { version: "1.4", date: "2026-07" },
   { version: "1.5", date: "2026-10" },
+  { version: "1.6", date: "2026-10" },
 ];
 
 // Entries below 2601 are changelog history and never pop up in
@@ -858,6 +859,19 @@ Also in this update:
 • Exercise demos now play even if you skipped sign-in.
 • Tips on home show one tip a day; tap the arrow for the next one.
 • Choose workout has a close button, and plan cards no longer drift as you swipe.
+`,
+  },
+  {
+    version: 2674,
+    release: "1.6",
+    message: msg`
+🚀 Improved: A Faster First Start!
+
+New to MuscleQuest? The app now opens straight to a short welcome while your exercise library and plans load in the background, so there is no progress bar to wait for. Setup comes next, then an optional sign-in, and you finish by picking a starter plan, a quick workout or home. Reinstalling? Tap I've used MuscleQuest before to sign in and restore your backup.
+
+Also in this update:
+• Setup shows your choices more clearly and explains what each one does.
+• Weight increment in Settings is now called Weight steps, as in setup.
 `,
   },
 ];

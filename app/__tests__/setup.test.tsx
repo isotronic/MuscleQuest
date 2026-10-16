@@ -1,5 +1,6 @@
 import React from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { BackHandler } from "react-native";
 import { router } from "expo-router";
 import SetupScreen from "../setup";
 
@@ -63,7 +64,26 @@ jest.mock("@/hooks/useSaveSetupMutation", () => ({
   useSaveSetupMutation: () => ({ mutateAsync: mockSave, isPending: false }),
 }));
 jest.mock("@/store/snackbarStore", () => ({ showSnackbar: jest.fn() }));
-jest.mock("@/utils/startWorkout", () => ({ confirmStartWorkout: jest.fn() }));
+const mockRunWhenSeeded = jest.fn(async (action: () => unknown) => {
+  await action();
+});
+let mockSeedingFailed = false;
+jest.mock("@/hooks/useWhenSeeded", () => ({
+  useWhenSeeded: () => ({
+    run: mockRunWhenSeeded,
+    retry: jest.fn(),
+    waiting: false,
+    failed: mockSeedingFailed,
+  }),
+}));
+jest.mock("@/components/SeedingFailedNotice", () => {
+  const { Text } = require("react-native");
+  return {
+    SeedingFailedNotice: () => <Text>Couldn't finish setting up.</Text>,
+  };
+});
+
+let mockBackListener: (() => boolean) | null = null;
 
 const press = async (getByText: (s: string) => any, text: string) => {
   await act(async () => {
@@ -75,6 +95,14 @@ describe("SetupScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSave.mockResolvedValue(undefined);
+    mockSeedingFailed = false;
+    mockBackListener = null;
+    jest
+      .spyOn(BackHandler, "addEventListener")
+      .mockImplementation((_event, listener) => {
+        mockBackListener = listener as () => boolean;
+        return { remove: () => (mockBackListener = null) };
+      });
   });
 
   it("walks a new install through the steps and saves its choices", async () => {
@@ -116,9 +144,11 @@ describe("SetupScreen", () => {
       weekStartImmediately: true,
       bodyWeightKg: 80,
     });
-    expect(getByText("Pick a plan")).toBeTruthy();
-    await press(getByText, "Pick a plan");
-    expect(router.replace).toHaveBeenCalledWith("/(app)/(tabs)/(plans)");
+    expect(mockRunWhenSeeded).toHaveBeenCalled();
+    expect(router.replace).toHaveBeenCalledWith({
+      pathname: "/login",
+      params: { onboarding: "setup" },
+    });
   });
 
   it("changes nothing for an older install that saves without edits", async () => {
@@ -160,5 +190,84 @@ describe("SetupScreen", () => {
     await press(getByText, "Save");
 
     expect(mockSave).toHaveBeenCalledWith({ settings: [] });
+  });
+
+  it("skips the sign-in step for a returning user who already passed it", async () => {
+    mockSettings = {
+      weightUnit: "kg",
+      weightIncrement: "1",
+      weeklyGoal: "3",
+      setupDone: "pending",
+      loginShown: "true",
+    };
+    const { getByText } = render(<SetupScreen />);
+
+    await press(getByText, "Next");
+    await press(getByText, "Next");
+    await press(getByText, "Skip");
+
+    expect(router.replace).toHaveBeenCalledWith("/get-started");
+  });
+
+  it("shows the failure notice when seeding failed", () => {
+    mockSeedingFailed = true;
+    mockSettings = { weightUnit: "kg", weeklyGoal: "3", setupDone: "pending" };
+    const { getByText } = render(<SetupScreen />);
+
+    expect(getByText("Couldn't finish setting up.")).toBeTruthy();
+  });
+
+  it("goes back a step with the Android back button", async () => {
+    mockSettings = { weightUnit: "kg", weeklyGoal: "3", setupDone: "pending" };
+    const { getByText } = render(<SetupScreen />);
+    await press(getByText, "Next");
+    expect(getByText("Weekly goal")).toBeTruthy();
+
+    await act(async () => {
+      expect(mockBackListener?.()).toBe(true);
+    });
+
+    expect(getByText("Units")).toBeTruthy();
+  });
+
+  it("goes back to the welcome screen from the first step", async () => {
+    mockSettings = { weightUnit: "kg", weeklyGoal: "3", setupDone: "pending" };
+    render(<SetupScreen />);
+
+    await act(async () => {
+      expect(mockBackListener?.()).toBe(true);
+    });
+
+    // Welcome replaced itself with setup, so it is opened again, not popped.
+    expect(router.replace).toHaveBeenCalledWith("/welcome");
+  });
+
+  it("leaves the back button alone for an older install", () => {
+    mockSettings = { weightUnit: "kg", weeklyGoal: "3", setupDone: "offered" };
+    render(<SetupScreen />);
+
+    expect(mockBackListener).toBeNull();
+  });
+
+  it("tells a new user the choices can change later", () => {
+    mockSettings = { weightUnit: "kg", weeklyGoal: "3", setupDone: "pending" };
+    const { getByText } = render(<SetupScreen />);
+
+    expect(
+      getByText(
+        "A few quick choices. You can change them any time in Settings.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("leaves that out when an older install checks its setup", () => {
+    mockSettings = { weightUnit: "kg", weeklyGoal: "3", setupDone: "offered" };
+    const { queryByText } = render(<SetupScreen />);
+
+    expect(
+      queryByText(
+        "A few quick choices. You can change them any time in Settings.",
+      ),
+    ).toBeNull();
   });
 });

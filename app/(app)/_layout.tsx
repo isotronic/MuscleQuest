@@ -11,7 +11,7 @@ import { StaleWorkoutPrompt } from "@/components/StaleWorkoutPrompt";
 import { AccountOwnershipPrompt } from "@/components/AccountOwnershipPrompt";
 import { setShowRestNotificationInForeground } from "@/utils/restNotification";
 import { useEffect } from "react";
-import { SetupState } from "@/utils/setupState";
+import { onboardingRedirect } from "@/utils/setupState";
 import { SETTINGS_SCREENS } from "@/utils/settingsIndex";
 import { useLingui } from "@lingui/react";
 
@@ -32,16 +32,13 @@ export default function AppLayout() {
     return <ThemedView style={{ flex: 1 }}></ThemedView>;
   }
 
-  // An onboarding gate, not an auth gate: sign-in and "skip" both set
-  // loginShown. Authentication is optional by design, so AuthContext can be
-  // null anywhere under (app).
-  if (settings && !settings.loginShown) {
-    return <Redirect href="/login" />;
-  }
-
-  // A new install sets up units, goal and week start once, after login.
-  if (settings?.setupDone === SetupState.pending) {
-    return <Redirect href="/setup" />;
+  // An onboarding gate, not an auth gate: a new install goes through welcome,
+  // setup and an optional sign-in, and "Not now" passes it too.
+  // Authentication is optional by design, so AuthContext can be null anywhere
+  // under (app).
+  const redirect = onboardingRedirect(settings);
+  if (redirect) {
+    return <Redirect href={redirect} />;
   }
 
   return (

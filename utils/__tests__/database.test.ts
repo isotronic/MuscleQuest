@@ -1449,9 +1449,16 @@ describe("syncExerciseFlagsFromAppData", () => {
 // ---------------------------------------------------------------------------
 
 describe("copyDataFromAppDataToUserData", () => {
+  // An install that already has library exercises, so the copy compares row
+  // by row. A fresh install takes the bulk path (appDataSyncBulk.test.ts).
+  const mockExistingInstall = () =>
+    mockDb.getFirstAsync.mockImplementation(async (sql: string) =>
+      sql.includes("app_exercise_id IS NOT NULL") ? { 1: 1 } : null,
+    );
+
   it("does not call ROLLBACK if the initial read fails before any transaction starts", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
-    mockDb.getFirstAsync.mockResolvedValue(null); // dataVersion check passes through
+    mockExistingInstall(); // dataVersion check passes through
     mockDb.getAllAsync.mockRejectedValue(new Error("appData read failed"));
 
     await expect(copyDataFromAppDataToUserData()).rejects.toThrow(
@@ -1462,7 +1469,7 @@ describe("copyDataFromAppDataToUserData", () => {
 
   it("propagates the error instead of silently continuing to the next table", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
-    mockDb.getFirstAsync.mockResolvedValue(null);
+    mockExistingInstall();
     mockDb.getAllAsync
       .mockResolvedValueOnce([{ muscle: "chest" }]) // muscles table read succeeds
       .mockRejectedValueOnce(new Error("equipment_list read failed")); // next table fails
@@ -1473,7 +1480,7 @@ describe("copyDataFromAppDataToUserData", () => {
   });
   it("rethrows the copy error when ROLLBACK also fails", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
-    mockDb.getFirstAsync.mockResolvedValue(null);
+    mockExistingInstall();
     mockDb.getAllAsync.mockResolvedValueOnce([{ muscle: "chest" }]);
     mockDb.runAsync.mockRejectedValueOnce(new Error("insert failed"));
     mockDb.execAsync.mockImplementation(async (sql: string) => {
@@ -1487,7 +1494,7 @@ describe("copyDataFromAppDataToUserData", () => {
   });
 
   it("reports exercise copy progress in batches up to the total", async () => {
-    mockDb.getFirstAsync.mockResolvedValue(null);
+    mockExistingInstall();
     const exercises = Array.from({ length: 120 }, (_, i) => ({
       exercise_id: i + 1,
       name: `Ex ${i + 1}`,

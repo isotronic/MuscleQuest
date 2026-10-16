@@ -66,7 +66,7 @@ export default function WorkoutSettingsScreen() {
       <SettingRow
         id="weightIncrement"
         icon="plus"
-        title={<Trans>Weight increment</Trans>}
+        title={<Trans>Weight steps</Trans>}
         value={
           <Trans>
             {toDisplayDecimal(settings?.weightIncrement ?? "")}{" "}
