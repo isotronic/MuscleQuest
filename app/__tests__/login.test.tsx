@@ -328,6 +328,22 @@ describe("LoginScreen leaving onboarding", () => {
   });
 });
 
+describe("LoginScreen when saving fails", () => {
+  // Moving on would only bounce back here: the gate still sees no loginShown.
+  it("stays on the screen and says so", async () => {
+    mockParams = { onboarding: "setup" };
+    (updateSettings as jest.Mock).mockRejectedValue(new Error("locked"));
+    const { getByTestId } = render(<LoginScreen />);
+
+    await press(getByTestId, "login-skip");
+
+    expect(showSnackbar).toHaveBeenCalledWith(
+      "Couldn't save your choice. Try again.",
+    );
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+});
+
 describe("LoginScreen outside onboarding", () => {
   it("Not now goes home", async () => {
     const { getByTestId } = render(<LoginScreen />);

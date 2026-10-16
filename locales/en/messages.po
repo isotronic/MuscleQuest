@@ -1847,7 +1847,7 @@ msgstr "{weight} {weightUnit} assist × {reps}"
 #~ msgid "• Add friends and browse their shared content"
 #~ msgstr "• Add friends and browse their shared content"
 
-#: app/login.tsx:199
+#: app/login.tsx:203
 msgid "• Add friends and share plans and workouts"
 msgstr "• Add friends and share plans and workouts"
 
@@ -1855,7 +1855,7 @@ msgstr "• Add friends and share plans and workouts"
 #~ msgid "• Back up and restore all your workout data"
 #~ msgstr "• Back up and restore all your workout data"
 
-#: app/login.tsx:196
+#: app/login.tsx:200
 msgid "• Back up your training and restore it on any phone"
 msgstr "• Back up your training and restore it on any phone"
 
@@ -2449,7 +2449,7 @@ msgstr "All-time PR"
 msgid "Allow alarms"
 msgstr "Allow alarms"
 
-#: app/login.tsx:234
+#: app/login.tsx:238
 #: app/setup.tsx:370
 msgid "Almost ready…"
 msgstr "Almost ready…"
@@ -3256,6 +3256,7 @@ msgid "Couldn't save your choice. Try again from Settings."
 msgstr "Couldn't save your choice. Try again from Settings."
 
 #: app/(app)/settings/data.tsx:90
+#: app/login.tsx:93
 #: components/AccountOwnershipNotice.tsx:36
 msgid "Couldn't save your choice. Try again."
 msgstr "Couldn't save your choice. Try again."
@@ -5600,7 +5601,7 @@ msgstr "No"
 msgid "No activity shared yet"
 msgstr "No activity shared yet"
 
-#: app/login.tsx:95
+#: app/login.tsx:99
 #: utils/backupErrorMessage.ts:15
 msgid "No backup found for this account."
 msgstr "No backup found for this account."
@@ -5815,7 +5816,7 @@ msgstr "Not logged yet. Tap to add today's entry."
 
 #: app/(app)/(workout)/index.tsx:1130
 #: app/(app)/settings/data.tsx:84
-#: app/login.tsx:236
+#: app/login.tsx:240
 #: components/AccountOwnershipPrompt.tsx:74
 #: components/ProgressionOfferCard.tsx:105
 msgid "Not now"
@@ -6672,7 +6673,7 @@ msgstr "Restart workout?"
 
 #: app/(app)/settings/data.tsx:125
 #: app/(app)/settings/data.tsx:168
-#: app/login.tsx:169
+#: app/login.tsx:173
 msgid "Restore"
 msgstr "Restore"
 
@@ -6684,7 +6685,7 @@ msgstr "Restore Backup"
 msgid "Restore backup from {date}? This replaces all training data on this device. Anything logged since that backup will be lost."
 msgstr "Restore backup from {date}? This replaces all training data on this device. Anything logged since that backup will be lost."
 
-#: app/login.tsx:132
+#: app/login.tsx:136
 msgid "Restore failed"
 msgstr "Restore failed"
 
@@ -6696,7 +6697,7 @@ msgstr "Restore Failed"
 msgid "Restore the standard {weightUnit} plate set? Your changes will be lost."
 msgstr "Restore the standard {weightUnit} plate set? Your changes will be lost."
 
-#: app/login.tsx:147
+#: app/login.tsx:151
 msgid "Restore your backup from {date}?"
 msgstr "Restore your backup from {date}?"
 
@@ -7225,11 +7226,11 @@ msgstr "Sign In"
 msgid "Sign in to back up your training and bring it to a new phone."
 msgstr "Sign in to back up your training and bring it to a new phone."
 
-#: app/login.tsx:190
+#: app/login.tsx:194
 msgid "Sign in to find your backup"
 msgstr "Sign in to find your backup"
 
-#: app/login.tsx:192
+#: app/login.tsx:196
 msgid "Sign in to keep your training safe"
 msgstr "Sign in to keep your training safe"
 
@@ -7237,8 +7238,8 @@ msgstr "Sign in to keep your training safe"
 msgid "Sign in to use the Friends feature."
 msgstr "Sign in to use the Friends feature."
 
-#: app/login.tsx:220
-#: app/login.tsx:223
+#: app/login.tsx:224
+#: app/login.tsx:227
 #: components/settings/AccountCard.tsx:42
 #: utils/settingsIndex.ts:37
 msgid "Sign in with Google"
@@ -7269,7 +7270,7 @@ msgstr "Sign-in failed"
 msgid "Sign-in needs an internet connection."
 msgstr "Sign-in needs an internet connection."
 
-#: app/login.tsx:205
+#: app/login.tsx:209
 msgid "Sign-in needs an internet connection. You can sign in later from Settings."
 msgstr "Sign-in needs an internet connection. You can sign in later from Settings."
 
@@ -7450,7 +7451,7 @@ msgstr "Start {spokenName}"
 msgid "Start a quick workout"
 msgstr "Start a quick workout"
 
-#: app/login.tsx:177
+#: app/login.tsx:181
 msgid "Start fresh"
 msgstr "Start fresh"
 
@@ -8814,7 +8815,7 @@ msgstr "Weight, size, and distance units, your weekly goal, default sets per exe
 msgid "Weight/Reps"
 msgstr "Weight/Reps"
 
-#: app/login.tsx:144
+#: app/login.tsx:148
 msgid "Welcome back"
 msgstr "Welcome back"
 
@@ -9097,7 +9098,7 @@ msgstr "You already have a workout running. Continue it or start a new one?"
 msgid "You can share plans, workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
 msgstr "You can share plans, workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
 
-#: app/login.tsx:203
+#: app/login.tsx:207
 msgid "You can sign in later from Settings."
 msgstr "You can sign in later from Settings."
 

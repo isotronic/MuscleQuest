@@ -87,7 +87,11 @@ export default function LoginScreen() {
         // leave the (app) gate a cached loginShown of undefined.
         await queryClient.refetchQueries({ queryKey: ["settings"] });
       } catch (error) {
+        // Moving on would only bounce back here: the (app) gate still sees
+        // no loginShown.
         notifyBugsnag(error);
+        showSnackbar(t`Couldn't save your choice. Try again.`);
+        return;
       }
       if (mode === "setup") {
         router.replace("/get-started");

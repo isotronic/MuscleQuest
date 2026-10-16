@@ -1848,7 +1848,7 @@ msgstr "{weight} {weightUnit} d'assistance × {reps}"
 #~ msgid "• Add friends and browse their shared content"
 #~ msgstr "• Ajouter des amis et parcourir leur contenu partagé"
 
-#: app/login.tsx:199
+#: app/login.tsx:203
 msgid "• Add friends and share plans and workouts"
 msgstr "• Ajoute des amis et partage des plans et des séances"
 
@@ -1856,7 +1856,7 @@ msgstr "• Ajoute des amis et partage des plans et des séances"
 #~ msgid "• Back up and restore all your workout data"
 #~ msgstr "• Sauvegarder et restaurer toutes tes données d'entraînement"
 
-#: app/login.tsx:196
+#: app/login.tsx:200
 msgid "• Back up your training and restore it on any phone"
 msgstr "• Sauvegarde ton entraînement et restaure-le sur n'importe quel téléphone"
 
@@ -2450,7 +2450,7 @@ msgstr "Record absolu"
 msgid "Allow alarms"
 msgstr "Autoriser les alarmes"
 
-#: app/login.tsx:234
+#: app/login.tsx:238
 #: app/setup.tsx:370
 msgid "Almost ready…"
 msgstr "Presque prêt…"
@@ -3257,6 +3257,7 @@ msgid "Couldn't save your choice. Try again from Settings."
 msgstr "Impossible d'enregistrer ton choix. Réessaie depuis les Paramètres."
 
 #: app/(app)/settings/data.tsx:90
+#: app/login.tsx:93
 #: components/AccountOwnershipNotice.tsx:36
 msgid "Couldn't save your choice. Try again."
 msgstr "Impossible d'enregistrer ton choix. Réessaie."
@@ -5601,7 +5602,7 @@ msgstr "Non"
 msgid "No activity shared yet"
 msgstr "Aucune activité partagée pour l'instant"
 
-#: app/login.tsx:95
+#: app/login.tsx:99
 #: utils/backupErrorMessage.ts:15
 msgid "No backup found for this account."
 msgstr "Aucune sauvegarde trouvée pour ce compte."
@@ -5816,7 +5817,7 @@ msgstr "Mesure non enregistrée. Appuie pour ajouter l'entrée du jour."
 
 #: app/(app)/(workout)/index.tsx:1130
 #: app/(app)/settings/data.tsx:84
-#: app/login.tsx:236
+#: app/login.tsx:240
 #: components/AccountOwnershipPrompt.tsx:74
 #: components/ProgressionOfferCard.tsx:105
 msgid "Not now"
@@ -6673,7 +6674,7 @@ msgstr "Recommencer l'entraînement ?"
 
 #: app/(app)/settings/data.tsx:125
 #: app/(app)/settings/data.tsx:168
-#: app/login.tsx:169
+#: app/login.tsx:173
 msgid "Restore"
 msgstr "Restaurer"
 
@@ -6685,7 +6686,7 @@ msgstr "Restaurer la sauvegarde"
 msgid "Restore backup from {date}? This replaces all training data on this device. Anything logged since that backup will be lost."
 msgstr "Restaurer la sauvegarde du {date} ? Toutes les données d'entraînement de cet appareil seront remplacées. Tout ce que tu as enregistré depuis cette sauvegarde sera perdu."
 
-#: app/login.tsx:132
+#: app/login.tsx:136
 msgid "Restore failed"
 msgstr "Échec de la restauration"
 
@@ -6697,7 +6698,7 @@ msgstr "Échec de la restauration"
 msgid "Restore the standard {weightUnit} plate set? Your changes will be lost."
 msgstr "Rétablir le jeu de disques standard en {weightUnit} ? Tes modifications seront perdues."
 
-#: app/login.tsx:147
+#: app/login.tsx:151
 msgid "Restore your backup from {date}?"
 msgstr "Restaurer ta sauvegarde du {date} ?"
 
@@ -7226,11 +7227,11 @@ msgstr "Se connecter"
 msgid "Sign in to back up your training and bring it to a new phone."
 msgstr "Connecte-toi pour sauvegarder tes entraînements et les retrouver sur un nouveau téléphone."
 
-#: app/login.tsx:190
+#: app/login.tsx:194
 msgid "Sign in to find your backup"
 msgstr "Connecte-toi pour retrouver ta sauvegarde"
 
-#: app/login.tsx:192
+#: app/login.tsx:196
 msgid "Sign in to keep your training safe"
 msgstr "Connecte-toi pour protéger ton entraînement"
 
@@ -7238,8 +7239,8 @@ msgstr "Connecte-toi pour protéger ton entraînement"
 msgid "Sign in to use the Friends feature."
 msgstr "Connecte-toi pour utiliser la fonctionnalité Amis."
 
-#: app/login.tsx:220
-#: app/login.tsx:223
+#: app/login.tsx:224
+#: app/login.tsx:227
 #: components/settings/AccountCard.tsx:42
 #: utils/settingsIndex.ts:37
 msgid "Sign in with Google"
@@ -7270,7 +7271,7 @@ msgstr "Échec de la connexion"
 msgid "Sign-in needs an internet connection."
 msgstr "La connexion nécessite une connexion internet."
 
-#: app/login.tsx:205
+#: app/login.tsx:209
 msgid "Sign-in needs an internet connection. You can sign in later from Settings."
 msgstr "La connexion nécessite Internet. Tu pourras te connecter plus tard depuis les Paramètres."
 
@@ -7451,7 +7452,7 @@ msgstr "Commencer {spokenName}"
 msgid "Start a quick workout"
 msgstr "Lancer un entraînement rapide"
 
-#: app/login.tsx:177
+#: app/login.tsx:181
 msgid "Start fresh"
 msgstr "Repartir de zéro"
 
@@ -8815,7 +8816,7 @@ msgstr "Unités de poids, de taille et de distance, ton objectif hebdomadaire, s
 msgid "Weight/Reps"
 msgstr "Poids/Rép."
 
-#: app/login.tsx:144
+#: app/login.tsx:148
 msgid "Welcome back"
 msgstr "Bon retour"
 
@@ -9098,7 +9099,7 @@ msgstr "Tu as déjà une séance en cours. La continuer ou en commencer une nouv
 msgid "You can share plans, workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
 msgstr "Tu peux partager tes programmes, entraînements, exercices personnalisés, entraînements terminés, mesures corporelles et records de force avec tes amis. Chaque catégorie a un interrupteur dans la section Confidentialité des Paramètres, que tu peux aussi ouvrir depuis l'icône d'engrenage de l'écran Amis. Activer une catégorie la partage avec tes amis et la garde synchronisée quand elle change. Les programmes et entraînements ont aussi un interrupteur Partager individuel sur l'écran de présentation de chaque élément, ce qui te permet de publier des programmes ou entraînements spécifiques sans tout partager. Une icône nuage sur la carte programme ou entraînement confirme qu'il est actuellement publié. Désactiver une catégorie arrête le partage des nouveaux éléments, mais ce qui est déjà partagé reste visible jusqu'à ce que tu appuies sur Supprimer toutes les données partagées dans la section Confidentialité des Paramètres. Si un programme est trop volumineux pour être partagé, divise-le en programmes plus petits."
 
-#: app/login.tsx:203
+#: app/login.tsx:207
 msgid "You can sign in later from Settings."
 msgstr "Tu pourras te connecter plus tard depuis les Paramètres."
 
