@@ -8,7 +8,7 @@ import {
   getAppDataSyncVersion,
   setAppDataSyncVersion,
 } from "@/utils/db/appDataSyncVersion";
-import { openDatabase } from "./connection";
+import { databaseFilePath, openDatabase } from "./connection";
 
 interface SQLiteRow {
   [key: string]: any;
@@ -73,13 +73,76 @@ export type ProgressCallback = (done: number, total: number) => void;
 
 const EXERCISE_PROGRESS_BATCH = 50;
 
+// The library columns a userData exercise row copies; app_exercise_id is the
+// library row's own exercise_id.
+const LIBRARY_EXERCISE_COLUMNS = [
+  "name",
+  "image",
+  "local_animated_uri",
+  "animated_url",
+  "equipment",
+  "body_part",
+  "target_muscle",
+  "secondary_muscles",
+  "description",
+  "is_deleted",
+  "tracking_type",
+  "is_unilateral",
+  "double_weight",
+];
+
+// A fresh install has nothing to compare against, so the library goes in with
+// one statement per table instead of a lookup and an insert per row. ATTACH
+// cannot run inside a transaction, so it wraps the transaction.
+const bulkCopyLibrary = async (
+  userDataDB: SQLite.SQLiteDatabase,
+  onProgress?: ProgressCallback,
+): Promise<void> => {
+  const libraryPath = databaseFilePath("appData3.db").replace(/'/g, "''");
+  await userDataDB.execAsync(`ATTACH DATABASE '${libraryPath}' AS appdata`);
+  try {
+    const counted = await userDataDB.getFirstAsync<{ total: number }>(
+      "SELECT COUNT(*) AS total FROM appdata.exercises",
+    );
+    const total = counted?.total ?? 0;
+    onProgress?.(0, total);
+    const columns = LIBRARY_EXERCISE_COLUMNS.join(", ");
+    try {
+      await userDataDB.execAsync(`
+        BEGIN TRANSACTION;
+        INSERT INTO main.muscles (muscle)
+          SELECT muscle FROM appdata.muscles
+          WHERE muscle NOT IN (SELECT muscle FROM main.muscles);
+        INSERT INTO main.equipment_list (equipment)
+          SELECT equipment FROM appdata.equipment_list
+          WHERE equipment NOT IN (SELECT equipment FROM main.equipment_list);
+        INSERT INTO main.body_parts (body_part)
+          SELECT body_part FROM appdata.body_parts
+          WHERE body_part NOT IN (SELECT body_part FROM main.body_parts);
+        INSERT INTO main.exercises (${columns}, app_exercise_id)
+          SELECT ${columns}, exercise_id FROM appdata.exercises;
+        COMMIT;
+      `);
+    } catch (error) {
+      await safeRollback(userDataDB);
+      throw error;
+    }
+    onProgress?.(total, total);
+  } finally {
+    try {
+      await userDataDB.execAsync("DETACH DATABASE appdata");
+    } catch (detachError) {
+      console.error("Detaching the library failed:", detachError);
+    }
+  }
+};
+
 export const copyDataFromAppDataToUserData = async (
   onProgress?: ProgressCallback,
 ): Promise<void> => {
   let appDataDB: SQLite.SQLiteDatabase | undefined;
   let userDataDB: SQLite.SQLiteDatabase | undefined;
   try {
-    appDataDB = await openDatabase("appData3.db");
     userDataDB = await openDatabase("userData.db");
 
     interface ExerciseCheckResult {
@@ -100,6 +163,19 @@ export const copyDataFromAppDataToUserData = async (
     if (syncVersion >= APP_DATA_SYNC.exercisesCopied) {
       return;
     }
+
+    const hasLibraryExercises = await userDataDB.getFirstAsync(
+      "SELECT 1 FROM exercises WHERE app_exercise_id IS NOT NULL LIMIT 1",
+    );
+    if (!hasLibraryExercises) {
+      await bulkCopyLibrary(userDataDB, onProgress);
+      await setAppDataSyncVersion(userDataDB, APP_DATA_SYNC.exercisesCopied);
+      Bugsnag.leaveBreadcrumb("Library exercises copied", { bulk: true });
+      return;
+    }
+
+    // An install that already has library rows compares each one.
+    appDataDB = await openDatabase("appData3.db");
 
     let shouldUpdateDataVersion = false;
 
