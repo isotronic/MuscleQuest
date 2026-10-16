@@ -36,6 +36,7 @@ import {
   type SetupValues,
 } from "@/utils/setupChanges";
 import { toDisplayDecimal } from "@/utils/numberFormat";
+import { selectedSegmentBorders } from "@/utils/segmentBorders";
 
 const GOALS = ["1", "2", "3", "4", "5", "6", "7"];
 const INCREMENTS = ["1", "2.5", "5"];
@@ -386,17 +387,22 @@ function ChoiceButtons({
       value={value}
       onValueChange={onValueChange}
       theme={{ colors: { secondaryContainer: colors.accentSubtle } }}
-      buttons={buttons.map((button) =>
-        button.value === value
+      buttons={buttons.map((button, index) => {
+        const borders = selectedSegmentBorders(
+          index,
+          buttons.findIndex((b) => b.value === value),
+          buttons.length,
+        );
+        return button.value === value
           ? {
               ...button,
               checkedColor: colors.accent,
               showSelectedCheck: true,
-              style: styles.segmentOn,
+              style: [styles.segmentOn, borders],
               labelStyle: styles.segmentLabelOn,
             }
-          : button,
-      )}
+          : { ...button, style: borders };
+      })}
     />
   );
 }
