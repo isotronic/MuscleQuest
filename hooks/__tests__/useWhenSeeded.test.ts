@@ -4,6 +4,7 @@ import {
   retryFirstLaunchSeeding,
   whenSeeded,
 } from "@/utils/firstLaunchSeeding";
+import { useFirstLaunchSeedingStore } from "@/store/firstLaunchSeedingStore";
 
 jest.mock("@/utils/firstLaunchSeeding", () => ({
   whenSeeded: jest.fn(),
@@ -15,6 +16,7 @@ const mockWhenSeeded = whenSeeded as jest.Mock;
 beforeEach(() => {
   jest.clearAllMocks();
   (retryFirstLaunchSeeding as jest.Mock).mockResolvedValue(undefined);
+  useFirstLaunchSeedingStore.setState({ status: "done" });
 });
 
 describe("useWhenSeeded", () => {
@@ -29,7 +31,26 @@ describe("useWhenSeeded", () => {
     expect(result.current.failed).toBe(false);
   });
 
+  // A button that flashed "Almost ready" before every action looked broken.
+  it("never shows waiting when seeding is already done", async () => {
+    let finish: () => void = () => {};
+    mockWhenSeeded.mockReturnValue(new Promise<void>((r) => (finish = r)));
+    const { result } = renderHook(() => useWhenSeeded());
+
+    let pending: Promise<void> = Promise.resolve();
+    act(() => {
+      pending = result.current.run(jest.fn());
+    });
+    expect(result.current.waiting).toBe(false);
+
+    await act(async () => {
+      finish();
+      await pending;
+    });
+  });
+
   it("shows it is waiting while seeding runs", async () => {
+    useFirstLaunchSeedingStore.setState({ status: "running" });
     let finish: () => void = () => {};
     mockWhenSeeded.mockReturnValue(new Promise<void>((r) => (finish = r)));
     const action = jest.fn();

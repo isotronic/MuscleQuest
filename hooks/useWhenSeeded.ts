@@ -3,6 +3,7 @@ import {
   retryFirstLaunchSeeding,
   whenSeeded,
 } from "@/utils/firstLaunchSeeding";
+import { useFirstLaunchSeedingStore } from "@/store/firstLaunchSeedingStore";
 
 type Action = () => Promise<void> | void;
 
@@ -20,7 +21,11 @@ export const useWhenSeeded = () => {
   const run = useCallback(async (action: Action) => {
     lastAction.current = action;
     setFailed(false);
-    setWaiting(true);
+    // Only while seeding still runs: flashing "Almost ready" before an action
+    // that goes ahead at once looks like a glitch.
+    if (useFirstLaunchSeedingStore.getState().status === "running") {
+      setWaiting(true);
+    }
     try {
       await whenSeeded();
     } catch {
