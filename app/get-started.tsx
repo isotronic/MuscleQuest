@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { useEffect, useMemo } from "react";
+import { BackHandler, ScrollView, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Button } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,6 +20,19 @@ export default function GetStartedScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
+
+  // Nothing is under this screen; Back goes home like "Skip, go to home"
+  // instead of closing the app.
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        router.replace("/");
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, []);
 
   return (
     <ThemedView

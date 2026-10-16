@@ -3,6 +3,9 @@ import { act, fireEvent, render } from "@testing-library/react-native";
 import { router } from "expo-router";
 import GetStartedScreen from "../get-started";
 import { confirmStartWorkout } from "@/utils/startWorkout";
+import { BackHandler } from "react-native";
+
+let mockBackListener: (() => boolean) | null = null;
 
 jest.mock("@lingui/react/macro", () => ({
   Trans: ({ children }: { children: React.ReactNode }) => children,
@@ -58,7 +61,27 @@ const press = async (getByText: (s: string) => any, text: string) => {
 };
 
 describe("GetStartedScreen", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockBackListener = null;
+    jest
+      .spyOn(BackHandler, "addEventListener")
+      .mockImplementation((_event, listener) => {
+        mockBackListener = listener as () => boolean;
+        return { remove: () => (mockBackListener = null) };
+      });
+  });
+
+  // Nothing is under this screen, so Back would otherwise close the app.
+  it("goes home with the Android back button", async () => {
+    render(<GetStartedScreen />);
+
+    await act(async () => {
+      expect(mockBackListener?.()).toBe(true);
+    });
+
+    expect(router.replace).toHaveBeenCalledWith("/");
+  });
 
   it("opens a starter plan", async () => {
     const { getByText } = render(<GetStartedScreen />);
