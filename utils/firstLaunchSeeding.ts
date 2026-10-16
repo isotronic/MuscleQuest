@@ -76,9 +76,9 @@ export const whenSeeded = async (): Promise<void> => {
   await run;
 };
 
-/** Starts seeding again after a failure. */
+/** Starts seeding again after a failure; joins a retry already running. */
 export const retryFirstLaunchSeeding = (): Promise<void> => {
-  run = null;
+  if (useFirstLaunchSeedingStore.getState().status === "failed") run = null;
   return startFirstLaunchSeeding();
 };
 

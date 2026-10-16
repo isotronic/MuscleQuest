@@ -28,7 +28,7 @@ jest.mock("@/assets/images/icon.png", () => 1);
 jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0 }),
 }));
-jest.mock("expo-router", () => ({ router: { push: jest.fn() } }));
+jest.mock("expo-router", () => ({ router: { replace: jest.fn() } }));
 jest.mock("react-native-paper", () => {
   const { Pressable, Text } = require("react-native");
   return {
@@ -46,7 +46,8 @@ describe("WelcomeScreen", () => {
   it("starts setup", async () => {
     const { getByText } = render(<WelcomeScreen />);
     await act(async () => fireEvent.press(getByText("Get started")));
-    expect(router.push).toHaveBeenCalledWith("/setup");
+    // Replaced, so Welcome is not left under the app once onboarding ends.
+    expect(router.replace).toHaveBeenCalledWith("/setup");
   });
 
   it("sends a returning user to sign in first", async () => {
@@ -54,7 +55,7 @@ describe("WelcomeScreen", () => {
     await act(async () =>
       fireEvent.press(getByText("I've used MuscleQuest before")),
     );
-    expect(router.push).toHaveBeenCalledWith({
+    expect(router.replace).toHaveBeenCalledWith({
       pathname: "/login",
       params: { onboarding: "returning" },
     });

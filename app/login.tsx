@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Alert, BackHandler, ScrollView, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Button, ProgressBar } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -64,12 +64,28 @@ export default function LoginScreen() {
   const [isRestoring, setIsRestoring] = useState(false);
   const [restoreProgress, setRestoreProgress] = useState(0);
 
+  // From Welcome, which replaced itself with this screen: Back returns there.
+  useEffect(() => {
+    if (mode !== "returning") return;
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        router.replace("/welcome");
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [mode]);
+
   // Leaves the screen; the write waits for the background seeding.
   const finish = (noBackupFound = false) =>
     seeding.run(async () => {
       try {
         await updateSettings("loginShown", "true");
         await queryClient.invalidateQueries({ queryKey: ["settings"] });
+        // Nothing on screen watches settings, so the invalidate alone would
+        // leave the (app) gate a cached loginShown of undefined.
+        await queryClient.refetchQueries({ queryKey: ["settings"] });
       } catch (error) {
         notifyBugsnag(error);
       }

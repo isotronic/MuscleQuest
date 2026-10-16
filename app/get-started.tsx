@@ -37,10 +37,14 @@ export default function GetStartedScreen() {
         </ThemedText>
         <StarterPlanList
           onSelect={(planId) =>
-            router.replace({
-              pathname: "/(app)/(tabs)/(plans)/overview",
-              params: { planId: String(planId) },
-            })
+            // withAnchor loads the plans list under it, so Back lands there.
+            router.replace(
+              {
+                pathname: "/(app)/(tabs)/(plans)/overview",
+                params: { planId: String(planId) },
+              },
+              { withAnchor: true },
+            )
           }
         />
         <View style={styles.actions}>

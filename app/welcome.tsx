@@ -14,7 +14,8 @@ const logo = require("@/assets/images/icon.png");
 
 /**
  * The first screen of a new install. The library and plans load in the
- * background while the user is here and in setup.
+ * background while the user is here and in setup. Its buttons replace it, so
+ * it is not left under the app; setup and sign-in bring it back on Back.
  */
 export default function WelcomeScreen() {
   const { colors } = useAppTheme();
@@ -40,14 +41,14 @@ export default function WelcomeScreen() {
           </Trans>
         </ThemedText>
       </View>
-      <Button mode="contained" onPress={() => router.push("/setup")}>
+      <Button mode="contained" onPress={() => router.replace("/setup")}>
         <Trans>Get started</Trans>
       </Button>
       <Button
         mode="text"
         style={styles.secondary}
         onPress={() =>
-          router.push({
+          router.replace({
             pathname: "/login",
             params: { onboarding: "returning" },
           })

@@ -111,6 +111,23 @@ describe("startFirstLaunchSeeding", () => {
   });
 });
 
+describe("retryFirstLaunchSeeding", () => {
+  // Two quick taps on Try again must not copy the library twice.
+  it("joins a retry already in progress", async () => {
+    mockCopy.mockRejectedValueOnce(new Error("disk full"));
+    await startFirstLaunchSeeding();
+    let finish: () => void = () => {};
+    mockCopy.mockReturnValueOnce(new Promise<void>((r) => (finish = r)));
+
+    const first = retryFirstLaunchSeeding();
+    const second = retryFirstLaunchSeeding();
+    finish();
+    await Promise.all([first, second]);
+
+    expect(mockCopy).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("whenSeeded", () => {
   it("resolves at once when no seeding was started", async () => {
     await expect(whenSeeded()).resolves.toBeUndefined();

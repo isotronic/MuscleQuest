@@ -93,9 +93,8 @@ export default function SetupScreen() {
       () => {
         if (step > 0) {
           setStep(step - 1);
-        } else if (router.canGoBack()) {
-          router.back();
         } else {
+          // Welcome replaced itself with setup, so it is opened again.
           router.replace("/welcome");
         }
         return true;

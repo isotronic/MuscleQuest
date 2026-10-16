@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent, act } from "@testing-library/react-native";
-import { Alert } from "react-native";
+import { Alert, BackHandler } from "react-native";
 import { router } from "expo-router";
 import LoginScreen from "../login";
 import { updateSettings } from "@/utils/database";
@@ -40,12 +40,17 @@ jest.mock("react-native-safe-area-context", () => ({
 }));
 
 let mockParams: { onboarding?: string } = {};
+let mockBackListener: (() => boolean) | null = null;
 jest.mock("expo-router", () => ({
   router: { replace: jest.fn() },
   useLocalSearchParams: () => mockParams,
 }));
+const mockQueryClient = {
+  invalidateQueries: jest.fn(),
+  refetchQueries: jest.fn(),
+};
 jest.mock("@tanstack/react-query", () => ({
-  useQueryClient: () => ({ invalidateQueries: jest.fn() }),
+  useQueryClient: () => mockQueryClient,
 }));
 jest.mock("react-native-paper", () => {
   const { Pressable, Text } = require("react-native");
@@ -122,6 +127,13 @@ beforeEach(() => {
   (updateSettings as jest.Mock).mockResolvedValue(undefined);
   (readLastBackupDate as jest.Mock).mockResolvedValue(null);
   (whenFilesSettled as jest.Mock).mockResolvedValue(undefined);
+  mockBackListener = null;
+  jest
+    .spyOn(BackHandler, "addEventListener")
+    .mockImplementation((_event, listener) => {
+      mockBackListener = listener as () => boolean;
+      return { remove: () => (mockBackListener = null) };
+    });
 });
 
 describe("LoginScreen", () => {
@@ -280,6 +292,39 @@ describe("LoginScreen in onboarding", () => {
       "Restore went wrong.",
     );
     expect(getByTestId("login-start-fresh")).toBeTruthy();
+  });
+});
+
+describe("LoginScreen leaving onboarding", () => {
+  // Nothing on this screen watches settings, so an invalidate alone would
+  // leave the (app) gate reading a cached loginShown of undefined.
+  it("refetches settings before moving on", async () => {
+    mockParams = { onboarding: "setup" };
+    const { getByTestId } = render(<LoginScreen />);
+
+    await press(getByTestId, "login-skip");
+
+    expect(mockQueryClient.refetchQueries).toHaveBeenCalledWith({
+      queryKey: ["settings"],
+    });
+  });
+
+  it("goes back to welcome with Back when opened from welcome", async () => {
+    mockParams = { onboarding: "returning" };
+    render(<LoginScreen />);
+
+    await act(async () => {
+      expect(mockBackListener?.()).toBe(true);
+    });
+
+    expect(router.replace).toHaveBeenCalledWith("/welcome");
+  });
+
+  it("leaves Back alone after setup", () => {
+    mockParams = { onboarding: "setup" };
+    render(<LoginScreen />);
+
+    expect(mockBackListener).toBeNull();
   });
 });
 

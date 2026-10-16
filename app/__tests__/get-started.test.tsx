@@ -63,10 +63,14 @@ describe("GetStartedScreen", () => {
   it("opens a starter plan", async () => {
     const { getByText } = render(<GetStartedScreen />);
     await press(getByText, "Full body plan");
-    expect(router.replace).toHaveBeenCalledWith({
-      pathname: "/(app)/(tabs)/(plans)/overview",
-      params: { planId: "42" },
-    });
+    // withAnchor loads the plans list under the overview, so Back lands there.
+    expect(router.replace).toHaveBeenCalledWith(
+      {
+        pathname: "/(app)/(tabs)/(plans)/overview",
+        params: { planId: "42" },
+      },
+      { withAnchor: true },
+    );
   });
 
   it("starts a quick workout from home", async () => {

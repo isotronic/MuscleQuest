@@ -238,7 +238,8 @@ describe("SetupScreen", () => {
       expect(mockBackListener?.()).toBe(true);
     });
 
-    expect(router.back).toHaveBeenCalled();
+    // Welcome replaced itself with setup, so it is opened again, not popped.
+    expect(router.replace).toHaveBeenCalledWith("/welcome");
   });
 
   it("leaves the back button alone for an older install", () => {
