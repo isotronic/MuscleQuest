@@ -151,6 +151,8 @@ export const ListSetRow = forwardRef<TextInput, Props>(function ListSetRow(
         )}
         {trackingType === "time" && (
           <TimeInput
+            ref={firstInputRef}
+            onSubmitEditing={onSubmitLast}
             value={formatTimeInput(values.time)}
             onChange={(v) => onChange("time", v.replace(/[^0-9]/g, ""))}
             accessibilityLabel={t`Time, set ${setNumber}`}

@@ -55,7 +55,19 @@ jest.mock("@/components/ui/AppIconButton", () => {
     ),
   };
 });
-jest.mock("@/components/TimeInput", () => ({ TimeInput: () => null }));
+const mockFocus = jest.fn();
+jest.mock("@/components/TimeInput", () => {
+  const { useImperativeHandle } = jest.requireActual("react");
+  return {
+    TimeInput: ({ ref, accessibilityLabel }: any) => {
+      useImperativeHandle(ref, () => ({
+        focus: () => mockFocus(accessibilityLabel),
+        blur: jest.fn(),
+      }));
+      return null;
+    },
+  };
+});
 jest.mock("@/components/RestTimerOverlay", () => () => null);
 jest.mock("@/components/workout/QueuedFeedbackCard", () => ({
   QueuedFeedbackCard: () => null,
@@ -168,6 +180,17 @@ describe("ExerciseListScreen", () => {
       screen.getByLabelText("Set 1, 60 kilograms, 8 reps, completed"),
     ).toBeTruthy();
     expect(store().timerRunning).toBe(true);
+  });
+
+  it("moves focus to the next row's time field", () => {
+    start([exercise(1, "Plank", 2, { tracking_type: "time" })]);
+    store().updateWeightAndReps(0, 0, undefined, undefined, "45");
+    const screen = render(<ExerciseListScreen />);
+    act(() => {
+      fireEvent.press(screen.getByLabelText(/^Set 1, .*not completed$/));
+    });
+    expect(store().completedSets[0]).toEqual({ 0: true });
+    expect(mockFocus).toHaveBeenCalledWith("Time, set 2");
   });
 
   it("shows a superset's rows interleaved by round", () => {

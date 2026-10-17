@@ -103,7 +103,6 @@ export default function ExerciseListScreen() {
     for (let i = fromPosition + 1; i < rows.length; i++) {
       const row = rows[i];
       if (live[row.exerciseIndex]?.[row.setIndex] === true) continue;
-      // A time row has no single field to focus; look further.
       const input = inputRefs.current.get(rowKey(row));
       if (!input) continue;
       input.focus();
