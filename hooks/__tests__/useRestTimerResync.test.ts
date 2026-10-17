@@ -22,7 +22,11 @@ describe("useRestTimerResync", () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-    useActiveWorkoutStore.setState({ timerRunning: false, timerExpiry: null });
+    useActiveWorkoutStore.setState({
+      timerRunning: false,
+      timerExpiry: null,
+      currentSetStartedAt: null,
+    });
   });
 
   it("restarts the countdown from the stored expiry when the app becomes active", () => {
@@ -49,6 +53,35 @@ describe("useRestTimerResync", () => {
 
     expect(useActiveWorkoutStore.getState().timerRunning).toBe(false);
     expect(restart).not.toHaveBeenCalled();
+  });
+
+  it("starts timing the next set when it finds the rest ran out", () => {
+    useActiveWorkoutStore.setState({
+      timerRunning: true,
+      timerExpiry: new Date(Date.now() - 5_000),
+      currentSetStartedAt: null,
+    });
+    renderHook(() => useRestTimerResync(jest.fn()));
+
+    act(() => appStateHandler?.("active"));
+
+    expect(useActiveWorkoutStore.getState().currentSetStartedAt).not.toBeNull();
+  });
+
+  it("keeps a set start that is already set", () => {
+    const startedAt = new Date(Date.now() - 60_000);
+    useActiveWorkoutStore.setState({
+      timerRunning: true,
+      timerExpiry: new Date(Date.now() - 5_000),
+      currentSetStartedAt: startedAt,
+    });
+    renderHook(() => useRestTimerResync(jest.fn()));
+
+    act(() => appStateHandler?.("active"));
+
+    expect(useActiveWorkoutStore.getState().currentSetStartedAt).toEqual(
+      startedAt,
+    );
   });
 
   it("resyncs when the screen regains focus", () => {

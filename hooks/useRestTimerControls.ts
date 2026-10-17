@@ -63,12 +63,12 @@ export function useRestTimerControls() {
     onExpire: () => {
       const store = useActiveWorkoutStore.getState();
       store.stopTimer();
+      // The next set starts now, so its duration can be recorded, whether or
+      // not this screen is on top; only the cue needs it to be.
+      if (!store.currentSetStartedAt) store.setCurrentSetStartedAt(new Date());
       if (isFocusedRef.current) {
         if (settings?.restTimerSound === "true") void playSound();
         if (settings?.restTimerVibration === "true") triggerVibration();
-        // The next set starts now, so its duration can be recorded.
-        if (!store.currentSetStartedAt)
-          store.setCurrentSetStartedAt(new Date());
       }
     },
   });
