@@ -438,16 +438,32 @@ export default function WorkoutSessionScreen() {
         : 80
     : 40;
 
-  const { selectedExerciseIndex } = useLocalSearchParams();
+  const { selectedExerciseIndex, selectedSetIndex } = useLocalSearchParams();
 
   const selectedExerciseIndexApplied = useRef(false);
   useEffect(() => {
     if (selectedExerciseIndexApplied.current) return;
     if (workout && selectedExerciseIndex !== undefined) {
       selectedExerciseIndexApplied.current = true;
-      setCurrentExerciseIndex(Number(selectedExerciseIndex));
+      const exerciseIndex = Number(selectedExerciseIndex);
+      setCurrentExerciseIndex(exerciseIndex);
+      // A set row on the overview opens that set, done or not.
+      const setIndex = Number(selectedSetIndex);
+      if (
+        selectedSetIndex !== undefined &&
+        setIndex >= 0 &&
+        setIndex < (workout.exercises[exerciseIndex]?.sets.length ?? 0)
+      ) {
+        setCurrentSetIndex(exerciseIndex, setIndex);
+      }
     }
-  }, [selectedExerciseIndex, setCurrentExerciseIndex, workout]);
+  }, [
+    selectedExerciseIndex,
+    selectedSetIndex,
+    setCurrentExerciseIndex,
+    setCurrentSetIndex,
+    workout,
+  ]);
 
   const currentExercise = workout?.exercises[currentExerciseIndex];
   const currentSetIndex = currentSetIndices[currentExerciseIndex] || 0;

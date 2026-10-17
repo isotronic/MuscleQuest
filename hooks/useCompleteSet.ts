@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { AccessibilityInfo, Vibration } from "react-native";
 import { useShallow } from "zustand/react/shallow";
 import { t } from "@lingui/core/macro";
@@ -90,6 +90,7 @@ export function restAfterSetInPlace(
 export function useCompleteSet() {
   const {
     workout,
+    weightAndReps,
     previousWorkoutData,
     globalHistoryData,
     activeWorkout,
@@ -98,6 +99,7 @@ export function useCompleteSet() {
   } = useActiveWorkoutStore(
     useShallow((s) => ({
       workout: s.workout,
+      weightAndReps: s.weightAndReps,
       previousWorkoutData: s.previousWorkoutData,
       globalHistoryData: s.globalHistoryData,
       activeWorkout: s.activeWorkout,
@@ -128,52 +130,81 @@ export function useCompleteSet() {
   const confirmedWeightsRef = useRef(new Set<string>());
 
   /** The matching set from history, used to pre-fill an untouched set. */
-  const findLastAvailableSetData = (
-    exerciseId: number,
-    setIndex: number,
-    exercisePosition?: number,
-  ) => {
-    const targetSets =
-      exercisePosition !== undefined
-        ? (workout?.exercises[exercisePosition]?.sets ?? [])
-        : (workout?.exercises.find((e) => e.exercise_id === exerciseId)?.sets ??
-          []);
-    const isWarmup = targetSets[setIndex]?.isWarmup ?? false;
-    const ordinal = targetSets
-      .slice(0, setIndex)
-      .filter((s) => (s.isWarmup ?? false) === isWarmup).length;
+  const findLastAvailableSetData = useCallback(
+    (exerciseId: number, setIndex: number, exercisePosition?: number) => {
+      const targetSets =
+        exercisePosition !== undefined
+          ? (workout?.exercises[exercisePosition]?.sets ?? [])
+          : (workout?.exercises.find((e) => e.exercise_id === exerciseId)
+              ?.sets ?? []);
+      const isWarmup = targetSets[setIndex]?.isWarmup ?? false;
+      const ordinal = targetSets
+        .slice(0, setIndex)
+        .filter((s) => (s.isWarmup ?? false) === isWarmup).length;
 
-    return findLastAvailableSetDataUtil({
-      exerciseId,
-      isWarmup,
-      ordinal,
-      exercisePosition,
-      row:
-        exercisePosition !== undefined && workout
-          ? rowIdentity(workout.exercises, exercisePosition)
-          : undefined,
+      return findLastAvailableSetDataUtil({
+        exerciseId,
+        isWarmup,
+        ordinal,
+        exercisePosition,
+        row:
+          exercisePosition !== undefined && workout
+            ? rowIdentity(workout.exercises, exercisePosition)
+            : undefined,
+        previousWorkoutData,
+        prevExercisesByExerciseId,
+        globalExercisesByExerciseId,
+        alwaysUseGlobalHistory,
+      });
+    },
+    [
+      workout,
       previousWorkoutData,
       prevExercisesByExerciseId,
       globalExercisesByExerciseId,
       alwaysUseGlobalHistory,
-    });
-  };
+    ],
+  );
+
+  const valuesFrom = useCallback(
+    (
+      entries: typeof weightAndReps,
+      exerciseIndex: number,
+      setIndex: number,
+    ): SetValues => {
+      const exercise = workout?.exercises[exerciseIndex];
+      const entered = entries[exerciseIndex]?.[setIndex];
+      const prefill = exercise
+        ? findLastAvailableSetData(
+            exercise.exercise_id,
+            setIndex,
+            exerciseIndex,
+          )
+        : null;
+      return {
+        weight: entered?.weight ?? prefill?.weight?.toString() ?? "",
+        reps: entered?.reps ?? prefill?.reps?.toString() ?? "",
+        time: entered?.time ?? prefill?.time?.toString() ?? "",
+        distance: entered?.distance ?? prefill?.distance?.toString() ?? "",
+      };
+    },
+    [workout, findLastAvailableSetData],
+  );
 
   /** What a set shows: its entries, or the pre-fill from history. */
-  const shownValues = (exerciseIndex: number, setIndex: number): SetValues => {
-    const exercise = workout?.exercises[exerciseIndex];
-    const entered =
-      useActiveWorkoutStore.getState().weightAndReps[exerciseIndex]?.[setIndex];
-    const prefill = exercise
-      ? findLastAvailableSetData(exercise.exercise_id, setIndex, exerciseIndex)
-      : null;
-    return {
-      weight: entered?.weight ?? prefill?.weight?.toString() ?? "",
-      reps: entered?.reps ?? prefill?.reps?.toString() ?? "",
-      time: entered?.time ?? prefill?.time?.toString() ?? "",
-      distance: entered?.distance ?? prefill?.distance?.toString() ?? "",
-    };
-  };
+  const shownValues = useCallback(
+    (exerciseIndex: number, setIndex: number) =>
+      valuesFrom(weightAndReps, exerciseIndex, setIndex),
+    [valuesFrom, weightAndReps],
+  );
+
+  // Read live: a value typed or corrected since this render counts.
+  const liveValues = (exerciseIndex: number, setIndex: number) =>
+    valuesFrom(
+      useActiveWorkoutStore.getState().weightAndReps,
+      exerciseIndex,
+      setIndex,
+    );
 
   const buildFeedbackContextForExercise = (
     exIdx: number,
@@ -330,7 +361,7 @@ export function useCompleteSet() {
   ): PreparedSet => {
     // Captured before any state changes.
     const feedbackContexts = buildFeedbackContexts(exerciseIndex, setIndex);
-    const shown = shownValues(exerciseIndex, setIndex);
+    const shown = liveValues(exerciseIndex, setIndex);
 
     const weightNum = parseFloat(weightOverride ?? shown.weight);
     const weight = (isNaN(weightNum) ? 0 : weightNum).toString();
@@ -389,7 +420,7 @@ export function useCompleteSet() {
 
     const trackingType = resolvedTrackingType(exercise);
     const enteredWeight = parseFloat(
-      shownValues(exerciseIndex, setIndex).weight,
+      liveValues(exerciseIndex, setIndex).weight,
     );
     const confirmKey = `${exercise.exercise_id}:${enteredWeight}`;
     if (

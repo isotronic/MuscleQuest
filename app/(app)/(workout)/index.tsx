@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, ScrollView, StyleSheet, Alert, TextInput } from "react-native";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  TextInput,
+  Dimensions,
+} from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import Sortable from "react-native-sortables";
@@ -84,10 +91,19 @@ import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import { sessionSupportsProgression } from "@/utils/progressionEligibility";
 import { useSessionPRs } from "@/hooks/useSessionPRs";
 import { instanceName } from "@/utils/exerciseInstance";
+import { useCompleteSet } from "@/hooks/useCompleteSet";
+import { useSubmitFeedbackPrompt } from "@/hooks/useSubmitFeedbackPrompt";
+import ExerciseFeedbackCard from "@/components/ExerciseFeedbackCard";
+import {
+  OverviewSetRows,
+  SupersetRoundRows,
+} from "@/components/workout/OverviewSetRows";
 import {
   confirmUnfinishedSets,
   findUnfinishedSets,
 } from "@/utils/confirmUnfinishedSets";
+
+const FEEDBACK_CARD_MAX_HEIGHT = Dimensions.get("window").height * 0.25;
 
 type SingleItem = {
   type: "single";
@@ -149,6 +165,10 @@ export default function WorkoutOverviewScreen() {
     activeWorkout?.workoutId ?? undefined,
   );
   const { mutate: submitRecovery } = useRecoveryCheckInMutation();
+  // A set row finishing an exercise queues its feedback card here too.
+  const submitFeedbackPrompt = useSubmitFeedbackPrompt();
+  const activeFeedbackPrompt = useActiveWorkoutStore((s) => s.feedbackQueue[0]);
+  const skipFeedbackPrompt = useActiveWorkoutStore((s) => s.skipFeedbackPrompt);
 
   useEffect(() => {
     if (
@@ -217,6 +237,11 @@ export default function WorkoutOverviewScreen() {
   }, [sessionHistory, initializeWeightAndReps]);
 
   const { prs: sessionPRs } = useSessionPRs();
+  const completeSetApi = useCompleteSet();
+  const { shownValues } = completeSetApi;
+  // Read through a ref so the memoized cards do not rebuild every render.
+  const completeSetApiRef = useRef(completeSetApi);
+  completeSetApiRef.current = completeSetApi;
 
   const { data: workoutProgressionStates } = useWorkoutProgressionStatesQuery(
     progressionSettings.enabled
@@ -541,6 +566,45 @@ export default function WorkoutOverviewScreen() {
     [isNavigating],
   );
 
+  // Open set lists, by the exercise's stable key; not persisted.
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const toggleExpanded = useCallback((key: string) => {
+    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+  const handleOpenSet = useCallback(
+    ({
+      exerciseIndex,
+      setIndex,
+    }: {
+      exerciseIndex: number;
+      setIndex: number;
+    }) => {
+      if (isNavigating) return;
+      setIsNavigating(true);
+      router.push({
+        pathname: "/(app)/(workout)/workout-session",
+        params: {
+          selectedExerciseIndex: exerciseIndex,
+          selectedSetIndex: setIndex,
+        },
+      });
+      setTimeout(() => setIsNavigating(false), 500);
+    },
+    [isNavigating],
+  );
+
+  const handleCompleteSetRow = useCallback(
+    ({
+      exerciseIndex,
+      setIndex,
+    }: {
+      exerciseIndex: number;
+      setIndex: number;
+    }) => completeSetApiRef.current.completeSetInPlace(exerciseIndex, setIndex),
+    [],
+  );
+
   const handleOrderChange = useCallback(
     ({ data }: SortableGridDragEndParams<GroupedItem>) => {
       setMenuVisible({});
@@ -562,6 +626,8 @@ export default function WorkoutOverviewScreen() {
         isFirstInSuperset: boolean,
         isLastInSuperset: boolean,
         isTappable: boolean,
+        expandKey: string | null,
+        footer: React.ReactNode,
       ) => {
         const completedSetsForExercise = completedSets[exerciseIndex] || {};
         const completedCount = Object.values(completedSetsForExercise).filter(
@@ -701,64 +767,97 @@ export default function WorkoutOverviewScreen() {
           </View>
         );
 
+        const isExpanded = expandKey != null && !!expanded[expandKey];
         return (
           <View
             style={[
               styles.card,
-              styles.cardRow,
               isInSuperset && styles.supersetCard,
               isFirstInSuperset && styles.supersetCardFirst,
               isLastInSuperset && styles.supersetCardLast,
             ]}
           >
-            {inner}
-            <Menu
-              visible={!!menuVisible[exerciseIndex]}
-              onDismiss={() => handleMenuClose(exerciseIndex)}
-              anchor={
-                <AppIconButton
-                  accessibilityLabel={t`Options for ${exercise.name}`}
-                  icon="dots-vertical"
-                  size={24}
-                  onPress={() => handleMenuOpen(exerciseIndex)}
-                  style={styles.optionsButton}
-                  iconColor={colors.contentPrimary}
-                />
-              }
-            >
-              <Menu.Item
-                onPress={() => {
-                  handleMenuClose(exerciseIndex);
-                  handleDeleteExercise(exerciseIndex);
-                }}
-                title={t`Delete`}
-              />
-              <Menu.Item
-                onPress={() => {
-                  handleMenuClose(exerciseIndex);
-                  handleReplaceExercise(exerciseIndex);
-                }}
-                title={t`Replace`}
-              />
-              {exercise.supersetGroupId ? (
-                <Menu.Item
-                  onPress={() => handleRemoveSuperset(exerciseIndex)}
-                  title={t`Remove Superset`}
-                />
-              ) : (
-                <Menu.Item
-                  onPress={() => handleCreateSuperset(exerciseIndex)}
-                  title={t`Create Superset`}
-                />
+            <View style={styles.cardRow}>
+              {inner}
+              {expandKey != null && (
+                <Sortable.Touchable
+                  onTap={() => toggleExpanded(expandKey)}
+                  style={styles.expandButton}
+                  accessible
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: isExpanded }}
+                  accessibilityLabel={
+                    isInSuperset ? t`Show rounds` : t`Show sets`
+                  }
+                >
+                  <AppIcon
+                    set="mci"
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    size={24}
+                    color={colors.contentSecondary}
+                  />
+                </Sortable.Touchable>
               )}
-            </Menu>
+              <Menu
+                visible={!!menuVisible[exerciseIndex]}
+                onDismiss={() => handleMenuClose(exerciseIndex)}
+                anchor={
+                  <AppIconButton
+                    accessibilityLabel={t`Options for ${exercise.name}`}
+                    icon="dots-vertical"
+                    size={24}
+                    onPress={() => handleMenuOpen(exerciseIndex)}
+                    style={styles.optionsButton}
+                    iconColor={colors.contentPrimary}
+                  />
+                }
+              >
+                <Menu.Item
+                  onPress={() => {
+                    handleMenuClose(exerciseIndex);
+                    handleDeleteExercise(exerciseIndex);
+                  }}
+                  title={t`Delete`}
+                />
+                <Menu.Item
+                  onPress={() => {
+                    handleMenuClose(exerciseIndex);
+                    handleReplaceExercise(exerciseIndex);
+                  }}
+                  title={t`Replace`}
+                />
+                {exercise.supersetGroupId ? (
+                  <Menu.Item
+                    onPress={() => handleRemoveSuperset(exerciseIndex)}
+                    title={t`Remove Superset`}
+                  />
+                ) : (
+                  <Menu.Item
+                    onPress={() => handleCreateSuperset(exerciseIndex)}
+                    title={t`Create Superset`}
+                  />
+                )}
+              </Menu>
+            </View>
+            {footer}
           </View>
         );
+      };
+
+      const rowProps = {
+        getValues: shownValues,
+        completedSets,
+        sessionPRs,
+        weightUnit,
+        distanceUnit,
+        onOpenSet: handleOpenSet,
+        onCompleteSet: handleCompleteSetRow,
       };
 
       const baseLabel = itemLabels[index];
 
       if (item.type === "single") {
+        const key = getStableKey(item.exercise);
         return (
           <View>
             {renderCard(
@@ -769,6 +868,14 @@ export default function WorkoutOverviewScreen() {
               false,
               false,
               true,
+              key,
+              expanded[key] ? (
+                <OverviewSetRows
+                  exercise={item.exercise}
+                  exerciseIndex={item.exerciseIndex}
+                  {...rowProps}
+                />
+              ) : null,
             )}
           </View>
         );
@@ -776,11 +883,33 @@ export default function WorkoutOverviewScreen() {
 
       const [exA, exB] = item.exercises;
       const [idxA, idxB] = item.exerciseIndices;
+      const key = `ss-${getStableKey(exA)}`;
+      const exercises = workout?.exercises ?? [];
       return (
         <View>
-          {renderCard(exA, idxA, baseLabel, true, true, false, true)}
+          {renderCard(exA, idxA, baseLabel, true, true, false, true, key, null)}
           <View style={styles.supersetConnector} />
-          {renderCard(exB, idxB, baseLabel + 1, true, false, true, false)}
+          {renderCard(
+            exB,
+            idxB,
+            baseLabel + 1,
+            true,
+            false,
+            true,
+            false,
+            null,
+            expanded[key] ? (
+              <SupersetRoundRows
+                exercises={item.exercises}
+                exerciseIndices={item.exerciseIndices}
+                names={[
+                  instanceName(exercises, idxA, exA.name),
+                  instanceName(exercises, idxB, exB.name),
+                ]}
+                {...rowProps}
+              />
+            ) : null,
+          )}
         </View>
       );
     },
@@ -803,6 +932,13 @@ export default function WorkoutOverviewScreen() {
       styles,
       colors,
       weightUnit,
+      distanceUnit,
+      expanded,
+      toggleExpanded,
+      getStableKey,
+      handleOpenSet,
+      handleCompleteSetRow,
+      shownValues,
     ],
   );
 
@@ -1040,6 +1176,17 @@ export default function WorkoutOverviewScreen() {
     );
   }
 
+  const feedbackCard = activeFeedbackPrompt ? (
+    <ExerciseFeedbackCard
+      key={activeFeedbackPrompt.userWorkoutExerciseId}
+      prompt={activeFeedbackPrompt}
+      onSubmit={(payload) =>
+        void submitFeedbackPrompt(activeFeedbackPrompt, payload)
+      }
+      onSkip={skipFeedbackPrompt}
+    />
+  ) : null;
+
   return (
     <ThemedView>
       {isSaving && (
@@ -1173,6 +1320,10 @@ export default function WorkoutOverviewScreen() {
           timerRunning ? { paddingBottom: timerHeight } : undefined
         }
       >
+        {/* In the rest overlay while resting, otherwise at the top. */}
+        {feedbackCard && !timerRunning && (
+          <View style={styles.feedbackCard}>{feedbackCard}</View>
+        )}
         {workout.exercises.length > 0 && durationEstimate != null && (
           <ThemedText style={styles.durationEstimate}>
             <Trans>
@@ -1240,6 +1391,16 @@ export default function WorkoutOverviewScreen() {
         onAdjust={(delta) => void adjustTimerOverview(delta)}
         onSkip={skipRest}
         onLayout={(e) => setTimerHeight(e.nativeEvent.layout.height)}
+        topContent={
+          timerRunning && feedbackCard ? (
+            <ScrollView
+              style={styles.feedbackCardScroll}
+              keyboardShouldPersistTaps="handled"
+            >
+              {feedbackCard}
+            </ScrollView>
+          ) : null
+        }
       />
       {pendingRecovery && pendingRecovery.length > 0 && (
         <RecoveryCheckInSheet
@@ -1276,6 +1437,19 @@ function createStyles(colors: AppThemeColors) {
     cardRow: {
       flexDirection: "row",
       alignItems: "center",
+    },
+    feedbackCard: {
+      marginBottom: 12,
+    },
+    feedbackCardScroll: {
+      flexGrow: 0,
+      maxHeight: FEEDBACK_CARD_MAX_HEIGHT,
+    },
+    expandButton: {
+      width: 40,
+      height: 44,
+      alignItems: "center",
+      justifyContent: "center",
     },
     cardTouchable: {
       flex: 1,
