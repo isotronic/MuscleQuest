@@ -91,7 +91,27 @@ export default function ProgressionOfferCard({
           <Trans>Want MuscleQuest to suggest your next weights?</Trans>
         </ThemedText>
       </View>
+      <ThemedText style={styles.body}>
+        <Trans>
+          After each exercise you answer one quick question. Once two sessions
+          go well, MuscleQuest suggests adding weight or reps. Nothing changes
+          until you accept.
+        </Trans>
+      </ThemedText>
       <View style={styles.actions}>
+        <Button
+          mode="text"
+          compact
+          style={styles.howItWorks}
+          onPress={() =>
+            router.push({
+              pathname: "/(app)/help",
+              params: { group: "adaptive-progression" },
+            })
+          }
+        >
+          <Trans>How it works</Trans>
+        </Button>
         <Button
           mode="text"
           onPress={() => {
@@ -150,6 +170,10 @@ function createStyles(colors: AppThemeColors) {
     },
     settingsLink: {
       alignSelf: "flex-start",
+    },
+    // Left, away from the answers.
+    howItWorks: {
+      marginRight: "auto",
     },
   });
 }

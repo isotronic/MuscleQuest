@@ -2380,6 +2380,10 @@ msgstr "Wenn sich eine Übung wie Passt so angefühlt hat, tippe auf Mehr und w�
 #~ msgid "After completing the last working set of an exercise, a feedback sheet slides up with two questions. The first asks how the effort felt: Easy (you could have done more), About right, Hard (near your limit), or Couldn't finish all sets. The second asks about pain: No pain, Minor discomfort, or Pain or form issues. If you answer Easy, a third question appears asking whether you want to push harder next time. This lets you deliberately hold the current load even when a session felt light, so the engine respects your intent. If you answer Pain, an optional text field lets you note where you felt it for your own reference. The sheet can be dismissed without answering if you prefer not to log feedback for that exercise in that session."
 #~ msgstr "Nachdem du den letzten Arbeitssatz einer Übung abgeschlossen hast, erscheint ein Feedbackbogen mit zwei Fragen. Die erste fragt, wie sich die Anstrengung angefühlt hat: Leicht (du hättest mehr tun können), Passt so, Schwer (nah an deinem Limit) oder Nicht alle Sätze geschafft. Die zweite fragt nach Schmerzen: Keine Schmerzen, Leichtes Unbehagen oder Schmerzen oder Formprobleme. Wenn du Leicht antwortest, erscheint eine dritte Frage, ob du dich beim nächsten Mal mehr fordern möchtest. So kannst du die aktuelle Last bewusst beibehalten, auch wenn sich eine Einheit leicht angefühlt hat, und das System respektiert deine Entscheidung. Wenn du Schmerzen antwortest, kannst du in einem optionalen Textfeld notieren, wo du es gespürt hast. Der Bogen kann auch ohne Antworten geschlossen werden, falls du für diese Übung in dieser Einheit kein Feedback erfassen möchtest."
 
+#: components/ProgressionOfferCard.tsx:95
+msgid "After each exercise you answer one quick question. Once two sessions go well, MuscleQuest suggests adding weight or reps. Nothing changes until you accept."
+msgstr "Nach jeder Übung beantwortest du eine kurze Frage. Laufen zwei Einheiten gut, schlägt MuscleQuest mehr Gewicht oder Wiederholungen vor. Nichts ändert sich, bevor du annimmst."
+
 #: constants/HelpData.ts:114
 msgid "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. Add a session note to remember how it went. After a quick workout, your session is saved and you can give it a name to reuse it as a workout."
 msgstr "Nach dem Beenden eines Trainings zeigt ein Übersichtsbildschirm die Gesamtdauer, abgeschlossene Sätze und das Gesamtvolumen. Wenn du dasselbe Training schon früher gemacht hast, zeigt eine Vergleichszeile, wie jede Kennzahl zur vorherigen Einheit abschneidet. Ein Wochenzielbanner zeigt, wie viele Einheiten du diese Woche im Vergleich zu deinem Ziel protokolliert hast. Tippe auf eine Übung in der Liste, um sie aufzuklappen und jeden Satz im Detail zu prüfen. Füge eine Trainingsnotiz hinzu, um festzuhalten, wie es lief. Nach einem Schnelltraining ist deine Einheit gespeichert, und du kannst ihr einen Namen geben, um sie als Training wiederzuverwenden."
@@ -4923,6 +4927,10 @@ msgstr "Wie lief es? Schlaf, Energie, Schmerzen..."
 msgid "How did this set feel?"
 msgstr "Wie hat sich dieser Satz angefühlt?"
 
+#: components/ProgressionOfferCard.tsx:113
+msgid "How it works"
+msgstr "So funktioniert es"
+
 #: components/PlanPickerSheet.tsx:157
 msgid "How many days a week can you train?"
 msgstr "An wie vielen Tagen pro Woche kannst du trainieren?"
@@ -5973,7 +5981,7 @@ msgstr "Noch nicht erfasst. Tippe, um den heutigen Eintrag hinzuzufügen."
 #: app/(app)/settings/data.tsx:84
 #: app/login.tsx:240
 #: components/AccountOwnershipPrompt.tsx:74
-#: components/ProgressionOfferCard.tsx:105
+#: components/ProgressionOfferCard.tsx:125
 msgid "Not now"
 msgstr "Nicht jetzt"
 
@@ -8666,7 +8674,7 @@ msgstr "Di"
 msgid "Tuesday"
 msgstr "Dienstag"
 
-#: components/ProgressionOfferCard.tsx:115
+#: components/ProgressionOfferCard.tsx:135
 msgid "Turn on"
 msgstr "Aktivieren"
 

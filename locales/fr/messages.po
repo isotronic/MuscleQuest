@@ -2380,6 +2380,10 @@ msgstr "Après un exercice À peu près bien, appuie sur Plus et choisis Rester 
 #~ msgid "After completing the last working set of an exercise, a feedback sheet slides up with two questions. The first asks how the effort felt: Easy (you could have done more), About right, Hard (near your limit), or Couldn't finish all sets. The second asks about pain: No pain, Minor discomfort, or Pain or form issues. If you answer Easy, a third question appears asking whether you want to push harder next time. This lets you deliberately hold the current load even when a session felt light, so the engine respects your intent. If you answer Pain, an optional text field lets you note where you felt it for your own reference. The sheet can be dismissed without answering if you prefer not to log feedback for that exercise in that session."
 #~ msgstr "Après avoir terminé la dernière série de travail d'un exercice, un questionnaire de feedback apparaît avec deux questions. La première demande comment l'effort s'est ressenti : Facile (tu aurais pu faire plus), À peu près bien, Difficile (proche de ta limite) ou Pas réussi à finir toutes les séries. La deuxième porte sur la douleur : Pas de douleur, Légère gêne ou Douleur ou problèmes de forme. Si tu réponds Facile, une troisième question apparaît pour savoir si tu veux te surpasser la prochaine fois. Cela te permet de maintenir délibérément la charge actuelle même quand une séance s'est sentie légère, de sorte que le système respecte ton intention. Si tu réponds Douleur, un champ de texte optionnel te permet de noter où tu l'as ressenti pour ta propre référence. Le questionnaire peut être fermé sans répondre si tu préfères ne pas enregistrer de feedback pour cet exercice lors de cette séance."
 
+#: components/ProgressionOfferCard.tsx:95
+msgid "After each exercise you answer one quick question. Once two sessions go well, MuscleQuest suggests adding weight or reps. Nothing changes until you accept."
+msgstr "Après chaque exercice, tu réponds à une question rapide. Quand deux séances se passent bien, MuscleQuest te suggère d'ajouter du poids ou des répétitions. Rien ne change tant que tu n'acceptes pas."
+
 #: constants/HelpData.ts:114
 msgid "After finishing a workout, a summary screen shows your total duration, sets completed, and total volume. If you have done the same workout before, a comparison row shows how each metric compares to the previous session. A weekly goal banner shows how many sessions you have logged this week against your goal. Tap any exercise in the list to expand it and review every set in detail. Add a session note to remember how it went. After a quick workout, your session is saved and you can give it a name to reuse it as a workout."
 msgstr "Après avoir terminé un entraînement, un écran récapitulatif affiche ta durée totale, les séries terminées et le volume total. Si tu as déjà effectué le même entraînement, une ligne de comparaison indique comment chaque indicateur se compare à la session précédente. Une bannière d'objectif hebdomadaire montre combien de séances tu as enregistrées cette semaine par rapport à ton objectif. Appuie sur n'importe quel exercice dans la liste pour le développer et consulter chaque série en détail. Ajoute une note de séance pour te souvenir de son déroulement. Après un entraînement rapide, ta séance est enregistrée et tu peux lui donner un nom pour la réutiliser comme entraînement."
@@ -4923,6 +4927,10 @@ msgstr "Comment ça s'est passé ? Sommeil, énergie, douleurs..."
 msgid "How did this set feel?"
 msgstr "Comment s'est passée cette série ?"
 
+#: components/ProgressionOfferCard.tsx:113
+msgid "How it works"
+msgstr "Comment ça marche"
+
 #: components/PlanPickerSheet.tsx:157
 msgid "How many days a week can you train?"
 msgstr "Combien de jours par semaine peux-tu t'entraîner ?"
@@ -5973,7 +5981,7 @@ msgstr "Mesure non enregistrée. Appuie pour ajouter l'entrée du jour."
 #: app/(app)/settings/data.tsx:84
 #: app/login.tsx:240
 #: components/AccountOwnershipPrompt.tsx:74
-#: components/ProgressionOfferCard.tsx:105
+#: components/ProgressionOfferCard.tsx:125
 msgid "Not now"
 msgstr "Pas maintenant"
 
@@ -8666,7 +8674,7 @@ msgstr "Mar"
 msgid "Tuesday"
 msgstr "Mardi"
 
-#: components/ProgressionOfferCard.tsx:115
+#: components/ProgressionOfferCard.tsx:135
 msgid "Turn on"
 msgstr "Activer"
 
