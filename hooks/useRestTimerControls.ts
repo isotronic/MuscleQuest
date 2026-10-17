@@ -61,10 +61,14 @@ export function useRestTimerControls() {
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
     onExpire: () => {
-      useActiveWorkoutStore.getState().stopTimer();
+      const store = useActiveWorkoutStore.getState();
+      store.stopTimer();
       if (isFocusedRef.current) {
         if (settings?.restTimerSound === "true") void playSound();
         if (settings?.restTimerVibration === "true") triggerVibration();
+        // The next set starts now, so its duration can be recorded.
+        if (!store.currentSetStartedAt)
+          store.setCurrentSetStartedAt(new Date());
       }
     },
   });

@@ -1,6 +1,7 @@
 import React from "react";
 import { render, fireEvent, act } from "@testing-library/react-native";
 import { Vibration } from "react-native";
+import { router } from "expo-router";
 import ExerciseListScreen from "../exercise-list";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { listRows } from "@/utils/listLogging";
@@ -15,7 +16,7 @@ jest.mock(
 
 const mockParams = { exerciseIndex: "0" };
 jest.mock("expo-router", () => ({
-  router: { back: jest.fn() },
+  router: { back: jest.fn(), setParams: jest.fn() },
   useLocalSearchParams: () => mockParams,
   useFocusEffect: jest.fn(),
   Stack: { Screen: () => null },
@@ -56,6 +57,34 @@ jest.mock("@/components/ui/AppIconButton", () => {
   };
 });
 const mockFocus = jest.fn();
+jest.mock("react-native-paper", () => {
+  const { Pressable, Text } = require("react-native");
+  return {
+    Button: ({ children, onPress, accessibilityLabel }: any) => (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        onPress={onPress}
+      >
+        <Text>{children}</Text>
+      </Pressable>
+    ),
+  };
+});
+jest.mock("@/components/WorkoutTimer", () => () => null);
+jest.mock("@/components/Cues", () => ({ Cues: () => null }));
+jest.mock("@/components/ui", () => ({ AppIcon: () => null }));
+jest.mock("@/hooks/useAnimatedImageQuery", () => ({
+  useAnimatedImageQuery: () => ({ data: null, error: null, isLoading: false }),
+}));
+jest.mock("@/components/workout/ExerciseSessionHeader", () => {
+  const { Text } = require("react-native");
+  return {
+    ExerciseSessionHeader: ({ exerciseName, repsMin, repsMax }: any) => (
+      <Text>{`${exerciseName} header ${repsMin}-${repsMax}`}</Text>
+    ),
+  };
+});
 jest.mock("@/components/TimeInput", () => {
   const { useImperativeHandle } = jest.requireActual("react");
   return {
@@ -191,6 +220,27 @@ describe("ExerciseListScreen", () => {
     });
     expect(store().completedSets[0]).toEqual({ 0: true });
     expect(mockFocus).toHaveBeenCalledWith("Time, set 2");
+  });
+
+  it("shows the exercise's header with its working set's targets", () => {
+    const screen = render(<ExerciseListScreen />);
+    expect(screen.getByText("Bench header 8-12")).toBeTruthy();
+  });
+
+  it("moves to the next exercise, then back to the overview from the last", () => {
+    start([exercise(1, "Bench", 1), exercise(2, "Row", 1)]);
+    const screen = render(<ExerciseListScreen />);
+    expect(screen.queryByText("Previous")).toBeNull();
+    fireEvent.press(screen.getByText("Next: Row"));
+    expect(router.setParams).toHaveBeenCalledWith({ exerciseIndex: "1" });
+
+    mockParams.exerciseIndex = "1";
+    screen.rerender(<ExerciseListScreen />);
+    expect(store().currentExerciseIndex).toBe(1);
+    fireEvent.press(screen.getByLabelText("Previous exercise: Bench"));
+    expect(router.setParams).toHaveBeenLastCalledWith({ exerciseIndex: "0" });
+    fireEvent.press(screen.getByText("Back to overview"));
+    expect(router.back).toHaveBeenCalled();
   });
 
   it("shows a superset's rows interleaved by round", () => {

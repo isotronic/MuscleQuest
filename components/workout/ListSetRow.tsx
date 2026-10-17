@@ -3,7 +3,6 @@ import { StyleSheet, TextInput, View } from "react-native";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { ThemedText } from "@/components/ThemedText";
-import { AppIcon } from "@/components/ui/AppIcon";
 import { AppIconButton } from "@/components/ui/AppIconButton";
 import { DecimalInput } from "@/components/ui/DecimalInput";
 import { TimeInput } from "@/components/TimeInput";
@@ -15,6 +14,7 @@ import {
   describeSetValues,
   setRowLabel,
 } from "@/components/workout/OverviewSetRows";
+import { SetTypeBadge } from "@/components/workout/SetTypeBadge";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import type { Set as PlanSet } from "@/store/workoutStore";
@@ -39,6 +39,9 @@ interface Props {
   /** Moves focus on from this row's last input. */
   onSubmitLast?: () => void;
 }
+
+const isWeightType = (trackingType: string) =>
+  trackingType === "weight" || trackingType === "assisted" || !trackingType;
 
 /**
  * One set in the list logging mode: inline inputs for its tracking type,
@@ -66,8 +69,7 @@ export const ListSetRow = forwardRef<TextInput, Props>(function ListSetRow(
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const repsRef = React.useRef<TextInput>(null);
-  const isWeightType =
-    trackingType === "weight" || trackingType === "assisted" || !trackingType;
+  const weighted = isWeightType(trackingType);
   const hasReps = trackingType !== "time" && trackingType !== "distance";
   const last = lastTime
     ? describePreviousSet(lastTime, trackingType, weightUnit, distanceUnit)
@@ -78,36 +80,23 @@ export const ListSetRow = forwardRef<TextInput, Props>(function ListSetRow(
     weightUnit,
     distanceUnit,
   );
-  const marker = set.isWarmup
-    ? { label: t`Warm-up`, color: colors.badgeWarmup }
-    : set.isDropSet
-      ? { label: t`Drop set`, color: colors.badgeDrop }
-      : set.isToFailure
-        ? { label: t`To failure`, color: colors.badgeFailure }
-        : null;
+  const inputStyle = [styles.input, completed && styles.inputDone];
 
   return (
-    <View style={[styles.row, completed && styles.rowDone]}>
+    <View style={styles.row}>
       <View style={styles.titleCell}>
-        <ThemedText style={styles.title} numberOfLines={1}>
+        <ThemedText
+          style={[styles.title, completed && styles.titleDone]}
+          numberOfLines={1}
+        >
           {title}
         </ThemedText>
-        {marker && (
-          <View style={[styles.marker, { backgroundColor: marker.color }]}>
-            <ThemedText style={styles.markerText} numberOfLines={1}>
-              {marker.label}
-            </ThemedText>
-          </View>
-        )}
-        {isPR && (
-          <AppIcon
-            set="mci"
-            name="trophy"
-            size={14}
-            color={colors.accent}
-            accessibilityLabel={t`New personal record`}
-          />
-        )}
+        <View style={styles.badges}>
+          {isPR && <SetTypeBadge kind="pr" compact />}
+          {set.isWarmup && <SetTypeBadge kind="warmup" compact />}
+          {set.isDropSet && <SetTypeBadge kind="drop" compact />}
+          {set.isToFailure && <SetTypeBadge kind="failure" compact />}
+        </View>
       </View>
       <ThemedText
         style={styles.last}
@@ -117,7 +106,7 @@ export const ListSetRow = forwardRef<TextInput, Props>(function ListSetRow(
         {last?.text ?? "–"}
       </ThemedText>
       <View style={styles.inputs}>
-        {isWeightType && (
+        {weighted && (
           <DecimalInput
             ref={firstInputRef}
             value={values.weight}
@@ -130,13 +119,13 @@ export const ListSetRow = forwardRef<TextInput, Props>(function ListSetRow(
             selectTextOnFocus
             returnKeyType="next"
             onSubmitEditing={() => repsRef.current?.focus()}
-            blurOnSubmit={false}
-            style={[styles.input, styles.inputWide]}
+            submitBehavior="submit"
+            style={[inputStyle, styles.inputWide]}
           />
         )}
         {hasReps && (
           <TextInput
-            ref={isWeightType ? repsRef : firstInputRef}
+            ref={weighted ? repsRef : firstInputRef}
             value={values.reps}
             onChangeText={(text) =>
               onChange("reps", sanitizeIntegerInput(text))
@@ -146,7 +135,7 @@ export const ListSetRow = forwardRef<TextInput, Props>(function ListSetRow(
             selectTextOnFocus
             returnKeyType="done"
             onSubmitEditing={onSubmitLast}
-            style={styles.input}
+            style={inputStyle}
           />
         )}
         {trackingType === "time" && (
@@ -156,7 +145,7 @@ export const ListSetRow = forwardRef<TextInput, Props>(function ListSetRow(
             value={formatTimeInput(values.time)}
             onChange={(v) => onChange("time", v.replace(/[^0-9]/g, ""))}
             accessibilityLabel={t`Time, set ${setNumber}`}
-            style={styles.timeInput}
+            style={[inputStyle, styles.timeInput]}
           />
         )}
         {trackingType === "distance" && (
@@ -168,21 +157,23 @@ export const ListSetRow = forwardRef<TextInput, Props>(function ListSetRow(
             selectTextOnFocus
             returnKeyType="done"
             onSubmitEditing={onSubmitLast}
-            style={[styles.input, styles.inputWide]}
+            style={[inputStyle, styles.inputWide]}
           />
         )}
       </View>
       <AppIconButton
-        icon={completed ? "check-circle" : "checkbox-blank-circle-outline"}
-        iconColor={completed ? colors.success : colors.contentSecondary}
-        size={28}
+        icon="check"
+        mode={completed ? "contained" : "outlined"}
+        containerColor={completed ? colors.success : undefined}
+        iconColor={completed ? colors.onAccent : colors.accent}
+        size={22}
         onPress={onComplete}
         disabled={completed}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: completed, disabled: completed }}
         accessibilityLabel={setRowLabel(setNumber, shown?.spoken, completed)}
         accessibilityHint={completed ? undefined : t`Completes the set`}
-        style={styles.check}
+        style={[styles.check, completed && styles.checkDone]}
       />
     </View>
   );
@@ -200,43 +191,41 @@ export function ListSetHeader({
 }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const isWeightType =
-    trackingType === "weight" || trackingType === "assisted" || !trackingType;
   return (
     <View
       style={styles.header}
       importantForAccessibility="no-hide-descendants"
       accessibilityElementsHidden
     >
-      <ThemedText style={[styles.headerText, styles.titleCell]}>
+      <ThemedText style={[styles.label, styles.titleCell]}>
         <Trans>Set</Trans>
       </ThemedText>
-      <ThemedText style={[styles.headerText, styles.last]}>
+      <ThemedText style={[styles.label, styles.last]}>
         <Trans>Last time</Trans>
       </ThemedText>
       <View style={styles.inputs}>
-        {isWeightType && (
-          <ThemedText style={[styles.headerText, styles.inputWide]}>
+        {isWeightType(trackingType) && (
+          <ThemedText style={[styles.label, styles.labelWide]}>
             {weightUnit}
           </ThemedText>
         )}
         {trackingType !== "time" && trackingType !== "distance" && (
-          <ThemedText style={[styles.headerText, styles.headerInput]}>
+          <ThemedText style={[styles.label, styles.labelInput]}>
             <Trans>Reps</Trans>
           </ThemedText>
         )}
         {trackingType === "time" && (
-          <ThemedText style={[styles.headerText, styles.timeInput]}>
+          <ThemedText style={[styles.label, styles.timeInput]}>
             <Trans>Time</Trans>
           </ThemedText>
         )}
         {trackingType === "distance" && (
-          <ThemedText style={[styles.headerText, styles.inputWide]}>
+          <ThemedText style={[styles.label, styles.labelWide]}>
             {distanceUnit}
           </ThemedText>
         )}
       </View>
-      <View style={styles.check} />
+      <View style={styles.checkSpace} />
     </View>
   );
 }
@@ -245,53 +234,49 @@ function createStyles(colors: AppThemeColors) {
   return StyleSheet.create({
     header: {
       flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 12,
-      paddingBottom: 4,
+      alignItems: "flex-end",
+      gap: 8,
+      paddingBottom: 6,
     },
-    headerText: {
-      fontSize: 12,
-      color: colors.contentSecondary,
+    label: {
+      fontSize: 14,
+      fontWeight: "bold",
       textAlign: "center",
     },
-    headerInput: {
-      width: 52,
+    labelInput: {
+      width: 56,
+    },
+    labelWide: {
+      width: 72,
     },
     row: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      backgroundColor: colors.card,
-      borderRadius: radii.md,
-      marginBottom: 6,
-    },
-    rowDone: {
-      backgroundColor: colors.cardSecondary,
+      gap: 8,
+      paddingVertical: 10,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.contentSecondary,
     },
     titleCell: {
       width: 64,
-      gap: 2,
+      gap: 4,
       alignItems: "flex-start",
+      textAlign: "left",
     },
     title: {
-      fontSize: 15,
-      fontWeight: "600",
+      fontSize: 18,
+      fontWeight: "bold",
     },
-    marker: {
-      paddingHorizontal: 5,
-      borderRadius: radii.sm,
-      maxWidth: 64,
+    titleDone: {
+      color: colors.contentSecondary,
     },
-    markerText: {
-      fontSize: 10,
-      fontWeight: "600",
-      color: colors.contentPrimary,
+    badges: {
+      flexDirection: "row",
+      gap: 4,
     },
     last: {
       flex: 1,
-      fontSize: 13,
+      fontSize: 14,
       color: colors.contentSecondary,
     },
     inputs: {
@@ -300,24 +285,34 @@ function createStyles(colors: AppThemeColors) {
       gap: 6,
     },
     input: {
-      width: 52,
-      minHeight: 44,
+      width: 56,
+      minHeight: 48,
+      paddingHorizontal: 4,
+      borderColor: colors.contentSecondary,
+      borderWidth: 1,
+      borderRadius: radii.md,
       textAlign: "center",
-      fontSize: 16,
+      fontSize: 20,
       color: colors.contentPrimary,
-      backgroundColor: colors.surface,
-      borderRadius: radii.sm,
+    },
+    inputDone: {
+      color: colors.contentSecondary,
     },
     inputWide: {
-      width: 64,
+      width: 72,
     },
     timeInput: {
-      width: 96,
+      width: 104,
     },
     check: {
-      width: 44,
-      height: 44,
       margin: 0,
+      borderColor: colors.accent,
+    },
+    checkDone: {
+      borderColor: colors.success,
+    },
+    checkSpace: {
+      width: 44,
     },
   });
 }
