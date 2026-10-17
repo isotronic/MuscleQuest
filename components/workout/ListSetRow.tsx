@@ -196,13 +196,14 @@ export const ListSetRow = forwardRef<TextInput, Props>(function ListSetRow(
       </View>
       {hasFlags && (
         <View style={styles.flags}>
-          {isPR && <SetTypeBadge kind="pr" />}
-          {set.isWarmup && <SetTypeBadge kind="warmup" />}
-          {set.isDropSet && <SetTypeBadge kind="drop" />}
-          {set.isToFailure && <SetTypeBadge kind="failure" />}
+          {isPR && <SetTypeBadge kind="pr" small />}
+          {set.isWarmup && <SetTypeBadge kind="warmup" small />}
+          {set.isDropSet && <SetTypeBadge kind="drop" small />}
+          {set.isToFailure && <SetTypeBadge kind="failure" small />}
           {!!trimmedNote && (
             <SetTypeBadge
               kind="note"
+              small
               onPress={onEditNote}
               accessibilityLabel={
                 onEditNote
@@ -287,7 +288,7 @@ function createStyles(colors: AppThemeColors) {
     },
     rowWrap: {
       paddingVertical: 10,
-      gap: 8,
+      gap: 6,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.contentSecondary,
     },
@@ -296,13 +297,16 @@ function createStyles(colors: AppThemeColors) {
       alignItems: "center",
       gap: 6,
     },
+    // Set number and last time on one line.
     titleCell: {
       flex: 1,
-      gap: 2,
-      alignItems: "flex-start",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
       textAlign: "left",
     },
     lastLine: {
+      flexShrink: 1,
       flexDirection: "row",
       alignItems: "center",
       gap: 3,
@@ -310,9 +314,10 @@ function createStyles(colors: AppThemeColors) {
     flags: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: 6,
+      gap: 4,
     },
     title: {
+      flexShrink: 1,
       fontSize: 18,
       fontWeight: "bold",
     },

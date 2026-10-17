@@ -13,13 +13,13 @@ export type SetBadgeKind = "pr" | "warmup" | "drop" | "failure" | "note";
 /** A set's type or PR, as the coloured badges on the focus screen. */
 export function SetTypeBadge({
   kind,
-  compact = false,
+  small = false,
   onPress,
   accessibilityLabel,
 }: {
   kind: SetBadgeKind;
-  /** Icon only, for tight rows; the label is still spoken. */
-  compact?: boolean;
+  /** A smaller badge, for rows of sets. */
+  small?: boolean;
   /** Makes the badge a button, e.g. a note that opens for editing. */
   onPress?: () => void;
   /** Replaces the spoken label, e.g. to read out the note. */
@@ -80,20 +80,20 @@ export function SetTypeBadge({
       <AppIcon
         set="mci"
         name={spec.icon}
-        size={compact ? 14 : 16}
+        size={small ? 12 : 16}
         color={spec.fg}
-        style={compact ? undefined : styles.icon}
+        style={small ? styles.iconSmall : styles.icon}
       />
-      {!compact && (
-        <ThemedText style={[styles.label, { color: spec.fg }]}>
-          {spec.label}
-        </ThemedText>
-      )}
+      <ThemedText
+        style={[styles.label, small && styles.labelSmall, { color: spec.fg }]}
+      >
+        {spec.label}
+      </ThemedText>
     </>
   );
   const style = [
     styles.badge,
-    compact && styles.compact,
+    small && styles.small,
     { backgroundColor: spec.bg },
   ];
   const label = accessibilityLabel ?? spec.spoken;
@@ -132,9 +132,16 @@ function createStyles(colors: AppThemeColors) {
       paddingVertical: 4,
       borderRadius: radii.md,
     },
-    compact: {
-      paddingHorizontal: 5,
-      paddingVertical: 3,
+    small: {
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: radii.sm,
+    },
+    iconSmall: {
+      marginRight: 3,
+    },
+    labelSmall: {
+      fontSize: 11,
     },
     icon: {
       marginRight: 4,
