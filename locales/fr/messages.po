@@ -1541,7 +1541,7 @@ msgstr "{0} jours par semaine"
 #. placeholder {1}: estimate ? ` · ~${formatDurationEstimate(estimate)}` : ""
 #. placeholder {1}: estimate ? ` · ~${formatDurationEstimateCompact(estimate)}` : ""
 #: app/(app)/(tabs)/(plans)/overview.tsx:97
-#: app/(app)/(tabs)/index.tsx:74
+#: components/home/WorkoutDurationInfo.tsx:24
 msgid "{0} Exercises{1}"
 msgstr "{0} Exercices{1}"
 
@@ -1674,6 +1674,10 @@ msgstr "{days, plural, one {# jour par semaine} other {# jours par semaine}}"
 #: components/stats/ExerciseCompactCard.tsx:34
 msgid "{days, plural, one {# day ago} other {# days ago}}"
 msgstr "{days, plural, one {il y a # jour} other {il y a # jours}}"
+
+#: components/home/TodayCard.tsx:139
+msgid "{days, plural, one {Last done # day ago} other {Last done # days ago}}"
+msgstr "{days, plural, one {Dernière fois il y a # jour} other {Dernière fois il y a # jours}}"
 
 #: components/charts/ExerciseProgressionChart.tsx:462
 msgid "{exerciseName}, {spokenMetric}"
@@ -1816,8 +1820,13 @@ msgstr "{total, plural, one {# série non terminée ({list}). Elle ne sera pas e
 
 #. placeholder {0}: settings?.weeklyGoal
 #: app/(app)/(tabs)/index.tsx:355
-msgid "{uniqueWorkoutDaysCount} / {0} days worked out"
-msgstr "{uniqueWorkoutDaysCount} / {0} jours d'entraînement"
+#~ msgid "{uniqueWorkoutDaysCount} / {0} days worked out"
+#~ msgstr "{uniqueWorkoutDaysCount} / {0} jours d'entraînement"
+
+#. placeholder {0}: settings?.weeklyGoal
+#: app/(app)/(tabs)/index.tsx:372
+msgid "{uniqueWorkoutDaysCount} of {0} this week"
+msgstr "{uniqueWorkoutDaysCount} sur {0} cette semaine"
 
 #: components/LastTimeLine.tsx:78
 msgid "{value} {weightUnit} assist × {reps}"
@@ -2078,8 +2087,8 @@ msgstr "Exercices du programme actif"
 
 #. placeholder {0}: activePlan.name
 #: app/(app)/(tabs)/index.tsx:488
-msgid "Active Plan: {0}"
-msgstr "Programme actif : {0}"
+#~ msgid "Active Plan: {0}"
+#~ msgstr "Programme actif : {0}"
 
 #: constants/HelpData.ts:74
 msgid "Active Workout"
@@ -3026,7 +3035,7 @@ msgstr "N'en choisissez aucune pour afficher toutes les mesures de la dernière 
 msgid "Choose the changes to keep for future sessions."
 msgstr "Choisis les modifications à garder pour les prochaines séances."
 
-#: app/(app)/(tabs)/index.tsx:636
+#: app/(app)/(tabs)/index.tsx:464
 msgid "Choose workout"
 msgstr "Choisir un entraînement"
 
@@ -3635,7 +3644,7 @@ msgid "Deletion stopped before it finished. Your account still exists and you ar
 msgstr "La suppression s'est arrêtée avant la fin. Ton compte existe toujours et tu es toujours connecté. Vérifie ta connexion et réessaie."
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:390
-#: app/(app)/(tabs)/index.tsx:493
+#: components/home/TodayCard.tsx:106
 #: constants/HelpData.ts:190
 msgid "Deload Week"
 msgstr "Semaine de décharge"
@@ -3783,7 +3792,7 @@ msgstr "Ne plus me le rappeler"
 msgid "Done"
 msgstr "Terminé"
 
-#: app/(app)/(tabs)/index.tsx:567
+#: app/(app)/(tabs)/index.tsx:539
 msgid "Done this week"
 msgstr "Fait cette semaine"
 
@@ -4320,6 +4329,7 @@ msgstr "Options de la minuterie d'exercice : la durée du compte à rebours Pré
 msgid "Exercises"
 msgstr "Exercices"
 
+#: components/home/TodayCard.tsx:73
 #: components/Onboarding.tsx:50
 msgid "Explore plans"
 msgstr "Explorer les programmes"
@@ -4568,8 +4578,8 @@ msgid "Fri"
 msgstr "Ven"
 
 #: app/(app)/settings/reminders.tsx:45
+#: components/home/TodayCard.tsx:20
 #: components/PlanScheduleEditor.tsx:29
-#: components/RestDayCard.tsx:19
 #: components/WorkoutDoneCard.tsx:19
 msgid "Friday"
 msgstr "Vendredi"
@@ -5091,6 +5101,14 @@ msgstr "90 derniers jours"
 msgid "Last backup: {0}"
 msgstr "Dernière sauvegarde : {0}"
 
+#: components/home/TodayCard.tsx:135
+msgid "Last done today"
+msgstr "Dernière fois aujourd'hui"
+
+#: components/home/TodayCard.tsx:137
+msgid "Last done yesterday"
+msgstr "Dernière fois hier"
+
 #: components/ProgressionSummaryCard.tsx:49
 msgid "Last increased: {days} days ago"
 msgstr "Dernière augmentation : il y a {days} jours"
@@ -5246,8 +5264,8 @@ msgid "Log Entry"
 msgstr "Saisir une entrée"
 
 #: app/(app)/(tabs)/index.tsx:372
-msgid "Log every set to see your progress."
-msgstr "Enregistre chaque série pour voir ta progression."
+#~ msgid "Log every set to see your progress."
+#~ msgstr "Enregistre chaque série pour voir ta progression."
 
 #: components/settings/AccountCard.tsx:45
 msgid "Log in to secure your data"
@@ -5395,8 +5413,8 @@ msgstr "Lun"
 #: app/(app)/settings/profile.tsx:26
 #: app/(app)/settings/reminders.tsx:41
 #: app/setup.tsx:277
+#: components/home/TodayCard.tsx:16
 #: components/PlanScheduleEditor.tsx:25
-#: components/RestDayCard.tsx:15
 #: components/WorkoutDoneCard.tsx:15
 msgid "Monday"
 msgstr "Lundi"
@@ -5567,6 +5585,10 @@ msgstr "Nouvel entraînement"
 msgid "Next"
 msgstr "Suivant"
 
+#: components/home/TodayCard.tsx:88
+msgid "Next on {nextDay}"
+msgstr "Prochain : {nextDay}"
+
 #: components/ProgressionSummaryCard.tsx:102
 msgid "Next Session"
 msgstr "Prochaine séance"
@@ -5579,6 +5601,10 @@ msgstr "Série suivante"
 msgid "Next tip"
 msgstr "Conseil suivant"
 
+#: components/home/TodayCard.tsx:90
+msgid "Next up"
+msgstr "Prochain"
+
 #: app/(app)/(workout)/workout-session.tsx:1878
 #: app/(app)/(workout)/workout-session.tsx:1978
 msgid "Next: "
@@ -5589,7 +5615,6 @@ msgid "Next: {workoutName}"
 msgstr "Suivant : {workoutName}"
 
 #. placeholder {0}: _(DAY_NAMES[nextDow])
-#: components/RestDayCard.tsx:42
 #: components/WorkoutDoneCard.tsx:55
 msgid "Next: {workoutName} on {0}"
 msgstr "Suivant : {workoutName} le {0}"
@@ -5597,6 +5622,10 @@ msgstr "Suivant : {workoutName} le {0}"
 #: components/ExerciseFeedbackCard.tsx:48
 msgid "No"
 msgstr "Non"
+
+#: components/home/TodayCard.tsx:60
+msgid "No active plan"
+msgstr "Aucun programme actif"
 
 #: app/(app)/friend-profile.tsx:635
 msgid "No activity shared yet"
@@ -5989,6 +6018,10 @@ msgstr "Autres"
 msgid "Other Exercises"
 msgstr "Autres exercices"
 
+#: app/(app)/(tabs)/index.tsx:481
+msgid "Other workouts in this plan"
+msgstr "Autres entraînements de ce programme"
+
 #: app/(app)/(workout)/_layout.tsx:16
 #: constants/HelpData.ts:143
 msgid "Overview"
@@ -6077,7 +6110,7 @@ msgstr "Record personnel"
 #~ msgid "Pick a plan"
 #~ msgstr "Choisir un programme"
 
-#: app/(app)/(tabs)/index.tsx:370
+#: components/home/TodayCard.tsx:63
 msgid "Pick a plan or start a quick workout."
 msgstr "Choisis un programme ou lance un entraînement rapide."
 
@@ -6297,7 +6330,7 @@ msgid "quads"
 msgstr "quadriceps"
 
 #: app/(app)/(tabs)/(stats)/history-details.tsx:239
-#: app/(app)/(tabs)/index.tsx:626
+#: app/(app)/(tabs)/index.tsx:454
 #: utils/workoutName.ts:7
 msgid "Quick workout"
 msgstr "Entraînement rapide"
@@ -6593,9 +6626,17 @@ msgstr "Repos"
 msgid "Rest alerts may arrive late. Allow alarms for exact timing."
 msgstr "Les alertes de repos peuvent arriver en retard. Autorise les alarmes pour un timing précis."
 
-#: components/RestDayCard.tsx:58
-msgid "Rest Day"
+#: components/home/TodayCard.tsx:84
+msgid "Rest day"
 msgstr "Jour de repos"
+
+#: components/RestDayCard.tsx:58
+#~ msgid "Rest Day"
+#~ msgstr "Jour de repos"
+
+#: components/home/TodayCard.tsx:84
+msgid "Rest day, next on {nextDay}"
+msgstr "Jour de repos, prochain : {nextDay}"
 
 #: utils/a11yAnnouncements.ts:35
 msgid "Rest over"
@@ -6710,7 +6751,7 @@ msgstr "Restaurer ta sauvegarde ? Toutes les données d'entraînement de cet app
 msgid "Restoring. Please wait..."
 msgstr "Restauration en cours. Patiente..."
 
-#: app/(app)/(tabs)/index.tsx:462
+#: app/(app)/(tabs)/index.tsx:412
 #: components/StaleWorkoutPrompt.tsx:106
 msgid "Resume"
 msgstr "Reprendre"
@@ -6750,8 +6791,8 @@ msgid "Sat"
 msgstr "Sam"
 
 #: app/(app)/settings/reminders.tsx:46
+#: components/home/TodayCard.tsx:21
 #: components/PlanScheduleEditor.tsx:30
-#: components/RestDayCard.tsx:20
 #: components/WorkoutDoneCard.tsx:20
 msgid "Saturday"
 msgstr "Samedi"
@@ -6900,7 +6941,7 @@ msgstr "Sélectionner {0}"
 msgid "Select a day to see workouts."
 msgstr "Sélectionne un jour pour voir les entraînements."
 
-#: app/(app)/(tabs)/index.tsx:317
+#: app/(app)/(tabs)/index.tsx:336
 msgid "Select a workout to view"
 msgstr "Sélectionne un entraînement"
 
@@ -7214,6 +7255,10 @@ msgstr "Afficher la courbe de tendance"
 msgid "Show, hide and reorder the cards on the Stats tab."
 msgstr "Affiche, masque et réorganise les cartes de l’onglet Stats."
 
+#: components/home/TodayCard.tsx:114
+msgid "Shows the workout's exercises"
+msgstr "Affiche les exercices de l'entraînement"
+
 #: components/BackupReminderCard.tsx:139
 #: components/settings/AccountCard.tsx:58
 msgid "Sign in"
@@ -7426,7 +7471,8 @@ msgstr "colonne vertébrale"
 #~ msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a standalone workout by mistake, tap Undo on the message that appears."
 #~ msgstr "Les entraînements indépendants sont en dehors des programmes et apparaissent avec tes programmes dans l'onglet Programmes. Crée-en un en appuyant sur Nouvel entraînement, donne-lui un nom et ajoute des exercices ; tu peux le lancer à tout moment sans avoir besoin d'un programme actif. Une durée estimée est affichée sur chaque entraînement indépendant pour que tu puisses planifier ton temps avant de commencer. Les entraînements rapides te permettent de démarrer une séance immédiatement depuis l'écran d'accueil : appuie sur Entraînement rapide, ajoute des exercices au fur et à mesure, et à la fin tu peux le sauvegarder comme entraînement indépendant pour une utilisation future ou simplement l'ignorer. Appuie sur « Choisir un entraînement » juste à côté pour rechercher et parcourir tous les entraînements de tes programmes et de ta bibliothèque autonome ; appuie sur un entraînement pour voir ses exercices, ou sur son bouton Commencer pour démarrer tout de suite. Comme les programmes, l'éditeur d'entraînement sauvegarde automatiquement un brouillon. Si tu supprimes un entraînement solo par erreur, appuie sur Annuler dans le message qui s'affiche."
 
-#: app/(app)/(tabs)/index.tsx:595
+#: app/(app)/(tabs)/index.tsx:554
+#: components/home/TodayCard.tsx:165
 #: components/StandaloneWorkoutListItem.tsx:115
 msgid "Start"
 msgstr "Commencer"
@@ -7444,9 +7490,13 @@ msgstr "Commencer {name}"
 msgid "Start {name} as it is saved now, or a quick workout with the exercises and sets from this session."
 msgstr "Commence {name} tel qu'il est enregistré, ou un entraînement rapide avec les exercices et séries de cette séance."
 
-#: app/(app)/(tabs)/index.tsx:593
+#: app/(app)/(tabs)/index.tsx:552
 msgid "Start {spokenName}"
 msgstr "Commencer {spokenName}"
+
+#: components/home/TodayCard.tsx:163
+msgid "Start {workoutName}"
+msgstr "Commencer {workoutName}"
 
 #: app/get-started.tsx:74
 msgid "Start a quick workout"
@@ -7486,7 +7536,7 @@ msgstr "Démarrer la minuterie"
 msgid "Start Workout"
 msgstr "Commencer l'entraînement"
 
-#: app/(app)/(tabs)/index.tsx:302
+#: app/(app)/(tabs)/index.tsx:321
 #: components/StandaloneWorkoutScreen.tsx:214
 msgid "Starting Workout..."
 msgstr "Démarrage de l'entraînement..."
@@ -7610,8 +7660,8 @@ msgstr "Dim"
 #: app/(app)/settings/profile.tsx:27
 #: app/(app)/settings/reminders.tsx:47
 #: app/setup.tsx:278
+#: components/home/TodayCard.tsx:22
 #: components/PlanScheduleEditor.tsx:31
-#: components/RestDayCard.tsx:21
 #: components/WorkoutDoneCard.tsx:21
 msgid "Sunday"
 msgstr "Dimanche"
@@ -7980,8 +8030,8 @@ msgid "Thu"
 msgstr "Jeu"
 
 #: app/(app)/settings/reminders.tsx:44
+#: components/home/TodayCard.tsx:19
 #: components/PlanScheduleEditor.tsx:28
-#: components/RestDayCard.tsx:18
 #: components/WorkoutDoneCard.tsx:18
 msgid "Thursday"
 msgstr "Jeudi"
@@ -8064,7 +8114,7 @@ msgstr "Conseil {0} sur {1}"
 msgid "Tips"
 msgstr "Conseils"
 
-#: app/(app)/(tabs)/index.tsx:95
+#: app/(app)/(tabs)/index.tsx:72
 msgid "Tips hidden. Turn them back on in Settings."
 msgstr "Conseils masqués. Tu peux les réactiver dans les Paramètres."
 
@@ -8116,6 +8166,7 @@ msgstr "Jusqu'à l'échec, "
 msgid "To report pain, tap Any pain? first, choose Discomfort or Pain, then tap how it felt. With Pain you can note where you felt it."
 msgstr "Pour signaler une douleur, appuie d'abord sur Une douleur ?, choisis Gêne ou Douleur, puis appuie sur ton ressenti. Avec Douleur, tu peux noter où tu l'as ressentie."
 
+#: components/home/TodayCard.tsx:86
 #: components/stats/ExerciseCompactCard.tsx:32
 msgid "Today"
 msgstr "Aujourd'hui"
@@ -8375,8 +8426,8 @@ msgid "Tue"
 msgstr "Mar"
 
 #: app/(app)/settings/reminders.tsx:42
+#: components/home/TodayCard.tsx:17
 #: components/PlanScheduleEditor.tsx:26
-#: components/RestDayCard.tsx:16
 #: components/WorkoutDoneCard.tsx:16
 msgid "Tuesday"
 msgstr "Mardi"
@@ -8711,8 +8762,8 @@ msgid "Wed"
 msgstr "Mer"
 
 #: app/(app)/settings/reminders.tsx:43
+#: components/home/TodayCard.tsx:18
 #: components/PlanScheduleEditor.tsx:27
-#: components/RestDayCard.tsx:17
 #: components/WorkoutDoneCard.tsx:17
 msgid "Wednesday"
 msgstr "Mercredi"
@@ -8821,8 +8872,8 @@ msgid "Welcome back"
 msgstr "Bon retour"
 
 #: app/(app)/(tabs)/index.tsx:363
-msgid "Welcome back{userName}"
-msgstr "Bon retour{userName}"
+#~ msgid "Welcome back{userName}"
+#~ msgstr "Bon retour{userName}"
 
 #: app/welcome.tsx:35
 msgid "Welcome to MuscleQuest"
@@ -8837,8 +8888,8 @@ msgstr "Bienvenue dans MuscleQuest, ton compagnon de musculation personnel. Util
 #~ msgstr "Bienvenue dans MuscleQuest !"
 
 #: app/(app)/(tabs)/index.tsx:365
-msgid "Welcome{userName}"
-msgstr "Bienvenue{userName}"
+#~ msgid "Welcome{userName}"
+#~ msgstr "Bienvenue{userName}"
 
 #: components/PlanPickerSheet.tsx:189
 msgid "What can you train with?"
@@ -8886,7 +8937,6 @@ msgstr "travail"
 
 #: app/(app)/_layout.tsx:63
 #: app/(app)/(workout)/_layout.tsx:17
-#: components/RestDayCard.tsx:41
 #: components/WeeklyScheduleDisplay.tsx:93
 #: components/WorkoutDoneCard.tsx:54
 #: components/WorkoutDoneCard.tsx:60
@@ -8898,7 +8948,8 @@ msgstr "Entraînement"
 #. placeholder {0}: index + 1
 #. placeholder {0}: originalIndex + 1
 #: app/(app)/(tabs)/(plans)/overview.tsx:77
-#: app/(app)/(tabs)/index.tsx:512
+#: app/(app)/(tabs)/index.tsx:501
+#: components/home/TodayCard.tsx:80
 #: components/PlanScheduleEditor.tsx:102
 #: components/PlanScheduleEditor.tsx:173
 #: components/WorkoutCard.tsx:407
@@ -8956,7 +9007,7 @@ msgstr "Détails de l'entraînement"
 msgid "Workout History"
 msgstr "Historique des entraînements"
 
-#: app/(app)/(tabs)/index.tsx:449
+#: app/(app)/(tabs)/index.tsx:399
 msgid "Workout in progress"
 msgstr "Entraînement en cours"
 
@@ -9018,6 +9069,10 @@ msgstr "Entraînements"
 #: constants/HelpData.ts:69
 msgid "Workouts can also live outside of plans, under Your workouts on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each workout so you can plan your time before starting. A quick workout starts a session immediately from the home screen: tap Quick workout, add exercises as you go, and at the end you can give it a name to reuse it later. Tap Choose workout next to it to search and browse every workout across your plans and Your workouts; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a workout by mistake, tap Undo on the message that appears."
 msgstr "Les entraînements peuvent aussi exister hors des programmes, sous Tes entraînements dans l'onglet Programmes. Crée-en un en appuyant sur Nouvel entraînement, donne-lui un nom et ajoute des exercices ; tu peux le lancer à tout moment sans avoir besoin d'un programme actif. Une durée estimée est affichée sur chaque entraînement pour que tu puisses planifier ton temps avant de commencer. Un entraînement rapide démarre une séance immédiatement depuis l'écran d'accueil : appuie sur Entraînement rapide, ajoute des exercices au fur et à mesure, et à la fin tu peux lui donner un nom pour le réutiliser plus tard. Appuie sur Choisir un entraînement juste à côté pour rechercher et parcourir tous les entraînements de tes programmes et de Tes entraînements ; appuie sur un entraînement pour voir ses exercices, ou sur son bouton Commencer pour démarrer tout de suite. Comme les programmes, l'éditeur d'entraînement sauvegarde automatiquement un brouillon. Si tu supprimes un entraînement par erreur, appuie sur Annuler dans le message qui s'affiche."
+
+#: app/(app)/(tabs)/index.tsx:483
+msgid "Workouts in this plan"
+msgstr "Entraînements de ce programme"
 
 #: app/(app)/friend-profile.tsx:396
 msgid "Workouts outside plans"

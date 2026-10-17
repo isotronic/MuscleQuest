@@ -1540,7 +1540,7 @@ msgstr "{0} days per week"
 #. placeholder {1}: estimate ? ` · ~${formatDurationEstimate(estimate)}` : ""
 #. placeholder {1}: estimate ? ` · ~${formatDurationEstimateCompact(estimate)}` : ""
 #: app/(app)/(tabs)/(plans)/overview.tsx:97
-#: app/(app)/(tabs)/index.tsx:74
+#: components/home/WorkoutDurationInfo.tsx:24
 msgid "{0} Exercises{1}"
 msgstr "{0} Exercises{1}"
 
@@ -1673,6 +1673,10 @@ msgstr "{days, plural, one {# day a week} other {# days a week}}"
 #: components/stats/ExerciseCompactCard.tsx:34
 msgid "{days, plural, one {# day ago} other {# days ago}}"
 msgstr "{days, plural, one {# day ago} other {# days ago}}"
+
+#: components/home/TodayCard.tsx:139
+msgid "{days, plural, one {Last done # day ago} other {Last done # days ago}}"
+msgstr "{days, plural, one {Last done # day ago} other {Last done # days ago}}"
 
 #: components/charts/ExerciseProgressionChart.tsx:462
 msgid "{exerciseName}, {spokenMetric}"
@@ -1815,8 +1819,13 @@ msgstr "{total, plural, one {# set not completed ({list}). It will not be saved.
 
 #. placeholder {0}: settings?.weeklyGoal
 #: app/(app)/(tabs)/index.tsx:355
-msgid "{uniqueWorkoutDaysCount} / {0} days worked out"
-msgstr "{uniqueWorkoutDaysCount} / {0} days worked out"
+#~ msgid "{uniqueWorkoutDaysCount} / {0} days worked out"
+#~ msgstr "{uniqueWorkoutDaysCount} / {0} days worked out"
+
+#. placeholder {0}: settings?.weeklyGoal
+#: app/(app)/(tabs)/index.tsx:372
+msgid "{uniqueWorkoutDaysCount} of {0} this week"
+msgstr "{uniqueWorkoutDaysCount} of {0} this week"
 
 #: components/LastTimeLine.tsx:78
 msgid "{value} {weightUnit} assist × {reps}"
@@ -2077,8 +2086,8 @@ msgstr "Active Plan Exercises"
 
 #. placeholder {0}: activePlan.name
 #: app/(app)/(tabs)/index.tsx:488
-msgid "Active Plan: {0}"
-msgstr "Active Plan: {0}"
+#~ msgid "Active Plan: {0}"
+#~ msgstr "Active Plan: {0}"
 
 #: constants/HelpData.ts:74
 msgid "Active Workout"
@@ -3025,7 +3034,7 @@ msgstr "Choose none to show every measurement in the latest entry."
 msgid "Choose the changes to keep for future sessions."
 msgstr "Choose the changes to keep for future sessions."
 
-#: app/(app)/(tabs)/index.tsx:636
+#: app/(app)/(tabs)/index.tsx:464
 msgid "Choose workout"
 msgstr "Choose workout"
 
@@ -3634,7 +3643,7 @@ msgid "Deletion stopped before it finished. Your account still exists and you ar
 msgstr "Deletion stopped before it finished. Your account still exists and you are still signed in. Check your connection and try again."
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:390
-#: app/(app)/(tabs)/index.tsx:493
+#: components/home/TodayCard.tsx:106
 #: constants/HelpData.ts:190
 msgid "Deload Week"
 msgstr "Deload Week"
@@ -3782,7 +3791,7 @@ msgstr "Don't remind me"
 msgid "Done"
 msgstr "Done"
 
-#: app/(app)/(tabs)/index.tsx:567
+#: app/(app)/(tabs)/index.tsx:539
 msgid "Done this week"
 msgstr "Done this week"
 
@@ -4319,6 +4328,7 @@ msgstr "Exercise timer options: the length of the Get Ready countdown, countdown
 msgid "Exercises"
 msgstr "Exercises"
 
+#: components/home/TodayCard.tsx:73
 #: components/Onboarding.tsx:50
 msgid "Explore plans"
 msgstr "Explore plans"
@@ -4567,8 +4577,8 @@ msgid "Fri"
 msgstr "Fri"
 
 #: app/(app)/settings/reminders.tsx:45
+#: components/home/TodayCard.tsx:20
 #: components/PlanScheduleEditor.tsx:29
-#: components/RestDayCard.tsx:19
 #: components/WorkoutDoneCard.tsx:19
 msgid "Friday"
 msgstr "Friday"
@@ -5090,6 +5100,14 @@ msgstr "Last 90 days"
 msgid "Last backup: {0}"
 msgstr "Last backup: {0}"
 
+#: components/home/TodayCard.tsx:135
+msgid "Last done today"
+msgstr "Last done today"
+
+#: components/home/TodayCard.tsx:137
+msgid "Last done yesterday"
+msgstr "Last done yesterday"
+
 #: components/ProgressionSummaryCard.tsx:49
 msgid "Last increased: {days} days ago"
 msgstr "Last increased: {days} days ago"
@@ -5245,8 +5263,8 @@ msgid "Log Entry"
 msgstr "Log Entry"
 
 #: app/(app)/(tabs)/index.tsx:372
-msgid "Log every set to see your progress."
-msgstr "Log every set to see your progress."
+#~ msgid "Log every set to see your progress."
+#~ msgstr "Log every set to see your progress."
 
 #: components/settings/AccountCard.tsx:45
 msgid "Log in to secure your data"
@@ -5394,8 +5412,8 @@ msgstr "Mon"
 #: app/(app)/settings/profile.tsx:26
 #: app/(app)/settings/reminders.tsx:41
 #: app/setup.tsx:277
+#: components/home/TodayCard.tsx:16
 #: components/PlanScheduleEditor.tsx:25
-#: components/RestDayCard.tsx:15
 #: components/WorkoutDoneCard.tsx:15
 msgid "Monday"
 msgstr "Monday"
@@ -5566,6 +5584,10 @@ msgstr "New Workout"
 msgid "Next"
 msgstr "Next"
 
+#: components/home/TodayCard.tsx:88
+msgid "Next on {nextDay}"
+msgstr "Next on {nextDay}"
+
 #: components/ProgressionSummaryCard.tsx:102
 msgid "Next Session"
 msgstr "Next Session"
@@ -5578,6 +5600,10 @@ msgstr "Next set"
 msgid "Next tip"
 msgstr "Next tip"
 
+#: components/home/TodayCard.tsx:90
+msgid "Next up"
+msgstr "Next up"
+
 #: app/(app)/(workout)/workout-session.tsx:1878
 #: app/(app)/(workout)/workout-session.tsx:1978
 msgid "Next: "
@@ -5588,7 +5614,6 @@ msgid "Next: {workoutName}"
 msgstr "Next: {workoutName}"
 
 #. placeholder {0}: _(DAY_NAMES[nextDow])
-#: components/RestDayCard.tsx:42
 #: components/WorkoutDoneCard.tsx:55
 msgid "Next: {workoutName} on {0}"
 msgstr "Next: {workoutName} on {0}"
@@ -5596,6 +5621,10 @@ msgstr "Next: {workoutName} on {0}"
 #: components/ExerciseFeedbackCard.tsx:48
 msgid "No"
 msgstr "No"
+
+#: components/home/TodayCard.tsx:60
+msgid "No active plan"
+msgstr "No active plan"
 
 #: app/(app)/friend-profile.tsx:635
 msgid "No activity shared yet"
@@ -5988,6 +6017,10 @@ msgstr "Other"
 msgid "Other Exercises"
 msgstr "Other Exercises"
 
+#: app/(app)/(tabs)/index.tsx:481
+msgid "Other workouts in this plan"
+msgstr "Other workouts in this plan"
+
 #: app/(app)/(workout)/_layout.tsx:16
 #: constants/HelpData.ts:143
 msgid "Overview"
@@ -6076,7 +6109,7 @@ msgstr "Personal record"
 #~ msgid "Pick a plan"
 #~ msgstr "Pick a plan"
 
-#: app/(app)/(tabs)/index.tsx:370
+#: components/home/TodayCard.tsx:63
 msgid "Pick a plan or start a quick workout."
 msgstr "Pick a plan or start a quick workout."
 
@@ -6296,7 +6329,7 @@ msgid "quads"
 msgstr "quads"
 
 #: app/(app)/(tabs)/(stats)/history-details.tsx:239
-#: app/(app)/(tabs)/index.tsx:626
+#: app/(app)/(tabs)/index.tsx:454
 #: utils/workoutName.ts:7
 msgid "Quick workout"
 msgstr "Quick workout"
@@ -6592,9 +6625,17 @@ msgstr "Rest"
 msgid "Rest alerts may arrive late. Allow alarms for exact timing."
 msgstr "Rest alerts may arrive late. Allow alarms for exact timing."
 
+#: components/home/TodayCard.tsx:84
+msgid "Rest day"
+msgstr "Rest day"
+
 #: components/RestDayCard.tsx:58
-msgid "Rest Day"
-msgstr "Rest Day"
+#~ msgid "Rest Day"
+#~ msgstr "Rest Day"
+
+#: components/home/TodayCard.tsx:84
+msgid "Rest day, next on {nextDay}"
+msgstr "Rest day, next on {nextDay}"
 
 #: utils/a11yAnnouncements.ts:35
 msgid "Rest over"
@@ -6709,7 +6750,7 @@ msgstr "Restore your backup? This replaces all training data on this device. Any
 msgid "Restoring. Please wait..."
 msgstr "Restoring. Please wait..."
 
-#: app/(app)/(tabs)/index.tsx:462
+#: app/(app)/(tabs)/index.tsx:412
 #: components/StaleWorkoutPrompt.tsx:106
 msgid "Resume"
 msgstr "Resume"
@@ -6749,8 +6790,8 @@ msgid "Sat"
 msgstr "Sat"
 
 #: app/(app)/settings/reminders.tsx:46
+#: components/home/TodayCard.tsx:21
 #: components/PlanScheduleEditor.tsx:30
-#: components/RestDayCard.tsx:20
 #: components/WorkoutDoneCard.tsx:20
 msgid "Saturday"
 msgstr "Saturday"
@@ -6899,7 +6940,7 @@ msgstr "Select {0}"
 msgid "Select a day to see workouts."
 msgstr "Select a day to see workouts."
 
-#: app/(app)/(tabs)/index.tsx:317
+#: app/(app)/(tabs)/index.tsx:336
 msgid "Select a workout to view"
 msgstr "Select a workout to view"
 
@@ -7213,6 +7254,10 @@ msgstr "Show trend line"
 msgid "Show, hide and reorder the cards on the Stats tab."
 msgstr "Show, hide and reorder the cards on the Stats tab."
 
+#: components/home/TodayCard.tsx:114
+msgid "Shows the workout's exercises"
+msgstr "Shows the workout's exercises"
+
 #: components/BackupReminderCard.tsx:139
 #: components/settings/AccountCard.tsx:58
 msgid "Sign in"
@@ -7425,7 +7470,8 @@ msgstr "spine"
 #~ msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a standalone workout by mistake, tap Undo on the message that appears."
 #~ msgstr "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a standalone workout by mistake, tap Undo on the message that appears."
 
-#: app/(app)/(tabs)/index.tsx:595
+#: app/(app)/(tabs)/index.tsx:554
+#: components/home/TodayCard.tsx:165
 #: components/StandaloneWorkoutListItem.tsx:115
 msgid "Start"
 msgstr "Start"
@@ -7443,9 +7489,13 @@ msgstr "Start {name}"
 msgid "Start {name} as it is saved now, or a quick workout with the exercises and sets from this session."
 msgstr "Start {name} as it is saved now, or a quick workout with the exercises and sets from this session."
 
-#: app/(app)/(tabs)/index.tsx:593
+#: app/(app)/(tabs)/index.tsx:552
 msgid "Start {spokenName}"
 msgstr "Start {spokenName}"
+
+#: components/home/TodayCard.tsx:163
+msgid "Start {workoutName}"
+msgstr "Start {workoutName}"
 
 #: app/get-started.tsx:74
 msgid "Start a quick workout"
@@ -7485,7 +7535,7 @@ msgstr "Start Timer"
 msgid "Start Workout"
 msgstr "Start Workout"
 
-#: app/(app)/(tabs)/index.tsx:302
+#: app/(app)/(tabs)/index.tsx:321
 #: components/StandaloneWorkoutScreen.tsx:214
 msgid "Starting Workout..."
 msgstr "Starting Workout..."
@@ -7609,8 +7659,8 @@ msgstr "Sun"
 #: app/(app)/settings/profile.tsx:27
 #: app/(app)/settings/reminders.tsx:47
 #: app/setup.tsx:278
+#: components/home/TodayCard.tsx:22
 #: components/PlanScheduleEditor.tsx:31
-#: components/RestDayCard.tsx:21
 #: components/WorkoutDoneCard.tsx:21
 msgid "Sunday"
 msgstr "Sunday"
@@ -7979,8 +8029,8 @@ msgid "Thu"
 msgstr "Thu"
 
 #: app/(app)/settings/reminders.tsx:44
+#: components/home/TodayCard.tsx:19
 #: components/PlanScheduleEditor.tsx:28
-#: components/RestDayCard.tsx:18
 #: components/WorkoutDoneCard.tsx:18
 msgid "Thursday"
 msgstr "Thursday"
@@ -8063,7 +8113,7 @@ msgstr "Tip {0} of {1}"
 msgid "Tips"
 msgstr "Tips"
 
-#: app/(app)/(tabs)/index.tsx:95
+#: app/(app)/(tabs)/index.tsx:72
 msgid "Tips hidden. Turn them back on in Settings."
 msgstr "Tips hidden. Turn them back on in Settings."
 
@@ -8115,6 +8165,7 @@ msgstr "To failure, "
 msgid "To report pain, tap Any pain? first, choose Discomfort or Pain, then tap how it felt. With Pain you can note where you felt it."
 msgstr "To report pain, tap Any pain? first, choose Discomfort or Pain, then tap how it felt. With Pain you can note where you felt it."
 
+#: components/home/TodayCard.tsx:86
 #: components/stats/ExerciseCompactCard.tsx:32
 msgid "Today"
 msgstr "Today"
@@ -8374,8 +8425,8 @@ msgid "Tue"
 msgstr "Tue"
 
 #: app/(app)/settings/reminders.tsx:42
+#: components/home/TodayCard.tsx:17
 #: components/PlanScheduleEditor.tsx:26
-#: components/RestDayCard.tsx:16
 #: components/WorkoutDoneCard.tsx:16
 msgid "Tuesday"
 msgstr "Tuesday"
@@ -8710,8 +8761,8 @@ msgid "Wed"
 msgstr "Wed"
 
 #: app/(app)/settings/reminders.tsx:43
+#: components/home/TodayCard.tsx:18
 #: components/PlanScheduleEditor.tsx:27
-#: components/RestDayCard.tsx:17
 #: components/WorkoutDoneCard.tsx:17
 msgid "Wednesday"
 msgstr "Wednesday"
@@ -8820,8 +8871,8 @@ msgid "Welcome back"
 msgstr "Welcome back"
 
 #: app/(app)/(tabs)/index.tsx:363
-msgid "Welcome back{userName}"
-msgstr "Welcome back{userName}"
+#~ msgid "Welcome back{userName}"
+#~ msgstr "Welcome back{userName}"
 
 #: app/welcome.tsx:35
 msgid "Welcome to MuscleQuest"
@@ -8836,8 +8887,8 @@ msgstr "Welcome to MuscleQuest, your personal strength training companion. Use t
 #~ msgstr "Welcome to MuscleQuest!"
 
 #: app/(app)/(tabs)/index.tsx:365
-msgid "Welcome{userName}"
-msgstr "Welcome{userName}"
+#~ msgid "Welcome{userName}"
+#~ msgstr "Welcome{userName}"
 
 #: components/PlanPickerSheet.tsx:189
 msgid "What can you train with?"
@@ -8885,7 +8936,6 @@ msgstr "working"
 
 #: app/(app)/_layout.tsx:63
 #: app/(app)/(workout)/_layout.tsx:17
-#: components/RestDayCard.tsx:41
 #: components/WeeklyScheduleDisplay.tsx:93
 #: components/WorkoutDoneCard.tsx:54
 #: components/WorkoutDoneCard.tsx:60
@@ -8897,7 +8947,8 @@ msgstr "Workout"
 #. placeholder {0}: index + 1
 #. placeholder {0}: originalIndex + 1
 #: app/(app)/(tabs)/(plans)/overview.tsx:77
-#: app/(app)/(tabs)/index.tsx:512
+#: app/(app)/(tabs)/index.tsx:501
+#: components/home/TodayCard.tsx:80
 #: components/PlanScheduleEditor.tsx:102
 #: components/PlanScheduleEditor.tsx:173
 #: components/WorkoutCard.tsx:407
@@ -8955,7 +9006,7 @@ msgstr "Workout Details"
 msgid "Workout History"
 msgstr "Workout History"
 
-#: app/(app)/(tabs)/index.tsx:449
+#: app/(app)/(tabs)/index.tsx:399
 msgid "Workout in progress"
 msgstr "Workout in progress"
 
@@ -9017,6 +9068,10 @@ msgstr "Workouts"
 #: constants/HelpData.ts:69
 msgid "Workouts can also live outside of plans, under Your workouts on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each workout so you can plan your time before starting. A quick workout starts a session immediately from the home screen: tap Quick workout, add exercises as you go, and at the end you can give it a name to reuse it later. Tap Choose workout next to it to search and browse every workout across your plans and Your workouts; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a workout by mistake, tap Undo on the message that appears."
 msgstr "Workouts can also live outside of plans, under Your workouts on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each workout so you can plan your time before starting. A quick workout starts a session immediately from the home screen: tap Quick workout, add exercises as you go, and at the end you can give it a name to reuse it later. Tap Choose workout next to it to search and browse every workout across your plans and Your workouts; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a workout by mistake, tap Undo on the message that appears."
+
+#: app/(app)/(tabs)/index.tsx:483
+msgid "Workouts in this plan"
+msgstr "Workouts in this plan"
 
 #: app/(app)/friend-profile.tsx:396
 msgid "Workouts outside plans"

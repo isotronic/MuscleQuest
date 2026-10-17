@@ -13,8 +13,7 @@ import { ActivityIndicator, Button, Portal, Modal } from "react-native-paper";
 import { AppIcon } from "@/components/ui";
 import { ErrorState } from "@/components/ui/ErrorState";
 import WeekDays from "@/components/WeekDays";
-import { useContext, useEffect, useMemo, useState } from "react";
-import { AuthContext } from "@/context/AuthProvider";
+import { useEffect, useMemo, useState } from "react";
 import { useActivePlanQuery } from "@/hooks/useActivePlanQuery";
 import { router } from "expo-router";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
@@ -24,15 +23,13 @@ import { showSnackbar } from "@/store/snackbarStore";
 import { useWeekRule } from "@/hooks/useWeekRule";
 import { settingsBodyWeight } from "@/utils/settingsBodyWeight";
 import { endOfAppWeek, startOfAppWeek } from "@/utils/week";
-import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
-import { formatDurationEstimateCompact } from "@/utils/estimateWorkoutDuration";
 import {
   CompletedWorkout,
   RECENT_HISTORY_DAYS,
   useCompletedWorkoutsQuery,
 } from "@/hooks/useCompletedWorkoutsQuery";
 import { useHasCompletedWorkoutQuery } from "@/hooks/useWorkoutSummariesQuery";
-import { Workout, UserExercise } from "@/store/workoutStore";
+import { Workout } from "@/store/workoutStore";
 import Onboarding, { shouldShowActivationCard } from "@/components/Onboarding";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
 import { UpdateModal } from "@/components/UpdateModal";
@@ -40,7 +37,6 @@ import { confirmStartWorkout } from "@/utils/startWorkout";
 import { resumeActiveWorkout } from "@/utils/resumeWorkout";
 import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
 import { useLastPlanWorkoutQuery } from "@/hooks/useLastPlanWorkoutQuery";
-import RestDayCard from "@/components/RestDayCard";
 import { BackupReminderCard } from "@/components/BackupReminderCard";
 import { SetupOfferCard } from "@/components/SetupOfferCard";
 import { SetupState } from "@/utils/setupState";
@@ -55,29 +51,10 @@ import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { displayWorkoutName } from "@/utils/workoutName";
-
-function WorkoutDurationInfo({
-  exercises,
-  countUnilateralDouble,
-  style,
-}: {
-  exercises: UserExercise[];
-  countUnilateralDouble: boolean;
-  style?: object;
-}) {
-  const { estimate } = useWorkoutDurationEstimate(
-    exercises,
-    countUnilateralDouble,
-  );
-  return (
-    <ThemedText style={style}>
-      <Trans>
-        {exercises.length} Exercises
-        {estimate ? `  ·  ~${formatDurationEstimateCompact(estimate)}` : ""}
-      </Trans>
-    </ThemedText>
-  );
-}
+import TodayCard from "@/components/home/TodayCard";
+import { WorkoutDurationInfo } from "@/components/home/WorkoutDurationInfo";
+import { todayHero } from "@/utils/homeToday";
+import { useHomeUiStore } from "@/store/homeUiStore";
 
 export default function HomeScreen() {
   const { colors } = useAppTheme();
@@ -96,10 +73,6 @@ export default function HomeScreen() {
   };
   const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
   const [pickerWorkouts, setPickerWorkouts] = useState<CompletedWorkout[]>([]);
-  const user = useContext(AuthContext);
-  const userName = user?.displayName
-    ? ", " + user.displayName.split(" ")[0]
-    : "";
 
   const {
     data: activePlan,
@@ -139,6 +112,8 @@ export default function HomeScreen() {
     Boolean(state.activeWorkout && state.workout),
   );
   const [showResumeCard, setShowResumeCard] = useState(workoutInProgress);
+  const otherWorkoutsOpen = useHomeUiStore((s) => s.otherWorkoutsOpen);
+  const toggleOtherWorkouts = useHomeUiStore((s) => s.toggleOtherWorkouts);
 
   useEffect(() => {
     if (!workoutInProgress) {
@@ -279,7 +254,6 @@ export default function HomeScreen() {
   const showWorkoutDoneCard =
     !isRestDay &&
     !!activePlan &&
-    !showResumeCard &&
     (!isScheduled || !!todayScheduledEntry) &&
     completedAnyWorkoutToday;
   // Only show a specific workout's name when exactly one was completed today —
@@ -288,6 +262,51 @@ export default function HomeScreen() {
     todayWorkouts.length === 1
       ? displayWorkoutName(todayWorkouts[0].workout_name)
       : null;
+
+  const hero = todayHero({
+    planId: activePlan?.id,
+    planWorkouts: activePlan?.workouts ?? [],
+    orderedWorkouts: workoutsToDisplay,
+    schedule: planScheduleEntries,
+    isRestDay,
+    doneToday: showWorkoutDoneCard,
+    todayDow,
+    todayKey,
+    recentSessions: completedWorkouts ?? [],
+  });
+  const heroWorkoutId = hero.kind === "workout" ? hero.workout.id : undefined;
+  const otherWorkouts = workoutsToDisplay.filter(
+    (w) => heroWorkoutId == null || w.id !== heroWorkoutId,
+  );
+  const showActivationCard = shouldShowActivationCard(
+    !!activePlan,
+    hasCompletedWorkout,
+  );
+
+  const startPlanWorkout = (workout: Workout, originalIndex: number) => {
+    if (isStartingWorkout || !activePlan) return;
+    confirmStartWorkout(setIsStartingWorkout, () => {
+      useActiveWorkoutStore
+        .getState()
+        .setWorkout(
+          JSON.parse(JSON.stringify(workout)),
+          activePlan.id!,
+          workout.id!,
+          workout.name || `Workout ${originalIndex + 1}`,
+        );
+    });
+  };
+
+  const openPlanWorkout = (originalIndex: number) => {
+    if (!activePlan) return;
+    router.push({
+      pathname: "/workout-details",
+      params: {
+        planId: String(activePlan.id),
+        workoutIndex: String(originalIndex),
+      },
+    });
+  };
 
   return (
     <ThemedView>
@@ -349,87 +368,18 @@ export default function HomeScreen() {
                 : undefined
             }
           />
-        </View>
-        <View style={styles.summaryContainer}>
-          <ThemedText style={styles.summaryText}>
+          <ThemedText style={styles.weekCaption}>
             <Trans>
-              {uniqueWorkoutDaysCount} / {settings?.weeklyGoal} days worked out
+              {uniqueWorkoutDaysCount} of {settings?.weeklyGoal} this week
             </Trans>
           </ThemedText>
         </View>
-        <View style={styles.welcomeContainer}>
-          <ThemedText type="subtitle">
-            {activePlan ? (
-              <Trans>Welcome back{userName}</Trans>
-            ) : (
-              <Trans>Welcome{userName}</Trans>
-            )}
-          </ThemedText>
-          <ThemedText type="default">
-            {!activePlan ? (
-              <Trans>Pick a plan or start a quick workout.</Trans>
-            ) : (
-              <Trans>Log every set to see your progress.</Trans>
-            )}
-          </ThemedText>
-        </View>
 
-        {weeklyGoalReached && (
-          <View style={styles.restDayContainer}>
-            <WeeklySummaryCard
-              workoutsThisWeek={completedWorkoutsThisWeek ?? []}
-              allCompletedWorkouts={completedWorkouts ?? []}
-              weeklyGoal={Number(settings?.weeklyGoal)}
-              weightUnit={settings?.weightUnit ?? "kg"}
-              streak={streak}
-              excludeWarmup={settings?.excludeWarmupSets === "true"}
-              countUnilateralDouble={settings?.countUnilateralDouble === "true"}
-              doubleWeightForPaired={settings?.doubleWeightForPaired === "true"}
-              bodyWeight={settingsBodyWeight(settings).display ?? 0}
-              weekRule={weekRule}
-            />
-          </View>
-        )}
-
-        {!weeklyGoalReached &&
-          isRestDay &&
-          planScheduleEntries &&
-          activePlan &&
-          !showResumeCard && (
-            <View style={styles.restDayContainer}>
-              <RestDayCard
-                schedule={planScheduleEntries}
-                workouts={activePlan.workouts}
-                todayDow={todayDow}
-              />
-            </View>
-          )}
-
-        {!weeklyGoalReached && showWorkoutDoneCard && (
-          <View style={styles.restDayContainer}>
-            <WorkoutDoneCard
-              schedule={isScheduled ? planScheduleEntries! : null}
-              workouts={activePlan!.workouts}
-              rotationNext={workoutsToDisplay[0]}
-              todayDow={todayDow}
-              completedWorkoutName={completedWorkoutName}
-              onPress={handleWorkoutDoneCardPress}
-            />
-          </View>
-        )}
-
-        <View style={styles.cardContainer}>
+        <View style={styles.section}>
           {showResumeCard && (
             <Pressable
               accessibilityRole="button"
-              style={[
-                styles.workoutCard,
-                {
-                  borderWidth: 1,
-                  borderColor: colors.accent,
-                  marginBottom: 32,
-                },
-              ]}
+              style={[styles.workoutCard, styles.resumeCard]}
               onPress={resumeActiveWorkout}
             >
               <View style={styles.workoutCardContent}>
@@ -465,179 +415,181 @@ export default function HomeScreen() {
               </View>
             </Pressable>
           )}
-          {/* Takes the resume card's place, never alongside it; one nudge
-              at a time, the setup offer first. */}
-          {!showResumeCard &&
-            !workoutInProgress &&
+
+          {/* The in-progress session is the only action while it runs. */}
+          {!workoutInProgress &&
+            (hero.kind === "done" ? (
+              <WorkoutDoneCard
+                schedule={isScheduled ? planScheduleEntries! : null}
+                workouts={activePlan!.workouts}
+                rotationNext={workoutsToDisplay[0]}
+                todayDow={todayDow}
+                completedWorkoutName={completedWorkoutName}
+                onPress={handleWorkoutDoneCardPress}
+              />
+            ) : hero.kind === "noPlan" && showActivationCard ? (
+              <Onboarding showActivationCard showTips={false} />
+            ) : (
+              <TodayCard
+                hero={hero}
+                planName={activePlan?.name}
+                isDeload={progressionSettings.enabled && isCurrentWeekDeload}
+                countUnilateralDouble={countUnilateralDouble}
+                disabled={isStartingWorkout}
+                onStart={startPlanWorkout}
+                onOpen={openPlanWorkout}
+                onBrowsePlans={() => router.push("/(app)/(tabs)/(plans)")}
+              />
+            ))}
+
+          <View style={styles.quickRow}>
+            <Button
+              mode="outlined"
+              icon="lightning-bolt"
+              textColor={colors.accent}
+              onPress={startQuickWorkout}
+              style={styles.quickButton}
+              contentStyle={styles.quickButtonContent}
+            >
+              <Trans>Quick workout</Trans>
+            </Button>
+            <Button
+              mode="outlined"
+              icon="format-list-bulleted"
+              textColor={colors.accent}
+              onPress={() => setShowWorkoutPicker(true)}
+              style={styles.quickButton}
+              contentStyle={styles.quickButtonContent}
+            >
+              <Trans>Choose workout</Trans>
+            </Button>
+          </View>
+
+          {activePlan && otherWorkouts.length > 0 && (
+            <View style={styles.otherSection}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ expanded: otherWorkoutsOpen }}
+                onPress={toggleOtherWorkouts}
+                style={styles.otherHeader}
+              >
+                <ThemedText
+                  accessibilityRole="header"
+                  style={styles.otherHeaderText}
+                >
+                  {heroWorkoutId != null ? (
+                    <Trans>Other workouts in this plan</Trans>
+                  ) : (
+                    <Trans>Workouts in this plan</Trans>
+                  )}
+                </ThemedText>
+                <AppIcon
+                  set="mci"
+                  name={otherWorkoutsOpen ? "chevron-up" : "chevron-down"}
+                  size={24}
+                  color={colors.contentSecondary}
+                />
+              </Pressable>
+              {otherWorkoutsOpen && (
+                <View style={styles.workoutList}>
+                  {otherWorkouts.map((workout) => {
+                    const workoutCompleted = doneThisWeekIds.has(workout.id!);
+                    const originalIndex = activePlan.workouts.findIndex(
+                      (w) => w.id === workout.id,
+                    );
+                    const spokenName =
+                      workout.name || t`Workout ${originalIndex + 1}`;
+                    return (
+                      <View key={workout.id} style={styles.workoutCard}>
+                        <View style={styles.workoutCardContent}>
+                          {/* Details and Start are siblings so a screen
+                              reader can reach both; nested, Start would be
+                              merged into the card and never activated. */}
+                          <Pressable
+                            accessibilityRole="button"
+                            style={styles.workoutCardMain}
+                            onPress={() => openPlanWorkout(originalIndex)}
+                          >
+                            <AppIcon
+                              set="mci"
+                              name={
+                                workoutCompleted ? "check" : "weight-lifter"
+                              }
+                              size={30}
+                              color={
+                                workoutCompleted
+                                  ? colors.success
+                                  : colors.contentSecondary
+                              }
+                            />
+                            <View style={styles.workoutTextContainer}>
+                              <ThemedText
+                                type="subtitle"
+                                style={styles.workoutCardTitle}
+                              >
+                                {workout.name}
+                              </ThemedText>
+                              <WorkoutDurationInfo
+                                exercises={workout.exercises}
+                                countUnilateralDouble={countUnilateralDouble}
+                                style={styles.exerciseInfo}
+                              />
+                              {workoutCompleted && (
+                                <ThemedText style={styles.doneThisWeek}>
+                                  <Trans>Done this week</Trans>
+                                </ThemedText>
+                              )}
+                            </View>
+                          </Pressable>
+                          <View style={styles.smallButtonGroup}>
+                            <Button
+                              mode="outlined"
+                              onPress={() =>
+                                startPlanWorkout(workout, originalIndex)
+                              }
+                              labelStyle={styles.smallButtonLabel}
+                              disabled={isStartingWorkout}
+                              accessibilityLabel={t`Start ${spokenName}`}
+                            >
+                              <Trans>Start</Trans>
+                            </Button>
+                          </View>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+          )}
+
+          {weeklyGoalReached && (
+            <WeeklySummaryCard
+              workoutsThisWeek={completedWorkoutsThisWeek ?? []}
+              allCompletedWorkouts={completedWorkouts ?? []}
+              weeklyGoal={Number(settings?.weeklyGoal)}
+              weightUnit={settings?.weightUnit ?? "kg"}
+              streak={streak}
+              excludeWarmup={settings?.excludeWarmupSets === "true"}
+              countUnilateralDouble={settings?.countUnilateralDouble === "true"}
+              doubleWeightForPaired={settings?.doubleWeightForPaired === "true"}
+              bodyWeight={settingsBodyWeight(settings).display ?? 0}
+              weekRule={weekRule}
+            />
+          )}
+
+          {/* One nudge at a time, the setup offer first. */}
+          {!workoutInProgress &&
             (settings?.setupDone === SetupState.offered ? (
               <SetupOfferCard />
             ) : (
               <BackupReminderCard />
             ))}
-          {activePlan && settings ? (
-            <>
-              {settings.showOnboarding === "true" && (
-                <Onboarding onHideTips={hideTips} />
-              )}
-              <View style={styles.planTitleRow}>
-                <ThemedText
-                  accessibilityRole="header"
-                  type="default"
-                  style={styles.sectionTitle}
-                >
-                  <Trans>Active Plan: {activePlan.name}</Trans>
-                </ThemedText>
-                {progressionSettings.enabled && isCurrentWeekDeload && (
-                  <View style={styles.deloadBadge}>
-                    <ThemedText style={styles.deloadBadgeText}>
-                      <Trans>Deload Week</Trans>
-                    </ThemedText>
-                  </View>
-                )}
-              </View>
 
-              <View style={styles.workoutList}>
-                {workoutsToDisplay.map((workout, index) => {
-                  const workoutCompleted = doneThisWeekIds.has(workout.id!);
-                  const originalIndex = activePlan.workouts.findIndex(
-                    (w) => w.id === workout.id,
-                  );
-                  const shouldHighlightCard =
-                    !workoutInProgress &&
-                    index === 0 &&
-                    !weeklyGoalReached &&
-                    !isRestDay &&
-                    !completedAnyWorkoutToday;
-                  const spokenName =
-                    workout.name || t`Workout ${originalIndex + 1}`;
-                  return (
-                    <View
-                      key={index}
-                      style={[
-                        styles.workoutCard,
-                        shouldHighlightCard
-                          ? {
-                              borderWidth: 1,
-                              borderColor: colors.accent,
-                            }
-                          : null,
-                      ]}
-                    >
-                      <View style={styles.workoutCardContent}>
-                        {/* Details and Start are siblings so a screen reader
-                            can reach both; nested, Start would be merged
-                            into the card and never activated. */}
-                        <Pressable
-                          accessibilityRole="button"
-                          style={styles.workoutCardMain}
-                          onPress={() =>
-                            router.push({
-                              pathname: "/workout-details",
-                              params: {
-                                planId: String(activePlan.id),
-                                workoutIndex: String(originalIndex),
-                              },
-                            })
-                          }
-                        >
-                          <AppIcon
-                            set="mci"
-                            name={workoutCompleted ? "check" : "weight-lifter"}
-                            size={30}
-                            color={
-                              workoutCompleted
-                                ? colors.success
-                                : colors.contentSecondary
-                            }
-                          />
-                          <View style={styles.workoutTextContainer}>
-                            <ThemedText
-                              type="subtitle"
-                              style={styles.workoutCardTitle}
-                            >
-                              {workout.name}
-                            </ThemedText>
-                            <WorkoutDurationInfo
-                              exercises={workout.exercises}
-                              countUnilateralDouble={countUnilateralDouble}
-                              style={styles.exerciseInfo}
-                            />
-                            {workoutCompleted && (
-                              <ThemedText style={styles.doneThisWeek}>
-                                <Trans>Done this week</Trans>
-                              </ThemedText>
-                            )}
-                          </View>
-                        </Pressable>
-                        <View style={styles.smallButtonGroup}>
-                          <Button
-                            mode={
-                              shouldHighlightCard ? "contained" : "outlined"
-                            }
-                            onPress={() => {
-                              if (isStartingWorkout) return;
-                              confirmStartWorkout(setIsStartingWorkout, () => {
-                                useActiveWorkoutStore
-                                  .getState()
-                                  .setWorkout(
-                                    JSON.parse(JSON.stringify(workout)),
-                                    activePlan.id!,
-                                    workout.id!,
-                                    workout.name ||
-                                      `Workout ${originalIndex + 1}`,
-                                  );
-                              });
-                            }}
-                            labelStyle={styles.smallButtonLabel}
-                            disabled={isStartingWorkout}
-                            accessibilityLabel={t`Start ${spokenName}`}
-                          >
-                            <Trans>Start</Trans>
-                          </Button>
-                        </View>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            </>
-          ) : (
-            <Onboarding
-              showActivationCard={shouldShowActivationCard(
-                !!activePlan,
-                hasCompletedWorkout,
-              )}
-              onQuickWorkout={startQuickWorkout}
-              showTips={settings?.showOnboarding === "true"}
-              onHideTips={hideTips}
-            />
+          {settings?.showOnboarding === "true" && (
+            <Onboarding onHideTips={hideTips} />
           )}
-        </View>
 
-        <View style={styles.buttonContainer}>
-          <Button
-            mode="outlined"
-            icon="lightning-bolt"
-            textColor={colors.accent}
-            onPress={startQuickWorkout}
-            style={styles.startWorkoutButton}
-            labelStyle={styles.buttonLabel}
-          >
-            <Trans>Quick workout</Trans>
-          </Button>
-          <Button
-            mode="outlined"
-            icon="format-list-bulleted"
-            textColor={colors.accent}
-            onPress={() => setShowWorkoutPicker(true)}
-            style={styles.startWorkoutButton}
-            labelStyle={styles.buttonLabel}
-          >
-            <Trans>Choose workout</Trans>
-          </Button>
-        </View>
-
-        <View style={styles.measurementContainer}>
           <MeasurementQuickLog />
         </View>
       </ScrollView>
@@ -678,48 +630,50 @@ function createStyles(colors: AppThemeColors) {
       alignItems: "center",
       backgroundColor: colors.background,
     },
-    summaryContainer: {
+    weekCaption: {
+      alignSelf: "flex-end",
       paddingHorizontal: 16,
-      paddingBottom: 8,
-      backgroundColor: colors.background,
+      paddingBottom: 4,
+      fontSize: 14,
+      color: colors.contentSecondary,
     },
-    summaryText: {
+    section: {
+      paddingHorizontal: 16,
+      paddingTop: 12,
+    },
+    resumeCard: {
+      borderWidth: 1,
+      borderColor: colors.accent,
+      marginBottom: 16,
+    },
+    quickRow: {
+      flexDirection: "row",
+      gap: 8,
+      marginBottom: 16,
+    },
+    quickButton: {
+      flex: 1,
+      borderRadius: radii.md,
+    },
+    quickButtonContent: {
+      minHeight: 44,
+    },
+    otherSection: {
+      marginBottom: 16,
+    },
+    otherHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      minHeight: 44,
+    },
+    otherHeaderText: {
+      flex: 1,
       fontSize: 16,
-      textAlign: "right",
-    },
-    welcomeContainer: {
-      paddingHorizontal: 16,
-      paddingTop: 16,
-    },
-    restDayContainer: {
-      paddingHorizontal: 16,
-      paddingTop: 16,
-    },
-    cardContainer: {
-      paddingHorizontal: 16,
-      paddingTop: 16,
+      fontWeight: "600",
     },
     workoutList: {
       gap: 8,
-    },
-    planTitleRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      flexWrap: "wrap",
-      gap: 8,
-      marginBottom: 10,
-    },
-    sectionTitle: {},
-    deloadBadge: {
-      backgroundColor: colors.accentSubtle,
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-      borderRadius: radii.sm,
-    },
-    deloadBadgeText: {
-      fontSize: 12,
-      fontWeight: "600",
-      color: colors.accent,
     },
     workoutCard: {
       borderRadius: radii.md,
@@ -760,25 +714,6 @@ function createStyles(colors: AppThemeColors) {
     },
     smallButtonLabel: {
       paddingVertical: 0,
-    },
-    measurementContainer: {
-      paddingHorizontal: 16,
-      paddingTop: 16,
-    },
-    buttonContainer: {
-      gap: 8,
-      paddingHorizontal: 16,
-      paddingTop: 16,
-    },
-    startWorkoutButton: {
-      borderRadius: radii.md,
-      width: "100%",
-      minHeight: 50,
-      justifyContent: "center",
-    },
-    buttonLabel: {
-      fontSize: 18,
-      lineHeight: 27,
     },
     pickerModal: {
       backgroundColor: colors.card,
