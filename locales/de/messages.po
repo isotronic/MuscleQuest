@@ -2455,7 +2455,7 @@ msgstr "Alle Trainings außerhalb von Plänen sind veröffentlicht, und neue wer
 msgid "All-time PR"
 msgstr "Bester PR aller Zeiten"
 
-#: app/(app)/(workout)/workout-session.tsx:2041
+#: app/(app)/(workout)/workout-session.tsx:1753
 msgid "Allow alarms"
 msgstr "Wecker erlauben"
 
@@ -4838,7 +4838,7 @@ msgstr "Wie lief es? Schlaf, Energie, Schmerzen..."
 #~ msgid "How did that feel?"
 #~ msgstr "Wie hat sich das angefühlt?"
 
-#: app/(app)/(workout)/workout-session.tsx:1996
+#: app/(app)/(workout)/workout-session.tsx:1708
 msgid "How did this set feel?"
 msgstr "Wie hat sich dieser Satz angefühlt?"
 
@@ -5534,7 +5534,8 @@ msgstr "Neue Reihenfolge"
 msgid "New personal record"
 msgstr "Neue Bestleistung"
 
-#: app/(app)/(workout)/workout-session.tsx:1548
+#: app/(app)/(workout)/workout-session.tsx:1260
+#: hooks/useCompleteSet.ts:483
 msgid "New personal record."
 msgstr "Neue Bestleistung."
 
@@ -5605,8 +5606,8 @@ msgstr "Nächster Tipp"
 msgid "Next up"
 msgstr "Als Nächstes"
 
-#: app/(app)/(workout)/workout-session.tsx:1878
-#: app/(app)/(workout)/workout-session.tsx:1978
+#: app/(app)/(workout)/workout-session.tsx:1590
+#: app/(app)/(workout)/workout-session.tsx:1690
 msgid "Next: "
 msgstr "Weiter: "
 
@@ -5881,7 +5882,7 @@ msgstr "Nichts wird an andere Stellen gesendet."
 msgid "notification, rest, timer"
 msgstr "Benachrichtigung, Pause, Timer"
 
-#: app/(app)/(workout)/workout-session.tsx:2034
+#: app/(app)/(workout)/workout-session.tsx:1746
 msgid "Notifications are off, so there is no rest alert while your phone is locked. You can turn them on in your phone's settings."
 msgstr "Benachrichtigungen sind aus, daher gibt es keinen Pausen-Alarm, während dein Handy gesperrt ist. Du kannst sie in den Einstellungen deines Handys einschalten."
 
@@ -6262,8 +6263,8 @@ msgstr "Vorgefertigte Pläne"
 msgid "Premade Plans"
 msgstr "Vorgefertigte Pläne"
 
-#: app/(app)/(workout)/workout-session.tsx:1880
-#: app/(app)/(workout)/workout-session.tsx:1980
+#: app/(app)/(workout)/workout-session.tsx:1592
+#: app/(app)/(workout)/workout-session.tsx:1692
 msgid "Prev: "
 msgstr "Zurück: "
 
@@ -6622,7 +6623,7 @@ msgstr "Auf Standard zurücksetzen"
 msgid "Rest"
 msgstr "Pause"
 
-#: app/(app)/(workout)/workout-session.tsx:2036
+#: app/(app)/(workout)/workout-session.tsx:1748
 msgid "Rest alerts may arrive late. Allow alarms for exact timing."
 msgstr "Pausen-Alarme kommen eventuell zu spät. Erlaube Wecker für genaues Timing."
 
@@ -6673,9 +6674,10 @@ msgid "Rest Timer"
 msgstr "Pausentimer"
 
 #: app/(app)/(workout)/index.tsx:371
-#: app/(app)/(workout)/workout-session.tsx:629
-#: app/(app)/(workout)/workout-session.tsx:724
-#: app/(app)/(workout)/workout-session.tsx:765
+#: app/(app)/(workout)/workout-session.tsx:569
+#: app/(app)/(workout)/workout-session.tsx:664
+#: app/(app)/(workout)/workout-session.tsx:705
+#: hooks/useCompleteSet.ts:471
 msgid "Rest Timer Finished!"
 msgstr "Pausentimer beendet!"
 
@@ -7035,7 +7037,7 @@ msgstr "Als aktiven Plan festlegen"
 msgid "Set how many pairs of each plate you have. The plate calculator will only suggest loads you can actually build."
 msgstr "Lege fest, wie viele Paare du von jeder Scheibe hast. Der Scheibenrechner schlägt nur Gewichte vor, die du tatsächlich zusammenstellen kannst."
 
-#: app/(app)/(workout)/workout-session.tsx:1995
+#: app/(app)/(workout)/workout-session.tsx:1707
 #: components/history/WorkoutHistoryEditor.tsx:541
 msgid "Set note"
 msgstr "Satznotiz"
@@ -7052,7 +7054,7 @@ msgstr "Satznotiz: {trimmedNote}. Bearbeiten"
 msgid "Set options"
 msgstr "Satzoptionen"
 
-#: app/(app)/(workout)/workout-session.tsx:927
+#: app/(app)/(workout)/workout-session.tsx:867
 msgid "Set removed"
 msgstr "Satz entfernt"
 
@@ -7674,8 +7676,8 @@ msgstr "Supersatz"
 
 #. placeholder {0}: outgoingSnapshot.isFirstInSuperset ? "A" : "B"
 #. placeholder {0}: ss.isFirstInSuperset ? "A" : "B"
-#: app/(app)/(workout)/workout-session.tsx:1868
-#: app/(app)/(workout)/workout-session.tsx:1967
+#: app/(app)/(workout)/workout-session.tsx:1580
+#: app/(app)/(workout)/workout-session.tsx:1679
 msgid "Superset {0}"
 msgstr "Supersatz {0}"
 
@@ -8076,9 +8078,10 @@ msgid "Time range"
 msgstr "Zeitraum"
 
 #: app/(app)/(workout)/index.tsx:372
-#: app/(app)/(workout)/workout-session.tsx:630
-#: app/(app)/(workout)/workout-session.tsx:725
-#: app/(app)/(workout)/workout-session.tsx:766
+#: app/(app)/(workout)/workout-session.tsx:570
+#: app/(app)/(workout)/workout-session.tsx:665
+#: app/(app)/(workout)/workout-session.tsx:706
+#: hooks/useCompleteSet.ts:472
 msgid "Time to do your next set!"
 msgstr "Zeit für deinen nächsten Satz!"
 
@@ -8473,7 +8476,7 @@ msgid "Under Your data in Settings, tap Export training data to save your workou
 msgstr "Tippe in den Einstellungen unter Deine Daten auf Trainingsdaten exportieren, um deine Trainings und Messungen als CSV für Tabellenkalkulationen zu speichern, oder als JSON mit allem, einschließlich Plänen und eigenen Übungen. Wenn du angemeldet bist, entfernt Konto löschen dein Anmeldekonto, dein Profil und deine Freundschaften, alles, was du mit Freunden geteilt hast, und deine Cloud-Sicherungen. Du entscheidest, ob die Trainingsdaten auf diesem Gerät erhalten bleiben. Exportiere vorher eine Kopie, wenn du deine Historie behalten möchtest."
 
 #: app/(app)/(workout)/index.tsx:482
-#: app/(app)/(workout)/workout-session.tsx:930
+#: app/(app)/(workout)/workout-session.tsx:870
 #: hooks/useBodyMeasurementMutations.ts:138
 #: hooks/useCreateStandaloneWorkout.ts:122
 #: hooks/useDeleteCompletedWorkoutMutation.ts:52
