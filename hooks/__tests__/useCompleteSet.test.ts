@@ -154,6 +154,34 @@ describe("useCompleteSet", () => {
     expect(store().currentSetStartedAt).toBeNull();
   });
 
+  it("starts timing the next set at once when there is no rest", () => {
+    start([
+      exercise(1, { supersetGroupId: "s" }),
+      exercise(2, { supersetGroupId: "s" }),
+    ]);
+    const { result } = renderHook(() => useCompleteSet());
+    act(() => result.current.completeSetInPlace(0, 0));
+    // The partner's half of the round comes next, with no rest between.
+    expect(store().timerRunning).toBe(false);
+    expect(store().currentSetStartedAt).not.toBeNull();
+  });
+
+  it("leaves timing to the rest when one starts", () => {
+    store().setCurrentSetStartedAt(new Date(Date.now() - 20 * 60_000));
+    const { result } = renderHook(() => useCompleteSet());
+    // Not the set being timed, so the old start is stale.
+    act(() => result.current.completeSetInPlace(1, 1));
+    expect(store().timerRunning).toBe(true);
+    expect(store().currentSetStartedAt).toBeNull();
+  });
+
+  it("times nothing once every set is done", () => {
+    start([{ ...exercise(1), sets: [set(0)] }]);
+    const { result } = renderHook(() => useCompleteSet());
+    act(() => result.current.completeSetInPlace(0, 0));
+    expect(store().currentSetStartedAt).toBeNull();
+  });
+
   it("builds feedback from a corrected weight", () => {
     mockProgression.enabled = true;
     store().updateWeightAndReps(0, 0, "60", "10");

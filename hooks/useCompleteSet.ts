@@ -499,7 +499,9 @@ export function useCompleteSet() {
           ? elapsed
           : null;
       store.recordSetDuration(exerciseIndex, setIndex, duration);
-      if (timed) store.setCurrentSetStartedAt(null);
+      // Any start belonged to this set or is stale; the next one starts below
+      // or when its rest runs out.
+      store.setCurrentSetStartedAt(null);
 
       store.completeSetAt(exerciseIndex, setIndex);
 
@@ -522,6 +524,12 @@ export function useCompleteSet() {
         );
       } else {
         void cancelRestNotifications();
+        // No rest (a superset partner next, or a set without rest): the next
+        // set starts now, as on the focus screen. Nothing left: no start.
+        const anyLeft = after.workout?.exercises.some((exercise, ei) =>
+          exercise.sets.some((_, si) => after.completedSets[ei]?.[si] !== true),
+        );
+        if (anyLeft) after.setCurrentSetStartedAt(new Date());
       }
 
       after.queueFeedbackPrompts(prepared.feedbackContexts);

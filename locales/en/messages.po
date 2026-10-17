@@ -2690,7 +2690,7 @@ msgstr "back"
 msgid "Back"
 msgstr "Back"
 
-#: app/(app)/(workout)/exercise-list.tsx:437
+#: app/(app)/(workout)/exercise-list.tsx:446
 msgid "Back to overview"
 msgstr "Back to overview"
 
@@ -4863,7 +4863,7 @@ msgstr "How did it go? Sleep, energy, anything that hurt..."
 #~ msgid "How did that feel?"
 #~ msgstr "How did that feel?"
 
-#: app/(app)/(workout)/exercise-list.tsx:445
+#: app/(app)/(workout)/exercise-list.tsx:454
 #: app/(app)/(workout)/workout-session.tsx:1724
 msgid "How did this set feel?"
 msgstr "How did this set feel?"
@@ -5580,7 +5580,7 @@ msgid "New personal record"
 msgstr "New personal record"
 
 #: app/(app)/(workout)/workout-session.tsx:1276
-#: hooks/useCompleteSet.ts:532
+#: hooks/useCompleteSet.ts:540
 msgid "New personal record."
 msgstr "New personal record."
 
@@ -5656,7 +5656,7 @@ msgstr "Next up"
 msgid "Next: "
 msgstr "Next: "
 
-#: app/(app)/(workout)/exercise-list.tsx:437
+#: app/(app)/(workout)/exercise-list.tsx:446
 msgid "Next: {nextName}"
 msgstr "Next: {nextName}"
 
@@ -6070,7 +6070,7 @@ msgid "Options for {0}"
 msgstr "Options for {0}"
 
 #. placeholder {0}: row.setIndex + 1
-#: app/(app)/(workout)/exercise-list.tsx:245
+#: app/(app)/(workout)/exercise-list.tsx:254
 msgid "Options for set {0}"
 msgstr "Options for set {0}"
 
@@ -6336,11 +6336,11 @@ msgstr "Premade Plans"
 msgid "Prev: "
 msgstr "Prev: "
 
-#: app/(app)/(workout)/exercise-list.tsx:426
+#: app/(app)/(workout)/exercise-list.tsx:435
 msgid "Previous"
 msgstr "Previous"
 
-#: app/(app)/(workout)/exercise-list.tsx:424
+#: app/(app)/(workout)/exercise-list.tsx:433
 msgid "Previous exercise: {previousName}"
 msgstr "Previous exercise: {previousName}"
 
@@ -6628,7 +6628,7 @@ msgstr "reps"
 #: components/stats/widgets/registry.ts:73
 #: components/stats/widgets/registry.ts:114
 #: components/stats/widgets/SummaryWidget.tsx:93
-#: components/workout/ListSetRow.tsx:249
+#: components/workout/ListSetRow.tsx:250
 #: components/WorkoutCard.tsx:277
 #: components/WorkoutDetailsScreen.tsx:207
 msgid "Reps"
@@ -6754,7 +6754,7 @@ msgstr "Rest Timer"
 #: app/(app)/(workout)/workout-session.tsx:585
 #: app/(app)/(workout)/workout-session.tsx:680
 #: app/(app)/(workout)/workout-session.tsx:721
-#: hooks/useCompleteSet.ts:520
+#: hooks/useCompleteSet.ts:522
 #: hooks/useRestTimerControls.ts:118
 msgid "Rest Timer Finished!"
 msgstr "Rest Timer Finished!"
@@ -7088,7 +7088,7 @@ msgstr "Session note: {note}"
 msgid "Session note: {trimmed}. Edit"
 msgstr "Session note: {trimmed}. Edit"
 
-#: components/workout/ListSetRow.tsx:239
+#: components/workout/ListSetRow.tsx:240
 msgid "Set"
 msgstr "Set"
 
@@ -7128,7 +7128,7 @@ msgstr "Set as active plan"
 msgid "Set how many pairs of each plate you have. The plate calculator will only suggest loads you can actually build."
 msgstr "Set how many pairs of each plate you have. The plate calculator will only suggest loads you can actually build."
 
-#: app/(app)/(workout)/exercise-list.tsx:444
+#: app/(app)/(workout)/exercise-list.tsx:453
 #: app/(app)/(workout)/workout-session.tsx:1723
 #: components/history/WorkoutHistoryEditor.tsx:541
 #: components/workout/SetTypeBadge.tsx:66
@@ -7136,12 +7136,12 @@ msgid "Set note"
 msgstr "Set note"
 
 #: components/SessionSetInfo.tsx:290
-#: components/workout/ListSetRow.tsx:210
+#: components/workout/ListSetRow.tsx:211
 msgid "Set note: {trimmedNote}"
 msgstr "Set note: {trimmedNote}"
 
 #: components/SessionSetInfo.tsx:289
-#: components/workout/ListSetRow.tsx:209
+#: components/workout/ListSetRow.tsx:210
 msgid "Set note: {trimmedNote}. Edit"
 msgstr "Set note: {trimmedNote}. Edit"
 
@@ -7149,7 +7149,7 @@ msgstr "Set note: {trimmedNote}. Edit"
 msgid "Set options"
 msgstr "Set options"
 
-#: app/(app)/(workout)/exercise-list.tsx:220
+#: app/(app)/(workout)/exercise-list.tsx:229
 #: app/(app)/(workout)/workout-session.tsx:883
 msgid "Set removed"
 msgstr "Set removed"
@@ -7773,7 +7773,7 @@ msgid "Sunday"
 msgstr "Sunday"
 
 #: app/(app)/(create-plan)/sets-overview.tsx:226
-#: app/(app)/(workout)/exercise-list.tsx:355
+#: app/(app)/(workout)/exercise-list.tsx:364
 #: components/WorkoutCard.tsx:369
 #: components/WorkoutDetailsScreen.tsx:156
 msgid "Superset"
@@ -8067,7 +8067,7 @@ msgstr "This exercise has held steady for 4 sessions. A technique check or a bri
 #~ msgid "This exercise is already in your workout. Please choose a different one."
 #~ msgstr "This exercise is already in your workout. Please choose a different one."
 
-#: app/(app)/(workout)/exercise-list.tsx:304
+#: app/(app)/(workout)/exercise-list.tsx:313
 msgid "This exercise is no longer in the workout."
 msgstr "This exercise is no longer in the workout."
 
@@ -8161,7 +8161,7 @@ msgstr "time"
 
 #: app/(app)/custom-exercise.tsx:71
 #: components/WeeklySummaryCard.tsx:319
-#: components/workout/ListSetRow.tsx:254
+#: components/workout/ListSetRow.tsx:255
 msgid "Time"
 msgstr "Time"
 
@@ -8194,7 +8194,7 @@ msgstr "Time range"
 #: app/(app)/(workout)/workout-session.tsx:586
 #: app/(app)/(workout)/workout-session.tsx:681
 #: app/(app)/(workout)/workout-session.tsx:722
-#: hooks/useCompleteSet.ts:521
+#: hooks/useCompleteSet.ts:523
 #: hooks/useRestTimerControls.ts:119
 msgid "Time to do your next set!"
 msgstr "Time to do your next set!"
@@ -8591,7 +8591,7 @@ msgstr "Under Stats: exclude warm-up sets from volume, turn on Single-side rep l
 msgid "Under Your data in Settings, tap Export training data to save your workouts and measurements as CSV for spreadsheets, or as JSON with everything, including plans and custom exercises. If you are signed in, Delete account removes your sign-in account, your profile and friend connections, everything you have shared with friends, and your cloud backups. You choose whether to keep the training data on this device. Export a copy first if you want to keep your history."
 msgstr "Under Your data in Settings, tap Export training data to save your workouts and measurements as CSV for spreadsheets, or as JSON with everything, including plans and custom exercises. If you are signed in, Delete account removes your sign-in account, your profile and friend connections, everything you have shared with friends, and your cloud backups. You choose whether to keep the training data on this device. Export a copy first if you want to keep your history."
 
-#: app/(app)/(workout)/exercise-list.tsx:223
+#: app/(app)/(workout)/exercise-list.tsx:232
 #: app/(app)/(workout)/index.tsx:402
 #: app/(app)/(workout)/workout-session.tsx:886
 #: hooks/useBodyMeasurementMutations.ts:138

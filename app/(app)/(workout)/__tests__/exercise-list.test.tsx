@@ -216,6 +216,17 @@ describe("ExerciseListScreen", () => {
     start([exercise(1, "Bench", 3)]);
   });
 
+  it("starts timing the first set on opening, unless resting", () => {
+    expect(store().currentSetStartedAt).toBeNull();
+    render(<ExerciseListScreen />);
+    expect(store().currentSetStartedAt).not.toBeNull();
+
+    start([exercise(1, "Bench", 3)]);
+    store().startTimer(new Date(Date.now() + 60_000));
+    render(<ExerciseListScreen />);
+    expect(store().currentSetStartedAt).toBeNull();
+  });
+
   it("renders one row per set", () => {
     const screen = render(<ExerciseListScreen />);
     expect(screen.getAllByLabelText(/^Weight in kg, set \d$/)).toHaveLength(3);

@@ -162,6 +162,15 @@ export default function ExerciseListScreen() {
     if (hasExercise) setCurrentExerciseIndex(leadIndex);
   }, [hasExercise, leadIndex, setCurrentExerciseIndex]);
 
+  // Times the first set, as the focus screen does on opening. During a rest
+  // the set starts when the rest runs out instead.
+  useEffect(() => {
+    const store = useActiveWorkoutStore.getState();
+    if (!store.currentSetStartedAt && !store.timerRunning) {
+      store.setCurrentSetStartedAt(new Date());
+    }
+  }, []);
+
   const isDone = (row: ListRow) =>
     completedSets[row.exerciseIndex]?.[row.setIndex] === true;
   const rowKey = (row: ListRow) => `${row.exerciseIndex}:${row.setIndex}`;
