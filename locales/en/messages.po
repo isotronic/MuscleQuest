@@ -475,6 +475,28 @@ msgstr ""
 ""
 
 #: constants/WhatsNew.ts:880
+#~ msgid ""
+#~ "\n"
+#~ "🏠 New: A Clearer Home & Every Set at a Glance!\n"
+#~ "\n"
+#~ "Home now leads with Today: the workout to do next, with its exercises, estimated time, when you last did it and a big Start button. On a rest day it shows the next one. Quick workout and Choose workout sit right below it, and the rest of your plan folds away under Other workouts in this plan.\n"
+#~ "\n"
+#~ "In the workout overview, tap the arrow on an exercise to see all its sets. Tap a set to open it, or tap its circle to complete it with the values shown.\n"
+#~ "\n"
+#~ "Prefer to see every set at once? In Settings, under Workout and rest timer, set Logging style to All sets in a list. Tapping an exercise then shows all its sets with your last time, so you can fill them in and tick them off, and Next takes you to the following exercise.\n"
+#~ ""
+#~ msgstr ""
+#~ "\n"
+#~ "🏠 New: A Clearer Home & Every Set at a Glance!\n"
+#~ "\n"
+#~ "Home now leads with Today: the workout to do next, with its exercises, estimated time, when you last did it and a big Start button. On a rest day it shows the next one. Quick workout and Choose workout sit right below it, and the rest of your plan folds away under Other workouts in this plan.\n"
+#~ "\n"
+#~ "In the workout overview, tap the arrow on an exercise to see all its sets. Tap a set to open it, or tap its circle to complete it with the values shown.\n"
+#~ "\n"
+#~ "Prefer to see every set at once? In Settings, under Workout and rest timer, set Logging style to All sets in a list. Tapping an exercise then shows all its sets with your last time, so you can fill them in and tick them off, and Next takes you to the following exercise.\n"
+#~ ""
+
+#: constants/WhatsNew.ts:880
 msgid ""
 "\n"
 "🏠 New: A Clearer Home & Every Set at a Glance!\n"
@@ -483,7 +505,7 @@ msgid ""
 "\n"
 "In the workout overview, tap the arrow on an exercise to see all its sets. Tap a set to open it, or tap its circle to complete it with the values shown.\n"
 "\n"
-"Prefer to see every set at once? In Settings, under Workout and rest timer, set Logging style to All sets in a list. Tapping an exercise then shows all its sets with your last time, so you can fill them in and tick them off, and Next takes you to the following exercise.\n"
+"Prefer to see every set at once? Tap Show sets as a list in the workout menu (⋮), or set Logging style in Settings, under Workout and rest timer. Tapping an exercise then shows all its sets with your last time, so you can fill them in and tick them off, and Next takes you to the following exercise.\n"
 ""
 msgstr ""
 "\n"
@@ -493,7 +515,7 @@ msgstr ""
 "\n"
 "In the workout overview, tap the arrow on an exercise to see all its sets. Tap a set to open it, or tap its circle to complete it with the values shown.\n"
 "\n"
-"Prefer to see every set at once? In Settings, under Workout and rest timer, set Logging style to All sets in a list. Tapping an exercise then shows all its sets with your last time, so you can fill them in and tick them off, and Next takes you to the following exercise.\n"
+"Prefer to see every set at once? Tap Show sets as a list in the workout menu (⋮), or set Logging style in Settings, under Workout and rest timer. Tapping an exercise then shows all its sets with your last time, so you can fill them in and tick them off, and Next takes you to the following exercise.\n"
 ""
 
 #: constants/WhatsNew.ts:527
@@ -3074,8 +3096,12 @@ msgid "Choose from Device"
 msgstr "Choose from Device"
 
 #: constants/HelpData.ts:99
-msgid "Choose how you log sets with Logging style in Settings, under Workout and rest timer: One set at a time, the default, or All sets in a list."
-msgstr "Choose how you log sets with Logging style in Settings, under Workout and rest timer: One set at a time, the default, or All sets in a list."
+#~ msgid "Choose how you log sets with Logging style in Settings, under Workout and rest timer: One set at a time, the default, or All sets in a list."
+#~ msgstr "Choose how you log sets with Logging style in Settings, under Workout and rest timer: One set at a time, the default, or All sets in a list."
+
+#: constants/HelpData.ts:99
+msgid "Choose how you log sets with Logging style in Settings, under Workout and rest timer: One set at a time, the default, or All sets in a list. During a workout, switch with Show sets as a list or Show one set at a time in the workout menu (⋮) on the overview."
+msgstr "Choose how you log sets with Logging style in Settings, under Workout and rest timer: One set at a time, the default, or All sets in a list. During a workout, switch with Show sets as a list or Show one set at a time in the workout menu (⋮) on the overview."
 
 #: components/stats/widgets/registry.ts:279
 msgid "Choose none to show every measurement in the latest entry."

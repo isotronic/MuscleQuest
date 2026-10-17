@@ -96,7 +96,7 @@ export const HELP_DATA: GroupData[] = [
         icon: "list-outline",
         title: msg`Logging Style`,
         body: {
-          lead: msg`Choose how you log sets with Logging style in Settings, under Workout and rest timer: One set at a time, the default, or All sets in a list.`,
+          lead: msg`Choose how you log sets with Logging style in Settings, under Workout and rest timer: One set at a time, the default, or All sets in a list. During a workout, switch with Show sets as a list or Show one set at a time in the workout menu (⋮) on the overview.`,
           steps: [
             msg`With All sets in a list, tapping an exercise on the workout overview shows all its sets at once, each with your last time next to the set number.`,
             msg`Enter the weight and reps, or the time or distance, then tap the set's check to complete it. The next set is ready to fill in, and the rest timer starts as usual.`,

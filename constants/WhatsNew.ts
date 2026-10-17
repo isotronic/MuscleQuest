@@ -884,7 +884,7 @@ Home now leads with Today: the workout to do next, with its exercises, estimated
 
 In the workout overview, tap the arrow on an exercise to see all its sets. Tap a set to open it, or tap its circle to complete it with the values shown.
 
-Prefer to see every set at once? In Settings, under Workout and rest timer, set Logging style to All sets in a list. Tapping an exercise then shows all its sets with your last time, so you can fill them in and tick them off, and Next takes you to the following exercise.
+Prefer to see every set at once? Tap Show sets as a list in the workout menu (⋮), or set Logging style in Settings, under Workout and rest timer. Tapping an exercise then shows all its sets with your last time, so you can fill them in and tick them off, and Next takes you to the following exercise.
 `,
   },
 ];
