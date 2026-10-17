@@ -13,6 +13,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useSettingsOverlay } from "@/hooks/useSettingsOverlay";
 import { useSettingToggle } from "@/hooks/useSettingToggle";
 import { toDisplayDecimal } from "@/utils/numberFormat";
+import { LOGGING_STYLES, loggingStyleOf } from "@/utils/loggingStyle";
 
 const enabled = (on: boolean) => (on ? t`Enabled` : t`Disabled`);
 
@@ -32,6 +33,11 @@ export default function WorkoutSettingsScreen() {
     "timerCountdownSound",
   );
   const [goalSound, setGoalSound] = useSettingToggle("timerGoalSound");
+  const loggingStyle = loggingStyleOf(settings);
+  const loggingStyleLabels: Record<string, string> = {
+    focus: t`One set at a time`,
+    list: t`All sets in a list`,
+  };
 
   const defaultRestTime = settings
     ? `${Math.floor(parseInt(settings?.defaultRestTime) / 60)}:${(
@@ -63,6 +69,21 @@ export default function WorkoutSettingsScreen() {
       <SettingsHeader>
         <Trans>Logging</Trans>
       </SettingsHeader>
+      <SettingRow
+        id="loggingStyle"
+        icon="format-list-checks"
+        title={<Trans>Logging style</Trans>}
+        value={loggingStyleLabels[loggingStyle]}
+        onPress={() =>
+          showOverlay(
+            "loggingStyle",
+            loggingStyle,
+            "radio",
+            [...LOGGING_STYLES],
+            loggingStyleLabels,
+          )
+        }
+      />
       <SettingRow
         id="weightIncrement"
         icon="plus"

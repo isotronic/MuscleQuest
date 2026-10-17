@@ -173,6 +173,9 @@ export interface Settings {
   weekStartsOnPrevious?: string;
   /** "YYYY-MM-DD" the last change took effect; "" when there is none. */
   weekStartsOnFrom?: string;
+  /** How a live session logs sets: "focus" (one at a time, the default) or
+   * "list". Unset reads as focus. */
+  loggingStyle?: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {

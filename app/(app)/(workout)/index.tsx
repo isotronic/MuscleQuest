@@ -24,12 +24,7 @@ import {
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import {
-  router,
-  Stack,
-  useFocusEffect,
-  useLocalSearchParams,
-} from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { AppIcon, AppIconButton } from "@/components/ui";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
 import {
@@ -55,10 +50,7 @@ import {
   createStandaloneWorkout,
   linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
-import {
-  cancelRestNotifications,
-  scheduleRestNotificationWithCancellation,
-} from "@/utils/restNotification";
+import { cancelRestNotifications } from "@/utils/restNotification";
 import {
   buildCompletedExercises,
   unsavedSetNotes,
@@ -67,15 +59,6 @@ import { resolveWorkoutDuration } from "@/utils/staleWorkout";
 import { savedWorkoutSummaryParams } from "@/utils/resumeWorkout";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserExercise } from "@/store/workoutStore";
-import {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from "react-native-reanimated";
-import { useTimer } from "react-timer-hook";
-import { useRestTimerResync } from "@/hooks/useRestTimerResync";
-import { usePauseWhenRestEndsEarly } from "@/hooks/usePauseWhenRestEndsEarly";
-import { useSoundStore } from "@/store/soundStore";
 import RestTimerOverlay from "@/components/RestTimerOverlay";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
@@ -92,8 +75,12 @@ import { sessionSupportsProgression } from "@/utils/progressionEligibility";
 import { useSessionPRs } from "@/hooks/useSessionPRs";
 import { instanceName } from "@/utils/exerciseInstance";
 import { useCompleteSet } from "@/hooks/useCompleteSet";
-import { useSubmitFeedbackPrompt } from "@/hooks/useSubmitFeedbackPrompt";
-import ExerciseFeedbackCard from "@/components/ExerciseFeedbackCard";
+import { useRestTimerControls } from "@/hooks/useRestTimerControls";
+import { loggingStyleOf } from "@/utils/loggingStyle";
+import {
+  QueuedFeedbackCard,
+  useHasQueuedFeedback,
+} from "@/components/workout/QueuedFeedbackCard";
 import {
   OverviewSetRows,
   SupersetRoundRows,
@@ -146,9 +133,6 @@ export default function WorkoutOverviewScreen() {
     setSessionNote,
     setNotes,
     timerRunning,
-    timerExpiry,
-    stopTimer,
-    startTimer,
     feedbackSubmittedUweIds,
     recoveryCheckInShown,
     markRecoveryCheckInShown,
@@ -166,9 +150,7 @@ export default function WorkoutOverviewScreen() {
   );
   const { mutate: submitRecovery } = useRecoveryCheckInMutation();
   // A set row finishing an exercise queues its feedback card here too.
-  const submitFeedbackPrompt = useSubmitFeedbackPrompt();
-  const activeFeedbackPrompt = useActiveWorkoutStore((s) => s.feedbackQueue[0]);
-  const skipFeedbackPrompt = useActiveWorkoutStore((s) => s.skipFeedbackPrompt);
+  const hasQueuedFeedback = useHasQueuedFeedback();
 
   useEffect(() => {
     if (
@@ -213,6 +195,7 @@ export default function WorkoutOverviewScreen() {
   );
 
   const weightUnit = settings?.weightUnit || "kg";
+  const loggingStyle = loggingStyleOf(settings);
   const lbsStep = useMemo(
     () =>
       smallestLoadStep(parsePlateInventory(settings?.plateInventoryLbs, "lbs")),
@@ -309,95 +292,7 @@ export default function WorkoutOverviewScreen() {
   useKeepScreenOn();
   useWorkoutImmersiveMode();
 
-  const parsedIncrement = parseInt(settings?.restTimerIncrement || "15", 10);
-  const restTimerIncrement =
-    Number.isFinite(parsedIncrement) && parsedIncrement > 0
-      ? parsedIncrement
-      : 15;
-  const buttonSize = settings
-    ? settings.buttonSize === "Standard"
-      ? 40
-      : settings.buttonSize === "Large"
-        ? 60
-        : 80
-    : 40;
-  const { playSound, triggerVibration } = useSoundStore();
-
-  const isFocusedRef = useRef(true);
-  useFocusEffect(
-    useCallback(() => {
-      isFocusedRef.current = true;
-      return () => {
-        isFocusedRef.current = false;
-      };
-    }, []),
-  );
-
-  const expiryTimestampRef = useRef<Date | null>(null);
-  const timerTranslateY = useSharedValue(timerRunning ? 0 : 200);
-  const timerAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: timerTranslateY.value }],
-  }));
-
-  const { seconds, minutes, restart, pause } = useTimer({
-    expiryTimestamp: timerExpiry || new Date(),
-    autoStart: timerRunning,
-    onExpire: () => {
-      stopTimer();
-      if (isFocusedRef.current) {
-        if (settings?.restTimerSound === "true") void playSound();
-        if (settings?.restTimerVibration === "true") triggerVibration();
-      }
-    },
-  });
-
-  useRestTimerResync(restart);
-  usePauseWhenRestEndsEarly(pause);
-
-  useEffect(() => {
-    timerTranslateY.value = withTiming(timerRunning ? 0 : 200, {
-      duration: 300,
-    });
-  }, [timerRunning, timerTranslateY]);
-
-  useEffect(() => {
-    if (timerRunning && timerExpiry) {
-      const time = new Date(timerExpiry);
-      expiryTimestampRef.current = time;
-      restart(time);
-    }
-  }, [timerRunning, timerExpiry, restart]);
-
-  const skipRest = () => {
-    const store = useActiveWorkoutStore.getState();
-    store.endRestEarly();
-    void cancelRestNotifications();
-    // The next set starts now, as it would have when the rest ran out.
-    if (!store.currentSetStartedAt) store.setCurrentSetStartedAt(new Date());
-  };
-
-  const adjustTimerOverview = async (deltaSeconds: number) => {
-    const currentRemaining = expiryTimestampRef.current
-      ? Math.max(
-          0,
-          Math.round(
-            (expiryTimestampRef.current.getTime() - Date.now()) / 1000,
-          ),
-        )
-      : minutes * 60 + seconds;
-    const newRemaining = Math.max(0, currentRemaining + deltaSeconds);
-    const newExpiry = new Date();
-    newExpiry.setSeconds(newExpiry.getSeconds() + newRemaining);
-    expiryTimestampRef.current = newExpiry;
-    startTimer(newExpiry);
-    restart(newExpiry);
-    await scheduleRestNotificationWithCancellation(
-      newRemaining,
-      t`Rest Timer Finished!`,
-      t`Time to do your next set!`,
-      "rest-timer1",
-    );
-  };
+  const restTimer = useRestTimerControls();
 
   const [timerHeight, setTimerHeight] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
@@ -553,17 +448,24 @@ export default function WorkoutOverviewScreen() {
       setLoadingExerciseIndex(index);
       setIsNavigating(true);
 
-      router.push({
-        pathname: "/(app)/(workout)/workout-session",
-        params: { selectedExerciseIndex: index },
-      });
+      router.push(
+        loggingStyle === "list"
+          ? {
+              pathname: "/(app)/(workout)/exercise-list",
+              params: { exerciseIndex: index },
+            }
+          : {
+              pathname: "/(app)/(workout)/workout-session",
+              params: { selectedExerciseIndex: index },
+            },
+      );
 
       setTimeout(() => {
         setLoadingExerciseIndex(null);
         setIsNavigating(false);
       }, 500);
     },
-    [isNavigating],
+    [isNavigating, loggingStyle],
   );
 
   // Open set lists, by the exercise's stable key; not persisted.
@@ -1176,17 +1078,6 @@ export default function WorkoutOverviewScreen() {
     );
   }
 
-  const feedbackCard = activeFeedbackPrompt ? (
-    <ExerciseFeedbackCard
-      key={activeFeedbackPrompt.userWorkoutExerciseId}
-      prompt={activeFeedbackPrompt}
-      onSubmit={(payload) =>
-        void submitFeedbackPrompt(activeFeedbackPrompt, payload)
-      }
-      onSkip={skipFeedbackPrompt}
-    />
-  ) : null;
-
   return (
     <ThemedView>
       {isSaving && (
@@ -1321,8 +1212,10 @@ export default function WorkoutOverviewScreen() {
         }
       >
         {/* In the rest overlay while resting, otherwise at the top. */}
-        {feedbackCard && !timerRunning && (
-          <View style={styles.feedbackCard}>{feedbackCard}</View>
+        {hasQueuedFeedback && !timerRunning && (
+          <View style={styles.feedbackCard}>
+            <QueuedFeedbackCard />
+          </View>
         )}
         {workout.exercises.length > 0 && durationEstimate != null && (
           <ThemedText style={styles.durationEstimate}>
@@ -1382,22 +1275,22 @@ export default function WorkoutOverviewScreen() {
         </Button>
       </ScrollView>
       <RestTimerOverlay
-        minutes={minutes}
-        seconds={seconds}
-        increment={restTimerIncrement}
+        minutes={restTimer.minutes}
+        seconds={restTimer.seconds}
+        increment={restTimer.increment}
         timerRunning={timerRunning}
-        animStyle={timerAnimStyle}
-        buttonSize={buttonSize}
-        onAdjust={(delta) => void adjustTimerOverview(delta)}
-        onSkip={skipRest}
+        animStyle={restTimer.animStyle}
+        buttonSize={restTimer.buttonSize}
+        onAdjust={(delta) => void restTimer.adjust(delta)}
+        onSkip={restTimer.skip}
         onLayout={(e) => setTimerHeight(e.nativeEvent.layout.height)}
         topContent={
-          timerRunning && feedbackCard ? (
+          timerRunning && hasQueuedFeedback ? (
             <ScrollView
               style={styles.feedbackCardScroll}
               keyboardShouldPersistTaps="handled"
             >
-              {feedbackCard}
+              <QueuedFeedbackCard />
             </ScrollView>
           ) : null
         }
