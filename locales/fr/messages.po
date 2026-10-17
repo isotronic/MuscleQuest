@@ -2197,7 +2197,7 @@ msgstr "Ajouter {0}"
 msgid "Add a pair of {0} {weightUnit} plates"
 msgstr "Ajouter une paire de disques de {0} {weightUnit}"
 
-#: components/Onboarding.tsx:70
+#: components/Onboarding.tsx:84
 msgid "Add a past session afterwards so your history and streak stay complete."
 msgstr "Ajoute une séance passée après coup pour garder ton historique et ta série complets."
 
@@ -3513,7 +3513,7 @@ msgid "Customize"
 msgstr "Personnaliser"
 
 #: app/(app)/(tabs)/(stats)/index.tsx:250
-#: components/Onboarding.tsx:78
+#: components/Onboarding.tsx:92
 msgid "Customize stats"
 msgstr "Personnaliser les statistiques"
 
@@ -3521,7 +3521,7 @@ msgstr "Personnaliser les statistiques"
 msgid "Customize Stats"
 msgstr "Personnaliser les statistiques"
 
-#: components/Onboarding.tsx:85
+#: components/Onboarding.tsx:99
 #: utils/settingsIndex.ts:17
 msgid "Data and backup"
 msgstr "Données et sauvegarde"
@@ -4698,6 +4698,10 @@ msgstr "Prépare-toi..."
 msgid "Get started"
 msgstr "Commencer"
 
+#: components/Onboarding.tsx:76
+msgid "Get weight suggestions"
+msgstr "Recevoir des suggestions de charge"
+
 #: app/(app)/(workout)/index.tsx:1092
 #~ msgid "Give it a name to save it as a reusable workout."
 #~ msgstr "Donne-lui un nom pour le sauvegarder comme entraînement réutilisable."
@@ -4855,7 +4859,7 @@ msgstr "Masquer"
 msgid "Hide metric"
 msgstr "Masquer la mesure"
 
-#: components/Onboarding.tsx:151
+#: components/Onboarding.tsx:165
 msgid "Hide tips"
 msgstr "Masquer les conseils"
 
@@ -5084,7 +5088,7 @@ msgstr "Conserver"
 msgid "Keep {entered}"
 msgstr "Garder {entered}"
 
-#: components/Onboarding.tsx:83
+#: components/Onboarding.tsx:97
 msgid "Keep a backup"
 msgstr "Garde une sauvegarde"
 
@@ -5374,11 +5378,15 @@ msgstr "Saisir les mesures"
 #~ msgstr "Enregistrer un seul côté pour les exercices unilatéraux"
 
 #: app/(app)/_layout.tsx:87
-#: components/Onboarding.tsx:71
+#: components/Onboarding.tsx:85
 #: components/stats/widgets/HistoryWidget.tsx:35
 #: components/WorkoutPickerModal.tsx:209
 msgid "Log past workout"
 msgstr "Enregistrer un entraînement passé"
+
+#: components/Onboarding.tsx:62
+msgid "Log sets your way"
+msgstr "Saisis tes séries à ta façon"
 
 #: components/exercise/ExerciseProgressTab.tsx:89
 msgid "Log this exercise twice to see a trend"
@@ -5425,7 +5433,7 @@ msgstr "bas des jambes"
 msgid "Machine load increment"
 msgstr "Incrément de charge pour les machines"
 
-#: components/Onboarding.tsx:76
+#: components/Onboarding.tsx:90
 msgid "Make Stats yours"
 msgstr "Personnalise tes stats"
 
@@ -5706,7 +5714,7 @@ msgstr "Prochaine séance"
 msgid "Next set"
 msgstr "Série suivante"
 
-#: components/Onboarding.tsx:197
+#: components/Onboarding.tsx:211
 msgid "Next tip"
 msgstr "Conseil suivant"
 
@@ -6145,7 +6153,7 @@ msgstr "Options pour {0}"
 msgid "Options for set {0}"
 msgstr "Options pour la série {0}"
 
-#: components/Onboarding.tsx:135
+#: components/Onboarding.tsx:149
 msgid "Or start a quick workout"
 msgstr "Ou lance une séance rapide"
 
@@ -6257,7 +6265,7 @@ msgstr "Choisis un programme ou lance un entraînement rapide."
 msgid "Pick a plan to follow, or start training right away."
 msgstr "Choisis un plan à suivre ou commence à t'entraîner tout de suite."
 
-#: components/Onboarding.tsx:119
+#: components/Onboarding.tsx:133
 msgid "Pick a plan to get started"
 msgstr "Choisis un programme pour commencer"
 
@@ -6461,9 +6469,17 @@ msgstr "Progression"
 msgid "Progression"
 msgstr "Progression"
 
+#: components/Onboarding.tsx:78
+msgid "Progression settings"
+msgstr "Paramètres de progression"
+
 #: constants/HelpData.ts:184
 msgid "Progression Suggestions"
 msgstr "Suggestions de progression"
+
+#: components/Onboarding.tsx:77
+msgid "Progression suggests when to add weight or reps, from a quick question after each exercise. Nothing changes until you accept."
+msgstr "La progression te suggère quand ajouter du poids ou des répétitions, grâce à une question rapide après chaque exercice. Rien ne change tant que tu n'acceptes pas."
 
 #: app/(app)/friend-profile.tsx:208
 msgid "PRs"
@@ -7084,7 +7100,11 @@ msgstr "Muscles secondaires :"
 msgid "Seconds"
 msgstr "Secondes"
 
-#: components/Onboarding.tsx:62
+#: components/Onboarding.tsx:63
+msgid "See all of an exercise's sets in one list, or keep one set at a time. Switch in the workout menu (⋮) or in Settings."
+msgstr "Vois toutes les séries d'un exercice dans une liste, ou garde une série à la fois. Change cela dans le menu de la séance (⋮) ou dans les Paramètres."
+
+#: components/Onboarding.tsx:69
 msgid "See your progress"
 msgstr "Vois tes progrès"
 
@@ -7440,7 +7460,7 @@ msgstr "Afficher les conseils sur l'accueil"
 msgid "Show trend line"
 msgstr "Afficher la courbe de tendance"
 
-#: components/Onboarding.tsx:77
+#: components/Onboarding.tsx:91
 msgid "Show, hide and reorder the cards on the Stats tab."
 msgstr "Affiche, masque et réorganise les cartes de l’onglet Stats."
 
@@ -7457,7 +7477,7 @@ msgstr "Se connecter"
 msgid "Sign In"
 msgstr "Se connecter"
 
-#: components/Onboarding.tsx:84
+#: components/Onboarding.tsx:98
 msgid "Sign in to back up your training and bring it to a new phone."
 msgstr "Connecte-toi pour sauvegarder tes entraînements et les retrouver sur un nouveau téléphone."
 
@@ -7752,7 +7772,7 @@ msgstr "Stats et historique"
 msgid "Stats Options"
 msgstr "Options stats"
 
-#: components/Onboarding.tsx:63
+#: components/Onboarding.tsx:70
 msgid "Stats shows your history, muscle split and how each exercise improves."
 msgstr "Les statistiques montrent ton historique, ta répartition musculaire et la progression de chaque exercice."
 
@@ -8315,11 +8335,11 @@ msgstr "minuteur, compte à rebours, exercice chronométré"
 
 #. placeholder {0}: tipIndex + 1
 #. placeholder {1}: TIPS.length
-#: components/Onboarding.tsx:185
+#: components/Onboarding.tsx:199
 msgid "Tip {0} of {1}"
 msgstr "Conseil {0} sur {1}"
 
-#: components/Onboarding.tsx:145
+#: components/Onboarding.tsx:159
 msgid "Tips"
 msgstr "Conseils"
 
@@ -8512,7 +8532,7 @@ msgstr "Le type de suivi est obligatoire."
 msgid "Trained or not"
 msgstr "Entraîné ou non"
 
-#: components/Onboarding.tsx:69
+#: components/Onboarding.tsx:83
 msgid "Trained without the app?"
 msgstr "Entraîné sans l’appli ?"
 
@@ -8883,7 +8903,7 @@ msgstr "Voir l'option de décharge"
 msgid "View Details"
 msgstr "Voir les détails"
 
-#: components/Onboarding.tsx:64
+#: components/Onboarding.tsx:71
 msgid "View stats"
 msgstr "Voir les stats"
 
@@ -9269,6 +9289,10 @@ msgstr "Rappels d'entraînement"
 #: constants/HelpData.ts:334
 msgid "Workout Reminders"
 msgstr "Rappels d'entraînement"
+
+#: components/Onboarding.tsx:64
+msgid "Workout settings"
+msgstr "Paramètres de séance"
 
 #: constants/HelpData.ts:113
 msgid "Workout Summary"
