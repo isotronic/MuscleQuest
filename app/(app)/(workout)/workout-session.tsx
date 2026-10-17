@@ -14,7 +14,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Vibration,
   View,
 } from "react-native";
 import { Trans } from "@lingui/react/macro";
@@ -53,26 +52,16 @@ import { Cues } from "@/components/Cues";
 import { NoteSheet, type NoteSheetHandle } from "@/components/NoteSheet";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
 import { resolvedTrackingType } from "@/utils/resolvedTrackingType";
-import {
-  checkWeightPlausibility,
-  heaviestWorkingWeight,
-} from "@/utils/weightPlausibility";
-import { confirmImplausibleWeight } from "@/utils/confirmImplausibleWeight";
 import { computeSteppedWeight } from "@/utils/weightStep";
-import {
-  buildExerciseMap,
-  findLastAvailableSetData as findLastAvailableSetDataUtil,
-} from "@/utils/carryOverLookup";
-import { instanceName, rowIdentity } from "@/utils/exerciseInstance";
+import { instanceName } from "@/utils/exerciseInstance";
 import { UserExercise } from "@/store/workoutStore";
 import ExerciseFeedbackCard from "@/components/ExerciseFeedbackCard";
-import type { FeedbackPrompt } from "@/utils/feedbackPrompts";
 import { useSubmitFeedbackPrompt } from "@/hooks/useSubmitFeedbackPrompt";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useProgressionStateQuery } from "@/hooks/useProgressionStateQuery";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
-import { sessionSupportsProgression } from "@/utils/progressionEligibility";
 import { useSessionPRs } from "@/hooks/useSessionPRs";
+import { useCompleteSet, type PreparedSet } from "@/hooks/useCompleteSet";
 import { isSessionPR } from "@/utils/sessionPRs";
 import type { PreviousSet } from "@/components/LastTimeLine";
 import type { CarryOverMatch } from "@/utils/carryOverLookup";
@@ -86,7 +75,6 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { radii } from "@/theme";
-import { displayToKg } from "@/utils/weightUnits";
 import { formatFromTotalSeconds } from "@/utils/utility";
 
 // Reanimated 4: Animated.View types don't include children in strict TS
@@ -221,7 +209,6 @@ function getPrevSlotData(
 }
 
 // Brief, so it reads as a cue rather than the rest timer's alarm.
-const PR_VIBRATION = [0, 60, 80, 60];
 
 /** A carried-over set as the "Last time" line shows it. */
 const toPreviousSet = (match: CarryOverMatch | null): PreviousSet | null =>
@@ -356,8 +343,6 @@ export default function WorkoutSessionScreen() {
     currentExerciseIndex,
     currentSetIndices,
     weightAndReps,
-    previousWorkoutData,
-    globalHistoryData,
     completedSets,
     setCurrentExerciseIndex,
     setCurrentSetIndex,
@@ -379,7 +364,6 @@ export default function WorkoutSessionScreen() {
     suggestedWeightPrefills,
     setNotes,
     setSetNote,
-    isQuickWorkout,
   } = useActiveWorkoutStore(
     useShallow((s) => ({
       workout: s.workout,
@@ -387,8 +371,6 @@ export default function WorkoutSessionScreen() {
       currentExerciseIndex: s.currentExerciseIndex,
       currentSetIndices: s.currentSetIndices,
       weightAndReps: s.weightAndReps,
-      previousWorkoutData: s.previousWorkoutData,
-      globalHistoryData: s.globalHistoryData,
       completedSets: s.completedSets,
       setCurrentExerciseIndex: s.setCurrentExerciseIndex,
       setCurrentSetIndex: s.setCurrentSetIndex,
@@ -410,10 +392,9 @@ export default function WorkoutSessionScreen() {
       setNotes: s.setNotes,
       setSetNote: s.setSetNote,
       suggestedWeightPrefills: s.suggestedWeightPrefills,
-      isQuickWorkout: s.isQuickWorkout,
     })),
   );
-  const { prs: sessionPRs, prsWithSetCompleted } = useSessionPRs();
+  const { prs: sessionPRs } = useSessionPRs();
 
   const {
     data: settings,
@@ -457,16 +438,32 @@ export default function WorkoutSessionScreen() {
         : 80
     : 40;
 
-  const { selectedExerciseIndex } = useLocalSearchParams();
+  const { selectedExerciseIndex, selectedSetIndex } = useLocalSearchParams();
 
   const selectedExerciseIndexApplied = useRef(false);
   useEffect(() => {
     if (selectedExerciseIndexApplied.current) return;
     if (workout && selectedExerciseIndex !== undefined) {
       selectedExerciseIndexApplied.current = true;
-      setCurrentExerciseIndex(Number(selectedExerciseIndex));
+      const exerciseIndex = Number(selectedExerciseIndex);
+      setCurrentExerciseIndex(exerciseIndex);
+      // A set row on the overview opens that set, done or not.
+      const setIndex = Number(selectedSetIndex);
+      if (
+        selectedSetIndex !== undefined &&
+        setIndex >= 0 &&
+        setIndex < (workout.exercises[exerciseIndex]?.sets.length ?? 0)
+      ) {
+        setCurrentSetIndex(exerciseIndex, setIndex);
+      }
     }
-  }, [selectedExerciseIndex, setCurrentExerciseIndex, workout]);
+  }, [
+    selectedExerciseIndex,
+    selectedSetIndex,
+    setCurrentExerciseIndex,
+    setCurrentSetIndex,
+    workout,
+  ]);
 
   const currentExercise = workout?.exercises[currentExerciseIndex];
   const currentSetIndex = currentSetIndices[currentExerciseIndex] || 0;
@@ -482,48 +479,7 @@ export default function WorkoutSessionScreen() {
       ? completedSets[currentExerciseIndex][currentSetIndex]
       : false;
 
-  const prevExercisesByExerciseId = useMemo(
-    () => buildExerciseMap(previousWorkoutData),
-    [previousWorkoutData],
-  );
-
-  const globalExercisesByExerciseId = useMemo(
-    () => buildExerciseMap(globalHistoryData),
-    [globalHistoryData],
-  );
-
-  const alwaysUseGlobalHistory = settings?.alwaysUseGlobalHistory === "true";
-
-  const findLastAvailableSetData = (
-    exerciseId: number,
-    setIndex: number,
-    exercisePosition?: number,
-  ) => {
-    const targetSets =
-      exercisePosition !== undefined
-        ? (workout?.exercises[exercisePosition]?.sets ?? [])
-        : (workout?.exercises.find((e) => e.exercise_id === exerciseId)?.sets ??
-          []);
-    const isWarmup = targetSets[setIndex]?.isWarmup ?? false;
-    const ordinal = targetSets
-      .slice(0, setIndex)
-      .filter((s) => (s.isWarmup ?? false) === isWarmup).length;
-
-    return findLastAvailableSetDataUtil({
-      exerciseId,
-      isWarmup,
-      ordinal,
-      exercisePosition,
-      row:
-        exercisePosition !== undefined && workout
-          ? rowIdentity(workout.exercises, exercisePosition)
-          : undefined,
-      previousWorkoutData,
-      prevExercisesByExerciseId,
-      globalExercisesByExerciseId,
-      alwaysUseGlobalHistory,
-    });
-  };
+  const { findLastAvailableSetData, prepareSet } = useCompleteSet();
 
   const previousWorkoutSetData = findLastAvailableSetData(
     currentExercise?.exercise_id || 0,
@@ -1238,255 +1194,27 @@ export default function WorkoutSessionScreen() {
   const isFirstInSuperset =
     isInSuperset && currentExerciseIndex < supersetPartnerIndex;
 
-  const buildFeedbackContextForExercise = (
-    exIdx: number,
-    simulatedCompleted: typeof completedSets,
-  ): FeedbackPrompt | null => {
-    if (!workout) return null;
-    const exercise = workout.exercises[exIdx];
-    if (!exercise?.id) return null;
-    // Once feedback is submitted for this exercise, don't queue it again this
-    // session (e.g. if the "all sets done" check below re-evaluates true via
-    // a superset partner's later sets).
-    if (feedbackSubmittedUweIds.includes(exercise.id)) return null;
-
-    const trackingType = resolvedTrackingType(exercise);
-
-    // Skip feedback for unsupported tracking types
-    if (trackingType === "time" || trackingType === "distance") return null;
-
-    // Read live: a confirmed weight correction lands in the store after this
-    // render's snapshot was taken.
-    const liveWeightAndReps = useActiveWorkoutStore.getState().weightAndReps;
-    const workingSets = exercise.sets
-      .map((set, idx) => ({ set, idx }))
-      .filter(({ set }) => !set.isWarmup && !set.isDropSet);
-
-    if (workingSets.length === 0) return null;
-
-    // Skip feedback for reps-only exercises with no defined range
-    if (trackingType === "reps") {
-      const hasRange = workingSets.some(
-        ({ set }) =>
-          set.repsMin != null &&
-          set.repsMax != null &&
-          set.repsMin !== set.repsMax,
-      );
-      if (!hasRange) return null;
-    }
-
-    // Gate on every non-warmup set, including drop sets, so the sheet waits
-    // until the whole exercise (drop sets included) is finished. The
-    // performance/rep calculations below still use workingSets only, since
-    // drop sets aren't part of the progression target.
-    const allNonWarmupSets = exercise.sets
-      .map((set, idx) => ({ set, idx }))
-      .filter(({ set }) => !set.isWarmup);
-    const allSetsDone = allNonWarmupSets.every(
-      ({ idx }) => simulatedCompleted[exIdx]?.[idx] === true,
-    );
-    if (!allSetsDone) return null;
-
-    // Use repsMin (the floor you must clear to be "on target") rather than
-    // repsMax (the ceiling), so there's room between hitting the target and
-    // maxing out the range for a reps-increase suggestion instead of jumping
-    // straight to a load increase.
-    const targetReps = workingSets.reduce(
-      (sum, { set }) => sum + (set.repsMin ?? set.repsMax ?? 0),
-      0,
-    );
-    const actualReps = workingSets.reduce((sum, { idx }) => {
-      const r = parseInt(liveWeightAndReps[exIdx]?.[idx]?.reps ?? "0", 10);
-      return sum + (isNaN(r) ? 0 : r);
-    }, 0);
-    const performanceRatio =
-      targetReps > 0 ? Math.min(actualReps / targetReps, 1.5) : 1.0;
-
-    const maxWeight = workingSets
-      .map(({ idx }) =>
-        parseFloat(liveWeightAndReps[exIdx]?.[idx]?.weight ?? ""),
-      )
-      .filter((w) => !isNaN(w));
-
-    const completedRepsPerSet = workingSets.map(({ idx }) => {
-      const r = parseInt(liveWeightAndReps[exIdx]?.[idx]?.reps ?? "", 10);
-      return isNaN(r) ? null : r;
-    });
-
-    return {
-      userWorkoutExerciseId: exercise.id,
-      exerciseName: instanceName(workout.exercises, exIdx, exercise.name),
-      performanceRatio,
-      exerciseContext: {
-        exerciseId: exercise.exercise_id,
-        trackingType,
-        equipment: exercise.equipment,
-        currentSets: exercise.sets,
-        // The inputs are in the display unit; the engine works in kg.
-        recentWorkingWeight:
-          maxWeight.length > 0
-            ? displayToKg(Math.max(...maxWeight), settings?.weightUnit || "kg")
-            : null,
-        completedRepsPerSet,
-      },
-    };
-  };
-
-  const buildFeedbackContexts = (): FeedbackPrompt[] => {
-    // Deload stays plan-only: isCurrentWeekDeload is false without a plan.
-    if (
-      !progressionSettings.enabled ||
-      !sessionSupportsProgression({
-        workoutId: activeWorkout?.workoutId,
-        isQuickWorkout,
-      }) ||
-      isCurrentWeekDeload
-    )
-      return [];
-
-    const simulatedCompleted = {
-      ...completedSets,
-      [currentExerciseIndex]: {
-        ...(completedSets[currentExerciseIndex] || {}),
-        [currentSetIndex]: true,
-      },
-    };
-
-    if (!isInSuperset) {
-      const ctx = buildFeedbackContextForExercise(
-        currentExerciseIndex,
-        simulatedCompleted,
-      );
-      return ctx ? [ctx] : [];
-    }
-
-    // Superset: only collect feedback once BOTH exercises have all working sets
-    // done. Show first-in-superset first, then second, so the user answers in
-    // the order they trained.
-    const firstIdx = Math.min(currentExerciseIndex, supersetPartnerIndex);
-    const secondIdx = Math.max(currentExerciseIndex, supersetPartnerIndex);
-    const ctxFirst = buildFeedbackContextForExercise(
-      firstIdx,
-      simulatedCompleted,
-    );
-    const ctxSecond = buildFeedbackContextForExercise(
-      secondIdx,
-      simulatedCompleted,
-    );
-    if (!ctxFirst || !ctxSecond) return [];
-    return [ctxFirst, ctxSecond];
-  };
-
-  // Weights the user already confirmed this session, per exercise, so the
-  // same entry is not questioned twice.
-  const confirmedWeightsRef = useRef(new Set<string>());
-
   const handleCompleteSet = () => {
     if (!currentExercise || !currentSet) {
       return;
     }
     if (currentSetCompleted) return;
     if (outgoingSnapshot || isTransitioning.value) return;
-
-    const trackingType = resolvedTrackingType(currentExercise);
-    const enteredWeight = parseFloat(weight);
-    const confirmKey = `${currentExercise.exercise_id}:${enteredWeight}`;
-    if (
-      (trackingType === "weight" || trackingType === "assisted") &&
-      !confirmedWeightsRef.current.has(confirmKey)
-    ) {
-      const reference = heaviestWorkingWeight([
-        ...(prevExercisesByExerciseId.get(currentExercise.exercise_id) ?? []),
-        ...(globalExercisesByExerciseId.get(currentExercise.exercise_id) ?? []),
-      ]);
-      const weightUnit = settings?.weightUnit || "kg";
-      const check = checkWeightPlausibility({
-        weight: enteredWeight,
-        reference,
-        weightUnit,
-      });
-      if (check.implausible) {
-        confirmImplausibleWeight({
-          weight: enteredWeight,
-          suggestion: check.suggestion,
-          reference,
-          weightUnit,
-          onUse: (corrected) => {
-            updateWeightAndReps(
-              currentExerciseIndex,
-              currentSetIndex,
-              String(corrected),
-              reps,
-              time,
-            );
-            completeSet(String(corrected));
-          },
-          onKeep: () => {
-            confirmedWeightsRef.current.add(confirmKey);
-            completeSet();
-          },
-        });
-        return;
-      }
-    }
-
-    completeSet();
+    prepareSet(currentExerciseIndex, currentSetIndex, completeSet);
   };
 
-  const completeSet = (weightOverride?: string) => {
+  // Moves on from the set prepareSet just wrote: animates to the next set, or
+  // hands over to nextSet when this screen is about to close.
+  const completeSet = ({
+    weight: weightStr,
+    reps: repsStr,
+    time: timeStr,
+    distance: distanceStr,
+    isPR,
+    feedbackContexts,
+  }: PreparedSet) => {
     if (!currentExercise || !currentSet) {
       return;
-    }
-
-    // Capture feedback contexts before any state changes
-    const feedbackContexts = buildFeedbackContexts();
-
-    const weightStr =
-      weightOverride ??
-      weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.weight ??
-      previousWorkoutSetData?.weight?.toString() ??
-      "";
-    const repsStr =
-      weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.reps ??
-      previousWorkoutSetData?.reps?.toString() ??
-      "";
-    const timeStr =
-      weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.time ??
-      previousWorkoutSetData?.time?.toString() ??
-      "";
-    const distanceStr =
-      weightAndReps[currentExerciseIndex]?.[currentSetIndex]?.distance ??
-      previousWorkoutSetData?.distance?.toString() ??
-      "";
-
-    const weightInKg = parseFloat(weightStr);
-    const validWeightInKg = isNaN(weightInKg) ? 0 : weightInKg;
-
-    const repsNum = parseInt(repsStr);
-    const validRepsNum = isNaN(repsNum) ? 0 : repsNum;
-
-    updateWeightAndReps(
-      currentExerciseIndex,
-      currentSetIndex,
-      validWeightInKg.toString(),
-      validRepsNum.toString(),
-      timeStr,
-      distanceStr,
-    );
-
-    // Judged on the values just written, before the set is marked complete.
-    const isPR = isSessionPR(
-      prsWithSetCompleted(currentExerciseIndex, currentSetIndex),
-      currentExerciseIndex,
-      currentSetIndex,
-    );
-    if (isPR) Vibration.vibrate(PR_VIBRATION);
-
-    // Completing a set during a rest ends that rest; any rest for this set
-    // starts below.
-    if (useActiveWorkoutStore.getState().timerRunning) {
-      useActiveWorkoutStore.getState().endRestEarly();
-      void cancelRestNotifications();
     }
 
     // Only animate when nextSet() will keep this screen mounted.
@@ -1582,8 +1310,8 @@ export default function WorkoutSessionScreen() {
       ),
       currentSetIndex,
       totalSets: currentExercise.sets.length,
-      weight: validWeightInKg.toString(),
-      reps: validRepsNum.toString(),
+      weight: weightStr,
+      reps: repsStr,
       time: timeStr,
       distance: distanceStr,
       weightIncrement,

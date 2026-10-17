@@ -12,6 +12,7 @@ export type DecimalInputProps = Omit<
   value: string;
   /** Receives the typed text as a canonical decimal string. */
   onChangeValue: (canonical: string) => void;
+  ref?: React.Ref<TextInput>;
 };
 
 /**
@@ -23,11 +24,13 @@ export function DecimalInput({
   value,
   onChangeValue,
   accessibilityLabel,
+  ref,
   ...rest
 }: DecimalInputProps) {
   return (
     <TextInput
       {...rest}
+      ref={ref}
       accessibilityLabel={accessibilityLabel}
       value={toDisplayDecimal(value)}
       onChangeText={(text) => onChangeValue(toCanonicalDecimal(text))}

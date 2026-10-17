@@ -40,7 +40,7 @@ const isWeightType = (trackingType: string) =>
  * What the set was last time, as shown and as spoken, or null when history
  * has nothing to show for this tracking type.
  */
-function describePreviousSet(
+export function describePreviousSet(
   previous: PreviousSet,
   trackingType: string,
   weightUnit: string,

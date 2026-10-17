@@ -1,4 +1,5 @@
 import React from "react";
+import { router } from "expo-router";
 import { render, fireEvent } from "@testing-library/react-native";
 import ProgressionOfferCard from "../ProgressionOfferCard";
 
@@ -79,6 +80,18 @@ describe("ProgressionOfferCard", () => {
     });
     expect(queryByText(OFFER)).toBeNull();
     expect(getByText("Open settings")).toBeTruthy();
+  });
+
+  it("explains itself and links to how it works", () => {
+    const { getByText } = render(
+      <ProgressionOfferCard fromSavedWorkout={true} />,
+    );
+    expect(getByText(/Nothing changes until you accept/)).toBeTruthy();
+    fireEvent.press(getByText("How it works"));
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: "/(app)/help",
+      params: { group: "adaptive-progression" },
+    });
   });
 
   it("is not offered again after Turn on", () => {

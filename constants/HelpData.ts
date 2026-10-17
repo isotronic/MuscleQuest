@@ -35,7 +35,7 @@ export const HELP_DATA: GroupData[] = [
         id: "home-screen-weekly-goal",
         icon: "home-outline",
         title: msg`Home Screen & Weekly Goal`,
-        body: msg`The home screen shows your progress toward your weekly training goal, which is the number of days you want to work out each week, set in Settings. A strip at the top tracks how many days you have completed and highlights each completed day; tap a highlighted day to view the workout you logged. Below it, your active plan's workouts are listed with their completion status for the week; tap Start on any workout to begin. Without a weekly schedule, the plan runs in order: the workout after the one you did last comes first, even in a new week. If you are just starting out and have no active plan, a Pick a plan to get started card suggests a few premade plans instead. The card displayed beneath changes with your status: a Resume card appears if a session is in progress, a Rest Day card shows on days with no scheduled workout, and a Workout Done card confirms today's session is complete. When you hit your weekly goal, a Weekly Summary card appears showing total workouts, sets, and volume for the week, plus your streak, which counts the number of consecutive weeks you have met your goal. At the bottom, the Log Measurements card shows your latest body measurement; tap it to log today's values without leaving the screen. If your training history has never been backed up, or your last backup is more than 30 days old, a reminder card appears here so you can back up or sign in on the spot; tap Later to hide it for two weeks.`,
+        body: msg`The home screen shows your progress toward your weekly training goal, which is the number of days you want to work out each week, set in Settings. The week strip at the top highlights each day you trained and counts them, such as 2 of 3 this week; tap a highlighted day to view the workout you logged. Below it, the Today card shows the workout to do next: today's scheduled workout, or without a weekly schedule the one after the workout you did last, even in a new week. On a rest day it says so and shows the next scheduled workout. The card shows how many exercises it has, an estimated duration and when you last did it; tap the card to see the exercises, or tap Start to begin. Once you have trained today, a Workout Done card takes its place, and while a session is in progress a Resume card is shown instead. Quick workout and Choose workout sit right below. Your plan's other workouts are under Other workouts in this plan, with their completion status for the week; tap the header to show or hide them. If you have no active plan, the card offers Explore plans, and if you are just starting out, a Pick a plan to get started card suggests a few premade plans instead. An active plan without workouts offers Add workouts. When you hit your weekly goal, a Weekly Summary card appears showing total workouts, sets, and volume for the week, plus your streak, which counts the number of consecutive weeks you have met your goal. If your training history has never been backed up, or your last backup is more than 30 days old, a reminder card appears so you can back up or sign in on the spot; tap Later to hide it for two weeks. At the bottom, the Log Measurements card shows your latest body measurement; tap it to log today's values without leaving the screen.`,
       },
       {
         id: "plans",
@@ -78,6 +78,7 @@ export const HELP_DATA: GroupData[] = [
             msg`Swipe left/right or use the arrow buttons to move between sets.`,
             msg`Enter your weight and reps, then tap Complete Set.`,
             msg`Drag the handle on any exercise card to reorder exercises mid-session.`,
+            msg`On the workout overview, tap the arrow on an exercise to list its sets. Tap a set to open it, or tap its circle to complete it with the values shown.`,
             msg`For time-based exercises, tap Start Timer. After a short Get Ready countdown, a count-up timer with a progress ring marks your goal time; you can keep going past it.`,
             msg`Tap the menu (⋮) on a set and choose Edit Set to change its rep range or rest time mid-workout.`,
             msg`If you enter a different weight than the one suggested, it carries over to your remaining sets.`,
@@ -88,6 +89,22 @@ export const HELP_DATA: GroupData[] = [
             msg`Leaving the workout overview mid-session asks you to confirm first. Your progress is saved, so you can resume from the home screen.`,
             msg`If you come back to a workout after more than four hours, you're asked whether to resume it or discard it, or, if you have completed at least one set, to finish and save it. Finishing it this way records the duration up to your last logged set.`,
           ],
+        },
+      },
+      {
+        id: "logging-style",
+        icon: "list-outline",
+        title: msg`Logging Style`,
+        body: {
+          lead: msg`Choose how you log sets with Logging style in Settings, under Workout and rest timer: One set at a time, the default, or All sets in a list. During a workout, switch with Show sets as a list or Show one set at a time in the workout menu (⋮) on the overview.`,
+          steps: [
+            msg`With All sets in a list, tapping an exercise on the workout overview shows all its sets at once, each with your last time next to the set number.`,
+            msg`Enter the weight and reps, or the time or distance, then tap the set's check to complete it. The next set is ready to fill in, and the rest timer starts as usual.`,
+            msg`Flags such as Warm-up, Drop Set and To Failure show under the set, and the menu (⋮) on each set has the same options as one set at a time.`,
+            msg`Tap Next to move to the following exercise, or Previous to go back. On the last exercise, tap Back to overview.`,
+            msg`A superset shows both exercises together, with their sets in rounds.`,
+          ],
+          ordered: false,
         },
       },
       {
@@ -128,6 +145,7 @@ export const HELP_DATA: GroupData[] = [
             msg`Select the second exercise to pair it with.`,
             msg`A coloured label identifies which superset each exercise belongs to throughout the app.`,
             msg`Completing a set on one exercise automatically moves you to its superset partner.`,
+            msg`On the workout overview and with the All sets in a list logging style, a superset's sets are shown together by round.`,
           ],
         },
       },
@@ -148,7 +166,7 @@ export const HELP_DATA: GroupData[] = [
         icon: "chatbox-ellipses-outline",
         title: msg`Post-Exercise Feedback`,
         body: {
-          lead: msg`After the last working set of an exercise, a short feedback card appears in the rest timer, or under the set when there is no rest.`,
+          lead: msg`After the last working set of an exercise, a short feedback card appears in the rest timer. Without a rest, it shows under the set, or at the top of the screen if you completed the set from the workout overview or the list of sets.`,
           steps: [
             msg`Tap how it felt: Easy, About right, Hard, or Couldn't finish. One tap sends it.`,
             msg`To report pain, tap Any pain? first, choose Discomfort or Pain, then tap how it felt. With Pain you can note where you felt it.`,
@@ -294,6 +312,7 @@ export const HELP_DATA: GroupData[] = [
           lead: msg`Settings lets you tune units and defaults across the app.`,
           steps: [
             msg`Weight, size, and distance units, your weekly goal, default sets per exercise, default rest time, and the ± weight and rest timer increments used during a session.`,
+            msg`Logging style: One set at a time, or All sets in a list.`,
             msg`Workout button size (Standard, Large, or XLarge), and Keep Screen On to stop the display sleeping mid-workout.`,
             msg`Exercise timer options: the length of the Get Ready countdown, countdown beeps, and a sound when you reach your goal time.`,
             msg`Always use most recent exercise history, to pre-fill sets from the last time you did an exercise in any workout rather than only the same workout.`,

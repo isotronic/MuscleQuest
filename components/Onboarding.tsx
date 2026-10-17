@@ -58,11 +58,25 @@ export const TIPS: Tip[] = [
     route: "/(app)/exercise-library",
   },
   {
+    icon: "format-list-checks",
+    title: msg`Log sets your way`,
+    text: msg`See all of an exercise's sets in one list, or keep one set at a time. Switch in the workout menu (⋮) or in Settings.`,
+    link: msg`Workout settings`,
+    route: "/(app)/settings/workout",
+  },
+  {
     icon: "chart-line",
     title: msg`See your progress`,
     text: msg`Stats shows your history, muscle split and how each exercise improves.`,
     link: msg`View stats`,
     route: "/(app)/(tabs)/(stats)",
+  },
+  {
+    icon: "trending-up",
+    title: msg`Get weight suggestions`,
+    text: msg`Progression suggests when to add weight or reps, from a quick question after each exercise. Nothing changes until you accept.`,
+    link: msg`Progression settings`,
+    route: "/(app)/settings/progression",
   },
   {
     icon: "history",

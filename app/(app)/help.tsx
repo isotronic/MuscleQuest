@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { Divider } from "react-native-paper";
+import { useLocalSearchParams } from "expo-router";
 import { ThemedView } from "@/components/ThemedView";
 import { HELP_DATA, isStepsBody } from "@/constants/HelpData";
 import { AppIcon } from "@/components/ui";
@@ -282,7 +283,12 @@ export default function HelpScreen() {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [query, setQuery] = useState("");
-  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+  // A link can open the screen at one group, e.g. ?group=adaptive-progression.
+  const { group: linkedGroup } = useLocalSearchParams<{ group?: string }>();
+  const [openGroups, setOpenGroups] = useState<Set<string>>(
+    () => new Set(linkedGroup ? [linkedGroup] : []),
+  );
+  const pendingScrollRef = useRef(linkedGroup ?? null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(),
   );
@@ -456,6 +462,13 @@ export default function HelpScreen() {
                 testID={`help-group-${group.id}`}
                 onLayout={(e: { nativeEvent: { layout: { y: number } } }) => {
                   groupOffsets.current[group.id] = e.nativeEvent.layout.y;
+                  if (pendingScrollRef.current === group.id) {
+                    pendingScrollRef.current = null;
+                    scrollRef.current?.scrollTo({
+                      y: e.nativeEvent.layout.y,
+                      animated: false,
+                    });
+                  }
                 }}
               >
                 <GroupHeader

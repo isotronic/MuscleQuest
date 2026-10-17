@@ -4,6 +4,10 @@ import { Linking } from "react-native";
 import HelpScreen from "../help";
 import { HELP_DATA as mockHelpData } from "@/constants/HelpData";
 
+const mockParams: { group?: string } = {};
+jest.mock("expo-router", () => ({
+  useLocalSearchParams: () => mockParams,
+}));
 jest.mock("@lingui/react/macro", () => ({
   Trans: ({ children }: { children: React.ReactNode }) => children,
 }));
@@ -88,6 +92,17 @@ describe("HelpScreen", () => {
     expect(getByTestId("help-group-header-group-a")).toBeTruthy();
     expect(getByTestId("help-group-header-group-b")).toBeTruthy();
     expect(queryByText("Alpha Topic")).toBeNull();
+  });
+
+  it("opens the group a link points to", () => {
+    mockParams.group = "group-b";
+    try {
+      const { getByText, queryByText } = render(<HelpScreen />);
+      expect(getByText("Gamma Topic")).toBeTruthy();
+      expect(queryByText("Alpha Topic")).toBeNull();
+    } finally {
+      delete mockParams.group;
+    }
   });
 
   it("expands a group when its header is tapped", () => {
