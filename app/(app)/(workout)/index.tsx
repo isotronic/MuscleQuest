@@ -76,7 +76,8 @@ import { useSessionPRs } from "@/hooks/useSessionPRs";
 import { instanceName } from "@/utils/exerciseInstance";
 import { useCompleteSet } from "@/hooks/useCompleteSet";
 import { useRestTimerControls } from "@/hooks/useRestTimerControls";
-import { loggingStyleOf } from "@/utils/loggingStyle";
+import { useLoggingStyle } from "@/hooks/useLoggingStyle";
+import { ListViewHint } from "@/components/workout/ListViewHint";
 import {
   QueuedFeedbackCard,
   useHasQueuedFeedback,
@@ -195,7 +196,7 @@ export default function WorkoutOverviewScreen() {
   );
 
   const weightUnit = settings?.weightUnit || "kg";
-  const loggingStyle = loggingStyleOf(settings);
+  const { style: loggingStyle, setStyle: setLoggingStyle } = useLoggingStyle();
   const lbsStep = useMemo(
     () =>
       smallestLoadStep(parsePlateInventory(settings?.plateInventoryLbs, "lbs")),
@@ -1123,6 +1124,17 @@ export default function WorkoutOverviewScreen() {
                 <Menu.Item
                   onPress={() => {
                     handleMenuClose(69420);
+                    setLoggingStyle(loggingStyle === "list" ? "focus" : "list");
+                  }}
+                  title={
+                    loggingStyle === "list"
+                      ? t`Show one set at a time`
+                      : t`Show sets as a list`
+                  }
+                />
+                <Menu.Item
+                  onPress={() => {
+                    handleMenuClose(69420);
                     handleRestartWorkout();
                   }}
                   title={t`Restart`}
@@ -1211,6 +1223,7 @@ export default function WorkoutOverviewScreen() {
           timerRunning ? { paddingBottom: timerHeight } : undefined
         }
       >
+        {workout.exercises.length > 0 && <ListViewHint />}
         {/* In the rest overlay while resting, otherwise at the top. */}
         {hasQueuedFeedback && !timerRunning && (
           <View style={styles.feedbackCard}>

@@ -176,6 +176,8 @@ export interface Settings {
   /** How a live session logs sets: "focus" (one at a time, the default) or
    * "list". Unset reads as focus. */
   loggingStyle?: string;
+  /** "true" once the overview's list view hint was answered. */
+  listViewHintSeen?: string;
 }
 
 export const fetchSettings = async (): Promise<Settings> => {
