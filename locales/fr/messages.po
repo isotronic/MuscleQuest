@@ -5576,7 +5576,7 @@ msgid "New personal record"
 msgstr "Nouveau record personnel"
 
 #: app/(app)/(workout)/workout-session.tsx:1276
-#: hooks/useCompleteSet.ts:514
+#: hooks/useCompleteSet.ts:532
 msgid "New personal record."
 msgstr "Nouveau record personnel."
 
@@ -6732,7 +6732,7 @@ msgstr "Minuterie de repos"
 #: app/(app)/(workout)/workout-session.tsx:585
 #: app/(app)/(workout)/workout-session.tsx:680
 #: app/(app)/(workout)/workout-session.tsx:721
-#: hooks/useCompleteSet.ts:502
+#: hooks/useCompleteSet.ts:520
 #: hooks/useRestTimerControls.ts:114
 msgid "Rest Timer Finished!"
 msgstr "Minuterie de repos terminée !"
@@ -8041,7 +8041,7 @@ msgstr "Cet exercice stagne depuis 4 séances. Un contrôle de technique ou une 
 #~ msgid "This exercise is already in your workout. Please choose a different one."
 #~ msgstr "Cet exercice est déjà dans ton entraînement. Choisis-en un autre."
 
-#: app/(app)/(workout)/exercise-list.tsx:150
+#: app/(app)/(workout)/exercise-list.tsx:153
 msgid "This exercise is no longer in the workout."
 msgstr "Cet exercice ne fait plus partie de l'entraînement."
 
@@ -8164,7 +8164,7 @@ msgstr "Période"
 #: app/(app)/(workout)/workout-session.tsx:586
 #: app/(app)/(workout)/workout-session.tsx:681
 #: app/(app)/(workout)/workout-session.tsx:722
-#: hooks/useCompleteSet.ts:503
+#: hooks/useCompleteSet.ts:521
 #: hooks/useRestTimerControls.ts:115
 msgid "Time to do your next set!"
 msgstr "C'est l'heure de ta prochaine série !"

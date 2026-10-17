@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 import { AccessibilityInfo, Vibration } from "react-native";
 import { useShallow } from "zustand/react/shallow";
 import { t } from "@lingui/core/macro";
@@ -27,10 +27,22 @@ import {
   startRestNotification,
 } from "@/utils/restNotification";
 import { setCompleteAnnouncement } from "@/utils/a11yAnnouncements";
+import { MAX_VALID_SET_DURATION_SEC } from "@/utils/estimateWorkoutDuration";
 import type { FeedbackPrompt } from "@/utils/feedbackPrompts";
 import type { UserExercise } from "@/store/workoutStore";
 
 export const PR_VIBRATION = [0, 60, 80, 60];
+
+// Weights the user already confirmed, per exercise, so the same entry is not
+// questioned twice in a session, whichever screen it was logged from.
+let confirmedWeights: { session: string; keys: Set<string> } | null = null;
+const confirmedWeightsFor = (startTime: Date | string) => {
+  const session = new Date(startTime).toISOString();
+  if (confirmedWeights?.session !== session) {
+    confirmedWeights = { session, keys: new Set() };
+  }
+  return confirmedWeights.keys;
+};
 
 type CompletedSets = Record<number, Record<number, boolean>>;
 
@@ -125,9 +137,7 @@ export function useCompleteSet() {
     [globalHistoryData],
   );
 
-  // Weights the user already confirmed this session, per exercise, so the
-  // same entry is not questioned twice.
-  const confirmedWeightsRef = useRef(new Set<string>());
+  const sessionStart = useActiveWorkoutStore((s) => s.startTime);
 
   /** The matching set from history, used to pre-fill an untouched set. */
   const findLastAvailableSetData = useCallback(
@@ -359,8 +369,6 @@ export function useCompleteSet() {
     setIndex: number,
     weightOverride?: string,
   ): PreparedSet => {
-    // Captured before any state changes.
-    const feedbackContexts = buildFeedbackContexts(exerciseIndex, setIndex);
     const shown = liveValues(exerciseIndex, setIndex);
 
     const weightNum = parseFloat(weightOverride ?? shown.weight);
@@ -377,6 +385,10 @@ export function useCompleteSet() {
       shown.time,
       shown.distance,
     );
+
+    // Built on the values just written (a corrected weight, a pre-filled set
+    // included), with this set counted as done.
+    const feedbackContexts = buildFeedbackContexts(exerciseIndex, setIndex);
 
     // Judged on the values just written, before the set is marked complete.
     const isPR = isSessionPR(
@@ -425,7 +437,7 @@ export function useCompleteSet() {
     const confirmKey = `${exercise.exercise_id}:${enteredWeight}`;
     if (
       (trackingType === "weight" || trackingType === "assisted") &&
-      !confirmedWeightsRef.current.has(confirmKey)
+      !confirmedWeightsFor(sessionStart).has(confirmKey)
     ) {
       const reference = heaviestWorkingWeight([
         ...(prevExercisesByExerciseId.get(exercise.exercise_id) ?? []),
@@ -445,7 +457,7 @@ export function useCompleteSet() {
           onUse: (corrected) =>
             onPrepared(writeSet(exerciseIndex, setIndex, String(corrected))),
           onKeep: () => {
-            confirmedWeightsRef.current.add(confirmKey);
+            confirmedWeightsFor(sessionStart).add(confirmKey);
             onPrepared(writeSet(exerciseIndex, setIndex));
           },
         });
@@ -474,12 +486,18 @@ export function useCompleteSet() {
         store.currentExerciseIndex === exerciseIndex &&
         (store.currentSetIndices[exerciseIndex] ?? 0) === setIndex &&
         store.currentSetStartedAt != null;
-      const duration = timed
+      const elapsed = timed
         ? Math.round(
             (Date.now() - new Date(store.currentSetStartedAt!).getTime()) /
               1000,
           )
         : null;
+      // A start left from a visit to the focus screen long ago is not this
+      // set's duration.
+      const duration =
+        elapsed != null && elapsed <= MAX_VALID_SET_DURATION_SEC
+          ? elapsed
+          : null;
       store.recordSetDuration(exerciseIndex, setIndex, duration);
       if (timed) store.setCurrentSetStartedAt(null);
 

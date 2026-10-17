@@ -154,6 +154,35 @@ describe("useCompleteSet", () => {
     expect(store().currentSetStartedAt).toBeNull();
   });
 
+  it("builds feedback from a corrected weight", () => {
+    mockProgression.enabled = true;
+    store().updateWeightAndReps(0, 0, "60", "10");
+    store().completeSetAt(0, 0);
+    store().updateWeightAndReps(0, 1, "600", "10");
+    const { result } = renderHook(() => useCompleteSet());
+    act(() => result.current.completeSetInPlace(0, 1));
+    const { onUse } = (confirmImplausibleWeight as jest.Mock).mock.calls[0][0];
+    act(() => onUse(60));
+    expect(store().feedbackQueue).toEqual([
+      expect.objectContaining({
+        exerciseContext: expect.objectContaining({ recentWorkingWeight: 60 }),
+      }),
+    ]);
+  });
+
+  it("does not ask again about a weight kept on another screen", () => {
+    store().updateWeightAndReps(0, 0, "600", "8");
+    store().updateWeightAndReps(0, 1, "600", "8");
+    const first = renderHook(() => useCompleteSet());
+    act(() => first.result.current.completeSetInPlace(0, 0));
+    const { onKeep } = (confirmImplausibleWeight as jest.Mock).mock.calls[0][0];
+    act(() => onKeep());
+    const second = renderHook(() => useCompleteSet());
+    act(() => second.result.current.completeSetInPlace(0, 1));
+    expect(confirmImplausibleWeight).toHaveBeenCalledTimes(1);
+    expect(store().completedSets[0]).toEqual({ 0: true, 1: true });
+  });
+
   it("queues feedback once an exercise's sets are all done", () => {
     mockProgression.enabled = true;
     store().updateWeightAndReps(0, 0, "60", "10");

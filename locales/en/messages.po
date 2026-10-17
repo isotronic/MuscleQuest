@@ -5575,7 +5575,7 @@ msgid "New personal record"
 msgstr "New personal record"
 
 #: app/(app)/(workout)/workout-session.tsx:1276
-#: hooks/useCompleteSet.ts:514
+#: hooks/useCompleteSet.ts:532
 msgid "New personal record."
 msgstr "New personal record."
 
@@ -6731,7 +6731,7 @@ msgstr "Rest Timer"
 #: app/(app)/(workout)/workout-session.tsx:585
 #: app/(app)/(workout)/workout-session.tsx:680
 #: app/(app)/(workout)/workout-session.tsx:721
-#: hooks/useCompleteSet.ts:502
+#: hooks/useCompleteSet.ts:520
 #: hooks/useRestTimerControls.ts:114
 msgid "Rest Timer Finished!"
 msgstr "Rest Timer Finished!"
@@ -8040,7 +8040,7 @@ msgstr "This exercise has held steady for 4 sessions. A technique check or a bri
 #~ msgid "This exercise is already in your workout. Please choose a different one."
 #~ msgstr "This exercise is already in your workout. Please choose a different one."
 
-#: app/(app)/(workout)/exercise-list.tsx:150
+#: app/(app)/(workout)/exercise-list.tsx:153
 msgid "This exercise is no longer in the workout."
 msgstr "This exercise is no longer in the workout."
 
@@ -8163,7 +8163,7 @@ msgstr "Time range"
 #: app/(app)/(workout)/workout-session.tsx:586
 #: app/(app)/(workout)/workout-session.tsx:681
 #: app/(app)/(workout)/workout-session.tsx:722
-#: hooks/useCompleteSet.ts:503
+#: hooks/useCompleteSet.ts:521
 #: hooks/useRestTimerControls.ts:115
 msgid "Time to do your next set!"
 msgstr "Time to do your next set!"
