@@ -1,30 +1,22 @@
 import React, { useState, useCallback, useMemo } from "react";
 import ProgressionSuggestionChip from "@/components/ProgressionSuggestionChip";
+import { ExerciseSessionHeader } from "@/components/workout/ExerciseSessionHeader";
+import { SetTypeBadge } from "@/components/workout/SetTypeBadge";
 import LastTimeLine, { type PreviousSet } from "@/components/LastTimeLine";
 import { View, TextInput, StyleSheet } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { ActivityIndicator, Button, Menu } from "react-native-paper";
-import {
-  AppImage,
-  AppIcon,
-  AppIconButton,
-  DecimalInput,
-} from "@/components/ui";
+import { Button, Menu } from "react-native-paper";
+import { AppIcon, AppIconButton, DecimalInput } from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
 import { TouchableOpacity } from "react-native";
-import { router } from "expo-router";
 import { formatFromTotalSeconds, formatTimeInput } from "@/utils/utility";
 import { sanitizeIntegerInput } from "@/utils/numberFormat";
-import { planDistanceToDisplay } from "@/utils/planDistance";
 import { TimeInput } from "./TimeInput";
 import { useContinuousPress } from "@/hooks/useContinuousPress";
 import { ExerciseTimerModal } from "./ExerciseTimerModal";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
-import { formatNumber } from "@/utils/numberFormat";
-
-const fallbackImage = require("@/assets/images/placeholder.webp");
 
 interface SessionSetInfoProps {
   exercise_id: number;
@@ -152,11 +144,6 @@ export default function SessionSetInfo({
   setNote,
   onEditNote,
 }: SessionSetInfoProps) {
-  // Shown only for a positive target, as text with the device separator.
-  const distanceMin =
-    distanceMinMetres != null && distanceMinMetres > 0
-      ? formatNumber(planDistanceToDisplay(distanceMinMetres, distanceUnit), 2)
-      : undefined;
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -209,15 +196,6 @@ export default function SessionSetInfo({
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
 
-  const repRange =
-    repsMin === repsMax
-      ? repsMin
-      : !repsMin
-        ? repsMax
-        : repsMax
-          ? `${repsMin} - ${repsMax}`
-          : repsMin;
-
   const trimmedNote = setNote?.trim() ?? "";
   const hasNote = trimmedNote.length > 0;
 
@@ -227,84 +205,24 @@ export default function SessionSetInfo({
     !!progressionSuggestion &&
     progressionSuggestion.suggestionAction !== "hold";
 
-  const handleImagePress = () => {
-    router.push({
-      pathname: "/(app)/exercise-info",
-      params: { exercise_id: exercise_id.toString() },
-    });
-  };
   return (
     <View>
       <View style={styles.headerContainer}>
-        <View style={styles.headerContent}>
-          {animatedImageLoading ? (
-            <ActivityIndicator size="small" color={colors.contentPrimary} />
-          ) : animatedImageError ? (
-            <TouchableOpacity
-              onPress={handleImagePress}
-              accessibilityRole="button"
-              accessibilityLabel={t`Exercise details for ${exerciseName}`}
-            >
-              <AppImage style={styles.animatedImage} source={fallbackImage} />
-            </TouchableOpacity>
-          ) : animatedUrl ? (
-            <TouchableOpacity
-              onPress={handleImagePress}
-              accessibilityRole="button"
-              accessibilityLabel={t`Exercise details for ${exerciseName}`}
-            >
-              <AppImage
-                style={styles.animatedImage}
-                source={{
-                  uri: animatedUrl,
-                }}
-              />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={handleImagePress}
-              accessibilityRole="button"
-              accessibilityLabel={t`Exercise details for ${exerciseName}`}
-            >
-              <AppImage style={styles.animatedImage} source={fallbackImage} />
-            </TouchableOpacity>
-          )}
-          <View style={styles.titleContainer}>
-            <ThemedText
-              style={styles.title}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {exerciseName}
-            </ThemedText>
-
-            {trackingType !== "time" &&
-              trackingType !== "distance" &&
-              !!repRange && (
-                <ThemedText style={styles.headerText}>
-                  <Trans>Reps: {repRange}</Trans>
-                </ThemedText>
-              )}
-            {trackingType === "time" && !!timeMin && (
-              <ThemedText style={styles.headerText}>
-                <Trans>Time: {formatFromTotalSeconds(timeMin)}</Trans>
-              </ThemedText>
-            )}
-            {trackingType === "distance" && !!distanceMin && (
-              <ThemedText style={styles.headerText}>
-                <Trans>
-                  Target: {distanceMin} {distanceUnit}
-                </Trans>
-              </ThemedText>
-            )}
-
-            <ThemedText style={styles.headerText}>
-              <Trans>
-                Rest Time: {restMinutes}:{String(restSeconds).padStart(2, "0")}
-              </Trans>
-            </ThemedText>
-          </View>
-        </View>
+        <ExerciseSessionHeader
+          exerciseId={exercise_id}
+          exerciseName={exerciseName}
+          animatedUrl={animatedUrl}
+          animatedImageLoading={animatedImageLoading}
+          animatedImageError={animatedImageError}
+          trackingType={trackingType}
+          repsMin={repsMin}
+          repsMax={repsMax}
+          timeMin={timeMin}
+          distanceMin={distanceMinMetres}
+          distanceUnit={distanceUnit}
+          restMinutes={restMinutes}
+          restSeconds={restSeconds}
+        />
         {/* Menu Button */}
         <Menu
           visible={menuVisible}
@@ -428,82 +346,10 @@ export default function SessionSetInfo({
         hasNote ||
         isPR) && (
         <View style={styles.setTypeContainer}>
-          {isPR && (
-            <View
-              style={[styles.setTypeBadge, styles.setTypeBadgePR]}
-              accessible={true}
-              accessibilityLabel={t`Personal record`}
-              accessibilityRole="text"
-            >
-              <AppIcon
-                set="mci"
-                name="trophy"
-                size={16}
-                color={colors.onAccent}
-                style={styles.setIcon}
-              />
-              <ThemedText style={[styles.setTypeLabel, styles.prLabel]}>
-                <Trans>PR</Trans>
-              </ThemedText>
-            </View>
-          )}
-          {isWarmup && (
-            <View
-              style={[styles.setTypeBadge, styles.setTypeBadgeWarmup]}
-              accessible={true}
-              accessibilityLabel={t`Warm-up set`}
-              accessibilityRole="text"
-            >
-              <AppIcon
-                set="mci"
-                name="speedometer-slow"
-                size={16}
-                color={colors.contentPrimary}
-                style={styles.setIcon}
-              />
-              <ThemedText style={styles.setTypeLabel}>
-                <Trans>Warm-up</Trans>
-              </ThemedText>
-            </View>
-          )}
-          {isDropSet && (
-            <View
-              style={[styles.setTypeBadge, styles.setTypeBadgeDrop]}
-              accessible={true}
-              accessibilityLabel={t`Drop set`}
-              accessibilityRole="text"
-            >
-              <AppIcon
-                set="mci"
-                name="arrow-down-bold"
-                size={16}
-                color={colors.contentPrimary}
-                style={styles.setIcon}
-              />
-              <ThemedText style={styles.setTypeLabel}>
-                <Trans>Drop Set</Trans>
-              </ThemedText>
-            </View>
-          )}
-          {isToFailure && (
-            <View
-              style={[styles.setTypeBadge, styles.setTypeBadgeFailure]}
-              accessible={true}
-              accessibilityLabel={t`To failure`}
-              accessibilityRole="text"
-            >
-              <AppIcon
-                set="mci"
-                name="fire"
-                size={16}
-                color={colors.contentPrimary}
-                style={styles.setIcon}
-              />
-              <ThemedText style={styles.setTypeLabel}>
-                <Trans>To Failure</Trans>
-              </ThemedText>
-            </View>
-          )}
+          {isPR && <SetTypeBadge kind="pr" />}
+          {isWarmup && <SetTypeBadge kind="warmup" />}
+          {isDropSet && <SetTypeBadge kind="drop" />}
+          {isToFailure && <SetTypeBadge kind="failure" />}
           {hasNote && (
             <TouchableOpacity
               style={[styles.setTypeBadge, styles.setTypeBadgeNote]}
@@ -740,29 +586,6 @@ function createStyles(colors: AppThemeColors) {
       justifyContent: "space-between",
       marginBottom: 16,
     },
-    headerContent: {
-      flexDirection: "row",
-      alignItems: "center",
-      flex: 1,
-    },
-    animatedImage: {
-      width: 70,
-      height: 70,
-      borderRadius: radii.md,
-      marginRight: 16,
-    },
-    titleContainer: {
-      flexShrink: 1,
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: "bold",
-    },
-    headerText: {
-      fontSize: 14,
-      color: colors.contentSecondary,
-      marginBottom: -5,
-    },
     menuButton: {
       marginLeft: "auto",
     },
@@ -799,23 +622,8 @@ function createStyles(colors: AppThemeColors) {
       paddingVertical: 4,
       borderRadius: radii.md,
     },
-    setTypeBadgeWarmup: {
-      backgroundColor: colors.badgeWarmup,
-    },
-    setTypeBadgeDrop: {
-      backgroundColor: colors.badgeDrop,
-    },
-    setTypeBadgeFailure: {
-      backgroundColor: colors.badgeFailure,
-    },
     setTypeBadgeNote: {
       backgroundColor: colors.surfaceHighlight,
-    },
-    setTypeBadgePR: {
-      backgroundColor: colors.accent,
-    },
-    prLabel: {
-      color: colors.onAccent,
     },
     setTypeLabel: {
       fontSize: 13,
