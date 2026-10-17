@@ -3,6 +3,7 @@ import { StyleSheet, TextInput, View } from "react-native";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { ThemedText } from "@/components/ThemedText";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { AppIconButton } from "@/components/ui/AppIconButton";
 import { DecimalInput } from "@/components/ui/DecimalInput";
 import { TimeInput } from "@/components/TimeInput";
@@ -38,6 +39,11 @@ interface Props {
   onComplete: () => void;
   /** Moves focus on from this row's last input. */
   onSubmitLast?: () => void;
+  /** This set's note for the session. */
+  note?: string;
+  onEditNote?: () => void;
+  /** The set's ⋮ menu. */
+  menu?: React.ReactNode;
 }
 
 const isWeightType = (trackingType: string) =>
@@ -63,6 +69,9 @@ export const ListSetRow = forwardRef<TextInput, Props>(function ListSetRow(
     onChange,
     onComplete,
     onSubmitLast,
+    note,
+    onEditNote,
+    menu,
   },
   firstInputRef,
 ) {
@@ -81,100 +90,129 @@ export const ListSetRow = forwardRef<TextInput, Props>(function ListSetRow(
     distanceUnit,
   );
   const inputStyle = [styles.input, completed && styles.inputDone];
+  const trimmedNote = note?.trim() ?? "";
+  const hasFlags =
+    isPR || set.isWarmup || set.isDropSet || set.isToFailure || !!trimmedNote;
 
   return (
-    <View style={styles.row}>
-      <View style={styles.titleCell}>
-        <ThemedText
-          style={[styles.title, completed && styles.titleDone]}
-          numberOfLines={1}
-        >
-          {title}
-        </ThemedText>
-        <View style={styles.badges}>
-          {isPR && <SetTypeBadge kind="pr" compact />}
-          {set.isWarmup && <SetTypeBadge kind="warmup" compact />}
-          {set.isDropSet && <SetTypeBadge kind="drop" compact />}
-          {set.isToFailure && <SetTypeBadge kind="failure" compact />}
+    <View style={styles.rowWrap}>
+      <View style={styles.row}>
+        <View style={styles.titleCell}>
+          <ThemedText
+            style={[styles.title, completed && styles.titleDone]}
+            numberOfLines={1}
+          >
+            {title}
+          </ThemedText>
+          <View
+            style={styles.lastLine}
+            accessible
+            accessibilityLabel={last ? t`Last time: ${last.spoken}` : undefined}
+          >
+            <AppIcon
+              set="mci"
+              name="history"
+              size={14}
+              color={colors.contentSecondary}
+            />
+            <ThemedText style={styles.last} numberOfLines={1}>
+              {last?.text ?? "–"}
+            </ThemedText>
+          </View>
         </View>
+        <View style={styles.inputs}>
+          {weighted && (
+            <DecimalInput
+              ref={firstInputRef}
+              value={values.weight}
+              onChangeValue={(v) => onChange("weight", v)}
+              accessibilityLabel={
+                trackingType === "assisted"
+                  ? t`Assistance in ${weightUnit}, set ${setNumber}`
+                  : t`Weight in ${weightUnit}, set ${setNumber}`
+              }
+              selectTextOnFocus
+              returnKeyType="next"
+              onSubmitEditing={() => repsRef.current?.focus()}
+              submitBehavior="submit"
+              style={[inputStyle, styles.inputWide]}
+            />
+          )}
+          {hasReps && (
+            <TextInput
+              ref={weighted ? repsRef : firstInputRef}
+              value={values.reps}
+              onChangeText={(text) =>
+                onChange("reps", sanitizeIntegerInput(text))
+              }
+              keyboardType="numeric"
+              accessibilityLabel={t`Reps, set ${setNumber}`}
+              selectTextOnFocus
+              returnKeyType="done"
+              onSubmitEditing={onSubmitLast}
+              style={inputStyle}
+            />
+          )}
+          {trackingType === "time" && (
+            <TimeInput
+              ref={firstInputRef}
+              onSubmitEditing={onSubmitLast}
+              value={formatTimeInput(values.time)}
+              onChange={(v) => onChange("time", v.replace(/[^0-9]/g, ""))}
+              accessibilityLabel={t`Time, set ${setNumber}`}
+              style={[inputStyle, styles.timeInput]}
+            />
+          )}
+          {trackingType === "distance" && (
+            <DecimalInput
+              ref={firstInputRef}
+              value={values.distance}
+              onChangeValue={(v) => onChange("distance", v)}
+              accessibilityLabel={t`Distance in ${distanceUnit}, set ${setNumber}`}
+              selectTextOnFocus
+              returnKeyType="done"
+              onSubmitEditing={onSubmitLast}
+              style={[inputStyle, styles.inputWide]}
+            />
+          )}
+        </View>
+        <AppIconButton
+          icon="check"
+          mode={completed ? "contained" : "outlined"}
+          containerColor={completed ? colors.success : undefined}
+          iconColor={completed ? colors.onAccent : colors.accent}
+          size={22}
+          // Stays enabled, so a done set keeps its green check.
+          onPress={() => {
+            if (!completed) onComplete();
+          }}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: completed, disabled: completed }}
+          accessibilityLabel={setRowLabel(setNumber, shown?.spoken, completed)}
+          accessibilityHint={completed ? undefined : t`Completes the set`}
+          style={[styles.check, completed && styles.checkDone]}
+        />
+        {menu}
       </View>
-      <ThemedText
-        style={styles.last}
-        numberOfLines={2}
-        accessibilityLabel={last ? t`Last time: ${last.spoken}` : undefined}
-      >
-        {last?.text ?? "–"}
-      </ThemedText>
-      <View style={styles.inputs}>
-        {weighted && (
-          <DecimalInput
-            ref={firstInputRef}
-            value={values.weight}
-            onChangeValue={(v) => onChange("weight", v)}
-            accessibilityLabel={
-              trackingType === "assisted"
-                ? t`Assistance in ${weightUnit}, set ${setNumber}`
-                : t`Weight in ${weightUnit}, set ${setNumber}`
-            }
-            selectTextOnFocus
-            returnKeyType="next"
-            onSubmitEditing={() => repsRef.current?.focus()}
-            submitBehavior="submit"
-            style={[inputStyle, styles.inputWide]}
-          />
-        )}
-        {hasReps && (
-          <TextInput
-            ref={weighted ? repsRef : firstInputRef}
-            value={values.reps}
-            onChangeText={(text) =>
-              onChange("reps", sanitizeIntegerInput(text))
-            }
-            keyboardType="numeric"
-            accessibilityLabel={t`Reps, set ${setNumber}`}
-            selectTextOnFocus
-            returnKeyType="done"
-            onSubmitEditing={onSubmitLast}
-            style={inputStyle}
-          />
-        )}
-        {trackingType === "time" && (
-          <TimeInput
-            ref={firstInputRef}
-            onSubmitEditing={onSubmitLast}
-            value={formatTimeInput(values.time)}
-            onChange={(v) => onChange("time", v.replace(/[^0-9]/g, ""))}
-            accessibilityLabel={t`Time, set ${setNumber}`}
-            style={[inputStyle, styles.timeInput]}
-          />
-        )}
-        {trackingType === "distance" && (
-          <DecimalInput
-            ref={firstInputRef}
-            value={values.distance}
-            onChangeValue={(v) => onChange("distance", v)}
-            accessibilityLabel={t`Distance in ${distanceUnit}, set ${setNumber}`}
-            selectTextOnFocus
-            returnKeyType="done"
-            onSubmitEditing={onSubmitLast}
-            style={[inputStyle, styles.inputWide]}
-          />
-        )}
-      </View>
-      <AppIconButton
-        icon="check"
-        mode={completed ? "contained" : "outlined"}
-        containerColor={completed ? colors.success : undefined}
-        iconColor={completed ? colors.onAccent : colors.accent}
-        size={22}
-        onPress={onComplete}
-        disabled={completed}
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: completed, disabled: completed }}
-        accessibilityLabel={setRowLabel(setNumber, shown?.spoken, completed)}
-        accessibilityHint={completed ? undefined : t`Completes the set`}
-        style={[styles.check, completed && styles.checkDone]}
-      />
+      {hasFlags && (
+        <View style={styles.flags}>
+          {isPR && <SetTypeBadge kind="pr" />}
+          {set.isWarmup && <SetTypeBadge kind="warmup" />}
+          {set.isDropSet && <SetTypeBadge kind="drop" />}
+          {set.isToFailure && <SetTypeBadge kind="failure" />}
+          {!!trimmedNote && (
+            <SetTypeBadge
+              kind="note"
+              onPress={onEditNote}
+              accessibilityLabel={
+                onEditNote
+                  ? t`Set note: ${trimmedNote}. Edit`
+                  : t`Set note: ${trimmedNote}`
+              }
+            />
+          )}
+        </View>
+      )}
     </View>
   );
 });
@@ -200,9 +238,6 @@ export function ListSetHeader({
       <ThemedText style={[styles.label, styles.titleCell]}>
         <Trans>Set</Trans>
       </ThemedText>
-      <ThemedText style={[styles.label, styles.last]}>
-        <Trans>Last time</Trans>
-      </ThemedText>
       <View style={styles.inputs}>
         {isWeightType(trackingType) && (
           <ThemedText style={[styles.label, styles.labelWide]}>
@@ -226,6 +261,7 @@ export function ListSetHeader({
         )}
       </View>
       <View style={styles.checkSpace} />
+      <View style={styles.menuSpace} />
     </View>
   );
 }
@@ -235,7 +271,7 @@ function createStyles(colors: AppThemeColors) {
     header: {
       flexDirection: "row",
       alignItems: "flex-end",
-      gap: 8,
+      gap: 6,
       paddingBottom: 6,
     },
     label: {
@@ -249,19 +285,32 @@ function createStyles(colors: AppThemeColors) {
     labelWide: {
       width: 72,
     },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
+    rowWrap: {
       paddingVertical: 10,
+      gap: 8,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.contentSecondary,
     },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
     titleCell: {
-      width: 64,
-      gap: 4,
+      flex: 1,
+      gap: 2,
       alignItems: "flex-start",
       textAlign: "left",
+    },
+    lastLine: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 3,
+    },
+    flags: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6,
     },
     title: {
       fontSize: 18,
@@ -270,13 +319,9 @@ function createStyles(colors: AppThemeColors) {
     titleDone: {
       color: colors.contentSecondary,
     },
-    badges: {
-      flexDirection: "row",
-      gap: 4,
-    },
     last: {
-      flex: 1,
-      fontSize: 14,
+      flexShrink: 1,
+      fontSize: 13,
       color: colors.contentSecondary,
     },
     inputs: {
@@ -313,6 +358,9 @@ function createStyles(colors: AppThemeColors) {
     },
     checkSpace: {
       width: 44,
+    },
+    menuSpace: {
+      width: 32,
     },
   });
 }

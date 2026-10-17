@@ -2,11 +2,12 @@ import React, { useState, useCallback, useMemo } from "react";
 import ProgressionSuggestionChip from "@/components/ProgressionSuggestionChip";
 import { ExerciseSessionHeader } from "@/components/workout/ExerciseSessionHeader";
 import { SetTypeBadge } from "@/components/workout/SetTypeBadge";
+import { SetOptionsMenu } from "@/components/workout/SetOptionsMenu";
 import LastTimeLine, { type PreviousSet } from "@/components/LastTimeLine";
 import { View, TextInput, StyleSheet } from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
-import { Button, Menu } from "react-native-paper";
+import { Button } from "react-native-paper";
 import { AppIcon, AppIconButton, DecimalInput } from "@/components/ui";
 import { ThemedText } from "@/components/ThemedText";
 import { TouchableOpacity } from "react-native";
@@ -146,7 +147,6 @@ export default function SessionSetInfo({
 }: SessionSetInfoProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [menuVisible, setMenuVisible] = useState(false);
   const [timerModalVisible, setTimerModalVisible] = useState(false);
 
   // Plates only make sense against a free weight. "assisted" also renders a
@@ -193,9 +193,6 @@ export default function SessionSetInfo({
     ? t`Increase assistance by ${weightIncrement} ${weightUnit}`
     : t`Increase weight by ${weightIncrement} ${weightUnit}`;
 
-  const openMenu = () => setMenuVisible(true);
-  const closeMenu = () => setMenuVisible(false);
-
   const trimmedNote = setNote?.trim() ?? "";
   const hasNote = trimmedNote.length > 0;
 
@@ -223,96 +220,26 @@ export default function SessionSetInfo({
           restMinutes={restMinutes}
           restSeconds={restSeconds}
         />
-        {/* Menu Button */}
-        <Menu
-          visible={menuVisible}
-          onDismiss={closeMenu}
-          anchor={
-            <AppIconButton
-              icon="dots-vertical"
-              accessibilityLabel={t`Set options`}
-              onPress={openMenu}
-              size={30}
-              iconColor={colors.contentPrimary}
-              style={styles.menuButton}
-            />
+        <SetOptionsMenu
+          size={30}
+          buttonStyle={styles.menuButton}
+          onOpenPlateCalculator={
+            showsWeightInput ? onOpenPlateCalculator : undefined
           }
-        >
-          {showsWeightInput && !!onOpenPlateCalculator && (
-            <Menu.Item
-              onPress={() => {
-                onOpenPlateCalculator();
-                closeMenu();
-              }}
-              title={t`Plate Calculator`}
-            />
-          )}
-          {!!onEditSet && (
-            <Menu.Item
-              onPress={() => {
-                onEditSet();
-                closeMenu();
-              }}
-              title={t`Edit Set`}
-            />
-          )}
-          <Menu.Item
-            onPress={() => {
-              removeSet(currentSetIndex);
-              closeMenu();
-            }}
-            title={t`Delete Set`}
-          />
-          <Menu.Item
-            onPress={() => {
-              addSet();
-              closeMenu();
-            }}
-            title={t`Add Set`}
-          />
-          <Menu.Item
-            onPress={() => {
-              onAddDropSet();
-              closeMenu();
-            }}
-            title={t`Add Drop Set`}
-          />
-          <Menu.Item
-            onPress={() => {
-              onToggleSetType("isWarmup");
-              closeMenu();
-            }}
-            title={t`Warm-up`}
-            leadingIcon={isWarmup ? "check" : undefined}
-          />
-          <Menu.Item
-            onPress={() => {
-              onToggleSetType("isToFailure");
-              closeMenu();
-            }}
-            title={t`To Failure`}
-            leadingIcon={isToFailure ? "check" : undefined}
-          />
-          {!!onEditNote && (
-            <Menu.Item
-              onPress={() => {
-                onEditNote();
-                closeMenu();
-              }}
-              title={hasNote ? t`Edit note` : t`Add note`}
-            />
-          )}
-          {baseTrackingType === "reps" && !!onToggleWeighted && (
-            <Menu.Item
-              onPress={() => {
-                onToggleWeighted();
-                closeMenu();
-              }}
-              title={t`Add Weight`}
-              leadingIcon={isWeightedOverrideEnabled ? "check" : undefined}
-            />
-          )}
-        </Menu>
+          onEditSet={onEditSet}
+          onRemoveSet={() => removeSet(currentSetIndex)}
+          onAddSet={addSet}
+          onAddDropSet={onAddDropSet}
+          onToggleSetType={onToggleSetType}
+          isWarmup={isWarmup}
+          isToFailure={isToFailure}
+          onEditNote={onEditNote}
+          hasNote={hasNote}
+          onToggleWeighted={
+            baseTrackingType === "reps" ? onToggleWeighted : undefined
+          }
+          isWeightedOverrideEnabled={isWeightedOverrideEnabled}
+        />
       </View>
       {/* Set Navigation */}
       <View style={styles.setNavigationContainer}>

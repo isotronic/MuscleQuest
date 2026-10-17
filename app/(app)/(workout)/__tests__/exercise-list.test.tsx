@@ -58,8 +58,22 @@ jest.mock("@/components/ui/AppIconButton", () => {
 });
 const mockFocus = jest.fn();
 jest.mock("react-native-paper", () => {
-  const { Pressable, Text } = require("react-native");
+  const { Pressable, Text, View } = require("react-native");
+  const Menu = ({ visible, anchor, children }: any) => (
+    <View>
+      {anchor}
+      {visible ? children : null}
+    </View>
+  );
+  Menu.Item = function MenuItem({ title, onPress }: any) {
+    return (
+      <Pressable accessibilityRole="menuitem" onPress={onPress}>
+        <Text>{title}</Text>
+      </Pressable>
+    );
+  };
   return {
+    Menu,
     Button: ({ children, onPress, accessibilityLabel }: any) => (
       <Pressable
         accessibilityRole="button"
@@ -73,7 +87,26 @@ jest.mock("react-native-paper", () => {
 });
 jest.mock("@/components/WorkoutTimer", () => () => null);
 jest.mock("@/components/Cues", () => ({ Cues: () => null }));
-jest.mock("@/components/ui", () => ({ AppIcon: () => null }));
+jest.mock("@/components/ui", () => {
+  const { Pressable } = require("react-native");
+  return {
+    AppIcon: () => null,
+    AppIconButton: ({ onPress, ...props }: any) => (
+      <Pressable onPress={onPress} {...props} />
+    ),
+  };
+});
+jest.mock("@/components/NoteSheet", () => ({ NoteSheet: () => null }));
+jest.mock("@/components/SessionSetOptionsModal", () => ({
+  SessionSetOptionsModal: () => null,
+}));
+jest.mock("@/components/PlateCalculatorModal", () => ({
+  PlateCalculatorModal: () => null,
+}));
+const mockShowSnackbar = jest.fn();
+jest.mock("@/store/snackbarStore", () => ({
+  showSnackbar: (...args: unknown[]) => mockShowSnackbar(...args),
+}));
 jest.mock("@/hooks/useAnimatedImageQuery", () => ({
   useAnimatedImageQuery: () => ({ data: null, error: null, isLoading: false }),
 }));
@@ -220,6 +253,44 @@ describe("ExerciseListScreen", () => {
     });
     expect(store().completedSets[0]).toEqual({ 0: true });
     expect(mockFocus).toHaveBeenCalledWith("Time, set 2");
+  });
+
+  it("keeps a done set's check enabled, and pressing it again does nothing", () => {
+    store().updateWeightAndReps(0, 0, "60", "8");
+    store().completeSetAt(0, 0);
+    const screen = render(<ExerciseListScreen />);
+    const check = screen.getByLabelText(
+      "Set 1, 60 kilograms, 8 reps, completed",
+    );
+    expect(check.props.disabled).toBeFalsy();
+    fireEvent.press(check);
+    expect(store().completedSets[0]).toEqual({ 0: true });
+  });
+
+  it("labels a set's flags", () => {
+    store().updateSetType(0, 1, "isWarmup", true);
+    store().setSetNote(0, 2, "Felt heavy");
+    const screen = render(<ExerciseListScreen />);
+    expect(screen.getByText("Warm-up")).toBeTruthy();
+    expect(screen.getByLabelText("Set note: Felt heavy. Edit")).toBeTruthy();
+  });
+
+  it("changes a set from its menu, with undo for a delete", () => {
+    const screen = render(<ExerciseListScreen />);
+    fireEvent.press(screen.getByLabelText("Options for set 2"));
+    fireEvent.press(screen.getByText("To Failure"));
+    expect(store().workout!.exercises[0].sets[1].isToFailure).toBe(true);
+
+    fireEvent.press(screen.getByLabelText("Options for set 3"));
+    fireEvent.press(screen.getByText("Delete Set"));
+    expect(store().workout!.exercises[0].sets).toHaveLength(2);
+    const undo = mockShowSnackbar.mock.calls[0][1].action.onPress;
+    act(() => undo());
+    expect(store().workout!.exercises[0].sets).toHaveLength(3);
+
+    fireEvent.press(screen.getByLabelText("Options for set 1"));
+    fireEvent.press(screen.getByText("Add Set"));
+    expect(store().workout!.exercises[0].sets).toHaveLength(4);
   });
 
   it("shows the exercise's header with its working set's targets", () => {

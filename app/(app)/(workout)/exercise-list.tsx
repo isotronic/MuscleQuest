@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Dimensions,
   KeyboardAvoidingView,
@@ -18,6 +18,11 @@ import { ThemedView } from "@/components/ThemedView";
 import RestTimerOverlay from "@/components/RestTimerOverlay";
 import WorkoutTimer from "@/components/WorkoutTimer";
 import { Cues } from "@/components/Cues";
+import { NoteSheet, type NoteSheetHandle } from "@/components/NoteSheet";
+import { SessionSetOptionsModal } from "@/components/SessionSetOptionsModal";
+import { PlateCalculatorModal } from "@/components/PlateCalculatorModal";
+import { SetOptionsMenu } from "@/components/workout/SetOptionsMenu";
+import { showSnackbar } from "@/store/snackbarStore";
 import { ListSetHeader, ListSetRow } from "@/components/workout/ListSetRow";
 import { ExerciseSessionHeader } from "@/components/workout/ExerciseSessionHeader";
 import {
@@ -99,10 +104,11 @@ export default function ExerciseListScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const params = useLocalSearchParams<{ exerciseIndex: string }>();
   const exerciseIndex = Number(params.exerciseIndex);
-  const { workout, completedSets } = useActiveWorkoutStore(
+  const { workout, completedSets, setNotes } = useActiveWorkoutStore(
     useShallow((s) => ({
       workout: s.workout,
       completedSets: s.completedSets,
+      setNotes: s.setNotes,
     })),
   );
   const { data: settings } = useSettingsQuery();
@@ -117,6 +123,11 @@ export default function ExerciseListScreen() {
   useWorkoutImmersiveMode();
 
   const inputRefs = useRef(new Map<string, TextInput | null>());
+  // The set a menu action opened a sheet or modal for.
+  const [editTarget, setEditTarget] = useState<ListRow | null>(null);
+  const [plateTarget, setPlateTarget] = useState<ListRow | null>(null);
+  const noteSheetRef = useRef<NoteSheetHandle>(null);
+  const noteTargetRef = useRef<ListRow | null>(null);
 
   const exercises = workout?.exercises ?? [];
   const exercise = exercises[exerciseIndex];
@@ -187,6 +198,86 @@ export default function ExerciseListScreen() {
         values.time,
         values.distance,
       );
+  };
+
+  // The store's set actions work on the current exercise; point it at the
+  // row's (a superset has two).
+  const onExercise = (row: ListRow) => {
+    const store = useActiveWorkoutStore.getState();
+    if (store.currentExerciseIndex !== row.exerciseIndex) {
+      store.setCurrentExerciseIndex(row.exerciseIndex);
+    }
+    return useActiveWorkoutStore.getState();
+  };
+
+  // No confirmation: the snackbar offers Undo, as on the focus screen.
+  const handleRemoveSet = (row: ListRow) => {
+    const store = onExercise(row);
+    if ((exercises[row.exerciseIndex]?.sets.length ?? 0) <= 1) return;
+    const snapshot = store.snapshotSet(row.exerciseIndex, row.setIndex);
+    store.removeSet(row.setIndex);
+    if (!snapshot) return;
+    showSnackbar(t`Set removed`, {
+      duration: 5000,
+      action: {
+        label: t`Undo`,
+        onPress: () => useActiveWorkoutStore.getState().restoreSet(snapshot),
+      },
+    });
+  };
+
+  const handleEditNote = (row: ListRow) => {
+    noteTargetRef.current = row;
+    noteSheetRef.current?.open(
+      setNotes[row.exerciseIndex]?.[row.setIndex] ?? "",
+    );
+  };
+
+  const renderMenu = (row: ListRow) => {
+    const ex = exercises[row.exerciseIndex];
+    const set = ex.sets[row.setIndex];
+    const trackingType = resolvedTrackingType(ex);
+    const note = setNotes[row.exerciseIndex]?.[row.setIndex]?.trim();
+    return (
+      <SetOptionsMenu
+        size={22}
+        buttonStyle={styles.menuButton}
+        accessibilityLabel={t`Options for set ${row.setIndex + 1}`}
+        onOpenPlateCalculator={
+          // Free weights only, as on the focus screen.
+          trackingType === "weight" || !trackingType
+            ? () => setPlateTarget(row)
+            : undefined
+        }
+        onEditSet={() => setEditTarget(row)}
+        onRemoveSet={() => handleRemoveSet(row)}
+        onAddSet={() => onExercise(row).addSet()}
+        onAddDropSet={() => onExercise(row).addDropSet()}
+        onToggleSetType={(type) =>
+          useActiveWorkoutStore
+            .getState()
+            .updateSetType(row.exerciseIndex, row.setIndex, type, !set[type])
+        }
+        isWarmup={!!set.isWarmup}
+        isToFailure={!!set.isToFailure}
+        onEditNote={() => handleEditNote(row)}
+        hasNote={!!note}
+        onToggleWeighted={
+          (ex.tracking_type || "weight") === "reps"
+            ? () =>
+                useActiveWorkoutStore
+                  .getState()
+                  .setExerciseTrackingTypeOverride(
+                    row.exerciseIndex,
+                    ex.tracking_type_override === "weight"
+                      ? undefined
+                      : "weight",
+                  )
+            : undefined
+        }
+        isWeightedOverrideEnabled={ex.tracking_type_override === "weight"}
+      />
+    );
   };
 
   const lastTimeFor = (row: ListRow): PreviousSet | null => {
@@ -316,6 +407,9 @@ export default function ExerciseListScreen() {
                   )
                 }
                 onSubmitLast={() => focusNextOpenRow(position)}
+                note={setNotes[row.exerciseIndex]?.[row.setIndex]}
+                onEditNote={() => handleEditNote(row)}
+                menu={renderMenu(row)}
               />
             );
           })}
@@ -345,6 +439,37 @@ export default function ExerciseListScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <NoteSheet
+        ref={noteSheetRef}
+        title={t`Set note`}
+        placeholder={t`How did this set feel?`}
+        onSave={(text) => {
+          const target = noteTargetRef.current;
+          if (!target) return;
+          useActiveWorkoutStore
+            .getState()
+            .setSetNote(target.exerciseIndex, target.setIndex, text);
+        }}
+      />
+      {editTarget && (
+        <SessionSetOptionsModal
+          visible
+          onClose={() => setEditTarget(null)}
+          exerciseIndex={editTarget.exerciseIndex}
+          setIndex={editTarget.setIndex}
+          distanceUnit={distanceUnit}
+        />
+      )}
+      {plateTarget && (
+        <PlateCalculatorModal
+          visible
+          onClose={() => setPlateTarget(null)}
+          targetWeight={
+            shownValues(plateTarget.exerciseIndex, plateTarget.setIndex).weight
+          }
+          weightUnit={weightUnit}
+        />
+      )}
       <RestTimerOverlay
         minutes={restTimer.minutes}
         seconds={restTimer.seconds}
@@ -414,6 +539,10 @@ function createStyles(colors: AppThemeColors) {
     feedbackCardScroll: {
       flexGrow: 0,
       maxHeight: FEEDBACK_CARD_MAX_HEIGHT,
+    },
+    menuButton: {
+      margin: 0,
+      width: 32,
     },
     footer: {
       flexDirection: "row",
