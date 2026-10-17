@@ -439,6 +439,12 @@ export default function HomeScreen() {
                 onStart={startPlanWorkout}
                 onOpen={openPlanWorkout}
                 onBrowsePlans={() => router.push("/(app)/(tabs)/(plans)")}
+                onEditPlan={() =>
+                  router.push({
+                    pathname: "/(app)/(create-plan)/create",
+                    params: { planId: String(activePlan?.id) },
+                  })
+                }
               />
             ))}
 

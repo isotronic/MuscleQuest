@@ -5,6 +5,8 @@ import { localDateKeyToDate } from "@/utils/dates";
 
 export type TodayHero =
   | { kind: "noPlan" }
+  /** A plan is active but has no workouts (new, or all removed). */
+  | { kind: "emptyPlan" }
   | { kind: "done" }
   | {
       kind: "workout";
@@ -30,7 +32,8 @@ export interface RecentPlanSession {
 /**
  * What the home screen's Today card shows: the plan's next workout (today's
  * scheduled one, the next in rotation, or on a rest day the next scheduled
- * one), the done-for-today state, or a prompt to pick a plan.
+ * one), the done-for-today state, a prompt to add workouts to an empty
+ * plan, or a prompt to pick a plan.
  *
  * @param orderedWorkouts - The plan's workouts in home order
  *   (planWorkoutsForWeek), so the first is the one to do next.
@@ -57,9 +60,10 @@ export function todayHero({
   recentSessions: RecentPlanSession[];
 }): TodayHero {
   if (planId == null) return { kind: "noPlan" };
-  if (doneToday) return { kind: "done" };
   const workout = orderedWorkouts[0];
-  if (!workout) return { kind: "noPlan" };
+  // Before done-for-today: a quick workout logged today would hide it.
+  if (!workout) return { kind: "emptyPlan" };
+  if (doneToday) return { kind: "done" };
 
   let nextDow: number | null = null;
   let scheduledToday = false;

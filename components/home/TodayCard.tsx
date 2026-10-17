@@ -32,6 +32,8 @@ interface Props {
   onStart: (workout: Workout, workoutIndex: number) => void;
   onOpen: (workoutIndex: number) => void;
   onBrowsePlans: () => void;
+  /** Opens the active plan in the plan editor. */
+  onEditPlan: () => void;
 }
 
 /** Home's main action: the workout to do next, with a large Start. */
@@ -44,6 +46,7 @@ export default function TodayCard({
   onStart,
   onOpen,
   onBrowsePlans,
+  onEditPlan,
 }: Props) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -71,6 +74,33 @@ export default function TodayCard({
           labelStyle={styles.startButtonLabel}
         >
           <Trans>Explore plans</Trans>
+        </Button>
+      </View>
+    );
+  }
+
+  if (hero.kind === "emptyPlan") {
+    return (
+      <View style={[styles.card, styles.cardHighlight]}>
+        <ThemedText
+          type="subtitle"
+          accessibilityRole="header"
+          style={styles.title}
+        >
+          {planName}
+        </ThemedText>
+        <ThemedText style={styles.meta}>
+          <Trans>This plan has no workouts yet.</Trans>
+        </ThemedText>
+        <Button
+          mode="contained"
+          icon="plus"
+          onPress={onEditPlan}
+          style={styles.startButton}
+          contentStyle={styles.startButtonContent}
+          labelStyle={styles.startButtonLabel}
+        >
+          <Trans>Add workouts</Trans>
         </Button>
       </View>
     );

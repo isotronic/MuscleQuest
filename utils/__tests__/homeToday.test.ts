@@ -130,6 +130,23 @@ describe("todayHero", () => {
     expect(heroFor({ planId: null })).toEqual({ kind: "noPlan" });
   });
 
+  it("asks for workouts when the active plan has none", () => {
+    expect(
+      todayHero({
+        planId: 7,
+        planWorkouts: [],
+        orderedWorkouts: [],
+        schedule: [],
+        isRestDay: false,
+        // Even after a quick workout today.
+        doneToday: true,
+        todayDow,
+        todayKey,
+        recentSessions: [],
+      }),
+    ).toEqual({ kind: "emptyPlan" });
+  });
+
   it("is done once a workout was logged today", () => {
     expect(heroFor({ doneToday: true })).toEqual({ kind: "done" });
   });

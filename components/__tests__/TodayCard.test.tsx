@@ -79,6 +79,7 @@ function renderCard(hero: Exclude<TodayHero, { kind: "done" }>) {
     onStart: jest.fn(),
     onOpen: jest.fn(),
     onBrowsePlans: jest.fn(),
+    onEditPlan: jest.fn(),
   };
   const screen = render(
     <TodayCard
@@ -120,6 +121,15 @@ describe("TodayCard", () => {
     expect(onStart).toHaveBeenCalledWith(pullA, 1);
     fireEvent.press(screen.getByText("Pull A"));
     expect(onOpen).toHaveBeenCalledWith(1);
+  });
+
+  it("offers to add workouts to an empty active plan", () => {
+    const { screen, onEditPlan } = renderCard({ kind: "emptyPlan" });
+    expect(screen.getByText("PPL")).toBeTruthy();
+    expect(screen.getByText("This plan has no workouts yet.")).toBeTruthy();
+    expect(screen.queryByText("No active plan")).toBeNull();
+    fireEvent.press(screen.getByText("Add workouts"));
+    expect(onEditPlan).toHaveBeenCalled();
   });
 
   it("asks to pick a plan when there is none", () => {
