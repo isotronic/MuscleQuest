@@ -30,7 +30,9 @@ jest.mock("@/components/ThemedText", () => {
 jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0 }),
 }));
-jest.mock("expo-router", () => ({ router: { replace: jest.fn() } }));
+jest.mock("expo-router", () => ({
+  router: { replace: jest.fn(), push: jest.fn() },
+}));
 jest.mock("@/utils/startWorkout", () => ({ confirmStartWorkout: jest.fn() }));
 jest.mock("@/store/activeWorkoutStore", () => ({
   useActiveWorkoutStore: { getState: () => ({ startQuickWorkout: jest.fn() }) },
@@ -86,14 +88,12 @@ describe("GetStartedScreen", () => {
   it("opens a starter plan", async () => {
     const { getByText } = render(<GetStartedScreen />);
     await press(getByText, "Full body plan");
-    // withAnchor loads the plans list under the overview, so Back lands there.
-    expect(router.replace).toHaveBeenCalledWith(
-      {
-        pathname: "/(app)/(tabs)/(plans)/overview",
-        params: { planId: "42" },
-      },
-      { withAnchor: true },
-    );
+    // The plans list goes under the overview, so Back lands there.
+    expect(router.replace).toHaveBeenCalledWith("/(app)/(tabs)/(plans)");
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: "/(app)/(tabs)/(plans)/overview",
+      params: { planId: "42" },
+    });
   });
 
   it("starts a quick workout from home", async () => {

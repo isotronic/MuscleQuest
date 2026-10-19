@@ -2,10 +2,8 @@ import { Stack } from "expo-router";
 import { t } from "@lingui/core/macro";
 import { useAppTheme } from "@/theme";
 
-// Opening the overview straight from Get started still puts the plans list
-// under it, so Back lands there.
-export const unstable_settings = { initialRouteName: "index" };
-
+// No initialRouteName/anchor here: expo-router ranks a group's anchor first
+// when matching "/", so the app would open on Plans instead of Home.
 export default function PlansLayout() {
   const { colors } = useAppTheme();
   return (

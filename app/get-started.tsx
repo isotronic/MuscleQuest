@@ -49,16 +49,14 @@ export default function GetStartedScreen() {
           <Trans>Pick a plan to follow, or start training right away.</Trans>
         </ThemedText>
         <StarterPlanList
-          onSelect={(planId) =>
-            // withAnchor loads the plans list under it, so Back lands there.
-            router.replace(
-              {
-                pathname: "/(app)/(tabs)/(plans)/overview",
-                params: { planId: String(planId) },
-              },
-              { withAnchor: true },
-            )
-          }
+          onSelect={(planId) => {
+            // The plans list goes under the overview, so Back lands there.
+            router.replace("/(app)/(tabs)/(plans)");
+            router.push({
+              pathname: "/(app)/(tabs)/(plans)/overview",
+              params: { planId: String(planId) },
+            });
+          }}
         />
         <View style={styles.actions}>
           <Button
