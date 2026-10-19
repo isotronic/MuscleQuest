@@ -1240,10 +1240,13 @@ export default function WorkoutOverviewScreen() {
           </ThemedText>
         )}
         <View style={styles.notesRow}>
-          <SessionNoteField note={sessionNote} onSave={setSessionNote} />
+          {/* A written note takes the row's width, beside the Cues button. */}
+          <View style={sessionNote.trim() ? styles.noteFilled : undefined}>
+            <SessionNoteField note={sessionNote} onSave={setSessionNote} />
+          </View>
           {/* A quick workout has no template to hang cues on. */}
           {!isQuickWorkout && !!workout.id && (
-            <View style={styles.cuesButton}>
+            <View>
               <Cues
                 noteType="workout"
                 referenceId={workout.id}
@@ -1406,11 +1409,16 @@ function createStyles(colors: AppThemeColors) {
       marginBottom: 4,
     },
     notesRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "flex-start",
       gap: 8,
       marginBottom: 16,
     },
-    cuesButton: {
-      alignSelf: "flex-start",
+    noteFilled: {
+      flexGrow: 1,
+      flexShrink: 1,
+      flexBasis: 160,
     },
     saveModal: {
       backgroundColor: colors.card,
