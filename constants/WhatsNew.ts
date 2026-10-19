@@ -887,6 +887,22 @@ In the workout overview, tap the arrow on an exercise to see all its sets. Tap a
 Prefer to see every set at once? Tap Show sets as a list in the workout menu (⋮), or set Logging style in Settings, under Workout and rest timer. Tapping an exercise then shows all its sets with your last time, so you can fill them in and tick them off, and Next takes you to the following exercise.
 `,
   },
+  {
+    version: 2676,
+    release: "1.6",
+    message: msg`
+🔔 New: Rest Alerts on Silent!
+
+Want to hear your rest end with your phone on silent? Turn on Rest alert sounds on silent in Settings, under Workout and rest timer. The rest notification then plays at your alarm volume.
+
+Also in this update:
+• Add a note to a set with the new note icon next to the set menu (⋮).
+• The workout overview shows your elapsed time, keeps Add session note and Cues on one line, and its rest timer stands out from the exercise cards.
+• With the app open, the rest notification no longer sounds a second time shortly after the app's own sound.
+• The app opens on Home again, and discarding a workout takes you back there.
+• Friend profiles list the most recent items first.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
