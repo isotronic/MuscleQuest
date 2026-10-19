@@ -124,6 +124,7 @@ export const HELP_DATA: GroupData[] = [
             msg`Configure the default rest duration and the timer increment in Settings.`,
             msg`When your rest is over, you get a notification even if your phone is locked or you are in another app. The first time you start a rest, the app asks for permission to send it.`,
             msg`In Settings, toggle a sound or vibration for when the timer ends, and choose whether the notification also shows while the app is open.`,
+            msg`On Android 12 and later, rest alerts arrive exactly on time only when Alarms & reminders is allowed for MuscleQuest. Settings shows whether it is under Rest alerts on time; tap it to open the system setting.`,
             msg`On Android, turn on Rest alert sounds on silent in Settings to hear the rest notification with your phone on silent. It then plays at your alarm volume; Do Not Disturb still mutes it.`,
           ],
           ordered: false,

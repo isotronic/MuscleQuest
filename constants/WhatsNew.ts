@@ -899,6 +899,7 @@ Also in this update:
 • Add a note to a set with the new note icon next to the set menu (⋮).
 • The workout overview shows your elapsed time, keeps Add session note and Cues on one line, and its rest timer stands out from the exercise cards.
 • With the app open, the rest notification no longer sounds a second time shortly after the app's own sound.
+• Rest alerts arriving late? Settings now shows whether Alarms & reminders is allowed, under Rest alerts on time.
 • The app opens on Home again, and discarding a workout takes you back there.
 • Friend profiles list the most recent items first.
 `,
