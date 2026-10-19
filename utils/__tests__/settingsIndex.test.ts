@@ -69,14 +69,17 @@ describe("settings search", () => {
     });
   });
 
-  it("lists the alarm-volume setting on Android only", () => {
+  it("lists the Android rest alert settings on Android only", () => {
     const os = Platform.OS;
     const ids = () => translateSettingsIndex(english).map((d) => d.id);
     try {
       Platform.OS = "android";
-      expect(ids()).toContain("restAlertOnSilent");
+      expect(ids()).toEqual(
+        expect.arrayContaining(["restAlertOnSilent", "exactRestAlerts"]),
+      );
       Platform.OS = "ios";
       expect(ids()).not.toContain("restAlertOnSilent");
+      expect(ids()).not.toContain("exactRestAlerts");
     } finally {
       Platform.OS = os;
     }

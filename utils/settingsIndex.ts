@@ -125,6 +125,12 @@ export const SETTINGS_INDEX = [
     keywords: msg`sound, alarm, rest, timer`,
   },
   {
+    id: "exactRestAlerts",
+    screen: "workout",
+    title: msg`Rest alerts on time`,
+    keywords: msg`exact, alarms, reminders, late, delayed, notification, rest`,
+  },
+  {
     id: "restAlertOnSilent",
     screen: "workout",
     title: msg`Rest alert sounds on silent`,
@@ -301,7 +307,10 @@ export function settingTarget(id: SettingId, state: SettingsState): SettingId {
 }
 
 // Rows the settings screens render on Android only.
-const ANDROID_ONLY: readonly SettingId[] = ["restAlertOnSilent"];
+const ANDROID_ONLY: readonly SettingId[] = [
+  "exactRestAlerts",
+  "restAlertOnSilent",
+];
 
 /** An index entry with its text translated for the current locale. */
 export interface SettingsSearchDoc {

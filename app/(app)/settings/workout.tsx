@@ -1,4 +1,5 @@
-import { Alert, Platform } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, AppState, Platform } from "react-native";
 import { router } from "expo-router";
 import * as Notifications from "expo-notifications";
 import { Trans } from "@lingui/react/macro";
@@ -14,6 +15,20 @@ import { useSettingsOverlay } from "@/hooks/useSettingsOverlay";
 import { useSettingToggle } from "@/hooks/useSettingToggle";
 import { toDisplayDecimal } from "@/utils/numberFormat";
 import { LOGGING_STYLES, loggingStyleOf } from "@/utils/loggingStyle";
+import { exactAlarmsAllowed } from "@/utils/restNotification";
+import { openExactAlarmSettings } from "@/modules/exact-alarm";
+
+/** "Alarms & reminders", read again whenever the app comes back to front. */
+function useExactAlarmsAllowed(): boolean {
+  const [allowed, setAllowed] = useState(exactAlarmsAllowed);
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") setAllowed(exactAlarmsAllowed());
+    });
+    return () => subscription.remove();
+  }, []);
+  return allowed;
+}
 
 const enabled = (on: boolean) => (on ? t`Enabled` : t`Disabled`);
 
@@ -31,6 +46,7 @@ export default function WorkoutSettingsScreen() {
   );
   const [alertOnSilent, setAlertOnSilent] =
     useSettingToggle("restAlertOnSilent");
+  const exactAlarms = useExactAlarmsAllowed();
   const [countdownSound, setCountdownSound] = useSettingToggle(
     "timerCountdownSound",
   );
@@ -203,6 +219,20 @@ export default function WorkoutSettingsScreen() {
         checked={sound}
         onValueChange={setSound}
       />
+      {/* Android only: iOS has no exact alarm permission. */}
+      {Platform.OS === "android" && (
+        <SettingRow
+          id="exactRestAlerts"
+          icon={exactAlarms ? "alarm-check" : "alarm-off"}
+          title={<Trans>Rest alerts on time</Trans>}
+          value={
+            exactAlarms
+              ? t`Alarms & reminders allowed`
+              : t`Off: rest alerts may arrive late. Tap to allow alarms & reminders.`
+          }
+          onPress={openExactAlarmSettings}
+        />
+      )}
       {/* Android only: it picks a notification channel, which iOS lacks. */}
       {Platform.OS === "android" && (
         <SwitchRow
