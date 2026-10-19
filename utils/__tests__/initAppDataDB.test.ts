@@ -1,7 +1,10 @@
 import { File, Directory } from "expo-file-system";
 import { Asset } from "expo-asset";
 import { openDatabase } from "@/utils/database";
+import fs from "node:fs";
+import path from "node:path";
 import { initializeAppData } from "@/utils/initAppDataDB";
+import { APP_DATA_DB } from "@/utils/db/appDataFile";
 
 const MockFile = File as unknown as jest.Mock;
 const MockDirectory = Directory as unknown as jest.Mock;
@@ -160,5 +163,15 @@ describe("initializeAppData", () => {
     expect(mockAssetFileCopy).toHaveBeenCalled();
     expect(mockOldDb1FileDelete).not.toHaveBeenCalled();
     expect(mockOldDb2FileDelete).not.toHaveBeenCalled();
+  });
+
+  // Metro needs a literal require path, so nothing ties it to APP_DATA_DB at
+  // runtime; a renamed library must change both.
+  it("bundles the asset named by APP_DATA_DB", () => {
+    const source = fs.readFileSync(
+      path.join(__dirname, "..", "initAppDataDB.ts"),
+      "utf8",
+    );
+    expect(source).toContain(`require("../assets/db/${APP_DATA_DB}")`);
   });
 });

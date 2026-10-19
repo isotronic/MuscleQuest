@@ -272,8 +272,6 @@ export const copyDataFromAppDataToUserData = async (
                       return row[col] !== existingEntry.animated_url;
                     case "is_deleted":
                       return row[col] !== existingEntry.is_deleted;
-                    case "tracking_type":
-                      return row[col] !== existingEntry.tracking_type;
                     case "equipment":
                       return row[col] !== existingEntry.equipment;
                     case "is_unilateral":
@@ -287,9 +285,15 @@ export const copyDataFromAppDataToUserData = async (
 
                 if (fieldsToUpdate.length > 0) {
                   // The library row has no app_exercise_id column; it is
-                  // the row's own exercise_id, as in the insert below.
+                  // the row's own exercise_id, as in the insert below. The
+                  // tracking type stays: refreshLibraryFromAppData changes it
+                  // after converting what was logged and planned with it.
                   const values = updateColumns.map((col) =>
-                    col === "app_exercise_id" ? row["exercise_id"] : row[col],
+                    col === "app_exercise_id"
+                      ? row["exercise_id"]
+                      : col === "tracking_type"
+                        ? existingEntry.tracking_type
+                        : row[col],
                   );
                   values.push(row["exercise_id"]);
                   await userDataDB!.runAsync(updateStatement, values);
@@ -449,39 +453,6 @@ const lockLoggedType = (
     [oldType, exerciseId],
   );
 
-// Moves sessions logged as reps over to time when every logged value looks
-// like seconds. Deleted sets move with their session.
-const convertLoggedReps = async (
-  db: SQLite.SQLiteDatabase,
-  exerciseId: number,
-): Promise<number> => {
-  const sessions = await db.getAllAsync<{ id: number }>(
-    `SELECT ce.id FROM completed_exercises ce
-     WHERE ce.exercise_id = ? AND ce.resolved_tracking_type = 'reps'
-       AND EXISTS (
-         SELECT 1 FROM completed_sets s
-         WHERE s.completed_exercise_id = ce.id
-           AND COALESCE(s.is_deleted, 0) = 0 AND s.reps IS NOT NULL)
-       AND NOT EXISTS (
-         SELECT 1 FROM completed_sets s
-         WHERE s.completed_exercise_id = ce.id
-           AND COALESCE(s.is_deleted, 0) = 0 AND s.reps < ?)`,
-    [exerciseId, MIN_SECONDS_FROM_REPS],
-  );
-  for (const { id } of sessions) {
-    await db.runAsync(
-      `UPDATE completed_sets SET time = COALESCE(time, reps), reps = NULL
-       WHERE completed_exercise_id = ? AND reps IS NOT NULL`,
-      [id],
-    );
-    await db.runAsync(
-      `UPDATE completed_exercises SET resolved_tracking_type = 'time' WHERE id = ?`,
-      [id],
-    );
-  }
-  return sessions.length;
-};
-
 interface PlannedSet {
   repsMin?: number | null;
   repsMax?: number | null;
@@ -494,61 +465,122 @@ const repsTarget = (set: PlannedSet): number | null => {
   return typeof target === "number" ? target : null;
 };
 
-// Plan rows without an override follow the exercise's type. Targets that look
-// like seconds become time targets, and an unapplied progression suggestion
-// (which would suggest reps) is dropped; the engine makes a new one after the
-// next session. Anything else keeps working as before through a reps
-// override.
-const convertPlannedReps = async (
+const toTimedSets = (sets: PlannedSet[]) =>
+  sets.map(({ repsMin, repsMax, ...rest }) => {
+    const target = repsTarget({ repsMin, repsMax });
+    return target === null ? rest : { ...rest, time: rest.time ?? target };
+  });
+
+// Plan rows without an override follow the exercise's type.
+const planRowsFollowingType = async (
   db: SQLite.SQLiteDatabase,
   exerciseId: number,
-): Promise<{ converted: number; keptOnReps: number }> => {
+) => {
   const planRows = await db.getAllAsync<{ id: number; sets: string | null }>(
     `SELECT id, sets FROM user_workout_exercises
      WHERE exercise_id = ? AND NULLIF(tracking_type_override, '') IS NULL`,
     [exerciseId],
   );
-  let converted = 0;
-  let keptOnReps = 0;
-  for (const row of planRows) {
-    let sets: PlannedSet[] = [];
-    let readable = true;
+  return planRows.map((row) => {
     try {
       const parsed = JSON.parse(row.sets ?? "[]");
-      if (Array.isArray(parsed)) sets = parsed;
+      return { id: row.id, sets: Array.isArray(parsed) ? parsed : [] };
     } catch {
-      readable = false;
+      return { id: row.id, sets: null };
     }
-    const looksLikeSeconds =
-      readable &&
-      sets.every((set) => {
-        const target = repsTarget(set);
-        return target === null || target >= MIN_SECONDS_FROM_REPS;
-      });
-    if (!looksLikeSeconds) {
-      await db.runAsync(
-        `UPDATE user_workout_exercises SET tracking_type_override = 'reps' WHERE id = ?`,
-        [row.id],
-      );
-      keptOnReps++;
-      continue;
-    }
-    const timedSets = sets.map(({ repsMin, repsMax, ...rest }) => {
-      const target = repsTarget({ repsMin, repsMax });
-      return target === null ? rest : { ...rest, time: rest.time ?? target };
-    });
+  });
+};
+
+const keepPlansOn = async (
+  db: SQLite.SQLiteDatabase,
+  planRowIds: number[],
+  type: string,
+) => {
+  for (const id of planRowIds) {
+    await db.runAsync(
+      `UPDATE user_workout_exercises SET tracking_type_override = ? WHERE id = ?`,
+      [type, id],
+    );
+  }
+};
+
+/**
+ * Moves an exercise that changes from reps to time over as a whole: logged
+ * sessions become time (each reps value read as seconds) and plan targets
+ * become time targets, dropping unapplied progression suggestions, which
+ * would suggest reps.
+ *
+ * Progress charts pick one type per exercise (a plan row's override, else
+ * the exercise's type), so a mix would hide one side. Nothing is converted,
+ * and every plan row keeps reps through its override, unless every session
+ * and every plan target looks like seconds and no plan row already pins reps.
+ */
+const convertRepsToTime = async (
+  db: SQLite.SQLiteDatabase,
+  exerciseId: number,
+): Promise<{ sessions: number; plans: number; keptOnReps: number }> => {
+  const sessions = await db.getAllAsync<{ id: number; small: number }>(
+    `SELECT ce.id, EXISTS (
+       SELECT 1 FROM completed_sets s
+       WHERE s.completed_exercise_id = ce.id
+         AND (s.is_deleted = FALSE OR s.is_deleted IS NULL)
+         AND s.reps < ?) AS small
+     FROM completed_exercises ce
+     WHERE ce.exercise_id = ? AND ce.resolved_tracking_type = 'reps'`,
+    [MIN_SECONDS_FROM_REPS, exerciseId],
+  );
+  const plans = await planRowsFollowingType(db, exerciseId);
+  const pinnedToReps = await db.getFirstAsync(
+    `SELECT 1 FROM user_workout_exercises
+     WHERE exercise_id = ? AND tracking_type_override = 'reps'
+       AND (is_deleted = FALSE OR is_deleted IS NULL)
+     LIMIT 1`,
+    [exerciseId],
+  );
+  const looksLikeSeconds =
+    !pinnedToReps &&
+    sessions.every((session) => !session.small) &&
+    plans.every(
+      (plan) =>
+        plan.sets !== null &&
+        plan.sets.every((set: PlannedSet) => {
+          const target = repsTarget(set);
+          return target === null || target >= MIN_SECONDS_FROM_REPS;
+        }),
+    );
+
+  if (!looksLikeSeconds) {
+    await keepPlansOn(
+      db,
+      plans.map((plan) => plan.id),
+      "reps",
+    );
+    return { sessions: 0, plans: 0, keptOnReps: plans.length };
+  }
+
+  for (const { id } of sessions) {
+    await db.runAsync(
+      `UPDATE completed_sets SET time = COALESCE(time, reps), reps = NULL
+       WHERE completed_exercise_id = ? AND reps IS NOT NULL`,
+      [id],
+    );
+    await db.runAsync(
+      `UPDATE completed_exercises SET resolved_tracking_type = 'time' WHERE id = ?`,
+      [id],
+    );
+  }
+  for (const plan of plans) {
     await db.runAsync(
       `UPDATE user_workout_exercises SET sets = ? WHERE id = ?`,
-      [JSON.stringify(timedSets), row.id],
+      [JSON.stringify(toTimedSets(plan.sets ?? [])), plan.id],
     );
     await db.runAsync(
       `DELETE FROM exercise_progression_state
        WHERE user_workout_exercise_id = ? AND is_applied = 0`,
-      [row.id],
+      [plan.id],
     );
-    converted++;
   }
-  return { converted, keptOnReps };
+  return { sessions: sessions.length, plans: plans.length, keptOnReps: 0 };
 };
 
 const refreshLibraryRows = async (
@@ -577,16 +609,25 @@ const refreshLibraryRows = async (
     WHERE e.app_exercise_id = a.exercise_id
       AND (${REFRESHED_COLUMNS.map((col) => `e.${col} IS NOT a.${col}`).join(" OR ")})
   `);
+  // Library exercises this device never received.
+  await db.execAsync(`
+    INSERT INTO main.exercises (${REFRESHED_COLUMNS.join(", ")}, app_exercise_id)
+      SELECT ${REFRESHED_COLUMNS.join(", ")}, exercise_id FROM appdata.exercises
+      WHERE exercise_id NOT IN (
+        SELECT app_exercise_id FROM main.exercises
+        WHERE app_exercise_id IS NOT NULL)
+  `);
   return result.changes;
 };
 
 /**
- * Rewrites every library exercise from the shipped library, so existing
- * installs get corrections that new installs copy directly. Where an
- * exercise's tracking type changes, what the user already logged and planned
- * is kept readable first (see lockLoggedType, convertLoggedReps and
- * convertPlannedReps). All of it is one transaction with the sync version
- * bump: a failure leaves nothing half done and runs again next boot.
+ * Rewrites every library exercise from the shipped library and adds any the
+ * device lacks, so existing installs get corrections that new installs copy
+ * directly. Where an exercise's tracking type changes, what the user already
+ * logged and planned is kept readable first (see lockLoggedType,
+ * convertRepsToTime and keepPlansOn). All of it is one transaction with the
+ * sync version bump: a failure leaves nothing half done and runs again next
+ * boot.
  *
  * Runs last: its sync version is above every other step's. On a new install
  * the rows already match, so it changes nothing.
@@ -623,16 +664,25 @@ export const refreshLibraryFromAppData = async (): Promise<void> => {
         for (const change of typeChanges) {
           await lockLoggedType(userDataDB, change.exercise_id, change.old_type);
           if (change.old_type === "reps" && change.new_type === "time") {
-            summary.sessionsConverted += await convertLoggedReps(
+            const converted = await convertRepsToTime(
               userDataDB,
               change.exercise_id,
             );
-            const plans = await convertPlannedReps(
+            summary.sessionsConverted += converted.sessions;
+            summary.plansConverted += converted.plans;
+            summary.plansKeptOnReps += converted.keptOnReps;
+          } else {
+            // No conversion for this change: plans keep the type their
+            // targets were written for, as logged sessions now do.
+            const plans = await planRowsFollowingType(
               userDataDB,
               change.exercise_id,
             );
-            summary.plansConverted += plans.converted;
-            summary.plansKeptOnReps += plans.keptOnReps;
+            await keepPlansOn(
+              userDataDB,
+              plans.map((plan) => plan.id),
+              change.old_type,
+            );
           }
         }
         summary.exercisesUpdated = await refreshLibraryRows(userDataDB);

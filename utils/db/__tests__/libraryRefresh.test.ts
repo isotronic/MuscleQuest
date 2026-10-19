@@ -29,7 +29,7 @@ const OLD_IMAGE = new Uint8Array([1, 2, 3]);
 const NEW_IMAGE = new Uint8Array([4, 5, 6]);
 
 // Library ids: 5 renamed with a new thumbnail, 9 a hold now timed, 12 given
-// an animation, 20 unchanged.
+// an animation, 20 unchanged, 30 weight now reps, 40 new to the device.
 const writeLibrary = (file: string) => {
   const sqlite = new DatabaseSync(file);
   sqlite.exec(`
@@ -80,6 +80,26 @@ const writeLibrary = (file: string) => {
     "quads",
     "[]",
     "reps",
+    0,
+  );
+  insert.run(
+    30,
+    "Ab Wheel",
+    OLD_IMAGE,
+    "/a/wheel.webp",
+    "abs",
+    "[]",
+    "reps",
+    0,
+  );
+  insert.run(
+    40,
+    "Front Plank",
+    OLD_IMAGE,
+    "/a/front.webp",
+    "abs",
+    "[]",
+    "time",
     0,
   );
   insert.run(
@@ -156,6 +176,20 @@ const seedUserData = (sqlite: DatabaseSync) => {
     "[]",
     null,
     1,
+    0,
+  );
+  insert.run(
+    130,
+    30,
+    "Ab Wheel",
+    OLD_IMAGE,
+    "file:///130.webp",
+    "/a/wheel.webp",
+    null,
+    "abs",
+    "[]",
+    null,
+    0,
     0,
   );
   insert.run(
@@ -395,8 +429,24 @@ describe("refreshLibraryFromAppData: history of an exercise now timed", () => {
   });
 
   it("locks the old type on sessions logged before the snapshot existed", async () => {
+    logSession(1, 109, null, [{ reps: 40 }]);
+    logSession(2, 109, "", [{ reps: 50 }]);
+
+    await refreshLibraryFromAppData();
+
+    expect(session(1)).toEqual({
+      type: "time",
+      sets: [{ reps: null, time: 40 }],
+    });
+    expect(session(2)).toEqual({
+      type: "time",
+      sets: [{ reps: null, time: 50 }],
+    });
+  });
+
+  it("keeps every session on reps when any of them looks like a count", async () => {
     logSession(1, 109, null, [{ reps: 1 }]);
-    logSession(2, 109, null, [{ reps: 40 }]);
+    logSession(2, 109, "reps", [{ reps: 40 }]);
 
     await refreshLibraryFromAppData();
 
@@ -405,8 +455,8 @@ describe("refreshLibraryFromAppData: history of an exercise now timed", () => {
       sets: [{ reps: 1, time: null }],
     });
     expect(session(2)).toEqual({
-      type: "time",
-      sets: [{ reps: null, time: 40 }],
+      type: "reps",
+      sets: [{ reps: 40, time: null }],
     });
   });
 
@@ -487,6 +537,72 @@ describe("refreshLibraryFromAppData: plans with an exercise now timed", () => {
     expect(rows(`SELECT id FROM exercise_progression_state`)).toHaveLength(1);
   });
 
+  it("keeps sessions and plans together: a small plan target keeps both on reps", async () => {
+    logSession(1, 109, "reps", [{ reps: 30 }]);
+    planRow(1, 109, [{ repsMin: 30, ...rest }]);
+    planRow(2, 109, [{ repsMin: 2, ...rest }]);
+
+    await refreshLibraryFromAppData();
+
+    expect(session(1)).toEqual({
+      type: "reps",
+      sets: [{ reps: 30, time: null }],
+    });
+    expect(plan(1).override).toBe("reps");
+    expect(plan(2).override).toBe("reps");
+  });
+
+  it("keeps plans on reps when a session looks like a count", async () => {
+    logSession(1, 109, "reps", [{ reps: 2 }]);
+    planRow(1, 109, [{ repsMin: 30, ...rest }]);
+
+    await refreshLibraryFromAppData();
+
+    expect(plan(1)).toEqual({
+      override: "reps",
+      sets: [{ repsMin: 30, ...rest }],
+    });
+  });
+
+  it("converts nothing when a plan already pins the exercise to reps", async () => {
+    logSession(1, 109, "reps", [{ reps: 30 }]);
+    planRow(1, 109, [{ repsMin: 30, ...rest }], "reps");
+    planRow(2, 109, [{ repsMin: 30, ...rest }]);
+
+    await refreshLibraryFromAppData();
+
+    expect(session(1).type).toBe("reps");
+    expect(plan(2)).toEqual({
+      override: "reps",
+      sets: [{ repsMin: 30, ...rest }],
+    });
+  });
+
+  it("converts plans with no targets", async () => {
+    planRow(1, 109, []);
+    mockUserData.sqlite.exec(
+      `INSERT INTO user_workout_exercises (id, workout_id, exercise_id, sets) VALUES (2, 1, 109, NULL)`,
+    );
+    await refreshLibraryFromAppData();
+
+    expect(plan(1)).toEqual({ override: null, sets: [] });
+    expect(plan(2)).toEqual({ override: null, sets: [] });
+  });
+
+  it("keeps an unreadable plan on reps", async () => {
+    mockUserData.sqlite.exec(
+      `INSERT INTO user_workout_exercises (id, workout_id, exercise_id, sets) VALUES (1, 1, 109, 'not json')`,
+    );
+
+    await refreshLibraryFromAppData();
+
+    expect(
+      row(
+        `SELECT tracking_type_override AS o FROM user_workout_exercises WHERE id = 1`,
+      ).o,
+    ).toBe("reps");
+  });
+
   it("leaves rows that already choose a type", async () => {
     const sets = [{ repsMin: 30, ...rest }];
     planRow(1, 109, sets, "weight");
@@ -494,6 +610,38 @@ describe("refreshLibraryFromAppData: plans with an exercise now timed", () => {
     await refreshLibraryFromAppData();
 
     expect(plan(1)).toEqual({ override: "weight", sets });
+  });
+});
+
+describe("refreshLibraryFromAppData: other type changes", () => {
+  it("keeps sessions and plans on the old type", async () => {
+    logSession(1, 130, null, [{ reps: 10 }]);
+    planRow(1, 130, [
+      { repsMin: 8, repsMax: 12, restMinutes: 1, restSeconds: 0 },
+    ]);
+
+    await refreshLibraryFromAppData();
+
+    expect(session(1).type).toBe("weight");
+    expect(plan(1).override).toBe("weight");
+    expect(
+      row(`SELECT tracking_type FROM exercises WHERE exercise_id = 130`)
+        .tracking_type,
+    ).toBe("reps");
+  });
+});
+
+describe("refreshLibraryFromAppData: missing library rows", () => {
+  it("adds library exercises the device never received", async () => {
+    await refreshLibraryFromAppData();
+
+    expect(
+      rows(
+        `SELECT name, tracking_type, image_uri FROM exercises WHERE app_exercise_id = 40`,
+      ),
+    ).toEqual([
+      { name: "Front Plank", tracking_type: "time", image_uri: null },
+    ]);
   });
 });
 
