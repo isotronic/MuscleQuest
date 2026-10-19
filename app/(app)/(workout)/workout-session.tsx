@@ -550,9 +550,14 @@ export default function WorkoutSessionScreen() {
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
     onExpire: () => {
+      // Read before stopTimer clears it. The timer fires only after its own
+      // expiry, so a stored one still ahead means a newer rest has started.
+      const storeExpiry = useActiveWorkoutStore.getState().timerExpiry;
+      const isCurrentRest =
+        !storeExpiry || new Date(storeExpiry).getTime() <= Date.now();
       stopTimer();
 
-      handleExpire();
+      handleExpire(isCurrentRest);
     },
   });
   useRestTimerResync(restart);
@@ -560,7 +565,7 @@ export default function WorkoutSessionScreen() {
 
   const restHint = useRestHint();
 
-  async function handleExpire() {
+  async function handleExpire(isCurrentRest: boolean) {
     if (!expiryTimestampRef.current) {
       Bugsnag.notify(new Error("Timer expired but no expiry timestamp found"));
       return;
@@ -585,8 +590,9 @@ export default function WorkoutSessionScreen() {
         triggerVibration();
       }
       // A newer rest already started: this callback is from the old timer
-      // and must not drop the new rest's notification.
-      if (diffMs >= 0) restEndedInApp();
+      // and must not drop the new rest's notification. Checked against both
+      // this screen's expiry and the store's, which another screen may set.
+      if (diffMs >= 0 && isCurrentRest) restEndedInApp();
       setCurrentSetStartedAt(new Date());
     } else {
       Bugsnag.leaveBreadcrumb("Skipped sound/vibration", {
