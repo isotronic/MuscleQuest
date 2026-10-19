@@ -49,7 +49,7 @@ jest.mock("@/store/soundStore", () => ({
 const mockRestEndedInApp = jest.fn();
 jest.mock("@/utils/restNotification", () => ({
   cancelRestNotifications: jest.fn(),
-  restEndedInApp: (cued: boolean) => mockRestEndedInApp(cued),
+  restEndedInApp: () => mockRestEndedInApp(),
   scheduleRestNotificationWithCancellation: jest.fn(),
 }));
 

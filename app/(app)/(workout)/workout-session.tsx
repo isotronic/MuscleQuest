@@ -613,15 +613,13 @@ export default function WorkoutSessionScreen() {
     });
 
     if (diffMs < 2000 && isFocusedRef.current) {
-      const soundOn = settings?.restTimerSound === "true";
-      const vibrationOn = settings?.restTimerVibration === "true";
-      if (soundOn) {
+      if (settings?.restTimerSound === "true") {
         playSound();
       }
-      if (vibrationOn) {
+      if (settings?.restTimerVibration === "true") {
         triggerVibration();
       }
-      restEndedInApp(soundOn || vibrationOn);
+      restEndedInApp();
       setCurrentSetStartedAt(new Date());
     } else {
       Bugsnag.leaveBreadcrumb("Skipped sound/vibration", {

@@ -478,22 +478,15 @@ describe("dropping a pending rest notification", () => {
     expect(Notifications.dismissNotificationAsync).not.toHaveBeenCalled();
   });
 
-  it("drops it when the app played its own cue, even in the background", async () => {
-    setAppState("background");
-    restEndedInApp(true);
+  it("drops it while the app is open", async () => {
+    restEndedInApp();
     await flush();
     expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalled();
   });
 
-  it("drops it when the app is open, cue or not", async () => {
-    restEndedInApp(false);
-    await flush();
-    expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalled();
-  });
-
-  it("keeps it in the background when the app played no cue", async () => {
+  it("keeps it while the app is in the background, where the sound may not play", async () => {
     setAppState("background");
-    restEndedInApp(false);
+    restEndedInApp();
     await flush();
     expect(
       Notifications.cancelScheduledNotificationAsync,

@@ -101,12 +101,12 @@ export async function dropPendingRestNotification() {
 }
 
 /**
- * Call when the app's timer ends a rest on a focused workout screen. `cued`
- * says whether it played its sound or vibration. In the background with no
- * cue, the notification is the only alert, so it stays.
+ * Call when the app's timer ends a rest on a focused workout screen. Only
+ * while the app is open: a locked phone keeps the screen focused, but its
+ * in-app sound may not play, and then the notification is the only alert.
  */
-export function restEndedInApp(cued: boolean) {
-  if (cued || AppState.currentState === "active") {
+export function restEndedInApp() {
+  if (AppState.currentState === "active") {
     void dropPendingRestNotification();
   }
 }
