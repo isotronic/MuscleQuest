@@ -488,6 +488,8 @@ export default function ExerciseListScreen() {
         buttonSize={restTimer.buttonSize}
         onAdjust={(delta) => void restTimer.adjust(delta)}
         onSkip={restTimer.skip}
+        hint={restTimer.hint}
+        hintAction={restTimer.hintAction}
         topContent={
           restTimer.timerRunning && hasQueuedFeedback ? (
             <ScrollView

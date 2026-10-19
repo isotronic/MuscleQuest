@@ -12,6 +12,7 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useRestTimerResync } from "@/hooks/useRestTimerResync";
 import { usePauseWhenRestEndsEarly } from "@/hooks/usePauseWhenRestEndsEarly";
 import { useSoundStore } from "@/store/soundStore";
+import { useRestHint } from "@/hooks/useRestHint";
 import {
   cancelRestNotifications,
   restEndedInApp,
@@ -41,6 +42,8 @@ export function useRestTimerControls() {
         ? 60
         : 80
     : 40;
+
+  const { hint, hintAction } = useRestHint();
 
   const isFocusedRef = useRef(true);
   useFocusEffect(
@@ -136,5 +139,7 @@ export function useRestTimerControls() {
     animStyle,
     adjust,
     skip,
+    hint,
+    hintAction,
   };
 }

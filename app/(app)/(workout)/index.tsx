@@ -1303,6 +1303,8 @@ export default function WorkoutOverviewScreen() {
         buttonSize={restTimer.buttonSize}
         onAdjust={(delta) => void restTimer.adjust(delta)}
         onSkip={restTimer.skip}
+        hint={restTimer.hint}
+        hintAction={restTimer.hintAction}
         onLayout={(e) => setTimerHeight(e.nativeEvent.layout.height)}
         containerStyle={styles.restOverlay}
         topContent={
