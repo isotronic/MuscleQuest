@@ -1,5 +1,6 @@
 import { readFileSync } from "fs";
 import path from "path";
+import { Platform } from "react-native";
 import {
   settingTarget,
   buildSettingsSearch,
@@ -66,6 +67,22 @@ describe("settings search", () => {
       id: "backup",
       screen: "data",
     });
+  });
+
+  it("lists the Android rest alert settings on Android only", () => {
+    const os = Platform.OS;
+    const ids = () => translateSettingsIndex(english).map((d) => d.id);
+    try {
+      Platform.OS = "android";
+      expect(ids()).toEqual(
+        expect.arrayContaining(["restAlertOnSilent", "exactRestAlerts"]),
+      );
+      Platform.OS = "ios";
+      expect(ids()).not.toContain("restAlertOnSilent");
+      expect(ids()).not.toContain("exactRestAlerts");
+    } finally {
+      Platform.OS = os;
+    }
   });
 
   it("returns nothing for an empty query", () => {

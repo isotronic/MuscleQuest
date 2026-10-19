@@ -220,26 +220,37 @@ export default function SessionSetInfo({
           restMinutes={restMinutes}
           restSeconds={restSeconds}
         />
-        <SetOptionsMenu
-          size={30}
-          buttonStyle={styles.menuButton}
-          onOpenPlateCalculator={
-            showsWeightInput ? onOpenPlateCalculator : undefined
-          }
-          onEditSet={onEditSet}
-          onRemoveSet={() => removeSet(currentSetIndex)}
-          onAddSet={addSet}
-          onAddDropSet={onAddDropSet}
-          onToggleSetType={onToggleSetType}
-          isWarmup={isWarmup}
-          isToFailure={isToFailure}
-          onEditNote={onEditNote}
-          hasNote={hasNote}
-          onToggleWeighted={
-            baseTrackingType === "reps" ? onToggleWeighted : undefined
-          }
-          isWeightedOverrideEnabled={isWeightedOverrideEnabled}
-        />
+        <View style={styles.headerActions}>
+          {/* The note is a tap away, not only in the menu. */}
+          {!!onEditNote && (
+            <AppIconButton
+              icon={hasNote ? "note-edit-outline" : "note-plus-outline"}
+              accessibilityLabel={hasNote ? t`Edit set note` : t`Add set note`}
+              onPress={onEditNote}
+              size={26}
+              iconColor={colors.contentPrimary}
+            />
+          )}
+          <SetOptionsMenu
+            size={30}
+            onOpenPlateCalculator={
+              showsWeightInput ? onOpenPlateCalculator : undefined
+            }
+            onEditSet={onEditSet}
+            onRemoveSet={() => removeSet(currentSetIndex)}
+            onAddSet={addSet}
+            onAddDropSet={onAddDropSet}
+            onToggleSetType={onToggleSetType}
+            isWarmup={isWarmup}
+            isToFailure={isToFailure}
+            onEditNote={onEditNote}
+            hasNote={hasNote}
+            onToggleWeighted={
+              baseTrackingType === "reps" ? onToggleWeighted : undefined
+            }
+            isWeightedOverrideEnabled={isWeightedOverrideEnabled}
+          />
+        </View>
       </View>
       {/* Set Navigation */}
       <View style={styles.setNavigationContainer}>
@@ -513,7 +524,9 @@ function createStyles(colors: AppThemeColors) {
       justifyContent: "space-between",
       marginBottom: 16,
     },
-    menuButton: {
+    headerActions: {
+      flexDirection: "row",
+      alignItems: "flex-start",
       marginLeft: "auto",
     },
     centeredLabelContainer: {

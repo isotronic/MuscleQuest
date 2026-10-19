@@ -60,6 +60,7 @@ import { savedWorkoutSummaryParams } from "@/utils/resumeWorkout";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserExercise } from "@/store/workoutStore";
 import RestTimerOverlay from "@/components/RestTimerOverlay";
+import WorkoutTimer from "@/components/WorkoutTimer";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import React from "react";
@@ -1097,6 +1098,7 @@ export default function WorkoutOverviewScreen() {
         options={{
           headerRight: () => (
             <View style={styles.headerRight}>
+              <WorkoutTimer />
               <Button
                 mode="text"
                 icon={SaveIcon}
@@ -1240,10 +1242,13 @@ export default function WorkoutOverviewScreen() {
           </ThemedText>
         )}
         <View style={styles.notesRow}>
-          <SessionNoteField note={sessionNote} onSave={setSessionNote} />
+          {/* A written note takes the row's width, beside the Cues button. */}
+          <View style={sessionNote.trim() ? styles.noteFilled : undefined}>
+            <SessionNoteField note={sessionNote} onSave={setSessionNote} />
+          </View>
           {/* A quick workout has no template to hang cues on. */}
           {!isQuickWorkout && !!workout.id && (
-            <View style={styles.cuesButton}>
+            <View>
               <Cues
                 noteType="workout"
                 referenceId={workout.id}
@@ -1298,7 +1303,10 @@ export default function WorkoutOverviewScreen() {
         buttonSize={restTimer.buttonSize}
         onAdjust={(delta) => void restTimer.adjust(delta)}
         onSkip={restTimer.skip}
+        hint={restTimer.hint}
+        hintAction={restTimer.hintAction}
         onLayout={(e) => setTimerHeight(e.nativeEvent.layout.height)}
+        containerStyle={styles.restOverlay}
         topContent={
           timerRunning && hasQueuedFeedback ? (
             <ScrollView
@@ -1406,11 +1414,23 @@ function createStyles(colors: AppThemeColors) {
       marginBottom: 4,
     },
     notesRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "flex-start",
       gap: 8,
       marginBottom: 16,
     },
-    cuesButton: {
-      alignSelf: "flex-start",
+    // The exercise cards use colors.card; the rest panel over them must not.
+    restOverlay: {
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderBottomWidth: 0,
+      borderColor: colors.accentBorderStrong,
+    },
+    noteFilled: {
+      flexGrow: 1,
+      flexShrink: 1,
+      flexBasis: 160,
     },
     saveModal: {
       backgroundColor: colors.card,

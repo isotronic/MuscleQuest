@@ -3,6 +3,7 @@ import { AccessibilityInfo, Vibration } from "react-native";
 import { useShallow } from "zustand/react/shallow";
 import { t } from "@lingui/core/macro";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
+import { useRestHintStore } from "@/store/restHintStore";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useProgressionSettingsQuery } from "@/hooks/useProgressionSettingsQuery";
 import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
@@ -521,7 +522,7 @@ export function useCompleteSet() {
           restSeconds,
           t`Rest Timer Finished!`,
           t`Time to do your next set!`,
-        );
+        ).then(useRestHintStore.getState().showRestHints);
       } else {
         void cancelRestNotifications();
         // No rest (a superset partner next, or a set without rest): the next

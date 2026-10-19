@@ -1,4 +1,5 @@
 import Fuse, { type IFuseOptions } from "fuse.js";
+import { Platform } from "react-native";
 import { msg } from "@lingui/core/macro";
 import type { MessageDescriptor } from "@lingui/core";
 import type { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -122,6 +123,18 @@ export const SETTINGS_INDEX = [
     screen: "workout",
     title: msg`Play sound after rest`,
     keywords: msg`sound, alarm, rest, timer`,
+  },
+  {
+    id: "exactRestAlerts",
+    screen: "workout",
+    title: msg`Rest alerts on time`,
+    keywords: msg`exact, alarms, reminders, late, delayed, notification, rest`,
+  },
+  {
+    id: "restAlertOnSilent",
+    screen: "workout",
+    title: msg`Rest alert sounds on silent`,
+    keywords: msg`silent, alarm, volume, mute, rest, notification`,
   },
   {
     id: "restTimerNotification",
@@ -293,6 +306,12 @@ export function settingTarget(id: SettingId, state: SettingsState): SettingId {
   return lock && !state[lock.when] ? lock.row : id;
 }
 
+// Rows the settings screens render on Android only.
+const ANDROID_ONLY: readonly SettingId[] = [
+  "exactRestAlerts",
+  "restAlertOnSilent",
+];
+
 /** An index entry with its text translated for the current locale. */
 export interface SettingsSearchDoc {
   id: SettingId;
@@ -309,7 +328,9 @@ export function translateSettingsIndex(
   const screenTitles = new Map<string, string>(
     SETTINGS_SCREENS.map((s) => [s.id, translate(s.title)]),
   );
-  return SETTINGS_INDEX.map((entry) => ({
+  return SETTINGS_INDEX.filter(
+    (entry) => Platform.OS === "android" || !ANDROID_ONLY.includes(entry.id),
+  ).map((entry) => ({
     id: entry.id,
     screen: entry.screen,
     title: translate(entry.title),

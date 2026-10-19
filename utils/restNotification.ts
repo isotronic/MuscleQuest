@@ -1,5 +1,5 @@
 import * as Notifications from "expo-notifications";
-import { Platform } from "react-native";
+import { AppState, Platform } from "react-native";
 import Bugsnag from "@bugsnag/expo";
 import {
   getAsyncStorageItem,
@@ -13,6 +13,28 @@ const PERMISSION_HINT_SHOWN_KEY = "restNotificationPermissionHintShown";
 const PERMISSION_ASKED_KEY = "restNotificationPermissionAsked";
 const EXACT_ALARM_HINT_SHOWN_KEY = "restNotificationExactAlarmHintShown";
 
+/** Android channel for rest alerts, using the notification volume. */
+export const REST_TIMER_CHANNEL_ID = "rest-timer1";
+/**
+ * The same alert on the alarm stream, which silent mode does not mute (Do
+ * Not Disturb still applies). Used when the "restAlertOnSilent" setting is
+ * on. A channel's sound is fixed once created, hence two channels.
+ */
+export const REST_TIMER_ALARM_CHANNEL_ID = "rest-timer-alarm";
+
+let restAlertOnSilent = false;
+
+export function setRestAlertOnSilent(on: boolean) {
+  restAlertOnSilent = on;
+}
+
+/** The channel a rest notification scheduled now goes to. */
+export function restChannelId(): string {
+  return restAlertOnSilent
+    ? REST_TIMER_ALARM_CHANNEL_ID
+    : REST_TIMER_CHANNEL_ID;
+}
+
 /** `content.data.kind` of rest timer notifications. */
 export const REST_NOTIFICATION_KIND = "rest-timer";
 
@@ -20,7 +42,6 @@ export async function scheduleRestNotification(
   secondsFromNow: number,
   title: string,
   body: string,
-  channelId: string = "rest-timer1",
 ) {
   if (secondsFromNow <= 0) {
     return;
@@ -37,7 +58,7 @@ export async function scheduleRestNotification(
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
         seconds: secondsFromNow,
         repeats: false,
-        ...(Platform.OS === "android" && { channelId }),
+        ...(Platform.OS === "android" && { channelId: restChannelId() }),
       },
     });
     await setAsyncStorageItem(REST_TIMER_NOTIFICATION_ID_KEY, id);
@@ -45,6 +66,15 @@ export async function scheduleRestNotification(
     Bugsnag.notify(error);
     console.error("Failed to schedule notification:", error);
   }
+}
+
+// Rest notifications are always scheduled, so a backgrounded or locked phone
+// still gets its cue. The "restTimerNotification" setting only decides whether
+// they are also shown while the app is open (the in-app overlay covers that).
+let showRestNotificationInForeground = false;
+
+export function setShowRestNotificationInForeground(show: boolean) {
+  showRestNotificationInForeground = show;
 }
 
 // Timer starts, adjustments and cancels can overlap (a rest starts while the
@@ -66,13 +96,12 @@ async function replaceRestNotification(
   secondsFromNow: number,
   title: string,
   body: string,
-  channelId: string,
 ) {
   await serialize(async () => {
     if (ticket !== latestTicket) return;
     await cancelScheduledRestNotification();
     if (secondsFromNow > 0) {
-      await scheduleRestNotification(secondsFromNow, title, body, channelId);
+      await scheduleRestNotification(secondsFromNow, title, body);
     }
   });
 }
@@ -82,13 +111,35 @@ export async function cancelRestNotifications() {
   await serialize(cancelScheduledRestNotification);
 }
 
-async function cancelScheduledRestNotification() {
+/**
+ * The rest ended with the app's own cue (or on screen), so a notification
+ * still waiting would only repeat it, late: without exact alarms Android can
+ * deliver it well after the rest. One already shown is left alone.
+ */
+export async function dropPendingRestNotification() {
+  latestTicket++;
+  await serialize(() => cancelScheduledRestNotification(false));
+}
+
+/**
+ * Call when the app's timer ends a rest on a focused workout screen. Only
+ * while the app is open: a locked phone keeps the screen focused, but its
+ * in-app sound may not play, and then the notification is the only alert.
+ * Kept when the user asked to see rest notifications while the app is open.
+ */
+export function restEndedInApp() {
+  if (AppState.currentState === "active" && !showRestNotificationInForeground) {
+    void dropPendingRestNotification();
+  }
+}
+
+async function cancelScheduledRestNotification(dismiss = true) {
   try {
     const id = await getAsyncStorageItem(REST_TIMER_NOTIFICATION_ID_KEY);
     if (id) {
       await Notifications.cancelScheduledNotificationAsync(id);
       await removeAsyncStorageItem(REST_TIMER_NOTIFICATION_ID_KEY);
-      await Notifications.dismissNotificationAsync(id);
+      if (dismiss) await Notifications.dismissNotificationAsync(id);
     }
   } catch (error: any) {
     Bugsnag.notify(error);
@@ -102,30 +153,13 @@ async function cancelScheduledRestNotification() {
  * @param secondsFromNow how many seconds in the future the notification should fire
  * @param title notification title
  * @param body notification body
- * @param channelId must match the channel you created (on Android)
  */
 export async function scheduleRestNotificationWithCancellation(
   secondsFromNow: number,
   title: string,
   body: string,
-  channelId: string = "rest-timer1",
 ) {
-  await replaceRestNotification(
-    ++latestTicket,
-    secondsFromNow,
-    title,
-    body,
-    channelId,
-  );
-}
-
-// Rest notifications are always scheduled, so a backgrounded or locked phone
-// still gets its cue. The "restTimerNotification" setting only decides whether
-// they are also shown while the app is open (the in-app overlay covers that).
-let showRestNotificationInForeground = false;
-
-export function setShowRestNotificationInForeground(show: boolean) {
-  showRestNotificationInForeground = show;
+  await replaceRestNotification(++latestTicket, secondsFromNow, title, body);
 }
 
 /** Foreground behaviour for Notifications.setNotificationHandler. */
@@ -177,19 +211,34 @@ export function exactAlarmsAllowed(): boolean {
 /**
  * Without "Alarms & reminders" (not granted by default on Android 14+),
  * expo-notifications falls back to an inexact alarm that can fire well after
- * the rest ends. True once, ever, so the overlay can offer the setting.
+ * the rest ends. True at most once every EXACT_ALARM_HINT_EVERY_MS while it
+ * stays off, so the overlay can offer the setting without nagging.
  */
+export const EXACT_ALARM_HINT_EVERY_MS = 14 * 24 * 60 * 60 * 1000;
+
 let exactAlarmHintClaimInFlight = false;
 
 async function claimExactAlarmHint(): Promise<boolean> {
   if (Platform.OS !== "android" || exactAlarmsAllowed()) return false;
   // Overlapping rests must not both read "not shown" before either writes it.
-  // Taken synchronously; released afterwards, when the stored flag decides.
+  // Taken synchronously; released afterwards, when the stored time decides.
   if (exactAlarmHintClaimInFlight) return false;
   exactAlarmHintClaimInFlight = true;
   try {
-    if (await getAsyncStorageItem(EXACT_ALARM_HINT_SHOWN_KEY)) return false;
-    await setAsyncStorageItem(EXACT_ALARM_HINT_SHOWN_KEY, "true");
+    // An ISO time since 1.6; older builds stored "true", read as long ago.
+    const lastShown = Date.parse(
+      (await getAsyncStorageItem(EXACT_ALARM_HINT_SHOWN_KEY)) ?? "",
+    );
+    if (
+      Number.isFinite(lastShown) &&
+      Date.now() - lastShown < EXACT_ALARM_HINT_EVERY_MS
+    ) {
+      return false;
+    }
+    await setAsyncStorageItem(
+      EXACT_ALARM_HINT_SHOWN_KEY,
+      new Date().toISOString(),
+    );
     return true;
   } finally {
     exactAlarmHintClaimInFlight = false;
@@ -200,7 +249,8 @@ async function claimExactAlarmHint(): Promise<boolean> {
  * Schedules the rest notification when a rest timer starts, asking for
  * permission the first time. When notifications are blocked,
  * `showPermissionHint` is true exactly once so the overlay can explain; when
- * they are allowed but alerts would be inexact, `showExactAlarmHint` is.
+ * they are allowed but alerts would be inexact, `showExactAlarmHint` is, at
+ * most every two weeks.
  */
 export async function startRestNotification(
   secondsFromNow: number,
@@ -210,13 +260,7 @@ export async function startRestNotification(
   // Taken before the permission check, so a newer timer started meanwhile wins.
   const ticket = ++latestTicket;
   if (await ensureNotificationPermission()) {
-    await replaceRestNotification(
-      ticket,
-      secondsFromNow,
-      title,
-      body,
-      "rest-timer1",
-    );
+    await replaceRestNotification(ticket, secondsFromNow, title, body);
     return {
       showPermissionHint: false,
       showExactAlarmHint: await claimExactAlarmHint(),

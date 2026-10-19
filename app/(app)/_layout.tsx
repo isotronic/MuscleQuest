@@ -9,7 +9,10 @@ import { useExerciseImageFiles } from "@/hooks/useExerciseImageFiles";
 import { AppSnackbar } from "@/components/AppSnackbar";
 import { StaleWorkoutPrompt } from "@/components/StaleWorkoutPrompt";
 import { AccountOwnershipPrompt } from "@/components/AccountOwnershipPrompt";
-import { setShowRestNotificationInForeground } from "@/utils/restNotification";
+import {
+  setRestAlertOnSilent,
+  setShowRestNotificationInForeground,
+} from "@/utils/restNotification";
 import { useEffect } from "react";
 import { onboardingRedirect } from "@/utils/setupState";
 import { SETTINGS_SCREENS } from "@/utils/settingsIndex";
@@ -27,6 +30,10 @@ export default function AppLayout() {
   useEffect(() => {
     setShowRestNotificationInForeground(showRestInForeground);
   }, [showRestInForeground]);
+  const restAlertOnSilent = settings?.restAlertOnSilent === "true";
+  useEffect(() => {
+    setRestAlertOnSilent(restAlertOnSilent);
+  }, [restAlertOnSilent]);
 
   if (settingsLoading) {
     return <ThemedView style={{ flex: 1 }}></ThemedView>;

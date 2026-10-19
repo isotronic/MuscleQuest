@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -34,6 +34,7 @@ import { OfflineBanner } from "@/components/OfflineBanner";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { displayWorkoutName } from "@/utils/workoutName";
 import { formatDecimal, formatNumber } from "@/utils/numberFormat";
+import { newestFirst } from "@/utils/newestFirst";
 
 type SectionKey = "strength" | "plans" | "workouts" | "exercises" | "activity";
 
@@ -75,25 +76,25 @@ export default function FriendProfileScreen() {
   const friend = friends.find((f) => f.uid === friendUid) ?? null;
 
   const {
-    data: plans = [],
+    data: plansData = [],
     isLoading: plansLoading,
     refetch: refetchPlans,
     isError: plansError,
   } = useFriendSharedPlansQuery(friendUid);
   const {
-    data: workouts = [],
+    data: workoutsData = [],
     isLoading: workoutsLoading,
     refetch: refetchWorkouts,
     isError: workoutsError,
   } = useFriendSharedStandaloneWorkoutsQuery(friendUid);
   const {
-    data: exercises = [],
+    data: exercisesData = [],
     isLoading: exercisesLoading,
     refetch: refetchExercises,
     isError: exercisesError,
   } = useFriendSharedCustomExercisesQuery(friendUid);
   const {
-    data: completedWorkouts = [],
+    data: completedWorkoutsData = [],
     isLoading: completedLoading,
     refetch: refetchCompletedWorkouts,
     isError: completedError,
@@ -101,17 +102,63 @@ export default function FriendProfileScreen() {
   const { data: completedWorkoutCount, refetch: refetchCompletedWorkoutCount } =
     useFriendCompletedWorkoutCountQuery(friendUid);
   const {
-    data: measurements = [],
+    data: measurementsData = [],
     isLoading: measurementsLoading,
     refetch: refetchMeasurements,
     isError: measurementsError,
   } = useFriendSharedMeasurementsQuery(friendUid);
   const {
-    data: strength = [],
+    data: strengthData = [],
     isLoading: strengthLoading,
     refetch: refetchStrength,
     isError: strengthError,
   } = useFriendSharedStrengthQuery(friendUid);
+
+  // Every list shows the most recent entry first.
+  const plans = useMemo(
+    () => newestFirst(plansData, (p) => p.updatedAt),
+    [plansData],
+  );
+  const workouts = useMemo(
+    () => newestFirst(workoutsData, (w) => w.updatedAt),
+    [workoutsData],
+  );
+  const exercises = useMemo(
+    () => newestFirst(exercisesData, (e) => e.updatedAt),
+    [exercisesData],
+  );
+  const completedWorkouts = useMemo(
+    () => newestFirst(completedWorkoutsData, (w) => w.dateCompleted),
+    [completedWorkoutsData],
+  );
+  const measurements = useMemo(
+    () => newestFirst(measurementsData, (m) => m.recordedAt),
+    [measurementsData],
+  );
+  // Workouts and measurements share one timeline, newest first.
+  const activity = useMemo(
+    () =>
+      newestFirst(
+        [
+          ...completedWorkouts.map((workout) => ({
+            kind: "workout" as const,
+            date: workout.dateCompleted,
+            workout,
+          })),
+          ...measurements.map((measurement) => ({
+            kind: "measurement" as const,
+            date: measurement.recordedAt,
+            measurement,
+          })),
+        ],
+        (entry) => entry.date,
+      ),
+    [completedWorkouts, measurements],
+  );
+  const strength = useMemo(
+    () => newestFirst(strengthData, (pr) => pr.allTimePRDate),
+    [strengthData],
+  );
 
   const importPlan = useImportPlanMutation();
   const importWorkout = useImportStandaloneWorkoutMutation();
@@ -637,73 +684,79 @@ export default function FriendProfileScreen() {
           />
         ) : (
           <View style={styles.cardGroup}>
-            {completedWorkouts.map((w) => (
-              <View
-                key={w.localWorkoutId}
-                style={[styles.card, { backgroundColor: colors.card }]}
-              >
-                <AppIcon
-                  set="ion"
-                  name="barbell-outline"
-                  size={16}
-                  color={colors.contentSecondary}
-                  style={{ marginRight: 4 }}
-                />
-                <View style={{ flex: 1 }}>
-                  <AppText
-                    variant="bodyBold"
-                    style={{ color: colors.contentPrimary }}
+            {activity.map((entry) => {
+              if (entry.kind === "workout") {
+                const w = entry.workout;
+                return (
+                  <View
+                    key={`w_${w.localWorkoutId}`}
+                    style={[styles.card, { backgroundColor: colors.card }]}
                   >
-                    {displayWorkoutName(w.workoutName)}
-                  </AppText>
-                  <AppText
-                    variant="caption"
-                    style={{ color: colors.contentSecondary, marginTop: 2 }}
-                  >
-                    {w.planName ? `${w.planName} · ` : ""}
-                    {formatTimeAgo(w.dateCompleted.toDate())}
-                  </AppText>
+                    <AppIcon
+                      set="ion"
+                      name="barbell-outline"
+                      size={16}
+                      color={colors.contentSecondary}
+                      style={{ marginRight: 4 }}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <AppText
+                        variant="bodyBold"
+                        style={{ color: colors.contentPrimary }}
+                      >
+                        {displayWorkoutName(w.workoutName)}
+                      </AppText>
+                      <AppText
+                        variant="caption"
+                        style={{ color: colors.contentSecondary, marginTop: 2 }}
+                      >
+                        {w.planName ? `${w.planName} · ` : ""}
+                        {formatTimeAgo(w.dateCompleted.toDate())}
+                      </AppText>
+                    </View>
+                  </View>
+                );
+              }
+              const m = entry.measurement;
+              return (
+                <View
+                  key={`m_${m.localEntryId}`}
+                  style={[styles.card, { backgroundColor: colors.card }]}
+                >
+                  <AppIcon
+                    set="ion"
+                    name="body-outline"
+                    size={16}
+                    color={colors.contentSecondary}
+                    style={{ marginRight: 4 }}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <AppText
+                      variant="bodyBold"
+                      style={{ color: colors.contentPrimary }}
+                    >
+                      <Trans>Measurements</Trans>
+                    </AppText>
+                    <AppText
+                      variant="caption"
+                      style={{ color: colors.contentSecondary, marginTop: 2 }}
+                    >
+                      {Object.keys(m.values).length > 0
+                        ? formatMeasurementSummary(m.values)
+                        : formatTimeAgo(m.recordedAt.toDate())}
+                    </AppText>
+                  </View>
+                  {Object.keys(m.values).length > 0 && (
+                    <AppText
+                      variant="caption"
+                      style={{ color: colors.contentSecondary }}
+                    >
+                      {formatTimeAgo(m.recordedAt.toDate())}
+                    </AppText>
+                  )}
                 </View>
-              </View>
-            ))}
-            {measurements.map((m) => (
-              <View
-                key={m.localEntryId}
-                style={[styles.card, { backgroundColor: colors.card }]}
-              >
-                <AppIcon
-                  set="ion"
-                  name="body-outline"
-                  size={16}
-                  color={colors.contentSecondary}
-                  style={{ marginRight: 4 }}
-                />
-                <View style={{ flex: 1 }}>
-                  <AppText
-                    variant="bodyBold"
-                    style={{ color: colors.contentPrimary }}
-                  >
-                    <Trans>Measurements</Trans>
-                  </AppText>
-                  <AppText
-                    variant="caption"
-                    style={{ color: colors.contentSecondary, marginTop: 2 }}
-                  >
-                    {Object.keys(m.values).length > 0
-                      ? formatMeasurementSummary(m.values)
-                      : formatTimeAgo(m.recordedAt.toDate())}
-                  </AppText>
-                </View>
-                {Object.keys(m.values).length > 0 && (
-                  <AppText
-                    variant="caption"
-                    style={{ color: colors.contentSecondary }}
-                  >
-                    {formatTimeAgo(m.recordedAt.toDate())}
-                  </AppText>
-                )}
-              </View>
-            ))}
+              );
+            })}
           </View>
         ))}
     </ScrollView>

@@ -55,6 +55,7 @@ export const insertDefaultSettings = async () => {
       { key: "restTimerVibration", value: "false" },
       { key: "restTimerSound", value: "false" },
       { key: "restTimerNotification", value: "false" },
+      { key: "restAlertOnSilent", value: "false" },
       { key: "restTimerIncrement", value: "15" },
       // No loginShown or bodyWeight: login.tsx sets the first, and body
       // weight stays unset until entered, so it never feeds a made-up 70 kg
@@ -131,6 +132,8 @@ export interface Settings {
   restTimerVibration: string;
   restTimerSound: string;
   restTimerNotification: string;
+  /** "true": rest notifications use the alarm volume and sound on silent. */
+  restAlertOnSilent?: string;
   restTimerIncrement: string;
   /** Absent until the user enters a body weight. */
   bodyWeight?: string;

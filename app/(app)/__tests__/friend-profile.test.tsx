@@ -254,6 +254,28 @@ describe("FriendProfileScreen", () => {
       expect(queryByText("Push Pull Legs")).toBeNull();
     });
 
+    it("lists the most recently updated plan first", () => {
+      (useFriendSharedPlansQuery as jest.Mock).mockReturnValue({
+        ...loadedEmpty,
+        data: [
+          plan,
+          {
+            localPlanId: 2,
+            name: "Upper Lower",
+            updatedAt: { toDate: () => new Date(2026, 2, 1, 12) },
+          },
+        ],
+      });
+      const { getByTestId, getAllByText } = render(<FriendProfileScreen />);
+
+      fireEvent.press(getByTestId("section-toggle-plans"));
+      expect(
+        getAllByText(/^(Push Pull Legs|Upper Lower)$/).map(
+          (node) => node.props.children,
+        ),
+      ).toEqual(["Upper Lower", "Push Pull Legs"]);
+    });
+
     it("omits the count while a section is still loading", () => {
       (useFriendSharedPlansQuery as jest.Mock).mockReturnValue({
         data: undefined,
@@ -292,6 +314,48 @@ describe("FriendProfileScreen", () => {
 
       expect(getByText("Leg Day")).toBeTruthy();
       expect(getByText("My Plan · vor einiger Zeit")).toBeTruthy();
+    });
+
+    it("interleaves workouts and measurements, newest first", () => {
+      (useFriendSharedPlansQuery as jest.Mock).mockReturnValue(loadedEmpty);
+      (useFriendSharedCompletedWorkoutsQuery as jest.Mock).mockReturnValue({
+        ...loadedEmpty,
+        data: [
+          completed({
+            localWorkoutId: 1,
+            workoutName: "Old Day",
+            dateCompleted: { toDate: () => new Date(2026, 0, 1, 12) },
+          }),
+          completed({
+            localWorkoutId: 2,
+            workoutName: "New Day",
+            dateCompleted: { toDate: () => new Date(2026, 0, 20, 12) },
+          }),
+        ],
+      });
+      (useFriendSharedMeasurementsQuery as jest.Mock).mockReturnValue({
+        ...loadedEmpty,
+        data: [
+          {
+            localEntryId: 7,
+            values: {},
+            recordedAt: { toDate: () => new Date(2026, 0, 10, 12) },
+          },
+        ],
+      });
+      const { getByTestId, getByText, getAllByText } = render(
+        <FriendProfileScreen />,
+      );
+
+      fireEvent.press(getByTestId("section-toggle-activity"));
+      // Compared as plain strings: printing nodes on failure is too heavy.
+      const newDay = getByText("New Day");
+      const oldDay = getByText("Old Day");
+      const order = getAllByText(/^(Old Day|New Day|Measurements)$/).map(
+        (node) =>
+          node === newDay ? "new" : node === oldDay ? "old" : "measurement",
+      );
+      expect(order).toEqual(["new", "measurement", "old"]);
     });
 
     it("falls back to Quick workout when the workout has no name", () => {

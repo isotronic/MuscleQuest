@@ -8,7 +8,6 @@ import React, {
 import { useShallow } from "zustand/react/shallow";
 import {
   AccessibilityInfo,
-  AppState,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
@@ -43,11 +42,12 @@ import WorkoutTimer from "@/components/WorkoutTimer";
 import Bugsnag from "@bugsnag/expo";
 import {
   cancelRestNotifications,
-  exactAlarmsAllowed,
+  restEndedInApp,
   scheduleRestNotificationWithCancellation,
   startRestNotification,
 } from "@/utils/restNotification";
-import { openExactAlarmSettings } from "@/modules/exact-alarm";
+import { useRestHint } from "@/hooks/useRestHint";
+import { useRestHintStore } from "@/store/restHintStore";
 import { Cues } from "@/components/Cues";
 import { NoteSheet, type NoteSheetHandle } from "@/components/NoteSheet";
 import { findSupersetPartnerIndex } from "@/utils/supersetUtils";
@@ -550,50 +550,22 @@ export default function WorkoutSessionScreen() {
     expiryTimestamp: timerExpiry || new Date(),
     autoStart: timerRunning,
     onExpire: () => {
+      // Read before stopTimer clears it. The timer fires only after its own
+      // expiry, so a stored one still ahead means a newer rest has started.
+      const storeExpiry = useActiveWorkoutStore.getState().timerExpiry;
+      const isCurrentRest =
+        !storeExpiry || new Date(storeExpiry).getTime() <= Date.now();
       stopTimer();
 
-      handleExpire();
+      handleExpire(isCurrentRest);
     },
   });
   useRestTimerResync(restart);
   usePauseWhenRestEndsEarly(pause);
 
-  // Shown once, during the first rest after notifications turned out blocked.
-  const [showPermissionHint, setShowPermissionHint] = useState(false);
-  // Shown once, during the first rest whose alert would be inexact.
-  const [showExactAlarmHint, setShowExactAlarmHint] = useState(false);
-  useEffect(() => {
-    if (!timerRunning) {
-      setShowPermissionHint(false);
-      setShowExactAlarmHint(false);
-    }
-  }, [timerRunning]);
-  // Back from the "Alarms & reminders" screen: the running rest's alert was
-  // scheduled inexact, so schedule it again as exact, then drop the hint.
-  useEffect(() => {
-    if (!showExactAlarmHint) return;
-    const subscription = AppState.addEventListener("change", (state) => {
-      if (state !== "active" || !exactAlarmsAllowed()) return;
-      const expiry = expiryTimestampRef.current;
-      const remaining = expiry
-        ? Math.round((expiry.getTime() - Date.now()) / 1000)
-        : 0;
-      void (async () => {
-        if (remaining > 0) {
-          await scheduleRestNotificationWithCancellation(
-            remaining,
-            t`Rest Timer Finished!`,
-            t`Time to do your next set!`,
-            "rest-timer1",
-          );
-        }
-        setShowExactAlarmHint(false);
-      })();
-    });
-    return () => subscription.remove();
-  }, [showExactAlarmHint]);
+  const restHint = useRestHint();
 
-  async function handleExpire() {
+  async function handleExpire(isCurrentRest: boolean) {
     if (!expiryTimestampRef.current) {
       Bugsnag.notify(new Error("Timer expired but no expiry timestamp found"));
       return;
@@ -617,6 +589,10 @@ export default function WorkoutSessionScreen() {
       if (settings?.restTimerVibration === "true") {
         triggerVibration();
       }
+      // A newer rest already started: this callback is from the old timer
+      // and must not drop the new rest's notification. Checked against both
+      // this screen's expiry and the store's, which another screen may set.
+      if (diffMs >= 0 && isCurrentRest) restEndedInApp();
       setCurrentSetStartedAt(new Date());
     } else {
       Bugsnag.leaveBreadcrumb("Skipped sound/vibration", {
@@ -679,10 +655,7 @@ export default function WorkoutSessionScreen() {
         totalSeconds,
         t`Rest Timer Finished!`,
         t`Time to do your next set!`,
-      ).then(({ showPermissionHint, showExactAlarmHint }) => {
-        if (showPermissionHint) setShowPermissionHint(true);
-        if (showExactAlarmHint) setShowExactAlarmHint(true);
-      });
+      ).then(useRestHintStore.getState().showRestHints);
 
       Bugsnag.leaveBreadcrumb("Timer started", {
         totalSeconds,
@@ -720,7 +693,6 @@ export default function WorkoutSessionScreen() {
       newRemaining,
       t`Rest Timer Finished!`,
       t`Time to do your next set!`,
-      "rest-timer1",
     );
 
     if (lastCompletedSetRef.current) {
@@ -1757,18 +1729,8 @@ export default function WorkoutSessionScreen() {
         onSkip={skipRest}
         onLayout={(e) => setRestOverlayHeight(e.nativeEvent.layout.height)}
         topContent={timerRunning ? feedbackCard : null}
-        hint={
-          showPermissionHint
-            ? t`Notifications are off, so there is no rest alert while your phone is locked. You can turn them on in your phone's settings.`
-            : showExactAlarmHint
-              ? t`Rest alerts may arrive late. Allow alarms for exact timing.`
-              : undefined
-        }
-        hintAction={
-          showExactAlarmHint && !showPermissionHint
-            ? { label: t`Allow alarms`, onPress: openExactAlarmSettings }
-            : undefined
-        }
+        hint={restHint.hint}
+        hintAction={restHint.hintAction}
       />
     </ThemedView>
   );

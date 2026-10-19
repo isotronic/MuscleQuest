@@ -6,6 +6,12 @@ import {
   foregroundPresentation,
   setShowRestNotificationInForeground,
   REST_NOTIFICATION_KIND,
+  dropPendingRestNotification,
+  restEndedInApp,
+  setRestAlertOnSilent,
+  EXACT_ALARM_HINT_EVERY_MS,
+  REST_TIMER_ALARM_CHANNEL_ID,
+  REST_TIMER_CHANNEL_ID,
 } from "../restNotification";
 import * as Notifications from "expo-notifications";
 import {
@@ -14,7 +20,7 @@ import {
   removeAsyncStorageItem,
 } from "@/utils/asyncStorage";
 import Bugsnag from "@bugsnag/expo";
-import { Platform } from "react-native";
+import { AppState, Platform } from "react-native";
 import { canScheduleExactAlarms } from "@/modules/exact-alarm";
 
 jest.mock("expo-notifications", () => ({
@@ -77,6 +83,31 @@ describe("scheduleRestNotification", () => {
         }),
       }),
     );
+  });
+
+  describe("on Android", () => {
+    const os = Platform.OS;
+    beforeEach(() => {
+      Platform.OS = "android";
+    });
+    afterEach(() => {
+      Platform.OS = os;
+      setRestAlertOnSilent(false);
+    });
+    const channelUsed = () =>
+      (Notifications.scheduleNotificationAsync as jest.Mock).mock.calls[0][0]
+        .trigger.channelId;
+
+    it("uses the normal rest channel by default", async () => {
+      await scheduleRestNotification(60, "Rest done", "Start your set");
+      expect(channelUsed()).toBe(REST_TIMER_CHANNEL_ID);
+    });
+
+    it("uses the alarm channel when the alert should sound on silent", async () => {
+      setRestAlertOnSilent(true);
+      await scheduleRestNotification(60, "Rest done", "Start your set");
+      expect(channelUsed()).toBe(REST_TIMER_ALARM_CHANNEL_ID);
+    });
   });
 
   it("saves the returned notification id in AsyncStorage", async () => {
@@ -350,7 +381,7 @@ describe("startRestNotification", () => {
       (canScheduleExactAlarms as jest.Mock).mockReturnValue(true);
     });
 
-    it("returns a hint once when alerts would be inexact", async () => {
+    it("returns the hint once, not on the next rest, when alerts would be inexact", async () => {
       (canScheduleExactAlarms as jest.Mock).mockReturnValue(false);
 
       const first = await startRestNotification(90, "Rest", "Go");
@@ -381,6 +412,36 @@ describe("startRestNotification", () => {
       ]);
 
       expect(results.filter((r) => r.showExactAlarmHint)).toHaveLength(1);
+    });
+
+    it("returns the hint again two weeks later while alerts are still inexact", async () => {
+      (canScheduleExactAlarms as jest.Mock).mockReturnValue(false);
+      const now = Date.now();
+      const clock = jest.spyOn(Date, "now").mockReturnValue(now);
+      try {
+        expect(
+          (await startRestNotification(90, "Rest", "Go")).showExactAlarmHint,
+        ).toBe(true);
+        clock.mockReturnValue(now + EXACT_ALARM_HINT_EVERY_MS - 1000);
+        expect(
+          (await startRestNotification(90, "Rest", "Go")).showExactAlarmHint,
+        ).toBe(false);
+        clock.mockReturnValue(now + EXACT_ALARM_HINT_EVERY_MS + 1000);
+        expect(
+          (await startRestNotification(90, "Rest", "Go")).showExactAlarmHint,
+        ).toBe(true);
+      } finally {
+        clock.mockRestore();
+      }
+    });
+
+    it("shows the hint again to someone who saw it in an older version", async () => {
+      (canScheduleExactAlarms as jest.Mock).mockReturnValue(false);
+      storage["restNotificationExactAlarmHintShown"] = "true";
+
+      const result = await startRestNotification(90, "Rest", "Go");
+
+      expect(result.showExactAlarmHint).toBe(true);
     });
 
     it("returns no hint when exact alarms are allowed", async () => {
@@ -441,5 +502,66 @@ describe("foregroundPresentation", () => {
     expect(foregroundPresentation(notification({}))).toEqual(
       expect.objectContaining({ shouldShowBanner: false }),
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// dropPendingRestNotification / restEndedInApp
+// ---------------------------------------------------------------------------
+
+describe("dropping a pending rest notification", () => {
+  const flush = () => new Promise((resolve) => setImmediate(resolve));
+  const initialState = AppState.currentState;
+  const setAppState = (state: string) =>
+    Object.defineProperty(AppState, "currentState", {
+      value: state,
+      configurable: true,
+      writable: true,
+    });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (getAsyncStorageItem as jest.Mock).mockResolvedValue("stored-id");
+    setAppState("active");
+  });
+  afterEach(() => setAppState(initialState));
+
+  it("cancels the scheduled notification but leaves one already shown", async () => {
+    await dropPendingRestNotification();
+    expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith(
+      "stored-id",
+    );
+    expect(removeAsyncStorageItem).toHaveBeenCalledWith(
+      "restTimerNotificationId",
+    );
+    expect(Notifications.dismissNotificationAsync).not.toHaveBeenCalled();
+  });
+
+  it("drops it while the app is open", async () => {
+    restEndedInApp();
+    await flush();
+    expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalled();
+  });
+
+  it("keeps it when rest notifications should also show while the app is open", async () => {
+    setShowRestNotificationInForeground(true);
+    try {
+      restEndedInApp();
+      await flush();
+    } finally {
+      setShowRestNotificationInForeground(false);
+    }
+    expect(
+      Notifications.cancelScheduledNotificationAsync,
+    ).not.toHaveBeenCalled();
+  });
+
+  it("keeps it while the app is in the background, where the sound may not play", async () => {
+    setAppState("background");
+    restEndedInApp();
+    await flush();
+    expect(
+      Notifications.cancelScheduledNotificationAsync,
+    ).not.toHaveBeenCalled();
   });
 });
