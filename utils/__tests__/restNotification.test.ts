@@ -512,6 +512,19 @@ describe("dropping a pending rest notification", () => {
     expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalled();
   });
 
+  it("keeps it when rest notifications should also show while the app is open", async () => {
+    setShowRestNotificationInForeground(true);
+    try {
+      restEndedInApp();
+      await flush();
+    } finally {
+      setShowRestNotificationInForeground(false);
+    }
+    expect(
+      Notifications.cancelScheduledNotificationAsync,
+    ).not.toHaveBeenCalled();
+  });
+
   it("keeps it while the app is in the background, where the sound may not play", async () => {
     setAppState("background");
     restEndedInApp();

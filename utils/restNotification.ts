@@ -68,6 +68,15 @@ export async function scheduleRestNotification(
   }
 }
 
+// Rest notifications are always scheduled, so a backgrounded or locked phone
+// still gets its cue. The "restTimerNotification" setting only decides whether
+// they are also shown while the app is open (the in-app overlay covers that).
+let showRestNotificationInForeground = false;
+
+export function setShowRestNotificationInForeground(show: boolean) {
+  showRestNotificationInForeground = show;
+}
+
 // Timer starts, adjustments and cancels can overlap (a rest starts while the
 // previous one is still being scheduled, +15s is tapped straight away). Each
 // request takes a ticket and replacements run one at a time; a replacement
@@ -116,9 +125,10 @@ export async function dropPendingRestNotification() {
  * Call when the app's timer ends a rest on a focused workout screen. Only
  * while the app is open: a locked phone keeps the screen focused, but its
  * in-app sound may not play, and then the notification is the only alert.
+ * Kept when the user asked to see rest notifications while the app is open.
  */
 export function restEndedInApp() {
-  if (AppState.currentState === "active") {
+  if (AppState.currentState === "active" && !showRestNotificationInForeground) {
     void dropPendingRestNotification();
   }
 }
@@ -150,15 +160,6 @@ export async function scheduleRestNotificationWithCancellation(
   body: string,
 ) {
   await replaceRestNotification(++latestTicket, secondsFromNow, title, body);
-}
-
-// Rest notifications are always scheduled, so a backgrounded or locked phone
-// still gets its cue. The "restTimerNotification" setting only decides whether
-// they are also shown while the app is open (the in-app overlay covers that).
-let showRestNotificationInForeground = false;
-
-export function setShowRestNotificationInForeground(show: boolean) {
-  showRestNotificationInForeground = show;
 }
 
 /** Foreground behaviour for Notifications.setNotificationHandler. */
