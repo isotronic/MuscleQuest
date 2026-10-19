@@ -15,6 +15,7 @@ import { useSoundStore } from "@/store/soundStore";
 import {
   cancelRestNotifications,
   restEndedInApp,
+  REST_TIMER_CHANNEL_ID,
   scheduleRestNotificationWithCancellation,
 } from "@/utils/restNotification";
 
@@ -121,7 +122,7 @@ export function useRestTimerControls() {
       newRemaining,
       t`Rest Timer Finished!`,
       t`Time to do your next set!`,
-      "rest-timer1",
+      REST_TIMER_CHANNEL_ID,
     );
   };
 

@@ -13,6 +13,14 @@ const PERMISSION_HINT_SHOWN_KEY = "restNotificationPermissionHintShown";
 const PERMISSION_ASKED_KEY = "restNotificationPermissionAsked";
 const EXACT_ALARM_HINT_SHOWN_KEY = "restNotificationExactAlarmHintShown";
 
+/**
+ * Android channel for rest alerts. Its sound uses the alarm stream, so it
+ * plays with the phone on silent (not in Do Not Disturb). A channel's sound
+ * settings are fixed once created, hence a new id; the old "rest-timer1"
+ * channel is deleted at setup.
+ */
+export const REST_TIMER_CHANNEL_ID = "rest-timer-alarm";
+
 /** `content.data.kind` of rest timer notifications. */
 export const REST_NOTIFICATION_KIND = "rest-timer";
 
@@ -20,7 +28,7 @@ export async function scheduleRestNotification(
   secondsFromNow: number,
   title: string,
   body: string,
-  channelId: string = "rest-timer1",
+  channelId: string = REST_TIMER_CHANNEL_ID,
 ) {
   if (secondsFromNow <= 0) {
     return;
@@ -129,7 +137,7 @@ export async function scheduleRestNotificationWithCancellation(
   secondsFromNow: number,
   title: string,
   body: string,
-  channelId: string = "rest-timer1",
+  channelId: string = REST_TIMER_CHANNEL_ID,
 ) {
   await replaceRestNotification(
     ++latestTicket,
@@ -236,7 +244,7 @@ export async function startRestNotification(
       secondsFromNow,
       title,
       body,
-      "rest-timer1",
+      REST_TIMER_CHANNEL_ID,
     );
     return {
       showPermissionHint: false,

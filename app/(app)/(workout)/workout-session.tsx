@@ -45,6 +45,7 @@ import {
   cancelRestNotifications,
   exactAlarmsAllowed,
   restEndedInApp,
+  REST_TIMER_CHANNEL_ID,
   scheduleRestNotificationWithCancellation,
   startRestNotification,
 } from "@/utils/restNotification";
@@ -585,7 +586,7 @@ export default function WorkoutSessionScreen() {
             remaining,
             t`Rest Timer Finished!`,
             t`Time to do your next set!`,
-            "rest-timer1",
+            REST_TIMER_CHANNEL_ID,
           );
         }
         setShowExactAlarmHint(false);
@@ -724,7 +725,7 @@ export default function WorkoutSessionScreen() {
       newRemaining,
       t`Rest Timer Finished!`,
       t`Time to do your next set!`,
-      "rest-timer1",
+      REST_TIMER_CHANNEL_ID,
     );
 
     if (lastCompletedSetRef.current) {
