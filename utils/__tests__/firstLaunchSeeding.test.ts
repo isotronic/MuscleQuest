@@ -8,6 +8,7 @@ import {
 import { useFirstLaunchSeedingStore } from "@/store/firstLaunchSeedingStore";
 import {
   copyDataFromAppDataToUserData,
+  refreshLibraryFromAppData,
   syncExerciseFlagsFromAppData,
 } from "@/utils/database";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
@@ -20,6 +21,7 @@ import { notifyBugsnag } from "@/utils/bugsnagDedup";
 jest.mock("@/utils/database", () => ({
   copyDataFromAppDataToUserData: jest.fn(),
   syncExerciseFlagsFromAppData: jest.fn(),
+  refreshLibraryFromAppData: jest.fn(),
 }));
 jest.mock("@/utils/loadPremadePlans", () => ({ loadPremadePlans: jest.fn() }));
 jest.mock("@/utils/exerciseImageFilesRun", () => ({
@@ -33,6 +35,7 @@ const steps = [
   copyDataFromAppDataToUserData,
   loadPremadePlans,
   syncExerciseFlagsFromAppData,
+  refreshLibraryFromAppData,
 ] as jest.Mock[];
 
 const status = () => useFirstLaunchSeedingStore.getState().status;
@@ -49,7 +52,7 @@ beforeEach(() => {
 });
 
 describe("runSeedingSteps", () => {
-  it("copies the library, then plans, then exercise flags", async () => {
+  it("copies the library, then plans, exercise flags and the refresh", async () => {
     const order: string[] = [];
     mockCopy.mockImplementation(async () => order.push("copy"));
     (loadPremadePlans as jest.Mock).mockImplementation(async () =>
@@ -58,10 +61,13 @@ describe("runSeedingSteps", () => {
     (syncExerciseFlagsFromAppData as jest.Mock).mockImplementation(async () =>
       order.push("flags"),
     );
+    (refreshLibraryFromAppData as jest.Mock).mockImplementation(async () =>
+      order.push("refresh"),
+    );
 
     await runSeedingSteps();
 
-    expect(order).toEqual(["copy", "plans", "flags"]);
+    expect(order).toEqual(["copy", "plans", "flags", "refresh"]);
   });
 });
 

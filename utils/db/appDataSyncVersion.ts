@@ -17,6 +17,9 @@ export const APP_DATA_SYNC = {
   premadePlansV2: 6, // "2.1"
   // No legacy value from here on: dataVersion stays at "2.1".
   exerciseFlagsResynced: 7,
+  // Library rows rewritten from appData4.db (the audited library), with
+  // history and plans converted for exercises whose tracking type changed.
+  libraryRefreshed: 8,
 } as const;
 
 const SYNC_KEY = "appDataSyncVersion";

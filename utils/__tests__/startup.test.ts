@@ -45,6 +45,7 @@ jest.mock("@/utils/database", () => ({
   fetchSetting: jest.fn(),
   insertDefaultSettings: jest.fn(),
   syncExerciseFlagsFromAppData: jest.fn(),
+  refreshLibraryFromAppData: jest.fn(),
   updateAppExerciseIds: jest.fn(),
 }));
 jest.mock("@/utils/firstLaunchSeeding", () => {

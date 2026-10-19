@@ -1,6 +1,7 @@
 import Bugsnag from "@bugsnag/expo";
 import {
   copyDataFromAppDataToUserData,
+  refreshLibraryFromAppData,
   syncExerciseFlagsFromAppData,
 } from "@/utils/database";
 import { loadPremadePlans } from "@/utils/loadPremadePlans";
@@ -21,7 +22,8 @@ export type StartupProgress = {
 // Brings userData.db in line with the shipped library and plans. Each step is
 // gated on the app data sync version, so a run cut short by a kill picks up
 // where it stopped. Order matters: plans look exercises up by app_exercise_id,
-// and the flag resync's sync version is above every step before it.
+// and each later step's sync version is above every step before it, so the
+// library refresh runs last.
 export const runSeedingSteps = async (
   onProgress?: (progress: StartupProgress) => void,
 ): Promise<void> => {
@@ -34,6 +36,7 @@ export const runSeedingSteps = async (
       ((done, total) => onProgress({ stage: "plans", done, total })),
   );
   await syncExerciseFlagsFromAppData();
+  await refreshLibraryFromAppData();
 };
 
 const setStatus = (status: "running" | "done" | "failed") =>
