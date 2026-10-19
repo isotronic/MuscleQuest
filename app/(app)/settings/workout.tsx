@@ -1,4 +1,4 @@
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
 import { router } from "expo-router";
 import * as Notifications from "expo-notifications";
 import { Trans } from "@lingui/react/macro";
@@ -203,15 +203,18 @@ export default function WorkoutSettingsScreen() {
         checked={sound}
         onValueChange={setSound}
       />
-      <SwitchRow
-        id="restAlertOnSilent"
-        icon="alarm-bell"
-        title={<Trans>Rest alert sounds on silent</Trans>}
-        label={t`Rest alert sounds on silent`}
-        value={alertOnSilent ? t`Uses alarm volume` : enabled(false)}
-        checked={alertOnSilent}
-        onValueChange={setAlertOnSilent}
-      />
+      {/* Android only: it picks a notification channel, which iOS lacks. */}
+      {Platform.OS === "android" && (
+        <SwitchRow
+          id="restAlertOnSilent"
+          icon="alarm-bell"
+          title={<Trans>Rest alert sounds on silent</Trans>}
+          label={t`Rest alert sounds on silent`}
+          value={alertOnSilent ? t`Uses alarm volume` : enabled(false)}
+          checked={alertOnSilent}
+          onValueChange={setAlertOnSilent}
+        />
+      )}
       <SwitchRow
         id="restTimerNotification"
         icon="bell-ring"
