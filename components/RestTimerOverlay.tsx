@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import type { LayoutChangeEvent } from "react-native";
+import type { LayoutChangeEvent, StyleProp, ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
 import { Button } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -42,6 +42,8 @@ interface RestTimerOverlayProps {
   hintAction?: { label: string; onPress: () => void };
   /** Shown above the countdown, e.g. the post-exercise feedback card. */
   topContent?: React.ReactNode;
+  /** Overrides the panel's look, e.g. to stand apart from cards under it. */
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export default function RestTimerOverlay({
@@ -57,6 +59,7 @@ export default function RestTimerOverlay({
   hint,
   hintAction,
   topContent,
+  containerStyle,
 }: RestTimerOverlayProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -106,6 +109,7 @@ export default function RestTimerOverlay({
       importantForAccessibility={timerRunning ? "auto" : "no-hide-descendants"}
       style={[
         styles.container,
+        containerStyle,
         { paddingBottom: insets.bottom + 16 },
         animStyle,
       ]}

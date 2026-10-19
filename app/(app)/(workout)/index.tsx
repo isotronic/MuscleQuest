@@ -1302,6 +1302,7 @@ export default function WorkoutOverviewScreen() {
         onAdjust={(delta) => void restTimer.adjust(delta)}
         onSkip={restTimer.skip}
         onLayout={(e) => setTimerHeight(e.nativeEvent.layout.height)}
+        containerStyle={styles.restOverlay}
         topContent={
           timerRunning && hasQueuedFeedback ? (
             <ScrollView
@@ -1414,6 +1415,13 @@ function createStyles(colors: AppThemeColors) {
       alignItems: "flex-start",
       gap: 8,
       marginBottom: 16,
+    },
+    // The exercise cards use colors.card; the rest panel over them must not.
+    restOverlay: {
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderBottomWidth: 0,
+      borderColor: colors.accentBorderStrong,
     },
     noteFilled: {
       flexGrow: 1,
