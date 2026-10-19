@@ -1,7 +1,7 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 
 // How far userData.db has been synced with the content shipped in the app
-// (appData3.db exercises, premade plans). This is content state, not schema:
+// (library exercises, premade plans). This is content state, not schema:
 // the schema version is PRAGMA user_version (see utils/db/runMigrations.ts).
 //
 // Stored as an integer in the `appDataSyncVersion` setting. It replaces the

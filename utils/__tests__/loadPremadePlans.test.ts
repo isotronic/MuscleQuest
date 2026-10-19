@@ -227,7 +227,7 @@ it("should throw and roll back when an exercise's app_exercise_id is not found i
   );
 });
 
-it("should copy missing exercises from appData3.db into userData.db", async () => {
+it("should copy missing exercises from the library into userData.db", async () => {
   const appExerciseRow = {
     exercise_id: 11,
     name: "Barbell Bench Press",
@@ -254,7 +254,7 @@ it("should copy missing exercises from appData3.db into userData.db", async () =
     if (sql.includes("app_exercise_id = ?"))
       return Promise.resolve(exerciseCopied ? { exercise_id: 11 } : null);
     if (sql.includes("WHERE exercise_id = ?"))
-      return Promise.resolve(appExerciseRow); // found in appData3
+      return Promise.resolve(appExerciseRow); // found in the library
     return Promise.resolve(null);
   });
 

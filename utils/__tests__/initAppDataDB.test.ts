@@ -16,6 +16,7 @@ describe("initializeAppData", () => {
   let mockDbFileDelete: jest.Mock;
   let mockOldDb1FileDelete: jest.Mock;
   let mockOldDb2FileDelete: jest.Mock;
+  let mockOldDb3FileDelete: jest.Mock;
   let mockTempFileMove: jest.Mock;
   let mockAssetFileCopy: jest.Mock;
 
@@ -28,6 +29,7 @@ describe("initializeAppData", () => {
     mockDbFileDelete = jest.fn();
     mockOldDb1FileDelete = jest.fn();
     mockOldDb2FileDelete = jest.fn();
+    mockOldDb3FileDelete = jest.fn();
     mockTempFileMove = jest.fn();
     mockAssetFileCopy = jest.fn();
 
@@ -38,11 +40,12 @@ describe("initializeAppData", () => {
     dbExists: boolean,
     oldDb1Exists: boolean,
     oldDb2Exists: boolean,
+    oldDb3Exists = false,
   ) => {
     MockFile.mockImplementationOnce(() => ({
       exists: dbExists,
       delete: mockDbFileDelete,
-      uri: "/mock/document/directory/SQLite/appData3.db",
+      uri: "/mock/document/directory/SQLite/appData4.db",
     })); // dbFile
     MockFile.mockImplementationOnce(() => ({
       exists: oldDb1Exists,
@@ -55,10 +58,15 @@ describe("initializeAppData", () => {
       uri: "/mock/document/directory/SQLite/appData2.db",
     })); // oldDbFile2
     MockFile.mockImplementationOnce(() => ({
+      exists: oldDb3Exists,
+      delete: mockOldDb3FileDelete,
+      uri: "/mock/document/directory/SQLite/appData3.db",
+    })); // oldDbFile3
+    MockFile.mockImplementationOnce(() => ({
       exists: true,
       delete: jest.fn(),
       move: mockTempFileMove,
-      uri: "/mock/document/directory/SQLite/appData3.db.tmp",
+      uri: "/mock/document/directory/SQLite/appData4.db.tmp",
     })); // tempFile (consumed only when copy is triggered)
     MockFile.mockImplementation(() => ({
       exists: true,
@@ -91,12 +99,12 @@ describe("initializeAppData", () => {
     expect(Asset.fromModule).toHaveBeenCalled();
     expect(mockAssetFileCopy).toHaveBeenCalledWith(
       expect.objectContaining({
-        uri: "/mock/document/directory/SQLite/appData3.db.tmp",
+        uri: "/mock/document/directory/SQLite/appData4.db.tmp",
       }),
     );
     expect(mockTempFileMove).toHaveBeenCalledWith(
       expect.objectContaining({
-        uri: "/mock/document/directory/SQLite/appData3.db",
+        uri: "/mock/document/directory/SQLite/appData4.db",
       }),
     );
     expect(mockOldDb1FileDelete).not.toHaveBeenCalled();
@@ -115,7 +123,7 @@ describe("initializeAppData", () => {
   });
 
   it("should delete old database files if they exist", async () => {
-    setupFileMocks(true, true, true);
+    setupFileMocks(true, true, true, true);
     mockDatabase.getFirstAsync.mockResolvedValue({ value: "2.0" });
 
     await initializeAppData();
@@ -123,6 +131,21 @@ describe("initializeAppData", () => {
     expect(mockAssetFileCopy).not.toHaveBeenCalled();
     expect(mockOldDb1FileDelete).toHaveBeenCalled();
     expect(mockOldDb2FileDelete).toHaveBeenCalled();
+    expect(mockOldDb3FileDelete).toHaveBeenCalled();
+  });
+
+  it("should copy the new library and delete appData3.db on an existing install", async () => {
+    setupFileMocks(false, false, false, true);
+    mockDatabase.getFirstAsync.mockResolvedValue({ value: "7" });
+
+    await initializeAppData();
+
+    expect(mockTempFileMove).toHaveBeenCalledWith(
+      expect.objectContaining({
+        uri: "/mock/document/directory/SQLite/appData4.db",
+      }),
+    );
+    expect(mockOldDb3FileDelete).toHaveBeenCalled();
   });
 
   it("should proceed if dataVersion retrieval fails", async () => {

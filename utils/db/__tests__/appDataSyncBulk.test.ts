@@ -53,7 +53,7 @@ const writeAppDataFile = (file: string) => {
 beforeEach(async () => {
   mockOpenDatabase.mockReset();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "appdata-"));
-  mockAppDataPath = path.join(dir, "appData3.db");
+  mockAppDataPath = path.join(dir, "appData4.db");
   writeAppDataFile(mockAppDataPath);
   mockUserData = createNodeSqliteDb();
   await runMigrations(mockUserData.db);
@@ -131,7 +131,7 @@ describe("copyDataFromAppDataToUserData on a fresh install", () => {
   it("does not open the library database row by row", async () => {
     await copyDataFromAppDataToUserData();
 
-    expect(mockOpenDatabase).not.toHaveBeenCalledWith("appData3.db");
+    expect(mockOpenDatabase).not.toHaveBeenCalledWith("appData4.db");
   });
 
   it("reports the start and end of the copy", async () => {

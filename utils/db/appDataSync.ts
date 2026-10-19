@@ -1,5 +1,6 @@
 // Startup steps that bring userData.db in line with the content shipped in
-// appData3.db. Each is gated on the app data sync version.
+// the exercise library (APP_DATA_DB). Each is gated on the app data sync
+// version.
 import Bugsnag from "@bugsnag/expo";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import * as SQLite from "expo-sqlite";
@@ -9,6 +10,7 @@ import {
   setAppDataSyncVersion,
 } from "@/utils/db/appDataSyncVersion";
 import { databaseFilePath, openDatabase } from "./connection";
+import { APP_DATA_DB } from "./appDataFile";
 
 interface SQLiteRow {
   [key: string]: any;
@@ -98,7 +100,7 @@ const bulkCopyLibrary = async (
   userDataDB: SQLite.SQLiteDatabase,
   onProgress?: ProgressCallback,
 ): Promise<void> => {
-  const libraryPath = databaseFilePath("appData3.db").replace(/'/g, "''");
+  const libraryPath = databaseFilePath(APP_DATA_DB).replace(/'/g, "''");
   await userDataDB.execAsync(`ATTACH DATABASE '${libraryPath}' AS appdata`);
   try {
     const counted = await userDataDB.getFirstAsync<{ total: number }>(
@@ -175,7 +177,7 @@ export const copyDataFromAppDataToUserData = async (
     }
 
     // An install that already has library rows compares each one.
-    appDataDB = await openDatabase("appData3.db");
+    appDataDB = await openDatabase(APP_DATA_DB);
 
     let shouldUpdateDataVersion = false;
 
@@ -370,7 +372,7 @@ export const syncExerciseFlagsFromAppData = async (): Promise<void> => {
     const syncVersion = await getAppDataSyncVersion(userDataDB);
     if (syncVersion >= APP_DATA_SYNC.exerciseFlagsResynced) return;
 
-    appDataDB = await openDatabase("appData3.db");
+    appDataDB = await openDatabase(APP_DATA_DB);
     const appExercises = await appDataDB.getAllAsync<{
       exercise_id: number;
       is_unilateral: number;

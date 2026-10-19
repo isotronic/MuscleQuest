@@ -3,14 +3,16 @@ import { File, Directory, Paths } from "expo-file-system";
 import { Asset } from "expo-asset";
 import { openDatabase } from "./database";
 import { APP_DATA_SYNC, getAppDataSyncVersion } from "./db/appDataSyncVersion";
+import { APP_DATA_DB, OLD_APP_DATA_DBS } from "./db/appDataFile";
 
-const DATABASE_NAME = "appData3.db";
+const DATABASE_NAME = APP_DATA_DB;
 
 const copyDatabase = async (): Promise<void> => {
   const dbFolder = new Directory(Paths.document, "SQLite");
   const dbFile = new File(Paths.document, "SQLite", DATABASE_NAME);
-  const oldDbFile1 = new File(Paths.document, "SQLite", "appData1.db");
-  const oldDbFile2 = new File(Paths.document, "SQLite", "appData2.db");
+  const oldDbFiles = OLD_APP_DATA_DBS.map(
+    (name) => new File(Paths.document, "SQLite", name),
+  );
   const userDataDB = await openDatabase("userData.db");
 
   try {
@@ -34,7 +36,7 @@ const copyDatabase = async (): Promise<void> => {
         tempFile.delete();
       }
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const asset = Asset.fromModule(require(`../assets/db/${DATABASE_NAME}`));
+      const asset = Asset.fromModule(require("../assets/db/appData4.db"));
       await asset.downloadAsync();
       new File(asset.localUri!).copy(tempFile);
       if (!tempFile.exists) {
@@ -46,12 +48,10 @@ const copyDatabase = async (): Promise<void> => {
       tempFile.move(dbFile);
     }
 
-    if (oldDbFile1.exists) {
-      oldDbFile1.delete();
-    }
-
-    if (oldDbFile2.exists) {
-      oldDbFile2.delete();
+    for (const oldDbFile of oldDbFiles) {
+      if (oldDbFile.exists) {
+        oldDbFile.delete();
+      }
     }
   } finally {
     await userDataDB.closeAsync();
