@@ -26,12 +26,20 @@ const routes = {
   },
   "(app)/(tabs)/(plans)/index": () => <Text>Plans screen</Text>,
   "(app)/(tabs)/(plans)/overview": () => <Text>Overview screen</Text>,
+  "(app)/(workout)/index": () => <Text>Workout screen</Text>,
   "get-started": () => <Text>Get started</Text>,
 };
 
 describe("tabs initial route", () => {
   it("opens on home, not the plans list", () => {
     renderRouter(routes, { initialUrl: "/" });
+    expect(screen.getByText("Home screen")).toBeTruthy();
+  });
+
+  it("goes home when a workout is discarded", () => {
+    renderRouter(routes, { initialUrl: "/(app)/(workout)" });
+    expect(screen.getByText("Workout screen")).toBeTruthy();
+    act(() => router.push("/(app)/(tabs)"));
     expect(screen.getByText("Home screen")).toBeTruthy();
   });
 
