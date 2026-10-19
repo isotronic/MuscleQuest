@@ -286,6 +286,27 @@ describe("SessionSetInfo set note", () => {
     expect(onEditNote).toHaveBeenCalledTimes(1);
   });
 
+  it("opens the set note from a button beside the menu", () => {
+    const onEditNote = jest.fn();
+    const { getByRole } = render(
+      <SessionSetInfo {...baseProps} onEditNote={onEditNote} />,
+    );
+    fireEvent.press(getByRole("button", { name: "Add set note" }));
+    expect(onEditNote).toHaveBeenCalledTimes(1);
+  });
+
+  it("names the note button Edit once the set has a note", () => {
+    const { getByRole } = render(
+      <SessionSetInfo {...baseProps} setNote="x" onEditNote={jest.fn()} />,
+    );
+    expect(getByRole("button", { name: "Edit set note" })).toBeTruthy();
+  });
+
+  it("has no note button on a set that cannot be edited", () => {
+    const { queryByRole } = render(<SessionSetInfo {...baseProps} />);
+    expect(queryByRole("button", { name: "Add set note" })).toBeNull();
+  });
+
   it("says Edit note in the menu once the set has one", () => {
     const { getByRole, getByText } = render(
       <SessionSetInfo {...baseProps} setNote="x" onEditNote={jest.fn()} />,
