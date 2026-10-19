@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -34,6 +34,7 @@ import { OfflineBanner } from "@/components/OfflineBanner";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { displayWorkoutName } from "@/utils/workoutName";
 import { formatDecimal, formatNumber } from "@/utils/numberFormat";
+import { newestFirst } from "@/utils/newestFirst";
 
 type SectionKey = "strength" | "plans" | "workouts" | "exercises" | "activity";
 
@@ -75,25 +76,25 @@ export default function FriendProfileScreen() {
   const friend = friends.find((f) => f.uid === friendUid) ?? null;
 
   const {
-    data: plans = [],
+    data: plansData = [],
     isLoading: plansLoading,
     refetch: refetchPlans,
     isError: plansError,
   } = useFriendSharedPlansQuery(friendUid);
   const {
-    data: workouts = [],
+    data: workoutsData = [],
     isLoading: workoutsLoading,
     refetch: refetchWorkouts,
     isError: workoutsError,
   } = useFriendSharedStandaloneWorkoutsQuery(friendUid);
   const {
-    data: exercises = [],
+    data: exercisesData = [],
     isLoading: exercisesLoading,
     refetch: refetchExercises,
     isError: exercisesError,
   } = useFriendSharedCustomExercisesQuery(friendUid);
   const {
-    data: completedWorkouts = [],
+    data: completedWorkoutsData = [],
     isLoading: completedLoading,
     refetch: refetchCompletedWorkouts,
     isError: completedError,
@@ -101,17 +102,43 @@ export default function FriendProfileScreen() {
   const { data: completedWorkoutCount, refetch: refetchCompletedWorkoutCount } =
     useFriendCompletedWorkoutCountQuery(friendUid);
   const {
-    data: measurements = [],
+    data: measurementsData = [],
     isLoading: measurementsLoading,
     refetch: refetchMeasurements,
     isError: measurementsError,
   } = useFriendSharedMeasurementsQuery(friendUid);
   const {
-    data: strength = [],
+    data: strengthData = [],
     isLoading: strengthLoading,
     refetch: refetchStrength,
     isError: strengthError,
   } = useFriendSharedStrengthQuery(friendUid);
+
+  // Every list shows the most recent entry first.
+  const plans = useMemo(
+    () => newestFirst(plansData, (p) => p.updatedAt),
+    [plansData],
+  );
+  const workouts = useMemo(
+    () => newestFirst(workoutsData, (w) => w.updatedAt),
+    [workoutsData],
+  );
+  const exercises = useMemo(
+    () => newestFirst(exercisesData, (e) => e.updatedAt),
+    [exercisesData],
+  );
+  const completedWorkouts = useMemo(
+    () => newestFirst(completedWorkoutsData, (w) => w.dateCompleted),
+    [completedWorkoutsData],
+  );
+  const measurements = useMemo(
+    () => newestFirst(measurementsData, (m) => m.recordedAt),
+    [measurementsData],
+  );
+  const strength = useMemo(
+    () => newestFirst(strengthData, (pr) => pr.allTimePRDate),
+    [strengthData],
+  );
 
   const importPlan = useImportPlanMutation();
   const importWorkout = useImportStandaloneWorkoutMutation();

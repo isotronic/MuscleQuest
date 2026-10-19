@@ -254,6 +254,28 @@ describe("FriendProfileScreen", () => {
       expect(queryByText("Push Pull Legs")).toBeNull();
     });
 
+    it("lists the most recently updated plan first", () => {
+      (useFriendSharedPlansQuery as jest.Mock).mockReturnValue({
+        ...loadedEmpty,
+        data: [
+          plan,
+          {
+            localPlanId: 2,
+            name: "Upper Lower",
+            updatedAt: { toDate: () => new Date(2026, 2, 1, 12) },
+          },
+        ],
+      });
+      const { getByTestId, getAllByText } = render(<FriendProfileScreen />);
+
+      fireEvent.press(getByTestId("section-toggle-plans"));
+      expect(
+        getAllByText(/^(Push Pull Legs|Upper Lower)$/).map(
+          (node) => node.props.children,
+        ),
+      ).toEqual(["Upper Lower", "Push Pull Legs"]);
+    });
+
     it("omits the count while a section is still loading", () => {
       (useFriendSharedPlansQuery as jest.Mock).mockReturnValue({
         data: undefined,
