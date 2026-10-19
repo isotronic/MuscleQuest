@@ -617,7 +617,9 @@ export default function WorkoutSessionScreen() {
       if (settings?.restTimerVibration === "true") {
         triggerVibration();
       }
-      restEndedInApp();
+      // A newer rest already started: this callback is from the old timer
+      // and must not drop the new rest's notification.
+      if (diffMs >= 0) restEndedInApp();
       setCurrentSetStartedAt(new Date());
     } else {
       Bugsnag.leaveBreadcrumb("Skipped sound/vibration", {

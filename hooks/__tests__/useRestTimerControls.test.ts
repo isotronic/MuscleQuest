@@ -9,13 +9,16 @@ jest.mock("react-timer-hook", () => ({
     return { seconds: 0, minutes: 0, restart: jest.fn(), pause: jest.fn() };
   },
 }));
-// Focused, then blurred at once: the screen is under another one.
+// Focused, then blurred at once (the screen is under another one), unless
+// a test keeps it focused.
+let mockStayFocused = false;
 jest.mock("expo-router", () => {
   const { useEffect } = jest.requireActual("react");
   return {
     useFocusEffect: (cb: () => () => void) =>
       useEffect(() => {
-        cb()();
+        const blur = cb();
+        if (!mockStayFocused) blur();
       }, [cb]),
   };
 });
@@ -79,6 +82,41 @@ describe("useRestTimerControls", () => {
     expect(mockVibrate).not.toHaveBeenCalled();
     // Off screen, the notification is still the alert.
     expect(mockRestEndedInApp).not.toHaveBeenCalled();
+  });
+
+  describe("on screen", () => {
+    beforeEach(() => {
+      mockStayFocused = true;
+      mockRestEndedInApp.mockClear();
+    });
+    afterEach(() => {
+      mockStayFocused = false;
+    });
+
+    it("lets the app's cue replace the notification", () => {
+      useActiveWorkoutStore.setState({
+        timerRunning: true,
+        timerExpiry: new Date(Date.now() - 100),
+      });
+      renderHook(() => useRestTimerControls());
+
+      act(() => mockOnExpire?.());
+
+      expect(mockPlaySound).toHaveBeenCalled();
+      expect(mockRestEndedInApp).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps a newer rest's notification when an old timer fires late", () => {
+      useActiveWorkoutStore.setState({
+        timerRunning: true,
+        timerExpiry: new Date(Date.now() + 60_000),
+      });
+      renderHook(() => useRestTimerControls());
+
+      act(() => mockOnExpire?.());
+
+      expect(mockRestEndedInApp).not.toHaveBeenCalled();
+    });
   });
 
   it("keeps a set start that is already set", () => {

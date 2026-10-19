@@ -63,6 +63,11 @@ export function useRestTimerControls() {
     autoStart: timerRunning,
     onExpire: () => {
       const store = useActiveWorkoutStore.getState();
+      // The timer fires once its own expiry has passed; a later one in the
+      // store means a newer rest started, whose notification must stay.
+      const isCurrentRest =
+        !store.timerExpiry ||
+        new Date(store.timerExpiry).getTime() <= Date.now();
       store.stopTimer();
       // The next set starts now, so its duration can be recorded, whether or
       // not this screen is on top; only the cue needs it to be.
@@ -70,7 +75,7 @@ export function useRestTimerControls() {
       if (isFocusedRef.current) {
         if (settings?.restTimerSound === "true") void playSound();
         if (settings?.restTimerVibration === "true") triggerVibration();
-        restEndedInApp();
+        if (isCurrentRest) restEndedInApp();
       }
     },
   });
