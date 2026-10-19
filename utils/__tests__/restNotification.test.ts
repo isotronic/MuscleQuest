@@ -8,6 +8,9 @@ import {
   REST_NOTIFICATION_KIND,
   dropPendingRestNotification,
   restEndedInApp,
+  setRestAlertOnSilent,
+  REST_TIMER_ALARM_CHANNEL_ID,
+  REST_TIMER_CHANNEL_ID,
 } from "../restNotification";
 import * as Notifications from "expo-notifications";
 import {
@@ -79,6 +82,31 @@ describe("scheduleRestNotification", () => {
         }),
       }),
     );
+  });
+
+  describe("on Android", () => {
+    const os = Platform.OS;
+    beforeEach(() => {
+      Platform.OS = "android";
+    });
+    afterEach(() => {
+      Platform.OS = os;
+      setRestAlertOnSilent(false);
+    });
+    const channelUsed = () =>
+      (Notifications.scheduleNotificationAsync as jest.Mock).mock.calls[0][0]
+        .trigger.channelId;
+
+    it("uses the normal rest channel by default", async () => {
+      await scheduleRestNotification(60, "Rest done", "Start your set");
+      expect(channelUsed()).toBe(REST_TIMER_CHANNEL_ID);
+    });
+
+    it("uses the alarm channel when the alert should sound on silent", async () => {
+      setRestAlertOnSilent(true);
+      await scheduleRestNotification(60, "Rest done", "Start your set");
+      expect(channelUsed()).toBe(REST_TIMER_ALARM_CHANNEL_ID);
+    });
   });
 
   it("saves the returned notification id in AsyncStorage", async () => {

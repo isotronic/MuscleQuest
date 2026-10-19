@@ -13,13 +13,27 @@ const PERMISSION_HINT_SHOWN_KEY = "restNotificationPermissionHintShown";
 const PERMISSION_ASKED_KEY = "restNotificationPermissionAsked";
 const EXACT_ALARM_HINT_SHOWN_KEY = "restNotificationExactAlarmHintShown";
 
+/** Android channel for rest alerts, using the notification volume. */
+export const REST_TIMER_CHANNEL_ID = "rest-timer1";
 /**
- * Android channel for rest alerts. Its sound uses the alarm stream, so it
- * plays with the phone on silent (not in Do Not Disturb). A channel's sound
- * settings are fixed once created, hence a new id; the old "rest-timer1"
- * channel is deleted at setup.
+ * The same alert on the alarm stream, which silent mode does not mute (Do
+ * Not Disturb still applies). Used when the "restAlertOnSilent" setting is
+ * on. A channel's sound is fixed once created, hence two channels.
  */
-export const REST_TIMER_CHANNEL_ID = "rest-timer-alarm";
+export const REST_TIMER_ALARM_CHANNEL_ID = "rest-timer-alarm";
+
+let restAlertOnSilent = false;
+
+export function setRestAlertOnSilent(on: boolean) {
+  restAlertOnSilent = on;
+}
+
+/** The channel a rest notification scheduled now goes to. */
+export function restChannelId(): string {
+  return restAlertOnSilent
+    ? REST_TIMER_ALARM_CHANNEL_ID
+    : REST_TIMER_CHANNEL_ID;
+}
 
 /** `content.data.kind` of rest timer notifications. */
 export const REST_NOTIFICATION_KIND = "rest-timer";
@@ -28,7 +42,6 @@ export async function scheduleRestNotification(
   secondsFromNow: number,
   title: string,
   body: string,
-  channelId: string = REST_TIMER_CHANNEL_ID,
 ) {
   if (secondsFromNow <= 0) {
     return;
@@ -45,7 +58,7 @@ export async function scheduleRestNotification(
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
         seconds: secondsFromNow,
         repeats: false,
-        ...(Platform.OS === "android" && { channelId }),
+        ...(Platform.OS === "android" && { channelId: restChannelId() }),
       },
     });
     await setAsyncStorageItem(REST_TIMER_NOTIFICATION_ID_KEY, id);
@@ -74,13 +87,12 @@ async function replaceRestNotification(
   secondsFromNow: number,
   title: string,
   body: string,
-  channelId: string,
 ) {
   await serialize(async () => {
     if (ticket !== latestTicket) return;
     await cancelScheduledRestNotification();
     if (secondsFromNow > 0) {
-      await scheduleRestNotification(secondsFromNow, title, body, channelId);
+      await scheduleRestNotification(secondsFromNow, title, body);
     }
   });
 }
@@ -131,21 +143,13 @@ async function cancelScheduledRestNotification(dismiss = true) {
  * @param secondsFromNow how many seconds in the future the notification should fire
  * @param title notification title
  * @param body notification body
- * @param channelId must match the channel you created (on Android)
  */
 export async function scheduleRestNotificationWithCancellation(
   secondsFromNow: number,
   title: string,
   body: string,
-  channelId: string = REST_TIMER_CHANNEL_ID,
 ) {
-  await replaceRestNotification(
-    ++latestTicket,
-    secondsFromNow,
-    title,
-    body,
-    channelId,
-  );
+  await replaceRestNotification(++latestTicket, secondsFromNow, title, body);
 }
 
 // Rest notifications are always scheduled, so a backgrounded or locked phone
@@ -239,13 +243,7 @@ export async function startRestNotification(
   // Taken before the permission check, so a newer timer started meanwhile wins.
   const ticket = ++latestTicket;
   if (await ensureNotificationPermission()) {
-    await replaceRestNotification(
-      ticket,
-      secondsFromNow,
-      title,
-      body,
-      REST_TIMER_CHANNEL_ID,
-    );
+    await replaceRestNotification(ticket, secondsFromNow, title, body);
     return {
       showPermissionHint: false,
       showExactAlarmHint: await claimExactAlarmHint(),

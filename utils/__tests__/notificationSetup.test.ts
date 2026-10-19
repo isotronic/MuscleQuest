@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 import { setupNotificationChannel } from "../notificationSetup";
 import {
   REST_NOTIFICATION_KIND,
+  REST_TIMER_ALARM_CHANNEL_ID,
   REST_TIMER_CHANNEL_ID,
   setShowRestNotificationInForeground,
 } from "../restNotification";
@@ -10,7 +11,6 @@ import {
 jest.mock("expo-notifications", () => ({
   setNotificationHandler: jest.fn(),
   setNotificationChannelAsync: jest.fn(),
-  deleteNotificationChannelAsync: jest.fn(),
   AndroidImportance: { MAX: 5, HIGH: 4 },
   AndroidAudioUsage: { ALARM: 4 },
   AndroidAudioContentType: { SONIFICATION: 4 },
@@ -34,7 +34,7 @@ describe("setupNotificationChannel", () => {
     expect((await handleNotification(rest)).shouldShowBanner).toBe(true);
   });
 
-  it("plays rest alerts on the alarm stream so silent mode does not mute them", async () => {
+  it("creates the rest channel and an alarm-stream twin that sounds on silent", async () => {
     const os = Platform.OS;
     Platform.OS = "android";
     try {
@@ -43,11 +43,15 @@ describe("setupNotificationChannel", () => {
       Platform.OS = os;
     }
 
-    expect(Notifications.deleteNotificationChannelAsync).toHaveBeenCalledWith(
-      "rest-timer1",
+    const calls = (Notifications.setNotificationChannelAsync as jest.Mock).mock
+      .calls;
+    const normal = calls.find(([id]) => id === REST_TIMER_CHANNEL_ID)?.[1];
+    const alarm = calls.find(([id]) => id === REST_TIMER_ALARM_CHANNEL_ID)?.[1];
+    expect(normal).toEqual(
+      expect.objectContaining({ sound: "boxing_bell.mp3" }),
     );
-    expect(Notifications.setNotificationChannelAsync).toHaveBeenCalledWith(
-      REST_TIMER_CHANNEL_ID,
+    expect(normal.audioAttributes).toBeUndefined();
+    expect(alarm).toEqual(
       expect.objectContaining({
         sound: "boxing_bell.mp3",
         audioAttributes: { usage: 4, contentType: 4 },

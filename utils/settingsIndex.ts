@@ -124,6 +124,12 @@ export const SETTINGS_INDEX = [
     keywords: msg`sound, alarm, rest, timer`,
   },
   {
+    id: "restAlertOnSilent",
+    screen: "workout",
+    title: msg`Rest alert sounds on silent`,
+    keywords: msg`silent, alarm, volume, mute, rest, notification`,
+  },
+  {
     id: "restTimerNotification",
     screen: "workout",
     title: msg`Show rest notification while app is open`,

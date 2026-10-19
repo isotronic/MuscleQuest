@@ -29,6 +29,8 @@ export default function WorkoutSettingsScreen() {
   const [notification, setNotification] = useSettingToggle(
     "restTimerNotification",
   );
+  const [alertOnSilent, setAlertOnSilent] =
+    useSettingToggle("restAlertOnSilent");
   const [countdownSound, setCountdownSound] = useSettingToggle(
     "timerCountdownSound",
   );
@@ -200,6 +202,15 @@ export default function WorkoutSettingsScreen() {
         value={enabled(sound)}
         checked={sound}
         onValueChange={setSound}
+      />
+      <SwitchRow
+        id="restAlertOnSilent"
+        icon="alarm-bell"
+        title={<Trans>Rest alert sounds on silent</Trans>}
+        label={t`Rest alert sounds on silent`}
+        value={alertOnSilent ? t`Uses alarm volume` : enabled(false)}
+        checked={alertOnSilent}
+        onValueChange={setAlertOnSilent}
       />
       <SwitchRow
         id="restTimerNotification"
