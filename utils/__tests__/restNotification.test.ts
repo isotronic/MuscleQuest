@@ -6,6 +6,8 @@ import {
   foregroundPresentation,
   setShowRestNotificationInForeground,
   REST_NOTIFICATION_KIND,
+  dropPendingRestNotification,
+  restEndedInApp,
 } from "../restNotification";
 import * as Notifications from "expo-notifications";
 import {
@@ -14,7 +16,7 @@ import {
   removeAsyncStorageItem,
 } from "@/utils/asyncStorage";
 import Bugsnag from "@bugsnag/expo";
-import { Platform } from "react-native";
+import { AppState, Platform } from "react-native";
 import { canScheduleExactAlarms } from "@/modules/exact-alarm";
 
 jest.mock("expo-notifications", () => ({
@@ -441,5 +443,60 @@ describe("foregroundPresentation", () => {
     expect(foregroundPresentation(notification({}))).toEqual(
       expect.objectContaining({ shouldShowBanner: false }),
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// dropPendingRestNotification / restEndedInApp
+// ---------------------------------------------------------------------------
+
+describe("dropping a pending rest notification", () => {
+  const flush = () => new Promise((resolve) => setImmediate(resolve));
+  const initialState = AppState.currentState;
+  const setAppState = (state: string) =>
+    Object.defineProperty(AppState, "currentState", {
+      value: state,
+      configurable: true,
+      writable: true,
+    });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (getAsyncStorageItem as jest.Mock).mockResolvedValue("stored-id");
+    setAppState("active");
+  });
+  afterEach(() => setAppState(initialState));
+
+  it("cancels the scheduled notification but leaves one already shown", async () => {
+    await dropPendingRestNotification();
+    expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith(
+      "stored-id",
+    );
+    expect(removeAsyncStorageItem).toHaveBeenCalledWith(
+      "restTimerNotificationId",
+    );
+    expect(Notifications.dismissNotificationAsync).not.toHaveBeenCalled();
+  });
+
+  it("drops it when the app played its own cue, even in the background", async () => {
+    setAppState("background");
+    restEndedInApp(true);
+    await flush();
+    expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalled();
+  });
+
+  it("drops it when the app is open, cue or not", async () => {
+    restEndedInApp(false);
+    await flush();
+    expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalled();
+  });
+
+  it("keeps it in the background when the app played no cue", async () => {
+    setAppState("background");
+    restEndedInApp(false);
+    await flush();
+    expect(
+      Notifications.cancelScheduledNotificationAsync,
+    ).not.toHaveBeenCalled();
   });
 });

@@ -14,6 +14,7 @@ import { usePauseWhenRestEndsEarly } from "@/hooks/usePauseWhenRestEndsEarly";
 import { useSoundStore } from "@/store/soundStore";
 import {
   cancelRestNotifications,
+  restEndedInApp,
   scheduleRestNotificationWithCancellation,
 } from "@/utils/restNotification";
 
@@ -67,8 +68,11 @@ export function useRestTimerControls() {
       // not this screen is on top; only the cue needs it to be.
       if (!store.currentSetStartedAt) store.setCurrentSetStartedAt(new Date());
       if (isFocusedRef.current) {
-        if (settings?.restTimerSound === "true") void playSound();
-        if (settings?.restTimerVibration === "true") triggerVibration();
+        const soundOn = settings?.restTimerSound === "true";
+        const vibrationOn = settings?.restTimerVibration === "true";
+        if (soundOn) void playSound();
+        if (vibrationOn) triggerVibration();
+        restEndedInApp(soundOn || vibrationOn);
       }
     },
   });

@@ -46,8 +46,10 @@ jest.mock("@/store/soundStore", () => ({
     triggerVibration: mockVibrate,
   }),
 }));
+const mockRestEndedInApp = jest.fn();
 jest.mock("@/utils/restNotification", () => ({
   cancelRestNotifications: jest.fn(),
+  restEndedInApp: (cued: boolean) => mockRestEndedInApp(cued),
   scheduleRestNotificationWithCancellation: jest.fn(),
 }));
 
@@ -75,6 +77,8 @@ describe("useRestTimerControls", () => {
     expect(store.currentSetStartedAt).not.toBeNull();
     expect(mockPlaySound).not.toHaveBeenCalled();
     expect(mockVibrate).not.toHaveBeenCalled();
+    // Off screen, the notification is still the alert.
+    expect(mockRestEndedInApp).not.toHaveBeenCalled();
   });
 
   it("keeps a set start that is already set", () => {

@@ -44,6 +44,7 @@ import Bugsnag from "@bugsnag/expo";
 import {
   cancelRestNotifications,
   exactAlarmsAllowed,
+  restEndedInApp,
   scheduleRestNotificationWithCancellation,
   startRestNotification,
 } from "@/utils/restNotification";
@@ -611,12 +612,15 @@ export default function WorkoutSessionScreen() {
     });
 
     if (diffMs < 2000 && isFocusedRef.current) {
-      if (settings?.restTimerSound === "true") {
+      const soundOn = settings?.restTimerSound === "true";
+      const vibrationOn = settings?.restTimerVibration === "true";
+      if (soundOn) {
         playSound();
       }
-      if (settings?.restTimerVibration === "true") {
+      if (vibrationOn) {
         triggerVibration();
       }
+      restEndedInApp(soundOn || vibrationOn);
       setCurrentSetStartedAt(new Date());
     } else {
       Bugsnag.leaveBreadcrumb("Skipped sound/vibration", {

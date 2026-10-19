@@ -1,5 +1,5 @@
 import * as Notifications from "expo-notifications";
-import { Platform } from "react-native";
+import { AppState, Platform } from "react-native";
 import Bugsnag from "@bugsnag/expo";
 import {
   getAsyncStorageItem,
@@ -82,13 +82,34 @@ export async function cancelRestNotifications() {
   await serialize(cancelScheduledRestNotification);
 }
 
-async function cancelScheduledRestNotification() {
+/**
+ * The rest ended with the app's own cue (or on screen), so a notification
+ * still waiting would only repeat it, late: without exact alarms Android can
+ * deliver it well after the rest. One already shown is left alone.
+ */
+export async function dropPendingRestNotification() {
+  latestTicket++;
+  await serialize(() => cancelScheduledRestNotification(false));
+}
+
+/**
+ * Call when the app's timer ends a rest on a focused workout screen. `cued`
+ * says whether it played its sound or vibration. In the background with no
+ * cue, the notification is the only alert, so it stays.
+ */
+export function restEndedInApp(cued: boolean) {
+  if (cued || AppState.currentState === "active") {
+    void dropPendingRestNotification();
+  }
+}
+
+async function cancelScheduledRestNotification(dismiss = true) {
   try {
     const id = await getAsyncStorageItem(REST_TIMER_NOTIFICATION_ID_KEY);
     if (id) {
       await Notifications.cancelScheduledNotificationAsync(id);
       await removeAsyncStorageItem(REST_TIMER_NOTIFICATION_ID_KEY);
-      await Notifications.dismissNotificationAsync(id);
+      if (dismiss) await Notifications.dismissNotificationAsync(id);
     }
   } catch (error: any) {
     Bugsnag.notify(error);
