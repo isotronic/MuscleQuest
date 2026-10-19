@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { ListViewHint } from "../workout/ListViewHint";
 
 jest.mock("@lingui/core/macro", () => ({
@@ -32,8 +32,12 @@ jest.mock("@/hooks/useSettingsQuery", () => ({
   useSettingsQuery: () => ({ data: mockSettings }),
 }));
 const mockUpdate = jest.fn();
+const mockUpdateAsync = jest.fn();
 jest.mock("@/hooks/useUpdateSettingsMutation", () => ({
-  useUpdateSettingsMutation: () => ({ mutate: mockUpdate }),
+  useUpdateSettingsMutation: () => ({
+    mutate: mockUpdate,
+    mutateAsync: mockUpdateAsync,
+  }),
 }));
 let mockHasCompleted: boolean | undefined = true;
 jest.mock("@/hooks/useWorkoutSummariesQuery", () => ({
@@ -52,6 +56,7 @@ describe("ListViewHint", () => {
     jest.clearAllMocks();
     mockSettings = {};
     mockHasCompleted = true;
+    mockUpdateAsync.mockResolvedValue(undefined);
   });
 
   it("waits for the second session", () => {
@@ -68,18 +73,34 @@ describe("ListViewHint", () => {
     expect(render(<ListViewHint />).queryByText(PROMPT)).toBeNull();
   });
 
-  it("turns on list view and retires itself", () => {
+  it("turns on list view, then retires itself once it is saved", async () => {
     const screen = render(<ListViewHint />);
     fireEvent.press(screen.getByText("Try list view"));
-    expect(mockUpdate).toHaveBeenCalledWith({
+    expect(mockUpdateAsync).toHaveBeenCalledWith({
       key: "loggingStyle",
       value: "list",
     });
-    expect(mockUpdate).toHaveBeenCalledWith({
-      key: "listViewHintSeen",
-      value: "true",
-    });
-    expect(mockSnackbar).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(mockUpdate).toHaveBeenCalledWith({
+        key: "listViewHintSeen",
+        value: "true",
+      }),
+    );
+    expect(mockSnackbar).toHaveBeenCalledWith(
+      expect.stringContaining("Exercises now open as a list of sets."),
+    );
+  });
+
+  it("stays and says so when the setting cannot be saved", async () => {
+    mockUpdateAsync.mockRejectedValue(new Error("disk full"));
+    const screen = render(<ListViewHint />);
+    fireEvent.press(screen.getByText("Try list view"));
+    await waitFor(() =>
+      expect(mockSnackbar).toHaveBeenCalledWith(
+        "Couldn't save your choice. Try again.",
+      ),
+    );
+    expect(mockUpdate).not.toHaveBeenCalled();
   });
 
   it("keeps one set at a time and retires itself", () => {

@@ -14,14 +14,22 @@ import {
  */
 export function useLoggingStyle() {
   const { data: settings } = useSettingsQuery();
-  const { mutate: updateSetting } = useUpdateSettingsMutation();
+  const { mutate: updateSetting, mutateAsync: updateSettingAsync } =
+    useUpdateSettingsMutation();
   const style = loggingStyleOf(settings);
 
   const dismissHint = () =>
     updateSetting({ key: LIST_VIEW_HINT_SETTING, value: "true" });
 
-  const setStyle = (next: LoggingStyle) => {
-    updateSetting({ key: "loggingStyle", value: next });
+  // Says it worked, and retires the hint, only once the setting is saved.
+  // The mutation reports a failure itself.
+  const setStyle = async (next: LoggingStyle) => {
+    try {
+      await updateSettingAsync({ key: "loggingStyle", value: next });
+    } catch {
+      showSnackbar(t`Couldn't save your choice. Try again.`);
+      return;
+    }
     dismissHint();
     showSnackbar(
       next === "list"

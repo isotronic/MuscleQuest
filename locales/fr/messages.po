@@ -2238,12 +2238,12 @@ msgstr "Ajouter une série dégressive"
 msgid "Add exercise"
 msgstr "Ajouter un exercice"
 
-#: app/(app)/(workout)/index.tsx:1287
+#: app/(app)/(workout)/index.tsx:1289
 #: components/WorkoutCard.tsx:476
 msgid "Add Exercise"
 msgstr "Ajouter un exercice"
 
-#: app/(app)/(workout)/index.tsx:1262
+#: app/(app)/(workout)/index.tsx:1264
 msgid "Add exercises to get started"
 msgstr "Ajoute des exercices pour commencer"
 
@@ -3336,6 +3336,7 @@ msgstr "Impossible d'enregistrer ton choix. Réessaie depuis les Paramètres."
 #: app/(app)/settings/data.tsx:90
 #: app/login.tsx:93
 #: components/AccountOwnershipNotice.tsx:36
+#: hooks/useLoggingStyle.ts:30
 msgid "Couldn't save your choice. Try again."
 msgstr "Impossible d'enregistrer ton choix. Réessaie."
 
@@ -3782,7 +3783,7 @@ msgstr "Abandonner les modifications ?"
 msgid "Discard Changes?"
 msgstr "Abandonner les modifications ?"
 
-#: app/(app)/(workout)/index.tsx:1147
+#: app/(app)/(workout)/index.tsx:1149
 msgid "Discard workout"
 msgstr "Abandonner l'entraînement"
 
@@ -4211,7 +4212,7 @@ msgstr "Équipement :"
 #: app/(app)/(create-plan)/image-search.tsx:43
 #: app/(app)/(tabs)/(plans)/overview.tsx:243
 #: app/(app)/(workout)/index.tsx:976
-#: app/(app)/(workout)/index.tsx:1209
+#: app/(app)/(workout)/index.tsx:1211
 #: app/(app)/custom-exercise.tsx:135
 #: app/(app)/custom-exercise.tsx:185
 #: app/(app)/custom-exercise.tsx:325
@@ -4274,7 +4275,7 @@ msgstr "1RM estimé {e1rm} {weightUnit} (+{delta})"
 
 #. placeholder {0}: formatDurationEstimate(durationEstimate)
 #. placeholder {0}: formatDurationEstimate(estimate)
-#: app/(app)/(workout)/index.tsx:1235
+#: app/(app)/(workout)/index.tsx:1237
 #: components/WorkoutCard.tsx:450
 msgid "Estimated Duration: {0}"
 msgstr "Durée estimée : {0}"
@@ -4401,11 +4402,11 @@ msgstr "Options de la minuterie d'exercice : la durée du compte à rebours Pré
 msgid "Exercises"
 msgstr "Exercices"
 
-#: hooks/useLoggingStyle.ts:28
+#: hooks/useLoggingStyle.ts:36
 msgid "Exercises now open as a list of sets. Change this in the workout menu (⋮) or in Settings."
 msgstr "Les exercices s'ouvrent maintenant sous forme de liste de séries. Tu peux changer cela dans le menu de la séance (⋮) ou dans les Paramètres."
 
-#: hooks/useLoggingStyle.ts:29
+#: hooks/useLoggingStyle.ts:37
 msgid "Exercises now open one set at a time. Change this in the workout menu (⋮) or in Settings."
 msgstr "Les exercices s'ouvrent maintenant une série à la fois. Tu peux changer cela dans le menu de la séance (⋮) ou dans les Paramètres."
 
@@ -4511,7 +4512,7 @@ msgid "Failed to save the image. Please try again."
 msgstr "Impossible de sauvegarder l'image. Réessaie."
 
 #: app/(app)/(workout)/index.tsx:977
-#: app/(app)/(workout)/index.tsx:1210
+#: app/(app)/(workout)/index.tsx:1212
 msgid "Failed to save workout. Please try again."
 msgstr "Impossible de sauvegarder l'entraînement. Réessaie."
 
@@ -5981,7 +5982,7 @@ msgstr "non terminée"
 msgid "Not logged yet. Tap to add today's entry."
 msgstr "Mesure non enregistrée. Appuie pour ajouter l'entrée du jour."
 
-#: app/(app)/(workout)/index.tsx:1180
+#: app/(app)/(workout)/index.tsx:1182
 #: app/(app)/settings/data.tsx:84
 #: app/login.tsx:240
 #: components/AccountOwnershipPrompt.tsx:74
@@ -6876,7 +6877,7 @@ msgid "rest, timer, seconds"
 msgstr "repos, minuteur, secondes"
 
 #: app/(app)/(workout)/index.tsx:1053
-#: app/(app)/(workout)/index.tsx:1140
+#: app/(app)/(workout)/index.tsx:1142
 msgid "Restart"
 msgstr "Recommencer"
 
@@ -6987,7 +6988,7 @@ msgstr "Samedi"
 
 #: app/(app)/(create-plan)/create-workout.tsx:256
 #: app/(app)/(create-plan)/create.tsx:359
-#: app/(app)/(workout)/index.tsx:1215
+#: app/(app)/(workout)/index.tsx:1217
 #: app/(app)/custom-exercise.tsx:607
 #: app/setup.tsx:378
 #: components/SettingsModal.tsx:318
@@ -7002,7 +7003,7 @@ msgstr "Enregistrer et revenir"
 msgid "Save and select"
 msgstr "Enregistrer et sélectionner"
 
-#: app/(app)/(workout)/index.tsx:1162
+#: app/(app)/(workout)/index.tsx:1164
 msgid "Save as a reusable workout?"
 msgstr "Enregistrer comme entraînement réutilisable ?"
 
@@ -7432,7 +7433,7 @@ msgstr "Voir plus"
 #~ msgid "Show onboarding on home screen"
 #~ msgstr "Afficher l'accueil sur l'écran principal"
 
-#: app/(app)/(workout)/index.tsx:1131
+#: app/(app)/(workout)/index.tsx:1133
 msgid "Show one set at a time"
 msgstr "Afficher une série à la fois"
 
@@ -7454,7 +7455,7 @@ msgstr "Afficher les tours"
 msgid "Show sets"
 msgstr "Afficher les séries"
 
-#: app/(app)/(workout)/index.tsx:1132
+#: app/(app)/(workout)/index.tsx:1134
 msgid "Show sets as a list"
 msgstr "Afficher les séries en liste"
 
@@ -9273,8 +9274,8 @@ msgstr "Séance en cours"
 msgid "Workout logged"
 msgstr "Entraînement enregistré"
 
-#: app/(app)/(workout)/index.tsx:1170
 #: app/(app)/(workout)/index.tsx:1172
+#: app/(app)/(workout)/index.tsx:1174
 #: components/CopyWorkoutModal.tsx:52
 #: components/CopyWorkoutModal.tsx:60
 #: components/WorkoutCard.tsx:442
@@ -9546,7 +9547,7 @@ msgstr "Ton profil et tes liens d'amitié"
 msgid "Your progress is saved. You can resume from the home screen."
 msgstr "Ta progression est enregistrée. Tu peux reprendre depuis l'écran d'accueil."
 
-#: app/(app)/(workout)/index.tsx:1165
+#: app/(app)/(workout)/index.tsx:1167
 msgid "Your session is saved. Give it a name to reuse it later."
 msgstr "Ta séance est enregistrée. Donne-lui un nom pour la réutiliser plus tard."
 

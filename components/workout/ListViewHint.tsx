@@ -43,7 +43,7 @@ export function ListViewHint() {
         <Button mode="text" onPress={dismissHint}>
           <Trans>Keep one set at a time</Trans>
         </Button>
-        <Button mode="contained" onPress={() => setStyle("list")}>
+        <Button mode="contained" onPress={() => void setStyle("list")}>
           <Trans>Try list view</Trans>
         </Button>
       </View>

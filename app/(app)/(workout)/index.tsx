@@ -1124,7 +1124,9 @@ export default function WorkoutOverviewScreen() {
                 <Menu.Item
                   onPress={() => {
                     handleMenuClose(69420);
-                    setLoggingStyle(loggingStyle === "list" ? "focus" : "list");
+                    void setLoggingStyle(
+                      loggingStyle === "list" ? "focus" : "list",
+                    );
                   }}
                   title={
                     loggingStyle === "list"
