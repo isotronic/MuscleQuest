@@ -211,19 +211,34 @@ export function exactAlarmsAllowed(): boolean {
 /**
  * Without "Alarms & reminders" (not granted by default on Android 14+),
  * expo-notifications falls back to an inexact alarm that can fire well after
- * the rest ends. True once, ever, so the overlay can offer the setting.
+ * the rest ends. True at most once every EXACT_ALARM_HINT_EVERY_MS while it
+ * stays off, so the overlay can offer the setting without nagging.
  */
+export const EXACT_ALARM_HINT_EVERY_MS = 14 * 24 * 60 * 60 * 1000;
+
 let exactAlarmHintClaimInFlight = false;
 
 async function claimExactAlarmHint(): Promise<boolean> {
   if (Platform.OS !== "android" || exactAlarmsAllowed()) return false;
   // Overlapping rests must not both read "not shown" before either writes it.
-  // Taken synchronously; released afterwards, when the stored flag decides.
+  // Taken synchronously; released afterwards, when the stored time decides.
   if (exactAlarmHintClaimInFlight) return false;
   exactAlarmHintClaimInFlight = true;
   try {
-    if (await getAsyncStorageItem(EXACT_ALARM_HINT_SHOWN_KEY)) return false;
-    await setAsyncStorageItem(EXACT_ALARM_HINT_SHOWN_KEY, "true");
+    // An ISO time since 1.6; older builds stored "true", read as long ago.
+    const lastShown = Date.parse(
+      (await getAsyncStorageItem(EXACT_ALARM_HINT_SHOWN_KEY)) ?? "",
+    );
+    if (
+      Number.isFinite(lastShown) &&
+      Date.now() - lastShown < EXACT_ALARM_HINT_EVERY_MS
+    ) {
+      return false;
+    }
+    await setAsyncStorageItem(
+      EXACT_ALARM_HINT_SHOWN_KEY,
+      new Date().toISOString(),
+    );
     return true;
   } finally {
     exactAlarmHintClaimInFlight = false;
@@ -234,7 +249,8 @@ async function claimExactAlarmHint(): Promise<boolean> {
  * Schedules the rest notification when a rest timer starts, asking for
  * permission the first time. When notifications are blocked,
  * `showPermissionHint` is true exactly once so the overlay can explain; when
- * they are allowed but alerts would be inexact, `showExactAlarmHint` is.
+ * they are allowed but alerts would be inexact, `showExactAlarmHint` is, at
+ * most every two weeks.
  */
 export async function startRestNotification(
   secondsFromNow: number,

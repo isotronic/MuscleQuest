@@ -9,6 +9,7 @@ import {
   dropPendingRestNotification,
   restEndedInApp,
   setRestAlertOnSilent,
+  EXACT_ALARM_HINT_EVERY_MS,
   REST_TIMER_ALARM_CHANNEL_ID,
   REST_TIMER_CHANNEL_ID,
 } from "../restNotification";
@@ -380,7 +381,7 @@ describe("startRestNotification", () => {
       (canScheduleExactAlarms as jest.Mock).mockReturnValue(true);
     });
 
-    it("returns a hint once when alerts would be inexact", async () => {
+    it("returns the hint once, not on the next rest, when alerts would be inexact", async () => {
       (canScheduleExactAlarms as jest.Mock).mockReturnValue(false);
 
       const first = await startRestNotification(90, "Rest", "Go");
@@ -411,6 +412,36 @@ describe("startRestNotification", () => {
       ]);
 
       expect(results.filter((r) => r.showExactAlarmHint)).toHaveLength(1);
+    });
+
+    it("returns the hint again two weeks later while alerts are still inexact", async () => {
+      (canScheduleExactAlarms as jest.Mock).mockReturnValue(false);
+      const now = Date.now();
+      const clock = jest.spyOn(Date, "now").mockReturnValue(now);
+      try {
+        expect(
+          (await startRestNotification(90, "Rest", "Go")).showExactAlarmHint,
+        ).toBe(true);
+        clock.mockReturnValue(now + EXACT_ALARM_HINT_EVERY_MS - 1000);
+        expect(
+          (await startRestNotification(90, "Rest", "Go")).showExactAlarmHint,
+        ).toBe(false);
+        clock.mockReturnValue(now + EXACT_ALARM_HINT_EVERY_MS + 1000);
+        expect(
+          (await startRestNotification(90, "Rest", "Go")).showExactAlarmHint,
+        ).toBe(true);
+      } finally {
+        clock.mockRestore();
+      }
+    });
+
+    it("shows the hint again to someone who saw it in an older version", async () => {
+      (canScheduleExactAlarms as jest.Mock).mockReturnValue(false);
+      storage["restNotificationExactAlarmHintShown"] = "true";
+
+      const result = await startRestNotification(90, "Rest", "Go");
+
+      expect(result.showExactAlarmHint).toBe(true);
     });
 
     it("returns no hint when exact alarms are allowed", async () => {
