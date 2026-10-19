@@ -60,6 +60,7 @@ import { savedWorkoutSummaryParams } from "@/utils/resumeWorkout";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserExercise } from "@/store/workoutStore";
 import RestTimerOverlay from "@/components/RestTimerOverlay";
+import WorkoutTimer from "@/components/WorkoutTimer";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import React from "react";
@@ -1097,6 +1098,7 @@ export default function WorkoutOverviewScreen() {
         options={{
           headerRight: () => (
             <View style={styles.headerRight}>
+              <WorkoutTimer />
               <Button
                 mode="text"
                 icon={SaveIcon}
