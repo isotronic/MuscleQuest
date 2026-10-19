@@ -2,7 +2,7 @@ import type { AliasMap } from "./exerciseSearch";
 
 // Canonical values in this map must appear as substrings of exercise NAMES in the DB,
 // not the equipment/target_muscle field values. The search engine indexes names only.
-// Verified against appData3.db (979 exercises).
+// Verified against appData4.db (979 exercises).
 
 export const FITNESS_ALIAS_MAP: AliasMap = {
   // ─── Equipment abbreviations ──────────────────────────────────────────────
@@ -31,8 +31,8 @@ export const FITNESS_ALIAS_MAP: AliasMap = {
   ohp: ["overhead press"],
   bp: ["bench press"],
   cgbp: ["close grip bench press"],
-  "lat pd": ["lat pulldown", "lateral pulldown"],
-  "lat pull": ["lat pulldown", "lateral pulldown"],
+  "lat pd": ["lat pulldown"],
+  "lat pull": ["lat pulldown"],
   // No-hyphen spellings — "Pull-Up" normalizes to "pull up".
   pullup: ["pull-up"],
   "pull up": ["pull-up"],
@@ -53,9 +53,14 @@ export const FITNESS_ALIAS_MAP: AliasMap = {
   // becomes "farmer", not "farmers". The alias bridges the gap.
   farmers: ["farmer"],
   "good morning": ["good morning"],
-  "glute bridge": ["glute bridge", "lying lifting"],
-  // "Hip Thrust" exercises in DB are named as glute bridge variations.
-  "hip thrust": ["glute bridge", "lying lifting"],
+  // Hip thrusts and glute bridges are the same hip extension; each search
+  // finds both.
+  "glute bridge": ["hip thrust"],
+  "hip thrust": ["glute bridge"],
+  // Bulgarian split squat.
+  bss: ["bulgarian split squat"],
+  // The reverse pec deck is named "Lever Seated Reverse Fly".
+  "reverse pec deck": ["seated reverse fly"],
   "hip ext": ["hip extension"],
   "leg ext": ["leg extension"],
   "leg curl": ["leg curl"],
@@ -83,8 +88,8 @@ export const FITNESS_ALIAS_MAP: AliasMap = {
   traps: ["shrug"], // "Barbell Shrug", "Cable Shrug" — 11 shrug exercises
   pecs: ["chest"], // "Chest Dip", "Lever Chest Press" — 25 exercises
   tris: ["tricep"], // "Triceps Extension", "Triceps Dip" — 57 exercises
-  bis: ["bicep"], // "Biceps Curl", "Bicep Curl" — 88 exercises
-  abs: ["crunch"], // "Crunch Floor", "Cable Kneeling Crunch" — 97 exercises
+  bis: ["bicep"], // "Biceps Curl", "Biceps Pull-up" — 88 exercises
+  abs: ["crunch"], // "Crunch", "Cable Kneeling Crunch" — 97 exercises
   hams: ["hamstring"], // "Nordic Hamstring Curl" — most hamstring exercises found via rdl/leg curl directly
   quads: ["leg extension"], // "Lever Leg Extension" — most specific quad name term
   "upper back": ["row"], // 62 of 83 row exercises target upper back
