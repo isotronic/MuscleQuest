@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { ListViewHint } from "../workout/ListViewHint";
 
 jest.mock("@lingui/core/macro", () => ({
@@ -74,12 +74,25 @@ describe("ListViewHint", () => {
   });
 
   it("turns on list view, then retires itself once it is saved", async () => {
+    let save!: () => void;
+    mockUpdateAsync.mockReturnValue(
+      new Promise<void>((resolve) => {
+        save = resolve;
+      }),
+    );
     const screen = render(<ListViewHint />);
     fireEvent.press(screen.getByText("Try list view"));
     expect(mockUpdateAsync).toHaveBeenCalledWith({
       key: "loggingStyle",
       value: "list",
     });
+
+    // Nothing is confirmed or retired while the setting is still saving.
+    await act(async () => {});
+    expect(mockUpdate).not.toHaveBeenCalled();
+    expect(mockSnackbar).not.toHaveBeenCalled();
+
+    await act(async () => save());
     await waitFor(() =>
       expect(mockUpdate).toHaveBeenCalledWith({
         key: "listViewHintSeen",
