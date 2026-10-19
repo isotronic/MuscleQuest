@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, ScrollView, StyleSheet, Alert, TextInput } from "react-native";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  TextInput,
+  Dimensions,
+} from "react-native";
 import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import Sortable from "react-native-sortables";
@@ -17,12 +24,7 @@ import {
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import {
-  router,
-  Stack,
-  useFocusEffect,
-  useLocalSearchParams,
-} from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { AppIcon, AppIconButton } from "@/components/ui";
 import { useSaveCompletedWorkoutMutation } from "@/hooks/useSaveCompletedWorkoutMutation";
 import {
@@ -48,10 +50,7 @@ import {
   createStandaloneWorkout,
   linkCompletedWorkoutToWorkout,
 } from "@/utils/database";
-import {
-  cancelRestNotifications,
-  scheduleRestNotificationWithCancellation,
-} from "@/utils/restNotification";
+import { cancelRestNotifications } from "@/utils/restNotification";
 import {
   buildCompletedExercises,
   unsavedSetNotes,
@@ -60,15 +59,6 @@ import { resolveWorkoutDuration } from "@/utils/staleWorkout";
 import { savedWorkoutSummaryParams } from "@/utils/resumeWorkout";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserExercise } from "@/store/workoutStore";
-import {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from "react-native-reanimated";
-import { useTimer } from "react-timer-hook";
-import { useRestTimerResync } from "@/hooks/useRestTimerResync";
-import { usePauseWhenRestEndsEarly } from "@/hooks/usePauseWhenRestEndsEarly";
-import { useSoundStore } from "@/store/soundStore";
 import RestTimerOverlay from "@/components/RestTimerOverlay";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
@@ -84,10 +74,24 @@ import { useDeloadWeekQuery } from "@/hooks/useDeloadWeekQuery";
 import { sessionSupportsProgression } from "@/utils/progressionEligibility";
 import { useSessionPRs } from "@/hooks/useSessionPRs";
 import { instanceName } from "@/utils/exerciseInstance";
+import { useCompleteSet } from "@/hooks/useCompleteSet";
+import { useRestTimerControls } from "@/hooks/useRestTimerControls";
+import { useLoggingStyle } from "@/hooks/useLoggingStyle";
+import { ListViewHint } from "@/components/workout/ListViewHint";
+import {
+  QueuedFeedbackCard,
+  useHasQueuedFeedback,
+} from "@/components/workout/QueuedFeedbackCard";
+import {
+  OverviewSetRows,
+  SupersetRoundRows,
+} from "@/components/workout/OverviewSetRows";
 import {
   confirmUnfinishedSets,
   findUnfinishedSets,
 } from "@/utils/confirmUnfinishedSets";
+
+const FEEDBACK_CARD_MAX_HEIGHT = Dimensions.get("window").height * 0.25;
 
 type SingleItem = {
   type: "single";
@@ -130,9 +134,6 @@ export default function WorkoutOverviewScreen() {
     setSessionNote,
     setNotes,
     timerRunning,
-    timerExpiry,
-    stopTimer,
-    startTimer,
     feedbackSubmittedUweIds,
     recoveryCheckInShown,
     markRecoveryCheckInShown,
@@ -149,6 +150,8 @@ export default function WorkoutOverviewScreen() {
     activeWorkout?.workoutId ?? undefined,
   );
   const { mutate: submitRecovery } = useRecoveryCheckInMutation();
+  // A set row finishing an exercise queues its feedback card here too.
+  const hasQueuedFeedback = useHasQueuedFeedback();
 
   useEffect(() => {
     if (
@@ -193,6 +196,7 @@ export default function WorkoutOverviewScreen() {
   );
 
   const weightUnit = settings?.weightUnit || "kg";
+  const { style: loggingStyle, setStyle: setLoggingStyle } = useLoggingStyle();
   const lbsStep = useMemo(
     () =>
       smallestLoadStep(parsePlateInventory(settings?.plateInventoryLbs, "lbs")),
@@ -217,6 +221,11 @@ export default function WorkoutOverviewScreen() {
   }, [sessionHistory, initializeWeightAndReps]);
 
   const { prs: sessionPRs } = useSessionPRs();
+  const completeSetApi = useCompleteSet();
+  const { shownValues } = completeSetApi;
+  // Read through a ref so the memoized cards do not rebuild every render.
+  const completeSetApiRef = useRef(completeSetApi);
+  completeSetApiRef.current = completeSetApi;
 
   const { data: workoutProgressionStates } = useWorkoutProgressionStatesQuery(
     progressionSettings.enabled
@@ -284,95 +293,7 @@ export default function WorkoutOverviewScreen() {
   useKeepScreenOn();
   useWorkoutImmersiveMode();
 
-  const parsedIncrement = parseInt(settings?.restTimerIncrement || "15", 10);
-  const restTimerIncrement =
-    Number.isFinite(parsedIncrement) && parsedIncrement > 0
-      ? parsedIncrement
-      : 15;
-  const buttonSize = settings
-    ? settings.buttonSize === "Standard"
-      ? 40
-      : settings.buttonSize === "Large"
-        ? 60
-        : 80
-    : 40;
-  const { playSound, triggerVibration } = useSoundStore();
-
-  const isFocusedRef = useRef(true);
-  useFocusEffect(
-    useCallback(() => {
-      isFocusedRef.current = true;
-      return () => {
-        isFocusedRef.current = false;
-      };
-    }, []),
-  );
-
-  const expiryTimestampRef = useRef<Date | null>(null);
-  const timerTranslateY = useSharedValue(timerRunning ? 0 : 200);
-  const timerAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: timerTranslateY.value }],
-  }));
-
-  const { seconds, minutes, restart, pause } = useTimer({
-    expiryTimestamp: timerExpiry || new Date(),
-    autoStart: timerRunning,
-    onExpire: () => {
-      stopTimer();
-      if (isFocusedRef.current) {
-        if (settings?.restTimerSound === "true") void playSound();
-        if (settings?.restTimerVibration === "true") triggerVibration();
-      }
-    },
-  });
-
-  useRestTimerResync(restart);
-  usePauseWhenRestEndsEarly(pause);
-
-  useEffect(() => {
-    timerTranslateY.value = withTiming(timerRunning ? 0 : 200, {
-      duration: 300,
-    });
-  }, [timerRunning, timerTranslateY]);
-
-  useEffect(() => {
-    if (timerRunning && timerExpiry) {
-      const time = new Date(timerExpiry);
-      expiryTimestampRef.current = time;
-      restart(time);
-    }
-  }, [timerRunning, timerExpiry, restart]);
-
-  const skipRest = () => {
-    const store = useActiveWorkoutStore.getState();
-    store.endRestEarly();
-    void cancelRestNotifications();
-    // The next set starts now, as it would have when the rest ran out.
-    if (!store.currentSetStartedAt) store.setCurrentSetStartedAt(new Date());
-  };
-
-  const adjustTimerOverview = async (deltaSeconds: number) => {
-    const currentRemaining = expiryTimestampRef.current
-      ? Math.max(
-          0,
-          Math.round(
-            (expiryTimestampRef.current.getTime() - Date.now()) / 1000,
-          ),
-        )
-      : minutes * 60 + seconds;
-    const newRemaining = Math.max(0, currentRemaining + deltaSeconds);
-    const newExpiry = new Date();
-    newExpiry.setSeconds(newExpiry.getSeconds() + newRemaining);
-    expiryTimestampRef.current = newExpiry;
-    startTimer(newExpiry);
-    restart(newExpiry);
-    await scheduleRestNotificationWithCancellation(
-      newRemaining,
-      t`Rest Timer Finished!`,
-      t`Time to do your next set!`,
-      "rest-timer1",
-    );
-  };
+  const restTimer = useRestTimerControls();
 
   const [timerHeight, setTimerHeight] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
@@ -528,17 +449,63 @@ export default function WorkoutOverviewScreen() {
       setLoadingExerciseIndex(index);
       setIsNavigating(true);
 
-      router.push({
-        pathname: "/(app)/(workout)/workout-session",
-        params: { selectedExerciseIndex: index },
-      });
+      router.push(
+        loggingStyle === "list"
+          ? {
+              pathname: "/(app)/(workout)/exercise-list",
+              params: { exerciseIndex: index },
+            }
+          : {
+              pathname: "/(app)/(workout)/workout-session",
+              params: { selectedExerciseIndex: index },
+            },
+      );
 
       setTimeout(() => {
         setLoadingExerciseIndex(null);
         setIsNavigating(false);
       }, 500);
     },
+    [isNavigating, loggingStyle],
+  );
+
+  // Open set lists, by the exercise's stable key; not persisted.
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const toggleExpanded = useCallback((key: string) => {
+    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+  const handleOpenSet = useCallback(
+    ({
+      exerciseIndex,
+      setIndex,
+    }: {
+      exerciseIndex: number;
+      setIndex: number;
+    }) => {
+      if (isNavigating) return;
+      setIsNavigating(true);
+      router.push({
+        pathname: "/(app)/(workout)/workout-session",
+        params: {
+          selectedExerciseIndex: exerciseIndex,
+          selectedSetIndex: setIndex,
+        },
+      });
+      setTimeout(() => setIsNavigating(false), 500);
+    },
     [isNavigating],
+  );
+
+  const handleCompleteSetRow = useCallback(
+    ({
+      exerciseIndex,
+      setIndex,
+    }: {
+      exerciseIndex: number;
+      setIndex: number;
+    }) => completeSetApiRef.current.completeSetInPlace(exerciseIndex, setIndex),
+    [],
   );
 
   const handleOrderChange = useCallback(
@@ -562,6 +529,8 @@ export default function WorkoutOverviewScreen() {
         isFirstInSuperset: boolean,
         isLastInSuperset: boolean,
         isTappable: boolean,
+        expandKey: string | null,
+        footer: React.ReactNode,
       ) => {
         const completedSetsForExercise = completedSets[exerciseIndex] || {};
         const completedCount = Object.values(completedSetsForExercise).filter(
@@ -701,64 +670,97 @@ export default function WorkoutOverviewScreen() {
           </View>
         );
 
+        const isExpanded = expandKey != null && !!expanded[expandKey];
         return (
           <View
             style={[
               styles.card,
-              styles.cardRow,
               isInSuperset && styles.supersetCard,
               isFirstInSuperset && styles.supersetCardFirst,
               isLastInSuperset && styles.supersetCardLast,
             ]}
           >
-            {inner}
-            <Menu
-              visible={!!menuVisible[exerciseIndex]}
-              onDismiss={() => handleMenuClose(exerciseIndex)}
-              anchor={
-                <AppIconButton
-                  accessibilityLabel={t`Options for ${exercise.name}`}
-                  icon="dots-vertical"
-                  size={24}
-                  onPress={() => handleMenuOpen(exerciseIndex)}
-                  style={styles.optionsButton}
-                  iconColor={colors.contentPrimary}
-                />
-              }
-            >
-              <Menu.Item
-                onPress={() => {
-                  handleMenuClose(exerciseIndex);
-                  handleDeleteExercise(exerciseIndex);
-                }}
-                title={t`Delete`}
-              />
-              <Menu.Item
-                onPress={() => {
-                  handleMenuClose(exerciseIndex);
-                  handleReplaceExercise(exerciseIndex);
-                }}
-                title={t`Replace`}
-              />
-              {exercise.supersetGroupId ? (
-                <Menu.Item
-                  onPress={() => handleRemoveSuperset(exerciseIndex)}
-                  title={t`Remove Superset`}
-                />
-              ) : (
-                <Menu.Item
-                  onPress={() => handleCreateSuperset(exerciseIndex)}
-                  title={t`Create Superset`}
-                />
+            <View style={styles.cardRow}>
+              {inner}
+              {expandKey != null && (
+                <Sortable.Touchable
+                  onTap={() => toggleExpanded(expandKey)}
+                  style={styles.expandButton}
+                  accessible
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: isExpanded }}
+                  accessibilityLabel={
+                    isInSuperset ? t`Show rounds` : t`Show sets`
+                  }
+                >
+                  <AppIcon
+                    set="mci"
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    size={24}
+                    color={colors.contentSecondary}
+                  />
+                </Sortable.Touchable>
               )}
-            </Menu>
+              <Menu
+                visible={!!menuVisible[exerciseIndex]}
+                onDismiss={() => handleMenuClose(exerciseIndex)}
+                anchor={
+                  <AppIconButton
+                    accessibilityLabel={t`Options for ${exercise.name}`}
+                    icon="dots-vertical"
+                    size={24}
+                    onPress={() => handleMenuOpen(exerciseIndex)}
+                    style={styles.optionsButton}
+                    iconColor={colors.contentPrimary}
+                  />
+                }
+              >
+                <Menu.Item
+                  onPress={() => {
+                    handleMenuClose(exerciseIndex);
+                    handleDeleteExercise(exerciseIndex);
+                  }}
+                  title={t`Delete`}
+                />
+                <Menu.Item
+                  onPress={() => {
+                    handleMenuClose(exerciseIndex);
+                    handleReplaceExercise(exerciseIndex);
+                  }}
+                  title={t`Replace`}
+                />
+                {exercise.supersetGroupId ? (
+                  <Menu.Item
+                    onPress={() => handleRemoveSuperset(exerciseIndex)}
+                    title={t`Remove Superset`}
+                  />
+                ) : (
+                  <Menu.Item
+                    onPress={() => handleCreateSuperset(exerciseIndex)}
+                    title={t`Create Superset`}
+                  />
+                )}
+              </Menu>
+            </View>
+            {footer}
           </View>
         );
+      };
+
+      const rowProps = {
+        getValues: shownValues,
+        completedSets,
+        sessionPRs,
+        weightUnit,
+        distanceUnit,
+        onOpenSet: handleOpenSet,
+        onCompleteSet: handleCompleteSetRow,
       };
 
       const baseLabel = itemLabels[index];
 
       if (item.type === "single") {
+        const key = getStableKey(item.exercise);
         return (
           <View>
             {renderCard(
@@ -769,6 +771,14 @@ export default function WorkoutOverviewScreen() {
               false,
               false,
               true,
+              key,
+              expanded[key] ? (
+                <OverviewSetRows
+                  exercise={item.exercise}
+                  exerciseIndex={item.exerciseIndex}
+                  {...rowProps}
+                />
+              ) : null,
             )}
           </View>
         );
@@ -776,11 +786,33 @@ export default function WorkoutOverviewScreen() {
 
       const [exA, exB] = item.exercises;
       const [idxA, idxB] = item.exerciseIndices;
+      const key = `ss-${getStableKey(exA)}`;
+      const exercises = workout?.exercises ?? [];
       return (
         <View>
-          {renderCard(exA, idxA, baseLabel, true, true, false, true)}
+          {renderCard(exA, idxA, baseLabel, true, true, false, true, key, null)}
           <View style={styles.supersetConnector} />
-          {renderCard(exB, idxB, baseLabel + 1, true, false, true, false)}
+          {renderCard(
+            exB,
+            idxB,
+            baseLabel + 1,
+            true,
+            false,
+            true,
+            false,
+            null,
+            expanded[key] ? (
+              <SupersetRoundRows
+                exercises={item.exercises}
+                exerciseIndices={item.exerciseIndices}
+                names={[
+                  instanceName(exercises, idxA, exA.name),
+                  instanceName(exercises, idxB, exB.name),
+                ]}
+                {...rowProps}
+              />
+            ) : null,
+          )}
         </View>
       );
     },
@@ -803,6 +835,13 @@ export default function WorkoutOverviewScreen() {
       styles,
       colors,
       weightUnit,
+      distanceUnit,
+      expanded,
+      toggleExpanded,
+      getStableKey,
+      handleOpenSet,
+      handleCompleteSetRow,
+      shownValues,
     ],
   );
 
@@ -1085,6 +1124,19 @@ export default function WorkoutOverviewScreen() {
                 <Menu.Item
                   onPress={() => {
                     handleMenuClose(69420);
+                    void setLoggingStyle(
+                      loggingStyle === "list" ? "focus" : "list",
+                    );
+                  }}
+                  title={
+                    loggingStyle === "list"
+                      ? t`Show one set at a time`
+                      : t`Show sets as a list`
+                  }
+                />
+                <Menu.Item
+                  onPress={() => {
+                    handleMenuClose(69420);
                     handleRestartWorkout();
                   }}
                   title={t`Restart`}
@@ -1173,6 +1225,13 @@ export default function WorkoutOverviewScreen() {
           timerRunning ? { paddingBottom: timerHeight } : undefined
         }
       >
+        {workout.exercises.length > 0 && <ListViewHint />}
+        {/* In the rest overlay while resting, otherwise at the top. */}
+        {hasQueuedFeedback && !timerRunning && (
+          <View style={styles.feedbackCard}>
+            <QueuedFeedbackCard />
+          </View>
+        )}
         {workout.exercises.length > 0 && durationEstimate != null && (
           <ThemedText style={styles.durationEstimate}>
             <Trans>
@@ -1231,15 +1290,25 @@ export default function WorkoutOverviewScreen() {
         </Button>
       </ScrollView>
       <RestTimerOverlay
-        minutes={minutes}
-        seconds={seconds}
-        increment={restTimerIncrement}
+        minutes={restTimer.minutes}
+        seconds={restTimer.seconds}
+        increment={restTimer.increment}
         timerRunning={timerRunning}
-        animStyle={timerAnimStyle}
-        buttonSize={buttonSize}
-        onAdjust={(delta) => void adjustTimerOverview(delta)}
-        onSkip={skipRest}
+        animStyle={restTimer.animStyle}
+        buttonSize={restTimer.buttonSize}
+        onAdjust={(delta) => void restTimer.adjust(delta)}
+        onSkip={restTimer.skip}
         onLayout={(e) => setTimerHeight(e.nativeEvent.layout.height)}
+        topContent={
+          timerRunning && hasQueuedFeedback ? (
+            <ScrollView
+              style={styles.feedbackCardScroll}
+              keyboardShouldPersistTaps="handled"
+            >
+              <QueuedFeedbackCard />
+            </ScrollView>
+          ) : null
+        }
       />
       {pendingRecovery && pendingRecovery.length > 0 && (
         <RecoveryCheckInSheet
@@ -1276,6 +1345,19 @@ function createStyles(colors: AppThemeColors) {
     cardRow: {
       flexDirection: "row",
       alignItems: "center",
+    },
+    feedbackCard: {
+      marginBottom: 12,
+    },
+    feedbackCardScroll: {
+      flexGrow: 0,
+      maxHeight: FEEDBACK_CARD_MAX_HEIGHT,
+    },
+    expandButton: {
+      width: 40,
+      height: 44,
+      alignItems: "center",
+      justifyContent: "center",
     },
     cardTouchable: {
       flex: 1,

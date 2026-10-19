@@ -160,6 +160,12 @@ export const SETTINGS_INDEX = [
     keywords: msg`large buttons, size`,
   },
   {
+    id: "loggingStyle",
+    screen: "workout",
+    title: msg`Logging style`,
+    keywords: msg`list, one set at a time, all sets`,
+  },
+  {
     id: "alwaysUseGlobalHistory",
     screen: "workout",
     title: msg`Always use most recent exercise history`,

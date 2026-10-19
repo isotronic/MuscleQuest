@@ -874,6 +874,19 @@ Also in this update:
 • Weight increment in Settings is now called Weight steps, as in setup.
 `,
   },
+  {
+    version: 2675,
+    release: "1.6",
+    message: msg`
+🏠 New: A Clearer Home & Every Set at a Glance!
+
+Home now leads with Today: the workout to do next, with its exercises, estimated time, when you last did it and a big Start button. On a rest day it shows the next one. Quick workout and Choose workout sit right below it, and the rest of your plan folds away under Other workouts in this plan.
+
+In the workout overview, tap the arrow on an exercise to see all its sets. Tap a set to open it, or tap its circle to complete it with the values shown.
+
+Prefer to see every set at once? Tap Show sets as a list in the workout menu (⋮), or set Logging style in Settings, under Workout and rest timer. Tapping an exercise then shows all its sets with your last time, so you can fill them in and tick them off, and Next takes you to the following exercise.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

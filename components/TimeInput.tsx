@@ -13,6 +13,10 @@ interface TimeInputProps {
   accessibilityLabel?: string;
   /** Which units the two fields hold, for their spoken labels. */
   fields?: "minutesSeconds" | "hoursMinutes";
+  /** The first field, for moving focus here from outside. */
+  ref?: React.Ref<TextInput>;
+  /** Done on the keyboard in the second field. */
+  onSubmitEditing?: () => void;
 }
 
 function parseValue(value: string): { minutes: string; seconds: string } {
@@ -42,6 +46,8 @@ export const TimeInput = ({
   style,
   accessibilityLabel,
   fields = "minutesSeconds",
+  ref,
+  onSubmitEditing,
 }: TimeInputProps) => {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -106,6 +112,7 @@ export const TimeInput = ({
   return (
     <View style={styles.container}>
       <TextInput
+        ref={ref}
         value={minutes}
         placeholder="0"
         placeholderTextColor={colors.contentSecondary}
@@ -137,6 +144,8 @@ export const TimeInput = ({
         selectTextOnFocus
         maxLength={2}
         accessibilityLabel={secondFieldLabel}
+        returnKeyType={onSubmitEditing ? "done" : undefined}
+        onSubmitEditing={onSubmitEditing}
         style={[style, styles.secondsField]}
       />
     </View>

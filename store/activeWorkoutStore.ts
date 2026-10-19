@@ -173,6 +173,13 @@ interface ActiveWorkoutStore {
    */
   startQuickWorkoutFrom: (exercises: UserExercise[]) => void;
   nextSet: () => void;
+  /**
+   * Marks one set done where it is, without moving to another screen or
+   * exercise: the overview's set rows and the list logging mode. Pre-fills
+   * the following set like nextSet and keeps the exercise's current set on
+   * one still to do.
+   */
+  completeSetAt: (exerciseIndex: number, setIndex: number) => void;
   setCurrentExerciseIndex: (index: number) => void;
   setCurrentSetIndex: (exerciseIndex: number, setIndex: number) => void;
   addSet: () => void;
@@ -278,6 +285,119 @@ interface ActiveWorkoutStore {
   flushFeedbackQueue: () => void;
   recoveryCheckInShown: boolean;
   markRecoveryCheckInShown: () => void;
+}
+
+type SetValuesMap = ActiveWorkoutStore["weightAndReps"];
+
+/**
+ * The values to pre-fill on `toSetIndex` once `fromSetIndex` is done: the
+ * set's own entries or a progression pre-fill when present, else history by
+ * ordinal, else the set just done carried forward.
+ */
+function carryOverValues(
+  state: Pick<
+    ActiveWorkoutStore,
+    | "workout"
+    | "weightAndReps"
+    | "suggestedWeightPrefills"
+    | "previousWorkoutData"
+  >,
+  exerciseIndex: number,
+  fromSetIndex: number,
+  toSetIndex: number,
+): SetValuesMap[number][number] {
+  const {
+    workout,
+    weightAndReps,
+    suggestedWeightPrefills,
+    previousWorkoutData,
+  } = state;
+  const exercise = workout!.exercises[exerciseIndex];
+
+  // A progression suggestion pre-fills every working set up front. If the
+  // user replaced that pre-filled weight on the set they just did, their
+  // choice — not the stale suggestion sitting in the upcoming sets — is what
+  // should carry forward.
+  const prefilled = suggestedWeightPrefills[exerciseIndex]?.[fromSetIndex];
+  const actual = parseFloat(
+    weightAndReps[exerciseIndex]?.[fromSetIndex]?.weight ?? "",
+  );
+  const overridesSuggestion =
+    prefilled != null && !isNaN(actual) && actual !== prefilled;
+  const existing = weightAndReps[exerciseIndex]?.[toSetIndex];
+  const existingNextValues =
+    suggestedWeightPrefills[exerciseIndex]?.[toSetIndex] == null ||
+    !overridesSuggestion
+      ? existing
+      : { ...existing, weight: undefined };
+
+  const exTrackingType = resolvedTrackingType(exercise);
+  const isWarmup = exercise.sets[fromSetIndex]?.isWarmup || false;
+  const isDropSet = exercise.sets[fromSetIndex]?.isDropSet || false;
+  const isNextWarmup =
+    toSetIndex < exercise.sets.length &&
+    (exercise.sets[toSetIndex]?.isWarmup ?? false);
+  const isNextDropSet =
+    toSetIndex < exercise.sets.length && exercise.sets[toSetIndex]?.isDropSet;
+  const currentSetValues = weightAndReps[exerciseIndex]?.[fromSetIndex] || {};
+  const historyExercises = historyForRow(
+    previousWorkoutData,
+    rowIdentity(workout!.exercises, exerciseIndex),
+  );
+  const nextHistorical = findHistoricalSetByOrdinal(
+    exercise.sets,
+    toSetIndex,
+    historyExercises,
+  );
+
+  return {
+    ...(exTrackingType === "weight" ||
+    exTrackingType === "" ||
+    exTrackingType === "assisted"
+      ? {
+          weight:
+            existingNextValues?.weight ??
+            (isWarmup && !isNextWarmup && !isNextDropSet
+              ? nextHistorical?.weight != null
+                ? nextHistorical.weight.toString()
+                : undefined
+              : (isWarmup || isDropSet || isNextDropSet) &&
+                  nextHistorical?.weight != null
+                ? nextHistorical.weight.toString()
+                : currentSetValues.weight),
+          reps:
+            existingNextValues?.reps ??
+            (nextHistorical?.reps !== undefined
+              ? nextHistorical.reps?.toString()
+              : undefined),
+        }
+      : {}),
+    ...(exTrackingType === "reps"
+      ? {
+          reps:
+            existingNextValues?.reps ??
+            (nextHistorical?.reps !== undefined
+              ? nextHistorical.reps?.toString()
+              : undefined),
+        }
+      : {}),
+    ...(exTrackingType === "time"
+      ? {
+          time:
+            nextHistorical?.time !== undefined
+              ? formatFromTotalSeconds(nextHistorical.time ?? 0)
+              : undefined,
+        }
+      : {}),
+    ...(exTrackingType === "distance"
+      ? {
+          distance:
+            nextHistorical?.distance !== undefined
+              ? nextHistorical.distance?.toString()
+              : currentSetValues.distance,
+        }
+      : {}),
+  };
 }
 
 const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
@@ -456,52 +576,13 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
             currentSetIndices,
             weightAndReps,
             completedSets,
-            previousWorkoutData,
-            suggestedWeightPrefills,
           } = state;
 
           if (!workout) {
             return state;
           }
 
-          // A progression suggestion pre-fills every working set up front. If
-          // the user replaced that pre-filled weight on the set they just did,
-          // their choice — not the stale suggestion sitting in the upcoming
-          // sets — is what should carry forward.
-          const overridesSuggestion = (
-            exerciseIndex: number,
-            fromSetIndex: number,
-          ) => {
-            const prefilled =
-              suggestedWeightPrefills[exerciseIndex]?.[fromSetIndex];
-            if (prefilled == null) return false;
-            const actual = parseFloat(
-              weightAndReps[exerciseIndex]?.[fromSetIndex]?.weight ?? "",
-            );
-            return !isNaN(actual) && actual !== prefilled;
-          };
-
-          // The upcoming set's pre-filled weight, unless the user already
-          // overrode the suggestion on the set they're leaving.
-          const liveNextValues = (
-            exerciseIndex: number,
-            fromSetIndex: number,
-            toSetIndex: number,
-          ) => {
-            const existing = weightAndReps[exerciseIndex]?.[toSetIndex];
-            const targetPrefill =
-              suggestedWeightPrefills[exerciseIndex]?.[toSetIndex];
-            if (
-              targetPrefill == null ||
-              !overridesSuggestion(exerciseIndex, fromSetIndex)
-            ) {
-              return existing;
-            }
-            return { ...existing, weight: undefined };
-          };
-
           const currentExercise = workout.exercises[currentExerciseIndex];
-          const trackingType = resolvedTrackingType(currentExercise);
           const currentSetIndex = currentSetIndices[currentExerciseIndex] || 0;
           const nextSetIndex = currentSetIndex + 1;
 
@@ -512,93 +593,6 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
               ...(completedSets[currentExerciseIndex] || {}),
               [currentSetIndex]: true,
             },
-          };
-
-          // Helper: build carry-over values for an exercise's next set
-          const buildNextSetValues = (
-            exerciseIndex: number,
-            exercise: (typeof workout.exercises)[0],
-            fromSetIndex: number,
-            toSetIndex: number,
-          ) => {
-            const exTrackingType = resolvedTrackingType(exercise);
-            const isWarmup = exercise.sets[fromSetIndex]?.isWarmup || false;
-            const isDropSet = exercise.sets[fromSetIndex]?.isDropSet || false;
-            const isNextWarmup =
-              toSetIndex < exercise.sets.length &&
-              (exercise.sets[toSetIndex]?.isWarmup ?? false);
-            const isNextDropSet =
-              toSetIndex < exercise.sets.length &&
-              exercise.sets[toSetIndex]?.isDropSet;
-            const currentSetValues =
-              weightAndReps[exerciseIndex]?.[fromSetIndex] || {};
-            // A progression suggestion may have already pre-filled the
-            // upcoming set before this transition runs. Preserve it instead
-            // of overwriting it with workout history, unless the user
-            // overrode the suggestion on the set they're leaving.
-            const existingNextValues = liveNextValues(
-              exerciseIndex,
-              fromSetIndex,
-              toSetIndex,
-            );
-            const historyExercises = historyForRow(
-              previousWorkoutData,
-              rowIdentity(workout.exercises, exerciseIndex),
-            );
-            const nextHistorical = findHistoricalSetByOrdinal(
-              exercise.sets,
-              toSetIndex,
-              historyExercises,
-            );
-
-            return {
-              ...(exTrackingType === "weight" ||
-              exTrackingType === "" ||
-              exTrackingType === "assisted"
-                ? {
-                    weight:
-                      existingNextValues?.weight ??
-                      (isWarmup && !isNextWarmup && !isNextDropSet
-                        ? nextHistorical?.weight != null
-                          ? nextHistorical.weight.toString()
-                          : undefined
-                        : (isWarmup || isDropSet || isNextDropSet) &&
-                            nextHistorical?.weight != null
-                          ? nextHistorical.weight.toString()
-                          : currentSetValues.weight),
-                    reps:
-                      existingNextValues?.reps ??
-                      (nextHistorical?.reps !== undefined
-                        ? nextHistorical.reps?.toString()
-                        : undefined),
-                  }
-                : {}),
-              ...(exTrackingType === "reps"
-                ? {
-                    reps:
-                      existingNextValues?.reps ??
-                      (nextHistorical?.reps !== undefined
-                        ? nextHistorical.reps?.toString()
-                        : undefined),
-                  }
-                : {}),
-              ...(exTrackingType === "time"
-                ? {
-                    time:
-                      nextHistorical?.time !== undefined
-                        ? formatFromTotalSeconds(nextHistorical.time ?? 0)
-                        : undefined,
-                  }
-                : {}),
-              ...(exTrackingType === "distance"
-                ? {
-                    distance:
-                      nextHistorical?.distance !== undefined
-                        ? nextHistorical.distance?.toString()
-                        : currentSetValues.distance,
-                  }
-                : {}),
-            };
           };
 
           // --- Superset handling ---
@@ -633,15 +627,15 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                 [firstIndex]: nextSetIndex,
               };
 
-              const firstNextValues = buildNextSetValues(
+              const firstNextValues = carryOverValues(
+                state,
                 firstIndex,
-                firstExercise,
                 currentSetIndex,
                 nextSetIndex,
               );
-              const secondNextValues = buildNextSetValues(
+              const secondNextValues = carryOverValues(
+                state,
                 currentExerciseIndex,
-                currentExercise,
                 currentSetIndex,
                 nextSetIndex,
               );
@@ -721,109 +715,16 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           }
 
           // --- Normal (non-superset) logic ---
-          const isWarmup =
-            currentExercise.sets[currentSetIndex]?.isWarmup || false;
-          const isDropSet =
-            currentExercise.sets[currentSetIndex]?.isDropSet || false;
-          const isNextWarmup =
-            nextSetIndex < currentExercise.sets.length &&
-            (currentExercise.sets[nextSetIndex]?.isWarmup ?? false);
-          const isNextDropSet =
-            nextSetIndex < currentExercise.sets.length &&
-            currentExercise.sets[nextSetIndex]?.isDropSet;
-
           const updatedSetIndices = {
             ...currentSetIndices,
             [currentExerciseIndex]: nextSetIndex,
           };
-
-          const historyExercises = historyForRow(
-            previousWorkoutData,
-            rowIdentity(workout.exercises, currentExerciseIndex),
-          );
-
-          const currentSetValues =
-            weightAndReps[currentExerciseIndex]?.[currentSetIndex] || {};
-          // A progression suggestion may have already pre-filled the
-          // upcoming set before this transition runs. Preserve it instead
-          // of overwriting it with workout history, unless the user overrode
-          // the suggestion on the set they're leaving.
-          const existingNextValues = liveNextValues(
+          const updatedNextSetValues = carryOverValues(
+            state,
             currentExerciseIndex,
             currentSetIndex,
             nextSetIndex,
           );
-          const nextSetValues = findHistoricalSetByOrdinal(
-            currentExercise.sets,
-            nextSetIndex,
-            historyExercises,
-          );
-
-          const updatedNextSetValues = {
-            ...(trackingType === "weight" || trackingType === ""
-              ? {
-                  weight:
-                    existingNextValues?.weight ??
-                    (isWarmup && !isNextWarmup && !isNextDropSet
-                      ? nextSetValues?.weight != null
-                        ? nextSetValues.weight.toString()
-                        : undefined
-                      : (isWarmup || isDropSet || isNextDropSet) &&
-                          nextSetValues?.weight != null
-                        ? nextSetValues.weight.toString()
-                        : currentSetValues.weight),
-                  reps:
-                    existingNextValues?.reps ??
-                    (nextSetValues?.reps !== undefined
-                      ? nextSetValues.reps?.toString()
-                      : undefined),
-                }
-              : {}),
-            ...(trackingType === "assisted"
-              ? {
-                  weight:
-                    existingNextValues?.weight ??
-                    (isWarmup && !isNextWarmup && !isNextDropSet
-                      ? nextSetValues?.weight != null
-                        ? nextSetValues.weight.toString()
-                        : undefined
-                      : (isWarmup || isDropSet || isNextDropSet) &&
-                          nextSetValues?.weight != null
-                        ? nextSetValues.weight.toString()
-                        : currentSetValues.weight),
-                  reps:
-                    existingNextValues?.reps ??
-                    (nextSetValues?.reps !== undefined
-                      ? nextSetValues.reps?.toString()
-                      : undefined),
-                }
-              : {}),
-            ...(trackingType === "reps"
-              ? {
-                  reps:
-                    existingNextValues?.reps ??
-                    (nextSetValues?.reps !== undefined
-                      ? nextSetValues.reps?.toString()
-                      : undefined),
-                }
-              : {}),
-            ...(trackingType === "time"
-              ? {
-                  time:
-                    nextSetValues?.time !== undefined
-                      ? formatFromTotalSeconds(nextSetValues.time ?? 0)
-                      : undefined,
-                }
-              : {}),
-            ...(trackingType === "distance"
-              ? {
-                  distance:
-                    nextSetValues?.distance !== undefined
-                      ? nextSetValues.distance?.toString()
-                      : currentSetValues.distance,
-                }
-              : {}),
-          };
 
           const updatedWeightAndReps = {
             ...weightAndReps,
@@ -875,6 +776,74 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           return {
             currentSetIndices: updatedSetIndices,
             completedSets: updatedCompletedSets,
+          };
+        });
+      },
+
+      completeSetAt: (exerciseIndex, setIndex) => {
+        const exercise = get().workout?.exercises[exerciseIndex];
+        if (!exercise || setIndex < 0 || setIndex >= exercise.sets.length) {
+          return;
+        }
+        set({ lastActivityAt: new Date() });
+        set((state) => {
+          const { workout, completedSets, currentSetIndices, weightAndReps } =
+            state;
+          if (!workout) return state;
+
+          const exerciseDone = {
+            ...(completedSets[exerciseIndex] || {}),
+            [setIndex]: true,
+          };
+
+          let updatedWeightAndReps = weightAndReps;
+          const nextSetIndex = setIndex + 1;
+          if (
+            nextSetIndex < exercise.sets.length &&
+            exerciseDone[nextSetIndex] !== true
+          ) {
+            const existing = weightAndReps[exerciseIndex]?.[nextSetIndex];
+            const carried = carryOverValues(
+              state,
+              exerciseIndex,
+              setIndex,
+              nextSetIndex,
+            );
+            updatedWeightAndReps = {
+              ...weightAndReps,
+              [exerciseIndex]: {
+                ...(weightAndReps[exerciseIndex] || {}),
+                [nextSetIndex]: {
+                  ...carried,
+                  // A time or distance already typed into a later row stays.
+                  ...(existing?.time != null ? { time: existing.time } : {}),
+                  ...(existing?.distance != null
+                    ? { distance: existing.distance }
+                    : {}),
+                },
+              },
+            };
+          }
+
+          let pointer = currentSetIndices[exerciseIndex] ?? 0;
+          if (exerciseDone[pointer] === true) {
+            const total = exercise.sets.length;
+            for (let step = 1; step <= total; step++) {
+              const candidate = (pointer + step) % total;
+              if (exerciseDone[candidate] !== true) {
+                pointer = candidate;
+                break;
+              }
+            }
+          }
+
+          return {
+            completedSets: { ...completedSets, [exerciseIndex]: exerciseDone },
+            weightAndReps: updatedWeightAndReps,
+            currentSetIndices: {
+              ...currentSetIndices,
+              [exerciseIndex]: pointer,
+            },
           };
         });
       },
