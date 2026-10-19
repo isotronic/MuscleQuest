@@ -94,6 +94,10 @@ describe("GetStartedScreen", () => {
       pathname: "/(app)/(tabs)/(plans)/overview",
       params: { planId: "42" },
     });
+    // The list first, then the overview on top of it.
+    expect(
+      (router.replace as jest.Mock).mock.invocationCallOrder[0],
+    ).toBeLessThan((router.push as jest.Mock).mock.invocationCallOrder[0]);
   });
 
   it("starts a quick workout from home", async () => {
