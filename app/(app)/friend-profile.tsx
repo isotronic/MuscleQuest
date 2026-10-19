@@ -135,6 +135,26 @@ export default function FriendProfileScreen() {
     () => newestFirst(measurementsData, (m) => m.recordedAt),
     [measurementsData],
   );
+  // Workouts and measurements share one timeline, newest first.
+  const activity = useMemo(
+    () =>
+      newestFirst(
+        [
+          ...completedWorkouts.map((workout) => ({
+            kind: "workout" as const,
+            date: workout.dateCompleted,
+            workout,
+          })),
+          ...measurements.map((measurement) => ({
+            kind: "measurement" as const,
+            date: measurement.recordedAt,
+            measurement,
+          })),
+        ],
+        (entry) => entry.date,
+      ),
+    [completedWorkouts, measurements],
+  );
   const strength = useMemo(
     () => newestFirst(strengthData, (pr) => pr.allTimePRDate),
     [strengthData],
@@ -664,73 +684,79 @@ export default function FriendProfileScreen() {
           />
         ) : (
           <View style={styles.cardGroup}>
-            {completedWorkouts.map((w) => (
-              <View
-                key={w.localWorkoutId}
-                style={[styles.card, { backgroundColor: colors.card }]}
-              >
-                <AppIcon
-                  set="ion"
-                  name="barbell-outline"
-                  size={16}
-                  color={colors.contentSecondary}
-                  style={{ marginRight: 4 }}
-                />
-                <View style={{ flex: 1 }}>
-                  <AppText
-                    variant="bodyBold"
-                    style={{ color: colors.contentPrimary }}
+            {activity.map((entry) => {
+              if (entry.kind === "workout") {
+                const w = entry.workout;
+                return (
+                  <View
+                    key={`w_${w.localWorkoutId}`}
+                    style={[styles.card, { backgroundColor: colors.card }]}
                   >
-                    {displayWorkoutName(w.workoutName)}
-                  </AppText>
-                  <AppText
-                    variant="caption"
-                    style={{ color: colors.contentSecondary, marginTop: 2 }}
-                  >
-                    {w.planName ? `${w.planName} · ` : ""}
-                    {formatTimeAgo(w.dateCompleted.toDate())}
-                  </AppText>
+                    <AppIcon
+                      set="ion"
+                      name="barbell-outline"
+                      size={16}
+                      color={colors.contentSecondary}
+                      style={{ marginRight: 4 }}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <AppText
+                        variant="bodyBold"
+                        style={{ color: colors.contentPrimary }}
+                      >
+                        {displayWorkoutName(w.workoutName)}
+                      </AppText>
+                      <AppText
+                        variant="caption"
+                        style={{ color: colors.contentSecondary, marginTop: 2 }}
+                      >
+                        {w.planName ? `${w.planName} · ` : ""}
+                        {formatTimeAgo(w.dateCompleted.toDate())}
+                      </AppText>
+                    </View>
+                  </View>
+                );
+              }
+              const m = entry.measurement;
+              return (
+                <View
+                  key={`m_${m.localEntryId}`}
+                  style={[styles.card, { backgroundColor: colors.card }]}
+                >
+                  <AppIcon
+                    set="ion"
+                    name="body-outline"
+                    size={16}
+                    color={colors.contentSecondary}
+                    style={{ marginRight: 4 }}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <AppText
+                      variant="bodyBold"
+                      style={{ color: colors.contentPrimary }}
+                    >
+                      <Trans>Measurements</Trans>
+                    </AppText>
+                    <AppText
+                      variant="caption"
+                      style={{ color: colors.contentSecondary, marginTop: 2 }}
+                    >
+                      {Object.keys(m.values).length > 0
+                        ? formatMeasurementSummary(m.values)
+                        : formatTimeAgo(m.recordedAt.toDate())}
+                    </AppText>
+                  </View>
+                  {Object.keys(m.values).length > 0 && (
+                    <AppText
+                      variant="caption"
+                      style={{ color: colors.contentSecondary }}
+                    >
+                      {formatTimeAgo(m.recordedAt.toDate())}
+                    </AppText>
+                  )}
                 </View>
-              </View>
-            ))}
-            {measurements.map((m) => (
-              <View
-                key={m.localEntryId}
-                style={[styles.card, { backgroundColor: colors.card }]}
-              >
-                <AppIcon
-                  set="ion"
-                  name="body-outline"
-                  size={16}
-                  color={colors.contentSecondary}
-                  style={{ marginRight: 4 }}
-                />
-                <View style={{ flex: 1 }}>
-                  <AppText
-                    variant="bodyBold"
-                    style={{ color: colors.contentPrimary }}
-                  >
-                    <Trans>Measurements</Trans>
-                  </AppText>
-                  <AppText
-                    variant="caption"
-                    style={{ color: colors.contentSecondary, marginTop: 2 }}
-                  >
-                    {Object.keys(m.values).length > 0
-                      ? formatMeasurementSummary(m.values)
-                      : formatTimeAgo(m.recordedAt.toDate())}
-                  </AppText>
-                </View>
-                {Object.keys(m.values).length > 0 && (
-                  <AppText
-                    variant="caption"
-                    style={{ color: colors.contentSecondary }}
-                  >
-                    {formatTimeAgo(m.recordedAt.toDate())}
-                  </AppText>
-                )}
-              </View>
-            ))}
+              );
+            })}
           </View>
         ))}
     </ScrollView>
