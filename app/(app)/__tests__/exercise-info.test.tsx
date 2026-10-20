@@ -55,18 +55,20 @@ jest.mock("@/components/ui", () => {
   };
 });
 
+const BENCH_PRESS = {
+  exercise_id: 5,
+  app_exercise_id: 12,
+  name: "Bench Press",
+  target_muscle: "pectorals",
+  equipment: "barbell",
+  secondary_muscles: "[]",
+  description: "[]",
+  favorite: 0,
+};
+let mockExercise: Record<string, unknown> = BENCH_PRESS;
 jest.mock("@/hooks/useExerciseInfoQuery", () => ({
   useExerciseInfoQuery: () => ({
-    data: {
-      exercise_id: 5,
-      app_exercise_id: 12,
-      name: "Bench Press",
-      target_muscle: "pectorals",
-      equipment: "barbell",
-      secondary_muscles: "[]",
-      description: "[]",
-      favorite: 0,
-    },
+    data: mockExercise,
     isLoading: false,
     error: null,
   }),
@@ -125,6 +127,24 @@ describe("ExerciseInfoScreen", () => {
     mockParams = { exercise_id: "5" };
     mockSections = [session];
     mockPinned = false;
+    mockExercise = BENCH_PRESS;
+  });
+
+  it("shows the English name under a translated one, on every tab", () => {
+    mockExercise = {
+      ...BENCH_PRESS,
+      name: "Langhantel-Bankdrücken",
+      english_name: "Bench Press",
+    };
+    const { getByText, getAllByText } = render(<ExerciseInfoScreen />);
+    expect(getByText("progress-tab")).toBeTruthy();
+    expect(getAllByText("Bench Press")).toHaveLength(1);
+  });
+
+  it("shows no English line when the name is not translated", () => {
+    mockExercise = { ...BENCH_PRESS, english_name: "Bench Press" };
+    const { queryByText } = render(<ExerciseInfoScreen />);
+    expect(queryByText("Bench Press")).toBeNull();
   });
 
   it("opens on Progress when the exercise has history", () => {

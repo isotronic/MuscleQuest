@@ -13,6 +13,10 @@ import {
 jest.mock("@lingui/core/macro", () => ({
   msg: (s: TemplateStringsArray) => ({ message: s[0] }),
 }));
+let mockHasTranslations = false;
+jest.mock("@/utils/db/exerciseNames", () => ({
+  hasExerciseNameTranslations: () => mockHasTranslations,
+}));
 
 /** msgid -> msgstr from a locale's catalog, as the app would show it. */
 function catalog(locale: string): Map<string, string> {
@@ -82,6 +86,22 @@ describe("settings search", () => {
       expect(ids()).not.toContain("exactRestAlerts");
     } finally {
       Platform.OS = os;
+    }
+  });
+
+  it("lists the exercise name setting only where names are translated", () => {
+    const ids = () => translateSettingsIndex(english).map((d) => d.id);
+    try {
+      mockHasTranslations = false;
+      expect(ids()).not.toContain("translateExerciseNames");
+      mockHasTranslations = true;
+      expect(ids()).toContain("translateExerciseNames");
+      expect(search(german(), "Übungsnamen")[0]).toMatchObject({
+        id: "translateExerciseNames",
+        screen: "appearance",
+      });
+    } finally {
+      mockHasTranslations = false;
     }
   });
 

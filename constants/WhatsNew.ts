@@ -904,6 +904,28 @@ Also in this update:
 • Friend profiles list the most recent items first.
 `,
   },
+  {
+    version: 2677,
+    release: "1.6",
+    message: msg`
+📚 Improved: A Better Exercise Library!
+
+Every exercise in the library has been checked. Names now match what you'd call them in the gym, like Barbell Hip Thrust and Bulgarian Split Squat, and muscles and equipment are corrected. Every exercise also has new step-by-step instructions with breathing cues and a tip.
+
+Exercises that are really timed holds now track time. Your history and plans move over automatically.
+`,
+  },
+  {
+    version: 2678,
+    release: "1.6",
+    message: msg`
+🌍 New: Exercise Names in Your Language!
+
+If your phone is set to German, French or Spanish, exercise names now show in that language and lists are sorted by them. The exercise screen shows the English name underneath.
+
+Prefer English names? Turn off Translate exercise names in Settings, under Appearance.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

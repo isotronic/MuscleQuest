@@ -11,6 +11,7 @@ import {
 } from "@/types/progression";
 import { computeLayoffReduction } from "@/utils/progressionEngine";
 import { openDatabase } from "./connection";
+import { displayExerciseName } from "./exerciseNames";
 
 // Which instance of its exercise the plan row `uwe` is in its workout, 0 for
 // the first.
@@ -741,6 +742,7 @@ export const getProgressionStatesForWorkout = async (
       id: number;
       user_workout_exercise_id: number;
       exercise_name: string;
+      app_exercise_id: number | null;
       suggestion_action: string;
       suggested_weight: number | null;
       suggested_reps_per_set: string | null;
@@ -763,6 +765,7 @@ export const getProgressionStatesForWorkout = async (
         eps.id,
         eps.user_workout_exercise_id,
         e.name AS exercise_name,
+        e.app_exercise_id,
         eps.suggestion_action,
         eps.suggested_weight,
         eps.suggested_reps_per_set,
@@ -806,7 +809,10 @@ export const getProgressionStatesForWorkout = async (
       const base: WorkoutProgressionStateRow = {
         id: row.id,
         userWorkoutExerciseId: row.user_workout_exercise_id,
-        exerciseName: row.exercise_name,
+        exerciseName: displayExerciseName(
+          row.exercise_name,
+          row.app_exercise_id,
+        ),
         suggestionAction: row.suggestion_action as ProgressionAction,
         suggestedWeight: row.suggested_weight ?? undefined,
         suggestedRepsPerSet: parsedRepsPerSet,

@@ -1,6 +1,7 @@
 import { UserExercise, Workout } from "@/store/workoutStore";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { openDatabase } from "./connection";
+import { withDisplayExerciseName } from "./exerciseNames";
 
 export const fetchAllStandaloneWorkoutIds = async (): Promise<number[]> => {
   const db = await openDatabase("userData.db");
@@ -34,6 +35,7 @@ interface RawStandaloneWorkout {
   uwe_exercise_id: number | null;
   exercise_id: number | null;
   exercise_name: string | null;
+  app_exercise_id?: number | null;
   description: string | null;
   image: Uint8Array | null;
   image_uri: string | null;
@@ -53,7 +55,8 @@ interface RawStandaloneWorkout {
 export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
   const db = await openDatabase("userData.db");
   try {
-    const rows = (await db.getAllAsync(`
+    const rows = (
+      (await db.getAllAsync(`
     SELECT
       uw.id AS workout_id,
       uw.name AS workout_name,
@@ -61,6 +64,7 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
       uwe.id AS uwe_exercise_id,
       e.exercise_id,
       e.name AS exercise_name,
+      e.app_exercise_id,
       e.description,
       e.image_uri,
       CASE WHEN e.image_uri IS NULL THEN e.image END AS image,
@@ -80,7 +84,8 @@ export const getStandaloneWorkouts = async (): Promise<Workout[]> => {
     LEFT JOIN exercises e ON e.exercise_id = uwe.exercise_id
     WHERE uw.plan_id IS NULL AND uw.is_deleted = FALSE
     ORDER BY uw.id DESC, uwe.exercise_order ASC
-  `)) as RawStandaloneWorkout[];
+  `)) as RawStandaloneWorkout[]
+    ).map(withDisplayExerciseName);
 
     const workoutsMap = new Map<number, Workout>();
     for (const row of rows) {

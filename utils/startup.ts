@@ -21,6 +21,8 @@ import {
 } from "@/utils/restoreRollback";
 import { resetLocalSessionStateAfterHydration } from "@/utils/resetLocalState";
 import { forgetExerciseImageFiles } from "@/utils/db/exerciseImageFiles";
+import { loadExerciseNames } from "@/utils/db/exerciseNames";
+import { preferredLocale } from "@/utils/appLocale";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getAsyncStorageItem,
@@ -66,6 +68,14 @@ const initializeDatabases = async (
   // Before the seeding steps, which do not depend on it, so onboarding has
   // its settings while they run in the background.
   await insertDefaultSettings();
+  // Before anything renders, so every screen shows exercise names in one
+  // language. After the settings, which hold the user's choice. A failure
+  // only leaves the names in English.
+  try {
+    await loadExerciseNames(preferredLocale());
+  } catch (error) {
+    Bugsnag.notify(error as Error);
+  }
 
   // A new install goes through onboarding, which only needs the settings
   // above; the library and plans load meanwhile and onboarding waits for

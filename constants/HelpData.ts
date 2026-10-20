@@ -241,7 +241,7 @@ export const HELP_DATA: GroupData[] = [
         id: "exercise-library",
         icon: "search-outline",
         title: msg`Exercise Library`,
-        body: msg`Open the Exercise Library from the menu at any time to browse almost 1,000 exercises, and filter by body part, target muscle, or equipment. Search understands common abbreviations like RDL, OHP, DB, and KB, and forgives small typos. Use the sort chips at the top to order exercises by Default, Active Plan, Recent, or Frequent, so the exercises most relevant to you appear first. When replacing an exercise, the filter automatically preselects the matching target muscle to help you find alternatives faster. Tap any exercise to view its animated demonstration, the muscles targeted, and a full history of every time you have performed it, including weights, reps, time, or distance per set. Download all exercise animations (~100 MB) in Settings for offline access; the download needs an internet connection.`,
+        body: msg`Open the Exercise Library from the menu at any time to browse almost 1,000 exercises, and filter by body part, target muscle, or equipment. Search understands common abbreviations like RDL, OHP, DB, and KB, and forgives small typos. Use the sort chips at the top to order exercises by Default, Active Plan, Recent, or Frequent, so the exercises most relevant to you appear first. When replacing an exercise, the filter automatically preselects the matching target muscle to help you find alternatives faster. Tap any exercise to view its animated demonstration, the muscles targeted, and a full history of every time you have performed it, including weights, reps, time, or distance per set. Download all exercise animations (~100 MB) in Settings for offline access; the download needs an internet connection. If your phone is set to German, French or Spanish, exercise names show in that language, with the English name on the exercise screen; to see English names everywhere, turn off Translate exercise names in Settings, under Appearance.`,
       },
       {
         id: "favourite-exercises",
@@ -320,6 +320,7 @@ export const HELP_DATA: GroupData[] = [
             msg`Always use most recent exercise history, to pre-fill sets from the last time you did an exercise in any workout rather than only the same workout.`,
             msg`Under Stats: exclude warm-up sets from volume, turn on Single-side rep logging to double reps for unilateral exercises, or Per-side weight entry to double the weight for paired implements (useful if you log per-dumbbell weight rather than the total).`,
             msg`Your body weight, used to calculate effective load for assisted exercises.`,
+            msg`Under Appearance: Show tips on home, and Translate exercise names to see exercise names in your phone's language or in English.`,
           ],
           ordered: false,
         },

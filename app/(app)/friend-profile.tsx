@@ -35,6 +35,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { displayWorkoutName } from "@/utils/workoutName";
 import { formatDecimal, formatNumber } from "@/utils/numberFormat";
 import { newestFirst } from "@/utils/newestFirst";
+import { displayExerciseName } from "@/utils/db/exerciseNames";
 
 type SectionKey = "strength" | "plans" | "workouts" | "exercises" | "activity";
 
@@ -304,7 +305,7 @@ export default function FriendProfileScreen() {
                     variant="bodyBold"
                     style={{ color: colors.contentPrimary }}
                   >
-                    {pr.exerciseName}
+                    {displayExerciseName(pr.exerciseName, pr.appExerciseId)}
                   </AppText>
                   <AppText
                     variant="caption"

@@ -36,6 +36,7 @@ import {
   equipmentTranslations,
 } from "@/constants/dbTranslations";
 import { displayWorkoutName } from "@/utils/workoutName";
+import { showsEnglishName } from "@/utils/db/exerciseNames";
 
 const fallbackImage = require("@/assets/images/placeholder.webp");
 
@@ -206,6 +207,13 @@ export default function ExerciseInfoScreen() {
           ),
         }}
       />
+
+      {/* The English name under the translated one in the header, on every tab. */}
+      {showsEnglishName(exerciseData) && (
+        <ThemedText style={styles.englishName} numberOfLines={2}>
+          {exerciseData.english_name}
+        </ThemedText>
+      )}
 
       {/* Tab bar */}
       <View style={styles.tabBar} accessibilityRole="tablist">
@@ -530,6 +538,12 @@ function createStyles(colors: AppThemeColors) {
       fontSize: 22,
       fontWeight: "bold",
       marginBottom: 16,
+    },
+    englishName: {
+      fontSize: 14,
+      color: colors.contentSecondary,
+      paddingHorizontal: 16,
+      paddingTop: 8,
     },
     infoRow: {
       flexDirection: "row",

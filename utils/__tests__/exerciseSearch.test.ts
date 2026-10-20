@@ -561,3 +561,54 @@ describe("getExerciseSuggestions", () => {
     ).toBe(true);
   });
 });
+
+// ─── Translated names ─────────────────────────────────────────────────────────
+
+describe("translated exercise names", () => {
+  const GERMAN_BENCH = makeExercise({
+    exercise_id: 101,
+    name: "Langhantel-Bankdrücken",
+    english_name: "Barbell Bench Press",
+  });
+  const GERMAN_RDL = makeExercise({
+    exercise_id: 102,
+    name: "Rumänisches Kreuzheben mit Langhantel",
+    english_name: "Barbell Romanian Deadlift",
+  });
+  const GERMAN_SNATCH = makeExercise({
+    exercise_id: 103,
+    name: "Kurzhantel-Reißen einarmig",
+    english_name: "Dumbbell One Arm Snatch",
+  });
+  const index = buildIndex([GERMAN_BENCH, GERMAN_RDL, GERMAN_SNATCH]);
+  const top = (query: string) =>
+    searchExercises(index, query, noFilters).otherExercises[0]?.exercise;
+
+  it("finds an exercise by its translated name, umlauts optional", () => {
+    expect(top("bankdrücken")).toBe(GERMAN_BENCH);
+    expect(top("bankdrucken")).toBe(GERMAN_BENCH);
+  });
+
+  it("still finds it by its English name", () => {
+    expect(top("bench press")).toBe(GERMAN_BENCH);
+  });
+
+  it("matches English aliases against the English name", () => {
+    expect(top("rdl")).toBe(GERMAN_RDL);
+  });
+
+  it("reads ß as ss", () => {
+    expect(normalizeText("Reißen")).toBe("reissen");
+    expect(top("reissen")).toBe(GERMAN_SNATCH);
+  });
+
+  it("suggests the translated name", () => {
+    const [first] = getExerciseSuggestions(index, "lang");
+    expect(first.text).toBe("Langhantel-Bankdrücken");
+  });
+
+  it("keeps the given order when there is no query", () => {
+    const results = searchExercises(index, "", noFilters).otherExercises;
+    expect(results.map((r) => r.exercise.exercise_id)).toEqual([101, 102, 103]);
+  });
+});

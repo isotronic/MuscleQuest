@@ -51,13 +51,17 @@ export interface SuggestionOptions {
 // ─── Text normalization ───────────────────────────────────────────────────────
 
 export function normalizeText(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return (
+    text
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      // "Reißen" is searched as "reissen"; the class below would split it.
+      .replace(/ß/g, "ss")
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 }
 
 // ─── Index building ───────────────────────────────────────────────────────────
@@ -92,7 +96,16 @@ function indexExercise(
   aliasMap: AliasMap,
 ): IndexedExercise {
   const normalizedName = normalizeText(exercise.name);
-  const nameTokens = normalizedName.split(" ").filter(Boolean);
+  // A translated name is searched in both languages: the English one keeps
+  // English searches and the English aliases working.
+  const englishName =
+    exercise.english_name && exercise.english_name !== exercise.name
+      ? normalizeText(exercise.english_name)
+      : "";
+  const allNames = englishName
+    ? `${normalizedName} ${englishName}`
+    : normalizedName;
+  const nameTokens = allNames.split(" ").filter(Boolean);
 
   // Find alias keys whose canonical values appear in this exercise's name,
   // and collect each key's own words — a multi-word key like "lat pd"
@@ -101,7 +114,7 @@ function indexExercise(
   const aliasTokenSet = new Set<string>();
   for (const [aliasKey, canonicals] of Object.entries(aliasMap)) {
     for (const canonical of canonicals) {
-      if (normalizedName.includes(normalizeText(canonical))) {
+      if (allNames.includes(normalizeText(canonical))) {
         for (const token of normalizeText(aliasKey)
           .split(" ")
           .filter(Boolean)) {
@@ -114,7 +127,7 @@ function indexExercise(
 
   const aliasTokens = [...aliasTokenSet];
   const expandedPrefixes = buildPrefixes([...nameTokens, ...aliasTokens]);
-  const searchText = [normalizedName, ...aliasTokens].join(" ");
+  const searchText = [allNames, ...aliasTokens].join(" ");
 
   return { exercise, normalizedName, nameTokens, expandedPrefixes, searchText };
 }

@@ -7,6 +7,7 @@ import {
   CompletedSet,
 } from "./useTrackedExercisesQuery";
 import { localDateKeyDaysAgo } from "@/utils/dates";
+import { displayExerciseName } from "@/utils/db/exerciseNames";
 
 interface PRSet extends CompletedSet {
   date_completed: string;
@@ -191,15 +192,20 @@ const fetchExerciseDetail = async (
 
     // Build TrackedExerciseWithSets shape for ExerciseProgressionChart
     const exerciseNameRow = (await db.getFirstAsync(
-      `SELECT name FROM exercises WHERE exercise_id = ?`,
+      `SELECT name, app_exercise_id FROM exercises WHERE exercise_id = ?`,
       [exerciseId],
-    )) as { name: string } | null;
+    )) as { name: string; app_exercise_id: number | null } | null;
 
     const trackedExercise: TrackedExerciseWithSets = {
       id: exerciseId,
       exercise_id: exerciseId,
       date_added: "",
-      name: exerciseNameRow?.name ?? "",
+      name: exerciseNameRow
+        ? displayExerciseName(
+            exerciseNameRow.name,
+            exerciseNameRow.app_exercise_id,
+          )
+        : "",
       tracking_type: trackingType,
       completed_sets: completedSets,
       allTimePR,

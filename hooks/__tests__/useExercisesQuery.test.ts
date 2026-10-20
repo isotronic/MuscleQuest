@@ -19,6 +19,21 @@ jest.mock("@/utils/database", () => ({
 jest.mock("@tanstack/react-query", () => ({
   useQuery: jest.fn(),
 }));
+// German names for library ids 19 and 317; everything else stays English.
+jest.mock("@/utils/db/exerciseNames", () => {
+  const german: Record<number, string> = {
+    19: "Langhantel-Curl",
+    317: "Kurzhantel-Bizepscurl",
+  };
+  return {
+    withDisplayName: (row: { name: string; app_exercise_id?: number }) => ({
+      ...row,
+      name: german[row.app_exercise_id ?? -1] ?? row.name,
+      english_name: row.name,
+    }),
+    compareExerciseNames: (a: string, b: string) => a.localeCompare(b, "de"),
+  };
+});
 
 const makeExercise = (overrides: Record<string, any> = {}) => ({
   exercise_id: 1,
@@ -85,6 +100,36 @@ describe("useExercisesQuery", () => {
     expect(result.otherExercises).toHaveLength(2);
     expect(result.activePlanExercises).toHaveLength(0);
     expect(result.favoriteExercises).toHaveLength(0);
+  });
+
+  it("queryFn translates names and sorts by the translated name", async () => {
+    (fetchAllRecords as jest.Mock).mockResolvedValue([
+      makeExercise({
+        exercise_id: 1,
+        app_exercise_id: 19,
+        name: "Barbell Curl",
+      }),
+      makeExercise({ exercise_id: 2, app_exercise_id: null, name: "My Curl" }),
+      makeExercise({
+        exercise_id: 3,
+        app_exercise_id: 317,
+        name: "Dumbbell Biceps Curl",
+      }),
+    ]);
+
+    useExercisesQuery(false, false);
+    const { queryFn } = (useQuery as jest.Mock).mock.calls[0][0];
+    const result = await queryFn();
+
+    // English order would be Barbell, Dumbbell, My; German puts Kurzhantel
+    // before Langhantel.
+    expect(
+      result.otherExercises.map((e: any) => [e.name, e.english_name]),
+    ).toEqual([
+      ["Kurzhantel-Bizepscurl", "Dumbbell Biceps Curl"],
+      ["Langhantel-Curl", "Barbell Curl"],
+      ["My Curl", "My Curl"],
+    ]);
   });
 
   it("queryFn separates favorites into favoriteExercises", async () => {

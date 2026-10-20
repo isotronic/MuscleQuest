@@ -1,6 +1,7 @@
 // Aggregates over completed workouts, computed in SQL so the stats screens do
 // not have to load every logged set into JS.
 import { openDatabase } from "./connection";
+import { displayExerciseName } from "./exerciseNames";
 import { progressionMetricSql } from "./progressionMetricSql";
 import { METRIC_EPSILON } from "@/utils/units";
 import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
@@ -273,11 +274,13 @@ export const fetchRecentPRs = async (
   const metric = progressionMetricSql(type);
   const db = await openDatabase("userData.db");
   try {
-    return await db.getAllAsync<RecentPR>(
+    const rows = await db.getAllAsync<
+      RecentPR & { app_exercise_id: number | null }
+    >(
       `
       WITH sessions AS (
         SELECT
-          e.exercise_id, e.name, ${type} AS tracking_type,
+          e.exercise_id, e.app_exercise_id, e.name, ${type} AS tracking_type,
           cw.id AS completed_workout_id, cw.local_date, cw.date_completed,
           cs.weight, cs.reps, cs.time, cs.distance,
           MAX(${metric}) AS value
@@ -301,8 +304,9 @@ export const fetchRecentPRs = async (
         ) AS previous
         FROM sessions
       )
-      SELECT exercise_id, name, tracking_type, completed_workout_id,
-        local_date, weight, reps, time, distance, value, previous
+      SELECT exercise_id, app_exercise_id, name, tracking_type,
+        completed_workout_id, local_date, weight, reps, time, distance, value,
+        previous
       -- Aliased cw so rangeFilter's cw.local_date applies to the outer rows.
       FROM ranked cw
       WHERE previous IS NOT NULL AND value > previous + ${METRIC_EPSILON}${filter.sql}
@@ -311,6 +315,10 @@ export const fetchRecentPRs = async (
       `,
       [...filter.params, options.limit],
     );
+    return rows.map(({ app_exercise_id, ...row }) => ({
+      ...row,
+      name: displayExerciseName(row.name, app_exercise_id),
+    }));
   } finally {
     await db.closeAsync();
   }
