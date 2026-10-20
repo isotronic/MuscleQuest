@@ -937,6 +937,7 @@ Push-ups, pull-ups and dips can now count toward your volume. Turn on Include bo
 Also in this update:
 • Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume. Records and progress charts use the body weight you had at the time, so a change in weight no longer rewrites them.
 • Body weight now lives in one place: the Body weight row in Settings shows your latest entry and opens Measurements to log a new one.
+• Adaptive progression now takes assistance away as you get stronger on assisted exercises, instead of adding more.
 `,
   },
 ];

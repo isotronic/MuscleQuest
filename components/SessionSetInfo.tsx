@@ -328,6 +328,7 @@ export default function SessionSetInfo({
                   : undefined
               }
               weightUnit={weightUnit}
+              trackingType={trackingType}
             />
           )}
         </View>

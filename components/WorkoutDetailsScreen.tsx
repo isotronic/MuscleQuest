@@ -246,6 +246,7 @@ export default function WorkoutDetailsScreen() {
               suggestedWeight={s.suggestedWeight}
               suggestedRepsPerSet={s.suggestedRepsPerSet}
               weightUnit={weightUnit}
+              trackingType={s.trackingType}
             />
           </View>
         ))}

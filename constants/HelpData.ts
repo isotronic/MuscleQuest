@@ -190,6 +190,7 @@ export const HELP_DATA: GroupData[] = [
             msg`Tap Accept to apply a suggestion for your next session, or Dismiss to ignore it; Accept All applies every suggestion at once.`,
             msg`Accepted suggestions are pre-filled into the weight and rep fields next time you open that workout.`,
             msg`Suggestions to hold the current load don't appear in the card, since no action is needed.`,
+            msg`For assisted exercises, progress means less assistance: a step up suggests lowering the assistance, and easing off adds some back.`,
             msg`A plateau advisory note appears if an exercise has been at the same load for four or more sessions.`,
             msg`A deload-week banner appears if three or more exercises in the workout show fatigue signs.`,
             msg`A Changes for this session card appears on the workout overview screen whenever you have accepted suggestions, so you can review targets before starting.`,

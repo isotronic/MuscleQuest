@@ -11,7 +11,21 @@ import { Trans } from "@lingui/react/macro";
 import { t } from "@lingui/core/macro";
 import { router } from "expo-router";
 
-export function getRuleExplanation(ruleKey: string): string {
+export function getRuleExplanation(
+  ruleKey: string,
+  trackingType?: string,
+): string {
+  // Assisted exercises log assistance, so load changes run the other way.
+  if (trackingType === "assisted") {
+    const assisted: Record<string, string> = {
+      PAIN_LOAD: t`Pain reported again. Consider more assistance to help your recovery.`,
+      FAILED_SETS: t`You couldn't complete all sets. Adding a little more assistance for next time.`,
+      EASY_TARGET_LOAD: t`You've been hitting targets easily. Time to use a little less assistance.`,
+      MODERATE_TARGET_LOAD: t`Solid session and you hit the rep ceiling. Time to use a little less assistance.`,
+      MUSCLE_LAYOFF: t`It's been a while since you trained this muscle. Start with a little more assistance to ease back in.`,
+    };
+    if (assisted[ruleKey]) return assisted[ruleKey];
+  }
   const map: Record<string, string> = {
     PAIN_BLOCK: t`Pain reported. Keeping load unchanged until you feel better.`,
     PAIN_LOAD: t`Pain reported again. Consider reducing load to help your recovery.`,
@@ -33,6 +47,7 @@ export function getRuleExplanation(ruleKey: string): string {
     UNSUPPORTED_TRACKING: t`No progression tracking for this exercise type.`,
     NO_RANGE: t`No rep range defined. Add a rep range (e.g. 8-12) to enable auto-progression.`,
     NO_PRIOR_WEIGHT: t`No prior weight data. Hold steady for now.`,
+    NO_ASSISTANCE_LEFT: t`You're already doing it without assistance. Hold here, or move on to the unassisted version.`,
     MUSCLE_LAYOFF: t`It's been a while since you trained this muscle. Start a little lighter to ease back in.`,
     DEFAULT: t`Hold steady this session.`,
   };
@@ -189,11 +204,12 @@ function SuggestionRow({
           suggestedWeight={state.suggestedWeight}
           suggestedRepsPerSet={state.suggestedRepsPerSet}
           weightUnit={weightUnit}
+          trackingType={state.trackingType}
         />
         <ThemedText
           style={[styles.explanation, { color: colors.contentSecondary }]}
         >
-          {getRuleExplanation(state.ruleKey)}
+          {getRuleExplanation(state.ruleKey, state.trackingType)}
         </ThemedText>
         {state.plateauAdvisory && (
           <ThemedText
