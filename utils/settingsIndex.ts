@@ -4,6 +4,7 @@ import { msg } from "@lingui/core/macro";
 import type { MessageDescriptor } from "@lingui/core";
 import type { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
+import { hasExerciseNameTranslations } from "@/utils/db/exerciseNames";
 
 type IconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
@@ -261,6 +262,12 @@ export const SETTINGS_INDEX = [
     title: msg`Show tips on home`,
     keywords: msg`tips, onboarding, introduction, home`,
   },
+  {
+    id: "translateExerciseNames",
+    screen: "appearance",
+    title: msg`Translate exercise names`,
+    keywords: msg`language, English, exercise names, translation`,
+  },
   // About
   {
     id: "featureRequests",
@@ -312,6 +319,12 @@ const ANDROID_ONLY: readonly SettingId[] = [
   "restAlertOnSilent",
 ];
 
+/** Whether the settings screens render this row on this device. */
+const isShown = (id: SettingId): boolean =>
+  (Platform.OS === "android" || !ANDROID_ONLY.includes(id)) &&
+  // Only where the device language has translated exercise names.
+  (id !== "translateExerciseNames" || hasExerciseNameTranslations());
+
 /** An index entry with its text translated for the current locale. */
 export interface SettingsSearchDoc {
   id: SettingId;
@@ -328,9 +341,7 @@ export function translateSettingsIndex(
   const screenTitles = new Map<string, string>(
     SETTINGS_SCREENS.map((s) => [s.id, translate(s.title)]),
   );
-  return SETTINGS_INDEX.filter(
-    (entry) => Platform.OS === "android" || !ANDROID_ONLY.includes(entry.id),
-  ).map((entry) => ({
+  return SETTINGS_INDEX.filter((entry) => isShown(entry.id)).map((entry) => ({
     id: entry.id,
     screen: entry.screen,
     title: translate(entry.title),
