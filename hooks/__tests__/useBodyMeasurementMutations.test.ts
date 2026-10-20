@@ -140,7 +140,7 @@ describe("useInsertBodyMeasurementMutation", () => {
     );
   });
 
-  it("onSuccess refreshes volumes, which use the body weight at the time", () => {
+  it("onSuccess refreshes volumes and PRs, which use the body weight at the time", () => {
     useInsertBodyMeasurementMutation(OPTIONS);
 
     capturedArgs.onSuccess();
@@ -149,6 +149,9 @@ describe("useInsertBodyMeasurementMutation", () => {
       ["completedWorkouts"],
       ["completedWorkout"],
       ["workoutSessionHistory"],
+      ["exerciseDetail"],
+      ["trackedExercises"],
+      ["exerciseHistory"],
     ]) {
       expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey });
     }
@@ -182,7 +185,7 @@ describe("useUpdateBodyMeasurementMutation", () => {
     });
   });
 
-  it("onSuccess refreshes volumes, which use the body weight at the time", () => {
+  it("onSuccess refreshes volumes and PRs, which use the body weight at the time", () => {
     useUpdateBodyMeasurementMutation(OPTIONS);
 
     capturedArgs.onSuccess(undefined, { entry_id: 1, values: [] });
@@ -191,6 +194,9 @@ describe("useUpdateBodyMeasurementMutation", () => {
       ["completedWorkouts"],
       ["completedWorkout"],
       ["workoutSessionHistory"],
+      ["exerciseDetail"],
+      ["trackedExercises"],
+      ["exerciseHistory"],
     ]) {
       expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey });
     }
@@ -244,7 +250,7 @@ describe("useDeleteBodyMeasurementMutation", () => {
     expect(syncMeasurementRemoved).toHaveBeenCalledWith(99);
   });
 
-  it("onSuccess refreshes volumes, which use the body weight at the time", () => {
+  it("onSuccess refreshes volumes and PRs, which use the body weight at the time", () => {
     useDeleteBodyMeasurementMutation();
 
     capturedArgs.onSuccess(undefined, 99);
@@ -253,6 +259,9 @@ describe("useDeleteBodyMeasurementMutation", () => {
       ["completedWorkouts"],
       ["completedWorkout"],
       ["workoutSessionHistory"],
+      ["exerciseDetail"],
+      ["trackedExercises"],
+      ["exerciseHistory"],
     ]) {
       expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey });
     }

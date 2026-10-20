@@ -36,6 +36,10 @@ const invalidateBodyMeasurements = (
   queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
   queryClient.invalidateQueries({ queryKey: ["completedWorkout"] });
   queryClient.invalidateQueries({ queryKey: ["workoutSessionHistory"] });
+  // So do assisted PRs and progression charts.
+  queryClient.invalidateQueries({ queryKey: ["exerciseDetail"] });
+  queryClient.invalidateQueries({ queryKey: ["trackedExercises"] });
+  queryClient.invalidateQueries({ queryKey: ["exerciseHistory"] });
 };
 
 export const useInsertBodyMeasurementMutation = (

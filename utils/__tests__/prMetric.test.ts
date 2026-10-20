@@ -44,9 +44,6 @@ describe("setMetric and progressionMetricSql", () => {
   beforeEach(async () => {
     mockDb = createNodeSqliteDb();
     await runMigrations(mockDb.db);
-    mockDb.sqlite.exec(
-      `INSERT OR REPLACE INTO settings (key, value) VALUES ('bodyWeight', '82.5')`,
-    );
   });
 
   afterEach(() => mockDb.sqlite.close());
@@ -72,7 +69,7 @@ describe("setMetric and progressionMetricSql", () => {
     ({ type, double, set }) => {
       const row = mockDb.sqlite
         .prepare(
-          `SELECT ${progressionMetricSql("?")} AS value
+          `SELECT ${progressionMetricSql("?", "82.5")} AS value
          FROM (SELECT ? AS double_weight) e,
            (SELECT ? AS weight, ? AS reps, ? AS time, ? AS distance) cs`,
         )
