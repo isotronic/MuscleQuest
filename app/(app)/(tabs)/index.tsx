@@ -579,6 +579,7 @@ export default function HomeScreen() {
               excludeWarmup={settings?.excludeWarmupSets === "true"}
               countUnilateralDouble={settings?.countUnilateralDouble === "true"}
               doubleWeightForPaired={settings?.doubleWeightForPaired === "true"}
+              includeBodyWeight={settings?.includeBodyWeightInVolume === "true"}
               bodyWeight={settingsBodyWeight(settings).display ?? 0}
               weekRule={weekRule}
             />

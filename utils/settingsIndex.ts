@@ -229,6 +229,12 @@ export const SETTINGS_INDEX = [
     title: msg`Per-side weight entry`,
     keywords: msg`dumbbell, cable, both sides, volume`,
   },
+  {
+    id: "includeBodyWeightInVolume",
+    screen: "stats",
+    title: msg`Include body weight in volume`,
+    keywords: msg`bodyweight, push-ups, pull-ups, volume`,
+  },
   // Reminders and notifications
   {
     id: "workoutReminders",

@@ -289,6 +289,12 @@ export const HELP_DATA: GroupData[] = [
         body: msg`The Stats tab shows total workouts, total volume, total time, and average session duration over a selectable time range, with a period-over-period delta for each metric. Charts display weekly volume, workouts per week, and your training split by body part. Browse your full workout history and tap any session to review every set in detail, including weights, reps, time, or distance. You can edit or delete completed workouts from the history details screen; a deleted workout can be restored by tapping Undo on the message that appears. If you logged the wrong exercise, tap the pencil icon next to it on the edit screen to swap it for the correct one. Tap the calendar icon in the Workout History section to open a calendar view: days with workouts are highlighted with a yellow circle, and tapping any day shows the workouts logged on that date.`,
       },
       {
+        id: "volume",
+        icon: "scale-outline",
+        title: msg`What volume counts`,
+        body: msg`Volume is weight times reps, added up over your sets. Assisted exercises count your body weight minus the assistance, so less assistance means more volume. Bodyweight exercises such as push-ups and pull-ups count nothing unless you turn on Include body weight in volume in Settings, under Stats; then they count your body weight, plus any weight you added. Each workout uses the body weight you had logged by that day, so log your weight under Body Measurements to keep it current. Time and distance exercises have no volume.`,
+      },
+      {
         id: "exercise-tracking",
         icon: "trending-up-outline",
         title: msg`Exercise progress`,
@@ -318,7 +324,7 @@ export const HELP_DATA: GroupData[] = [
             msg`Workout button size (Standard, Large, or XLarge), and Keep Screen On to stop the display sleeping mid-workout.`,
             msg`Exercise timer options: the length of the Get Ready countdown, countdown beeps, and a sound when you reach your goal time.`,
             msg`Always use most recent exercise history, to pre-fill sets from the last time you did an exercise in any workout rather than only the same workout.`,
-            msg`Under Stats: exclude warm-up sets from volume, turn on Single-side rep logging to double reps for unilateral exercises, or Per-side weight entry to double the weight for paired implements (useful if you log per-dumbbell weight rather than the total).`,
+            msg`Under Stats: exclude warm-up sets from volume, turn on Single-side rep logging to double reps for unilateral exercises, Per-side weight entry to double the weight for paired implements (useful if you log per-dumbbell weight rather than the total), or Include body weight in volume.`,
             msg`Your body weight, used to calculate effective load for assisted exercises.`,
             msg`Under Appearance: Show tips on home, and Translate exercise names to see exercise names in your phone's language or in English.`,
           ],

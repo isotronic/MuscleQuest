@@ -8,6 +8,9 @@ export default function StatsSettingsScreen() {
     useSettingToggle("excludeWarmupSets");
   const [unilateral, setUnilateral] = useSettingToggle("countUnilateralDouble");
   const [paired, setPaired] = useSettingToggle("doubleWeightForPaired");
+  const [bodyWeight, setBodyWeight] = useSettingToggle(
+    "includeBodyWeightInVolume",
+  );
 
   return (
     <SettingsScroll>
@@ -45,6 +48,15 @@ export default function StatsSettingsScreen() {
         }
         checked={paired}
         onValueChange={setPaired}
+      />
+      <SwitchRow
+        id="includeBodyWeightInVolume"
+        icon="human"
+        title={<Trans>Include body weight in volume</Trans>}
+        label={t`Include body weight in volume`}
+        value={t`Counts your body weight for push-ups, pull-ups and other bodyweight exercises.`}
+        checked={bodyWeight}
+        onValueChange={setBodyWeight}
       />
     </SettingsScroll>
   );

@@ -96,6 +96,19 @@ describe("insertDefaultSettings", () => {
     expect(settings.loginShown).toBeUndefined();
   });
 
+  it("leaves body weight out of volume until turned on", async () => {
+    await insertDefaultSettings();
+    expect(all().includeBodyWeightInVolume).toBe("false");
+  });
+
+  it("keeps body weight in volume once turned on", async () => {
+    created.sqlite.exec(
+      `INSERT INTO settings (key, value) VALUES ('includeBodyWeightInVolume', 'true')`,
+    );
+    await insertDefaultSettings();
+    expect(all().includeBodyWeightInVolume).toBe("true");
+  });
+
   it("keeps a new install's values on the next boot", async () => {
     await insertDefaultSettings();
     created.sqlite
