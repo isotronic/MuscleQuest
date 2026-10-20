@@ -61,6 +61,8 @@ export const insertDefaultSettings = async () => {
       // weight stays unset until entered, so it never feeds a made-up 70 kg
       // into assisted-exercise numbers.
       { key: "showOnboarding", value: "true" },
+      // TRANSLATE_EXERCISE_NAMES_KEY (utils/db/exerciseNames.ts).
+      { key: "translateExerciseNames", value: "true" },
       { key: "timerCountdown", value: "5" },
       { key: "workoutReminderEnabled", value: "false" },
       { key: "workoutReminderDays", value: "[]" },
@@ -142,6 +144,8 @@ export interface Settings {
   /** See utils/setupState.ts. */
   setupDone?: string;
   showOnboarding: string;
+  /** "false" shows library exercise names in English. */
+  translateExerciseNames?: string;
   lastSeenVersion: string;
   timerCountdown: string;
   workoutReminderEnabled: string;

@@ -26,6 +26,7 @@ import {
 } from "@/utils/restoreRollback";
 import { resetLocalSessionStateAfterHydration } from "@/utils/resetLocalState";
 import { forgetExerciseImageFiles } from "@/utils/db/exerciseImageFiles";
+import { loadExerciseNames } from "@/utils/db/exerciseNames";
 
 jest.mock("@bugsnag/expo", () => ({
   __esModule: true,
@@ -58,6 +59,10 @@ jest.mock("@/utils/loadPremadePlans", () => ({
 jest.mock("@/utils/db/exerciseImageFiles", () => ({
   forgetExerciseImageFiles: jest.fn(),
 }));
+jest.mock("@/utils/db/exerciseNames", () => ({
+  loadExerciseNames: jest.fn(),
+}));
+jest.mock("@/utils/appLocale", () => ({ preferredLocale: () => "de" }));
 jest.mock("@/utils/restoreRollback", () => ({
   recoverInterruptedRestore: jest.fn(() => false),
   confirmRestoredDatabase: jest.fn(),
@@ -411,6 +416,35 @@ describe("runStartup on a new install", () => {
 
     expect(startFirstLaunchSeeding).not.toHaveBeenCalled();
     expect(copyDataFromAppDataToUserData).toHaveBeenCalled();
+  });
+});
+
+describe("runStartup and exercise names", () => {
+  it("loads names in the device language after the default settings, also before onboarding", async () => {
+    const order: string[] = [];
+    (insertDefaultSettings as jest.Mock).mockImplementation(async () => {
+      order.push("settings");
+    });
+    (loadExerciseNames as jest.Mock).mockImplementation(async () => {
+      order.push("names");
+    });
+    (fetchSetting as jest.Mock).mockResolvedValue("pending");
+
+    await runStartup();
+
+    expect(loadExerciseNames).toHaveBeenCalledWith("de");
+    expect(order).toEqual(["settings", "names"]);
+    expect(startFirstLaunchSeeding).toHaveBeenCalled();
+  });
+
+  it("keeps booting with English names when loading them fails", async () => {
+    (loadExerciseNames as jest.Mock).mockRejectedValue(new Error("no table"));
+
+    const result = await runStartup();
+
+    expect(result).toEqual({ status: "ok" });
+    expect(Bugsnag.notify).toHaveBeenCalledWith(new Error("no table"));
+    expect(syncExerciseFlagsFromAppData).toHaveBeenCalled();
   });
 });
 
