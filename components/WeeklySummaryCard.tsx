@@ -18,7 +18,7 @@ import { formatToHoursMinutes } from "@/utils/utility";
 import type { AppThemeColors } from "@/theme/types";
 import { formatDecimal, formatGroupedInteger } from "@/utils/numberFormat";
 import { setMetric } from "@/utils/prMetric";
-import { completedWorkoutVolume } from "@/utils/volume";
+import { completedWorkoutVolume, workoutBodyWeight } from "@/utils/volume";
 
 interface Props {
   workoutsThisWeek: CompletedWorkout[];
@@ -30,8 +30,6 @@ interface Props {
   countUnilateralDouble?: boolean;
   doubleWeightForPaired?: boolean;
   includeBodyWeight?: boolean;
-  /** In the display weight unit, for assisted exercises. */
-  bodyWeight?: number;
   weekRule?: WeekRule;
 }
 
@@ -45,7 +43,7 @@ type HistoryExercise = CompletedWorkout["exercises"][number];
 function achievementMetric(
   exercise: HistoryExercise,
   set: HistoryExercise["sets"][number],
-  bodyWeight: number,
+  bodyWeight: number | null,
   doubleWeightForPaired: boolean,
 ): number | null {
   const trackingType = exercise.exercise_tracking_type;
@@ -56,12 +54,12 @@ function achievementMetric(
     if (set.time == null) return null;
   } else {
     if (set.weight == null || set.reps == null) return null;
-    if (trackingType === "assisted" && bodyWeight <= 0) return null;
+    if (trackingType === "assisted" && bodyWeight == null) return null;
   }
   return setMetric(set, trackingType, {
     // The card shows the weight, so it follows the stats doubling setting.
     doubleWeight: doubleWeightForPaired && !!exercise.double_weight,
-    bodyWeight,
+    bodyWeight: bodyWeight ?? 0,
   });
 }
 
@@ -73,12 +71,15 @@ interface BestAchievement {
   weightUnit: string;
 }
 
-function computeBestAchievement(
+/**
+ * The exercise with the biggest gain over last week's best. Assisted sets use
+ * the body weight of their own workout.
+ */
+export function computeBestAchievement(
   workoutsThisWeek: CompletedWorkout[],
   allCompletedWorkouts: CompletedWorkout[],
   weightUnit: string,
   excludeWarmup: boolean = false,
-  bodyWeight: number = 0,
   doubleWeightForPaired: boolean = false,
   weekRule: WeekRule = DEFAULT_WEEK_RULE,
 ): BestAchievement | null {
@@ -93,6 +94,7 @@ function computeBestAchievement(
   // Build map of exercise_id → best metric for last week
   const lastWeekBest = new Map<number, number>();
   for (const workout of lastWeekWorkouts) {
+    const bodyWeight = workoutBodyWeight(workout, weightUnit);
     for (const ex of workout.exercises) {
       for (const set of ex.sets) {
         if (excludeWarmup && set.is_warmup) continue;
@@ -115,6 +117,7 @@ function computeBestAchievement(
     { name: string; trackingType: string; best: number }
   >();
   for (const workout of workoutsThisWeek) {
+    const bodyWeight = workoutBodyWeight(workout, weightUnit);
     for (const ex of workout.exercises) {
       for (const set of ex.sets) {
         if (excludeWarmup && set.is_warmup) continue;
@@ -202,7 +205,6 @@ export default function WeeklySummaryCard({
   countUnilateralDouble = false,
   doubleWeightForPaired = false,
   includeBodyWeight = false,
-  bodyWeight = 0,
   weekRule = DEFAULT_WEEK_RULE,
 }: Props) {
   const { colors } = useAppTheme();
@@ -242,7 +244,6 @@ export default function WeeklySummaryCard({
         allCompletedWorkouts,
         weightUnit,
         excludeWarmup,
-        bodyWeight,
         doubleWeightForPaired,
         weekRule,
       ),
@@ -251,7 +252,6 @@ export default function WeeklySummaryCard({
       allCompletedWorkouts,
       weightUnit,
       excludeWarmup,
-      bodyWeight,
       doubleWeightForPaired,
       weekRule,
     ],

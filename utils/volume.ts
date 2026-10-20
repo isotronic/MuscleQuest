@@ -113,11 +113,21 @@ export function completedWorkoutVolume(
   options: VolumeOptions,
   weightUnit: string,
 ): number {
-  const bodyWeight =
-    workout.body_weight_kg != null && workout.body_weight_kg > 0
-      ? kgToDisplay(workout.body_weight_kg, weightUnit)
-      : null;
-  return workoutVolume(workout, options, bodyWeight);
+  return workoutVolume(
+    workout,
+    options,
+    workoutBodyWeight(workout, weightUnit),
+  );
+}
+
+/** A loaded workout's body weight at the time, in `weightUnit`, or null. */
+export function workoutBodyWeight(
+  workout: { body_weight_kg?: number | null },
+  weightUnit: string,
+): number | null {
+  return workout.body_weight_kg != null && workout.body_weight_kg > 0
+    ? kgToDisplay(workout.body_weight_kg, weightUnit)
+    : null;
 }
 
 /** The volume settings, as stored ("true"/"false" strings). */

@@ -21,7 +21,6 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import { showSnackbar } from "@/store/snackbarStore";
 import { useWeekRule } from "@/hooks/useWeekRule";
-import { settingsBodyWeight } from "@/utils/settingsBodyWeight";
 import { endOfAppWeek, startOfAppWeek } from "@/utils/week";
 import {
   CompletedWorkout,
@@ -580,7 +579,6 @@ export default function HomeScreen() {
               countUnilateralDouble={settings?.countUnilateralDouble === "true"}
               doubleWeightForPaired={settings?.doubleWeightForPaired === "true"}
               includeBodyWeight={settings?.includeBodyWeightInVolume === "true"}
-              bodyWeight={settingsBodyWeight(settings).display ?? 0}
               weekRule={weekRule}
             />
           )}
