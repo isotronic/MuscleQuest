@@ -482,6 +482,7 @@ export const getProgressionState = async (
       row.recent_weight,
       row.equipment,
       settings.increments,
+      trackingType,
     );
     if (!layoff) return base;
 
@@ -723,6 +724,8 @@ export interface WorkoutProgressionStateRow {
   suggestedSets?: number;
   ruleKey: string;
   ruleExplanation: string;
+  /** The tracking type the plan row uses, override applied. */
+  trackingType: string;
   consecutiveDirectionCount: number;
   plateauAdvisory: boolean;
   lastProgressionAt?: string;
@@ -819,6 +822,8 @@ export const getProgressionStatesForWorkout = async (
         suggestedSets: row.suggested_sets ?? undefined,
         ruleKey: row.rule_key,
         ruleExplanation: row.rule_explanation,
+        trackingType:
+          row.tracking_type_override ?? row.tracking_type ?? "weight",
         consecutiveDirectionCount: row.consecutive_direction_count,
         plateauAdvisory: row.plateau_advisory === 1,
         lastProgressionAt: row.last_progression_at ?? undefined,
@@ -846,6 +851,7 @@ export const getProgressionStatesForWorkout = async (
         row.recent_weight,
         row.equipment,
         settings.increments,
+        trackingType,
       );
       if (!layoff) return base;
 

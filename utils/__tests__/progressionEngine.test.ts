@@ -1299,3 +1299,110 @@ describe("evaluateProgression — below-target card submission", () => {
     },
   );
 });
+
+// ---------------------------------------------------------------------------
+// Assisted exercises: the logged weight is assistance, so a lower number is
+// harder. Progress takes assistance away; easing off adds it back.
+// ---------------------------------------------------------------------------
+describe("evaluateProgression — assisted exercises", () => {
+  const assisted = (overrides: Partial<ProgressionEngineInputs> = {}) =>
+    makeInputs({
+      trackingType: "assisted",
+      equipment: "leverage machine",
+      recentWorkingWeight: 30,
+      ...overrides,
+    });
+
+  it("takes assistance away after an easy session at the top of the range", () => {
+    const result = evaluateProgression(
+      assisted({
+        latestFeedback: makeFeedback({ effortRating: "easy" }),
+        currentSets: [WORKING_SET, WORKING_SET],
+        completedRepsPerSet: [12, 12],
+      }),
+    );
+    expect(result.action).toBe("increase_load");
+    expect(result.ruleKey).toBe("EASY_TARGET_LOAD");
+    expect(result.suggestedWeight).toBe(27.5);
+  });
+
+  it("takes assistance away after a moderate session at the top of the range", () => {
+    const result = evaluateProgression(
+      assisted({
+        latestFeedback: makeFeedback({ effortRating: "moderate" }),
+        currentSets: [WORKING_SET, WORKING_SET],
+        completedRepsPerSet: [12, 12],
+      }),
+    );
+    expect(result.action).toBe("increase_load");
+    expect(result.suggestedWeight).toBe(27.5);
+  });
+
+  it("never suggests less than no assistance", () => {
+    const result = evaluateProgression(
+      assisted({
+        recentWorkingWeight: 1.5,
+        latestFeedback: makeFeedback({ effortRating: "easy" }),
+        currentSets: [WORKING_SET, WORKING_SET],
+        completedRepsPerSet: [12, 12],
+      }),
+    );
+    expect(result.suggestedWeight).toBe(0);
+  });
+
+  it("holds once there is no assistance left to take away", () => {
+    const result = evaluateProgression(
+      assisted({
+        recentWorkingWeight: 0,
+        latestFeedback: makeFeedback({ effortRating: "easy" }),
+        currentSets: [WORKING_SET, WORKING_SET],
+        completedRepsPerSet: [12, 12],
+      }),
+    );
+    expect(result.action).toBe("hold");
+    expect(result.ruleKey).toBe("NO_ASSISTANCE_LEFT");
+  });
+
+  it("adds assistance after a second failed session", () => {
+    const result = evaluateProgression(
+      assisted({
+        latestFeedback: makeFeedback({ effortRating: "failed" }),
+        consecutiveDirectionCount: 2,
+      }),
+    );
+    expect(result.action).toBe("reduce_load");
+    expect(result.ruleKey).toBe("FAILED_SETS");
+    expect(result.suggestedWeight).toBeGreaterThan(30);
+  });
+
+  it("adds assistance after a second pain report", () => {
+    const result = evaluateProgression(
+      assisted({
+        latestFeedback: makeFeedback({ painFlag: "pain" }),
+        consecutiveDirectionCount: 2,
+      }),
+    );
+    expect(result.action).toBe("reduce_load");
+    expect(result.suggestedWeight).toBeGreaterThan(30);
+  });
+});
+
+describe("computeReducedLoad and computeLayoffReduction — assisted", () => {
+  it("eases an assisted exercise by adding about 5% assistance", () => {
+    expect(computeReducedLoad(30, "assisted")).toBe(31.5);
+    expect(computeReducedLoad(5, "assisted")).toBe(5.5);
+  });
+
+  it("eases back in after a layoff with more assistance, never less", () => {
+    const result = computeLayoffReduction(
+      21,
+      30,
+      "leverage machine",
+      DEFAULT_INCREMENTS,
+      "assisted",
+    );
+    expect(result).not.toBeNull();
+    expect(result!.suggestedWeight).toBeGreaterThan(30);
+    expect(result!.suggestedWeight % 2.5).toBe(0);
+  });
+});

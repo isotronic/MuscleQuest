@@ -2066,6 +2066,90 @@ describe("useActiveWorkoutStore", () => {
       expect(weightAndReps[0][1]?.weight).toBe("105");
     });
 
+    it.each([
+      // Less assistance than last time is harder: the suggestion applies.
+      [30, 27.5, "27.5"],
+      // Last time already used less assistance: never make it easier.
+      [25, 27.5, "25"],
+    ])(
+      "applies an assisted increase_load (last %p kg, suggested %p kg) as less assistance",
+      (lastAssistance, suggested, expected) => {
+        const history: any = [
+          {
+            id: 1,
+            workout_id: 1,
+            plan_id: 1,
+            workout_name: "Test Workout",
+            date_completed: "2026-06-01T00:00:00.000Z",
+            duration: 0,
+            total_sets_completed: 1,
+            exercises: [
+              {
+                exercise_id: 700,
+                exercise_name: "Assisted Pull-up",
+                exercise_tracking_type: "assisted",
+                sets: [
+                  {
+                    set_id: 1,
+                    set_number: 1,
+                    weight: lastAssistance,
+                    reps: 12,
+                    time: null,
+                    distance: null,
+                    is_warmup: false,
+                    set_duration: null,
+                  },
+                ],
+              },
+            ],
+          },
+        ];
+
+        act(() => {
+          useActiveWorkoutStore.setState({
+            workout: {
+              name: "Suggestion Test Workout",
+              exercises: [
+                {
+                  ...baseExercise,
+                  name: "Assisted Pull-up",
+                  tracking_type: "assisted",
+                  sets: [
+                    {
+                      repsMin: 8,
+                      repsMax: 12,
+                      restMinutes: 2,
+                      restSeconds: 0,
+                      time: undefined,
+                    },
+                  ],
+                },
+              ],
+            },
+            previousWorkoutData: history,
+            weightAndReps: {},
+          });
+
+          useActiveWorkoutStore.getState().loadProgressionSuggestions(
+            [
+              {
+                userWorkoutExerciseId: 55,
+                suggestionAction: "increase_load",
+                suggestedWeight: suggested,
+                isApplied: true,
+              },
+            ],
+            "kg",
+            null,
+          );
+        });
+
+        expect(
+          useActiveWorkoutStore.getState().weightAndReps[0][0]?.weight,
+        ).toBe(expected);
+      },
+    );
+
     it("still applies a reduce_load suggestion below the carried-over previous weight", () => {
       const history: any = [
         {
