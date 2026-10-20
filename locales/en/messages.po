@@ -217,6 +217,28 @@ msgstr ""
 ""
 
 #: constants/WhatsNew.ts:932
+#~ msgid ""
+#~ "\n"
+#~ "⚖️ Improved: Volume That Counts Your Body Weight!\n"
+#~ "\n"
+#~ "Push-ups, pull-ups and dips can now count toward your volume. Turn on Include body weight in volume in Settings, under Stats. Each workout uses the body weight you had logged at the time.\n"
+#~ "\n"
+#~ "Also in this update:\n"
+#~ "• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume.\n"
+#~ "• Body weight now lives in one place: the Body weight row in Settings shows your latest entry and opens Measurements to log a new one.\n"
+#~ ""
+#~ msgstr ""
+#~ "\n"
+#~ "⚖️ Improved: Volume That Counts Your Body Weight!\n"
+#~ "\n"
+#~ "Push-ups, pull-ups and dips can now count toward your volume. Turn on Include body weight in volume in Settings, under Stats. Each workout uses the body weight you had logged at the time.\n"
+#~ "\n"
+#~ "Also in this update:\n"
+#~ "• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume.\n"
+#~ "• Body weight now lives in one place: the Body weight row in Settings shows your latest entry and opens Measurements to log a new one.\n"
+#~ ""
+
+#: constants/WhatsNew.ts:932
 msgid ""
 "\n"
 "⚖️ Improved: Volume That Counts Your Body Weight!\n"
@@ -224,7 +246,7 @@ msgid ""
 "Push-ups, pull-ups and dips can now count toward your volume. Turn on Include body weight in volume in Settings, under Stats. Each workout uses the body weight you had logged at the time.\n"
 "\n"
 "Also in this update:\n"
-"• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume.\n"
+"• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume. Records and progress charts use the body weight you had at the time, so a change in weight no longer rewrites them.\n"
 "• Body weight now lives in one place: the Body weight row in Settings shows your latest entry and opens Measurements to log a new one.\n"
 ""
 msgstr ""
@@ -234,7 +256,7 @@ msgstr ""
 "Push-ups, pull-ups and dips can now count toward your volume. Turn on Include body weight in volume in Settings, under Stats. Each workout uses the body weight you had logged at the time.\n"
 "\n"
 "Also in this update:\n"
-"• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume.\n"
+"• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume. Records and progress charts use the body weight you had at the time, so a change in weight no longer rewrites them.\n"
 "• Body weight now lives in one place: the Body weight row in Settings shows your latest entry and opens Measurements to log a new one.\n"
 ""
 
@@ -3426,7 +3448,7 @@ msgstr "Could not add this exercise. Please try again."
 msgid "Could not load this section. Pull down to try again."
 msgstr "Could not load this section. Pull down to try again."
 
-#: hooks/useBodyMeasurementMutations.ts:150
+#: hooks/useBodyMeasurementMutations.ts:154
 msgid "Couldn't delete the measurement."
 msgstr "Couldn't delete the measurement."
 
@@ -5675,7 +5697,7 @@ msgstr "Max Reps"
 msgid "Measure"
 msgstr "Measure"
 
-#: hooks/useBodyMeasurementMutations.ts:140
+#: hooks/useBodyMeasurementMutations.ts:144
 msgid "Measurement deleted"
 msgstr "Measurement deleted"
 
@@ -8964,7 +8986,7 @@ msgstr "Under Your data in Settings, tap Export training data to save your worko
 #: app/(app)/(workout)/exercise-list.tsx:232
 #: app/(app)/(workout)/index.tsx:404
 #: app/(app)/(workout)/workout-session.tsx:858
-#: hooks/useBodyMeasurementMutations.ts:142
+#: hooks/useBodyMeasurementMutations.ts:146
 #: hooks/useCreateStandaloneWorkout.ts:122
 #: hooks/useDeleteCompletedWorkoutMutation.ts:52
 #: hooks/useDeletePlanMutation.ts:44

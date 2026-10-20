@@ -225,7 +225,7 @@ msgid ""
 "Push-ups, pull-ups and dips can now count toward your volume. Turn on Include body weight in volume in Settings, under Stats. Each workout uses the body weight you had logged at the time.\n"
 "\n"
 "Also in this update:\n"
-"• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume.\n"
+"• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume. Records and progress charts use the body weight you had at the time, so a change in weight no longer rewrites them.\n"
 "• Body weight now lives in one place: the Body weight row in Settings shows your latest entry and opens Measurements to log a new one.\n"
 ""
 msgstr ""
@@ -235,7 +235,7 @@ msgstr ""
 "Liegestütze, Klimmzüge und Dips können jetzt zu deinem Volumen zählen. Aktiviere Körpergewicht im Volumen zählen in den Einstellungen unter Statistiken. Jedes Training nutzt das Körpergewicht, das du damals eingetragen hattest.\n"
 "\n"
 "Außerdem in diesem Update:\n"
-"• Unterstützte Übungen zählen jetzt überall dein Körpergewicht abzüglich der Unterstützung, weniger Unterstützung ergibt also mehr Volumen.\n"
+"• Unterstützte Übungen zählen jetzt überall dein Körpergewicht abzüglich der Unterstützung, weniger Unterstützung ergibt also mehr Volumen. Rekorde und Fortschrittsdiagramme nutzen das Körpergewicht von damals, eine Gewichtsänderung schreibt sie also nicht mehr um.\n"
 "• Das Körpergewicht hat jetzt einen festen Ort: Die Zeile Körpergewicht in den Einstellungen zeigt deinen letzten Eintrag und öffnet Messungen, um einen neuen einzutragen.\n"
 ""
 
@@ -3405,7 +3405,7 @@ msgstr "Übung konnte nicht hinzugefügt werden. Bitte versuche es erneut."
 msgid "Could not load this section. Pull down to try again."
 msgstr "Dieser Bereich konnte nicht geladen werden. Zum erneuten Versuch nach unten ziehen."
 
-#: hooks/useBodyMeasurementMutations.ts:150
+#: hooks/useBodyMeasurementMutations.ts:154
 msgid "Couldn't delete the measurement."
 msgstr "Die Messung konnte nicht gelöscht werden."
 
@@ -5654,7 +5654,7 @@ msgstr "Max. Wdh."
 msgid "Measure"
 msgstr "Messgröße"
 
-#: hooks/useBodyMeasurementMutations.ts:140
+#: hooks/useBodyMeasurementMutations.ts:144
 msgid "Measurement deleted"
 msgstr "Messung gelöscht"
 
@@ -8943,7 +8943,7 @@ msgstr "Tippe in den Einstellungen unter Deine Daten auf Trainingsdaten exportie
 #: app/(app)/(workout)/exercise-list.tsx:232
 #: app/(app)/(workout)/index.tsx:404
 #: app/(app)/(workout)/workout-session.tsx:858
-#: hooks/useBodyMeasurementMutations.ts:142
+#: hooks/useBodyMeasurementMutations.ts:146
 #: hooks/useCreateStandaloneWorkout.ts:122
 #: hooks/useDeleteCompletedWorkoutMutation.ts:52
 #: hooks/useDeletePlanMutation.ts:44

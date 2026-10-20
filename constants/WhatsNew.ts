@@ -935,7 +935,7 @@ Prefer English names? Turn off Translate exercise names in Settings, under Appea
 Push-ups, pull-ups and dips can now count toward your volume. Turn on Include body weight in volume in Settings, under Stats. Each workout uses the body weight you had logged at the time.
 
 Also in this update:
-• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume.
+• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume. Records and progress charts use the body weight you had at the time, so a change in weight no longer rewrites them.
 • Body weight now lives in one place: the Body weight row in Settings shows your latest entry and opens Measurements to log a new one.
 `,
   },

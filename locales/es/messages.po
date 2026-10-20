@@ -225,7 +225,7 @@ msgid ""
 "Push-ups, pull-ups and dips can now count toward your volume. Turn on Include body weight in volume in Settings, under Stats. Each workout uses the body weight you had logged at the time.\n"
 "\n"
 "Also in this update:\n"
-"• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume.\n"
+"• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume. Records and progress charts use the body weight you had at the time, so a change in weight no longer rewrites them.\n"
 "• Body weight now lives in one place: the Body weight row in Settings shows your latest entry and opens Measurements to log a new one.\n"
 ""
 msgstr ""
@@ -235,7 +235,7 @@ msgstr ""
 "Las flexiones, dominadas y fondos ya pueden sumar a tu volumen. Activa Incluir peso corporal en el volumen en Ajustes, en Estadísticas. Cada entrenamiento usa el peso corporal que tenías registrado entonces.\n"
 "\n"
 "También en esta actualización:\n"
-"• Los ejercicios asistidos ahora cuentan en todas partes tu peso corporal menos la asistencia, así que menos asistencia se ve como más volumen.\n"
+"• Los ejercicios asistidos ahora cuentan en todas partes tu peso corporal menos la asistencia, así que menos asistencia se ve como más volumen. Los récords y las gráficas de progreso usan el peso corporal que tenías entonces, así que un cambio de peso ya no los reescribe.\n"
 "• El peso corporal ahora está en un solo lugar: la fila Peso corporal en Ajustes muestra tu último registro y abre Medidas para registrar uno nuevo.\n"
 ""
 
@@ -3405,7 +3405,7 @@ msgstr "No se pudo añadir este ejercicio. Inténtalo de nuevo."
 msgid "Could not load this section. Pull down to try again."
 msgstr "No se pudo cargar esta sección. Desliza hacia abajo para reintentar."
 
-#: hooks/useBodyMeasurementMutations.ts:150
+#: hooks/useBodyMeasurementMutations.ts:154
 msgid "Couldn't delete the measurement."
 msgstr "No se pudo eliminar la medición."
 
@@ -5654,7 +5654,7 @@ msgstr "Reps máx."
 msgid "Measure"
 msgstr "Medida"
 
-#: hooks/useBodyMeasurementMutations.ts:140
+#: hooks/useBodyMeasurementMutations.ts:144
 msgid "Measurement deleted"
 msgstr "Medición eliminada"
 
@@ -8943,7 +8943,7 @@ msgstr "En Tus datos, dentro de Ajustes, toca Exportar datos de entrenamiento pa
 #: app/(app)/(workout)/exercise-list.tsx:232
 #: app/(app)/(workout)/index.tsx:404
 #: app/(app)/(workout)/workout-session.tsx:858
-#: hooks/useBodyMeasurementMutations.ts:142
+#: hooks/useBodyMeasurementMutations.ts:146
 #: hooks/useCreateStandaloneWorkout.ts:122
 #: hooks/useDeleteCompletedWorkoutMutation.ts:52
 #: hooks/useDeletePlanMutation.ts:44
