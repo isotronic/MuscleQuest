@@ -33,7 +33,12 @@ describe("useExerciseInfoQuery", () => {
     useExerciseInfoQuery(42);
     const result = await capturedArgs.queryFn();
     expect(fetchRecord).toHaveBeenCalledWith("userData.db", "exercises", 42);
-    expect(result).toEqual({ exercise_id: 42, name: "Squat" });
+    // The stored name stays available for the English subtitle.
+    expect(result).toEqual({
+      exercise_id: 42,
+      name: "Squat",
+      english_name: "Squat",
+    });
   });
 
   it("sets staleTime to 5 minutes", () => {

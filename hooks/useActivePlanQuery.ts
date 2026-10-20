@@ -4,14 +4,16 @@ import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { Workout } from "@/store/workoutStore";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
+import { withDisplayExerciseName } from "@/utils/db/exerciseNames";
 
 export const fetchActivePlanData = async (): Promise<Plan | null> => {
   let db: SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db");
 
-    const rawResult = (await db.getAllAsync(
-      `
+    const rawResult = (
+      (await db.getAllAsync(
+        `
       SELECT
         user_plans.id,
         user_plans.name,
@@ -22,6 +24,7 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
         user_workout_exercises.id AS user_workout_exercise_id,
         user_workout_exercises.exercise_id AS exercise_id,
         exercises.name AS exercise_name,
+        exercises.app_exercise_id,
         exercises.description,
         exercises.image_uri,
         CASE WHEN exercises.image_uri IS NULL THEN exercises.image END AS image,
@@ -46,7 +49,8 @@ export const fetchActivePlanData = async (): Promise<Plan | null> => {
         AND (user_workout_exercises.is_deleted = FALSE OR user_workout_exercises.is_deleted IS NULL)
       ORDER BY user_workouts.workout_order, user_workout_exercises.exercise_order ASC
       `,
-    )) as RawPlan[] | null;
+      )) as RawPlan[] | null
+    )?.map(withDisplayExerciseName);
 
     if (!rawResult || rawResult.length === 0) {
       return null; // No active plan found

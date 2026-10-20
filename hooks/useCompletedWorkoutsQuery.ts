@@ -5,6 +5,7 @@ import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 import { toLocalDateKey } from "@/utils/dates";
 import { kgToDisplay, metresToDisplay } from "@/utils/units";
 import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
+import { withDisplayExerciseName } from "@/utils/db/exerciseNames";
 
 interface WorkoutResult {
   id: number;
@@ -20,6 +21,7 @@ interface WorkoutResult {
   exercise_id: number;
   user_workout_exercise_id?: number | null;
   exercise_name: string;
+  app_exercise_id?: number | null;
   exercise_tracking_type: string;
   is_unilateral: number | null;
   double_weight: number | null;
@@ -107,6 +109,7 @@ const fetchCompletedWorkouts = async (
         completed_exercises.id as completed_exercise_id,
         completed_exercises.exercise_id,
         exercises.name AS exercise_name,
+        exercises.app_exercise_id,
         COALESCE(
           completed_exercises.resolved_tracking_type,
           (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
@@ -155,7 +158,7 @@ const fetchCompletedWorkouts = async (
 
     const results = await db.getAllAsync(query, params);
 
-    return results as WorkoutResult[];
+    return (results as WorkoutResult[]).map(withDisplayExerciseName);
   } catch (error: any) {
     console.error("Error fetching completed workouts:", error);
     notifyBugsnag(error);
@@ -352,6 +355,7 @@ const fetchWorkoutHistoryForSession = async (
         ce.user_workout_exercise_id,
         ce.exercise_id,
         e.name AS exercise_name,
+        e.app_exercise_id,
         COALESCE(
           ce.resolved_tracking_type,
           (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
@@ -385,9 +389,9 @@ const fetchWorkoutHistoryForSession = async (
       ORDER BY cw.date_completed DESC, ce.id, cs.set_number
     `;
 
-    const results = (await db.getAllAsync(query, [
-      workoutId,
-    ])) as WorkoutResult[];
+    const results = (
+      (await db.getAllAsync(query, [workoutId])) as WorkoutResult[]
+    ).map(withDisplayExerciseName);
 
     const workoutsMap = new Map<number, CompletedWorkout>();
     const workoutsArray: CompletedWorkout[] = [];
@@ -523,6 +527,7 @@ const fetchGlobalExerciseHistoryForSession = async (
         ce.user_workout_exercise_id,
         ce.exercise_id,
         e.name AS exercise_name,
+        e.app_exercise_id,
         COALESCE(
           ce.resolved_tracking_type,
           (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
@@ -562,10 +567,9 @@ const fetchGlobalExerciseHistoryForSession = async (
       ORDER BY cw.date_completed DESC, ce.id, cs.set_number
     `;
 
-    const results = (await db.getAllAsync(
-      query,
-      exerciseIds,
-    )) as WorkoutResult[];
+    const results = (
+      (await db.getAllAsync(query, exerciseIds)) as WorkoutResult[]
+    ).map(withDisplayExerciseName);
 
     const workoutsMap = new Map<number, CompletedWorkout>();
     const workoutsArray: CompletedWorkout[] = [];

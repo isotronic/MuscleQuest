@@ -13,6 +13,7 @@ import { AppText, AppIcon } from "@/components/ui";
 import { useAppTheme } from "@/theme";
 import { useFriendSharedPlansQuery } from "@/hooks/useFriendSharedPlansQuery";
 import { useImportPlanMutation } from "@/hooks/useImportPlanMutation";
+import { displayExerciseName } from "@/utils/db/exerciseNames";
 
 export default function FriendPlanScreen() {
   const { friendUid, planId } = useLocalSearchParams<{
@@ -114,7 +115,10 @@ export default function FriendPlanScreen() {
                       variant="body"
                       style={{ color: colors.contentPrimary }}
                     >
-                      {exercise.name}
+                      {displayExerciseName(
+                        exercise.name,
+                        exercise.appExerciseId,
+                      )}
                     </AppText>
                     <AppText
                       variant="caption"

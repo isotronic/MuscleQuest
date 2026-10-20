@@ -13,6 +13,7 @@ import { AppText } from "@/components/ui";
 import { useAppTheme } from "@/theme";
 import { useFriendSharedStandaloneWorkoutsQuery } from "@/hooks/useFriendSharedStandaloneWorkoutsQuery";
 import { useImportStandaloneWorkoutMutation } from "@/hooks/useImportStandaloneWorkoutMutation";
+import { displayExerciseName } from "@/utils/db/exerciseNames";
 
 export default function FriendWorkoutScreen() {
   const { friendUid, workoutId } = useLocalSearchParams<{
@@ -71,7 +72,7 @@ export default function FriendWorkoutScreen() {
           >
             <View style={{ flex: 1 }}>
               <AppText variant="body" style={{ color: colors.contentPrimary }}>
-                {exercise.name}
+                {displayExerciseName(exercise.name, exercise.appExerciseId)}
               </AppText>
               <AppText
                 variant="caption"

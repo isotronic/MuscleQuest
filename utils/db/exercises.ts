@@ -1,11 +1,15 @@
 import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
 import * as SQLite from "expo-sqlite";
 import { openDatabase } from "./connection";
+import { withDisplayName } from "./exerciseNames";
 
 export interface Exercise {
   exercise_id: number;
   app_exercise_id?: number;
+  /** The display name; see withDisplayName (utils/db/exerciseNames.ts). */
   name: string;
+  /** The stored English name, set where `name` was translated. */
+  english_name?: string;
   /** Thumbnail bytes. Empty once the thumbnail is on disk, see image_uri. */
   image: number[];
   /** Thumbnail file written by writeExerciseImageFiles, or a custom photo. */
@@ -266,11 +270,13 @@ export const fetchExercisesByIds = async (
        WHERE exercise_id IN (${placeholders}) AND COALESCE(is_deleted, 0) = 0`,
       exerciseIds,
     );
-    return rows.map((row) => ({
-      ...row,
-      image: row.image ? Array.from(row.image) : [],
-      secondary_muscles: parseMuscleList(row.secondary_muscles),
-    }));
+    return rows.map((row) =>
+      withDisplayName({
+        ...row,
+        image: row.image ? Array.from(row.image) : [],
+        secondary_muscles: parseMuscleList(row.secondary_muscles),
+      }),
+    );
   } catch (error: any) {
     console.error("Error fetching exercises by id:", error);
     notifyBugsnag(error);

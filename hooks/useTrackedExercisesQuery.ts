@@ -3,6 +3,7 @@ import type { SQLiteDatabase } from "expo-sqlite";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { useQuery } from "@tanstack/react-query";
 import { localDateKeyDaysAgo } from "@/utils/dates";
+import { displayExerciseName } from "@/utils/db/exerciseNames";
 
 interface TrackedExercise {
   id: number;
@@ -104,6 +105,7 @@ const fetchTrackedExercises = async (
       SELECT
         te.*,
         e.name,
+        e.app_exercise_id,
         ${currentTypeExpr} AS tracking_type,
         cs.weight,
         cs.reps,
@@ -139,7 +141,7 @@ const fetchTrackedExercises = async (
     const [trackedExercises, allTrackedRows] = await Promise.all([
       db.getAllAsync(query),
       db.getAllAsync(`
-        SELECT te.*, e.name, ${currentTypeExpr} AS tracking_type
+        SELECT te.*, e.name, e.app_exercise_id, ${currentTypeExpr} AS tracking_type
         FROM tracked_exercises te
         LEFT JOIN exercises e ON te.exercise_id = e.exercise_id
         ORDER BY te.sort_order ASC
@@ -190,7 +192,7 @@ const fetchTrackedExercises = async (
         exercise_id: row.exercise_id,
         date_added: row.date_added,
         completed_sets: [],
-        name: row.name,
+        name: displayExerciseName(row.name, row.app_exercise_id),
         tracking_type: row.tracking_type,
         allTimePR: allTimePRMap[row.exercise_id] ?? 0,
       };
@@ -203,7 +205,7 @@ const fetchTrackedExercises = async (
           exercise_id: row.exercise_id,
           date_added: row.date_added,
           completed_sets: [],
-          name: row.name,
+          name: displayExerciseName(row.name, row.app_exercise_id),
           tracking_type: row.tracking_type,
           allTimePR: allTimePRMap[row.exercise_id] ?? 0,
         };

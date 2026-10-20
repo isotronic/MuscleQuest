@@ -3,6 +3,7 @@ import type { SQLiteDatabase } from "expo-sqlite";
 import { Workout } from "@/store/workoutStore";
 import { useQuery } from "@tanstack/react-query";
 import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
+import { withDisplayExerciseName } from "@/utils/db/exerciseNames";
 
 export interface Plan {
   id: number | null;
@@ -24,6 +25,7 @@ export interface RawPlan {
   workout_name: string | null;
   exercise_id: number | null;
   exercise_name: string | null;
+  app_exercise_id?: number | null;
   description: string | null;
   image: Uint8Array | null;
   image_uri?: string | null;
@@ -126,6 +128,7 @@ export const fetchPlans = async (): Promise<{
         user_workout_exercises.id AS user_workout_exercise_id,
         user_workout_exercises.exercise_id AS exercise_id,
         exercises.name AS exercise_name,
+        exercises.app_exercise_id,
         exercises.description,
         exercises.image_uri,
         CASE WHEN exercises.image_uri IS NULL THEN exercises.image END AS image,
@@ -150,7 +153,7 @@ export const fetchPlans = async (): Promise<{
       ORDER BY user_plans.id, user_workouts.workout_order, user_workout_exercises.exercise_order ASC
     `)) as RawPlan[];
 
-    return transformRawPlans(rawPlans);
+    return transformRawPlans(rawPlans.map(withDisplayExerciseName));
   } catch (error: any) {
     console.error("Error fetching plans", error);
     notifyBugsnag(error);

@@ -3,6 +3,10 @@ import { fetchAllRecords, openDatabase } from "@/utils/database";
 import { Exercise } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
+import {
+  compareExerciseNames,
+  withDisplayName,
+} from "@/utils/db/exerciseNames";
 
 interface ExercisesResult {
   activePlanExercises?: Exercise[];
@@ -17,10 +21,13 @@ const fetchAndSortExercises = async (
   let exercises: Exercise[] = [];
 
   try {
-    exercises = (await fetchAllRecords(
-      "userData.db",
-      "exercises",
-    )) as Exercise[];
+    // In the device language and in that language's alphabetical order;
+    // every group below keeps this order.
+    exercises = (
+      (await fetchAllRecords("userData.db", "exercises")) as Exercise[]
+    )
+      .map(withDisplayName)
+      .sort((a, b) => compareExerciseNames(a.name, b.name));
   } catch (error: any) {
     console.error("Error fetching exercises", error);
     notifyBugsnag(error);

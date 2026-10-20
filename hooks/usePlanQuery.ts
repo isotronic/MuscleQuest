@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchRecord, openDatabase } from "@/utils/database";
 import { Plan } from "./useAllPlansQuery";
 import { markReported, notifyBugsnag } from "@/utils/bugsnagDedup";
+import { withDisplayExerciseName } from "@/utils/db/exerciseNames";
 
 export interface WorkoutRecord {
   id: number;
@@ -42,6 +43,7 @@ export interface RawWorkoutRecord {
   name: string;
   exercise_id: number | null;
   exercise_name: string | null;
+  app_exercise_id?: number | null;
   description: string | null;
   image: Uint8Array | null;
   image_uri: string | null;
@@ -81,6 +83,7 @@ const fetchWorkoutsForPlan = async (
         user_workouts.name,
         user_workout_exercises.exercise_id AS exercise_id,
         exercises.name AS exercise_name,
+        exercises.app_exercise_id,
         exercises.description,
         exercises.image_uri,
         CASE WHEN exercises.image_uri IS NULL THEN exercises.image END AS image,
@@ -107,7 +110,7 @@ const fetchWorkoutsForPlan = async (
       [planId],
     )) as RawWorkoutRecord[];
 
-    return rawWorkouts;
+    return rawWorkouts.map(withDisplayExerciseName);
   } catch (error: any) {
     console.error("Error fetching workouts for plan", error);
     notifyBugsnag(error);

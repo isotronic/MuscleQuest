@@ -4,6 +4,7 @@ import * as SQLite from "expo-sqlite";
 import { nowForDb, parseDbTimestamp, toLocalDateKey } from "@/utils/dates";
 import { METRIC_EPSILON, kgToDisplay, metresToDisplay } from "@/utils/units";
 import { openDatabase } from "./connection";
+import { displayExerciseName } from "./exerciseNames";
 import { progressionMetricSql } from "./progressionMetricSql";
 import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
 
@@ -263,6 +264,7 @@ const planRowSql = (column: string) => `COALESCE(
 
 interface CompletedWorkoutRow {
   id: number;
+  app_exercise_id: number | null;
   user_workout_exercise_id: number | null;
   plan_occurrence: number | null;
   plan_id: number;
@@ -319,6 +321,7 @@ export const fetchCompletedWorkoutById = async (
         ce.id as completed_exercise_id,
         e.exercise_id as exercise_id,
         e.name as exercise_name,
+        e.app_exercise_id,
         e.image_uri as exercise_image_uri,
         CASE WHEN e.image_uri IS NULL THEN e.image END as exercise_image,
         COALESCE(ce.resolved_tracking_type, ${planRowSql("tracking_type_override")}, e.tracking_type) as exercise_tracking_type,
@@ -399,7 +402,9 @@ export const fetchCompletedWorkoutById = async (
             exercise_id: row.exercise_id,
             user_workout_exercise_id: row.user_workout_exercise_id ?? null,
             plan_occurrence: row.plan_occurrence,
-            exercise_name: row.exercise_name || "",
+            exercise_name: row.exercise_name
+              ? displayExerciseName(row.exercise_name, row.app_exercise_id)
+              : "",
             exercise_image: row.exercise_image
               ? Array.from(row.exercise_image)
               : undefined,
