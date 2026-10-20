@@ -926,6 +926,19 @@ If your phone is set to German, French or Spanish, exercise names now show in th
 Prefer English names? Turn off Translate exercise names in Settings, under Appearance.
 `,
   },
+  {
+    version: 2679,
+    release: "1.6",
+    message: msg`
+⚖️ Improved: Volume That Counts Your Body Weight!
+
+Push-ups, pull-ups and dips can now count toward your volume. Turn on Include body weight in volume in Settings, under Stats. Each workout uses the body weight you had logged at the time.
+
+Also in this update:
+• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume.
+• Body weight now lives in one place: the Body weight row in Settings shows your latest entry and opens Measurements to log a new one.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

@@ -216,6 +216,28 @@ msgstr ""
 "Text and buttons now grow with your system font size, and animations are switched off when your device is set to reduce motion.\n"
 ""
 
+#: constants/WhatsNew.ts:932
+msgid ""
+"\n"
+"⚖️ Improved: Volume That Counts Your Body Weight!\n"
+"\n"
+"Push-ups, pull-ups and dips can now count toward your volume. Turn on Include body weight in volume in Settings, under Stats. Each workout uses the body weight you had logged at the time.\n"
+"\n"
+"Also in this update:\n"
+"• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume.\n"
+"• Body weight now lives in one place: the Body weight row in Settings shows your latest entry and opens Measurements to log a new one.\n"
+""
+msgstr ""
+"\n"
+"⚖️ Improved: Volume That Counts Your Body Weight!\n"
+"\n"
+"Push-ups, pull-ups and dips can now count toward your volume. Turn on Include body weight in volume in Settings, under Stats. Each workout uses the body weight you had logged at the time.\n"
+"\n"
+"Also in this update:\n"
+"• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume.\n"
+"• Body weight now lives in one place: the Body weight row in Settings shows your latest entry and opens Measurements to log a new one.\n"
+""
+
 #: constants/WhatsNew.ts:418
 msgid ""
 "\n"
@@ -1650,7 +1672,7 @@ msgstr "{0} {1} | {2} Reps"
 
 #. placeholder {0}: formatNumber(latestWeight.displayValue, 1)
 #. placeholder {1}: latestWeight.displayUnit
-#: app/(app)/settings/profile.tsx:108
+#: app/(app)/settings/profile.tsx:118
 msgid "{0} {1}, logged {loggedOn}"
 msgstr "{0} {1}, logged {loggedOn}"
 
@@ -1675,7 +1697,7 @@ msgid "{0} Complete!"
 msgstr "{0} Complete!"
 
 #. placeholder {0}: settings?.weeklyGoal
-#: app/(app)/settings/profile.tsx:70
+#: app/(app)/settings/profile.tsx:78
 msgid "{0} days per week"
 msgstr "{0} days per week"
 
@@ -1689,7 +1711,7 @@ msgid "{0} Exercises{1}"
 msgstr "{0} Exercises{1}"
 
 #. placeholder {0}: _(WEEK_START_NAMES[weekStartsOn])
-#: app/(app)/settings/profile.tsx:81
+#: app/(app)/settings/profile.tsx:89
 msgid "{0} from {weekStartPending}"
 msgstr "{0} from {weekStartPending}"
 
@@ -1737,17 +1759,17 @@ msgid "{0} workouts"
 msgstr "{0} workouts"
 
 #. placeholder {0}: a.exerciseName
-#: components/WeeklySummaryCard.tsx:176
+#: components/WeeklySummaryCard.tsx:179
 msgid "{0}: {best} {best, plural, one {rep} other {reps}} (+{delta}, {pctStr})"
 msgstr "{0}: {best} {best, plural, one {rep} other {reps}} (+{delta}, {pctStr})"
 
 #. placeholder {0}: a.exerciseName
-#: components/WeeklySummaryCard.tsx:191
+#: components/WeeklySummaryCard.tsx:194
 msgid "{0}: {best}{unit} (+{delta}{unit}, {pctStr})"
 msgstr "{0}: {best}{unit} (+{delta}{unit}, {pctStr})"
 
 #. placeholder {0}: a.exerciseName
-#: components/WeeklySummaryCard.tsx:184
+#: components/WeeklySummaryCard.tsx:187
 msgid "{0}: {best}s (+{delta}s, {pctStr})"
 msgstr "{0}: {best}s (+{delta}s, {pctStr})"
 
@@ -1967,7 +1989,7 @@ msgstr "{total, plural, one {# set not completed ({list}). It will not be saved.
 #~ msgstr "{uniqueWorkoutDaysCount} / {0} days worked out"
 
 #. placeholder {0}: settings?.weeklyGoal
-#: app/(app)/(tabs)/index.tsx:372
+#: app/(app)/(tabs)/index.tsx:371
 msgid "{uniqueWorkoutDaysCount} of {0} this week"
 msgstr "{uniqueWorkoutDaysCount} of {0} this week"
 
@@ -2066,7 +2088,7 @@ msgstr "10"
 msgid "10 to 20 hard sets per muscle a week is a common range for muscle growth."
 msgstr "10 to 20 hard sets per muscle a week is a common range for muscle growth."
 
-#: components/WeeklySummaryCard.tsx:190
+#: components/WeeklySummaryCard.tsx:193
 msgid "1RM"
 msgstr "1RM"
 
@@ -2450,7 +2472,7 @@ msgstr "Add workouts"
 msgid "Add workouts to the plan, then add exercises to each workout with target sets and reps. Each workout card shows an estimated duration and exercise count."
 msgstr "Add workouts to the plan, then add exercises to each workout with target sets and reps. Each workout card shows an estimated duration and exercise count."
 
-#: app/(app)/settings/profile.tsx:115
+#: app/(app)/settings/profile.tsx:125
 msgid "Add your body weight"
 msgstr "Add your body weight"
 
@@ -3014,7 +3036,7 @@ msgstr "Body Parts"
 msgid "body weight"
 msgstr "body weight"
 
-#: app/(app)/settings/profile.tsx:105
+#: app/(app)/settings/profile.tsx:113
 #: app/setup.tsx:295
 #: utils/settingsIndex.ts:57
 msgid "Body weight"
@@ -3227,7 +3249,7 @@ msgstr "Choose none to show every measurement in the latest entry."
 msgid "Choose the changes to keep for future sessions."
 msgstr "Choose the changes to keep for future sessions."
 
-#: app/(app)/(tabs)/index.tsx:470
+#: app/(app)/(tabs)/index.tsx:469
 msgid "Choose workout"
 msgstr "Choose workout"
 
@@ -3404,7 +3426,7 @@ msgstr "Could not add this exercise. Please try again."
 msgid "Could not load this section. Pull down to try again."
 msgstr "Could not load this section. Pull down to try again."
 
-#: hooks/useBodyMeasurementMutations.ts:146
+#: hooks/useBodyMeasurementMutations.ts:150
 msgid "Couldn't delete the measurement."
 msgstr "Couldn't delete the measurement."
 
@@ -3754,7 +3776,7 @@ msgstr "Delete"
 msgid "Delete {0}"
 msgstr "Delete {0}"
 
-#: app/(app)/settings/profile.tsx:149
+#: app/(app)/settings/profile.tsx:159
 #: utils/settingsIndex.ts:69
 msgid "Delete account"
 msgstr "Delete account"
@@ -4003,7 +4025,7 @@ msgstr "Don't remind me"
 msgid "Done"
 msgstr "Done"
 
-#: app/(app)/(tabs)/index.tsx:545
+#: app/(app)/(tabs)/index.tsx:544
 msgid "Done this week"
 msgstr "Done this week"
 
@@ -5653,7 +5675,7 @@ msgstr "Max Reps"
 msgid "Measure"
 msgstr "Measure"
 
-#: hooks/useBodyMeasurementMutations.ts:136
+#: hooks/useBodyMeasurementMutations.ts:140
 msgid "Measurement deleted"
 msgstr "Measurement deleted"
 
@@ -6365,7 +6387,7 @@ msgstr "Other"
 msgid "Other Exercises"
 msgstr "Other Exercises"
 
-#: app/(app)/(tabs)/index.tsx:487
+#: app/(app)/(tabs)/index.tsx:486
 msgid "Other workouts in this plan"
 msgstr "Other workouts in this plan"
 
@@ -6698,7 +6720,7 @@ msgid "quads"
 msgstr "quads"
 
 #: app/(app)/(tabs)/(stats)/history-details.tsx:228
-#: app/(app)/(tabs)/index.tsx:460
+#: app/(app)/(tabs)/index.tsx:459
 #: utils/workoutName.ts:7
 msgid "Quick workout"
 msgstr "Quick workout"
@@ -6858,7 +6880,7 @@ msgstr "Remove Workout"
 msgid "Remove workout {0}"
 msgstr "Remove workout {0}"
 
-#: app/(app)/settings/profile.tsx:152
+#: app/(app)/settings/profile.tsx:162
 msgid "Remove your account and everything stored online"
 msgstr "Remove your account and everything stored online"
 
@@ -6894,7 +6916,7 @@ msgstr "Reorder {title}"
 msgid "Reorder a workout card with the up/down arrow buttons, or remove it with the X button, both in the top right of the card."
 msgstr "Reorder a workout card with the up/down arrow buttons, or remove it with the X button, both in the top right of the card."
 
-#: components/WeeklySummaryCard.tsx:175
+#: components/WeeklySummaryCard.tsx:178
 msgid "Rep PR"
 msgstr "Rep PR"
 
@@ -7133,7 +7155,7 @@ msgstr "Restore your backup? This replaces all training data on this device. Any
 msgid "Restoring. Please wait..."
 msgstr "Restoring. Please wait..."
 
-#: app/(app)/(tabs)/index.tsx:412
+#: app/(app)/(tabs)/index.tsx:411
 #: components/StaleWorkoutPrompt.tsx:106
 msgid "Resume"
 msgstr "Resume"
@@ -7332,7 +7354,7 @@ msgstr "Select {0}"
 msgid "Select a day to see workouts."
 msgstr "Select a day to see workouts."
 
-#: app/(app)/(tabs)/index.tsx:336
+#: app/(app)/(tabs)/index.tsx:335
 msgid "Select a workout to view"
 msgstr "Select a workout to view"
 
@@ -7895,7 +7917,7 @@ msgstr "spine"
 #~ msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a standalone workout by mistake, tap Undo on the message that appears."
 #~ msgstr "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a standalone workout by mistake, tap Undo on the message that appears."
 
-#: app/(app)/(tabs)/index.tsx:560
+#: app/(app)/(tabs)/index.tsx:559
 #: components/home/TodayCard.tsx:195
 #: components/StandaloneWorkoutListItem.tsx:115
 msgid "Start"
@@ -7914,7 +7936,7 @@ msgstr "Start {name}"
 msgid "Start {name} as it is saved now, or a quick workout with the exercises and sets from this session."
 msgstr "Start {name} as it is saved now, or a quick workout with the exercises and sets from this session."
 
-#: app/(app)/(tabs)/index.tsx:558
+#: app/(app)/(tabs)/index.tsx:557
 msgid "Start {spokenName}"
 msgstr "Start {spokenName}"
 
@@ -7960,7 +7982,7 @@ msgstr "Start Timer"
 msgid "Start Workout"
 msgstr "Start Workout"
 
-#: app/(app)/(tabs)/index.tsx:321
+#: app/(app)/(tabs)/index.tsx:320
 #: components/StandaloneWorkoutScreen.tsx:214
 msgid "Starting Workout..."
 msgstr "Starting Workout..."
@@ -8513,7 +8535,7 @@ msgstr "Time (Minutes:Seconds)"
 msgid "Time (s)"
 msgstr "Time (s)"
 
-#: components/WeeklySummaryCard.tsx:183
+#: components/WeeklySummaryCard.tsx:186
 msgid "Time PR"
 msgstr "Time PR"
 
@@ -8562,7 +8584,7 @@ msgstr "Tip {0} of {1}"
 msgid "Tips"
 msgstr "Tips"
 
-#: app/(app)/(tabs)/index.tsx:72
+#: app/(app)/(tabs)/index.tsx:71
 msgid "Tips hidden. Turn them back on in Settings."
 msgstr "Tips hidden. Turn them back on in Settings."
 
@@ -8942,7 +8964,7 @@ msgstr "Under Your data in Settings, tap Export training data to save your worko
 #: app/(app)/(workout)/exercise-list.tsx:232
 #: app/(app)/(workout)/index.tsx:404
 #: app/(app)/(workout)/workout-session.tsx:858
-#: hooks/useBodyMeasurementMutations.ts:138
+#: hooks/useBodyMeasurementMutations.ts:142
 #: hooks/useCreateStandaloneWorkout.ts:122
 #: hooks/useDeleteCompletedWorkoutMutation.ts:52
 #: hooks/useDeletePlanMutation.ts:44
@@ -9090,7 +9112,7 @@ msgstr "Use this image"
 msgid "Use with this account"
 msgstr "Use with this account"
 
-#: app/(app)/settings/profile.tsx:134
+#: app/(app)/settings/profile.tsx:144
 msgid "Used for assisted and bodyweight exercises"
 msgstr "Used for assisted and bodyweight exercises"
 
@@ -9176,8 +9198,12 @@ msgid "Volume ({volumeUnit})"
 msgstr "Volume ({volumeUnit})"
 
 #: constants/HelpData.ts:295
-msgid "Volume is weight times reps, added up over your sets. Assisted exercises count your body weight minus the assistance, so less assistance means more volume. Bodyweight exercises such as push-ups and pull-ups count nothing unless you turn on Include body weight in volume in Settings, under Stats; then they count your body weight, plus any weight you added. Each workout uses the body weight you had logged by that day, so log your weight under Body Measurements to keep it current. Time and distance exercises have no volume."
-msgstr "Volume is weight times reps, added up over your sets. Assisted exercises count your body weight minus the assistance, so less assistance means more volume. Bodyweight exercises such as push-ups and pull-ups count nothing unless you turn on Include body weight in volume in Settings, under Stats; then they count your body weight, plus any weight you added. Each workout uses the body weight you had logged by that day, so log your weight under Body Measurements to keep it current. Time and distance exercises have no volume."
+#~ msgid "Volume is weight times reps, added up over your sets. Assisted exercises count your body weight minus the assistance, so less assistance means more volume. Bodyweight exercises such as push-ups and pull-ups count nothing unless you turn on Include body weight in volume in Settings, under Stats; then they count your body weight, plus any weight you added. Each workout uses the body weight you had logged by that day, so log your weight under Body Measurements to keep it current. Time and distance exercises have no volume."
+#~ msgstr "Volume is weight times reps, added up over your sets. Assisted exercises count your body weight minus the assistance, so less assistance means more volume. Bodyweight exercises such as push-ups and pull-ups count nothing unless you turn on Include body weight in volume in Settings, under Stats; then they count your body weight, plus any weight you added. Each workout uses the body weight you had logged by that day, so log your weight under Body Measurements to keep it current. Time and distance exercises have no volume."
+
+#: constants/HelpData.ts:295
+msgid "Volume is weight times reps, added up over your sets. Assisted exercises count your body weight minus the assistance, so less assistance means more volume. Bodyweight exercises such as push-ups and pull-ups count nothing unless you turn on Include body weight in volume in Settings, under Stats; then they count your body weight, plus any weight you added. Each workout uses the latest body weight logged before it, or your current one if there was none yet, so log your weight under Body Measurements to keep it current. Time and distance exercises have no volume."
+msgstr "Volume is weight times reps, added up over your sets. Assisted exercises count your body weight minus the assistance, so less assistance means more volume. Bodyweight exercises such as push-ups and pull-ups count nothing unless you turn on Include body weight in volume in Settings, under Stats; then they count your body weight, plus any weight you added. Each workout uses the latest body weight logged before it, or your current one if there was none yet, so log your weight under Body Measurements to keep it current. Time and distance exercises have no volume."
 
 #: components/stats/widgets/TrendWidget.tsx:16
 msgid "Volume per Week ({volumeUnit})"
@@ -9249,7 +9275,7 @@ msgstr "Wed"
 msgid "Wednesday"
 msgstr "Wednesday"
 
-#: app/(app)/settings/profile.tsx:78
+#: app/(app)/settings/profile.tsx:86
 #: app/setup.tsx:268
 #: utils/settingsIndex.ts:51
 msgid "Week starts on"
@@ -9260,7 +9286,7 @@ msgstr "Week starts on"
 msgid "Week streak"
 msgstr "Week streak"
 
-#: app/(app)/settings/profile.tsx:69
+#: app/(app)/settings/profile.tsx:77
 #: app/setup.tsx:235
 #: utils/settingsIndex.ts:45
 msgid "Weekly goal"
@@ -9439,7 +9465,7 @@ msgstr "Workout"
 #. placeholder {0}: index + 1
 #. placeholder {0}: originalIndex + 1
 #: app/(app)/(tabs)/(plans)/overview.tsx:77
-#: app/(app)/(tabs)/index.tsx:507
+#: app/(app)/(tabs)/index.tsx:506
 #: components/home/TodayCard.tsx:110
 #: components/PlanScheduleEditor.tsx:102
 #: components/PlanScheduleEditor.tsx:173
@@ -9498,7 +9524,7 @@ msgstr "Workout Details"
 msgid "Workout History"
 msgstr "Workout History"
 
-#: app/(app)/(tabs)/index.tsx:399
+#: app/(app)/(tabs)/index.tsx:398
 msgid "Workout in progress"
 msgstr "Workout in progress"
 
@@ -9565,7 +9591,7 @@ msgstr "Workouts"
 msgid "Workouts can also live outside of plans, under Your workouts on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each workout so you can plan your time before starting. A quick workout starts a session immediately from the home screen: tap Quick workout, add exercises as you go, and at the end you can give it a name to reuse it later. Tap Choose workout next to it to search and browse every workout across your plans and Your workouts; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a workout by mistake, tap Undo on the message that appears."
 msgstr "Workouts can also live outside of plans, under Your workouts on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each workout so you can plan your time before starting. A quick workout starts a session immediately from the home screen: tap Quick workout, add exercises as you go, and at the end you can give it a name to reuse it later. Tap Choose workout next to it to search and browse every workout across your plans and Your workouts; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a workout by mistake, tap Undo on the message that appears."
 
-#: app/(app)/(tabs)/index.tsx:489
+#: app/(app)/(tabs)/index.tsx:488
 msgid "Workouts in this plan"
 msgstr "Workouts in this plan"
 

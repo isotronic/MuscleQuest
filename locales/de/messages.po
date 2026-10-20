@@ -217,6 +217,28 @@ msgstr ""
 "Text und Schaltflächen wachsen jetzt mit deiner Systemschriftgröße, und Animationen sind ausgeschaltet, wenn auf deinem Gerät Bewegungen reduziert werden.\n"
 ""
 
+#: constants/WhatsNew.ts:932
+msgid ""
+"\n"
+"⚖️ Improved: Volume That Counts Your Body Weight!\n"
+"\n"
+"Push-ups, pull-ups and dips can now count toward your volume. Turn on Include body weight in volume in Settings, under Stats. Each workout uses the body weight you had logged at the time.\n"
+"\n"
+"Also in this update:\n"
+"• Assisted exercises now count your body weight minus the assistance everywhere, so less assistance shows as more volume.\n"
+"• Body weight now lives in one place: the Body weight row in Settings shows your latest entry and opens Measurements to log a new one.\n"
+""
+msgstr ""
+"\n"
+"⚖️ Verbessert: Volumen mit deinem Körpergewicht!\n"
+"\n"
+"Liegestütze, Klimmzüge und Dips können jetzt zu deinem Volumen zählen. Aktiviere Körpergewicht im Volumen zählen in den Einstellungen unter Statistiken. Jedes Training nutzt das Körpergewicht, das du damals eingetragen hattest.\n"
+"\n"
+"Außerdem in diesem Update:\n"
+"• Unterstützte Übungen zählen jetzt überall dein Körpergewicht abzüglich der Unterstützung, weniger Unterstützung ergibt also mehr Volumen.\n"
+"• Das Körpergewicht hat jetzt einen festen Ort: Die Zeile Körpergewicht in den Einstellungen zeigt deinen letzten Eintrag und öffnet Messungen, um einen neuen einzutragen.\n"
+""
+
 #: constants/WhatsNew.ts:418
 msgid ""
 "\n"
@@ -1629,7 +1651,7 @@ msgstr "{0} {1} | {2} Wdh."
 
 #. placeholder {0}: formatNumber(latestWeight.displayValue, 1)
 #. placeholder {1}: latestWeight.displayUnit
-#: app/(app)/settings/profile.tsx:108
+#: app/(app)/settings/profile.tsx:118
 msgid "{0} {1}, logged {loggedOn}"
 msgstr "{0} {1}, eingetragen am {loggedOn}"
 
@@ -1654,7 +1676,7 @@ msgid "{0} Complete!"
 msgstr "{0} abgeschlossen!"
 
 #. placeholder {0}: settings?.weeklyGoal
-#: app/(app)/settings/profile.tsx:70
+#: app/(app)/settings/profile.tsx:78
 msgid "{0} days per week"
 msgstr "{0} Tage pro Woche"
 
@@ -1668,7 +1690,7 @@ msgid "{0} Exercises{1}"
 msgstr "{0} Übungen{1}"
 
 #. placeholder {0}: _(WEEK_START_NAMES[weekStartsOn])
-#: app/(app)/settings/profile.tsx:81
+#: app/(app)/settings/profile.tsx:89
 msgid "{0} from {weekStartPending}"
 msgstr "{0} ab {weekStartPending}"
 
@@ -1716,17 +1738,17 @@ msgid "{0} workouts"
 msgstr "{0} Trainings"
 
 #. placeholder {0}: a.exerciseName
-#: components/WeeklySummaryCard.tsx:176
+#: components/WeeklySummaryCard.tsx:179
 msgid "{0}: {best} {best, plural, one {rep} other {reps}} (+{delta}, {pctStr})"
 msgstr "{0}: {best} {best, plural, one {Wdh.} other {Wdh.}} (+{delta}, {pctStr})"
 
 #. placeholder {0}: a.exerciseName
-#: components/WeeklySummaryCard.tsx:191
+#: components/WeeklySummaryCard.tsx:194
 msgid "{0}: {best}{unit} (+{delta}{unit}, {pctStr})"
 msgstr "{0}: {best}{unit} (+{delta}{unit}, {pctStr})"
 
 #. placeholder {0}: a.exerciseName
-#: components/WeeklySummaryCard.tsx:184
+#: components/WeeklySummaryCard.tsx:187
 msgid "{0}: {best}s (+{delta}s, {pctStr})"
 msgstr "{0}: {best}s (+{delta}s, {pctStr})"
 
@@ -1946,7 +1968,7 @@ msgstr "{total, plural, one {# Satz nicht abgeschlossen ({list}). Er wird nicht 
 #~ msgstr "{uniqueWorkoutDaysCount} / {0} Trainingstage"
 
 #. placeholder {0}: settings?.weeklyGoal
-#: app/(app)/(tabs)/index.tsx:372
+#: app/(app)/(tabs)/index.tsx:371
 msgid "{uniqueWorkoutDaysCount} of {0} this week"
 msgstr "{uniqueWorkoutDaysCount} von {0} diese Woche"
 
@@ -2045,7 +2067,7 @@ msgstr "10"
 msgid "10 to 20 hard sets per muscle a week is a common range for muscle growth."
 msgstr "10 bis 20 harte Sätze pro Muskel und Woche sind ein üblicher Bereich für Muskelaufbau."
 
-#: components/WeeklySummaryCard.tsx:190
+#: components/WeeklySummaryCard.tsx:193
 msgid "1RM"
 msgstr "1RM"
 
@@ -2429,7 +2451,7 @@ msgstr "Trainings hinzufügen"
 msgid "Add workouts to the plan, then add exercises to each workout with target sets and reps. Each workout card shows an estimated duration and exercise count."
 msgstr "Füge Trainings zum Plan hinzu und dann Übungen zu jedem Training mit Ziel-Sätzen und Wiederholungen. Jede Trainingskarte zeigt eine geschätzte Dauer und die Übungsanzahl."
 
-#: app/(app)/settings/profile.tsx:115
+#: app/(app)/settings/profile.tsx:125
 msgid "Add your body weight"
 msgstr "Körpergewicht eintragen"
 
@@ -2993,7 +3015,7 @@ msgstr "Körperteile"
 msgid "body weight"
 msgstr "Körpergewicht"
 
-#: app/(app)/settings/profile.tsx:105
+#: app/(app)/settings/profile.tsx:113
 #: app/setup.tsx:295
 #: utils/settingsIndex.ts:57
 msgid "Body weight"
@@ -3206,7 +3228,7 @@ msgstr "Wähle keine aus, um alle Maße des letzten Eintrags anzuzeigen."
 msgid "Choose the changes to keep for future sessions."
 msgstr "Wähle die Änderungen, die du für künftige Einheiten behalten willst."
 
-#: app/(app)/(tabs)/index.tsx:470
+#: app/(app)/(tabs)/index.tsx:469
 msgid "Choose workout"
 msgstr "Training auswählen"
 
@@ -3383,7 +3405,7 @@ msgstr "Übung konnte nicht hinzugefügt werden. Bitte versuche es erneut."
 msgid "Could not load this section. Pull down to try again."
 msgstr "Dieser Bereich konnte nicht geladen werden. Zum erneuten Versuch nach unten ziehen."
 
-#: hooks/useBodyMeasurementMutations.ts:146
+#: hooks/useBodyMeasurementMutations.ts:150
 msgid "Couldn't delete the measurement."
 msgstr "Die Messung konnte nicht gelöscht werden."
 
@@ -3733,7 +3755,7 @@ msgstr "Löschen"
 msgid "Delete {0}"
 msgstr "{0} löschen"
 
-#: app/(app)/settings/profile.tsx:149
+#: app/(app)/settings/profile.tsx:159
 #: utils/settingsIndex.ts:69
 msgid "Delete account"
 msgstr "Konto löschen"
@@ -3982,7 +4004,7 @@ msgstr "Nicht mehr erinnern"
 msgid "Done"
 msgstr "Fertig"
 
-#: app/(app)/(tabs)/index.tsx:545
+#: app/(app)/(tabs)/index.tsx:544
 msgid "Done this week"
 msgstr "Diese Woche erledigt"
 
@@ -5632,7 +5654,7 @@ msgstr "Max. Wdh."
 msgid "Measure"
 msgstr "Messgröße"
 
-#: hooks/useBodyMeasurementMutations.ts:136
+#: hooks/useBodyMeasurementMutations.ts:140
 msgid "Measurement deleted"
 msgstr "Messung gelöscht"
 
@@ -6344,7 +6366,7 @@ msgstr "Sonstige"
 msgid "Other Exercises"
 msgstr "Weitere Übungen"
 
-#: app/(app)/(tabs)/index.tsx:487
+#: app/(app)/(tabs)/index.tsx:486
 msgid "Other workouts in this plan"
 msgstr "Weitere Trainings in diesem Plan"
 
@@ -6677,7 +6699,7 @@ msgid "quads"
 msgstr "Quads"
 
 #: app/(app)/(tabs)/(stats)/history-details.tsx:228
-#: app/(app)/(tabs)/index.tsx:460
+#: app/(app)/(tabs)/index.tsx:459
 #: utils/workoutName.ts:7
 msgid "Quick workout"
 msgstr "Schnelltraining"
@@ -6837,7 +6859,7 @@ msgstr "Training entfernen"
 msgid "Remove workout {0}"
 msgstr "Training {0} entfernen"
 
-#: app/(app)/settings/profile.tsx:152
+#: app/(app)/settings/profile.tsx:162
 msgid "Remove your account and everything stored online"
 msgstr "Entferne dein Konto und alles, was online gespeichert ist"
 
@@ -6873,7 +6895,7 @@ msgstr "{title} umsortieren"
 msgid "Reorder a workout card with the up/down arrow buttons, or remove it with the X button, both in the top right of the card."
 msgstr "Ordne eine Trainingskarte mit den Hoch/Runter-Pfeilen neu an oder entferne sie mit der X-Schaltfläche, beide befinden sich oben rechts auf der Karte."
 
-#: components/WeeklySummaryCard.tsx:175
+#: components/WeeklySummaryCard.tsx:178
 msgid "Rep PR"
 msgstr "Wiederholungs-PR"
 
@@ -7112,7 +7134,7 @@ msgstr "Deine Sicherung wiederherstellen? Dadurch werden alle Trainingsdaten auf
 msgid "Restoring. Please wait..."
 msgstr "Wird wiederhergestellt. Bitte warten..."
 
-#: app/(app)/(tabs)/index.tsx:412
+#: app/(app)/(tabs)/index.tsx:411
 #: components/StaleWorkoutPrompt.tsx:106
 msgid "Resume"
 msgstr "Fortsetzen"
@@ -7311,7 +7333,7 @@ msgstr "{0} auswählen"
 msgid "Select a day to see workouts."
 msgstr "Wähle einen Tag, um Trainings anzuzeigen."
 
-#: app/(app)/(tabs)/index.tsx:336
+#: app/(app)/(tabs)/index.tsx:335
 msgid "Select a workout to view"
 msgstr "Wähle ein Training zur Anzeige"
 
@@ -7874,7 +7896,7 @@ msgstr "Wirbelsäule"
 #~ msgid "Standalone workouts live outside of plans and appear alongside your plans on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each standalone workout so you can plan your time before starting. Quick Workouts let you start a session immediately from the home screen: tap Quick Workout, add exercises as you go, and at the end you can save it as a standalone workout for future use or simply discard it. Tap Choose Workout next to it to search and browse every workout across your plans and standalone library; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a standalone workout by mistake, tap Undo on the message that appears."
 #~ msgstr "Eigenständige Trainings existieren außerhalb von Plänen und erscheinen neben deinen Plänen auf dem Pläne-Bildschirm. Erstelle eines, indem du auf Neues Training tippst, einen Namen vergibst und Übungen hinzufügst; du kannst es jederzeit starten, ohne einen aktiven Plan zu benötigen. Eine geschätzte Dauer wird bei jedem eigenständigen Training angezeigt, damit du deine Zeit vor dem Start planen kannst. Schnelltrainings ermöglichen dir, eine Einheit sofort vom Startbildschirm aus zu starten: Tippe auf Schnelltraining, füge Übungen unterwegs hinzu, und am Ende kannst du es als eigenständiges Training für die Zukunft speichern oder einfach verwerfen. Tippe daneben auf „Training auswählen“, um jedes Training in deinen Plänen und deiner eigenständigen Bibliothek zu durchsuchen; tippe auf ein Training, um seine Übungen anzusehen, oder auf seinen Starten-Button, um direkt loszulegen. Wie Pläne speichert der Trainings-Editor automatisch einen Entwurf, damit du sicher gehen und zurückkehren kannst, ohne deine Arbeit zu verlieren. Wenn du ein eigenständiges Training versehentlich löschst, tippe in der eingeblendeten Meldung auf Rückgängig."
 
-#: app/(app)/(tabs)/index.tsx:560
+#: app/(app)/(tabs)/index.tsx:559
 #: components/home/TodayCard.tsx:195
 #: components/StandaloneWorkoutListItem.tsx:115
 msgid "Start"
@@ -7893,7 +7915,7 @@ msgstr "{name} starten"
 msgid "Start {name} as it is saved now, or a quick workout with the exercises and sets from this session."
 msgstr "Starte {name} so, wie es jetzt gespeichert ist, oder ein Schnelltraining mit den Übungen und Sätzen aus dieser Einheit."
 
-#: app/(app)/(tabs)/index.tsx:558
+#: app/(app)/(tabs)/index.tsx:557
 msgid "Start {spokenName}"
 msgstr "{spokenName} starten"
 
@@ -7939,7 +7961,7 @@ msgstr "Timer starten"
 msgid "Start Workout"
 msgstr "Training starten"
 
-#: app/(app)/(tabs)/index.tsx:321
+#: app/(app)/(tabs)/index.tsx:320
 #: components/StandaloneWorkoutScreen.tsx:214
 msgid "Starting Workout..."
 msgstr "Training wird gestartet..."
@@ -8492,7 +8514,7 @@ msgstr "Zeit (Minuten:Sekunden)"
 msgid "Time (s)"
 msgstr "Zeit (s)"
 
-#: components/WeeklySummaryCard.tsx:183
+#: components/WeeklySummaryCard.tsx:186
 msgid "Time PR"
 msgstr "Zeit-PR"
 
@@ -8541,7 +8563,7 @@ msgstr "Tipp {0} von {1}"
 msgid "Tips"
 msgstr "Tipps"
 
-#: app/(app)/(tabs)/index.tsx:72
+#: app/(app)/(tabs)/index.tsx:71
 msgid "Tips hidden. Turn them back on in Settings."
 msgstr "Tipps ausgeblendet. Du kannst sie in den Einstellungen wieder einschalten."
 
@@ -8921,7 +8943,7 @@ msgstr "Tippe in den Einstellungen unter Deine Daten auf Trainingsdaten exportie
 #: app/(app)/(workout)/exercise-list.tsx:232
 #: app/(app)/(workout)/index.tsx:404
 #: app/(app)/(workout)/workout-session.tsx:858
-#: hooks/useBodyMeasurementMutations.ts:138
+#: hooks/useBodyMeasurementMutations.ts:142
 #: hooks/useCreateStandaloneWorkout.ts:122
 #: hooks/useDeleteCompletedWorkoutMutation.ts:52
 #: hooks/useDeletePlanMutation.ts:44
@@ -9069,7 +9091,7 @@ msgstr "Dieses Bild verwenden"
 msgid "Use with this account"
 msgstr "Mit diesem Konto verwenden"
 
-#: app/(app)/settings/profile.tsx:134
+#: app/(app)/settings/profile.tsx:144
 msgid "Used for assisted and bodyweight exercises"
 msgstr "Für unterstützte Übungen und Körpergewichtsübungen"
 
@@ -9155,8 +9177,12 @@ msgid "Volume ({volumeUnit})"
 msgstr "Volumen ({volumeUnit})"
 
 #: constants/HelpData.ts:295
-msgid "Volume is weight times reps, added up over your sets. Assisted exercises count your body weight minus the assistance, so less assistance means more volume. Bodyweight exercises such as push-ups and pull-ups count nothing unless you turn on Include body weight in volume in Settings, under Stats; then they count your body weight, plus any weight you added. Each workout uses the body weight you had logged by that day, so log your weight under Body Measurements to keep it current. Time and distance exercises have no volume."
-msgstr "Volumen ist Gewicht mal Wiederholungen, über deine Sätze addiert. Unterstützte Übungen zählen dein Körpergewicht abzüglich der Unterstützung, weniger Unterstützung bedeutet also mehr Volumen. Körpergewichtsübungen wie Liegestütze und Klimmzüge zählen nicht, außer du aktivierst Körpergewicht im Volumen zählen in den Einstellungen unter Statistiken; dann zählen sie dein Körpergewicht plus eventuelles Zusatzgewicht. Jedes Training nutzt das Körpergewicht, das du bis zu diesem Tag eingetragen hattest, also trag dein Gewicht unter Körpermaße ein, damit es aktuell bleibt. Zeit- und Distanzübungen haben kein Volumen."
+#~ msgid "Volume is weight times reps, added up over your sets. Assisted exercises count your body weight minus the assistance, so less assistance means more volume. Bodyweight exercises such as push-ups and pull-ups count nothing unless you turn on Include body weight in volume in Settings, under Stats; then they count your body weight, plus any weight you added. Each workout uses the body weight you had logged by that day, so log your weight under Body Measurements to keep it current. Time and distance exercises have no volume."
+#~ msgstr "Volumen ist Gewicht mal Wiederholungen, über deine Sätze addiert. Unterstützte Übungen zählen dein Körpergewicht abzüglich der Unterstützung, weniger Unterstützung bedeutet also mehr Volumen. Körpergewichtsübungen wie Liegestütze und Klimmzüge zählen nicht, außer du aktivierst Körpergewicht im Volumen zählen in den Einstellungen unter Statistiken; dann zählen sie dein Körpergewicht plus eventuelles Zusatzgewicht. Jedes Training nutzt das Körpergewicht, das du bis zu diesem Tag eingetragen hattest, also trag dein Gewicht unter Körpermaße ein, damit es aktuell bleibt. Zeit- und Distanzübungen haben kein Volumen."
+
+#: constants/HelpData.ts:295
+msgid "Volume is weight times reps, added up over your sets. Assisted exercises count your body weight minus the assistance, so less assistance means more volume. Bodyweight exercises such as push-ups and pull-ups count nothing unless you turn on Include body weight in volume in Settings, under Stats; then they count your body weight, plus any weight you added. Each workout uses the latest body weight logged before it, or your current one if there was none yet, so log your weight under Body Measurements to keep it current. Time and distance exercises have no volume."
+msgstr "Volumen ist Gewicht mal Wiederholungen, über deine Sätze addiert. Unterstützte Übungen zählen dein Körpergewicht abzüglich der Unterstützung, weniger Unterstützung bedeutet also mehr Volumen. Körpergewichtsübungen wie Liegestütze und Klimmzüge zählen nicht, außer du aktivierst Körpergewicht im Volumen zählen in den Einstellungen unter Statistiken; dann zählen sie dein Körpergewicht plus eventuelles Zusatzgewicht. Jedes Training nutzt das letzte davor eingetragene Körpergewicht, oder dein aktuelles, falls es noch keins gab, also trag dein Gewicht unter Körpermaße ein, damit es aktuell bleibt. Zeit- und Distanzübungen haben kein Volumen."
 
 #: components/stats/widgets/TrendWidget.tsx:16
 msgid "Volume per Week ({volumeUnit})"
@@ -9228,7 +9254,7 @@ msgstr "Mi"
 msgid "Wednesday"
 msgstr "Mittwoch"
 
-#: app/(app)/settings/profile.tsx:78
+#: app/(app)/settings/profile.tsx:86
 #: app/setup.tsx:268
 #: utils/settingsIndex.ts:51
 msgid "Week starts on"
@@ -9239,7 +9265,7 @@ msgstr "Woche beginnt am"
 msgid "Week streak"
 msgstr "Wochenserie"
 
-#: app/(app)/settings/profile.tsx:69
+#: app/(app)/settings/profile.tsx:77
 #: app/setup.tsx:235
 #: utils/settingsIndex.ts:45
 msgid "Weekly goal"
@@ -9418,7 +9444,7 @@ msgstr "Training"
 #. placeholder {0}: index + 1
 #. placeholder {0}: originalIndex + 1
 #: app/(app)/(tabs)/(plans)/overview.tsx:77
-#: app/(app)/(tabs)/index.tsx:507
+#: app/(app)/(tabs)/index.tsx:506
 #: components/home/TodayCard.tsx:110
 #: components/PlanScheduleEditor.tsx:102
 #: components/PlanScheduleEditor.tsx:173
@@ -9477,7 +9503,7 @@ msgstr "Trainingsdetails"
 msgid "Workout History"
 msgstr "Trainingshistorie"
 
-#: app/(app)/(tabs)/index.tsx:399
+#: app/(app)/(tabs)/index.tsx:398
 msgid "Workout in progress"
 msgstr "Training läuft"
 
@@ -9544,7 +9570,7 @@ msgstr "Trainings"
 msgid "Workouts can also live outside of plans, under Your workouts on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each workout so you can plan your time before starting. A quick workout starts a session immediately from the home screen: tap Quick workout, add exercises as you go, and at the end you can give it a name to reuse it later. Tap Choose workout next to it to search and browse every workout across your plans and Your workouts; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a workout by mistake, tap Undo on the message that appears."
 msgstr "Trainings können auch außerhalb von Plänen existieren, unter Deine Trainings auf dem Pläne-Bildschirm. Erstelle eines, indem du auf Neues Training tippst, einen Namen vergibst und Übungen hinzufügst; du kannst es jederzeit starten, ohne einen aktiven Plan zu benötigen. Eine geschätzte Dauer wird bei jedem Training angezeigt, damit du deine Zeit vor dem Start planen kannst. Ein Schnelltraining startet eine Einheit sofort vom Startbildschirm aus: Tippe auf Schnelltraining, füge Übungen unterwegs hinzu, und am Ende kannst du ihm einen Namen geben, um es später wiederzuverwenden. Tippe daneben auf Training auswählen, um jedes Training in deinen Plänen und in Deine Trainings zu durchsuchen; tippe auf ein Training, um seine Übungen anzusehen, oder auf seinen Starten-Button, um direkt loszulegen. Wie Pläne speichert der Trainings-Editor automatisch einen Entwurf, damit du sicher gehen und zurückkehren kannst, ohne deine Arbeit zu verlieren. Wenn du ein Training versehentlich löschst, tippe in der eingeblendeten Meldung auf Rückgängig."
 
-#: app/(app)/(tabs)/index.tsx:489
+#: app/(app)/(tabs)/index.tsx:488
 msgid "Workouts in this plan"
 msgstr "Trainings in diesem Plan"
 
