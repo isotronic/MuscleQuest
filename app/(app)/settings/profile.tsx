@@ -17,9 +17,12 @@ import { AuthContext } from "@/context/AuthProvider";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useSettingsOverlay } from "@/hooks/useSettingsOverlay";
 import { useWeekRule } from "@/hooks/useWeekRule";
+import { useLatestBodyMetricValuesQuery } from "@/hooks/useBodyMeasurementSessionsQuery";
+import { AppIcon } from "@/components/ui/AppIcon";
+import { ThemedText } from "@/components/ThemedText";
 import { useAppTheme } from "@/theme";
-import { localDateKeyToDate } from "@/utils/dates";
-import { toDisplayDecimal } from "@/utils/numberFormat";
+import { localDateKeyToDate, parseDbTimestamp } from "@/utils/dates";
+import { formatNumber, toDisplayDecimal } from "@/utils/numberFormat";
 import { weekStartsOnToday, type WeekStartDay } from "@/utils/week";
 
 const WEEK_START_NAMES: Record<WeekStartDay, ReturnType<typeof msg>> = {
@@ -35,6 +38,17 @@ export default function ProfileSettingsScreen() {
   const { data: settings } = useSettingsQuery();
   const { showOverlay, overlay } = useSettingsOverlay();
   const weekRule = useWeekRule();
+  const { data: latestValues } = useLatestBodyMetricValuesQuery({
+    weightUnit: settings?.weightUnit === "lbs" ? "lbs" : "kg",
+    sizeUnit: settings?.sizeUnit === "in" ? "in" : "cm",
+  });
+  const latestWeight = latestValues?.find((v) => v.metric.key === "weight");
+  const loggedOn = latestWeight
+    ? parseDbTimestamp(latestWeight.recorded_at).toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "short",
+      })
+    : "";
   // The chosen start, which may only apply from next week.
   const weekStartsOn = weekRule.weekStartsOn;
   const weekStartPending =
@@ -84,24 +98,42 @@ export default function ProfileSettingsScreen() {
           )
         }
       />
+      {/* Read-only: body weight is a measurement entry, logged in one place. */}
       <SettingRow
         id="bodyWeight"
         icon="scale-bathroom"
         title={<Trans>Body weight</Trans>}
         value={
-          settings?.bodyWeight ? (
+          latestWeight ? (
             <Trans>
-              {toDisplayDecimal(settings.bodyWeight)} {settings?.weightUnit}{" "}
-              (used for assisted exercises)
+              {formatNumber(latestWeight.displayValue, 1)}{" "}
+              {latestWeight.displayUnit}, logged {loggedOn}
             </Trans>
+          ) : settings?.bodyWeight ? (
+            `${toDisplayDecimal(settings.bodyWeight)} ${settings.weightUnit}`
           ) : (
-            <Trans>Not set (used for assisted exercises)</Trans>
+            <Trans>Add your body weight</Trans>
           )
         }
         onPress={() =>
-          showOverlay("bodyWeight", settings?.bodyWeight || "", "number")
+          router.push({
+            pathname: "/(app)/(tabs)/(stats)/measurements",
+            params: { focus: "weight" },
+          })
         }
-      />
+        trailing={
+          <AppIcon
+            set="mci"
+            name="chevron-right"
+            size={24}
+            color={colors.contentSecondary}
+          />
+        }
+      >
+        <ThemedText style={styles.currentSetting}>
+          <Trans>Used for assisted and bodyweight exercises</Trans>
+        </ThemedText>
+      </SettingRow>
       <AccountOwnershipNotice user={user} />
       {user && (
         <>

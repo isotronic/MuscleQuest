@@ -325,7 +325,7 @@ export const HELP_DATA: GroupData[] = [
             msg`Exercise timer options: the length of the Get Ready countdown, countdown beeps, and a sound when you reach your goal time.`,
             msg`Always use most recent exercise history, to pre-fill sets from the last time you did an exercise in any workout rather than only the same workout.`,
             msg`Under Stats: exclude warm-up sets from volume, turn on Single-side rep logging to double reps for unilateral exercises, Per-side weight entry to double the weight for paired implements (useful if you log per-dumbbell weight rather than the total), or Include body weight in volume.`,
-            msg`Your body weight, used to calculate effective load for assisted exercises.`,
+            msg`Your body weight, from your latest entry under Body Measurements; tap it to log a new one. It is used for assisted and bodyweight exercises.`,
             msg`Under Appearance: Show tips on home, and Translate exercise names to see exercise names in your phone's language or in English.`,
           ],
           ordered: false,

@@ -5,8 +5,6 @@ import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useUpdateSettingsMutation } from "@/hooks/useUpdateSettingsMutation";
 import { useSaveWeekStartMutation } from "@/hooks/useSaveWeekStartMutation";
 import { useWeekRule } from "@/hooks/useWeekRule";
-import { saveBodyWeightMeasurement } from "@/utils/database";
-import { displayToKg, roundCanonical } from "@/utils/units";
 import { localDateKeyToDate } from "@/utils/dates";
 import { parseWeekStartDay } from "@/utils/week";
 import { rescheduleWorkoutReminders } from "@/utils/workoutReminder";
@@ -127,29 +125,6 @@ export function useSettingsOverlay() {
             );
             showSnackbar(t`Your new week starts on ${date}.`);
           }
-        }
-      } else if (currentSettingKey === "bodyWeight") {
-        // The field opens on the stored weight rounded for display. Saved
-        // unchanged, that would overwrite the precise kg value and log a
-        // duplicate measurement, so only an edited value is written.
-        // An empty or zero entry leaves an unset body weight unset.
-        if (
-          Number(inputValue) > 0 &&
-          Number(inputValue) !== Number(settings?.bodyWeight)
-        ) {
-          // Rounded to 0.1 kg, 180 lbs came back as 179.9 lbs.
-          const bodyWeightInKg = roundCanonical(
-            displayToKg(inputValue as number, settings?.weightUnit ?? "kg"),
-          );
-
-          // Dual-write to body_measurements (legacy) and new measurement tables
-          await saveBodyWeightMeasurement(bodyWeightInKg);
-
-          // Save the body weight setting (React Query cache invalidation)
-          updateSetting({
-            key: currentSettingKey as string,
-            value: bodyWeightInKg.toString(), // canonical kg
-          });
         }
       } else {
         updateSetting({

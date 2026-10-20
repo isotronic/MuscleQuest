@@ -13,7 +13,7 @@ import { useLingui } from "@lingui/react";
 import { ActivityIndicator, Button, Divider } from "react-native-paper";
 import { AppIcon, DecimalInput } from "@/components/ui";
 import { Calendar } from "react-native-calendars";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { format } from "date-fns";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -64,6 +64,8 @@ export default function MeasurementsScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { _ } = useLingui();
   const router = useRouter();
+  // "weight" when opened from the body weight row in Settings.
+  const { focus } = useLocalSearchParams<{ focus?: string }>();
   const { data: settings } = useSettingsQuery();
   const weightUnit = (settings?.weightUnit || "kg") as "kg" | "lbs";
   const sizeUnit = (settings?.sizeUnit || "cm") as "cm" | "in";
@@ -218,6 +220,8 @@ export default function MeasurementsScreen() {
                   placeholder="—"
                   placeholderTextColor={colors.contentSecondary}
                   returnKeyType="done"
+                  autoFocus={focus === metric.key}
+                  selectTextOnFocus={focus === metric.key}
                 />
                 <ThemedText style={styles.metricUnit}>
                   {metric.value_kind === "mass"

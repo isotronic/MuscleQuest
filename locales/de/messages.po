@@ -1584,7 +1584,7 @@ msgid "{0, plural, one {# workout} other {# workouts}}"
 msgstr "{0, plural, one {# Training} other {# Trainings}}"
 
 #. placeholder {0}: session.values.length - 3
-#: app/(app)/(tabs)/(stats)/measurements.tsx:291
+#: app/(app)/(tabs)/(stats)/measurements.tsx:295
 msgid "{0, plural, one {+# more} other {+# more}}"
 msgstr "{0, plural, one {+# mehr} other {+# mehr}}"
 
@@ -1617,8 +1617,8 @@ msgstr "{0} {1}"
 #. placeholder {0}: toDisplayDecimal(settings.bodyWeight)
 #. placeholder {1}: settings?.weightUnit
 #: app/(app)/settings/profile.tsx:93
-msgid "{0} {1} (used for assisted exercises)"
-msgstr "{0} {1} (für Assistenzübungen verwendet)"
+#~ msgid "{0} {1} (used for assisted exercises)"
+#~ msgstr "{0} {1} (für Assistenzübungen verwendet)"
 
 #. placeholder {0}: showValue(set.weight)
 #. placeholder {1}: settings?.weightUnit
@@ -1626,6 +1626,12 @@ msgstr "{0} {1} (für Assistenzübungen verwendet)"
 #: app/(app)/(tabs)/(stats)/history-details.tsx:424
 msgid "{0} {1} | {2} Reps"
 msgstr "{0} {1} | {2} Wdh."
+
+#. placeholder {0}: formatNumber(latestWeight.displayValue, 1)
+#. placeholder {1}: latestWeight.displayUnit
+#: app/(app)/settings/profile.tsx:108
+msgid "{0} {1}, logged {loggedOn}"
+msgstr "{0} {1}, eingetragen am {loggedOn}"
 
 #. placeholder {0}: plate.count
 #. placeholder {1}: formatWeight(plate.weight)
@@ -1648,7 +1654,7 @@ msgid "{0} Complete!"
 msgstr "{0} abgeschlossen!"
 
 #. placeholder {0}: settings?.weeklyGoal
-#: app/(app)/settings/profile.tsx:56
+#: app/(app)/settings/profile.tsx:70
 msgid "{0} days per week"
 msgstr "{0} Tage pro Woche"
 
@@ -1662,7 +1668,7 @@ msgid "{0} Exercises{1}"
 msgstr "{0} Übungen{1}"
 
 #. placeholder {0}: _(WEEK_START_NAMES[weekStartsOn])
-#: app/(app)/settings/profile.tsx:67
+#: app/(app)/settings/profile.tsx:81
 msgid "{0} from {weekStartPending}"
 msgstr "{0} ab {weekStartPending}"
 
@@ -2423,6 +2429,10 @@ msgstr "Trainings hinzufügen"
 msgid "Add workouts to the plan, then add exercises to each workout with target sets and reps. Each workout card shows an estimated duration and exercise count."
 msgstr "Füge Trainings zum Plan hinzu und dann Übungen zu jedem Training mit Ziel-Sätzen und Wiederholungen. Jede Trainingskarte zeigt eine geschätzte Dauer und die Übungsanzahl."
 
+#: app/(app)/settings/profile.tsx:115
+msgid "Add your body weight"
+msgstr "Körpergewicht eintragen"
+
 #: app/(app)/friend-profile.tsx:425
 #: app/(app)/friend-profile.tsx:532
 #: app/(app)/friend-profile.tsx:639
@@ -2983,7 +2993,7 @@ msgstr "Körperteile"
 msgid "body weight"
 msgstr "Körpergewicht"
 
-#: app/(app)/settings/profile.tsx:90
+#: app/(app)/settings/profile.tsx:105
 #: app/setup.tsx:295
 #: utils/settingsIndex.ts:57
 msgid "Body weight"
@@ -3427,7 +3437,7 @@ msgstr "Der Plan konnte nicht wiederhergestellt werden."
 msgid "Couldn't restore the workout."
 msgstr "Das Training konnte nicht wiederhergestellt werden."
 
-#: hooks/useSettingsOverlay.tsx:164
+#: hooks/useSettingsOverlay.tsx:139
 msgid "Couldn't save the setting. Try again."
 msgstr "Die Einstellung konnte nicht gespeichert werden. Versuch es noch einmal."
 
@@ -3723,7 +3733,7 @@ msgstr "Löschen"
 msgid "Delete {0}"
 msgstr "{0} löschen"
 
-#: app/(app)/settings/profile.tsx:117
+#: app/(app)/settings/profile.tsx:149
 #: utils/settingsIndex.ts:69
 msgid "Delete account"
 msgstr "Konto löschen"
@@ -4270,7 +4280,7 @@ msgstr "Gib eine Zahl ein, zum Beispiel 82,5"
 msgid "Enter a time between 0:00 and 23:59."
 msgstr "Gib eine Uhrzeit zwischen 0:00 und 23:59 ein."
 
-#: app/(app)/(tabs)/(stats)/measurements.tsx:120
+#: app/(app)/(tabs)/(stats)/measurements.tsx:122
 msgid "Enter at least one measurement to log."
 msgstr "Gib mindestens einen Messwert ein."
 
@@ -5011,7 +5021,7 @@ msgid "Hips"
 msgstr "Hüften"
 
 #: app/(app)/(tabs)/(stats)/measurements-detail.tsx:182
-#: app/(app)/(tabs)/(stats)/measurements.tsx:251
+#: app/(app)/(tabs)/(stats)/measurements.tsx:255
 #: app/(app)/exercise-info.tsx:161
 msgid "History"
 msgstr "Verlauf"
@@ -5504,8 +5514,8 @@ msgstr "Plan wird geladen..."
 msgid "Loading..."
 msgstr "Wird geladen..."
 
-#: app/(app)/(tabs)/(stats)/measurements.tsx:156
-#: app/(app)/(tabs)/(stats)/measurements.tsx:242
+#: app/(app)/(tabs)/(stats)/measurements.tsx:158
+#: app/(app)/(tabs)/(stats)/measurements.tsx:246
 #: components/MeasurementQuickLogForm.tsx:104
 msgid "Log Entry"
 msgstr "Eintrag erfassen"
@@ -5594,7 +5604,7 @@ msgstr "Gestalte deine Statistiken"
 msgid "Manage"
 msgstr "Verwalten"
 
-#: app/(app)/(tabs)/(stats)/measurements.tsx:168
+#: app/(app)/(tabs)/(stats)/measurements.tsx:170
 msgid "Manage metrics"
 msgstr "Messwerte verwalten"
 
@@ -5674,7 +5684,7 @@ msgstr "Mo"
 msgid "Mon"
 msgstr "Mo"
 
-#: app/(app)/settings/profile.tsx:26
+#: app/(app)/settings/profile.tsx:29
 #: app/(app)/settings/reminders.tsx:41
 #: app/setup.tsx:277
 #: components/home/TodayCard.tsx:16
@@ -5971,7 +5981,7 @@ msgstr "Kein Supersatz mehr"
 #~ msgid "No measurements shared yet"
 #~ msgstr "Noch keine Messungen geteilt"
 
-#: app/(app)/(tabs)/(stats)/measurements.tsx:258
+#: app/(app)/(tabs)/(stats)/measurements.tsx:262
 msgid "No measurements yet. Log your first entry above."
 msgstr "Noch keine Messungen. Erfasse deinen ersten Eintrag oben."
 
@@ -6068,7 +6078,7 @@ msgstr "Keine Trainingspläne gefunden"
 msgid "No user found with that email address."
 msgstr "Kein Nutzer mit dieser E-Mail-Adresse gefunden."
 
-#: app/(app)/(tabs)/(stats)/measurements.tsx:119
+#: app/(app)/(tabs)/(stats)/measurements.tsx:121
 msgid "No values entered"
 msgstr "Keine Werte eingegeben"
 
@@ -6127,8 +6137,8 @@ msgid "Not now"
 msgstr "Nicht jetzt"
 
 #: app/(app)/settings/profile.tsx:98
-msgid "Not set (used for assisted exercises)"
-msgstr "Nicht festgelegt (für unterstützte Übungen)"
+#~ msgid "Not set (used for assisted exercises)"
+#~ msgstr "Nicht festgelegt (für unterstützte Übungen)"
 
 #: components/SessionSetInfo.tsx:312
 #: components/workout/SetTypeBadge.tsx:65
@@ -6827,7 +6837,7 @@ msgstr "Training entfernen"
 msgid "Remove workout {0}"
 msgstr "Training {0} entfernen"
 
-#: app/(app)/settings/profile.tsx:120
+#: app/(app)/settings/profile.tsx:152
 msgid "Remove your account and everything stored online"
 msgstr "Entferne dein Konto und alles, was online gespeichert ist"
 
@@ -8050,7 +8060,7 @@ msgstr "Zusammenfassung"
 msgid "Sun"
 msgstr "So"
 
-#: app/(app)/settings/profile.tsx:27
+#: app/(app)/settings/profile.tsx:30
 #: app/(app)/settings/reminders.tsx:47
 #: app/setup.tsx:278
 #: components/home/TodayCard.tsx:22
@@ -9059,6 +9069,10 @@ msgstr "Dieses Bild verwenden"
 msgid "Use with this account"
 msgstr "Mit diesem Konto verwenden"
 
+#: app/(app)/settings/profile.tsx:134
+msgid "Used for assisted and bodyweight exercises"
+msgstr "Für unterstützte Übungen und Körpergewichtsübungen"
+
 #: app/setup.tsx:287
 #~ msgid "Used for assisted exercises such as assisted pull-ups. You can skip this and add it later."
 #~ msgstr "Wird für unterstützte Übungen wie unterstützte Klimmzüge verwendet. Du kannst das überspringen und später eintragen."
@@ -9214,7 +9228,7 @@ msgstr "Mi"
 msgid "Wednesday"
 msgstr "Mittwoch"
 
-#: app/(app)/settings/profile.tsx:64
+#: app/(app)/settings/profile.tsx:78
 #: app/setup.tsx:268
 #: utils/settingsIndex.ts:51
 msgid "Week starts on"
@@ -9225,7 +9239,7 @@ msgstr "Woche beginnt am"
 msgid "Week streak"
 msgstr "Wochenserie"
 
-#: app/(app)/settings/profile.tsx:55
+#: app/(app)/settings/profile.tsx:69
 #: app/setup.tsx:235
 #: utils/settingsIndex.ts:45
 msgid "Weekly goal"
@@ -9699,8 +9713,12 @@ msgid "Your answer was not saved. Try again."
 msgstr "Deine Antwort wurde nicht gespeichert. Versuch es noch einmal."
 
 #: constants/HelpData.ts:328
-msgid "Your body weight, used to calculate effective load for assisted exercises."
-msgstr "Dein Körpergewicht, das zur Berechnung der effektiven Last bei Assistenzübungen verwendet wird."
+msgid "Your body weight, from your latest entry under Body Measurements; tap it to log a new one. It is used for assisted and bodyweight exercises."
+msgstr "Dein Körpergewicht, aus deinem letzten Eintrag unter Körpermaße; tippe darauf, um einen neuen einzutragen. Es wird für unterstützte Übungen und Körpergewichtsübungen verwendet."
+
+#: constants/HelpData.ts:328
+#~ msgid "Your body weight, used to calculate effective load for assisted exercises."
+#~ msgstr "Dein Körpergewicht, das zur Berechnung der effektiven Last bei Assistenzübungen verwendet wird."
 
 #: components/stats/widgets/registry.ts:260
 msgid "Your chosen lifts and their best"
@@ -9736,7 +9754,7 @@ msgstr "Deine letzte Sicherung ist {0, plural, one {# Tag} other {# Tage}} her. 
 msgid "Your latest entry"
 msgstr "Dein letzter Eintrag"
 
-#: hooks/useSettingsOverlay.tsx:128
+#: hooks/useSettingsOverlay.tsx:126
 msgid "Your new week starts on {date}."
 msgstr "Deine neue Woche beginnt am {date}."
 
