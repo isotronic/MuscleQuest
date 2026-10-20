@@ -613,6 +613,66 @@ describe("refreshLibraryFromAppData: plans with an exercise now timed", () => {
   });
 });
 
+describe("refreshLibraryFromAppData: deleted and malformed rows", () => {
+  const rest = { restMinutes: 1, restSeconds: 0 };
+  const rawPlan = (id: number, sets: string, deleted = 0) =>
+    mockUserData.sqlite
+      .prepare(
+        `INSERT INTO user_workout_exercises (id, workout_id, exercise_id, sets, is_deleted) VALUES (?, 1, 109, ?, ?)`,
+      )
+      .run(id, sets, deleted);
+
+  it("lets deleted sessions and plan rows follow, not decide", async () => {
+    logSession(1, 109, "reps", [{ reps: 30 }]);
+    logSession(2, 109, "reps", [{ reps: 1 }]);
+    mockUserData.sqlite.exec(
+      `UPDATE completed_exercises SET is_deleted = 1 WHERE id = 2`,
+    );
+    rawPlan(1, JSON.stringify([{ repsMin: 30, ...rest }]));
+    rawPlan(2, JSON.stringify([{ repsMin: 2, ...rest }]), 1);
+
+    await refreshLibraryFromAppData();
+
+    expect(session(1).type).toBe("time");
+    expect(session(2).type).toBe("time");
+    expect(plan(1)).toEqual({ override: null, sets: [{ ...rest, time: 30 }] });
+    expect(plan(2)).toEqual({ override: null, sets: [{ ...rest, time: 2 }] });
+  });
+
+  it("keeps a plan with a null set on reps instead of failing", async () => {
+    rawPlan(1, JSON.stringify([{ repsMin: 30, ...rest }, null]));
+
+    await refreshLibraryFromAppData();
+
+    expect(plan(1)).toEqual({
+      override: "reps",
+      sets: [{ repsMin: 30, ...rest }, null],
+    });
+  });
+
+  it("keeps targets that are not a list on reps, unchanged", async () => {
+    rawPlan(1, JSON.stringify({ repsMin: 30 }));
+
+    await refreshLibraryFromAppData();
+
+    expect(plan(1)).toEqual({ override: "reps", sets: { repsMin: 30 } });
+  });
+
+  it("leaves a deleted plan it cannot read on reps when converting", async () => {
+    rawPlan(1, JSON.stringify([{ repsMin: 30, ...rest }]));
+    rawPlan(2, "not json", 1);
+
+    await refreshLibraryFromAppData();
+
+    expect(plan(1).override).toBeNull();
+    expect(
+      row(
+        `SELECT sets, tracking_type_override AS o FROM user_workout_exercises WHERE id = 2`,
+      ),
+    ).toEqual({ sets: "not json", o: "reps" });
+  });
+});
+
 describe("refreshLibraryFromAppData: other type changes", () => {
   it("keeps sessions and plans on the old type", async () => {
     logSession(1, 130, null, [{ reps: 10 }]);

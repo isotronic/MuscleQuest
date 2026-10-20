@@ -471,23 +471,37 @@ const toTimedSets = (sets: PlannedSet[]) =>
     return target === null ? rest : { ...rest, time: rest.time ?? target };
   });
 
-// Plan rows without an override follow the exercise's type.
+// Plan rows without an override follow the exercise's type. `sets` is null
+// when the stored targets are not a list of set objects; such a row is
+// never rewritten.
 const planRowsFollowingType = async (
   db: SQLite.SQLiteDatabase,
   exerciseId: number,
 ) => {
-  const planRows = await db.getAllAsync<{ id: number; sets: string | null }>(
-    `SELECT id, sets FROM user_workout_exercises
+  const planRows = await db.getAllAsync<{
+    id: number;
+    sets: string | null;
+    deleted: number;
+  }>(
+    `SELECT id, sets, COALESCE(is_deleted, 0) AS deleted
+     FROM user_workout_exercises
      WHERE exercise_id = ? AND NULLIF(tracking_type_override, '') IS NULL`,
     [exerciseId],
   );
   return planRows.map((row) => {
+    let sets: PlannedSet[] | null = null;
     try {
-      const parsed = JSON.parse(row.sets ?? "[]");
-      return { id: row.id, sets: Array.isArray(parsed) ? parsed : [] };
+      const parsed: unknown = JSON.parse(row.sets ?? "[]");
+      if (
+        Array.isArray(parsed) &&
+        parsed.every((set) => typeof set === "object" && set !== null)
+      ) {
+        sets = parsed;
+      }
     } catch {
-      return { id: row.id, sets: null };
+      // Unreadable: left as null.
     }
+    return { id: row.id, sets, deleted: !!row.deleted };
   });
 };
 
@@ -519,13 +533,21 @@ const convertRepsToTime = async (
   db: SQLite.SQLiteDatabase,
   exerciseId: number,
 ): Promise<{ sessions: number; plans: number; keptOnReps: number }> => {
-  const sessions = await db.getAllAsync<{ id: number; small: number }>(
+  // Deleted sessions and plan rows are converted with the rest but do not
+  // decide: only what the user can see does.
+  const sessions = await db.getAllAsync<{
+    id: number;
+    small: number;
+    deleted: number;
+  }>(
     `SELECT ce.id, EXISTS (
        SELECT 1 FROM completed_sets s
        WHERE s.completed_exercise_id = ce.id
          AND (s.is_deleted = FALSE OR s.is_deleted IS NULL)
-         AND s.reps < ?) AS small
+         AND s.reps < ?) AS small,
+       (COALESCE(ce.is_deleted, 0) OR COALESCE(cw.is_deleted, 0)) AS deleted
      FROM completed_exercises ce
+     LEFT JOIN completed_workouts cw ON cw.id = ce.completed_workout_id
      WHERE ce.exercise_id = ? AND ce.resolved_tracking_type = 'reps'`,
     [MIN_SECONDS_FROM_REPS, exerciseId],
   );
@@ -539,14 +561,15 @@ const convertRepsToTime = async (
   );
   const looksLikeSeconds =
     !pinnedToReps &&
-    sessions.every((session) => !session.small) &&
+    sessions.every((session) => session.deleted || !session.small) &&
     plans.every(
       (plan) =>
-        plan.sets !== null &&
-        plan.sets.every((set: PlannedSet) => {
-          const target = repsTarget(set);
-          return target === null || target >= MIN_SECONDS_FROM_REPS;
-        }),
+        plan.deleted ||
+        (plan.sets !== null &&
+          plan.sets.every((set) => {
+            const target = repsTarget(set);
+            return target === null || target >= MIN_SECONDS_FROM_REPS;
+          })),
     );
 
   if (!looksLikeSeconds) {
@@ -557,6 +580,13 @@ const convertRepsToTime = async (
     );
     return { sessions: 0, plans: 0, keptOnReps: plans.length };
   }
+  // A deleted row that cannot be read keeps its targets, on reps.
+  const unreadable = plans.filter((plan) => plan.sets === null);
+  await keepPlansOn(
+    db,
+    unreadable.map((plan) => plan.id),
+    "reps",
+  );
 
   for (const { id } of sessions) {
     await db.runAsync(
@@ -570,9 +600,10 @@ const convertRepsToTime = async (
     );
   }
   for (const plan of plans) {
+    if (plan.sets === null) continue;
     await db.runAsync(
       `UPDATE user_workout_exercises SET sets = ? WHERE id = ?`,
-      [JSON.stringify(toTimedSets(plan.sets ?? [])), plan.id],
+      [JSON.stringify(toTimedSets(plan.sets)), plan.id],
     );
     await db.runAsync(
       `DELETE FROM exercise_progression_state
@@ -580,7 +611,11 @@ const convertRepsToTime = async (
       [plan.id],
     );
   }
-  return { sessions: sessions.length, plans: plans.length, keptOnReps: 0 };
+  return {
+    sessions: sessions.length,
+    plans: plans.length - unreadable.length,
+    keptOnReps: unreadable.length,
+  };
 };
 
 const refreshLibraryRows = async (
