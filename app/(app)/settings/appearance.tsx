@@ -16,12 +16,17 @@ export default function AppearanceSettingsScreen() {
     "translateExerciseNames",
   );
 
-  const changeTranslateNames = (value: boolean) => {
-    setTranslateNames(value);
+  const applyTranslateNames = (value: boolean) => {
     setExerciseNamesTranslated(value);
     // Names are swapped in as rows are read, so everything showing one reads
     // again.
     void queryClient.invalidateQueries();
+  };
+
+  const changeTranslateNames = (value: boolean) => {
+    const previous = translateNames;
+    setTranslateNames(value, () => applyTranslateNames(previous));
+    applyTranslateNames(value);
   };
 
   return (
