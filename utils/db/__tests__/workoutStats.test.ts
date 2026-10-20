@@ -183,14 +183,18 @@ const referenceBodyParts = (
   return counts;
 };
 
+// The fixture has weight sets only, so including body weight changes nothing.
 const ALL_OPTIONS: WorkoutStatsOptions[] = [false, true].flatMap(
   (excludeWarmup) =>
     [false, true].flatMap((countUnilateralDouble) =>
-      [false, true].map((doubleWeightForPaired) => ({
-        excludeWarmup,
-        countUnilateralDouble,
-        doubleWeightForPaired,
-      })),
+      [false, true].flatMap((doubleWeightForPaired) =>
+        [false, true].map((includeBodyWeight) => ({
+          excludeWarmup,
+          countUnilateralDouble,
+          doubleWeightForPaired,
+          includeBodyWeight,
+        })),
+      ),
     ),
 );
 

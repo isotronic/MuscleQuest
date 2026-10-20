@@ -18,6 +18,7 @@ import { formatToHoursMinutes } from "@/utils/utility";
 import type { AppThemeColors } from "@/theme/types";
 import { formatDecimal, formatGroupedInteger } from "@/utils/numberFormat";
 import { setMetric } from "@/utils/prMetric";
+import { completedWorkoutVolume } from "@/utils/volume";
 
 interface Props {
   workoutsThisWeek: CompletedWorkout[];
@@ -28,6 +29,7 @@ interface Props {
   excludeWarmup?: boolean;
   countUnilateralDouble?: boolean;
   doubleWeightForPaired?: boolean;
+  includeBodyWeight?: boolean;
   /** In the display weight unit, for assisted exercises. */
   bodyWeight?: number;
   weekRule?: WeekRule;
@@ -199,6 +201,7 @@ export default function WeeklySummaryCard({
   excludeWarmup = false,
   countUnilateralDouble = false,
   doubleWeightForPaired = false,
+  includeBodyWeight = false,
   bodyWeight = 0,
   weekRule = DEFAULT_WEEK_RULE,
 }: Props) {
@@ -210,29 +213,26 @@ export default function WeeklySummaryCard({
     [workoutsThisWeek],
   );
 
+  // Each workout counts with the body weight logged at the time.
   const totalVolume = useMemo(() => {
-    let vol = 0;
-    for (const workout of workoutsThisWeek) {
-      for (const ex of workout.exercises) {
-        const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1;
-        const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1;
-        for (const set of ex.sets) {
-          if (
-            (!excludeWarmup || !set.is_warmup) &&
-            set.weight != null &&
-            set.reps != null
-          ) {
-            vol += set.weight * weightM * set.reps * repM;
-          }
-        }
-      }
-    }
-    return vol;
+    const options = {
+      excludeWarmup,
+      countUnilateralDouble,
+      doubleWeightForPaired,
+      includeBodyWeight,
+    };
+    return workoutsThisWeek.reduce(
+      (sum, workout) =>
+        sum + completedWorkoutVolume(workout, options, weightUnit),
+      0,
+    );
   }, [
     workoutsThisWeek,
     excludeWarmup,
     countUnilateralDouble,
     doubleWeightForPaired,
+    includeBodyWeight,
+    weightUnit,
   ]);
 
   const bestAchievement = useMemo(

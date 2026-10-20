@@ -3,6 +3,7 @@ import { openDatabase } from "@/utils/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { isAtLeast } from "@/utils/units";
+import { bodyWeightAtSql } from "@/utils/db/bodyWeightAtSql";
 
 export interface HistorySet {
   id: number;
@@ -72,12 +73,7 @@ const fetchExerciseHistoryBody = async (
         cw.id                   AS workout_id,
         uw.name                 AS workout_name,
         COALESCE(NULLIF(ce.resolved_tracking_type, ''), e.tracking_type) AS tracking_type,
-        COALESCE(
-          (SELECT bm.body_weight FROM body_measurements bm
-           WHERE bm.date <= cw.date_completed
-           ORDER BY bm.date DESC LIMIT 1),
-          CAST((SELECT s.value FROM settings s WHERE s.key = 'bodyWeight') AS REAL)
-        ) AS hist_bw_kg
+        ${bodyWeightAtSql("cw.date_completed")} AS hist_bw_kg
       FROM exercises e
       JOIN completed_exercises ce ON e.exercise_id = ce.exercise_id
       JOIN completed_sets cs      ON ce.id = cs.completed_exercise_id

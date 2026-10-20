@@ -22,6 +22,7 @@ const OPTIONS = {
   excludeWarmup: true,
   countUnilateralDouble: false,
   doubleWeightForPaired: true,
+  includeBodyWeight: false,
 };
 
 const dayKeyAgo = (days: number): string => {
@@ -58,6 +59,14 @@ describe("workout summary queries", () => {
     useWorkoutSummariesQuery(30, OPTIONS);
     const first = lastQuery().queryKey;
     useWorkoutSummariesQuery(30, { ...OPTIONS, excludeWarmup: false });
+
+    expect(lastQuery().queryKey).not.toEqual(first);
+  });
+
+  it("refetches when body weight is counted in volume", () => {
+    useWorkoutSummariesQuery(30, OPTIONS);
+    const first = lastQuery().queryKey;
+    useWorkoutSummariesQuery(30, { ...OPTIONS, includeBodyWeight: true });
 
     expect(lastQuery().queryKey).not.toEqual(first);
   });

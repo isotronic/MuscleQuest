@@ -41,6 +41,11 @@ import { loggedInstanceName } from "@/utils/exerciseInstance";
 import type { AppThemeColors } from "@/theme/types";
 import { displayWorkoutName } from "@/utils/workoutName";
 import { formatNumber } from "@/utils/numberFormat";
+import { kgToDisplay } from "@/utils/units";
+import {
+  completedWorkoutVolume,
+  volumeOptionsFromSettings,
+} from "@/utils/volume";
 import { exerciseHref } from "@/utils/exerciseHref";
 
 // Set values arrive in display units; shown with the device separator.
@@ -67,11 +72,16 @@ export default function HistoryDetailsScreen() {
 
   const weightUnit = settings?.weightUnit || "kg";
   const distanceUnit = settings?.distanceUnit || "m";
+  // The body weight logged when the workout was done, in the display unit.
   // Unset until entered: assisted sets then have no resist figure or volume.
-  const bodyWeight = parseFloat(settings?.bodyWeight ?? "") || null;
-  const excludeWarmup = settings?.excludeWarmupSets === "true";
-  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
-  const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
+  const bodyWeight =
+    workout?.body_weight_kg != null && workout.body_weight_kg > 0
+      ? kgToDisplay(workout.body_weight_kg, weightUnit)
+      : null;
+  const volumeOptions = useMemo(
+    () => volumeOptionsFromSettings(settings),
+    [settings],
+  );
 
   const deleteMutation = useDeleteCompletedWorkoutMutation();
   const { data: plansData, isFetching: plansFetching } = useAllPlansQuery();
@@ -119,32 +129,11 @@ export default function HistoryDetailsScreen() {
     }, [id, weightUnit, distanceUnit, reloadKey]),
   );
 
-  const totalVolume = useMemo(() => {
-    if (!workout) return 0;
-
-    return workout.exercises.reduce((exerciseAcc, exercise) => {
-      const weightM = doubleWeightForPaired && exercise.double_weight ? 2 : 1;
-      const repM = countUnilateralDouble && exercise.is_unilateral ? 2 : 1;
-      const exerciseVolume = exercise.sets.reduce((setAcc, set) => {
-        if (excludeWarmup && set.is_warmup) return setAcc;
-        const weight =
-          exercise.exercise_tracking_type === "assisted"
-            ? bodyWeight != null
-              ? bodyWeight - (set.weight || 0)
-              : 0
-            : (set.weight || 0) * weightM;
-        return setAcc + weight * (set.reps || 0) * repM;
-      }, 0);
-
-      return parseFloat((exerciseAcc + exerciseVolume).toFixed(1));
-    }, 0);
-  }, [
-    workout,
-    bodyWeight,
-    excludeWarmup,
-    countUnilateralDouble,
-    doubleWeightForPaired,
-  ]);
+  const totalVolume = useMemo(
+    () =>
+      workout ? completedWorkoutVolume(workout, volumeOptions, weightUnit) : 0,
+    [workout, volumeOptions, weightUnit],
+  );
 
   if (isLoading || settingsLoading) {
     return (

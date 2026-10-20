@@ -51,6 +51,10 @@ import FeedbackCatchUpCard from "@/components/FeedbackCatchUpCard";
 import ProgressionOfferCard from "@/components/ProgressionOfferCard";
 import { useActiveWorkoutStore } from "@/store/activeWorkoutStore";
 import { mergePrompts } from "@/utils/feedbackPrompts";
+import {
+  completedWorkoutVolume,
+  volumeOptionsFromSettings,
+} from "@/utils/volume";
 
 // --- Helpers ---
 
@@ -61,31 +65,6 @@ function formatDuration(seconds: number): string {
   if (h > 0) return `${h}h ${m}m`;
   if (m > 0) return s > 0 ? `${m}m ${s}s` : `${m}m`;
   return `${s}s`;
-}
-
-function computeVolume(
-  workout: CompletedWorkout,
-  excludeWarmup: boolean = false,
-  countUnilateralDouble: boolean = false,
-  doubleWeightForPaired: boolean = false,
-): number {
-  return workout.exercises.reduce((total, exercise) => {
-    const weightM = doubleWeightForPaired && exercise.double_weight ? 2 : 1;
-    const repM = countUnilateralDouble && exercise.is_unilateral ? 2 : 1;
-    return (
-      total +
-      exercise.sets.reduce((setTotal, set) => {
-        if (
-          (!excludeWarmup || !set.is_warmup) &&
-          set.weight != null &&
-          set.reps != null
-        ) {
-          return setTotal + set.weight * weightM * set.reps * repM;
-        }
-        return setTotal;
-      }, 0)
-    );
-  }, 0);
 }
 
 function getBestSetLabel(
@@ -412,9 +391,10 @@ export default function WorkoutSummaryScreen() {
   const weightUnit = settings?.weightUnit ?? "kg";
   const distanceUnit = settings?.distanceUnit ?? "m";
   const progressionSettings = useProgressionSettingsQuery();
-  const excludeWarmup = settings?.excludeWarmupSets === "true";
-  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
-  const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
+  const volumeOptions = useMemo(
+    () => volumeOptionsFromSettings(settings),
+    [settings],
+  );
 
   const id = Number(completedWorkoutId);
   const isValidId = Number.isFinite(id) && id > 0;
@@ -479,27 +459,15 @@ export default function WorkoutSummaryScreen() {
 
   const currentVolume = useMemo(
     () =>
-      workout
-        ? computeVolume(
-            workout,
-            excludeWarmup,
-            countUnilateralDouble,
-            doubleWeightForPaired,
-          )
-        : 0,
-    [workout, excludeWarmup, countUnilateralDouble, doubleWeightForPaired],
+      workout ? completedWorkoutVolume(workout, volumeOptions, weightUnit) : 0,
+    [workout, volumeOptions, weightUnit],
   );
   const prevVolume = useMemo(
     () =>
       prevWorkout
-        ? computeVolume(
-            prevWorkout,
-            excludeWarmup,
-            countUnilateralDouble,
-            doubleWeightForPaired,
-          )
+        ? completedWorkoutVolume(prevWorkout, volumeOptions, weightUnit)
         : 0,
-    [prevWorkout, excludeWarmup, countUnilateralDouble, doubleWeightForPaired],
+    [prevWorkout, volumeOptions, weightUnit],
   );
 
   // Only blocks that were saved with this workout: by plan row, so a skipped
@@ -524,7 +492,7 @@ export default function WorkoutSummaryScreen() {
   }, [catchUpPrompts, workout, progressionSettings.enabled]);
 
   const countSets = (w: CompletedWorkout) =>
-    excludeWarmup
+    volumeOptions.excludeWarmup
       ? w.exercises.reduce(
           (acc, e) => acc + e.sets.filter((s) => !s.is_warmup).length,
           0,

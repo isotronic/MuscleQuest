@@ -5,6 +5,8 @@ import { displayExerciseName } from "./exerciseNames";
 import { progressionMetricSql } from "./progressionMetricSql";
 import { METRIC_EPSILON } from "@/utils/units";
 import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
+import type { VolumeOptions } from "@/utils/volume";
+import { bodyWeightAtSql } from "./bodyWeightAtSql";
 
 /** Inclusive local_date keys ("YYYY-MM-DD"). Either end may be left open. */
 export interface LocalDateRange {
@@ -12,11 +14,7 @@ export interface LocalDateRange {
   to?: string;
 }
 
-export interface WorkoutStatsOptions {
-  excludeWarmup: boolean;
-  countUnilateralDouble: boolean;
-  doubleWeightForPaired: boolean;
-}
+export type WorkoutStatsOptions = VolumeOptions;
 
 /** One completed workout with its sets already totalled. */
 export interface WorkoutSummary {
@@ -33,7 +31,7 @@ export interface WorkoutSummary {
   is_deload: number;
   /** Logged sets, without warm-ups when the query excluded them. */
   set_count: number;
-  /** Weight x reps over the counted sets, in kg. */
+  /** Volume over the counted sets, in kg (utils/volume.ts). */
   volume_kg: number;
   /** Reps over the counted sets, unilateral sets doubled when set to. */
   rep_count: number;
@@ -55,13 +53,39 @@ const multipliers = (options: WorkoutStatsOptions) => ({
     : `1`,
 });
 
-// Weight x reps for one set, in kg, with the doubling settings applied.
+const RESOLVED_TYPE = `COALESCE(NULLIF(ce.resolved_tracking_type, ''), e.tracking_type)`;
+
+// Volume of one set, in kg: the SQL twin of setVolume (utils/volume.ts).
+// Expects `bw.body_weight_kg` in scope (workoutBodyWeight below).
 const volumeSql = (options: WorkoutStatsOptions) => {
   const m = multipliers(options);
-  return `CASE WHEN cs.weight != 0 AND cs.reps != 0
-    THEN cs.weight * ${m.weight} * cs.reps * ${m.reps}
-    ELSE 0
+  const bw = `MAX(COALESCE(bw.body_weight_kg, 0), 0)`;
+  const counted = options.includeBodyWeight ? bw : `0`;
+  return `CASE WHEN COALESCE(cs.reps, 0) = 0 THEN 0 ELSE (CASE
+      WHEN ${RESOLVED_TYPE} IN ('time', 'distance') THEN 0
+      WHEN ${RESOLVED_TYPE} = 'assisted'
+        THEN MAX(0, ${bw} - COALESCE(cs.weight, 0))
+      WHEN ${RESOLVED_TYPE} = 'reps' THEN ${counted}
+      ELSE CASE WHEN e.tracking_type = 'reps' THEN ${counted} ELSE 0 END
+        + COALESCE(cs.weight, 0) * ${m.weight}
+    END) * cs.reps * ${m.reps}
   END`;
+};
+
+// Each workout's body weight at the time it was done, computed once per
+// workout rather than once per set. Joined as `bw`.
+const workoutBodyWeight = (range: LocalDateRange) => {
+  const filter = rangeFilter(range);
+  return {
+    cte: `workout_body_weight AS MATERIALIZED (
+      SELECT cw.id AS completed_workout_id,
+        ${bodyWeightAtSql("cw.date_completed")} AS body_weight_kg
+      FROM completed_workouts cw
+      WHERE cw.is_deleted = FALSE${filter.sql}
+    )`,
+    join: `LEFT JOIN workout_body_weight bw ON bw.completed_workout_id = cw.id`,
+    params: filter.params,
+  };
 };
 
 const rangeFilter = (range: LocalDateRange) => {
@@ -87,6 +111,7 @@ export const fetchWorkoutSummaries = async (
 ): Promise<WorkoutSummary[]> => {
   const m = multipliers(options);
   const filter = rangeFilter(range);
+  const bodyWeight = workoutBodyWeight(range);
 
   const db = await openDatabase("userData.db");
   try {
@@ -94,6 +119,7 @@ export const fetchWorkoutSummaries = async (
       Omit<WorkoutSummary, "workout_name"> & { workout_name: string | null }
     >(
       `
+      WITH ${bodyWeight.cte}
       SELECT
         cw.id,
         cw.workout_id,
@@ -114,11 +140,12 @@ export const fetchWorkoutSummaries = async (
       LEFT JOIN completed_sets cs ON cs.completed_exercise_id = ce.id${
         options.excludeWarmup ? ` AND ${NOT_WARMUP}` : ""
       }
+      ${bodyWeight.join}
       WHERE cw.is_deleted = FALSE${filter.sql}
       GROUP BY cw.id
       ORDER BY cw.date_completed DESC, cw.id DESC
       `,
-      filter.params,
+      [...bodyWeight.params, ...filter.params],
     );
     return rows.map((row) => ({
       ...row,
@@ -187,6 +214,7 @@ export const fetchTrainingSplit = async (
   options: WorkoutStatsOptions,
 ): Promise<SplitRow[]> => {
   const filter = rangeFilter(range);
+  const bodyWeight = workoutBodyWeight(range);
   const perExercise = `
     SELECT e.body_part, e.target_muscle, e.secondary_muscles,
       COUNT(cs.id) AS sets,
@@ -197,17 +225,18 @@ export const fetchTrainingSplit = async (
     JOIN completed_sets cs ON cs.completed_exercise_id = ce.id${
       options.excludeWarmup ? ` AND ${NOT_WARMUP}` : ""
     }
+    ${bodyWeight.join}
     WHERE cw.is_deleted = FALSE${filter.sql}
     GROUP BY e.exercise_id`;
   const sql =
     groupBy === "bodyPart"
-      ? `WITH per_exercise AS (${perExercise})
+      ? `WITH ${bodyWeight.cte}, per_exercise AS (${perExercise})
          SELECT body_part AS name, SUM(sets) AS sets,
            SUM(volume_kg) AS volume_kg, 0 AS secondary
          FROM per_exercise
          WHERE body_part IS NOT NULL AND body_part != ''
          GROUP BY body_part`
-      : `WITH per_exercise AS (${perExercise})
+      : `WITH ${bodyWeight.cte}, per_exercise AS (${perExercise})
          SELECT target_muscle AS name, SUM(sets) AS sets,
            SUM(volume_kg) AS volume_kg, 0 AS secondary
          FROM per_exercise
@@ -226,7 +255,10 @@ export const fetchTrainingSplit = async (
 
   const db = await openDatabase("userData.db");
   try {
-    const rows = await db.getAllAsync<SplitRow>(sql, filter.params);
+    const rows = await db.getAllAsync<SplitRow>(sql, [
+      ...bodyWeight.params,
+      ...filter.params,
+    ]);
     return rows.filter((row) => row.sets > 0);
   } finally {
     await db.closeAsync();

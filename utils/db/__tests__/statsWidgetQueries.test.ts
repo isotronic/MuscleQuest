@@ -21,6 +21,7 @@ const NO_OPTIONS: WorkoutStatsOptions = {
   excludeWarmup: false,
   countUnilateralDouble: false,
   doubleWeightForPaired: false,
+  includeBodyWeight: false,
 };
 
 interface Set {
@@ -153,6 +154,7 @@ describe("fetchTrainingSplit", () => {
       excludeWarmup: true,
       countUnilateralDouble: true,
       doubleWeightForPaired: false,
+      includeBodyWeight: false,
     });
     expect(mergeSplitRows(rows, "bodyPart", "sets").chest).toBe(2);
     expect(mergeSplitRows(rows, "bodyPart", "volume").legs).toBe(400);

@@ -29,6 +29,7 @@ import { isLocalDateInRange, localDateKeyToDate } from "@/utils/dates";
 import { updateSettings } from "@/utils/database";
 import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { useAppTheme, radii } from "@/theme";
+import { volumeOptionsFromSettings } from "@/utils/volume";
 
 const STATS_QUERY_ROOTS = [
   "trackedExercises",
@@ -53,8 +54,6 @@ export default function StatsScreen() {
   const distanceUnit = settings?.distanceUnit || "m";
   const sizeUnit = (settings?.sizeUnit || "cm") as "cm" | "in";
   const excludeWarmup = settings?.excludeWarmupSets === "true";
-  const countUnilateralDouble = settings?.countUnilateralDouble === "true";
-  const doubleWeightForPaired = settings?.doubleWeightForPaired === "true";
   const excludeDeload = settings?.exclude_deload_from_stats === "1";
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>(
     settings?.timeRange || "30",
@@ -78,8 +77,8 @@ export default function StatsScreen() {
   // Every workout figure on this screen comes from per-workout totals and
   // per-body-part counts computed in SQL; no individual sets are loaded.
   const statsOptions = useMemo(
-    () => ({ excludeWarmup, countUnilateralDouble, doubleWeightForPaired }),
-    [excludeWarmup, countUnilateralDouble, doubleWeightForPaired],
+    () => volumeOptionsFromSettings(settings),
+    [settings],
   );
 
   // The whole history feeds the calendar, the heatmap and the streak. The

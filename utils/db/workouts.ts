@@ -6,6 +6,7 @@ import { METRIC_EPSILON, kgToDisplay, metresToDisplay } from "@/utils/units";
 import { openDatabase } from "./connection";
 import { displayExerciseName } from "./exerciseNames";
 import { progressionMetricSql } from "./progressionMetricSql";
+import { bodyWeightAtSql } from "./bodyWeightAtSql";
 import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
 
 export interface SavedWorkout {
@@ -282,6 +283,8 @@ interface CompletedWorkoutRow {
   exercise_image_uri: string | null;
   exercise_order: number | null;
   exercise_tracking_type: string | null;
+  base_tracking_type: string | null;
+  body_weight_kg: number | null;
   is_unilateral: number | null;
   double_weight: number | null;
   set_id: number;
@@ -325,6 +328,8 @@ export const fetchCompletedWorkoutById = async (
         e.image_uri as exercise_image_uri,
         CASE WHEN e.image_uri IS NULL THEN e.image END as exercise_image,
         COALESCE(ce.resolved_tracking_type, ${planRowSql("tracking_type_override")}, e.tracking_type) as exercise_tracking_type,
+        e.tracking_type as base_tracking_type,
+        ${bodyWeightAtSql("cw.date_completed")} as body_weight_kg,
         e.is_unilateral,
         e.double_weight,
         cs.id as set_id,
@@ -383,6 +388,7 @@ export const fetchCompletedWorkoutById = async (
       total_sets_completed: result[0]?.total_sets_completed || 0,
       is_deload: result[0]?.is_deload ?? 0,
       notes: result[0]?.notes ?? null,
+      body_weight_kg: result[0]?.body_weight_kg ?? null,
       exercises: [],
     };
 
@@ -410,6 +416,7 @@ export const fetchCompletedWorkoutById = async (
               : undefined,
             exercise_image_uri: row.exercise_image_uri ?? null,
             exercise_tracking_type: row.exercise_tracking_type || "weight",
+            base_tracking_type: row.base_tracking_type ?? null,
             is_unilateral: row.is_unilateral ?? 0,
             double_weight: row.double_weight ?? 0,
             sets: [],
