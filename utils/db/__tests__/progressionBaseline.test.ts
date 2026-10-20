@@ -166,6 +166,25 @@ describe("progression baseline", () => {
     expect(row.suggestedWeight).toBe(state?.suggestedWeight);
   });
 
+  it("reads an empty tracking type override as no override", async () => {
+    seedHistory(21);
+    seedFeedback("easy", "none");
+    mockDb.sqlite.exec(`
+      UPDATE exercises SET tracking_type = 'assisted' WHERE exercise_id = 1;
+      UPDATE user_workout_exercises SET tracking_type_override = '' WHERE id = ${UWE_ID};
+    `);
+
+    const ctx = await getExerciseProgressionContext(UWE_ID);
+    expect(ctx?.trackingType).toBe("assisted");
+    // Assisted: easing back in after a layoff adds assistance.
+    const state = await getProgressionState(UWE_ID);
+    expect(state?.ruleKey).toBe("MUSCLE_LAYOFF");
+    expect(state?.suggestedWeight).toBeGreaterThan(80);
+    const [row] = await getProgressionStatesForWorkout(1);
+    expect(row.trackingType).toBe("assisted");
+    expect(row.suggestedWeight).toBe(state?.suggestedWeight);
+  });
+
   it("has no baseline when every session is deleted or a deload", async () => {
     insertSession({ id: 1, daysAgo: 5, weight: 150, isDeleted: true });
     insertSession({ id: 2, daysAgo: 3, weight: 60, isDeload: true });
