@@ -237,7 +237,7 @@ export default function WorkoutDetailsScreen() {
           <View key={s.userWorkoutExerciseId} style={styles.previewRow}>
             <ThemedText
               style={[styles.previewExercise, { color: colors.contentPrimary }]}
-              numberOfLines={1}
+              numberOfLines={2}
             >
               {s.exerciseName}
             </ThemedText>

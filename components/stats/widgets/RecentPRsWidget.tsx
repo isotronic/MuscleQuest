@@ -108,7 +108,7 @@ export const RecentPRsWidget: React.FC<{
                   color={colors.accent}
                 />
                 <View style={styles.text}>
-                  <ThemedText style={styles.name} numberOfLines={1}>
+                  <ThemedText style={styles.name} numberOfLines={2}>
                     {pr.name}
                   </ThemedText>
                   <ThemedText style={styles.sub} numberOfLines={1}>

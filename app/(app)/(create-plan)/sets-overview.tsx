@@ -199,13 +199,6 @@ export default function SetsOverviewScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen
         options={{
-          title: exercise
-            ? instanceName(
-                currentWorkout.exercises,
-                exerciseIndex,
-                exercise.name,
-              )
-            : undefined,
           headerRight: () => (
             <Button
               labelStyle={styles.buttonLabel}
@@ -220,6 +213,12 @@ export default function SetsOverviewScreen() {
           ),
         }}
       />
+      {/* In the body, not the header, so a long name is not cut off. */}
+      {exercise && (
+        <ThemedText accessibilityRole="header" style={styles.exerciseName}>
+          {instanceName(currentWorkout.exercises, exerciseIndex, exercise.name)}
+        </ThemedText>
+      )}
       {supersetPartner && (
         <View style={styles.supersetBanner}>
           <ThemedText style={styles.supersetBannerLabel}>
@@ -350,6 +349,14 @@ function createStyles(colors: AppThemeColors) {
     supersetBannerPartner: {
       fontSize: 13,
       color: colors.contentSecondary,
+      flexShrink: 1,
+      textAlign: "right",
+      marginLeft: 8,
+    },
+    exerciseName: {
+      fontSize: 20,
+      fontWeight: "bold",
+      marginBottom: 12,
     },
     setItem: {
       backgroundColor: colors.card,

@@ -196,7 +196,7 @@ function SuggestionRow({
   return (
     <View style={styles.row}>
       <View style={styles.rowLeft}>
-        <ThemedText style={styles.exerciseName} numberOfLines={1}>
+        <ThemedText style={styles.exerciseName} numberOfLines={2}>
           {state.exerciseName}
         </ThemedText>
         <ProgressionSuggestionChip

@@ -98,7 +98,7 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
               style={styles.dragIcon}
             />
             <View style={styles.left}>
-              <ThemedText style={styles.name} numberOfLines={1}>
+              <ThemedText style={styles.name} numberOfLines={2}>
                 {exercise.name}
               </ThemedText>
               <ThemedText style={styles.sub}>
@@ -124,7 +124,7 @@ export const ExerciseCompactCard: React.FC<ExerciseCompactCardProps> =
           style={styles.card}
         >
           <View style={styles.left}>
-            <ThemedText style={styles.name} numberOfLines={1}>
+            <ThemedText style={styles.name} numberOfLines={2}>
               {exercise.name}
             </ThemedText>
             <ThemedText style={styles.sub}>
