@@ -100,7 +100,14 @@ export function ExerciseSessionHeader({
         </TouchableOpacity>
       )}
       <View style={styles.titleContainer}>
-        <ThemedText style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+        {/* Long (often translated) names wrap, then shrink before the tail is cut. */}
+        <ThemedText
+          style={styles.title}
+          numberOfLines={3}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          ellipsizeMode="tail"
+        >
           {exerciseName}
         </ThemedText>
 

@@ -143,8 +143,14 @@ describe("ExerciseInfoScreen", () => {
 
   it("shows no English line when the name is not translated", () => {
     mockExercise = { ...BENCH_PRESS, english_name: "Bench Press" };
-    const { queryByText } = render(<ExerciseInfoScreen />);
-    expect(queryByText("Bench Press")).toBeNull();
+    const { getAllByText } = render(<ExerciseInfoScreen />);
+    // Only the heading, no second English line.
+    expect(getAllByText("Bench Press")).toHaveLength(1);
+  });
+
+  it("shows the full name above the tabs, not in the header", () => {
+    const { getByRole } = render(<ExerciseInfoScreen />);
+    expect(getByRole("header", { name: "Bench Press" })).toBeTruthy();
   });
 
   it("opens on Progress when the exercise has history", () => {

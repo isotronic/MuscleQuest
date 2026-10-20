@@ -166,7 +166,6 @@ export default function ExerciseInfoScreen() {
     <ThemedView style={styles.screen}>
       <Stack.Screen
         options={{
-          title: exerciseData.name,
           headerRight: () => (
             <>
               <AppIconButton
@@ -208,12 +207,18 @@ export default function ExerciseInfoScreen() {
         }}
       />
 
-      {/* The English name under the translated one in the header, on every tab. */}
-      {showsEnglishName(exerciseData) && (
-        <ThemedText style={styles.englishName} numberOfLines={2}>
-          {exerciseData.english_name}
+      {/* The full name, on every tab: the header would cut a long one off.
+          The English name goes under a translated one. */}
+      <View style={styles.nameBlock}>
+        <ThemedText accessibilityRole="header" style={styles.title}>
+          {exerciseData.name}
         </ThemedText>
-      )}
+        {showsEnglishName(exerciseData) && (
+          <ThemedText style={styles.englishName}>
+            {exerciseData.english_name}
+          </ThemedText>
+        )}
+      </View>
 
       {/* Tab bar */}
       <View style={styles.tabBar} accessibilityRole="tablist">
@@ -258,8 +263,6 @@ export default function ExerciseInfoScreen() {
             )}
           </View>
           <View style={styles.detailsContainer}>
-            <ThemedText style={styles.title}>{exerciseData.name}</ThemedText>
-
             <View style={styles.infoRow}>
               <AppIcon set="mci" name="target" size={20} style={styles.icon} />
               <ThemedText style={styles.infoText}>
@@ -534,16 +537,18 @@ function createStyles(colors: AppThemeColors) {
       backgroundColor: colors.card,
       borderRadius: radii.lg,
     },
+    nameBlock: {
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      gap: 2,
+    },
     title: {
-      fontSize: 22,
+      fontSize: 20,
       fontWeight: "bold",
-      marginBottom: 16,
     },
     englishName: {
       fontSize: 14,
       color: colors.contentSecondary,
-      paddingHorizontal: 16,
-      paddingTop: 8,
     },
     infoRow: {
       flexDirection: "row",

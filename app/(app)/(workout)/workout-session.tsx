@@ -1571,7 +1571,7 @@ export default function WorkoutSessionScreen() {
                             </ThemedText>
                             <ThemedText
                               style={styles.supersetPartner}
-                              numberOfLines={1}
+                              numberOfLines={2}
                               ellipsizeMode="tail"
                             >
                               {ss.isFirstInSuperset ? (
@@ -1671,7 +1671,7 @@ export default function WorkoutSessionScreen() {
                       </ThemedText>
                       <ThemedText
                         style={styles.supersetPartner}
-                        numberOfLines={1}
+                        numberOfLines={2}
                         ellipsizeMode="tail"
                       >
                         {outgoingSnapshot.isFirstInSuperset ? (
