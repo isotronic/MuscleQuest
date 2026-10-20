@@ -259,6 +259,27 @@ describe("volume in SQL and JS", () => {
 });
 
 describe("a loaded completed workout", () => {
+  it("reads an empty saved tracking type as the exercise's own, like the SQL", async () => {
+    seed();
+    mockDb.sqlite.exec(
+      `UPDATE completed_exercises SET resolved_tracking_type = '' WHERE exercise_id = 2`,
+    );
+    const workout = await fetchCompletedWorkoutById(2);
+    const [summary] = await fetchWorkoutSummaries(
+      { from: "2026-03-15", to: "2026-03-15" },
+      OFF,
+    );
+
+    expect(
+      workout.exercises.find((e) => e.exercise_id === 2)!
+        .exercise_tracking_type,
+    ).toBe("assisted");
+    expect(completedWorkoutVolume(workout, OFF, "kg")).toBeCloseTo(
+      summary.volume_kg,
+      6,
+    );
+  });
+
   it("carries the body weight logged before it", async () => {
     seed();
     const march = await fetchCompletedWorkoutById(2);

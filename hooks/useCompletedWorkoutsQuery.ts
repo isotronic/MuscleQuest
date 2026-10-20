@@ -123,7 +123,7 @@ const fetchCompletedWorkouts = async (
         exercises.name AS exercise_name,
         exercises.app_exercise_id,
         COALESCE(
-          completed_exercises.resolved_tracking_type,
+          NULLIF(completed_exercises.resolved_tracking_type, ''),
           (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
            WHERE uwe.workout_id = completed_workouts.workout_id
              AND uwe.exercise_id = completed_exercises.exercise_id
@@ -374,7 +374,7 @@ const fetchWorkoutHistoryForSession = async (
         e.name AS exercise_name,
         e.app_exercise_id,
         COALESCE(
-          ce.resolved_tracking_type,
+          NULLIF(ce.resolved_tracking_type, ''),
           (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
            WHERE uwe.workout_id = cw.workout_id
              AND uwe.exercise_id = ce.exercise_id
@@ -550,7 +550,7 @@ const fetchGlobalExerciseHistoryForSession = async (
         e.name AS exercise_name,
         e.app_exercise_id,
         COALESCE(
-          ce.resolved_tracking_type,
+          NULLIF(ce.resolved_tracking_type, ''),
           (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
            WHERE uwe.workout_id = cw.workout_id
              AND uwe.exercise_id = ce.exercise_id

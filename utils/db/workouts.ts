@@ -327,7 +327,7 @@ export const fetchCompletedWorkoutById = async (
         e.app_exercise_id,
         e.image_uri as exercise_image_uri,
         CASE WHEN e.image_uri IS NULL THEN e.image END as exercise_image,
-        COALESCE(ce.resolved_tracking_type, ${planRowSql("tracking_type_override")}, e.tracking_type) as exercise_tracking_type,
+        COALESCE(NULLIF(ce.resolved_tracking_type, ''), ${planRowSql("tracking_type_override")}, e.tracking_type) as exercise_tracking_type,
         e.tracking_type as base_tracking_type,
         ${bodyWeightAtSql("cw.date_completed")} as body_weight_kg,
         e.is_unilateral,
