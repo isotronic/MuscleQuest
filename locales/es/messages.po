@@ -397,6 +397,24 @@ msgstr ""
 "Navegar entre series ahora incluye transiciones deslizantes suaves. Desliza hacia la izquierda o la derecha para moverte entre series, o usa los botones de flecha para el mismo efecto.\n"
 ""
 
+#: constants/WhatsNew.ts:921
+msgid ""
+"\n"
+"🌍 New: Exercise Names in Your Language!\n"
+"\n"
+"If your phone is set to German, French or Spanish, exercise names now show in that language and lists are sorted by them. The exercise screen shows the English name underneath.\n"
+"\n"
+"Prefer English names? Turn off Translate exercise names in Settings, under Appearance.\n"
+""
+msgstr ""
+"\n"
+"🌍 Nuevo: nombres de ejercicios en tu idioma\n"
+"\n"
+"Si tu móvil está en alemán, francés o español, los nombres de los ejercicios ahora aparecen en ese idioma y las listas se ordenan por ellos. La pantalla del ejercicio muestra debajo el nombre en inglés.\n"
+"\n"
+"¿Prefieres los nombres en inglés? Desactiva Traducir los nombres de ejercicios en Ajustes, en Apariencia.\n"
+""
+
 #: constants/WhatsNew.ts:122
 msgid ""
 "\n"
@@ -1013,6 +1031,24 @@ msgstr ""
 "📖 Mejorado: ¡Pantalla de ayuda rediseñada!\n"
 "\n"
 "La sección de Ayuda e información ahora se abre con grupos de temas contraídos y expandibles, y una fila de chips para saltar directamente a una sección. La búsqueda es más rápida e inteligente, resalta el texto exacto que coincide en cada resultado, y muestra un estado vacío útil con un enlace para solicitar una función si no hay coincidencias.\n"
+""
+
+#: constants/WhatsNew.ts:910
+msgid ""
+"\n"
+"📚 Improved: A Better Exercise Library!\n"
+"\n"
+"Every exercise in the library has been checked. Names now match what you'd call them in the gym, like Barbell Hip Thrust and Bulgarian Split Squat, and muscles and equipment are corrected. Every exercise also has new step-by-step instructions with breathing cues and a tip.\n"
+"\n"
+"Exercises that are really timed holds now track time. Your history and plans move over automatically.\n"
+""
+msgstr ""
+"\n"
+"📚 Mejorado: una biblioteca de ejercicios mejor\n"
+"\n"
+"Hemos revisado todos los ejercicios de la biblioteca. Los nombres ahora coinciden con cómo se dicen en el gimnasio, como Hip thrust con barra y Sentadilla búlgara, y se han corregido los músculos y el equipamiento. Además, cada ejercicio tiene nuevas instrucciones paso a paso (en inglés) con indicaciones de respiración y un consejo.\n"
+"\n"
+"Los ejercicios que en realidad son aguantes por tiempo ahora se registran por tiempo. Tu historial y tus planes se adaptan automáticamente.\n"
 ""
 
 #: constants/WhatsNew.ts:710
@@ -2064,7 +2100,7 @@ msgstr "Aparece un banner de semana de deload si tres o más ejercicios del entr
 msgid "A few quick choices. You can change them any time in Settings."
 msgstr "Solo unas elecciones rápidas. Puedes cambiarlas cuando quieras en Ajustes."
 
-#: app/(app)/settings/appearance.tsx:36
+#: app/(app)/settings/appearance.tsx:41
 msgid "A few tips show on the home screen."
 msgstr "Se muestran algunos consejos en la pantalla de inicio."
 
@@ -2135,11 +2171,11 @@ msgstr "Aceptar todo"
 msgid "Accepted suggestions are pre-filled into the weight and rep fields next time you open that workout."
 msgstr "Las sugerencias aceptadas se prerellenan en los campos de peso y reps la próxima vez que abras ese entrenamiento."
 
-#: constants/HelpData.ts:330
+#: constants/HelpData.ts:331
 msgid "Accessibility"
 msgstr "Accesibilidad"
 
-#: constants/HelpData.ts:367
+#: constants/HelpData.ts:368
 msgid "Account"
 msgstr "Cuenta"
 
@@ -2410,7 +2446,7 @@ msgstr "Añadido a mis entrenamientos"
 msgid "Added, in a superset with {partner}"
 msgstr "Añadido, en superserie con {partner}"
 
-#: constants/HelpData.ts:348
+#: constants/HelpData.ts:349
 msgid "Adding Friends"
 msgstr "Añadir amigos"
 
@@ -2807,7 +2843,7 @@ msgstr "Haz una copia de seguridad de tu historial de entrenamiento. Si pierdes 
 msgid "Backup"
 msgstr "Copia de seguridad"
 
-#: constants/HelpData.ts:378
+#: constants/HelpData.ts:379
 msgid "Backup & Restore"
 msgstr "Copia de seguridad y restauración"
 
@@ -4154,7 +4190,7 @@ msgstr "Barra vacía, no hacen falta discos."
 msgid "Empty workout"
 msgstr "Entrenamiento vacío"
 
-#: constants/HelpData.ts:337
+#: constants/HelpData.ts:338
 msgid "Enable recurring workout reminders from Settings. Select the days of the week you want to be reminded using the day chips and choose a time. You will receive a notification at that time on each selected day. Notification permission must be granted for reminders to work."
 msgstr "Activa los recordatorios de entrenamiento recurrentes desde Ajustes. Selecciona los días de la semana en los que quieres recibir el recordatorio usando los chips de día y elige una hora. Recibirás una notificación a esa hora en cada día seleccionado. Se debe conceder el permiso de notificaciones para que los recordatorios funcionen."
 
@@ -4484,11 +4520,11 @@ msgstr "Los ejercicios ahora se abren como una lista de series. Puedes cambiarlo
 msgid "Exercises now open one set at a time. Change this in the workout menu (⋮) or in Settings."
 msgstr "Los ejercicios ahora se abren con una serie cada vez. Puedes cambiarlo en el menú del entrenamiento (⋮) o en Ajustes."
 
-#: app/(app)/settings/appearance.tsx:50
+#: app/(app)/settings/appearance.tsx:55
 msgid "Exercises show in your language, with the English name on the exercise screen."
 msgstr "Los ejercicios aparecen en tu idioma, con el nombre en inglés en la pantalla del ejercicio."
 
-#: app/(app)/settings/appearance.tsx:51
+#: app/(app)/settings/appearance.tsx:56
 msgid "Exercises show their English names."
 msgstr "Los ejercicios aparecen con su nombre en inglés."
 
@@ -4513,7 +4549,7 @@ msgstr "Explorar planes"
 msgid "Export complete"
 msgstr "Exportación completada"
 
-#: constants/HelpData.ts:384
+#: constants/HelpData.ts:385
 msgid "Export Data & Delete Account"
 msgstr "Exportar datos y eliminar cuenta"
 
@@ -4764,7 +4800,7 @@ msgstr "Perfil de amigo"
 msgid "Friends"
 msgstr "Amigos"
 
-#: constants/HelpData.ts:343
+#: constants/HelpData.ts:344
 msgid "Friends & Social"
 msgstr "Amigos y social"
 
@@ -4934,7 +4970,7 @@ msgstr "Ayuda a ajustar tu próxima sesión"
 #~ msgid "Hidden. Turn this on to see the introduction cards again."
 #~ msgstr "Ocultas. Actívalo para volver a ver las tarjetas de introducción."
 
-#: app/(app)/settings/appearance.tsx:37
+#: app/(app)/settings/appearance.tsx:42
 msgid "Hidden. Turn this on to see the tips again."
 msgstr "Ocultos. Actívalo para volver a ver los consejos."
 
@@ -5090,7 +5126,7 @@ msgstr "imágenes, animaciones, sin conexión, descargar"
 msgid "Import failed"
 msgstr "Importación fallida"
 
-#: constants/HelpData.ts:360
+#: constants/HelpData.ts:361
 msgid "Importing from Friends"
 msgstr "Importar de amigos"
 
@@ -5699,7 +5735,7 @@ msgstr "MuscleQuest no pudo abrir tus datos de entrenamiento."
 #~ msgid "MuscleQuest Introduction"
 #~ msgstr "Introducción a MuscleQuest"
 
-#: constants/HelpData.ts:331
+#: constants/HelpData.ts:332
 msgid "MuscleQuest works with TalkBack and VoiceOver: buttons and fields are labelled, completing a set and the rest countdown are announced, and every chart has a spoken summary. Text follows your system font size, and animations such as the workout summary confetti are switched off when your device is set to reduce motion."
 msgstr "MuscleQuest funciona con TalkBack y VoiceOver: los botones y campos tienen etiquetas, se anuncia cuando completas una serie y la cuenta atrás del descanso, y cada gráfico tiene un resumen hablado. El texto sigue el tamaño de fuente de tu sistema, y las animaciones, como el confeti del resumen del entrenamiento, se desactivan cuando tu dispositivo está configurado para reducir el movimiento."
 
@@ -6182,7 +6218,7 @@ msgstr "Una serie cada vez"
 msgid "Oops!"
 msgstr "¡Vaya!"
 
-#: constants/HelpData.ts:349
+#: constants/HelpData.ts:350
 msgid "Open Friends from the menu to manage your connections; you need to be signed in and online. On the Search tab, enter a friend's exact email address and send them a friend request. Email addresses are never shown to other users. Incoming and sent requests appear in the Requests tab; tap Accept to confirm or Decline to ignore. A badge on the Friends menu item shows how many pending requests are waiting. Once a request is accepted, both users appear in each other's Friends list and can view each other's shared content. To remove a friend, long-press them in your list. Pull down on the list to refresh it."
 msgstr "Abre Amigos desde el menú para gestionar tus conexiones; necesitas haber iniciado sesión y tener conexión. En la pestaña Buscar, introduce la dirección de correo exacta de un amigo y envíale una solicitud de amistad. Las direcciones de correo nunca se muestran a otros usuarios. Las solicitudes entrantes y enviadas aparecen en la pestaña Solicitudes; toca Aceptar para confirmar o Rechazar para ignorar. Un badge en el elemento Amigos del menú muestra cuántas solicitudes están pendientes. Una vez aceptada una solicitud, ambos usuarios aparecen en la lista de Amigos del otro y pueden ver el contenido compartido del otro. Para eliminar a un amigo, mantenlo pulsado en tu lista. Desliza la lista hacia abajo para actualizarla."
 
@@ -6195,8 +6231,12 @@ msgid "Open Settings"
 msgstr "Abrir Ajustes"
 
 #: constants/HelpData.ts:244
-msgid "Open the Exercise Library from the menu at any time to browse almost 1,000 exercises, and filter by body part, target muscle, or equipment. Search understands common abbreviations like RDL, OHP, DB, and KB, and forgives small typos. Use the sort chips at the top to order exercises by Default, Active Plan, Recent, or Frequent, so the exercises most relevant to you appear first. When replacing an exercise, the filter automatically preselects the matching target muscle to help you find alternatives faster. Tap any exercise to view its animated demonstration, the muscles targeted, and a full history of every time you have performed it, including weights, reps, time, or distance per set. Download all exercise animations (~100 MB) in Settings for offline access; the download needs an internet connection."
-msgstr "Abre la Biblioteca de ejercicios desde el menú en cualquier momento para explorar casi 1.000 ejercicios, y filtra por parte del cuerpo, músculo objetivo o equipamiento. La búsqueda entiende abreviaturas comunes como RDL, OHP, DB y KB, y tolera pequeñas erratas. Usa los chips de ordenación en la parte superior para ordenar los ejercicios por Predeterminado, Plan activo, Reciente o Frecuente, y así los ejercicios más relevantes para ti aparecerán primero. Al reemplazar un ejercicio, el filtro preselecciona automáticamente el músculo objetivo correspondiente para ayudarte a encontrar alternativas más rápido. Toca cualquier ejercicio para ver su demostración animada, los músculos trabajados y un historial completo de cada vez que lo has realizado, incluyendo pesos, reps, tiempo o distancia por serie. Descarga todas las animaciones de ejercicios (~100 MB) en Ajustes para acceso sin conexión; la descarga necesita conexión a internet."
+#~ msgid "Open the Exercise Library from the menu at any time to browse almost 1,000 exercises, and filter by body part, target muscle, or equipment. Search understands common abbreviations like RDL, OHP, DB, and KB, and forgives small typos. Use the sort chips at the top to order exercises by Default, Active Plan, Recent, or Frequent, so the exercises most relevant to you appear first. When replacing an exercise, the filter automatically preselects the matching target muscle to help you find alternatives faster. Tap any exercise to view its animated demonstration, the muscles targeted, and a full history of every time you have performed it, including weights, reps, time, or distance per set. Download all exercise animations (~100 MB) in Settings for offline access; the download needs an internet connection."
+#~ msgstr "Abre la Biblioteca de ejercicios desde el menú en cualquier momento para explorar casi 1.000 ejercicios, y filtra por parte del cuerpo, músculo objetivo o equipamiento. La búsqueda entiende abreviaturas comunes como RDL, OHP, DB y KB, y tolera pequeñas erratas. Usa los chips de ordenación en la parte superior para ordenar los ejercicios por Predeterminado, Plan activo, Reciente o Frecuente, y así los ejercicios más relevantes para ti aparecerán primero. Al reemplazar un ejercicio, el filtro preselecciona automáticamente el músculo objetivo correspondiente para ayudarte a encontrar alternativas más rápido. Toca cualquier ejercicio para ver su demostración animada, los músculos trabajados y un historial completo de cada vez que lo has realizado, incluyendo pesos, reps, tiempo o distancia por serie. Descarga todas las animaciones de ejercicios (~100 MB) en Ajustes para acceso sin conexión; la descarga necesita conexión a internet."
+
+#: constants/HelpData.ts:244
+msgid "Open the Exercise Library from the menu at any time to browse almost 1,000 exercises, and filter by body part, target muscle, or equipment. Search understands common abbreviations like RDL, OHP, DB, and KB, and forgives small typos. Use the sort chips at the top to order exercises by Default, Active Plan, Recent, or Frequent, so the exercises most relevant to you appear first. When replacing an exercise, the filter automatically preselects the matching target muscle to help you find alternatives faster. Tap any exercise to view its animated demonstration, the muscles targeted, and a full history of every time you have performed it, including weights, reps, time, or distance per set. Download all exercise animations (~100 MB) in Settings for offline access; the download needs an internet connection. If your phone is set to German, French or Spanish, exercise names show in that language, with the English name on the exercise screen; to see English names everywhere, turn off Translate exercise names in Settings, under Appearance."
+msgstr "Abre la Biblioteca de ejercicios desde el menú en cualquier momento para explorar casi 1.000 ejercicios, y filtra por parte del cuerpo, músculo objetivo o equipamiento. La búsqueda entiende abreviaturas comunes como RDL, OHP, DB y KB, y tolera pequeñas erratas. Usa los chips de ordenación en la parte superior para ordenar los ejercicios por Predeterminado, Plan activo, Reciente o Frecuente, y así los ejercicios más relevantes para ti aparecerán primero. Al reemplazar un ejercicio, el filtro preselecciona automáticamente el músculo objetivo correspondiente para ayudarte a encontrar alternativas más rápido. Toca cualquier ejercicio para ver su demostración animada, los músculos trabajados y un historial completo de cada vez que lo has realizado, incluyendo pesos, reps, tiempo o distancia por serie. Descarga todas las animaciones de ejercicios (~100 MB) en Ajustes para acceso sin conexión; la descarga necesita conexión a internet. Si tu móvil está en alemán, francés o español, los nombres de los ejercicios aparecen en ese idioma, con el nombre en inglés en la pantalla del ejercicio; para ver los nombres en inglés en toda la app, desactiva Traducir los nombres de ejercicios en Ajustes, en Apariencia."
 
 #: constants/HelpData.ts:297
 #~ msgid "Open the Friends tab from the menu to manage your connections. Use the search bar to find other users by username and send them a friend request. Incoming requests appear in the Requests tab; tap Accept to confirm or Decline to ignore. A badge on the Friends menu item shows how many pending requests are waiting. Once a request is accepted, both users appear in each other's Friends list and can view each other's shared content."
@@ -7503,7 +7543,7 @@ msgstr "Compartido"
 msgid "Shared with friends"
 msgstr "Compartido con amigos"
 
-#: constants/HelpData.ts:354
+#: constants/HelpData.ts:355
 msgid "Sharing Your Content"
 msgstr "Compartir tu contenido"
 
@@ -7576,8 +7616,8 @@ msgstr "Mostrar series en lista"
 msgid "Show target range"
 msgstr "Mostrar rango objetivo"
 
-#: app/(app)/settings/appearance.tsx:32
-#: app/(app)/settings/appearance.tsx:33
+#: app/(app)/settings/appearance.tsx:37
+#: app/(app)/settings/appearance.tsx:38
 #: utils/settingsIndex.ts:262
 msgid "Show tips on home"
 msgstr "Mostrar consejos en inicio"
@@ -7630,7 +7670,7 @@ msgstr "Iniciar sesión con Google"
 #~ msgid "Sign in with Google in Settings to enable cloud backups of all your workout data. Tap Backup at any time to save a snapshot; the date of your last backup is shown beneath the button. A backup that fails partway never replaces your last good one. Tap Restore to download and apply your latest backup. This replaces all training data on this device, so anything logged since that backup is lost; confirm the prompt and the app will reload with your restored data. Backup and restore need an internet connection. Your backups are stored securely and are tied to your Google account. If you switch devices or reinstall the app, simply sign in with the same Google account and tap Restore to get your data back."
 #~ msgstr "Inicia sesión con Google en Ajustes para activar las copias de seguridad en la nube de todos tus datos de entrenamiento. Toca Copia de seguridad en cualquier momento para guardar una instantánea; la fecha de tu última copia se muestra bajo el botón. Una copia que falla a medias nunca sustituye a tu última copia correcta. Toca Restaurar para descargar y aplicar tu última copia. Esto reemplaza todos los datos de entrenamiento de este dispositivo, así que se pierde todo lo registrado desde esa copia; confirma el aviso y la app se recargará con tus datos restaurados. La copia de seguridad y la restauración necesitan conexión a internet. Tus copias se almacenan de forma segura y están vinculadas a tu cuenta de Google. Si cambias de dispositivo o reinstalas la app, simplemente inicia sesión con la misma cuenta de Google y toca Restaurar para recuperar tus datos."
 
-#: constants/HelpData.ts:379
+#: constants/HelpData.ts:380
 msgid "Sign in with Google in Settings to enable cloud backups of all your workout data. Tap Backup at any time to save a snapshot; the date of your last backup is shown beneath the button. A backup that fails partway never replaces your last good one. Tap Restore to download and apply your latest backup. This replaces all training data on this device, so anything logged since that backup is lost; confirm the prompt and the app will reload with your restored data. Backup and restore need an internet connection. Your backups are stored securely and are tied to your Google account. If you switch devices or reinstall the app, simply sign in with the same Google account and tap Restore to get your data back. The home screen reminds you when you have never backed up or your last backup is more than 30 days old."
 msgstr "Inicia sesión con Google en Ajustes para activar las copias de seguridad en la nube de todos tus datos de entrenamiento. Toca Copia de seguridad en cualquier momento para guardar una instantánea; la fecha de tu última copia se muestra bajo el botón. Una copia que falla a medias nunca sustituye a tu última copia correcta. Toca Restaurar para descargar y aplicar tu última copia. Esto reemplaza todos los datos de entrenamiento de este dispositivo, así que se pierde todo lo registrado desde esa copia; confirma el aviso y la app se recargará con tus datos restaurados. La copia de seguridad y la restauración necesitan conexión a internet. Tus copias se almacenan de forma segura y están vinculadas a tu cuenta de Google. Si cambias de dispositivo o reinstalas la app, simplemente inicia sesión con la misma cuenta de Google y toca Restaurar para recuperar tus datos. La pantalla de inicio te avisa cuando nunca has hecho una copia de seguridad o la última tiene más de 30 días."
 
@@ -7668,7 +7708,7 @@ msgstr "Sesión iniciada como {0}"
 msgid "Significantly short of the target. Hold and focus on hitting all reps before progressing."
 msgstr "Muy por debajo del objetivo. Mantener y centrarse en completar todas las reps antes de progresar."
 
-#: constants/HelpData.ts:372
+#: constants/HelpData.ts:373
 msgid "Signing In"
 msgstr "Inicio de sesión"
 
@@ -8071,7 +8111,7 @@ msgstr "Toca el nombre de un ejercicio casi en cualquier parte de la app para ab
 #~ msgid "Tap any accepted friend in your Friends list to open their profile. Their profile shows whatever they have chosen to share: strength PRs, recent activity, body measurements, plans, standalone workouts, and custom exercises. Tap Add on a plan, workout, or custom exercise to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts. Each section of a profile starts collapsed; tap its heading to open it."
 #~ msgstr "Toca cualquier amigo aceptado en tu lista de Amigos para abrir su perfil. Su perfil muestra todo lo que ha elegido compartir: récords de fuerza, actividad reciente, medidas corporales, planes, entrenamientos individuales y ejercicios personalizados. Toca Añadir en un plan, entrenamiento o ejercicio personalizado para añadirlo directamente a tu propia biblioteca. Los planes y entrenamientos importados se guardan como nuevas copias que puedes editar libremente sin afectar al original. Los ejercicios personalizados importados se añaden a tu biblioteca de ejercicios y están disponibles inmediatamente al crear entrenamientos. Cada sección de un perfil empieza plegada; toca su título para abrirla."
 
-#: constants/HelpData.ts:361
+#: constants/HelpData.ts:362
 msgid "Tap any accepted friend in your Friends list to open their profile. Their profile shows whatever they have chosen to share: strength PRs, recent activity, body measurements, plans, workouts, and custom exercises. Tap Add on a plan, workout, or custom exercise to add it directly to your own library. Imported plans and workouts are saved as new copies that you can edit freely without affecting the original. Imported custom exercises are added to your exercise library and available immediately when building workouts. Each section of a profile starts collapsed, with the most recent items first; tap its heading to open it."
 msgstr "Toca cualquier amigo aceptado en tu lista de Amigos para abrir su perfil. Su perfil muestra todo lo que ha elegido compartir: récords de fuerza, actividad reciente, medidas corporales, planes, entrenamientos y ejercicios personalizados. Toca Añadir en un plan, entrenamiento o ejercicio personalizado para añadirlo directamente a tu propia biblioteca. Los planes y entrenamientos importados se guardan como nuevas copias que puedes editar libremente sin afectar al original. Los ejercicios personalizados importados se añaden a tu biblioteca de ejercicios y están disponibles inmediatamente al crear entrenamientos. Cada sección de un perfil empieza plegada, con lo más reciente primero; toca su título para abrirla."
 
@@ -8087,7 +8127,7 @@ msgstr "Toca cómo te ha ido: Fácil, Más o menos bien, Difícil o No pude term
 msgid "Tap Next to move to the following exercise, or Previous to go back. On the last exercise, tap Back to overview."
 msgstr "Toca Siguiente para pasar al ejercicio siguiente, o Anterior para volver. En el último ejercicio, toca Volver a la vista general."
 
-#: constants/HelpData.ts:373
+#: constants/HelpData.ts:374
 msgid "Tap Sign in with Google in Settings to connect your account; signing in needs an internet connection. Signing in enables cloud backups so your data is safe if you switch devices or reinstall the app, lets you add friends, and shows your name in the home screen greeting. The app works fully offline without signing in, but cloud backups and Friends are unavailable. Your data is stored locally on your device and is not shared with anyone unless you choose to share it yourself."
 msgstr "Toca Iniciar sesión con Google en Ajustes para conectar tu cuenta; para iniciar sesión necesitas conexión a internet. Al iniciar sesión se activan las copias de seguridad en la nube para que tus datos estén seguros si cambias de dispositivo o reinstalas la app, puedes añadir amigos y tu nombre aparece en el saludo de la pantalla de inicio. La app funciona completamente sin conexión sin iniciar sesión, pero las copias de seguridad en la nube y Amigos no están disponibles. Tus datos se almacenan localmente en tu dispositivo y no se comparten con nadie a menos que tú decidas hacerlo."
 
@@ -8734,8 +8774,8 @@ msgstr "Tiempo de entrenamiento"
 msgid "Training Time per Week (h)"
 msgstr "Tiempo de entrenamiento por semana (h)"
 
-#: app/(app)/settings/appearance.tsx:46
-#: app/(app)/settings/appearance.tsx:47
+#: app/(app)/settings/appearance.tsx:51
+#: app/(app)/settings/appearance.tsx:52
 #: utils/settingsIndex.ts:268
 msgid "Translate exercise names"
 msgstr "Traducir los nombres de ejercicios"
@@ -8834,6 +8874,10 @@ msgstr "Escribe para filtrar temas de ayuda"
 msgid "Unable to save your workout. Please try again later."
 msgstr "No se puede guardar tu entrenamiento. Por favor, inténtalo de nuevo más tarde."
 
+#: constants/HelpData.ts:323
+msgid "Under Appearance: Show tips on home, and Translate exercise names to see exercise names in your phone's language or in English."
+msgstr "En Apariencia: Mostrar consejos en inicio, y Traducir los nombres de ejercicios para verlos en el idioma de tu móvil o en inglés."
+
 #: constants/HelpData.ts:275
 #~ msgid "Under Stats: exclude warm-up sets from volume, double reps for unilateral exercises, or double the weight for paired implements (useful if you log per-dumbbell weight rather than the total)."
 #~ msgstr "En Estadísticas: excluye las series de calentamiento del volumen, duplica las reps en ejercicios unilaterales o dobla el peso para implementos emparejados (útil si registras el peso de una mancuerna en lugar del total)."
@@ -8842,7 +8886,7 @@ msgstr "No se puede guardar tu entrenamiento. Por favor, inténtalo de nuevo má
 msgid "Under Stats: exclude warm-up sets from volume, turn on Single-side rep logging to double reps for unilateral exercises, or Per-side weight entry to double the weight for paired implements (useful if you log per-dumbbell weight rather than the total)."
 msgstr "En Estadísticas: excluye las series de calentamiento del volumen, activa Reps por un solo lado para duplicar las reps en ejercicios unilaterales, o Peso por lado para doblar el peso de implementos pareados (útil si registras el peso de una mancuerna en lugar del total)."
 
-#: constants/HelpData.ts:385
+#: constants/HelpData.ts:386
 msgid "Under Your data in Settings, tap Export training data to save your workouts and measurements as CSV for spreadsheets, or as JSON with everything, including plans and custom exercises. If you are signed in, Delete account removes your sign-in account, your profile and friend connections, everything you have shared with friends, and your cloud backups. You choose whether to keep the training data on this device. Export a copy first if you want to keep your history."
 msgstr "En Tus datos, dentro de Ajustes, toca Exportar datos de entrenamiento para guardar tus entrenamientos y medidas en CSV para hojas de cálculo, o en JSON con todo, incluidos planes y ejercicios personalizados. Si has iniciado sesión, Eliminar cuenta borra tu cuenta de acceso, tu perfil y tus conexiones de amistad, todo lo que has compartido con amigos y tus copias de seguridad en la nube. Tú decides si conservas los datos de entrenamiento en este dispositivo. Exporta una copia antes si quieres conservar tu historial."
 
@@ -9430,7 +9474,7 @@ msgstr "Opciones del entrenamiento"
 msgid "Workout reminders"
 msgstr "Recordatorios de entrenamiento"
 
-#: constants/HelpData.ts:336
+#: constants/HelpData.ts:337
 msgid "Workout Reminders"
 msgstr "Recordatorios de entrenamiento"
 
@@ -9540,7 +9584,7 @@ msgstr "Ya tienes un entrenamiento en curso. ¿Continuarlo o empezar uno nuevo?"
 #~ msgid "You can share plans, standalone workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and standalone workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
 #~ msgstr "Puedes compartir planes, entrenamientos individuales, ejercicios personalizados, entrenamientos completados, medidas corporales y récords de fuerza con tus amigos. Cada categoría tiene un interruptor en la sección Privacidad de Ajustes, que también puedes abrir desde el icono de engranaje en la pantalla Amigos. Al activar una categoría se comparte con tus amigos y se mantiene sincronizada cuando cambia. Los planes y entrenamientos individuales también tienen un interruptor Compartir individual en la pantalla de resumen de cada elemento, para que puedas publicar planes o entrenamientos específicos sin compartir todo. Un icono de nube en la tarjeta del plan o entrenamiento confirma que está publicado actualmente. Al desactivar una categoría se deja de compartir lo nuevo, pero lo ya compartido sigue visible hasta que tocas Eliminar todos los datos compartidos en la sección Privacidad de Ajustes. Si un plan es demasiado grande para compartirlo, divídelo en planes más pequeños."
 
-#: constants/HelpData.ts:355
+#: constants/HelpData.ts:356
 msgid "You can share plans, workouts, custom exercises, completed workouts, body measurements, and strength PRs with your friends. Each category has a toggle in the Privacy section of Settings, which you can also open from the gear icon on the Friends screen. Turning a category on shares it with your friends and keeps it in sync as it changes. Plans and workouts also have an individual Share toggle on each item's overview screen, so you can publish specific plans or workouts without sharing everything. A cloud icon on the plan or workout card confirms it is currently published. Turning a category off stops sharing new items, but anything already shared stays visible until you tap Delete all shared data in the Privacy section of Settings. If a plan is too large to share, split it into smaller plans."
 msgstr "Puedes compartir planes, entrenamientos, ejercicios personalizados, entrenamientos completados, medidas corporales y récords de fuerza con tus amigos. Cada categoría tiene un interruptor en la sección Privacidad de Ajustes, que también puedes abrir desde el icono de engranaje en la pantalla Amigos. Al activar una categoría se comparte con tus amigos y se mantiene sincronizada cuando cambia. Los planes y entrenamientos también tienen un interruptor Compartir individual en la pantalla de resumen de cada elemento, para que puedas publicar planes o entrenamientos específicos sin compartir todo. Un icono de nube en la tarjeta del plan o entrenamiento confirma que está publicado actualmente. Al desactivar una categoría se deja de compartir lo nuevo, pero lo ya compartido sigue visible hasta que tocas Eliminar todos los datos compartidos en la sección Privacidad de Ajustes. Si un plan es demasiado grande para compartirlo, divídelo en planes más pequeños."
 
