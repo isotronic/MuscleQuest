@@ -35,7 +35,7 @@ import {
   fetchBodyMeasurementSessions,
   insertBodyMeasurementSession,
   fetchBodyMeasurementSessionsForChart,
-  saveBodyWeightMeasurement,
+  insertBodyWeightMeasurement,
   fetchLatestBodyMetricValues,
   fetchCompletedWorkoutById,
   createDatabaseSnapshot,
@@ -694,7 +694,7 @@ describe("local_date on new writes", () => {
   it("stores the local training day of a quick body weight log", async () => {
     mockDb.getFirstAsync.mockResolvedValue({ id: 5 });
 
-    await saveBodyWeightMeasurement(80);
+    await insertBodyWeightMeasurement(mockDb as never, 80);
 
     const entryInsert = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
       sql.includes("INSERT INTO body_measurement_entries"),
