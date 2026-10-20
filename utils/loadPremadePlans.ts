@@ -1,6 +1,7 @@
 import { Plan } from "@/hooks/useAllPlansQuery";
 import { openDatabase, type ProgressCallback } from "./database";
 import { SQLiteDatabase } from "expo-sqlite";
+import { APP_DATA_DB } from "./db/appDataFile";
 import Bugsnag from "@bugsnag/expo";
 import {
   APP_DATA_SYNC,
@@ -12,7 +13,7 @@ export const ensureAppExercisesExist = async (
   userDb: SQLiteDatabase,
   appExerciseIds: number[],
 ): Promise<void> => {
-  const appDb = await openDatabase("appData3.db");
+  const appDb = await openDatabase(APP_DATA_DB);
   try {
     for (const appId of appExerciseIds) {
       const exists = await userDb.getFirstAsync(
@@ -47,7 +48,7 @@ export const ensureAppExercisesExist = async (
           );
         } else {
           console.warn(
-            `Exercise with app_exercise_id=${appId} not found in appData3.db`,
+            `Exercise with app_exercise_id=${appId} not found in ${APP_DATA_DB}`,
           );
         }
       }

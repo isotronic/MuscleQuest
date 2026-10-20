@@ -43,6 +43,9 @@ const seedAppData = (sqlite: DatabaseSync) => {
   insert.run(1, "Bench Press (renamed)", NEW_IMAGE);
   insert.run(2, "Squat", OLD_IMAGE);
   insert.run(3, "Brand new", NEW_IMAGE);
+  sqlite.exec(
+    `INSERT INTO exercises (exercise_id, name, animated_url, description, tracking_type) VALUES (4, 'Side Plank', 'a.webp', 'd', 'time')`,
+  );
 };
 
 const seedUserData = (sqlite: DatabaseSync) => {
@@ -59,6 +62,9 @@ const seedUserData = (sqlite: DatabaseSync) => {
   );
   insert.run(12, 2, "Squat", OLD_IMAGE, "file:///doc/exercise-images/12.webp");
   insert.run(13, null, "My custom", null, "file:///doc/photo.jpg");
+  sqlite.exec(
+    `INSERT INTO exercises (exercise_id, app_exercise_id, name, animated_url, description, tracking_type) VALUES (14, 4, 'Side Bridge', 'a.webp', 'd', 'reps')`,
+  );
 };
 
 const userExercise = (id: number) =>
@@ -117,6 +123,16 @@ describe("copyDataFromAppDataToUserData and thumbnail files", () => {
       name: "My custom",
       image_uri: "file:///doc/photo.jpg",
     });
+  });
+
+  it("leaves a changed tracking type for the library refresh to convert", () => {
+    expect(
+      mockUserData.sqlite
+        .prepare(
+          `SELECT name, tracking_type FROM exercises WHERE exercise_id = 14`,
+        )
+        .get(),
+    ).toEqual({ name: "Side Plank", tracking_type: "reps" });
   });
 
   it("adds a new library exercise without a file uri", () => {
