@@ -6,6 +6,10 @@ import { toLocalDateKey } from "@/utils/dates";
 import { kgToDisplay, metresToDisplay } from "@/utils/units";
 import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
 import { withDisplayExerciseName } from "@/utils/db/exerciseNames";
+import {
+  bodyWeightAtSql,
+  WORKOUT_BODY_WEIGHT_CTE,
+} from "@/utils/db/bodyWeightAtSql";
 
 interface WorkoutResult {
   id: number;
@@ -23,6 +27,8 @@ interface WorkoutResult {
   exercise_name: string;
   app_exercise_id?: number | null;
   exercise_tracking_type: string;
+  base_tracking_type?: string | null;
+  body_weight_kg?: number | null;
   is_unilateral: number | null;
   double_weight: number | null;
   set_id: number;
@@ -51,6 +57,9 @@ export interface CompletedWorkout {
   is_deload?: number;
   /** The session note. Loaded by the by-id and session history reads only. */
   notes?: string | null;
+  /** Body weight in kg when the workout was done (bodyWeightAtSql), null
+   * when none was ever logged. Not loaded by the global exercise history. */
+  body_weight_kg?: number | null;
   exercises: {
     completed_exercise_id: number;
     exercise_id: number;
@@ -64,6 +73,8 @@ export interface CompletedWorkout {
     exercise_image?: number[];
     exercise_image_uri?: string | null;
     exercise_tracking_type: string;
+    /** The exercise's own type, before a per-workout override. */
+    base_tracking_type?: string | null;
     is_unilateral?: number;
     double_weight?: number;
     sets: {
@@ -97,6 +108,7 @@ const fetchCompletedWorkouts = async (
   try {
     db = await openDatabase("userData.db");
     let query = `
+      WITH ${WORKOUT_BODY_WEIGHT_CTE}
       SELECT
         completed_workouts.id,
         completed_workouts.plan_id,
@@ -111,13 +123,15 @@ const fetchCompletedWorkouts = async (
         exercises.name AS exercise_name,
         exercises.app_exercise_id,
         COALESCE(
-          completed_exercises.resolved_tracking_type,
+          NULLIF(completed_exercises.resolved_tracking_type, ''),
           (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
            WHERE uwe.workout_id = completed_workouts.workout_id
              AND uwe.exercise_id = completed_exercises.exercise_id
              AND uwe.is_deleted IS NOT TRUE LIMIT 1),
           exercises.tracking_type
         ) AS exercise_tracking_type,
+        exercises.tracking_type AS base_tracking_type,
+        workout_body_weight.body_weight_kg,
         exercises.is_unilateral,
         exercises.double_weight,
         completed_sets.id AS set_id,
@@ -133,6 +147,7 @@ const fetchCompletedWorkouts = async (
       LEFT JOIN exercises ON exercises.exercise_id = completed_exercises.exercise_id -- Fetch exercise details from exercises table
       LEFT JOIN completed_sets ON completed_sets.completed_exercise_id = completed_exercises.id
       LEFT JOIN user_workouts ON user_workouts.id = completed_workouts.workout_id
+      LEFT JOIN workout_body_weight ON workout_body_weight.completed_workout_id = completed_workouts.id
     `;
 
     const params: (string | number)[] = [];
@@ -222,6 +237,7 @@ const fetchAndOrganize = async (
           duration,
           total_sets_completed,
           is_deload: item.is_deload ?? 0,
+          body_weight_kg: item.body_weight_kg ?? null,
           exercises: [],
         };
         workoutsMap.set(id, workout);
@@ -239,6 +255,7 @@ const fetchAndOrganize = async (
           exercise_id,
           exercise_name,
           exercise_tracking_type,
+          base_tracking_type: item.base_tracking_type ?? null,
           is_unilateral: is_unilateral ?? 0,
           double_weight: double_weight ?? 0,
           sets: [],
@@ -357,13 +374,15 @@ const fetchWorkoutHistoryForSession = async (
         e.name AS exercise_name,
         e.app_exercise_id,
         COALESCE(
-          ce.resolved_tracking_type,
+          NULLIF(ce.resolved_tracking_type, ''),
           (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
            WHERE uwe.workout_id = cw.workout_id
              AND uwe.exercise_id = ce.exercise_id
              AND uwe.is_deleted IS NOT TRUE LIMIT 1),
           e.tracking_type
         ) AS exercise_tracking_type,
+        e.tracking_type AS base_tracking_type,
+        ${bodyWeightAtSql("cw.date_completed")} AS body_weight_kg,
         e.is_unilateral,
         e.double_weight,
         cs.id AS set_id,
@@ -432,6 +451,7 @@ const fetchWorkoutHistoryForSession = async (
           total_sets_completed,
           is_deload: item.is_deload ?? 0,
           notes: item.notes ?? null,
+          body_weight_kg: item.body_weight_kg ?? null,
           exercises: [],
         };
         workoutsMap.set(id, workout);
@@ -448,6 +468,7 @@ const fetchWorkoutHistoryForSession = async (
           user_workout_exercise_id: item.user_workout_exercise_id ?? null,
           exercise_name,
           exercise_tracking_type,
+          base_tracking_type: item.base_tracking_type ?? null,
           is_unilateral: item.is_unilateral ?? 0,
           double_weight: item.double_weight ?? 0,
           sets: [],
@@ -529,7 +550,7 @@ const fetchGlobalExerciseHistoryForSession = async (
         e.name AS exercise_name,
         e.app_exercise_id,
         COALESCE(
-          ce.resolved_tracking_type,
+          NULLIF(ce.resolved_tracking_type, ''),
           (SELECT uwe.tracking_type_override FROM user_workout_exercises uwe
            WHERE uwe.workout_id = cw.workout_id
              AND uwe.exercise_id = ce.exercise_id

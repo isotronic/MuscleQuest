@@ -18,6 +18,7 @@ import { formatToHoursMinutes } from "@/utils/utility";
 import type { AppThemeColors } from "@/theme/types";
 import { formatDecimal, formatGroupedInteger } from "@/utils/numberFormat";
 import { setMetric } from "@/utils/prMetric";
+import { completedWorkoutVolume, workoutBodyWeight } from "@/utils/volume";
 
 interface Props {
   workoutsThisWeek: CompletedWorkout[];
@@ -28,8 +29,7 @@ interface Props {
   excludeWarmup?: boolean;
   countUnilateralDouble?: boolean;
   doubleWeightForPaired?: boolean;
-  /** In the display weight unit, for assisted exercises. */
-  bodyWeight?: number;
+  includeBodyWeight?: boolean;
   weekRule?: WeekRule;
 }
 
@@ -43,7 +43,7 @@ type HistoryExercise = CompletedWorkout["exercises"][number];
 function achievementMetric(
   exercise: HistoryExercise,
   set: HistoryExercise["sets"][number],
-  bodyWeight: number,
+  bodyWeight: number | null,
   doubleWeightForPaired: boolean,
 ): number | null {
   const trackingType = exercise.exercise_tracking_type;
@@ -54,12 +54,12 @@ function achievementMetric(
     if (set.time == null) return null;
   } else {
     if (set.weight == null || set.reps == null) return null;
-    if (trackingType === "assisted" && bodyWeight <= 0) return null;
+    if (trackingType === "assisted" && bodyWeight == null) return null;
   }
   return setMetric(set, trackingType, {
     // The card shows the weight, so it follows the stats doubling setting.
     doubleWeight: doubleWeightForPaired && !!exercise.double_weight,
-    bodyWeight,
+    bodyWeight: bodyWeight ?? 0,
   });
 }
 
@@ -71,12 +71,15 @@ interface BestAchievement {
   weightUnit: string;
 }
 
-function computeBestAchievement(
+/**
+ * The exercise with the biggest gain over last week's best. Assisted sets use
+ * the body weight of their own workout.
+ */
+export function computeBestAchievement(
   workoutsThisWeek: CompletedWorkout[],
   allCompletedWorkouts: CompletedWorkout[],
   weightUnit: string,
   excludeWarmup: boolean = false,
-  bodyWeight: number = 0,
   doubleWeightForPaired: boolean = false,
   weekRule: WeekRule = DEFAULT_WEEK_RULE,
 ): BestAchievement | null {
@@ -91,6 +94,7 @@ function computeBestAchievement(
   // Build map of exercise_id → best metric for last week
   const lastWeekBest = new Map<number, number>();
   for (const workout of lastWeekWorkouts) {
+    const bodyWeight = workoutBodyWeight(workout, weightUnit);
     for (const ex of workout.exercises) {
       for (const set of ex.sets) {
         if (excludeWarmup && set.is_warmup) continue;
@@ -113,6 +117,7 @@ function computeBestAchievement(
     { name: string; trackingType: string; best: number }
   >();
   for (const workout of workoutsThisWeek) {
+    const bodyWeight = workoutBodyWeight(workout, weightUnit);
     for (const ex of workout.exercises) {
       for (const set of ex.sets) {
         if (excludeWarmup && set.is_warmup) continue;
@@ -199,7 +204,7 @@ export default function WeeklySummaryCard({
   excludeWarmup = false,
   countUnilateralDouble = false,
   doubleWeightForPaired = false,
-  bodyWeight = 0,
+  includeBodyWeight = false,
   weekRule = DEFAULT_WEEK_RULE,
 }: Props) {
   const { colors } = useAppTheme();
@@ -210,29 +215,26 @@ export default function WeeklySummaryCard({
     [workoutsThisWeek],
   );
 
+  // Each workout counts with the body weight logged at the time.
   const totalVolume = useMemo(() => {
-    let vol = 0;
-    for (const workout of workoutsThisWeek) {
-      for (const ex of workout.exercises) {
-        const weightM = doubleWeightForPaired && ex.double_weight ? 2 : 1;
-        const repM = countUnilateralDouble && ex.is_unilateral ? 2 : 1;
-        for (const set of ex.sets) {
-          if (
-            (!excludeWarmup || !set.is_warmup) &&
-            set.weight != null &&
-            set.reps != null
-          ) {
-            vol += set.weight * weightM * set.reps * repM;
-          }
-        }
-      }
-    }
-    return vol;
+    const options = {
+      excludeWarmup,
+      countUnilateralDouble,
+      doubleWeightForPaired,
+      includeBodyWeight,
+    };
+    return workoutsThisWeek.reduce(
+      (sum, workout) =>
+        sum + completedWorkoutVolume(workout, options, weightUnit),
+      0,
+    );
   }, [
     workoutsThisWeek,
     excludeWarmup,
     countUnilateralDouble,
     doubleWeightForPaired,
+    includeBodyWeight,
+    weightUnit,
   ]);
 
   const bestAchievement = useMemo(
@@ -242,7 +244,6 @@ export default function WeeklySummaryCard({
         allCompletedWorkouts,
         weightUnit,
         excludeWarmup,
-        bodyWeight,
         doubleWeightForPaired,
         weekRule,
       ),
@@ -251,7 +252,6 @@ export default function WeeklySummaryCard({
       allCompletedWorkouts,
       weightUnit,
       excludeWarmup,
-      bodyWeight,
       doubleWeightForPaired,
       weekRule,
     ],

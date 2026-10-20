@@ -598,19 +598,3 @@ export const insertBodyWeightMeasurement = async (
     );
   }
 };
-
-export const saveBodyWeightMeasurement = async (
-  weightKg: number,
-): Promise<void> => {
-  let db: SQLite.SQLiteDatabase | undefined;
-  try {
-    db = await openDatabase("userData.db");
-    await insertBodyWeightMeasurement(db, weightKg);
-  } catch (error: any) {
-    console.error("Error saving body weight measurement:", error);
-    notifyBugsnag(error);
-    throw error;
-  } finally {
-    if (db) await db.closeAsync();
-  }
-};

@@ -74,6 +74,13 @@ const BASELINE_SQL = (() => {
 )`;
 })();
 
+// The plan row's tracking type: its override, else the exercise's own, else
+// weight. An empty override means none, as in resolvedTrackingType.
+const rowTrackingType = (row: {
+  tracking_type_override: string | null;
+  tracking_type: string | null;
+}): string => row.tracking_type_override || row.tracking_type || "weight";
+
 const WORKING_SET_SQL =
   "cs.is_deleted = 0 AND cs.is_warmup = 0 AND cs.is_drop_set = 0";
 
@@ -463,8 +470,7 @@ export const getProgressionState = async (
 
     if (skipLayoffOverride) return base;
 
-    const trackingType =
-      row.tracking_type_override ?? row.tracking_type ?? "weight";
+    const trackingType = rowTrackingType(row);
     if (
       (trackingType !== "weight" && trackingType !== "assisted") ||
       row.recent_weight == null
@@ -482,6 +488,7 @@ export const getProgressionState = async (
       row.recent_weight,
       row.equipment,
       settings.increments,
+      trackingType,
     );
     if (!layoff) return base;
 
@@ -695,7 +702,7 @@ export const getExerciseProgressionContext = async (
 
     return {
       exerciseId: row.exercise_id,
-      trackingType: row.tracking_type_override ?? row.tracking_type ?? "weight",
+      trackingType: rowTrackingType(row),
       equipment: row.equipment,
       currentSets,
       recentWorkingWeight: row.recent_weight ?? null,
@@ -723,6 +730,8 @@ export interface WorkoutProgressionStateRow {
   suggestedSets?: number;
   ruleKey: string;
   ruleExplanation: string;
+  /** The tracking type the plan row uses, override applied. */
+  trackingType: string;
   consecutiveDirectionCount: number;
   plateauAdvisory: boolean;
   lastProgressionAt?: string;
@@ -819,6 +828,7 @@ export const getProgressionStatesForWorkout = async (
         suggestedSets: row.suggested_sets ?? undefined,
         ruleKey: row.rule_key,
         ruleExplanation: row.rule_explanation,
+        trackingType: rowTrackingType(row),
         consecutiveDirectionCount: row.consecutive_direction_count,
         plateauAdvisory: row.plateau_advisory === 1,
         lastProgressionAt: row.last_progression_at ?? undefined,
@@ -829,8 +839,7 @@ export const getProgressionStatesForWorkout = async (
 
       if (skipLayoffOverride || !settings) return base;
 
-      const trackingType =
-        row.tracking_type_override ?? row.tracking_type ?? "weight";
+      const trackingType = rowTrackingType(row);
       if (
         (trackingType !== "weight" && trackingType !== "assisted") ||
         row.recent_weight == null
@@ -846,6 +855,7 @@ export const getProgressionStatesForWorkout = async (
         row.recent_weight,
         row.equipment,
         settings.increments,
+        trackingType,
       );
       if (!layoff) return base;
 

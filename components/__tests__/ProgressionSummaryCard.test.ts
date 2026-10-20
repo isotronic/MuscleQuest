@@ -13,4 +13,21 @@ describe("getRuleExplanation", () => {
       "It's been a while since you trained this muscle. Start a little lighter to ease back in.",
     );
   });
+
+  it.each([
+    ["EASY_TARGET_LOAD", "less assistance"],
+    ["MODERATE_TARGET_LOAD", "less assistance"],
+    ["FAILED_SETS", "more assistance"],
+    ["PAIN_LOAD", "more assistance"],
+    ["MUSCLE_LAYOFF", "more assistance"],
+  ])("talks about assistance for an assisted %s", (ruleKey, words) => {
+    expect(getRuleExplanation(ruleKey, "assisted")).toContain(words);
+    expect(getRuleExplanation(ruleKey, "weight")).not.toContain("assistance");
+  });
+
+  it("explains when there is no assistance left to take away", () => {
+    expect(getRuleExplanation("NO_ASSISTANCE_LEFT", "assisted")).toBe(
+      "You're already doing it without assistance. Hold here, or move on to the unassisted version.",
+    );
+  });
 });

@@ -70,6 +70,7 @@ export const insertDefaultSettings = async () => {
       { key: "excludeWarmupSets", value: "false" },
       { key: "countUnilateralDouble", value: "true" },
       { key: "doubleWeightForPaired", value: "true" },
+      { key: "includeBodyWeightInVolume", value: "false" },
       { key: "timerCountdownSound", value: "false" },
       { key: "timerGoalSound", value: "false" },
       { key: "alwaysUseGlobalHistory", value: "false" },
@@ -154,6 +155,8 @@ export interface Settings {
   excludeWarmupSets: string;
   countUnilateralDouble: string;
   doubleWeightForPaired: string;
+  /** "true" counts body weight in the volume of bodyweight exercises. */
+  includeBodyWeightInVolume?: string;
   timerCountdownSound: string;
   timerGoalSound: string;
   alwaysUseGlobalHistory: string;

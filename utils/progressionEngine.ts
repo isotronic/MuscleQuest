@@ -38,6 +38,8 @@ const RULE_EXPLANATIONS: Record<string, string> = {
   NO_RANGE:
     "No rep range defined. Add a rep range (e.g. 8-12) to enable auto-progression.",
   NO_PRIOR_WEIGHT: "No prior weight data. Hold steady for now.",
+  NO_ASSISTANCE_LEFT:
+    "You're already doing it without assistance. Hold here, or move on to the unassisted version.",
   DEFAULT: "Hold steady this session.",
 };
 
@@ -65,7 +67,32 @@ function roundWeight(value: number): number {
   return Math.round(value * 10) / 10;
 }
 
-export function computeReducedLoad(currentWeight: number): number {
+/**
+ * The next harder load: more weight, or for an assisted exercise (where the
+ * logged weight is the assistance) less assistance, never below none.
+ */
+function harderLoad(
+  recentWeight: number,
+  increment: number,
+  trackingType: string,
+): number {
+  return trackingType === "assisted"
+    ? roundWeight(Math.max(0, recentWeight - increment))
+    : roundWeight(recentWeight + increment);
+}
+
+/**
+ * About 5% easier: less weight, or for an assisted exercise more assistance,
+ * on a 0.5 kg step and always at least one step away from the current load.
+ */
+export function computeReducedLoad(
+  currentWeight: number,
+  trackingType?: string,
+): number {
+  if (trackingType === "assisted") {
+    const raised = Math.ceil((currentWeight * 1.05) / 0.5) * 0.5;
+    return roundWeight(Math.max(raised, currentWeight + 0.5));
+  }
   if (currentWeight <= 0) return 0;
   const reduced = currentWeight * 0.95;
   const rounded = Math.floor(reduced / 0.5) * 0.5;
@@ -85,14 +112,24 @@ export function computeLayoffReduction(
   recentWorkingWeight: number,
   equipment: string,
   userIncrements: UserProgressionIncrements,
+  trackingType?: string,
 ): { reductionFraction: number; suggestedWeight: number } | null {
   if (daysSinceLastWorkout < 14 || recentWorkingWeight <= 0) return null;
 
   const cappedDays = Math.min(daysSinceLastWorkout, 28);
   const reductionFraction = 0.1 + ((cappedDays - 14) / 14) * 0.1;
-  const rawReduced = recentWorkingWeight * (1 - reductionFraction);
-
   const increment = computeLoadIncrement(equipment, userIncrements);
+
+  // Assisted: the weight is assistance, so easing back in adds to it.
+  if (trackingType === "assisted") {
+    const rawRaised = recentWorkingWeight * (1 + reductionFraction);
+    const step = increment > 0 ? increment : 0.5;
+    let suggestedWeight = Math.round(rawRaised / step) * step;
+    if (suggestedWeight <= recentWorkingWeight) suggestedWeight += step;
+    return { reductionFraction, suggestedWeight: roundWeight(suggestedWeight) };
+  }
+
+  const rawReduced = recentWorkingWeight * (1 - reductionFraction);
   let suggestedWeight: number;
   if (increment > 0) {
     suggestedWeight = Math.round(rawReduced / increment) * increment;
@@ -215,7 +252,10 @@ export function evaluateProgression(
           action: "reduce_load",
           ruleKey: "PAIN_LOAD",
           explanation: RULE_EXPLANATIONS.PAIN_LOAD,
-          suggestedWeight: computeReducedLoad(recentWorkingWeight),
+          suggestedWeight: computeReducedLoad(
+            recentWorkingWeight,
+            trackingType,
+          ),
         };
       }
       // Recurring pain, but load can't be auto-reduced for this exercise
@@ -238,7 +278,7 @@ export function evaluateProgression(
         action: "reduce_load",
         ruleKey: "FAILED_SETS",
         explanation: RULE_EXPLANATIONS.FAILED_SETS,
-        suggestedWeight: computeReducedLoad(recentWorkingWeight),
+        suggestedWeight: computeReducedLoad(recentWorkingWeight, trackingType),
       };
     }
     return hold("FAILED_FIRST_SIGNAL");
@@ -289,11 +329,17 @@ export function evaluateProgression(
         const increment = computeLoadIncrement(equipment, userIncrements);
         if (increment === 0) return hold("UNSUPPORTED_TRACKING");
         if (recentWorkingWeight === null) return hold("NO_PRIOR_WEIGHT");
+        if (trackingType === "assisted" && recentWorkingWeight <= 0)
+          return hold("NO_ASSISTANCE_LEFT");
         return {
           action: "increase_load",
           ruleKey: "EASY_TARGET_LOAD",
           explanation: RULE_EXPLANATIONS.EASY_TARGET_LOAD,
-          suggestedWeight: roundWeight(recentWorkingWeight + increment),
+          suggestedWeight: harderLoad(
+            recentWorkingWeight,
+            increment,
+            trackingType,
+          ),
         };
       }
 
@@ -311,11 +357,17 @@ export function evaluateProgression(
       const increment = computeLoadIncrement(equipment, userIncrements);
       if (increment === 0) return hold("UNSUPPORTED_TRACKING");
       if (recentWorkingWeight === null) return hold("NO_PRIOR_WEIGHT");
+      if (trackingType === "assisted" && recentWorkingWeight <= 0)
+        return hold("NO_ASSISTANCE_LEFT");
       return {
         action: "increase_load",
         ruleKey: "EASY_TARGET_LOAD",
         explanation: RULE_EXPLANATIONS.EASY_TARGET_LOAD,
-        suggestedWeight: roundWeight(recentWorkingWeight + increment),
+        suggestedWeight: harderLoad(
+          recentWorkingWeight,
+          increment,
+          trackingType,
+        ),
       };
     }
 
@@ -353,11 +405,17 @@ export function evaluateProgression(
         const increment = computeLoadIncrement(equipment, userIncrements);
         if (increment === 0) return hold("UNSUPPORTED_TRACKING");
         if (recentWorkingWeight === null) return hold("NO_PRIOR_WEIGHT");
+        if (trackingType === "assisted" && recentWorkingWeight <= 0)
+          return hold("NO_ASSISTANCE_LEFT");
         return {
           action: "increase_load",
           ruleKey: "MODERATE_TARGET_LOAD",
           explanation: RULE_EXPLANATIONS.MODERATE_TARGET_LOAD,
-          suggestedWeight: roundWeight(recentWorkingWeight + increment),
+          suggestedWeight: harderLoad(
+            recentWorkingWeight,
+            increment,
+            trackingType,
+          ),
         };
       }
 
@@ -375,11 +433,17 @@ export function evaluateProgression(
       const increment = computeLoadIncrement(equipment, userIncrements);
       if (increment === 0) return hold("UNSUPPORTED_TRACKING");
       if (recentWorkingWeight === null) return hold("NO_PRIOR_WEIGHT");
+      if (trackingType === "assisted" && recentWorkingWeight <= 0)
+        return hold("NO_ASSISTANCE_LEFT");
       return {
         action: "increase_load",
         ruleKey: "MODERATE_TARGET_LOAD",
         explanation: RULE_EXPLANATIONS.MODERATE_TARGET_LOAD,
-        suggestedWeight: roundWeight(recentWorkingWeight + increment),
+        suggestedWeight: harderLoad(
+          recentWorkingWeight,
+          increment,
+          trackingType,
+        ),
       };
     }
 

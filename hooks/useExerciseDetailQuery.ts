@@ -8,6 +8,7 @@ import {
 } from "./useTrackedExercisesQuery";
 import { localDateKeyDaysAgo } from "@/utils/dates";
 import { displayExerciseName } from "@/utils/db/exerciseNames";
+import { bodyWeightAtSql } from "@/utils/db/bodyWeightAtSql";
 
 interface PRSet extends CompletedSet {
   date_completed: string;
@@ -35,7 +36,7 @@ const buildProgressionMetricCase = (
 ) => `
   CASE ${trackingTypeExpr}
     WHEN 'weight' THEN (cs.weight * ${weightM}) * (1 + cs.reps / 30.0)
-    WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
+    WHEN 'assisted' THEN (${bodyWeightAtSql("cw.date_completed")} - cs.weight) * (1 + cs.reps / 30.0)
     WHEN 'reps' THEN cs.reps * ${repM}
     WHEN 'time' THEN cs.time
     WHEN 'distance' THEN cs.distance

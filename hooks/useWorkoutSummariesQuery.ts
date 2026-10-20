@@ -34,6 +34,7 @@ const optionsKey = (options: WorkoutStatsOptions) => [
   options.excludeWarmup,
   options.countUnilateralDouble,
   options.doubleWeightForPaired,
+  options.includeBodyWeight,
 ];
 
 // One row per completed workout with its sets totalled in SQL. timeRange is in

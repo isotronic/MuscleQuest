@@ -30,6 +30,27 @@ jest.mock("@/components/ThemedText", () => {
 });
 
 describe("ProgressionSuggestionChip", () => {
+  it("names assistance for an assisted exercise", () => {
+    const less = render(
+      <ProgressionSuggestionChip
+        action="increase_load"
+        suggestedWeight={27.5}
+        weightUnit="kg"
+        trackingType="assisted"
+      />,
+    );
+    less.getByText("27.5kg assistance suggested");
+    const more = render(
+      <ProgressionSuggestionChip
+        action="reduce_load"
+        suggestedWeight={32.5}
+        weightUnit="kg"
+        trackingType="assisted"
+      />,
+    );
+    more.getByText("More assistance: 32.5kg");
+  });
+
   it("renders a kg suggestion in lbs for a pounds user", () => {
     const { getByText } = render(
       <ProgressionSuggestionChip

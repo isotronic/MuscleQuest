@@ -1890,10 +1890,12 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                     rowIdentity(state.workout.exercises, exerciseIndex),
                   )
                 : [];
+            // Assisted weight is assistance: less of it is harder.
+            const isAssisted = resolvedTrackingType(exercise) === "assisted";
             for (const idx of workingSetIndices) {
-              // Never let an increase suggestion undercut what the user
-              // actually lifted last time — only an explicit reduce_load
-              // (deload) suggestion is allowed to decrease the weight.
+              // Never let an increase suggestion be easier than what the user
+              // actually did last time — only an explicit reduce_load
+              // (deload) suggestion is allowed to make it easier.
               const carriedOverWeight =
                 suggestion.suggestionAction === "increase_load"
                   ? findHistoricalSetByOrdinal(
@@ -1902,10 +1904,14 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
                       historyExercises,
                     )?.weight
                   : null;
-              const finalWeight =
-                carriedOverWeight != null && roundedWeight < carriedOverWeight
-                  ? carriedOverWeight
-                  : roundedWeight;
+              const easierThanLastTime =
+                carriedOverWeight != null &&
+                (isAssisted
+                  ? roundedWeight > carriedOverWeight
+                  : roundedWeight < carriedOverWeight);
+              const finalWeight = easierThanLastTime
+                ? carriedOverWeight!
+                : roundedWeight;
               newWeightAndReps[exerciseIndex] = {
                 ...(newWeightAndReps[exerciseIndex] || {}),
                 [idx]: {

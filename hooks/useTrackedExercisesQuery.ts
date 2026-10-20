@@ -4,6 +4,7 @@ import { notifyBugsnag } from "@/utils/bugsnagDedup";
 import { useQuery } from "@tanstack/react-query";
 import { localDateKeyDaysAgo } from "@/utils/dates";
 import { displayExerciseName } from "@/utils/db/exerciseNames";
+import { bodyWeightAtSql } from "@/utils/db/bodyWeightAtSql";
 
 interface TrackedExercise {
   id: number;
@@ -39,7 +40,7 @@ const buildTrackedProgressionCase = (
   return `
     CASE ${trackingTypeExpr}
       WHEN 'weight' THEN (cs.weight * CASE WHEN e.double_weight = 1 THEN ${wM} ELSE 1 END) * (1 + cs.reps / 30.0)
-      WHEN 'assisted' THEN (CAST((SELECT value FROM settings WHERE key = 'bodyWeight') AS REAL) - cs.weight) * (1 + cs.reps / 30.0)
+      WHEN 'assisted' THEN (${bodyWeightAtSql("cw.date_completed")} - cs.weight) * (1 + cs.reps / 30.0)
       WHEN 'reps' THEN cs.reps * CASE WHEN e.is_unilateral = 1 THEN ${rM} ELSE 1 END
       WHEN 'time' THEN cs.time
       WHEN 'distance' THEN cs.distance

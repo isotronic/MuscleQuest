@@ -15,6 +15,8 @@ interface ProgressionSuggestionChipProps {
   suggestedRepsPerSet?: number[];
   // Required so every call site states the unit; suggestedWeight is kg.
   weightUnit: string;
+  /** "assisted" labels the weight as assistance (less of it is harder). */
+  trackingType?: string;
   onPress?: () => void;
 }
 
@@ -24,12 +26,16 @@ function chipLabel(
   suggestedRepsPerSet: number[] | undefined,
   unit: string,
   lbsStep: number | null,
+  assisted: boolean,
 ): string | null {
   // Suggestions are computed in kg; show them in the user's unit, rounded the
   // same way as the weight they pre-fill. The expression stays inline so the
   // catalog placeholder remains {0}.
   switch (action) {
     case "increase_load":
+      if (assisted && suggestedWeight != null) {
+        return t`${formatNumber(suggestedWeightForDisplay(suggestedWeight, unit, lbsStep), 2)}${unit} assistance suggested`;
+      }
       return suggestedWeight != null
         ? t`${formatNumber(suggestedWeightForDisplay(suggestedWeight, unit, lbsStep), 2)}${unit} suggested`
         : t`Load up`;
@@ -41,6 +47,9 @@ function chipLabel(
       return t`More reps suggested`;
     }
     case "reduce_load":
+      if (assisted && suggestedWeight != null) {
+        return t`More assistance: ${formatNumber(suggestedWeightForDisplay(suggestedWeight, unit, lbsStep), 2)}${unit}`;
+      }
       return suggestedWeight != null
         ? t`Reduce to ${formatNumber(suggestedWeightForDisplay(suggestedWeight, unit, lbsStep), 2)}${unit}`
         : t`Reduce load`;
@@ -59,6 +68,7 @@ export default function ProgressionSuggestionChip({
   suggestedWeight,
   suggestedRepsPerSet,
   weightUnit,
+  trackingType,
   onPress,
 }: ProgressionSuggestionChipProps) {
   const { colors } = useAppTheme();
@@ -74,6 +84,7 @@ export default function ProgressionSuggestionChip({
     suggestedRepsPerSet,
     weightUnit,
     lbsStep,
+    trackingType === "assisted",
   );
 
   if (!label) return null;
