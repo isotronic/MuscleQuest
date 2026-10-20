@@ -641,7 +641,10 @@ describe("refreshLibraryFromAppData: deleted and malformed rows", () => {
 
     expect(session(1).type).toBe("time");
     expect(session(2).type).toBe("time");
-    expect(session(3).type).toBe("time");
+    expect(session(3)).toEqual({
+      type: "time",
+      sets: [{ reps: null, time: 1 }],
+    });
     expect(plan(1)).toEqual({ override: null, sets: [{ ...rest, time: 30 }] });
     expect(plan(2)).toEqual({ override: null, sets: [{ ...rest, time: 2 }] });
   });
