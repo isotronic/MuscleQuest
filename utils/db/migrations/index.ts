@@ -4,6 +4,7 @@ import { up as exerciseImageUri } from "./0002_exercise_image_uri";
 import { up as planDistanceMetres } from "./0003_plan_distance_metres";
 import { up as sessionSetNotes } from "./0004_session_set_notes";
 import { up as completedExercisePlanRow } from "./0005_completed_exercise_plan_row";
+import { up as bodyMeasurementDateIndex } from "./0006_body_measurement_date_index";
 
 export interface Migration {
   /** The PRAGMA user_version the database is at once this has run. */
@@ -23,6 +24,11 @@ export const migrations: readonly Migration[] = [
     version: 5,
     name: "completed_exercise_plan_row",
     up: completedExercisePlanRow,
+  },
+  {
+    version: 6,
+    name: "body_measurement_date_index",
+    up: bodyMeasurementDateIndex,
   },
 ];
 

@@ -32,6 +32,10 @@ const invalidateBodyMeasurements = (
   queryClient: ReturnType<typeof useQueryClient>,
 ) => {
   queryClient.invalidateQueries({ queryKey: ["bodyMeasurements"] });
+  // Volume counts the body weight logged at the time of each workout.
+  queryClient.invalidateQueries({ queryKey: ["completedWorkouts"] });
+  queryClient.invalidateQueries({ queryKey: ["completedWorkout"] });
+  queryClient.invalidateQueries({ queryKey: ["workoutSessionHistory"] });
 };
 
 export const useInsertBodyMeasurementMutation = (

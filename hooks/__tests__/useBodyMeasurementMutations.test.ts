@@ -140,6 +140,20 @@ describe("useInsertBodyMeasurementMutation", () => {
     );
   });
 
+  it("onSuccess refreshes volumes, which use the body weight at the time", () => {
+    useInsertBodyMeasurementMutation(OPTIONS);
+
+    capturedArgs.onSuccess();
+
+    for (const queryKey of [
+      ["completedWorkouts"],
+      ["completedWorkout"],
+      ["workoutSessionHistory"],
+    ]) {
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey });
+    }
+  });
+
   it("onSuccess invalidates bodyMeasurements and settings", () => {
     useInsertBodyMeasurementMutation(OPTIONS);
 
@@ -166,6 +180,20 @@ describe("useUpdateBodyMeasurementMutation", () => {
       capturedArgs = args;
       return { mutate: jest.fn() };
     });
+  });
+
+  it("onSuccess refreshes volumes, which use the body weight at the time", () => {
+    useUpdateBodyMeasurementMutation(OPTIONS);
+
+    capturedArgs.onSuccess(undefined, { entry_id: 1, values: [] });
+
+    for (const queryKey of [
+      ["completedWorkouts"],
+      ["completedWorkout"],
+      ["workoutSessionHistory"],
+    ]) {
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey });
+    }
   });
 
   it("onSuccess re-shares the updated entry", () => {
@@ -214,6 +242,20 @@ describe("useDeleteBodyMeasurementMutation", () => {
     capturedArgs.onSuccess(undefined, 99);
 
     expect(syncMeasurementRemoved).toHaveBeenCalledWith(99);
+  });
+
+  it("onSuccess refreshes volumes, which use the body weight at the time", () => {
+    useDeleteBodyMeasurementMutation();
+
+    capturedArgs.onSuccess(undefined, 99);
+
+    for (const queryKey of [
+      ["completedWorkouts"],
+      ["completedWorkout"],
+      ["workoutSessionHistory"],
+    ]) {
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey });
+    }
   });
 
   it("onSuccess invalidates bodyMeasurements", () => {
