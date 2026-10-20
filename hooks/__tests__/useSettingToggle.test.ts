@@ -6,11 +6,11 @@ jest.mock("@/hooks/useSettingsQuery", () => ({
   useSettingsQuery: () => ({ data: { translateExerciseNames: "true" } }),
 }));
 jest.mock("@/hooks/useUpdateSettingsMutation", () => ({
-  useUpdateSettingsMutation: () => ({ mutate: mockMutate }),
+  useUpdateSettingsMutation: () => ({ mutateAsync: mockMutate }),
 }));
 
 describe("useSettingToggle", () => {
-  beforeEach(() => mockMutate.mockReset());
+  beforeEach(() => mockMutate.mockReset().mockResolvedValue(undefined));
 
   it("flips at once and writes the stored value", () => {
     const { result } = renderHook(() =>
@@ -18,21 +18,37 @@ describe("useSettingToggle", () => {
     );
     act(() => result.current[1](false));
     expect(result.current[0]).toBe(false);
-    expect(mockMutate).toHaveBeenCalledWith(
-      { key: "translateExerciseNames", value: "false" },
-      expect.anything(),
-    );
+    expect(mockMutate).toHaveBeenCalledWith({
+      key: "translateExerciseNames",
+      value: "false",
+    });
   });
 
-  it("flips back and calls onError when the write fails", () => {
+  it("flips back and calls onError when the write fails", async () => {
+    mockMutate.mockRejectedValue(new Error("write failed"));
     const onError = jest.fn();
     const { result } = renderHook(() =>
       useSettingToggle("translateExerciseNames"),
     );
-    act(() => result.current[1](false, onError));
-    const { onError: failWrite } = mockMutate.mock.calls[0][1];
-    act(() => failWrite());
+    await act(async () => result.current[1](false, onError));
     expect(result.current[0]).toBe(true);
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
+
+  it("still calls onError when the write fails after unmount", async () => {
+    let failWrite: (error: Error) => void = () => {};
+    mockMutate.mockReturnValue(
+      new Promise((_, reject) => {
+        failWrite = reject;
+      }),
+    );
+    const onError = jest.fn();
+    const { result, unmount } = renderHook(() =>
+      useSettingToggle("translateExerciseNames"),
+    );
+    act(() => result.current[1](false, onError));
+    unmount();
+    await act(async () => failWrite(new Error("write failed")));
     expect(onError).toHaveBeenCalledTimes(1);
   });
 });

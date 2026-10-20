@@ -15,7 +15,7 @@ export function useSettingToggle(
   on: "true" | "1" = "true",
 ): [boolean, (value: boolean, onError?: () => void) => void] {
   const { data: settings } = useSettingsQuery();
-  const { mutate: updateSetting } = useUpdateSettingsMutation();
+  const { mutateAsync: updateSetting } = useUpdateSettingsMutation();
   const stored = settings?.[key] === on;
   const [checked, setChecked] = useState(stored);
   useEffect(() => setChecked(stored), [stored]);
@@ -24,15 +24,13 @@ export function useSettingToggle(
     const previous = checked;
     setChecked(value);
     const off = on === "1" ? "0" : "false";
-    updateSetting(
-      { key, value: value ? on : off },
-      {
-        onError: () => {
-          setChecked(previous);
-          onError?.();
-        },
-      },
-    );
+    // mutateAsync, not mutate's onError: that one is skipped once the screen
+    // unmounts, and the caller's rollback must still run. The mutation itself
+    // reports the error.
+    updateSetting({ key, value: value ? on : off }).catch(() => {
+      setChecked(previous);
+      onError?.();
+    });
   };
   return [checked, set];
 }
