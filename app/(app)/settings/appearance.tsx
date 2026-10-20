@@ -25,8 +25,9 @@ export default function AppearanceSettingsScreen() {
 
   const changeTranslateNames = (value: boolean) => {
     const previous = translateNames;
-    setTranslateNames(value, () => applyTranslateNames(previous));
-    applyTranslateNames(value);
+    if (setTranslateNames(value, () => applyTranslateNames(previous))) {
+      applyTranslateNames(value);
+    }
   };
 
   return (

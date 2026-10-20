@@ -51,4 +51,28 @@ describe("useSettingToggle", () => {
     await act(async () => failWrite(new Error("write failed")));
     expect(onError).toHaveBeenCalledTimes(1);
   });
+
+  it("ignores a tap while a write is still running", async () => {
+    let finishWrite: () => void = () => {};
+    mockMutate.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishWrite = resolve;
+      }),
+    );
+    const { result } = renderHook(() =>
+      useSettingToggle("translateExerciseNames"),
+    );
+    act(() => {
+      expect(result.current[1](false)).toBe(true);
+    });
+    act(() => {
+      expect(result.current[1](true)).toBe(false);
+    });
+    expect(mockMutate).toHaveBeenCalledTimes(1);
+    expect(result.current[0]).toBe(false);
+
+    await act(async () => finishWrite());
+    act(() => result.current[1](true));
+    expect(mockMutate).toHaveBeenCalledTimes(2);
+  });
 });
