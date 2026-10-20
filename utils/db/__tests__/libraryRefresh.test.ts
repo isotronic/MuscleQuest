@@ -217,12 +217,13 @@ const logSession = (
   exerciseId: number,
   snapshot: string | null,
   sets: { reps: number | null; deleted?: boolean }[],
+  completedWorkoutId = 1,
 ) => {
   mockUserData.sqlite
     .prepare(
-      `INSERT INTO completed_exercises (id, completed_workout_id, exercise_id, resolved_tracking_type) VALUES (?, 1, ?, ?)`,
+      `INSERT INTO completed_exercises (id, completed_workout_id, exercise_id, resolved_tracking_type) VALUES (?, ?, ?, ?)`,
     )
-    .run(id, exerciseId, snapshot);
+    .run(id, completedWorkoutId, exerciseId, snapshot);
   sets.forEach((set, index) =>
     mockUserData.sqlite
       .prepare(
@@ -628,6 +629,11 @@ describe("refreshLibraryFromAppData: deleted and malformed rows", () => {
     mockUserData.sqlite.exec(
       `UPDATE completed_exercises SET is_deleted = 1 WHERE id = 2`,
     );
+    // A session whose whole workout was deleted.
+    mockUserData.sqlite.exec(
+      `INSERT INTO completed_workouts (id, date_completed, local_date, is_deleted) VALUES (2, '2026-01-02T10:00:00.000Z', '2026-01-02', 1)`,
+    );
+    logSession(3, 109, "reps", [{ reps: 1 }], 2);
     rawPlan(1, JSON.stringify([{ repsMin: 30, ...rest }]));
     rawPlan(2, JSON.stringify([{ repsMin: 2, ...rest }]), 1);
 
@@ -635,6 +641,7 @@ describe("refreshLibraryFromAppData: deleted and malformed rows", () => {
 
     expect(session(1).type).toBe("time");
     expect(session(2).type).toBe("time");
+    expect(session(3).type).toBe("time");
     expect(plan(1)).toEqual({ override: null, sets: [{ ...rest, time: 30 }] });
     expect(plan(2)).toEqual({ override: null, sets: [{ ...rest, time: 2 }] });
   });
