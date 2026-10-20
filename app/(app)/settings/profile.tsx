@@ -43,10 +43,18 @@ export default function ProfileSettingsScreen() {
     sizeUnit: settings?.sizeUnit === "in" ? "in" : "cm",
   });
   const latestWeight = latestValues?.find((v) => v.metric.key === "weight");
-  const loggedOn = latestWeight
-    ? parseDbTimestamp(latestWeight.recorded_at).toLocaleDateString(undefined, {
+  const loggedAt = latestWeight
+    ? parseDbTimestamp(latestWeight.recorded_at)
+    : null;
+  const loggedOn = loggedAt
+    ? loggedAt.toLocaleDateString(undefined, {
         day: "numeric",
         month: "short",
+        // An older entry should not read like a recent one.
+        year:
+          loggedAt.getFullYear() === new Date().getFullYear()
+            ? undefined
+            : "numeric",
       })
     : "";
   // The chosen start, which may only apply from next week.
@@ -104,7 +112,9 @@ export default function ProfileSettingsScreen() {
         icon="scale-bathroom"
         title={<Trans>Body weight</Trans>}
         value={
-          latestWeight ? (
+          // Nothing until the latest entry has loaded, so the legacy value
+          // does not flash first.
+          !latestValues ? undefined : latestWeight ? (
             <Trans>
               {formatNumber(latestWeight.displayValue, 1)}{" "}
               {latestWeight.displayUnit}, logged {loggedOn}
