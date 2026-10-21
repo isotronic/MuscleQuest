@@ -54,8 +54,9 @@ appId: com.isotronic.musclequest
     id: "plan-activate"
 - tapOn:
     id: "tab-home"
+# A workout is already done today, so home names Day A as the next one.
 - scrollUntilVisible:
-    element: "Day A"
+    element: ".*Day A.*"
     timeout: 15000
 - tapOn:
     id: "tab-plans"

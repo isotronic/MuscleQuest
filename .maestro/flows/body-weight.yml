@@ -19,8 +19,15 @@ appId: com.isotronic.musclequest
 - back
 - tapOn:
     id: "tab-home"
+# The card opens a sheet with the inputs.
 - scrollUntilVisible:
     element:
+      id: "measurement-quick-log-card"
+    timeout: 15000
+- tapOn:
+    id: "measurement-quick-log-card"
+- extendedWaitUntil:
+    visible:
       id: "measurement-input-1"
     timeout: 15000
 - tapOn:

@@ -477,6 +477,7 @@ export default function HomeScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityState={{ expanded: otherWorkoutsOpen }}
+                testID="home-plan-workouts-toggle"
                 onPress={toggleOtherWorkouts}
                 style={styles.otherHeader}
               >
@@ -557,6 +558,7 @@ export default function HomeScreen() {
                               labelStyle={styles.smallButtonLabel}
                               disabled={isStartingWorkout}
                               accessibilityLabel={t`Start ${spokenName}`}
+                              testID={`home-plan-workout-start-${originalIndex}`}
                             >
                               <Trans>Start</Trans>
                             </Button>
