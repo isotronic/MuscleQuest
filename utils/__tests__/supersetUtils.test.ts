@@ -2,6 +2,7 @@ import {
   validateSupersetCardinality,
   findSupersetPartnerIndex,
   classifySupersetPosition,
+  groupExercisesBySuperset,
 } from "../supersetUtils";
 import type { UserExercise } from "@/store/workoutStore";
 
@@ -120,5 +121,62 @@ describe("classifySupersetPosition", () => {
     expect(result.partnerIndex).toBe(0);
     expect(result.isFirstInSuperset).toBe(false);
     expect(result.isSecondInSuperset).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// groupExercisesBySuperset
+// ---------------------------------------------------------------------------
+
+describe("groupExercisesBySuperset", () => {
+  const shape = (exercises: UserExercise[]) =>
+    groupExercisesBySuperset(exercises).map((item) =>
+      item.type === "single" ? item.exerciseIndex : [...item.exerciseIndices],
+    );
+
+  it("returns nothing for no exercises", () => {
+    expect(groupExercisesBySuperset([])).toEqual([]);
+  });
+
+  it("pairs an adjacent superset between single exercises", () => {
+    const exercises = [makeEx(1), makeEx(2, "g"), makeEx(3, "g"), makeEx(4)];
+    const grouped = groupExercisesBySuperset(exercises);
+
+    expect(shape(exercises)).toEqual([0, [1, 2], 3]);
+    expect(grouped[1]).toEqual({
+      type: "superset",
+      exercises: [exercises[1], exercises[2]],
+      exerciseIndices: [1, 2],
+    });
+    expect(grouped[0]).toEqual({
+      type: "single",
+      exercise: exercises[0],
+      exerciseIndex: 0,
+    });
+  });
+
+  it("pairs non-adjacent partners at the first one's position", () => {
+    expect(shape([makeEx(1, "g"), makeEx(2), makeEx(3, "g")])).toEqual([
+      [0, 2],
+      1,
+    ]);
+  });
+
+  it("treats a half without a partner as single", () => {
+    expect(shape([makeEx(1, "g"), makeEx(2)])).toEqual([0, 1]);
+  });
+
+  it("uses every index exactly once", () => {
+    const exercises = [
+      makeEx(1, "a"),
+      makeEx(2),
+      makeEx(3, "b"),
+      makeEx(4, "a"),
+      makeEx(5, "b"),
+      makeEx(6, "c"),
+    ];
+    const indices = shape(exercises).flat();
+
+    expect([...indices].sort()).toEqual([0, 1, 2, 3, 4, 5]);
   });
 });

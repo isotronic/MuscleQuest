@@ -92,22 +92,12 @@ import {
   confirmUnfinishedSets,
   findUnfinishedSets,
 } from "@/utils/confirmUnfinishedSets";
+import {
+  groupExercisesBySuperset,
+  type GroupedExerciseItem,
+} from "@/utils/supersetUtils";
 
 const FEEDBACK_CARD_MAX_HEIGHT = Dimensions.get("window").height * 0.25;
-
-type SingleItem = {
-  type: "single";
-  exercise: UserExercise;
-  exerciseIndex: number;
-};
-
-type SupersetItem = {
-  type: "superset";
-  exercises: [UserExercise, UserExercise];
-  exerciseIndices: [number, number];
-};
-
-type GroupedItem = SingleItem | SupersetItem;
 
 export default function WorkoutOverviewScreen() {
   const { colors } = useAppTheme();
@@ -190,7 +180,7 @@ export default function WorkoutOverviewScreen() {
   }, []);
 
   const keyExtractor = useCallback(
-    (item: GroupedItem): string =>
+    (item: GroupedExerciseItem): string =>
       item.type === "single"
         ? getStableKey(item.exercise)
         : `ss-${getStableKey(item.exercises[0])}`,
@@ -321,37 +311,10 @@ export default function WorkoutOverviewScreen() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveWorkoutName, setSaveWorkoutName] = useState("");
 
-  const groupedData = useMemo((): GroupedItem[] => {
-    if (!workout) return [];
-    const result: GroupedItem[] = [];
-    const seen = new Set<number>();
-
-    workout.exercises.forEach((exercise, i) => {
-      if (seen.has(i)) return;
-      seen.add(i);
-
-      const { supersetGroupId } = exercise;
-      if (supersetGroupId) {
-        const partnerIdx = workout.exercises.findIndex(
-          (e, j) => j !== i && e.supersetGroupId === supersetGroupId,
-        );
-        const partner =
-          partnerIdx !== -1 ? workout.exercises[partnerIdx] : null;
-        if (partner && !seen.has(partnerIdx)) {
-          seen.add(partnerIdx);
-          result.push({
-            type: "superset",
-            exercises: [exercise, partner],
-            exerciseIndices: [i, partnerIdx],
-          });
-          return;
-        }
-      }
-      result.push({ type: "single", exercise, exerciseIndex: i });
-    });
-
-    return result;
-  }, [workout]);
+  const groupedData = useMemo(
+    () => (workout ? groupExercisesBySuperset(workout.exercises) : []),
+    [workout],
+  );
 
   const itemLabels = useMemo(() => {
     let offset = 0;
@@ -511,7 +474,7 @@ export default function WorkoutOverviewScreen() {
   );
 
   const handleOrderChange = useCallback(
-    ({ data }: SortableGridDragEndParams<GroupedItem>) => {
+    ({ data }: SortableGridDragEndParams<GroupedExerciseItem>) => {
       setMenuVisible({});
       const newExercises = data.flatMap((item) =>
         item.type === "single" ? [item.exercise] : item.exercises,
@@ -521,7 +484,7 @@ export default function WorkoutOverviewScreen() {
     [reorderExercises],
   );
 
-  const renderItem: SortableGridRenderItem<GroupedItem> = useCallback(
+  const renderItem: SortableGridRenderItem<GroupedExerciseItem> = useCallback(
     ({ item, index }) => {
       const renderCard = (
         exercise: UserExercise,
