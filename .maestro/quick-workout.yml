@@ -2,6 +2,10 @@
 appId: com.isotronic.musclequest
 ---
 - runFlow: first-launch.yml
+- scrollUntilVisible:
+    element:
+      id: "home-quick-workout"
+    timeout: 15000
 - tapOn:
     id: "home-quick-workout"
 - extendedWaitUntil:

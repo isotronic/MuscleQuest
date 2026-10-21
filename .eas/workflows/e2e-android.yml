@@ -32,4 +32,11 @@ jobs:
       - name: Install the app
         run: adb install "${{ steps.download_build.outputs.artifact_path }}"
       - name: Run the smoke flows
-        run: maestro test .maestro/smoke.yml
+        run: maestro test .maestro/smoke.yml --debug-output maestro-debug
+      # Screenshots and the view hierarchy of a failed step.
+      - uses: eas/upload_artifact
+        if: ${{ failure() }}
+        with:
+          type: other
+          name: maestro-debug
+          path: maestro-debug/**/*

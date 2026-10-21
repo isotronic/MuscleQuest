@@ -40,7 +40,9 @@ appId: com.isotronic.musclequest
     timeout: 15000
 - tapOn:
     id: "get-started-skip"
+# Home on a fresh install opens with a large activation card, so check the
+# tab instead of a button that may be below the fold.
 - extendedWaitUntil:
     visible:
-      id: "home-quick-workout"
+      id: "tab-home"
     timeout: 15000
