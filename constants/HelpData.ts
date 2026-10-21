@@ -69,6 +69,22 @@ export const HELP_DATA: GroupData[] = [
         body: msg`Workouts can also live outside of plans, under Your workouts on the Plans screen. Create one by tapping New Workout, give it a name, and add exercises; you can run it at any time without needing an active plan. An estimated duration is shown on each workout so you can plan your time before starting. A quick workout starts a session immediately from the home screen: tap Quick workout, add exercises as you go, and at the end you can give it a name to reuse it later. Tap Choose workout next to it to search and browse every workout across your plans and Your workouts; tap a workout to preview its exercises, or tap its Start button to begin straight away. Like plans, the workout editor automatically saves a draft so you can safely leave and return without losing your work. If you delete a workout by mistake, tap Undo on the message that appears.`,
       },
       {
+        id: "estimated-duration",
+        icon: "hourglass-outline",
+        title: msg`Estimated Duration`,
+        body: {
+          lead: msg`Workouts show an estimated duration on the home screen, on the Plans tab, in the workout editor and on the workout overview. It adds up the time each set takes and the rest after it, so the range runs from a quick session to a slower one.`,
+          steps: [
+            msg`Rest counts as you set it for each set, so the closer your rest times are to what you really take, the better the estimate. The rest after the last set of the workout is left out, and in a superset there is no rest before the partner exercise.`,
+            msg`Until you have logged an exercise, each set's time comes from its equipment, so a barbell set counts for longer than a dumbbell or body weight set. It is scaled to the set's target reps, so a set of 5 is quicker than a set of 15. Timed sets use their target time.`,
+            msg`During a session, each set is timed from when it is ready to start until you complete it. The estimate learns from these times for that exercise, in any workout: after a few sets it blends them with the equipment default, and from five sets on it uses your own typical range from your 20 most recent sets.`,
+            msg`Warm-up sets count like any other set. With Single-side rep logging on in Settings, a unilateral exercise counts both sides, so its sets take twice as long.`,
+            msg`Only sets and rest are counted, not warming up beforehand or setting up equipment, so allow a few extra minutes.`,
+          ],
+          ordered: false,
+        },
+      },
+      {
         id: "active-workout",
         icon: "play-circle-outline",
         title: msg`Active Workout`,
