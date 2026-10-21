@@ -940,6 +940,22 @@ Also in this update:
 • Adaptive progression now takes assistance away as you get stronger on assisted exercises, instead of adding more.
 `,
   },
+  {
+    version: 2680,
+    release: "1.6",
+    message: msg`
+📋 New: Three More Premade Plans!
+
+Find them under Premade plans on the Plans tab:
+• Beginner Growth (3 Days): full body barbell training to build muscle.
+• Classic 5x5: two short strength workouts that alternate, 5 sets of 5 reps.
+• 2-Day Full Body: the whole body twice a week, for a busy schedule.
+
+Also in this update:
+• A help button at the top of the home screen opens Help & Info.
+• Help & Info now explains how the estimated duration of a workout is worked out.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries
