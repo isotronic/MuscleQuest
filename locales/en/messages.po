@@ -758,7 +758,7 @@ msgstr ""
 "Tap any accepted friend's name to open their profile and import their plans, standalone workouts, or custom exercises directly into your own library.\n"
 ""
 
-#: constants/WhatsNew.ts:962
+#: constants/WhatsNew.ts:963
 msgid ""
 "\n"
 "💪 New: See the Muscles You Train!\n"
@@ -1051,6 +1051,7 @@ msgid ""
 "Also in this update:\n"
 "• A help button at the top of the home screen opens Help & Info.\n"
 "• Help & Info now explains how the estimated duration of a workout is worked out.\n"
+"• 11 more cover images for your plans, including home training, stretching and cardio.\n"
 ""
 msgstr ""
 "\n"
@@ -1064,6 +1065,7 @@ msgstr ""
 "Also in this update:\n"
 "• A help button at the top of the home screen opens Help & Info.\n"
 "• Help & Info now explains how the estimated duration of a workout is worked out.\n"
+"• 11 more cover images for your plans, including home training, stretching and cardio.\n"
 ""
 
 #: constants/WhatsNew.ts:149

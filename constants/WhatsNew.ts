@@ -954,6 +954,7 @@ Find them under Premade plans on the Plans tab:
 Also in this update:
 • A help button at the top of the home screen opens Help & Info.
 • Help & Info now explains how the estimated duration of a workout is worked out.
+• 11 more cover images for your plans, including home training, stretching and cardio.
 `,
   },
   {

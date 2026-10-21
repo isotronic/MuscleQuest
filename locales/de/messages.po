@@ -693,7 +693,7 @@ msgstr ""
 "Tippe auf den Namen eines akzeptierten Freundes, um sein Profil zu öffnen und seine Pläne, eigenständigen Trainings oder eigenen Übungen direkt in deine eigene Bibliothek zu importieren.\n"
 ""
 
-#: constants/WhatsNew.ts:962
+#: constants/WhatsNew.ts:963
 msgid ""
 "\n"
 "💪 New: See the Muscles You Train!\n"
@@ -986,6 +986,7 @@ msgid ""
 "Also in this update:\n"
 "• A help button at the top of the home screen opens Help & Info.\n"
 "• Help & Info now explains how the estimated duration of a workout is worked out.\n"
+"• 11 more cover images for your plans, including home training, stretching and cardio.\n"
 ""
 msgstr ""
 "\n"
@@ -999,6 +1000,7 @@ msgstr ""
 "Außerdem in diesem Update:\n"
 "• Ein Hilfe-Button oben auf der Startseite öffnet Hilfe & Info.\n"
 "• Hilfe & Info erklärt jetzt, wie die geschätzte Dauer eines Trainings berechnet wird.\n"
+"• 11 weitere Titelbilder für deine Pläne, darunter Training zu Hause, Dehnen und Cardio.\n"
 ""
 
 #: constants/WhatsNew.ts:149

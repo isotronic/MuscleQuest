@@ -39,6 +39,28 @@ export const PlanImages = {
     "https://images.unsplash.com/photo-1529516548873-9ce57c8f155e?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   image20:
     "https://images.unsplash.com/photo-1516470498934-6a1c0c7d7930?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  image21:
+    "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  image22:
+    "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  image23:
+    "https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  image24:
+    "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  image25:
+    "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?q=80&w=640&auto=format&fit=crop&rect=0,0,3360,2240&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  image26:
+    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  image27:
+    "https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  image28:
+    "https://images.unsplash.com/photo-1593079831268-3381b0db4a77?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  image29:
+    "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  image30:
+    "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  image31:
+    "https://images.unsplash.com/photo-1597452485669-2c7bb5fef90d?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
 };
 
 // Bundled copies of every Unsplash photo the app offers (the picker above and
@@ -53,18 +75,29 @@ const bundledPlanImages: Record<string, number> = {
   "1508215885820-4585e56135c8": require("@/assets/images/plans/1508215885820-4585e56135c8.webp"),
   "1516470498934-6a1c0c7d7930": require("@/assets/images/plans/1516470498934-6a1c0c7d7930.webp"),
   "1517836357463-d25dfeac3438": require("@/assets/images/plans/1517836357463-d25dfeac3438.webp"),
+  "1518611012118-696072aa579a": require("@/assets/images/plans/1518611012118-696072aa579a.webp"),
   "1519859660545-3dea8ddf683c": require("@/assets/images/plans/1519859660545-3dea8ddf683c.webp"),
   "1521804906057-1df8fdb718b7": require("@/assets/images/plans/1521804906057-1df8fdb718b7.webp"),
   "1521805103424-d8f8430e8933": require("@/assets/images/plans/1521805103424-d8f8430e8933.webp"),
+  "1526506118085-60ce8714f8c5": require("@/assets/images/plans/1526506118085-60ce8714f8c5.webp"),
   "1529516548873-9ce57c8f155e": require("@/assets/images/plans/1529516548873-9ce57c8f155e.webp"),
   "1532029837206-abbe2b7620e3": require("@/assets/images/plans/1532029837206-abbe2b7620e3.webp"),
   "1532384555668-bc0c32a17ffd": require("@/assets/images/plans/1532384555668-bc0c32a17ffd.webp"),
   "1532384748853-8f54a8f476e2": require("@/assets/images/plans/1532384748853-8f54a8f476e2.webp"),
+  "1534438327276-14e5300c3a48": require("@/assets/images/plans/1534438327276-14e5300c3a48.webp"),
+  "1540497077202-7c8a3999166f": require("@/assets/images/plans/1540497077202-7c8a3999166f.webp"),
   "1541534741688-6078c6bfb5c5": require("@/assets/images/plans/1541534741688-6078c6bfb5c5.webp"),
+  "1544367567-0f2fcb009e0b": require("@/assets/images/plans/1544367567-0f2fcb009e0b.webp"),
+  "1571019613454-1cb2f99b2d8b": require("@/assets/images/plans/1571019613454-1cb2f99b2d8b.webp"),
+  "1571019614242-c5c5dee9f50b": require("@/assets/images/plans/1571019614242-c5c5dee9f50b.webp"),
   "1571388208497-71bedc66e932": require("@/assets/images/plans/1571388208497-71bedc66e932.webp"),
   "1581009137042-c552e485697a": require("@/assets/images/plans/1581009137042-c552e485697a.webp"),
   "1581009146145-b5ef050c2e1e": require("@/assets/images/plans/1581009146145-b5ef050c2e1e.webp"),
   "1583454110551-21f2fa2afe61": require("@/assets/images/plans/1583454110551-21f2fa2afe61.webp"),
+  "1584735935682-2f2b69dff9d2": require("@/assets/images/plans/1584735935682-2f2b69dff9d2.webp"),
+  "1593079831268-3381b0db4a77": require("@/assets/images/plans/1593079831268-3381b0db4a77.webp"),
+  "1597452485669-2c7bb5fef90d": require("@/assets/images/plans/1597452485669-2c7bb5fef90d.webp"),
+  "1599058917212-d750089bc07e": require("@/assets/images/plans/1599058917212-d750089bc07e.webp"),
   "1604480133080-602261a680df": require("@/assets/images/plans/1604480133080-602261a680df.webp"),
   "1605822335686-ce034adfda7d": require("@/assets/images/plans/1605822335686-ce034adfda7d.webp"),
   "1630415187908-39d6d209b15c": require("@/assets/images/plans/1630415187908-39d6d209b15c.webp"),
