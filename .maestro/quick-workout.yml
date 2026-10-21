@@ -45,6 +45,8 @@ appId: com.isotronic.musclequest
       id: "session-current-set"
 - eraseText
 - inputText: "60"
+# The keyboard covers the reps field.
+- hideKeyboard
 - tapOn:
     id: "set-reps-input"
     childOf:
