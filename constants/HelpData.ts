@@ -95,7 +95,7 @@ export const HELP_DATA: GroupData[] = [
             msg`The plan editor and a plan's overview also show a Weekly sets per muscle card. Each workout counts once for every day the schedule gives it; without a schedule, the card counts each workout once. Tap the card to see the bars.`,
             msg`Under the card's title, Not trained lists any major muscle that gets no sets at all, such as hamstrings or calves.`,
             msg`Only working sets count, not warm-up sets. A set counts for the exercise's target muscle, and as half a set for each secondary muscle.`,
-            msg`The counting follows the Sets per Muscle / Week widget on the Stats tab: its target range is shaded on the weekly bars, and turning off half sets for secondary muscles there turns them off here too.`,
+            msg`The target range and secondary muscles follow the Sets per Muscle / Week widget on the Stats tab: its target range is shaded on the weekly bars, and turning off Count secondary muscles there turns them off here too. Warm-up sets never count here, even when the widget includes them.`,
           ],
           ordered: false,
         },

@@ -1919,16 +1919,16 @@ msgid "{name} and its sets come out of this workout when you save."
 msgstr "{name} und die Sätze dazu werden beim Speichern aus diesem Training entfernt."
 
 #: components/MusclesWorkedRow.tsx:86
-#: components/PlanMuscleSetsCard.tsx:106
+#: components/PlanMuscleSetsCard.tsx:115
 msgid "{name}, {sets} sets"
 msgstr "{name}, {sets} Sätze"
 
-#: components/PlanMuscleSetsCard.tsx:105
+#: components/PlanMuscleSetsCard.tsx:114
 #: components/stats/widgets/MuscleSetsWidget.tsx:94
 msgid "{name}, {sets} sets per week"
 msgstr "{name}, {sets} Sätze pro Woche"
 
-#: components/PlanMuscleSetsCard.tsx:104
+#: components/PlanMuscleSetsCard.tsx:113
 #: components/stats/widgets/MuscleSetsWidget.tsx:93
 msgid "{name}, {sets} sets per week, {zone}"
 msgstr "{name}, {sets} Sätze pro Woche, {zone}"
@@ -3709,7 +3709,7 @@ msgstr "Eigene Messwerte"
 msgid "Customisation"
 msgstr "Anpassung"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:538
+#: app/(app)/(tabs)/(plans)/overview.tsx:539
 msgid "Customise Plan"
 msgstr "Plan anpassen"
 
@@ -3916,7 +3916,7 @@ msgstr "Wird gelöscht. Bitte warten..."
 msgid "Deletion stopped before it finished. Your account still exists and you are still signed in. Check your connection and try again."
 msgstr "Das Löschen wurde vor dem Abschluss abgebrochen. Dein Konto existiert noch und du bist weiterhin angemeldet. Prüfe deine Verbindung und versuche es erneut."
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:410
+#: app/(app)/(tabs)/(plans)/overview.tsx:411
 #: components/home/TodayCard.tsx:136
 #: constants/HelpData.ts:243
 msgid "Deload Week"
@@ -4005,7 +4005,7 @@ msgstr "Unbehagen"
 msgid "Discomfort is tracked across sessions: one report keeps the load steady, a second consecutive report adds a form-check note."
 msgstr "Unbehagen wird über Einheiten hinweg verfolgt: Ein Bericht hält die Last stabil, ein zweiter aufeinanderfolgender Bericht fügt eine Notiz für einen Technik-Check hinzu."
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:552
+#: app/(app)/(tabs)/(plans)/overview.tsx:553
 #: components/ProgressionSummaryCard.tsx:249
 #: components/SetupOfferCard.tsx:67
 #: components/UpdateModal.tsx:43
@@ -4156,12 +4156,12 @@ msgid "Dumbbells"
 msgstr "Kurzhanteln"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:194
-#: app/(app)/(tabs)/(plans)/overview.tsx:502
+#: app/(app)/(tabs)/(plans)/overview.tsx:503
 msgid "Duplicate"
 msgstr "Duplizieren"
 
 #: app/(app)/(tabs)/(plans)/overview.tsx:186
-#: app/(app)/(tabs)/(plans)/overview.tsx:495
+#: app/(app)/(tabs)/(plans)/overview.tsx:496
 msgid "Duplicate Plan"
 msgstr "Plan duplizieren"
 
@@ -4257,7 +4257,7 @@ msgstr "Übung bearbeiten"
 msgid "Edit note"
 msgstr "Notiz bearbeiten"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:540
+#: app/(app)/(tabs)/(plans)/overview.tsx:541
 msgid "Edit Plan"
 msgstr "Plan bearbeiten"
 
@@ -4504,7 +4504,7 @@ msgstr "Geschätzte Dauer: {0}"
 msgid "estimated one-rep max"
 msgstr "geschätztes Maximalgewicht (1RM)"
 
-#: components/PlanMuscleSetsCard.tsx:92
+#: components/PlanMuscleSetsCard.tsx:101
 msgid "Every major muscle gets some work."
 msgstr "Jeder große Muskel wird trainiert."
 
@@ -4764,7 +4764,7 @@ msgstr "Google-Abmeldung fehlgeschlagen. Abmeldung wird fortgesetzt."
 msgid "Failed to sign out. Please try again."
 msgstr "Abmeldung fehlgeschlagen. Bitte versuche es erneut."
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:477
+#: app/(app)/(tabs)/(plans)/overview.tsx:478
 #: components/StandaloneWorkoutScreen.tsx:304
 msgid "Failed to update sharing. Please try again."
 msgstr "Freigabe konnte nicht aktualisiert werden. Bitte versuche es erneut."
@@ -6271,7 +6271,7 @@ msgstr "Nicht jetzt"
 #~ msgid "Not set (used for assisted exercises)"
 #~ msgstr "Nicht festgelegt (für unterstützte Übungen)"
 
-#: components/PlanMuscleSetsCard.tsx:88
+#: components/PlanMuscleSetsCard.tsx:97
 msgid "Not trained: {untrained}"
 msgstr "Nicht trainiert: {untrained}"
 
@@ -6645,11 +6645,11 @@ msgstr "Plan nicht gefunden."
 msgid "Plan Overview"
 msgstr "Planübersicht"
 
-#: components/PlanMuscleSetsCard.tsx:58
+#: components/PlanMuscleSetsCard.tsx:67
 msgid "Planned working sets for one round of the plan's workouts. Add a schedule to see them per week."
 msgstr "Geplante Arbeitssätze für eine Runde der Trainings des Plans. Lege einen Wochenplan fest, um sie pro Woche zu sehen."
 
-#: components/PlanMuscleSetsCard.tsx:57
+#: components/PlanMuscleSetsCard.tsx:66
 msgid "Planned working sets per week, from the schedule."
 msgstr "Geplante Arbeitssätze pro Woche, laut Wochenplan."
 
@@ -7449,7 +7449,7 @@ msgstr "Suchen..."
 msgid "Secondary Muscles"
 msgstr "Sekundäre Muskeln"
 
-#: components/PlanMuscleSetsCard.tsx:62
+#: components/PlanMuscleSetsCard.tsx:71
 msgid "Secondary muscles count as half a set."
 msgstr "Sekundäre Muskeln zählen als halber Satz."
 
@@ -7659,7 +7659,7 @@ msgstr "Sätze & Übungen"
 msgid "Sets Overview"
 msgstr "Satzübersicht"
 
-#: components/PlanMuscleSetsCard.tsx:53
+#: components/PlanMuscleSetsCard.tsx:62
 msgid "Sets per muscle"
 msgstr "Sätze pro Muskel"
 
@@ -7704,7 +7704,7 @@ msgstr "Tage einfärben nach"
 
 #. placeholder {0}: shownTarget.min
 #. placeholder {1}: shownTarget.max
-#: components/PlanMuscleSetsCard.tsx:60
+#: components/PlanMuscleSetsCard.tsx:69
 msgid "Shaded: target of {0} to {1} sets."
 msgstr "Schattiert: Ziel von {0} bis {1} Sätzen."
 
@@ -7720,7 +7720,7 @@ msgstr "Abgeschlossene Trainings mit Freunden teilen"
 msgid "Share custom exercises with friends"
 msgstr "Eigene Übungen mit Freunden teilen"
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:452
+#: app/(app)/(tabs)/(plans)/overview.tsx:453
 msgid "Share Plan"
 msgstr "Plan teilen"
 
@@ -8441,10 +8441,6 @@ msgstr "Die Sicherung ist beschädigt und kann nicht wiederhergestellt werden. D
 msgid "The classic strength programme for beginners. Two short barbell workouts alternate three days a week: 5 sets of 5 reps on the squat, presses and rows, and one heavy set of 5 on the deadlift. Add a little weight whenever you complete them all."
 msgstr "Das klassische Kraftprogramm für Einsteiger. Zwei kurze Langhantel-Trainings wechseln sich an drei Tagen pro Woche ab: 5 Sätze à 5 Wiederholungen bei Kniebeuge, Drücken und Rudern, und ein schwerer Satz à 5 beim Kreuzheben. Leg etwas Gewicht drauf, sobald du alle schaffst."
 
-#: constants/HelpData.ts:98
-msgid "The counting follows the Sets per Muscle / Week widget on the Stats tab: its target range is shaded on the weekly bars, and turning off half sets for secondary muscles there turns them off here too."
-msgstr "Die Zählung folgt dem Widget Sätze pro Muskel / Woche im Tab Statistiken: Sein Zielbereich ist auf den Wochenbalken schattiert, und wenn du dort halbe Sätze für sekundäre Muskeln ausschaltest, gilt das auch hier."
-
 #: components/AccountOwnershipNotice.tsx:54
 msgid "The data on this device was used with another account."
 msgstr "Die Daten auf diesem Gerät wurden mit einem anderen Konto verwendet."
@@ -8529,6 +8525,10 @@ msgstr "Die Wiederherstellung konnte nicht rückgängig gemacht werden. Versuche
 msgid "The Stats tab shows total workouts, total volume, total time, and average session duration over a selectable time range, with a period-over-period delta for each metric. Charts display weekly volume, workouts per week, and your training split by body part. Browse your full workout history and tap any session to review every set in detail, including weights, reps, time, or distance. You can edit or delete completed workouts from the history details screen; a deleted workout can be restored by tapping Undo on the message that appears. If you logged the wrong exercise, tap the pencil icon next to it on the edit screen to swap it for the correct one. Tap the calendar icon in the Workout History section to open a calendar view: days with workouts are highlighted with a yellow circle, and tapping any day shows the workouts logged on that date."
 msgstr "Der Statistiken-Tab zeigt Gesamttrainings, Gesamtvolumen, Gesamtzeit und durchschnittliche Einheitsdauer über einen auswählbaren Zeitraum, mit einer Periode-zu-Periode-Differenz für jede Kennzahl. Diagramme zeigen wöchentliches Volumen, Trainings pro Woche und deinen Trainings-Split nach Körperteil. Durchsuche deine vollständige Trainingshistorie und tippe auf eine Einheit, um jeden Satz im Detail einzusehen, einschließlich Gewichte, Wiederholungen, Zeit oder Distanz. Du kannst abgeschlossene Trainings vom Verlaufsdetailsbildschirm bearbeiten oder löschen; ein gelöschtes Training kannst du über Rückgängig in der eingeblendeten Meldung wiederherstellen. Wenn du die falsche Übung erfasst hast, tippe auf dem Bearbeitungsbildschirm auf das Stiftsymbol daneben, um sie gegen die richtige auszutauschen. Tippe auf das Kalendersymbol im Bereich Trainingshistorie, um eine Kalenderansicht zu öffnen: Tage mit Trainings sind mit einem gelben Kreis hervorgehoben, und ein Tippen auf einen Tag zeigt die an diesem Datum protokollierten Trainings."
 
+#: constants/HelpData.ts:98
+msgid "The target range and secondary muscles follow the Sets per Muscle / Week widget on the Stats tab: its target range is shaded on the weekly bars, and turning off Count secondary muscles there turns them off here too. Warm-up sets never count here, even when the widget includes them."
+msgstr "Zielbereich und sekundäre Muskeln folgen dem Widget Sätze pro Muskel / Woche im Tab Statistiken: Sein Zielbereich ist auf den Wochenbalken schattiert, und wenn du dort Sekundäre Muskeln mitzählen ausschaltest, gilt das auch hier. Aufwärmsätze zählen hier nie, auch wenn das Widget sie mitzählt."
+
 #: components/AccountOwnershipPrompt.tsx:55
 msgid "The training history on this device was used with another account. Backups and sharing are paused until you choose."
 msgstr "Der Trainingsverlauf auf diesem Gerät wurde mit einem anderen Konto verwendet. Sicherungen und Teilen sind pausiert, bis du dich entscheidest."
@@ -8605,7 +8605,7 @@ msgstr "Dieser Plan passt am besten"
 msgid "This plan has no workouts yet."
 msgstr "Dieser Plan hat noch keine Trainings."
 
-#: app/(app)/(tabs)/(plans)/overview.tsx:472
+#: app/(app)/(tabs)/(plans)/overview.tsx:473
 msgid "This plan is too large to share. Try splitting it into smaller plans."
 msgstr "Dieser Plan ist zu groß zum Teilen. Teile ihn in kleinere Pläne auf."
 
@@ -9479,7 +9479,7 @@ msgstr "Wochenziel erreicht: {completed} Trainings diese Woche."
 msgid "Weekly Schedule"
 msgstr "Wochenplan"
 
-#: components/PlanMuscleSetsCard.tsx:53
+#: components/PlanMuscleSetsCard.tsx:62
 msgid "Weekly sets per muscle"
 msgstr "Wöchentliche Sätze pro Muskel"
 
