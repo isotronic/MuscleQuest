@@ -1,4 +1,4 @@
-import { buildMuscleSetsRows } from "../widgets/MuscleSetsWidget";
+import { buildMuscleSetsRows } from "@/components/MuscleSetBars";
 import { describePR } from "../widgets/RecentPRsWidget";
 import { buildTile } from "../widgets/SummaryWidget";
 import { computeStats } from "@/utils/workoutStats";

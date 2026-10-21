@@ -18,39 +18,7 @@ import type { AppThemeColors } from "@/theme/types";
 import { useStatsWidgetContext } from "./StatsWidgetContext";
 import { useWidgetRange } from "./useWidgetRange";
 import { WidgetSection } from "./WidgetSection";
-import { DEVICE_LOCALE } from "@/utils/numberFormat";
-
-type Zone = "below" | "within" | "above";
-
-export interface MuscleSetsRow {
-  key: string;
-  perWeek: number;
-  zone: Zone | null;
-}
-
-/** Average weekly sets per group, largest first, with each one's target zone. */
-export const buildMuscleSetsRows = (
-  totals: Record<string, number>,
-  weeks: number,
-  target: { min: number; max: number } | null,
-): MuscleSetsRow[] =>
-  Object.entries(totals)
-    .map(([key, total]) => {
-      const perWeek = Math.round((total / weeks) * 10) / 10;
-      const zone: Zone | null = !target
-        ? null
-        : perWeek < target.min
-          ? "below"
-          : perWeek > target.max
-            ? "above"
-            : "within";
-      return { key, perWeek, zone };
-    })
-    .filter((row) => row.perWeek > 0)
-    .sort((a, b) => b.perWeek - a.perWeek || a.key.localeCompare(b.key));
-
-const formatSets = (value: number) =>
-  value.toLocaleString(DEVICE_LOCALE, { maximumFractionDigits: 1 });
+import { buildMuscleSetsRows, MuscleSetBars } from "@/components/MuscleSetBars";
 
 export const MuscleSetsWidget: React.FC<{
   config: WidgetConfigs["muscleSets"];
@@ -97,30 +65,11 @@ export const MuscleSetsWidget: React.FC<{
     target,
   ]);
 
-  const scaleMax = Math.max(
-    1,
-    ...rows.map((r) => r.perWeek),
-    target ? target.max * 1.15 : 0,
-  );
-  const pct = (value: number) => `${Math.min(100, (value / scaleMax) * 100)}%`;
-
   const nameOf = (key: string) => {
     const table =
       config.groupBy === "muscle" ? muscleTranslations : bodyPartTranslations;
     return table[key] ? capitalizeWords(_(table[key])) : capitalizeWords(key);
   };
-
-  const zoneText = (zone: Zone | null) =>
-    zone === "below"
-      ? t`below target`
-      : zone === "above"
-        ? t`above target`
-        : zone === "within"
-          ? t`within target`
-          : "";
-
-  const barColor = (zone: Zone | null) =>
-    zone === "below" ? colors.accentBorderStrong : colors.accent;
 
   return (
     <WidgetSection
@@ -135,52 +84,16 @@ export const MuscleSetsWidget: React.FC<{
         </ThemedText>
       ) : (
         <View style={styles.card}>
-          {rows.map((row) => {
-            const name = nameOf(row.key);
-            const sets = formatSets(row.perWeek);
-            const zone = zoneText(row.zone);
-            return (
-              <View
-                key={row.key}
-                style={styles.row}
-                accessible
-                accessibilityLabel={
-                  zone
-                    ? t`${name}, ${sets} sets per week, ${zone}`
-                    : t`${name}, ${sets} sets per week`
-                }
-              >
-                <ThemedText style={styles.name} numberOfLines={1}>
-                  {name}
-                </ThemedText>
-                <View style={styles.track}>
-                  {target ? (
-                    <View
-                      style={[
-                        styles.band,
-                        {
-                          left: pct(target.min) as `${number}%`,
-                          width: `${
-                            ((target.max - target.min) / scaleMax) * 100
-                          }%`,
-                        },
-                      ]}
-                    />
-                  ) : null}
-                  <View
-                    style={[
-                      styles.bar,
-                      {
-                        width: pct(row.perWeek) as `${number}%`,
-                        backgroundColor: barColor(row.zone),
-                      },
-                    ]}
-                  />
-                </View>
-                <ThemedText style={styles.value}>{sets}</ThemedText>
-              </View>
-            );
-          })}
+          <MuscleSetBars
+            rows={rows}
+            target={target}
+            nameOf={nameOf}
+            rowLabel={(name, sets, zone) =>
+              zone
+                ? t`${name}, ${sets} sets per week, ${zone}`
+                : t`${name}, ${sets} sets per week`
+            }
+          />
           <ThemedText style={styles.footnote}>
             {target
               ? config.groupBy === "muscle" && config.secondaryHalf
@@ -203,37 +116,6 @@ function createStyles(colors: AppThemeColors) {
       borderRadius: radii.md,
       padding: 12,
       gap: 8,
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-    },
-    name: {
-      width: 96,
-      fontSize: 13,
-    },
-    track: {
-      flex: 1,
-      height: 14,
-      justifyContent: "center",
-    },
-    band: {
-      position: "absolute",
-      top: 0,
-      bottom: 0,
-      backgroundColor: colors.accentSubtle,
-      borderRadius: radii.sm,
-    },
-    bar: {
-      height: 10,
-      borderRadius: radii.sm,
-    },
-    value: {
-      width: 36,
-      fontSize: 13,
-      fontWeight: "600",
-      textAlign: "right",
     },
     footnote: {
       fontSize: 11,
