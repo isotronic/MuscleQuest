@@ -1,0 +1,158 @@
+# From home: create a custom distance exercise in the plan editor, then log
+# it by distance and a library exercise by time in a quick workout.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "tab-plans"
+- tapOn:
+    id: "plans-new-plan"
+- extendedWaitUntil:
+    visible:
+      id: "plan-name-input"
+    timeout: 15000
+- tapOn:
+    id: "plan-name-input"
+- inputText: "E2E Cardio"
+- hideKeyboard
+- tapOn:
+    id: "plan-add-workout"
+- tapOn:
+    id: "workout-name-input-0"
+- inputText: "Run Day"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "workout-add-exercise-0"
+- tapOn:
+    id: "workout-add-exercise-0"
+- extendedWaitUntil:
+    visible:
+      id: "exercise-picker-create"
+    timeout: 15000
+- tapOn:
+    id: "exercise-picker-create"
+- extendedWaitUntil:
+    visible:
+      id: "custom-exercise-name"
+    timeout: 15000
+- tapOn:
+    id: "custom-exercise-name"
+- inputText: "E2E Run"
+- hideKeyboard
+# Each dropdown option's id is its stored value.
+- tapOn:
+    id: "custom-exercise-body-part"
+- scrollUntilVisible:
+    element:
+      id: "cardio"
+- tapOn:
+    id: "cardio"
+- tapOn:
+    id: "custom-exercise-target"
+- scrollUntilVisible:
+    element:
+      id: "cardiovascular system"
+- tapOn:
+    id: "cardiovascular system"
+- scrollUntilVisible:
+    element:
+      id: "custom-exercise-equipment"
+- tapOn:
+    id: "custom-exercise-equipment"
+- scrollUntilVisible:
+    element:
+      id: "body weight"
+- tapOn:
+    id: "body weight"
+- scrollUntilVisible:
+    element:
+      id: "custom-exercise-tracking"
+- tapOn:
+    id: "custom-exercise-tracking"
+- tapOn:
+    id: "distance"
+- scrollUntilVisible:
+    element:
+      id: "custom-exercise-save"
+- tapOn:
+    id: "custom-exercise-save"
+# The new exercise comes back ticked.
+- extendedWaitUntil:
+    visible:
+      id: "exercise-picker-add"
+    timeout: 15000
+- tapOn:
+    id: "exercise-picker-add"
+- tapOn:
+    id: "plan-save"
+- tapOn:
+    id: "tab-home"
+- scrollUntilVisible:
+    element:
+      id: "home-quick-workout"
+    timeout: 15000
+- tapOn:
+    id: "home-quick-workout"
+- tapOn:
+    id: "workout-add-exercise"
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "E2E Run"
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "Jump Rope"
+- tapOn:
+    id: "exercise-picker-add"
+- tapOn:
+    id: "workout-exercise-0"
+- tapOn:
+    id: "set-distance-input"
+    childOf:
+      id: "session-current-set"
+- eraseText
+- inputText: "5"
+- hideKeyboard
+- tapOn:
+    id: "complete-set"
+    childOf:
+      id: "session-current-set"
+- runFlow:
+    when:
+      visible:
+        id: "rest-skip"
+    commands:
+      - tapOn:
+          id: "rest-skip"
+- back
+- tapOn:
+    id: "workout-exercise-1"
+- tapOn:
+    id: "set-time-input-first"
+    childOf:
+      id: "session-current-set"
+- eraseText
+- inputText: "1"
+- tapOn:
+    id: "set-time-input-second"
+    childOf:
+      id: "session-current-set"
+- eraseText
+- inputText: "30"
+- hideKeyboard
+- tapOn:
+    id: "complete-set"
+    childOf:
+      id: "session-current-set"
+- runFlow:
+    when:
+      visible:
+        id: "rest-skip"
+    commands:
+      - tapOn:
+          id: "rest-skip"
+- back
+- runFlow: finish-workout.yml
+- runFlow: skip-save-offer.yml
+- runFlow: close-summary.yml

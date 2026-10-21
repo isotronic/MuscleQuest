@@ -1,5 +1,8 @@
-# Each flow runs first-launch.yml first, so each starts from a fresh install.
+# Quick check, for routine runs: onboarding with a starter plan, a plan
+# workout with the rest timer, and a quick workout that survives the app
+# being killed. The flows run in order on one install.
 appId: com.isotronic.musclequest
 ---
-- runFlow: quick-workout.yml
-- runFlow: create-plan.yml
+- runFlow: flows/start-with-plan.yml
+- runFlow: flows/plan-workout.yml
+- runFlow: flows/quick-workout.yml

@@ -1,0 +1,15 @@
+# On an exercise picker: search for ${SEARCH} and tick the first result.
+appId: com.isotronic.musclequest
+---
+- extendedWaitUntil:
+    visible:
+      id: "exercise-search"
+    timeout: 15000
+- tapOn:
+    id: "exercise-search"
+- eraseText
+- inputText: ${SEARCH}
+- hideKeyboard
+- tapOn:
+    id: "exercise-select"
+    index: 0

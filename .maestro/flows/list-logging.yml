@@ -1,0 +1,56 @@
+# From home: log a set in list view, then save the quick workout as a
+# reusable workout and find it on the plans tab.
+appId: com.isotronic.musclequest
+---
+- scrollUntilVisible:
+    element:
+      id: "home-quick-workout"
+    timeout: 15000
+- tapOn:
+    id: "home-quick-workout"
+- tapOn:
+    id: "workout-add-exercise"
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "Barbell Curl"
+- tapOn:
+    id: "exercise-picker-add"
+- tapOn:
+    id: "workout-options"
+- tapOn:
+    id: "workout-options-logging-style"
+- tapOn:
+    id: "workout-exercise-0"
+- extendedWaitUntil:
+    visible:
+      id: "list-set-complete"
+    timeout: 15000
+- tapOn:
+    id: "list-set-complete"
+    index: 0
+- back
+# Back to one set at a time, which the other flows expect.
+- tapOn:
+    id: "workout-options"
+- tapOn:
+    id: "workout-options-logging-style"
+- runFlow: finish-workout.yml
+- extendedWaitUntil:
+    visible:
+      id: "save-workout-name"
+    timeout: 30000
+- tapOn:
+    id: "save-workout-name"
+- inputText: "E2E Saved"
+- hideKeyboard
+- tapOn:
+    id: "save-workout-save"
+- runFlow: close-summary.yml
+- tapOn:
+    id: "tab-plans"
+- scrollUntilVisible:
+    element: "E2E Saved"
+    timeout: 15000
+- tapOn:
+    id: "tab-home"

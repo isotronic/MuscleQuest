@@ -1,5 +1,5 @@
-# Fresh install to the home tab: welcome, setup with its defaults, skip
-# sign-in, skip the starter plans.
+# Fresh install to the get-started screen: welcome, setup with its defaults,
+# skip sign-in.
 appId: com.isotronic.musclequest
 ---
 - launchApp:
@@ -37,12 +37,4 @@ appId: com.isotronic.musclequest
 - extendedWaitUntil:
     visible:
       id: "get-started-skip"
-    timeout: 15000
-- tapOn:
-    id: "get-started-skip"
-# Home on a fresh install opens with a large activation card, so check the
-# tab instead of a button that may be below the fold.
-- extendedWaitUntil:
-    visible:
-      id: "tab-home"
     timeout: 15000

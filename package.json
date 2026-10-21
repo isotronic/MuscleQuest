@@ -19,8 +19,10 @@
     "extract": "lingui extract",
     "compile": "lingui compile",
     "test:rules": "firebase emulators:exec --only firestore --project demo-musclequest \"jest --config jest.rules.config.js\"",
-    "test:e2e": "eas workflow:run .eas/workflows/e2e-android.yml",
-    "test:e2e-existing": "sh -c 'eas workflow:run .eas/workflows/e2e-android-test.yml -F build_id=\"$0\"'"
+    "test:e2e": "eas workflow:run .eas/workflows/e2e-android.yml -F suite=smoke",
+    "test:e2e:full": "eas workflow:run .eas/workflows/e2e-android.yml -F suite=full",
+    "test:e2e-existing": "sh -c 'eas workflow:run .eas/workflows/e2e-android-test.yml -F build_id=\"$0\" -F suite=smoke'",
+    "test:e2e-existing:full": "sh -c 'eas workflow:run .eas/workflows/e2e-android-test.yml -F build_id=\"$0\" -F suite=full'"
   },
   "jest": {
     "preset": "jest-expo",

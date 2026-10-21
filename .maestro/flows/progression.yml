@@ -1,0 +1,54 @@
+# From home with an active plan: turn on adaptive progression, finish an
+# exercise, rate it, and see a suggestion on the summary.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-settings"
+- tapOn:
+    id: "settings-progression"
+- tapOn:
+    id: "setting-adaptive-progression"
+- back
+- back
+- tapOn:
+    id: "tab-home"
+- scrollUntilVisible:
+    element:
+      id: "today-start"
+    timeout: 15000
+- tapOn:
+    id: "today-start"
+- tapOn:
+    id: "workout-exercise-0"
+# Complete the exercise's sets until it asks how it felt. Reps above the
+# target keep the full question rather than the below-target one.
+- repeat:
+    times: 8
+    while:
+      notVisible:
+        id: "feedback-(easy|none)"
+    commands:
+      - runFlow:
+          file: log-set.yml
+          env:
+            WEIGHT: "40"
+            REPS: "20"
+      - runFlow:
+          when:
+            visible:
+              id: "rest-skip"
+          commands:
+            - tapOn:
+                id: "rest-skip"
+- tapOn:
+    id: "feedback-(easy|none)"
+    index: 0
+- back
+- runFlow: finish-workout.yml
+- scrollUntilVisible:
+    element:
+      id: "progression-summary"
+    timeout: 30000
+- runFlow: close-summary.yml

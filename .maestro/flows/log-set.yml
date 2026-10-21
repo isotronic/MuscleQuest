@@ -1,0 +1,30 @@
+# On the session screen: enter ${WEIGHT} x ${REPS} in the set on screen and
+# complete it. The session keeps the neighbouring sets mounted off-screen with
+# the same ids, so every tap is scoped to the set on screen.
+appId: com.isotronic.musclequest
+---
+- extendedWaitUntil:
+    visible:
+      id: "complete-set"
+      childOf:
+        id: "session-current-set"
+    timeout: 15000
+- tapOn:
+    id: "set-weight-input"
+    childOf:
+      id: "session-current-set"
+- eraseText
+- inputText: ${WEIGHT}
+# The keyboard covers the reps field.
+- hideKeyboard
+- tapOn:
+    id: "set-reps-input"
+    childOf:
+      id: "session-current-set"
+- eraseText
+- inputText: ${REPS}
+- hideKeyboard
+- tapOn:
+    id: "complete-set"
+    childOf:
+      id: "session-current-set"

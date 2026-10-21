@@ -1,0 +1,9 @@
+# The quick workout on a German device, to catch text that breaks a layout
+# or a flow. The workflow switches the emulator to German before this runs.
+appId: com.isotronic.musclequest
+---
+- runFlow: flows/first-launch.yml
+- runFlow:
+    file: flows/quick-workout.yml
+    env:
+      EXERCISE: "Bankdrücken"

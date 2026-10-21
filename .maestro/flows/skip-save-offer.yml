@@ -1,0 +1,11 @@
+# After finishing a quick workout: decline saving it as a workout.
+appId: com.isotronic.musclequest
+---
+# Its name field takes focus, and the keyboard covers the buttons.
+- extendedWaitUntil:
+    visible:
+      id: "save-workout-name"
+    timeout: 30000
+- hideKeyboard
+- tapOn:
+    id: "save-workout-not-now"

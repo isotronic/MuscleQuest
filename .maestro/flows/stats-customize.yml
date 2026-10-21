@@ -1,0 +1,23 @@
+# From home: hide the history widget on the stats tab, then show it again.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "tab-stats"
+- tapOn:
+    id: "stats-customize"
+- tapOn:
+    id: "widget-toggle-history"
+- back
+- assertNotVisible:
+    id: "widget-history"
+- tapOn:
+    id: "stats-customize"
+- tapOn:
+    id: "widget-toggle-history"
+- back
+- scrollUntilVisible:
+    element:
+      id: "widget-history"
+    timeout: 15000
+- tapOn:
+    id: "tab-home"

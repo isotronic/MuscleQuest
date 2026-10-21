@@ -1,0 +1,14 @@
+# Fresh install that picks the first starter plan and makes it active.
+appId: com.isotronic.musclequest
+---
+- runFlow: onboarding.yml
+- tapOn:
+    id: "starter-plan-0"
+- extendedWaitUntil:
+    visible:
+      id: "plan-activate"
+    timeout: 15000
+- tapOn:
+    id: "plan-activate"
+- tapOn:
+    id: "tab-home"

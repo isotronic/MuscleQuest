@@ -1,0 +1,10 @@
+# In the plan editor: put the first workout on day ${DAY} (0 is Monday).
+appId: com.isotronic.musclequest
+---
+- scrollUntilVisible:
+    element:
+      id: "schedule-day-${DAY}"
+- tapOn:
+    id: "schedule-day-${DAY}"
+- tapOn:
+    id: "schedule-workout-0"

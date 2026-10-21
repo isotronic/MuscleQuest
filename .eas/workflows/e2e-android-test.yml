@@ -1,6 +1,7 @@
-# The Maestro job of e2e-android.yml against an existing build, for when only
-# the flows changed. The app code in the build must still match the testIDs:
-#   eas workflow:run .eas/workflows/e2e-android-test.yml -F build_id=<id>
+# The maestro job of e2e-android.yml against an existing build, for when only
+# the flows changed. The build must already have the testIDs the flows use:
+#   npm run test:e2e-existing -- <build-id>       (smoke)
+#   npm run test:e2e-existing:full -- <build-id>  (full)
 # Keep the steps in sync with e2e-android.yml.
 name: E2E Android (existing build)
 
@@ -11,6 +12,11 @@ on:
         type: string
         required: true
         description: ID of an e2e-test Android build
+      suite:
+        type: choice
+        options: [smoke, full]
+        default: smoke
+        description: smoke for routine runs, full before a release
 
 jobs:
   maestro:
@@ -29,8 +35,21 @@ jobs:
           system_image_package: system-images;android-34;default;x86_64
       - name: Install the app
         run: adb install "${{ steps.download_build.outputs.artifact_path }}"
-      - name: Run the smoke flows
-        run: maestro test .maestro/smoke.yml --debug-output maestro-debug
+      - name: Run the ${{ inputs.suite }} suite
+        run: maestro test .maestro/${{ inputs.suite }}.yml --debug-output maestro-debug
+      # The full suite ends with the quick workout on a German device. A
+      # locale change needs root, which the default emulator image allows.
+      - name: Switch the emulator to German
+        if: ${{ inputs.suite == 'full' }}
+        run: |
+          adb root
+          adb wait-for-device
+          adb shell "setprop persist.sys.locale de-DE; setprop ctl.restart zygote"
+          adb wait-for-device
+          until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ]; do sleep 2; done
+      - name: Run the German suite
+        if: ${{ inputs.suite == 'full' }}
+        run: maestro test .maestro/german.yml --debug-output maestro-debug
       # Screenshots and the view hierarchy of a failed step.
       - uses: eas/upload_artifact
         if: ${{ failure() }}
