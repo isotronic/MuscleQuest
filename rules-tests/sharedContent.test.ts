@@ -491,6 +491,21 @@ describe("shared content reads", () => {
     const anon = testEnv.unauthenticatedContext().firestore();
     await assertFails(getDoc(doc(anon, "users/alice/sharedPlans/doc1")));
   });
+
+  it("blocks a former friend once the friendship is removed", async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await deleteDoc(doc(context.firestore(), "users/alice/friends/bob"));
+    });
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(getDoc(doc(bob, "users/alice/sharedPlans/doc1")));
+  });
+
+  // The privacy toggles say what is shared; the toggles themselves are not.
+  it("keeps private settings from a friend", async () => {
+    await seed({ "users/alice/private/settings": { sharePlans: true } });
+    const bob = testEnv.authenticatedContext("bob").firestore();
+    await assertFails(getDoc(doc(bob, "users/alice/private/settings")));
+  });
 });
 
 // The friend profile's queries (useFriendSharedCompletedWorkoutsQuery,
