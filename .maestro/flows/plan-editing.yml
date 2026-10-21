@@ -70,5 +70,6 @@ appId: com.isotronic.musclequest
 - extendedWaitUntil:
     notVisible: "E2E Plan"
     timeout: 15000
+- runFlow: wait-for-snackbar.yml
 - tapOn:
     id: "tab-home"

@@ -39,5 +39,6 @@ appId: com.isotronic.musclequest
     notVisible:
       id: "history-delete"
     timeout: 15000
+- runFlow: wait-for-snackbar.yml
 - tapOn:
     id: "tab-home"

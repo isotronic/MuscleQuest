@@ -16,6 +16,7 @@ export function AppSnackbar() {
         // A new id remounts it, so a replacement gets its own full duration.
         key={current?.id ?? 0}
         visible={current != null}
+        testID="app-snackbar"
         onDismiss={dismiss}
         duration={current?.duration ?? DEFAULT_DURATION}
         action={

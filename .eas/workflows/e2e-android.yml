@@ -40,7 +40,11 @@ jobs:
         with:
           system_image_package: system-images;android-34;default;x86_64
       - name: Install the app
-        run: adb install "${{ steps.download_build.outputs.artifact_path }}"
+        run: |
+          adb install "${{ steps.download_build.outputs.artifact_path }}"
+          # Android's one-time "Viewing full screen" hint covers the app the
+          # first time it hides the system bars.
+          adb shell settings put secure immersive_mode_confirmations confirmed
       - name: Run the ${{ inputs.suite }} suite
         run: maestro test .maestro/${{ inputs.suite }}.yml --debug-output maestro-debug
       # The full suite ends with the quick workout on a German device. A
@@ -49,7 +53,9 @@ jobs:
         if: ${{ success() && inputs.suite == 'full' }}
         run: |
           adb root
-          adb wait-for-device
+          # adbd restarts as root and drops offline for a moment; a setprop
+          # sent before it is back as root is silently lost.
+          until [ "$(adb shell whoami 2>/dev/null | tr -d '\r')" = "root" ]; do sleep 1; done
           adb shell "setprop persist.sys.locale de-DE; setprop ctl.restart zygote"
           adb wait-for-device
           # sys.boot_completed can still read 1 from before the restart, so

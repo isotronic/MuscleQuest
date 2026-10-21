@@ -52,11 +52,12 @@ appId: com.isotronic.musclequest
       id: "plate-weight-input"
 - tapOn:
     id: "plate-weight-input"
-- inputText: "35"
+# A size that is in neither the lbs nor the kg defaults.
+- inputText: "3"
 - hideKeyboard
 - tapOn:
     id: "plate-add"
-- assertVisible: ".*35.*"
+- assertVisible: "3 (lbs|kg)"
 - scrollUntilVisible:
     element:
       id: "plate-save"
