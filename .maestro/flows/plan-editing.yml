@@ -1,5 +1,5 @@
 # From home: build a plan, schedule its workout on every day, activate it,
-# see it as today's workout, then delete the plan.
+# see it as today's workout, duplicate it, then delete the copy.
 appId: com.isotronic.musclequest
 ---
 - runFlow: create-plan.yml
@@ -58,17 +58,42 @@ appId: com.isotronic.musclequest
 - scrollUntilVisible:
     element: ".*Day A.*"
     timeout: 15000
-- tapOn:
-    id: "tab-plans"
+- runFlow: open-plans-tab.yml
 - scrollUntilVisible:
     element: "E2E Plan"
 - tapOn: "E2E Plan"
+- scrollUntilVisible:
+    element:
+      id: "plan-duplicate"
+    timeout: 15000
+- tapOn:
+    id: "plan-duplicate"
+- tapOn:
+    id: "android:id/button1"
+# The copy opens in the plan editor, already named, and is kept on save.
+- extendedWaitUntil:
+    visible:
+      id: "plan-name-input"
+      text: "E2E Plan \\(Copy\\)"
+    timeout: 15000
+- tapOn:
+    id: "plan-save"
+- extendedWaitUntil:
+    visible:
+      id: "tab-plans"
+    timeout: 15000
+- runFlow: open-plans-tab.yml
+- scrollUntilVisible:
+    element: "E2E Plan \\(Copy\\)"
+    timeout: 15000
+# The newest plan comes first in the sideways list, so delete the copy.
+- tapOn: "E2E Plan \\(Copy\\)"
 - tapOn:
     id: "plan-delete"
 - tapOn:
     id: "android:id/button1"
 - extendedWaitUntil:
-    notVisible: "E2E Plan"
+    notVisible: "E2E Plan \\(Copy\\)"
     timeout: 15000
 - runFlow: wait-for-snackbar.yml
 - tapOn:

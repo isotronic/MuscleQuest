@@ -11,8 +11,12 @@ appId: com.isotronic.musclequest
     timeout: 15000
 - tapOn:
     id: "log-workout-source"
-# The options are workouts by name.
-- tapOn: "E2E Fixed"
+# The options are workouts by name, plan workouts first; the open list
+# covers the middle of the screen, so scrolling moves the list.
+- scrollUntilVisible:
+    element: ".*Kestrel.*"
+    timeout: 20000
+- tapOn: ".*Kestrel.*"
 - tapOn:
     id: "history-save"
 - extendedWaitUntil:

@@ -66,8 +66,7 @@ appId: com.isotronic.musclequest
 - tapOn:
     id: "save-workout-save"
 - runFlow: close-summary.yml
-- tapOn:
-    id: "tab-plans"
+- runFlow: open-plans-tab.yml
 - scrollUntilVisible:
     element: "E2E Saved"
     timeout: 15000

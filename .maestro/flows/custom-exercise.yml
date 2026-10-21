@@ -2,8 +2,7 @@
 # it by distance and a library exercise by time in a quick workout.
 appId: com.isotronic.musclequest
 ---
-- tapOn:
-    id: "tab-plans"
+- runFlow: open-plans-tab.yml
 - tapOn:
     id: "plans-new-plan"
 - extendedWaitUntil:
@@ -122,6 +121,7 @@ appId: com.isotronic.musclequest
 - tapOn: "E2E Run"
 - tapOn:
     id: "set-distance-input"
+    point: "90%, 50%"
     childOf:
       id: "session-current-set"
 - eraseText
@@ -148,12 +148,14 @@ appId: com.isotronic.musclequest
 - tapOn: "Jump Rope"
 - tapOn:
     id: "set-time-input-first"
+    point: "90%, 50%"
     childOf:
       id: "session-current-set"
 - eraseText
 - inputText: "1"
 - tapOn:
     id: "set-time-input-second"
+    point: "90%, 50%"
     childOf:
       id: "session-current-set"
 - eraseText

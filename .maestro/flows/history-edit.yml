@@ -23,6 +23,7 @@ appId: com.isotronic.musclequest
     timeout: 15000
 - tapOn:
     id: "history-weight-input"
+    point: "90%, 50%"
     index: 0
 - eraseText
 - inputText: "77"
@@ -30,7 +31,7 @@ appId: com.isotronic.musclequest
 - tapOn:
     id: "history-save"
 - scrollUntilVisible:
-    element: ".*77.*"
+    element: ".*(^|\\D)77(\\D|$).*"
     timeout: 15000
 - tapOn:
     id: "history-delete"

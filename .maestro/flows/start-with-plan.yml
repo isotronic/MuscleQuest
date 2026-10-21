@@ -10,5 +10,11 @@ appId: com.isotronic.musclequest
     timeout: 15000
 - tapOn:
     id: "plan-activate"
-- tapOn:
-    id: "tab-home"
+# Picking a starter plan leaves the plans tab stuck on its overview (no way
+# back to the list) until the app restarts, so relaunch. Remove once fixed.
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-home"
+    timeout: 60000

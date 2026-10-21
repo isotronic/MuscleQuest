@@ -40,6 +40,7 @@ appId: com.isotronic.musclequest
     timeout: 15000
 - tapOn:
     id: "measurement-edit-weight"
+    point: "90%, 50%"
 - eraseText
 - inputText: "175"
 - hideKeyboard
@@ -49,7 +50,7 @@ appId: com.isotronic.musclequest
 - tapOn:
     id: "measurement-edit-save"
 - scrollUntilVisible:
-    element: ".*175.*"
+    element: ".*(^|\\D)175(\\D|$).*"
     timeout: 15000
 - tapOn:
     id: "measurement-session"
@@ -61,7 +62,8 @@ appId: com.isotronic.musclequest
     id: "measurement-edit-delete"
 # Delete offers Undo instead of asking.
 - runFlow: wait-for-snackbar.yml
-- assertNotVisible: ".*175.*"
+- assertNotVisible:
+    id: "measurement-session"
 - back
 - tapOn:
     id: "tab-home"

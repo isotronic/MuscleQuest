@@ -2,8 +2,7 @@
 # the plans tab.
 appId: com.isotronic.musclequest
 ---
-- tapOn:
-    id: "tab-plans"
+- runFlow: open-plans-tab.yml
 - extendedWaitUntil:
     visible:
       id: "plans-new-plan"

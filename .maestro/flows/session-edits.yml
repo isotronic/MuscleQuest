@@ -22,7 +22,8 @@ appId: com.isotronic.musclequest
     visible:
       id: "workout-exercise-menu-1"
     timeout: 15000
-# In replace mode, ticking an exercise swaps it in and returns.
+# In replace mode, ticking an exercise swaps it in and returns. The list is
+# filtered to the replaced exercise's target muscle, so pick another row.
 - tapOn:
     id: "workout-exercise-menu-1"
 - tapOn:
@@ -30,7 +31,7 @@ appId: com.isotronic.musclequest
 - runFlow:
     file: pick-exercise.yml
     env:
-      SEARCH: "Barbell Curl"
+      SEARCH: "Dumbbell Bent Over Row"
 - extendedWaitUntil:
     visible:
       id: "workout-exercise-0"
@@ -46,7 +47,7 @@ appId: com.isotronic.musclequest
     id: "rest-countdown"
 - assertVisible:
     id: "session-exercise-name"
-    text: ".*Curl.*"
+    text: ".*Dumbbell Bent Over Row.*"
     childOf:
       id: "session-current-set"
 - back

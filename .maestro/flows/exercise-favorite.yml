@@ -1,5 +1,6 @@
 # From home: open an exercise from the history, look at its tabs, make it a
-# favorite, and find it under Favorites in the exercise library.
+# favorite, and find the Favorites section in the exercise picker (the
+# library lists everything A-Z without sections).
 appId: com.isotronic.musclequest
 ---
 - tapOn:
@@ -31,13 +32,11 @@ appId: com.isotronic.musclequest
 - back
 - back
 - tapOn:
-    id: "tab-more"
-- tapOn:
-    id: "menu-exercise-library"
+    id: "tab-home"
+- runFlow: start-quick-workout.yml
 - extendedWaitUntil:
     visible:
       id: "exercise-section-favorites"
     timeout: 15000
 - back
-- tapOn:
-    id: "tab-home"
+- runFlow: discard-workout.yml

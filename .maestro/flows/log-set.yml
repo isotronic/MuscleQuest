@@ -11,6 +11,7 @@ appId: com.isotronic.musclequest
     timeout: 15000
 - tapOn:
     id: "set-weight-input"
+    point: "90%, 50%"
     childOf:
       id: "session-current-set"
 - eraseText
@@ -19,6 +20,7 @@ appId: com.isotronic.musclequest
 - hideKeyboard
 - tapOn:
     id: "set-reps-input"
+    point: "90%, 50%"
     childOf:
       id: "session-current-set"
 - eraseText

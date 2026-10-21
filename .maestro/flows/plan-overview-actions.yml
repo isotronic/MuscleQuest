@@ -1,9 +1,9 @@
 # From home with the starter plan active and progression on: turn deload week
-# on and off, copy a plan workout to Your workouts, and duplicate the plan.
+# on and off, and copy a plan workout to Your workouts. Duplicating is only
+# offered for plans you made, so plan-editing.yml covers it.
 appId: com.isotronic.musclequest
 ---
-- tapOn:
-    id: "tab-plans"
+- runFlow: open-plans-tab.yml
 - tapOn:
     id: "plan-card"
     index: 0
@@ -25,18 +25,5 @@ appId: com.isotronic.musclequest
 - tapOn:
     id: "copy-modal-confirm"
 - runFlow: wait-for-snackbar.yml
-- scrollUntilVisible:
-    element:
-      id: "plan-duplicate"
-    timeout: 15000
-- tapOn:
-    id: "plan-duplicate"
-- tapOn:
-    id: "android:id/button1"
-- tapOn:
-    id: "tab-plans"
-- scrollUntilVisible:
-    element: ".*\\(Copy\\)"
-    timeout: 15000
 - tapOn:
     id: "tab-home"
