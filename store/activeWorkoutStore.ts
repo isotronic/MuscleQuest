@@ -1208,6 +1208,8 @@ const useActiveWorkoutStore = create<ActiveWorkoutStore>()(
           const newExerciseWithSets = {
             ...newExercise,
             sets: oldExerciseSets,
+            // The replacement takes the old exercise's place in its superset.
+            supersetGroupId: replaced.supersetGroupId,
             ...(replacedFromId != null ? { replacedFromId } : {}),
           };
 

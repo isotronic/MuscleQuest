@@ -667,9 +667,7 @@ describe("useWorkoutStore", () => {
       expect(clientKey).not.toBe("old-key");
     });
 
-    // Review Focus 2: the replacement is built from newExercise alone, so it
-    // drops supersetGroupId and leaves the partner as an orphan half.
-    it.failing("keeps the superset group of the row it replaces", () => {
+    it("keeps the superset group of the row it replaces", () => {
       seedWorkout([
         ex("A", oldSets, { supersetGroupId: "g" }),
         ex("B", oldSets, { supersetGroupId: "g" }),
@@ -680,6 +678,53 @@ describe("useWorkoutStore", () => {
           .replaceExercise(0, 1, ex("New", []), defaultSets, defaultTimeSets),
       );
       expect(exercisesNow()[1].supersetGroupId).toBe("g");
+    });
+  });
+
+  describe("superset halves keep equal set counts", () => {
+    it("createSuperset pads the new partner to the exercise's set count", () => {
+      seedWorkout([ex("A", [set(1), set(2), set(3)])]);
+      act(() =>
+        useWorkoutStore
+          .getState()
+          .createSuperset(0, 0, ex("X", [set(9), set(8)])),
+      );
+      const [, x] = exercisesNow();
+      expect(x.sets.map((s) => s.repsMin)).toEqual([9, 8, 8]);
+    });
+
+    it("createSuperset trims the new partner to the exercise's set count", () => {
+      seedWorkout([ex("A", [set(1)])]);
+      act(() =>
+        useWorkoutStore
+          .getState()
+          .createSuperset(0, 0, ex("X", [set(9), set(8), set(7)])),
+      );
+      expect(exercisesNow()[1].sets.map((s) => s.repsMin)).toEqual([9]);
+    });
+
+    it("replaceExercise matches the partner's set count when sets reset", () => {
+      seedWorkout([
+        ex("A", [set(1), set(2)], { supersetGroupId: "g" }),
+        ex("B", [set(3), set(4)], { supersetGroupId: "g" }),
+      ]);
+      const timeSets = [
+        set(0, { time: 30 }),
+        set(0, { time: 30 }),
+        set(0, { time: 30 }),
+      ];
+      act(() =>
+        useWorkoutStore
+          .getState()
+          .replaceExercise(
+            0,
+            1,
+            ex("Plank", [], { tracking_type: "time" }),
+            [set(10)],
+            timeSets,
+          ),
+      );
+      expect(exercisesNow()[1].sets).toHaveLength(2);
     });
   });
 
