@@ -30,3 +30,7 @@ credentials/
 
 expo-env.d.ts
 # @end expo-cli
+# Not needed by builds or E2E runs
+docs/
+coverage/
+.superpowers/
