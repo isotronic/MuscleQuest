@@ -956,6 +956,17 @@ Also in this update:
 • Help & Info now explains how the estimated duration of a workout is worked out.
 `,
   },
+  {
+    version: 2681,
+    release: "1.6",
+    message: msg`
+💪 New: See the Muscles You Train!
+
+Each workout now has a Muscles worked row: tap it to see your planned sets per muscle. Plans get a Weekly sets per muscle card that follows your schedule and lists any major muscle with no sets, so gaps stand out before you start.
+
+You'll find them in the plan and workout editors and on a plan's overview, so you can check a premade plan before choosing it. During a quick workout, the row updates as you add exercises.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

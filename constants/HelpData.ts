@@ -85,6 +85,22 @@ export const HELP_DATA: GroupData[] = [
         },
       },
       {
+        id: "muscles-worked",
+        icon: "body-outline",
+        title: msg`Muscles Worked`,
+        body: {
+          lead: msg`See which muscles a workout or plan trains while you build it, so you can spot gaps before you start.`,
+          steps: [
+            msg`Each workout in the plan editor, in the workout editor and on a plan's overview has a Muscles worked row naming the muscles it trains most. Tap it to see planned sets per muscle. During a quick workout, the same row sits on the workout overview and updates as you add exercises.`,
+            msg`The plan editor and a plan's overview also show a Weekly sets per muscle card. Each workout counts once for every day the schedule gives it; without a schedule, the card counts each workout once. Tap the card to see the bars.`,
+            msg`Under the card's title, Not trained lists any major muscle that gets no sets at all, such as hamstrings or calves.`,
+            msg`Only working sets count, not warm-up sets. A set counts for the exercise's target muscle, and as half a set for each secondary muscle.`,
+            msg`The counting follows the Sets per Muscle / Week widget on the Stats tab: its target range is shaded on the weekly bars, and turning off half sets for secondary muscles there turns them off here too.`,
+          ],
+          ordered: false,
+        },
+      },
+      {
         id: "active-workout",
         icon: "play-circle-outline",
         title: msg`Active Workout`,
