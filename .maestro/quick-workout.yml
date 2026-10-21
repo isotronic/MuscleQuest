@@ -78,8 +78,9 @@ appId: com.isotronic.musclequest
 - hideKeyboard
 - tapOn:
     id: "save-workout-not-now"
-- extendedWaitUntil:
-    visible:
+# Done sits at the bottom of the summary.
+- scrollUntilVisible:
+    element:
       id: "summary-done"
     timeout: 30000
 - tapOn:
@@ -87,5 +88,5 @@ appId: com.isotronic.musclequest
 - tapOn:
     id: "tab-stats"
 - scrollUntilVisible:
-    element: "Quick Workout"
+    element: "(?i)quick workout"
     timeout: 15000
