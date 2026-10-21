@@ -16,7 +16,6 @@ import {
 } from "@/types/progression";
 
 const STAGNATION_HOLD_RULES = new Set([
-  "MODERATE_TARGET",
   "HARD_TARGET",
   "BELOW_TARGET",
   "NEAR_TARGET",
