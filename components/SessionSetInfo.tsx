@@ -226,6 +226,7 @@ export default function SessionSetInfo({
             <AppIconButton
               icon={hasNote ? "note-edit-outline" : "note-plus-outline"}
               accessibilityLabel={hasNote ? t`Edit set note` : t`Add set note`}
+              testID="set-note-button"
               onPress={onEditNote}
               size={26}
               iconColor={colors.contentPrimary}

@@ -30,6 +30,7 @@ export default function SessionNoteField({
     <View>
       {trimmed ? (
         <TouchableOpacity
+          testID="session-note-edit"
           onPress={open}
           accessibilityRole="button"
           accessibilityLabel={t`Session note: ${trimmed}. Edit`}
@@ -41,7 +42,13 @@ export default function SessionNoteField({
           </ThemedText>
         </TouchableOpacity>
       ) : (
-        <Button icon="note-plus-outline" onPress={open} mode="outlined" compact>
+        <Button
+          icon="note-plus-outline"
+          testID="session-note-add"
+          onPress={open}
+          mode="outlined"
+          compact
+        >
           {t`Add session note`}
         </Button>
       )}

@@ -106,6 +106,7 @@ export default function PlansScreen() {
                 mode="outlined"
                 contentStyle={styles.buttonContent}
                 labelStyle={styles.buttonLabel}
+                testID="plans-new-workout"
                 onPress={handleCreateWorkout}
               >
                 <Trans>New Workout</Trans>

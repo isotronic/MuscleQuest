@@ -116,6 +116,7 @@ export default function LogPastWorkoutScreen() {
             </ThemedText>
             <AppSelect
               accessibilityLabel={t`Start from`}
+              testID="log-workout-source"
               data={sourceOptions}
               value={sourceValue}
               onChange={setSourceValue}

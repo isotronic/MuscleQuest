@@ -367,7 +367,7 @@ export default function HomeScreen() {
                 : undefined
             }
           />
-          <ThemedText style={styles.weekCaption}>
+          <ThemedText style={styles.weekCaption} testID="home-week-progress">
             <Trans>
               {uniqueWorkoutDaysCount} of {settings?.weeklyGoal} this week
             </Trans>
@@ -464,6 +464,7 @@ export default function HomeScreen() {
               mode="outlined"
               icon="format-list-bulleted"
               textColor={colors.accent}
+              testID="home-choose-workout"
               onPress={() => setShowWorkoutPicker(true)}
               style={styles.quickButton}
               contentStyle={styles.quickButtonContent}

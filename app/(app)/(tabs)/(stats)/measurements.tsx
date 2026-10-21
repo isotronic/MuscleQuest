@@ -208,6 +208,7 @@ export default function MeasurementsScreen() {
               <View style={styles.metricInputWrap}>
                 <DecimalInput
                   style={styles.metricInput}
+                  testID={`measurement-entry-${metric.key}`}
                   accessibilityLabel={
                     bodyMetricTranslations[metric.key]
                       ? _(bodyMetricTranslations[metric.key])
@@ -241,6 +242,7 @@ export default function MeasurementsScreen() {
             textColor={colors.background}
             loading={insertMutation.isPending}
             disabled={insertMutation.isPending}
+            testID="measurement-entry-log"
             onPress={handleLogEntry}
           >
             <Trans>Log Entry</Trans>
@@ -266,6 +268,7 @@ export default function MeasurementsScreen() {
             <TouchableOpacity
               accessibilityRole="button"
               key={session.entry.id}
+              testID="measurement-session"
               style={styles.sessionRow}
               activeOpacity={0.7}
               onPress={() =>

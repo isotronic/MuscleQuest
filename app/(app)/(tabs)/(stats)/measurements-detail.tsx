@@ -157,6 +157,7 @@ export default function MeasurementDetailScreen() {
               <View style={styles.metricInputWrap}>
                 <DecimalInput
                   style={styles.metricInput}
+                  testID={`measurement-edit-${v.metric.key}`}
                   accessibilityLabel={
                     bodyMetricTranslations[v.metric.key]
                       ? _(bodyMetricTranslations[v.metric.key])
@@ -245,6 +246,7 @@ export default function MeasurementDetailScreen() {
             style={{ flex: 1 }}
             loading={updateMutation.isPending}
             disabled={updateMutation.isPending}
+            testID="measurement-edit-save"
             onPress={handleSave}
           >
             <Trans>Save Changes</Trans>
@@ -254,6 +256,7 @@ export default function MeasurementDetailScreen() {
             textColor={colors.danger}
             style={[styles.deleteButton, { flex: 1 }]}
             disabled={updateMutation.isPending}
+            testID="measurement-edit-delete"
             onPress={handleDelete}
           >
             <Trans>Delete Entry</Trans>

@@ -117,6 +117,7 @@ export default function LastTimeLine({
   const noteLine = note ? (
     <TouchableOpacity
       onPress={() => setNoteExpanded((expanded) => !expanded)}
+      testID="last-time-note"
       accessibilityRole="button"
       accessibilityLabel={t`Last time's note: ${note}`}
       accessibilityState={{ expanded: noteExpanded }}
@@ -157,6 +158,7 @@ export default function LastTimeLine({
   const valueLine = onPress ? (
     <TouchableOpacity
       onPress={onPress}
+      testID="use-last-time"
       accessibilityRole="button"
       accessibilityLabel={t`Use last time's values: ${spoken}`}
       hitSlop={{ top: 8, bottom: 8 }}

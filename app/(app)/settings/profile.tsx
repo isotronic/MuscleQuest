@@ -73,6 +73,7 @@ export default function ProfileSettingsScreen() {
       <AccountCard />
       <SettingRow
         id="weeklyGoal"
+        testID="setting-weekly-goal"
         icon="target"
         title={<Trans>Weekly goal</Trans>}
         value={<Trans>{settings?.weeklyGoal} days per week</Trans>}

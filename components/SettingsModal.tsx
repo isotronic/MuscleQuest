@@ -184,6 +184,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         onChangeValue(Math.max(Number(inputValue) - 1, 0))
                       }
                       accessibilityLabel={t`Decrease`}
+                      testID="settings-modal-decrease"
                     />
                     <TextInput
                       value={inputValue.toString()}
@@ -203,6 +204,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       color={colors.contentPrimary}
                       onPress={() => onChangeValue(Number(inputValue) + 1)}
                       accessibilityLabel={t`Increase`}
+                      testID="settings-modal-increase"
                     />
                   </View>
                 </View>

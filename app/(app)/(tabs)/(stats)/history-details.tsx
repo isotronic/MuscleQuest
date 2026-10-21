@@ -361,6 +361,7 @@ export default function HistoryDetailsScreen() {
                 <TouchableOpacity
                   accessibilityRole="button"
                   accessibilityHint={t`Opens this exercise`}
+                  testID="history-exercise"
                   style={styles.exerciseHeader}
                   activeOpacity={0.7}
                   onPress={() =>

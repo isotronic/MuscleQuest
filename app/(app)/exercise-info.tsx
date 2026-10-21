@@ -195,6 +195,7 @@ export default function ExerciseInfoScreen() {
                     ? t`Remove from favorites`
                     : t`Add to favorites`
                 }
+                testID="exercise-favorite"
                 icon={exerciseData.favorite ? "star" : "star-outline"}
                 iconColor={
                   exerciseData.favorite ? colors.accent : colors.contentPrimary
@@ -229,6 +230,7 @@ export default function ExerciseInfoScreen() {
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
               key={tab}
+              testID={`exercise-tab-${tab}`}
               onPress={() => setSelectedTab(tab)}
               style={[styles.tabPill, active && styles.tabPillActive]}
               activeOpacity={0.7}

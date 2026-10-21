@@ -116,6 +116,7 @@ export default function WorkoutPickerModal({
         <View style={styles.searchContainer}>
           <TextInput
             accessibilityLabel={t`Search workouts`}
+            testID="workout-picker-search"
             style={styles.searchInput}
             placeholderTextColor={colors.contentSecondary}
             placeholder={t`Search`}
@@ -201,6 +202,7 @@ export default function WorkoutPickerModal({
           icon="history"
           style={styles.logPast}
           accessibilityHint={t`Opens a form for a workout you did without logging it`}
+          testID="workout-picker-log-past"
           onPress={() => {
             onDismiss();
             router.push("/(app)/log-workout");

@@ -251,6 +251,7 @@ export default function CreateWorkoutScreen() {
               icon={SaveIcon}
               style={{ marginRight: 0 }}
               disabled={saveDisabled}
+              testID="workout-save"
               onPress={handleSave}
             >
               <Trans>Save</Trans>

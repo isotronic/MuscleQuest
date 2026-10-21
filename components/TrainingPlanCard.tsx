@@ -70,6 +70,7 @@ export default function TrainingPlanCard({
       <TouchableWithoutFeedback
         accessibilityRole="button"
         onPress={onPress}
+        testID="plan-card"
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
