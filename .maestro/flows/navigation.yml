@@ -36,12 +36,22 @@ appId: com.isotronic.musclequest
     timeout: 15000
 - back
 - back
+# Settings search opens the screen with the matching row.
 - tapOn:
     id: "tab-more"
 - tapOn:
     id: "menu-settings"
 - tapOn:
-    id: "settings-workout"
+    id: "settings-search"
+- inputText: "plates"
+- hideKeyboard
+- tapOn:
+    id: "settings-result-plates"
+- extendedWaitUntil:
+    visible:
+      id: "setting-plates"
+    timeout: 15000
+# Already on the workout settings, which hold the plates.
 - scrollUntilVisible:
     element:
       id: "setting-plates"

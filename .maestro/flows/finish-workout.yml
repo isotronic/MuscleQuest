@@ -16,14 +16,16 @@ appId: com.isotronic.musclequest
 - tapOn:
     id: "android:id/button1"
 # A plan or saved workout whose sets changed (rest, weight or reps) asks
-# whether to update it; keep it as is. Matched by text until the next build
-# carries the workout-changes-keep id.
+# whether to update it; keep it as is.
 - extendedWaitUntil:
-    visible: "Keep (plan|workout) as is"
+    visible:
+      id: "workout-changes-keep"
     timeout: 10000
     optional: true
 - runFlow:
     when:
-      visible: "Keep (plan|workout) as is"
+      visible:
+        id: "workout-changes-keep"
     commands:
-      - tapOn: "Keep (plan|workout) as is"
+      - tapOn:
+          id: "workout-changes-keep"

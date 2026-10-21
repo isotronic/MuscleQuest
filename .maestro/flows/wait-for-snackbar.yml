@@ -1,8 +1,8 @@
-# Wait until an Undo snackbar has gone: it sits over the tab bar and takes
-# taps meant for it. Matched by text until the next build carries the
-# app-snackbar id.
+# Wait until a snackbar has gone: it sits over the tab bar and takes taps
+# meant for it.
 appId: com.isotronic.musclequest
 ---
 - extendedWaitUntil:
-    notVisible: "Undo"
+    notVisible:
+      id: "app-snackbar"
     timeout: 15000

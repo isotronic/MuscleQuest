@@ -1,0 +1,26 @@
+# From home: log a workout after the fact, starting from the saved workout.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "home-choose-workout"
+- tapOn:
+    id: "workout-picker-log-past"
+- extendedWaitUntil:
+    visible:
+      id: "log-workout-source"
+    timeout: 15000
+- tapOn:
+    id: "log-workout-source"
+# The options are workouts by name.
+- tapOn: "E2E Fixed"
+- tapOn:
+    id: "history-save"
+- extendedWaitUntil:
+    visible:
+      id: "app-snackbar"
+    timeout: 15000
+- runFlow: wait-for-snackbar.yml
+- extendedWaitUntil:
+    visible:
+      id: "tab-home"
+    timeout: 15000

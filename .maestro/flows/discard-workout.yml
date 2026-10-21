@@ -1,0 +1,13 @@
+# From the workout overview: discard the workout and go back home.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "workout-options"
+- tapOn:
+    id: "workout-options-discard"
+- tapOn:
+    id: "android:id/button1"
+- extendedWaitUntil:
+    visible:
+      id: "tab-home"
+    timeout: 15000

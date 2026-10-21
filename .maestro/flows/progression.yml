@@ -15,17 +15,19 @@ appId: com.isotronic.musclequest
 - tapOn:
     id: "tab-home"
 # Today's workout is done, so home shows the done card instead of a Start
-# button; start the next one from the plan's workout list. Matched by text
-# until the next build carries the home-plan-workout-start ids.
+# button; start the next one from the plan's workout list.
 - scrollUntilVisible:
-    element: "(Other w|W)orkouts in this plan"
-    timeout: 15000
-- tapOn: "(Other w|W)orkouts in this plan"
-- scrollUntilVisible:
-    element: "Start"
+    element:
+      id: "home-plan-workouts-toggle"
     timeout: 15000
 - tapOn:
-    text: "Start"
+    id: "home-plan-workouts-toggle"
+- scrollUntilVisible:
+    element:
+      id: "home-plan-workout-start-.*"
+    timeout: 15000
+- tapOn:
+    id: "home-plan-workout-start-.*"
     index: 0
 - tapOn:
     id: "workout-exercise-0"

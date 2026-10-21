@@ -1,0 +1,32 @@
+# From home: set the weekly goal to 3 days and see it on home.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "menu-settings"
+- tapOn:
+    id: "settings-profile"
+- tapOn:
+    id: "setting-weekly-goal"
+# Down to the minimum of 1, then up to 3, whatever it was before.
+- repeat:
+    times: 7
+    commands:
+      - tapOn:
+          id: "settings-modal-decrease"
+- tapOn:
+    id: "settings-modal-increase"
+- tapOn:
+    id: "settings-modal-increase"
+- tapOn:
+    id: "settings-modal-save"
+- back
+- back
+- tapOn:
+    id: "tab-home"
+- scrollUntilVisible:
+    element:
+      id: "home-week-progress"
+      text: ".* of 3 this week"
+    timeout: 15000

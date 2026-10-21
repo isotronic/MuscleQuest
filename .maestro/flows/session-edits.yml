@@ -1,0 +1,63 @@
+# From home: replace one half of a superset mid-session and check it is still
+# a superset (the set moves to the partner with no rest), then delete an
+# exercise and discard the workout.
+appId: com.isotronic.musclequest
+---
+- runFlow: start-quick-workout.yml
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "Barbell Bench Press"
+- tapOn:
+    id: "exercise-picker-add"
+- tapOn:
+    id: "workout-exercise-menu-0"
+- tapOn:
+    id: "exercise-menu-create-superset"
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "Barbell Bent Over Row"
+- extendedWaitUntil:
+    visible:
+      id: "workout-exercise-menu-1"
+    timeout: 15000
+# In replace mode, ticking an exercise swaps it in and returns.
+- tapOn:
+    id: "workout-exercise-menu-1"
+- tapOn:
+    id: "exercise-menu-replace"
+- runFlow:
+    file: pick-exercise.yml
+    env:
+      SEARCH: "Barbell Curl"
+- extendedWaitUntil:
+    visible:
+      id: "workout-exercise-0"
+    timeout: 15000
+- tapOn:
+    id: "workout-exercise-0"
+- runFlow:
+    file: log-set.yml
+    env:
+      WEIGHT: "50"
+      REPS: "10"
+- assertNotVisible:
+    id: "rest-countdown"
+- assertVisible:
+    id: "session-exercise-name"
+    text: ".*Curl.*"
+    childOf:
+      id: "session-current-set"
+- back
+# Delete offers Undo instead of asking.
+- tapOn:
+    id: "workout-exercise-menu-1"
+- tapOn:
+    id: "exercise-menu-delete"
+- extendedWaitUntil:
+    notVisible:
+      id: "workout-exercise-menu-1"
+    timeout: 15000
+- runFlow: wait-for-snackbar.yml
+- runFlow: discard-workout.yml

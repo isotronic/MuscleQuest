@@ -1,0 +1,15 @@
+# From home: start a quick workout and open the exercise picker.
+appId: com.isotronic.musclequest
+---
+- scrollUntilVisible:
+    element:
+      id: "home-quick-workout"
+    timeout: 15000
+- tapOn:
+    id: "home-quick-workout"
+- extendedWaitUntil:
+    visible:
+      id: "workout-add-exercise"
+    timeout: 15000
+- tapOn:
+    id: "workout-add-exercise"

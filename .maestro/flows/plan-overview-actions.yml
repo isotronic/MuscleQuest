@@ -1,0 +1,42 @@
+# From home with the starter plan active and progression on: turn deload week
+# on and off, copy a plan workout to Your workouts, and duplicate the plan.
+appId: com.isotronic.musclequest
+---
+- tapOn:
+    id: "tab-plans"
+- tapOn:
+    id: "plan-card"
+    index: 0
+- scrollUntilVisible:
+    element:
+      id: "plan-deload-toggle"
+    timeout: 15000
+- tapOn:
+    id: "plan-deload-toggle"
+- tapOn:
+    id: "plan-deload-toggle"
+- scrollUntilVisible:
+    element:
+      id: "plan-workout-copy-0"
+    direction: UP
+    timeout: 15000
+- tapOn:
+    id: "plan-workout-copy-0"
+- tapOn:
+    id: "copy-modal-confirm"
+- runFlow: wait-for-snackbar.yml
+- scrollUntilVisible:
+    element:
+      id: "plan-duplicate"
+    timeout: 15000
+- tapOn:
+    id: "plan-duplicate"
+- tapOn:
+    id: "android:id/button1"
+- tapOn:
+    id: "tab-plans"
+- scrollUntilVisible:
+    element: ".*\\(Copy\\)"
+    timeout: 15000
+- tapOn:
+    id: "tab-home"
