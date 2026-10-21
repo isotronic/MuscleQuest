@@ -664,7 +664,7 @@ const refreshLibraryRows = async (
  * sync version bump: a failure leaves nothing half done and runs again next
  * boot.
  *
- * Runs last: its sync version is above every other step's. On a new install
+ * Runs after the earlier steps: its sync version is above theirs. On a new install
  * the rows already match, so it changes nothing.
  */
 export const refreshLibraryFromAppData = async (): Promise<void> => {

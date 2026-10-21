@@ -35,8 +35,9 @@ describe("rankPremadePlans", () => {
     expect(top({ days: 4, level: "intermediate", equipment: "gym" })).toEqual([
       2, 6,
     ]);
-    expect(top({ days: 2, level: "beginner", equipment: "gym" })).toEqual([
-      1, 5,
+    // The 2-day plan matches; after it, 3-day plans beat the 4-day ones.
+    expect(top({ days: 2, level: "beginner", equipment: "gym" }, 3)).toEqual([
+      10, 1, 8,
     ]);
   });
 

@@ -1,9 +1,10 @@
-import { Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
 import React from "react";
 import { useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppMenu } from "@/components/AppMenu";
+import { AppIconButton } from "@/components/ui";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { useMenuStore } from "@/store/menuStore";
 import { useSocialStore } from "@/store/socialStore";
@@ -39,6 +40,15 @@ export default function TabLayout() {
           options={{
             title: t`MuscleQuest`,
             tabBarLabel: t`Home`,
+            headerRight: () => (
+              <AppIconButton
+                accessibilityLabel={t`Help & Info`}
+                icon="help-circle-outline"
+                size={22}
+                iconColor={colors.contentPrimary}
+                onPress={() => router.push("/(app)/help")}
+              />
+            ),
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
                 name={focused ? "home" : "home-outline"}

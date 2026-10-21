@@ -137,16 +137,63 @@ const insertPlans = async (db: SQLiteDatabase, plans: Plan[]) => {
   });
 };
 
-export const loadPremadePlans = async (onProgress?: ProgressCallback) => {
+// Plan files shipped after the library copy can reference exercises the
+// device does not have yet, so those are copied in before the plans.
+const insertPlanFiles = async (
+  db: SQLiteDatabase,
+  files: (Plan | Plan[])[],
+  fileDone: () => void,
+) => {
+  const allAppExerciseIds = new Set<number>();
+  for (const file of files) {
+    const plansArray = Array.isArray(file) ? file : [file];
+    for (const plan of plansArray) {
+      for (const workout of plan.workouts) {
+        for (const exercise of workout.exercises) {
+          if (exercise.exercise_id != null) {
+            allAppExerciseIds.add(exercise.exercise_id);
+          }
+        }
+      }
+    }
+  }
+  await ensureAppExercisesExist(db, Array.from(allAppExerciseIds));
+
+  for (const file of files) {
+    await insertPlans(db, Array.isArray(file) ? file : [file]);
+    fileDone();
+  }
+};
+
+const v3PlanFiles = () => [
+  require("@/assets/data/beginner-growth.json"),
+  require("@/assets/data/classic-5x5.json"),
+  require("@/assets/data/2-day-full-body.json"),
+];
+
+/**
+ * Loads the v1 and v2 plan files. Its progress total also counts the files
+ * loadPremadePlansV3 will load later in the same run, so a first run fills
+ * one bar; it returns how far it got for that step to carry on from.
+ */
+export const loadPremadePlans = async (
+  onProgress?: ProgressCallback,
+): Promise<{ done: number; total: number }> => {
   let db: SQLiteDatabase | undefined;
   try {
     db = await openDatabase("userData.db"); // Open the database
     let syncVersion = await getAppDataSyncVersion(db);
 
-    // One step per plan file this boot will load (7 on a fresh install).
-    const totalFiles =
+    // One step per plan file this run will load (10 on a fresh install). The
+    // v3 files only count when this step loads something, so an install
+    // already at v2 leaves the v3 step to report alone.
+    const earlierFiles =
       (syncVersion < APP_DATA_SYNC.premadePlansV1 ? 2 : 0) +
       (syncVersion < APP_DATA_SYNC.premadePlansV2 ? 5 : 0);
+    const totalFiles =
+      earlierFiles > 0 && syncVersion < APP_DATA_SYNC.premadePlansV3
+        ? earlierFiles + v3PlanFiles().length
+        : earlierFiles;
     let filesDone = 0;
     const fileDone = () => onProgress?.(++filesDone, totalFiles);
     if (totalFiles > 0) onProgress?.(0, totalFiles);
@@ -167,41 +214,56 @@ export const loadPremadePlans = async (onProgress?: ProgressCallback) => {
     }
 
     if (syncVersion < APP_DATA_SYNC.premadePlansV2) {
-      const newPlanFiles = [
-        require("@/assets/data/5-day-bro-split.json"),
-        require("@/assets/data/5-day-ppl.json"),
-        require("@/assets/data/6-day-split.json"),
-        require("@/assets/data/body-weight.json"),
-        require("@/assets/data/dumbbell-only.json"),
-      ];
-
-      // Collect all unique appData exercise IDs referenced in these plans
-      const allAppExerciseIds = new Set<number>();
-      for (const file of newPlanFiles) {
-        const plansArray: Plan[] = Array.isArray(file) ? file : [file];
-        for (const plan of plansArray) {
-          for (const workout of plan.workouts) {
-            for (const exercise of workout.exercises) {
-              if (exercise.exercise_id != null) {
-                allAppExerciseIds.add(exercise.exercise_id);
-              }
-            }
-          }
-        }
-      }
-
-      // Ensure all referenced exercises exist in userData.db
-      await ensureAppExercisesExist(db, Array.from(allAppExerciseIds));
-
-      for (const file of newPlanFiles) {
-        const plansArray = Array.isArray(file) ? file : [file];
-        await insertPlans(db, plansArray);
-        fileDone();
-      }
+      await insertPlanFiles(
+        db,
+        [
+          require("@/assets/data/5-day-bro-split.json"),
+          require("@/assets/data/5-day-ppl.json"),
+          require("@/assets/data/6-day-split.json"),
+          require("@/assets/data/body-weight.json"),
+          require("@/assets/data/dumbbell-only.json"),
+        ],
+        fileDone,
+      );
 
       await setAppDataSyncVersion(db, APP_DATA_SYNC.premadePlansV2);
       Bugsnag.leaveBreadcrumb("Premade plans v2 loaded");
     }
+    return { done: filesDone, total: totalFiles };
+  } catch (error: any) {
+    Bugsnag.notify(error);
+    console.error("Error loading or inserting premade plans:", error);
+    throw error;
+  } finally {
+    if (db) await db.closeAsync();
+  }
+};
+
+/**
+ * Premade plans added after the library refresh. A step of its own because
+ * its sync version is above libraryRefreshed: run from loadPremadePlans, it
+ * would advance an older install past the refresh and the flag resync.
+ */
+export const loadPremadePlansV3 = async (
+  onProgress?: ProgressCallback,
+  // Where loadPremadePlans left the bar, when it reported this run.
+  progressFrom: { done: number; total: number } = { done: 0, total: 0 },
+) => {
+  let db: SQLiteDatabase | undefined;
+  try {
+    db = await openDatabase("userData.db");
+    if ((await getAppDataSyncVersion(db)) >= APP_DATA_SYNC.premadePlansV3) {
+      return;
+    }
+
+    const files = v3PlanFiles();
+    const total = progressFrom.total || files.length;
+    let filesDone = progressFrom.done;
+    if (!progressFrom.total) onProgress?.(0, total);
+    await insertPlanFiles(db, files, () => onProgress?.(++filesDone, total));
+
+    await setAppDataSyncVersion(db, APP_DATA_SYNC.premadePlansV3);
+    Bugsnag.leaveBreadcrumb("Premade plans v3 loaded");
   } catch (error: any) {
     Bugsnag.notify(error);
     console.error("Error loading or inserting premade plans:", error);

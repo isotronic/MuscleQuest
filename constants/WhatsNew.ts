@@ -940,6 +940,34 @@ Also in this update:
 • Adaptive progression now takes assistance away as you get stronger on assisted exercises, instead of adding more.
 `,
   },
+  {
+    version: 2680,
+    release: "1.6",
+    message: msg`
+📋 New: Three More Premade Plans!
+
+Find them under Premade plans on the Plans tab:
+• Beginner Growth (3 Days): full body barbell training to build muscle.
+• Classic 5x5: two short strength workouts that alternate, mostly 5 sets of 5 reps.
+• 2-Day Full Body: the whole body twice a week, for a busy schedule.
+
+Also in this update:
+• A help button at the top of the home screen opens Help & Info.
+• Help & Info now explains how the estimated duration of a workout is worked out.
+• 11 more cover images for your plans, including home training, stretching and cardio.
+`,
+  },
+  {
+    version: 2681,
+    release: "1.6",
+    message: msg`
+💪 New: See the Muscles You Train!
+
+Each workout now has a Muscles worked row: tap it to see your planned sets per muscle. Plans get a Weekly sets per muscle card that follows your schedule and lists any major muscle with no sets, so gaps stand out before you start.
+
+You'll find them in the plan and workout editors and on a plan's overview, so you can check a premade plan before choosing it. During a quick workout, the row updates as you add exercises.
+`,
+  },
 ];
 
 // Derived from WHATS_NEW_ENTRIES to avoid drift between the constant and entries

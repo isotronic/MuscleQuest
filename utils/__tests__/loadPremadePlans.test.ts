@@ -1,4 +1,4 @@
-import { loadPremadePlans } from "@/utils/loadPremadePlans";
+import { loadPremadePlans, loadPremadePlansV3 } from "@/utils/loadPremadePlans";
 import { openDatabase } from "@/utils/database";
 import Bugsnag from "@bugsnag/expo";
 
@@ -63,6 +63,47 @@ jest.mock(
 jest.mock(
   "@/assets/data/dumbbell-only.json",
   () => [{ app_plan_id: 6, name: "Dumbbell Only (4 Days)", workouts: [] }],
+  { virtual: true },
+);
+jest.mock(
+  "@/assets/data/beginner-growth.json",
+  () => [
+    {
+      app_plan_id: 8,
+      name: "Beginner Growth (3 Days)",
+      workouts: [
+        {
+          id: null,
+          plan_id: null,
+          name: "Day 1 – Squat & Bench",
+          is_deleted: false,
+          exercises: [
+            {
+              id: null,
+              workout_id: null,
+              exercise_id: 136,
+              exercise_name: "Barbell Straight Leg Deadlift",
+              sets: [
+                { repsMin: 10, repsMax: 12, restMinutes: 2, restSeconds: 0 },
+              ],
+              exercise_order: 1,
+              is_deleted: false,
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  { virtual: true },
+);
+jest.mock(
+  "@/assets/data/classic-5x5.json",
+  () => [{ app_plan_id: 9, name: "Classic 5x5", workouts: [] }],
+  { virtual: true },
+);
+jest.mock(
+  "@/assets/data/2-day-full-body.json",
+  () => [{ app_plan_id: 10, name: "2-Day Full Body", workouts: [] }],
   { virtual: true },
 );
 jest.mock("@bugsnag/expo");
@@ -274,18 +315,20 @@ it("reports one progress step per plan file on a fresh install", async () => {
   });
   const onProgress = jest.fn();
 
-  await loadPremadePlans(onProgress);
+  const reached = await loadPremadePlans(onProgress);
 
+  // The total includes the 3 files loadPremadePlansV3 loads later.
   expect(onProgress.mock.calls).toEqual([
-    [0, 7],
-    [1, 7],
-    [2, 7],
-    [3, 7],
-    [4, 7],
-    [5, 7],
-    [6, 7],
-    [7, 7],
+    [0, 10],
+    [1, 10],
+    [2, 10],
+    [3, 10],
+    [4, 10],
+    [5, 10],
+    [6, 10],
+    [7, 10],
   ]);
+  expect(reached).toEqual({ done: 7, total: 10 });
 });
 
 it("reports no progress when the plans are already loaded", async () => {
@@ -298,4 +341,69 @@ it("reports no progress when the plans are already loaded", async () => {
   await loadPremadePlans(onProgress);
 
   expect(onProgress).not.toHaveBeenCalled();
+});
+
+describe("loadPremadePlansV3", () => {
+  const atSyncVersion = (version: string) =>
+    mockGetFirstAsync.mockImplementation((sql: string, params?: unknown[]) => {
+      if (params?.[0] === "appDataSyncVersion")
+        return Promise.resolve({ value: version });
+      if (sql.includes("app_exercise_id = ?"))
+        return Promise.resolve({ exercise_id: 42 });
+      return Promise.resolve(null);
+    });
+
+  it("loads the three plans after the library refresh and bumps to 9", async () => {
+    atSyncVersion("8");
+    const onProgress = jest.fn();
+
+    await loadPremadePlansV3(onProgress);
+
+    const planNames = mockRunAsync.mock.calls
+      .filter(([sql]) => String(sql).includes("INSERT INTO user_plans"))
+      .map(([, params]) => params[1]);
+    expect(planNames).toEqual([
+      "Beginner Growth (3 Days)",
+      "Classic 5x5",
+      "2-Day Full Body",
+    ]);
+    expect(mockRunAsync).toHaveBeenCalledWith(
+      expect.stringContaining("INSERT INTO user_workout_exercises"),
+      expect.arrayContaining([42]),
+    );
+    // No legacy dataVersion for this step.
+    expect(mockRunAsync).toHaveBeenLastCalledWith(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+      ["appDataSyncVersion", "9"],
+    );
+    expect(onProgress.mock.calls).toEqual([
+      [0, 3],
+      [1, 3],
+      [2, 3],
+      [3, 3],
+    ]);
+  });
+
+  it("carries on the bar loadPremadePlans started", async () => {
+    atSyncVersion("8");
+    const onProgress = jest.fn();
+
+    await loadPremadePlansV3(onProgress, { done: 7, total: 10 });
+
+    expect(onProgress.mock.calls).toEqual([
+      [8, 10],
+      [9, 10],
+      [10, 10],
+    ]);
+  });
+
+  it("does nothing once the plans are loaded", async () => {
+    atSyncVersion("9");
+    const onProgress = jest.fn();
+
+    await loadPremadePlansV3(onProgress);
+
+    expect(mockRunAsync).not.toHaveBeenCalled();
+    expect(onProgress).not.toHaveBeenCalled();
+  });
 });

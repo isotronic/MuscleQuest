@@ -29,6 +29,7 @@ import Bugsnag from "@bugsnag/expo";
 import { ImageBackground } from "expo-image";
 import SaveIcon from "@/components/SaveIcon";
 import PlanScheduleEditor from "@/components/PlanScheduleEditor";
+import { PlanMuscleSetsCard } from "@/components/PlanMuscleSetsCard";
 import { fetchPlanSchedule } from "@/utils/database";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useWeekRule } from "@/hooks/useWeekRule";
@@ -67,6 +68,10 @@ export default function CreatePlanScreen() {
     currentPlanId !== null ? `plan:${currentPlanId}` : "plan:null";
   const { data: settings } = useSettingsQuery();
   const weekStartsOn = weekStartsOnToday(useWeekRule());
+  const scheduledWorkoutIndices = useMemo(
+    () => Object.values(planSchedule),
+    [planSchedule],
+  );
   const weeklyGoal = Number(settings?.weeklyGoal ?? 3);
   const { planName, setPlanName, planSaved, setPlanSaved, handleSavePlan } =
     useCreatePlan();
@@ -432,6 +437,11 @@ export default function CreatePlanScreen() {
               onChange={setPlanSchedule}
               weekStartsOn={weekStartsOn}
             />
+            <PlanMuscleSetsCard
+              workouts={workouts}
+              scheduledWorkoutIndices={scheduledWorkoutIndices}
+              style={styles.muscleSetsCard}
+            />
           </ThemedView>
         )}
       </ScrollView>
@@ -487,6 +497,10 @@ function createStyles(colors: AppThemeColors) {
     emptyText: {
       fontSize: 18,
       color: colors.contentPrimary,
+    },
+    // The same gap as between workout cards.
+    muscleSetsCard: {
+      marginTop: 16,
     },
     addWorkoutButton: {
       marginTop: 16,
