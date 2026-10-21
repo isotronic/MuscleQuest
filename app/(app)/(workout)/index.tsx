@@ -42,6 +42,7 @@ import { QUICK_WORKOUT_NAME } from "@/constants/quickWorkout";
 import { parsePlateInventory, smallestLoadStep } from "@/utils/plateCalculator";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
+import { MusclesWorkedRow } from "@/components/MusclesWorkedRow";
 import Bugsnag from "@bugsnag/expo";
 import SaveIcon from "@/components/SaveIcon";
 import { Cues } from "@/components/Cues";
@@ -1241,6 +1242,8 @@ export default function WorkoutOverviewScreen() {
             </Trans>
           </ThemedText>
         )}
+        {/* A quick workout is built as you go, so its balance is worth a look. */}
+        {isQuickWorkout && <MusclesWorkedRow exercises={workout.exercises} />}
         <View style={styles.notesRow}>
           {/* A written note takes the row's width, beside the Cues button. */}
           <View style={sessionNote.trim() ? styles.noteFilled : undefined}>

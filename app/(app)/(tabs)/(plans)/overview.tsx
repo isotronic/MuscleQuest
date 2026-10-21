@@ -16,6 +16,8 @@ import { usePlanScheduleQuery } from "@/hooks/usePlanScheduleQuery";
 import { useDeletePlanMutation } from "@/hooks/useDeletePlanMutation";
 import { useSetActivePlanMutation } from "@/hooks/useSetActivePlanMutation";
 import WeeklyScheduleDisplay from "@/components/WeeklyScheduleDisplay";
+import { MusclesWorkedRow } from "@/components/MusclesWorkedRow";
+import { PlanMuscleSetsCard } from "@/components/PlanMuscleSetsCard";
 import {
   Snackbar,
   Button,
@@ -76,37 +78,43 @@ function PlanWorkoutCard({
   );
   const spokenName = workout.name || t`Workout ${index + 1}`;
   return (
-    <View style={styles.workoutCardRow}>
-      <TouchableOpacity
-        accessibilityRole="button"
-        onPress={() =>
-          router.push({
-            pathname: "/workout-details",
-            params: {
-              planId: String(planId),
-              workoutIndex: String(index),
-            },
-          })
-        }
-        style={styles.workoutCardContent}
-      >
-        <ThemedText style={styles.workoutTitle}>
-          {workout.name || `Day ${index + 1}`}
-        </ThemedText>
-        <ThemedText style={styles.workoutInfo}>
-          <Trans>
-            {workout.exercises.length} Exercises
-            {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
-          </Trans>
-        </ThemedText>
-      </TouchableOpacity>
-      <AppIconButton
-        accessibilityLabel={t`Copy ${spokenName} to Your workouts`}
-        icon="content-copy"
-        size={20}
-        iconColor={colors.contentSecondary}
-        onPress={onCopyPress}
-        style={{ margin: 0 }}
+    <View style={styles.workoutCard}>
+      <View style={styles.workoutCardRow}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() =>
+            router.push({
+              pathname: "/workout-details",
+              params: {
+                planId: String(planId),
+                workoutIndex: String(index),
+              },
+            })
+          }
+          style={styles.workoutCardContent}
+        >
+          <ThemedText style={styles.workoutTitle}>
+            {workout.name || `Day ${index + 1}`}
+          </ThemedText>
+          <ThemedText style={styles.workoutInfo}>
+            <Trans>
+              {workout.exercises.length} Exercises
+              {estimate ? `  ·  ~${formatDurationEstimate(estimate)}` : ""}
+            </Trans>
+          </ThemedText>
+        </TouchableOpacity>
+        <AppIconButton
+          accessibilityLabel={t`Copy ${spokenName} to Your workouts`}
+          icon="content-copy"
+          size={20}
+          iconColor={colors.contentSecondary}
+          onPress={onCopyPress}
+          style={{ margin: 0 }}
+        />
+      </View>
+      <MusclesWorkedRow
+        exercises={workout.exercises}
+        style={styles.workoutMuscles}
       />
     </View>
   );
@@ -124,6 +132,13 @@ export default function PlanOverviewScreen() {
     refetch,
   } = usePlanQuery(Number(planId));
   const { data: scheduleEntries = [] } = usePlanScheduleQuery(Number(planId));
+  const scheduledWorkoutIndices = useMemo(
+    () =>
+      scheduleEntries.map((entry) =>
+        (plan?.workouts ?? []).findIndex((w) => w.id === entry.workout_id),
+      ),
+    [scheduleEntries, plan?.workouts],
+  );
   const premadeMeta = premadePlanMeta(plan?.app_plan_id);
   const { data: settings } = useSettingsQuery();
   const weekRule = useWeekRule();
@@ -363,6 +378,11 @@ export default function PlanOverviewScreen() {
           weekStartsOn={weekStartsOn}
         />
 
+        <PlanMuscleSetsCard
+          workouts={plan?.workouts ?? []}
+          scheduledWorkoutIndices={scheduledWorkoutIndices}
+        />
+
         {isActive && progressionSettings.enabled && (
           <TouchableOpacity
             onPress={handleToggleDeload}
@@ -581,13 +601,20 @@ function createStyles(colors: AppThemeColors) {
       color: colors.contentPrimary,
       marginTop: 10,
     },
-    workoutCardRow: {
-      flexDirection: "row",
-      alignItems: "center",
+    workoutCard: {
       backgroundColor: colors.card,
       borderRadius: radii.md,
       marginBottom: 10,
+    },
+    workoutCardRow: {
+      flexDirection: "row",
+      alignItems: "center",
       paddingRight: 4,
+    },
+    workoutMuscles: {
+      marginTop: -8,
+      paddingHorizontal: 16,
+      paddingBottom: 12,
     },
     workoutCardContent: {
       flex: 1,

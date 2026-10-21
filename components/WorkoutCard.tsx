@@ -13,6 +13,7 @@ import { formatFromTotalSeconds } from "@/utils/utility";
 import { useSettingsQuery } from "@/hooks/useSettingsQuery";
 import { useWorkoutDurationEstimate } from "@/hooks/useWorkoutDurationEstimate";
 import { formatDurationEstimate } from "@/utils/estimateWorkoutDuration";
+import { MusclesWorkedRow } from "@/components/MusclesWorkedRow";
 import { useAppTheme, radii } from "@/theme";
 import type { AppThemeColors } from "@/theme/types";
 import { planDistanceRange } from "@/utils/planDistance";
@@ -450,6 +451,7 @@ export default function WorkoutCard({
           <Trans>Estimated Duration: {formatDurationEstimate(estimate)}</Trans>
         </ThemedText>
       )}
+      <MusclesWorkedRow exercises={workout.exercises} />
       {workout.exercises.length > 0 ? (
         <Sortable.Grid
           columns={1}
