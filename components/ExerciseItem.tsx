@@ -79,6 +79,7 @@ const ExerciseItem = ({
         <Checkbox
           status={selected ? "checked" : "unchecked"}
           uncheckedColor={colors.contentSecondary}
+          testID="exercise-select"
           onPress={() => onSelect(item.exercise_id)}
           {...checkboxLabel(t`Select ${item.name}`)}
         />

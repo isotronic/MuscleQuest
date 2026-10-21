@@ -41,7 +41,11 @@ export default function WelcomeScreen() {
           </Trans>
         </ThemedText>
       </View>
-      <Button mode="contained" onPress={() => router.replace("/setup")}>
+      <Button
+        mode="contained"
+        testID="welcome-get-started"
+        onPress={() => router.replace("/setup")}
+      >
         <Trans>Get started</Trans>
       </Button>
       <Button

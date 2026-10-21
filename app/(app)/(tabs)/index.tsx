@@ -452,6 +452,7 @@ export default function HomeScreen() {
               mode="outlined"
               icon="lightning-bolt"
               textColor={colors.accent}
+              testID="home-quick-workout"
               onPress={startQuickWorkout}
               style={styles.quickButton}
               contentStyle={styles.quickButtonContent}

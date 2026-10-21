@@ -40,6 +40,7 @@ export default function TabLayout() {
           options={{
             title: t`MuscleQuest`,
             tabBarLabel: t`Home`,
+            tabBarButtonTestID: "tab-home",
             headerRight: () => (
               <AppIconButton
                 accessibilityLabel={t`Help & Info`}
@@ -62,6 +63,7 @@ export default function TabLayout() {
           options={{
             headerShown: false,
             title: t`Plans`,
+            tabBarButtonTestID: "tab-plans",
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
                 name={focused ? "barbell" : "barbell-outline"}
@@ -87,6 +89,7 @@ export default function TabLayout() {
           options={{
             headerShown: false,
             title: t`Stats`,
+            tabBarButtonTestID: "tab-stats",
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
                 name={focused ? "stats-chart" : "stats-chart-outline"}

@@ -402,6 +402,7 @@ export default function WorkoutCard({
       )}
       <TextInput
         accessibilityLabel={t`Workout ${index + 1} name`}
+        testID={`workout-name-input-${index}`}
         placeholder={t`Workout name`}
         placeholderTextColor={colors.contentSecondary}
         style={styles.input}
@@ -435,6 +436,7 @@ export default function WorkoutCard({
       <Button
         mode="outlined"
         style={styles.addButton}
+        testID={`workout-add-exercise-${index}`}
         onPress={() => onAddExercise(index)}
       >
         <Trans>Add Exercise</Trans>

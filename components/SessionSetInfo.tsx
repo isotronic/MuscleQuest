@@ -358,6 +358,7 @@ export default function SessionSetInfo({
               placeholderTextColor={colors.contentPrimary}
               value={weight}
               accessibilityLabel={weightInputLabel}
+              testID="set-weight-input"
               onChangeValue={handleWeightInputChange}
               selectTextOnFocus
               style={styles.input}
@@ -391,6 +392,7 @@ export default function SessionSetInfo({
               placeholderTextColor={colors.contentPrimary}
               value={reps}
               accessibilityLabel={t`Reps, set ${setNumber}`}
+              testID="set-reps-input"
               onChangeText={(text: string) =>
                 handleRepsInputChange(sanitizeIntegerInput(text))
               }
@@ -494,6 +496,7 @@ export default function SessionSetInfo({
       )}
       <Button
         mode={currentSetCompleted ? "outlined" : "contained"}
+        testID="complete-set"
         onPress={handleCompleteSet}
         accessibilityLabel={
           currentSetCompleted

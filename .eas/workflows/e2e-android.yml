@@ -1,0 +1,19 @@
+# Maestro smoke flows on an Android emulator. Manual only: run
+# `eas workflow:run .eas/workflows/e2e-android.yml` from a local checkout, so
+# the upload includes the gitignored google-services.json, assets/db/ and
+# assets/data/ (a GitHub-triggered run would not have them).
+name: E2E Android
+
+jobs:
+  build:
+    type: build
+    params:
+      platform: android
+      profile: e2e-test
+
+  maestro:
+    needs: [build]
+    type: maestro
+    params:
+      build_id: ${{ needs.build.outputs.build_id }}
+      flow_path: ['.maestro/smoke.yml']

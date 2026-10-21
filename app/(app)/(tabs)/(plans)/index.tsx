@@ -114,6 +114,7 @@ export default function PlansScreen() {
                 mode="contained"
                 contentStyle={styles.buttonContent}
                 labelStyle={styles.buttonLabel}
+                testID="plans-new-plan"
                 onPress={handleCreatePlan}
               >
                 <Trans>New Plan</Trans>

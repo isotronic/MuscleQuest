@@ -1,0 +1,77 @@
+# Log one set in a quick workout, finish it, and find it in the stats tab.
+appId: com.isotronic.musclequest
+---
+- runFlow: first-launch.yml
+- tapOn:
+    id: "home-quick-workout"
+- extendedWaitUntil:
+    visible:
+      id: "workout-add-exercise"
+    timeout: 15000
+- tapOn:
+    id: "workout-add-exercise"
+- extendedWaitUntil:
+    visible:
+      id: "exercise-search"
+    timeout: 15000
+- tapOn:
+    id: "exercise-search"
+- inputText: "Bench Press"
+- hideKeyboard
+- tapOn:
+    id: "exercise-select"
+    index: 0
+- tapOn:
+    id: "exercise-picker-add"
+- extendedWaitUntil:
+    visible:
+      id: "workout-exercise-0"
+    timeout: 15000
+- tapOn:
+    id: "workout-exercise-0"
+- extendedWaitUntil:
+    visible:
+      id: "complete-set"
+    timeout: 15000
+- tapOn:
+    id: "set-weight-input"
+- eraseText
+- inputText: "60"
+- tapOn:
+    id: "set-reps-input"
+- eraseText
+- inputText: "8"
+- hideKeyboard
+- tapOn:
+    id: "complete-set"
+- back
+- extendedWaitUntil:
+    visible:
+      id: "workout-finish"
+    timeout: 15000
+- tapOn:
+    id: "workout-finish"
+# The exercise's other sets are still open.
+- runFlow:
+    when:
+      visible: "Finish anyway"
+    commands:
+      - tapOn: "Finish anyway"
+- runFlow:
+    when:
+      visible:
+        id: "save-workout-not-now"
+    commands:
+      - tapOn:
+          id: "save-workout-not-now"
+- extendedWaitUntil:
+    visible:
+      id: "summary-done"
+    timeout: 30000
+- tapOn:
+    id: "summary-done"
+- tapOn:
+    id: "tab-stats"
+- scrollUntilVisible:
+    element: "Quick Workout"
+    timeout: 15000

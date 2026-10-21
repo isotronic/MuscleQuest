@@ -71,7 +71,11 @@ export default function GetStartedScreen() {
           >
             <Trans>Start a quick workout</Trans>
           </Button>
-          <Button mode="text" onPress={() => router.replace("/")}>
+          <Button
+            mode="text"
+            testID="get-started-skip"
+            onPress={() => router.replace("/")}
+          >
             <Trans>Skip, go to home</Trans>
           </Button>
         </View>

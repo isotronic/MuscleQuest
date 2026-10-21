@@ -553,6 +553,7 @@ export default function WorkoutOverviewScreen() {
           <Sortable.Touchable
             accessibilityRole="button"
             onTap={() => handleExercisePress(exerciseIndex)}
+            testID={`workout-exercise-${exerciseIndex}`}
             style={styles.cardTouchable}
           >
             <AppIcon
@@ -1069,6 +1070,7 @@ export default function WorkoutOverviewScreen() {
                 style={{ marginRight: 0 }}
                 labelStyle={styles.buttonLabel}
                 disabled={!hasCompletedSets || isSaving}
+                testID="workout-finish"
                 onPressIn={handleFinishPress}
               >
                 <Trans>Finish</Trans>
@@ -1144,7 +1146,11 @@ export default function WorkoutOverviewScreen() {
             autoFocus
           />
           <View style={styles.saveModalButtons}>
-            <Button mode="outlined" onPress={handleExitSaveModal}>
+            <Button
+              mode="outlined"
+              testID="save-workout-not-now"
+              onPress={handleExitSaveModal}
+            >
               <Trans>Not now</Trans>
             </Button>
             <Button
@@ -1249,6 +1255,7 @@ export default function WorkoutOverviewScreen() {
         <Button
           mode="outlined"
           icon="plus"
+          testID="workout-add-exercise"
           onPress={() =>
             router.push({
               pathname: "/(app)/(workout)/exercises",

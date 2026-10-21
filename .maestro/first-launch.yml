@@ -1,0 +1,43 @@
+# Fresh install to the home tab: welcome, setup with its defaults, skip
+# sign-in, skip the starter plans.
+appId: com.isotronic.musclequest
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: deny
+- extendedWaitUntil:
+    visible:
+      id: "welcome-get-started"
+    timeout: 60000
+- tapOn:
+    id: "welcome-get-started"
+- extendedWaitUntil:
+    visible:
+      id: "setup-next"
+    timeout: 15000
+# One tap per setup step; the last one saves and waits for seeding.
+- repeat:
+    times: 8
+    while:
+      notVisible:
+        id: "login-skip"
+    commands:
+      - tapOn:
+          id: "setup-next"
+- extendedWaitUntil:
+    visible:
+      id: "login-skip"
+    timeout: 60000
+- tapOn:
+    id: "login-skip"
+- extendedWaitUntil:
+    visible:
+      id: "get-started-skip"
+    timeout: 15000
+- tapOn:
+    id: "get-started-skip"
+- extendedWaitUntil:
+    visible:
+      id: "home-quick-workout"
+    timeout: 15000
