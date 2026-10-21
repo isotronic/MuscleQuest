@@ -1,5 +1,11 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { ThemedText } from "@/components/ThemedText";
@@ -26,10 +32,13 @@ import type { AppThemeColors } from "@/theme/types";
 export function PlanMuscleSetsCard({
   workouts,
   scheduledWorkoutIndices,
+  style,
 }: {
   workouts: readonly { exercises: readonly PlannedExercise[] }[];
   /** The workout index on each scheduled day; empty without a schedule. */
   scheduledWorkoutIndices: readonly number[];
+  /** Spacing from the card above, to match the screen's gap between workouts. */
+  style?: StyleProp<ViewStyle>;
 }) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -65,7 +74,7 @@ export function PlanMuscleSetsCard({
     .join(" ");
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, style]}>
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
@@ -120,7 +129,7 @@ function createStyles(colors: AppThemeColors) {
       borderRadius: radii.md,
       padding: 12,
       gap: 4,
-      marginVertical: 8,
+      marginBottom: 8,
     },
     header: {
       flexDirection: "row",

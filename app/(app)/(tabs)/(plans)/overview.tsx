@@ -381,6 +381,7 @@ export default function PlanOverviewScreen() {
         <PlanMuscleSetsCard
           workouts={plan?.workouts ?? []}
           scheduledWorkoutIndices={scheduledWorkoutIndices}
+          style={styles.muscleSetsCard}
         />
 
         {isActive && progressionSettings.enabled && (
@@ -605,6 +606,10 @@ function createStyles(colors: AppThemeColors) {
       backgroundColor: colors.card,
       borderRadius: radii.md,
       marginBottom: 10,
+    },
+    // The same gap as between workout cards.
+    muscleSetsCard: {
+      marginTop: 10,
     },
     workoutCardRow: {
       flexDirection: "row",

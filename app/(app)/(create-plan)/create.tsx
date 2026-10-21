@@ -440,6 +440,7 @@ export default function CreatePlanScreen() {
             <PlanMuscleSetsCard
               workouts={workouts}
               scheduledWorkoutIndices={scheduledWorkoutIndices}
+              style={styles.muscleSetsCard}
             />
           </ThemedView>
         )}
@@ -496,6 +497,10 @@ function createStyles(colors: AppThemeColors) {
     emptyText: {
       fontSize: 18,
       color: colors.contentPrimary,
+    },
+    // The same gap as between workout cards.
+    muscleSetsCard: {
+      marginTop: 16,
     },
     addWorkoutButton: {
       marginTop: 16,
