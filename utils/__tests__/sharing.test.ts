@@ -5,6 +5,7 @@ import {
   BULK_PUBLISH_CONCURRENCY,
   deleteAllSharedData,
   publishPlan,
+  pushBodyMeasurement,
   pushCompletedWorkout,
   refreshStrengthPRs,
   SharedDataDeletionError,
@@ -27,6 +28,7 @@ jest.mock("@/utils/database", () => ({
   fetchPRDataForExercises: jest.fn(),
   fetchAppExerciseIds: jest.fn(),
   fetchCompletedWorkoutForSharing: jest.fn(),
+  fetchBodyMeasurementEntryForSharing: jest.fn(),
 }));
 
 jest.mock("@bugsnag/expo", () => ({
@@ -492,5 +494,131 @@ describe("account ownership gate", () => {
   it("still lets the account revoke its shared data", async () => {
     await deleteAllSharedData("uid123", ["sharedPlans"]);
     expect(mockGetDocs).toHaveBeenCalled();
+  });
+});
+
+describe("shared exercise payload", () => {
+  it("fills defaults for a row whose optional fields are null", async () => {
+    (db.fetchFullPlanForSharing as jest.Mock).mockResolvedValue({
+      plan: { name: "Plan", image_url: null, app_plan_id: null },
+      workouts: [
+        {
+          workout_id: 1,
+          workout_name: "Day",
+          workout_order: 0,
+          exercises: [
+            {
+              exercise_id: 100,
+              app_exercise_id: null,
+              exercise_name: null,
+              animated_url: null,
+              equipment: null,
+              body_part: null,
+              target_muscle: null,
+              secondary_muscles: null,
+              tracking_type: null,
+              is_unilateral: 1,
+              double_weight: 0,
+              tracking_type_override: null,
+              sets: "{oops",
+              exercise_order: 0,
+              superset_group_id: null,
+            },
+          ],
+        },
+      ],
+    });
+
+    await publishPlan("uid123", 1);
+
+    const [exercise] = mockSetDoc.mock.calls[0][1].workouts[0].exercises;
+    expect(exercise).toMatchObject({
+      name: "",
+      trackingType: "weight",
+      secondaryMuscles: [],
+      animatedUrl: null,
+      isUnilateral: true,
+      doubleWeight: false,
+      sets: [],
+    });
+  });
+});
+
+describe("pushBodyMeasurement", () => {
+  const entry = {
+    id: 9,
+    recorded_at: "2026-10-10T08:00:00.000Z",
+    values: { weight: 82, waist: 90 },
+  };
+
+  it("writes the entry to the shared measurements", async () => {
+    (db.fetchBodyMeasurementEntryForSharing as jest.Mock).mockResolvedValue(
+      entry,
+    );
+
+    await pushBodyMeasurement("uid123", 9);
+
+    expect(mockSetDoc).toHaveBeenCalledTimes(1);
+    const [path, payload] = mockSetDoc.mock.calls[0];
+    expect(path).toBe("users/uid123/sharedMeasurements/9");
+    expect(payload.localEntryId).toBe(9);
+    expect(payload.recordedAt.toISOString()).toBe("2026-10-10T08:00:00.000Z");
+    expect(payload.values).toEqual({ weight: 82, waist: 90 });
+  });
+
+  it("writes nothing for a missing entry", async () => {
+    (db.fetchBodyMeasurementEntryForSharing as jest.Mock).mockResolvedValue(
+      null,
+    );
+
+    await pushBodyMeasurement("uid123", 9);
+
+    expect(mockSetDoc).not.toHaveBeenCalled();
+  });
+
+  it("writes nothing while the data belongs to another account", async () => {
+    useAccountOwnershipStore.setState({
+      ownerUid: "someone-else",
+      currentUid: "uid123",
+      resolvedFor: "uid123",
+      ownedByCurrentUser: false,
+    });
+    (db.fetchBodyMeasurementEntryForSharing as jest.Mock).mockResolvedValue(
+      entry,
+    );
+
+    await pushBodyMeasurement("uid123", 9);
+
+    expect(mockSetDoc).not.toHaveBeenCalled();
+    expect(db.fetchBodyMeasurementEntryForSharing).not.toHaveBeenCalled();
+  });
+
+  it("reports a failed write without throwing", async () => {
+    const error = new Error("unavailable");
+    (db.fetchBodyMeasurementEntryForSharing as jest.Mock).mockResolvedValue(
+      entry,
+    );
+    mockSetDoc.mockRejectedValueOnce(error);
+
+    await expect(pushBodyMeasurement("uid123", 9)).resolves.toBeUndefined();
+    expect(Bugsnag.notify).toHaveBeenCalledWith(error);
+  });
+});
+
+describe("deleteAllSharedData paging", () => {
+  it("keeps deleting full pages until a short page", async () => {
+    const page = (n: number) => ({
+      docs: Array.from({ length: n }, (_, i) => ({ ref: `doc-${i}` })),
+      empty: n === 0,
+    });
+    mockGetDocs
+      .mockResolvedValueOnce(page(500))
+      .mockResolvedValueOnce(page(3))
+      .mockResolvedValue(page(0));
+
+    await deleteAllSharedData("uid123", ["sharedPlans"]);
+
+    expect(mockBatchCommit).toHaveBeenCalledTimes(2);
+    expect(mockBatchDelete).toHaveBeenCalledTimes(503);
   });
 });
