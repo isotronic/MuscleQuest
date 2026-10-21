@@ -1,6 +1,5 @@
-# Each flow starts from a fresh install.
+# Each flow runs first-launch.yml first, so each starts from a fresh install.
 appId: com.isotronic.musclequest
 ---
-- runFlow: first-launch.yml
 - runFlow: quick-workout.yml
 - runFlow: create-plan.yml

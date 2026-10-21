@@ -177,6 +177,6 @@ describe("groupExercisesBySuperset", () => {
     ];
     const indices = shape(exercises).flat();
 
-    expect([...indices].sort()).toEqual([0, 1, 2, 3, 4, 5]);
+    expect([...indices].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5]);
   });
 });

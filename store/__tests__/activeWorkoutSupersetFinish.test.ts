@@ -128,9 +128,13 @@ describe("nextSet after a finished superset", () => {
     expect(s.completedSets[1][1]).toBe(true);
   });
 
-  it("keeps carried-over values for both superset halves", () => {
+  it("carries both halves' values into the next round", () => {
+    const threeSets = (e: typeof A) => ({
+      ...e,
+      sets: [workingSet(), workingSet(), workingSet()],
+    });
     seed(
-      [A, B, C],
+      [threeSets(A), threeSets(B), C],
       {},
       {
         weightAndReps: {
@@ -141,11 +145,11 @@ describe("nextSet after a finished superset", () => {
     );
     act(() => useActiveWorkoutStore.getState().nextSet());
 
-    const { weightAndReps } = useActiveWorkoutStore.getState();
-    expect(weightAndReps[0][2]).toBeDefined();
-    expect(weightAndReps[1][2]).toBeDefined();
-    expect(weightAndReps[0][2]?.weight).toBe("60");
-    expect(weightAndReps[1][2]?.weight).toBe("50");
+    const s = useActiveWorkoutStore.getState();
+    expect(s.currentExerciseIndex).toBe(0);
+    expect(s.currentSetIndices).toMatchObject({ 0: 2, 1: 2 });
+    expect(s.weightAndReps[0][2]?.weight).toBe("60");
+    expect(s.weightAndReps[1][2]?.weight).toBe("50");
   });
 
   // Review Focus 5: both paths search forward only, so an unfinished

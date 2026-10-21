@@ -126,7 +126,9 @@ describe("sharing queries", () => {
       ]);
     });
 
-    it("lists the session's exercise ids", async () => {
+    // Deleted rows included on purpose: the list must still be available
+    // after the whole workout has been soft-deleted.
+    it("lists the session's exercise ids, deleted ones included", async () => {
       expect((await fetchCompletedWorkoutExerciseIds(1)).sort()).toEqual([
         100, 200,
       ]);
