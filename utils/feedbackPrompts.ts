@@ -73,3 +73,31 @@ export function withoutExercise(
 ): FeedbackPrompt[] {
   return list.filter((p) => p.userWorkoutExerciseId !== userWorkoutExerciseId);
 }
+
+/**
+ * Only blocks that were saved with this workout: by plan row, so a skipped
+ * block of an exercise logged twice gets no prompt; by exercise for anything
+ * saved without a row.
+ */
+export function savedCatchUpPrompts(
+  prompts: FeedbackPrompt[],
+  savedExercises: {
+    user_workout_exercise_id?: number | null;
+    exercise_id: number;
+  }[],
+): FeedbackPrompt[] {
+  const savedRows = new Set<number>();
+  const savedWithoutRow = new Set<number>();
+  for (const e of savedExercises) {
+    if (e.user_workout_exercise_id != null) {
+      savedRows.add(e.user_workout_exercise_id);
+    } else {
+      savedWithoutRow.add(e.exercise_id);
+    }
+  }
+  return prompts.filter((p) =>
+    p.userWorkoutExerciseId != null && savedRows.has(p.userWorkoutExerciseId)
+      ? true
+      : savedWithoutRow.has(p.exerciseContext.exerciseId),
+  );
+}

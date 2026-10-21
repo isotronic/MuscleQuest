@@ -37,3 +37,17 @@ export function reachedGoalWithWorkout(
   if (otherDays.has(workout.local_date)) return false;
   return otherDays.size === goal - 1;
 }
+
+/** Distinct training days in the week holding `today`. */
+export function trainingDaysThisWeek(
+  history: { local_date: string }[],
+  weekRule: WeekRule,
+  today: Date = new Date(),
+): number {
+  const weekStart = startOfAppWeek(today, weekRule);
+  const weekEnd = endOfAppWeek(today, weekRule);
+  const thisWeek = history.filter((w) =>
+    isLocalDateInRange(w.local_date, weekStart, weekEnd),
+  );
+  return new Set(thisWeek.map((w) => w.local_date)).size;
+}

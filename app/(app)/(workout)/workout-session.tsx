@@ -76,6 +76,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { radii } from "@/theme";
 import { formatFromTotalSeconds } from "@/utils/utility";
+import { stepDistance, stepReps } from "@/utils/setInputStep";
 
 // Reanimated 4: Animated.View types don't include children in strict TS
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
@@ -750,8 +751,7 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleRepsChange = (amount: number) => {
-    const currentReps = isNaN(parseInt(reps)) ? 0 : parseInt(reps);
-    const newReps = Math.max(0, currentReps + amount).toString();
+    const newReps = stepReps(reps, amount);
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
@@ -773,10 +773,7 @@ export default function WorkoutSessionScreen() {
   };
 
   const handleDistanceChange = (amount: number) => {
-    const currentDistance = isNaN(parseFloat(distance))
-      ? 0
-      : parseFloat(distance);
-    const newDistance = Math.max(0, currentDistance + amount).toFixed(1);
+    const newDistance = stepDistance(distance, amount);
     updateWeightAndReps(
       currentExerciseIndex,
       currentSetIndex,
