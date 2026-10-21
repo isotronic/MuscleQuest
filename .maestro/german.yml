@@ -3,7 +3,5 @@
 appId: com.isotronic.musclequest
 ---
 - runFlow: flows/first-launch.yml
-- runFlow:
-    file: flows/quick-workout.yml
-    env:
-      EXERCISE: "Bankdrücken"
+# Search matches the English name too, and Maestro may not type umlauts.
+- runFlow: flows/quick-workout.yml

@@ -28,20 +28,22 @@ appId: com.isotronic.musclequest
     id: "rest-add"
 - tapOn:
     id: "rest-skip"
-- assertNotVisible:
-    id: "rest-countdown"
+- extendedWaitUntil:
+    notVisible:
+      id: "rest-countdown"
+    timeout: 5000
 - runFlow:
     file: log-set.yml
     env:
       WEIGHT: "40"
       REPS: "10"
-- runFlow:
-    when:
-      visible:
-        id: "rest-skip"
-    commands:
-      - tapOn:
-          id: "rest-skip"
+# Two of several sets are done, so rest starts again.
+- extendedWaitUntil:
+    visible:
+      id: "rest-skip"
+    timeout: 15000
+- tapOn:
+    id: "rest-skip"
 - back
 - runFlow: finish-workout.yml
 - runFlow: close-summary.yml

@@ -10,6 +10,9 @@ appId: com.isotronic.musclequest
     id: "measurement-input-1"
 - inputText: "180"
 - hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "measurement-log-button"
 - tapOn:
     id: "measurement-log-button"
 - tapOn:
@@ -18,8 +21,8 @@ appId: com.isotronic.musclequest
     id: "menu-settings"
 - tapOn:
     id: "settings-profile"
-- extendedWaitUntil:
-    visible: ".*180.*"
+- scrollUntilVisible:
+    element: ".*180.*"
     timeout: 15000
 - back
 - tapOn:
@@ -34,8 +37,8 @@ appId: com.isotronic.musclequest
 - tapOn:
     id: "settings-profile"
 # 180 lb is 81.65 kg, in either decimal separator.
-- extendedWaitUntil:
-    visible: ".*81[.,][67].*"
+- scrollUntilVisible:
+    element: ".*81[.,][67].*"
     timeout: 15000
 - back
 - back

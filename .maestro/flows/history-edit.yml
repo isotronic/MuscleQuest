@@ -17,8 +17,8 @@ appId: com.isotronic.musclequest
     timeout: 15000
 - tapOn:
     id: "history-edit"
-- extendedWaitUntil:
-    visible:
+- scrollUntilVisible:
+    element:
       id: "history-weight-input"
     timeout: 15000
 - tapOn:
@@ -29,8 +29,8 @@ appId: com.isotronic.musclequest
 - hideKeyboard
 - tapOn:
     id: "history-save"
-- extendedWaitUntil:
-    visible: ".*77.*"
+- scrollUntilVisible:
+    element: ".*77.*"
     timeout: 15000
 - tapOn:
     id: "history-delete"

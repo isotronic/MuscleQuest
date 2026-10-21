@@ -39,36 +39,34 @@ appId: com.isotronic.musclequest
     id: "custom-exercise-name"
 - inputText: "E2E Run"
 - hideKeyboard
-# Each dropdown option's id is its stored value.
+# Each dropdown option's id is its stored value. The lists show about four
+# options without scrolling, so pick early ones.
 - tapOn:
     id: "custom-exercise-body-part"
-- scrollUntilVisible:
-    element:
-      id: "cardio"
 - tapOn:
     id: "cardio"
 - tapOn:
     id: "custom-exercise-target"
-- scrollUntilVisible:
-    element:
-      id: "cardiovascular system"
 - tapOn:
-    id: "cardiovascular system"
+    id: "abs"
 - scrollUntilVisible:
     element:
       id: "custom-exercise-equipment"
 - tapOn:
     id: "custom-exercise-equipment"
-- scrollUntilVisible:
-    element:
-      id: "body weight"
 - tapOn:
-    id: "body weight"
+    id: "cable"
 - scrollUntilVisible:
     element:
       id: "custom-exercise-tracking"
 - tapOn:
     id: "custom-exercise-tracking"
+# Distance is the last of five options; scroll the open list itself.
+- swipe:
+    from:
+      id: "weight"
+    direction: UP
+    optional: true
 - tapOn:
     id: "distance"
 - scrollUntilVisible:
@@ -105,8 +103,8 @@ appId: com.isotronic.musclequest
       SEARCH: "Jump Rope"
 - tapOn:
     id: "exercise-picker-add"
-- tapOn:
-    id: "workout-exercise-0"
+# By name: the order of two exercises picked together is not guaranteed.
+- tapOn: "E2E Run"
 - tapOn:
     id: "set-distance-input"
     childOf:
@@ -118,6 +116,12 @@ appId: com.isotronic.musclequest
     id: "complete-set"
     childOf:
       id: "session-current-set"
+# Rest starts a moment after a completed set; skip it if it does.
+- extendedWaitUntil:
+    visible:
+      id: "rest-skip"
+    timeout: 5000
+    optional: true
 - runFlow:
     when:
       visible:
@@ -126,8 +130,7 @@ appId: com.isotronic.musclequest
       - tapOn:
           id: "rest-skip"
 - back
-- tapOn:
-    id: "workout-exercise-1"
+- tapOn: "Jump Rope"
 - tapOn:
     id: "set-time-input-first"
     childOf:
@@ -145,6 +148,12 @@ appId: com.isotronic.musclequest
     id: "complete-set"
     childOf:
       id: "session-current-set"
+# Rest starts a moment after a completed set; skip it if it does.
+- extendedWaitUntil:
+    visible:
+      id: "rest-skip"
+    timeout: 5000
+    optional: true
 - runFlow:
     when:
       visible:

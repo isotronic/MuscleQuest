@@ -47,6 +47,9 @@ appId: com.isotronic.musclequest
       id: "setting-plates"
 - tapOn:
     id: "setting-plates"
+- scrollUntilVisible:
+    element:
+      id: "plate-weight-input"
 - tapOn:
     id: "plate-weight-input"
 - inputText: "35"
@@ -54,6 +57,9 @@ appId: com.isotronic.musclequest
 - tapOn:
     id: "plate-add"
 - assertVisible: ".*35.*"
+- scrollUntilVisible:
+    element:
+      id: "plate-save"
 - tapOn:
     id: "plate-save"
 - back

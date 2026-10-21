@@ -35,6 +35,12 @@ appId: com.isotronic.musclequest
           env:
             WEIGHT: "40"
             REPS: "20"
+      # The question shows after the last set; rest starts after the others.
+      - extendedWaitUntil:
+          visible:
+            id: "(rest-skip|feedback-(easy|none))"
+          timeout: 5000
+          optional: true
       - runFlow:
           when:
             visible:
