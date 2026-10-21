@@ -61,12 +61,27 @@ appId: com.isotronic.musclequest
       id: "custom-exercise-tracking"
 - tapOn:
     id: "custom-exercise-tracking"
-# Distance is the last of five options; scroll the open list itself.
-- swipe:
-    from:
-      id: "weight"
-    direction: UP
-    optional: true
+# Distance is the last of five options and the list shows four. Near the
+# bottom of the screen it opens upwards in reverse order, so scroll the open
+# list whichever way brings distance into view.
+- runFlow:
+    when:
+      notVisible:
+        id: "distance"
+    commands:
+      - swipe:
+          from:
+            id: "time"
+          direction: DOWN
+- runFlow:
+    when:
+      notVisible:
+        id: "distance"
+    commands:
+      - swipe:
+          from:
+            id: "time"
+          direction: UP
 - tapOn:
     id: "distance"
 - scrollUntilVisible:
