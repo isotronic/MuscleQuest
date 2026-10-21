@@ -93,8 +93,9 @@ describe("progression state", () => {
       expect(await getMaxWorkingWeightForCompletedExercise(1)).toBeNull();
     });
 
-    // Review Focus 3: the query has no is_deleted filter, so a set removed
-    // in history editing still sets the progression baseline.
+    // Review Focus 3: the query has no is_deleted filter, so a deleted set
+    // would count. Not user-facing today: nothing calls this function, and
+    // history edits delete sets outright rather than flagging them.
     it.failing("ignores a deleted set", async () => {
       insertSets(`(1, 1, 100, 5, 0, 0), (1, 2, 120, 5, 0, 1)`);
 

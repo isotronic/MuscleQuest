@@ -4,8 +4,11 @@ appId: com.isotronic.musclequest
 ---
 - launchApp:
     clearState: true
+    # The rest timer asks for notifications after the first set; granting it
+    # up front keeps the system dialog out of the flows.
     permissions:
       all: deny
+      notifications: allow
 - extendedWaitUntil:
     visible:
       id: "welcome-get-started"

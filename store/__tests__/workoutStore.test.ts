@@ -733,8 +733,11 @@ describe("useWorkoutStore", () => {
       expect(exercisesNow()[0].sets).toHaveLength(1);
     });
 
-    // Review Focus 1: the halves of a superset must keep equal set counts.
-    it("keeps superset halves equal when one side has a single set", () => {
+    // Review Focus 1, the shape that converges: the keep-last-set guard leaves
+    // A alone, so 1 and 2 sets end at 1 and 1. Halves that start uneven
+    // (createSuperset adds the partner with default sets) are never evened
+    // out; that is a separate open question, not pinned here.
+    it("ends with equal halves when the single-set side keeps its last set", () => {
       seedWorkout([
         ex("A", [set(1)], { supersetGroupId: "g" }),
         ex("B", [set(2), set(3)], { supersetGroupId: "g" }),

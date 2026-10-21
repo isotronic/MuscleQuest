@@ -82,6 +82,8 @@ import { stepDistance, stepReps } from "@/utils/setInputStep";
 const AnimatedView = Animated.View as unknown as React.ComponentType<{
   style?: any;
   children?: React.ReactNode;
+  testID?: string;
+  collapsable?: boolean;
 }>;
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -1551,6 +1553,8 @@ export default function WorkoutSessionScreen() {
                 return (
                   <AnimatedView
                     key={slotIdx}
+                    testID={isCurrentSlot ? "session-current-set" : undefined}
+                    collapsable={false}
                     style={[
                       StyleSheet.absoluteFill,
                       slotStyle,
