@@ -948,7 +948,7 @@ Also in this update:
 
 Find them under Premade plans on the Plans tab:
 • Beginner Growth (3 Days): full body barbell training to build muscle.
-• Classic 5x5: two short strength workouts that alternate, 5 sets of 5 reps.
+• Classic 5x5: two short strength workouts that alternate, mostly 5 sets of 5 reps.
 • 2-Day Full Body: the whole body twice a week, for a busy schedule.
 
 Also in this update:

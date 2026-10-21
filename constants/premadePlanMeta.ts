@@ -94,7 +94,7 @@ export const PREMADE_PLAN_META: Record<number, PremadePlanMeta> = {
     equipment: "gym",
   },
   9: {
-    description: msg`The classic strength programme for beginners. Two short barbell workouts alternate three days a week, with 5 sets of 5 reps on each lift; add a little weight whenever you complete them all.`,
+    description: msg`The classic strength programme for beginners. Two short barbell workouts alternate three days a week: 5 sets of 5 reps on the squat, presses and rows, and one heavy set of 5 on the deadlift. Add a little weight whenever you complete them all.`,
     level: "beginner",
     goal: "strength",
     daysPerWeek: 3,

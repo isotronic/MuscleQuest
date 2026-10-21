@@ -980,7 +980,7 @@ msgid ""
 "\n"
 "Find them under Premade plans on the Plans tab:\n"
 "• Beginner Growth (3 Days): full body barbell training to build muscle.\n"
-"• Classic 5x5: two short strength workouts that alternate, 5 sets of 5 reps.\n"
+"• Classic 5x5: two short strength workouts that alternate, mostly 5 sets of 5 reps.\n"
 "• 2-Day Full Body: the whole body twice a week, for a busy schedule.\n"
 "\n"
 "Also in this update:\n"
@@ -993,7 +993,7 @@ msgstr ""
 "\n"
 "Du findest sie unter Vorgefertigte Pläne im Tab Pläne:\n"
 "• Beginner Growth (3 Days): Ganzkörpertraining mit der Langhantel für Muskelaufbau.\n"
-"• Classic 5x5: zwei kurze Krafttrainings im Wechsel, 5 Sätze à 5 Wiederholungen.\n"
+"• Classic 5x5: zwei kurze Krafttrainings im Wechsel, meist 5 Sätze à 5 Wiederholungen.\n"
 "• 2-Day Full Body: der ganze Körper zweimal pro Woche, für einen vollen Terminkalender.\n"
 "\n"
 "Außerdem in diesem Update:\n"
@@ -8436,8 +8436,8 @@ msgid "The backup is damaged and can't be restored. Your data on this device has
 msgstr "Die Sicherung ist beschädigt und kann nicht wiederhergestellt werden. Deine Daten auf diesem Gerät wurden nicht verändert."
 
 #: constants/premadePlanMeta.ts:97
-msgid "The classic strength programme for beginners. Two short barbell workouts alternate three days a week, with 5 sets of 5 reps on each lift; add a little weight whenever you complete them all."
-msgstr "Das klassische Kraftprogramm für Einsteiger. Zwei kurze Langhantel-Trainings wechseln sich an drei Tagen pro Woche ab, mit 5 Sätzen à 5 Wiederholungen pro Übung; leg etwas Gewicht drauf, sobald du alle schaffst."
+msgid "The classic strength programme for beginners. Two short barbell workouts alternate three days a week: 5 sets of 5 reps on the squat, presses and rows, and one heavy set of 5 on the deadlift. Add a little weight whenever you complete them all."
+msgstr "Das klassische Kraftprogramm für Einsteiger. Zwei kurze Langhantel-Trainings wechseln sich an drei Tagen pro Woche ab: 5 Sätze à 5 Wiederholungen bei Kniebeuge, Drücken und Rudern, und ein schwerer Satz à 5 beim Kreuzheben. Leg etwas Gewicht drauf, sobald du alle schaffst."
 
 #: constants/HelpData.ts:98
 msgid "The counting follows the Sets per Muscle / Week widget on the Stats tab: its target range is shaded on the weekly bars, and turning off half sets for secondary muscles there turns them off here too."

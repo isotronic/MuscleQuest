@@ -980,7 +980,7 @@ msgid ""
 "\n"
 "Find them under Premade plans on the Plans tab:\n"
 "• Beginner Growth (3 Days): full body barbell training to build muscle.\n"
-"• Classic 5x5: two short strength workouts that alternate, 5 sets of 5 reps.\n"
+"• Classic 5x5: two short strength workouts that alternate, mostly 5 sets of 5 reps.\n"
 "• 2-Day Full Body: the whole body twice a week, for a busy schedule.\n"
 "\n"
 "Also in this update:\n"
@@ -993,7 +993,7 @@ msgstr ""
 "\n"
 "Retrouve-les sous Programmes prêts à l'emploi, dans l'onglet Programmes :\n"
 "• Beginner Growth (3 Days) : entraînement full body à la barre pour prendre du muscle.\n"
-"• Classic 5x5 : deux courtes séances de force en alternance, 5 séries de 5 reps.\n"
+"• Classic 5x5 : deux courtes séances de force en alternance, surtout en 5 séries de 5 reps.\n"
 "• 2-Day Full Body : tout le corps deux fois par semaine, pour un emploi du temps chargé.\n"
 "\n"
 "Aussi dans cette mise à jour :\n"
@@ -8436,8 +8436,8 @@ msgid "The backup is damaged and can't be restored. Your data on this device has
 msgstr "La sauvegarde est endommagée et ne peut pas être restaurée. Tes données sur cet appareil n'ont pas été modifiées."
 
 #: constants/premadePlanMeta.ts:97
-msgid "The classic strength programme for beginners. Two short barbell workouts alternate three days a week, with 5 sets of 5 reps on each lift; add a little weight whenever you complete them all."
-msgstr "Le programme de force classique pour débutants. Deux courts entraînements à la barre alternent trois jours par semaine, avec 5 séries de 5 reps sur chaque exercice ; ajoute un peu de poids dès que tu les réussis toutes."
+msgid "The classic strength programme for beginners. Two short barbell workouts alternate three days a week: 5 sets of 5 reps on the squat, presses and rows, and one heavy set of 5 on the deadlift. Add a little weight whenever you complete them all."
+msgstr "Le programme de force classique pour débutants. Deux courts entraînements à la barre alternent trois jours par semaine : 5 séries de 5 reps au squat, aux développés et aux rowings, et une série lourde de 5 au soulevé de terre. Ajoute un peu de poids dès que tu les réussis toutes."
 
 #: constants/HelpData.ts:98
 msgid "The counting follows the Sets per Muscle / Week widget on the Stats tab: its target range is shaded on the weekly bars, and turning off half sets for secondary muscles there turns them off here too."

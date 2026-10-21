@@ -980,7 +980,7 @@ msgid ""
 "\n"
 "Find them under Premade plans on the Plans tab:\n"
 "• Beginner Growth (3 Days): full body barbell training to build muscle.\n"
-"• Classic 5x5: two short strength workouts that alternate, 5 sets of 5 reps.\n"
+"• Classic 5x5: two short strength workouts that alternate, mostly 5 sets of 5 reps.\n"
 "• 2-Day Full Body: the whole body twice a week, for a busy schedule.\n"
 "\n"
 "Also in this update:\n"
@@ -993,7 +993,7 @@ msgstr ""
 "\n"
 "Encuéntralos en Planes prediseñados, en la pestaña Planes:\n"
 "• Beginner Growth (3 Days): entrenamiento de cuerpo completo con barra para ganar músculo.\n"
-"• Classic 5x5: dos entrenamientos de fuerza cortos que se alternan, 5 series de 5 reps.\n"
+"• Classic 5x5: dos entrenamientos de fuerza cortos que se alternan, casi siempre 5 series de 5 reps.\n"
 "• 2-Day Full Body: todo el cuerpo dos veces por semana, para una agenda ocupada.\n"
 "\n"
 "También en esta actualización:\n"
@@ -8436,8 +8436,8 @@ msgid "The backup is damaged and can't be restored. Your data on this device has
 msgstr "La copia de seguridad está dañada y no se puede restaurar. Tus datos en este dispositivo no se han modificado."
 
 #: constants/premadePlanMeta.ts:97
-msgid "The classic strength programme for beginners. Two short barbell workouts alternate three days a week, with 5 sets of 5 reps on each lift; add a little weight whenever you complete them all."
-msgstr "El programa de fuerza clásico para principiantes. Dos entrenamientos cortos con barra se alternan tres días a la semana, con 5 series de 5 reps en cada ejercicio; añade un poco de peso cada vez que las completes todas."
+msgid "The classic strength programme for beginners. Two short barbell workouts alternate three days a week: 5 sets of 5 reps on the squat, presses and rows, and one heavy set of 5 on the deadlift. Add a little weight whenever you complete them all."
+msgstr "El programa de fuerza clásico para principiantes. Dos entrenamientos cortos con barra se alternan tres días a la semana: 5 series de 5 reps en sentadilla, presses y remos, y una serie pesada de 5 en peso muerto. Añade un poco de peso cada vez que las completes todas."
 
 #: constants/HelpData.ts:98
 msgid "The counting follows the Sets per Muscle / Week widget on the Stats tab: its target range is shaded on the weekly bars, and turning off half sets for secondary muscles there turns them off here too."
