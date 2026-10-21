@@ -1,0 +1,40 @@
+# The Maestro job of e2e-android.yml against an existing build, for when only
+# the flows changed. The app code in the build must still match the testIDs:
+#   eas workflow:run .eas/workflows/e2e-android-test.yml -F build_id=<id>
+# Keep the steps in sync with e2e-android.yml.
+name: E2E Android (existing build)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_id:
+        type: string
+        required: true
+        description: ID of an e2e-test Android build
+
+jobs:
+  maestro:
+    # Android emulators need a nested-virtualization worker.
+    runs_on: linux-medium-nested-virtualization
+    steps:
+      - uses: eas/checkout
+      - uses: eas/download_build
+        id: download_build
+        with:
+          build_id: ${{ inputs.build_id }}
+          extensions: [apk]
+      - uses: eas/install_maestro
+      - uses: eas/start_android_emulator
+        with:
+          system_image_package: system-images;android-34;default;x86_64
+      - name: Install the app
+        run: adb install "${{ steps.download_build.outputs.artifact_path }}"
+      - name: Run the smoke flows
+        run: maestro test .maestro/smoke.yml --debug-output maestro-debug
+      # Screenshots and the view hierarchy of a failed step.
+      - uses: eas/upload_artifact
+        if: ${{ failure() }}
+        with:
+          type: other
+          name: maestro-debug
+          path: maestro-debug/**/*

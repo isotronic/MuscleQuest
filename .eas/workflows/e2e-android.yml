@@ -5,6 +5,8 @@
 #
 # The test job is a custom job rather than the pre-packaged `maestro` type,
 # which needs a paid EAS plan.
+# To rerun only the flows on an existing build, use e2e-android-test.yml;
+# keep the maestro steps of both files in sync.
 name: E2E Android
 
 jobs:
