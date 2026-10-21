@@ -40,7 +40,7 @@ jobs:
       # The full suite ends with the quick workout on a German device. A
       # locale change needs root, which the default emulator image allows.
       - name: Switch the emulator to German
-        if: ${{ inputs.suite == 'full' }}
+        if: ${{ success() && inputs.suite == 'full' }}
         run: |
           adb root
           adb wait-for-device
@@ -52,7 +52,7 @@ jobs:
             && [ "$(adb shell getprop persist.sys.locale | tr -d '\r')" = "de-DE" ] \
             && adb shell pm path android > /dev/null 2>&1; do sleep 2; done
       - name: Run the German suite
-        if: ${{ inputs.suite == 'full' }}
+        if: ${{ success() && inputs.suite == 'full' }}
         run: maestro test .maestro/german.yml --debug-output maestro-debug
       # Screenshots and the view hierarchy of a failed step.
       - uses: eas/upload_artifact

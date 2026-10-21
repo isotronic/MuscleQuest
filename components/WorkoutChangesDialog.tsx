@@ -150,12 +150,17 @@ export function WorkoutChangesDialog({
           })}
         </ScrollView>
         <View style={styles.buttons}>
-          <Button mode="text" onPress={() => onDone(null)}>
+          <Button
+            mode="text"
+            testID="workout-changes-keep"
+            onPress={() => onDone(null)}
+          >
             {isPlan ? t`Keep plan as is` : t`Keep workout as is`}
           </Button>
           <Button
             mode="contained"
             disabled={chosen.size === 0}
+            testID="workout-changes-update"
             onPress={() => onDone([...chosen])}
           >
             {isPlan ? t`Update plan` : t`Update workout`}
